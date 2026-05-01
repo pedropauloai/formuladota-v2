@@ -49,6 +49,24 @@ export default function CodigoDeCondutaPage() {
             </p>
           </header>
 
+          <aside className="rounded-lg border border-[var(--color-cyan)] bg-[var(--color-card)] p-6 text-center">
+            <p className="text-2xl font-bold tracking-wide text-[var(--color-cyan)] text-glow-cyan">
+              {CANONICAL_QUOTES.firstRule}
+            </p>
+            <p className="mt-3 text-sm text-[var(--color-muted-foreground)]">
+              A primeira regra. A responsabilidade é sempre sua, 100% das vezes.
+            </p>
+          </aside>
+
+          <aside className="rounded-md border border-[var(--color-purple)]/40 bg-[var(--color-card)] p-5 text-center">
+            <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-purple)]">
+              missão
+            </p>
+            <p className="mt-2 text-base italic text-[var(--color-foreground)]">
+              “{CANONICAL_QUOTES.mission}”
+            </p>
+          </aside>
+
           <nav
             aria-label="Sumário do código de conduta"
             className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5"
