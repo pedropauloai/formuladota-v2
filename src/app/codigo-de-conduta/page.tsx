@@ -1,0 +1,222 @@
+import Link from "next/link";
+import {
+  ANTIPATTERNS,
+  CANONICAL_QUOTES,
+  PRINCIPLES,
+  PROGRESSIVE_MODERATION,
+} from "@/lib/doctrine";
+
+// Página pública canônica do código de conduta.
+// Acessível sem login — referência permanente da cultura.
+export const metadata = {
+  title: "Código de Conduta — Fórmula Dota",
+  description:
+    "A Fórmula do Dota de Corrida — princípios, anti-padrões e sistema progressivo de moderação.",
+};
+
+export default function CodigoDeCondutaPage() {
+  const comportamentais = PRINCIPLES.filter((p) => p.category === "comportamental");
+  const tecnicos = PRINCIPLES.filter((p) => p.category === "tecnico");
+  const progressao = PRINCIPLES.filter((p) => p.category === "progressao");
+
+  return (
+    <main className="min-h-screen px-6 py-16">
+      <div className="mx-auto max-w-3xl space-y-16">
+        <header className="space-y-4 text-center">
+          <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-cyan)]">
+            código de conduta · v1
+          </p>
+          <h1 className="text-4xl font-bold leading-tight md:text-5xl">
+            A Fórmula do <span className="text-[var(--color-cyan)] text-glow-cyan">Dota</span> de Corrida
+          </h1>
+          <p className="mx-auto max-w-2xl text-base text-[var(--color-muted-foreground)]">
+            {CANONICAL_QUOTES.opening}
+          </p>
+        </header>
+
+        <Section title="Os 14 princípios da Fórmula do Dota de Corrida">
+          <Subsection title="Mentais e comportamentais">
+            {comportamentais.map((p) => (
+              <PrincipleCard key={p.id} principle={p} highlight={p.id === 1} />
+            ))}
+          </Subsection>
+          <Subsection title="Técnicos e de execução">
+            {tecnicos.map((p) => (
+              <PrincipleCard key={p.id} principle={p} />
+            ))}
+          </Subsection>
+          <Subsection title="Progressão">
+            {progressao.map((p) => (
+              <PrincipleCard key={p.id} principle={p} />
+            ))}
+          </Subsection>
+        </Section>
+
+        <Section title="Os 10 padrões tóxicos (proibidos)">
+          <p className="text-sm text-[var(--color-muted-foreground)]">
+            Esses comportamentos são incompatíveis com a cultura da Fórmula Dota.
+            Geram advertência, suspensão ou banimento conforme as regras abaixo.
+          </p>
+          <div className="space-y-4">
+            {ANTIPATTERNS.map((a) => (
+              <AntipatternCard key={a.id} antipattern={a} />
+            ))}
+          </div>
+        </Section>
+
+        <Section title="Sistema progressivo de moderação">
+          <p className="text-sm text-[var(--color-muted-foreground)]">
+            Toda violação registrada cita o princípio ou anti-padrão violado.
+            Não é punição arbitrária — é aplicação da regra que você aceitou ao entrar.
+          </p>
+          <ol className="space-y-4">
+            <ModerationStep
+              step={1}
+              label={PROGRESSIVE_MODERATION.step1.label}
+              description={PROGRESSIVE_MODERATION.step1.description}
+            />
+            <ModerationStep
+              step={2}
+              label={PROGRESSIVE_MODERATION.step2.label}
+              description={PROGRESSIVE_MODERATION.step2.description}
+            />
+            <ModerationStep
+              step={3}
+              label={PROGRESSIVE_MODERATION.step3.label}
+              description={PROGRESSIVE_MODERATION.step3.description}
+            />
+          </ol>
+          <p className="rounded-md border border-[var(--color-border)] bg-[var(--color-muted)] px-4 py-3 text-sm text-[var(--color-muted-foreground)]">
+            <strong className="text-[var(--color-foreground)]">Reset automático:</strong>{" "}
+            {PROGRESSIVE_MODERATION.reset}
+          </p>
+          <p className="text-sm text-[var(--color-muted-foreground)]">
+            <strong className="text-[var(--color-foreground)]">Direito ao contraditório:</strong>{" "}
+            você pode contestar qualquer decisão via Discord oficial. Pedro
+            revisa caso a caso e reverte manualmente se entender que houve erro.
+          </p>
+        </Section>
+
+        <Section title="Compromisso final">
+          <blockquote className="border-l-2 border-[var(--color-cyan)] pl-6 italic text-[var(--color-foreground)]">
+            {CANONICAL_QUOTES.responsibility}
+          </blockquote>
+          <blockquote className="border-l-2 border-[var(--color-purple)] pl-6 italic text-[var(--color-foreground)]">
+            {CANONICAL_QUOTES.competitiveMindset}
+          </blockquote>
+        </Section>
+
+        <footer className="border-t border-[var(--color-border)] pt-8 text-center">
+          <Link
+            href="/"
+            className="font-mono text-xs uppercase tracking-widest text-[var(--color-cyan)] hover:text-glow-cyan transition"
+          >
+            ← voltar à home
+          </Link>
+        </footer>
+      </div>
+    </main>
+  );
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="space-y-6">
+      <h2 className="text-2xl font-bold">{title}</h2>
+      <div className="space-y-6">{children}</div>
+    </section>
+  );
+}
+
+function Subsection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-3">
+      <h3 className="font-mono text-xs uppercase tracking-widest text-[var(--color-purple)]">
+        {title}
+      </h3>
+      <div className="space-y-3">{children}</div>
+    </div>
+  );
+}
+
+function PrincipleCard({
+  principle,
+  highlight,
+}: {
+  principle: { id: number; title: string; body: string };
+  highlight?: boolean;
+}) {
+  return (
+    <article
+      className={[
+        "rounded-lg border p-5 space-y-2",
+        highlight
+          ? "border-[var(--color-cyan)] bg-[var(--color-card)] text-glow-cyan"
+          : "border-[var(--color-border)] bg-[var(--color-card)]",
+      ].join(" ")}
+    >
+      <header className="flex items-baseline gap-3">
+        <span className="font-mono text-xs text-[var(--color-cyan)]">
+          {String(principle.id).padStart(2, "0")}
+        </span>
+        <h4 className="font-semibold">{principle.title}</h4>
+      </header>
+      <p className="text-sm leading-relaxed text-[var(--color-muted-foreground)]">
+        {principle.body}
+      </p>
+    </article>
+  );
+}
+
+function AntipatternCard({
+  antipattern,
+}: {
+  antipattern: (typeof ANTIPATTERNS)[number];
+}) {
+  return (
+    <article className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5 space-y-3">
+      <header className="flex items-baseline gap-3">
+        <span className="font-mono text-xs text-[var(--color-danger)]">
+          ✕ {String(antipattern.id).padStart(2, "0")}
+        </span>
+        <h4 className="font-semibold">{antipattern.title}</h4>
+      </header>
+      <ul className="space-y-1 text-sm text-[var(--color-muted-foreground)]">
+        {antipattern.examples.map((ex, i) => (
+          <li key={i} className="leading-relaxed">
+            • {ex}
+          </li>
+        ))}
+      </ul>
+      {antipattern.directSeverityNote && (
+        <p className="rounded-md border border-[var(--color-danger)]/40 bg-[var(--color-danger)]/10 px-3 py-2 text-xs font-medium text-[var(--color-danger)]">
+          ⚠ {antipattern.directSeverityNote}
+        </p>
+      )}
+    </article>
+  );
+}
+
+function ModerationStep({
+  step,
+  label,
+  description,
+}: {
+  step: number;
+  label: string;
+  description: string;
+}) {
+  return (
+    <li className="flex gap-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5">
+      <div className="flex size-10 shrink-0 items-center justify-center rounded-full border border-[var(--color-cyan)] font-mono text-sm font-bold text-[var(--color-cyan)]">
+        {step}
+      </div>
+      <div className="space-y-1">
+        <h4 className="font-semibold">{label}</h4>
+        <p className="text-sm leading-relaxed text-[var(--color-muted-foreground)]">
+          {description}
+        </p>
+      </div>
+    </li>
+  );
+}
