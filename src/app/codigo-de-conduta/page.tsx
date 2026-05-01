@@ -14,57 +14,96 @@ export const metadata = {
     "A Fórmula do Dota de Corrida — princípios, anti-padrões e sistema progressivo de moderação.",
 };
 
+const TOC_SECTIONS = [
+  { id: "principios", label: "Os 14 princípios" },
+  { id: "antipadroes", label: "10 padrões tóxicos" },
+  { id: "moderacao", label: "Sistema progressivo" },
+  { id: "compromisso", label: "Compromisso final" },
+];
+
 export default function CodigoDeCondutaPage() {
   const comportamentais = PRINCIPLES.filter((p) => p.category === "comportamental");
   const tecnicos = PRINCIPLES.filter((p) => p.category === "tecnico");
   const progressao = PRINCIPLES.filter((p) => p.category === "progressao");
 
   return (
-    <main className="min-h-screen px-6 py-16">
-      <div className="mx-auto max-w-3xl space-y-16">
-        <header className="space-y-4 text-center">
-          <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-cyan)]">
-            código de conduta · v1
-          </p>
-          <h1 className="text-4xl font-bold leading-tight md:text-5xl">
-            A Fórmula do <span className="text-[var(--color-cyan)] text-glow-cyan">Dota</span> de Corrida
-          </h1>
-          <p className="mx-auto max-w-2xl text-base text-[var(--color-muted-foreground)]">
-            {CANONICAL_QUOTES.opening}
-          </p>
-        </header>
+    <>
+      <a
+        href="#conteudo"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-[var(--color-cyan)] focus:px-4 focus:py-2 focus:font-medium focus:text-[var(--color-background)]"
+      >
+        Pular para o conteúdo
+      </a>
 
-        <Section title="Os 14 princípios da Fórmula do Dota de Corrida">
-          <Subsection title="Mentais e comportamentais">
-            {comportamentais.map((p) => (
-              <PrincipleCard key={p.id} principle={p} highlight={p.id === 1} />
-            ))}
-          </Subsection>
-          <Subsection title="Técnicos e de execução">
-            {tecnicos.map((p) => (
-              <PrincipleCard key={p.id} principle={p} />
-            ))}
-          </Subsection>
-          <Subsection title="Progressão">
-            {progressao.map((p) => (
-              <PrincipleCard key={p.id} principle={p} />
-            ))}
-          </Subsection>
-        </Section>
+      <main id="conteudo" className="min-h-screen px-6 py-16">
+        <div className="mx-auto max-w-3xl space-y-16">
+          <header className="space-y-4 text-center">
+            <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-cyan)]">
+              código de conduta · v1
+            </p>
+            <h1 className="text-4xl font-bold leading-tight md:text-5xl">
+              A Fórmula do <span className="text-[var(--color-cyan)] text-glow-cyan">Dota</span> de Corrida
+            </h1>
+            <p className="mx-auto max-w-2xl text-base text-[var(--color-muted-foreground)]">
+              {CANONICAL_QUOTES.opening}
+            </p>
+          </header>
 
-        <Section title="Os 10 padrões tóxicos (proibidos)">
-          <p className="text-sm text-[var(--color-muted-foreground)]">
-            Esses comportamentos são incompatíveis com a cultura da Fórmula Dota.
-            Geram advertência, suspensão ou banimento conforme as regras abaixo.
-          </p>
-          <div className="space-y-4">
-            {ANTIPATTERNS.map((a) => (
-              <AntipatternCard key={a.id} antipattern={a} />
-            ))}
-          </div>
-        </Section>
+          <nav
+            aria-label="Sumário do código de conduta"
+            className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5"
+          >
+            <p className="mb-3 font-mono text-xs uppercase tracking-widest text-[var(--color-purple)]">
+              sumário
+            </p>
+            <ol className="space-y-2 text-sm">
+              {TOC_SECTIONS.map((s, i) => (
+                <li key={s.id} className="flex gap-3">
+                  <span className="font-mono text-[var(--color-cyan)]">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <a
+                    href={`#${s.id}`}
+                    className="text-[var(--color-foreground)] hover:text-[var(--color-cyan)] transition"
+                  >
+                    {s.label}
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </nav>
 
-        <Section title="Sistema progressivo de moderação">
+          <Section id="principios" title="Os 14 princípios da Fórmula do Dota de Corrida">
+            <Subsection title="Mentais e comportamentais">
+              {comportamentais.map((p) => (
+                <PrincipleCard key={p.id} principle={p} highlight={p.id === 1} />
+              ))}
+            </Subsection>
+            <Subsection title="Técnicos e de execução">
+              {tecnicos.map((p) => (
+                <PrincipleCard key={p.id} principle={p} />
+              ))}
+            </Subsection>
+            <Subsection title="Progressão">
+              {progressao.map((p) => (
+                <PrincipleCard key={p.id} principle={p} />
+              ))}
+            </Subsection>
+          </Section>
+
+          <Section id="antipadroes" title="Os 10 padrões tóxicos (proibidos)">
+            <p className="text-sm text-[var(--color-muted-foreground)]">
+              Esses comportamentos são incompatíveis com a cultura da Fórmula Dota.
+              Geram advertência, suspensão ou banimento conforme as regras abaixo.
+            </p>
+            <div className="space-y-4">
+              {ANTIPATTERNS.map((a) => (
+                <AntipatternCard key={a.id} antipattern={a} />
+              ))}
+            </div>
+          </Section>
+
+          <Section id="moderacao" title="Sistema progressivo de moderação">
           <p className="text-sm text-[var(--color-muted-foreground)]">
             Toda violação registrada cita o princípio ou anti-padrão violado.
             Não é punição arbitrária — é aplicação da regra que você aceitou ao entrar.
@@ -97,31 +136,40 @@ export default function CodigoDeCondutaPage() {
           </p>
         </Section>
 
-        <Section title="Compromisso final">
-          <blockquote className="border-l-2 border-[var(--color-cyan)] pl-6 italic text-[var(--color-foreground)]">
-            {CANONICAL_QUOTES.responsibility}
-          </blockquote>
-          <blockquote className="border-l-2 border-[var(--color-purple)] pl-6 italic text-[var(--color-foreground)]">
-            {CANONICAL_QUOTES.competitiveMindset}
-          </blockquote>
-        </Section>
+          <Section id="compromisso" title="Compromisso final">
+            <blockquote className="border-l-2 border-[var(--color-cyan)] pl-6 italic text-[var(--color-foreground)]">
+              {CANONICAL_QUOTES.responsibility}
+            </blockquote>
+            <blockquote className="border-l-2 border-[var(--color-purple)] pl-6 italic text-[var(--color-foreground)]">
+              {CANONICAL_QUOTES.competitiveMindset}
+            </blockquote>
+          </Section>
 
-        <footer className="border-t border-[var(--color-border)] pt-8 text-center">
-          <Link
-            href="/"
-            className="font-mono text-xs uppercase tracking-widest text-[var(--color-cyan)] hover:text-glow-cyan transition"
-          >
-            ← voltar à home
-          </Link>
-        </footer>
-      </div>
-    </main>
+          <footer className="border-t border-[var(--color-border)] pt-8 text-center">
+            <Link
+              href="/"
+              className="font-mono text-xs uppercase tracking-widest text-[var(--color-cyan)] hover:text-glow-cyan transition"
+            >
+              ← voltar à home
+            </Link>
+          </footer>
+        </div>
+      </main>
+    </>
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({
+  id,
+  title,
+  children,
+}: {
+  id?: string;
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
-    <section className="space-y-6">
+    <section id={id} className="space-y-6 scroll-mt-8">
       <h2 className="text-2xl font-bold">{title}</h2>
       <div className="space-y-6">{children}</div>
     </section>
@@ -151,15 +199,22 @@ function PrincipleCard({
       className={[
         "rounded-lg border p-5 space-y-2",
         highlight
-          ? "border-[var(--color-cyan)] bg-[var(--color-card)] text-glow-cyan"
+          ? "border-[var(--color-cyan)] bg-[var(--color-card)]"
           : "border-[var(--color-border)] bg-[var(--color-card)]",
       ].join(" ")}
     >
       <header className="flex items-baseline gap-3">
-        <span className="font-mono text-xs text-[var(--color-cyan)]">
+        <span
+          className={[
+            "font-mono text-xs",
+            highlight ? "text-[var(--color-cyan)] text-glow-cyan" : "text-[var(--color-cyan)]",
+          ].join(" ")}
+        >
           {String(principle.id).padStart(2, "0")}
         </span>
-        <h4 className="font-semibold">{principle.title}</h4>
+        <h4 className={highlight ? "font-semibold text-glow-cyan" : "font-semibold"}>
+          {principle.title}
+        </h4>
       </header>
       <p className="text-sm leading-relaxed text-[var(--color-muted-foreground)]">
         {principle.body}

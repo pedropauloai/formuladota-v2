@@ -16,7 +16,20 @@ export const metadata = {
   title: "Onboarding — A Fórmula do Dota de Corrida",
 };
 
-export default async function OnboardingDoutrinaPage() {
+const ERROR_MESSAGES: Record<string, string> = {
+  invalid: "Dados do formulário inválidos. Tente novamente.",
+  stale_version:
+    "A versão da doutrina foi atualizada enquanto você lia. Recarregue a página para ver o texto novo.",
+  db: "Erro ao registrar seu aceite no banco de dados. Tente novamente em alguns segundos — se persistir, entre em contato pelo Discord.",
+};
+
+type SearchParams = Promise<{ error?: string }>;
+
+export default async function OnboardingDoutrinaPage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -40,15 +53,19 @@ export default async function OnboardingDoutrinaPage() {
     redirect("/perfil");
   }
 
+  const params = await searchParams;
+  const errorMessage = params.error ? ERROR_MESSAGES[params.error] : undefined;
+
   return (
     <main className="min-h-screen bg-[var(--color-background)]">
       <OnboardingFlow
-        username={profile?.username ?? "imortal"}
+        username={profile?.username ?? "jogador"}
         version={DOCTRINE_VERSION}
         principles={PRINCIPLES}
         antipatterns={ANTIPATTERNS}
         moderation={PROGRESSIVE_MODERATION}
         quotes={CANONICAL_QUOTES}
+        errorMessage={errorMessage}
       />
     </main>
   );

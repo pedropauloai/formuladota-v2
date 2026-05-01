@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { useFormStatus } from "react-dom";
 import {
   ANTIPATTERNS,
@@ -17,9 +17,30 @@ type Props = {
   antipatterns: typeof ANTIPATTERNS;
   moderation: typeof PROGRESSIVE_MODERATION;
   quotes: typeof CANONICAL_QUOTES;
+  errorMessage?: string;
 };
 
 const TOTAL_SLIDES = 5;
+
+// Persist slide via URL hash — back button do navegador funciona naturalmente.
+// useSyncExternalStore é o pattern correto pra subscrever em estado externo.
+function readSlideFromHash(): number {
+  const m = window.location.hash.match(/#slide-(\d)/);
+  if (!m) return 1;
+  const n = Number(m[1]);
+  return n >= 1 && n <= TOTAL_SLIDES ? n : 1;
+}
+
+function subscribeToHash(callback: () => void) {
+  window.addEventListener("hashchange", callback);
+  window.addEventListener("popstate", callback);
+  return () => {
+    window.removeEventListener("hashchange", callback);
+    window.removeEventListener("popstate", callback);
+  };
+}
+
+const SSR_DEFAULT_SLIDE = 1;
 
 export function OnboardingFlow({
   username,
@@ -28,12 +49,24 @@ export function OnboardingFlow({
   antipatterns,
   moderation,
   quotes,
+  errorMessage,
 }: Props) {
-  const [slide, setSlide] = useState(1);
+  const slide = useSyncExternalStore(
+    subscribeToHash,
+    readSlideFromHash,
+    () => SSR_DEFAULT_SLIDE
+  );
   const [accepted, setAccepted] = useState(false);
 
-  const next = () => setSlide((s) => Math.min(TOTAL_SLIDES, s + 1));
-  const back = () => setSlide((s) => Math.max(1, s - 1));
+  const goTo = (n: number) => {
+    const target = Math.max(1, Math.min(TOTAL_SLIDES, n));
+    window.history.pushState(null, "", `#slide-${target}`);
+    // dispatchEvent força re-render via subscriber (pushState não dispara popstate)
+    window.dispatchEvent(new HashChangeEvent("hashchange"));
+  };
+
+  const next = () => goTo(slide + 1);
+  const back = () => goTo(slide - 1);
 
   const comportamentais = principles.filter((p) => p.category === "comportamental");
   const tecnicos = principles.filter((p) => p.category === "tecnico");
@@ -41,6 +74,15 @@ export function OnboardingFlow({
 
   return (
     <div className="mx-auto flex min-h-screen max-w-3xl flex-col px-6 py-12">
+      {errorMessage && (
+        <div
+          role="alert"
+          className="mb-6 rounded-md border border-[var(--color-danger)]/60 bg-[var(--color-danger)]/10 px-4 py-3 text-sm text-[var(--color-danger)]"
+        >
+          {errorMessage}
+        </div>
+      )}
+
       <ProgressBar current={slide} total={TOTAL_SLIDES} />
 
       <div className="flex-1 py-12">
@@ -68,11 +110,15 @@ export function OnboardingFlow({
         )}
       </div>
 
-      <nav className="flex items-center justify-between border-t border-[var(--color-border)] pt-6">
+      <nav
+        aria-label="Navegação do onboarding"
+        className="flex items-center justify-between border-t border-[var(--color-border)] pt-6"
+      >
         <button
           type="button"
           onClick={back}
           disabled={slide === 1}
+          aria-label="Slide anterior"
           className="font-mono text-xs uppercase tracking-widest text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] disabled:opacity-30 transition"
         >
           ← anterior
@@ -86,6 +132,7 @@ export function OnboardingFlow({
           <button
             type="button"
             onClick={next}
+            aria-label="Próximo slide"
             className="rounded-md border border-[var(--color-cyan)] px-5 py-2 font-medium text-[var(--color-cyan)] hover:bg-[var(--color-cyan)]/10 transition"
           >
             Continuar →
@@ -110,7 +157,15 @@ function ProgressBar({ current, total }: { current: number; total: number }) {
           onboarding obrigatório
         </span>
       </div>
-      <div className="h-1 w-full overflow-hidden rounded-full bg-[var(--color-muted)]">
+      <div
+        role="progressbar"
+        aria-label="Progresso do onboarding"
+        aria-valuenow={current}
+        aria-valuemin={1}
+        aria-valuemax={total}
+        aria-valuetext={`Slide ${current} de ${total}`}
+        className="h-1 w-full overflow-hidden rounded-full bg-[var(--color-muted)]"
+      >
         <div
           className="h-full bg-[var(--color-cyan)] transition-all duration-500"
           style={{ width: `${pct}%` }}
@@ -397,7 +452,7 @@ function AcceptButton({
   disabled: boolean;
 }) {
   return (
-    <form action={acceptDoctrine}>
+    <form action={acceptDoctrine} aria-live="polite" aria-atomic="true">
       <input type="hidden" name="acceptedVersion" value={acceptedVersion} />
       <SubmitButton disabled={disabled} />
     </form>
@@ -411,6 +466,7 @@ function SubmitButton({ disabled }: { disabled: boolean }) {
     <button
       type="submit"
       disabled={isDisabled}
+      aria-busy={pending}
       className="rounded-md bg-[var(--color-cyan)] px-6 py-2 font-bold text-[var(--color-background)] hover:bg-[var(--color-cyan)]/90 disabled:cursor-not-allowed disabled:opacity-30 transition"
     >
       {pending ? "Registrando..." : "Aceitar e entrar →"}
