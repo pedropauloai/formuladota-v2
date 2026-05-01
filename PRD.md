@@ -6,6 +6,100 @@
 
 ---
 
+## 0. Cultura e Código de Conduta (NORTE)
+
+> **A plataforma não é só uma loja de mentoria.** É o veículo pra reerguer uma comunidade **doutrinada** nos princípios da **Fórmula do Dota de Corrida** (1ª aula da Fórmula do MMR, autoria Pedro Paulo / PPA / Peter PPA — Immortal/7000 MMR, 15+ anos de Dota, 50.000h, 1ª calibração 2300 MMR).
+>
+> **Doc canônico**: `A FÓRMULA DO DOTA DE CORRIDA.txt` na raiz do repo — fonte da linguagem oficial pra todo copy de moderação, onboarding e pós-partida. Não parafrasear: citar.
+
+### Por que isso vem antes de tudo
+
+A Liga antiga (2024-2025, pico 77 pagantes → encerrada nov/2025) **não falhou por preço nem por produto**. Falhou porque "muitos não compreendiam a perspectiva séria/profissional, encaravam como entretenimento" — gerar gestão emocional desses clientes drenou Pedro até burnout.
+
+Esta versão **não vende partida com Pedro pra qualquer um que pague**. Vende **acesso à cultura** — aceite é **obrigatório**, não condicional. Quem viola, é educado; reincide, é suspenso; persiste, é banido. Cultura é o moat e a barreira de proteção mental.
+
+### Missão histórica (declarada no doc canônico)
+
+> *"Formar pelo menos 200 jogadores na medalha Imortal de forma 100% legítima."*
+
+Meta original era 2025. A reativar/atualizar com Pedro pra contador público no site (ex: "X imortais formados / 200 — meta viva 2026").
+
+### Tom do onboarding (linguagem canônica do Pedro)
+
+Frases que devem aparecer **literais** no fluxo `/onboarding/doutrina` e em `/codigo-de-conduta`:
+
+> *"A ideia aqui não é te entreter — é te mudar por dentro, na forma de pensar, jogar e reagir ao Dota."*
+>
+> *"❗ A CULPA NUNCA É DO OUTRO ❗"* (Primeira Regra, destacada como no original)
+>
+> *"Frustração nasce de expectativas não correspondidas."*
+>
+> *"Ou você ganha, ou você aprende. Perder faz parte. Evoluir é uma escolha."*
+>
+> *"Não é arrogância. É responsabilidade. Saber mais significa que agora é você quem carrega a vitória."*
+>
+> *"A mentalidade aqui é competitiva. Em alguns momentos, você precisará deixar de lado hábitos ou preferências que não contribuem para sua evolução."*
+
+### Os 14 princípios (regras de conduta — núcleo doutrinário)
+
+**Mentais / comportamentais**
+1. A culpa NUNCA é do outro — responsabilidade 100% sua, sempre.
+2. Frustração nasce de expectativas não correspondidas — treinar não criar expectativas em terceiros.
+3. Paralaxe cognitiva — cada jogador interpreta o jogo diferente; não existe verdade absoluta em jogada.
+4. Errar é parte do aprendizado — sem medo de errar, desde que reconheça e aprenda.
+5. Ou você ganha ou você aprende — derrota é degrau, não fim.
+6. Não é arrogância, é responsabilidade — saber mais = carregar a vitória.
+
+**Técnicos / execução**
+7. Patrimônio (gold) por tempo é o KPI real — frags/KDA são consequência.
+8. Metas mensuráveis: Core 5k @ 10min, 10k @ 20min (500 GPM). Suporte: metade.
+9. Core é mais fácil — mais recursos = decisões mais simples.
+10. Mid é a melhor rota — não divide XP, 1 nível/min ("corrida do nível").
+11. Solo Mid OU grupo 5 — qualquer outra configuração trava evolução.
+12. Smurfs propõem desafio — só melhora enfrentando melhores.
+
+**Progressão**
+13. 70% WR → +1000 MMR em 100 partidas (5/dia × 20 dias).
+14. Guardião → Divine em 2 meses com método + disciplina.
+
+### Os 10 padrões tóxicos (anti-cultura — bloqueados / educados)
+
+1. Cultura da culpa (blame culture)
+2. Desistência precoce ("gg go next" aos 10min)
+3. Forçar estratégias inadequadas (stubborn playstyle)
+4. Comunicação tóxica ou ausente
+5. Rage quit / AFK disfarçado
+6. Feeding intencional (griefing)
+7. Ego inflado
+8. Brigas por função e rota
+9. Desrespeito à liderança (anti-time)
+10. Preconceito, xenofobia, racismo
+
+### Como a cultura aparece no produto
+
+| Onde | O quê | Quando entra |
+|---|---|---|
+| **Onboarding** | Tela `/onboarding/doutrina` lista 14 princípios + 10 anti-padrões com linguagem canônica do Pedro; user aceita explicitamente. **Sem aceite, sem nada além de navegar landing pública.** | Phase 1.5 (antes do catálogo) |
+| **DB profiles** | `doctrine_accepted_at`, `doctrine_version`, `behavior_status` (`ok`/`warned`/`suspended`/`banned`), `suspended_until`, `banned_at`, `banned_reason` | Migration 004 |
+| **DB user_warnings** | Tabela de violações: `(user_id, principle_violated_n, severity, source, notes, issued_by, issued_at)` — auditoria completa | Migration 004 |
+| **`/codigo-de-conduta`** | Página pública canônica — cita texto literal do doc do Pedro. Linkada de footer + onboarding + email pós-aceite. | Phase 1.5 |
+| **Sistema progressivo de moderação** | **Advertência → Suspensão → Banimento.** Mecânica detalhada na seção §11 abaixo. | Phase 1.5 (schema) + V2 (UI admin completa) |
+| **Pós-partida** | Após resultado registrado: prompt "Lembrete princípio X. O que você aprendeu hoje?" — campo livre opcional | Phase 5 |
+| **Perfil** | Badge "Doutrinado" (aceite + 3 partidas sem violação). Status comportamental visível (`ok`/`warned`/`suspended`). | Phase 5 |
+| **Discord bot** | Comando `/principios` lista os 14. Pedro pode advertir via comando `/advertir @user motivo` (loga em `user_warnings`). | Phase 4 |
+| **Diferenciação meta-liga** | meta-liga = liga **técnica pura**. formuladota = liga **doutrinada** (técnica + comportamental). Cultura é o moat. | Toda comunicação |
+
+### O que esta seção NÃO é
+
+- ❌ Não é texto bonito pra landing — é **regra operacional** que rege RLS, triggers, fluxos de checkout, e moderação automática.
+- ❌ Não transforma onboarding em muro hostil — texto é **convite**, não barreira (escrita revisada com Pedro antes do launch).
+- ❌ Não cria culto ao Pedro — princípios são universais (Pedro [já mostrou que são transferíveis a IA / dev / qualquer área](../segundo-cerebro/07%20-%20Negocio/Metodologia%20de%20ensino%20Pedro.md)).
+- ❌ Não pressiona cliente a "se comportar" — protege Pedro de gerenciar quem **não absorve a cultura**.
+
+> **Ação aberta**: Pedro deve enviar o **doc canônico completo** ("A Fórmula do Dota de Corrida", upload 30/04/2026) antes da Phase 1.5 — copy do código de conduta deve usar a linguagem original do Pedro, não paráfrase Cowork.
+
+---
+
 ## 1. Project Context
 
 ### O que é
@@ -372,6 +466,53 @@ create policy "everyone sees active packages" on packages for select using (ativ
 - ✅ User consegue logar e tem profile criado no DB
 - ✅ Schema completo + RLS ativo
 
+### Phase 1.5 — Onboarding Doutrinário + Código de Conduta + Moderação progressiva (Day 2)
+
+**Deliverables — Schema**:
+- [ ] Migration 004:
+  - `profiles.doctrine_accepted_at timestamptz`
+  - `profiles.doctrine_version integer default 1` (incrementa quando texto do código mudar)
+  - `profiles.behavior_status text check in ('ok','warned','suspended','banned') default 'ok'`
+  - `profiles.suspended_until timestamptz` (NULL se não suspenso)
+  - `profiles.banned_at timestamptz`, `profiles.banned_reason text`
+  - Tabela `user_warnings`:
+    ```
+    id uuid pk
+    user_id uuid references profiles(id)
+    principle_violated integer (1-14) | null  -- NULL se anti-padrão (1-10) — usar `antipattern_violated`
+    antipattern_violated integer (1-10) | null
+    severity text check ('advertencia','suspensao','banimento')
+    source text  -- 'pedro_admin' | 'discord_bot' | 'report_user' | 'auto_detect'
+    notes text
+    issued_by uuid references profiles(id)  -- normalmente Pedro
+    issued_at timestamptz default now()
+    suspension_days integer | null  -- preenchido se severity='suspensao'
+    ```
+  - Trigger `on_warning_inserted`: aplica regra progressiva (§11) automaticamente em `profiles`.
+- [ ] Migration RLS: user lê só warnings dele; admin vê todos.
+
+**Deliverables — UI/Fluxo**:
+- [ ] Página pública `/codigo-de-conduta` — cita texto literal do `A FÓRMULA DO DOTA DE CORRIDA.txt` + 10 anti-padrões + descrição clara do sistema progressivo.
+- [ ] Tela `/onboarding/doutrina` — onboarding obrigatório:
+  - Slide 1: "A ideia aqui não é te entreter — é te mudar por dentro" + ❗ A CULPA NUNCA É DO OUTRO ❗
+  - Slide 2-9: 14 princípios (1 ou 2 por slide, com micro-explicação)
+  - Slide 10-12: 10 anti-padrões + sistema progressivo (advertência → suspensão → banimento)
+  - Slide final: checkbox "Eu li, compreendi e aceito. Sei que violações geram advertência, suspensão ou banimento." + botão **Aceitar e entrar**
+  - Sem aceite final, sem botão "pular" — único caminho é fechar a aba.
+- [ ] Server Action `acceptDoctrine(version)` — grava `doctrine_accepted_at = now()` + `doctrine_version`.
+- [ ] **Proxy/middleware enforcement**: user logado **sem aceite** que tente acessar QUALQUER rota privada (`/pacotes`, `/perfil`, `/agendar`, `/admin`, `/api/*` exceto `/auth/*` e `/api/webhooks/*`) é redirecionado pra `/onboarding/doutrina`.
+- [ ] User com `behavior_status = 'suspended'` — tela `/suspended` mostra `suspended_until` + motivo + opção contestar via Discord.
+- [ ] User com `behavior_status = 'banned'` — tela `/banned` final, sem retorno automático.
+- [ ] Footer global linka `/codigo-de-conduta`.
+- [ ] Email pós-aceite (Resend): boas-vindas com texto curto + link `/codigo-de-conduta`.
+
+**Acceptance**:
+- ✅ User sem aceite NÃO consegue acessar nada privado, **nem mesmo navegar pacotes**.
+- ✅ Aceite gravado com versão — se Pedro atualizar o código, sistema força reaceitar.
+- ✅ Pedro consegue advertir via admin: registra warning → trigger atualiza `behavior_status` automaticamente conforme §11.
+- ✅ User suspenso vê tela explicativa, não consegue jogar/comprar até `suspended_until`.
+- ✅ User banido vê tela final, conta congelada (saldo restante refundado manualmente).
+
 ### Phase 2 — Catalog & Checkout (Day 2-3)
 **Deliverables**:
 - [ ] Seed packages no DB (4 pacotes iniciais)
@@ -454,6 +595,31 @@ create policy "everyone sees active packages" on packages for select using (ativ
 - Integração com Twitch (live com viewers)
 - Streaming overlay de stats em live
 
+### 7.1 Vision V1.5 → V3 (backlog estruturado, ver `.planning/research/integrations.md`)
+
+Pesquisa completa em **`.planning/research/integrations.md`** (gerada em 2026-05-01 após análise da plataforma de referência [meta-liga.ggarena.pro](https://meta-liga.ggarena.pro)).
+
+**V1.5** (semanas 4-8 pós-launch):
+- Steam OpenID complementar (tabela paralela `steam_links` — Discord segue auth primário)
+- Discord Connections scope → score anti-smurf
+- Stats automatizados via OpenDota (substitui input manual de `match_id`)
+
+**V2** (mês 3-4):
+- Sistema de ligas internas (Mentoria mensal vira liga própria)
+- Ranking interno com MMR custom (Elo K=25, base 1000) + 8 tiers Herald→Immortal × 5 estrelas
+- Badges visuais com identidade Fórmula Dota (cyan/purple), inspirados Dota 2 oficial mas reskinned
+- Histórico de temporadas
+- Lista de Picks/Builds via Google Sheets CSV (admin sem painel — hack do meta-liga)
+
+**V3** (mês 6+, só se demanda validar):
+- Bot lobby Dota 2 (node-dota2 + Steam GC, conta dedicada em Docker headless)
+- Multi-conta verification (Twitch/YouTube/X via Discord connections)
+- Captains Mode interno com draft phase
+- Sistema de amigos + chat real-time (WebSocket)
+- Fórum próprio
+
+> **Princípio**: nada disso entra antes do MVP V1 validar tração. Discord-first (não Steam-first) — Discord traz comunidade pronta, Steam só identidade técnica.
+
 ---
 
 ## 8. Risks & Mitigations
@@ -466,6 +632,61 @@ create policy "everyone sees active packages" on packages for select using (ativ
 | Pedro burnout repetir | Média | Alto | **Limite hardcoded de 3 partidas/dia agendáveis** no MVP |
 | Demanda muito baixa (<3 clientes em 30d) | Média | Médio | Pivot pricing ou formato após 30 dias |
 | Bot Discord cair | Baixa | Baixo | Health check + restart automático |
+
+---
+
+## 11. Sistema Progressivo de Moderação (regra operacional da Cultura — §0)
+
+> Moderação é **fiel à doutrina**: educa antes, pune se reincide, remove se persiste. Linguagem do feedback **sempre cita o princípio violado** (não é "punição arbitrária do mod", é "violação da regra que você aceitou").
+
+### Mecânica padrão (3 strikes)
+
+| Violação Nº | Severidade | Ação automática | Mensagem ao user |
+|:---:|---|---|---|
+| 1ª | `advertencia` | `behavior_status = 'warned'` | Email/Discord DM citando princípio + texto literal do doc + lembrete: próxima violação é suspensão |
+| 2ª | `suspensao` | `behavior_status = 'suspended'`, `suspended_until = now() + 7 dias` (default — Pedro pode customizar 1-30) | Tela `/suspended` + email com prazo + opção contestar |
+| 3ª | `banimento` | `behavior_status = 'banned'`, `banned_at = now()`, `banned_reason` preenchido | Tela `/banned` final + email + saldo refundado manualmente Pedro |
+
+**Reset**: warnings completam **180 dias sem violações** zera o contador (volta a `ok`). Trigger automático.
+
+### Severidade direta (override do progressivo)
+
+Algumas violações vão **direto para suspensão ou banimento** sem passar por advertência:
+
+| Anti-padrão | Severidade direta |
+|---|---|
+| #6 Feeding intencional / griefing dentro de partida com Pedro | suspensão 14d |
+| #10 Preconceito, xenofobia, racismo | banimento imediato |
+| Fraude de pagamento (chargeback malicioso) | banimento imediato |
+| Compartilhamento de conta com terceiro | suspensão 30d → banimento se reincidir |
+
+Pedro decide na hora ao registrar warning — formulário admin tem dropdown de severidade override.
+
+### Quem pode advertir
+
+| Source | Quem | Validação |
+|---|---|---|
+| `pedro_admin` | Apenas Pedro (`is_admin = true`) | Imediato — Pedro tem autoridade total |
+| `discord_bot` | Bot detecta automaticamente (futuro V2) | Pendente Pedro confirmar antes de aplicar |
+| `report_user` | Outro usuário reporta | Pendente Pedro revisar |
+| `auto_detect` | Heurística sistema (ex: 3 reports independentes em 24h) | Pendente Pedro revisar |
+
+V1: só `pedro_admin` automático. Resto entra como `pendente` em fila admin.
+
+### Direito ao contraditório
+
+User suspenso/banido pode **contestar via Discord** (canal `#contestacao` ou DM Pedro). Pedro pode reverter manualmente com 1 clique em admin (atualiza `behavior_status` + adiciona nota). **Não há recurso público formal** — é decisão do dono da plataforma, e isso fica claro no código de conduta.
+
+### Auditoria
+
+Toda mudança em `behavior_status` é logada em `behavior_status_log (user_id, from_status, to_status, reason, changed_by, changed_at)`. Pedro pode justificar qualquer reversão e tem trilha completa.
+
+### Saldo + refund em banimento
+
+Se user banido tem saldo de partidas/sessões não usadas:
+- Banimento por **fraude/preconceito**: saldo NÃO é refundado.
+- Banimento por outras violações: saldo é refundado via PIX manual (Pedro decide caso a caso).
+- Decisão fica em `banned_reason` + nota interna pra evidência.
 
 ---
 
