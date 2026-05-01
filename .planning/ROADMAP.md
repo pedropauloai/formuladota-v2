@@ -27,7 +27,7 @@ Plans:
 - [x] 02-03-resend-client-PLAN.md — sendPurchaseConfirmationEmail helper com idempotencyKey + template HTML cyberpunk PT-BR
 - [x] 02-04-smee-tunnel-docs-PLAN.md — .env.example completo + seção "Webhook Local Dev" no README
 - [x] 02-05-pacotes-page-PLAN.md — /pacotes Server Component + PackageCard + PackageGrid responsivo
-- [ ] 02-06-checkout-page-PLAN.md — Server Action createCheckout + /checkout/[packageId] + QRCodeDisplay + CheckoutClient
+- [x] 02-06-checkout-page-PLAN.md — Server Action createCheckout + /checkout/[packageId] + QRCodeDisplay + CheckoutClient
 - [x] 02-07-webhook-handler-PLAN.md — POST /api/webhooks/abacatepay (HMAC + idempotência + email)
 - [x] 02-08-partidas-page-PLAN.md — /partidas Server Component + SaldoCard + lista compras pagas
 

@@ -36,7 +36,7 @@
 | 02-03 | checkout-flow | ✓ Completo | — |
 | 02-04 | webhook-handler | ✓ Completo | — |
 | 02-05 | pacotes-page | ✓ Completo | 9b58249 |
-| 02-06 | checkout-page | ⏳ Executando | — |
+| 02-06 | checkout-page | ✓ Completo | 6eb263c |
 | 02-07 | partidas-page | ⏳ Executando | — |
 | 02-08 | email-confirmation | ⏳ Executando | — |
 
@@ -87,6 +87,8 @@ Aceite obrigatório bloqueia rotas privadas (middleware + RLS).
 - **[02-01] tw-animate-css:** Substituto correto do tailwindcss-animate para Tailwind v4.
 - **[02-05] Link estilizado em vez de Button asChild:** @base-ui/react Button não suporta asChild. CTAs que são links de navegação usam `<Link>` com classes Tailwind diretamente.
 - **[02-05] Database.ts Relationships[]:** Supabase JS v2 + postgrest v12 exige `Relationships: []` em cada tabela e `Views: Record<never, never>` (não `Record<string, never>`) para que `.update()` e `.select()` tipados não colapsem para `never`.
+- **[02-06] Button asChild não existe em @base-ui/react:** pattern do Radix — substituir por `<Link>` com classes Tailwind quando CTA é um link de navegação.
+- **[02-06] QR Code PNG como data URL:** Next/Image não aceita data URLs (brCodeBase64) — usar `<img>` com eslint-disable @next/next/no-img-element.
 
 ## Open questions
 
