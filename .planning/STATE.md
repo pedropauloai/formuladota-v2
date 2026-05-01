@@ -32,10 +32,13 @@
 | Plan | Nome | Status | Commit |
 |---|---|---|---|
 | 02-01 | shadcn-setup | ✓ Completo | f673d5e |
-| 02-02 | catalog-page | ⏳ Próximo | — |
-| 02-03 | checkout-flow | ⏳ Pendente | — |
-| 02-04 | webhook-handler | ⏳ Pendente | — |
-| 02-05 | matches-page | ⏳ Pendente | — |
+| 02-02 | catalog-page | ✓ Completo | — |
+| 02-03 | checkout-flow | ✓ Completo | — |
+| 02-04 | webhook-handler | ✓ Completo | — |
+| 02-05 | pacotes-page | ✓ Completo | 9b58249 |
+| 02-06 | checkout-page | ⏳ Executando | — |
+| 02-07 | partidas-page | ⏳ Executando | — |
+| 02-08 | email-confirmation | ⏳ Executando | — |
 
 ## Migrations Supabase aplicadas
 
@@ -82,6 +85,8 @@ Aceite obrigatório bloqueia rotas privadas (middleware + RLS).
 - **[02-01] Dark-only sem next-themes:** Projeto é dark-only. sonner.tsx usa `theme="dark"` hardcoded. next-themes removido.
 - **[02-01] Tokens shadcn mapeados para cyberpunk:** `:root` com `--primary=#00f0ff`, `--secondary=#a855f7`, `--background=#050505` (tokens shadcn apontando para paleta cyberpunk)
 - **[02-01] tw-animate-css:** Substituto correto do tailwindcss-animate para Tailwind v4.
+- **[02-05] Link estilizado em vez de Button asChild:** @base-ui/react Button não suporta asChild. CTAs que são links de navegação usam `<Link>` com classes Tailwind diretamente.
+- **[02-05] Database.ts Relationships[]:** Supabase JS v2 + postgrest v12 exige `Relationships: []` em cada tabela e `Views: Record<never, never>` (não `Record<string, never>`) para que `.update()` e `.select()` tipados não colapsem para `never`.
 
 ## Open questions
 
