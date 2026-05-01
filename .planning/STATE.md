@@ -1,19 +1,30 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: unknown
-last_updated: "2026-05-01T21:42:36.400Z"
+milestone: v2.0
+milestone_name: hub
+status: in_progress
+last_updated: "2026-05-01T22:30:00.000Z"
 progress:
-  total_phases: 2
-  completed_phases: 2
-  total_plans: 9
-  completed_plans: 9
+  total_phases: 8
+  completed_phases: 3
+  total_plans: 17
+  completed_plans: 17
 ---
 
 # formuladota v2 — Project State
 
-> Estado atual do projeto. Atualizado conforme phases avançam.
+> Estado atual do projeto. Milestone V1 completo. Milestone V2 (HUB) em planejamento Phase 3.
+
+## ✦ PIVÔ ESTRATÉGICO 2026-05-01 — formuladota = HUB Dota 2
+
+Pedro mudou escopo de "loja de mentoria 1-1" para "HUB de comunidade Dota 2 estilo GamersClub":
+- Mensalidade R$47/mês via AbacatePay subscription nativa (PIX recorrente)
+- Bot Steam cria lobby in-house (modelo `meta-liga.ggarena.pro`)
+- Sistema de temporadas + MMR próprio + ranking + premiação placeholder
+- Multi-coach (V2 lança coaches plurais; schema pronto desde Phase 3)
+- Steam OAuth obrigatório (vincula ao Discord existente)
+
+Detalhes: `.planning/PROJECT.md` (vision canônica) + memória `project_pivot_hub_dota.md`.
 
 ## Stack atual
 
@@ -24,34 +35,33 @@ progress:
 | Lang | TypeScript | 5.9 strict | ✓ |
 | CSS | Tailwind CSS | v4 (beta) | ✓ |
 | DB / Auth | Supabase | postgres-js 2.x | ✓ |
-| Auth provider | Discord OAuth | via Supabase | ✓ |
-| Payments | AbacatePay PIX (V2) | sandbox | ⏳ Phase 2 |
-| Email | Resend | onboarding@resend.dev | ⏳ não usado ainda |
-| Stats | OpenDota Premium | $0.01/100 calls | ⏳ Phase 5 |
-| Bot | Discord.js v14 | — | ⏳ Phase 4 |
-| Hosting app | Vercel | conectado ao GitHub | ⏳ Phase 6 |
+| Auth Discord | Discord OAuth via Supabase | — | ✓ Phase 1 |
+| Auth Steam | OpenID 2.0 | — | ⏳ Phase 3 |
+| Payments avulso | AbacatePay PIX Transparent | V2 sandbox | ✓ Phase 2 |
+| Subscription mensal | AbacatePay subscription native | V2 | ⏳ Phase 4 |
+| Email | Resend (idempotencyKey) | onboarding@resend.dev | ✓ Phase 2 |
+| Stats primário | Stratz GraphQL | Tier 1 free 2k req/h | ⏳ Phase 7 |
+| Stats secundário | OpenDota Premium | $0.01/100 calls | ⏳ Phase 7 (fallback) |
+| Bot Steam | steam-user v5 + steam-totp + node-dota2 | — | ⏳ Phase 5 |
+| Hosting app | Vercel | conectado ao GitHub | ⏳ Phase 8 |
+| Hosting bot | Railway Hobby | ~$3/mês | ⏳ Phase 5 |
 
 ## Phases completas
 
-- ✓ **Phase 1** — Foundation (Discord OAuth, schema base, RLS, login funcional)
+### Milestone V1 (✓ COMPLETED)
+- ✓ **Phase 1** — Foundation (Discord OAuth, schema base, RLS, login)
 - ✓ **Phase 1.5** — Doutrina (aceite obrigatório, sistema progressivo advertência → suspensão → banimento, /codigo-de-conduta, /onboarding/doutrina, telas /suspended e /banned, middleware enforcement)
+- ✓ **Phase 2** — Catalog & Checkout (PIX avulso AbacatePay Transparent, idempotência via UPDATE conditional, webhook HMAC SHA-256 base64 timingSafeEqual, email Resend com idempotencyKey)
 
 ## Phase corrente
 
-- ◆ **Phase 2** — Catalog & Checkout (em execução — Plan 01 completo)
-
-### Progresso Phase 2
-
-| Plan | Nome | Status | Commit |
-|---|---|---|---|
-| 02-01 | shadcn-setup | ✓ Completo | f673d5e |
-| 02-02 | catalog-page | ✓ Completo | — |
-| 02-03 | checkout-flow | ✓ Completo | — |
-| 02-04 | webhook-handler | ✓ Completo | — |
-| 02-05 | pacotes-page | ✓ Completo | 9b58249 |
-| 02-06 | checkout-page | ✓ Completo | 6eb263c |
-| 02-07 | partidas-page | ⏳ Executando | — |
-| 02-08 | email-confirmation | ⏳ Executando | — |
+### Milestone V2 — HUB ◆ CURRENT
+- ◆ **Phase 3** — Steam OAuth + Roles + Multi-coach Refactor (em planejamento)
+- ○ Phase 4 — Subscription Mensal AbacatePay
+- ○ Phase 5 — Bot Steam Lobby Creator
+- ○ Phase 6 — Sistema de Ligas + MMR + Temporadas
+- ○ Phase 7 — Badges + Ranking + Perfil Expandido
+- ○ Phase 8 — Painel Admin + Painel Player + Polish + Deploy
 
 ## Migrations Supabase aplicadas
 
@@ -68,43 +78,48 @@ Projeto Supabase: `nyvbfdsxjpiwgdroptdi` em `sa-east-1`.
 
 - GitHub: `pedropauloai/formuladota-v2` (privado)
 - Branch: `main`
-- 8 commits, último: `f673d5e` — Toaster global no layout root (Phase 2 Plan 01 completo)
 
 ## Contas externas configuradas
 
-- Discord: app `formuladota` (1499631204100604025), bot `MTQ5OTYz...`, guild `303265529433686017` — bot **ainda não instalado** no servidor (pendência Pedro)
-- AbacatePay sandbox: API key + webhook secret (HMAC) prontos
+- Discord: app `formuladota` (1499631204100604025), bot instalado no servidor FORMULADOTA (303265529433686017)
+- AbacatePay sandbox: API key + webhook secret (HMAC) prontos. **Subscription endpoint nativo confirmado** (Phase 4)
 - Resend: API key, domínio `formuladota.com` não verificado (usar `onboarding@resend.dev`)
 - OpenDota: Premium key, sem rate limits
+- Stratz: ainda criar conta + Tier 1 token (Phase 7)
 - Vercel: GitHub linkado, deploy não acionado ainda
 - Hostinger: domínio `formuladota.com` ativo (DNS no Route 53)
+- Railway: conta a criar (Phase 5 — bot host)
+- Steam bot: conta dedicada a criar (Pedro vai criar — checklist com Dota 2 free + 1 jogo R$1 + 30 dias maturação)
 
 ## Cultura / Doutrina (norte do produto)
 
 Texto canônico em `A FÓRMULA DO DOTA DE CORRIDA.txt` na raiz. Estruturado em `src/lib/doctrine.ts` (14 princípios + 10 anti-padrões + 3-strikes config).
 Aceite obrigatório bloqueia rotas privadas (middleware + RLS).
 
-## Decisões fundadoras (locked)
+## Decisões fundadoras (atualizadas pós-pivô)
 
-- Discord-first auth (não Steam-first) — Steam vira tabela paralela em V1.5
-- Pricing R$10/partida começando — sobe com demanda (PRD §5)
-- Limite hardcoded 3 partidas/dia (proteção burnout Pedro)
-- Sessões sempre via Discord
-- Aceite doutrinário obrigatório, violações geram advertência → suspensão → banimento
+- ~~Discord-first auth, Steam V1.5~~ → **Discord + Steam ambos obrigatórios** pra criar/entrar lobby
+- ~~Pricing R$10/partida~~ → **R$ 47/mês mensalidade** (avulso de coach continua opcional)
+- ~~Limite hardcoded 3 partidas/dia~~ → **REMOVIDO** (Pedro decisão 2026-05-01)
+- Sessões sempre via Discord — mantido
+- Aceite doutrinário obrigatório com 3-strikes — mantido
+- **NOVO**: Multi-coach desde Phase 3 (schema), V2 lança UI multi-coach. Pedro = coach #1.
+- **NOVO**: Premiação placeholder (`prize_pool` em `seasons` table, null default) — Pedro busca patrocinadores
 
-## Decisões Phase 2
+## Decisões técnicas Phase 2 (preservadas)
 
-- **[02-01] Base UI em vez de Radix:** shadcn CLI canary usa `@base-ui/react` com preset base-nova por padrão. Mantido — mais moderno para React 19, mesmo time do Radix.
-- **[02-01] Dark-only sem next-themes:** Projeto é dark-only. sonner.tsx usa `theme="dark"` hardcoded. next-themes removido.
-- **[02-01] Tokens shadcn mapeados para cyberpunk:** `:root` com `--primary=#00f0ff`, `--secondary=#a855f7`, `--background=#050505` (tokens shadcn apontando para paleta cyberpunk)
-- **[02-01] tw-animate-css:** Substituto correto do tailwindcss-animate para Tailwind v4.
-- **[02-05] Link estilizado em vez de Button asChild:** @base-ui/react Button não suporta asChild. CTAs que são links de navegação usam `<Link>` com classes Tailwind diretamente.
-- **[02-05] Database.ts Relationships[]:** Supabase JS v2 + postgrest v12 exige `Relationships: []` em cada tabela e `Views: Record<never, never>` (não `Record<string, never>`) para que `.update()` e `.select()` tipados não colapsem para `never`.
-- **[02-06] Button asChild não existe em @base-ui/react:** pattern do Radix — substituir por `<Link>` com classes Tailwind quando CTA é um link de navegação.
-- **[02-06] QR Code PNG como data URL:** Next/Image não aceita data URLs (brCodeBase64) — usar `<img>` com eslint-disable @next/next/no-img-element.
+- Base UI (`@base-ui/react`) em vez de Radix (shadcn canary preset base-nova)
+- Dark-only sem next-themes
+- Tokens shadcn mapeados pra cyberpunk em `:root`
+- `tw-animate-css` no lugar de `tailwindcss-animate` (Tailwind v4)
+- `Link` estilizado em vez de `Button asChild` (`@base-ui/react` não suporta asChild)
+- `Database.ts` precisa `Relationships: []` + `Views: Record<never, never>` em cada table
+- QR Code PNG como `<img>` (data URLs, Next/Image não aceita)
 
 ## Open questions
 
-- Domínio formuladota.com: DNS no Route 53 ainda não configurado pra Vercel
-- 200 imortais como meta histórica vs 2026 — revalidar com Pedro
-- Bot Discord no servidor — pendência Pedro instalar
+- Bot Steam: conta dedicada — Pedro vai criar (checklist a entregar em Phase 5 pre-task)
+- Stratz token API — pegar quando Phase 7 começar
+- Domínio formuladota.com: DNS Route 53 → Vercel pra Phase 8
+- Patrocinadores premiação: Pedro busca em paralelo
+- AbacatePay sandbox vs prod: cobrança recorrente em sandbox testável?
