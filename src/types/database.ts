@@ -1,6 +1,10 @@
 // Auto-generated database types for formuladota v2
 // Generated from Supabase introspection on 2026-05-01
 // Re-run via psql introspection if schema changes; supabase CLI requires Docker.
+//
+// NOTA: campo Relationships é obrigatório pelo tipo GenericTable do Supabase JS.
+// Sem ele, o método .from() não consegue inferir o overload de Tables vs Views,
+// resultando em tipos 'never' no .update().
 
 export type Json =
   | string
@@ -38,6 +42,7 @@ export type Database = {
           ativo?: boolean;
           created_at?: string;
         };
+        Relationships: [];
       };
       behavior_status_log: {
         Row: {
@@ -70,6 +75,7 @@ export type Database = {
           changed_by?: string | null;
           changed_at?: string;
         };
+        Relationships: [];
       };
       doctrine_versions: {
         Row: {
@@ -90,6 +96,7 @@ export type Database = {
           published_at?: string;
           notes?: string | null;
         };
+        Relationships: [];
       };
       matches: {
         Row: {
@@ -140,6 +147,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       packages: {
         Row: {
@@ -178,6 +186,7 @@ export type Database = {
           display_order?: number;
           created_at?: string;
         };
+        Relationships: [];
       };
       profiles: {
         Row: {
@@ -222,6 +231,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       purchases: {
         Row: {
@@ -272,6 +282,7 @@ export type Database = {
           data_expiracao?: string | null;
           created_at?: string;
         };
+        Relationships: [];
       };
       sessions: {
         Row: {
@@ -307,6 +318,7 @@ export type Database = {
           status?: "agendada" | "realizada" | "cancelada";
           created_at?: string;
         };
+        Relationships: [];
       };
       user_stats: {
         Row: {
@@ -339,6 +351,7 @@ export type Database = {
           role_mais_jogada?: string | null;
           ultima_atualizacao?: string;
         };
+        Relationships: [];
       };
       user_warnings: {
         Row: {
@@ -371,12 +384,16 @@ export type Database = {
           issued_by?: string;
           issued_at?: string;
         };
+        Relationships: [];
       };
     };
-    Views: Record<string, never>;
-    Functions: Record<string, never>;
-    Enums: Record<string, never>;
-    CompositeTypes: Record<string, never>;
+    // Usar Record<never, never> = {} para não envenenar a intersecção Tables & Views no Supabase JS.
+    // Record<string, never> faz keyof Views = string, o overload de from() p/ Views sobrepõe Tables
+    // e TablesAndViews = Tables & never = never, quebrando todos os .update() e .select() tipados.
+    Views: Record<never, never>;
+    Functions: Record<never, never>;
+    Enums: Record<never, never>;
+    CompositeTypes: Record<never, never>;
   };
 };
 
