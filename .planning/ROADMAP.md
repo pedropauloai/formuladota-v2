@@ -35,15 +35,23 @@ Plans:
 
 ## Milestone V2 — HUB Dota 2 ◆ CURRENT
 
-### Phase 3 — Steam OAuth + Roles + Multi-coach Refactor ◆ PLANNING
+### Phase 3 — Steam OAuth + Roles + Multi-coach Refactor ◆ PLANNED
 **Goal:** Steam OAuth obrigatório (vinculado ao Discord). Sistema de roles (admin/coach/player). Refator schema `packages` pra `coach_id` FK + `coaches` table com Pedro como coach #1.
 **Requirements:** H1.1, H1.2, H1.3, H1.4
+**Plans:** 5 plans em 2 waves
 **Acceptance:**
 - User loga Discord → vê página vincular Steam → autoriza OpenID 2.0 → `steam_links` populada com SteamID 64
 - Tabela `coaches` com Pedro inserido (FK profiles.id)
 - `packages` ganha `coach_id NOT NULL`, todos os 4 pacotes ligados ao Pedro
 - `/pacotes` mostra "Por: Pedro Paulo (Immortal)" no PackageCard
 - `profiles.role` ('admin','coach','player') default 'player' — Pedro = admin AND coach
+
+Plans:
+- [ ] 03-01-migration-005-PLAN.md — Migration 005 (coaches, steam_links, profiles.role, packages.coach_id, helpers RLS, seed Pedro) + types regen
+- [ ] 03-02-steam-client-env-PLAN.md — Install node-steam-openid + STEAM_WEB_API_KEY env + src/lib/steam.ts (3 helpers tipados)
+- [ ] 03-03-vincular-steam-page-PLAN.md — Server Action signInWithSteam + callback /auth/steam/callback + página /vincular/steam
+- [ ] 03-04-middleware-steam-gate-PLAN.md — Middleware update com STEAM_REQUIRED_PATHS layer (após doutrina)
+- [ ] 03-05-multicoach-refactor-PLAN.md — Refator PackageCard + /pacotes/page.tsx (2-query JOIN coaches+profiles)
 
 ### Phase 4 — Subscription Mensal AbacatePay ○ PENDING
 **Goal:** Mensalidade R$47/mês via AbacatePay subscription nativa (PIX recorrente). Trial 7d. RLS gate: criar/entrar lobby exige assinatura ativa OU trial.
