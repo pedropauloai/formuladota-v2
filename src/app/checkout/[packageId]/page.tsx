@@ -1,0 +1,65 @@
+// /checkout/[packageId] — Server Component.
+// Valida que o pacote existe e está ativo. Se não, retorna 404 amigável.
+// Server Action createCheckout (disparado pelo CheckoutClient) faz o resto:
+// cria purchase pendente + chama AbacatePay para gerar o PIX.
+
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { CheckoutClient } from "@/components/checkout/checkout-client";
+
+// Next.js 16: params é uma Promise e precisa ser await-ado
+interface PageProps {
+  params: Promise<{ packageId: string }>;
+}
+
+export const metadata: Metadata = {
+  title: "Checkout — Fórmula Dota",
+};
+
+export default async function CheckoutPage({ params }: PageProps) {
+  const { packageId } = await params;
+
+  const supabase = await createClient();
+  const { data: pkg } = await supabase
+    .from("packages")
+    .select("id, nome, preco_brl, ativo")
+    .eq("id", packageId)
+    .eq("ativo", true)
+    .single();
+
+  // Pacote não encontrado, inativo ou UUID inválido → 404 amigável
+  if (!pkg) {
+    notFound();
+  }
+
+  return (
+    <main className="min-h-screen bg-[var(--color-background)] px-4 py-12">
+      <div className="mx-auto max-w-3xl">
+        <header className="mb-8 text-center">
+          <h1 className="text-3xl md:text-4xl font-display text-[var(--color-foreground)]">
+            Pagamento <span className="text-[#00F0FF]">PIX</span>
+          </h1>
+          <p className="mt-2 text-[var(--color-muted-foreground)]">
+            Escaneie o QR Code ou copie o código no seu banco.
+          </p>
+        </header>
+
+        {/* CheckoutClient dispara createCheckout no mount e renderiza QRCodeDisplay */}
+        <CheckoutClient
+          packageId={pkg.id}
+          packageName={pkg.nome}
+          precoFormatado={formatBRL(pkg.preco_brl)}
+        />
+      </div>
+    </main>
+  );
+}
+
+// Formata valor em BRL (ex: "R$ 10,00")
+function formatBRL(value: number): string {
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(value);
+}
