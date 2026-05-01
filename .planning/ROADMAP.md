@@ -15,14 +15,14 @@
 ### Phase 2 — Catalog & Checkout ◆ CURRENT
 **Goal:** User aceito consegue comprar pacote via PIX (AbacatePay V2 Transparent). Webhook valida pagamento (HMAC SHA-256 base64), atualiza purchase com idempotência (UPDATE conditional + UNIQUE external_payment_id), libera saldo, dispara email confirmação Resend. RLS já bloqueia compra sem aceite/status ativo (migration 004).
 **Requirements:** F2.1, F2.2, F3.1, F3.2, F3.3, F3.4, F3.5, C1, C3, C5, C6, C7, C8, C9
-**Plans:** 8 plans
+**Plans:** 1/8 plans executed
 **Acceptance:**
 - Comprar pacote PIX end-to-end funciona em sandbox
 - Saldo aparece em "minhas partidas" após pagamento
 - Webhook duplicado NÃO duplica saldo (idempotência via `external_payment_id`)
 
 Plans:
-- [ ] 02-01-shadcn-setup-PLAN.md — shadcn/ui init + Button/Card/Badge/Skeleton/Sonner + Toaster global
+- [x] 02-01-shadcn-setup-PLAN.md — shadcn/ui init + Button/Card/Badge/Skeleton/Sonner + Toaster global
 - [ ] 02-02-abacatepay-client-PLAN.md — AbacatePay client (createTransparentPix + verifyAbacatepayWebhookSignature) + service-role Supabase client + Zod schemas
 - [ ] 02-03-resend-client-PLAN.md — sendPurchaseConfirmationEmail helper com idempotencyKey + template HTML cyberpunk PT-BR
 - [ ] 02-04-smee-tunnel-docs-PLAN.md — .env.example completo + seção "Webhook Local Dev" no README

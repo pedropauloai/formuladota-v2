@@ -25,7 +25,17 @@
 
 ## Phase corrente
 
-- ◆ **Phase 2** — Catalog & Checkout (em planejamento)
+- ◆ **Phase 2** — Catalog & Checkout (em execução — Plan 01 completo)
+
+### Progresso Phase 2
+
+| Plan | Nome | Status | Commit |
+|---|---|---|---|
+| 02-01 | shadcn-setup | ✓ Completo | f673d5e |
+| 02-02 | catalog-page | ⏳ Próximo | — |
+| 02-03 | checkout-flow | ⏳ Pendente | — |
+| 02-04 | webhook-handler | ⏳ Pendente | — |
+| 02-05 | matches-page | ⏳ Pendente | — |
 
 ## Migrations Supabase aplicadas
 
@@ -42,7 +52,7 @@ Projeto Supabase: `nyvbfdsxjpiwgdroptdi` em `sa-east-1`.
 
 - GitHub: `pedropauloai/formuladota-v2` (privado)
 - Branch: `main`
-- 5 commits, último: `2dfd1be` — UAT gap closure
+- 8 commits, último: `f673d5e` — Toaster global no layout root (Phase 2 Plan 01 completo)
 
 ## Contas externas configuradas
 
@@ -65,6 +75,13 @@ Aceite obrigatório bloqueia rotas privadas (middleware + RLS).
 - Limite hardcoded 3 partidas/dia (proteção burnout Pedro)
 - Sessões sempre via Discord
 - Aceite doutrinário obrigatório, violações geram advertência → suspensão → banimento
+
+## Decisões Phase 2
+
+- **[02-01] Base UI em vez de Radix:** shadcn CLI canary usa `@base-ui/react` com preset base-nova por padrão. Mantido — mais moderno para React 19, mesmo time do Radix.
+- **[02-01] Dark-only sem next-themes:** Projeto é dark-only. sonner.tsx usa `theme="dark"` hardcoded. next-themes removido.
+- **[02-01] Tokens shadcn mapeados para cyberpunk:** `:root` com `--primary=#00f0ff`, `--secondary=#a855f7`, `--background=#050505` (tokens shadcn apontando para paleta cyberpunk)
+- **[02-01] tw-animate-css:** Substituto correto do tailwindcss-animate para Tailwind v4.
 
 ## Open questions
 
