@@ -23,13 +23,13 @@
 
 Plans:
 - [x] 02-01-shadcn-setup-PLAN.md — shadcn/ui init + Button/Card/Badge/Skeleton/Sonner + Toaster global
-- [ ] 02-02-abacatepay-client-PLAN.md — AbacatePay client (createTransparentPix + verifyAbacatepayWebhookSignature) + service-role Supabase client + Zod schemas
-- [ ] 02-03-resend-client-PLAN.md — sendPurchaseConfirmationEmail helper com idempotencyKey + template HTML cyberpunk PT-BR
-- [ ] 02-04-smee-tunnel-docs-PLAN.md — .env.example completo + seção "Webhook Local Dev" no README
-- [ ] 02-05-pacotes-page-PLAN.md — /pacotes Server Component + PackageCard + PackageGrid responsivo
+- [x] 02-02-abacatepay-client-PLAN.md — AbacatePay client (createTransparentPix + verifyAbacatepayWebhookSignature) + service-role Supabase client + Zod schemas
+- [x] 02-03-resend-client-PLAN.md — sendPurchaseConfirmationEmail helper com idempotencyKey + template HTML cyberpunk PT-BR
+- [x] 02-04-smee-tunnel-docs-PLAN.md — .env.example completo + seção "Webhook Local Dev" no README
+- [x] 02-05-pacotes-page-PLAN.md — /pacotes Server Component + PackageCard + PackageGrid responsivo
 - [ ] 02-06-checkout-page-PLAN.md — Server Action createCheckout + /checkout/[packageId] + QRCodeDisplay + CheckoutClient
-- [ ] 02-07-webhook-handler-PLAN.md — POST /api/webhooks/abacatepay (HMAC + idempotência + email)
-- [ ] 02-08-partidas-page-PLAN.md — /partidas Server Component + SaldoCard + lista compras pagas
+- [x] 02-07-webhook-handler-PLAN.md — POST /api/webhooks/abacatepay (HMAC + idempotência + email)
+- [x] 02-08-partidas-page-PLAN.md — /partidas Server Component + SaldoCard + lista compras pagas
 
 ### Phase 3 — Profile & Scheduling ○ PENDING
 **Goal:** User edita perfil (steam_id, role), Pedro define janelas, user agenda partida com saldo. Cancelamento +24h restitui.
