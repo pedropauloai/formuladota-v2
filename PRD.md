@@ -183,9 +183,9 @@ Frases que devem aparecer **literais** no fluxo `/onboarding/doutrina` e em `/co
 ### F3 — Compra & Pagamento
 - F3.1: Click em pacote abre checkout
 - F3.2: Checkout cria registro `purchases` com status `pendente`
-- F3.3: Integração AbacatePay gera QR Code PIX
-- F3.4: Webhook AbacatePay confirma pagamento → status `pago` → libera saldo
-- F3.5: User recebe email confirmação + notificação Discord (via bot DM)
+- F3.3: Integração **AbacatePay Transparent PIX V2** (`POST /v2/transparents/create`) — retorna `brCode` (texto) + `brCodeBase64` (PNG inline)
+- F3.4: Webhook eventos `transparent.completed` / `transparent.disputed` / `transparent.refunded` valida HMAC SHA-256 base64 → libera saldo (idempotente via `external_payment_id` UNIQUE + UPDATE conditional WHERE status='pendente')
+- F3.5: User recebe email confirmação (Resend) + notificação Discord (via bot DM — Phase 4)
 
 ### F4 — Agendamento
 - F4.1: Pedro define janelas de disponibilidade (admin: ex: "seg-sex 14h-22h, sab 16h-23h")
