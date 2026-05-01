@@ -41,6 +41,56 @@ pnpm dev
 cd bot && pnpm dev
 ```
 
+## Webhook Local Dev (Phase 2 — AbacatePay PIX)
+
+Para testar fluxo de pagamento end-to-end localmente, você precisa de um tunnel HTTP→localhost porque AbacatePay (na nuvem) não consegue alcançar `http://localhost:3000` diretamente.
+
+Usamos [smee.io](https://smee.io) — não exige conta, sem rate limit em dev.
+
+### Setup (uma vez)
+
+1. Acesse [smee.io](https://smee.io) e clique **Start a new channel**. Ele vai gerar uma URL única tipo `https://smee.io/abc123XYZ`.
+2. No dashboard da AbacatePay (sandbox), crie um webhook:
+   - **Endpoint URL**: a URL que o smee.io te deu acima
+   - **Secret**: gere uma string aleatória e salve em `ABACATEPAY_WEBHOOK_SECRET` no seu `.env.local`
+   - **Eventos**: marque `transparent.completed`, `transparent.disputed`, `transparent.refunded`
+
+### Rodar (toda vez que for desenvolver)
+
+Em **três terminais separados**:
+
+```bash
+# Terminal 1 — tunnel smee.io
+pnpm dlx smee-client \
+  --url https://smee.io/SEU-CANAL \
+  --target http://localhost:3000/api/webhooks/abacatepay
+
+# Terminal 2 — Next.js dev server
+pnpm dev
+
+# Terminal 3 — quando quiser simular pagamento sem fluxo PIX real:
+curl -X POST "https://api.abacatepay.com/v2/transparents/simulate-payment?id=PIX_ID_AQUI" \
+  -H "Authorization: Bearer $ABACATEPAY_API_KEY"
+```
+
+Substitua `SEU-CANAL` pelo ID que o smee.io te deu, e `PIX_ID_AQUI` pelo `id` retornado em `POST /v2/transparents/create`.
+
+### Fallback: ngrok
+
+Se smee.io estiver instável, use [ngrok](https://ngrok.com) (agora exige conta gratuita):
+
+```bash
+ngrok http 3000
+# Copie a URL HTTPS gerada e cole no dashboard AbacatePay como endpoint
+```
+
+### Validar HMAC manualmente (debug)
+
+Se webhook retornar 401 "Assinatura inválida" mesmo com tunnel rodando, verifique:
+
+1. `ABACATEPAY_WEBHOOK_SECRET` no `.env.local` bate exatamente com o secret configurado no dashboard AbacatePay.
+2. Você está usando `request.text()` ANTES de qualquer `JSON.parse` (parsear muda o body e quebra a assinatura — ver Pitfall 2 em `.planning/phases/02-catalog-checkout/02-RESEARCH.md`).
+
 ## Stack
 
 - **Frontend**: Next.js 15 + React 19 + TypeScript + Tailwind v4 + shadcn/ui
