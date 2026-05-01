@@ -8,17 +8,14 @@
 // indefinidamente e pode duplicar processamento (Pitfall 3 do RESEARCH.md).
 
 import { NextRequest, NextResponse } from "next/server";
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { verifyAbacatepayWebhookSignature } from "@/lib/abacatepay";
 import { createServiceClient } from "@/lib/supabase/service";
 import { sendPurchaseConfirmationEmail } from "@/lib/resend";
-import type { Database } from "@/types/database";
 import {
   webhookPayloadSchema,
   type AbacatepayWebhookPayload,
 } from "@/types/abacatepay";
 
-type ServiceClient = SupabaseClient<Database>;
 // Tipo dos campos retornados pelo UPDATE condicional
 interface ProcessedPurchase {
   id: string;
@@ -78,29 +75,18 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
  * Se 0 rows afetadas: webhook duplicado ou external_payment_id desconhecido — retorno silencioso.
  * Se 1 row afetada: purchase liberada → dispara email de confirmação (fire-and-forget).
  */
-// Tipo da resposta Supabase para normalizar erros de inferência no Supabase JS v2
-interface SupabaseResult<T> {
-  data: T | null;
-  error: { message: string } | null;
-}
-
 async function handlePaymentCompleted(
-  supabase: ServiceClient,
+  supabase: ReturnType<typeof createServiceClient>,
   externalPaymentId: string,
   payload: AbacatepayWebhookPayload
 ): Promise<void> {
-  // UPDATE condicional: WHERE status='pendente' garante idempotência (C9).
-  // workaround: Supabase JS v2 postgrest v12 collapsa update() a 'never' com enum tipado.
-  // Acessar builder via db helper não-tipado para contornar a restrição.
-  const db = supabase.from("purchases") as ReturnType<typeof supabase.from>;
-  const result = await (db
+  const { data: updated, error } = await supabase
+    .from("purchases")
     .update({ status: "pago" })
     .eq("external_payment_id", externalPaymentId)
-    .filter("status", "eq", "pendente")
+    .eq("status", "pendente") // condicional é a chave da idempotência (C9)
     .select("id, user_id, partidas_compradas, sessoes_compradas, package_id")
-    .maybeSingle() as unknown as Promise<SupabaseResult<ProcessedPurchase>>);
-
-  const { data: updated, error } = result;
+    .maybeSingle();
 
   if (error) {
     console.error("[webhook] update purchases failed:", error.message);
@@ -114,7 +100,7 @@ async function handlePaymentCompleted(
 
   // Email é side-effect não-crítico: wrapper com try/catch interno + void call
   // CLAUDE.md exige async/await sem promise chaining — usamos async function + void
-  void sendConfirmationSafely(supabase, updated, payload);
+  void sendConfirmationSafely(supabase, updated as ProcessedPurchase, payload);
 }
 
 /**
@@ -122,7 +108,7 @@ async function handlePaymentCompleted(
  * Chamado via `void` para sinalizar fire-and-forget intencional sem bloquear o handler.
  */
 async function sendConfirmationSafely(
-  supabase: ServiceClient,
+  supabase: ReturnType<typeof createServiceClient>,
   purchase: ProcessedPurchase,
   payload: AbacatepayWebhookPayload
 ): Promise<void> {
@@ -137,13 +123,13 @@ async function sendConfirmationSafely(
  * Atualiza purchase para status=cancelado sem checar status anterior (refund é definitivo).
  */
 async function handleRefund(
-  supabase: ServiceClient,
+  supabase: ReturnType<typeof createServiceClient>,
   externalPaymentId: string
 ): Promise<void> {
-  const db = supabase.from("purchases") as ReturnType<typeof supabase.from>;
-  const { error } = await (db
+  const { error } = await supabase
+    .from("purchases")
     .update({ status: "cancelado" })
-    .eq("external_payment_id", externalPaymentId) as unknown as Promise<SupabaseResult<null>>);
+    .eq("external_payment_id", externalPaymentId);
 
   if (error) {
     console.error("[webhook] refund update failed:", error.message);
@@ -155,7 +141,7 @@ async function handleRefund(
  * e despacha sendPurchaseConfirmationEmail.
  */
 async function sendConfirmationFromPurchase(
-  supabase: ServiceClient,
+  supabase: ReturnType<typeof createServiceClient>,
   purchase: ProcessedPurchase,
   payload: AbacatepayWebhookPayload
 ): Promise<void> {
@@ -164,13 +150,11 @@ async function sendConfirmationFromPurchase(
   let customerName = payload.data.customer?.name;
 
   if (!customerEmail) {
-    // Cast explícito para contornar colapso de inferência do Supabase JS v2 com select tipado
-    type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
     const { data: profile } = await supabase
       .from("profiles")
-      .select("*")
+      .select("email, username")
       .eq("id", purchase.user_id)
-      .single() as { data: ProfileRow | null; error: unknown };
+      .single();
     customerEmail = profile?.email ?? undefined;
     customerName = customerName ?? profile?.username ?? undefined;
   }
@@ -184,12 +168,11 @@ async function sendConfirmationFromPurchase(
   }
 
   // Buscar nome do pacote para o email
-  type PackageRow = Database["public"]["Tables"]["packages"]["Row"];
   const { data: pkg } = await supabase
     .from("packages")
-    .select("*")
+    .select("nome")
     .eq("id", purchase.package_id)
-    .single() as { data: PackageRow | null; error: unknown };
+    .single();
 
   await sendPurchaseConfirmationEmail({
     purchaseId: purchase.id,
