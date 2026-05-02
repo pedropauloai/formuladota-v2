@@ -53,8 +53,8 @@ Plans:
 - [x] 03-04-middleware-steam-gate-PLAN.md — Middleware update com STEAM_REQUIRED_PATHS layer (após doutrina)
 - [x] 03-05-multicoach-refactor-PLAN.md — Refator PackageCard + /pacotes/page.tsx (2-query JOIN coaches+profiles)
 
-### Phase 3.5 — Rebrand & Design System Refresh ◆ NEXT (NEW PHASE 2026-05-02)
-**Goal:** Rebrand completo FORMULADOTA: aplicar logos reais (preto + vermelho), substituir paleta cyan/purple por vermelho/preto/branco, padronizar string "FORMULADOTA" maiúsculo sem acento em toda UI/emails, remover toda menção "Pedro Paulo" da UI, redesign visual inspirado em https://guardiansgamers.com/, integrar assets oficiais Dota 2 (vídeos idle de heroes via Steam CDN HotLink). Ver `.planning/PIVOTS-2026-05-02.md` §2-§6 + Phase 3.5 CONTEXT (a ser criado).
+### Phase 3.5 — Rebrand & Design System Refresh (Dota 2 Official) ◆ NEXT
+**Goal:** Rebrand completo FORMULADOTA inspirado no site oficial Dota 2 (https://www.dota2.com/home). Aplicar logos reais (preto + vermelho), substituir paleta cyan/purple por preto/vermelho/branco-bege (paleta oficial Dota), trocar fonts por Cinzel/Marcellus (alternativa Reaver) + Inter/Geist (alternativa Radiance), padronizar string "FORMULADOTA" maiúsculo sem acento em toda UI/emails, remover toda menção "Pedro Paulo" da UI, integrar hero video oficial Dota 2 (`cdn.steamstatic.com/apps/dota2/videos/dota_react/homepage/dota_montage_webm.webm` HotLink), criar componente `<HeroVideo heroSlug="..." />` reutilizável pra renderizar vídeos idle de heroes em qualquer card/stats/perfil. Ver `.planning/PIVOTS-2026-05-02.md` §2-§6 atualizado.
 **Requirements:** B1, B2, B3, B4, B5, B6 (criar seção B em REQUIREMENTS.md)
 **Acceptance:**
 - Logos movidos pra `public/brand/` (`logo-horizontal.png` + `logo-icon.png`)
@@ -63,10 +63,12 @@ Plans:
 - ZERO menções "Pedro Paulo", "PPA", "Pedro" em user-facing strings (grep `src/app/**`, `src/components/**`, `src/lib/resend.ts`, `src/lib/doctrine.ts`)
 - ZERO ocorrências de "Fórmula Dota", "FormulaDota", "Formula Dota" — só **FORMULADOTA** (grep + replace global)
 - Bio coach Pedro em DB atualizada (UPDATE Migration 009 ou via MCP) sem "Pedro Paulo (PPA)"
-- Landing `/` reformulada com hero video Dota 2 (HotLink Steam CDN) + design inspirado guardiansgamers
+- Landing `/` reformulada com hero video oficial Dota 2 (HotLink `cdn.steamstatic.com/apps/dota2/videos/dota_react/homepage/dota_montage_webm.webm` autoplay+loop+muted) + estilo dark fantasy oficial Dota
 - Header logo usa `<Image src="/brand/logo-horizontal.png" />`
 - Favicon usa `logo-icon.png`
-- Tipografia atualizada (research necessário pra fonts guardiansgamers — Phase 3.5 RESEARCH define)
+- Tipografia: Cinzel ou Marcellus (alternativa open-source pra fonte Reaver Valve) em headings + Inter ou Geist (alternativa Radiance) em body
+- Componente reutilizável `<HeroVideo heroSlug="..." />` em `src/components/dota/hero-video.tsx` renderiza video idle oficial de qualquer hero. Catalogar URLs `.planning/research/dota-hero-video-urls.md` via Playwright loop por `dota2.com/heroes/{slug}` pra cada hero referenciado
+- Disclaimer footer: "Dota e o logo Dota são marcas da Valve Corporation"
 - Build/typecheck/lint verdes
 
 ### Phase 4 — Subscription Mensal Mercado Pago Pix Automático ○ PENDING (REPLAN)
