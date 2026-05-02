@@ -3,12 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: hub
 status: in_progress
-last_updated: "2026-05-01T22:30:00.000Z"
+last_updated: "2026-05-02T02:39:11Z"
+current_phase: 03-steam-oauth-roles-multicoach
+current_plan: 02
 progress:
   total_phases: 8
   completed_phases: 3
-  total_plans: 17
-  completed_plans: 17
+  total_plans: 19
+  completed_plans: 11
 ---
 
 # formuladota v2 — Project State
@@ -18,6 +20,7 @@ progress:
 ## ✦ PIVÔ ESTRATÉGICO 2026-05-01 — formuladota = HUB Dota 2
 
 Pedro mudou escopo de "loja de mentoria 1-1" para "HUB de comunidade Dota 2 estilo GamersClub":
+
 - Mensalidade R$47/mês via AbacatePay subscription nativa (PIX recorrente)
 - Bot Steam cria lobby in-house (modelo `meta-liga.ggarena.pro`)
 - Sistema de temporadas + MMR próprio + ranking + premiação placeholder
@@ -49,6 +52,7 @@ Detalhes: `.planning/PROJECT.md` (vision canônica) + memória `project_pivot_hu
 ## Phases completas
 
 ### Milestone V1 (✓ COMPLETED)
+
 - ✓ **Phase 1** — Foundation (Discord OAuth, schema base, RLS, login)
 - ✓ **Phase 1.5** — Doutrina (aceite obrigatório, sistema progressivo advertência → suspensão → banimento, /codigo-de-conduta, /onboarding/doutrina, telas /suspended e /banned, middleware enforcement)
 - ✓ **Phase 2** — Catalog & Checkout (PIX avulso AbacatePay Transparent, idempotência via UPDATE conditional, webhook HMAC SHA-256 base64 timingSafeEqual, email Resend com idempotencyKey)
@@ -56,7 +60,13 @@ Detalhes: `.planning/PROJECT.md` (vision canônica) + memória `project_pivot_hu
 ## Phase corrente
 
 ### Milestone V2 — HUB ◆ CURRENT
-- ◆ **Phase 3** — Steam OAuth + Roles + Multi-coach Refactor (em planejamento)
+
+- ◆ **Phase 3** — Steam OAuth + Roles + Multi-coach Refactor (em execução, 1/5 plans completas)
+  - [x] 03-01 — Migration 005 (coaches/steam_links/role/coach_id) + types regen ← **CONCLUÍDO 2026-05-02**
+  - [ ] 03-02 — steam-client-env (lib + STEAM_WEB_API_KEY)
+  - [ ] 03-03 — vincular-steam-page + Server Action signInWithSteam
+  - [ ] 03-04 — middleware STEAM_REQUIRED_PATHS gate
+  - [ ] 03-05 — multicoach-refactor (PackageCard + /pacotes)
 - ○ Phase 4 — Subscription Mensal AbacatePay
 - ○ Phase 5 — Bot Steam Lobby Creator
 - ○ Phase 6 — Sistema de Ligas + MMR + Temporadas
@@ -71,6 +81,7 @@ Detalhes: `.planning/PROJECT.md` (vision canônica) + memória `project_pivot_hu
 | 002 | rls_policies.sql | 25 policies, RLS ativo em todas tables |
 | 003 | seed_packages.sql | 4 pacotes (R$10/50/100/100) + 7 janelas Pedro 19h-22h |
 | 004 | doctrine_and_moderation.sql | doctrine_versions, user_warnings, behavior_status_log, trigger 3-strikes, helpers RLS |
+| 005 | steam_roles_multicoach.sql | coaches, steam_links, profiles.role+trial_ends_at, packages.coach_id, helper is_coach(), 4 RLS policies novas. Aplicada via `scripts/apply-migration-005.mjs` (session pooler aws-1-sa-east-1). NOT NULL em packages.coach_id pendente até Pedro logar Discord. |
 
 Projeto Supabase: `nyvbfdsxjpiwgdroptdi` em `sa-east-1`.
 
@@ -116,6 +127,13 @@ Aceite obrigatório bloqueia rotas privadas (middleware + RLS).
 - `Database.ts` precisa `Relationships: []` + `Views: Record<never, never>` em cada table
 - QR Code PNG como `<img>` (data URLs, Next/Image não aceita)
 
+## Decisões técnicas Phase 3 (em curso)
+
+- **Migration 005 idempotente** com DO $$ blocks condicionais — `SET NOT NULL` em `packages.coach_id` só aplica quando todos pacotes têm `coach_id` preenchido. Permite re-execução segura quando Pedro ainda não criou profile via Discord OAuth.
+- **Aplicação manual de migrations via `scripts/apply-migration-005.mjs`** (Node + pg lib): alternativa ao Supabase CLI (Docker indisponível) e às tools MCP `mcp__supabase__*` (não expostas como function calls em executores GSD nesta sessão). Conecta ao session pooler `aws-1-sa-east-1.pooler.supabase.com:5432` (não aws-0 — aws-0 retorna "Tenant or user not found" para este projeto).
+- **Pattern canônico H1.2 documentado em SQL** — `steam_links` é template para `youtube_links`/`twitch_links`/`x_links` (Milestone V4 multi-redes). Comentário inline na DDL alerta futuros agentes a manterem o shape mínimo.
+- **`is_coach()` helper RLS** complementa `is_admin()` legacy. Pedro tem ambos `is_admin=true` AND `role='admin'` (compatibilidade dual com policies Phase 1/2).
+
 ## Open questions
 
 - Bot Steam: conta dedicada — Pedro vai criar (checklist a entregar em Phase 5 pre-task)
@@ -123,3 +141,4 @@ Aceite obrigatório bloqueia rotas privadas (middleware + RLS).
 - Domínio formuladota.com: DNS Route 53 → Vercel pra Phase 8
 - Patrocinadores premiação: Pedro busca em paralelo
 - AbacatePay sandbox vs prod: cobrança recorrente em sandbox testável?
+- **Phase 3 — Pedro precisa logar Discord pelo menos uma vez** antes de Plan 03-05 (multicoach refactor) executar — sem profile com `is_admin=true` o seed Pedro em `coaches` não acontece e `packages.coach_id` permanece nullable. Re-rodar `node scripts/apply-migration-005.mjs` pós-login finaliza. Plans 03-02/03-03/03-04 não dependem deste passo.
