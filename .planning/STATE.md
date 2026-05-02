@@ -1,16 +1,14 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.0
-milestone_name: hub
-status: in_progress
-last_updated: "2026-05-02T02:59:47Z"
-current_phase: 03-steam-oauth-roles-multicoach
-current_plan: 05
+milestone: v1.0
+milestone_name: milestone
+status: Milestone complete
+last_updated: "2026-05-02T03:12:04.185Z"
 progress:
-  total_phases: 8
+  total_phases: 3
   completed_phases: 3
-  total_plans: 19
-  completed_plans: 15
+  total_plans: 14
+  completed_plans: 14
 ---
 
 # formuladota v2 — Project State
