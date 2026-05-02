@@ -1,6 +1,7 @@
 // Auto-generated database types for formuladota v2
 // Generated from Supabase introspection on 2026-05-01
-// Re-run via psql introspection if schema changes; supabase CLI requires Docker.
+// Updated 2026-05-02 — Phase 3 Migration 005 (coaches, steam_links, profiles.role/trial_ends_at, packages.coach_id)
+// Re-run via psql introspection (scripts/apply-migration-005.mjs pattern) se schema mudar; supabase CLI requer Docker.
 //
 // NOTA: campo Relationships é obrigatório pelo tipo GenericTable do Supabase JS.
 // Sem ele, o método .from() não consegue inferir o overload de Tables vs Views,
@@ -74,6 +75,34 @@ export type Database = {
           warning_id?: string | null;
           changed_by?: string | null;
           changed_at?: string;
+        };
+        Relationships: [];
+      };
+      // Phase 3: tabela de coaches (multi-coach desde schema; Pedro = coach #1)
+      coaches: {
+        Row: {
+          id: string;
+          profile_id: string;
+          slug: string;
+          bio: string | null;
+          ativo: boolean;
+          accepted_at: string;
+        };
+        Insert: {
+          id?: string;
+          profile_id: string;
+          slug: string;
+          bio?: string | null;
+          ativo?: boolean;
+          accepted_at?: string;
+        };
+        Update: {
+          id?: string;
+          profile_id?: string;
+          slug?: string;
+          bio?: string | null;
+          ativo?: boolean;
+          accepted_at?: string;
         };
         Relationships: [];
       };
@@ -160,6 +189,10 @@ export type Database = {
           preco_brl: number;
           ativo: boolean;
           display_order: number;
+          // Phase 3: FK para coaches(id) — NOT NULL no DB pós-backfill (Migration 005).
+          // Em re-execução pré-Pedro-login pode estar nullable; types refletem o estado
+          // pós-seed Pedro (cenário esperado para queries de produção).
+          coach_id: string;
           created_at: string;
         };
         Insert: {
@@ -172,6 +205,7 @@ export type Database = {
           preco_brl: number;
           ativo?: boolean;
           display_order?: number;
+          coach_id: string;
           created_at?: string;
         };
         Update: {
@@ -184,6 +218,7 @@ export type Database = {
           preco_brl?: number;
           ativo?: boolean;
           display_order?: number;
+          coach_id?: string;
           created_at?: string;
         };
         Relationships: [];
@@ -200,6 +235,11 @@ export type Database = {
           mmr_atual: number | null;
           role_preferida: "carry" | "mid" | "offlane" | "sup4" | "sup5" | null;
           is_admin: boolean;
+          // Phase 3: hierarquia admin ⊃ coach ⊃ player (default 'player').
+          // Convive com is_admin (legacy) — Pedro tem ambos.
+          role: "admin" | "coach" | "player";
+          // Phase 3 prep / Phase 4 ativa: trial 7 dias da subscription.
+          trial_ends_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -214,6 +254,8 @@ export type Database = {
           mmr_atual?: number | null;
           role_preferida?: "carry" | "mid" | "offlane" | "sup4" | "sup5" | null;
           is_admin?: boolean;
+          role?: "admin" | "coach" | "player";
+          trial_ends_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -228,6 +270,8 @@ export type Database = {
           mmr_atual?: number | null;
           role_preferida?: "carry" | "mid" | "offlane" | "sup4" | "sup5" | null;
           is_admin?: boolean;
+          role?: "admin" | "coach" | "player";
+          trial_ends_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -317,6 +361,32 @@ export type Database = {
           notas?: string | null;
           status?: "agendada" | "realizada" | "cancelada";
           created_at?: string;
+        };
+        Relationships: [];
+      };
+      // Phase 3: vinculo Steam OpenID 2.0 → user. PATTERN CANÔNICO de identidade externa H1.2:
+      // V2 replica este shape em youtube_links, twitch_links, x_links.
+      steam_links: {
+        Row: {
+          user_id: string;
+          steam_id_64: string;
+          persona: string | null;
+          avatar_url: string | null;
+          verified_at: string;
+        };
+        Insert: {
+          user_id: string;
+          steam_id_64: string;
+          persona?: string | null;
+          avatar_url?: string | null;
+          verified_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          steam_id_64?: string;
+          persona?: string | null;
+          avatar_url?: string | null;
+          verified_at?: string;
         };
         Relationships: [];
       };
