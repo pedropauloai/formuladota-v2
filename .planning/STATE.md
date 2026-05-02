@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: hub
 status: in_progress
-last_updated: "2026-05-02T02:49:31Z"
+last_updated: "2026-05-02T02:58:45Z"
 current_phase: 03-steam-oauth-roles-multicoach
-current_plan: 03
+current_plan: 04
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 19
-  completed_plans: 12
+  completed_plans: 14
 ---
 
 # formuladota v2 — Project State
@@ -61,11 +61,11 @@ Detalhes: `.planning/PROJECT.md` (vision canônica) + memória `project_pivot_hu
 
 ### Milestone V2 — HUB ◆ CURRENT
 
-- ◆ **Phase 3** — Steam OAuth + Roles + Multi-coach Refactor (em execução, 2/5 plans completas)
+- ◆ **Phase 3** — Steam OAuth + Roles + Multi-coach Refactor (em execução, 4/5 plans completas)
   - [x] 03-01 — Migration 005 (coaches/steam_links/role/coach_id) + types regen ← **CONCLUÍDO 2026-05-02**
   - [x] 03-02 — steam-client-env (src/lib/steam.ts + STEAM_WEB_API_KEY) ← **CONCLUÍDO 2026-05-02**
-  - [ ] 03-03 — vincular-steam-page + Server Action signInWithSteam
-  - [ ] 03-04 — middleware STEAM_REQUIRED_PATHS gate
+  - [x] 03-03 — vincular-steam-page + Server Action signInWithSteam ← **CONCLUÍDO 2026-05-02 (parallel)**
+  - [x] 03-04 — middleware STEAM_REQUIRED_PATHS gate ← **CONCLUÍDO 2026-05-02 (parallel)**
   - [ ] 03-05 — multicoach-refactor (PackageCard + /pacotes)
 - ○ Phase 4 — Subscription Mensal AbacatePay
 - ○ Phase 5 — Bot Steam Lobby Creator
@@ -136,6 +136,12 @@ Aceite obrigatório bloqueia rotas privadas (middleware + RLS).
 - **node-steam-openid AVALIADA E DESCARTADA** — implementação Steam OpenID 2.0 100% manual via fetch em `src/lib/steam.ts`. Lib requer adapter Express, complica em Next 16 App Router sem benefício; manual é ~50 linhas core e zero deps. Justificativa em comentário PT-BR no header de steam.ts.
 - **Helper composto `validateAndFetchSteam`** em src/lib/steam.ts — encapsula CSRF check (timingSafeEqual) + OpenID re-handshake + Steam Web API persona fetch num único call. Mantém callback handler /auth/steam/callback ≤ 50 linhas (per C2).
 - **STEAM_WEB_API_KEY validado server-only** — adicionado ao serverSchema do env.ts como `optional` (Zod). Build não quebra sem a key; `requireServerEnv("STEAM_WEB_API_KEY")` lança erro descritivo só quando handler é chamado.
+- **CSRF state via cookie httpOnly + crypto.timingSafeEqual** (Plan 03-03) — replica pattern HMAC AbacatePay de Phase 2. Cookie `steam_csrf_state` Secure SameSite=Lax maxAge=300s, deletado one-shot no callback antes do try block (zero órfãos em sucesso/erro).
+- **Cookie client (não service role) pra upsert steam_links** (Plan 03-03) — RLS `auth.uid() = user_id` garante segurança. Service role permanece reservado pra `/api/webhooks/abacatepay` per C13.
+- **ErrorBanner sub-component extraído no mesmo arquivo** (Plan 03-03) — pattern pra honrar C2 (página Server Component ≤ 50 linhas) sem criar churn de imports. Replicar em outras páginas com banners/estados.
+- **Camada Steam no middleware aplicada APÓS doutrina** (Plan 03-04) — ordem 4 camadas: banned > suspended > !doctrine > !steam_linked. Awk validation (accepted=120, steam=140) garante regressão futura visível. Doutrina é gate cultural fundamental, Steam é integração técnica que vem depois.
+- **Fail-open em DB error pra checagem de gate** (Plan 03-04) — query `steam_links` com falha → `console.error` + `return response`. Disponibilidade > paranoia em erro de infra (RLS continua protegendo dados sensíveis nas tabelas de destino). Pattern reaproveitável pra futuras camadas: subscription gate Phase 4, MMR gate Phase 6.
+- **Path-based query gating no middleware** (Plan 03-04) — variável `needsSteamCheck` evita query Supabase pra rotas que não precisam (rotas públicas, login, doutrina, callbacks). Overhead da camada Steam = 0 fora de STEAM_REQUIRED_PATHS ∪ {/vincular/steam}.
 
 ## Open questions
 
