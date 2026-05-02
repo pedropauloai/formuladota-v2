@@ -56,6 +56,8 @@ Plans:
 ### Phase 4 — Subscription Mensal (PIX Manual Mensal) ○ PENDING
 **Goal:** Mensalidade R$47/mês via **PIX Manual Mensal** (Vercel Cron + Transparent PIX existente Phase 2). Sem trial. RLS gate via helper SQL pra Phase 5 consumir. **Mudança pós-research 2026-05-02:** AbacatePay subscription nativa suporta apenas CARD; Pedro escolheu PIX Manual pra manter alinhamento com mercado BR PIX-first.
 **Requirements:** H2.1, H2.2, H2.3, H2.4
+**Plans:** 6 plans em 3 waves
+
 **Acceptance:**
 - Migration 008 cria 2 tabelas: `subscriptions` (id, user_id, status, started_at, next_due_at, cancelled_at) + `subscription_charges` (id, subscription_id, purchase_id FK reusa Phase 2 idempotência, period_start, period_end, status) + helper `public.has_active_subscription()` SQL + RLS (user vê próprias subscriptions/charges, INSERT subscriptions cookie client, INSERT charges service-role only)
 - `src/lib/abacatepay.ts` SEM mudanças (reusa `createTransparentPix()` existente)
@@ -69,6 +71,14 @@ Plans:
 - `vercel.json` cria com `{ "crons": [{ "path": "/api/cron/subscriptions/charge-due", "schedule": "0 9 * * *" }] }`
 - Email aviso 5d ANTES vencimento → DEFERIDO PHASE 8 (Phase 4 só envia AFTER overdue)
 - Subscription gate no middleware → DEFERIDO PHASE 5 (lobbies não existe)
+
+Plans:
+- [ ] 04-01-migration-008-PLAN.md — Migration 008 (subscriptions + subscription_charges + helper has_active_subscription + RLS) + types regen
+- [ ] 04-02-env-vars-vercel-cron-PLAN.md — Env vars (HUB_PRICE_BRL=47, CRON_SECRET 32+chars) + vercel.json cron config
+- [ ] 04-03-resend-templates-PLAN.md — 3 builders Resend (charge_created com QR, charge_paid, overdue) + cyberpunk theme
+- [ ] 04-04-cron-handler-PLAN.md — /api/cron/subscriptions/charge-due (charge-due + sweep-overdue) + Bearer auth timingSafeEqual
+- [ ] 04-05-webhook-renewal-extension-PLAN.md — Webhook handler extension (lookup subscription_charges + processSubscriptionRenewal)
+- [ ] 04-06-assinatura-page-actions-PLAN.md — Página /assinatura cyberpunk + Server Actions (createInitial/cancel/reactivate)
 
 ### Phase 5 — Bot Steam Lobby Creator ○ PENDING
 **Goal:** Bot `node-dota2` rodando 24/7 em Railway Hobby (~$3/mês). Cria lobby Dota 2 customizado, captura match_id ao final.
