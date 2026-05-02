@@ -19,6 +19,18 @@ const AUTH_FLOW_PATHS = ["/auth", "/api/auth", "/api/webhooks"];
 const ONBOARDING_PATHS = ["/onboarding/doutrina"];
 const BLOCKED_STATUS_PATHS = ["/suspended", "/banned"];
 
+// Rotas que exigem Steam vinculado (Phase 3 — H1.1).
+// User logado, com doutrina aceita, mas sem registro em steam_links → redirect /vincular/steam.
+// O próprio /vincular/steam NÃO está na lista (senão loop infinito); a checagem
+// "user já vinculado em /vincular/steam → /perfil" é feita separadamente.
+const STEAM_REQUIRED_PATHS = [
+  "/pacotes",
+  "/checkout",
+  "/partidas",
+  "/perfil",
+];
+const STEAM_LINK_PATH = "/vincular/steam";
+
 function isPathInList(pathname: string, list: string[]): boolean {
   return list.some(
     (p) => pathname === p || pathname.startsWith(p + "/") || pathname.startsWith(p + "?")
@@ -114,6 +126,42 @@ export async function updateSession(request: NextRequest) {
       return response;
     }
     return NextResponse.redirect(new URL("/onboarding/doutrina", request.url));
+  }
+
+  // Camada Steam (Phase 3 — H1.1): aplicada APÓS doutrina aceita.
+  // Buscamos steam_link no máximo 1x por request (apenas em rotas que precisam).
+  // Query é cheap — PK lookup em (user_id) com RLS permitindo o user ler própria linha.
+  const needsSteamCheck =
+    pathname === STEAM_LINK_PATH ||
+    isPathInList(pathname, STEAM_REQUIRED_PATHS);
+
+  if (needsSteamCheck) {
+    const { data: steamLink, error: steamErr } = await supabase
+      .from("steam_links")
+      .select("user_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (steamErr) {
+      // Fail-open: erro de infra (DB indisponível, RLS quebrada) NÃO bloqueia user.
+      // Se não conseguimos saber se o user tem Steam vinculado, é melhor liberar a request
+      // (RLS continua protegendo dados sensíveis nas tabelas de destino) do que prender
+      // todo mundo numa tela de "vincular Steam" enquanto a infra está com problema.
+      console.error("[middleware] steam_links query failed:", steamErr);
+      return response;
+    }
+
+    // User SEM Steam vinculado tentando rota protegida → manda pra /vincular/steam.
+    if (!steamLink && isPathInList(pathname, STEAM_REQUIRED_PATHS)) {
+      return NextResponse.redirect(new URL("/vincular/steam", request.url));
+    }
+
+    // User COM Steam vinculado em /vincular/steam → vai pra /perfil
+    // (página /vincular/steam ainda renderiza estado vinculado se acessada diretamente,
+    // mas em flow normal este redirect leva o user direto pra dashboard pós-onboarding).
+    if (steamLink && pathname === STEAM_LINK_PATH) {
+      return NextResponse.redirect(new URL("/perfil", request.url));
+    }
   }
 
   // Já aceitou + status ok/warned: sem restrição.
