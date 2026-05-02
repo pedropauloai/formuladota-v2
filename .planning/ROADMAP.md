@@ -51,7 +51,7 @@ Plans:
 - [x] 03-02-steam-client-env-PLAN.md — Install node-steam-openid + STEAM_WEB_API_KEY env + src/lib/steam.ts (3 helpers tipados)
 - [x] 03-03-vincular-steam-page-PLAN.md — Server Action signInWithSteam + callback /auth/steam/callback + página /vincular/steam
 - [x] 03-04-middleware-steam-gate-PLAN.md — Middleware update com STEAM_REQUIRED_PATHS layer (após doutrina)
-- [ ] 03-05-multicoach-refactor-PLAN.md — Refator PackageCard + /pacotes/page.tsx (2-query JOIN coaches+profiles)
+- [x] 03-05-multicoach-refactor-PLAN.md — Refator PackageCard + /pacotes/page.tsx (2-query JOIN coaches+profiles)
 
 ### Phase 4 — Subscription Mensal AbacatePay ○ PENDING
 **Goal:** Mensalidade R$47/mês via AbacatePay subscription nativa (PIX recorrente). Trial 7d. RLS gate: criar/entrar lobby exige assinatura ativa OU trial.

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: hub
 status: in_progress
-last_updated: "2026-05-02T02:58:45Z"
+last_updated: "2026-05-02T02:59:47Z"
 current_phase: 03-steam-oauth-roles-multicoach
-current_plan: 04
+current_plan: 05
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 19
-  completed_plans: 14
+  completed_plans: 15
 ---
 
 # formuladota v2 — Project State
@@ -61,12 +61,12 @@ Detalhes: `.planning/PROJECT.md` (vision canônica) + memória `project_pivot_hu
 
 ### Milestone V2 — HUB ◆ CURRENT
 
-- ◆ **Phase 3** — Steam OAuth + Roles + Multi-coach Refactor (em execução, 4/5 plans completas)
+- ✓ **Phase 3** — Steam OAuth + Roles + Multi-coach Refactor (5/5 plans completas, aguardando verify)
   - [x] 03-01 — Migration 005 (coaches/steam_links/role/coach_id) + types regen ← **CONCLUÍDO 2026-05-02**
   - [x] 03-02 — steam-client-env (src/lib/steam.ts + STEAM_WEB_API_KEY) ← **CONCLUÍDO 2026-05-02**
   - [x] 03-03 — vincular-steam-page + Server Action signInWithSteam ← **CONCLUÍDO 2026-05-02 (parallel)**
   - [x] 03-04 — middleware STEAM_REQUIRED_PATHS gate ← **CONCLUÍDO 2026-05-02 (parallel)**
-  - [ ] 03-05 — multicoach-refactor (PackageCard + /pacotes)
+  - [x] 03-05 — multicoach-refactor (PackageCard + /pacotes) ← **CONCLUÍDO 2026-05-02 (parallel)**
 - ○ Phase 4 — Subscription Mensal AbacatePay
 - ○ Phase 5 — Bot Steam Lobby Creator
 - ○ Phase 6 — Sistema de Ligas + MMR + Temporadas
