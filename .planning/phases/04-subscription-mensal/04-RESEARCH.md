@@ -6,6 +6,28 @@
 
 ---
 
+## ⚡ DECISÃO PEDRO 2026-05-02: Opção 2 — PIX Manual Mensal SELECIONADA
+
+**Bloqueador resolvido:** Pedro escolheu **Opção 2 (PIX Manual Mensal via Vercel Cron + Transparent PIX)**, NÃO Opção 1 (CARD subscription nativa).
+
+**Razão:** Mercado BR é PIX-first. Cartão tem fricção de cadastro + recusa por banco + 30%+ da população BR sem cartão de crédito. Pedro paga ~$3/mês a mais de Vercel Cron mas mantém alinhamento com mercado.
+
+**Implicações pra esta RESEARCH.md:**
+- §1.1, §1.2, §1.3 (subscription nativa CARD) — **NÃO USAR** em V1 (referência histórica)
+- §1.4 (PIX Manual Mensal pattern) — **CAMINHO ESCOLHIDO** — Plan baseia-se nessa abordagem
+- §3 (Migration 008) — **REVISAR** — schema muda: sem `abacatepay_subscription_id`, correlação via `purchases` table ou nova `subscription_charges`
+- §5 (discriminated union Zod) — **DESCARTADO** — sem novos eventos webhook (reusa `transparent.*` Phase 2)
+- §6 (webhook handler extension) — **DESCARTADO** — sem novos branches (reusa pattern `transparent.completed` Phase 2; diferenciar purchase tipo "compra avulsa" vs "subscription renewal")
+- §7 (/assinatura) — **REVISAR** — mostra status + QR Code do PIX corrente embedded; sem redirect AbacatePay
+- §8 (Resend templates) — **REVISAR** — emails: charge_created (com QR), charge_paid, payment_overdue
+- **NOVO conteúdo:** Vercel Cron config (vercel.json), subscription_charges, inadimplência flow (status='overdue' após 5 dias), reativação manual
+
+**CONTEXT.md foi reescrito em 2026-05-02 pós-decisão. Read CONTEXT.md PRIMEIRO antes desta RESEARCH.md.**
+
+---
+
+---
+
 <user_constraints>
 ## User Constraints (from CONTEXT.md)
 

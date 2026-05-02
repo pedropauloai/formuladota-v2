@@ -17,10 +17,11 @@
 
 ## Modelo de negócio
 
-- **Mensalidade R$ 47,00/mês** via AbacatePay subscription (PIX recorrente nativo `POST /v2/subscriptions/create`, cycle MONTHLY, auto-renovação via webhook `subscription.renewed`)
+- **Mensalidade R$ 47,00/mês** via **PIX Manual Mensal** (Vercel Cron + Transparent PIX `POST /v2/transparents/create`). **MUDANÇA pós-research 2026-05-02:** AbacatePay subscription nativa suporta APENAS CARD; Pedro escolheu PIX Manual Mensal pra manter alinhamento com mercado BR PIX-first (76% dos brasileiros usam PIX semanalmente). Cron diário cria PIX 5 dias antes do vencimento e envia email com QR Code; webhook `transparent.completed` confirma renovação automática.
 - ~~Trial 7 dias grátis~~ — REMOVIDO em discuss-phase 2026-05-02 (decisão Pedro). Sem trial em V1. Possível reintrodução V2.
 - **Sem mensalidade ativa = read-only** (browse ranking, ver perfis, mas não pode criar/entrar lobby)
-- **Cancel flow híbrido**: user cancela → `cancelled_at` set, mas mantém acesso até fim do período pago (`next_billing_at`). Padrão SaaS justo.
+- **Cancel flow híbrido**: user cancela → `cancelled_at` set, mas mantém acesso até fim do período pago (`next_due_at`). Padrão SaaS justo. Cron não gera novo PIX pra subscriptions cancelled.
+- **Inadimplência**: subscription com `next_due_at` passou e webhook completed não veio em 5 dias → status `overdue` (cron sweep). User reativa manual em `/assinatura` (cria novo PIX). Sem auto-retry V1.
 - **Mentoria/serviços de coach** são produto secundário — Pedro é coach #1, schema pronto pra V2 admitir outros coaches (Pedro concede role)
 - **Premiação por temporada**: placeholder no DB (`prize_pool` em `seasons`). Pedro busca patrocinadores, configura depois. UI mostra "patrocínio em breve"
 

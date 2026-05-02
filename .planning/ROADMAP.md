@@ -53,20 +53,22 @@ Plans:
 - [x] 03-04-middleware-steam-gate-PLAN.md — Middleware update com STEAM_REQUIRED_PATHS layer (após doutrina)
 - [x] 03-05-multicoach-refactor-PLAN.md — Refator PackageCard + /pacotes/page.tsx (2-query JOIN coaches+profiles)
 
-### Phase 4 — Subscription Mensal AbacatePay ○ PENDING
-**Goal:** Mensalidade R$47/mês via AbacatePay subscription nativa (PIX recorrente, checkout hospedado). Sem trial (decisão Pedro 2026-05-02). RLS gate via helper SQL pra Phase 5 consumir.
-**Requirements:** H2.1, H2.2 (sem trial), H2.3, H2.4
+### Phase 4 — Subscription Mensal (PIX Manual Mensal) ○ PENDING
+**Goal:** Mensalidade R$47/mês via **PIX Manual Mensal** (Vercel Cron + Transparent PIX existente Phase 2). Sem trial. RLS gate via helper SQL pra Phase 5 consumir. **Mudança pós-research 2026-05-02:** AbacatePay subscription nativa suporta apenas CARD; Pedro escolheu PIX Manual pra manter alinhamento com mercado BR PIX-first.
+**Requirements:** H2.1, H2.2, H2.3, H2.4
 **Acceptance:**
-- Migration 008 cria tabela `subscriptions` (id, user_id, abacatepay_subscription_id, abacatepay_billing_id, status, started_at, next_billing_at, cancelled_at) + helper `public.has_active_subscription()` SQL + RLS (user vê própria, service-role atualiza via webhook, INSERT cookie client, sem UPDATE/DELETE policy)
-- Cliente AbacatePay V2 estendido com `createSubscription()` + `cancelSubscription()` em `src/lib/abacatepay.ts`
-- Webhook handler EXISTENTE `/api/webhooks/abacatepay/route.ts` ganha branches `subscription.completed/renewed/cancelled` (mesma HMAC, idempotência via UPDATE conditional, fire-and-forget email)
-- Server Actions `createSubscriptionCheckout()` e `cancelSubscription()` em `src/app/assinatura/actions.ts` — cookie client (não service-role per C13)
-- Página `/assinatura` Server Component cyberpunk minimal: status + próxima cobrança + botão ação contextual
-- Cancel flow híbrido: `cancelled_at` set + status `cancelled` mas helper retorna true até `next_billing_at`
-- 1 plano único hardcoded via env vars `ABACATEPAY_HUB_PRODUCT_ID` + `HUB_PRICE_BRL=47`
-- Email Resend reativo: `subscription.completed`, `subscription.renewed`, `subscription.cancelled` (templates inline cyberpunk, idempotencyKey por evento+subscription_id)
-- Email aviso 5d antes vencimento → DEFERIDO PRA PHASE 8 polish
-- Subscription gate no middleware → DEFERIDO PRA PHASE 5 (lobbies não existe ainda)
+- Migration 008 cria 2 tabelas: `subscriptions` (id, user_id, status, started_at, next_due_at, cancelled_at) + `subscription_charges` (id, subscription_id, purchase_id FK reusa Phase 2 idempotência, period_start, period_end, status) + helper `public.has_active_subscription()` SQL + RLS (user vê próprias subscriptions/charges, INSERT subscriptions cookie client, INSERT charges service-role only)
+- `src/lib/abacatepay.ts` SEM mudanças (reusa `createTransparentPix()` existente)
+- `src/lib/resend.ts` extendido com 3 builders email: `sendSubscriptionChargeCreatedEmail` (QR Code embed), `sendSubscriptionChargePaidEmail`, `sendSubscriptionOverdueEmail`
+- `src/lib/env.ts` adiciona `HUB_PRICE_BRL=47` + `CRON_SECRET` (32+ chars)
+- Webhook handler `/api/webhooks/abacatepay/route.ts` ganha lookup `subscription_charges WHERE purchase_id=?` no `handlePaymentCompleted` — se existe, chama `processSubscriptionRenewal()` (UPDATE next_due_at += 30d, status='active', email charge_paid). Caso contrário, fluxo Phase 2 normal (libera saldo)
+- NOVO endpoint `/api/cron/subscriptions/charge-due/route.ts` — Vercel Cron diário (`0 9 * * *` UTC = 06:00 BRT). Valida `Authorization: Bearer ${CRON_SECRET}` via timingSafeEqual. Service-role client. Faz: (a) charge-due — busca subscriptions com `next_due_at <= now() + 5d` sem charge pending → cria Transparent PIX + INSERT charge + email. (b) sweep-overdue — `next_due_at < now() - 5d AND status='active'` → status='overdue' + email overdue. Retorna `{ ok: true, charged: N, overdue: M }`
+- Server Actions `createInitialSubscription()`, `cancelSubscription()`, `reactivateSubscription()` em `src/app/assinatura/actions.ts` — cookie client (per C13)
+- Página `/assinatura` Server Component cyberpunk minimal: card status (Pendente/Ativa/Cancelada/Overdue/Expirada), QR Code embed quando pendente, `next_due_at` formatado PT-BR, botões contextuais
+- Cancel flow híbrido: `cancelled_at` set + status `cancelled` mas helper retorna true até `next_due_at`. Cron NÃO cria PIX pra subscriptions cancelled
+- `vercel.json` cria com `{ "crons": [{ "path": "/api/cron/subscriptions/charge-due", "schedule": "0 9 * * *" }] }`
+- Email aviso 5d ANTES vencimento → DEFERIDO PHASE 8 (Phase 4 só envia AFTER overdue)
+- Subscription gate no middleware → DEFERIDO PHASE 5 (lobbies não existe)
 
 ### Phase 5 — Bot Steam Lobby Creator ○ PENDING
 **Goal:** Bot `node-dota2` rodando 24/7 em Railway Hobby (~$3/mês). Cria lobby Dota 2 customizado, captura match_id ao final.

@@ -31,10 +31,12 @@
 
 ### H2 — Subscription Mensal (Phase 4)
 
-- **H2.1** AbacatePay subscription nativa (`POST /v2/subscriptions/create`, cycle MONTHLY, R$ 47,00). Webhooks `subscription.completed/renewed/cancelled`.
-- **H2.2** ~~Trial 7 dias grátis~~ — REMOVIDO em discuss-phase 2026-05-02 a pedido do Pedro. Sem trial em V1. Coluna `profiles.trial_ends_at` permanece preparada (criada Migration 005, sempre null em V1) pra possível reintrodução V2.
-- **H2.3** RLS gate via helper SQL `public.has_active_subscription()` retorna true quando `subscriptions.status IN ('active','cancelled') AND next_billing_at > now()` (cancel híbrido — acesso mantido até fim do período pago). Phase 4 cria APENAS o helper; Phase 5 consome em policy `lobbies.insert WITH CHECK (public.has_active_subscription())` quando tabela `lobbies` existir.
-- **H2.4** Página `/assinatura` minimal: card status (Ativa/Cancelada/Expirada/Pendente), `next_billing_at` formatado PT-BR, botão "Iniciar mensalidade" / "Cancelar" / "Reativar" conforme status. Email de aviso 5 dias antes do vencimento — DEFERIDO PRA PHASE 8 polish; Phase 4 só dispara emails reativos a webhook (`subscription.completed/renewed/cancelled`).
+> **⚠ MUDANÇA pós-research 2026-05-02:** AbacatePay subscription nativa suporta APENAS CARD (não PIX). Pedro escolheu Opção 2 — **PIX Manual Mensal via Vercel Cron + Transparent PIX** (mantém alinhamento mercado BR PIX-first). H2.1-H2.4 atualizados refletindo nova arquitetura.
+
+- **H2.1** Mensalidade R$ 47/mês via **PIX Manual Mensal**: Vercel Cron (`/api/cron/subscriptions/charge-due`, schedule `0 9 * * *` UTC) gera Transparent PIX (`POST /v2/transparents/create`) pra cada subscription ativa próximo do vencimento (5 dias antes), persiste em `subscription_charges` (FK `purchases` reusa idempotência Phase 2), envia email Resend com QR Code. Cron também faz sweep de inadimplência: `subscriptions WHERE next_due_at < now() - 5d AND status='active'` → status `overdue`.
+- **H2.2** ~~Trial 7 dias grátis~~ — REMOVIDO em discuss-phase 2026-05-02. Coluna `profiles.trial_ends_at` permanece null em V1 (preservada pra possível reintrodução V2).
+- **H2.3** RLS gate via helper SQL `public.has_active_subscription()` retorna true quando `subscriptions.status IN ('active','cancelled') AND next_due_at > now()` (cancel híbrido — acesso até fim do período pago). Phase 4 cria APENAS o helper; Phase 5 consome em policy `lobbies.insert WITH CHECK (public.has_active_subscription())` quando `lobbies` existir.
+- **H2.4** Página `/assinatura` minimal: card status (Pendente/Ativa/Cancelada/Overdue/Expirada), `next_due_at` formatado PT-BR, QR Code embed quando status pendente, botões contextuais (Iniciar/Cancelar/Reativar/Pagar agora). Webhook reusa `transparent.completed` Phase 2 (lookup `subscription_charges WHERE purchase_id=?` diferencia renewal de purchase avulsa). Email aviso 5 dias ANTES do vencimento — DEFERIDO PHASE 8; Phase 4 envia: `subscription_charge_created` (com QR), `subscription_charge_paid` (renovação ok), `subscription_overdue` (5 dias após não-pagamento).
 
 ### H3 — Bot Steam Lobby (Phase 5)
 
