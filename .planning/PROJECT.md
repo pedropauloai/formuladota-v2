@@ -17,7 +17,7 @@
 
 ## Modelo de negócio
 
-- **Mensalidade R$ 47,00/mês** via **PIX Manual Mensal** (Vercel Cron + Transparent PIX `POST /v2/transparents/create`). **MUDANÇA pós-research 2026-05-02:** AbacatePay subscription nativa suporta APENAS CARD; Pedro escolheu PIX Manual Mensal pra manter alinhamento com mercado BR PIX-first (76% dos brasileiros usam PIX semanalmente). Cron diário cria PIX 5 dias antes do vencimento e envia email com QR Code; webhook `transparent.completed` confirma renovação automática.
+- **Mensalidade R$ 47,00/mês** via **Mercado Pago Pix Automático** (preapproval API com `payment_method_id=pix`). **MUDANÇA pós-decisão Pedro 2026-05-02:** descartada abordagem AbacatePay PIX Manual via Cron (que era fallback porque AbacatePay subscription nativa é CARD-only). Pix Automático foi lançado pelo Bacen em junho/2025 — débito automático recorrente em PIX, autorizado uma vez pelo user. Sem cron mensal, sem QR manual. MCP Mercado Pago oficial adicionado (`https://mcp.mercadopago.com/mcp`), pendente autenticação OAuth. Plans Phase 4 antigos (PIX Manual) ARQUIVADOS.
 - ~~Trial 7 dias grátis~~ — REMOVIDO em discuss-phase 2026-05-02 (decisão Pedro). Sem trial em V1. Possível reintrodução V2.
 - **Sem mensalidade ativa = read-only** (browse ranking, ver perfis, mas não pode criar/entrar lobby)
 - **Cancel flow híbrido**: user cancela → `cancelled_at` set, mas mantém acesso até fim do período pago (`next_due_at`). Padrão SaaS justo. Cron não gera novo PIX pra subscriptions cancelled.
@@ -47,7 +47,9 @@ Cada usuário no formuladota tem múltiplas identidades vinculadas:
 - AbacatePay (PIX avulso entregue Phase 2 + subscription Phase 4)
 - Resend transactional emails (idempotencyKey)
 - shadcn/ui base
-- Cyberpunk theme (cyan #00F0FF + purple #A855F7 + dark #050505)
+- ~~Cyberpunk theme cyan/purple~~ → **Brand vermelho/preto/branco** (rebrand 2026-05-02 pós-receber logos oficiais Pedro). Cor vermelha exata derivada via color picker do `LOGO HORIZONTAL PRINCIPAL PRETO.png`. Phase 3.5 implementa.
+- **Brand string:** **FORMULADOTA** (maiúsculo, sem acento) em toda UI/email — nunca "Fórmula Dota"
+- **Sem menção "Pedro Paulo" em UI** — admin implícito, não pessoa pública. Bio coach fica genérica ("Coach Immortal Top 0.5%")
 
 ## Stack a adicionar
 

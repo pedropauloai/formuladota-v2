@@ -15,6 +15,23 @@ progress:
 
 > Estado atual do projeto. Milestone V1 completo. Milestone V2 (HUB) em planejamento Phase 3.
 
+## ✦ PIVÔS ESTRATÉGICOS 2026-05-02 — Brand FORMULADOTA + Mercado Pago + Design Refresh
+
+**Documento detalhado:** `.planning/PIVOTS-2026-05-02.md` (LER PRIMEIRO ao retomar sessão)
+
+5 mudanças grandes (Pedro 2026-05-02):
+1. **Brand:** "FORMULADOTA" sempre maiúsculo, sem acento (não "Fórmula Dota")
+2. **Paleta visual:** vermelho/preto/branco do logo real (NÃO cyan/purple — paleta atual desalinhada)
+3. **Sem menção "Pedro Paulo" em UI** — Pedro fica como admin implícito, não pessoa pública
+4. **Pagamento:** migrar pra Mercado Pago Pix Automático (lançado Bacen junho/2025) — descarta AbacatePay PIX Manual via Cron. MCP MP adicionado mas precisa autenticação
+5. **Design referência:** https://guardiansgamers.com/ + assets oficiais Dota 2 (vídeos idle heroes via Steam CDN)
+
+**Phase 4 plans antigos ARQUIVADOS:** `.planning/phases/_deprecated/04-subscription-mensal-abacatepay-pix-manual/` (6 plans, AbacatePay PIX Manual via Vercel Cron — abordagem descartada)
+
+**NOVA Phase 3.5 — Rebrand & Design System Refresh** inserida no ROADMAP entre Phase 3 e Phase 4. Executar antes da Phase 4 nova.
+
+---
+
 ## ✦ PIVÔ ESTRATÉGICO 2026-05-01 — formuladota = HUB Dota 2
 
 Pedro mudou escopo de "loja de mentoria 1-1" para "HUB de comunidade Dota 2 estilo GamersClub":
@@ -39,7 +56,7 @@ Detalhes: `.planning/PROJECT.md` (vision canônica) + memória `project_pivot_hu
 | Auth Discord | Discord OAuth via Supabase | — | ✓ Phase 1 |
 | Auth Steam | OpenID 2.0 | — | ⏳ Phase 3 |
 | Payments avulso | AbacatePay PIX Transparent | V2 sandbox | ✓ Phase 2 |
-| Subscription mensal | AbacatePay subscription native | V2 | ⏳ Phase 4 |
+| Subscription mensal | **Mercado Pago Pix Automático** (descartado AbacatePay subscription CARD-only) | preapproval API | ⏳ Phase 4 — MCP MP adicionado, precisa autenticar |
 | Email | Resend (idempotencyKey) | onboarding@resend.dev | ✓ Phase 2 |
 | Stats primário | Stratz GraphQL | Tier 1 free 2k req/h | ⏳ Phase 7 |
 | Stats secundário | OpenDota Premium | $0.01/100 calls | ⏳ Phase 7 (fallback) |

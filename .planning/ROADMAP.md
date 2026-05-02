@@ -53,32 +53,41 @@ Plans:
 - [x] 03-04-middleware-steam-gate-PLAN.md — Middleware update com STEAM_REQUIRED_PATHS layer (após doutrina)
 - [x] 03-05-multicoach-refactor-PLAN.md — Refator PackageCard + /pacotes/page.tsx (2-query JOIN coaches+profiles)
 
-### Phase 4 — Subscription Mensal (PIX Manual Mensal) ○ PENDING
-**Goal:** Mensalidade R$47/mês via **PIX Manual Mensal** (Vercel Cron + Transparent PIX existente Phase 2). Sem trial. RLS gate via helper SQL pra Phase 5 consumir. **Mudança pós-research 2026-05-02:** AbacatePay subscription nativa suporta apenas CARD; Pedro escolheu PIX Manual pra manter alinhamento com mercado BR PIX-first.
-**Requirements:** H2.1, H2.2, H2.3, H2.4
-**Plans:** 6 plans em 3 waves
-
+### Phase 3.5 — Rebrand & Design System Refresh ◆ NEXT (NEW PHASE 2026-05-02)
+**Goal:** Rebrand completo FORMULADOTA: aplicar logos reais (preto + vermelho), substituir paleta cyan/purple por vermelho/preto/branco, padronizar string "FORMULADOTA" maiúsculo sem acento em toda UI/emails, remover toda menção "Pedro Paulo" da UI, redesign visual inspirado em https://guardiansgamers.com/, integrar assets oficiais Dota 2 (vídeos idle de heroes via Steam CDN HotLink). Ver `.planning/PIVOTS-2026-05-02.md` §2-§6 + Phase 3.5 CONTEXT (a ser criado).
+**Requirements:** B1, B2, B3, B4, B5, B6 (criar seção B em REQUIREMENTS.md)
 **Acceptance:**
-- Migration 008 cria 2 tabelas: `subscriptions` (id, user_id, status, started_at, next_due_at, cancelled_at) + `subscription_charges` (id, subscription_id, purchase_id FK reusa Phase 2 idempotência, period_start, period_end, status) + helper `public.has_active_subscription()` SQL + RLS (user vê próprias subscriptions/charges, INSERT subscriptions cookie client, INSERT charges service-role only)
-- `src/lib/abacatepay.ts` SEM mudanças (reusa `createTransparentPix()` existente)
-- `src/lib/resend.ts` extendido com 3 builders email: `sendSubscriptionChargeCreatedEmail` (QR Code embed), `sendSubscriptionChargePaidEmail`, `sendSubscriptionOverdueEmail`
-- `src/lib/env.ts` adiciona `HUB_PRICE_BRL=47` + `CRON_SECRET` (32+ chars)
-- Webhook handler `/api/webhooks/abacatepay/route.ts` ganha lookup `subscription_charges WHERE purchase_id=?` no `handlePaymentCompleted` — se existe, chama `processSubscriptionRenewal()` (UPDATE next_due_at += 30d, status='active', email charge_paid). Caso contrário, fluxo Phase 2 normal (libera saldo)
-- NOVO endpoint `/api/cron/subscriptions/charge-due/route.ts` — Vercel Cron diário (`0 9 * * *` UTC = 06:00 BRT). Valida `Authorization: Bearer ${CRON_SECRET}` via timingSafeEqual. Service-role client. Faz: (a) charge-due — busca subscriptions com `next_due_at <= now() + 5d` sem charge pending → cria Transparent PIX + INSERT charge + email. (b) sweep-overdue — `next_due_at < now() - 5d AND status='active'` → status='overdue' + email overdue. Retorna `{ ok: true, charged: N, overdue: M }`
-- Server Actions `createInitialSubscription()`, `cancelSubscription()`, `reactivateSubscription()` em `src/app/assinatura/actions.ts` — cookie client (per C13)
-- Página `/assinatura` Server Component cyberpunk minimal: card status (Pendente/Ativa/Cancelada/Overdue/Expirada), QR Code embed quando pendente, `next_due_at` formatado PT-BR, botões contextuais
-- Cancel flow híbrido: `cancelled_at` set + status `cancelled` mas helper retorna true até `next_due_at`. Cron NÃO cria PIX pra subscriptions cancelled
-- `vercel.json` cria com `{ "crons": [{ "path": "/api/cron/subscriptions/charge-due", "schedule": "0 9 * * *" }] }`
-- Email aviso 5d ANTES vencimento → DEFERIDO PHASE 8 (Phase 4 só envia AFTER overdue)
-- Subscription gate no middleware → DEFERIDO PHASE 5 (lobbies não existe)
+- Logos movidos pra `public/brand/` (`logo-horizontal.png` + `logo-icon.png`)
+- Paleta tokens em `src/styles/globals.css`: `--brand-red`, `--brand-black`, `--brand-white` (cor vermelha exata derivada via color picker do logo)
+- ZERO ocorrências de cyan `#00F0FF` ou purple `#A855F7` em componentes (grep confirma)
+- ZERO menções "Pedro Paulo", "PPA", "Pedro" em user-facing strings (grep `src/app/**`, `src/components/**`, `src/lib/resend.ts`, `src/lib/doctrine.ts`)
+- ZERO ocorrências de "Fórmula Dota", "FormulaDota", "Formula Dota" — só **FORMULADOTA** (grep + replace global)
+- Bio coach Pedro em DB atualizada (UPDATE Migration 009 ou via MCP) sem "Pedro Paulo (PPA)"
+- Landing `/` reformulada com hero video Dota 2 (HotLink Steam CDN) + design inspirado guardiansgamers
+- Header logo usa `<Image src="/brand/logo-horizontal.png" />`
+- Favicon usa `logo-icon.png`
+- Tipografia atualizada (research necessário pra fonts guardiansgamers — Phase 3.5 RESEARCH define)
+- Build/typecheck/lint verdes
 
-Plans:
-- [ ] 04-01-migration-008-PLAN.md — Migration 008 (subscriptions + subscription_charges + helper has_active_subscription + RLS) + types regen
-- [ ] 04-02-env-vars-vercel-cron-PLAN.md — Env vars (HUB_PRICE_BRL=47, CRON_SECRET 32+chars) + vercel.json cron config
-- [ ] 04-03-resend-templates-PLAN.md — 3 builders Resend (charge_created com QR, charge_paid, overdue) + cyberpunk theme
-- [ ] 04-04-cron-handler-PLAN.md — /api/cron/subscriptions/charge-due (charge-due + sweep-overdue) + Bearer auth timingSafeEqual
-- [ ] 04-05-webhook-renewal-extension-PLAN.md — Webhook handler extension (lookup subscription_charges + processSubscriptionRenewal)
-- [ ] 04-06-assinatura-page-actions-PLAN.md — Página /assinatura cyberpunk + Server Actions (createInitial/cancel/reactivate)
+### Phase 4 — Subscription Mensal Mercado Pago Pix Automático ○ PENDING (REPLAN)
+**Goal:** Mensalidade R$47/mês via **Mercado Pago Pix Automático** (`/v1/preapproval` API com `payment_method_id=pix`). Subscription nativa real PIX recorrente — sem cron mensal, sem QR manual. Lançado Bacen junho/2025.
+**Requirements:** H2.1, H2.2, H2.3, H2.4 (REQUIREMENTS.md a re-atualizar pós-discuss)
+**Status:** Plans antigos AbacatePay PIX Manual ARQUIVADOS em `.planning/phases/_deprecated/04-subscription-mensal-abacatepay-pix-manual/`. Replan necessário com MP MCP autenticado.
+**Pre-req:** Pedro autenticar MCP Mercado Pago (`claude mcp list` mostra `mercadopago: ✓ Connected`).
+
+**Acceptance (a refinar pós-discuss-phase 4 com MP MCP):**
+- Migration 008 cria tabela `subscriptions` (mp_preapproval_id, status, next_payment_date, cancelled_at) + helper SQL `public.has_active_subscription()` + RLS
+- `src/lib/mercadopago.ts` (novo) — cliente MP V2 com `createPreapprovalPlan()`, `createPreapproval()`, `cancelPreapproval()`, helpers HMAC se necessário
+- Webhook handler novo `/api/webhooks/mercadopago/route.ts` — eventos MP `subscription_authorized_payment`, `subscription_preapproval`, `payment` (formato MP diferente de AbacatePay)
+- Server Action `subscribeToHub()` — cria preapproval MP → user redirecionado pro fluxo Pix Automático autorização → webhook confirma
+- Server Action `cancelSubscription()` — cancela preapproval MP via API
+- Página `/assinatura` rebrandada (paleta vermelho/preto pós-Phase 3.5) com status + ações
+- Helper `has_active_subscription()` consumido em Phase 5 quando `lobbies` existir
+
+**Plans atuais ARQUIVADOS** (foram baseados em AbacatePay PIX Manual via Cron — abordagem descartada): `.planning/phases/_deprecated/04-subscription-mensal-abacatepay-pix-manual/`
+
+Plans (a serem regenerados via /gsd:plan-phase 4 pós-rebrand):
+- [ ] (replan completo após Phase 3.5 + MCP MP autenticado)
 
 ### Phase 5 — Bot Steam Lobby Creator ○ PENDING
 **Goal:** Bot `node-dota2` rodando 24/7 em Railway Hobby (~$3/mês). Cria lobby Dota 2 customizado, captura match_id ao final.
