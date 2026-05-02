@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import "@/styles/globals.css";
 import { Toaster } from "@/components/ui/sonner";
+import { Header } from "@/components/layout/header";
+import { Footer } from "@/components/layout/footer";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -34,8 +36,11 @@ export default function RootLayout({
       lang="pt-BR"
       className={`${spaceGrotesk.variable} ${jetbrains.variable}`}
     >
-      <body>
-        {children}
+      <body className="min-h-screen flex flex-col">
+        {/* Header global — Server Component lê auth state e mostra login OU avatar+dropdown */}
+        <Header />
+        <div className="flex-1">{children}</div>
+        <Footer />
         {/* Toaster global — qualquer Client Component pode chamar toast() */}
         <Toaster />
       </body>
