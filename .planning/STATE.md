@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: hub
 status: in_progress
-last_updated: "2026-05-02T02:39:11Z"
+last_updated: "2026-05-02T02:49:31Z"
 current_phase: 03-steam-oauth-roles-multicoach
-current_plan: 02
+current_plan: 03
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 19
-  completed_plans: 11
+  completed_plans: 12
 ---
 
 # formuladota v2 — Project State
@@ -61,9 +61,9 @@ Detalhes: `.planning/PROJECT.md` (vision canônica) + memória `project_pivot_hu
 
 ### Milestone V2 — HUB ◆ CURRENT
 
-- ◆ **Phase 3** — Steam OAuth + Roles + Multi-coach Refactor (em execução, 1/5 plans completas)
+- ◆ **Phase 3** — Steam OAuth + Roles + Multi-coach Refactor (em execução, 2/5 plans completas)
   - [x] 03-01 — Migration 005 (coaches/steam_links/role/coach_id) + types regen ← **CONCLUÍDO 2026-05-02**
-  - [ ] 03-02 — steam-client-env (lib + STEAM_WEB_API_KEY)
+  - [x] 03-02 — steam-client-env (src/lib/steam.ts + STEAM_WEB_API_KEY) ← **CONCLUÍDO 2026-05-02**
   - [ ] 03-03 — vincular-steam-page + Server Action signInWithSteam
   - [ ] 03-04 — middleware STEAM_REQUIRED_PATHS gate
   - [ ] 03-05 — multicoach-refactor (PackageCard + /pacotes)
@@ -133,6 +133,9 @@ Aceite obrigatório bloqueia rotas privadas (middleware + RLS).
 - **Aplicação manual de migrations via `scripts/apply-migration-005.mjs`** (Node + pg lib): alternativa ao Supabase CLI (Docker indisponível) e às tools MCP `mcp__supabase__*` (não expostas como function calls em executores GSD nesta sessão). Conecta ao session pooler `aws-1-sa-east-1.pooler.supabase.com:5432` (não aws-0 — aws-0 retorna "Tenant or user not found" para este projeto).
 - **Pattern canônico H1.2 documentado em SQL** — `steam_links` é template para `youtube_links`/`twitch_links`/`x_links` (Milestone V4 multi-redes). Comentário inline na DDL alerta futuros agentes a manterem o shape mínimo.
 - **`is_coach()` helper RLS** complementa `is_admin()` legacy. Pedro tem ambos `is_admin=true` AND `role='admin'` (compatibilidade dual com policies Phase 1/2).
+- **node-steam-openid AVALIADA E DESCARTADA** — implementação Steam OpenID 2.0 100% manual via fetch em `src/lib/steam.ts`. Lib requer adapter Express, complica em Next 16 App Router sem benefício; manual é ~50 linhas core e zero deps. Justificativa em comentário PT-BR no header de steam.ts.
+- **Helper composto `validateAndFetchSteam`** em src/lib/steam.ts — encapsula CSRF check (timingSafeEqual) + OpenID re-handshake + Steam Web API persona fetch num único call. Mantém callback handler /auth/steam/callback ≤ 50 linhas (per C2).
+- **STEAM_WEB_API_KEY validado server-only** — adicionado ao serverSchema do env.ts como `optional` (Zod). Build não quebra sem a key; `requireServerEnv("STEAM_WEB_API_KEY")` lança erro descritivo só quando handler é chamado.
 
 ## Open questions
 
@@ -142,3 +145,4 @@ Aceite obrigatório bloqueia rotas privadas (middleware + RLS).
 - Patrocinadores premiação: Pedro busca em paralelo
 - AbacatePay sandbox vs prod: cobrança recorrente em sandbox testável?
 - **Phase 3 — Pedro precisa logar Discord pelo menos uma vez** antes de Plan 03-05 (multicoach refactor) executar — sem profile com `is_admin=true` o seed Pedro em `coaches` não acontece e `packages.coach_id` permanece nullable. Re-rodar `node scripts/apply-migration-005.mjs` pós-login finaliza. Plans 03-02/03-03/03-04 não dependem deste passo.
+- **Phase 3 — Pedro precisa criar STEAM_WEB_API_KEY** em https://steamcommunity.com/dev/apikey (cadastrar domínio formuladota.com) e adicionar em `.env.local`. Sem essa key, `fetchSteamPersona` lança erro no momento do callback. Plans 03-03/03-04 podem ser construídos sem a key — só bloqueia teste end-to-end.
