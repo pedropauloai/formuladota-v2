@@ -17,6 +17,9 @@ const serverSchema = z.object({
   ABACATEPAY_API_KEY: optional,
   ABACATEPAY_WEBHOOK_SECRET: optional,
   OPENDOTA_API_KEY: optional,
+  // Steam Web API key (Phase 3): server-only. Validada cirurgicamente via
+  // requireServerEnv("STEAM_WEB_API_KEY") em src/lib/steam.ts.
+  STEAM_WEB_API_KEY: optional,
   RESEND_API_KEY: optional,
   EMAIL_FROM: z.preprocess(
     (v) => (v === "" ? undefined : v),
