@@ -18,8 +18,9 @@
 ## Modelo de negócio
 
 - **Mensalidade R$ 47,00/mês** via AbacatePay subscription (PIX recorrente nativo `POST /v2/subscriptions/create`, cycle MONTHLY, auto-renovação via webhook `subscription.renewed`)
-- **Trial 7 dias grátis** pra ativar (precisa Steam vinculado pra criar/entrar lobby)
+- ~~Trial 7 dias grátis~~ — REMOVIDO em discuss-phase 2026-05-02 (decisão Pedro). Sem trial em V1. Possível reintrodução V2.
 - **Sem mensalidade ativa = read-only** (browse ranking, ver perfis, mas não pode criar/entrar lobby)
+- **Cancel flow híbrido**: user cancela → `cancelled_at` set, mas mantém acesso até fim do período pago (`next_billing_at`). Padrão SaaS justo.
 - **Mentoria/serviços de coach** são produto secundário — Pedro é coach #1, schema pronto pra V2 admitir outros coaches (Pedro concede role)
 - **Premiação por temporada**: placeholder no DB (`prize_pool` em `seasons`). Pedro busca patrocinadores, configura depois. UI mostra "patrocínio em breve"
 

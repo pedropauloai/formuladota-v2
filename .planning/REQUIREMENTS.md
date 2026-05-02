@@ -32,9 +32,9 @@
 ### H2 — Subscription Mensal (Phase 4)
 
 - **H2.1** AbacatePay subscription nativa (`POST /v2/subscriptions/create`, cycle MONTHLY, R$ 47,00). Webhooks `subscription.completed/renewed/cancelled`.
-- **H2.2** Trial 7 dias grátis ao primeiro Steam link. Coluna `trial_ends_at` em `profiles`.
-- **H2.3** RLS gate: assinaturas ativas (`status='active'` AND `current_period_end > now()`) OR trial vigente → permite criar/entrar lobby. Caso contrário, read-only.
-- **H2.4** Página `/assinatura` mostra status, próxima cobrança, botões renovar/cancelar. Email de aviso 5 dias antes do vencimento via Resend.
+- **H2.2** ~~Trial 7 dias grátis~~ — REMOVIDO em discuss-phase 2026-05-02 a pedido do Pedro. Sem trial em V1. Coluna `profiles.trial_ends_at` permanece preparada (criada Migration 005, sempre null em V1) pra possível reintrodução V2.
+- **H2.3** RLS gate via helper SQL `public.has_active_subscription()` retorna true quando `subscriptions.status IN ('active','cancelled') AND next_billing_at > now()` (cancel híbrido — acesso mantido até fim do período pago). Phase 4 cria APENAS o helper; Phase 5 consome em policy `lobbies.insert WITH CHECK (public.has_active_subscription())` quando tabela `lobbies` existir.
+- **H2.4** Página `/assinatura` minimal: card status (Ativa/Cancelada/Expirada/Pendente), `next_billing_at` formatado PT-BR, botão "Iniciar mensalidade" / "Cancelar" / "Reativar" conforme status. Email de aviso 5 dias antes do vencimento — DEFERIDO PRA PHASE 8 polish; Phase 4 só dispara emails reativos a webhook (`subscription.completed/renewed/cancelled`).
 
 ### H3 — Bot Steam Lobby (Phase 5)
 

@@ -54,14 +54,19 @@ Plans:
 - [x] 03-05-multicoach-refactor-PLAN.md — Refator PackageCard + /pacotes/page.tsx (2-query JOIN coaches+profiles)
 
 ### Phase 4 — Subscription Mensal AbacatePay ○ PENDING
-**Goal:** Mensalidade R$47/mês via AbacatePay subscription nativa (PIX recorrente). Trial 7d. RLS gate: criar/entrar lobby exige assinatura ativa OU trial.
-**Requirements:** H2.1, H2.2, H2.3, H2.4
+**Goal:** Mensalidade R$47/mês via AbacatePay subscription nativa (PIX recorrente, checkout hospedado). Sem trial (decisão Pedro 2026-05-02). RLS gate via helper SQL pra Phase 5 consumir.
+**Requirements:** H2.1, H2.2 (sem trial), H2.3, H2.4
 **Acceptance:**
-- Webhook handler trata `subscription.completed/renewed/cancelled`
-- Tabela `subscriptions` com status, current_period_end, trial_ends_at
-- RLS bloqueia INSERT em `lobbies` sem assinatura ativa
-- Página `/assinatura` (status + renovar/cancelar)
-- Email de aviso 5 dias antes do vencimento via Resend
+- Migration 008 cria tabela `subscriptions` (id, user_id, abacatepay_subscription_id, abacatepay_billing_id, status, started_at, next_billing_at, cancelled_at) + helper `public.has_active_subscription()` SQL + RLS (user vê própria, service-role atualiza via webhook, INSERT cookie client, sem UPDATE/DELETE policy)
+- Cliente AbacatePay V2 estendido com `createSubscription()` + `cancelSubscription()` em `src/lib/abacatepay.ts`
+- Webhook handler EXISTENTE `/api/webhooks/abacatepay/route.ts` ganha branches `subscription.completed/renewed/cancelled` (mesma HMAC, idempotência via UPDATE conditional, fire-and-forget email)
+- Server Actions `createSubscriptionCheckout()` e `cancelSubscription()` em `src/app/assinatura/actions.ts` — cookie client (não service-role per C13)
+- Página `/assinatura` Server Component cyberpunk minimal: status + próxima cobrança + botão ação contextual
+- Cancel flow híbrido: `cancelled_at` set + status `cancelled` mas helper retorna true até `next_billing_at`
+- 1 plano único hardcoded via env vars `ABACATEPAY_HUB_PRODUCT_ID` + `HUB_PRICE_BRL=47`
+- Email Resend reativo: `subscription.completed`, `subscription.renewed`, `subscription.cancelled` (templates inline cyberpunk, idempotencyKey por evento+subscription_id)
+- Email aviso 5d antes vencimento → DEFERIDO PRA PHASE 8 polish
+- Subscription gate no middleware → DEFERIDO PRA PHASE 5 (lobbies não existe ainda)
 
 ### Phase 5 — Bot Steam Lobby Creator ○ PENDING
 **Goal:** Bot `node-dota2` rodando 24/7 em Railway Hobby (~$3/mês). Cria lobby Dota 2 customizado, captura match_id ao final.
