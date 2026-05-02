@@ -124,8 +124,7 @@ export function PackageCard({ pkg, coach }: PackageCardProps) {
               />
               <span>
                 <strong>{pkg.qtd_sessoes}</strong>{" "}
-                sessão{pkg.qtd_sessoes === 1 ? "" : "ões"} teórica
-                {pkg.qtd_sessoes === 1 ? "" : "s"}
+                {pkg.qtd_sessoes === 1 ? "sessão teórica" : "sessões teóricas"}
               </span>
             </li>
           )}
