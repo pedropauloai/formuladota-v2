@@ -73,10 +73,23 @@
 
 - **H7.1** Header global (`<Header />`): logo Fórmula Dota → /, nav (Pacotes, Ranking, Lobbies, Código de Conduta), dropdown auth state (login OU avatar+menu).
 - **H7.2** Footer global (`<Footer />`): código de conduta, Discord oficial, copyright, créditos.
-- **H7.3** Landing reformulada: hero CTA primário "Entrar com Discord" + secundário "Ver Pacotes". Sections: "Como funciona" (3 passos), "Cultura" (link código de conduta), "Mentor" (Pedro Immortal). Mobile responsive.
-- **H7.4** Bug fix textual `sessãoões → sessões` (PackageCard).
+- **H7.3** Landing reformulada: hero CTA primário "Entrar com Discord" + secundário "Ver Pacotes". Sections: "Como funciona" (3 passos), "Cultura" (link código de conduta). ~~Section "Mentor" (Pedro Immortal)~~ — REMOVIDA pós-pivot 2026-05-02 (sem menção Pedro). Mobile responsive. **Substituída por requisito B5 — landing redesign Phase 3.5.**
+- **H7.4** ~~Bug fix textual `sessãoões → sessões`~~ — JÁ FEITO em Phase 3.1 (commit 2906e78).
 - **H7.5** Error boundary em todas rotas (já tem `src/app/error.tsx` global, validar abrangência).
-- **H7.6** Deploy Vercel produção + domínio `formuladota.com` via Route 53. Webhooks AbacatePay reapontados pra produção.
+- **H7.6** Deploy Vercel produção + domínio `formuladota.com` via Route 53. ~~Webhooks AbacatePay~~ → **Webhooks Mercado Pago** reapontados pra produção pós-Phase 4 migration.
+
+---
+
+### B — Brand & Design System (Phase 3.5) ◆ NEW 2026-05-02
+
+> Pedro entregou logos reais + escolheu paleta vermelho/preto + decidiu rebrand seguindo design oficial site Dota 2 (https://www.dota2.com/home).
+
+- **B1** Brand string **FORMULADOTA** (maiúsculo, sem acento, sem espaço) em **toda user-facing string**: title metadata, header logo text, footer, emails, todas pages. Internal docs (`.planning/`, `CLAUDE.md`, `PRD.md`) podem manter "formuladota v2" como nome técnico do projeto. Grep audit `grep -rE "Fórmula Dota|FormulaDota|Formula Dota|formuladota" src/app src/components src/lib/resend.ts public README.md` retorna zero matches em strings JSX/literais user-facing.
+- **B2** Paleta visual **Dota 2 oficial** (substitui cyberpunk cyan+purple). Tokens em `src/styles/globals.css` `@theme` block: `--color-bg: #000000` (preto puro Dota), `--color-bg-elevated: #0A0A0A`, `--color-border: #1F1F1F`, `--color-brand-red: #B91C1C` (Tailwind red-700, alinha com vermelho do logo), `--color-brand-red-dark: #7F1D1D` (red-900 hover), `--color-text: #F5F5F5` (off-white igual Dota), `--color-text-muted: #A1A1AA`, `--color-text-faded: #71717A`. Grep `grep -rE "00F0FF|A855F7" src/` retorna zero pós-implementação.
+- **B3** Logos servidos via `public/brand/`: `logo-horizontal.png` (wordmark FORMULA**DOTA**) + `logo-icon.jpg/png` (ícone "F"). Header usa `<Image src="/brand/logo-horizontal.png" />` via `next/image`. Favicon (`src/app/favicon.ico` ou `app/icon.tsx`) usa logo-icon. Disclaimer footer: "Dota e o logotipo do Dota são marcas e/ou marcas registradas da Valve Corporation."
+- **B4** Tipografia (Google Fonts via `next/font/google` em `src/app/layout.tsx`): **Cinzel** (weights 600/700/900, `--font-display`) substitui Space Grotesk em headings de impacto; **Marcellus** (400, `--font-serif`) em subheadings/quotes; **Inter** (400/500/600/700, `--font-sans`) substitui sans-serif default em body/nav/buttons. JetBrains Mono REMOVIDO do UI (sem font-mono em pages). Tailwind `font-display`, `font-serif`, `font-sans` mapeados via `@theme` CSS variables.
+- **B5** Landing `/` REFEITA do zero (não rebrand incremental) com hero video oficial Dota 2 (`https://cdn.steamstatic.com/apps/dota2/videos/dota_react/homepage/dota_montage_webm.webm` + mp4 fallback) via `<HeroVideo />` componente reutilizável + sections inspiradas dota2.com/home (Hero CAPS Cinzel + Manifesto + Como Funciona 3 steps + Cultura callout + Final CTA). Componente `src/components/dota/hero-video.tsx` aceita `heroSlug` prop pra renderizar video idle de qualquer hero (estrutura URL `cdn.akamai.steamstatic.com/apps/dota2/videos/dota_react/heroes/renders/{slug}.webm`). Quando aparecer estatística/perfil de hero específico em qualquer page → usar `<HeroVideo heroSlug="..." />` (regra universal).
+- **B6** ZERO menção a "Pedro Paulo" / "PPA" / "peterppa" / "Pedro" em **user-facing strings** (UI/emails/metadata). Grep `grep -rE "Pedro Paulo|PPA|peterppa|\\bPedro\\b" src/app src/components src/lib/resend.ts public` retorna zero. Bio coach em DB atualizada via Migration 009 (UPDATE coaches SET bio sem nome próprio, mantendo credenciais "Coach Immortal — Top 0.5% / 7000 MMR / 15+ anos / metodologia FORMULADOTA"). PackageCard substitui "Por: peterppa" + "Immortal" badge por "Coach Immortal" + "Top 0.5%" badge. Email assinatura "FORMULADOTA — HUB Dota 2 Brasil" (sem nome próprio). Internal docs (`.planning/`, `CLAUDE.md`, `PRD.md`) OK manter referências a Pedro (são técnicas).
 
 ---
 
@@ -88,7 +101,7 @@
 - **C4** RLS policies em todas as tables Supabase. Confiar no schema, não duplicar checagem na app.
 - **C5** WCAG 2.1 AA
 - **C6** Lucide icons (não emojis em UI)
-- **C7** Cyberpunk theme: cyan #00F0FF, purple #A855F7, dark #050505
+- **C7** ~~Cyberpunk theme: cyan #00F0FF, purple #A855F7, dark #050505~~ → **SUBSTITUÍDO 2026-05-02 por B2 (paleta Dota 2 oficial: preto #000000 + vermelho #B91C1C + off-white #F5F5F5)**. Cyberpunk theme está em uso até Phase 3.5 concluir; após Phase 3.5, classes `text-[#00F0FF]` / `border-[#A855F7]` etc. são banidas (grep audit zero matches).
 - **C8** Webhooks externos validam HMAC com `crypto.timingSafeEqual`
 - **C9** Idempotência em handlers de eventos externos
 - **C10** ~~Limite hardcoded 3 partidas/dia~~ — REMOVIDO 2026-05-01 a pedido do Pedro (sem proteção burnout)
