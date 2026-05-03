@@ -1,5 +1,12 @@
-// Landing pública FORMULADOTA — hero video oficial Dota 2 + sections inspiradas no site oficial.
-// Server Component: detecta auth state pra trocar CTA primário (Entrar Discord vs Pacotes).
+// Landing pública FORMULADOTA — cada section tem hero/video Dota oficial diferente.
+// Phase 3.5+ inspiração dota2.com/home com variação criativa: 5 sections × 5 videos diferentes.
+//
+// Hero map:
+//   1. Hero principal:  homepage montage oficial (épico geral)
+//   2. Manifesto:       Invoker (mestre/complexidade — "obra-prima")
+//   3. Como Funciona:   Juggernaut (ação direta, simples e poderoso)
+//   4. Cultura:         Nevermore/Shadow Fiend (atmospheric/sombrio — doutrina)
+//   5. Final CTA:       split Pudge × Crystal Maiden (variação dramática)
 
 import Link from "next/link";
 import { ArrowRight, Trophy, Users, Zap } from "lucide-react";
@@ -24,12 +31,12 @@ export default async function Home() {
   );
 }
 
+// ============== Section 1 — Hero principal (montage homepage oficial) ==============
+
 function Hero({ isLoggedIn }: { isLoggedIn: boolean }) {
   return (
     <section className="relative min-h-[85vh] overflow-hidden">
-      {/* Video oficial Dota 2 montage — autoplay+loop+muted */}
       <HeroVideo className="absolute inset-0 h-full w-full object-cover opacity-50" />
-      {/* Overlay gradient escuro pra contraste do texto */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/60 to-black" />
 
       <div className="relative z-10 mx-auto flex max-w-4xl flex-col items-start gap-6 px-6 pt-32 pb-24">
@@ -75,10 +82,18 @@ function Hero({ isLoggedIn }: { isLoggedIn: boolean }) {
   );
 }
 
+// ============== Section 2 — Manifesto (Invoker — mestre/complexidade) ==============
+
 function Manifesto() {
   return (
-    <section className="border-y border-[var(--color-border)] bg-black">
-      <div className="mx-auto max-w-5xl px-6 py-24">
+    <section className="relative overflow-hidden border-y border-[var(--color-border)]">
+      <HeroVideo
+        heroSlug="invoker"
+        className="absolute inset-0 h-full w-full object-cover opacity-25"
+      />
+      <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/40" />
+
+      <div className="relative z-10 mx-auto max-w-5xl px-6 py-24">
         <header className="mb-8 space-y-4">
           <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
             Manifesto
@@ -99,6 +114,8 @@ function Manifesto() {
   );
 }
 
+// ============== Section 3 — Como Funciona (Juggernaut — ação direta) ==============
+
 function HowItWorks() {
   const steps = [
     {
@@ -118,45 +135,61 @@ function HowItWorks() {
     },
   ];
   return (
-    <section className="mx-auto max-w-6xl px-6 py-24">
-      <header className="mb-12 space-y-4">
-        <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
-          Como funciona
-        </p>
-        <h2 className="font-display text-4xl font-bold uppercase leading-tight text-white md:text-5xl">
-          3 passos pra entrar
-        </h2>
-        <div className="brand-divider" />
-      </header>
+    <section className="relative overflow-hidden">
+      <HeroVideo
+        heroSlug="juggernaut"
+        className="absolute inset-0 h-full w-full object-cover opacity-15"
+      />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/90 to-black" />
 
-      <div className="grid gap-6 md:grid-cols-3">
-        {steps.map((step) => (
-          <article
-            key={step.title}
-            className="space-y-4 rounded-md border border-[var(--color-border)] bg-[var(--color-card)] p-8 transition-colors hover:border-[var(--color-brand-red)]/60"
-          >
-            <step.icon
-              size={28}
-              className="text-[var(--color-brand-red)]"
-              aria-hidden="true"
-            />
-            <h3 className="font-display text-xl font-bold uppercase tracking-wide text-white">
-              {step.title}
-            </h3>
-            <p className="font-sans text-sm leading-relaxed text-[var(--color-muted-foreground)]">
-              {step.body}
-            </p>
-          </article>
-        ))}
+      <div className="relative z-10 mx-auto max-w-6xl px-6 py-24">
+        <header className="mb-12 space-y-4">
+          <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
+            Como funciona
+          </p>
+          <h2 className="font-display text-4xl font-bold uppercase leading-tight text-white md:text-5xl">
+            3 passos pra entrar
+          </h2>
+          <div className="brand-divider" />
+        </header>
+
+        <div className="grid gap-6 md:grid-cols-3">
+          {steps.map((step) => (
+            <article
+              key={step.title}
+              className="space-y-4 rounded-md border border-[var(--color-border)] bg-[var(--color-card)]/80 backdrop-blur-sm p-8 transition-colors hover:border-[var(--color-brand-red)]/60"
+            >
+              <step.icon
+                size={28}
+                className="text-[var(--color-brand-red)]"
+                aria-hidden="true"
+              />
+              <h3 className="font-display text-xl font-bold uppercase tracking-wide text-white">
+                {step.title}
+              </h3>
+              <p className="font-sans text-sm leading-relaxed text-[var(--color-muted-foreground)]">
+                {step.body}
+              </p>
+            </article>
+          ))}
+        </div>
       </div>
     </section>
   );
 }
 
+// ============== Section 4 — Cultura (Shadow Fiend — atmospheric/sombrio) ==============
+
 function CulturePreview() {
   return (
-    <section className="border-y border-[var(--color-border)] bg-[var(--color-card)]">
-      <div className="mx-auto max-w-4xl px-6 py-24 text-center">
+    <section className="relative overflow-hidden border-y border-[var(--color-border)]">
+      <HeroVideo
+        heroSlug="nevermore"
+        className="absolute inset-0 h-full w-full object-cover opacity-30"
+      />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/85 to-black" />
+
+      <div className="relative z-10 mx-auto max-w-4xl px-6 py-24 text-center">
         <p className="mb-4 font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
           A primeira regra
         </p>
@@ -180,12 +213,28 @@ function CulturePreview() {
   );
 }
 
+// ============== Section 5 — Final CTA (split Pudge × Crystal Maiden — dramatic finale) ==============
+
 function FinalCTA({ isLoggedIn }: { isLoggedIn: boolean }) {
   if (isLoggedIn) return null;
   return (
     <section className="relative overflow-hidden">
-      <HeroVideo className="absolute inset-0 h-full w-full object-cover opacity-30" />
-      <div className="absolute inset-0 bg-black/70" />
+      {/* Split videos: dois heroes lado-a-lado pra dramatic finale */}
+      <div className="absolute inset-y-0 left-0 w-1/2 overflow-hidden">
+        <HeroVideo
+          heroSlug="pudge"
+          className="absolute inset-0 h-full w-full object-cover opacity-30"
+        />
+      </div>
+      <div className="absolute inset-y-0 right-0 w-1/2 overflow-hidden">
+        <HeroVideo
+          heroSlug="crystal_maiden"
+          className="absolute inset-0 h-full w-full object-cover opacity-30"
+        />
+      </div>
+      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/80" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/50 to-black" />
+
       <div className="relative z-10 mx-auto max-w-3xl px-6 py-32 text-center">
         <h2 className="font-display text-4xl font-bold uppercase leading-tight text-white md:text-6xl">
           Junte-se à batalha

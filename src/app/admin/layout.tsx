@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { LayoutDashboard, Users, Calendar, Gamepad2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { DotaBackdrop } from "@/components/dota/dota-backdrop";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -24,8 +25,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   return (
-    <div className="flex min-h-screen bg-[var(--color-background)]">
-      <aside className="w-64 border-r border-[var(--color-border)] bg-[var(--color-card)] p-6 hidden md:block">
+    <div className="relative flex min-h-screen">
+      <DotaBackdrop heroSlug="nevermore" variant="ambient" />
+      <aside className="relative z-10 w-64 border-r border-[var(--color-border)] bg-[var(--color-card)]/90 backdrop-blur-sm p-6 hidden md:block">
         <p className="mb-6 font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
           Admin
         </p>
@@ -36,7 +38,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <AdminNavLink href="/admin/lobbies" icon={Gamepad2} label="Lobbies" />
         </nav>
       </aside>
-      <main className="flex-1 overflow-x-auto">{children}</main>
+      <main className="relative z-10 flex-1 overflow-x-auto">{children}</main>
     </div>
   );
 }

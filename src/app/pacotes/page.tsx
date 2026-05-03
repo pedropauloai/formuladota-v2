@@ -13,6 +13,7 @@ import { createClient } from "@/lib/supabase/server";
 import { PackageGrid } from "@/components/catalog/package-grid";
 import type { CoachInfo } from "@/components/catalog/package-card";
 import type { Database, Tables } from "@/types/database";
+import { DotaBackdrop } from "@/components/dota/dota-backdrop";
 
 type PackageRow = Tables<"packages">;
 type CoachRow = Pick<Tables<"coaches">, "id" | "profile_id" | "slug">;
@@ -98,8 +99,9 @@ export default async function PacotesPage() {
   const packagesWithCoach = await loadPackagesWithCoaches(supabase);
 
   return (
-    <main className="min-h-screen bg-[var(--color-background)] px-4 py-12 md:py-16">
-      <div className="mx-auto max-w-7xl">
+    <main className="relative min-h-screen px-4 py-12 md:py-16">
+      <DotaBackdrop heroSlug="invoker" variant="ambient" />
+      <div className="relative z-10 mx-auto max-w-7xl">
         <header className="mb-10 md:mb-14 text-center">
           <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
             Pacotes

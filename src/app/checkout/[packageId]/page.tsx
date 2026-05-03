@@ -7,6 +7,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { CheckoutClient } from "@/components/checkout/checkout-client";
+import { DotaBackdrop } from "@/components/dota/dota-backdrop";
 
 // Next.js 16: params é uma Promise e precisa ser await-ado
 interface PageProps {
@@ -34,8 +35,9 @@ export default async function CheckoutPage({ params }: PageProps) {
   }
 
   return (
-    <main className="min-h-screen bg-[var(--color-background)] px-4 py-12">
-      <div className="mx-auto max-w-3xl">
+    <main className="relative min-h-screen px-4 py-12">
+      <DotaBackdrop heroSlug="invoker" variant="ambient" />
+      <div className="relative z-10 mx-auto max-w-3xl">
         <header className="mb-8 text-center">
           <h1 className="text-3xl md:text-4xl font-display text-[var(--color-foreground)]">
             Pagamento <span className="text-[var(--color-brand-red)]">PIX</span>

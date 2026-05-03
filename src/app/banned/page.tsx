@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { DotaBackdrop } from "@/components/dota/dota-backdrop";
 
 // Tela final pra usuários banidos.
 // Sem retorno automático — só revisão manual de admin pode reverter.
@@ -34,8 +35,9 @@ export default async function BannedPage() {
     : null;
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-6">
-      <div className="w-full max-w-xl space-y-8 rounded-lg border-2 border-[var(--color-danger)] bg-[var(--color-card)] p-8">
+    <main className="relative min-h-screen flex items-center justify-center px-6">
+      <DotaBackdrop heroSlug="nevermore" variant="ambient" />
+      <div className="relative z-10 w-full max-w-xl space-y-8 rounded-lg border-2 border-[var(--color-danger)] bg-[var(--color-card)]/90 backdrop-blur-sm p-8">
         <header className="space-y-3 text-center">
           <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-danger)]">
             conta encerrada

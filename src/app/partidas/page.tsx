@@ -14,6 +14,7 @@ import type { Tables } from "@/types/database";
 import { SaldoCard } from "@/components/partidas/saldo-card";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { DotaBackdrop } from "@/components/dota/dota-backdrop";
 
 export const metadata: Metadata = {
   title: "Minhas Partidas — FORMULADOTA",
@@ -79,8 +80,9 @@ export default async function PartidasPage() {
   const semSaldo = partidasDisponiveis === 0 && sessoesDisponiveis === 0;
 
   return (
-    <main className="min-h-screen bg-[var(--color-background)] px-4 py-12">
-      <div className="mx-auto max-w-4xl">
+    <main className="relative min-h-screen px-4 py-12">
+      <DotaBackdrop heroSlug="pudge" variant="ambient" />
+      <div className="relative z-10 mx-auto max-w-4xl">
         <header className="mb-8">
           <h1 className="text-3xl md:text-4xl font-display text-[var(--color-foreground)]">
             Minhas <span className="text-[var(--color-brand-red)]">partidas</span>

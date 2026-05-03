@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Trophy, Search } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { TierBadge } from "@/components/dota/tier-badge";
+import { DotaBackdrop } from "@/components/dota/dota-backdrop";
 
 export const metadata: Metadata = {
   title: "Ranking — FORMULADOTA",
@@ -109,8 +110,9 @@ export default async function RankingPage(props: {
   const listHydrated = rows.map(hydrate);
 
   return (
-    <main className="min-h-screen bg-[var(--color-background)] px-6 py-16">
-      <div className="mx-auto max-w-5xl">
+    <main className="relative min-h-screen px-6 py-16">
+      <DotaBackdrop heroSlug="pudge" variant="ambient" />
+      <div className="relative z-10 mx-auto max-w-5xl">
         <header className="mb-12">
           <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
             Ranking
@@ -272,8 +274,9 @@ function Pagination({ currentPage }: { currentPage: number }) {
 
 function NoMatchState({ searchTerm, seasonName }: { searchTerm: string; seasonName: string }) {
   return (
-    <main className="min-h-screen bg-[var(--color-background)] px-6 py-16">
-      <div className="mx-auto max-w-2xl text-center space-y-6">
+    <main className="relative min-h-screen px-6 py-16">
+      <DotaBackdrop heroSlug="pudge" variant="ambient" />
+      <div className="relative z-10 mx-auto max-w-2xl text-center space-y-6">
         <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
           {seasonName}
         </p>
@@ -293,8 +296,9 @@ function NoMatchState({ searchTerm, seasonName }: { searchTerm: string; seasonNa
 
 function EmptyRanking() {
   return (
-    <main className="min-h-screen bg-[var(--color-background)] px-6 py-16">
-      <div className="mx-auto max-w-2xl text-center space-y-6">
+    <main className="relative min-h-screen px-6 py-16">
+      <DotaBackdrop heroSlug="pudge" variant="ambient" />
+      <div className="relative z-10 mx-auto max-w-2xl text-center space-y-6">
         <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
           Ranking
         </p>

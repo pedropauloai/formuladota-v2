@@ -11,6 +11,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AssinaturaCard } from "./assinatura-card";
+import { DotaBackdrop } from "@/components/dota/dota-backdrop";
 
 export const metadata: Metadata = {
   title: "Assinatura — FORMULADOTA",
@@ -41,8 +42,9 @@ export default async function AssinaturaPage() {
   const subscription = subscriptions?.[0] ?? null;
 
   return (
-    <main className="min-h-screen bg-[var(--color-background)] px-6 py-16">
-      <div className="mx-auto max-w-3xl">
+    <main className="relative min-h-screen px-6 py-16">
+      <DotaBackdrop heroSlug="antimage" variant="ambient" />
+      <div className="relative z-10 mx-auto max-w-3xl">
         <header className="mb-12 text-center">
           <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
             Assinatura

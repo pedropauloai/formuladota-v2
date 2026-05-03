@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { CriarLobbyForm } from "./criar-lobby-form";
+import { DotaBackdrop } from "@/components/dota/dota-backdrop";
 
 export const metadata: Metadata = {
   title: "Criar Lobby — FORMULADOTA",
@@ -23,8 +24,9 @@ export default async function CriarLobbyPage() {
   const subscriptionActive = hasSub === true;
 
   return (
-    <main className="min-h-screen bg-[var(--color-background)] px-6 py-16">
-      <div className="mx-auto max-w-2xl">
+    <main className="relative min-h-screen px-6 py-16">
+      <DotaBackdrop heroSlug="windrunner" variant="ambient" />
+      <div className="relative z-10 mx-auto max-w-2xl">
         <header className="mb-12 text-center">
           <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
             Criar Lobby

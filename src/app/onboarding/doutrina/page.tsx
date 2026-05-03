@@ -8,6 +8,7 @@ import {
   PROGRESSIVE_MODERATION,
 } from "@/lib/doctrine";
 import { OnboardingFlow } from "./OnboardingFlow";
+import { DotaBackdrop } from "@/components/dota/dota-backdrop";
 
 // Onboarding doutrinário OBRIGATÓRIO.
 // Exibido pra todo user logado que ainda não aceitou a versão atual da doutrina.
@@ -57,7 +58,9 @@ export default async function OnboardingDoutrinaPage({
   const errorMessage = params.error ? ERROR_MESSAGES[params.error] : undefined;
 
   return (
-    <main className="min-h-screen bg-[var(--color-background)]">
+    <main className="relative min-h-screen">
+      <DotaBackdrop heroSlug="sven" variant="ambient" />
+      <div className="relative z-10">
       <OnboardingFlow
         username={profile?.username ?? "jogador"}
         version={DOCTRINE_VERSION}
@@ -67,6 +70,7 @@ export default async function OnboardingDoutrinaPage({
         quotes={CANONICAL_QUOTES}
         errorMessage={errorMessage}
       />
+      </div>
     </main>
   );
 }

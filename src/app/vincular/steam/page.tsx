@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { Gamepad2, ShieldCheck, AlertCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { signInWithSteam } from "./actions";
+import { DotaBackdrop } from "@/components/dota/dota-backdrop";
 
 // Página obrigatória de vinculação Steam (Phase 3 — H1.1).
 // Middleware já garante:
@@ -76,8 +77,9 @@ export default async function VincularSteamPage({
   const errorMessage = params.error ? ERROR_MESSAGES[params.error] : undefined;
 
   return (
-    <main className="min-h-screen bg-[var(--color-background)] px-4 py-12 md:py-20">
-      <div className="mx-auto max-w-2xl">
+    <main className="relative min-h-screen px-4 py-12 md:py-20">
+      <DotaBackdrop heroSlug="storm_spirit" variant="ambient" />
+      <div className="relative z-10 mx-auto max-w-2xl">
         <header className="mb-8 text-center">
           <h1 className="text-3xl md:text-4xl font-display text-[var(--color-foreground)]">
             Vincular <span className="text-[var(--color-brand-red)]">Steam</span>

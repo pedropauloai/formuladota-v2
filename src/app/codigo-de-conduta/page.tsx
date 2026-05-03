@@ -5,6 +5,7 @@ import {
   PRINCIPLES,
   PROGRESSIVE_MODERATION,
 } from "@/lib/doctrine";
+import { DotaBackdrop } from "@/components/dota/dota-backdrop";
 
 // Página pública canônica do código de conduta.
 // Acessível sem login — referência permanente da cultura.
@@ -35,8 +36,9 @@ export default function CodigoDeCondutaPage() {
         Pular para o conteúdo
       </a>
 
-      <main id="conteudo" className="min-h-screen px-6 py-16">
-        <div className="mx-auto max-w-3xl space-y-16">
+      <main id="conteudo" className="relative min-h-screen px-6 py-16">
+        <DotaBackdrop heroSlug="nevermore" variant="ambient" />
+        <div className="relative z-10 mx-auto max-w-3xl space-y-16">
           <header className="space-y-4 text-center">
             <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-brand-red)]">
               código de conduta · v1

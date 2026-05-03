@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Users, Clock, Lock } from "lucide-react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { DotaBackdrop } from "@/components/dota/dota-backdrop";
 
 export const metadata: Metadata = {
   title: "Lobbies — FORMULADOTA",
@@ -55,8 +56,9 @@ export default async function LobbiesPage() {
   }));
 
   return (
-    <main className="min-h-screen bg-[var(--color-background)] px-6 py-16">
-      <div className="mx-auto max-w-5xl">
+    <main className="relative min-h-screen px-6 py-16">
+      <DotaBackdrop heroSlug="juggernaut" variant="ambient" />
+      <div className="relative z-10 mx-auto max-w-5xl">
         <header className="mb-12 flex items-end justify-between">
           <div>
             <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
