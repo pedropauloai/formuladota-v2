@@ -65,13 +65,29 @@ export async function createCheckout(packageId: string): Promise<CheckoutResult>
     return { success: false, error: purchaseRes.error };
   }
 
+  // Buscar nome do user pra payer.first_name/last_name (quality_checklist MP [REQUIRED])
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("username")
+    .eq("id", user.id)
+    .single();
+  const fullName = profile?.username ?? "";
+  const [firstName, ...rest] = fullName.split(" ");
+  const lastName = rest.join(" ");
+
   const notificationUrl = `${publicEnv.NEXT_PUBLIC_SITE_URL}/api/webhooks/mercadopago`;
   const pixResult = await createPixPayment({
     amount: pkg.preco_brl,
     description: `FORMULADOTA — ${pkg.nome}`,
     externalReference: purchaseRes.purchaseId,
     payerEmail: user.email,
+    payerFirstName: firstName || undefined,
+    payerLastName: lastName || undefined,
     notificationUrl,
+    itemId: pkg.id,
+    itemTitle: pkg.nome,
+    itemCategoryId: "services",
+    statementDescriptor: "FORMULADOTA",
   });
 
   if (!pixResult.success) {

@@ -11,7 +11,14 @@ export const createPixPaymentInputSchema = z.object({
   description: z.string().min(1).max(200),
   externalReference: z.string().min(1),             // purchase.id pra correlacionar
   payerEmail: z.string().email(),
+  payerFirstName: z.string().min(1).optional(),     // melhor aprovação MP (quality_checklist [REQUIRED])
+  payerLastName: z.string().min(1).optional(),
   notificationUrl: z.string().url().optional(),
+  // Item array completo (quality_checklist [REQUIRED])
+  itemId: z.string().min(1),                        // package.id
+  itemTitle: z.string().min(1).max(200),            // package.nome
+  itemCategoryId: z.string().default("services"),
+  statementDescriptor: z.string().max(22).default("FORMULADOTA"), // aparece na fatura
 });
 export type CreatePixPaymentInput = z.infer<typeof createPixPaymentInputSchema>;
 

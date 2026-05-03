@@ -53,13 +53,31 @@ export async function createPixPayment(
   }
 
   const accessToken = requireServerEnv("MP_ACCESS_TOKEN");
+  const payerObj: Record<string, string> = { email: parsed.data.payerEmail };
+  if (parsed.data.payerFirstName) payerObj.first_name = parsed.data.payerFirstName;
+  if (parsed.data.payerLastName) payerObj.last_name = parsed.data.payerLastName;
+
+  // Body com items completo + statement_descriptor (quality_checklist MP [REQUIRED])
   const body = {
     transaction_amount: parsed.data.amount,
     description: parsed.data.description,
     payment_method_id: "pix",
-    payer: { email: parsed.data.payerEmail },
+    payer: payerObj,
     external_reference: parsed.data.externalReference,
     notification_url: parsed.data.notificationUrl,
+    statement_descriptor: parsed.data.statementDescriptor,
+    additional_info: {
+      items: [
+        {
+          id: parsed.data.itemId,
+          title: parsed.data.itemTitle,
+          description: parsed.data.description,
+          category_id: parsed.data.itemCategoryId,
+          quantity: 1,
+          unit_price: parsed.data.amount,
+        },
+      ],
+    },
   };
 
   let response: Response;
