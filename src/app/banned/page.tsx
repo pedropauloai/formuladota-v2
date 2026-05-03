@@ -3,8 +3,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 // Tela final pra usuários banidos.
-// Sem retorno automático — só revisão manual pelo Pedro pode reverter.
-export const metadata = { title: "Conta encerrada — Fórmula Dota" };
+// Sem retorno automático — só revisão manual de admin pode reverter.
+export const metadata = { title: "Conta encerrada — FORMULADOTA" };
 
 export default async function BannedPage() {
   const supabase = await createClient();
@@ -41,7 +41,7 @@ export default async function BannedPage() {
             conta encerrada
           </p>
           <h1 className="text-3xl font-bold">
-            Sua conta foi banida da Fórmula Dota.
+            Sua conta foi banida da FORMULADOTA.
           </h1>
         </header>
 
@@ -71,16 +71,16 @@ export default async function BannedPage() {
           </p>
           <p>
             Saldo restante (se houver) será refundado caso a caso, exceto em
-            situações de fraude ou preconceito. Pedro entrará em contato para
+            situações de fraude ou preconceito. Vamos entrar em contato para
             tratar isso individualmente.
           </p>
           <p>
-            Para contestar este banimento, escreva pessoalmente ao Pedro via{" "}
+            Para contestar este banimento, escreva via{" "}
             <a
               href="https://discord.com/invite/v3pSuZhjBE"
               target="_blank"
               rel="noreferrer"
-              className="text-[var(--color-cyan)] underline hover:text-glow-cyan transition"
+              className="text-[var(--color-brand-red)] underline hover:text-white transition"
             >
               Discord oficial
             </a>

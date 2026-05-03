@@ -37,7 +37,7 @@ export function CheckoutClient({ packageId, packageName, precoFormatado }: Check
         <CardTitle className="text-2xl text-[var(--color-foreground)]">
           {packageName}
         </CardTitle>
-        <p className="text-3xl text-[#00F0FF] font-display">{precoFormatado}</p>
+        <p className="text-3xl text-[var(--color-brand-red)] font-display">{precoFormatado}</p>
       </CardHeader>
 
       <CardContent>

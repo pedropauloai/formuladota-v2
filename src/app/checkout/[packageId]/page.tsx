@@ -1,7 +1,7 @@
 // /checkout/[packageId] — Server Component.
 // Valida que o pacote existe e está ativo. Se não, retorna 404 amigável.
 // Server Action createCheckout (disparado pelo CheckoutClient) faz o resto:
-// cria purchase pendente + chama AbacatePay para gerar o PIX.
+// cria purchase pendente + chama Mercado Pago para gerar o PIX.
 
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -14,7 +14,7 @@ interface PageProps {
 }
 
 export const metadata: Metadata = {
-  title: "Checkout — Fórmula Dota",
+  title: "Checkout — FORMULADOTA",
 };
 
 export default async function CheckoutPage({ params }: PageProps) {
@@ -38,7 +38,7 @@ export default async function CheckoutPage({ params }: PageProps) {
       <div className="mx-auto max-w-3xl">
         <header className="mb-8 text-center">
           <h1 className="text-3xl md:text-4xl font-display text-[var(--color-foreground)]">
-            Pagamento <span className="text-[#00F0FF]">PIX</span>
+            Pagamento <span className="text-[var(--color-brand-red)]">PIX</span>
           </h1>
           <p className="mt-2 text-[var(--color-muted-foreground)]">
             Escaneie o QR Code ou copie o código no seu banco.

@@ -38,7 +38,7 @@ export default async function PerfilPage() {
           <Row label="MMR atual" value={profile?.mmr_atual?.toString() ?? "não informado"} />
           <Row label="Role preferida" value={profile?.role_preferida ?? "não informado"} />
           {profile?.is_admin && (
-            <Row label="Acesso" value="Administrador (Pedro)" highlight />
+            <Row label="Acesso" value="Administrador" highlight />
           )}
         </section>
 

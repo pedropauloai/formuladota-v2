@@ -28,6 +28,7 @@ const STEAM_REQUIRED_PATHS = [
   "/checkout",
   "/partidas",
   "/perfil",
+  "/assinatura",
 ];
 const STEAM_LINK_PATH = "/vincular/steam";
 

@@ -133,7 +133,7 @@ export function OnboardingFlow({
             type="button"
             onClick={next}
             aria-label="Próximo slide"
-            className="rounded-md border border-[var(--color-cyan)] px-5 py-2 font-medium text-[var(--color-cyan)] hover:bg-[var(--color-cyan)]/10 transition"
+            className="rounded-md border border-[var(--color-brand-red)] px-5 py-2 font-medium text-[var(--color-brand-red)] hover:bg-[var(--color-brand-red)]/10 transition"
           >
             Continuar →
           </button>
@@ -150,7 +150,7 @@ function ProgressBar({ current, total }: { current: number; total: number }) {
   return (
     <div className="space-y-2">
       <div className="flex items-baseline justify-between">
-        <span className="font-mono text-xs uppercase tracking-widest text-[var(--color-cyan)]">
+        <span className="font-mono text-xs uppercase tracking-widest text-[var(--color-brand-red)]">
           A Fórmula do Dota de Corrida
         </span>
         <span className="font-mono text-xs text-[var(--color-muted-foreground)]">
@@ -167,7 +167,7 @@ function ProgressBar({ current, total }: { current: number; total: number }) {
         className="h-1 w-full overflow-hidden rounded-full bg-[var(--color-muted)]"
       >
         <div
-          className="h-full bg-[var(--color-cyan)] transition-all duration-500"
+          className="h-full bg-[var(--color-brand-red)] transition-all duration-500"
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -185,11 +185,11 @@ function SlideWelcome({
   return (
     <article className="space-y-8">
       <header className="space-y-3">
-        <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-purple)]">
+        <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-brand-red)]">
           slide 1 — boas-vindas
         </p>
         <h1 className="text-4xl font-bold leading-tight md:text-5xl">
-          Bem-vindo, <span className="text-[var(--color-cyan)] text-glow-cyan">{username}</span>.
+          Bem-vindo, <span className="text-[var(--color-brand-red)] text-glow-red">{username}</span>.
         </h1>
       </header>
 
@@ -197,8 +197,8 @@ function SlideWelcome({
         “{quotes.opening}”
       </p>
 
-      <div className="rounded-lg border border-[var(--color-cyan)] bg-[var(--color-card)] p-6 text-center">
-        <p className="text-xl font-bold tracking-wide text-[var(--color-cyan)] text-glow-cyan">
+      <div className="rounded-lg border border-[var(--color-brand-red)] bg-[var(--color-card)] p-6 text-center">
+        <p className="text-xl font-bold tracking-wide text-[var(--color-brand-red)] text-glow-red">
           {quotes.firstRule}
         </p>
         <p className="mt-3 text-sm text-[var(--color-muted-foreground)]">
@@ -215,7 +215,7 @@ function SlideWelcome({
       </p>
 
       <p className="text-base font-medium text-[var(--color-foreground)]">
-        Aceitar essas regras é <strong className="text-[var(--color-cyan)]">obrigatório</strong> pra usar a plataforma.
+        Aceitar essas regras é <strong className="text-[var(--color-brand-red)]">obrigatório</strong> pra usar a plataforma.
       </p>
     </article>
   );
@@ -229,7 +229,7 @@ function SlideAntipatterns({
   return (
     <article className="space-y-8">
       <header className="space-y-3">
-        <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-purple)]">
+        <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-brand-red)]">
           slide 2 — os 10 padrões tóxicos
         </p>
         <h1 className="text-3xl font-bold">
@@ -277,14 +277,14 @@ function SlidePrinciples({
   return (
     <article className="space-y-8">
       <header className="space-y-3">
-        <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-purple)]">
+        <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-brand-red)]">
           slide 3 — os 14 princípios
         </p>
         <h1 className="text-3xl font-bold">
-          A <span className="text-[var(--color-cyan)]">Fórmula</span>
+          A <span className="text-[var(--color-brand-red)]">Fórmula</span>
         </h1>
         <p className="text-sm text-[var(--color-muted-foreground)]">
-          Texto completo dos 14 princípios em <a href="/codigo-de-conduta" className="underline text-[var(--color-cyan)]" target="_blank" rel="noreferrer">/codigo-de-conduta</a>. Aqui o resumo executivo.
+          Texto completo dos 14 princípios em <a href="/codigo-de-conduta" className="underline text-[var(--color-brand-red)]" target="_blank" rel="noreferrer">/codigo-de-conduta</a>. Aqui o resumo executivo.
         </p>
       </header>
 
@@ -305,7 +305,7 @@ function PrincipleGroup({
   accent: "cyan" | "purple";
 }) {
   const accentClass =
-    accent === "cyan" ? "text-[var(--color-cyan)]" : "text-[var(--color-purple)]";
+    accent === "cyan" ? "text-[var(--color-brand-red)]" : "text-[var(--color-brand-red)]";
   return (
     <div className="space-y-2">
       <h3 className="font-mono text-xs uppercase tracking-widest text-[var(--color-muted-foreground)]">
@@ -336,7 +336,7 @@ function SlideModeration({
   return (
     <article className="space-y-8">
       <header className="space-y-3">
-        <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-purple)]">
+        <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-brand-red)]">
           slide 4 — moderação progressiva
         </p>
         <h1 className="text-3xl font-bold">
@@ -350,7 +350,7 @@ function SlideModeration({
             key={i}
             className="flex gap-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5"
           >
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-full border border-[var(--color-cyan)] font-mono text-sm font-bold text-[var(--color-cyan)]">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-full border border-[var(--color-brand-red)] font-mono text-sm font-bold text-[var(--color-brand-red)]">
               {i + 1}
             </div>
             <div className="space-y-1">
@@ -371,14 +371,14 @@ function SlideModeration({
         <p>
           <strong className="text-[var(--color-foreground)]">Override direto: </strong>
           <span className="text-[var(--color-muted-foreground)]">
-            preconceito vai direto pra banimento; feeding em partida com Pedro
+            preconceito vai direto pra banimento; feeding em partida com coach
             vai direto pra suspensão de 14 dias; fraude de pagamento é banimento imediato.
           </span>
         </p>
         <p>
           <strong className="text-[var(--color-foreground)]">Direito ao contraditório: </strong>
           <span className="text-[var(--color-muted-foreground)]">
-            você pode contestar via Discord oficial. Pedro revisa caso a caso.
+            você pode contestar via Discord oficial. A equipe FORMULADOTA revisa caso a caso.
           </span>
         </p>
       </div>
@@ -400,7 +400,7 @@ function SlideAccept({
   return (
     <article className="space-y-8">
       <header className="space-y-3">
-        <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-purple)]">
+        <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-brand-red)]">
           slide 5 — aceite final
         </p>
         <h1 className="text-3xl font-bold">
@@ -408,37 +408,37 @@ function SlideAccept({
         </h1>
       </header>
 
-      <blockquote className="border-l-2 border-[var(--color-cyan)] pl-6 italic text-[var(--color-foreground)]">
+      <blockquote className="border-l-2 border-[var(--color-brand-red)] pl-6 italic text-[var(--color-foreground)]">
         “{quotes.responsibility}”
       </blockquote>
 
-      <blockquote className="border-l-2 border-[var(--color-purple)] pl-6 italic text-[var(--color-foreground)]">
+      <blockquote className="border-l-2 border-[var(--color-brand-red)] pl-6 italic text-[var(--color-foreground)]">
         “{quotes.competitiveMindset}”
       </blockquote>
 
       <label
         htmlFor="accept-doctrine"
-        className="flex cursor-pointer gap-4 rounded-lg border-2 border-[var(--color-border)] bg-[var(--color-card)] p-5 hover:border-[var(--color-cyan)] transition"
+        className="flex cursor-pointer gap-4 rounded-lg border-2 border-[var(--color-border)] bg-[var(--color-card)] p-5 hover:border-[var(--color-brand-red)] transition"
       >
         <input
           id="accept-doctrine"
           type="checkbox"
           checked={accepted}
           onChange={(e) => onToggle(e.target.checked)}
-          className="mt-1 size-5 cursor-pointer accent-[var(--color-cyan)]"
+          className="mt-1 size-5 cursor-pointer accent-[var(--color-brand-red)]"
         />
         <span className="text-sm leading-relaxed">
           Eu li, compreendi e aceito os 14 princípios da Fórmula do Dota de
           Corrida, os 10 padrões tóxicos proibidos, e o sistema progressivo de
           moderação. Sei que violações geram advertência, suspensão ou
-          banimento — e que Pedro tem autoridade final na aplicação dessas
+          banimento — e que o admin FORMULADOTA tem autoridade final na aplicação dessas
           regras.
         </span>
       </label>
 
       <p className="text-center font-mono text-xs text-[var(--color-muted-foreground)]">
         versão {version} · aceitando esta versão você concorda com o texto
-        canônico em <a href="/codigo-de-conduta" className="underline text-[var(--color-cyan)]" target="_blank" rel="noreferrer">/codigo-de-conduta</a>
+        canônico em <a href="/codigo-de-conduta" className="underline text-[var(--color-brand-red)]" target="_blank" rel="noreferrer">/codigo-de-conduta</a>
       </p>
     </article>
   );
@@ -467,7 +467,7 @@ function SubmitButton({ disabled }: { disabled: boolean }) {
       type="submit"
       disabled={isDisabled}
       aria-busy={pending}
-      className="rounded-md bg-[var(--color-cyan)] px-6 py-2 font-bold text-[var(--color-background)] hover:bg-[var(--color-cyan)]/90 disabled:cursor-not-allowed disabled:opacity-30 transition"
+      className="rounded-md bg-[var(--color-brand-red)] px-6 py-2 font-bold text-[var(--color-background)] hover:bg-[var(--color-brand-red)]/90 disabled:cursor-not-allowed disabled:opacity-30 transition"
     >
       {pending ? "Registrando..." : "Aceitar e entrar →"}
     </button>

@@ -1,9 +1,10 @@
-// Landing pública — hero com CTAs visíveis + sections explicativas.
-// Server Component: detecta auth state pra trocar CTA primário (Entrar vs Pacotes).
+// Landing pública FORMULADOTA — hero video oficial Dota 2 + sections inspiradas no site oficial.
+// Server Component: detecta auth state pra trocar CTA primário (Entrar Discord vs Pacotes).
 
 import Link from "next/link";
 import { ArrowRight, Trophy, Users, Zap } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { HeroVideo } from "@/components/dota/hero-video";
 
 export default async function Home() {
   const supabase = await createClient();
@@ -13,10 +14,9 @@ export default async function Home() {
   const isLoggedIn = !!user;
 
   return (
-    <main className="relative">
-      <div className="absolute inset-x-0 top-0 -z-10 h-[700px] bg-grid opacity-30 [mask-image:radial-gradient(ellipse_at_top,black_30%,transparent_70%)]" />
-
+    <main>
       <Hero isLoggedIn={isLoggedIn} />
+      <Manifesto />
       <HowItWorks />
       <CulturePreview />
       <FinalCTA isLoggedIn={isLoggedIn} />
@@ -26,52 +26,75 @@ export default async function Home() {
 
 function Hero({ isLoggedIn }: { isLoggedIn: boolean }) {
   return (
-    <section className="mx-auto flex max-w-4xl flex-col items-center gap-8 px-6 py-24 text-center md:py-32">
-      <span className="inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-card)] px-4 py-2 text-xs font-mono uppercase tracking-widest text-[var(--color-cyan)]">
-        <Zap size={14} /> milestone v2 · hub
-      </span>
+    <section className="relative min-h-[85vh] overflow-hidden">
+      {/* Video oficial Dota 2 montage — autoplay+loop+muted */}
+      <HeroVideo className="absolute inset-0 h-full w-full object-cover opacity-50" />
+      {/* Overlay gradient escuro pra contraste do texto */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/60 to-black" />
 
-      <h1 className="text-5xl font-bold leading-tight md:text-7xl">
-        Hub Dota 2 com{" "}
-        <span className="text-[var(--color-cyan)] text-glow-cyan">cultura</span>.
-      </h1>
+      <div className="relative z-10 mx-auto flex max-w-4xl flex-col items-start gap-6 px-6 pt-32 pb-24">
+        <h1 className="font-display text-6xl font-bold uppercase leading-[0.95] tracking-tight text-white md:text-8xl">
+          FORMULADOTA
+        </h1>
+        <p className="font-serif text-xl text-white/85 md:text-2xl">
+          O HUB Dota 2 brasileiro
+        </p>
+        <div className="brand-divider" />
+        <p className="max-w-2xl font-sans text-base text-white/70 md:text-lg">
+          Lobbies in-house criados por bot Steam, ranking próprio por temporadas, comunidade alinhada culturalmente.
+          Acesso integrado a Discord e Steam, mensalidade R$ 47 via PIX recorrente.
+        </p>
 
-      <p className="max-w-2xl text-lg text-[var(--color-muted-foreground)]">
-        Comunidade brasileira de Dota 2 doutrinada pela{" "}
-        <span className="text-[var(--color-purple)]">Fórmula do Dota de Corrida</span>{" "}
-        do Pedro Paulo (Immortal / Top 0.5% / 7000 MMR). Partidas in-house, ranking por temporadas,
-        coaches credenciados.
-      </p>
-
-      <div className="flex flex-wrap items-center justify-center gap-4">
-        {isLoggedIn ? (
+        <div className="mt-6 flex flex-wrap items-center gap-4">
+          {isLoggedIn ? (
+            <Link
+              href="/pacotes"
+              className="inline-flex items-center gap-2 rounded-md border border-[var(--color-brand-red)] bg-[var(--color-brand-red)]/10 px-6 py-3 font-sans text-sm font-semibold uppercase tracking-wide text-white transition-colors hover:bg-[var(--color-brand-red)]"
+            >
+              Ver pacotes
+              <ArrowRight size={18} />
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              className="inline-flex items-center gap-2 rounded-md border border-[var(--color-brand-red)] bg-[var(--color-brand-red)]/10 px-6 py-3 font-sans text-sm font-semibold uppercase tracking-wide text-white transition-colors hover:bg-[var(--color-brand-red)]"
+            >
+              Entrar com Discord
+              <ArrowRight size={18} />
+            </Link>
+          )}
           <Link
-            href="/pacotes"
-            className="inline-flex items-center gap-2 rounded-md bg-[var(--color-cyan)] px-6 py-3 font-bold text-[var(--color-background)] hover:bg-[var(--color-cyan)]/90 transition"
+            href="/codigo-de-conduta"
+            className="inline-flex items-center gap-2 rounded-md border border-white/20 bg-transparent px-6 py-3 font-sans text-sm font-semibold uppercase tracking-wide text-white/80 transition-colors hover:border-white/60 hover:text-white"
           >
-            Ver pacotes
-            <ArrowRight size={18} />
+            Código de Conduta
           </Link>
-        ) : (
-          <Link
-            href="/login"
-            className="inline-flex items-center gap-2 rounded-md bg-[var(--color-cyan)] px-6 py-3 font-bold text-[var(--color-background)] hover:bg-[var(--color-cyan)]/90 transition"
-          >
-            Entrar com Discord
-            <ArrowRight size={18} />
-          </Link>
-        )}
-        <Link
-          href="/codigo-de-conduta"
-          className="inline-flex items-center gap-2 rounded-md border border-[var(--color-border)] px-6 py-3 font-medium text-[var(--color-foreground)] hover:border-[var(--color-cyan)] transition"
-        >
-          Código de Conduta
-        </Link>
+        </div>
       </div>
+    </section>
+  );
+}
 
-      <p className="font-mono text-xs text-[var(--color-muted-foreground)]">
-        login Discord · vínculo Steam · mensalidade R$ 47/mês via PIX
-      </p>
+function Manifesto() {
+  return (
+    <section className="border-y border-[var(--color-border)] bg-black">
+      <div className="mx-auto max-w-5xl px-6 py-24">
+        <header className="mb-8 space-y-4">
+          <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
+            Manifesto
+          </p>
+          <h2 className="font-display text-4xl font-bold uppercase leading-tight text-white md:text-6xl">
+            Junte-se à<br />Batalha dos Ancestrais
+          </h2>
+          <div className="brand-divider" />
+        </header>
+        <p className="max-w-3xl font-serif text-lg leading-relaxed text-white/75 md:text-xl">
+          Todos os dias, milhões de jogadores ao redor do mundo entram em batalha como um dos mais
+          de 100 heróis de Dota. FORMULADOTA é o HUB onde a comunidade brasileira se reúne — não
+          apenas pra competir, mas pra evoluir alinhada culturalmente. Aqui a frustração não dita
+          o tom. A responsabilidade é sempre sua, 100% das vezes.
+        </p>
+      </div>
     </section>
   );
 }
@@ -80,42 +103,47 @@ function HowItWorks() {
   const steps = [
     {
       icon: Users,
-      title: "1. Login + Steam",
-      body: "Entra com Discord, vincula tua Steam, aceita o código de conduta. Trial de 7 dias liberado.",
+      title: "Vincule Discord + Steam",
+      body: "Login com Discord, autorização Steam OpenID. Aceite obrigatório do código de conduta antes de qualquer interação.",
     },
     {
       icon: Zap,
-      title: "2. Joga partidas in-house",
-      body: "Cria ou entra em lobby criado pelo bot Steam. Matchmaking interno por MMR próprio. Modos All Pick e Captains.",
+      title: "Pague a mensalidade",
+      body: "R$ 47/mês via PIX (Mercado Pago Pix Automático). Renovação automática após autorização única.",
     },
     {
       icon: Trophy,
-      title: "3. Sobe no ranking",
-      body: "MMR Elo (Herald → Immortal × 5 estrelas). Temporadas de 3 meses com premiação por patrocinadores.",
+      title: "Jogue e suba no ranking",
+      body: "Lobbies in-house criados por bot Steam. Matchmaking interno por MMR próprio. Temporadas trimestrais com premiação.",
     },
   ];
   return (
-    <section className="mx-auto max-w-5xl px-6 py-16">
-      <header className="mb-12 space-y-2 text-center">
-        <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-purple)]">
-          como funciona
+    <section className="mx-auto max-w-6xl px-6 py-24">
+      <header className="mb-12 space-y-4">
+        <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
+          Como funciona
         </p>
-        <h2 className="text-3xl font-bold md:text-4xl">3 passos pra começar</h2>
+        <h2 className="font-display text-4xl font-bold uppercase leading-tight text-white md:text-5xl">
+          3 passos pra entrar
+        </h2>
+        <div className="brand-divider" />
       </header>
 
       <div className="grid gap-6 md:grid-cols-3">
         {steps.map((step) => (
           <article
             key={step.title}
-            className="space-y-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-6"
+            className="space-y-4 rounded-md border border-[var(--color-border)] bg-[var(--color-card)] p-8 transition-colors hover:border-[var(--color-brand-red)]/60"
           >
             <step.icon
-              size={24}
-              className="text-[var(--color-cyan)]"
+              size={28}
+              className="text-[var(--color-brand-red)]"
               aria-hidden="true"
             />
-            <h3 className="font-bold">{step.title}</h3>
-            <p className="text-sm leading-relaxed text-[var(--color-muted-foreground)]">
+            <h3 className="font-display text-xl font-bold uppercase tracking-wide text-white">
+              {step.title}
+            </h3>
+            <p className="font-sans text-sm leading-relaxed text-[var(--color-muted-foreground)]">
               {step.body}
             </p>
           </article>
@@ -127,25 +155,27 @@ function HowItWorks() {
 
 function CulturePreview() {
   return (
-    <section className="mx-auto max-w-4xl px-6 py-16">
-      <article className="rounded-lg border border-[var(--color-cyan)] bg-[var(--color-card)] p-8 text-center space-y-4">
-        <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-cyan)]">
-          a primeira regra
+    <section className="border-y border-[var(--color-border)] bg-[var(--color-card)]">
+      <div className="mx-auto max-w-4xl px-6 py-24 text-center">
+        <p className="mb-4 font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
+          A primeira regra
         </p>
-        <p className="text-2xl font-bold tracking-wide text-[var(--color-cyan)] text-glow-cyan md:text-3xl">
-          ❗ A CULPA NUNCA É DO OUTRO ❗
+        <p className="font-display text-3xl font-bold uppercase tracking-wide text-white md:text-5xl">
+          A culpa nunca é do outro
         </p>
-        <p className="mx-auto max-w-2xl text-sm text-[var(--color-muted-foreground)]">
-          A responsabilidade é sempre sua, 100% das vezes. Comunidade doutrinada nos 14 princípios da Fórmula do Dota de Corrida.
+        <div className="mx-auto mt-6 brand-divider" />
+        <p className="mx-auto mt-8 max-w-2xl font-serif text-lg leading-relaxed text-white/75">
+          A responsabilidade é sempre sua, 100% das vezes. Comunidade alinhada nos 14 princípios
+          e 10 anti-padrões da metodologia FORMULADOTA. Sem aceite, sem acesso.
         </p>
         <Link
           href="/codigo-de-conduta"
-          className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-[var(--color-cyan)] hover:text-glow-cyan transition"
+          className="mt-8 inline-flex items-center gap-2 font-sans text-sm font-semibold uppercase tracking-widest text-[var(--color-brand-red)] transition-colors hover:text-white"
         >
           Ler código de conduta completo
           <ArrowRight size={14} />
         </Link>
-      </article>
+      </div>
     </section>
   );
 }
@@ -153,17 +183,25 @@ function CulturePreview() {
 function FinalCTA({ isLoggedIn }: { isLoggedIn: boolean }) {
   if (isLoggedIn) return null;
   return (
-    <section className="mx-auto max-w-3xl px-6 py-16 text-center">
-      <p className="mb-6 text-lg text-[var(--color-muted-foreground)]">
-        Pronto pra entrar na comunidade?
-      </p>
-      <Link
-        href="/login"
-        className="inline-flex items-center gap-2 rounded-md bg-[var(--color-cyan)] px-8 py-4 text-lg font-bold text-[var(--color-background)] hover:bg-[var(--color-cyan)]/90 transition"
-      >
-        Entrar com Discord
-        <ArrowRight size={20} />
-      </Link>
+    <section className="relative overflow-hidden">
+      <HeroVideo className="absolute inset-0 h-full w-full object-cover opacity-30" />
+      <div className="absolute inset-0 bg-black/70" />
+      <div className="relative z-10 mx-auto max-w-3xl px-6 py-32 text-center">
+        <h2 className="font-display text-4xl font-bold uppercase leading-tight text-white md:text-6xl">
+          Junte-se à batalha
+        </h2>
+        <div className="mx-auto mt-6 brand-divider" />
+        <p className="mt-8 font-serif text-xl text-white/85">
+          Pronto pra entrar no HUB?
+        </p>
+        <Link
+          href="/login"
+          className="mt-10 inline-flex items-center gap-2 rounded-md border border-[var(--color-brand-red)] bg-[var(--color-brand-red)]/10 px-8 py-4 font-sans text-base font-semibold uppercase tracking-wide text-white transition-colors hover:bg-[var(--color-brand-red)]"
+        >
+          Entrar com Discord
+          <ArrowRight size={20} />
+        </Link>
+      </div>
     </section>
   );
 }

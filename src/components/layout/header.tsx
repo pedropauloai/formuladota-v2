@@ -2,6 +2,7 @@
 // Server Component: lê profile do user logado pra mostrar avatar/dropdown OU botão login.
 
 import Link from "next/link";
+import Image from "next/image";
 import { LogIn, User } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/app/login/actions";
@@ -29,16 +30,23 @@ export async function Header() {
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
         <Link
           href="/"
-          className="flex items-baseline gap-1 font-bold tracking-tight"
-          aria-label="Fórmula Dota — voltar à home"
+          className="flex items-center"
+          aria-label="FORMULADOTA — voltar à home"
         >
-          <span className="text-lg">Fórmula</span>
-          <span className="text-lg text-[var(--color-cyan)] text-glow-cyan">Dota</span>
+          <Image
+            src="/brand/logo-horizontal.png"
+            alt="FORMULADOTA"
+            width={180}
+            height={40}
+            priority
+            className="h-8 w-auto"
+          />
         </Link>
 
         <nav aria-label="Navegação principal" className="hidden items-center gap-6 md:flex">
           <NavLink href="/pacotes" label="Pacotes" />
           <NavLink href="/codigo-de-conduta" label="Código de Conduta" />
+          <NavLink href="/assinatura" label="Assinatura" />
           {isAdmin && <NavLink href="/admin" label="Admin" />}
         </nav>
 
@@ -48,7 +56,7 @@ export async function Header() {
           ) : (
             <Link
               href="/login"
-              className="inline-flex items-center gap-2 rounded-md border border-[var(--color-cyan)] px-4 py-2 text-sm font-medium text-[var(--color-cyan)] hover:bg-[var(--color-cyan)]/10 transition"
+              className="inline-flex items-center gap-2 rounded-md border border-[var(--color-brand-red)] px-4 py-2 text-sm font-semibold uppercase tracking-wide text-[var(--color-foreground)] hover:bg-[var(--color-brand-red)] transition"
             >
               <LogIn size={14} />
               Entrar
@@ -64,7 +72,7 @@ function NavLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="font-mono text-xs uppercase tracking-widest text-[var(--color-muted-foreground)] hover:text-[var(--color-cyan)] transition"
+      className="font-sans text-sm font-medium uppercase tracking-widest text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] transition"
     >
       {label}
     </Link>
@@ -82,7 +90,7 @@ function UserMenu({
     <div className="flex items-center gap-3">
       <Link
         href="/perfil"
-        className="flex items-center gap-2 rounded-md border border-[var(--color-border)] bg-[var(--color-card)] px-3 py-2 text-sm hover:border-[var(--color-cyan)] transition"
+        className="flex items-center gap-2 rounded-md border border-[var(--color-border)] bg-[var(--color-card)] px-3 py-2 text-sm hover:border-[var(--color-brand-red)] transition"
         aria-label={`Ver perfil de ${username}`}
       >
         {avatarUrl ? (
@@ -100,7 +108,7 @@ function UserMenu({
       <form action={signOut}>
         <button
           type="submit"
-          className="font-mono text-xs uppercase tracking-widest text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] transition"
+          className="font-sans text-xs uppercase tracking-widest text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] transition"
         >
           sair
         </button>

@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 
 // Tela mostrada para usuários com behavior_status='suspended'.
 // Usuário não consegue acessar partidas/sessões/compras até suspended_until passar.
-export const metadata = { title: "Conta suspensa — Fórmula Dota" };
+export const metadata = { title: "Conta suspensa — FORMULADOTA" };
 
 export default async function SuspendedPage() {
   const supabase = await createClient();
@@ -99,11 +99,11 @@ export default async function SuspendedPage() {
               href="https://discord.com/invite/v3pSuZhjBE"
               target="_blank"
               rel="noreferrer"
-              className="text-[var(--color-cyan)] underline hover:text-glow-cyan transition"
+              className="text-[var(--color-brand-red)] underline hover:text-white transition"
             >
               entre em contato via Discord oficial
             </a>{" "}
-            — Pedro revisa cada caso pessoalmente.
+            — cada caso é revisado individualmente.
           </p>
         </div>
 
@@ -116,7 +116,7 @@ export default async function SuspendedPage() {
           </Link>
           <Link
             href="/"
-            className="font-mono text-xs uppercase tracking-widest text-[var(--color-cyan)] hover:text-glow-cyan transition"
+            className="font-sans text-xs uppercase tracking-widest text-[var(--color-brand-red)] hover:text-white transition"
           >
             ← home
           </Link>

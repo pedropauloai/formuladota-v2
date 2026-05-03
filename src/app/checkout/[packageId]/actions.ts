@@ -1,11 +1,13 @@
 "use server";
 
-// Server Action: cria purchase pendente + chama AbacatePay para gerar PIX.
+// Server Action: cria purchase pendente + chama Mercado Pago para gerar PIX.
+// Migrado de AbacatePay → MP em Phase 4 (2026-05-02).
 // RLS na tabela purchases (migration 004) valida aceite doutrina + status ativo automaticamente.
 
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
-import { createTransparentPix } from "@/lib/abacatepay";
+import { createPixPayment } from "@/lib/mercadopago";
+import { publicEnv } from "@/lib/env";
 
 const checkoutInputSchema = z.object({
   packageId: z.string().uuid(),
@@ -32,7 +34,7 @@ export type CheckoutResult =
 type SupabaseSrv = Awaited<ReturnType<typeof createClient>>;
 
 /**
- * Cria uma compra pendente e gera um PIX inline via AbacatePay V2.
+ * Cria uma compra pendente e gera um PIX inline via Mercado Pago V1 /payments.
  * Retorna o QR Code (brCode + brCodeBase64) para o cliente exibir.
  *
  * RLS valida: usuário autenticado + aceite doutrinário + status ok/warned.
@@ -49,7 +51,7 @@ export async function createCheckout(packageId: string): Promise<CheckoutResult>
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
+  if (!user || !user.email) {
     return { success: false, error: "Não autenticado." };
   }
 
@@ -63,11 +65,13 @@ export async function createCheckout(packageId: string): Promise<CheckoutResult>
     return { success: false, error: purchaseRes.error };
   }
 
-  const pixResult = await createTransparentPix({
-    amount: Math.round(pkg.preco_brl * 100),
-    description: `FormulaDota — ${pkg.nome}`,
-    externalId: purchaseRes.purchaseId,
-    expiresIn: 3600,
+  const notificationUrl = `${publicEnv.NEXT_PUBLIC_SITE_URL}/api/webhooks/mercadopago`;
+  const pixResult = await createPixPayment({
+    amount: pkg.preco_brl,
+    description: `FORMULADOTA — ${pkg.nome}`,
+    externalReference: purchaseRes.purchaseId,
+    payerEmail: user.email,
+    notificationUrl,
   });
 
   if (!pixResult.success) {
@@ -84,12 +88,20 @@ export async function createCheckout(packageId: string): Promise<CheckoutResult>
     console.error("[createCheckout] update external_payment_id falhou:", updateError.message);
   }
 
+  // PIX MP expira default 24h; computar timestamp pra UI exibir
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+
+  // MP retorna qr_code_base64 sem prefixo data: — adicionar pra <img src> funcionar.
+  const brCodeBase64WithPrefix = pixResult.data.qrCodeBase64.startsWith("data:")
+    ? pixResult.data.qrCodeBase64
+    : `data:image/png;base64,${pixResult.data.qrCodeBase64}`;
+
   return {
     success: true,
     purchaseId: purchaseRes.purchaseId,
-    brCode: pixResult.data.brCode,
-    brCodeBase64: pixResult.data.brCodeBase64,
-    expiresAt: pixResult.data.expiresAt,
+    brCode: pixResult.data.qrCode,
+    brCodeBase64: brCodeBase64WithPrefix,
+    expiresAt,
   };
 }
 

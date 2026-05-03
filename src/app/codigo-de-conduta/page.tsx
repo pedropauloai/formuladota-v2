@@ -9,7 +9,7 @@ import {
 // Página pública canônica do código de conduta.
 // Acessível sem login — referência permanente da cultura.
 export const metadata = {
-  title: "Código de Conduta — Fórmula Dota",
+  title: "Código de Conduta — FORMULADOTA",
   description:
     "A Fórmula do Dota de Corrida — princípios, anti-padrões e sistema progressivo de moderação.",
 };
@@ -30,7 +30,7 @@ export default function CodigoDeCondutaPage() {
     <>
       <a
         href="#conteudo"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-[var(--color-cyan)] focus:px-4 focus:py-2 focus:font-medium focus:text-[var(--color-background)]"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-[var(--color-brand-red)] focus:px-4 focus:py-2 focus:font-medium focus:text-[var(--color-background)]"
       >
         Pular para o conteúdo
       </a>
@@ -38,19 +38,19 @@ export default function CodigoDeCondutaPage() {
       <main id="conteudo" className="min-h-screen px-6 py-16">
         <div className="mx-auto max-w-3xl space-y-16">
           <header className="space-y-4 text-center">
-            <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-cyan)]">
+            <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-brand-red)]">
               código de conduta · v1
             </p>
             <h1 className="text-4xl font-bold leading-tight md:text-5xl">
-              A Fórmula do <span className="text-[var(--color-cyan)] text-glow-cyan">Dota</span> de Corrida
+              A Fórmula do <span className="text-[var(--color-brand-red)] text-glow-red">Dota</span> de Corrida
             </h1>
             <p className="mx-auto max-w-2xl text-base text-[var(--color-muted-foreground)]">
               {CANONICAL_QUOTES.opening}
             </p>
           </header>
 
-          <aside className="rounded-lg border border-[var(--color-cyan)] bg-[var(--color-card)] p-6 text-center">
-            <p className="text-2xl font-bold tracking-wide text-[var(--color-cyan)] text-glow-cyan">
+          <aside className="rounded-lg border border-[var(--color-brand-red)] bg-[var(--color-card)] p-6 text-center">
+            <p className="text-2xl font-bold tracking-wide text-[var(--color-brand-red)] text-glow-red">
               {CANONICAL_QUOTES.firstRule}
             </p>
             <p className="mt-3 text-sm text-[var(--color-muted-foreground)]">
@@ -58,8 +58,8 @@ export default function CodigoDeCondutaPage() {
             </p>
           </aside>
 
-          <aside className="rounded-md border border-[var(--color-purple)]/40 bg-[var(--color-card)] p-5 text-center">
-            <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-purple)]">
+          <aside className="rounded-md border border-[var(--color-brand-red)]/40 bg-[var(--color-card)] p-5 text-center">
+            <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-brand-red)]">
               missão
             </p>
             <p className="mt-2 text-base italic text-[var(--color-foreground)]">
@@ -71,18 +71,18 @@ export default function CodigoDeCondutaPage() {
             aria-label="Sumário do código de conduta"
             className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5"
           >
-            <p className="mb-3 font-mono text-xs uppercase tracking-widest text-[var(--color-purple)]">
+            <p className="mb-3 font-mono text-xs uppercase tracking-widest text-[var(--color-brand-red)]">
               sumário
             </p>
             <ol className="space-y-2 text-sm">
               {TOC_SECTIONS.map((s, i) => (
                 <li key={s.id} className="flex gap-3">
-                  <span className="font-mono text-[var(--color-cyan)]">
+                  <span className="font-mono text-[var(--color-brand-red)]">
                     {String(i + 1).padStart(2, "0")}
                   </span>
                   <a
                     href={`#${s.id}`}
-                    className="text-[var(--color-foreground)] hover:text-[var(--color-cyan)] transition"
+                    className="text-[var(--color-foreground)] hover:text-[var(--color-brand-red)] transition"
                   >
                     {s.label}
                   </a>
@@ -111,7 +111,7 @@ export default function CodigoDeCondutaPage() {
 
           <Section id="antipadroes" title="Os 10 padrões tóxicos (proibidos)">
             <p className="text-sm text-[var(--color-muted-foreground)]">
-              Esses comportamentos são incompatíveis com a cultura da Fórmula Dota.
+              Esses comportamentos são incompatíveis com a cultura da FORMULADOTA.
               Geram advertência, suspensão ou banimento conforme as regras abaixo.
             </p>
             <div className="space-y-4">
@@ -149,16 +149,16 @@ export default function CodigoDeCondutaPage() {
           </p>
           <p className="text-sm text-[var(--color-muted-foreground)]">
             <strong className="text-[var(--color-foreground)]">Direito ao contraditório:</strong>{" "}
-            você pode contestar qualquer decisão via Discord oficial. Pedro
+            você pode contestar qualquer decisão via Discord oficial. A equipe FORMULADOTA
             revisa caso a caso e reverte manualmente se entender que houve erro.
           </p>
         </Section>
 
           <Section id="compromisso" title="Compromisso final">
-            <blockquote className="border-l-2 border-[var(--color-cyan)] pl-6 italic text-[var(--color-foreground)]">
+            <blockquote className="border-l-2 border-[var(--color-brand-red)] pl-6 italic text-[var(--color-foreground)]">
               {CANONICAL_QUOTES.responsibility}
             </blockquote>
-            <blockquote className="border-l-2 border-[var(--color-purple)] pl-6 italic text-[var(--color-foreground)]">
+            <blockquote className="border-l-2 border-[var(--color-brand-red)] pl-6 italic text-[var(--color-foreground)]">
               {CANONICAL_QUOTES.competitiveMindset}
             </blockquote>
           </Section>
@@ -166,7 +166,7 @@ export default function CodigoDeCondutaPage() {
           <footer className="border-t border-[var(--color-border)] pt-8 text-center">
             <Link
               href="/"
-              className="font-mono text-xs uppercase tracking-widest text-[var(--color-cyan)] hover:text-glow-cyan transition"
+              className="font-mono text-xs uppercase tracking-widest text-[var(--color-brand-red)] hover:text-glow-red transition"
             >
               ← voltar à home
             </Link>
@@ -197,7 +197,7 @@ function Section({
 function Subsection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="space-y-3">
-      <h3 className="font-mono text-xs uppercase tracking-widest text-[var(--color-purple)]">
+      <h3 className="font-mono text-xs uppercase tracking-widest text-[var(--color-brand-red)]">
         {title}
       </h3>
       <div className="space-y-3">{children}</div>
@@ -217,7 +217,7 @@ function PrincipleCard({
       className={[
         "rounded-lg border p-5 space-y-2",
         highlight
-          ? "border-[var(--color-cyan)] bg-[var(--color-card)]"
+          ? "border-[var(--color-brand-red)] bg-[var(--color-card)]"
           : "border-[var(--color-border)] bg-[var(--color-card)]",
       ].join(" ")}
     >
@@ -225,12 +225,12 @@ function PrincipleCard({
         <span
           className={[
             "font-mono text-xs",
-            highlight ? "text-[var(--color-cyan)] text-glow-cyan" : "text-[var(--color-cyan)]",
+            highlight ? "text-[var(--color-brand-red)] text-glow-red" : "text-[var(--color-brand-red)]",
           ].join(" ")}
         >
           {String(principle.id).padStart(2, "0")}
         </span>
-        <h4 className={highlight ? "font-semibold text-glow-cyan" : "font-semibold"}>
+        <h4 className={highlight ? "font-semibold text-glow-red" : "font-semibold"}>
           {principle.title}
         </h4>
       </header>
@@ -281,7 +281,7 @@ function ModerationStep({
 }) {
   return (
     <li className="flex gap-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5">
-      <div className="flex size-10 shrink-0 items-center justify-center rounded-full border border-[var(--color-cyan)] font-mono text-sm font-bold text-[var(--color-cyan)]">
+      <div className="flex size-10 shrink-0 items-center justify-center rounded-full border border-[var(--color-brand-red)] font-mono text-sm font-bold text-[var(--color-brand-red)]">
         {step}
       </div>
       <div className="space-y-1">

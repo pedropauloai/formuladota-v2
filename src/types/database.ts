@@ -1,11 +1,11 @@
-// Auto-generated database types for formuladota v2
-// Generated from Supabase introspection on 2026-05-01
-// Updated 2026-05-02 — Phase 3 Migration 005 (coaches, steam_links, profiles.role/trial_ends_at, packages.coach_id)
-// Re-run via psql introspection (scripts/apply-migration-005.mjs pattern) se schema mudar; supabase CLI requer Docker.
+// Auto-generated database types for FORMULADOTA
+// Generated from Supabase introspection on 2026-05-03 (Phase 4 — Migrations 008+009+010 applied)
+// Re-run via mcp__supabase__generate_typescript_types se schema mudar.
 //
-// NOTA: campo Relationships é obrigatório pelo tipo GenericTable do Supabase JS.
-// Sem ele, o método .from() não consegue inferir o overload de Tables vs Views,
-// resultando em tipos 'never' no .update().
+// Phase 4 (2026-05-02) adicionou:
+// - Migration 008: tabela `subscriptions` (Mercado Pago Pix Automático) + helper has_active_subscription
+// - Migration 009: UPDATE coaches.bio (rebrand sem nome próprio)
+// - Migration 010: purchases.payment_provider column (abacatepay legacy / mercadopago default)
 
 export type Json =
   | string
@@ -13,461 +13,612 @@ export type Json =
   | boolean
   | null
   | { [key: string]: Json | undefined }
-  | Json[];
+  | Json[]
 
 export type Database = {
+  __InternalSupabase: {
+    PostgrestVersion: "14.5"
+  }
   public: {
     Tables: {
       availability_windows: {
         Row: {
-          id: string;
-          dia_semana: number;
-          hora_inicio: string;
-          hora_fim: string;
-          ativo: boolean;
-          created_at: string;
-        };
+          ativo: boolean
+          created_at: string
+          dia_semana: number
+          hora_fim: string
+          hora_inicio: string
+          id: string
+        }
         Insert: {
-          id?: string;
-          dia_semana: number;
-          hora_inicio: string;
-          hora_fim: string;
-          ativo?: boolean;
-          created_at?: string;
-        };
+          ativo?: boolean
+          created_at?: string
+          dia_semana: number
+          hora_fim: string
+          hora_inicio: string
+          id?: string
+        }
         Update: {
-          id?: string;
-          dia_semana?: number;
-          hora_inicio?: string;
-          hora_fim?: string;
-          ativo?: boolean;
-          created_at?: string;
-        };
-        Relationships: [];
-      };
+          ativo?: boolean
+          created_at?: string
+          dia_semana?: number
+          hora_fim?: string
+          hora_inicio?: string
+          id?: string
+        }
+        Relationships: []
+      }
       behavior_status_log: {
         Row: {
-          id: string;
-          user_id: string;
-          from_status: string;
-          to_status: string;
-          reason: string | null;
-          warning_id: string | null;
-          changed_by: string | null;
-          changed_at: string;
-        };
+          changed_at: string
+          changed_by: string | null
+          from_status: string
+          id: string
+          reason: string | null
+          to_status: string
+          user_id: string
+          warning_id: string | null
+        }
         Insert: {
-          id?: string;
-          user_id: string;
-          from_status: string;
-          to_status: string;
-          reason?: string | null;
-          warning_id?: string | null;
-          changed_by?: string | null;
-          changed_at?: string;
-        };
+          changed_at?: string
+          changed_by?: string | null
+          from_status: string
+          id?: string
+          reason?: string | null
+          to_status: string
+          user_id: string
+          warning_id?: string | null
+        }
         Update: {
-          id?: string;
-          user_id?: string;
-          from_status?: string;
-          to_status?: string;
-          reason?: string | null;
-          warning_id?: string | null;
-          changed_by?: string | null;
-          changed_at?: string;
-        };
-        Relationships: [];
-      };
-      // Phase 3: tabela de coaches (multi-coach desde schema; Pedro = coach #1)
+          changed_at?: string
+          changed_by?: string | null
+          from_status?: string
+          id?: string
+          reason?: string | null
+          to_status?: string
+          user_id?: string
+          warning_id?: string | null
+        }
+        Relationships: []
+      }
       coaches: {
         Row: {
-          id: string;
-          profile_id: string;
-          slug: string;
-          bio: string | null;
-          ativo: boolean;
-          accepted_at: string;
-        };
+          accepted_at: string
+          ativo: boolean
+          bio: string | null
+          id: string
+          profile_id: string
+          slug: string
+        }
         Insert: {
-          id?: string;
-          profile_id: string;
-          slug: string;
-          bio?: string | null;
-          ativo?: boolean;
-          accepted_at?: string;
-        };
+          accepted_at?: string
+          ativo?: boolean
+          bio?: string | null
+          id?: string
+          profile_id: string
+          slug: string
+        }
         Update: {
-          id?: string;
-          profile_id?: string;
-          slug?: string;
-          bio?: string | null;
-          ativo?: boolean;
-          accepted_at?: string;
-        };
-        Relationships: [];
-      };
+          accepted_at?: string
+          ativo?: boolean
+          bio?: string | null
+          id?: string
+          profile_id?: string
+          slug?: string
+        }
+        Relationships: []
+      }
       doctrine_versions: {
         Row: {
-          version: number;
-          text_hash: string;
-          published_at: string;
-          notes: string | null;
-        };
+          notes: string | null
+          published_at: string
+          text_hash: string
+          version: number
+        }
         Insert: {
-          version: number;
-          text_hash: string;
-          published_at?: string;
-          notes?: string | null;
-        };
+          notes?: string | null
+          published_at?: string
+          text_hash: string
+          version: number
+        }
         Update: {
-          version?: number;
-          text_hash?: string;
-          published_at?: string;
-          notes?: string | null;
-        };
-        Relationships: [];
-      };
+          notes?: string | null
+          published_at?: string
+          text_hash?: string
+          version?: number
+        }
+        Relationships: []
+      }
       matches: {
         Row: {
-          id: string;
-          purchase_id: string;
-          user_id: string;
-          data_agendada: string;
-          status: "agendada" | "realizada" | "cancelada" | "no_show";
-          dota_match_id: string | null;
-          resultado: "vitoria" | "derrota" | null;
-          mmr_change: number | null;
-          kda: string | null;
-          heroi_jogado: string | null;
-          duracao_min: number | null;
-          notas_pedro: string | null;
-          created_at: string;
-          updated_at: string;
-        };
+          created_at: string
+          data_agendada: string
+          dota_match_id: string | null
+          duracao_min: number | null
+          heroi_jogado: string | null
+          id: string
+          kda: string | null
+          mmr_change: number | null
+          notas_pedro: string | null
+          purchase_id: string
+          resultado: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
         Insert: {
-          id?: string;
-          purchase_id: string;
-          user_id: string;
-          data_agendada: string;
-          status?: "agendada" | "realizada" | "cancelada" | "no_show";
-          dota_match_id?: string | null;
-          resultado?: "vitoria" | "derrota" | null;
-          mmr_change?: number | null;
-          kda?: string | null;
-          heroi_jogado?: string | null;
-          duracao_min?: number | null;
-          notas_pedro?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
+          created_at?: string
+          data_agendada: string
+          dota_match_id?: string | null
+          duracao_min?: number | null
+          heroi_jogado?: string | null
+          id?: string
+          kda?: string | null
+          mmr_change?: number | null
+          notas_pedro?: string | null
+          purchase_id: string
+          resultado?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
         Update: {
-          id?: string;
-          purchase_id?: string;
-          user_id?: string;
-          data_agendada?: string;
-          status?: "agendada" | "realizada" | "cancelada" | "no_show";
-          dota_match_id?: string | null;
-          resultado?: "vitoria" | "derrota" | null;
-          mmr_change?: number | null;
-          kda?: string | null;
-          heroi_jogado?: string | null;
-          duracao_min?: number | null;
-          notas_pedro?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Relationships: [];
-      };
+          created_at?: string
+          data_agendada?: string
+          dota_match_id?: string | null
+          duracao_min?: number | null
+          heroi_jogado?: string | null
+          id?: string
+          kda?: string | null
+          mmr_change?: number | null
+          notas_pedro?: string | null
+          purchase_id?: string
+          resultado?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       packages: {
         Row: {
-          id: string;
-          nome: string;
-          descricao: string | null;
-          tipo: "avulso" | "mensal";
-          qtd_partidas: number;
-          qtd_sessoes: number;
-          preco_brl: number;
-          ativo: boolean;
-          display_order: number;
-          // Phase 3: FK para coaches(id) — NOT NULL no DB pós-backfill (Migration 005).
-          // Em re-execução pré-Pedro-login pode estar nullable; types refletem o estado
-          // pós-seed Pedro (cenário esperado para queries de produção).
-          coach_id: string;
-          created_at: string;
-        };
+          ativo: boolean
+          coach_id: string
+          created_at: string
+          descricao: string | null
+          display_order: number
+          id: string
+          nome: string
+          preco_brl: number
+          qtd_partidas: number
+          qtd_sessoes: number
+          tipo: string
+        }
         Insert: {
-          id?: string;
-          nome: string;
-          descricao?: string | null;
-          tipo: "avulso" | "mensal";
-          qtd_partidas: number;
-          qtd_sessoes?: number;
-          preco_brl: number;
-          ativo?: boolean;
-          display_order?: number;
-          coach_id: string;
-          created_at?: string;
-        };
+          ativo?: boolean
+          coach_id: string
+          created_at?: string
+          descricao?: string | null
+          display_order?: number
+          id?: string
+          nome: string
+          preco_brl: number
+          qtd_partidas: number
+          qtd_sessoes?: number
+          tipo: string
+        }
         Update: {
-          id?: string;
-          nome?: string;
-          descricao?: string | null;
-          tipo?: "avulso" | "mensal";
-          qtd_partidas?: number;
-          qtd_sessoes?: number;
-          preco_brl?: number;
-          ativo?: boolean;
-          display_order?: number;
-          coach_id?: string;
-          created_at?: string;
-        };
-        Relationships: [];
-      };
+          ativo?: boolean
+          coach_id?: string
+          created_at?: string
+          descricao?: string | null
+          display_order?: number
+          id?: string
+          nome?: string
+          preco_brl?: number
+          qtd_partidas?: number
+          qtd_sessoes?: number
+          tipo?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
-          id: string;
-          discord_id: string | null;
-          username: string | null;
-          avatar_url: string | null;
-          steam_id: string | null;
-          email: string | null;
-          mmr_inicial: number | null;
-          mmr_atual: number | null;
-          role_preferida: "carry" | "mid" | "offlane" | "sup4" | "sup5" | null;
-          is_admin: boolean;
-          // Phase 3: hierarquia admin ⊃ coach ⊃ player (default 'player').
-          // Convive com is_admin (legacy) — Pedro tem ambos.
-          role: "admin" | "coach" | "player";
-          // Phase 3 prep / Phase 4 ativa: trial 7 dias da subscription.
-          trial_ends_at: string | null;
-          created_at: string;
-          updated_at: string;
-        };
+          avatar_url: string | null
+          banned_at: string | null
+          banned_reason: string | null
+          behavior_status: string
+          created_at: string
+          discord_id: string | null
+          doctrine_accepted_at: string | null
+          doctrine_version: number
+          email: string | null
+          id: string
+          is_admin: boolean
+          mmr_atual: number | null
+          mmr_inicial: number | null
+          role: string
+          role_preferida: string | null
+          steam_id: string | null
+          suspended_until: string | null
+          trial_ends_at: string | null
+          updated_at: string
+          username: string | null
+        }
         Insert: {
-          id: string;
-          discord_id?: string | null;
-          username?: string | null;
-          avatar_url?: string | null;
-          steam_id?: string | null;
-          email?: string | null;
-          mmr_inicial?: number | null;
-          mmr_atual?: number | null;
-          role_preferida?: "carry" | "mid" | "offlane" | "sup4" | "sup5" | null;
-          is_admin?: boolean;
-          role?: "admin" | "coach" | "player";
-          trial_ends_at?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
+          avatar_url?: string | null
+          banned_at?: string | null
+          banned_reason?: string | null
+          behavior_status?: string
+          created_at?: string
+          discord_id?: string | null
+          doctrine_accepted_at?: string | null
+          doctrine_version?: number
+          email?: string | null
+          id: string
+          is_admin?: boolean
+          mmr_atual?: number | null
+          mmr_inicial?: number | null
+          role?: string
+          role_preferida?: string | null
+          steam_id?: string | null
+          suspended_until?: string | null
+          trial_ends_at?: string | null
+          updated_at?: string
+          username?: string | null
+        }
         Update: {
-          id?: string;
-          discord_id?: string | null;
-          username?: string | null;
-          avatar_url?: string | null;
-          steam_id?: string | null;
-          email?: string | null;
-          mmr_inicial?: number | null;
-          mmr_atual?: number | null;
-          role_preferida?: "carry" | "mid" | "offlane" | "sup4" | "sup5" | null;
-          is_admin?: boolean;
-          role?: "admin" | "coach" | "player";
-          trial_ends_at?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Relationships: [];
-      };
+          avatar_url?: string | null
+          banned_at?: string | null
+          banned_reason?: string | null
+          behavior_status?: string
+          created_at?: string
+          discord_id?: string | null
+          doctrine_accepted_at?: string | null
+          doctrine_version?: number
+          email?: string | null
+          id?: string
+          is_admin?: boolean
+          mmr_atual?: number | null
+          mmr_inicial?: number | null
+          role?: string
+          role_preferida?: string | null
+          steam_id?: string | null
+          suspended_until?: string | null
+          trial_ends_at?: string | null
+          updated_at?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
       purchases: {
         Row: {
-          id: string;
-          user_id: string;
-          package_id: string;
-          status: "pendente" | "pago" | "expirado" | "cancelado";
-          payment_provider: string;
-          external_payment_id: string | null;
-          preco_pago: number;
-          partidas_compradas: number;
-          partidas_usadas: number;
-          sessoes_compradas: number;
-          sessoes_usadas: number;
-          data_compra: string;
-          data_expiracao: string | null;
-          created_at: string;
-        };
+          created_at: string
+          data_compra: string
+          data_expiracao: string | null
+          external_payment_id: string | null
+          id: string
+          package_id: string
+          partidas_compradas: number
+          partidas_usadas: number
+          payment_provider: string
+          preco_pago: number
+          sessoes_compradas: number
+          sessoes_usadas: number
+          status: string
+          user_id: string
+        }
         Insert: {
-          id?: string;
-          user_id: string;
-          package_id: string;
-          status?: "pendente" | "pago" | "expirado" | "cancelado";
-          payment_provider?: string;
-          external_payment_id?: string | null;
-          preco_pago: number;
-          partidas_compradas: number;
-          partidas_usadas?: number;
-          sessoes_compradas?: number;
-          sessoes_usadas?: number;
-          data_compra?: string;
-          data_expiracao?: string | null;
-          created_at?: string;
-        };
+          created_at?: string
+          data_compra?: string
+          data_expiracao?: string | null
+          external_payment_id?: string | null
+          id?: string
+          package_id: string
+          partidas_compradas: number
+          partidas_usadas?: number
+          payment_provider?: string
+          preco_pago: number
+          sessoes_compradas?: number
+          sessoes_usadas?: number
+          status?: string
+          user_id: string
+        }
         Update: {
-          id?: string;
-          user_id?: string;
-          package_id?: string;
-          status?: "pendente" | "pago" | "expirado" | "cancelado";
-          payment_provider?: string;
-          external_payment_id?: string | null;
-          preco_pago?: number;
-          partidas_compradas?: number;
-          partidas_usadas?: number;
-          sessoes_compradas?: number;
-          sessoes_usadas?: number;
-          data_compra?: string;
-          data_expiracao?: string | null;
-          created_at?: string;
-        };
-        Relationships: [];
-      };
+          created_at?: string
+          data_compra?: string
+          data_expiracao?: string | null
+          external_payment_id?: string | null
+          id?: string
+          package_id?: string
+          partidas_compradas?: number
+          partidas_usadas?: number
+          payment_provider?: string
+          preco_pago?: number
+          sessoes_compradas?: number
+          sessoes_usadas?: number
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       sessions: {
         Row: {
-          id: string;
-          purchase_id: string;
-          user_id: string;
-          data_agendada: string;
-          duracao_min: number;
-          tema_conceitos: string[] | null;
-          notas: string | null;
-          status: "agendada" | "realizada" | "cancelada";
-          created_at: string;
-        };
+          created_at: string
+          data_agendada: string
+          duracao_min: number
+          id: string
+          notas: string | null
+          purchase_id: string
+          status: string
+          tema_conceitos: string[] | null
+          user_id: string
+        }
         Insert: {
-          id?: string;
-          purchase_id: string;
-          user_id: string;
-          data_agendada: string;
-          duracao_min?: number;
-          tema_conceitos?: string[] | null;
-          notas?: string | null;
-          status?: "agendada" | "realizada" | "cancelada";
-          created_at?: string;
-        };
+          created_at?: string
+          data_agendada: string
+          duracao_min?: number
+          id?: string
+          notas?: string | null
+          purchase_id: string
+          status?: string
+          tema_conceitos?: string[] | null
+          user_id: string
+        }
         Update: {
-          id?: string;
-          purchase_id?: string;
-          user_id?: string;
-          data_agendada?: string;
-          duracao_min?: number;
-          tema_conceitos?: string[] | null;
-          notas?: string | null;
-          status?: "agendada" | "realizada" | "cancelada";
-          created_at?: string;
-        };
-        Relationships: [];
-      };
-      // Phase 3: vinculo Steam OpenID 2.0 → user. PATTERN CANÔNICO de identidade externa H1.2:
-      // V2 replica este shape em youtube_links, twitch_links, x_links.
+          created_at?: string
+          data_agendada?: string
+          duracao_min?: number
+          id?: string
+          notas?: string | null
+          purchase_id?: string
+          status?: string
+          tema_conceitos?: string[] | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       steam_links: {
         Row: {
-          user_id: string;
-          steam_id_64: string;
-          persona: string | null;
-          avatar_url: string | null;
-          verified_at: string;
-        };
+          avatar_url: string | null
+          persona: string | null
+          steam_id_64: string
+          user_id: string
+          verified_at: string
+        }
         Insert: {
-          user_id: string;
-          steam_id_64: string;
-          persona?: string | null;
-          avatar_url?: string | null;
-          verified_at?: string;
-        };
+          avatar_url?: string | null
+          persona?: string | null
+          steam_id_64: string
+          user_id: string
+          verified_at?: string
+        }
         Update: {
-          user_id?: string;
-          steam_id_64?: string;
-          persona?: string | null;
-          avatar_url?: string | null;
-          verified_at?: string;
-        };
-        Relationships: [];
-      };
+          avatar_url?: string | null
+          persona?: string | null
+          steam_id_64?: string
+          user_id?: string
+          verified_at?: string
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          cancelled_at: string | null
+          created_at: string
+          id: string
+          mp_plan_id: string | null
+          mp_preapproval_id: string | null
+          next_payment_date: string | null
+          payment_method_id: string | null
+          started_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cancelled_at?: string | null
+          created_at?: string
+          id?: string
+          mp_plan_id?: string | null
+          mp_preapproval_id?: string | null
+          next_payment_date?: string | null
+          payment_method_id?: string | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cancelled_at?: string | null
+          created_at?: string
+          id?: string
+          mp_plan_id?: string | null
+          mp_preapproval_id?: string | null
+          next_payment_date?: string | null
+          payment_method_id?: string | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_stats: {
         Row: {
-          user_id: string;
-          total_partidas_com_pedro: number;
-          vitorias: number;
-          derrotas: number;
-          mmr_ganho_total: number;
-          heroi_mais_jogado: string | null;
-          role_mais_jogada: string | null;
-          ultima_atualizacao: string;
-        };
+          derrotas: number
+          heroi_mais_jogado: string | null
+          mmr_ganho_total: number
+          role_mais_jogada: string | null
+          total_partidas_com_pedro: number
+          ultima_atualizacao: string
+          user_id: string
+          vitorias: number
+        }
         Insert: {
-          user_id: string;
-          total_partidas_com_pedro?: number;
-          vitorias?: number;
-          derrotas?: number;
-          mmr_ganho_total?: number;
-          heroi_mais_jogado?: string | null;
-          role_mais_jogada?: string | null;
-          ultima_atualizacao?: string;
-        };
+          derrotas?: number
+          heroi_mais_jogado?: string | null
+          mmr_ganho_total?: number
+          role_mais_jogada?: string | null
+          total_partidas_com_pedro?: number
+          ultima_atualizacao?: string
+          user_id: string
+          vitorias?: number
+        }
         Update: {
-          user_id?: string;
-          total_partidas_com_pedro?: number;
-          vitorias?: number;
-          derrotas?: number;
-          mmr_ganho_total?: number;
-          heroi_mais_jogado?: string | null;
-          role_mais_jogada?: string | null;
-          ultima_atualizacao?: string;
-        };
-        Relationships: [];
-      };
+          derrotas?: number
+          heroi_mais_jogado?: string | null
+          mmr_ganho_total?: number
+          role_mais_jogada?: string | null
+          total_partidas_com_pedro?: number
+          ultima_atualizacao?: string
+          user_id?: string
+          vitorias?: number
+        }
+        Relationships: []
+      }
       user_warnings: {
         Row: {
-          id: string;
-          user_id: string;
-          principle_violated: string | null;
-          antipattern_violated: string | null;
-          severity: string;
-          notes: string | null;
-          issued_by: string;
-          issued_at: string;
-        };
+          antipattern_violated: number | null
+          id: string
+          issued_at: string
+          issued_by: string | null
+          notes: string | null
+          principle_violated: number | null
+          severity: string
+          source: string
+          status: string
+          suspension_days: number | null
+          user_id: string
+        }
         Insert: {
-          id?: string;
-          user_id: string;
-          principle_violated?: string | null;
-          antipattern_violated?: string | null;
-          severity?: string;
-          notes?: string | null;
-          issued_by: string;
-          issued_at?: string;
-        };
+          antipattern_violated?: number | null
+          id?: string
+          issued_at?: string
+          issued_by?: string | null
+          notes?: string | null
+          principle_violated?: number | null
+          severity: string
+          source: string
+          status?: string
+          suspension_days?: number | null
+          user_id: string
+        }
         Update: {
-          id?: string;
-          user_id?: string;
-          principle_violated?: string | null;
-          antipattern_violated?: string | null;
-          severity?: string;
-          notes?: string | null;
-          issued_by?: string;
-          issued_at?: string;
-        };
-        Relationships: [];
-      };
-    };
-    // Usar Record<never, never> = {} para não envenenar a intersecção Tables & Views no Supabase JS.
-    // Record<string, never> faz keyof Views = string, o overload de from() p/ Views sobrepõe Tables
-    // e TablesAndViews = Tables & never = never, quebrando todos os .update() e .select() tipados.
-    Views: Record<never, never>;
-    Functions: Record<never, never>;
-    Enums: Record<never, never>;
-    CompositeTypes: Record<never, never>;
-  };
-};
+          antipattern_violated?: number | null
+          id?: string
+          issued_at?: string
+          issued_by?: string | null
+          notes?: string | null
+          principle_violated?: number | null
+          severity?: string
+          source?: string
+          status?: string
+          suspension_days?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      has_accepted_doctrine: { Args: { p_user_id: string }; Returns: boolean }
+      has_active_subscription: { Args: never; Returns: boolean }
+      is_admin: { Args: never; Returns: boolean }
+      is_coach: { Args: never; Returns: boolean }
+      is_user_active: { Args: { p_user_id: string }; Returns: boolean }
+      reset_dormant_behavior: { Args: never; Returns: number }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+}
 
-// Type helpers
-export type Tables<T extends keyof Database["public"]["Tables"]> = Database["public"]["Tables"][T]["Row"];
-export type TablesInsert<T extends keyof Database["public"]["Tables"]> = Database["public"]["Tables"][T]["Insert"];
-export type TablesUpdate<T extends keyof Database["public"]["Tables"]> = Database["public"]["Tables"][T]["Update"];
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never

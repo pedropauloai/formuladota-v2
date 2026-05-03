@@ -1,7 +1,8 @@
-// Footer global — links institucionais + Discord oficial.
+// Footer global — links institucionais + Discord oficial + disclaimer Valve.
 // Aparece em todas as páginas exceto fluxos isolados (/onboarding/doutrina, /auth/*).
 
 import Link from "next/link";
+import Image from "next/image";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -9,17 +10,22 @@ export function Footer() {
     <footer className="border-t border-[var(--color-border)] bg-[var(--color-background)] mt-16">
       <div className="mx-auto max-w-6xl px-6 py-10">
         <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-          <div className="space-y-2">
+          <div className="space-y-3">
             <Link
               href="/"
-              className="flex items-baseline gap-1 font-bold tracking-tight"
-              aria-label="Fórmula Dota — voltar à home"
+              className="flex items-center"
+              aria-label="FORMULADOTA — voltar à home"
             >
-              <span className="text-base">Fórmula</span>
-              <span className="text-base text-[var(--color-cyan)]">Dota</span>
+              <Image
+                src="/brand/logo-horizontal.png"
+                alt="FORMULADOTA"
+                width={150}
+                height={32}
+                className="h-7 w-auto"
+              />
             </Link>
             <p className="max-w-xs text-xs text-[var(--color-muted-foreground)]">
-              Hub de comunidade Dota 2 doutrinada pela Fórmula do Dota de Corrida.
+              HUB de comunidade Dota 2 brasileiro. Doutrina cultural, lobbies in-house, ranking por temporadas.
             </p>
           </div>
 
@@ -38,14 +44,18 @@ export function Footer() {
 
           <FooterColumn title="Plataforma">
             <FooterLink href="/pacotes" label="Pacotes" />
+            <FooterLink href="/assinatura" label="Assinatura" />
             <FooterLink href="/codigo-de-conduta" label="Código de Conduta" />
             <FooterLink href="/login" label="Entrar com Discord" />
           </FooterColumn>
         </div>
 
-        <div className="mt-10 flex flex-col gap-2 border-t border-[var(--color-border)] pt-6 text-xs text-[var(--color-muted-foreground)] md:flex-row md:items-center md:justify-between">
-          <p>© {currentYear} Fórmula Dota — Pedro Paulo (PPA). Todos os direitos reservados.</p>
-          <p className="font-mono">v2.0 · HUB</p>
+        <div className="mt-10 space-y-2 border-t border-[var(--color-border)] pt-6 text-xs text-[var(--color-muted-foreground)]">
+          <p>© {currentYear} FORMULADOTA. Todos os direitos reservados.</p>
+          <p className="text-[10px] leading-relaxed">
+            Dota e o logotipo do Dota são marcas e/ou marcas registradas da Valve Corporation.
+            FORMULADOTA não é afiliado nem endossado pela Valve Corporation.
+          </p>
         </div>
       </div>
     </footer>
@@ -61,7 +71,7 @@ function FooterColumn({
 }) {
   return (
     <div className="space-y-3">
-      <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-purple)]">
+      <p className="font-sans text-xs font-semibold uppercase tracking-widest text-[var(--color-brand-red)]">
         {title}
       </p>
       <ul className="space-y-2">{children}</ul>
@@ -85,7 +95,7 @@ function FooterLink({
           href={href}
           target="_blank"
           rel="noreferrer"
-          className="text-sm text-[var(--color-muted-foreground)] hover:text-[var(--color-cyan)] transition"
+          className="text-sm text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] transition"
         >
           {label}
         </a>
@@ -96,7 +106,7 @@ function FooterLink({
     <li>
       <Link
         href={href}
-        className="text-sm text-[var(--color-muted-foreground)] hover:text-[var(--color-cyan)] transition"
+        className="text-sm text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] transition"
       >
         {label}
       </Link>

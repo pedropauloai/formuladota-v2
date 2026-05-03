@@ -1,7 +1,6 @@
 /**
- * Texto canônico da Fórmula do Dota de Corrida (1ª aula da Fórmula do MMR).
+ * Texto canônico da metodologia FORMULADOTA (1ª aula da Fórmula do MMR).
  * Fonte: A FÓRMULA DO DOTA DE CORRIDA.txt na raiz do repo.
- * Autor: Pedro Paulo / PPA / Peter PPA — Immortal/7000 MMR.
  *
  * REGRAS:
  * - NÃO parafrasear. Citar literal sempre que possível.
@@ -200,7 +199,7 @@ export const ANTIPATTERNS: Antipattern[] = [
     ],
     directSeverity: "suspensao",
     directSeverityNote:
-      "Feeding em partida com Pedro vai DIRETO para suspensão de 14 dias.",
+      "Feeding em partida com coach vai DIRETO para suspensão de 14 dias.",
   },
   {
     id: 7,

@@ -1,7 +1,7 @@
 "use client";
 
 // Wrapper do Sonner sem next-themes — projeto é dark-only, sem toggle de tema.
-// Usa variáveis CSS cyberpunk do :root para estilizar os toasts.
+// Usa variáveis CSS FORMULADOTA do :root (paleta vermelho/preto) para estilizar os toasts.
 import {
   CircleCheckIcon,
   InfoIcon,
@@ -30,7 +30,7 @@ function Toaster({ ...props }: ToasterProps) {
           description:
             "group-[.toast]:text-[var(--color-muted-foreground)]",
           actionButton:
-            "group-[.toast]:bg-[var(--color-cyan)] group-[.toast]:text-black",
+            "group-[.toast]:bg-[var(--color-brand-red)] group-[.toast]:text-white",
           cancelButton:
             "group-[.toast]:bg-[var(--color-muted)] group-[.toast]:text-[var(--color-muted-foreground)]",
         },

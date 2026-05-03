@@ -22,9 +22,9 @@ type ProfileRow = Pick<
 >;
 
 export const metadata: Metadata = {
-  title: "Pacotes — Fórmula Dota",
+  title: "Pacotes — FORMULADOTA",
   description:
-    "Mentoria 1-1 com Pedro Paulo (Immortal/Top 0.5%). Pacotes avulsos a partir de R$ 10 ou mensal com sessões teóricas.",
+    "Mentoria 1-1 com coach Immortal (Top 0.5% / 7000 MMR). Pacotes avulsos a partir de R$ 10 ou mensal com sessões teóricas.",
 };
 
 // Tipo composto Package + Coach (consumido pelo PackageGrid).
@@ -34,19 +34,20 @@ export type PackageWithCoach = PackageRow & { coach: CoachInfo };
 // Fallback usado quando coach_id não casa com nenhum registro ativo
 // (ex: coach desativado mas pacote ainda ativo — edge case).
 const FALLBACK_COACH: CoachInfo = {
-  username: "Coach",
+  username: "Coach Immortal",
   avatarUrl: null,
-  badge: "",
+  badge: "Top 0.5%",
 };
 
 // Helper exportado — busca packages ativos + coaches+profiles e faz merge.
 // Mantido fora de PacotesPage pra que PacotesPage seja só render (≤ 30 linhas).
-// Phase 3: Pedro (is_admin=true) → badge "Immortal". V3 (Phase 7): derivar do MMR real.
+// Phase 3.5: nome próprio removido (B6) — coach exibido como "Coach Immortal" genérico.
+// V3 (multi-coach): derivar nome+badge do schema real quando coaches plurais entrarem.
 function buildCoachInfo(profile: ProfileRow | undefined): CoachInfo {
   return {
-    username: profile?.username ?? "Coach",
+    username: "Coach Immortal",
     avatarUrl: profile?.avatar_url ?? null,
-    badge: profile?.is_admin ? "Immortal" : "Coach",
+    badge: profile?.is_admin ? "Top 0.5%" : "Coach",
   };
 }
 
@@ -97,15 +98,18 @@ export default async function PacotesPage() {
   const packagesWithCoach = await loadPackagesWithCoaches(supabase);
 
   return (
-    <main className="min-h-screen bg-[#050505] px-4 py-12 md:py-16">
+    <main className="min-h-screen bg-[var(--color-background)] px-4 py-12 md:py-16">
       <div className="mx-auto max-w-7xl">
         <header className="mb-10 md:mb-14 text-center">
-          <h1 className="text-4xl md:text-5xl font-display text-[#f4f4f5]">
-            Escolha seu <span className="text-[#00F0FF]">pacote</span>
+          <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
+            Pacotes
+          </p>
+          <h1 className="mt-3 font-display text-4xl uppercase tracking-tight text-[var(--color-foreground)] md:text-6xl">
+            Escolha seu pacote
           </h1>
-          <p className="mt-4 text-[#a1a1aa] max-w-2xl mx-auto">
-            Mentoria 1-1 com coaches credenciados pela Fórmula Dota. Pague via
-            PIX, agende e jogue ranked junto.
+          <div className="mx-auto mt-6 brand-divider" />
+          <p className="mx-auto mt-6 max-w-2xl font-serif text-[var(--color-muted-foreground)]">
+            Mentoria 1-1 com coaches credenciados pela FORMULADOTA. Pague via PIX, agende e jogue ranked junto.
           </p>
         </header>
 

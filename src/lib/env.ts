@@ -14,8 +14,12 @@ const serverSchema = z.object({
   DISCORD_CLIENT_SECRET: optional,
   DISCORD_BOT_TOKEN: optional,
   DISCORD_GUILD_ID: optional,
-  ABACATEPAY_API_KEY: optional,
-  ABACATEPAY_WEBHOOK_SECRET: optional,
+  // Mercado Pago (Phase 4 — substitui AbacatePay 2026-05-02)
+  MP_ACCESS_TOKEN: optional,        // production APP_USR-... ou sandbox TEST-...
+  MP_PUBLIC_KEY: optional,          // public key pra frontend (se necessário)
+  MP_WEBHOOK_SECRET: optional,      // secret pra HMAC validation x-signature header
+  MP_PREAPPROVAL_PLAN_ID: optional, // opcional — plan_id se Pedro criar plano fixo via MCP
+  HUB_PRICE_BRL: optional,          // mensalidade R$ (default 47, validado em call site)
   OPENDOTA_API_KEY: optional,
   // Steam Web API key (Phase 3): server-only. Validada cirurgicamente via
   // requireServerEnv("STEAM_WEB_API_KEY") em src/lib/steam.ts.

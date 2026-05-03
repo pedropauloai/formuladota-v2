@@ -16,7 +16,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 export const metadata: Metadata = {
-  title: "Minhas Partidas — Fórmula Dota",
+  title: "Minhas Partidas — FORMULADOTA",
 };
 
 // Tipo derivado do schema gerado — sem cast, sem any.
@@ -83,10 +83,10 @@ export default async function PartidasPage() {
       <div className="mx-auto max-w-4xl">
         <header className="mb-8">
           <h1 className="text-3xl md:text-4xl font-display text-[var(--color-foreground)]">
-            Minhas <span className="text-[#00F0FF]">partidas</span>
+            Minhas <span className="text-[var(--color-brand-red)]">partidas</span>
           </h1>
           <p className="mt-2 text-[var(--color-muted-foreground)]">
-            Saldo disponível para agendar partidas e sessões com Pedro.
+            Saldo disponível para agendar partidas e sessões com o coach.
           </p>
         </header>
 
@@ -107,12 +107,12 @@ export default async function PartidasPage() {
               </h2>
               <p className="text-[var(--color-muted-foreground)] mb-6 max-w-md mx-auto">
                 Você ainda não tem partidas ou sessões disponíveis. Conheça os
-                pacotes e comece sua mentoria com Pedro.
+                pacotes e comece sua mentoria.
               </p>
               {/* Button de base-ui não suporta asChild; usar Link estilizado diretamente */}
               <Link
                 href="/pacotes"
-                className="inline-flex items-center justify-center rounded-lg bg-[#00F0FF] text-black font-medium text-sm px-4 py-2 transition-colors hover:bg-[#00F0FF]/90"
+                className="inline-flex items-center justify-center rounded-lg bg-[var(--color-brand-red)] text-black font-medium text-sm px-4 py-2 transition-colors hover:bg-[var(--color-brand-red)]/90"
               >
                 Ver pacotes
               </Link>
@@ -151,7 +151,7 @@ export default async function PartidasPage() {
                           {partidasRest > 0 && (
                             <Badge
                               variant="outline"
-                              className="border-[#00F0FF] text-[#00F0FF]"
+                              className="border-[var(--color-brand-red)] text-[var(--color-brand-red)]"
                             >
                               {partidasRest} partida{partidasRest === 1 ? "" : "s"}
                             </Badge>
@@ -159,7 +159,7 @@ export default async function PartidasPage() {
                           {sessoesRest > 0 && (
                             <Badge
                               variant="outline"
-                              className="border-[#A855F7] text-[#A855F7]"
+                              className="border-[var(--color-brand-red)] text-[var(--color-brand-red)]"
                             >
                               {sessoesRest} sess{sessoesRest === 1 ? "ão" : "ões"}
                             </Badge>

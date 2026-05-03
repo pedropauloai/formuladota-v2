@@ -11,7 +11,7 @@ interface SaldoCardProps {
 
 export function SaldoCard({ partidasDisponiveis, sessoesDisponiveis }: SaldoCardProps) {
   return (
-    <Card className="bg-[var(--color-card)] border-[var(--color-border)] ring-1 ring-[#00F0FF]/20">
+    <Card className="bg-[var(--color-card)] border-[var(--color-border)] ring-1 ring-[var(--color-brand-red)]/20">
       <CardContent className="py-8">
         <p className="text-sm text-[var(--color-muted-foreground)] uppercase tracking-wider mb-4">
           Seu saldo
@@ -19,9 +19,9 @@ export function SaldoCard({ partidasDisponiveis, sessoesDisponiveis }: SaldoCard
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {/* Partidas disponíveis — destaque cyan */}
           <div className="flex items-center gap-4">
-            <Trophy className="h-10 w-10 text-[#00F0FF] shrink-0" aria-hidden="true" />
+            <Trophy className="h-10 w-10 text-[var(--color-brand-red)] shrink-0" aria-hidden="true" />
             <div>
-              <p className="text-4xl font-display text-[#00F0FF] text-glow-cyan">
+              <p className="text-4xl font-display text-[var(--color-brand-red)] text-glow-red">
                 {partidasDisponiveis}
               </p>
               <p className="text-sm text-[var(--color-muted-foreground)]">
@@ -32,9 +32,9 @@ export function SaldoCard({ partidasDisponiveis, sessoesDisponiveis }: SaldoCard
 
           {/* Sessões teóricas disponíveis — destaque purple */}
           <div className="flex items-center gap-4">
-            <Sparkles className="h-10 w-10 text-[#A855F7] shrink-0" aria-hidden="true" />
+            <Sparkles className="h-10 w-10 text-[var(--color-brand-red)] shrink-0" aria-hidden="true" />
             <div>
-              <p className="text-4xl font-display text-[#A855F7] text-glow-purple">
+              <p className="text-4xl font-display text-[var(--color-brand-red)] text-glow-red">
                 {sessoesDisponiveis}
               </p>
               <p className="text-sm text-[var(--color-muted-foreground)]">

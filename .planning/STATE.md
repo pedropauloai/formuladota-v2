@@ -1,12 +1,13 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: Milestone complete
-last_updated: "2026-05-02T03:12:04.185Z"
+milestone: v2.0
+milestone_name: HUB Dota 2
+status: In Progress
+last_updated: "2026-05-03T00:35:00.000Z"
+current_phase: 03.5-rebrand-dota2-visual
 progress:
-  total_phases: 3
-  completed_phases: 3
+  total_phases: 8
+  completed_phases: 4
   total_plans: 14
   completed_plans: 14
 ---
@@ -82,7 +83,8 @@ Detalhes: `.planning/PROJECT.md` (vision canônica) + memória `project_pivot_hu
   - [x] 03-03 — vincular-steam-page + Server Action signInWithSteam ← **CONCLUÍDO 2026-05-02 (parallel)**
   - [x] 03-04 — middleware STEAM_REQUIRED_PATHS gate ← **CONCLUÍDO 2026-05-02 (parallel)**
   - [x] 03-05 — multicoach-refactor (PackageCard + /pacotes) ← **CONCLUÍDO 2026-05-02 (parallel)**
-- ○ Phase 4 — Subscription Mensal AbacatePay
+- ◆ **Phase 3.5 — Rebrand & Dota 2 Visual System** ← **IN PROGRESS 2026-05-02** (researcher rodando, planner+executor enfileirados)
+- ◆ **Phase 4 — Mercado Pago Migration End-to-End** ← **IN PROGRESS 2026-05-02** (researcher rodando, planner+executor enfileirados; replaces Phase 4 antiga AbacatePay PIX Manual deprecated)
 - ○ Phase 5 — Bot Steam Lobby Creator
 - ○ Phase 6 — Sistema de Ligas + MMR + Temporadas
 - ○ Phase 7 — Badges + Ranking + Perfil Expandido
