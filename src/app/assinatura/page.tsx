@@ -43,7 +43,7 @@ export default async function AssinaturaPage() {
 
   return (
     <main className="relative min-h-screen px-6 py-16">
-      <DotaBackdrop heroSlug="antimage" variant="ambient" />
+      <DotaBackdrop />
       <div className="relative z-10 mx-auto max-w-3xl">
         <header className="mb-12 text-center">
           <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">

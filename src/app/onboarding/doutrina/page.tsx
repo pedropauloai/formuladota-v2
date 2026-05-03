@@ -59,7 +59,7 @@ export default async function OnboardingDoutrinaPage({
 
   return (
     <main className="relative min-h-screen">
-      <DotaBackdrop heroSlug="sven" variant="ambient" />
+      <DotaBackdrop />
       <div className="relative z-10">
       <OnboardingFlow
         username={profile?.username ?? "jogador"}

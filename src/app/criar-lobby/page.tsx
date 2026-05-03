@@ -25,7 +25,7 @@ export default async function CriarLobbyPage() {
 
   return (
     <main className="relative min-h-screen px-6 py-16">
-      <DotaBackdrop heroSlug="windrunner" variant="ambient" />
+      <DotaBackdrop />
       <div className="relative z-10 mx-auto max-w-2xl">
         <header className="mb-12 text-center">
           <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">

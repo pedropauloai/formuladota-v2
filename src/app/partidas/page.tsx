@@ -81,7 +81,7 @@ export default async function PartidasPage() {
 
   return (
     <main className="relative min-h-screen px-4 py-12">
-      <DotaBackdrop heroSlug="pudge" variant="ambient" />
+      <DotaBackdrop />
       <div className="relative z-10 mx-auto max-w-4xl">
         <header className="mb-8">
           <h1 className="text-3xl md:text-4xl font-display text-[var(--color-foreground)]">

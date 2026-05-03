@@ -1,62 +1,44 @@
-// DotaBackdrop — backdrop full-bleed com video oficial Dota 2 + overlay escuro pra legibilidade.
-// Phase 3.5+ — usa HeroVideo (Steam CDN HotLink) com z-index negativo + gradient overlay.
+// DotaBackdrop — background estático full-bleed igual ao site oficial Dota 2.
 //
-// Pattern Dota oficial dota2.com: video atmospheric atrás de texto/UI, opacity reduzida.
-// Variantes:
-// - "hero" (default): bem visível, opacity 50, gradient suave — pra hero sections
-// - "ambient": sutil, opacity 20, gradient mais escuro — pra pages internas (legibilidade)
-// - "split": dois videos lado-a-lado (criativo) — usado em landing variada
+// O site dota2.com usa a imagem `greyfade.jpg` (Steam CDN) como textura atmospheric em
+// TODAS as pages internas (/heroes, /news, /esports). Esse componente replica esse pattern
+// pra dar identidade visual consistente e legibilidade boa pra texto sobreposto.
+//
+// V1: 1 imagem default. V2: pode aceitar override por page se Pedro pedir variação visual
+// (ex: /perfil/[steamid] com art keyart de hero específico — sempre estático, nunca video).
 
-import { HeroVideo } from "./hero-video";
+const DOTA_BACKGROUND_GREYFADE =
+  "https://cdn.steamstatic.com/apps/dota2/images/dota_react/backgrounds/greyfade.jpg";
 
 interface DotaBackdropProps {
-  heroSlug?: string;       // ex: "pudge", "invoker", "antimage", "nevermore", "windrunner"
-  variant?: "hero" | "ambient" | "split";
-  splitSlugs?: [string, string]; // só usado quando variant="split"
-  /** Forçar montage homepage default (sem heroSlug) */
-  homepage?: boolean;
+  /**
+   * URL custom de imagem estática. Se não passado, usa o `greyfade.jpg` oficial Dota 2.
+   * Aceitável: outras imagens estáticas Steam CDN ou self-hosted em public/.
+   * IMPORTANTE: NÃO passar URL de video — esse componente é só pra background estático.
+   */
+  src?: string;
+  /**
+   * Intensidade do overlay escuro. "subtle" (mais imagem visível) | "strong" (mais escuro).
+   * Default: "strong" — alinha com pages internas Dota oficial onde texto domina.
+   */
+  overlay?: "subtle" | "strong";
 }
 
-export function DotaBackdrop({
-  heroSlug,
-  variant = "ambient",
-  splitSlugs,
-  homepage = false,
-}: DotaBackdropProps) {
-  if (variant === "split" && splitSlugs) {
-    return (
-      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute inset-y-0 left-0 w-1/2 overflow-hidden">
-          <HeroVideo
-            heroSlug={splitSlugs[0]}
-            className="absolute inset-0 h-full w-full object-cover opacity-25"
-          />
-        </div>
-        <div className="absolute inset-y-0 right-0 w-1/2 overflow-hidden">
-          <HeroVideo
-            heroSlug={splitSlugs[1]}
-            className="absolute inset-0 h-full w-full object-cover opacity-25"
-          />
-        </div>
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/80" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black" />
-      </div>
-    );
-  }
-
-  const opacityClass = variant === "hero" ? "opacity-50" : "opacity-20";
-  const gradientClass =
-    variant === "hero"
-      ? "bg-gradient-to-b from-black/40 via-black/55 to-black"
-      : "bg-gradient-to-b from-black/70 via-black/75 to-black";
+export function DotaBackdrop({ src, overlay = "strong" }: DotaBackdropProps) {
+  const imageUrl = src ?? DOTA_BACKGROUND_GREYFADE;
+  const overlayClass =
+    overlay === "subtle"
+      ? "bg-gradient-to-b from-black/30 via-black/40 to-black/70"
+      : "bg-gradient-to-b from-black/55 via-black/65 to-black/85";
 
   return (
     <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-      <HeroVideo
-        heroSlug={homepage ? undefined : heroSlug}
-        className={`absolute inset-0 h-full w-full object-cover ${opacityClass}`}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url(${imageUrl})` }}
+        aria-hidden="true"
       />
-      <div className={`absolute inset-0 ${gradientClass}`} />
+      <div className={`absolute inset-0 ${overlayClass}`} />
     </div>
   );
 }

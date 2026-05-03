@@ -49,7 +49,7 @@ export default async function SuspendedPage() {
 
   return (
     <main className="relative min-h-screen flex items-center justify-center px-6">
-      <DotaBackdrop heroSlug="crystal_maiden" variant="ambient" />
+      <DotaBackdrop />
       <div className="relative z-10 w-full max-w-xl space-y-8 rounded-lg border-2 border-[var(--color-warning)] bg-[var(--color-card)]/90 backdrop-blur-sm p-8">
         <header className="space-y-3 text-center">
           <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-warning)]">

@@ -37,7 +37,7 @@ export default function CodigoDeCondutaPage() {
       </a>
 
       <main id="conteudo" className="relative min-h-screen px-6 py-16">
-        <DotaBackdrop heroSlug="nevermore" variant="ambient" />
+        <DotaBackdrop />
         <div className="relative z-10 mx-auto max-w-3xl space-y-16">
           <header className="space-y-4 text-center">
             <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-brand-red)]">

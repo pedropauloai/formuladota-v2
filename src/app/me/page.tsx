@@ -59,7 +59,7 @@ export default async function MePage() {
 
   return (
     <main className="relative min-h-screen px-6 py-12">
-      <DotaBackdrop heroSlug="crystal_maiden" variant="ambient" />
+      <DotaBackdrop />
       <div className="relative z-10 mx-auto max-w-4xl space-y-10">
         <header className="flex items-center gap-6">
           {(steamLink?.avatar_url ?? profile?.avatar_url) && (

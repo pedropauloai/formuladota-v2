@@ -111,7 +111,7 @@ export default async function RankingPage(props: {
 
   return (
     <main className="relative min-h-screen px-6 py-16">
-      <DotaBackdrop heroSlug="pudge" variant="ambient" />
+      <DotaBackdrop />
       <div className="relative z-10 mx-auto max-w-5xl">
         <header className="mb-12">
           <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
@@ -275,7 +275,7 @@ function Pagination({ currentPage }: { currentPage: number }) {
 function NoMatchState({ searchTerm, seasonName }: { searchTerm: string; seasonName: string }) {
   return (
     <main className="relative min-h-screen px-6 py-16">
-      <DotaBackdrop heroSlug="pudge" variant="ambient" />
+      <DotaBackdrop />
       <div className="relative z-10 mx-auto max-w-2xl text-center space-y-6">
         <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
           {seasonName}
@@ -297,7 +297,7 @@ function NoMatchState({ searchTerm, seasonName }: { searchTerm: string; seasonNa
 function EmptyRanking() {
   return (
     <main className="relative min-h-screen px-6 py-16">
-      <DotaBackdrop heroSlug="pudge" variant="ambient" />
+      <DotaBackdrop />
       <div className="relative z-10 mx-auto max-w-2xl text-center space-y-6">
         <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
           Ranking

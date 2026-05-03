@@ -57,7 +57,7 @@ export default async function LobbiesPage() {
 
   return (
     <main className="relative min-h-screen px-6 py-16">
-      <DotaBackdrop heroSlug="juggernaut" variant="ambient" />
+      <DotaBackdrop />
       <div className="relative z-10 mx-auto max-w-5xl">
         <header className="mb-12 flex items-end justify-between">
           <div>

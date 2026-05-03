@@ -36,7 +36,7 @@ export default async function CheckoutPage({ params }: PageProps) {
 
   return (
     <main className="relative min-h-screen px-4 py-12">
-      <DotaBackdrop heroSlug="invoker" variant="ambient" />
+      <DotaBackdrop />
       <div className="relative z-10 mx-auto max-w-3xl">
         <header className="mb-8 text-center">
           <h1 className="text-3xl md:text-4xl font-display text-[var(--color-foreground)]">

@@ -100,7 +100,7 @@ export default async function PacotesPage() {
 
   return (
     <main className="relative min-h-screen px-4 py-12 md:py-16">
-      <DotaBackdrop heroSlug="invoker" variant="ambient" />
+      <DotaBackdrop />
       <div className="relative z-10 mx-auto max-w-7xl">
         <header className="mb-10 md:mb-14 text-center">
           <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">

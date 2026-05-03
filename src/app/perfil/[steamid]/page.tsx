@@ -8,7 +8,7 @@ import Link from "next/link";
 import { Trophy, ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { TierBadge } from "@/components/dota/tier-badge";
-import { HeroVideo } from "@/components/dota/hero-video";
+import { DotaBackdrop } from "@/components/dota/dota-backdrop";
 
 interface PageProps {
   params: Promise<{ steamid: string }>;
@@ -66,11 +66,9 @@ export default async function PerfilPublicoPage(props: PageProps) {
     : null;
 
   return (
-    <main className="min-h-screen bg-[var(--color-background)]">
-      {/* Hero — video idle de hero aleatório (V2: stratz pega hero mais jogado) */}
-      <section className="relative h-[40vh] overflow-hidden border-b border-[var(--color-border)]">
-        <HeroVideo heroSlug="pudge" className="absolute inset-0 h-full w-full object-cover opacity-30" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/60 to-black" />
+    <main className="relative min-h-screen">
+      <DotaBackdrop />
+      <section className="relative h-[40vh] overflow-hidden border-b border-[var(--color-border)] bg-black/60">
         <div className="relative z-10 mx-auto flex max-w-5xl items-end gap-6 px-6 pb-8 pt-24 h-full">
           {(steamLink.avatar_url ?? profile?.avatar_url) ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -92,7 +90,7 @@ export default async function PerfilPublicoPage(props: PageProps) {
         </div>
       </section>
 
-      <div className="mx-auto max-w-5xl px-6 py-12 space-y-10">
+      <div className="relative z-10 mx-auto max-w-5xl px-6 py-12 space-y-10">
         <Link
           href="/ranking"
           className="inline-flex items-center gap-2 font-sans text-xs uppercase tracking-widest text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] transition-colors"

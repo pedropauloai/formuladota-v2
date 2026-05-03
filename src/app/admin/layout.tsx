@@ -26,7 +26,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <div className="relative flex min-h-screen">
-      <DotaBackdrop heroSlug="nevermore" variant="ambient" />
+      <DotaBackdrop />
       <aside className="relative z-10 w-64 border-r border-[var(--color-border)] bg-[var(--color-card)]/90 backdrop-blur-sm p-6 hidden md:block">
         <p className="mb-6 font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
           Admin
