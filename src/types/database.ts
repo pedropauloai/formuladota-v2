@@ -6,6 +6,9 @@
 // - Migration 008: tabela `subscriptions` (Mercado Pago Pix Automático) + helper has_active_subscription
 // - Migration 009: UPDATE coaches.bio (rebrand sem nome próprio)
 // - Migration 010: purchases.payment_provider column (abacatepay legacy / mercadopago default)
+//
+// Phase 5 (2026-05-03): Migration 011 — lobbies + lobby_players (Bot Steam in-house)
+// Phase 6 (2026-05-03): Migration 012 — seasons + player_season_mmr + helpers MMR Elo
 
 export type Json =
   | string
@@ -108,6 +111,81 @@ export type Database = {
         }
         Relationships: []
       }
+      lobbies: {
+        Row: {
+          bot_error: string | null
+          created_at: string
+          created_by: string
+          dota_match_id: string | null
+          ended_at: string | null
+          game_mode: string
+          id: string
+          max_players: number
+          mmr_target_max: number | null
+          mmr_target_min: number | null
+          name: string
+          password: string
+          started_at: string | null
+          status: string
+          steam_lobby_id: string | null
+        }
+        Insert: {
+          bot_error?: string | null
+          created_at?: string
+          created_by: string
+          dota_match_id?: string | null
+          ended_at?: string | null
+          game_mode?: string
+          id?: string
+          max_players?: number
+          mmr_target_max?: number | null
+          mmr_target_min?: number | null
+          name: string
+          password: string
+          started_at?: string | null
+          status?: string
+          steam_lobby_id?: string | null
+        }
+        Update: {
+          bot_error?: string | null
+          created_at?: string
+          created_by?: string
+          dota_match_id?: string | null
+          ended_at?: string | null
+          game_mode?: string
+          id?: string
+          max_players?: number
+          mmr_target_max?: number | null
+          mmr_target_min?: number | null
+          name?: string
+          password?: string
+          started_at?: string | null
+          status?: string
+          steam_lobby_id?: string | null
+        }
+        Relationships: []
+      }
+      lobby_players: {
+        Row: {
+          joined_at: string
+          lobby_id: string
+          team: string
+          user_id: string
+        }
+        Insert: {
+          joined_at?: string
+          lobby_id: string
+          team: string
+          user_id: string
+        }
+        Update: {
+          joined_at?: string
+          lobby_id?: string
+          team?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       doctrine_versions: {
         Row: {
           notes: string | null
@@ -177,6 +255,72 @@ export type Database = {
           status?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      seasons: {
+        Row: {
+          active: boolean
+          created_at: string
+          ended_at: string | null
+          id: number
+          name: string
+          prize_pool: number
+          prize_pool_currency: string
+          started_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          ended_at?: string | null
+          id?: number
+          name: string
+          prize_pool?: number
+          prize_pool_currency?: string
+          started_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          ended_at?: string | null
+          id?: number
+          name?: string
+          prize_pool?: number
+          prize_pool_currency?: string
+          started_at?: string
+        }
+        Relationships: []
+      }
+      player_season_mmr: {
+        Row: {
+          created_at: string
+          derrotas: number
+          last_match_at: string | null
+          mmr: number
+          partidas_total: number
+          season_id: number
+          user_id: string
+          vitorias: number
+        }
+        Insert: {
+          created_at?: string
+          derrotas?: number
+          last_match_at?: string | null
+          mmr?: number
+          partidas_total?: number
+          season_id: number
+          user_id: string
+          vitorias?: number
+        }
+        Update: {
+          created_at?: string
+          derrotas?: number
+          last_match_at?: string | null
+          mmr?: number
+          partidas_total?: number
+          season_id?: number
+          user_id?: string
+          vitorias?: number
         }
         Relationships: []
       }
@@ -530,6 +674,11 @@ export type Database = {
       is_coach: { Args: never; Returns: boolean }
       is_user_active: { Args: { p_user_id: string }; Returns: boolean }
       reset_dormant_behavior: { Args: never; Returns: number }
+      mmr_to_tier: {
+        Args: { p_mmr: number }
+        Returns: { tier: number; stars: number; tier_name: string }[]
+      }
+      ensure_player_season_mmr: { Args: { p_user_id: string }; Returns: void }
     }
     Enums: {
       [_ in never]: never

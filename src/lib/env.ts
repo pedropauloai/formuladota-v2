@@ -20,6 +20,11 @@ const serverSchema = z.object({
   MP_WEBHOOK_SECRET: optional,      // secret pra HMAC validation x-signature header
   MP_PREAPPROVAL_PLAN_ID: optional, // opcional — plan_id se Pedro criar plano fixo via MCP
   HUB_PRICE_BRL: optional,          // mensalidade R$ (default 47, validado em call site)
+  // Bot Steam (Phase 5)
+  BOT_API_URL: optional,            // ex: https://formuladota-bot-production.up.railway.app
+  BOT_API_KEY: optional,            // mesma key configurada no bot Railway
+  // Stratz GraphQL (Phase 7)
+  STRATZ_API_KEY: optional,         // Tier 1 grátis 2k req/h
   OPENDOTA_API_KEY: optional,
   // Steam Web API key (Phase 3): server-only. Validada cirurgicamente via
   // requireServerEnv("STEAM_WEB_API_KEY") em src/lib/steam.ts.

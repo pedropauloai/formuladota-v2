@@ -44,10 +44,12 @@ export async function Header() {
         </Link>
 
         <nav aria-label="Navegação principal" className="hidden items-center gap-6 md:flex">
+          <NavLink href="/lobbies" label="Lobbies" />
+          <NavLink href="/ranking" label="Ranking" />
           <NavLink href="/pacotes" label="Pacotes" />
-          <NavLink href="/codigo-de-conduta" label="Código de Conduta" />
+          <NavLink href="/codigo-de-conduta" label="Conduta" />
           <NavLink href="/assinatura" label="Assinatura" />
-          {isAdmin && <NavLink href="/admin" label="Admin" />}
+          {isAdmin && <NavLink href="/admin/dashboard" label="Admin" />}
         </nav>
 
         <div className="flex items-center gap-3">
@@ -89,9 +91,9 @@ function UserMenu({
   return (
     <div className="flex items-center gap-3">
       <Link
-        href="/perfil"
+        href="/me"
         className="flex items-center gap-2 rounded-md border border-[var(--color-border)] bg-[var(--color-card)] px-3 py-2 text-sm hover:border-[var(--color-brand-red)] transition"
-        aria-label={`Ver perfil de ${username}`}
+        aria-label={`Meu painel ${username}`}
       >
         {avatarUrl ? (
           // eslint-disable-next-line @next/next/no-img-element

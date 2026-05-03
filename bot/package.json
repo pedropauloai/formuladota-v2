@@ -1,0 +1,25 @@
+{
+  "name": "formuladota-bot",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Bot Steam pra criar lobbies Dota 2 in-house FORMULADOTA — Phase 5",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.4",
+    "node-dota2": "^7.0.0",
+    "steam-totp": "^2.1.2",
+    "steam-user": "^5.0.10",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.6.3"
+  }
+}
