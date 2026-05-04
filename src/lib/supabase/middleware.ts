@@ -29,6 +29,7 @@ const STEAM_REQUIRED_PATHS = [
   "/partidas",
   "/perfil",
   "/me",
+  "/dashboard",
   "/assinatura",
   "/criar-lobby",
   "/lobbies",

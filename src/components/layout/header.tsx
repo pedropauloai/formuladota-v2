@@ -91,9 +91,9 @@ function UserMenu({
   return (
     <div className="flex items-center gap-3">
       <Link
-        href="/me"
+        href="/dashboard"
         className="flex items-center gap-2 rounded-md border border-[var(--color-border)] bg-[var(--color-card)] px-3 py-2 text-sm hover:border-[var(--color-brand-red)] transition"
-        aria-label={`Meu painel ${username}`}
+        aria-label={`Painel de ${username}`}
       >
         {avatarUrl ? (
           // eslint-disable-next-line @next/next/no-img-element

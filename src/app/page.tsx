@@ -1,33 +1,52 @@
-// Landing pública FORMULADOTA — segue pattern do site oficial dota2.com:
-// - Hero principal: video montage Dota oficial (mesmo do dota2.com home)
-// - Outras sections: imagem estática greyfade (mesmo background usado em todas pages internas Dota)
+// Landing pública FORMULADOTA — 5 backgrounds oficiais Dota 2 (mesmo pattern dota2.com/home).
+// Logged-in: redireciona pra /dashboard (interface estilo menu do jogo).
 
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { ArrowRight, Trophy, Users, Zap } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { HeroVideo } from "@/components/dota/hero-video";
+
+// Backgrounds oficiais Dota 2 (Steam CDN — capturados via Playwright em dota2.com/home):
+const DOTA_BG = {
+  /** Section "Junte-se à Batalha dos Ancestrais" — épica painting estilo Dota classic */
+  background1: "https://cdn.steamstatic.com/apps/dota2/images/dota_react/home/background1.png",
+  /** Variação 2 */
+  background2: "https://cdn.steamstatic.com/apps/dota2/images/dota_react/home/background2.png",
+  /** Variação 3 */
+  background3: "https://cdn.steamstatic.com/apps/dota2/images/dota_react/home/background3.png",
+  /** Section "Junte-se à batalha" final CTA */
+  background4: "https://cdn.steamstatic.com/apps/dota2/images/dota_react/home/background4.png",
+  /** "Quem você escolherá?" — composição com vários heroes (1674x2089) */
+  heroesFull: "https://cdn.steamstatic.com/apps/dota2/images/dota_react/home/heroes_full.jpg",
+};
 
 export default async function Home() {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const isLoggedIn = !!user;
+
+  // Logged-in: redireciona pro dashboard estilo menu do jogo
+  if (user) {
+    redirect("/dashboard");
+  }
 
   return (
     <main>
-      <Hero isLoggedIn={isLoggedIn} />
+      <Hero />
       <Manifesto />
       <HowItWorks />
+      <HeroesShowcase />
       <CulturePreview />
-      <FinalCTA isLoggedIn={isLoggedIn} />
+      <FinalCTA />
     </main>
   );
 }
 
-// ============== Section 1 — Hero principal (video montage oficial Dota — igual dota2.com home) ==============
+// ============== Section 1 — Hero (video montage Dota oficial) ==============
 
-function Hero({ isLoggedIn }: { isLoggedIn: boolean }) {
+function Hero() {
   return (
     <section className="relative min-h-[85vh] overflow-hidden">
       <HeroVideo className="absolute inset-0 h-full w-full object-cover opacity-50" />
@@ -47,23 +66,13 @@ function Hero({ isLoggedIn }: { isLoggedIn: boolean }) {
         </p>
 
         <div className="mt-6 flex flex-wrap items-center gap-4">
-          {isLoggedIn ? (
-            <Link
-              href="/pacotes"
-              className="inline-flex items-center gap-2 rounded-md border border-[var(--color-brand-red)] bg-[var(--color-brand-red)]/10 px-6 py-3 font-sans text-sm font-semibold uppercase tracking-wide text-white transition-colors hover:bg-[var(--color-brand-red)]"
-            >
-              Ver pacotes
-              <ArrowRight size={18} />
-            </Link>
-          ) : (
-            <Link
-              href="/login"
-              className="inline-flex items-center gap-2 rounded-md border border-[var(--color-brand-red)] bg-[var(--color-brand-red)]/10 px-6 py-3 font-sans text-sm font-semibold uppercase tracking-wide text-white transition-colors hover:bg-[var(--color-brand-red)]"
-            >
-              Entrar com Discord
-              <ArrowRight size={18} />
-            </Link>
-          )}
+          <Link
+            href="/login"
+            className="inline-flex items-center gap-2 rounded-md border border-[var(--color-brand-red)] bg-[var(--color-brand-red)]/10 px-6 py-3 font-sans text-sm font-semibold uppercase tracking-wide text-white transition-colors hover:bg-[var(--color-brand-red)]"
+          >
+            Entrar com Discord
+            <ArrowRight size={18} />
+          </Link>
           <Link
             href="/codigo-de-conduta"
             className="inline-flex items-center gap-2 rounded-md border border-white/20 bg-transparent px-6 py-3 font-sans text-sm font-semibold uppercase tracking-wide text-white/80 transition-colors hover:border-white/60 hover:text-white"
@@ -76,12 +85,20 @@ function Hero({ isLoggedIn }: { isLoggedIn: boolean }) {
   );
 }
 
-// ============== Section 2 — Manifesto (sem video, fundo escuro sólido — pattern interno Dota) ==============
+// ============== Section 2 — Manifesto (background1.png — épica Dota painting) ==============
 
 function Manifesto() {
   return (
-    <section className="relative border-y border-[var(--color-border)] bg-black/95">
-      <div className="relative mx-auto max-w-5xl px-6 py-24">
+    <section
+      className="relative border-y border-[var(--color-border)]"
+      style={{
+        backgroundImage: `url(${DOTA_BG.background1})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
+      <div className="absolute inset-0 bg-gradient-to-r from-black via-black/85 to-black/40" />
+      <div className="relative z-10 mx-auto max-w-5xl px-6 py-32">
         <header className="mb-8 space-y-4">
           <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
             Manifesto
@@ -91,7 +108,7 @@ function Manifesto() {
           </h2>
           <div className="brand-divider" />
         </header>
-        <p className="max-w-3xl font-serif text-lg leading-relaxed text-white/75 md:text-xl">
+        <p className="max-w-3xl font-serif text-lg leading-relaxed text-white/80 md:text-xl">
           Todos os dias, milhões de jogadores ao redor do mundo entram em batalha como um dos mais
           de 100 heróis de Dota. FORMULADOTA é o HUB onde a comunidade brasileira se reúne — não
           apenas pra competir, mas pra evoluir alinhada culturalmente. Aqui a frustração não dita
@@ -102,7 +119,7 @@ function Manifesto() {
   );
 }
 
-// ============== Section 3 — Como Funciona ==============
+// ============== Section 3 — Como Funciona (background2.png) ==============
 
 function HowItWorks() {
   const steps = [
@@ -123,8 +140,16 @@ function HowItWorks() {
     },
   ];
   return (
-    <section className="relative bg-black">
-      <div className="mx-auto max-w-6xl px-6 py-24">
+    <section
+      className="relative border-y border-[var(--color-border)]"
+      style={{
+        backgroundImage: `url(${DOTA_BG.background2})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
+      <div className="absolute inset-0 bg-black/80" />
+      <div className="relative z-10 mx-auto max-w-6xl px-6 py-24">
         <header className="mb-12 space-y-4">
           <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
             Como funciona
@@ -139,7 +164,7 @@ function HowItWorks() {
           {steps.map((step) => (
             <article
               key={step.title}
-              className="space-y-4 rounded-md border border-[var(--color-border)] bg-[var(--color-card)] p-8 transition-colors hover:border-[var(--color-brand-red)]/60"
+              className="space-y-4 rounded-md border border-[var(--color-border)] bg-[var(--color-card)]/95 backdrop-blur-sm p-8 transition-colors hover:border-[var(--color-brand-red)]/60"
             >
               <step.icon
                 size={28}
@@ -160,12 +185,49 @@ function HowItWorks() {
   );
 }
 
-// ============== Section 4 — Cultura ==============
+// ============== Section 4 — Heroes Showcase (heroes_full.jpg — 100+ heroes) ==============
+
+function HeroesShowcase() {
+  return (
+    <section
+      className="relative border-y border-[var(--color-border)]"
+      style={{
+        backgroundImage: `url(${DOTA_BG.heroesFull})`,
+        backgroundSize: "cover",
+        backgroundPosition: "top center",
+      }}
+    >
+      <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/50 to-black/85" />
+      <div className="relative z-10 mx-auto max-w-4xl px-6 py-32 text-center">
+        <p className="mb-4 font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
+          Quem você escolherá?
+        </p>
+        <h2 className="font-display text-4xl font-bold uppercase leading-tight text-white md:text-6xl">
+          120+ heróis<br />à sua escolha
+        </h2>
+        <div className="mx-auto mt-6 brand-divider" />
+        <p className="mx-auto mt-8 max-w-2xl font-serif text-lg leading-relaxed text-white/80">
+          De engenhosos magos a brutamontes destemidos, passando por rebeldes astutos. Lance habilidades incríveis e Ultimates devastadoras no seu caminho para a vitória.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+// ============== Section 5 — Cultura (background3.png) ==============
 
 function CulturePreview() {
   return (
-    <section className="relative border-y border-[var(--color-border)] bg-black/95">
-      <div className="mx-auto max-w-4xl px-6 py-24 text-center">
+    <section
+      className="relative border-y border-[var(--color-border)]"
+      style={{
+        backgroundImage: `url(${DOTA_BG.background3})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
+      <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/85 to-black/95" />
+      <div className="relative z-10 mx-auto max-w-4xl px-6 py-32 text-center">
         <p className="mb-4 font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
           A primeira regra
         </p>
@@ -173,7 +235,7 @@ function CulturePreview() {
           A culpa nunca é do outro
         </p>
         <div className="mx-auto mt-6 brand-divider" />
-        <p className="mx-auto mt-8 max-w-2xl font-serif text-lg leading-relaxed text-white/75">
+        <p className="mx-auto mt-8 max-w-2xl font-serif text-lg leading-relaxed text-white/80">
           A responsabilidade é sempre sua, 100% das vezes. Comunidade alinhada nos 14 princípios
           e 10 anti-padrões da metodologia FORMULADOTA. Sem aceite, sem acesso.
         </p>
@@ -189,16 +251,21 @@ function CulturePreview() {
   );
 }
 
-// ============== Section 5 — Final CTA (video reprise — fechamento épico) ==============
+// ============== Section 6 — Final CTA (background4.png — mesmo do dota2.com finale) ==============
 
-function FinalCTA({ isLoggedIn }: { isLoggedIn: boolean }) {
-  if (isLoggedIn) return null;
+function FinalCTA() {
   return (
-    <section className="relative overflow-hidden">
-      <HeroVideo className="absolute inset-0 h-full w-full object-cover opacity-30" />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/70 to-black" />
+    <section
+      className="relative overflow-hidden"
+      style={{
+        backgroundImage: `url(${DOTA_BG.background4})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
+      <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/90" />
       <div className="relative z-10 mx-auto max-w-3xl px-6 py-32 text-center">
-        <h2 className="font-display text-4xl font-bold uppercase leading-tight text-white md:text-6xl">
+        <h2 className="font-display text-4xl font-bold uppercase leading-tight text-white md:text-7xl">
           Junte-se à batalha
         </h2>
         <div className="mx-auto mt-6 brand-divider" />
