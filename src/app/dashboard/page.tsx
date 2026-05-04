@@ -85,7 +85,9 @@ export default async function DashboardPage() {
     mmrRow = data;
   }
 
-  const subActive = subscription?.status === "authorized";
+  // Admin tem bypass — não precisa de mensalidade (Migration 013).
+  const isAdmin = profile?.is_admin === true;
+  const subActive = isAdmin || subscription?.status === "authorized";
   const persona = steamLink?.persona ?? profile?.username ?? "Anônimo";
   const avatar = steamLink?.avatar_url ?? profile?.avatar_url ?? null;
   const lobbies = lobbiesData ?? [];
@@ -142,7 +144,14 @@ export default async function DashboardPage() {
 
           {/* === CENTER — News/events panels === */}
           <main className="space-y-6">
-            <SubscriptionPanel subActive={subActive} nextPayment={subscription?.next_payment_date ?? null} />
+            {isAdmin ? (
+              <AdminBadgePanel />
+            ) : (
+              <SubscriptionPanel
+                subActive={subActive}
+                nextPayment={subscription?.next_payment_date ?? null}
+              />
+            )}
             {season && <SeasonPanel name={season.name} prizePool={Number(season.prize_pool)} />}
             <LobbiesPanel lobbies={lobbies} />
           </main>
@@ -306,6 +315,30 @@ function SubscriptionPanel({
         className="inline-flex items-center gap-2 rounded-md border border-[var(--color-brand-red)] bg-[var(--color-brand-red)]/10 px-4 py-2 font-sans text-xs font-semibold uppercase tracking-wide text-white hover:bg-[var(--color-brand-red)] transition-colors"
       >
         Ativar agora
+      </Link>
+    </article>
+  );
+}
+
+function AdminBadgePanel() {
+  return (
+    <article className="rounded-md border border-[var(--color-brand-red)]/60 bg-gradient-to-r from-[var(--color-brand-red)]/15 to-black/70 backdrop-blur-sm p-6 flex items-center justify-between gap-6">
+      <div className="flex items-center gap-4">
+        <div className="rounded-md border border-[var(--color-brand-red)] p-2">
+          <Crown size={20} className="text-[var(--color-brand-red)]" aria-hidden="true" />
+        </div>
+        <div>
+          <p className="font-display text-lg uppercase tracking-wide text-white">Acesso administrador</p>
+          <p className="mt-1 font-mono text-xs text-white/70">
+            Sem mensalidade — bypass total via is_admin
+          </p>
+        </div>
+      </div>
+      <Link
+        href="/admin/dashboard"
+        className="font-sans text-xs uppercase tracking-widest text-white/80 hover:text-white transition-colors"
+      >
+        Painel admin →
       </Link>
     </article>
   );

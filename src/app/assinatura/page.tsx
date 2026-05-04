@@ -9,6 +9,7 @@
 
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { Crown } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { AssinaturaCard } from "./assinatura-card";
 import { DotaBackdrop } from "@/components/dota/dota-backdrop";
@@ -27,6 +28,14 @@ export default async function AssinaturaPage() {
   if (!user) {
     redirect("/login");
   }
+
+  // Admin tem bypass — não precisa de mensalidade (Migration 013).
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("is_admin")
+    .eq("id", user.id)
+    .single();
+  const isAdmin = profile?.is_admin === true;
 
   // Busca subscription mais recente do user (não bloqueia se não existir).
   // Sem .maybeSingle() para evitar erro 406 quando filtra in() sem rows.
@@ -58,12 +67,26 @@ export default async function AssinaturaPage() {
           </p>
         </header>
 
-        <AssinaturaCard subscription={subscription} />
+        {isAdmin ? (
+          <div className="rounded-md border border-[var(--color-brand-red)]/60 bg-gradient-to-br from-[var(--color-brand-red)]/10 to-[var(--color-card)] p-8 text-center space-y-4">
+            <Crown size={32} className="mx-auto text-[var(--color-brand-red)]" aria-hidden="true" />
+            <h2 className="font-display text-2xl uppercase tracking-wide text-[var(--color-foreground)]">
+              Acesso administrador
+            </h2>
+            <p className="font-sans text-[var(--color-muted-foreground)]">
+              Sua conta tem bypass total de mensalidade — acesso ao HUB liberado independente de assinatura.
+            </p>
+          </div>
+        ) : (
+          <>
+            <AssinaturaCard subscription={subscription} />
 
-        <p className="mt-8 text-center text-xs text-[var(--color-text-faded)]">
-          Pagamento processado pelo Mercado Pago. Você autoriza o Pix Automático
-          uma vez e o débito mensal é feito direto na sua conta bancária.
-        </p>
+            <p className="mt-8 text-center text-xs text-[var(--color-text-faded)]">
+              Pagamento processado pelo Mercado Pago. Você autoriza o Pix Automático
+              uma vez e o débito mensal é feito direto na sua conta bancária.
+            </p>
+          </>
+        )}
       </div>
     </main>
   );
