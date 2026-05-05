@@ -73,6 +73,47 @@ export type Database = {
         }
         Relationships: []
       }
+      bots: {
+        Row: {
+          account_name: string
+          api_url: string | null
+          created_at: string | null
+          current_lobby_id: string | null
+          display_name: string
+          last_heartbeat_at: string | null
+          notes: string | null
+          status: string
+        }
+        Insert: {
+          account_name: string
+          api_url?: string | null
+          created_at?: string | null
+          current_lobby_id?: string | null
+          display_name?: string
+          last_heartbeat_at?: string | null
+          notes?: string | null
+          status?: string
+        }
+        Update: {
+          account_name?: string
+          api_url?: string | null
+          created_at?: string | null
+          current_lobby_id?: string | null
+          display_name?: string
+          last_heartbeat_at?: string | null
+          notes?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bots_current_lobby_id_fkey"
+            columns: ["current_lobby_id"]
+            isOneToOne: false
+            referencedRelation: "lobbies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       behavior_status_log: {
         Row: {
           changed_at: string
@@ -186,6 +227,7 @@ export type Database = {
       }
       lobbies: {
         Row: {
+          bot_account_name: string | null
           bot_error: string | null
           created_at: string
           created_by: string
@@ -203,6 +245,7 @@ export type Database = {
           steam_lobby_id: string | null
         }
         Insert: {
+          bot_account_name?: string | null
           bot_error?: string | null
           created_at?: string
           created_by: string
@@ -220,6 +263,7 @@ export type Database = {
           steam_lobby_id?: string | null
         }
         Update: {
+          bot_account_name?: string | null
           bot_error?: string | null
           created_at?: string
           created_by?: string
@@ -237,6 +281,13 @@ export type Database = {
           steam_lobby_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "lobbies_bot_account_name_fkey"
+            columns: ["bot_account_name"]
+            isOneToOne: false
+            referencedRelation: "bots"
+            referencedColumns: ["account_name"]
+          },
           {
             foreignKeyName: "lobbies_created_by_fkey"
             columns: ["created_by"]
@@ -1013,7 +1064,16 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      bot_pool_status: {
+        Row: {
+          bots_busy: number | null
+          bots_idle: number | null
+          bots_maintenance: number | null
+          bots_offline: number | null
+          bots_total: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       ensure_player_season_mmr: {
@@ -1033,6 +1093,8 @@ export type Database = {
           tier_name: string
         }[]
       }
+      release_bot: { Args: { p_account_name: string }; Returns: undefined }
+      reserve_bot_for_lobby: { Args: { p_lobby_id: string }; Returns: string }
       reset_dormant_behavior: { Args: never; Returns: number }
     }
     Enums: {

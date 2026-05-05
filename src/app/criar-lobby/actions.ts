@@ -85,6 +85,17 @@ export async function createLobby(formData: FormData): Promise<CreateLobbyResult
     return { success: true, lobbyId: lobby.id, password };
   }
 
+  // BOT_POOL_FULL: todos bots ocupados. V1 = 1 bot 'main', então só rola se ele
+  // já está hospedando outro lobby. Cleanup row + mensagem amigável.
+  if (!botResult.success && botResult.error === "BOT_POOL_FULL") {
+    await supabase.from("lobbies").delete().eq("id", lobby.id);
+    return {
+      success: false,
+      error:
+        "Todos os bots Steam estão ocupados agora. Aguarde alguns minutos e tente de novo.",
+    };
+  }
+
   // Bot configurado mas chamada falhou (offline/timeout/erro Dota GC) — cleanup row.
   if (!botResult.success) {
     await supabase.from("lobbies").delete().eq("id", lobby.id);
