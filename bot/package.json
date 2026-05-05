@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.4",
+    "long": "^5.2.3",
     "node-dota2": "^7.0.0",
     "steam-totp": "^2.1.2",
     "steam-user": "^5.0.10",

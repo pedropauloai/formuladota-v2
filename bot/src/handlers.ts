@@ -85,6 +85,50 @@ export async function createLobbyHandler(
   });
 }
 
+const inviteSchema = z.object({
+  lobbyId: z.string().uuid(),
+  steamId64: z.string().regex(/^\d{17}$/, "SteamID 64-bit (17 digits)"),
+});
+
+/**
+ * inviteToLobbyHandler — manda invite GC pro user pelo SteamID.
+ *
+ * node-dota2 API: dota.inviteToLobby(SteamID Long). NÃO requer friendship.
+ * User recebe popup dentro do cliente Dota 2 (igual invite de party). Click
+ * Aceitar → entra direto na sala (sem digitar senha).
+ *
+ * Pré-requisitos:
+ * - Bot já dentro de uma sala (após createPracticeLobby) — se não estiver,
+ *   node-dota2 cria sala default automaticamente per docs (não desejável aqui).
+ * - User precisa ter Dota 2 client aberto e logado.
+ */
+export async function inviteToLobbyHandler(
+  bot: SteamBotState,
+  body: unknown
+): Promise<HandlerResult> {
+  const parsed = inviteSchema.safeParse(body);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: "invalid input: " + JSON.stringify(parsed.error.flatten()),
+    };
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const Long = require("long");
+  const steamIdLong = Long.fromString(parsed.data.steamId64, true);
+
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    bot.dota.inviteToLobby(steamIdLong);
+    return { ok: true };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[bot] inviteToLobby falhou:", msg);
+    return { ok: false, error: msg };
+  }
+}
+
 const captureMatchSchema = z.object({
   lobbyId: z.string().uuid(),
 });

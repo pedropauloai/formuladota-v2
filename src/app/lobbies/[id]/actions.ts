@@ -6,6 +6,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { botInviteToLobby } from "@/lib/bot";
 
 export type ActionResult = { success: true } | { success: false; error: string };
 
@@ -73,6 +74,25 @@ export async function joinTeam(input: {
         };
       }
       return { success: false, error: "Erro ao entrar no time." };
+    }
+  }
+
+  // Auto-invite via GC: só pra teams (radiant/dire), não pra spectator.
+  // Fire-and-forget — invite é melhor-esforço. Se bot offline ou Dota fechado
+  // no client do user, fluxo continua válido (senha visível no painel da sala).
+  if (input.team !== "spectator") {
+    const { data: steamLink } = await supabase
+      .from("steam_links")
+      .select("steam_id_64")
+      .eq("user_id", user.id)
+      .single();
+    if (steamLink?.steam_id_64) {
+      void botInviteToLobby({
+        lobbyId: input.lobbyId,
+        steamId64: steamLink.steam_id_64,
+      }).catch((err) => {
+        console.error("[joinTeam] invite GC falhou:", err);
+      });
     }
   }
 

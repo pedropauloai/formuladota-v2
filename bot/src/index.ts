@@ -9,7 +9,11 @@
 import { createServer } from "node:http";
 import { createClient } from "@supabase/supabase-js";
 import { startSteamClient, type SteamBotState } from "./steam-client.js";
-import { createLobbyHandler, captureMatchHandler } from "./handlers.js";
+import {
+  createLobbyHandler,
+  captureMatchHandler,
+  inviteToLobbyHandler,
+} from "./handlers.js";
 
 const PORT = Number(process.env.PORT ?? 8080);
 const BOT_API_KEY = requireEnv("BOT_API_KEY");
@@ -88,6 +92,12 @@ async function main(): Promise<void> {
         }
         if (req.url === "/lobby/capture-match") {
           const result = await captureMatchHandler(supabase, botState!, body);
+          res.writeHead(result.ok ? 200 : 500, { "content-type": "application/json" });
+          res.end(JSON.stringify(result));
+          return;
+        }
+        if (req.url === "/lobby/invite") {
+          const result = await inviteToLobbyHandler(botState!, body);
           res.writeHead(result.ok ? 200 : 500, { "content-type": "application/json" });
           res.end(JSON.stringify(result));
           return;

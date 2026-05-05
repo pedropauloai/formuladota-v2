@@ -77,3 +77,52 @@ export async function botCreateLobby(input: {
   }
   return { success: true, data: { steamLobbyId: lobbyId } };
 }
+
+/**
+ * Manda invite GC pro user via SteamID 64-bit. node-dota2 inviteToLobby NÃO
+ * exige friendship — user recebe popup dentro do cliente Dota 2 e pode aceitar
+ * diretamente. Pré-requisito: bot já dentro do lobby (após botCreateLobby).
+ *
+ * Fire-and-forget recomendado no caller — invite é melhor-esforço; se falhar,
+ * fluxo continua válido (senha disponível no painel da sala).
+ */
+export async function botInviteToLobby(input: {
+  lobbyId: string;
+  steamId64: string;
+}): Promise<BotApiResult<{ ok: true }>> {
+  if (!isBotConfigured()) {
+    return { success: false, error: "BOT_NOT_CONFIGURED" };
+  }
+
+  const baseUrl = serverEnv.BOT_API_URL!;
+  const apiKey = serverEnv.BOT_API_KEY!;
+
+  let res: Response;
+  try {
+    res = await fetch(`${baseUrl}/lobby/invite`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(input),
+      cache: "no-store",
+    });
+  } catch (err) {
+    console.error("[bot] fetch /lobby/invite falhou:", err);
+    return { success: false, error: "Bot Steam offline." };
+  }
+
+  if (!res.ok) {
+    let errMsg = `HTTP ${res.status}`;
+    try {
+      const j = (await res.json()) as { error?: string };
+      if (j.error) errMsg = j.error;
+    } catch {
+      // ignora — usa HTTP status como fallback
+    }
+    return { success: false, error: errMsg };
+  }
+
+  return { success: true, data: { ok: true } };
+}
