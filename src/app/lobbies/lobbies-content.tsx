@@ -1,13 +1,12 @@
 "use client";
 
-// LobbiesContent — Client Component com tabela de lobbies + filtros + botão "Criar Sala"
-// que abre modal de criação. Estrutura inspirada em painéis de salas personalizadas
-// de jogos competitivos: colunas (nome, vagas, modo, região), filtros embaixo (região,
-// modo, busca), CTA criar/entrar.
+// LobbiesContent — painel lateral direito (~520px) que espelha o cliente Dota 2:
+// header → tabela compacta → filtros → CRIAR SALA / ENTRAR NA SALA (amarelo).
+// Renderizado dentro de <ClientShell rightSidebar={...} wideRightSidebar />.
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
-import { Plus, RefreshCw, Search, Users, Lock, Globe2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { RefreshCw } from "lucide-react";
 import { CreateLobbyModal } from "./create-lobby-modal";
 
 interface LobbyRow {
@@ -28,7 +27,9 @@ const GAME_MODE_LABELS: Record<string, string> = {
 };
 
 export function LobbiesContent({ lobbies }: { lobbies: LobbyRow[] }) {
+  const router = useRouter();
   const [showCreate, setShowCreate] = useState(false);
+  const [selected, setSelected] = useState<string | null>(null);
   const [filterMode, setFilterMode] = useState("all");
   const [filterRegion, setFilterRegion] = useState("brasil");
   const [search, setSearch] = useState("");
@@ -36,165 +37,182 @@ export function LobbiesContent({ lobbies }: { lobbies: LobbyRow[] }) {
   const filtered = useMemo(() => {
     return lobbies.filter((l) => {
       if (filterMode !== "all" && l.game_mode !== filterMode) return false;
-      if (search && !l.name.toLowerCase().includes(search.toLowerCase())) return false;
+      if (search && !l.name.toLowerCase().includes(search.toLowerCase()))
+        return false;
       return true;
     });
   }, [lobbies, filterMode, search]);
 
+  const handleEnter = () => {
+    if (!selected) return;
+    router.push(`/lobbies/${selected}`);
+  };
+
   return (
     <>
-      <div className="px-6 py-8 xl:px-12 xl:py-10">
-        <header className="mb-8 flex items-end justify-between gap-4 flex-wrap">
-          <div>
-            <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
-              Salas Personalizadas
-            </p>
-            <h1 className="mt-2 font-display text-3xl uppercase tracking-tight text-white md:text-4xl">
-              Lobbies abertos
-            </h1>
-            <div className="mt-4 brand-divider" />
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              aria-label="Atualizar lista"
-              onClick={() => window.location.reload()}
-              className="flex h-10 items-center gap-2 rounded-md border border-[var(--color-border)] bg-black/40 px-3 font-sans text-xs font-semibold uppercase tracking-wide text-white/70 hover:bg-white/5 hover:text-white transition-colors"
-            >
-              <RefreshCw size={14} aria-hidden="true" />
-              Atualizar
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowCreate(true)}
-              className="flex h-10 items-center gap-2 rounded-md border border-[var(--color-brand-red)] bg-[var(--color-brand-red)]/10 px-4 font-sans text-xs font-semibold uppercase tracking-wide text-white hover:bg-[var(--color-brand-red)] transition-colors"
-            >
-              <Plus size={14} aria-hidden="true" />
-              Criar sala
-            </button>
-          </div>
+      <div className="flex h-full flex-col">
+        {/* Header */}
+        <header className="flex items-center justify-between border-b border-[var(--color-border)] bg-black/60 px-4 py-3">
+          <h1 className="font-display text-sm uppercase tracking-[0.25em] text-white">
+            Salas Personalizadas
+          </h1>
+          <button
+            type="button"
+            aria-label="Atualizar lista"
+            onClick={() => router.refresh()}
+            className="inline-flex items-center gap-1.5 font-sans text-[10px] uppercase tracking-widest text-white/50 hover:text-white transition-colors"
+          >
+            <RefreshCw size={11} aria-hidden="true" />
+            Atualizar
+          </button>
         </header>
 
-        {/* Tabela de lobbies */}
-        <div className="overflow-x-auto rounded-md border border-[var(--color-border)] bg-black/50 backdrop-blur-sm">
-          <table className="w-full">
-            <thead className="border-b border-[var(--color-border)] bg-black/40">
+        {/* Tabela */}
+        <div className="flex-1 min-h-0 overflow-y-auto">
+          <table className="w-full text-left">
+            <thead className="border-b border-[var(--color-border)] bg-black/40 sticky top-0">
               <tr>
                 <Th>Nome da sala</Th>
                 <Th align="center">Vagas</Th>
                 <Th>Modo</Th>
                 <Th>Região</Th>
-                <Th align="right">Status</Th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-12 text-center">
-                    <Users
-                      size={20}
-                      className="mx-auto mb-2 text-white/30"
-                      aria-hidden="true"
-                    />
-                    <p className="font-mono text-xs text-white/50">
-                      Nenhum lobby aberto agora
+                  <td colSpan={4} className="px-3 py-10 text-center">
+                    <p className="font-mono text-[10px] uppercase tracking-widest text-white/40">
+                      Nenhuma sala aberta
                     </p>
                     <button
                       type="button"
                       onClick={() => setShowCreate(true)}
-                      className="mt-3 font-sans text-xs uppercase tracking-widest text-[var(--color-brand-red)] hover:text-white transition-colors"
+                      className="mt-2 font-sans text-[10px] uppercase tracking-widest text-[var(--color-brand-red)] hover:text-white transition-colors"
                     >
-                      Criar o primeiro →
+                      Criar a primeira →
                     </button>
                   </td>
                 </tr>
               ) : (
-                filtered.map((lobby) => (
-                  <tr
-                    key={lobby.id}
-                    className="border-b border-[var(--color-border)] last:border-0 hover:bg-white/[0.02] transition-colors"
-                  >
-                    <Td>
-                      <Link
-                        href={`/lobbies/${lobby.id}`}
-                        className="group flex items-center gap-2"
-                      >
-                        <Lock
-                          size={12}
-                          className="text-white/40 group-hover:text-[var(--color-brand-red)] transition-colors"
-                          aria-hidden="true"
-                        />
-                        <span className="font-display text-sm uppercase tracking-wide text-white group-hover:text-[var(--color-brand-red)] transition-colors">
+                filtered.map((lobby) => {
+                  const isSel = selected === lobby.id;
+                  return (
+                    <tr
+                      key={lobby.id}
+                      onClick={() => setSelected(lobby.id)}
+                      onDoubleClick={() => router.push(`/lobbies/${lobby.id}`)}
+                      className={`cursor-pointer border-b border-white/5 transition-colors ${
+                        isSel
+                          ? "bg-[var(--color-brand-red)]/15"
+                          : "hover:bg-white/5"
+                      }`}
+                    >
+                      <Td>
+                        <span className="font-sans text-xs text-white truncate block max-w-[160px]">
                           {lobby.name}
                         </span>
-                      </Link>
-                    </Td>
-                    <Td align="center">
-                      <span className="font-mono text-xs text-white/70">
-                        {lobby.player_count}/{lobby.max_players}
-                      </span>
-                    </Td>
-                    <Td>
-                      <span className="font-sans text-xs text-white/70">
-                        {GAME_MODE_LABELS[lobby.game_mode] ?? lobby.game_mode}
-                      </span>
-                    </Td>
-                    <Td>
-                      <span className="font-sans text-xs text-white/70">Brasil</span>
-                    </Td>
-                    <Td align="right">
-                      <StatusPill status={lobby.status} />
-                    </Td>
-                  </tr>
-                ))
+                      </Td>
+                      <Td align="center">
+                        <span className="font-mono text-[11px] text-white/70">
+                          {lobby.player_count}/{lobby.max_players}
+                        </span>
+                      </Td>
+                      <Td>
+                        <span className="font-sans text-[11px] text-white/70 truncate block max-w-[90px]">
+                          {GAME_MODE_LABELS[lobby.game_mode] ?? lobby.game_mode}
+                        </span>
+                      </Td>
+                      <Td>
+                        <span className="font-sans text-[11px] text-white/70">
+                          Brasil
+                        </span>
+                      </Td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
 
         {/* Filtros */}
-        <section className="mt-8 rounded-md border border-[var(--color-border)] bg-black/40 backdrop-blur-sm p-5">
-          <p className="mb-4 font-sans text-xs font-semibold uppercase tracking-[0.2em] text-white/70">
+        <section className="border-t border-[var(--color-border)] bg-black/40 px-4 py-3">
+          <p className="mb-2 font-sans text-[10px] font-semibold uppercase tracking-[0.25em] text-white/60">
             Filtrar salas
           </p>
-          <div className="grid gap-3 md:grid-cols-3">
-            <FilterField label="Região" icon={Globe2}>
+          <div className="grid grid-cols-2 gap-2">
+            <FilterField label="Região">
               <select
                 value={filterRegion}
                 onChange={(e) => setFilterRegion(e.target.value)}
-                className="w-full appearance-none bg-transparent font-sans text-xs text-white focus:outline-none"
+                className="w-full appearance-none bg-transparent font-sans text-[11px] text-white focus:outline-none"
               >
-                <option value="brasil" className="bg-black">Brasil</option>
-                <option value="south_america" className="bg-black">América do Sul</option>
-                <option value="any" className="bg-black">Qualquer</option>
+                <option value="brasil" className="bg-black">
+                  Brasil
+                </option>
+                <option value="south_america" className="bg-black">
+                  América do Sul
+                </option>
+                <option value="any" className="bg-black">
+                  Qualquer
+                </option>
               </select>
             </FilterField>
             <FilterField label="Modo de jogo">
               <select
                 value={filterMode}
                 onChange={(e) => setFilterMode(e.target.value)}
-                className="w-full appearance-none bg-transparent font-sans text-xs text-white focus:outline-none"
+                className="w-full appearance-none bg-transparent font-sans text-[11px] text-white focus:outline-none"
               >
-                <option value="all" className="bg-black">Todos os modos</option>
-                <option value="all_pick" className="bg-black">Escolha livre</option>
-                <option value="captains_mode" className="bg-black">Modo capitães</option>
-                <option value="random_draft" className="bg-black">Seleção aleatória</option>
+                <option value="all" className="bg-black">
+                  Todos
+                </option>
+                <option value="all_pick" className="bg-black">
+                  Escolha livre
+                </option>
+                <option value="captains_mode" className="bg-black">
+                  Modo capitães
+                </option>
+                <option value="random_draft" className="bg-black">
+                  Seleção aleatória
+                </option>
               </select>
             </FilterField>
-            <FilterField label="Nome da sala" icon={Search}>
+          </div>
+          <div className="mt-2">
+            <FilterField label="Nome da sala">
               <input
                 type="search"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Buscar salas..."
-                className="w-full bg-transparent font-sans text-xs text-white placeholder:text-white/40 focus:outline-none"
+                placeholder="Buscar..."
+                className="w-full bg-transparent font-sans text-[11px] text-white placeholder:text-white/30 focus:outline-none"
               />
             </FilterField>
           </div>
         </section>
+
+        {/* Ações finais — Criar + Entrar */}
+        <div className="border-t border-[var(--color-border)] bg-black/60 p-3 space-y-2">
+          <button
+            type="button"
+            onClick={() => setShowCreate(true)}
+            className="w-full inline-flex items-center justify-center rounded-sm border border-white/10 bg-black/40 px-4 py-2.5 font-sans text-[11px] font-semibold uppercase tracking-[0.2em] text-white/80 hover:bg-white/5 hover:text-white transition-colors"
+          >
+            Criar sala
+          </button>
+          <button
+            type="button"
+            onClick={handleEnter}
+            disabled={!selected}
+            className="w-full inline-flex h-12 items-center justify-center overflow-hidden rounded-sm border border-amber-400/60 bg-gradient-to-b from-amber-400 to-amber-600 px-6 font-display text-sm font-bold uppercase tracking-[0.3em] text-black shadow-lg shadow-amber-500/30 hover:from-amber-300 hover:to-amber-500 hover:shadow-amber-400/50 transition-all disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:from-amber-400 disabled:hover:to-amber-600"
+          >
+            Entrar na sala
+          </button>
+        </div>
       </div>
 
-      {/* Modal Criar Sala */}
       <CreateLobbyModal open={showCreate} onClose={() => setShowCreate(false)} />
     </>
   );
@@ -208,10 +226,14 @@ function Th({
   align?: "left" | "center" | "right";
 }) {
   const alignCls =
-    align === "center" ? "text-center" : align === "right" ? "text-right" : "text-left";
+    align === "center"
+      ? "text-center"
+      : align === "right"
+        ? "text-right"
+        : "text-left";
   return (
     <th
-      className={`px-4 py-3 font-sans text-[10px] font-semibold uppercase tracking-[0.2em] text-white/50 ${alignCls}`}
+      className={`px-3 py-2 font-sans text-[9px] font-semibold uppercase tracking-[0.2em] text-white/40 ${alignCls}`}
     >
       {children}
     </th>
@@ -226,50 +248,27 @@ function Td({
   align?: "left" | "center" | "right";
 }) {
   const alignCls =
-    align === "center" ? "text-center" : align === "right" ? "text-right" : "text-left";
-  return <td className={`px-4 py-3 ${alignCls}`}>{children}</td>;
-}
-
-function StatusPill({ status }: { status: string }) {
-  const map: Record<string, { label: string; cls: string }> = {
-    open: {
-      label: "Abertos",
-      cls: "border-[var(--color-success)]/40 text-[var(--color-success)]",
-    },
-    in_progress: {
-      label: "Em andamento",
-      cls: "border-[var(--color-warning)]/40 text-[var(--color-warning)]",
-    },
-  };
-  const conf = map[status] ?? {
-    label: status,
-    cls: "border-[var(--color-border)] text-white/50",
-  };
-  return (
-    <span
-      className={`rounded border px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest ${conf.cls}`}
-    >
-      {conf.label}
-    </span>
-  );
+    align === "center"
+      ? "text-center"
+      : align === "right"
+        ? "text-right"
+        : "text-left";
+  return <td className={`px-3 py-2 ${alignCls}`}>{children}</td>;
 }
 
 function FilterField({
   label,
-  icon: Icon,
   children,
 }: {
   label: string;
-  icon?: typeof Globe2;
   children: React.ReactNode;
 }) {
   return (
     <label className="block">
-      <span className="block mb-1.5 font-mono text-[10px] uppercase tracking-widest text-white/50">
+      <span className="block mb-1 font-mono text-[9px] uppercase tracking-widest text-white/40">
         {label}
       </span>
-      <div className="flex items-center gap-2 rounded-md border border-[var(--color-border)] bg-black/40 px-3 py-2">
-        {Icon && <Icon size={12} className="text-white/40 shrink-0" aria-hidden="true" />}
+      <div className="rounded-sm border border-[var(--color-border)] bg-black/40 px-2 py-1.5">
         {children}
       </div>
     </label>

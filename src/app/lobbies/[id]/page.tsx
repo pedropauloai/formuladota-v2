@@ -70,24 +70,31 @@ export default async function LobbyDetailPage(props: PageProps) {
     .single();
 
   return (
-    <ClientShell currentRoute="/lobbies">
-      <LobbyRoom
-        lobby={{
-          id: lobby.id,
-          name: lobby.name,
-          password: lobby.password,
-          gameMode: lobby.game_mode,
-          status: lobby.status,
-          maxPlayers: lobby.max_players,
-          steamLobbyId: lobby.steam_lobby_id,
-          createdBy: lobby.created_by,
-          startedAt: lobby.started_at,
-        }}
-        players={players}
-        currentUserId={user.id}
-        isLeader={isLeader}
-        leaderUsername={leaderProfile?.username ?? "—"}
-      />
+    <ClientShell
+      currentRoute="/lobbies"
+      wideRightSidebar
+      centerHero="https://cdn.steamstatic.com/apps/dota2/images/dota_react/home/background3.png"
+      rightSidebar={
+        <LobbyRoom
+          lobby={{
+            id: lobby.id,
+            name: lobby.name,
+            password: lobby.password,
+            gameMode: lobby.game_mode,
+            status: lobby.status,
+            maxPlayers: lobby.max_players,
+            steamLobbyId: lobby.steam_lobby_id,
+            createdBy: lobby.created_by,
+            startedAt: lobby.started_at,
+          }}
+          players={players}
+          currentUserId={user.id}
+          isLeader={isLeader}
+          leaderUsername={leaderProfile?.username ?? "—"}
+        />
+      }
+    >
+      {null}
     </ClientShell>
   );
 }

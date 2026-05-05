@@ -1,11 +1,12 @@
 "use client";
 
-// LobbyRoom — sala estilo Dota 2:
-// - Header: nome + líder + senha
-// - 3 cols: Chat (esq) | Times + JOGADORES DE FORA (centro) | Configurações + Sair/Iniciar (dir)
-// - Time 1 cyan / Time 2 red, slots em linhas finas com "ENTRAR" allcaps
-// - Slot do current-user mostra X pra sair (vira espectador)
-// - Click em slot vazio de outro time troca de vaga (Server Action UPDATE)
+// LobbyRoom — painel lateral direito (~520px) que espelha o cliente Dota 2:
+// header → 2 cols times → JOGADORES DE FORA → CONFIGURAÇÕES → SAIR/INICIAR.
+// Renderiza dentro de <ClientShell rightSidebar={<LobbyRoom />} wideRightSidebar />.
+//
+// Mecânica: click slot vazio entra/troca; X no seu slot vira espectador; X no chip
+// espectador sai do lobby. router.refresh() após cada Server Action sucesso pra
+// re-fetch dos dados (revalidatePath sozinho não rerender client component).
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -76,103 +77,89 @@ export function LobbyRoom({
   return (
     <div className="flex h-full flex-col">
       {/* Header — nome + líder + senha */}
-      <header className="flex items-center justify-between gap-4 border-b border-[var(--color-border)] bg-black/50 px-6 py-3">
-        <div>
-          <h1 className="font-display text-xl uppercase tracking-wide text-white">
-            {lobby.name}
-          </h1>
-          <p className="mt-0.5 font-mono text-[10px] uppercase tracking-widest text-white/50">
-            Líder: {leaderUsername}
+      <header className="border-b border-[var(--color-border)] bg-black/60 px-4 py-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="font-display text-base uppercase tracking-wide text-white truncate">
+              {lobby.name}
+            </h1>
+            <p className="mt-0.5 font-mono text-[10px] uppercase tracking-widest text-white/50 truncate">
+              Líder: {leaderUsername}
+            </p>
+          </div>
+          <PasswordBadge password={lobby.password} />
+        </div>
+        {(lobby.status === "in_progress" || lobby.steamLobbyId?.startsWith("DEV-")) && (
+          <p className="mt-1 font-mono text-[9px] uppercase tracking-widest">
             {lobby.status === "in_progress" && (
-              <span className="ml-3 text-[var(--color-warning)]">
-                · em andamento
-              </span>
+              <span className="text-[var(--color-warning)]">Em andamento</span>
             )}
             {lobby.steamLobbyId?.startsWith("DEV-") && (
-              <span className="ml-3 text-white/40">· modo dev (bot offline)</span>
+              <span className="text-white/40 ml-2">Modo dev (bot offline)</span>
             )}
           </p>
-        </div>
-        <PasswordBadge password={lobby.password} />
+        )}
       </header>
 
-      {/* Main 3-col: chat | teams+spectators | settings+actions */}
-      <div className="flex-1 grid min-h-0 grid-cols-1 lg:grid-cols-[280px_1fr_320px] xl:grid-cols-[320px_1fr_360px]">
-        {/* LEFT — Chat */}
-        <ChatPanel lobbyName={lobby.name} />
+      {/* Times — 2 cols */}
+      <section className="grid grid-cols-2 divide-x divide-[var(--color-border)] border-b border-[var(--color-border)]">
+        <TeamColumn
+          label="Time 1"
+          accent="cyan"
+          team="radiant"
+          players={team1}
+          size={teamSize}
+          lobbyId={lobby.id}
+          currentUserId={currentUserId}
+          leaderId={lobby.createdBy}
+          currentTeam={myTeam}
+          disabled={!canEdit}
+        />
+        <TeamColumn
+          label="Time 2"
+          accent="red"
+          team="dire"
+          players={team2}
+          size={teamSize}
+          lobbyId={lobby.id}
+          currentUserId={currentUserId}
+          leaderId={lobby.createdBy}
+          currentTeam={myTeam}
+          disabled={!canEdit}
+        />
+      </section>
 
-        {/* CENTER — Times + Espectadores */}
-        <main className="flex flex-col overflow-y-auto">
-          <div className="grid flex-1 min-h-0 grid-cols-2 divide-x divide-[var(--color-border)] border-b border-[var(--color-border)]">
-            <TeamColumn
-              label="Time 1"
-              accent="cyan"
-              team="radiant"
-              players={team1}
-              size={teamSize}
+      {/* JOGADORES DE FORA */}
+      <SpectatorRow
+        spectators={spectators}
+        lobbyId={lobby.id}
+        currentUserId={currentUserId}
+        currentTeam={myTeam}
+        disabled={!canEdit}
+      />
+
+      {/* Configurações da sala (read-only) */}
+      <SettingsPanel lobby={lobby} isLeader={isLeader} />
+
+      {/* Ações finais */}
+      <div className="mt-auto border-t border-[var(--color-border)] bg-black/60 p-3 space-y-2">
+        {inLobby ? (
+          <LeaveLobbyButton lobbyId={lobby.id} />
+        ) : (
+          <p className="text-center font-mono text-[10px] uppercase tracking-widest text-white/30 py-2">
+            Você não está na sala
+          </p>
+        )}
+
+        {isLeader && (
+          <>
+            <CancelLobbyButton lobbyId={lobby.id} />
+            <StartMatchButton
               lobbyId={lobby.id}
-              currentUserId={currentUserId}
-              leaderId={lobby.createdBy}
-              currentTeam={myTeam}
-              disabled={!canEdit}
+              disabled={lobby.status !== "open"}
             />
-            <TeamColumn
-              label="Time 2"
-              accent="red"
-              team="dire"
-              players={team2}
-              size={teamSize}
-              lobbyId={lobby.id}
-              currentUserId={currentUserId}
-              leaderId={lobby.createdBy}
-              currentTeam={myTeam}
-              disabled={!canEdit}
-            />
-          </div>
-
-          {/* JOGADORES DE FORA (espectadores) */}
-          <SpectatorRow
-            spectators={spectators}
-            lobbyId={lobby.id}
-            currentUserId={currentUserId}
-            currentTeam={myTeam}
-            disabled={!canEdit}
-          />
-        </main>
-
-        {/* RIGHT — Configurações + Ações */}
-        <aside className="hidden lg:flex flex-col border-l border-[var(--color-border)] bg-black/40 backdrop-blur-sm">
-          <SettingsPanel lobby={lobby} isLeader={isLeader} />
-
-          {/* Ações finais */}
-          <div className="border-t border-[var(--color-border)] p-4 space-y-2.5">
-            {inLobby ? (
-              <form action={leaveLobby}>
-                <input type="hidden" name="lobbyId" value={lobby.id} />
-                <button
-                  type="submit"
-                  className="w-full inline-flex items-center justify-center gap-2 rounded-sm border border-white/10 bg-black/40 px-4 py-2.5 font-sans text-[11px] font-semibold uppercase tracking-[0.2em] text-white/70 hover:bg-white/5 hover:text-white transition-colors"
-                >
-                  Sair da sala
-                </button>
-              </form>
-            ) : (
-              <p className="text-center font-mono text-[10px] uppercase tracking-widest text-white/30 py-2">
-                Você não está na sala
-              </p>
-            )}
-
-            {isLeader && (
-              <>
-                <CancelLobbyButton lobbyId={lobby.id} />
-                <StartMatchButton
-                  lobbyId={lobby.id}
-                  disabled={lobby.status !== "open"}
-                />
-              </>
-            )}
-          </div>
-        </aside>
+          </>
+        )}
       </div>
     </div>
   );
@@ -184,16 +171,16 @@ const TEAM_ACCENTS = {
   cyan: {
     border: "border-cyan-400/40",
     text: "text-cyan-300",
-    bg: "bg-cyan-500/5",
+    bg: "bg-cyan-500/[0.04]",
     headerBg: "bg-cyan-500/10",
-    rowHover: "hover:bg-cyan-500/5",
+    rowHover: "hover:bg-cyan-500/10",
   },
   red: {
     border: "border-red-500/40",
     text: "text-red-400",
-    bg: "bg-red-500/5",
+    bg: "bg-red-500/[0.04]",
     headerBg: "bg-red-500/10",
-    rowHover: "hover:bg-red-500/5",
+    rowHover: "hover:bg-red-500/10",
   },
 } as const;
 
@@ -226,18 +213,18 @@ function TeamColumn({
   return (
     <section className={`flex flex-col ${a.bg}`}>
       <header
-        className={`flex items-center justify-between border-b ${a.border} ${a.headerBg} px-4 py-2.5`}
+        className={`flex items-center justify-between border-b ${a.border} ${a.headerBg} px-3 py-2`}
       >
         <h2
-          className={`font-display text-sm uppercase tracking-[0.25em] ${a.text}`}
+          className={`font-display text-xs uppercase tracking-[0.25em] ${a.text}`}
         >
           {label}
         </h2>
-        <span className="font-mono text-[10px] uppercase tracking-widest text-white/40">
+        <span className="font-mono text-[9px] uppercase tracking-widest text-white/40">
           {players.length}/{size}
         </span>
       </header>
-      <ol className="flex-1">
+      <ol>
         {slots.map((slot, i) => (
           <PlayerSlotRow
             key={i}
@@ -275,48 +262,51 @@ function PlayerSlotRow({
   currentTeam: string | null;
   disabled: boolean;
 }) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const a = TEAM_ACCENTS[accent];
 
   const handleJoin = () => {
     startTransition(async () => {
       const result = await joinTeam({ lobbyId, team });
-      if (!result.success) toast.error(result.error);
+      if (!result.success) {
+        toast.error(result.error);
+        return;
+      }
+      router.refresh();
     });
   };
 
   const handleLeaveSlot = () => {
     startTransition(async () => {
       const result = await joinTeam({ lobbyId, team: "spectator" });
-      if (!result.success) toast.error(result.error);
+      if (!result.success) {
+        toast.error(result.error);
+        return;
+      }
+      router.refresh();
     });
   };
 
-  // Slot vazio — mostra "ENTRAR" se permitido (não está nesse time)
+  // Slot vazio — "ENTRAR" se não está nesse time
   if (!slot) {
     const showJoin = !disabled && currentTeam !== team;
     return (
       <li
-        className={`group flex items-center justify-between gap-3 border-b border-white/5 px-4 py-3 min-h-[52px] ${
+        className={`group flex items-center justify-between gap-2 border-b border-white/5 px-3 py-2.5 min-h-[44px] ${
           showJoin ? `cursor-pointer ${a.rowHover}` : ""
         } transition-colors`}
-        onClick={showJoin ? handleJoin : undefined}
+        onClick={showJoin && !isPending ? handleJoin : undefined}
       >
-        <span className="font-mono text-[10px] uppercase tracking-widest text-white/20">
+        <span className="font-mono text-[10px] uppercase tracking-widest text-white/15">
           ────
         </span>
         {showJoin && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleJoin();
-            }}
-            disabled={isPending}
-            className={`font-sans text-[11px] font-semibold uppercase tracking-[0.2em] ${a.text} opacity-60 group-hover:opacity-100 transition-opacity disabled:opacity-30`}
+          <span
+            className={`font-sans text-[10px] font-semibold uppercase tracking-[0.2em] ${a.text} opacity-50 group-hover:opacity-100 transition-opacity`}
           >
             {isPending ? "..." : "Entrar"}
-          </button>
+          </span>
         )}
       </li>
     );
@@ -326,33 +316,33 @@ function PlayerSlotRow({
   const isCurrent = slot.userId === currentUserId;
 
   return (
-    <li className="flex items-center gap-3 border-b border-white/5 px-4 py-3 min-h-[52px] group">
+    <li className="flex items-center gap-2 border-b border-white/5 px-3 py-2.5 min-h-[44px] group">
       {slot.avatarUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={slot.avatarUrl}
           alt=""
-          className="size-8 rounded-sm border border-white/10"
+          className="size-7 rounded-sm border border-white/10 shrink-0"
         />
       ) : (
-        <div className="size-8 rounded-sm border border-white/10 bg-black/40" />
+        <div className="size-7 rounded-sm border border-white/10 bg-black/40 shrink-0" />
       )}
       <div className="min-w-0 flex-1">
-        <p className="font-sans text-sm text-white truncate flex items-center gap-1.5">
+        <p className="font-sans text-xs text-white truncate flex items-center gap-1">
           {slot.username}
           {slotIsLeader && (
             <Crown
-              size={11}
+              size={10}
               className="text-amber-400 shrink-0"
               aria-label="Líder"
             />
           )}
-          {isCurrent && (
-            <span className="font-mono text-[9px] uppercase tracking-widest text-[var(--color-brand-red)]">
-              · você
-            </span>
-          )}
         </p>
+        {isCurrent && (
+          <p className="font-mono text-[9px] uppercase tracking-widest text-[var(--color-brand-red)]">
+            você
+          </p>
+        )}
       </div>
       {isCurrent && !disabled && (
         <button
@@ -361,7 +351,7 @@ function PlayerSlotRow({
           disabled={isPending}
           aria-label="Sair do slot"
           title="Sair do slot (vira espectador)"
-          className="opacity-0 group-hover:opacity-100 text-white/50 hover:text-white transition-all disabled:opacity-30"
+          className="shrink-0 text-white/40 hover:text-white transition-colors disabled:opacity-30"
         >
           {isPending ? (
             <Loader2 size={14} className="animate-spin" />
@@ -374,7 +364,7 @@ function PlayerSlotRow({
   );
 }
 
-// ============== JOGADORES DE FORA (Spectators) ==============
+// ============== JOGADORES DE FORA ==============
 
 function SpectatorRow({
   spectators,
@@ -389,17 +379,21 @@ function SpectatorRow({
   currentTeam: string | null;
   disabled: boolean;
 }) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   const handleSpectate = () => {
     startTransition(async () => {
       const r = await joinTeam({ lobbyId, team: "spectator" });
-      if (!r.success) toast.error(r.error);
+      if (!r.success) {
+        toast.error(r.error);
+        return;
+      }
+      router.refresh();
     });
   };
 
-  const handleLeaveSpec = () => {
-    // "Sair" do espectador = sair do lobby todo (similar ao Dota 2)
+  const handleLeaveLobby = () => {
     startTransition(async () => {
       const fd = new FormData();
       fd.set("lobbyId", lobbyId);
@@ -410,9 +404,9 @@ function SpectatorRow({
   const iAmSpectator = currentTeam === "spectator";
 
   return (
-    <section className="bg-black/30">
-      <header className="flex items-center justify-between border-b border-[var(--color-border)] bg-black/40 px-4 py-2">
-        <h3 className="font-sans text-[11px] font-semibold uppercase tracking-[0.25em] text-white/60">
+    <section className="border-b border-[var(--color-border)] bg-black/30">
+      <header className="flex items-center justify-between border-b border-white/5 px-3 py-2">
+        <h3 className="font-sans text-[10px] font-semibold uppercase tracking-[0.25em] text-white/60">
           Jogadores de fora
         </h3>
         {!disabled && !iAmSpectator && currentTeam !== null && (
@@ -426,7 +420,7 @@ function SpectatorRow({
           </button>
         )}
       </header>
-      <div className="px-4 py-3 flex flex-wrap items-center gap-2 min-h-[48px]">
+      <div className="px-3 py-2.5 flex flex-wrap items-center gap-1.5 min-h-[40px]">
         {spectators.length === 0 ? (
           <span className="font-mono text-[10px] uppercase tracking-widest text-white/20">
             Nenhum
@@ -437,7 +431,7 @@ function SpectatorRow({
             return (
               <span
                 key={s.userId}
-                className={`inline-flex items-center gap-1.5 rounded-sm border px-2 py-1 ${
+                className={`inline-flex items-center gap-1 rounded-sm border px-1.5 py-0.5 ${
                   isCurrent
                     ? "border-[var(--color-brand-red)]/40 bg-[var(--color-brand-red)]/10"
                     : "border-white/10 bg-black/40"
@@ -445,21 +439,21 @@ function SpectatorRow({
               >
                 {s.avatarUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={s.avatarUrl} alt="" className="size-4 rounded-sm" />
+                  <img src={s.avatarUrl} alt="" className="size-3.5 rounded-sm" />
                 ) : null}
-                <span className="font-sans text-xs text-white/80">
+                <span className="font-sans text-[11px] text-white/80">
                   {s.username}
                 </span>
                 {isCurrent && !disabled && (
                   <button
                     type="button"
-                    onClick={handleLeaveSpec}
+                    onClick={handleLeaveLobby}
                     disabled={isPending}
                     aria-label="Sair do lobby"
                     title="Sair do lobby"
-                    className="ml-1 text-white/50 hover:text-white transition-colors disabled:opacity-30"
+                    className="ml-0.5 text-white/50 hover:text-white transition-colors disabled:opacity-30"
                   >
-                    <X size={12} />
+                    <X size={11} />
                   </button>
                 )}
               </span>
@@ -471,35 +465,7 @@ function SpectatorRow({
   );
 }
 
-// ============== Chat panel (left) ==============
-
-function ChatPanel({ lobbyName }: { lobbyName: string }) {
-  return (
-    <aside className="hidden lg:flex flex-col border-r border-[var(--color-border)] bg-black/40 backdrop-blur-sm">
-      <header className="border-b border-[var(--color-border)] px-4 py-3">
-        <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.25em] text-white/60">
-          Chat — {lobbyName}
-        </p>
-      </header>
-      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2">
-        <p className="font-mono text-[10px] uppercase tracking-widest text-white/30 text-center mt-4">
-          Chat em breve · V2
-        </p>
-      </div>
-      <div className="border-t border-[var(--color-border)] p-2">
-        <input
-          type="text"
-          placeholder="Digite uma mensagem..."
-          disabled
-          className="w-full rounded-sm border border-[var(--color-border)] bg-black/40 px-3 py-2 font-sans text-xs text-white placeholder:text-white/30 focus:outline-none disabled:cursor-not-allowed"
-          aria-label="Chat (em breve)"
-        />
-      </div>
-    </aside>
-  );
-}
-
-// ============== Settings panel (right) ==============
+// ============== Configurações ==============
 
 function SettingsPanel({
   lobby,
@@ -509,8 +475,8 @@ function SettingsPanel({
   isLeader: boolean;
 }) {
   return (
-    <div className="flex-1 flex flex-col gap-3 p-4 overflow-y-auto">
-      <div className="flex items-center justify-between">
+    <section className="border-b border-[var(--color-border)] bg-black/30 px-3 py-3">
+      <div className="mb-2 flex items-center justify-between">
         <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.25em] text-white/60">
           Configurações da sala
         </p>
@@ -525,31 +491,28 @@ function SettingsPanel({
           </button>
         )}
       </div>
-
-      <SettingRow
-        label="Modo"
-        value={GAME_MODE_LABELS[lobby.gameMode] ?? lobby.gameMode}
-      />
-      <SettingRow label="Servidor" value="Brasil" />
-      <SettingRow
-        label="Trapaças"
-        value="Não"
-        valueClass="text-[var(--color-success)]"
-      />
-      <SettingRow label="Visibilidade" value="Pública" />
-      <SettingRow label="Liga" value="Nenhuma" />
-      <SettingRow label="Espectadores" value="Permitido" />
-      <SettingRow label="Jogadores" value={`${lobby.maxPlayers}`} />
-
-      <div className="mt-2 rounded-sm border border-[var(--color-border)] bg-black/40 p-3">
-        <p className="font-mono text-[9px] uppercase tracking-widest text-white/40">
-          Steam Lobby ID
-        </p>
-        <p className="mt-1 font-mono text-[11px] text-white/70 break-all">
-          {lobby.steamLobbyId ?? "—"}
-        </p>
+      <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+        <SettingRow
+          label="Modo"
+          value={GAME_MODE_LABELS[lobby.gameMode] ?? lobby.gameMode}
+        />
+        <SettingRow label="Servidor" value="Brasil" />
+        <SettingRow
+          label="Trapaças"
+          value="Não"
+          valueClass="text-[var(--color-success)]"
+        />
+        <SettingRow label="Visibilidade" value="Pública" />
+        <SettingRow label="Liga" value="Nenhuma" />
+        <SettingRow label="Espectadores" value="Permitido" />
+        <SettingRow label="Jogadores" value={`${lobby.maxPlayers}`} />
       </div>
-    </div>
+      {lobby.steamLobbyId && (
+        <p className="mt-2 font-mono text-[9px] uppercase tracking-widest text-white/30 truncate">
+          Steam: {lobby.steamLobbyId}
+        </p>
+      )}
+    </section>
   );
 }
 
@@ -563,12 +526,12 @@ function SettingRow({
   valueClass?: string;
 }) {
   return (
-    <div className="flex items-center justify-between gap-2 border-b border-white/5 pb-2 last:border-0 last:pb-0">
-      <span className="font-mono text-[10px] uppercase tracking-widest text-white/40">
+    <div className="flex items-center justify-between gap-1 border-b border-white/5 pb-1 last:border-0 last:pb-0">
+      <span className="font-mono text-[9px] uppercase tracking-widest text-white/40">
         {label}
       </span>
       <span
-        className={`font-sans text-xs font-medium ${valueClass ?? "text-white/80"}`}
+        className={`font-sans text-[11px] font-medium truncate ${valueClass ?? "text-white/80"}`}
       >
         {value}
       </span>
@@ -589,13 +552,10 @@ function PasswordBadge({ password }: { password: string }) {
   };
 
   return (
-    <div className="flex items-center gap-2 rounded-sm border border-[var(--color-border)] bg-black/40 px-3 py-1.5">
-      <Lock size={12} className="text-white/40" aria-hidden="true" />
-      <span className="font-mono text-[10px] uppercase tracking-widest text-white/40">
-        Senha:
-      </span>
-      <code className="font-mono text-xs text-[var(--color-brand-red)]">
-        {reveal ? password : "••••••••"}
+    <div className="flex shrink-0 items-center gap-1.5 rounded-sm border border-[var(--color-border)] bg-black/40 px-2 py-1">
+      <Lock size={10} className="text-white/40" aria-hidden="true" />
+      <code className="font-mono text-[10px] text-[var(--color-brand-red)]">
+        {reveal ? password : "••••••"}
       </code>
       <button
         type="button"
@@ -604,9 +564,9 @@ function PasswordBadge({ password }: { password: string }) {
         className="text-white/40 hover:text-white transition-colors"
       >
         {reveal ? (
-          <EyeOff size={12} aria-hidden="true" />
+          <EyeOff size={10} aria-hidden="true" />
         ) : (
-          <Eye size={12} aria-hidden="true" />
+          <Eye size={10} aria-hidden="true" />
         )}
       </button>
       <button
@@ -616,12 +576,26 @@ function PasswordBadge({ password }: { password: string }) {
         className="text-white/40 hover:text-white transition-colors"
       >
         {copied ? (
-          <Check size={12} aria-hidden="true" />
+          <Check size={10} aria-hidden="true" />
         ) : (
-          <Copy size={12} aria-hidden="true" />
+          <Copy size={10} aria-hidden="true" />
         )}
       </button>
     </div>
+  );
+}
+
+function LeaveLobbyButton({ lobbyId }: { lobbyId: string }) {
+  return (
+    <form action={leaveLobby}>
+      <input type="hidden" name="lobbyId" value={lobbyId} />
+      <button
+        type="submit"
+        className="w-full inline-flex items-center justify-center gap-2 rounded-sm border border-white/10 bg-black/40 px-4 py-2.5 font-sans text-[11px] font-semibold uppercase tracking-[0.2em] text-white/70 hover:bg-white/5 hover:text-white transition-colors"
+      >
+        Sair da sala
+      </button>
+    </form>
   );
 }
 
@@ -631,7 +605,7 @@ function CancelLobbyButton({ lobbyId }: { lobbyId: string }) {
       <input type="hidden" name="lobbyId" value={lobbyId} />
       <button
         type="submit"
-        className="w-full inline-flex items-center justify-center gap-2 rounded-sm border border-white/10 bg-black/40 px-4 py-2.5 font-sans text-[11px] font-semibold uppercase tracking-[0.2em] text-white/60 hover:bg-[var(--color-danger)]/20 hover:border-[var(--color-danger)] hover:text-white transition-colors"
+        className="w-full inline-flex items-center justify-center gap-2 rounded-sm border border-white/10 bg-black/40 px-4 py-2 font-sans text-[10px] font-semibold uppercase tracking-[0.2em] text-white/60 hover:bg-[var(--color-danger)]/20 hover:border-[var(--color-danger)] hover:text-white transition-colors"
       >
         Cancelar sala
       </button>

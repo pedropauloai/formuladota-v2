@@ -48,8 +48,13 @@ export default async function LobbiesPage() {
   }));
 
   return (
-    <ClientShell currentRoute="/lobbies">
-      <LobbiesContent lobbies={lobbyList} />
+    <ClientShell
+      currentRoute="/lobbies"
+      wideRightSidebar
+      centerHero="https://cdn.steamstatic.com/apps/dota2/images/dota_react/home/background2.png"
+      rightSidebar={<LobbiesContent lobbies={lobbyList} />}
+    >
+      {null}
     </ClientShell>
   );
 }

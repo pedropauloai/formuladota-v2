@@ -31,6 +31,16 @@ interface ClientShellProps {
    * Esconde left sidebar (raro — usar quando página tem layout fullscreen interno).
    */
   hideLeftSidebar?: boolean;
+  /**
+   * Right sidebar largo (~520px). Usado em /lobbies (lista) e /lobbies/[id] (sala),
+   * onde o painel lateral espelha o cliente Dota 2: 2 cols de times, espectadores, etc.
+   */
+  wideRightSidebar?: boolean;
+  /**
+   * Imagem de hero pra renderizar atrás do center quando o conteúdo principal é o
+   * painel lateral direito (ex: lobby room/list). Path relativo a /public ou URL externa.
+   */
+  centerHero?: string;
 }
 
 export async function ClientShell({
@@ -38,6 +48,8 @@ export async function ClientShell({
   currentRoute,
   rightSidebar,
   hideLeftSidebar,
+  wideRightSidebar,
+  centerHero,
 }: ClientShellProps) {
   const supabase = await createClient();
   const {
@@ -127,8 +139,12 @@ export async function ClientShell({
       <div
         className={
           hideLeftSidebar
-            ? "grid flex-1 min-h-0 grid-cols-1 lg:grid-cols-[1fr_320px] xl:grid-cols-[1fr_360px] 2xl:grid-cols-[1fr_380px]"
-            : "grid flex-1 min-h-0 grid-cols-1 lg:grid-cols-[300px_1fr_320px] xl:grid-cols-[320px_1fr_360px] 2xl:grid-cols-[340px_1fr_380px]"
+            ? wideRightSidebar
+              ? "grid flex-1 min-h-0 grid-cols-1 lg:grid-cols-[1fr_480px] xl:grid-cols-[1fr_520px] 2xl:grid-cols-[1fr_560px]"
+              : "grid flex-1 min-h-0 grid-cols-1 lg:grid-cols-[1fr_320px] xl:grid-cols-[1fr_360px] 2xl:grid-cols-[1fr_380px]"
+            : wideRightSidebar
+              ? "grid flex-1 min-h-0 grid-cols-1 lg:grid-cols-[300px_1fr_480px] xl:grid-cols-[320px_1fr_520px] 2xl:grid-cols-[340px_1fr_560px]"
+              : "grid flex-1 min-h-0 grid-cols-1 lg:grid-cols-[300px_1fr_320px] xl:grid-cols-[320px_1fr_360px] 2xl:grid-cols-[340px_1fr_380px]"
         }
       >
         {!hideLeftSidebar && (
@@ -142,10 +158,23 @@ export async function ClientShell({
           />
         )}
 
-        <main className="relative overflow-y-auto">{children}</main>
+        <main className="relative overflow-y-auto">
+          {centerHero && (
+            <div
+              className="pointer-events-none absolute inset-0 -z-0"
+              style={{
+                backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 30%, rgba(0,0,0,0.2) 70%, rgba(0,0,0,0.85) 100%), url(${centerHero})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }}
+              aria-hidden="true"
+            />
+          )}
+          <div className="relative z-10 h-full">{children}</div>
+        </main>
 
         {rightSidebar !== undefined ? (
-          <aside className="hidden lg:flex flex-col gap-3 border-l border-[var(--color-border)] bg-black/60 p-4 backdrop-blur-sm overflow-y-auto">
+          <aside className="hidden lg:flex flex-col border-l border-[var(--color-border)] bg-black/70 backdrop-blur-sm overflow-y-auto">
             {rightSidebar}
           </aside>
         ) : (
