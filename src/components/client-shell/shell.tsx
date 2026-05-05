@@ -2,8 +2,10 @@
 // Server Component que fetcha dados do user (profile, sub, steam, season, mmr) e
 // renderiza top-bar + left-sidebar + center (children) + right-sidebar + bottom-bar.
 //
-// Uso:
-// <ClientShell currentRoute="/lobbies">{centerContent}</ClientShell>
+// 2 modos:
+// - default (grid): layout 3-col, sidebars com bg sólido cortando o background
+// - immersive: background fullscreen, sidebars como overlays flutuantes sobre a imagem
+//   (espelha cliente Dota 2 — usado em /dashboard e rotas que abrem PlayPanel)
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -32,15 +34,30 @@ interface ClientShellProps {
    */
   hideLeftSidebar?: boolean;
   /**
-   * Right sidebar largo (~520px). Usado em /lobbies (lista) e /lobbies/[id] (sala),
-   * onde o painel lateral espelha o cliente Dota 2: 2 cols de times, espectadores, etc.
+   * Right sidebar largo (~520px). Usado quando rightSidebar mostra painel denso
+   * (ex: lista de salas com tabela ou sala individual com 2 cols de times).
    */
   wideRightSidebar?: boolean;
   /**
-   * Imagem de hero pra renderizar atrás do center quando o conteúdo principal é o
-   * painel lateral direito (ex: lobby room/list). Path relativo a /public ou URL externa.
+   * Modo immersive: background fullscreen + sidebars como overlays flutuantes.
+   * Espelha cliente Dota 2. Usado em /dashboard e rotas com PlayPanel ativo.
+   */
+  immersive?: boolean;
+  /**
+   * Imagem de hero pra renderizar como background. Path relativo a /public ou URL externa.
+   * Em modo immersive, ocupa a tela toda. Em modo grid, renderiza atrás do center.
    */
   centerHero?: string;
+  /**
+   * Estado inicial do PlayPanel. Permite deep-link via query string
+   * (ex: /dashboard?play=lobbies-list abre o painel já na lista).
+   */
+  initialPlayState?:
+    | "modes"
+    | "salas-menu"
+    | "lobbies-list"
+    | "criar-sala"
+    | { type: "lobby-room"; lobbyId: string };
 }
 
 export async function ClientShell({
@@ -49,7 +66,9 @@ export async function ClientShell({
   rightSidebar,
   hideLeftSidebar,
   wideRightSidebar,
+  immersive,
   centerHero,
+  initialPlayState,
 }: ClientShellProps) {
   const supabase = await createClient();
   const {
@@ -117,6 +136,78 @@ export async function ClientShell({
   const avatar = steamLink?.avatar_url ?? profile?.avatar_url ?? null;
   const userTag = isAdmin ? "ADMIN" : "MEMBER";
 
+  // ============== Modo IMMERSIVE — overlays sobre background fullscreen ==============
+  if (immersive) {
+    return (
+      <div className="relative h-screen overflow-hidden bg-black">
+        {/* Background fullscreen */}
+        {centerHero && (
+          <div
+            className="pointer-events-none fixed inset-0 -z-10"
+            style={{
+              backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.2) 30%, rgba(0,0,0,0.4) 70%, rgba(0,0,0,0.85) 100%), url(${centerHero})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
+            aria-hidden="true"
+          />
+        )}
+
+        {/* Top-bar overlay */}
+        <div className="absolute top-0 inset-x-0 z-30">
+          <DashboardTopBar isAdmin={isAdmin} currentRoute={currentRoute} />
+        </div>
+
+        {/* Left sidebar overlay flutuante */}
+        {!hideLeftSidebar && (
+          <div className="hidden lg:flex absolute left-0 top-[64px] xl:top-[72px] bottom-[64px] xl:bottom-[80px] z-20 w-[300px] xl:w-[320px] 2xl:w-[340px]">
+            <DashboardLeftSidebar
+              persona={persona}
+              avatar={avatar}
+              tag={userTag}
+              mmr={mmrRow?.mmr}
+              partidas={mmrRow?.partidas_total ?? 0}
+              isAdmin={isAdmin}
+              floating
+            />
+          </div>
+        )}
+
+        {/* Right sidebar overlay (se providenciado) */}
+        {rightSidebar !== undefined && (
+          <div
+            className={`hidden lg:flex absolute right-0 top-[64px] xl:top-[72px] bottom-[64px] xl:bottom-[80px] z-20 ${
+              wideRightSidebar
+                ? "w-[480px] xl:w-[520px] 2xl:w-[560px]"
+                : "w-[320px] xl:w-[360px] 2xl:w-[380px]"
+            }`}
+          >
+            <aside className="flex w-full flex-col border-l border-[var(--color-border)] bg-black/60 backdrop-blur-sm overflow-y-auto">
+              {rightSidebar}
+            </aside>
+          </div>
+        )}
+
+        {/* Center — children renderiza no espaço entre as duas sidebars */}
+        <main className="absolute inset-0 top-[64px] xl:top-[72px] bottom-[64px] xl:bottom-[80px] z-10 overflow-y-auto">
+          {children}
+        </main>
+
+        {/* Bottom-bar overlay */}
+        <div className="absolute bottom-0 inset-x-0 z-30">
+          <DashboardBottomBar
+            persona={persona}
+            avatar={avatar}
+            subActive={subActive}
+            isAdmin={isAdmin}
+            initialPlayState={initialPlayState}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // ============== Modo DEFAULT — grid 3-col ==============
   return (
     <div className="relative flex h-screen flex-col overflow-hidden bg-black">
       {/* Background ambient: gradient dark + tint vermelho sutil no topo */}
@@ -132,10 +223,8 @@ export async function ClientShell({
         aria-hidden="true"
       />
 
-      {/* Top Bar */}
       <DashboardTopBar isAdmin={isAdmin} currentRoute={currentRoute} />
 
-      {/* Main 3-col grid */}
       <div
         className={
           hideLeftSidebar
@@ -187,12 +276,12 @@ export async function ClientShell({
         )}
       </div>
 
-      {/* Bottom Bar com Play button verde gigante */}
       <DashboardBottomBar
         persona={persona}
         avatar={avatar}
         subActive={subActive}
         isAdmin={isAdmin}
+        initialPlayState={initialPlayState}
       />
     </div>
   );

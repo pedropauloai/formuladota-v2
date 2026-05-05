@@ -11,12 +11,36 @@ export const metadata: Metadata = {
   description: "Painel FORMULADOTA — estilo menu do Dota 2 client.",
 };
 
-export default async function DashboardPage() {
+interface PageProps {
+  searchParams: Promise<{ play?: string; id?: string }>;
+}
+
+export default async function DashboardPage(props: PageProps) {
+  const sp = await props.searchParams;
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
+
+  // Deep-link via query: ?play=lobbies-list | salas-menu | criar-sala | lobby&id=...
+  let initialPlayState:
+    | "modes"
+    | "salas-menu"
+    | "lobbies-list"
+    | "criar-sala"
+    | { type: "lobby-room"; lobbyId: string }
+    | undefined;
+  if (sp.play === "lobby" && sp.id) {
+    initialPlayState = { type: "lobby-room", lobbyId: sp.id };
+  } else if (
+    sp.play === "modes" ||
+    sp.play === "salas-menu" ||
+    sp.play === "lobbies-list" ||
+    sp.play === "criar-sala"
+  ) {
+    initialPlayState = sp.play;
+  }
 
   // Dados extras pro center (subscription, season, mmr) — fetcha aqui pra alimentar DashboardCenter
   const [{ data: profile }, { data: subscription }, { data: steamLink }, { data: season }] = await Promise.all([
@@ -66,7 +90,12 @@ export default async function DashboardPage() {
   const persona = steamLink?.persona ?? profile?.username ?? "Anônimo";
 
   return (
-    <ClientShell currentRoute="/dashboard">
+    <ClientShell
+      currentRoute="/dashboard"
+      immersive
+      centerHero="https://cdn.steamstatic.com/apps/dota2/images/dota_react/home/background3.png"
+      initialPlayState={initialPlayState}
+    >
       <DashboardCenter
         persona={persona}
         isAdmin={isAdmin}

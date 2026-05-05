@@ -20,6 +20,7 @@ import {
   Loader2,
   Play,
   X,
+  ArrowLeft,
 } from "lucide-react";
 import { toast } from "sonner";
 import { joinTeam, leaveLobby, startMatch, cancelLobby } from "./actions";
@@ -50,6 +51,8 @@ interface Props {
   currentUserId: string;
   isLeader: boolean;
   leaderUsername: string;
+  /** Quando providenciado, mostra botão voltar no header (uso embedded no PlayPanel). */
+  onBack?: () => void;
 }
 
 const GAME_MODE_LABELS: Record<string, string> = {
@@ -65,6 +68,7 @@ export function LobbyRoom({
   currentUserId,
   isLeader,
   leaderUsername,
+  onBack,
 }: Props) {
   const teamSize = Math.floor(lobby.maxPlayers / 2);
   const team1 = players.filter((p) => p.team === "radiant");
@@ -79,13 +83,25 @@ export function LobbyRoom({
       {/* Header — nome + líder + senha */}
       <header className="border-b border-[var(--color-border)] bg-black/60 px-4 py-3">
         <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <h1 className="font-display text-base uppercase tracking-wide text-white truncate">
-              {lobby.name}
-            </h1>
-            <p className="mt-0.5 font-mono text-[10px] uppercase tracking-widest text-white/50 truncate">
-              Líder: {leaderUsername}
-            </p>
+          <div className="flex items-start gap-2 min-w-0">
+            {onBack && (
+              <button
+                type="button"
+                onClick={onBack}
+                aria-label="Voltar"
+                className="mt-0.5 text-white/50 hover:text-white transition-colors shrink-0"
+              >
+                <ArrowLeft size={16} />
+              </button>
+            )}
+            <div className="min-w-0">
+              <h1 className="font-display text-base uppercase tracking-wide text-white truncate">
+                {lobby.name}
+              </h1>
+              <p className="mt-0.5 font-mono text-[10px] uppercase tracking-widest text-white/50 truncate">
+                Líder: {leaderUsername}
+              </p>
+            </div>
           </div>
           <PasswordBadge password={lobby.password} />
         </div>

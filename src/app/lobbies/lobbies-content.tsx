@@ -26,7 +26,15 @@ const GAME_MODE_LABELS: Record<string, string> = {
   single_draft: "Single draft",
 };
 
-export function LobbiesContent({ lobbies }: { lobbies: LobbyRow[] }) {
+interface LobbiesContentProps {
+  lobbies: LobbyRow[];
+  /** Callback ao selecionar/entrar numa sala. Se omitido, usa router.push. */
+  onSelectLobby?: (id: string) => void;
+  /** Callback ao clicar "Criar sala". Se omitido, abre CreateLobbyModal interno. */
+  onCreate?: () => void;
+}
+
+export function LobbiesContent({ lobbies, onSelectLobby, onCreate }: LobbiesContentProps) {
   const router = useRouter();
   const [showCreate, setShowCreate] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
@@ -45,7 +53,22 @@ export function LobbiesContent({ lobbies }: { lobbies: LobbyRow[] }) {
 
   const handleEnter = () => {
     if (!selected) return;
-    router.push(`/lobbies/${selected}`);
+    if (onSelectLobby) onSelectLobby(selected);
+    else router.push(`/lobbies/${selected}`);
+  };
+
+  const handleCreate = () => {
+    if (onCreate) onCreate();
+    else setShowCreate(true);
+  };
+
+  const handleRowClick = (id: string) => {
+    setSelected(id);
+  };
+
+  const handleRowDoubleClick = (id: string) => {
+    if (onSelectLobby) onSelectLobby(id);
+    else router.push(`/lobbies/${id}`);
   };
 
   return (
@@ -87,7 +110,7 @@ export function LobbiesContent({ lobbies }: { lobbies: LobbyRow[] }) {
                     </p>
                     <button
                       type="button"
-                      onClick={() => setShowCreate(true)}
+                      onClick={handleCreate}
                       className="mt-2 font-sans text-[10px] uppercase tracking-widest text-[var(--color-brand-red)] hover:text-white transition-colors"
                     >
                       Criar a primeira →
@@ -100,8 +123,8 @@ export function LobbiesContent({ lobbies }: { lobbies: LobbyRow[] }) {
                   return (
                     <tr
                       key={lobby.id}
-                      onClick={() => setSelected(lobby.id)}
-                      onDoubleClick={() => router.push(`/lobbies/${lobby.id}`)}
+                      onClick={() => handleRowClick(lobby.id)}
+                      onDoubleClick={() => handleRowDoubleClick(lobby.id)}
                       className={`cursor-pointer border-b border-white/5 transition-colors ${
                         isSel
                           ? "bg-[var(--color-brand-red)]/15"
@@ -197,7 +220,7 @@ export function LobbiesContent({ lobbies }: { lobbies: LobbyRow[] }) {
         <div className="border-t border-[var(--color-border)] bg-black/60 p-3 space-y-2">
           <button
             type="button"
-            onClick={() => setShowCreate(true)}
+            onClick={handleCreate}
             className="w-full inline-flex items-center justify-center rounded-sm border border-white/10 bg-black/40 px-4 py-2.5 font-sans text-[11px] font-semibold uppercase tracking-[0.2em] text-white/80 hover:bg-white/5 hover:text-white transition-colors"
           >
             Criar sala

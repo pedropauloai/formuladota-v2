@@ -16,13 +16,21 @@ interface Props {
   mmr: number | undefined;
   partidas: number;
   isAdmin: boolean;
+  /**
+   * Modo flutuante (immersive shell): wrapper transparente sem border, só cards
+   * internos têm bg semi-transparente. Background fullscreen aparece nas frestas.
+   */
+  floating?: boolean;
 }
 
-export function DashboardLeftSidebar({ persona, avatar, tag, mmr, partidas, isAdmin }: Props) {
+export function DashboardLeftSidebar({ persona, avatar, tag, mmr, partidas, isAdmin, floating }: Props) {
   const tier = mmr !== undefined ? mmrToTier(mmr) : null;
+  const wrapperCls = floating
+    ? "flex w-full flex-col gap-3 p-3 overflow-y-auto"
+    : "hidden lg:flex flex-col gap-3 border-r border-[var(--color-border)] bg-black/60 p-4 backdrop-blur-sm overflow-y-auto";
 
   return (
-    <aside className="hidden lg:flex flex-col gap-3 border-r border-[var(--color-border)] bg-black/60 p-4 backdrop-blur-sm overflow-y-auto">
+    <aside className={wrapperCls}>
       {/* Profile Card — avatar + persona + tag */}
       <div className="rounded-md border border-[var(--color-border)] bg-gradient-to-b from-[var(--color-card)]/90 to-black/60 p-3">
         <div className="flex items-center gap-3">

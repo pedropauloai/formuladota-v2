@@ -1,17 +1,20 @@
 "use client";
 
-// PlayPanel — overlay direito que aparece ao clicar "Jogar" no bottom-bar.
-// Estrutura inspirada em painéis de matchmaking de jogos competitivos:
-// - Lista vertical de modos no topo (Competitiva, Salas Personalizadas, etc.)
-// - Sub-painel com form do modo selecionado embaixo
-// - Botão verde grande "BUSCAR PARTIDA" no rodapé do painel
+// PlayPanel — overlay direito ativado pelo botão verde JOGAR. State machine:
+// - modes: 6 modos (Copa/Salas/Bots/Competitiva/Casual/Novatos)
+// - salas-menu: Salas Personalizadas selecionado, mostra CRIAR + NAVEGAR
+// - lobbies-list: lista de salas (substitui /lobbies)
+// - lobby-room: sala individual (substitui /lobbies/[id])
+// - criar-sala: form criar sala (substitui /criar-lobby)
 //
-// Click fora ou ESC fecha.
-// Esse arquivo só renderiza UI — Server Action de matchmaking entra na Fase B.
+// initialState permite deep-link via query string (?play=lobbies-list ou ?play=lobby&id=...).
+// Click fora ou ESC fecha. Botão voltar restaura estado anterior.
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import {
   X,
+  ArrowLeft,
   Trophy,
   LayoutGrid,
   Bot,
@@ -24,11 +27,31 @@ import {
   Sword,
   Cross,
   ChevronDown,
+  Plus,
+  Loader2,
 } from "lucide-react";
+import { toast } from "sonner";
+import {
+  fetchOpenLobbies,
+  fetchLobbyRoom,
+  type LobbyListItem,
+  type LobbyRoomData,
+} from "@/app/lobbies/fetch-actions";
+import { LobbiesContent } from "@/app/lobbies/lobbies-content";
+import { LobbyRoom } from "@/app/lobbies/[id]/lobby-room";
+import { createLobby } from "@/app/criar-lobby/actions";
+
+type View =
+  | "modes"
+  | "salas-menu"
+  | "lobbies-list"
+  | "criar-sala"
+  | { type: "lobby-room"; lobbyId: string };
 
 interface PlayPanelProps {
   open: boolean;
   onClose: () => void;
+  initialState?: View;
 }
 
 type Mode = "copa" | "salas" | "bots" | "competitiva" | "casual" | "novatos";
@@ -42,7 +65,8 @@ const MODES: { id: Mode; label: string; icon: typeof Trophy; v2?: boolean }[] = 
   { id: "novatos", label: "Modo para Novatos", icon: GraduationCap, v2: true },
 ];
 
-export function PlayPanel({ open, onClose }: PlayPanelProps) {
+export function PlayPanel({ open, onClose, initialState }: PlayPanelProps) {
+  const [view, setView] = useState<View>(initialState ?? "modes");
   const [mode, setMode] = useState<Mode>("competitiva");
 
   // ESC fecha o painel
@@ -57,6 +81,28 @@ export function PlayPanel({ open, onClose }: PlayPanelProps) {
 
   if (!open) return null;
 
+  const isObjView = typeof view === "object";
+  const viewType = isObjView ? view.type : view;
+  const showModeNav = view === "modes";
+  const showBack =
+    view !== "modes" &&
+    (viewType === "lobbies-list" ||
+      viewType === "criar-sala" ||
+      viewType === "lobby-room" ||
+      view === "salas-menu");
+
+  const handleBack = () => {
+    if (viewType === "lobby-room") setView("lobbies-list");
+    else if (view === "lobbies-list" || view === "criar-sala") setView("salas-menu");
+    else if (view === "salas-menu") setView("modes");
+    else setView("modes");
+  };
+
+  const handleSelectMode = (m: Mode) => {
+    setMode(m);
+    if (m === "salas") setView("salas-menu");
+  };
+
   return (
     <div className="fixed inset-0 z-40">
       {/* Backdrop click-out */}
@@ -67,17 +113,29 @@ export function PlayPanel({ open, onClose }: PlayPanelProps) {
         className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"
       />
 
-      {/* Panel direito (320 mobile / 380 lg / 420 xl) */}
+      {/* Panel direito */}
       <aside
-        className="absolute right-0 top-0 h-full w-full max-w-md flex flex-col border-l-2 border-[var(--color-border)] bg-gradient-to-b from-[#0c0c0c] to-black shadow-2xl xl:max-w-lg"
+        className="absolute right-0 top-0 h-full w-full max-w-md flex flex-col border-l-2 border-[var(--color-border)] bg-gradient-to-b from-[#0c0c0c] to-black shadow-2xl xl:max-w-[520px] 2xl:max-w-[560px]"
         role="dialog"
         aria-label="Painel de jogo"
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[var(--color-border)] px-5 py-3">
-          <h2 className="font-display text-base uppercase tracking-[0.2em] text-white">
-            Modos de jogo
-          </h2>
+        <div className="flex items-center justify-between border-b border-[var(--color-border)] px-5 py-3 shrink-0">
+          <div className="flex items-center gap-2">
+            {showBack && (
+              <button
+                type="button"
+                onClick={handleBack}
+                aria-label="Voltar"
+                className="flex size-7 items-center justify-center rounded text-white/60 hover:bg-white/5 hover:text-white transition-colors"
+              >
+                <ArrowLeft size={14} aria-hidden="true" />
+              </button>
+            )}
+            <h2 className="font-display text-base uppercase tracking-[0.2em] text-white">
+              {viewTitle(view)}
+            </h2>
+          </div>
           <button
             type="button"
             onClick={onClose}
@@ -88,45 +146,90 @@ export function PlayPanel({ open, onClose }: PlayPanelProps) {
           </button>
         </div>
 
-        {/* Mode list */}
-        <nav className="border-b border-[var(--color-border)]">
-          {MODES.map((m) => (
-            <ModeButton
-              key={m.id}
-              mode={m}
-              active={mode === m.id}
-              onClick={() => setMode(m.id)}
-            />
-          ))}
-        </nav>
-
-        {/* Mode detail (scrollable) */}
-        <div className="flex-1 overflow-y-auto px-5 py-5">
-          {mode === "competitiva" && <CompetitivaForm />}
-          {mode === "salas" && <SalasForm />}
-          {mode !== "competitiva" && mode !== "salas" && <ComingSoon mode={mode} />}
-        </div>
-
-        {/* Footer com botão verde — só mostra em competitiva */}
-        {mode === "competitiva" && (
-          <div className="border-t border-[var(--color-border)] p-4">
-            <button
-              type="button"
-              disabled
-              aria-label="Buscar partida (matchmaking V2 — Fase B)"
-              className="group relative flex w-full h-12 items-center justify-center gap-2 overflow-hidden rounded-md border-2 border-[var(--color-play-green)] bg-gradient-to-b from-[var(--color-play-green)] to-[var(--color-play-green-dark)] px-6 font-display text-base font-bold uppercase tracking-[0.25em] text-white shadow-lg shadow-[var(--color-play-green)]/30 transition-all hover:scale-[1.01] hover:shadow-[var(--color-play-green)]/50 disabled:cursor-not-allowed disabled:opacity-90"
-            >
-              <Crosshair size={16} aria-hidden="true" />
-              <span>Buscar partida</span>
-            </button>
-            <p className="mt-2 text-center font-mono text-[10px] uppercase tracking-widest text-white/40">
-              Matchmaking funcional · Fase B
-            </p>
-          </div>
+        {/* Mode list — só visível em "modes" */}
+        {showModeNav && (
+          <nav className="border-b border-[var(--color-border)] shrink-0">
+            {MODES.map((m) => (
+              <ModeButton
+                key={m.id}
+                mode={m}
+                active={mode === m.id}
+                onClick={() => handleSelectMode(m.id)}
+              />
+            ))}
+          </nav>
         )}
+
+        {/* Content body */}
+        <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
+          {showModeNav && mode === "competitiva" && (
+            <>
+              <div className="flex-1 overflow-y-auto px-5 py-5">
+                <CompetitivaForm />
+              </div>
+              <div className="border-t border-[var(--color-border)] p-4 shrink-0">
+                <button
+                  type="button"
+                  disabled
+                  aria-label="Buscar partida (matchmaking V2 — Fase B)"
+                  className="group relative flex w-full h-12 items-center justify-center gap-2 overflow-hidden rounded-md border-2 border-[var(--color-play-green)] bg-gradient-to-b from-[var(--color-play-green)] to-[var(--color-play-green-dark)] px-6 font-display text-base font-bold uppercase tracking-[0.25em] text-white shadow-lg shadow-[var(--color-play-green)]/30 transition-all hover:scale-[1.01] hover:shadow-[var(--color-play-green)]/50 disabled:cursor-not-allowed disabled:opacity-90"
+                >
+                  <Crosshair size={16} aria-hidden="true" />
+                  <span>Buscar partida</span>
+                </button>
+                <p className="mt-2 text-center font-mono text-[10px] uppercase tracking-widest text-white/40">
+                  Matchmaking funcional · Fase B
+                </p>
+              </div>
+            </>
+          )}
+          {showModeNav && mode !== "competitiva" && mode !== "salas" && (
+            <div className="flex-1 overflow-y-auto px-5 py-5">
+              <ComingSoon mode={mode} />
+            </div>
+          )}
+          {view === "salas-menu" && (
+            <SalasMenuView
+              onCreate={() => setView("criar-sala")}
+              onNavigate={() => setView("lobbies-list")}
+            />
+          )}
+          {view === "lobbies-list" && (
+            <LobbiesListView
+              onSelectLobby={(id) => setView({ type: "lobby-room", lobbyId: id })}
+              onCreate={() => setView("criar-sala")}
+            />
+          )}
+          {view === "criar-sala" && (
+            <CriarSalaView
+              onCreated={(id) => setView({ type: "lobby-room", lobbyId: id })}
+              onCancel={() => setView("salas-menu")}
+            />
+          )}
+          {viewType === "lobby-room" && isObjView && (
+            <LobbyRoomView
+              lobbyId={view.lobbyId}
+              onBack={() => setView("lobbies-list")}
+            />
+          )}
+        </div>
       </aside>
     </div>
   );
+}
+
+function viewTitle(view: View): string {
+  if (typeof view === "object") return "Sala";
+  switch (view) {
+    case "modes":
+      return "Modos de jogo";
+    case "salas-menu":
+      return "Salas Personalizadas";
+    case "lobbies-list":
+      return "Salas Personalizadas";
+    case "criar-sala":
+      return "Criar sala";
+  }
 }
 
 // ============== Mode list button ==============
@@ -192,7 +295,6 @@ function CompetitivaForm() {
 
   return (
     <div className="space-y-5">
-      {/* Search type tabs */}
       <div className="grid grid-cols-2 rounded-md border border-[var(--color-border)] overflow-hidden">
         <SearchTab
           label="Busca por funções"
@@ -206,7 +308,6 @@ function CompetitivaForm() {
         />
       </div>
 
-      {/* Tier badge atual placeholder */}
       <div className="rounded-md border border-[var(--color-brand-red)]/30 bg-gradient-to-r from-[var(--color-brand-red)]/10 to-transparent px-4 py-3 flex items-center justify-between">
         <div>
           <p className="font-mono text-[10px] uppercase tracking-widest text-white/50">
@@ -221,7 +322,6 @@ function CompetitivaForm() {
         </span>
       </div>
 
-      {/* Roles checkboxes — só visível em "busca por funções" */}
       {searchType === "role" && (
         <div className="space-y-2">
           <p className="font-sans text-xs font-semibold uppercase tracking-[0.15em] text-white/70">
@@ -243,7 +343,6 @@ function CompetitivaForm() {
         </div>
       )}
 
-      {/* Modo de jogo */}
       <div className="space-y-2">
         <p className="font-sans text-xs font-semibold uppercase tracking-[0.15em] text-white/70">
           Modo de jogo
@@ -259,7 +358,6 @@ function CompetitivaForm() {
         />
       </div>
 
-      {/* Toggles extras */}
       <div className="space-y-2 border-t border-[var(--color-border)] pt-4">
         <ToggleRow label="Casual" disabled />
         <ToggleRow label="Modo para novatos" disabled />
@@ -366,28 +464,44 @@ function ToggleRow({ label, disabled }: { label: string; disabled?: boolean }) {
   );
 }
 
-// ============== Form Salas Personalizadas ==============
+// ============== Salas Menu (Criar + Navegar) ==============
 
-function SalasForm() {
+function SalasMenuView({
+  onCreate,
+  onNavigate,
+}: {
+  onCreate: () => void;
+  onNavigate: () => void;
+}) {
   return (
-    <div className="space-y-5">
+    <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4">
       <p className="font-sans text-xs text-white/60 leading-relaxed">
-        Crie um lobby in-house com bot Steam ou navegue por lobbies abertos da comunidade.
+        Crie um lobby in-house ou navegue por salas abertas da comunidade.
       </p>
 
       <div className="grid grid-cols-2 gap-3">
-        <ActionTile
-          label="Criar"
-          subLabel="Novo lobby"
-          icon={LayoutGrid}
-          href="/criar-lobby"
-        />
-        <ActionTile
-          label="Navegar"
-          subLabel="Lobbies abertos"
-          icon={Swords}
-          href="/lobbies"
-        />
+        <button
+          type="button"
+          onClick={onCreate}
+          className="group rounded-md border border-[var(--color-border)] bg-black/40 p-4 text-left transition-colors hover:border-[var(--color-brand-red)]/60 hover:bg-[var(--color-brand-red)]/5"
+        >
+          <Plus size={20} className="text-[var(--color-brand-red)] mb-2" aria-hidden="true" />
+          <p className="font-display text-sm uppercase tracking-wide text-white">Criar</p>
+          <p className="font-mono text-[10px] uppercase tracking-widest text-white/40 mt-0.5">
+            Nova sala
+          </p>
+        </button>
+        <button
+          type="button"
+          onClick={onNavigate}
+          className="group rounded-md border border-[var(--color-border)] bg-black/40 p-4 text-left transition-colors hover:border-[var(--color-brand-red)]/60 hover:bg-[var(--color-brand-red)]/5"
+        >
+          <Swords size={20} className="text-[var(--color-brand-red)] mb-2" aria-hidden="true" />
+          <p className="font-display text-sm uppercase tracking-wide text-white">Navegar</p>
+          <p className="font-mono text-[10px] uppercase tracking-widest text-white/40 mt-0.5">
+            Salas abertas
+          </p>
+        </button>
       </div>
 
       <div className="rounded-md border border-[var(--color-border)] bg-black/30 p-4 space-y-2">
@@ -404,28 +518,189 @@ function SalasForm() {
   );
 }
 
-function ActionTile({
-  label,
-  subLabel,
-  icon: Icon,
-  href,
+// ============== Lobbies List View (fetch + renderiza LobbiesContent) ==============
+
+function LobbiesListView({
+  onSelectLobby,
+  onCreate,
 }: {
-  label: string;
-  subLabel: string;
-  icon: typeof Swords;
-  href: string;
+  onSelectLobby: (id: string) => void;
+  onCreate: () => void;
 }) {
+  const [lobbies, setLobbies] = useState<LobbyListItem[] | null>(null);
+
+  useEffect(() => {
+    fetchOpenLobbies().then(setLobbies);
+  }, []);
+
+  if (lobbies === null) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <Loader2 size={20} className="animate-spin text-white/30" />
+      </div>
+    );
+  }
+
   return (
-    <a
-      href={href}
-      className="group rounded-md border border-[var(--color-border)] bg-black/40 p-4 transition-colors hover:border-[var(--color-brand-red)]/60 hover:bg-[var(--color-brand-red)]/5"
+    <LobbiesContent
+      lobbies={lobbies}
+      onSelectLobby={onSelectLobby}
+      onCreate={onCreate}
+    />
+  );
+}
+
+// ============== Lobby Room View (fetch + renderiza LobbyRoom) ==============
+
+function LobbyRoomView({
+  lobbyId,
+  onBack,
+}: {
+  lobbyId: string;
+  onBack: () => void;
+}) {
+  const [data, setData] = useState<LobbyRoomData | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchLobbyRoom(lobbyId).then((d) => {
+      if (!d) setError("Sala não encontrada.");
+      else setData(d);
+    });
+  }, [lobbyId]);
+
+  if (error) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center px-6 text-center space-y-3">
+        <p className="font-display text-sm uppercase tracking-wide text-white/70">{error}</p>
+        <button
+          type="button"
+          onClick={onBack}
+          className="font-sans text-xs uppercase tracking-widest text-[var(--color-brand-red)] hover:text-white transition-colors"
+        >
+          ← Voltar pra lista
+        </button>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <Loader2 size={20} className="animate-spin text-white/30" />
+      </div>
+    );
+  }
+
+  return (
+    <LobbyRoom
+      lobby={data.lobby}
+      players={data.players}
+      currentUserId={data.currentUserId}
+      isLeader={data.isLeader}
+      leaderUsername={data.leaderUsername}
+      onBack={onBack}
+    />
+  );
+}
+
+// ============== Criar Sala View ==============
+
+function CriarSalaView({
+  onCreated,
+  onCancel,
+}: {
+  onCreated: (lobbyId: string) => void;
+  onCancel: () => void;
+}) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [name, setName] = useState("");
+  const [gameMode, setGameMode] = useState<
+    "all_pick" | "captains_mode" | "random_draft" | "single_draft"
+  >("all_pick");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const fd = new FormData();
+    fd.set("name", name);
+    fd.set("gameMode", gameMode);
+    startTransition(async () => {
+      const r = await createLobby(fd);
+      if (!r.success) {
+        toast.error(r.error);
+        return;
+      }
+      toast.success(`Sala criada — senha: ${r.password}`);
+      router.refresh();
+      onCreated(r.lobbyId);
+    });
+  };
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="flex-1 flex flex-col overflow-y-auto px-5 py-5 space-y-4"
     >
-      <Icon size={20} className="text-[var(--color-brand-red)] mb-2" aria-hidden="true" />
-      <p className="font-display text-sm uppercase tracking-wide text-white">{label}</p>
-      <p className="font-mono text-[10px] uppercase tracking-widest text-white/40 mt-0.5">
-        {subLabel}
+      <div className="space-y-2">
+        <label className="block font-sans text-xs font-semibold uppercase tracking-[0.15em] text-white/70">
+          Nome da sala
+          <input
+            type="text"
+            required
+            minLength={3}
+            maxLength={60}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Ex.: Coro do Pedro"
+            className="mt-1 w-full rounded-md border border-[var(--color-border)] bg-black/40 px-3 py-2 font-sans text-sm text-white placeholder:text-white/30 focus:border-[var(--color-brand-red)] focus:outline-none"
+          />
+        </label>
+      </div>
+
+      <div className="space-y-2">
+        <label className="block font-sans text-xs font-semibold uppercase tracking-[0.15em] text-white/70">
+          Modo de jogo
+          <SelectField
+            value={gameMode}
+            onChange={(v) =>
+              setGameMode(
+                v as "all_pick" | "captains_mode" | "random_draft" | "single_draft"
+              )
+            }
+            options={[
+              { value: "all_pick", label: "Escolha livre" },
+              { value: "captains_mode", label: "Modo capitães" },
+              { value: "random_draft", label: "Seleção aleatória" },
+              { value: "single_draft", label: "Single draft" },
+            ]}
+          />
+        </label>
+      </div>
+
+      <p className="font-mono text-[10px] uppercase tracking-widest text-white/40">
+        Senha gerada automaticamente · 8 chars hex
       </p>
-    </a>
+
+      <div className="mt-auto flex gap-2 pt-4">
+        <button
+          type="button"
+          onClick={onCancel}
+          disabled={isPending}
+          className="flex-1 inline-flex items-center justify-center rounded-sm border border-white/10 bg-black/40 px-4 py-2.5 font-sans text-[11px] font-semibold uppercase tracking-[0.2em] text-white/70 hover:bg-white/5 hover:text-white transition-colors disabled:opacity-50"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          disabled={isPending || name.length < 3}
+          className="flex-1 inline-flex h-11 items-center justify-center gap-2 rounded-sm border border-amber-400/60 bg-gradient-to-b from-amber-400 to-amber-600 px-4 font-display text-sm font-bold uppercase tracking-[0.25em] text-black hover:from-amber-300 hover:to-amber-500 transition-all disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {isPending ? <Loader2 size={14} className="animate-spin" /> : null}
+          {isPending ? "Criando..." : "Criar sala"}
+        </button>
+      </div>
+    </form>
   );
 }
 

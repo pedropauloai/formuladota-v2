@@ -8,15 +8,24 @@ import Link from "next/link";
 import { Play, MessageSquare, Users } from "lucide-react";
 import { PlayPanel } from "./play-panel";
 
+type PlayState =
+  | "modes"
+  | "salas-menu"
+  | "lobbies-list"
+  | "criar-sala"
+  | { type: "lobby-room"; lobbyId: string };
+
 interface Props {
   persona: string;
   avatar: string | null;
   subActive: boolean;
   isAdmin: boolean;
+  /** Estado inicial do PlayPanel (deep-link via query string). */
+  initialPlayState?: PlayState;
 }
 
-export function DashboardBottomBar({ persona, avatar, subActive, isAdmin }: Props) {
-  const [panelOpen, setPanelOpen] = useState(false);
+export function DashboardBottomBar({ persona, avatar, subActive, isAdmin, initialPlayState }: Props) {
+  const [panelOpen, setPanelOpen] = useState(initialPlayState !== undefined);
 
   // Se sub inativa e não-admin, redireciona pra assinatura em vez de abrir painel
   const blocked = !subActive && !isAdmin;
@@ -88,7 +97,11 @@ export function DashboardBottomBar({ persona, avatar, subActive, isAdmin }: Prop
       </footer>
 
       {/* PlayPanel overlay direito quando aberto */}
-      <PlayPanel open={panelOpen} onClose={() => setPanelOpen(false)} />
+      <PlayPanel
+        open={panelOpen}
+        onClose={() => setPanelOpen(false)}
+        initialState={initialPlayState}
+      />
     </>
   );
 }
