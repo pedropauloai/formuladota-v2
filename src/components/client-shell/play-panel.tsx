@@ -41,6 +41,13 @@ import {
 import { LobbiesContent } from "@/app/lobbies/lobbies-content";
 import { LobbyRoom } from "@/app/lobbies/[id]/lobby-room";
 import { createLobby } from "@/app/criar-lobby/actions";
+import {
+  enterQueue,
+  leaveQueue,
+  getQueueStatus,
+  type QueueRole,
+  type QueueGameMode,
+} from "@/app/queue/actions";
 
 type View =
   | "modes"
@@ -185,25 +192,11 @@ export function PlayPanel({ open, onClose, initialState }: PlayPanelProps) {
           {/* Content body */}
           <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
             {showModeNav && mode === "competitiva" && (
-              <>
-                <div className="flex-1 overflow-y-auto px-5 py-5 2xl:px-7 2xl:py-7">
-                  <CompetitivaForm />
-                </div>
-                <div className="border-t border-[var(--color-border)] p-4 2xl:p-5 shrink-0">
-                  <button
-                    type="button"
-                    disabled
-                    aria-label="Buscar partida (matchmaking V2 — Fase B)"
-                    className="group relative flex w-full h-12 2xl:h-14 items-center justify-center gap-2 overflow-hidden rounded-md border-2 border-[var(--color-play-green)] bg-gradient-to-b from-[var(--color-play-green)] to-[var(--color-play-green-dark)] px-6 font-display text-base 2xl:text-lg font-bold uppercase tracking-[0.25em] text-white shadow-lg shadow-[var(--color-play-green)]/30 transition-all hover:scale-[1.01] hover:shadow-[var(--color-play-green)]/50 disabled:cursor-not-allowed disabled:opacity-90"
-                  >
-                    <Crosshair size={16} aria-hidden="true" />
-                    <span>Buscar partida</span>
-                  </button>
-                  <p className="mt-2 text-center font-mono text-[10px] 2xl:text-[11px] uppercase tracking-widest text-white/40">
-                    Matchmaking funcional · Fase B
-                  </p>
-                </div>
-              </>
+              <CompetitivaForm
+                onMatched={(lobbyId) =>
+                  setView({ type: "lobby-room", lobbyId })
+                }
+              />
             )}
             {showModeNav && mode === "salas" && (
               <div className="flex-1 overflow-y-auto px-5 py-5 2xl:px-7 2xl:py-7">
@@ -361,7 +354,11 @@ const ROLES: RoleDef[] = [
   { id: "safelane", label: "Trilha segura", icon: Sword, color: "text-rose-400" },
 ];
 
-function CompetitivaForm() {
+function CompetitivaForm({
+  onMatched,
+}: {
+  onMatched: (lobbyId: string) => void;
+}) {
   const [searchType, setSearchType] = useState<"role" | "classic">("role");
   const [roles, setRoles] = useState<Record<string, boolean>>({
     support_dedicated: true,
@@ -370,78 +367,206 @@ function CompetitivaForm() {
     midlane: false,
     safelane: false,
   });
-  const [pickMode, setPickMode] = useState<string>("ranked_all_pick");
+  const [pickMode, setPickMode] = useState<QueueGameMode>("all_pick");
+  const [isPending, startTransition] = useTransition();
+  const [inQueue, setInQueue] = useState(false);
+  const [waitingSeconds, setWaitingSeconds] = useState(0);
+
+  // Carrega status atual no mount + polling enquanto na fila
+  useEffect(() => {
+    let cancelled = false;
+    const poll = async () => {
+      const status = await getQueueStatus();
+      if (cancelled) return;
+      if (status.status === "matched" && status.matchedLobbyId) {
+        setInQueue(false);
+        toast.success("Partida encontrada!");
+        onMatched(status.matchedLobbyId);
+        return;
+      }
+      if (status.status === "waiting") {
+        setInQueue(true);
+        setWaitingSeconds(status.waitingSeconds);
+      } else {
+        setInQueue(false);
+        setWaitingSeconds(0);
+      }
+    };
+    void poll();
+    const interval = setInterval(poll, 5000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [onMatched]);
+
+  // Tick local do timer (cada segundo) enquanto na fila
+  useEffect(() => {
+    if (!inQueue) return;
+    const tick = setInterval(() => {
+      setWaitingSeconds((s) => s + 1);
+    }, 1000);
+    return () => clearInterval(tick);
+  }, [inQueue]);
+
+  const handleSearch = () => {
+    const selectedRoles = (Object.keys(roles) as QueueRole[]).filter(
+      (r) => roles[r]
+    );
+    if (selectedRoles.length === 0) {
+      toast.error("Selecione pelo menos 1 função.");
+      return;
+    }
+    startTransition(async () => {
+      const r = await enterQueue({
+        roles: selectedRoles,
+        gameMode: pickMode,
+        region: "brasil",
+      });
+      if (!r.success) {
+        toast.error(r.error);
+        return;
+      }
+      setInQueue(true);
+      setWaitingSeconds(0);
+      toast.success("Procurando partida...");
+    });
+  };
+
+  const handleCancel = () => {
+    startTransition(async () => {
+      const r = await leaveQueue();
+      if (!r.success) {
+        toast.error(r.error);
+        return;
+      }
+      setInQueue(false);
+      setWaitingSeconds(0);
+    });
+  };
+
+  const formatTime = (s: number) => {
+    const mins = Math.floor(s / 60);
+    const secs = s % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
 
   return (
-    <div className="space-y-5 2xl:space-y-6">
-      <div className="grid grid-cols-2 rounded-md border border-[var(--color-border)] overflow-hidden">
-        <SearchTab
-          label="Busca por funções"
-          active={searchType === "role"}
-          onClick={() => setSearchType("role")}
-        />
-        <SearchTab
-          label="Clássico"
-          active={searchType === "classic"}
-          onClick={() => setSearchType("classic")}
-        />
-      </div>
-
-      <div className="rounded-md border border-[var(--color-brand-red)]/30 bg-gradient-to-r from-[var(--color-brand-red)]/10 to-transparent px-4 py-3 2xl:px-5 2xl:py-4 flex items-center justify-between">
-        <div>
-          <p className="font-mono text-[10px] 2xl:text-[11px] uppercase tracking-widest text-white/50">
-            Sua medalha
-          </p>
-          <p className="font-display text-sm 2xl:text-base uppercase tracking-wide text-white">
-            Não classificado
-          </p>
+    <>
+      <div className="flex-1 overflow-y-auto px-5 py-5 2xl:px-7 2xl:py-7 space-y-5 2xl:space-y-6">
+        <div className="grid grid-cols-2 rounded-md border border-[var(--color-border)] overflow-hidden">
+          <SearchTab
+            label="Busca por funções"
+            active={searchType === "role"}
+            onClick={() => setSearchType("role")}
+          />
+          <SearchTab
+            label="Clássico"
+            active={searchType === "classic"}
+            onClick={() => setSearchType("classic")}
+          />
         </div>
-        <span className="font-mono text-[10px] 2xl:text-[11px] uppercase tracking-widest text-[var(--color-brand-red)]">
-          Calibrar →
-        </span>
-      </div>
 
-      {searchType === "role" && (
+        <div className="rounded-md border border-[var(--color-brand-red)]/30 bg-gradient-to-r from-[var(--color-brand-red)]/10 to-transparent px-4 py-3 2xl:px-5 2xl:py-4 flex items-center justify-between">
+          <div>
+            <p className="font-mono text-[10px] 2xl:text-[11px] uppercase tracking-widest text-white/50">
+              Sua medalha
+            </p>
+            <p className="font-display text-sm 2xl:text-base uppercase tracking-wide text-white">
+              Não classificado
+            </p>
+          </div>
+          <span className="font-mono text-[10px] 2xl:text-[11px] uppercase tracking-widest text-[var(--color-brand-red)]">
+            Calibrar →
+          </span>
+        </div>
+
+        {searchType === "role" && (
+          <div className="space-y-2">
+            <p className="font-sans text-xs 2xl:text-sm font-semibold uppercase tracking-[0.15em] text-white/70">
+              Busca com função
+            </p>
+            <p className="font-sans text-[11px] 2xl:text-xs text-white/50">
+              Selecione 1 ou mais funções pra encontrar partidas mais rápido.
+            </p>
+            <div className="space-y-1.5 mt-2">
+              {ROLES.map((r) => (
+                <RoleCheckbox
+                  key={r.id}
+                  role={r}
+                  checked={roles[r.id] ?? false}
+                  onChange={(v) => setRoles({ ...roles, [r.id]: v })}
+                  disabled={inQueue}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="space-y-2">
           <p className="font-sans text-xs 2xl:text-sm font-semibold uppercase tracking-[0.15em] text-white/70">
-            Busca com função
+            Modo de jogo
           </p>
-          <p className="font-sans text-[11px] 2xl:text-xs text-white/50">
-            Selecione 1 ou mais funções pra encontrar partidas mais rápido.
-          </p>
-          <div className="space-y-1.5 mt-2">
-            {ROLES.map((r) => (
-              <RoleCheckbox
-                key={r.id}
-                role={r}
-                checked={roles[r.id] ?? false}
-                onChange={(v) => setRoles({ ...roles, [r.id]: v })}
-              />
-            ))}
-          </div>
+          <SelectField
+            value={pickMode}
+            onChange={(v) => setPickMode(v as QueueGameMode)}
+            options={[
+              { value: "all_pick", label: "Escolha livre competitivo" },
+              { value: "random_draft", label: "Seleção aleatória" },
+              { value: "captains_mode", label: "Modo capitães" },
+            ]}
+          />
         </div>
-      )}
 
-      <div className="space-y-2">
-        <p className="font-sans text-xs 2xl:text-sm font-semibold uppercase tracking-[0.15em] text-white/70">
-          Modo de jogo
-        </p>
-        <SelectField
-          value={pickMode}
-          onChange={setPickMode}
-          options={[
-            { value: "ranked_all_pick", label: "Escolha livre competitivo" },
-            { value: "random_draft", label: "Seleção aleatória" },
-            { value: "captains_mode", label: "Modo capitães" },
-          ]}
-        />
+        <div className="space-y-2 border-t border-[var(--color-border)] pt-4">
+          <ToggleRow label="Casual" disabled />
+          <ToggleRow label="Modo para novatos" disabled />
+        </div>
       </div>
 
-      <div className="space-y-2 border-t border-[var(--color-border)] pt-4">
-        <ToggleRow label="Casual" disabled />
-        <ToggleRow label="Modo para novatos" disabled />
+      {/* Footer — botão verde Buscar/Cancelar */}
+      <div className="border-t border-[var(--color-border)] p-4 2xl:p-5 shrink-0">
+        {inQueue ? (
+          <>
+            <button
+              type="button"
+              onClick={handleCancel}
+              disabled={isPending}
+              className="group relative flex w-full h-12 2xl:h-14 items-center justify-center gap-2 overflow-hidden rounded-md border-2 border-[var(--color-danger)] bg-gradient-to-b from-[var(--color-danger)]/40 to-[var(--color-danger)]/20 px-6 font-display text-base 2xl:text-lg font-bold uppercase tracking-[0.25em] text-white shadow-lg transition-all hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isPending ? (
+                <Loader2 size={16} className="animate-spin" aria-hidden="true" />
+              ) : (
+                <X size={16} aria-hidden="true" />
+              )}
+              <span>Cancelar busca</span>
+            </button>
+            <p className="mt-2 text-center font-mono text-xs 2xl:text-sm uppercase tracking-widest text-[var(--color-warning)]">
+              Procurando partida · {formatTime(waitingSeconds)}
+            </p>
+          </>
+        ) : (
+          <>
+            <button
+              type="button"
+              onClick={handleSearch}
+              disabled={isPending}
+              className="group relative flex w-full h-12 2xl:h-14 items-center justify-center gap-2 overflow-hidden rounded-md border-2 border-[var(--color-play-green)] bg-gradient-to-b from-[var(--color-play-green)] to-[var(--color-play-green-dark)] px-6 font-display text-base 2xl:text-lg font-bold uppercase tracking-[0.25em] text-white shadow-lg shadow-[var(--color-play-green)]/30 transition-all hover:scale-[1.01] hover:shadow-[var(--color-play-green)]/50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isPending ? (
+                <Loader2 size={16} className="animate-spin" aria-hidden="true" />
+              ) : (
+                <Crosshair size={16} aria-hidden="true" />
+              )}
+              <span>{isPending ? "Entrando..." : "Buscar partida"}</span>
+            </button>
+            <p className="mt-2 text-center font-mono text-[10px] 2xl:text-[11px] uppercase tracking-widest text-white/40">
+              Matchmaking via fila · Fase B
+            </p>
+          </>
+        )}
       </div>
-    </div>
+    </>
   );
 }
 
@@ -474,14 +599,18 @@ function RoleCheckbox({
   role,
   checked,
   onChange,
+  disabled,
 }: {
   role: RoleDef;
   checked: boolean;
   onChange: (v: boolean) => void;
+  disabled?: boolean;
 }) {
   return (
     <label
-      className={`flex items-center gap-3 rounded-md border px-3 py-2 2xl:py-2.5 cursor-pointer transition-colors ${
+      className={`flex items-center gap-3 rounded-md border px-3 py-2 2xl:py-2.5 transition-colors ${
+        disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"
+      } ${
         checked
           ? "border-[var(--color-brand-red)]/50 bg-[var(--color-brand-red)]/8"
           : "border-[var(--color-border)] bg-black/30 hover:bg-white/5"
@@ -491,6 +620,7 @@ function RoleCheckbox({
         type="checkbox"
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
+        disabled={disabled}
         className="size-4 accent-[var(--color-brand-red)]"
       />
       <role.icon size={14} className={role.color} aria-hidden="true" />
