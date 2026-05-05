@@ -4,6 +4,7 @@ import "@/styles/globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
+import { ConditionalChrome } from "@/components/layout/conditional-chrome";
 
 // Cinzel — fonte de impacto pra headings (alternativa open-source da Reaver Valve).
 // Substitui Space Grotesk como display font do projeto.
@@ -50,10 +51,14 @@ export default function RootLayout({
       className={`${cinzel.variable} ${marcellus.variable} ${inter.variable}`}
     >
       <body className="min-h-screen flex flex-col">
-        {/* Header global — Server Component lê auth state e mostra login OU avatar+dropdown */}
-        <Header />
+        {/* Header/Footer ocultos em /dashboard (fullscreen estilo client Dota 2) */}
+        <ConditionalChrome>
+          <Header />
+        </ConditionalChrome>
         <div className="flex-1">{children}</div>
-        <Footer />
+        <ConditionalChrome>
+          <Footer />
+        </ConditionalChrome>
         {/* Toaster global — qualquer Client Component pode chamar toast() */}
         <Toaster />
       </body>
