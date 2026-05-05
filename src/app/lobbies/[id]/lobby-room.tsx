@@ -1,11 +1,11 @@
 "use client";
 
-// LobbyRoom — Client Component que renderiza sala aberta no estilo lobby de jogo competitivo:
-// header com nome + líder, grid 2 times (5 slots cada), painel chat à esquerda do center,
-// painel configurações à direita, e bottom-bar com botões (Sair / Iniciar Partida).
-//
-// Slots vazios renderizam botão "Entrar" — clica e Server Action joinTeam coloca o user
-// no time. Slot ocupado mostra avatar + username. Líder marcado com coroa.
+// LobbyRoom — sala estilo Dota 2:
+// - Header: nome + líder + senha
+// - 3 cols: Chat (esq) | Times + JOGADORES DE FORA (centro) | Configurações + Sair/Iniciar (dir)
+// - Time 1 cyan / Time 2 red, slots em linhas finas com "ENTRAR" allcaps
+// - Slot do current-user mostra X pra sair (vira espectador)
+// - Click em slot vazio de outro time troca de vaga (Server Action UPDATE)
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -18,9 +18,6 @@ import {
   Check,
   Loader2,
   Play,
-  LogOut,
-  Shuffle,
-  Scale,
   X,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -74,17 +71,22 @@ export function LobbyRoom({
   const spectators = players.filter((p) => p.team === "spectator");
   const inLobby = players.some((p) => p.userId === currentUserId);
   const myTeam = players.find((p) => p.userId === currentUserId)?.team ?? null;
+  const canEdit = lobby.status === "open" || lobby.status === "pending";
 
   return (
     <div className="flex h-full flex-col">
-      {/* Header da sala — nome + líder */}
-      <header className="flex items-center justify-between gap-4 border-b border-[var(--color-border)] bg-black/40 px-6 py-3">
+      {/* Header — nome + líder + senha */}
+      <header className="flex items-center justify-between gap-4 border-b border-[var(--color-border)] bg-black/50 px-6 py-3">
         <div>
-          <h1 className="font-display text-xl uppercase tracking-wide text-white">{lobby.name}</h1>
+          <h1 className="font-display text-xl uppercase tracking-wide text-white">
+            {lobby.name}
+          </h1>
           <p className="mt-0.5 font-mono text-[10px] uppercase tracking-widest text-white/50">
             Líder: {leaderUsername}
             {lobby.status === "in_progress" && (
-              <span className="ml-3 text-[var(--color-warning)]">· em andamento</span>
+              <span className="ml-3 text-[var(--color-warning)]">
+                · em andamento
+              </span>
             )}
             {lobby.steamLobbyId?.startsWith("DEV-") && (
               <span className="ml-3 text-white/40">· modo dev (bot offline)</span>
@@ -94,17 +96,17 @@ export function LobbyRoom({
         <PasswordBadge password={lobby.password} />
       </header>
 
-      {/* Main 2-col: chat (left) + teams+config (center+right) */}
-      <div className="flex-1 grid min-h-0 grid-cols-1 lg:grid-cols-[280px_1fr_300px] xl:grid-cols-[300px_1fr_340px]">
+      {/* Main 3-col: chat | teams+spectators | settings+actions */}
+      <div className="flex-1 grid min-h-0 grid-cols-1 lg:grid-cols-[280px_1fr_320px] xl:grid-cols-[320px_1fr_360px]">
         {/* LEFT — Chat */}
         <ChatPanel lobbyName={lobby.name} />
 
-        {/* CENTER — Teams */}
-        <main className="flex flex-col overflow-y-auto p-4 xl:p-6">
-          <div className="grid flex-1 min-h-0 gap-4 md:grid-cols-2">
+        {/* CENTER — Times + Espectadores */}
+        <main className="flex flex-col overflow-y-auto">
+          <div className="grid flex-1 min-h-0 grid-cols-2 divide-x divide-[var(--color-border)] border-b border-[var(--color-border)]">
             <TeamColumn
               label="Time 1"
-              accent="rose"
+              accent="cyan"
               team="radiant"
               players={team1}
               size={teamSize}
@@ -112,11 +114,11 @@ export function LobbyRoom({
               currentUserId={currentUserId}
               leaderId={lobby.createdBy}
               currentTeam={myTeam}
-              disabled={lobby.status !== "open" && lobby.status !== "pending"}
+              disabled={!canEdit}
             />
             <TeamColumn
               label="Time 2"
-              accent="emerald"
+              accent="red"
               team="dire"
               players={team2}
               size={teamSize}
@@ -124,72 +126,76 @@ export function LobbyRoom({
               currentUserId={currentUserId}
               leaderId={lobby.createdBy}
               currentTeam={myTeam}
-              disabled={lobby.status !== "open" && lobby.status !== "pending"}
+              disabled={!canEdit}
             />
           </div>
 
-          {/* Botões de balanceamento (líder) */}
-          {isLeader && (
-            <div className="mt-4 flex items-center gap-2">
-              <ActionButton
-                icon={Scale}
-                label="Equilibrar times"
-                disabled
-                hint="V2"
-              />
-              <ActionButton
-                icon={Shuffle}
-                label="Trocar times"
-                disabled
-                hint="V2"
-              />
-            </div>
-          )}
-
-          {/* Espectadores */}
+          {/* JOGADORES DE FORA (espectadores) */}
           <SpectatorRow
             spectators={spectators}
             lobbyId={lobby.id}
+            currentUserId={currentUserId}
             currentTeam={myTeam}
-            disabled={lobby.status !== "open" && lobby.status !== "pending"}
+            disabled={!canEdit}
           />
         </main>
 
-        {/* RIGHT — Configurações da sala */}
-        <SettingsPanel lobby={lobby} isLeader={isLeader} />
-      </div>
+        {/* RIGHT — Configurações + Ações */}
+        <aside className="hidden lg:flex flex-col border-l border-[var(--color-border)] bg-black/40 backdrop-blur-sm">
+          <SettingsPanel lobby={lobby} isLeader={isLeader} />
 
-      {/* Bottom bar — Sair / Iniciar */}
-      <footer className="flex items-center justify-between gap-3 border-t border-[var(--color-border)] bg-black/40 px-6 py-3">
-        {inLobby ? (
-          <form action={leaveLobby}>
-            <input type="hidden" name="lobbyId" value={lobby.id} />
-            <button
-              type="submit"
-              className="inline-flex items-center gap-2 rounded-md border border-[var(--color-border)] bg-black/40 px-4 py-2 font-sans text-xs font-semibold uppercase tracking-wide text-white/70 hover:bg-white/5 hover:text-white transition-colors"
-            >
-              <LogOut size={14} aria-hidden="true" />
-              Sair da sala
-            </button>
-          </form>
-        ) : (
-          <span className="font-mono text-[10px] uppercase tracking-widest text-white/40">
-            Você não está na sala — entre num time pra participar
-          </span>
-        )}
+          {/* Ações finais */}
+          <div className="border-t border-[var(--color-border)] p-4 space-y-2.5">
+            {inLobby ? (
+              <form action={leaveLobby}>
+                <input type="hidden" name="lobbyId" value={lobby.id} />
+                <button
+                  type="submit"
+                  className="w-full inline-flex items-center justify-center gap-2 rounded-sm border border-white/10 bg-black/40 px-4 py-2.5 font-sans text-[11px] font-semibold uppercase tracking-[0.2em] text-white/70 hover:bg-white/5 hover:text-white transition-colors"
+                >
+                  Sair da sala
+                </button>
+              </form>
+            ) : (
+              <p className="text-center font-mono text-[10px] uppercase tracking-widest text-white/30 py-2">
+                Você não está na sala
+              </p>
+            )}
 
-        {isLeader && (
-          <div className="flex items-center gap-2">
-            <CancelLobbyButton lobbyId={lobby.id} />
-            <StartMatchButton lobbyId={lobby.id} disabled={lobby.status !== "open"} />
+            {isLeader && (
+              <>
+                <CancelLobbyButton lobbyId={lobby.id} />
+                <StartMatchButton
+                  lobbyId={lobby.id}
+                  disabled={lobby.status !== "open"}
+                />
+              </>
+            )}
           </div>
-        )}
-      </footer>
+        </aside>
+      </div>
     </div>
   );
 }
 
 // ============== Team Column ==============
+
+const TEAM_ACCENTS = {
+  cyan: {
+    border: "border-cyan-400/40",
+    text: "text-cyan-300",
+    bg: "bg-cyan-500/5",
+    headerBg: "bg-cyan-500/10",
+    rowHover: "hover:bg-cyan-500/5",
+  },
+  red: {
+    border: "border-red-500/40",
+    text: "text-red-400",
+    bg: "bg-red-500/5",
+    headerBg: "bg-red-500/10",
+    rowHover: "hover:bg-red-500/5",
+  },
+} as const;
 
 function TeamColumn({
   label,
@@ -204,7 +210,7 @@ function TeamColumn({
   disabled,
 }: {
   label: string;
-  accent: "rose" | "emerald";
+  accent: "cyan" | "red";
   team: "radiant" | "dire";
   players: PlayerSlot[];
   size: number;
@@ -214,21 +220,16 @@ function TeamColumn({
   currentTeam: string | null;
   disabled: boolean;
 }) {
-  const accentCls =
-    accent === "rose"
-      ? "border-rose-500/40 text-rose-400"
-      : "border-emerald-500/40 text-emerald-400";
+  const a = TEAM_ACCENTS[accent];
   const slots = Array.from({ length: size }, (_, i) => players[i] ?? null);
 
   return (
-    <section
-      className={`flex flex-col rounded-md border ${accentCls.split(" ")[0]} bg-black/50 backdrop-blur-sm overflow-hidden`}
-    >
+    <section className={`flex flex-col ${a.bg}`}>
       <header
-        className={`flex items-center justify-between border-b ${accentCls.split(" ")[0]} px-4 py-2`}
+        className={`flex items-center justify-between border-b ${a.border} ${a.headerBg} px-4 py-2.5`}
       >
         <h2
-          className={`font-display text-sm uppercase tracking-[0.2em] ${accentCls.split(" ")[1]}`}
+          className={`font-display text-sm uppercase tracking-[0.25em] ${a.text}`}
         >
           {label}
         </h2>
@@ -236,12 +237,13 @@ function TeamColumn({
           {players.length}/{size}
         </span>
       </header>
-      <ol className="flex-1 divide-y divide-white/5">
+      <ol className="flex-1">
         {slots.map((slot, i) => (
           <PlayerSlotRow
             key={i}
             slot={slot}
             team={team}
+            accent={accent}
             lobbyId={lobbyId}
             currentUserId={currentUserId}
             leaderId={leaderId}
@@ -257,6 +259,7 @@ function TeamColumn({
 function PlayerSlotRow({
   slot,
   team,
+  accent,
   lobbyId,
   currentUserId,
   leaderId,
@@ -265,6 +268,7 @@ function PlayerSlotRow({
 }: {
   slot: PlayerSlot | null;
   team: "radiant" | "dire";
+  accent: "cyan" | "red";
   lobbyId: string;
   currentUserId: string;
   leaderId: string;
@@ -272,6 +276,7 @@ function PlayerSlotRow({
   disabled: boolean;
 }) {
   const [isPending, startTransition] = useTransition();
+  const a = TEAM_ACCENTS[accent];
 
   const handleJoin = () => {
     startTransition(async () => {
@@ -280,19 +285,35 @@ function PlayerSlotRow({
     });
   };
 
+  const handleLeaveSlot = () => {
+    startTransition(async () => {
+      const result = await joinTeam({ lobbyId, team: "spectator" });
+      if (!result.success) toast.error(result.error);
+    });
+  };
+
+  // Slot vazio — mostra "ENTRAR" se permitido (não está nesse time)
   if (!slot) {
-    const showJoinButton = !disabled && currentTeam !== team;
+    const showJoin = !disabled && currentTeam !== team;
     return (
-      <li className="flex items-center justify-between gap-3 px-4 py-3 min-h-[52px]">
-        <span className="font-mono text-[10px] uppercase tracking-widest text-white/30">
-          Vaga aberta
+      <li
+        className={`group flex items-center justify-between gap-3 border-b border-white/5 px-4 py-3 min-h-[52px] ${
+          showJoin ? `cursor-pointer ${a.rowHover}` : ""
+        } transition-colors`}
+        onClick={showJoin ? handleJoin : undefined}
+      >
+        <span className="font-mono text-[10px] uppercase tracking-widest text-white/20">
+          ────
         </span>
-        {showJoinButton && (
+        {showJoin && (
           <button
             type="button"
-            onClick={handleJoin}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleJoin();
+            }}
             disabled={isPending}
-            className="rounded-md border border-[var(--color-border)] bg-black/40 px-3 py-1 font-sans text-[10px] font-semibold uppercase tracking-widest text-white/70 hover:border-[var(--color-brand-red)] hover:text-white transition-colors disabled:opacity-50"
+            className={`font-sans text-[11px] font-semibold uppercase tracking-[0.2em] ${a.text} opacity-60 group-hover:opacity-100 transition-opacity disabled:opacity-30`}
           >
             {isPending ? "..." : "Entrar"}
           </button>
@@ -301,25 +322,25 @@ function PlayerSlotRow({
     );
   }
 
-  const isLeader = slot.userId === leaderId;
+  const slotIsLeader = slot.userId === leaderId;
   const isCurrent = slot.userId === currentUserId;
 
   return (
-    <li className="flex items-center gap-3 px-4 py-3 min-h-[52px]">
+    <li className="flex items-center gap-3 border-b border-white/5 px-4 py-3 min-h-[52px] group">
       {slot.avatarUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={slot.avatarUrl}
           alt=""
-          className="size-8 rounded-full border border-white/10"
+          className="size-8 rounded-sm border border-white/10"
         />
       ) : (
-        <div className="size-8 rounded-full border border-white/10 bg-black/40" />
+        <div className="size-8 rounded-sm border border-white/10 bg-black/40" />
       )}
       <div className="min-w-0 flex-1">
         <p className="font-sans text-sm text-white truncate flex items-center gap-1.5">
           {slot.username}
-          {isLeader && (
+          {slotIsLeader && (
             <Crown
               size={11}
               className="text-amber-400 shrink-0"
@@ -333,65 +354,117 @@ function PlayerSlotRow({
           )}
         </p>
       </div>
+      {isCurrent && !disabled && (
+        <button
+          type="button"
+          onClick={handleLeaveSlot}
+          disabled={isPending}
+          aria-label="Sair do slot"
+          title="Sair do slot (vira espectador)"
+          className="opacity-0 group-hover:opacity-100 text-white/50 hover:text-white transition-all disabled:opacity-30"
+        >
+          {isPending ? (
+            <Loader2 size={14} className="animate-spin" />
+          ) : (
+            <X size={14} />
+          )}
+        </button>
+      )}
     </li>
   );
 }
 
-// ============== Spectators ==============
+// ============== JOGADORES DE FORA (Spectators) ==============
 
 function SpectatorRow({
   spectators,
   lobbyId,
+  currentUserId,
   currentTeam,
   disabled,
 }: {
   spectators: PlayerSlot[];
   lobbyId: string;
+  currentUserId: string;
   currentTeam: string | null;
   disabled: boolean;
 }) {
   const [isPending, startTransition] = useTransition();
 
+  const handleSpectate = () => {
+    startTransition(async () => {
+      const r = await joinTeam({ lobbyId, team: "spectator" });
+      if (!r.success) toast.error(r.error);
+    });
+  };
+
+  const handleLeaveSpec = () => {
+    // "Sair" do espectador = sair do lobby todo (similar ao Dota 2)
+    startTransition(async () => {
+      const fd = new FormData();
+      fd.set("lobbyId", lobbyId);
+      await leaveLobby(fd);
+    });
+  };
+
+  const iAmSpectator = currentTeam === "spectator";
+
   return (
-    <section className="mt-4 rounded-md border border-[var(--color-border)] bg-black/40 backdrop-blur-sm">
-      <header className="flex items-center justify-between border-b border-[var(--color-border)] px-4 py-2">
-        <h3 className="font-sans text-[11px] font-semibold uppercase tracking-[0.2em] text-white/60">
-          Espectadores
+    <section className="bg-black/30">
+      <header className="flex items-center justify-between border-b border-[var(--color-border)] bg-black/40 px-4 py-2">
+        <h3 className="font-sans text-[11px] font-semibold uppercase tracking-[0.25em] text-white/60">
+          Jogadores de fora
         </h3>
-        {!disabled && currentTeam !== "spectator" && (
+        {!disabled && !iAmSpectator && currentTeam !== null && (
           <button
             type="button"
-            onClick={() =>
-              startTransition(async () => {
-                const r = await joinTeam({ lobbyId, team: "spectator" });
-                if (!r.success) toast.error(r.error);
-              })
-            }
+            onClick={handleSpectate}
             disabled={isPending}
             className="font-sans text-[10px] uppercase tracking-widest text-white/50 hover:text-white transition-colors disabled:opacity-50"
           >
-            {isPending ? "..." : "Assistir →"}
+            {isPending ? "..." : "Assistir"}
           </button>
         )}
       </header>
-      <div className="px-4 py-2.5 flex flex-wrap items-center gap-2 min-h-[40px]">
+      <div className="px-4 py-3 flex flex-wrap items-center gap-2 min-h-[48px]">
         {spectators.length === 0 ? (
           <span className="font-mono text-[10px] uppercase tracking-widest text-white/20">
             Nenhum
           </span>
         ) : (
-          spectators.map((s) => (
-            <span
-              key={s.userId}
-              className="inline-flex items-center gap-1.5 rounded-full bg-black/40 border border-white/10 px-2 py-0.5"
-            >
-              {s.avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={s.avatarUrl} alt="" className="size-4 rounded-full" />
-              ) : null}
-              <span className="font-sans text-xs text-white/70">{s.username}</span>
-            </span>
-          ))
+          spectators.map((s) => {
+            const isCurrent = s.userId === currentUserId;
+            return (
+              <span
+                key={s.userId}
+                className={`inline-flex items-center gap-1.5 rounded-sm border px-2 py-1 ${
+                  isCurrent
+                    ? "border-[var(--color-brand-red)]/40 bg-[var(--color-brand-red)]/10"
+                    : "border-white/10 bg-black/40"
+                }`}
+              >
+                {s.avatarUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={s.avatarUrl} alt="" className="size-4 rounded-sm" />
+                ) : null}
+                <span className="font-sans text-xs text-white/80">
+                  {s.username}
+                </span>
+                {isCurrent && !disabled && (
+                  <button
+                    type="button"
+                    onClick={handleLeaveSpec}
+                    disabled={isPending}
+                    aria-label="Sair do lobby"
+                    title="Sair do lobby"
+                    className="ml-1 text-white/50 hover:text-white transition-colors disabled:opacity-30"
+                  >
+                    <X size={12} />
+                  </button>
+                )}
+              </span>
+            );
+          })
         )}
       </div>
     </section>
@@ -404,7 +477,7 @@ function ChatPanel({ lobbyName }: { lobbyName: string }) {
   return (
     <aside className="hidden lg:flex flex-col border-r border-[var(--color-border)] bg-black/40 backdrop-blur-sm">
       <header className="border-b border-[var(--color-border)] px-4 py-3">
-        <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.2em] text-white/60">
+        <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.25em] text-white/60">
           Chat — {lobbyName}
         </p>
       </header>
@@ -418,7 +491,7 @@ function ChatPanel({ lobbyName }: { lobbyName: string }) {
           type="text"
           placeholder="Digite uma mensagem..."
           disabled
-          className="w-full rounded-md border border-[var(--color-border)] bg-black/40 px-3 py-2 font-sans text-xs text-white placeholder:text-white/30 focus:outline-none disabled:cursor-not-allowed"
+          className="w-full rounded-sm border border-[var(--color-border)] bg-black/40 px-3 py-2 font-sans text-xs text-white placeholder:text-white/30 focus:outline-none disabled:cursor-not-allowed"
           aria-label="Chat (em breve)"
         />
       </div>
@@ -436,10 +509,10 @@ function SettingsPanel({
   isLeader: boolean;
 }) {
   return (
-    <aside className="hidden lg:flex flex-col gap-3 border-l border-[var(--color-border)] bg-black/40 backdrop-blur-sm p-4 overflow-y-auto">
+    <div className="flex-1 flex flex-col gap-3 p-4 overflow-y-auto">
       <div className="flex items-center justify-between">
-        <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.2em] text-white/60">
-          Configurações
+        <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.25em] text-white/60">
+          Configurações da sala
         </p>
         {isLeader && (
           <button
@@ -466,11 +539,9 @@ function SettingsPanel({
       <SettingRow label="Visibilidade" value="Pública" />
       <SettingRow label="Liga" value="Nenhuma" />
       <SettingRow label="Espectadores" value="Permitido" />
-      <SettingRow label="Atraso da TV" value="2 minutos" />
-      <SettingRow label="Pausas" value="Ilimitadas" />
-      <SettingRow label="Formato" value="Partida única" />
+      <SettingRow label="Jogadores" value={`${lobby.maxPlayers}`} />
 
-      <div className="mt-2 rounded-md border border-[var(--color-border)] bg-black/30 p-3">
+      <div className="mt-2 rounded-sm border border-[var(--color-border)] bg-black/40 p-3">
         <p className="font-mono text-[9px] uppercase tracking-widest text-white/40">
           Steam Lobby ID
         </p>
@@ -478,7 +549,7 @@ function SettingsPanel({
           {lobby.steamLobbyId ?? "—"}
         </p>
       </div>
-    </aside>
+    </div>
   );
 }
 
@@ -496,41 +567,16 @@ function SettingRow({
       <span className="font-mono text-[10px] uppercase tracking-widest text-white/40">
         {label}
       </span>
-      <span className={`font-sans text-xs font-medium ${valueClass ?? "text-white/80"}`}>
+      <span
+        className={`font-sans text-xs font-medium ${valueClass ?? "text-white/80"}`}
+      >
         {value}
       </span>
     </div>
   );
 }
 
-// ============== Bottom action buttons ==============
-
-function ActionButton({
-  icon: Icon,
-  label,
-  disabled,
-  hint,
-  onClick,
-}: {
-  icon: typeof Scale;
-  label: string;
-  disabled?: boolean;
-  hint?: string;
-  onClick?: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      className="inline-flex items-center gap-2 rounded-md border border-[var(--color-border)] bg-black/40 px-3 py-1.5 font-sans text-[10px] font-semibold uppercase tracking-widest text-white/60 hover:bg-white/5 hover:text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-    >
-      <Icon size={12} aria-hidden="true" />
-      {label}
-      {hint && <span className="font-mono text-[8px] text-white/30">· {hint}</span>}
-    </button>
-  );
-}
+// ============== Header / Action buttons ==============
 
 function PasswordBadge({ password }: { password: string }) {
   const [reveal, setReveal] = useState(false);
@@ -543,7 +589,7 @@ function PasswordBadge({ password }: { password: string }) {
   };
 
   return (
-    <div className="flex items-center gap-2 rounded-md border border-[var(--color-border)] bg-black/40 px-3 py-1.5">
+    <div className="flex items-center gap-2 rounded-sm border border-[var(--color-border)] bg-black/40 px-3 py-1.5">
       <Lock size={12} className="text-white/40" aria-hidden="true" />
       <span className="font-mono text-[10px] uppercase tracking-widest text-white/40">
         Senha:
@@ -569,7 +615,11 @@ function PasswordBadge({ password }: { password: string }) {
         aria-label="Copiar senha"
         className="text-white/40 hover:text-white transition-colors"
       >
-        {copied ? <Check size={12} aria-hidden="true" /> : <Copy size={12} aria-hidden="true" />}
+        {copied ? (
+          <Check size={12} aria-hidden="true" />
+        ) : (
+          <Copy size={12} aria-hidden="true" />
+        )}
       </button>
     </div>
   );
@@ -581,9 +631,8 @@ function CancelLobbyButton({ lobbyId }: { lobbyId: string }) {
       <input type="hidden" name="lobbyId" value={lobbyId} />
       <button
         type="submit"
-        className="inline-flex items-center gap-2 rounded-md border border-[var(--color-border)] bg-black/40 px-4 py-2 font-sans text-xs font-semibold uppercase tracking-wide text-white/70 hover:bg-[var(--color-danger)]/20 hover:border-[var(--color-danger)] hover:text-white transition-colors"
+        className="w-full inline-flex items-center justify-center gap-2 rounded-sm border border-white/10 bg-black/40 px-4 py-2.5 font-sans text-[11px] font-semibold uppercase tracking-[0.2em] text-white/60 hover:bg-[var(--color-danger)]/20 hover:border-[var(--color-danger)] hover:text-white transition-colors"
       >
-        <X size={14} aria-hidden="true" />
         Cancelar sala
       </button>
     </form>
@@ -617,7 +666,7 @@ function StartMatchButton({
       type="button"
       onClick={handleStart}
       disabled={disabled || isPending}
-      className="group relative inline-flex h-11 items-center gap-2 overflow-hidden rounded-md border-2 border-[var(--color-play-green)] bg-gradient-to-b from-[var(--color-play-green)] to-[var(--color-play-green-dark)] px-6 font-display text-sm font-bold uppercase tracking-[0.25em] text-white shadow-lg shadow-[var(--color-play-green)]/30 hover:scale-[1.02] hover:shadow-[var(--color-play-green)]/50 transition-all disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
+      className="group relative w-full inline-flex h-12 items-center justify-center gap-2 overflow-hidden rounded-sm border border-amber-400/60 bg-gradient-to-b from-amber-400 to-amber-600 px-6 font-display text-sm font-bold uppercase tracking-[0.3em] text-black shadow-lg shadow-amber-500/30 hover:from-amber-300 hover:to-amber-500 hover:shadow-amber-400/50 transition-all disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:from-amber-400 disabled:hover:to-amber-600"
     >
       {isPending ? (
         <Loader2 size={14} className="animate-spin" aria-hidden="true" />
