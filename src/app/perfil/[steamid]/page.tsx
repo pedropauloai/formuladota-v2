@@ -11,7 +11,7 @@ import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { TierBadge } from "@/components/dota/tier-badge";
 import { ClientShell } from "@/components/client-shell/shell";
-import { fetchPlayerStats } from "@/lib/stratz";
+import { syncPlayerStats } from "@/app/perfil/actions";
 
 interface PageProps {
   params: Promise<{ steamid: string }>;
@@ -100,8 +100,11 @@ export default async function PerfilPublicoPage(props: PageProps) {
     })
     .filter((b): b is NonNullable<typeof b> => b !== null);
 
-  // Stats externos (Stratz primeiro, OpenDota fallback). Falha silenciosa.
-  const externalStats = await fetchPlayerStats(params.steamid).catch(() => null);
+  // Stats externos via cache user_stats_extended (TTL 24h). Falha silenciosa.
+  const syncResult = await syncPlayerStats({
+    userId: steamLink.user_id,
+  }).catch(() => null);
+  const externalStats = syncResult?.success ? syncResult.data : null;
 
   const winRate =
     mmrRow && mmrRow.partidas_total > 0
