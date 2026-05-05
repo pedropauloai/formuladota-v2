@@ -69,8 +69,25 @@ export async function createLobby(formData: FormData): Promise<CreateLobbyResult
     gameMode: parsed.data.gameMode,
   });
 
+  // BOT_NOT_CONFIGURED: bot ainda não foi deployado no Railway (pendência Pedro).
+  // Em dev/staging marca o lobby como 'open' diretamente com steam_lobby_id placeholder
+  // pra Pedro testar UI sem precisar do bot real. Em produção setar BOT_API_URL ativa
+  // o fluxo real automaticamente.
+  if (!botResult.success && botResult.error === "BOT_NOT_CONFIGURED") {
+    await supabase
+      .from("lobbies")
+      .update({
+        status: "open",
+        steam_lobby_id: `DEV-${lobby.id.slice(0, 8)}`,
+        bot_error: "Bot Steam não deployado — modo dev (lobby fictício pra testar UI)",
+      })
+      .eq("id", lobby.id);
+    return { success: true, lobbyId: lobby.id, password };
+  }
+
+  // Bot configurado mas chamada falhou (offline/timeout/erro Dota GC) — cleanup row.
   if (!botResult.success) {
-    // Bot offline: mantém row em DB com status 'bot_unavailable' (bot já marca via service-role)
+    await supabase.from("lobbies").delete().eq("id", lobby.id);
     return { success: false, error: botResult.error };
   }
 

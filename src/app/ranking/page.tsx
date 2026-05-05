@@ -43,7 +43,11 @@ export default async function RankingPage(props: {
     .single();
 
   if (!season) {
-    return <EmptyRanking />;
+    return (
+      <ClientShell currentRoute="/ranking">
+        <EmptyRanking />
+      </ClientShell>
+    );
   }
 
   // Top 3 sempre visível (não paginado)
@@ -72,7 +76,11 @@ export default async function RankingPage(props: {
       .limit(50);
     const matchIds = (matchingProfiles ?? []).map((p) => p.id);
     if (matchIds.length === 0) {
-      return <NoMatchState searchTerm={search} seasonName={season.name} />;
+      return (
+        <ClientShell currentRoute="/ranking">
+          <NoMatchState searchTerm={search} seasonName={season.name} />
+        </ClientShell>
+      );
     }
     listQuery = supabase
       .from("player_season_mmr")
@@ -272,44 +280,42 @@ function Pagination({ currentPage }: { currentPage: number }) {
 }
 
 function NoMatchState({ searchTerm, seasonName }: { searchTerm: string; seasonName: string }) {
+  // Renderizado dentro do <ClientShell> do caller — retorna só o conteúdo.
   return (
-    <ClientShell currentRoute="/ranking">
-      <div className="px-6 py-20">
-        <div className="mx-auto max-w-2xl text-center space-y-6">
-          <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
-            {seasonName}
-          </p>
-          <h1 className="font-display text-4xl uppercase text-white">
-            Nenhum resultado pra {`"${searchTerm}"`}
-          </h1>
-          <Link
-            href="/ranking"
-            className="inline-flex items-center gap-2 rounded-md border border-[var(--color-border)] px-6 py-3 font-sans text-sm font-semibold uppercase tracking-wide text-white/70 hover:text-white transition-colors"
-          >
-            ← Voltar ao ranking
-          </Link>
-        </div>
+    <div className="px-6 py-20">
+      <div className="mx-auto max-w-2xl text-center space-y-6">
+        <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
+          {seasonName}
+        </p>
+        <h1 className="font-display text-4xl uppercase text-white">
+          Nenhum resultado pra {`"${searchTerm}"`}
+        </h1>
+        <Link
+          href="/ranking"
+          className="inline-flex items-center gap-2 rounded-md border border-[var(--color-border)] px-6 py-3 font-sans text-sm font-semibold uppercase tracking-wide text-white/70 hover:text-white transition-colors"
+        >
+          ← Voltar ao ranking
+        </Link>
       </div>
-    </ClientShell>
+    </div>
   );
 }
 
 function EmptyRanking() {
+  // Renderizado dentro do <ClientShell> do caller — retorna só o conteúdo.
   return (
-    <ClientShell currentRoute="/ranking">
-      <div className="px-6 py-20">
-        <div className="mx-auto max-w-2xl text-center space-y-6">
-          <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
-            Ranking
-          </p>
-          <h1 className="font-display text-4xl uppercase text-white">
-            Temporada começando
-          </h1>
-          <p className="font-serif text-white/70">
-            Ainda sem partidas oficiais. Seja um dos primeiros — ative sua mensalidade e crie um lobby.
-          </p>
-        </div>
+    <div className="px-6 py-20">
+      <div className="mx-auto max-w-2xl text-center space-y-6">
+        <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
+          Ranking
+        </p>
+        <h1 className="font-display text-4xl uppercase text-white">
+          Temporada começando
+        </h1>
+        <p className="font-serif text-white/70">
+          Ainda sem partidas oficiais. Seja um dos primeiros — ative sua mensalidade e crie um lobby.
+        </p>
       </div>
-    </ClientShell>
+    </div>
   );
 }

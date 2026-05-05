@@ -8,8 +8,10 @@ import Link from "next/link";
 import { Bell, Settings, LogOut } from "lucide-react";
 import { signOut } from "@/app/login/actions";
 
+// Top-bar mostra apenas pages de navegação geral — fluxo "Jogar / Criar lobby"
+// vive no PlayPanel (botão verde no bottom-bar). Tab Lobbies removida (redundância
+// com PlayPanel > Salas Personalizadas > Navegar).
 const TABS = [
-  { href: "/lobbies", label: "Lobbies" },
   { href: "/ranking", label: "Ranking" },
   { href: "/pacotes", label: "Pacotes" },
   { href: "/assinatura", label: "Assinatura" },
