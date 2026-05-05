@@ -21,6 +21,11 @@
   --color-brand-red-dark: #7a140a;
   --color-brand-red-glow: #ac1d0e33;
 
+  /* Verde "Play matchmaking" inspirado no botão Dota 2 client */
+  --color-play-green: #5b8e3a;
+  --color-play-green-dark: #3f6a25;
+  --color-play-green-glow: #5b8e3a33;
+
   --color-success: #22c55e;
   --color-warning: #f59e0b;
   --color-danger: #ef4444;
