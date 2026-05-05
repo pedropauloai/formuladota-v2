@@ -8,7 +8,7 @@ import Link from "next/link";
 import { Trophy, ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { TierBadge } from "@/components/dota/tier-badge";
-import { DotaBackdrop } from "@/components/dota/dota-backdrop";
+import { ClientShell } from "@/components/client-shell/shell";
 
 interface PageProps {
   params: Promise<{ steamid: string }>;
@@ -66,10 +66,9 @@ export default async function PerfilPublicoPage(props: PageProps) {
     : null;
 
   return (
-    <main className="relative min-h-screen">
-      <DotaBackdrop />
+    <ClientShell currentRoute="/perfil">
       <section className="relative h-[40vh] overflow-hidden border-b border-[var(--color-border)] bg-black/60">
-        <div className="relative z-10 mx-auto flex max-w-5xl items-end gap-6 px-6 pb-8 pt-24 h-full">
+        <div className="relative z-10 mx-auto flex max-w-5xl items-end gap-6 px-6 pb-8 pt-12 h-full">
           {(steamLink.avatar_url ?? profile?.avatar_url) ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -150,7 +149,7 @@ export default async function PerfilPublicoPage(props: PageProps) {
           </div>
         </section>
       </div>
-    </main>
+    </ClientShell>
   );
 }
 

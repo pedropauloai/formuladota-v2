@@ -16,7 +16,13 @@ const TABS = [
   { href: "/codigo-de-conduta", label: "Conduta" },
 ];
 
-export function DashboardTopBar({ isAdmin }: { isAdmin: boolean }) {
+export function DashboardTopBar({
+  isAdmin,
+  currentRoute,
+}: {
+  isAdmin: boolean;
+  currentRoute?: string;
+}) {
   return (
     <header className="relative z-20 flex h-14 shrink-0 items-center justify-between border-b border-[var(--color-border)] bg-gradient-to-b from-black/95 to-black/80 px-4 backdrop-blur-md xl:h-16 xl:px-6">
       {/* Esquerda — Logo + Tabs */}
@@ -33,9 +39,20 @@ export function DashboardTopBar({ isAdmin }: { isAdmin: boolean }) {
         </Link>
         <nav aria-label="Navegação principal" className="hidden lg:flex items-center gap-1">
           {TABS.map((t) => (
-            <TopBarTab key={t.href} href={t.href} label={t.label} />
+            <TopBarTab
+              key={t.href}
+              href={t.href}
+              label={t.label}
+              active={currentRoute?.startsWith(t.href) ?? false}
+            />
           ))}
-          {isAdmin && <TopBarTab href="/admin/dashboard" label="Admin" />}
+          {isAdmin && (
+            <TopBarTab
+              href="/admin/dashboard"
+              label="Admin"
+              active={currentRoute?.startsWith("/admin") ?? false}
+            />
+          )}
         </nav>
       </div>
 
@@ -65,11 +82,24 @@ export function DashboardTopBar({ isAdmin }: { isAdmin: boolean }) {
   );
 }
 
-function TopBarTab({ href, label }: { href: string; label: string }) {
+function TopBarTab({
+  href,
+  label,
+  active,
+}: {
+  href: string;
+  label: string;
+  active?: boolean;
+}) {
   return (
     <Link
       href={href}
-      className="rounded-md px-3 py-1.5 font-sans text-xs font-semibold uppercase tracking-[0.15em] text-white/70 transition-colors hover:bg-white/5 hover:text-white xl:px-4 xl:text-sm xl:tracking-[0.2em]"
+      aria-current={active ? "page" : undefined}
+      className={`rounded-md px-3 py-1.5 font-sans text-xs font-semibold uppercase tracking-[0.15em] transition-colors xl:px-4 xl:text-sm xl:tracking-[0.2em] ${
+        active
+          ? "bg-[var(--color-brand-red)]/15 text-white border-b-2 border-[var(--color-brand-red)] rounded-b-none"
+          : "text-white/70 hover:bg-white/5 hover:text-white"
+      }`}
     >
       {label}
     </Link>

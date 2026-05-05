@@ -12,7 +12,7 @@ import { redirect } from "next/navigation";
 import { Crown } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { AssinaturaCard } from "./assinatura-card";
-import { DotaBackdrop } from "@/components/dota/dota-backdrop";
+import { ClientShell } from "@/components/client-shell/shell";
 
 export const metadata: Metadata = {
   title: "Assinatura — FORMULADOTA",
@@ -51,9 +51,8 @@ export default async function AssinaturaPage() {
   const subscription = subscriptions?.[0] ?? null;
 
   return (
-    <main className="relative min-h-screen px-6 py-16">
-      <DotaBackdrop />
-      <div className="relative z-10 mx-auto max-w-3xl">
+    <ClientShell currentRoute="/assinatura">
+      <div className="px-6 py-10 mx-auto max-w-3xl">
         <header className="mb-12 text-center">
           <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
             Assinatura
@@ -88,6 +87,6 @@ export default async function AssinaturaPage() {
           </>
         )}
       </div>
-    </main>
+    </ClientShell>
   );
 }

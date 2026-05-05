@@ -6,7 +6,21 @@
 
 import { usePathname } from "next/navigation";
 
-const FULLSCREEN_ROUTES = ["/dashboard"];
+// Rotas que usam ClientShell (top-bar + sidebars + bottom-bar próprios) em vez do
+// Header/Footer global. Todas pages logged-in usam shell estilo client de matchmaking.
+const FULLSCREEN_ROUTES = [
+  "/dashboard",
+  "/lobbies",
+  "/ranking",
+  "/me",
+  "/perfil",
+  "/pacotes",
+  "/checkout",
+  "/assinatura",
+  "/partidas",
+  "/criar-lobby",
+  "/admin",
+];
 
 export function ConditionalChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

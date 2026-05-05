@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Trophy, Search } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { TierBadge } from "@/components/dota/tier-badge";
-import { DotaBackdrop } from "@/components/dota/dota-backdrop";
+import { ClientShell } from "@/components/client-shell/shell";
 
 export const metadata: Metadata = {
   title: "Ranking — FORMULADOTA",
@@ -110,9 +110,8 @@ export default async function RankingPage(props: {
   const listHydrated = rows.map(hydrate);
 
   return (
-    <main className="relative min-h-screen px-6 py-16">
-      <DotaBackdrop />
-      <div className="relative z-10 mx-auto max-w-5xl">
+    <ClientShell currentRoute="/ranking">
+      <div className="px-6 py-10 xl:px-12">
         <header className="mb-12">
           <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
             Ranking
@@ -160,7 +159,7 @@ export default async function RankingPage(props: {
           <EmptyRanking />
         )}
       </div>
-    </main>
+    </ClientShell>
   );
 }
 
@@ -274,41 +273,43 @@ function Pagination({ currentPage }: { currentPage: number }) {
 
 function NoMatchState({ searchTerm, seasonName }: { searchTerm: string; seasonName: string }) {
   return (
-    <main className="relative min-h-screen px-6 py-16">
-      <DotaBackdrop />
-      <div className="relative z-10 mx-auto max-w-2xl text-center space-y-6">
-        <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
-          {seasonName}
-        </p>
-        <h1 className="font-display text-4xl uppercase text-[var(--color-foreground)]">
-          Nenhum resultado pra {`"${searchTerm}"`}
-        </h1>
-        <Link
-          href="/ranking"
-          className="inline-flex items-center gap-2 rounded-md border border-[var(--color-border)] px-6 py-3 font-sans text-sm font-semibold uppercase tracking-wide text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] transition-colors"
-        >
-          ← Voltar ao ranking
-        </Link>
+    <ClientShell currentRoute="/ranking">
+      <div className="px-6 py-20">
+        <div className="mx-auto max-w-2xl text-center space-y-6">
+          <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
+            {seasonName}
+          </p>
+          <h1 className="font-display text-4xl uppercase text-white">
+            Nenhum resultado pra {`"${searchTerm}"`}
+          </h1>
+          <Link
+            href="/ranking"
+            className="inline-flex items-center gap-2 rounded-md border border-[var(--color-border)] px-6 py-3 font-sans text-sm font-semibold uppercase tracking-wide text-white/70 hover:text-white transition-colors"
+          >
+            ← Voltar ao ranking
+          </Link>
+        </div>
       </div>
-    </main>
+    </ClientShell>
   );
 }
 
 function EmptyRanking() {
   return (
-    <main className="relative min-h-screen px-6 py-16">
-      <DotaBackdrop />
-      <div className="relative z-10 mx-auto max-w-2xl text-center space-y-6">
-        <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
-          Ranking
-        </p>
-        <h1 className="font-display text-4xl uppercase text-[var(--color-foreground)]">
-          Temporada começando
-        </h1>
-        <p className="font-serif text-[var(--color-muted-foreground)]">
-          Ainda sem partidas oficiais. Seja um dos primeiros — ative sua mensalidade e crie um lobby.
-        </p>
+    <ClientShell currentRoute="/ranking">
+      <div className="px-6 py-20">
+        <div className="mx-auto max-w-2xl text-center space-y-6">
+          <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
+            Ranking
+          </p>
+          <h1 className="font-display text-4xl uppercase text-white">
+            Temporada começando
+          </h1>
+          <p className="font-serif text-white/70">
+            Ainda sem partidas oficiais. Seja um dos primeiros — ative sua mensalidade e crie um lobby.
+          </p>
+        </div>
       </div>
-    </main>
+    </ClientShell>
   );
 }

@@ -7,7 +7,7 @@ import { redirect } from "next/navigation";
 import { CheckCircle2, AlertCircle, ArrowRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { TierBadge } from "@/components/dota/tier-badge";
-import { DotaBackdrop } from "@/components/dota/dota-backdrop";
+import { ClientShell } from "@/components/client-shell/shell";
 
 export const metadata: Metadata = { title: "Meu painel — FORMULADOTA" };
 
@@ -58,9 +58,8 @@ export default async function MePage() {
   const subActive = subscription?.status === "authorized";
 
   return (
-    <main className="relative min-h-screen px-6 py-12">
-      <DotaBackdrop />
-      <div className="relative z-10 mx-auto max-w-4xl space-y-10">
+    <ClientShell currentRoute="/me">
+      <div className="px-6 py-10 mx-auto max-w-4xl space-y-10">
         <header className="flex items-center gap-6">
           {(steamLink?.avatar_url ?? profile?.avatar_url) && (
             // eslint-disable-next-line @next/next/no-img-element
@@ -157,7 +156,7 @@ export default async function MePage() {
           <ActionCard href="/ranking" label="Ranking" />
         </section>
       </div>
-    </main>
+    </ClientShell>
   );
 }
 
