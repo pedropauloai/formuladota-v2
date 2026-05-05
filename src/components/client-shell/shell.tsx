@@ -188,8 +188,22 @@ export async function ClientShell({
           </div>
         )}
 
-        {/* Center — children renderiza no espaço entre as duas sidebars */}
-        <main className="absolute inset-0 top-[64px] xl:top-[72px] bottom-[64px] xl:bottom-[80px] z-10 overflow-y-auto">
+        {/* Center — children renderiza no espaço entre as duas sidebars overlay.
+            Padding lateral pra não sobrepor os cards flutuantes do left-sidebar
+            (e do right quando providenciado). */}
+        <main
+          className={`absolute inset-0 top-[64px] xl:top-[72px] bottom-[64px] xl:bottom-[80px] z-10 overflow-y-auto ${
+            !hideLeftSidebar
+              ? "lg:pl-[300px] xl:pl-[320px] 2xl:pl-[340px]"
+              : ""
+          } ${
+            rightSidebar !== undefined
+              ? wideRightSidebar
+                ? "lg:pr-[480px] xl:pr-[520px] 2xl:pr-[560px]"
+                : "lg:pr-[320px] xl:pr-[360px] 2xl:pr-[380px]"
+              : ""
+          }`}
+        >
           {children}
         </main>
 

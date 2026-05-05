@@ -53,6 +53,12 @@ interface Props {
   leaderUsername: string;
   /** Quando providenciado, mostra botão voltar no header (uso embedded no PlayPanel). */
   onBack?: () => void;
+  /**
+   * Callback após cada Server Action sucesso (join/leave/start). Usado quando
+   * o LobbyRoom é embedded em PlayPanel (Client) — re-fetcha via fetch action
+   * pq router.refresh sozinho não re-roda useEffect+SA.
+   */
+  onMutate?: () => void;
 }
 
 const GAME_MODE_LABELS: Record<string, string> = {
@@ -69,6 +75,7 @@ export function LobbyRoom({
   isLeader,
   leaderUsername,
   onBack,
+  onMutate,
 }: Props) {
   const teamSize = Math.floor(lobby.maxPlayers / 2);
   const team1 = players.filter((p) => p.team === "radiant");
@@ -120,7 +127,7 @@ export function LobbyRoom({
       {/* Times — 2 cols */}
       <section className="grid grid-cols-2 divide-x divide-[var(--color-border)] border-b border-[var(--color-border)]">
         <TeamColumn
-          label="Time 1"
+          label="Os Iluminados"
           accent="cyan"
           team="radiant"
           players={team1}
@@ -130,9 +137,10 @@ export function LobbyRoom({
           leaderId={lobby.createdBy}
           currentTeam={myTeam}
           disabled={!canEdit}
+          onMutate={onMutate}
         />
         <TeamColumn
-          label="Time 2"
+          label="Os Temidos"
           accent="red"
           team="dire"
           players={team2}
@@ -142,6 +150,7 @@ export function LobbyRoom({
           leaderId={lobby.createdBy}
           currentTeam={myTeam}
           disabled={!canEdit}
+          onMutate={onMutate}
         />
       </section>
 
@@ -152,6 +161,7 @@ export function LobbyRoom({
         currentUserId={currentUserId}
         currentTeam={myTeam}
         disabled={!canEdit}
+        onMutate={onMutate}
       />
 
       {/* Configurações da sala (read-only) */}
@@ -211,6 +221,7 @@ function TeamColumn({
   leaderId,
   currentTeam,
   disabled,
+  onMutate,
 }: {
   label: string;
   accent: "cyan" | "red";
@@ -222,6 +233,7 @@ function TeamColumn({
   leaderId: string;
   currentTeam: string | null;
   disabled: boolean;
+  onMutate?: () => void;
 }) {
   const a = TEAM_ACCENTS[accent];
   const slots = Array.from({ length: size }, (_, i) => players[i] ?? null);
@@ -252,6 +264,7 @@ function TeamColumn({
             leaderId={leaderId}
             currentTeam={currentTeam}
             disabled={disabled}
+            onMutate={onMutate}
           />
         ))}
       </ol>
@@ -268,6 +281,7 @@ function PlayerSlotRow({
   leaderId,
   currentTeam,
   disabled,
+  onMutate,
 }: {
   slot: PlayerSlot | null;
   team: "radiant" | "dire";
@@ -277,6 +291,7 @@ function PlayerSlotRow({
   leaderId: string;
   currentTeam: string | null;
   disabled: boolean;
+  onMutate?: () => void;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -290,6 +305,7 @@ function PlayerSlotRow({
         return;
       }
       router.refresh();
+      onMutate?.();
     });
   };
 
@@ -301,6 +317,7 @@ function PlayerSlotRow({
         return;
       }
       router.refresh();
+      onMutate?.();
     });
   };
 
@@ -388,12 +405,14 @@ function SpectatorRow({
   currentUserId,
   currentTeam,
   disabled,
+  onMutate,
 }: {
   spectators: PlayerSlot[];
   lobbyId: string;
   currentUserId: string;
   currentTeam: string | null;
   disabled: boolean;
+  onMutate?: () => void;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -406,6 +425,7 @@ function SpectatorRow({
         return;
       }
       router.refresh();
+      onMutate?.();
     });
   };
 
@@ -414,6 +434,8 @@ function SpectatorRow({
       const fd = new FormData();
       fd.set("lobbyId", lobbyId);
       await leaveLobby(fd);
+      router.refresh();
+      onMutate?.();
     });
   };
 
