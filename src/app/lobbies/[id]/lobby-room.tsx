@@ -167,19 +167,20 @@ export function LobbyRoom({
       {/* Configurações da sala (read-only) */}
       <SettingsPanel lobby={lobby} isLeader={isLeader} />
 
-      {/* Ações finais */}
+      {/* Ações finais — leader: 1 botão único "Encerrar sala" (descarta tudo);
+          member: "Sair da sala". Não existe sala sem dono. */}
       <div className="mt-auto border-t border-[var(--color-border)] bg-black/60 p-3 space-y-2">
-        {inLobby ? (
-          <LeaveLobbyButton lobbyId={lobby.id} />
-        ) : (
+        {!inLobby && (
           <p className="text-center font-mono text-[10px] uppercase tracking-widest text-white/30 py-2">
             Você não está na sala
           </p>
         )}
 
+        {inLobby && !isLeader && <LeaveLobbyButton lobbyId={lobby.id} />}
+
         {isLeader && (
           <>
-            <CancelLobbyButton lobbyId={lobby.id} />
+            <EndLobbyButton lobbyId={lobby.id} />
             <StartMatchButton
               lobbyId={lobby.id}
               disabled={lobby.status !== "open"}
@@ -637,15 +638,25 @@ function LeaveLobbyButton({ lobbyId }: { lobbyId: string }) {
   );
 }
 
-function CancelLobbyButton({ lobbyId }: { lobbyId: string }) {
+function EndLobbyButton({ lobbyId }: { lobbyId: string }) {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    if (
+      !confirm(
+        "Encerrar a sala? Como líder, sua saída descarta a sala e remove todos os jogadores. Não é possível desfazer."
+      )
+    ) {
+      e.preventDefault();
+    }
+  };
+
   return (
-    <form action={cancelLobby}>
+    <form action={cancelLobby} onSubmit={handleSubmit}>
       <input type="hidden" name="lobbyId" value={lobbyId} />
       <button
         type="submit"
-        className="w-full inline-flex items-center justify-center gap-2 rounded-sm border border-white/10 bg-black/40 px-4 py-2 font-sans text-[10px] font-semibold uppercase tracking-[0.2em] text-white/60 hover:bg-[var(--color-danger)]/20 hover:border-[var(--color-danger)] hover:text-white transition-colors"
+        className="w-full inline-flex items-center justify-center gap-2 rounded-sm border border-[var(--color-danger)]/30 bg-black/40 px-4 py-2.5 font-sans text-[11px] font-semibold uppercase tracking-[0.2em] text-white/70 hover:bg-[var(--color-danger)]/20 hover:border-[var(--color-danger)] hover:text-white transition-colors"
       >
-        Cancelar sala
+        Encerrar sala
       </button>
     </form>
   );

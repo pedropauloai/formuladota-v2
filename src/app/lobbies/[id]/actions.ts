@@ -101,7 +101,11 @@ export async function joinTeam(input: {
 }
 
 /**
- * Sai do lobby — DELETE row de lobby_players + redirect /lobbies.
+ * Sai do lobby. Comportamento depende se user é o líder:
+ * - Líder saindo → DELETE FROM lobbies (cascade limpa lobby_players +
+ *   trigger 020 libera bot do pool). Lobby é descartado — não pode existir
+ *   sala sem dono.
+ * - Member/spectator saindo → DELETE FROM lobby_players (lobby continua).
  */
 export async function leaveLobby(formData: FormData): Promise<void> {
   const lobbyId = formData.get("lobbyId");
@@ -113,13 +117,25 @@ export async function leaveLobby(formData: FormData): Promise<void> {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  await supabase
-    .from("lobby_players")
-    .delete()
-    .eq("lobby_id", lobbyId)
-    .eq("user_id", user.id);
+  const { data: lobby } = await supabase
+    .from("lobbies")
+    .select("created_by")
+    .eq("id", lobbyId)
+    .single();
 
-  redirect("/lobbies");
+  if (lobby?.created_by === user.id) {
+    // Líder saiu → descarta lobby (cascade lobby_players + trigger libera bot)
+    await supabase.from("lobbies").delete().eq("id", lobbyId);
+  } else {
+    // Member/spectator → só remove o player
+    await supabase
+      .from("lobby_players")
+      .delete()
+      .eq("lobby_id", lobbyId)
+      .eq("user_id", user.id);
+  }
+
+  redirect("/dashboard?play=lobbies-list");
 }
 
 /**
@@ -159,17 +175,15 @@ export async function startMatch(input: {
 }
 
 /**
- * Cancela o lobby (líder/admin). UPDATE status='cancelled' + redirect.
+ * Encerra o lobby (líder/admin). DELETE FROM lobbies + cascade lobby_players +
+ * trigger libera bot. Lobby some completamente — não pode existir sala sem dono.
  */
 export async function cancelLobby(formData: FormData): Promise<void> {
   const lobbyId = formData.get("lobbyId");
   if (typeof lobbyId !== "string") return;
 
   const supabase = await createClient();
-  await supabase
-    .from("lobbies")
-    .update({ status: "cancelled" })
-    .eq("id", lobbyId);
+  await supabase.from("lobbies").delete().eq("id", lobbyId);
 
-  redirect("/lobbies");
+  redirect("/dashboard?play=lobbies-list");
 }

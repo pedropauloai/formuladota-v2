@@ -110,10 +110,9 @@ export async function cancelLobby(formData: FormData): Promise<void> {
   if (typeof lobbyId !== "string") return;
 
   const supabase = await createClient();
-  await supabase
-    .from("lobbies")
-    .update({ status: "cancelled" })
-    .eq("id", lobbyId);
+  // DELETE FROM lobbies — cascade lobby_players + trigger libera bot.
+  // Lobby some completamente — não pode existir sala sem dono.
+  await supabase.from("lobbies").delete().eq("id", lobbyId);
 
-  redirect("/lobbies");
+  redirect("/dashboard?play=lobbies-list");
 }
