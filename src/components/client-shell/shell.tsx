@@ -160,7 +160,7 @@ export async function ClientShell({
 
         {/* Left sidebar overlay flutuante */}
         {!hideLeftSidebar && (
-          <div className="hidden lg:flex absolute left-0 top-[64px] xl:top-[72px] bottom-[64px] xl:bottom-[80px] z-20 w-[300px] xl:w-[320px] 2xl:w-[340px]">
+          <div className="hidden lg:flex absolute left-0 top-[64px] xl:top-[72px] bottom-[80px] xl:bottom-[96px] z-20 w-[340px] xl:w-[400px] 2xl:w-[460px]">
             <DashboardLeftSidebar
               persona={persona}
               avatar={avatar}
@@ -176,7 +176,7 @@ export async function ClientShell({
         {/* Right sidebar overlay (se providenciado) */}
         {rightSidebar !== undefined && (
           <div
-            className={`hidden lg:flex absolute right-0 top-[64px] xl:top-[72px] bottom-[64px] xl:bottom-[80px] z-20 ${
+            className={`hidden lg:flex absolute right-0 top-[64px] xl:top-[72px] bottom-[80px] xl:bottom-[96px] z-20 ${
               wideRightSidebar
                 ? "w-[480px] xl:w-[520px] 2xl:w-[560px]"
                 : "w-[320px] xl:w-[360px] 2xl:w-[380px]"
@@ -190,11 +190,12 @@ export async function ClientShell({
 
         {/* Center — children renderiza no espaço entre as duas sidebars overlay.
             Padding lateral pra não sobrepor os cards flutuantes do left-sidebar
-            (e do right quando providenciado). */}
+            (e do right quando providenciado). bottom-[80px] reserva espaço pro
+            botão JOGAR DOTA maior (h-14/h-16/h-20). */}
         <main
-          className={`absolute inset-0 top-[64px] xl:top-[72px] bottom-[64px] xl:bottom-[80px] z-10 overflow-y-auto ${
+          className={`absolute inset-0 top-[64px] xl:top-[72px] bottom-[80px] xl:bottom-[96px] z-10 overflow-y-auto ${
             !hideLeftSidebar
-              ? "lg:pl-[300px] xl:pl-[320px] 2xl:pl-[340px]"
+              ? "lg:pl-[340px] xl:pl-[400px] 2xl:pl-[460px]"
               : ""
           } ${
             rightSidebar !== undefined
@@ -246,8 +247,8 @@ export async function ClientShell({
               ? "grid flex-1 min-h-0 grid-cols-1 lg:grid-cols-[1fr_480px] xl:grid-cols-[1fr_520px] 2xl:grid-cols-[1fr_560px]"
               : "grid flex-1 min-h-0 grid-cols-1 lg:grid-cols-[1fr_320px] xl:grid-cols-[1fr_360px] 2xl:grid-cols-[1fr_380px]"
             : wideRightSidebar
-              ? "grid flex-1 min-h-0 grid-cols-1 lg:grid-cols-[300px_1fr_480px] xl:grid-cols-[320px_1fr_520px] 2xl:grid-cols-[340px_1fr_560px]"
-              : "grid flex-1 min-h-0 grid-cols-1 lg:grid-cols-[300px_1fr_320px] xl:grid-cols-[320px_1fr_360px] 2xl:grid-cols-[340px_1fr_380px]"
+              ? "grid flex-1 min-h-0 grid-cols-1 lg:grid-cols-[340px_1fr_480px] xl:grid-cols-[400px_1fr_520px] 2xl:grid-cols-[460px_1fr_560px]"
+              : "grid flex-1 min-h-0 grid-cols-1 lg:grid-cols-[340px_1fr_320px] xl:grid-cols-[400px_1fr_360px] 2xl:grid-cols-[460px_1fr_380px]"
         }
       >
         {!hideLeftSidebar && (

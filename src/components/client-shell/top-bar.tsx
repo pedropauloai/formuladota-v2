@@ -1,22 +1,19 @@
-// Top Bar do dashboard — réplica do top do Dota 2 client.
-// Esquerda: logo + tabs (LOBBIES · RANKING · PACOTES · ASSINATURA · ADMIN se admin).
-// Centro: banner notification (placeholder pro Pedro vincular depois — tipo "Conquiste prêmios da temporada...")
-// Direita: stats / saldo (placeholder) + ícones (notification + settings)
+// Top Bar — réplica do header do Dota 2 client.
+// Esquerda: logo + separador + settings (gear) + tabs
+// Centro: banner notification (placeholder)
+// Direita: yellow subscription badge (FORMULA+ pra /assinatura) + bell + logout
 
 import Image from "next/image";
 import Link from "next/link";
-import { Bell, Settings, LogOut } from "lucide-react";
+import { Bell, Settings, LogOut, Star } from "lucide-react";
 import { signOut } from "@/app/login/actions";
 
-// Top-bar mostra apenas pages de navegação geral — fluxo "Jogar / Criar lobby"
-// vive no PlayPanel (botão verde no bottom-bar). Tab Lobbies removida (redundância
-// com PlayPanel > Salas Personalizadas > Navegar).
+// Tabs apenas pra navegação não-monetização. /pacotes e /assinatura entram
+// via SubscriptionBadge (yellow Formula+ no canto direito).
 const TABS = [
   { href: "/ranking", label: "Ranking" },
   { href: "/times", label: "Times" },
   { href: "/torneios", label: "Torneios" },
-  { href: "/pacotes", label: "Pacotes" },
-  { href: "/assinatura", label: "Assinatura" },
   { href: "/codigo-de-conduta", label: "Conduta" },
 ];
 
@@ -27,9 +24,13 @@ export function DashboardTopBar({
 }) {
   return (
     <header className="relative z-20 flex h-14 shrink-0 items-center justify-between bg-gradient-to-b from-black/85 via-black/55 to-transparent px-4 backdrop-blur-md xl:h-16 xl:px-6">
-      {/* Esquerda — Logo + Tabs */}
-      <div className="flex items-center gap-2 xl:gap-6">
-        <Link href="/dashboard" aria-label="FORMULADOTA — dashboard" className="shrink-0">
+      {/* Esquerda — Logo + separador + Settings + Tabs */}
+      <div className="flex items-center gap-2 xl:gap-4">
+        <Link
+          href="/dashboard"
+          aria-label="FORMULADOTA — dashboard"
+          className="shrink-0"
+        >
           <Image
             src="/brand/logo-horizontal.png"
             alt="FORMULADOTA"
@@ -39,7 +40,19 @@ export function DashboardTopBar({
             className="h-7 w-auto xl:h-8"
           />
         </Link>
-        <nav aria-label="Navegação principal" className="hidden lg:flex items-center gap-1">
+
+        {/* Separador vertical entre logo e settings */}
+        <div className="h-6 w-px bg-white/15 xl:h-8 xl:mx-1" aria-hidden="true" />
+
+        <TopBarIcon icon={Settings} label="Configurações" href="/me" />
+
+        {/* Outro separador entre settings e tabs */}
+        <div className="h-6 w-px bg-white/15 xl:h-8 xl:mx-1" aria-hidden="true" />
+
+        <nav
+          aria-label="Navegação principal"
+          className="hidden lg:flex items-center gap-1"
+        >
           {TABS.map((t) => (
             <TopBarTab
               key={t.href}
@@ -48,22 +61,23 @@ export function DashboardTopBar({
               active={currentRoute?.startsWith(t.href) ?? false}
             />
           ))}
-          {/* Admin tab oculta — acesso só via URL direta /admin/dashboard */}
         </nav>
       </div>
 
-      {/* Centro — Banner notification (placeholder — Pedro vincula após) */}
+      {/* Centro — Banner notification (placeholder) */}
       <div className="hidden xl:flex items-center gap-2 rounded-md border border-[var(--color-brand-red)]/30 bg-[var(--color-brand-red)]/5 px-4 py-1.5">
         <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--color-brand-red)]/80">
           Temporada Genesis
         </span>
-        <span className="text-xs text-white/70">— Premiação por patrocinadores em breve</span>
+        <span className="text-xs text-white/70">
+          — Premiação por patrocinadores em breve
+        </span>
       </div>
 
-      {/* Direita — ícones */}
-      <div className="flex items-center gap-1 xl:gap-2">
+      {/* Direita — Yellow subscription badge + Bell + LogOut */}
+      <div className="flex items-center gap-1.5 xl:gap-2">
+        <SubscriptionBadge />
         <TopBarIcon icon={Bell} label="Notificações" />
-        <TopBarIcon icon={Settings} label="Configurações" href="/me" />
         <form action={signOut}>
           <button
             type="submit"
@@ -75,6 +89,22 @@ export function DashboardTopBar({
         </form>
       </div>
     </header>
+  );
+}
+
+function SubscriptionBadge() {
+  // Yellow gradient badge — entry point pra subscription / store FORMULADOTA.
+  // V2 pode receber status sub via prop pra mudar label dinamicamente
+  // (ex: "Ativa" vs "Assinar" baseado em subscription.status).
+  return (
+    <Link
+      href="/assinatura"
+      aria-label="Assinatura FORMULA+"
+      className="group inline-flex items-center gap-1.5 rounded-md border border-amber-400/70 bg-gradient-to-b from-amber-300 to-amber-500 px-3 py-1.5 font-display text-xs font-bold uppercase tracking-[0.15em] text-black shadow-md shadow-amber-500/40 hover:brightness-110 hover:shadow-amber-400/60 transition-all xl:px-4 xl:py-2 xl:text-sm xl:tracking-[0.2em]"
+    >
+      <Star size={12} fill="currentColor" aria-hidden="true" />
+      <span>Formula+</span>
+    </Link>
   );
 }
 
