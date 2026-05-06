@@ -896,6 +896,256 @@ export type Database = {
           },
         ]
       }
+      team_invites: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          invited_by: string | null
+          invited_user_id: string
+          message: string | null
+          responded_at: string | null
+          status: string
+          team_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          invited_by?: string | null
+          invited_user_id: string
+          message?: string | null
+          responded_at?: string | null
+          status?: string
+          team_id: string
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          invited_by?: string | null
+          invited_user_id?: string
+          message?: string | null
+          responded_at?: string | null
+          status?: string
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_invites_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_members: {
+        Row: {
+          joined_at: string | null
+          role: string
+          team_id: string
+          user_id: string
+        }
+        Insert: {
+          joined_at?: string | null
+          role?: string
+          team_id: string
+          user_id: string
+        }
+        Update: {
+          joined_at?: string | null
+          role?: string
+          team_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teams: {
+        Row: {
+          captain_id: string
+          created_at: string | null
+          description: string | null
+          id: string
+          logo_url: string | null
+          name: string
+          slug: string
+          tag: string
+          updated_at: string | null
+        }
+        Insert: {
+          captain_id: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          logo_url?: string | null
+          name: string
+          slug: string
+          tag: string
+          updated_at?: string | null
+        }
+        Update: {
+          captain_id?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          logo_url?: string | null
+          name?: string
+          slug?: string
+          tag?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      tournament_matches: {
+        Row: {
+          bracket_position: number
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          lobby_id: string | null
+          notes: string | null
+          round: number
+          scheduled_at: string | null
+          score_a: number | null
+          score_b: number | null
+          started_at: string | null
+          status: Database["public"]["Enums"]["match_status"]
+          team_a_id: string | null
+          team_b_id: string | null
+          tournament_id: string
+          winner_team_id: string | null
+        }
+        Insert: {
+          bracket_position: number
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          lobby_id?: string | null
+          notes?: string | null
+          round: number
+          scheduled_at?: string | null
+          score_a?: number | null
+          score_b?: number | null
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["match_status"]
+          team_a_id?: string | null
+          team_b_id?: string | null
+          tournament_id: string
+          winner_team_id?: string | null
+        }
+        Update: {
+          bracket_position?: number
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          lobby_id?: string | null
+          notes?: string | null
+          round?: number
+          scheduled_at?: string | null
+          score_a?: number | null
+          score_b?: number | null
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["match_status"]
+          team_a_id?: string | null
+          team_b_id?: string | null
+          tournament_id?: string
+          winner_team_id?: string | null
+        }
+        Relationships: []
+      }
+      tournament_teams: {
+        Row: {
+          eliminated_at: string | null
+          registered_at: string | null
+          seed: number | null
+          team_id: string
+          tournament_id: string
+        }
+        Insert: {
+          eliminated_at?: string | null
+          registered_at?: string | null
+          seed?: number | null
+          team_id: string
+          tournament_id: string
+        }
+        Update: {
+          eliminated_at?: string | null
+          registered_at?: string | null
+          seed?: number | null
+          team_id?: string
+          tournament_id?: string
+        }
+        Relationships: []
+      }
+      tournaments: {
+        Row: {
+          banner_url: string | null
+          completed_at: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          format: Database["public"]["Enums"]["tournament_format"]
+          id: string
+          max_teams: number
+          name: string
+          prize_pool: number | null
+          prize_pool_currency: string | null
+          registration_ends_at: string | null
+          rules: string | null
+          slug: string
+          starts_at: string | null
+          status: Database["public"]["Enums"]["tournament_status"]
+          updated_at: string | null
+        }
+        Insert: {
+          banner_url?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          format?: Database["public"]["Enums"]["tournament_format"]
+          id?: string
+          max_teams?: number
+          name: string
+          prize_pool?: number | null
+          prize_pool_currency?: string | null
+          registration_ends_at?: string | null
+          rules?: string | null
+          slug: string
+          starts_at?: string | null
+          status?: Database["public"]["Enums"]["tournament_status"]
+          updated_at?: string | null
+        }
+        Update: {
+          banner_url?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          format?: Database["public"]["Enums"]["tournament_format"]
+          id?: string
+          max_teams?: number
+          name?: string
+          prize_pool?: number | null
+          prize_pool_currency?: string | null
+          registration_ends_at?: string | null
+          rules?: string | null
+          slug?: string
+          starts_at?: string | null
+          status?: Database["public"]["Enums"]["tournament_status"]
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       user_badges: {
         Row: {
           badge_id: string
@@ -1074,8 +1324,36 @@ export type Database = {
         }
         Relationships: []
       }
+      tournament_matches_expanded: {
+        Row: {
+          bracket_position: number | null
+          completed_at: string | null
+          created_at: string | null
+          id: string | null
+          lobby_id: string | null
+          notes: string | null
+          round: number | null
+          scheduled_at: string | null
+          score_a: number | null
+          score_b: number | null
+          started_at: string | null
+          status: Database["public"]["Enums"]["match_status"] | null
+          team_a_id: string | null
+          team_a_name: string | null
+          team_a_tag: string | null
+          team_b_id: string | null
+          team_b_name: string | null
+          team_b_tag: string | null
+          tournament_id: string | null
+          winner_name: string | null
+          winner_tag: string | null
+          winner_team_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      accept_team_invite: { Args: { p_invite_id: string }; Returns: undefined }
       ensure_player_season_mmr: {
         Args: { p_user_id: string }
         Returns: undefined
@@ -1098,7 +1376,20 @@ export type Database = {
       reset_dormant_behavior: { Args: never; Returns: number }
     }
     Enums: {
+      match_status:
+        | "scheduled"
+        | "in_progress"
+        | "completed"
+        | "cancelled"
+        | "walkover"
       queue_status: "waiting" | "matched" | "cancelled"
+      tournament_format: "single_elim" | "double_elim" | "round_robin" | "swiss"
+      tournament_status:
+        | "draft"
+        | "open"
+        | "in_progress"
+        | "completed"
+        | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1226,7 +1517,22 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      match_status: [
+        "scheduled",
+        "in_progress",
+        "completed",
+        "cancelled",
+        "walkover",
+      ],
       queue_status: ["waiting", "matched", "cancelled"],
+      tournament_format: ["single_elim", "double_elim", "round_robin", "swiss"],
+      tournament_status: [
+        "draft",
+        "open",
+        "in_progress",
+        "completed",
+        "cancelled",
+      ],
     },
   },
 } as const

@@ -13,6 +13,8 @@ import { signOut } from "@/app/login/actions";
 // com PlayPanel > Salas Personalizadas > Navegar).
 const TABS = [
   { href: "/ranking", label: "Ranking" },
+  { href: "/times", label: "Times" },
+  { href: "/torneios", label: "Torneios" },
   { href: "/pacotes", label: "Pacotes" },
   { href: "/assinatura", label: "Assinatura" },
   { href: "/codigo-de-conduta", label: "Conduta" },
