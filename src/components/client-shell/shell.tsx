@@ -262,7 +262,7 @@ export async function ClientShell({
           />
         )}
 
-        <main className="relative overflow-y-auto">
+        <main className="relative overflow-y-auto pb-[80px] xl:pb-[96px] 2xl:pb-[112px]">
           {centerHero && (
             <div
               className="pointer-events-none absolute inset-0 -z-0"
@@ -291,13 +291,18 @@ export async function ClientShell({
         )}
       </div>
 
-      <DashboardBottomBar
-        persona={persona}
-        avatar={avatar}
-        subActive={subActive}
-        isAdmin={isAdmin}
-        initialPlayState={initialPlayState}
-      />
+      {/* Bottom bar overlay — JOGAR DOTA flutuante absolute, sem reservar
+          espaço vertical (sem footer). Container pointer-events-none —
+          só o botão captura click. */}
+      <div className="absolute bottom-0 inset-x-0 z-30 pointer-events-none">
+        <DashboardBottomBar
+          persona={persona}
+          avatar={avatar}
+          subActive={subActive}
+          isAdmin={isAdmin}
+          initialPlayState={initialPlayState}
+        />
+      </div>
     </div>
   );
 }
