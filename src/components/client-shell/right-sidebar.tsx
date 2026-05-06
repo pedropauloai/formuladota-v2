@@ -31,7 +31,7 @@ interface Props {
 
 export function DashboardRightSidebar({ subActive, nextPayment, isAdmin, lobbies }: Props) {
   return (
-    <aside className="hidden lg:flex flex-col gap-3 bg-gradient-to-l from-black/70 via-black/40 to-transparent p-4 backdrop-blur-sm overflow-y-auto">
+    <aside className="hidden lg:flex flex-col gap-3 bg-gradient-to-l from-black/70 via-black/40 to-transparent p-4 pb-[80px] xl:pb-[96px] 2xl:pb-[112px] backdrop-blur-sm overflow-y-auto">
       {/* Card 1 — News destacada (estilo "Suplemento de Colecionador" do client) */}
       <NewsCard
         eyebrow="Comunidade · Brasil"

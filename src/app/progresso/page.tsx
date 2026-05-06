@@ -27,8 +27,11 @@ export default async function ProgressoPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  // Inicializa user_levels se não existe
-  await supabase.from("user_levels").insert({ user_id: user.id }).select();
+  // Inicializa user_levels se não existe (upsert idempotente — Migration 022
+  // adicionou INSERT policy + trigger init_user_levels_on_profile)
+  await supabase
+    .from("user_levels")
+    .upsert({ user_id: user.id }, { onConflict: "user_id", ignoreDuplicates: true });
 
   const [
     { data: userLevel },
@@ -155,7 +158,7 @@ export default async function ProgressoPage() {
                   </div>
                   <div className="h-2 rounded-full bg-black/60 overflow-hidden">
                     <div
-                      className={`h-full bg-gradient-to-r ${tierConfig.bgGradient} ${tierConfig.color}`}
+                      className={`h-full bg-gradient-to-r ${tierConfig.progressBar}`}
                       style={{ width: `${progressPct}%` }}
                     />
                   </div>
@@ -222,7 +225,7 @@ export default async function ProgressoPage() {
                   key={t}
                   className={`rounded-md border bg-gradient-to-b ${cfg.bgGradient} p-4 text-center space-y-2 ${
                     isCurrent
-                      ? `${cfg.borderColor} ring-2 ring-offset-2 ring-offset-black/50`
+                      ? `${cfg.borderColor} ring-2 ${cfg.ringColor}`
                       : isUnlocked
                         ? cfg.borderColor
                         : "border-white/10 opacity-50"
