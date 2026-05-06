@@ -229,7 +229,7 @@ export function LobbiesContent({ lobbies, onSelectLobby, onCreate }: LobbiesCont
             type="button"
             onClick={handleEnter}
             disabled={!selected}
-            className="w-full inline-flex h-12 items-center justify-center overflow-hidden rounded-sm border border-amber-400/60 bg-gradient-to-b from-amber-400 to-amber-600 px-6 font-display text-sm font-bold uppercase tracking-[0.3em] text-black shadow-lg shadow-amber-500/30 hover:from-amber-300 hover:to-amber-500 hover:shadow-amber-400/50 transition-all disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:from-amber-400 disabled:hover:to-amber-600"
+            className="w-full inline-flex h-12 items-center justify-center overflow-hidden rounded-sm border border-[var(--color-play-green)] bg-gradient-to-b from-[var(--color-play-green)] to-[var(--color-play-green-dark)] px-6 font-display text-sm font-bold uppercase tracking-[0.3em] text-white shadow-lg shadow-[var(--color-play-green)]/30 hover:brightness-110 hover:shadow-[var(--color-play-green)]/50 transition-all disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:brightness-100"
           >
             Entrar na sala
           </button>

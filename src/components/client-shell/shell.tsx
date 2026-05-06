@@ -155,7 +155,7 @@ export async function ClientShell({
 
         {/* Top-bar overlay */}
         <div className="absolute top-0 inset-x-0 z-30">
-          <DashboardTopBar isAdmin={isAdmin} currentRoute={currentRoute} />
+          <DashboardTopBar currentRoute={currentRoute} />
         </div>
 
         {/* Left sidebar overlay flutuante */}
@@ -237,7 +237,7 @@ export async function ClientShell({
         aria-hidden="true"
       />
 
-      <DashboardTopBar isAdmin={isAdmin} currentRoute={currentRoute} />
+      <DashboardTopBar currentRoute={currentRoute} />
 
       <div
         className={

@@ -21,10 +21,8 @@ const TABS = [
 ];
 
 export function DashboardTopBar({
-  isAdmin,
   currentRoute,
 }: {
-  isAdmin: boolean;
   currentRoute?: string;
 }) {
   return (
@@ -50,13 +48,7 @@ export function DashboardTopBar({
               active={currentRoute?.startsWith(t.href) ?? false}
             />
           ))}
-          {isAdmin && (
-            <TopBarTab
-              href="/admin/dashboard"
-              label="Admin"
-              active={currentRoute?.startsWith("/admin") ?? false}
-            />
-          )}
+          {/* Admin tab oculta — acesso só via URL direta /admin/dashboard */}
         </nav>
       </div>
 

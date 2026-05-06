@@ -49,7 +49,7 @@ export function TournamentRegisterButton({
         type="button"
         onClick={() => handleRegister(singleTeam.id)}
         disabled={isPending}
-        className="inline-flex h-12 items-center gap-2 rounded-md border border-amber-400/60 bg-gradient-to-b from-amber-400 to-amber-600 px-6 font-display text-sm 2xl:text-base font-bold uppercase tracking-[0.25em] text-black shadow-lg shadow-amber-500/30 hover:from-amber-300 hover:to-amber-500 transition-all disabled:opacity-50"
+        className="inline-flex h-12 items-center gap-2 rounded-md border border-[var(--color-play-green)] bg-gradient-to-b from-[var(--color-play-green)] to-[var(--color-play-green-dark)] px-6 font-display text-sm 2xl:text-base font-bold uppercase tracking-[0.25em] text-white shadow-lg shadow-[var(--color-play-green)]/30 hover:brightness-110 hover:shadow-[var(--color-play-green)]/50 transition-all disabled:opacity-50"
       >
         {isPending ? <Loader2 size={14} className="animate-spin" /> : <Trophy size={14} />}
         Inscrever {singleTeam.name}
@@ -63,7 +63,7 @@ export function TournamentRegisterButton({
         type="button"
         onClick={() => setShowDropdown(!showDropdown)}
         disabled={isPending}
-        className="inline-flex h-12 items-center gap-2 rounded-md border border-amber-400/60 bg-gradient-to-b from-amber-400 to-amber-600 px-6 font-display text-sm 2xl:text-base font-bold uppercase tracking-[0.25em] text-black shadow-lg shadow-amber-500/30 hover:from-amber-300 hover:to-amber-500 transition-all disabled:opacity-50"
+        className="inline-flex h-12 items-center gap-2 rounded-md border border-[var(--color-play-green)] bg-gradient-to-b from-[var(--color-play-green)] to-[var(--color-play-green-dark)] px-6 font-display text-sm 2xl:text-base font-bold uppercase tracking-[0.25em] text-white shadow-lg shadow-[var(--color-play-green)]/30 hover:brightness-110 hover:shadow-[var(--color-play-green)]/50 transition-all disabled:opacity-50"
       >
         {isPending ? <Loader2 size={14} className="animate-spin" /> : <Trophy size={14} />}
         Inscrever time

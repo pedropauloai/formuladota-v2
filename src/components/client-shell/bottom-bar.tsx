@@ -1,11 +1,12 @@
-// Bottom Bar do dashboard com Play button verde gigante.
-// Click no Play abre PlayPanel overlay direito (estilo client de matchmaking).
+// Bottom bar minimal — só o botão JOGAR DOTA flutuante à direita.
+// Sem footer, sem chat input, sem counter — visual de client de jogo.
+// Click abre PlayPanel overlay direito.
 
 "use client";
 
 import { useState } from "react";
 import Link from "next/link";
-import { Play, MessageSquare, Users } from "lucide-react";
+import { Play } from "lucide-react";
 import { PlayPanel } from "./play-panel";
 
 type PlayState =
@@ -24,7 +25,7 @@ interface Props {
   initialPlayState?: PlayState;
 }
 
-export function DashboardBottomBar({ persona, avatar, subActive, isAdmin, initialPlayState }: Props) {
+export function DashboardBottomBar({ subActive, isAdmin, initialPlayState }: Props) {
   const [panelOpen, setPanelOpen] = useState(initialPlayState !== undefined);
 
   // Se sub inativa e não-admin, redireciona pra assinatura em vez de abrir painel
@@ -32,47 +33,11 @@ export function DashboardBottomBar({ persona, avatar, subActive, isAdmin, initia
 
   return (
     <>
-      <footer className="relative z-20 flex h-16 shrink-0 items-center justify-between gap-3 bg-gradient-to-t from-black/85 via-black/55 to-transparent px-3 backdrop-blur-md xl:h-20 xl:px-6">
-        {/* Esquerda — Avatar mini + chat input placeholder */}
-        <div className="flex items-center gap-3 min-w-0 flex-1">
-          {avatar ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={avatar}
-              alt=""
-              className="size-9 shrink-0 rounded-full border border-[var(--color-border)]"
-            />
-          ) : (
-            <div className="size-9 shrink-0 rounded-full border border-[var(--color-border)] bg-[var(--color-card)]" />
-          )}
-          <div className="hidden md:flex items-center gap-2 rounded-md border border-[var(--color-border)] bg-black/40 px-3 py-2 flex-1 max-w-md">
-            <MessageSquare size={12} className="text-white/40 shrink-0" aria-hidden="true" />
-            <input
-              type="text"
-              placeholder={`Mensagem como ${persona}...`}
-              className="flex-1 bg-transparent text-xs text-white placeholder:text-white/40 focus:outline-none"
-              disabled
-              aria-label="Chat (em breve)"
-            />
-            <span className="font-mono text-[10px] text-white/30 shrink-0">0/256</span>
-          </div>
-        </div>
-
-        {/* Centro — Counter (placeholder) */}
-        <div className="hidden xl:flex items-center gap-3 px-4">
-          <div className="flex items-center gap-1.5 text-white/50">
-            <Users size={12} aria-hidden="true" />
-            <span className="font-mono text-[11px] uppercase tracking-widest">
-              Online · em breve
-            </span>
-          </div>
-        </div>
-
-        {/* Direita — BOTÃO GIGANTE VERDE "JOGAR" */}
+      <div className="relative z-20 flex h-16 shrink-0 items-center justify-end px-4 xl:h-20 xl:px-6 pointer-events-none">
         {blocked ? (
           <Link
             href="/assinatura"
-            className="group relative flex h-12 items-center gap-2 overflow-hidden rounded-md border-2 border-[var(--color-warning)] bg-gradient-to-b from-[var(--color-warning)]/30 to-[var(--color-warning)]/10 px-6 font-display text-base font-bold uppercase tracking-[0.2em] text-white shadow-lg transition-all hover:scale-[1.02] xl:h-14 xl:px-10 xl:text-lg xl:tracking-[0.3em]"
+            className="pointer-events-auto group relative flex h-12 items-center gap-2 overflow-hidden rounded-md border-2 border-[var(--color-warning)] bg-gradient-to-b from-[var(--color-warning)]/30 to-[var(--color-warning)]/10 px-6 font-display text-base font-bold uppercase tracking-[0.2em] text-white shadow-lg transition-all hover:scale-[1.02] xl:h-14 xl:px-10 xl:text-lg xl:tracking-[0.3em]"
           >
             <Play size={18} fill="currentColor" aria-hidden="true" />
             <span>Ativar mensalidade</span>
@@ -83,20 +48,18 @@ export function DashboardBottomBar({ persona, avatar, subActive, isAdmin, initia
             onClick={() => setPanelOpen(true)}
             aria-expanded={panelOpen}
             aria-label="Abrir painel de jogo"
-            className="group relative flex h-12 items-center gap-2 overflow-hidden rounded-md border-2 border-[var(--color-play-green)] bg-gradient-to-b from-[var(--color-play-green)] to-[var(--color-play-green-dark)] px-6 font-display text-base font-bold uppercase tracking-[0.2em] text-white shadow-lg shadow-[var(--color-play-green)]/40 transition-all hover:scale-[1.02] hover:shadow-[var(--color-play-green)]/60 xl:h-14 xl:px-10 xl:text-lg xl:tracking-[0.3em]"
+            className="pointer-events-auto group relative flex h-12 items-center gap-2 overflow-hidden rounded-md border-2 border-[var(--color-play-green)] bg-gradient-to-b from-[var(--color-play-green)] to-[var(--color-play-green-dark)] px-6 font-display text-base font-bold uppercase tracking-[0.2em] text-white shadow-lg shadow-[var(--color-play-green)]/40 transition-all hover:scale-[1.02] hover:shadow-[var(--color-play-green)]/60 xl:h-14 xl:px-10 xl:text-lg xl:tracking-[0.3em]"
           >
             <Play size={18} fill="currentColor" aria-hidden="true" />
-            <span>Jogar</span>
-            {/* Shine effect */}
+            <span>Jogar Dota</span>
             <span
               className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 group-hover:translate-x-full"
               aria-hidden="true"
             />
           </button>
         )}
-      </footer>
+      </div>
 
-      {/* PlayPanel overlay direito quando aberto */}
       <PlayPanel
         open={panelOpen}
         onClose={() => setPanelOpen(false)}

@@ -156,7 +156,7 @@ function InviteCard({ invite }: { invite: Invite }) {
           type="button"
           onClick={handleAccept}
           disabled={isPending}
-          className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-sm border border-amber-400/60 bg-gradient-to-b from-amber-400 to-amber-600 px-3 py-2 font-sans text-[11px] font-bold uppercase tracking-wide text-black hover:from-amber-300 hover:to-amber-500 transition-all disabled:opacity-50"
+          className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-sm border border-[var(--color-play-green)] bg-gradient-to-b from-[var(--color-play-green)] to-[var(--color-play-green-dark)] px-3 py-2 font-sans text-[11px] font-bold uppercase tracking-wide text-white hover:brightness-110 transition-all disabled:opacity-50"
         >
           {isPending ? (
             <Loader2 size={12} className="animate-spin" />
@@ -406,7 +406,7 @@ function CreateTeamModal({ onClose }: { onClose: () => void }) {
           <button
             type="submit"
             disabled={isPending || name.length < 3 || tag.length < 2 || slug.length < 3}
-            className="flex-1 inline-flex h-11 items-center justify-center gap-2 rounded-sm border border-amber-400/60 bg-gradient-to-b from-amber-400 to-amber-600 px-4 font-display text-sm font-bold uppercase tracking-[0.2em] text-black hover:from-amber-300 hover:to-amber-500 transition-all disabled:opacity-50"
+            className="flex-1 inline-flex h-11 items-center justify-center gap-2 rounded-sm border border-[var(--color-play-green)] bg-gradient-to-b from-[var(--color-play-green)] to-[var(--color-play-green-dark)] px-4 font-display text-sm font-bold uppercase tracking-[0.2em] text-white shadow-lg shadow-[var(--color-play-green)]/30 hover:brightness-110 transition-all disabled:opacity-50"
           >
             {isPending ? <Loader2 size={14} className="animate-spin" /> : null}
             {isPending ? "Criando..." : "Criar time"}
