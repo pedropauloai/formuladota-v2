@@ -26,7 +26,7 @@ export function DashboardTopBar({
   currentRoute?: string;
 }) {
   return (
-    <header className="relative z-20 flex h-14 shrink-0 items-center justify-between border-b border-[var(--color-border)] bg-gradient-to-b from-black/95 to-black/80 px-4 backdrop-blur-md xl:h-16 xl:px-6">
+    <header className="relative z-20 flex h-14 shrink-0 items-center justify-between bg-gradient-to-b from-black/85 via-black/55 to-transparent px-4 backdrop-blur-md xl:h-16 xl:px-6">
       {/* Esquerda — Logo + Tabs */}
       <div className="flex items-center gap-2 xl:gap-6">
         <Link href="/dashboard" aria-label="FORMULADOTA — dashboard" className="shrink-0">

@@ -27,7 +27,7 @@ export function DashboardLeftSidebar({ persona, avatar, tag, mmr, partidas, isAd
   const tier = mmr !== undefined ? mmrToTier(mmr) : null;
   const wrapperCls = floating
     ? "flex w-full flex-col gap-3 p-3 overflow-y-auto"
-    : "hidden lg:flex flex-col gap-3 border-r border-[var(--color-border)] bg-black/60 p-4 backdrop-blur-sm overflow-y-auto";
+    : "hidden lg:flex flex-col gap-3 bg-gradient-to-r from-black/70 via-black/40 to-transparent p-4 backdrop-blur-sm overflow-y-auto";
 
   return (
     <aside className={wrapperCls}>

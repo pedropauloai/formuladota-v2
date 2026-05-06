@@ -32,7 +32,7 @@ export function DashboardBottomBar({ persona, avatar, subActive, isAdmin, initia
 
   return (
     <>
-      <footer className="relative z-20 flex h-16 shrink-0 items-center justify-between gap-3 border-t border-[var(--color-border)] bg-gradient-to-t from-black/95 to-black/80 px-3 backdrop-blur-md xl:h-20 xl:px-6">
+      <footer className="relative z-20 flex h-16 shrink-0 items-center justify-between gap-3 bg-gradient-to-t from-black/85 via-black/55 to-transparent px-3 backdrop-blur-md xl:h-20 xl:px-6">
         {/* Esquerda — Avatar mini + chat input placeholder */}
         <div className="flex items-center gap-3 min-w-0 flex-1">
           {avatar ? (

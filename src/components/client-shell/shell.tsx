@@ -182,7 +182,7 @@ export async function ClientShell({
                 : "w-[320px] xl:w-[360px] 2xl:w-[380px]"
             }`}
           >
-            <aside className="flex w-full flex-col border-l border-[var(--color-border)] bg-black/60 backdrop-blur-sm overflow-y-auto">
+            <aside className="flex w-full flex-col bg-gradient-to-l from-black/80 via-black/60 to-black/30 backdrop-blur-sm overflow-y-auto">
               {rightSidebar}
             </aside>
           </div>
@@ -277,7 +277,7 @@ export async function ClientShell({
         </main>
 
         {rightSidebar !== undefined ? (
-          <aside className="hidden lg:flex flex-col border-l border-[var(--color-border)] bg-black/70 backdrop-blur-sm overflow-y-auto">
+          <aside className="hidden lg:flex flex-col bg-gradient-to-l from-black/80 via-black/60 to-black/30 backdrop-blur-sm overflow-y-auto">
             {rightSidebar}
           </aside>
         ) : (
