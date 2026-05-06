@@ -11,6 +11,7 @@ import { signOut } from "@/app/login/actions";
 // Tabs apenas pra navegação não-monetização. /pacotes e /assinatura entram
 // via SubscriptionBadge (yellow Formula+ no canto direito).
 const TABS = [
+  { href: "/progresso", label: "Progresso" },
   { href: "/ranking", label: "Ranking" },
   { href: "/times", label: "Times" },
   { href: "/torneios", label: "Torneios" },

@@ -1146,6 +1146,99 @@ export type Database = {
         }
         Relationships: []
       }
+      level_thresholds: {
+        Row: {
+          is_free_tier: boolean
+          level: number
+          shards_reward: number
+          tier: string
+          total_xp: number
+          xp_required: number
+        }
+        Insert: {
+          is_free_tier?: boolean
+          level: number
+          shards_reward: number
+          tier: string
+          total_xp: number
+          xp_required: number
+        }
+        Update: {
+          is_free_tier?: boolean
+          level?: number
+          shards_reward?: number
+          tier?: string
+          total_xp?: number
+          xp_required?: number
+        }
+        Relationships: []
+      }
+      user_levels: {
+        Row: {
+          current_level: number
+          current_shards: number
+          current_xp: number
+          total_shards_earned: number
+          total_xp_earned: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          current_level?: number
+          current_shards?: number
+          current_xp?: number
+          total_shards_earned?: number
+          total_xp_earned?: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          current_level?: number
+          current_shards?: number
+          current_xp?: number
+          total_shards_earned?: number
+          total_xp_earned?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      xp_events: {
+        Row: {
+          created_at: string | null
+          id: string
+          level_after: number | null
+          level_before: number | null
+          metadata: Json | null
+          shards_awarded: number | null
+          source: string
+          user_id: string
+          xp_amount: number
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          level_after?: number | null
+          level_before?: number | null
+          metadata?: Json | null
+          shards_awarded?: number | null
+          source: string
+          user_id: string
+          xp_amount: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          level_after?: number | null
+          level_before?: number | null
+          metadata?: Json | null
+          shards_awarded?: number | null
+          source?: string
+          user_id?: string
+          xp_amount?: number
+        }
+        Relationships: []
+      }
       user_badges: {
         Row: {
           badge_id: string
@@ -1354,6 +1447,15 @@ export type Database = {
     }
     Functions: {
       accept_team_invite: { Args: { p_invite_id: string }; Returns: undefined }
+      award_xp: {
+        Args: {
+          p_user_id: string
+          p_amount: number
+          p_source: string
+          p_metadata?: Json
+        }
+        Returns: undefined
+      }
       ensure_player_season_mmr: {
         Args: { p_user_id: string }
         Returns: undefined
