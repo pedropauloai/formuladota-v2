@@ -101,10 +101,11 @@ export async function joinTeam(input: {
 }
 
 /**
- * Sai do lobby. Comportamento depende se user é o líder:
- * - Líder saindo → DELETE FROM lobbies (cascade limpa lobby_players +
- *   trigger 020 libera bot do pool). Lobby é descartado — não pode existir
- *   sala sem dono.
+ * Sai do lobby. Comportamento depende se user é o líder e se há outros membros:
+ * - Líder saindo COM outros → transfere capitania pro mais antigo (UPDATE
+ *   lobbies.created_by) + DELETE lobby_player do líder. Lobby continua.
+ * - Líder saindo SOZINHO → DELETE FROM lobbies (cascade limpa lobby_players +
+ *   trigger 020 libera bot do pool). Lobby descartado.
  * - Member/spectator saindo → DELETE FROM lobby_players (lobby continua).
  */
 export async function leaveLobby(formData: FormData): Promise<void> {
@@ -124,8 +125,31 @@ export async function leaveLobby(formData: FormData): Promise<void> {
     .single();
 
   if (lobby?.created_by === user.id) {
-    // Líder saiu → descarta lobby (cascade lobby_players + trigger libera bot)
-    await supabase.from("lobbies").delete().eq("id", lobbyId);
+    // Líder — checa se tem outros membros pra transferir capitania
+    const { data: nextLeader } = await supabase
+      .from("lobby_players")
+      .select("user_id")
+      .eq("lobby_id", lobbyId)
+      .neq("user_id", user.id)
+      .order("joined_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    if (nextLeader) {
+      // Transfere capitania pro mais antigo + remove o líder antigo do roster
+      await supabase
+        .from("lobbies")
+        .update({ created_by: nextLeader.user_id })
+        .eq("id", lobbyId);
+      await supabase
+        .from("lobby_players")
+        .delete()
+        .eq("lobby_id", lobbyId)
+        .eq("user_id", user.id);
+    } else {
+      // Sozinho → descarta lobby (cascade + trigger libera bot)
+      await supabase.from("lobbies").delete().eq("id", lobbyId);
+    }
   } else {
     // Member/spectator → só remove o player
     await supabase

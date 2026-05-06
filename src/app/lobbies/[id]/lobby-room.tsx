@@ -167,8 +167,11 @@ export function LobbyRoom({
       {/* Configurações da sala (read-only) */}
       <SettingsPanel lobby={lobby} isLeader={isLeader} />
 
-      {/* Ações finais — leader: 1 botão único "Encerrar sala" (descarta tudo);
-          member: "Sair da sala". Não existe sala sem dono. */}
+      {/* Ações finais.
+          Leader: "Sair da sala" (transfere capitania se houver outros) +
+                  "Encerrar sala" (força descarte com confirm) +
+                  "Iniciar partida"
+          Member: "Sair da sala" simples. */}
       <div className="mt-auto border-t border-[var(--color-border)] bg-black/60 p-3 space-y-2">
         {!inLobby && (
           <p className="text-center font-mono text-[10px] uppercase tracking-widest text-white/30 py-2">
@@ -176,7 +179,9 @@ export function LobbyRoom({
           </p>
         )}
 
-        {inLobby && !isLeader && <LeaveLobbyButton lobbyId={lobby.id} />}
+        {inLobby && (
+          <LeaveLobbyButton lobbyId={lobby.id} isLeader={isLeader} />
+        )}
 
         {isLeader && (
           <>
@@ -624,9 +629,26 @@ function PasswordBadge({ password }: { password: string }) {
   );
 }
 
-function LeaveLobbyButton({ lobbyId }: { lobbyId: string }) {
+function LeaveLobbyButton({
+  lobbyId,
+  isLeader,
+}: {
+  lobbyId: string;
+  isLeader: boolean;
+}) {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    if (
+      isLeader &&
+      !confirm(
+        "Você é o líder. Ao sair, a capitania passa pro próximo jogador mais antigo. Se estiver sozinho, a sala é descartada. Confirmar?"
+      )
+    ) {
+      e.preventDefault();
+    }
+  };
+
   return (
-    <form action={leaveLobby}>
+    <form action={leaveLobby} onSubmit={handleSubmit}>
       <input type="hidden" name="lobbyId" value={lobbyId} />
       <button
         type="submit"
