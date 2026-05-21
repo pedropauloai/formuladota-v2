@@ -1,63 +1,37 @@
-// ClientShell — wrapper compartilhado pra todas pages logged-in.
-// Server Component que fetcha dados do user (profile, sub, steam, season, mmr) e
-// renderiza top-bar + left-sidebar + center (children) + right-sidebar + bottom-bar.
+// ClientShell — wrapper compartilhado pra todas pages logged-in (MVP fichas).
+// Server Component que fetcha dados do user (profile, steam) + MVP (saldo fichas,
+// PROs online, package ficha) e passa pra top-bar + sidebars + bottom-bar.
 //
 // 2 modos:
 // - default (grid): layout 3-col, sidebars com bg sólido cortando o background
-// - immersive: background fullscreen, sidebars como overlays flutuantes sobre a imagem
-//   (espelha cliente Dota 2 — usado em /dashboard e rotas que abrem PlayPanel)
+// - immersive: background fullscreen, sidebars como overlays flutuantes
+//   (espelha cliente Dota 2 — usado em /dashboard)
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getMyFichaBalance } from "@/lib/queries/fichas";
+import { getProsLiveStatus } from "@/lib/queries/pros";
+import { getFichaPackage } from "@/lib/queries/packages";
 import { DashboardTopBar } from "./top-bar";
 import { DashboardLeftSidebar } from "./left-sidebar";
 import { DashboardRightSidebar } from "./right-sidebar";
 import { DashboardBottomBar } from "./bottom-bar";
 
 interface ClientShellProps {
-  /**
-   * Conteúdo do center panel — recebe área entre top-bar e bottom-bar
-   * com sidebars laterais já posicionadas.
-   */
+  /** Conteúdo do center panel — área entre top-bar e bottom-bar. */
   children: React.ReactNode;
-  /**
-   * Rota atual — usado pra destacar tab ativa no top-bar.
-   */
+  /** Rota atual — destaca tab ativa no top-bar. */
   currentRoute?: string;
-  /**
-   * Override do conteúdo do right sidebar. Default = news + lobbies + comunidade.
-   * Útil quando page tem widget próprio (ex: filtros lobbies).
-   */
+  /** Override do right sidebar (raro — quando page tem widget próprio). */
   rightSidebar?: React.ReactNode;
-  /**
-   * Esconde left sidebar (raro — usar quando página tem layout fullscreen interno).
-   */
+  /** Esconde left sidebar (admin tem sidebar interna). */
   hideLeftSidebar?: boolean;
-  /**
-   * Right sidebar largo (~520px). Usado quando rightSidebar mostra painel denso
-   * (ex: lista de salas com tabela ou sala individual com 2 cols de times).
-   */
+  /** Right sidebar largo (~520px). */
   wideRightSidebar?: boolean;
-  /**
-   * Modo immersive: background fullscreen + sidebars como overlays flutuantes.
-   * Espelha cliente Dota 2. Usado em /dashboard e rotas com PlayPanel ativo.
-   */
+  /** Modo immersive: background fullscreen + sidebars overlay (default /dashboard). */
   immersive?: boolean;
-  /**
-   * Imagem de hero pra renderizar como background. Path relativo a /public ou URL externa.
-   * Em modo immersive, ocupa a tela toda. Em modo grid, renderiza atrás do center.
-   */
+  /** Imagem hero de background. */
   centerHero?: string;
-  /**
-   * Estado inicial do PlayPanel. Permite deep-link via query string
-   * (ex: /dashboard?play=lobbies-list abre o painel já na lista).
-   */
-  initialPlayState?:
-    | "modes"
-    | "salas-menu"
-    | "lobbies-list"
-    | "criar-sala"
-    | { type: "lobby-room"; lobbyId: string };
 }
 
 export async function ClientShell({
@@ -68,7 +42,6 @@ export async function ClientShell({
   wideRightSidebar,
   immersive,
   centerHero,
-  initialPlayState,
 }: ClientShellProps) {
   const supabase = await createClient();
   const {
@@ -78,10 +51,10 @@ export async function ClientShell({
 
   const [
     { data: profile },
-    { data: subscription },
     { data: steamLink },
-    { data: season },
-    { data: lobbiesData },
+    fichaBalance,
+    prosOnline,
+    fichaPackage,
   ] = await Promise.all([
     supabase
       .from("profiles")
@@ -89,58 +62,26 @@ export async function ClientShell({
       .eq("id", user.id)
       .single(),
     supabase
-      .from("subscriptions")
-      .select("status, next_payment_date")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .single(),
-    supabase
       .from("steam_links")
       .select("steam_id_64, persona, avatar_url")
       .eq("user_id", user.id)
       .single(),
-    supabase
-      .from("seasons")
-      .select("id, name, prize_pool")
-      .eq("active", true)
-      .limit(1)
-      .single(),
-    supabase
-      .from("lobbies")
-      .select("id, name, game_mode, status, created_at, max_players")
-      .in("status", ["open", "in_progress"])
-      .order("created_at", { ascending: false })
-      .limit(6),
+    getMyFichaBalance(user.id),
+    getProsLiveStatus(),
+    getFichaPackage(),
   ]);
 
-  let mmrRow: {
-    mmr: number;
-    vitorias: number;
-    derrotas: number;
-    partidas_total: number;
-  } | null = null;
-  if (season) {
-    const { data } = await supabase
-      .from("player_season_mmr")
-      .select("mmr, vitorias, derrotas, partidas_total")
-      .eq("user_id", user.id)
-      .eq("season_id", season.id)
-      .single();
-    mmrRow = data;
-  }
-
-  const isAdmin = profile?.is_admin === true;
-  const subActive = isAdmin || subscription?.status === "authorized";
+  const adminFlag = profile?.is_admin === true;
   const persona = steamLink?.persona ?? profile?.username ?? "Anônimo";
   const avatar = steamLink?.avatar_url ?? profile?.avatar_url ?? null;
-  const userTag = isAdmin ? "ADMIN" : "MEMBER";
+  const userTag = adminFlag ? "ADMIN" : "MEMBER";
+
+  const prosOnlineCount = prosOnline.filter((p) => p.filaAberta).length;
 
   // ============== Modo IMMERSIVE — overlays sobre background fullscreen ==============
   if (immersive) {
     return (
       <div className="relative h-screen overflow-hidden bg-black">
-        {/* Background fullscreen */}
         {centerHero && (
           <div
             className="pointer-events-none fixed inset-0 -z-10"
@@ -153,28 +94,29 @@ export async function ClientShell({
           />
         )}
 
-        {/* Top-bar overlay */}
         <div className="absolute top-0 inset-x-0 z-30">
-          <DashboardTopBar currentRoute={currentRoute} />
+          <DashboardTopBar
+            currentRoute={currentRoute}
+            isAdmin={adminFlag}
+            prosOnlineCount={prosOnlineCount}
+            fichaPackageId={fichaPackage?.id ?? null}
+          />
         </div>
 
-        {/* Left sidebar overlay flutuante */}
         {!hideLeftSidebar && (
           <div className="hidden lg:flex absolute left-0 top-[64px] xl:top-[72px] bottom-[80px] xl:bottom-[96px] z-20 w-[340px] xl:w-[400px] 2xl:w-[460px]">
             <DashboardLeftSidebar
               persona={persona}
               avatar={avatar}
               tag={userTag}
-              mmr={mmrRow?.mmr}
-              partidas={mmrRow?.partidas_total ?? 0}
-              isAdmin={isAdmin}
+              isAdmin={adminFlag}
+              fichaBalance={fichaBalance}
               floating
             />
           </div>
         )}
 
-        {/* Right sidebar overlay (se providenciado) */}
-        {rightSidebar !== undefined && (
+        {rightSidebar !== undefined ? (
           <div
             className={`hidden lg:flex absolute right-0 top-[64px] xl:top-[72px] bottom-[80px] xl:bottom-[96px] z-20 ${
               wideRightSidebar
@@ -186,36 +128,34 @@ export async function ClientShell({
               {rightSidebar}
             </aside>
           </div>
+        ) : (
+          <div className="hidden lg:flex absolute right-0 top-[64px] xl:top-[72px] bottom-[80px] xl:bottom-[96px] z-20 w-[320px] xl:w-[360px] 2xl:w-[380px]">
+            <DashboardRightSidebar
+              isAdmin={adminFlag}
+              fichaBalance={fichaBalance}
+              fichaPackageId={fichaPackage?.id ?? null}
+              fichaPreco={fichaPackage?.precoBrl ?? null}
+              prosOnline={prosOnline}
+              floating
+            />
+          </div>
         )}
 
-        {/* Center — children renderiza no espaço entre as duas sidebars overlay.
-            Padding lateral pra não sobrepor os cards flutuantes do left-sidebar
-            (e do right quando providenciado). bottom-[80px] reserva espaço pro
-            botão JOGAR DOTA maior (h-14/h-16/h-20). */}
         <main
           className={`absolute inset-0 top-[64px] xl:top-[72px] bottom-[80px] xl:bottom-[96px] z-10 overflow-y-auto ${
             !hideLeftSidebar
               ? "lg:pl-[340px] xl:pl-[400px] 2xl:pl-[460px]"
               : ""
-          } ${
-            rightSidebar !== undefined
-              ? wideRightSidebar
-                ? "lg:pr-[480px] xl:pr-[520px] 2xl:pr-[560px]"
-                : "lg:pr-[320px] xl:pr-[360px] 2xl:pr-[380px]"
-              : ""
-          }`}
+          } lg:pr-[320px] xl:pr-[360px] 2xl:pr-[380px]`}
         >
           {children}
         </main>
 
-        {/* Bottom-bar overlay */}
         <div className="absolute bottom-0 inset-x-0 z-30">
           <DashboardBottomBar
-            persona={persona}
-            avatar={avatar}
-            subActive={subActive}
-            isAdmin={isAdmin}
-            initialPlayState={initialPlayState}
+            isAdmin={adminFlag}
+            fichaBalance={fichaBalance}
+            fichaPackageId={fichaPackage?.id ?? null}
           />
         </div>
       </div>
@@ -225,7 +165,6 @@ export async function ClientShell({
   // ============== Modo DEFAULT — grid 3-col ==============
   return (
     <div className="relative flex h-screen flex-col overflow-hidden bg-black">
-      {/* Background ambient: gradient dark + tint vermelho sutil no topo */}
       <div
         className="pointer-events-none fixed inset-0 -z-10"
         style={{
@@ -238,7 +177,12 @@ export async function ClientShell({
         aria-hidden="true"
       />
 
-      <DashboardTopBar currentRoute={currentRoute} />
+      <DashboardTopBar
+        currentRoute={currentRoute}
+        isAdmin={adminFlag}
+        prosOnlineCount={prosOnlineCount}
+        fichaPackageId={fichaPackage?.id ?? null}
+      />
 
       <div
         className={
@@ -256,9 +200,8 @@ export async function ClientShell({
             persona={persona}
             avatar={avatar}
             tag={userTag}
-            mmr={mmrRow?.mmr}
-            partidas={mmrRow?.partidas_total ?? 0}
-            isAdmin={isAdmin}
+            isAdmin={adminFlag}
+            fichaBalance={fichaBalance}
           />
         )}
 
@@ -283,24 +226,20 @@ export async function ClientShell({
           </aside>
         ) : (
           <DashboardRightSidebar
-            subActive={subActive}
-            nextPayment={subscription?.next_payment_date ?? null}
-            isAdmin={isAdmin}
-            lobbies={lobbiesData ?? []}
+            isAdmin={adminFlag}
+            fichaBalance={fichaBalance}
+            fichaPackageId={fichaPackage?.id ?? null}
+            fichaPreco={fichaPackage?.precoBrl ?? null}
+            prosOnline={prosOnline}
           />
         )}
       </div>
 
-      {/* Bottom bar overlay — JOGAR DOTA flutuante absolute, sem reservar
-          espaço vertical (sem footer). Container pointer-events-none —
-          só o botão captura click. */}
       <div className="absolute bottom-0 inset-x-0 z-30 pointer-events-none">
         <DashboardBottomBar
-          persona={persona}
-          avatar={avatar}
-          subActive={subActive}
-          isAdmin={isAdmin}
-          initialPlayState={initialPlayState}
+          isAdmin={adminFlag}
+          fichaBalance={fichaBalance}
+          fichaPackageId={fichaPackage?.id ?? null}
         />
       </div>
     </div>

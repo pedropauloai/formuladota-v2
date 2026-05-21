@@ -1,31 +1,39 @@
-// Top Bar — réplica do header do Dota 2 client.
-// Esquerda: logo + separador + settings (gear) + tabs
-// Centro: banner notification (placeholder)
-// Direita: yellow subscription badge (FORMULA+ pra /assinatura) + bell + logout
+// Top Bar — réplica do header do Dota 2 client, adaptada pro MVP.
+// Esquerda: logo branca + settings + tabs (Conduta, Painel PROs admin)
+// Centro: status PROs online em tempo real
+// Direita: badge "Comprar Ficha" (yellow, ex-FORMULA+) + logout
+//
+// MVP: removidos tabs Progresso/Ranking/Times/Torneios (v2), bell de
+// notificações (placeholder v2), badge mensalidade FORMULA+ (v2).
 
 import Image from "next/image";
 import Link from "next/link";
-import { Bell, Settings, LogOut, Star } from "lucide-react";
+import { Settings, LogOut, Coins, Radio } from "lucide-react";
 import { signOut } from "@/app/login/actions";
 
-// Tabs apenas pra navegação não-monetização. /pacotes e /assinatura entram
-// via SubscriptionBadge (yellow Formula+ no canto direito).
-const TABS = [
-  { href: "/progresso", label: "Progresso" },
-  { href: "/ranking", label: "Ranking" },
-  { href: "/times", label: "Times" },
-  { href: "/torneios", label: "Torneios" },
-  { href: "/codigo-de-conduta", label: "Conduta" },
-];
+interface Props {
+  currentRoute?: string;
+  isAdmin: boolean;
+  prosOnlineCount: number;
+  fichaPackageId: string | null;
+}
 
 export function DashboardTopBar({
   currentRoute,
-}: {
-  currentRoute?: string;
-}) {
+  isAdmin,
+  prosOnlineCount,
+  fichaPackageId,
+}: Props) {
+  const tabs: { href: string; label: string }[] = [
+    { href: "/codigo-de-conduta", label: "Conduta" },
+  ];
+  if (isAdmin) {
+    tabs.unshift({ href: "/admin/pros", label: "Painel PROs" });
+  }
+
   return (
-    <header className="relative z-20 flex h-14 shrink-0 items-center justify-between bg-gradient-to-b from-black/85 via-black/55 to-transparent px-4 backdrop-blur-md xl:h-16 xl:px-6">
-      {/* Esquerda — Logo + separador + Settings + Tabs */}
+    <header className="relative z-20 flex h-16 shrink-0 items-center justify-between bg-gradient-to-b from-black/85 via-black/55 to-transparent px-4 backdrop-blur-md xl:h-20 xl:px-6">
+      {/* Esquerda — logo + settings + tabs */}
       <div className="flex items-center gap-2 xl:gap-4">
         <Link
           href="/dashboard"
@@ -33,52 +41,63 @@ export function DashboardTopBar({
           className="shrink-0"
         >
           <Image
-            src="/brand/logo-horizontal.png"
+            src="/brand/logo-horizontal-white.png"
             alt="FORMULADOTA"
-            width={140}
-            height={32}
+            width={1933}
+            height={400}
             priority
-            className="h-7 w-auto xl:h-8"
+            className="h-10 w-auto xl:h-12"
           />
         </Link>
 
-        {/* Separador vertical entre logo e settings */}
-        <div className="h-6 w-px bg-white/15 xl:h-8 xl:mx-1" aria-hidden="true" />
+        <div
+          className="h-6 w-px bg-white/15 xl:h-8 xl:mx-1"
+          aria-hidden="true"
+        />
 
         <TopBarIcon icon={Settings} label="Configurações" href="/me" />
 
-        {/* Outro separador entre settings e tabs */}
-        <div className="h-6 w-px bg-white/15 xl:h-8 xl:mx-1" aria-hidden="true" />
-
-        <nav
-          aria-label="Navegação principal"
-          className="hidden lg:flex items-center gap-1"
-        >
-          {TABS.map((t) => (
-            <TopBarTab
-              key={t.href}
-              href={t.href}
-              label={t.label}
-              active={currentRoute?.startsWith(t.href) ?? false}
+        {tabs.length > 0 && (
+          <>
+            <div
+              className="h-6 w-px bg-white/15 xl:h-8 xl:mx-1"
+              aria-hidden="true"
             />
-          ))}
-        </nav>
+            <nav
+              aria-label="Navegação principal"
+              className="hidden lg:flex items-center gap-1"
+            >
+              {tabs.map((t) => (
+                <TopBarTab
+                  key={t.href}
+                  href={t.href}
+                  label={t.label}
+                  active={currentRoute?.startsWith(t.href) ?? false}
+                />
+              ))}
+            </nav>
+          </>
+        )}
       </div>
 
-      {/* Centro — Banner notification (placeholder) */}
-      <div className="hidden xl:flex items-center gap-2 rounded-md border border-[var(--color-brand-red)]/30 bg-[var(--color-brand-red)]/5 px-4 py-1.5">
-        <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--color-brand-red)]/80">
-          Temporada Genesis
-        </span>
-        <span className="text-xs text-white/70">
-          — Premiação por patrocinadores em breve
-        </span>
-      </div>
+      {/* Centro — status PROs online em tempo real */}
+      {prosOnlineCount > 0 && (
+        <div className="hidden xl:flex items-center gap-2 rounded-md border border-emerald-500/30 bg-emerald-500/5 px-4 py-1.5">
+          <span className="relative flex size-2" aria-hidden="true">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+            <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
+          </span>
+          <span className="font-mono text-[10px] uppercase tracking-widest text-emerald-300/90">
+            {prosOnlineCount}{" "}
+            {prosOnlineCount === 1 ? "PRO online" : "PROs online"}
+          </span>
+          <Radio size={12} className="text-emerald-400/80" aria-hidden="true" />
+        </div>
+      )}
 
-      {/* Direita — Yellow subscription badge + Bell + LogOut */}
+      {/* Direita — Comprar Ficha + Logout */}
       <div className="flex items-center gap-1.5 xl:gap-2">
-        <SubscriptionBadge />
-        <TopBarIcon icon={Bell} label="Notificações" />
+        {fichaPackageId && <BuyFichaBadge packageId={fichaPackageId} />}
         <form action={signOut}>
           <button
             type="submit"
@@ -93,18 +112,16 @@ export function DashboardTopBar({
   );
 }
 
-function SubscriptionBadge() {
-  // Yellow gradient badge — entry point pra subscription / store FORMULADOTA.
-  // V2 pode receber status sub via prop pra mudar label dinamicamente
-  // (ex: "Ativa" vs "Assinar" baseado em subscription.status).
+function BuyFichaBadge({ packageId }: { packageId: string }) {
+  // Mantém estética yellow do antigo FORMULA+ — gatilho principal de monetização.
   return (
     <Link
-      href="/assinatura"
-      aria-label="Assinatura FORMULA+"
+      href={`/checkout/${packageId}`}
+      aria-label="Comprar Ficha"
       className="group inline-flex items-center gap-1.5 rounded-md border border-amber-400/70 bg-gradient-to-b from-amber-300 to-amber-500 px-3 py-1.5 font-display text-xs font-bold uppercase tracking-[0.15em] text-black shadow-md shadow-amber-500/40 hover:brightness-110 hover:shadow-amber-400/60 transition-all xl:px-4 xl:py-2 xl:text-sm xl:tracking-[0.2em]"
     >
-      <Star size={12} fill="currentColor" aria-hidden="true" />
-      <span>Formula+</span>
+      <Coins size={12} aria-hidden="true" />
+      <span>Comprar Ficha</span>
     </Link>
   );
 }
@@ -138,7 +155,7 @@ function TopBarIcon({
   label,
   href,
 }: {
-  icon: typeof Bell;
+  icon: typeof Settings;
   label: string;
   href?: string;
 }) {

@@ -1,146 +1,87 @@
-// Right Sidebar do dashboard — replica panel direito do Dota 2 client (cards news/events).
-// Estrutura V1:
-// 1. Card news: "Bem-vindo ao HUB" / atualização semana
-// 2. Card lobbies: lista 3 lobbies abertos com 1-click join
-// 3. Card comunidade: Discord + Conduta
-//
-// V2 Pedro pode trocar conteúdo (news posts admin, eventos, torneios, etc).
+// Right Sidebar — news + status saldo + PROs online + comunidade (MVP).
+// V2 vai trocar lista de PROs por feed de notícias/eventos/torneios.
 
 import Link from "next/link";
-import { Newspaper, Flame, MessageSquare, BookOpen } from "lucide-react";
+import { Newspaper, Radio, Crown, AlertCircle, MessageSquare, BookOpen } from "lucide-react";
+import type { ProLiveStatus } from "@/lib/queries/pros";
 
 const HEROES_FULL_BG =
   "https://cdn.steamstatic.com/apps/dota2/images/dota_react/home/heroes_full.jpg";
-const BG2 = "https://cdn.steamstatic.com/apps/dota2/images/dota_react/home/background2.png";
-
-interface LobbyMini {
-  id: string;
-  name: string;
-  game_mode: string;
-  status: string;
-  max_players: number;
-  created_at: string;
-}
 
 interface Props {
-  subActive: boolean;
-  nextPayment: string | null;
   isAdmin: boolean;
-  lobbies: LobbyMini[];
+  fichaBalance: number;
+  fichaPackageId: string | null;
+  fichaPreco: number | null;
+  prosOnline: ProLiveStatus[];
+  /** Modo flutuante (immersive shell). */
+  floating?: boolean;
 }
 
-export function DashboardRightSidebar({ subActive, nextPayment, isAdmin, lobbies }: Props) {
+export function DashboardRightSidebar({
+  isAdmin,
+  fichaBalance,
+  fichaPackageId,
+  fichaPreco,
+  prosOnline,
+  floating,
+}: Props) {
+  const wrapperCls = floating
+    ? "flex w-full flex-col gap-3 p-3 overflow-y-auto"
+    : "hidden lg:flex flex-col gap-3 bg-gradient-to-l from-black/70 via-black/40 to-transparent p-4 pb-[80px] xl:pb-[96px] 2xl:pb-[112px] backdrop-blur-sm overflow-y-auto";
+
+  const onlinePros = prosOnline.filter((p) => p.filaAberta);
+
   return (
-    <aside className="hidden lg:flex flex-col gap-3 bg-gradient-to-l from-black/70 via-black/40 to-transparent p-4 pb-[80px] xl:pb-[96px] 2xl:pb-[112px] backdrop-blur-sm overflow-y-auto">
-      {/* Card 1 — News destacada (estilo "Suplemento de Colecionador" do client) */}
+    <aside className={wrapperCls}>
+      {/* News card */}
       <NewsCard
-        eyebrow="Comunidade · Brasil"
-        title="HUB FORMULADOTA"
-        description="O HUB Dota 2 brasileiro com cultura doutrinada. Lobbies in-house, ranking próprio, comunidade alinhada."
+        eyebrow="Boost de MMR · Brasil"
+        title="EVOLUA SEU MMR"
+        description="Compre fichas, jogue PT ranked oficial com um PRO da Fórmula do Dota de Corrida. Ou você ganha, ou você aprende."
         bg={HEROES_FULL_BG}
         href="/codigo-de-conduta"
-        cta="Ler mais"
+        cta="Ler manifesto"
       />
 
-      {/* Card 2 — Status mensalidade (admin tem versão própria) */}
+      {/* Status: admin / saldo */}
       {isAdmin ? (
         <CompactCard
-          icon={Newspaper}
-          title="Acesso administrador"
-          description="Bypass total · acesso permanente"
+          icon={Crown}
+          title="Acesso admin"
+          description="Bypass total · acesso PRO + admin"
           variant="brand"
-          href="/admin/dashboard"
-          cta="Painel admin"
+          href="/admin/pros"
+          cta="Painel PROs"
         />
-      ) : subActive ? (
+      ) : fichaBalance > 0 ? (
         <CompactCard
           icon={Newspaper}
-          title="Mensalidade ativa"
-          description={
-            nextPayment
-              ? `Próxima cobrança: ${new Date(nextPayment).toLocaleDateString("pt-BR")}`
-              : "Acesso liberado"
-          }
+          title={`${fichaBalance} ${fichaBalance === 1 ? "ficha disponível" : "fichas disponíveis"}`}
+          description="Entre na fila de um PRO online"
           variant="success"
-          href="/assinatura"
-          cta="Gerenciar"
+          href="/dashboard"
+          cta="Ver PROs online"
         />
       ) : (
         <CompactCard
-          icon={Newspaper}
-          title="Ative sua mensalidade"
-          description="R$ 47/mês via PIX automático"
+          icon={AlertCircle}
+          title="Sem fichas"
+          description={
+            fichaPreco
+              ? `Compre 1 ficha · R$ ${fichaPreco.toFixed(2).replace(".", ",")}`
+              : "Compre fichas pra entrar em fila"
+          }
           variant="warning"
-          href="/assinatura"
-          cta="Ativar"
+          href={fichaPackageId ? `/checkout/${fichaPackageId}` : "/codigo-de-conduta"}
+          cta="Comprar ficha"
         />
       )}
 
-      {/* Card 3 — Lobbies abertos (estilo "Atualização de Jogabilidade") */}
-      <article className="rounded-md border border-[var(--color-border)] bg-[var(--color-card)]/80 overflow-hidden backdrop-blur-sm">
-        <div
-          className="relative h-24 overflow-hidden"
-          style={{
-            backgroundImage: `url(${BG2})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
-          <div className="absolute bottom-2 left-3 flex items-center gap-2">
-            <Flame size={14} className="text-[var(--color-brand-red)]" aria-hidden="true" />
-            <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.2em] text-white">
-              Lobbies abertos
-            </p>
-          </div>
-        </div>
-        {lobbies.length === 0 ? (
-          <div className="p-4 text-center">
-            <p className="font-mono text-[11px] text-white/50">Nenhum lobby aberto</p>
-            <Link
-              href="/criar-lobby"
-              className="mt-2 inline-block font-sans text-xs uppercase tracking-widest text-[var(--color-brand-red)] hover:text-white transition-colors"
-            >
-              Criar primeiro →
-            </Link>
-          </div>
-        ) : (
-          <ul className="divide-y divide-[var(--color-border)]">
-            {lobbies.slice(0, 3).map((l) => (
-              <li key={l.id} className="px-3 py-2.5">
-                <Link
-                  href={`/lobbies/${l.id}`}
-                  className="group flex items-center justify-between gap-2"
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="font-sans text-xs text-white truncate group-hover:text-[var(--color-brand-red)] transition-colors">
-                      {l.name}
-                    </p>
-                    <p className="font-mono text-[10px] text-white/40 mt-0.5">
-                      {l.max_players}p · {l.game_mode.replace("_", " ")}
-                    </p>
-                  </div>
-                  <span className="text-[10px] text-white/30 group-hover:text-white transition-colors">
-                    →
-                  </span>
-                </Link>
-              </li>
-            ))}
-            {lobbies.length > 3 && (
-              <li className="px-3 py-2 border-t border-[var(--color-border)]">
-                <Link
-                  href="/lobbies"
-                  className="block font-sans text-[10px] uppercase tracking-widest text-white/50 hover:text-white transition-colors text-center"
-                >
-                  Ver todos ({lobbies.length}) →
-                </Link>
-              </li>
-            )}
-          </ul>
-        )}
-      </article>
+      {/* PROs Online */}
+      <ProsOnlineCard pros={onlinePros} />
 
-      {/* Card 4 — Comunidade */}
+      {/* Comunidade */}
       <article className="rounded-md border border-[var(--color-border)] bg-[var(--color-card)]/80 backdrop-blur-sm overflow-hidden">
         <p className="border-b border-[var(--color-border)] px-3 py-2 font-sans text-[10px] font-semibold uppercase tracking-[0.2em] text-white/70">
           Comunidade
@@ -156,6 +97,59 @@ export function DashboardRightSidebar({ subActive, nextPayment, isAdmin, lobbies
         </div>
       </article>
     </aside>
+  );
+}
+
+function ProsOnlineCard({ pros }: { pros: ProLiveStatus[] }) {
+  return (
+    <article className="rounded-md border border-[var(--color-border)] bg-[var(--color-card)]/80 backdrop-blur-sm overflow-hidden">
+      <div className="flex items-center gap-2 border-b border-[var(--color-border)] px-3 py-2">
+        <Radio size={12} className="text-emerald-400" aria-hidden="true" />
+        <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.2em] text-white">
+          PROs online
+        </p>
+        <span className="ml-auto font-mono text-[10px] text-white/40">
+          {pros.length}
+        </span>
+      </div>
+      {pros.length === 0 ? (
+        <div className="p-4 text-center space-y-2">
+          <p className="font-mono text-[11px] text-white/50">Nenhum PRO online</p>
+          <p className="font-mono text-[10px] text-white/30">
+            Você será avisado quando abrir
+          </p>
+        </div>
+      ) : (
+        <ul className="divide-y divide-[var(--color-border)]">
+          {pros.slice(0, 4).map((p) => (
+            <li key={p.coachId} className="px-3 py-2.5">
+              <div className="flex items-center gap-2">
+                {p.avatarUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={p.avatarUrl}
+                    alt=""
+                    className="size-7 rounded-full border border-emerald-500/40"
+                  />
+                ) : (
+                  <div className="size-7 rounded-full border border-emerald-500/40 bg-[var(--color-card)]" />
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="font-sans text-xs text-white truncate">
+                    {p.username ?? p.slug}
+                  </p>
+                  <p className="font-mono text-[10px] text-white/40 mt-0.5">
+                    {p.vagasRestantes}{" "}
+                    {p.vagasRestantes === 1 ? "vaga" : "vagas"}
+                    {p.mmrAtual ? ` · ${p.mmrAtual.toLocaleString("pt-BR")} MMR` : ""}
+                  </p>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </article>
   );
 }
 
@@ -224,13 +218,13 @@ function CompactCard({
 }) {
   const variants = {
     brand: "border-[var(--color-brand-red)]/40 bg-[var(--color-brand-red)]/5",
-    success: "border-[var(--color-success)]/40 bg-[var(--color-success)]/5",
-    warning: "border-[var(--color-warning)]/40 bg-[var(--color-warning)]/5",
+    success: "border-emerald-500/40 bg-emerald-500/5",
+    warning: "border-amber-500/40 bg-amber-500/5",
   };
   const iconColors = {
     brand: "text-[var(--color-brand-red)]",
-    success: "text-[var(--color-success)]",
-    warning: "text-[var(--color-warning)]",
+    success: "text-emerald-400",
+    warning: "text-amber-400",
   };
   return (
     <Link
