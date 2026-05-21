@@ -78,6 +78,12 @@ export async function ClientShell({
   ]);
 
   const prosOnline = prosWithQueues.map((p) => p.coach);
+  // StickyQueueBanner adiciona ~40px ao topo do viewport quando user está em fila.
+  // Shell precisa subtrair essa altura pra não gerar scroll de página.
+  const hasBanner = myQueues.length > 0;
+  const shellHeightCls = hasBanner
+    ? "h-[calc(100dvh-44px)]"
+    : "h-screen";
 
   const realIsAdmin = profile?.is_admin === true;
   // effectiveIsAdmin: false se admin ativou preview mode (ver como user comum)
@@ -91,7 +97,7 @@ export async function ClientShell({
   // ============== Modo IMMERSIVE — overlays sobre background fullscreen ==============
   if (immersive) {
     return (
-      <div className="relative h-screen overflow-hidden bg-black">
+      <div className={`relative ${shellHeightCls} overflow-hidden bg-black`}>
         {centerHero && (
           <div
             className="pointer-events-none fixed inset-0 -z-10"
@@ -179,7 +185,7 @@ export async function ClientShell({
 
   // ============== Modo DEFAULT — grid 3-col ==============
   return (
-    <div className="relative flex h-screen flex-col overflow-hidden bg-black">
+    <div className={`relative flex ${shellHeightCls} flex-col overflow-hidden bg-black`}>
       <div
         className="pointer-events-none fixed inset-0 -z-10"
         style={{
