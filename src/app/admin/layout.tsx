@@ -7,6 +7,7 @@ import Link from "next/link";
 import { LayoutDashboard, Users, Calendar, Gamepad2, Radio } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ClientShell } from "@/components/client-shell/shell";
+import { getPreviewModeActive } from "@/lib/auth/preview-mode";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -15,14 +16,18 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("is_admin")
-    .eq("id", user.id)
-    .single();
+  const [{ data: profile }, previewActive] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("is_admin")
+      .eq("id", user.id)
+      .single(),
+    getPreviewModeActive(),
+  ]);
 
-  if (!profile?.is_admin) {
-    redirect("/perfil");
+  // Admin em preview mode: bloqueia acesso à área admin (deve usar toggle pra voltar)
+  if (!profile?.is_admin || previewActive) {
+    redirect("/dashboard");
   }
 
   return (

@@ -8,6 +8,7 @@ import { DashboardCenter } from "@/components/client-shell/dashboard-center";
 import { getMyFichaBalance } from "@/lib/queries/fichas";
 import { getProsLiveStatus } from "@/lib/queries/pros";
 import { getFichaPackage } from "@/lib/queries/packages";
+import { getPreviewModeActive } from "@/lib/auth/preview-mode";
 
 export const metadata: Metadata = {
   title: "Dashboard — FORMULADOTA",
@@ -24,24 +25,32 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [{ data: profile }, { data: steamLink }, fichaBalance, prosOnline, fichaPackage] =
-    await Promise.all([
-      supabase
-        .from("profiles")
-        .select("username, is_admin")
-        .eq("id", user.id)
-        .single(),
-      supabase
-        .from("steam_links")
-        .select("persona")
-        .eq("user_id", user.id)
-        .single(),
-      getMyFichaBalance(user.id),
-      getProsLiveStatus(),
-      getFichaPackage(),
-    ]);
+  const [
+    { data: profile },
+    { data: steamLink },
+    fichaBalance,
+    prosOnline,
+    fichaPackage,
+    previewActive,
+  ] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("username, is_admin")
+      .eq("id", user.id)
+      .single(),
+    supabase
+      .from("steam_links")
+      .select("persona")
+      .eq("user_id", user.id)
+      .single(),
+    getMyFichaBalance(user.id),
+    getProsLiveStatus(),
+    getFichaPackage(),
+    getPreviewModeActive(),
+  ]);
 
-  const isAdmin = profile?.is_admin === true;
+  // effectiveIsAdmin = admin real AND não está em preview
+  const isAdmin = profile?.is_admin === true && !previewActive;
   const persona = steamLink?.persona ?? profile?.username ?? "Anônimo";
 
   return (

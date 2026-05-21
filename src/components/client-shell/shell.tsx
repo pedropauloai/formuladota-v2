@@ -12,6 +12,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getMyFichaBalance } from "@/lib/queries/fichas";
 import { getProsLiveStatus } from "@/lib/queries/pros";
 import { getFichaPackage } from "@/lib/queries/packages";
+import { getPreviewModeActive } from "@/lib/auth/preview-mode";
 import { DashboardTopBar } from "./top-bar";
 import { DashboardLeftSidebar } from "./left-sidebar";
 import { DashboardRightSidebar } from "./right-sidebar";
@@ -55,6 +56,7 @@ export async function ClientShell({
     fichaBalance,
     prosOnline,
     fichaPackage,
+    previewActive,
   ] = await Promise.all([
     supabase
       .from("profiles")
@@ -69,9 +71,12 @@ export async function ClientShell({
     getMyFichaBalance(user.id),
     getProsLiveStatus(),
     getFichaPackage(),
+    getPreviewModeActive(),
   ]);
 
-  const adminFlag = profile?.is_admin === true;
+  const realIsAdmin = profile?.is_admin === true;
+  // effectiveIsAdmin: false se admin ativou preview mode (ver como user comum)
+  const adminFlag = realIsAdmin && !previewActive;
   const persona = steamLink?.persona ?? profile?.username ?? "Anônimo";
   const avatar = steamLink?.avatar_url ?? profile?.avatar_url ?? null;
   const userTag = adminFlag ? "ADMIN" : "MEMBER";
@@ -98,6 +103,8 @@ export async function ClientShell({
           <DashboardTopBar
             currentRoute={currentRoute}
             isAdmin={adminFlag}
+            realIsAdmin={realIsAdmin}
+            previewActive={previewActive}
             prosOnlineCount={prosOnlineCount}
             fichaPackageId={fichaPackage?.id ?? null}
           />
@@ -180,6 +187,8 @@ export async function ClientShell({
       <DashboardTopBar
         currentRoute={currentRoute}
         isAdmin={adminFlag}
+        realIsAdmin={realIsAdmin}
+        previewActive={previewActive}
         prosOnlineCount={prosOnlineCount}
         fichaPackageId={fichaPackage?.id ?? null}
       />

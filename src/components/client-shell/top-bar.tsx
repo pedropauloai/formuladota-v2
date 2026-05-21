@@ -8,12 +8,18 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Settings, LogOut, Coins, Radio } from "lucide-react";
+import { Settings, LogOut, Coins, Radio, Eye, EyeOff } from "lucide-react";
 import { signOut } from "@/app/login/actions";
+import { togglePreviewMode } from "@/lib/auth/preview-mode";
 
 interface Props {
   currentRoute?: string;
+  /** Effective admin (false se admin tá em preview mode). Usado pra UI condicional. */
   isAdmin: boolean;
+  /** Admin real no banco (não muda com preview). Usado só pra mostrar toggle. */
+  realIsAdmin: boolean;
+  /** Preview mode ativo (admin vendo como user comum). */
+  previewActive: boolean;
   prosOnlineCount: number;
   fichaPackageId: string | null;
 }
@@ -21,6 +27,8 @@ interface Props {
 export function DashboardTopBar({
   currentRoute,
   isAdmin,
+  realIsAdmin,
+  previewActive,
   prosOnlineCount,
   fichaPackageId,
 }: Props) {
@@ -95,8 +103,9 @@ export function DashboardTopBar({
         </div>
       )}
 
-      {/* Direita — Comprar Ficha + Logout */}
+      {/* Direita — Preview toggle (só admin real) + Comprar Ficha + Logout */}
       <div className="flex items-center gap-1.5 xl:gap-2">
+        {realIsAdmin && <PreviewModeToggle previewActive={previewActive} />}
         {fichaPackageId && <BuyFichaBadge packageId={fichaPackageId} />}
         <form action={signOut}>
           <button
@@ -109,6 +118,36 @@ export function DashboardTopBar({
         </form>
       </div>
     </header>
+  );
+}
+
+function PreviewModeToggle({ previewActive }: { previewActive: boolean }) {
+  return (
+    <form action={togglePreviewMode}>
+      <button
+        type="submit"
+        aria-label={previewActive ? "Voltar pra modo admin" : "Ver como usuário comum"}
+        className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-widest transition-colors xl:px-3 ${
+          previewActive
+            ? "border-amber-500/60 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20"
+            : "border-white/15 bg-white/5 text-white/60 hover:border-white/30 hover:text-white"
+        }`}
+      >
+        {previewActive ? (
+          <>
+            <EyeOff size={11} aria-hidden="true" />
+            <span className="hidden xl:inline">Voltar pra admin</span>
+            <span className="xl:hidden">Admin</span>
+          </>
+        ) : (
+          <>
+            <Eye size={11} aria-hidden="true" />
+            <span className="hidden xl:inline">Ver como user</span>
+            <span className="xl:hidden">User</span>
+          </>
+        )}
+      </button>
+    </form>
   );
 }
 

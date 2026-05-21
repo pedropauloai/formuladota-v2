@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "../login/actions";
+import { getPreviewModeActive } from "@/lib/auth/preview-mode";
 
 // Placeholder Phase 1 — confirma login funcional.
 // Phase 3 vai expandir com edição de steam_id, role_preferida, histórico.
@@ -14,11 +15,15 @@ export default async function PerfilPage() {
     redirect("/login");
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id, discord_id, username, avatar_url, email, is_admin, mmr_atual, role_preferida")
-    .eq("id", user.id)
-    .single();
+  const [{ data: profile }, previewActive] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("id, discord_id, username, avatar_url, email, is_admin, mmr_atual, role_preferida")
+      .eq("id", user.id)
+      .single(),
+    getPreviewModeActive(),
+  ]);
+  const showAsAdmin = profile?.is_admin === true && !previewActive;
 
   return (
     <main className="min-h-screen px-6 py-12">
@@ -37,7 +42,7 @@ export default async function PerfilPage() {
           <Row label="Email" value={profile?.email ?? "—"} />
           <Row label="MMR atual" value={profile?.mmr_atual?.toString() ?? "não informado"} />
           <Row label="Role preferida" value={profile?.role_preferida ?? "não informado"} />
-          {profile?.is_admin && (
+          {showAsAdmin && (
             <Row label="Acesso" value="Administrador" highlight />
           )}
         </section>
