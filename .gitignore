@@ -41,6 +41,10 @@ next-env.d.ts
 .DS_Store
 Thumbs.db
 
+# Debug screenshots na raiz (Playwright manual checks)
+/header-*.png
+/homepage-*.png
+
 # Supabase local
 supabase/.branches
 supabase/.temp

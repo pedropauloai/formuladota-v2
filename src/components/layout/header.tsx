@@ -1,5 +1,6 @@
-// Header global — logo + nav + auth state.
-// Server Component: lê profile do user logado pra mostrar avatar/dropdown OU botão login.
+// Header global — logo + botão entrar/perfil.
+// MVP: sem navegação. Só logo (versão branca, fundo escuro) + auth state.
+// Features tipo Lobbies/Ranking/Pacotes/Assinatura ficam disponíveis na v2.
 
 import Link from "next/link";
 import Image from "next/image";
@@ -16,41 +17,31 @@ export async function Header() {
   const profile = user
     ? await supabase
         .from("profiles")
-        .select("username, avatar_url, role, is_admin")
+        .select("username, avatar_url")
         .eq("id", user.id)
         .single()
     : null;
 
   const username = profile?.data?.username ?? "perfil";
   const avatarUrl = profile?.data?.avatar_url ?? null;
-  const isAdmin = profile?.data?.is_admin ?? false;
 
   return (
     <header className="sticky top-0 z-40 border-b border-[var(--color-border)] bg-[var(--color-background)]/80 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
+      <div className="mx-auto flex h-20 max-w-6xl items-center justify-between px-6">
         <Link
           href="/"
           className="flex items-center"
           aria-label="FORMULADOTA — voltar à home"
         >
           <Image
-            src="/brand/logo-horizontal.png"
+            src="/brand/logo-horizontal-white.png"
             alt="FORMULADOTA"
-            width={180}
-            height={40}
+            width={1933}
+            height={400}
             priority
-            className="h-8 w-auto"
+            className="h-16 w-auto"
           />
         </Link>
-
-        <nav aria-label="Navegação principal" className="hidden items-center gap-6 md:flex">
-          <NavLink href="/lobbies" label="Lobbies" />
-          <NavLink href="/ranking" label="Ranking" />
-          <NavLink href="/pacotes" label="Pacotes" />
-          <NavLink href="/codigo-de-conduta" label="Conduta" />
-          <NavLink href="/assinatura" label="Assinatura" />
-          {isAdmin && <NavLink href="/admin/dashboard" label="Admin" />}
-        </nav>
 
         <div className="flex items-center gap-3">
           {user ? (
@@ -67,17 +58,6 @@ export async function Header() {
         </div>
       </div>
     </header>
-  );
-}
-
-function NavLink({ href, label }: { href: string; label: string }) {
-  return (
-    <Link
-      href={href}
-      className="font-sans text-sm font-medium uppercase tracking-widest text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] transition"
-    >
-      {label}
-    </Link>
   );
 }
 

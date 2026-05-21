@@ -1,25 +1,41 @@
-// Landing pública FORMULADOTA — 5 backgrounds oficiais Dota 2 (mesmo pattern dota2.com/home).
-// Logged-in: redireciona pra /dashboard (interface estilo menu do jogo).
+// Landing pública FORMULADOTA — MVP boost de MMR via fichas + PROs.
+// Logged-in: redireciona pra /dashboard (interface estilo client Dota 2).
+//
+// Ordem das seções:
+//   1. LivePROStrip — faixa fina topo (real-time PROs online)
+//   2. Hero — proposta principal + CTA compra
+//   3. Manifesto — "A culpa nunca é do outro" amarrado ao produto
+//   4. HowItWorks — 3 passos (compre / veja / jogue)
+//   5. PROsShowcase — Pedro + EM BREVE
+//   6. Honesty — disclaimer frontal de win rate 70% e não 100%
+//   7. FinalCTA — última conversão
 
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowRight, Trophy, Users, Zap } from "lucide-react";
+import {
+  ArrowRight,
+  ShoppingCart,
+  Users,
+  GraduationCap,
+  AlertTriangle,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { HeroVideo } from "@/components/dota/hero-video";
+import { LivePROStrip } from "@/components/landing/live-pro-strip";
+import { PROsShowcase } from "@/components/landing/pros-showcase";
 
-// Backgrounds oficiais Dota 2 (Steam CDN — capturados via Playwright em dota2.com/home):
+// Background Dota oficial pra cenas escuras
 const DOTA_BG = {
-  /** Section "Junte-se à Batalha dos Ancestrais" — épica painting estilo Dota classic */
-  background1: "https://cdn.steamstatic.com/apps/dota2/images/dota_react/home/background1.png",
-  /** Variação 2 */
-  background2: "https://cdn.steamstatic.com/apps/dota2/images/dota_react/home/background2.png",
-  /** Variação 3 */
-  background3: "https://cdn.steamstatic.com/apps/dota2/images/dota_react/home/background3.png",
-  /** Section "Junte-se à batalha" final CTA */
-  background4: "https://cdn.steamstatic.com/apps/dota2/images/dota_react/home/background4.png",
-  /** "Quem você escolherá?" — composição com vários heroes (1674x2089) */
-  heroesFull: "https://cdn.steamstatic.com/apps/dota2/images/dota_react/home/heroes_full.jpg",
+  background1:
+    "https://cdn.steamstatic.com/apps/dota2/images/dota_react/home/background1.png",
+  background3:
+    "https://cdn.steamstatic.com/apps/dota2/images/dota_react/home/background3.png",
+  background4:
+    "https://cdn.steamstatic.com/apps/dota2/images/dota_react/home/background4.png",
 };
+
+// Status dos PROs atualiza a cada 10s
+export const revalidate = 10;
 
 export default async function Home() {
   const supabase = await createClient();
@@ -27,57 +43,61 @@ export default async function Home() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Logged-in: redireciona pro dashboard estilo menu do jogo
-  if (user) {
-    redirect("/dashboard");
-  }
+  if (user) redirect("/dashboard");
 
   return (
     <main>
+      <LivePROStrip />
       <Hero />
       <Manifesto />
       <HowItWorks />
-      <HeroesShowcase />
-      <CulturePreview />
+      <PROsShowcase />
+      <Honesty />
       <FinalCTA />
     </main>
   );
 }
 
-// ============== Section 1 — Hero (video montage Dota oficial) ==============
+// ============== 1. Hero ==============
 
 function Hero() {
   return (
-    <section className="relative min-h-[85vh] overflow-hidden">
+    <section className="relative min-h-[78vh] overflow-hidden">
       <HeroVideo className="absolute inset-0 h-full w-full object-cover opacity-50" />
       <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/60 to-black" />
 
-      <div className="relative z-10 mx-auto flex max-w-4xl flex-col items-start gap-6 px-6 pt-32 pb-24">
-        <h1 className="font-display text-6xl font-bold uppercase leading-[0.95] tracking-tight text-white md:text-8xl">
-          FORMULADOTA
-        </h1>
-        <p className="font-serif text-xl text-white/85 md:text-2xl">
-          O HUB Dota 2 brasileiro
+      <div className="relative z-10 mx-auto flex max-w-4xl flex-col items-start gap-6 px-6 pt-24 pb-20">
+        <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
+          Boost de MMR + Mentoria
         </p>
+        <h1 className="font-display text-5xl font-bold uppercase leading-[0.95] tracking-tight text-white md:text-7xl">
+          EVOLUA SEU MMR.
+          <br />
+          NÃO POR SORTE.
+        </h1>
         <div className="brand-divider" />
-        <p className="max-w-2xl font-sans text-base text-white/70 md:text-lg">
-          Lobbies in-house criados por bot Steam, ranking próprio por temporadas, comunidade alinhada culturalmente.
-          Acesso integrado a Discord e Steam, mensalidade R$ 47 via PIX recorrente.
+        <p className="max-w-2xl font-serif text-lg text-white/85 md:text-xl">
+          Compre sua ficha. Jogue uma PT ranked oficial em grupo de até 5 com um PRO da
+          Fórmula do Dota de Corrida.
+        </p>
+        <p className="max-w-2xl font-sans text-base text-white/70">
+          Não vendemos vitória — vendemos vaga, método e direito a questionar o PRO
+          depois de cada partida, vitória ou derrota.
         </p>
 
         <div className="mt-6 flex flex-wrap items-center gap-4">
           <Link
             href="/login"
-            className="inline-flex items-center gap-2 rounded-md border border-[var(--color-brand-red)] bg-[var(--color-brand-red)]/10 px-6 py-3 font-sans text-sm font-semibold uppercase tracking-wide text-white transition-colors hover:bg-[var(--color-brand-red)]"
+            className="inline-flex items-center gap-2 rounded-md bg-[var(--color-brand-red)] px-6 py-3 font-sans text-sm font-semibold uppercase tracking-wide text-white transition-colors hover:bg-[var(--color-brand-red)]/80"
           >
-            Entrar com Discord
+            Comprar ficha — R$ 15
             <ArrowRight size={18} />
           </Link>
           <Link
-            href="/codigo-de-conduta"
+            href="#como-funciona"
             className="inline-flex items-center gap-2 rounded-md border border-white/20 bg-transparent px-6 py-3 font-sans text-sm font-semibold uppercase tracking-wide text-white/80 transition-colors hover:border-white/60 hover:text-white"
           >
-            Código de Conduta
+            Como funciona
           </Link>
         </div>
       </div>
@@ -85,7 +105,7 @@ function Hero() {
   );
 }
 
-// ============== Section 2 — Manifesto (background1.png — épica Dota painting) ==============
+// ============== 2. Manifesto (com background Dota oficial) ==============
 
 function Manifesto() {
   return (
@@ -98,64 +118,62 @@ function Manifesto() {
       }}
     >
       <div className="absolute inset-0 bg-gradient-to-r from-black via-black/85 to-black/40" />
-      <div className="relative z-10 mx-auto max-w-5xl px-6 py-32">
+      <div className="relative z-10 mx-auto max-w-5xl px-6 py-28">
         <header className="mb-8 space-y-4">
           <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
             Manifesto
           </p>
           <h2 className="font-display text-4xl font-bold uppercase leading-tight text-white md:text-6xl">
-            Junte-se à<br />Batalha dos Ancestrais
+            A culpa nunca é
+            <br />
+            do outro
           </h2>
           <div className="brand-divider" />
         </header>
         <p className="max-w-3xl font-serif text-lg leading-relaxed text-white/80 md:text-xl">
-          Todos os dias, milhões de jogadores ao redor do mundo entram em batalha como um dos mais
-          de 100 heróis de Dota. FORMULADOTA é o HUB onde a comunidade brasileira se reúne — não
-          apenas pra competir, mas pra evoluir alinhada culturalmente. Aqui a frustração não dita
-          o tom. A responsabilidade é sempre sua, 100% das vezes.
+          A responsabilidade é sempre sua, 100% das vezes. Aqui o PRO entra com você
+          dentro da PT pra mostrar onde sua decisão fez diferença. Vitória ou derrota,
+          você sai sabendo o porquê — com base nos fundamentos da Fórmula do Dota de
+          Corrida.
         </p>
       </div>
     </section>
   );
 }
 
-// ============== Section 3 — Como Funciona (background2.png) ==============
+// ============== 3. Como funciona ==============
 
 function HowItWorks() {
   const steps = [
     {
+      icon: ShoppingCart,
+      title: "1. Compre sua ficha",
+      body: "R$ 15 via PIX. Saldo de fichas fica no seu perfil — joga quando quiser, sem validade no MVP.",
+    },
+    {
       icon: Users,
-      title: "Vincule Discord + Steam",
-      body: "Login com Discord, autorização Steam OpenID. Aceite obrigatório do código de conduta antes de qualquer interação.",
+      title: "2. Veja quem está online",
+      body: "PROs abrem fila quando estão prontos pra jogar. Lista atualizada em tempo real. Entra na fila do PRO que combinar com seu horário.",
     },
     {
-      icon: Zap,
-      title: "Pague a mensalidade",
-      body: "R$ 47/mês via PIX (Mercado Pago Pix Automático). Renovação automática após autorização única.",
-    },
-    {
-      icon: Trophy,
-      title: "Jogue e suba no ranking",
-      body: "Lobbies in-house criados por bot Steam. Matchmaking interno por MMR próprio. Temporadas trimestrais com premiação.",
+      icon: GraduationCap,
+      title: "3. Jogue + Aprenda",
+      body: "Grupo de 2 a 5 jogadores. PT ranked oficial. Toda partida termina com análise pós-jogo, baseada nos fundamentos da Fórmula.",
     },
   ];
+
   return (
     <section
-      className="relative border-y border-[var(--color-border)]"
-      style={{
-        backgroundImage: `url(${DOTA_BG.background2})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }}
+      id="como-funciona"
+      className="border-y border-[var(--color-border)] bg-[var(--color-background)]"
     >
-      <div className="absolute inset-0 bg-black/80" />
-      <div className="relative z-10 mx-auto max-w-6xl px-6 py-24">
+      <div className="mx-auto max-w-6xl px-6 py-24">
         <header className="mb-12 space-y-4">
           <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
             Como funciona
           </p>
           <h2 className="font-display text-4xl font-bold uppercase leading-tight text-white md:text-5xl">
-            3 passos pra entrar
+            3 passos pra começar
           </h2>
           <div className="brand-divider" />
         </header>
@@ -164,7 +182,7 @@ function HowItWorks() {
           {steps.map((step) => (
             <article
               key={step.title}
-              className="space-y-4 rounded-md border border-[var(--color-border)] bg-[var(--color-card)]/95 backdrop-blur-sm p-8 transition-colors hover:border-[var(--color-brand-red)]/60"
+              className="space-y-4 rounded-md border border-[var(--color-border)] bg-[var(--color-card)] p-8 transition-colors hover:border-[var(--color-brand-red)]/60"
             >
               <step.icon
                 size={28}
@@ -185,38 +203,9 @@ function HowItWorks() {
   );
 }
 
-// ============== Section 4 — Heroes Showcase (heroes_full.jpg — 100+ heroes) ==============
+// ============== 5. Honestidade ==============
 
-function HeroesShowcase() {
-  return (
-    <section
-      className="relative border-y border-[var(--color-border)]"
-      style={{
-        backgroundImage: `url(${DOTA_BG.heroesFull})`,
-        backgroundSize: "cover",
-        backgroundPosition: "top center",
-      }}
-    >
-      <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/50 to-black/85" />
-      <div className="relative z-10 mx-auto max-w-4xl px-6 py-32 text-center">
-        <p className="mb-4 font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
-          Quem você escolherá?
-        </p>
-        <h2 className="font-display text-4xl font-bold uppercase leading-tight text-white md:text-6xl">
-          120+ heróis<br />à sua escolha
-        </h2>
-        <div className="mx-auto mt-6 brand-divider" />
-        <p className="mx-auto mt-8 max-w-2xl font-serif text-lg leading-relaxed text-white/80">
-          De engenhosos magos a brutamontes destemidos, passando por rebeldes astutos. Lance habilidades incríveis e Ultimates devastadoras no seu caminho para a vitória.
-        </p>
-      </div>
-    </section>
-  );
-}
-
-// ============== Section 5 — Cultura (background3.png) ==============
-
-function CulturePreview() {
+function Honesty() {
   return (
     <section
       className="relative border-y border-[var(--color-border)]"
@@ -226,32 +215,32 @@ function CulturePreview() {
         backgroundPosition: "center",
       }}
     >
-      <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/85 to-black/95" />
-      <div className="relative z-10 mx-auto max-w-4xl px-6 py-32 text-center">
-        <p className="mb-4 font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
-          A primeira regra
+      <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/90 to-black/95" />
+      <div className="relative z-10 mx-auto max-w-4xl px-6 py-28 text-center">
+        <p className="mb-4 inline-flex items-center gap-2 font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
+          <AlertTriangle size={14} /> A promessa real
         </p>
-        <p className="font-display text-3xl font-bold uppercase tracking-wide text-white md:text-5xl">
-          A culpa nunca é do outro
-        </p>
+        <h2 className="font-display text-4xl font-bold uppercase leading-tight text-white md:text-6xl">
+          Ou você ganha,
+          <br />
+          ou você aprende
+        </h2>
         <div className="mx-auto mt-6 brand-divider" />
         <p className="mx-auto mt-8 max-w-2xl font-serif text-lg leading-relaxed text-white/80">
-          A responsabilidade é sempre sua, 100% das vezes. Comunidade alinhada nos 14 princípios
-          e 10 anti-padrões da metodologia FORMULADOTA. Sem aceite, sem acesso.
+          Win rate 100% é impossível e a gente fala isso na cara. Nossa meta com você é
+          70% sustentável — o suficiente pra +1.000 de MMR a cada 20 dias jogando 5
+          partidas por dia.
         </p>
-        <Link
-          href="/codigo-de-conduta"
-          className="mt-8 inline-flex items-center gap-2 font-sans text-sm font-semibold uppercase tracking-widest text-[var(--color-brand-red)] transition-colors hover:text-white"
-        >
-          Ler código de conduta completo
-          <ArrowRight size={14} />
-        </Link>
+        <p className="mx-auto mt-4 max-w-2xl font-sans text-sm text-white/60">
+          Cliente paga pela vaga na PT, não pela vitória. Toda derrota você tem o
+          direito de chamar o PRO e entender o que aconteceu.
+        </p>
       </div>
     </section>
   );
 }
 
-// ============== Section 6 — Final CTA (background4.png — mesmo do dota2.com finale) ==============
+// ============== 6. Final CTA ==============
 
 function FinalCTA() {
   return (
@@ -264,19 +253,22 @@ function FinalCTA() {
       }}
     >
       <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/90" />
-      <div className="relative z-10 mx-auto max-w-3xl px-6 py-32 text-center">
-        <h2 className="font-display text-4xl font-bold uppercase leading-tight text-white md:text-7xl">
-          Junte-se à batalha
+      <div className="relative z-10 mx-auto max-w-3xl px-6 py-28 text-center">
+        <h2 className="font-display text-4xl font-bold uppercase leading-tight text-white md:text-6xl">
+          Sua próxima PT
+          <br />
+          tá esperando
         </h2>
         <div className="mx-auto mt-6 brand-divider" />
-        <p className="mt-8 font-serif text-xl text-white/85">
-          Pronto pra entrar no HUB?
+        <p className="mt-8 font-serif text-lg text-white/85">
+          Até 4 alunos por partida. Sem fila grande, sem matchmaking aleatório. Saldo
+          de fichas joga quando quiser.
         </p>
         <Link
           href="/login"
-          className="mt-10 inline-flex items-center gap-2 rounded-md border border-[var(--color-brand-red)] bg-[var(--color-brand-red)]/10 px-8 py-4 font-sans text-base font-semibold uppercase tracking-wide text-white transition-colors hover:bg-[var(--color-brand-red)]"
+          className="mt-10 inline-flex items-center gap-2 rounded-md bg-[var(--color-brand-red)] px-8 py-4 font-sans text-base font-semibold uppercase tracking-wide text-white transition-colors hover:bg-[var(--color-brand-red)]/80"
         >
-          Entrar com Discord
+          Comprar ficha — R$ 15
           <ArrowRight size={20} />
         </Link>
       </div>

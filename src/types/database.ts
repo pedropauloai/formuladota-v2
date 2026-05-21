@@ -1,8 +1,4 @@
-// Auto-generated database types for FORMULADOTA
-// Re-generated 2026-05-05 — Phase 7 (Migration 014 badges) + Fase B (Migration 015 match_queue).
-// Re-run via mcp__supabase__generate_typescript_types se schema mudar.
-
-export type Json =
+﻿export type Json =
   | string
   | number
   | boolean
@@ -11,6 +7,8 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
@@ -73,47 +71,6 @@ export type Database = {
         }
         Relationships: []
       }
-      bots: {
-        Row: {
-          account_name: string
-          api_url: string | null
-          created_at: string | null
-          current_lobby_id: string | null
-          display_name: string
-          last_heartbeat_at: string | null
-          notes: string | null
-          status: string
-        }
-        Insert: {
-          account_name: string
-          api_url?: string | null
-          created_at?: string | null
-          current_lobby_id?: string | null
-          display_name?: string
-          last_heartbeat_at?: string | null
-          notes?: string | null
-          status?: string
-        }
-        Update: {
-          account_name?: string
-          api_url?: string | null
-          created_at?: string | null
-          current_lobby_id?: string | null
-          display_name?: string
-          last_heartbeat_at?: string | null
-          notes?: string | null
-          status?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "bots_current_lobby_id_fkey"
-            columns: ["current_lobby_id"]
-            isOneToOne: false
-            referencedRelation: "lobbies"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       behavior_status_log: {
         Row: {
           changed_at: string
@@ -169,11 +126,119 @@ export type Database = {
           },
         ]
       }
+      bots: {
+        Row: {
+          account_name: string
+          api_url: string | null
+          created_at: string | null
+          current_lobby_id: string | null
+          display_name: string
+          last_heartbeat_at: string | null
+          notes: string | null
+          status: string
+        }
+        Insert: {
+          account_name: string
+          api_url?: string | null
+          created_at?: string | null
+          current_lobby_id?: string | null
+          display_name?: string
+          last_heartbeat_at?: string | null
+          notes?: string | null
+          status?: string
+        }
+        Update: {
+          account_name?: string
+          api_url?: string | null
+          created_at?: string | null
+          current_lobby_id?: string | null
+          display_name?: string
+          last_heartbeat_at?: string | null
+          notes?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bots_current_lobby_id_fkey"
+            columns: ["current_lobby_id"]
+            isOneToOne: false
+            referencedRelation: "lobbies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coach_queue_entries: {
+        Row: {
+          coach_id: string
+          consumed_at: string | null
+          id: string
+          joined_at: string
+          match_id: string | null
+          purchase_id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          coach_id: string
+          consumed_at?: string | null
+          id?: string
+          joined_at?: string
+          match_id?: string | null
+          purchase_id: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          coach_id?: string
+          consumed_at?: string | null
+          id?: string
+          joined_at?: string
+          match_id?: string | null
+          purchase_id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_queue_entries_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_queue_entries_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_queue_entries_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "purchases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_queue_entries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coaches: {
         Row: {
           accepted_at: string
           ativo: boolean
           bio: string | null
+          comissao_pct: number
+          fila_aberta: boolean
+          fila_aberta_em: string | null
+          fila_max_vagas: number
+          headline: string | null
           id: string
           profile_id: string
           slug: string
@@ -182,6 +247,11 @@ export type Database = {
           accepted_at?: string
           ativo?: boolean
           bio?: string | null
+          comissao_pct?: number
+          fila_aberta?: boolean
+          fila_aberta_em?: string | null
+          fila_max_vagas?: number
+          headline?: string | null
           id?: string
           profile_id: string
           slug: string
@@ -190,6 +260,11 @@ export type Database = {
           accepted_at?: string
           ativo?: boolean
           bio?: string | null
+          comissao_pct?: number
+          fila_aberta?: boolean
+          fila_aberta_em?: string | null
+          fila_max_vagas?: number
+          headline?: string | null
           id?: string
           profile_id?: string
           slug?: string
@@ -222,6 +297,33 @@ export type Database = {
           published_at?: string
           text_hash?: string
           version?: number
+        }
+        Relationships: []
+      }
+      level_thresholds: {
+        Row: {
+          is_free_tier: boolean
+          level: number
+          shards_reward: number
+          tier: string
+          total_xp: number
+          xp_required: number
+        }
+        Insert: {
+          is_free_tier?: boolean
+          level: number
+          shards_reward: number
+          tier: string
+          total_xp: number
+          xp_required: number
+        }
+        Update: {
+          is_free_tier?: boolean
+          level?: number
+          shards_reward?: number
+          tier?: string
+          total_xp?: number
+          xp_required?: number
         }
         Relationships: []
       }
@@ -333,6 +435,105 @@ export type Database = {
           },
         ]
       }
+      match_players: {
+        Row: {
+          assists: number | null
+          deaths: number | null
+          denies: number | null
+          enriched_at: string
+          gold_per_min: number | null
+          hero_damage: number | null
+          hero_healing: number | null
+          hero_id: number | null
+          hero_name: string | null
+          id: string
+          is_pro: boolean
+          is_winner: boolean | null
+          items: Json | null
+          kills: number | null
+          last_hits: number | null
+          level: number | null
+          match_id: string
+          net_worth: number | null
+          player_slot: number
+          raw_opendota: Json | null
+          steam_account_id: number
+          team: string
+          tower_damage: number | null
+          user_id: string | null
+          xp_per_min: number | null
+        }
+        Insert: {
+          assists?: number | null
+          deaths?: number | null
+          denies?: number | null
+          enriched_at?: string
+          gold_per_min?: number | null
+          hero_damage?: number | null
+          hero_healing?: number | null
+          hero_id?: number | null
+          hero_name?: string | null
+          id?: string
+          is_pro?: boolean
+          is_winner?: boolean | null
+          items?: Json | null
+          kills?: number | null
+          last_hits?: number | null
+          level?: number | null
+          match_id: string
+          net_worth?: number | null
+          player_slot: number
+          raw_opendota?: Json | null
+          steam_account_id: number
+          team: string
+          tower_damage?: number | null
+          user_id?: string | null
+          xp_per_min?: number | null
+        }
+        Update: {
+          assists?: number | null
+          deaths?: number | null
+          denies?: number | null
+          enriched_at?: string
+          gold_per_min?: number | null
+          hero_damage?: number | null
+          hero_healing?: number | null
+          hero_id?: number | null
+          hero_name?: string | null
+          id?: string
+          is_pro?: boolean
+          is_winner?: boolean | null
+          items?: Json | null
+          kills?: number | null
+          last_hits?: number | null
+          level?: number | null
+          match_id?: string
+          net_worth?: number | null
+          player_slot?: number
+          raw_opendota?: Json | null
+          steam_account_id?: number
+          team?: string
+          tower_damage?: number | null
+          user_id?: string | null
+          xp_per_min?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_players_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_players_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       match_queue: {
         Row: {
           game_mode: string | null
@@ -389,54 +590,73 @@ export type Database = {
       }
       matches: {
         Row: {
+          coach_id: string | null
           created_at: string
           data_agendada: string
           dota_match_id: string | null
           duracao_min: number | null
+          enriched_at: string | null
           heroi_jogado: string | null
           id: string
           kda: string | null
+          match_dataset: string | null
           mmr_change: number | null
           notas_pedro: string | null
           purchase_id: string
+          radiant_win: boolean | null
           resultado: string | null
           status: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          coach_id?: string | null
           created_at?: string
           data_agendada: string
           dota_match_id?: string | null
           duracao_min?: number | null
+          enriched_at?: string | null
           heroi_jogado?: string | null
           id?: string
           kda?: string | null
+          match_dataset?: string | null
           mmr_change?: number | null
           notas_pedro?: string | null
           purchase_id: string
+          radiant_win?: boolean | null
           resultado?: string | null
           status?: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          coach_id?: string | null
           created_at?: string
           data_agendada?: string
           dota_match_id?: string | null
           duracao_min?: number | null
+          enriched_at?: string | null
           heroi_jogado?: string | null
           id?: string
           kda?: string | null
+          match_dataset?: string | null
           mmr_change?: number | null
           notas_pedro?: string | null
           purchase_id?: string
+          radiant_win?: boolean | null
           resultado?: string | null
           status?: string
           updated_at?: string
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "matches_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "matches_purchase_id_fkey"
             columns: ["purchase_id"]
@@ -456,7 +676,7 @@ export type Database = {
       packages: {
         Row: {
           ativo: boolean
-          coach_id: string
+          coach_id: string | null
           created_at: string
           descricao: string | null
           display_order: number
@@ -469,7 +689,7 @@ export type Database = {
         }
         Insert: {
           ativo?: boolean
-          coach_id: string
+          coach_id?: string | null
           created_at?: string
           descricao?: string | null
           display_order?: number
@@ -482,7 +702,7 @@ export type Database = {
         }
         Update: {
           ativo?: boolean
-          coach_id?: string
+          coach_id?: string | null
           created_at?: string
           descricao?: string | null
           display_order?: number
@@ -1060,7 +1280,43 @@ export type Database = {
           tournament_id?: string
           winner_team_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tournament_matches_lobby_id_fkey"
+            columns: ["lobby_id"]
+            isOneToOne: false
+            referencedRelation: "lobbies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tournament_matches_team_a_id_fkey"
+            columns: ["team_a_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tournament_matches_team_b_id_fkey"
+            columns: ["team_b_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tournament_matches_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "tournaments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tournament_matches_winner_team_id_fkey"
+            columns: ["winner_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tournament_teams: {
         Row: {
@@ -1084,7 +1340,22 @@ export type Database = {
           team_id?: string
           tournament_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tournament_teams_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tournament_teams_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "tournaments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tournaments: {
         Row: {
@@ -1146,32 +1417,34 @@ export type Database = {
         }
         Relationships: []
       }
-      level_thresholds: {
+      user_badges: {
         Row: {
-          is_free_tier: boolean
-          level: number
-          shards_reward: number
-          tier: string
-          total_xp: number
-          xp_required: number
+          badge_id: string
+          earned_at: string | null
+          id: string
+          user_id: string
         }
         Insert: {
-          is_free_tier?: boolean
-          level: number
-          shards_reward: number
-          tier: string
-          total_xp: number
-          xp_required: number
+          badge_id: string
+          earned_at?: string | null
+          id?: string
+          user_id: string
         }
         Update: {
-          is_free_tier?: boolean
-          level?: number
-          shards_reward?: number
-          tier?: string
-          total_xp?: number
-          xp_required?: number
+          badge_id?: string
+          earned_at?: string | null
+          id?: string
+          user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_badges_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_levels: {
         Row: {
@@ -1202,71 +1475,6 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
-      }
-      xp_events: {
-        Row: {
-          created_at: string | null
-          id: string
-          level_after: number | null
-          level_before: number | null
-          metadata: Json | null
-          shards_awarded: number | null
-          source: string
-          user_id: string
-          xp_amount: number
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          level_after?: number | null
-          level_before?: number | null
-          metadata?: Json | null
-          shards_awarded?: number | null
-          source: string
-          user_id: string
-          xp_amount: number
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          level_after?: number | null
-          level_before?: number | null
-          metadata?: Json | null
-          shards_awarded?: number | null
-          source?: string
-          user_id?: string
-          xp_amount?: number
-        }
-        Relationships: []
-      }
-      user_badges: {
-        Row: {
-          badge_id: string
-          earned_at: string | null
-          id: string
-          user_id: string
-        }
-        Insert: {
-          badge_id: string
-          earned_at?: string | null
-          id?: string
-          user_id: string
-        }
-        Update: {
-          badge_id?: string
-          earned_at?: string | null
-          id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_badges_badge_id_fkey"
-            columns: ["badge_id"]
-            isOneToOne: false
-            referencedRelation: "badges"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       user_stats: {
         Row: {
@@ -1405,6 +1613,42 @@ export type Database = {
           },
         ]
       }
+      xp_events: {
+        Row: {
+          created_at: string | null
+          id: string
+          level_after: number | null
+          level_before: number | null
+          metadata: Json | null
+          shards_awarded: number | null
+          source: string
+          user_id: string
+          xp_amount: number
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          level_after?: number | null
+          level_before?: number | null
+          metadata?: Json | null
+          shards_awarded?: number | null
+          source: string
+          user_id: string
+          xp_amount: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          level_after?: number | null
+          level_before?: number | null
+          metadata?: Json | null
+          shards_awarded?: number | null
+          source?: string
+          user_id?: string
+          xp_amount?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       bot_pool_status: {
@@ -1442,23 +1686,76 @@ export type Database = {
           winner_tag: string | null
           winner_team_id: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tournament_matches_lobby_id_fkey"
+            columns: ["lobby_id"]
+            isOneToOne: false
+            referencedRelation: "lobbies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tournament_matches_team_a_id_fkey"
+            columns: ["team_a_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tournament_matches_team_b_id_fkey"
+            columns: ["team_b_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tournament_matches_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "tournaments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tournament_matches_winner_team_id_fkey"
+            columns: ["winner_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Functions: {
       accept_team_invite: { Args: { p_invite_id: string }; Returns: undefined }
       award_xp: {
         Args: {
-          p_user_id: string
           p_amount: number
-          p_source: string
           p_metadata?: Json
+          p_source: string
+          p_user_id: string
         }
         Returns: undefined
       }
       ensure_player_season_mmr: {
         Args: { p_user_id: string }
         Returns: undefined
+      }
+      get_pros_live_status: {
+        Args: never
+        Returns: {
+          avatar_url: string
+          bio: string
+          coach_id: string
+          fila_aberta: boolean
+          fila_aberta_em: string
+          fila_max_vagas: number
+          headline: string
+          mmr_atual: number
+          slug: string
+          username: string
+          vagas_ocupadas: number
+          vagas_restantes: number
+        }[]
       }
       has_accepted_doctrine: { Args: { p_user_id: string }; Returns: boolean }
       has_active_subscription: { Args: never; Returns: boolean }
@@ -1638,3 +1935,4 @@ export const Constants = {
     },
   },
 } as const
+

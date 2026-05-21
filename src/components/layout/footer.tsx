@@ -17,11 +17,11 @@ export function Footer() {
               aria-label="FORMULADOTA — voltar à home"
             >
               <Image
-                src="/brand/logo-horizontal.png"
+                src="/brand/logo-horizontal-white.png"
                 alt="FORMULADOTA"
-                width={150}
-                height={32}
-                className="h-7 w-auto"
+                width={1933}
+                height={400}
+                className="h-12 w-auto"
               />
             </Link>
             <p className="max-w-xs text-xs text-[var(--color-muted-foreground)]">
