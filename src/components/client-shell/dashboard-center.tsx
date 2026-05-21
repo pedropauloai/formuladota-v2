@@ -1,16 +1,11 @@
-// Center do dashboard — MVP fichas com QueueBoard presentation embed.
-//
-// Layout:
-//   - Hero: status PRO destaque OU saudação
-//   - QueueBoard presentation do PRO em destaque (se algum online)
-//   - Status banner (admin / saldo / sem saldo)
-//   - Quick actions
+// Center do dashboard — denso, sem scroll, cabe em viewport.
+// Hero compacto + QueueBoard presentation grande + status banner inline.
+// Saldo e histórico ficam no left-sidebar / right-sidebar pra não duplicar.
 
 import Link from "next/link";
 import {
   Coins,
   Crown,
-  History,
   AlertCircle,
   ArrowRight,
 } from "lucide-react";
@@ -45,9 +40,9 @@ export function DashboardCenter({
   const top = onlinePros[0] ?? null;
 
   return (
-    <section className="relative overflow-y-auto">
-      {/* Hero atmospheric */}
-      <div className="relative min-h-[260px] flex items-center justify-center overflow-hidden">
+    <section className="relative flex h-full flex-col overflow-hidden">
+      {/* Hero atmospheric compacto */}
+      <div className="relative flex-shrink-0 overflow-hidden">
         <div
           className="absolute inset-0"
           style={{
@@ -57,10 +52,9 @@ export function DashboardCenter({
           }}
           aria-hidden="true"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black" />
-        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/50 to-black" />
 
-        <div className="relative z-10 px-6 text-center xl:px-12 py-8">
+        <div className="relative z-10 px-6 py-6 text-center xl:px-12 xl:py-8">
           {top ? (
             <>
               <p className="inline-flex items-center gap-2 font-sans text-[10px] font-semibold uppercase tracking-[0.4em] text-emerald-300">
@@ -70,11 +64,11 @@ export function DashboardCenter({
                 </span>
                 PRO Online · Fila Aberta
               </p>
-              <h2 className="mt-3 font-display text-3xl font-bold uppercase tracking-tight text-white drop-shadow-2xl xl:text-5xl">
+              <h2 className="mt-2 font-display text-2xl font-bold uppercase tracking-tight text-white drop-shadow-2xl xl:text-4xl">
                 {top.coach.username ?? top.coach.slug}
               </h2>
               {topProStats && (
-                <p className="mt-3 font-mono text-xs text-white/60">
+                <p className="mt-2 font-mono text-[11px] text-white/60">
                   {topProStats.ptsHoje} {topProStats.ptsHoje === 1 ? "PT" : "PTs"} hoje
                   {" · "}
                   {topProStats.alunosAtendidosHoje} alunos atendidos
@@ -88,20 +82,32 @@ export function DashboardCenter({
               <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.4em] text-[var(--color-brand-red)]">
                 FORMULADOTA HUB
               </p>
-              <h2 className="mt-3 font-display text-3xl font-bold uppercase tracking-tight text-white drop-shadow-2xl xl:text-5xl">
+              <h2 className="mt-2 font-display text-2xl font-bold uppercase tracking-tight text-white drop-shadow-2xl xl:text-4xl">
                 Olá, {persona}
               </h2>
-              <div className="mx-auto mt-5 brand-divider" />
-              <p className="mt-5 font-serif text-sm text-white/70 xl:text-base">
-                Nenhum PRO online no momento. Você será avisado quando abrir.
+              <p className="mt-3 font-serif text-xs text-white/70 xl:text-sm">
+                Nenhum PRO online no momento.
               </p>
             </>
           )}
         </div>
       </div>
 
-      {/* QueueBoard presentation do PRO em destaque */}
-      <div className="px-6 py-6 xl:px-12 space-y-6">
+      {/* Conteúdo principal — QueueBoard + status (sem scroll) */}
+      <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-6 py-4 xl:px-12 xl:py-5 min-h-0">
+        {/* Status banner compacto */}
+        {isAdmin ? (
+          <AdminStatusBanner />
+        ) : fichaBalance > 0 ? (
+          <SaldoAtivoBanner balance={fichaBalance} hasProOnline={!!top} />
+        ) : (
+          <SemSaldoBanner
+            fichaPackageId={fichaPackageId}
+            fichaPreco={fichaPreco}
+          />
+        )}
+
+        {/* QueueBoard presentation grande do PRO em destaque */}
         {top && (
           <QueueBoard
             coach={{
@@ -120,62 +126,48 @@ export function DashboardCenter({
           />
         )}
 
-        {/* Outras filas além da destaque */}
+        {/* Outras filas em grid compacto */}
         {onlinePros.length > 1 && (
-          <div>
-            <p className="mb-3 font-sans text-xs font-semibold uppercase tracking-[0.3em] text-white/60">
-              + {onlinePros.length - 1} outras filas
-            </p>
-            <div className="grid gap-3 md:grid-cols-2">
-              {onlinePros.slice(1).map((p) => (
-                <QueueBoard
-                  key={p.coach.coachId}
-                  coach={{
-                    coachId: p.coach.coachId,
-                    username: p.coach.username,
-                    avatarUrl: p.coach.avatarUrl,
-                    mmrAtual: p.coach.mmrAtual,
-                    headline: p.coach.headline,
-                    filaAberta: p.coach.filaAberta,
-                    filaAbertaEm: p.coach.filaAbertaEm,
-                    filaMaxVagas: p.coach.filaMaxVagas,
-                  }}
-                  entries={p.entries}
-                  variant="presentation"
-                  viewerUserId={viewerUserId}
-                />
-              ))}
-            </div>
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {onlinePros.slice(1).map((p) => (
+              <QueueBoard
+                key={p.coach.coachId}
+                coach={{
+                  coachId: p.coach.coachId,
+                  username: p.coach.username,
+                  avatarUrl: p.coach.avatarUrl,
+                  mmrAtual: p.coach.mmrAtual,
+                  headline: p.coach.headline,
+                  filaAberta: p.coach.filaAberta,
+                  filaAbertaEm: p.coach.filaAbertaEm,
+                  filaMaxVagas: p.coach.filaMaxVagas,
+                }}
+                entries={p.entries}
+                variant="compact"
+                viewerUserId={viewerUserId}
+                showHeadline={false}
+              />
+            ))}
           </div>
         )}
 
-        {/* Status banner */}
-        {isAdmin ? (
-          <AdminStatusBanner />
-        ) : fichaBalance > 0 ? (
-          <SaldoAtivoBanner balance={fichaBalance} hasProOnline={!!top} />
-        ) : (
-          <SemSaldoBanner
-            fichaPackageId={fichaPackageId}
-            fichaPreco={fichaPreco}
-          />
+        {/* Estado vazio quando ninguém online — mostra dica */}
+        {!top && (
+          <div className="flex flex-1 items-center justify-center">
+            <p className="font-mono text-xs text-white/40 text-center max-w-sm">
+              Você será avisado no Discord quando um PRO abrir fila.
+              <br />
+              Enquanto isso,{" "}
+              <Link
+                href="/codigo-de-conduta"
+                className="text-[var(--color-brand-red)] hover:underline"
+              >
+                leia o código de conduta
+              </Link>
+              .
+            </p>
+          </div>
         )}
-
-        {/* Quick actions */}
-        <div className="grid gap-4 md:grid-cols-2">
-          <QuickActionCard
-            icon={Coins}
-            title={isAdmin ? "Saldo ∞" : `${fichaBalance} ${fichaBalance === 1 ? "ficha" : "fichas"}`}
-            description="Cada ficha vale 1 vaga em PT ranked"
-            href="/me"
-          />
-          <QuickActionCard
-            icon={History}
-            title="Histórico de PTs"
-            description="Veja suas partidas e análises"
-            href="/me"
-          />
-        </div>
       </div>
     </section>
   );
@@ -185,54 +177,25 @@ function minutesAgo(iso: string): number {
   return Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
 }
 
-function QuickActionCard({
-  icon: Icon,
-  title,
-  description,
-  href,
-}: {
-  icon: typeof Coins;
-  title: string;
-  description: string;
-  href: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className="group block rounded-md border border-[var(--color-border)] bg-[var(--color-card)]/80 p-5 transition-all backdrop-blur-sm hover:border-[var(--color-brand-red)]/60"
-    >
-      <Icon
-        size={22}
-        className="text-[var(--color-brand-red)] transition-transform group-hover:scale-110"
-        aria-hidden="true"
-      />
-      <p className="mt-3 font-display text-base uppercase tracking-wide text-white">
-        {title}
-      </p>
-      <p className="mt-1 font-sans text-xs text-white/60">{description}</p>
-    </Link>
-  );
-}
-
 function AdminStatusBanner() {
   return (
-    <article className="flex items-center justify-between gap-4 rounded-md border border-[var(--color-brand-red)]/60 bg-gradient-to-r from-[var(--color-brand-red)]/15 to-transparent backdrop-blur-sm p-5">
+    <article className="flex items-center justify-between gap-4 rounded-md border border-[var(--color-brand-red)]/60 bg-gradient-to-r from-[var(--color-brand-red)]/15 to-transparent backdrop-blur-sm px-4 py-2.5">
       <div className="flex items-center gap-3">
-        <Crown size={18} className="text-[var(--color-brand-red)]" aria-hidden="true" />
+        <Crown size={16} className="text-[var(--color-brand-red)]" aria-hidden="true" />
         <div>
-          <p className="font-display text-sm uppercase tracking-wide text-white">
+          <p className="font-display text-xs uppercase tracking-wide text-white">
             Acesso administrador + PRO
           </p>
-          <p className="font-mono text-[11px] text-white/60 mt-0.5">
-            Bypass total · gerencie fila e PTs no painel
+          <p className="font-mono text-[10px] text-white/60 mt-0.5">
+            Bypass total · gerencie fila e PTs
           </p>
         </div>
       </div>
       <Link
         href="/admin/pros"
-        className="inline-flex items-center gap-1 font-sans text-xs uppercase tracking-widest text-white/70 hover:text-white transition-colors"
+        className="inline-flex items-center gap-1 font-sans text-[10px] uppercase tracking-widest text-white/70 hover:text-white transition-colors"
       >
-        Painel PROs <ArrowRight size={12} />
+        Painel PROs <ArrowRight size={10} />
       </Link>
     </article>
   );
@@ -246,16 +209,16 @@ function SaldoAtivoBanner({
   hasProOnline: boolean;
 }) {
   return (
-    <article className="flex items-center justify-between gap-4 rounded-md border border-emerald-500/40 bg-emerald-500/5 backdrop-blur-sm p-5">
+    <article className="flex items-center justify-between gap-4 rounded-md border border-emerald-500/40 bg-emerald-500/5 backdrop-blur-sm px-4 py-2.5">
       <div className="flex items-center gap-3">
-        <Coins size={18} className="text-emerald-400" aria-hidden="true" />
+        <Coins size={16} className="text-emerald-400" aria-hidden="true" />
         <div>
-          <p className="font-display text-sm uppercase tracking-wide text-white">
+          <p className="font-display text-xs uppercase tracking-wide text-white">
             {balance} {balance === 1 ? "ficha disponível" : "fichas disponíveis"}
           </p>
-          <p className="font-mono text-[11px] text-white/70 mt-0.5">
+          <p className="font-mono text-[10px] text-white/70 mt-0.5">
             {hasProOnline
-              ? "PRO online — clique em Jogar Dota pra entrar na fila"
+              ? "Clique em Jogar Dota pra entrar na fila"
               : "Aguarde um PRO abrir fila"}
           </p>
         </div>
@@ -274,25 +237,24 @@ function SemSaldoBanner({
   const precoTxt =
     fichaPreco !== null ? `R$ ${fichaPreco.toFixed(2).replace(".", ",")}` : "PIX";
   return (
-    <article className="flex items-center justify-between gap-4 rounded-md border border-amber-500/40 bg-amber-500/5 backdrop-blur-sm p-5">
+    <article className="flex items-center justify-between gap-4 rounded-md border border-amber-500/40 bg-amber-500/5 backdrop-blur-sm px-4 py-2.5">
       <div className="flex items-center gap-3">
-        <AlertCircle size={18} className="text-amber-400" aria-hidden="true" />
+        <AlertCircle size={16} className="text-amber-400" aria-hidden="true" />
         <div>
-          <p className="font-display text-sm uppercase tracking-wide text-white">
+          <p className="font-display text-xs uppercase tracking-wide text-white">
             Sem saldo de fichas
           </p>
-          <p className="font-mono text-[11px] text-white/70 mt-0.5">
-            Compre 1 ficha por {precoTxt} pra entrar em fila com um PRO
+          <p className="font-mono text-[10px] text-white/70 mt-0.5">
+            Compre 1 ficha por {precoTxt} pra entrar em fila
           </p>
         </div>
       </div>
       {fichaPackageId && (
         <Link
           href={`/checkout/${fichaPackageId}`}
-          className="inline-flex items-center gap-1 rounded-md border border-amber-400 bg-gradient-to-b from-amber-300 to-amber-500 px-4 py-2 font-sans text-xs font-semibold uppercase tracking-wide text-black hover:brightness-110 transition-all"
+          className="inline-flex items-center gap-1 rounded-md border border-amber-400 bg-gradient-to-b from-amber-300 to-amber-500 px-3 py-1.5 font-sans text-[10px] font-semibold uppercase tracking-wide text-black hover:brightness-110 transition-all"
         >
-          Comprar ficha
-          <ArrowRight size={12} />
+          Comprar <ArrowRight size={10} />
         </Link>
       )}
     </article>
