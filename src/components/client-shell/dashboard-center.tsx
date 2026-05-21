@@ -1,46 +1,53 @@
-// Center do dashboard — MVP fichas.
-//   - Hero dinâmico: status PRO online ou saudação
-//   - Status banner: admin / saldo / sem saldo
-//   - 3 quick actions: PROs Online · Saldo · Histórico
+// Center do dashboard — MVP fichas com QueueBoard presentation embed.
+//
+// Layout:
+//   - Hero: status PRO destaque OU saudação
+//   - QueueBoard presentation do PRO em destaque (se algum online)
+//   - Status banner (admin / saldo / sem saldo)
+//   - Quick actions
 
 import Link from "next/link";
 import {
   Coins,
   Crown,
   History,
-  Radio,
   AlertCircle,
   ArrowRight,
 } from "lucide-react";
-import type { ProLiveStatus } from "@/lib/queries/pros";
+import type { ProWithQueue, ProRecentStats } from "@/lib/queries/pros";
+import { QueueBoard } from "@/components/queue/queue-board";
 
 const HEROES_FULL_BG =
   "https://cdn.steamstatic.com/apps/dota2/images/dota_react/home/heroes_full.jpg";
 
 interface CenterProps {
   persona: string;
+  viewerUserId: string;
   isAdmin: boolean;
   fichaBalance: number;
   fichaPackageId: string | null;
   fichaPreco: number | null;
-  prosOnline: ProLiveStatus[];
+  prosWithQueues: ProWithQueue[];
+  topProStats: ProRecentStats | null;
 }
 
 export function DashboardCenter({
   persona,
+  viewerUserId,
   isAdmin,
   fichaBalance,
   fichaPackageId,
   fichaPreco,
-  prosOnline,
+  prosWithQueues,
+  topProStats,
 }: CenterProps) {
-  const onlinePros = prosOnline.filter((p) => p.filaAberta);
-  const topPro = onlinePros[0] ?? null;
+  const onlinePros = prosWithQueues.filter((p) => p.coach.filaAberta);
+  const top = onlinePros[0] ?? null;
 
   return (
     <section className="relative overflow-y-auto">
-      {/* Hero — atmospheric heroes_full + gradient + status dinâmico */}
-      <div className="relative min-h-[420px] flex items-center justify-center overflow-hidden">
+      {/* Hero atmospheric */}
+      <div className="relative min-h-[260px] flex items-center justify-center overflow-hidden">
         <div
           className="absolute inset-0"
           style={{
@@ -51,29 +58,28 @@ export function DashboardCenter({
           aria-hidden="true"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black" />
-        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black to-transparent" />
 
-        <div className="relative z-10 px-6 text-center xl:px-12">
-          {topPro ? (
+        <div className="relative z-10 px-6 text-center xl:px-12 py-8">
+          {top ? (
             <>
               <p className="inline-flex items-center gap-2 font-sans text-[10px] font-semibold uppercase tracking-[0.4em] text-emerald-300">
                 <span className="relative flex size-2" aria-hidden="true">
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
                   <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
                 </span>
-                PRO online agora
+                PRO Online · Fila Aberta
               </p>
-              <h2 className="mt-3 font-display text-4xl font-bold uppercase tracking-tight text-white drop-shadow-2xl xl:text-6xl 2xl:text-7xl">
-                {topPro.username ?? topPro.slug}
+              <h2 className="mt-3 font-display text-3xl font-bold uppercase tracking-tight text-white drop-shadow-2xl xl:text-5xl">
+                {top.coach.username ?? top.coach.slug}
               </h2>
-              <p className="mt-4 font-mono text-sm text-white/70">
-                {topPro.vagasRestantes}{" "}
-                {topPro.vagasRestantes === 1 ? "vaga restante" : "vagas restantes"}
-                {topPro.mmrAtual ? ` · ${topPro.mmrAtual.toLocaleString("pt-BR")} MMR` : ""}
-              </p>
-              {topPro.headline && (
-                <p className="mx-auto mt-2 max-w-lg font-serif text-sm text-white/60 italic">
-                  {topPro.headline}
+              {topProStats && (
+                <p className="mt-3 font-mono text-xs text-white/60">
+                  {topProStats.ptsHoje} {topProStats.ptsHoje === 1 ? "PT" : "PTs"} hoje
+                  {" · "}
+                  {topProStats.alunosAtendidosHoje} alunos atendidos
+                  {topProStats.lastPTAt &&
+                    ` · última há ${minutesAgo(topProStats.lastPTAt)}m`}
                 </p>
               )}
             </>
@@ -82,25 +88,72 @@ export function DashboardCenter({
               <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.4em] text-[var(--color-brand-red)]">
                 FORMULADOTA HUB
               </p>
-              <h2 className="mt-3 font-display text-4xl font-bold uppercase tracking-tight text-white drop-shadow-2xl xl:text-6xl 2xl:text-7xl">
+              <h2 className="mt-3 font-display text-3xl font-bold uppercase tracking-tight text-white drop-shadow-2xl xl:text-5xl">
                 Olá, {persona}
               </h2>
-              <div className="mx-auto mt-6 brand-divider" />
-              <p className="mt-6 font-serif text-base text-white/70 xl:text-lg">
-                Nenhum PRO online no momento. Você será avisado no Discord quando abrir.
+              <div className="mx-auto mt-5 brand-divider" />
+              <p className="mt-5 font-serif text-sm text-white/70 xl:text-base">
+                Nenhum PRO online no momento. Você será avisado quando abrir.
               </p>
             </>
           )}
         </div>
       </div>
 
-      {/* Status + Quick actions */}
-      <div className="px-6 py-8 xl:px-12 xl:py-10 space-y-6">
+      {/* QueueBoard presentation do PRO em destaque */}
+      <div className="px-6 py-6 xl:px-12 space-y-6">
+        {top && (
+          <QueueBoard
+            coach={{
+              coachId: top.coach.coachId,
+              username: top.coach.username,
+              avatarUrl: top.coach.avatarUrl,
+              mmrAtual: top.coach.mmrAtual,
+              headline: top.coach.headline,
+              filaAberta: top.coach.filaAberta,
+              filaAbertaEm: top.coach.filaAbertaEm,
+              filaMaxVagas: top.coach.filaMaxVagas,
+            }}
+            entries={top.entries}
+            variant="presentation"
+            viewerUserId={viewerUserId}
+          />
+        )}
+
+        {/* Outras filas além da destaque */}
+        {onlinePros.length > 1 && (
+          <div>
+            <p className="mb-3 font-sans text-xs font-semibold uppercase tracking-[0.3em] text-white/60">
+              + {onlinePros.length - 1} outras filas
+            </p>
+            <div className="grid gap-3 md:grid-cols-2">
+              {onlinePros.slice(1).map((p) => (
+                <QueueBoard
+                  key={p.coach.coachId}
+                  coach={{
+                    coachId: p.coach.coachId,
+                    username: p.coach.username,
+                    avatarUrl: p.coach.avatarUrl,
+                    mmrAtual: p.coach.mmrAtual,
+                    headline: p.coach.headline,
+                    filaAberta: p.coach.filaAberta,
+                    filaAbertaEm: p.coach.filaAbertaEm,
+                    filaMaxVagas: p.coach.filaMaxVagas,
+                  }}
+                  entries={p.entries}
+                  variant="presentation"
+                  viewerUserId={viewerUserId}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Status banner */}
         {isAdmin ? (
           <AdminStatusBanner />
         ) : fichaBalance > 0 ? (
-          <SaldoAtivoBanner balance={fichaBalance} hasProOnline={!!topPro} />
+          <SaldoAtivoBanner balance={fichaBalance} hasProOnline={!!top} />
         ) : (
           <SemSaldoBanner
             fichaPackageId={fichaPackageId}
@@ -108,23 +161,8 @@ export function DashboardCenter({
           />
         )}
 
-        {/* Quick action cards */}
-        <div className="grid gap-4 md:grid-cols-3">
-          <QuickActionCard
-            icon={Radio}
-            title={
-              onlinePros.length === 0
-                ? "Nenhum PRO online"
-                : `${onlinePros.length} ${onlinePros.length === 1 ? "PRO online" : "PROs online"}`
-            }
-            description={
-              topPro
-                ? `${topPro.vagasRestantes} ${topPro.vagasRestantes === 1 ? "vaga" : "vagas"} restantes`
-                : "Será avisado quando abrir"
-            }
-            href="#pros-online"
-            featured={!!topPro}
-          />
+        {/* Quick actions */}
+        <div className="grid gap-4 md:grid-cols-2">
           <QuickActionCard
             icon={Coins}
             title={isAdmin ? "Saldo ∞" : `${fichaBalance} ${fichaBalance === 1 ? "ficha" : "fichas"}`}
@@ -143,33 +181,29 @@ export function DashboardCenter({
   );
 }
 
+function minutesAgo(iso: string): number {
+  return Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+}
+
 function QuickActionCard({
   icon: Icon,
   title,
   description,
   href,
-  featured,
 }: {
-  icon: typeof Radio;
+  icon: typeof Coins;
   title: string;
   description: string;
   href: string;
-  featured?: boolean;
 }) {
   return (
     <Link
       href={href}
-      className={`group block rounded-md border p-5 transition-all backdrop-blur-sm ${
-        featured
-          ? "border-emerald-500/50 bg-gradient-to-b from-emerald-500/15 to-[var(--color-card)]/80 hover:border-emerald-400 hover:from-emerald-500/25"
-          : "border-[var(--color-border)] bg-[var(--color-card)]/80 hover:border-[var(--color-brand-red)]/60"
-      }`}
+      className="group block rounded-md border border-[var(--color-border)] bg-[var(--color-card)]/80 p-5 transition-all backdrop-blur-sm hover:border-[var(--color-brand-red)]/60"
     >
       <Icon
         size={22}
-        className={`transition-transform group-hover:scale-110 ${
-          featured ? "text-emerald-400" : "text-[var(--color-brand-red)]"
-        }`}
+        className="text-[var(--color-brand-red)] transition-transform group-hover:scale-110"
         aria-hidden="true"
       />
       <p className="mt-3 font-display text-base uppercase tracking-wide text-white">
@@ -221,7 +255,7 @@ function SaldoAtivoBanner({
           </p>
           <p className="font-mono text-[11px] text-white/70 mt-0.5">
             {hasProOnline
-              ? "PRO online — entre na fila agora"
+              ? "PRO online — clique em Jogar Dota pra entrar na fila"
               : "Aguarde um PRO abrir fila"}
           </p>
         </div>

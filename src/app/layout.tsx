@@ -5,6 +5,8 @@ import { Toaster } from "@/components/ui/sonner";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { ConditionalChrome } from "@/components/layout/conditional-chrome";
+import { StickyQueueBanner } from "@/components/queue/sticky-banner";
+import { QueueRealtimeListener } from "@/components/queue/realtime-listener";
 
 // Cinzel — fonte de impacto pra headings (alternativa open-source da Reaver Valve).
 // Substitui Space Grotesk como display font do projeto.
@@ -51,6 +53,10 @@ export default function RootLayout({
       className={`${cinzel.variable} ${marcellus.variable} ${inter.variable}`}
     >
       <body className="min-h-screen flex flex-col">
+        {/* Sticky banner persistente — aparece em todas as rotas se user em fila */}
+        <StickyQueueBanner />
+        {/* Realtime listener (client) — sem UI, escuta changes em queue */}
+        <QueueRealtimeListener />
         {/* Header/Footer ocultos em /dashboard (fullscreen estilo client Dota 2) */}
         <ConditionalChrome>
           <Header />

@@ -10,7 +10,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getMyFichaBalance } from "@/lib/queries/fichas";
-import { getProsLiveStatus } from "@/lib/queries/pros";
+import { getProsLiveStatus, getProsWithQueues } from "@/lib/queries/pros";
 import { getFichaPackage } from "@/lib/queries/packages";
 import { getMyQueueStatus } from "@/lib/queries/queue";
 import { getPreviewModeActive } from "@/lib/auth/preview-mode";
@@ -55,7 +55,7 @@ export async function ClientShell({
     { data: profile },
     { data: steamLink },
     fichaBalance,
-    prosOnline,
+    prosWithQueues,
     fichaPackage,
     previewActive,
     myQueues,
@@ -71,11 +71,13 @@ export async function ClientShell({
       .eq("user_id", user.id)
       .single(),
     getMyFichaBalance(user.id),
-    getProsLiveStatus(),
+    getProsWithQueues(),
     getFichaPackage(),
     getPreviewModeActive(),
     getMyQueueStatus(user.id),
   ]);
+
+  const prosOnline = prosWithQueues.map((p) => p.coach);
 
   const realIsAdmin = profile?.is_admin === true;
   // effectiveIsAdmin: false se admin ativou preview mode (ver como user comum)
@@ -145,7 +147,8 @@ export async function ClientShell({
               fichaBalance={fichaBalance}
               fichaPackageId={fichaPackage?.id ?? null}
               fichaPreco={fichaPackage?.precoBrl ?? null}
-              prosOnline={prosOnline}
+              prosWithQueues={prosWithQueues}
+              viewerUserId={user.id}
               floating
             />
           </div>
@@ -244,7 +247,8 @@ export async function ClientShell({
             fichaBalance={fichaBalance}
             fichaPackageId={fichaPackage?.id ?? null}
             fichaPreco={fichaPackage?.precoBrl ?? null}
-            prosOnline={prosOnline}
+            prosWithQueues={prosWithQueues}
+            viewerUserId={user.id}
           />
         )}
       </div>

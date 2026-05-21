@@ -6,7 +6,11 @@ import { createClient } from "@/lib/supabase/server";
 import { ClientShell } from "@/components/client-shell/shell";
 import { DashboardCenter } from "@/components/client-shell/dashboard-center";
 import { getMyFichaBalance } from "@/lib/queries/fichas";
-import { getProsLiveStatus } from "@/lib/queries/pros";
+import {
+  getProsWithQueues,
+  getProRecentStats,
+  type ProRecentStats,
+} from "@/lib/queries/pros";
 import { getFichaPackage } from "@/lib/queries/packages";
 import { getPreviewModeActive } from "@/lib/auth/preview-mode";
 
@@ -15,8 +19,8 @@ export const metadata: Metadata = {
   description: "Painel FORMULADOTA — estilo menu do Dota 2 client.",
 };
 
-// PROs online atualiza a cada 10s
-export const revalidate = 10;
+// Realtime cobre maioria das atualizações; fallback de 30s pra segurança
+export const revalidate = 30;
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -29,7 +33,7 @@ export default async function DashboardPage() {
     { data: profile },
     { data: steamLink },
     fichaBalance,
-    prosOnline,
+    prosWithQueues,
     fichaPackage,
     previewActive,
   ] = await Promise.all([
@@ -44,14 +48,19 @@ export default async function DashboardPage() {
       .eq("user_id", user.id)
       .single(),
     getMyFichaBalance(user.id),
-    getProsLiveStatus(),
+    getProsWithQueues(),
     getFichaPackage(),
     getPreviewModeActive(),
   ]);
 
-  // effectiveIsAdmin = admin real AND não está em preview
   const isAdmin = profile?.is_admin === true && !previewActive;
   const persona = steamLink?.persona ?? profile?.username ?? "Anônimo";
+
+  const top = prosWithQueues.find((p) => p.coach.filaAberta);
+  let topProStats: ProRecentStats | null = null;
+  if (top) {
+    topProStats = await getProRecentStats(top.coach.coachId);
+  }
 
   return (
     <ClientShell
@@ -61,11 +70,13 @@ export default async function DashboardPage() {
     >
       <DashboardCenter
         persona={persona}
+        viewerUserId={user.id}
         isAdmin={isAdmin}
         fichaBalance={fichaBalance}
         fichaPackageId={fichaPackage?.id ?? null}
         fichaPreco={fichaPackage?.precoBrl ?? null}
-        prosOnline={prosOnline}
+        prosWithQueues={prosWithQueues}
+        topProStats={topProStats}
       />
     </ClientShell>
   );

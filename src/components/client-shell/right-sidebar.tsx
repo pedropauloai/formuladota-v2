@@ -1,9 +1,17 @@
-// Right Sidebar — news + status saldo + PROs online + comunidade (MVP).
-// V2 vai trocar lista de PROs por feed de notícias/eventos/torneios.
+// Right Sidebar — news + status saldo + QueueBoards de cada PRO online + comunidade.
+// MVP: lista de PROs com fila aberta usando QueueBoard compact (avatares
+// dos alunos visíveis em tempo real).
 
 import Link from "next/link";
-import { Newspaper, Radio, Crown, AlertCircle, MessageSquare, BookOpen } from "lucide-react";
-import type { ProLiveStatus } from "@/lib/queries/pros";
+import {
+  Newspaper,
+  Crown,
+  AlertCircle,
+  MessageSquare,
+  BookOpen,
+} from "lucide-react";
+import type { ProWithQueue } from "@/lib/queries/pros";
+import { QueueBoard } from "@/components/queue/queue-board";
 
 const HEROES_FULL_BG =
   "https://cdn.steamstatic.com/apps/dota2/images/dota_react/home/heroes_full.jpg";
@@ -13,8 +21,8 @@ interface Props {
   fichaBalance: number;
   fichaPackageId: string | null;
   fichaPreco: number | null;
-  prosOnline: ProLiveStatus[];
-  /** Modo flutuante (immersive shell). */
+  prosWithQueues: ProWithQueue[];
+  viewerUserId: string;
   floating?: boolean;
 }
 
@@ -23,28 +31,27 @@ export function DashboardRightSidebar({
   fichaBalance,
   fichaPackageId,
   fichaPreco,
-  prosOnline,
+  prosWithQueues,
+  viewerUserId,
   floating,
 }: Props) {
   const wrapperCls = floating
     ? "flex w-full flex-col gap-3 p-3 overflow-y-auto"
     : "hidden lg:flex flex-col gap-3 bg-gradient-to-l from-black/70 via-black/40 to-transparent p-4 pb-[80px] xl:pb-[96px] 2xl:pb-[112px] backdrop-blur-sm overflow-y-auto";
 
-  const onlinePros = prosOnline.filter((p) => p.filaAberta);
+  const onlinePros = prosWithQueues.filter((p) => p.coach.filaAberta);
 
   return (
     <aside className={wrapperCls}>
-      {/* News card */}
       <NewsCard
         eyebrow="Boost de MMR · Brasil"
         title="EVOLUA SEU MMR"
-        description="Compre fichas, jogue PT ranked oficial com um PRO da Fórmula do Dota de Corrida. Ou você ganha, ou você aprende."
+        description="Compre fichas, jogue PT ranked oficial com um PRO da Fórmula. Ou você ganha, ou você aprende."
         bg={HEROES_FULL_BG}
         href="/codigo-de-conduta"
         cta="Ler manifesto"
       />
 
-      {/* Status: admin / saldo */}
       {isAdmin ? (
         <CompactCard
           icon={Crown}
@@ -57,11 +64,11 @@ export function DashboardRightSidebar({
       ) : fichaBalance > 0 ? (
         <CompactCard
           icon={Newspaper}
-          title={`${fichaBalance} ${fichaBalance === 1 ? "ficha disponível" : "fichas disponíveis"}`}
+          title={`${fichaBalance} ${fichaBalance === 1 ? "ficha" : "fichas"}`}
           description="Entre na fila de um PRO online"
           variant="success"
           href="/dashboard"
-          cta="Ver PROs online"
+          cta="Ver PROs"
         />
       ) : (
         <CompactCard
@@ -69,19 +76,55 @@ export function DashboardRightSidebar({
           title="Sem fichas"
           description={
             fichaPreco
-              ? `Compre 1 ficha · R$ ${fichaPreco.toFixed(2).replace(".", ",")}`
-              : "Compre fichas pra entrar em fila"
+              ? `1 ficha · R$ ${fichaPreco.toFixed(2).replace(".", ",")}`
+              : "Compre uma pra entrar em fila"
           }
           variant="warning"
           href={fichaPackageId ? `/checkout/${fichaPackageId}` : "/codigo-de-conduta"}
-          cta="Comprar ficha"
+          cta="Comprar"
         />
       )}
 
-      {/* PROs Online */}
-      <ProsOnlineCard pros={onlinePros} />
+      {/* Filas dos PROs online (QueueBoard compact) */}
+      <section
+        aria-label="Filas dos PROs online"
+        className="space-y-2 rounded-md border border-[var(--color-border)] bg-[var(--color-card)]/40 p-3 backdrop-blur-sm"
+      >
+        <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.2em] text-white/70">
+          Filas em andamento ({onlinePros.length})
+        </p>
+        {onlinePros.length === 0 ? (
+          <p className="rounded-md border border-dashed border-white/10 bg-black/30 p-4 text-center font-mono text-[10px] text-white/40">
+            Nenhum PRO online no momento.
+            <br />
+            <span className="text-white/30">
+              Receba aviso no Discord quando abrir.
+            </span>
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {onlinePros.map((p) => (
+              <QueueBoard
+                key={p.coach.coachId}
+                coach={{
+                  coachId: p.coach.coachId,
+                  username: p.coach.username,
+                  avatarUrl: p.coach.avatarUrl,
+                  mmrAtual: p.coach.mmrAtual,
+                  headline: p.coach.headline,
+                  filaAberta: p.coach.filaAberta,
+                  filaAbertaEm: p.coach.filaAbertaEm,
+                  filaMaxVagas: p.coach.filaMaxVagas,
+                }}
+                entries={p.entries}
+                variant="compact"
+                viewerUserId={viewerUserId}
+              />
+            ))}
+          </div>
+        )}
+      </section>
 
-      {/* Comunidade */}
       <article className="rounded-md border border-[var(--color-border)] bg-[var(--color-card)]/80 backdrop-blur-sm overflow-hidden">
         <p className="border-b border-[var(--color-border)] px-3 py-2 font-sans text-[10px] font-semibold uppercase tracking-[0.2em] text-white/70">
           Comunidade
@@ -97,59 +140,6 @@ export function DashboardRightSidebar({
         </div>
       </article>
     </aside>
-  );
-}
-
-function ProsOnlineCard({ pros }: { pros: ProLiveStatus[] }) {
-  return (
-    <article className="rounded-md border border-[var(--color-border)] bg-[var(--color-card)]/80 backdrop-blur-sm overflow-hidden">
-      <div className="flex items-center gap-2 border-b border-[var(--color-border)] px-3 py-2">
-        <Radio size={12} className="text-emerald-400" aria-hidden="true" />
-        <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.2em] text-white">
-          PROs online
-        </p>
-        <span className="ml-auto font-mono text-[10px] text-white/40">
-          {pros.length}
-        </span>
-      </div>
-      {pros.length === 0 ? (
-        <div className="p-4 text-center space-y-2">
-          <p className="font-mono text-[11px] text-white/50">Nenhum PRO online</p>
-          <p className="font-mono text-[10px] text-white/30">
-            Você será avisado quando abrir
-          </p>
-        </div>
-      ) : (
-        <ul className="divide-y divide-[var(--color-border)]">
-          {pros.slice(0, 4).map((p) => (
-            <li key={p.coachId} className="px-3 py-2.5">
-              <div className="flex items-center gap-2">
-                {p.avatarUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={p.avatarUrl}
-                    alt=""
-                    className="size-7 rounded-full border border-emerald-500/40"
-                  />
-                ) : (
-                  <div className="size-7 rounded-full border border-emerald-500/40 bg-[var(--color-card)]" />
-                )}
-                <div className="min-w-0 flex-1">
-                  <p className="font-sans text-xs text-white truncate">
-                    {p.username ?? p.slug}
-                  </p>
-                  <p className="font-mono text-[10px] text-white/40 mt-0.5">
-                    {p.vagasRestantes}{" "}
-                    {p.vagasRestantes === 1 ? "vaga" : "vagas"}
-                    {p.mmrAtual ? ` · ${p.mmrAtual.toLocaleString("pt-BR")} MMR` : ""}
-                  </p>
-                </div>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
-    </article>
   );
 }
 
