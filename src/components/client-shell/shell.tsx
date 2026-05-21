@@ -12,6 +12,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getMyFichaBalance } from "@/lib/queries/fichas";
 import { getProsLiveStatus } from "@/lib/queries/pros";
 import { getFichaPackage } from "@/lib/queries/packages";
+import { getMyQueueStatus } from "@/lib/queries/queue";
 import { getPreviewModeActive } from "@/lib/auth/preview-mode";
 import { DashboardTopBar } from "./top-bar";
 import { DashboardLeftSidebar } from "./left-sidebar";
@@ -57,6 +58,7 @@ export async function ClientShell({
     prosOnline,
     fichaPackage,
     previewActive,
+    myQueues,
   ] = await Promise.all([
     supabase
       .from("profiles")
@@ -72,6 +74,7 @@ export async function ClientShell({
     getProsLiveStatus(),
     getFichaPackage(),
     getPreviewModeActive(),
+    getMyQueueStatus(user.id),
   ]);
 
   const realIsAdmin = profile?.is_admin === true;
@@ -163,6 +166,8 @@ export async function ClientShell({
             isAdmin={adminFlag}
             fichaBalance={fichaBalance}
             fichaPackageId={fichaPackage?.id ?? null}
+            prosOnline={prosOnline}
+            myQueues={myQueues}
           />
         </div>
       </div>
@@ -249,6 +254,8 @@ export async function ClientShell({
           isAdmin={adminFlag}
           fichaBalance={fichaBalance}
           fichaPackageId={fichaPackage?.id ?? null}
+          prosOnline={prosOnline}
+          myQueues={myQueues}
         />
       </div>
     </div>

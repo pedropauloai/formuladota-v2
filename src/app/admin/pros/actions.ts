@@ -1,18 +1,21 @@
 "use server";
 
-// Server Actions admin PROs — MVP fichas.
-//   - togglePROFila: PRO logado abre/fecha sua fila pública
-//   - startPT: PRO consome N fichas selecionadas, cria 1 match (PT)
-//   - enrichMatchFromOpenDota: chama OpenDota e popula match_players (10 linhas)
+// Server Actions admin PROs — MVP fichas com lifecycle correto.
 //
-// Permissões: PRO atual = profile com row em coaches. Validação via auth.uid()
-// + lookup em coaches.profile_id. Admin sempre passa.
+// Lifecycle:
+//   entry.status:  waiting -> in_match -> consumed (ficha sai)
+//                              ↓
+//                          cancelled
+//
+//   match.status:  agendada -> realizada (trigger consome fichas)
+//                          -> cancelada (sem cobrança)
+//
+// Ficha só é cobrada quando match vira realizada (via trigger PG).
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { fetchOpenDotaMatch, normalizePlayers } from "@/lib/dota/opendota";
 
-// Steam ID 64 → account_id 32 (OpenDota usa o 32-bit form)
 const STEAM_64_OFFSET = 76561197960265728n;
 function steam64To32(steamId64: string): number {
   return Number(BigInt(steamId64) - STEAM_64_OFFSET);
@@ -22,27 +25,30 @@ type ActionResult<T = undefined> =
   | { success: true; data?: T }
   | { success: false; error: string };
 
-// ============== togglePROFila ==============
-
-export async function togglePROFila(open: boolean): Promise<ActionResult<{ filaAberta: boolean }>> {
-  const supabase = await createClient();
+async function requireCoach(supabase: Awaited<ReturnType<typeof createClient>>) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { success: false, error: "Não autenticado." };
-
-  // Achar coach do user
-  const { data: coach, error: coachErr } = await supabase
+  if (!user) return { user: null, coach: null, error: "Não autenticado." } as const;
+  const { data: coach } = await supabase
     .from("coaches")
-    .select("id, ativo")
+    .select("id, ativo, profile_id")
     .eq("profile_id", user.id)
     .single();
-  if (coachErr || !coach) {
-    return { success: false, error: "Você não é PRO." };
-  }
-  if (!coach.ativo) {
-    return { success: false, error: "Seu perfil PRO está inativo." };
-  }
+  if (!coach) return { user, coach: null, error: "Você não é PRO." } as const;
+  return { user, coach, error: null } as const;
+}
+
+// ============== togglePROFila ==============
+// Ao fechar fila, cancela todas entries waiting do coach (cascade).
+
+export async function togglePROFila(
+  open: boolean
+): Promise<ActionResult<{ filaAberta: boolean; cancelledEntries: number }>> {
+  const supabase = await createClient();
+  const { coach, error: authErr } = await requireCoach(supabase);
+  if (!coach) return { success: false, error: authErr };
+  if (!coach.ativo) return { success: false, error: "Seu perfil PRO está inativo." };
 
   const { error } = await supabase
     .from("coaches")
@@ -53,14 +59,34 @@ export async function togglePROFila(open: boolean): Promise<ActionResult<{ filaA
     .eq("id", coach.id);
   if (error) return { success: false, error: "Erro ao atualizar fila." };
 
+  let cancelledEntries = 0;
+  if (!open) {
+    // Fechando: cancelar todas entries waiting via função PG
+    const { data, error: cancelErr } = await supabase.rpc(
+      "cancel_pro_waiting_entries",
+      { p_coach_id: coach.id, p_reason: "Fila fechada pelo PRO" }
+    );
+    if (cancelErr) {
+      console.error("[togglePROFila] cancel waiting falhou", cancelErr.message);
+    } else {
+      cancelledEntries = (data as number) ?? 0;
+    }
+  }
+
   revalidatePath("/");
+  revalidatePath("/dashboard");
   revalidatePath("/admin/pros");
-  return { success: true, data: { filaAberta: open } };
+  return { success: true, data: { filaAberta: open, cancelledEntries } };
 }
 
 // ============== startPT ==============
+// Marca entries como 'in_match' (não consume ainda). Match status='agendada'.
+// Ficha só sai quando PRO confirma como realizada via confirmPTRealized
+// ou enrichMatchFromOpenDota.
 
-export async function startPT(entryIds: string[]): Promise<ActionResult<{ matchId: string }>> {
+export async function startPT(
+  entryIds: string[]
+): Promise<ActionResult<{ matchId: string }>> {
   if (entryIds.length === 0) {
     return { success: false, error: "Selecione ao menos 1 aluno." };
   }
@@ -69,23 +95,12 @@ export async function startPT(entryIds: string[]): Promise<ActionResult<{ matchI
   }
 
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { success: false, error: "Não autenticado." };
+  const { coach, error: authErr } = await requireCoach(supabase);
+  if (!coach) return { success: false, error: authErr };
 
-  // Achar coach do user logado
-  const { data: coach } = await supabase
-    .from("coaches")
-    .select("id")
-    .eq("profile_id", user.id)
-    .single();
-  if (!coach) return { success: false, error: "Você não é PRO." };
-
-  // Buscar entries selecionadas — todas devem pertencer ao coach e estar waiting
   const { data: entries, error: entriesErr } = await supabase
     .from("coach_queue_entries")
-    .select("id, user_id, purchase_id, status, coach_id")
+    .select("id, user_id, status, coach_id")
     .in("id", entryIds);
   if (entriesErr || !entries || entries.length !== entryIds.length) {
     return { success: false, error: "Entries inválidas." };
@@ -95,11 +110,11 @@ export async function startPT(entryIds: string[]): Promise<ActionResult<{ matchI
       return { success: false, error: "Uma das entries não pertence à sua fila." };
     }
     if (e.status !== "waiting") {
-      return { success: false, error: "Uma das fichas já foi consumida ou cancelada." };
+      return { success: false, error: "Uma das entries não está mais aguardando." };
     }
   }
 
-  // Criar 1 match agregado (sem user_id/purchase_id — entries linkam via match_id)
+  // Cria match com status='agendada' (ficha sai quando virar 'realizada')
   const nowISO = new Date().toISOString();
   const { data: match, error: matchErr } = await supabase
     .from("matches")
@@ -107,51 +122,179 @@ export async function startPT(entryIds: string[]): Promise<ActionResult<{ matchI
       coach_id: coach.id,
       data_agendada: nowISO,
       status: "agendada",
-      // user_id e purchase_id ficam NULL (multi-aluno via coach_queue_entries.match_id)
     } as never)
     .select("id")
     .single();
   if (matchErr || !match) {
-    return { success: false, error: "Erro ao criar PT: " + (matchErr?.message ?? "desconhecido") };
+    return {
+      success: false,
+      error: "Erro ao criar PT: " + (matchErr?.message ?? "desconhecido"),
+    };
   }
 
-  // Consumir 1 ficha de cada aluno via ledger (trigger atualiza user_fichas.balance)
-  // Se balance == 0 (over-commit), trigger lança CHECK violation e abortamos.
-  for (const e of entries) {
-    const { error: ledgerErr } = await supabase.from("ficha_ledger").insert({
-      user_id: e.user_id,
-      delta: -1,
-      source: "pt_consumed",
-      source_id: match.id,
-      reason: `PT iniciada por PRO (match ${match.id.slice(0, 8)})`,
-    } as never);
-    if (ledgerErr) {
-      return {
-        success: false,
-        error: `Saldo insuficiente do aluno ${e.user_id.slice(0, 8)}: ${ledgerErr.message}`,
-      };
-    }
-  }
-
-  // Marcar entries como consumed + link ao match
+  // Marcar entries como in_match + link ao match (sem cobrar ficha ainda)
   const { error: updErr } = await supabase
     .from("coach_queue_entries")
     .update({
-      status: "consumed",
-      consumed_at: nowISO,
+      status: "in_match",
       match_id: match.id,
-    })
+    } as never)
     .in("id", entryIds);
   if (updErr) {
-    return { success: false, error: "PT criada mas erro ao marcar fichas consumidas." };
+    return { success: false, error: "PT criada mas erro ao marcar entries." };
   }
 
   revalidatePath("/");
+  revalidatePath("/dashboard");
   revalidatePath("/admin/pros");
   return { success: true, data: { matchId: match.id } };
 }
 
+// ============== confirmPTRealized ==============
+// PRO confirma que partida ocorreu sem buscar dados OpenDota. Trigger PG
+// dispara consume_pt_fichas e cobra todas entries in_match desse match.
+
+export async function confirmPTRealized(
+  matchId: string
+): Promise<ActionResult<{ matchId: string }>> {
+  const supabase = await createClient();
+  const { coach, error: authErr } = await requireCoach(supabase);
+  if (!coach) return { success: false, error: authErr };
+
+  const { data: match } = await supabase
+    .from("matches")
+    .select("id, coach_id, status")
+    .eq("id", matchId)
+    .single();
+  if (!match) return { success: false, error: "PT não encontrada." };
+  if (match.coach_id !== coach.id) {
+    return { success: false, error: "PT não pertence a você." };
+  }
+  if (match.status !== "agendada") {
+    return { success: false, error: `PT já está ${match.status}.` };
+  }
+
+  // Trigger trg_match_realizada vai chamar consume_pt_fichas
+  const { error } = await supabase
+    .from("matches")
+    .update({
+      status: "realizada",
+      enriched_at: new Date().toISOString(),
+      match_dataset: "manual",
+    })
+    .eq("id", matchId);
+  if (error) {
+    return { success: false, error: "Erro ao confirmar PT: " + error.message };
+  }
+
+  revalidatePath("/admin/pros");
+  revalidatePath("/dashboard");
+  return { success: true, data: { matchId } };
+}
+
+// ============== cancelPT ==============
+// PRO desiste da PT antes de confirmar. Marca match=cancelada, entries=cancelled.
+// Nenhuma ficha foi cobrada (estavam em in_match), nenhum refund necessário.
+
+export async function cancelPT(
+  matchId: string,
+  reason: string
+): Promise<ActionResult<{ cancelledEntries: number }>> {
+  if (!reason || reason.trim().length < 3) {
+    return { success: false, error: "Razão obrigatória (mín 3 caracteres)." };
+  }
+
+  const supabase = await createClient();
+  const { coach, error: authErr } = await requireCoach(supabase);
+  if (!coach) return { success: false, error: authErr };
+
+  const { data: match } = await supabase
+    .from("matches")
+    .select("id, coach_id, status")
+    .eq("id", matchId)
+    .single();
+  if (!match) return { success: false, error: "PT não encontrada." };
+  if (match.coach_id !== coach.id) {
+    return { success: false, error: "PT não pertence a você." };
+  }
+  if (match.status !== "agendada") {
+    return {
+      success: false,
+      error: `Não pode cancelar PT em status ${match.status}.`,
+    };
+  }
+
+  // Cancelar entries vinculadas (in_match -> cancelled)
+  const { error: entriesErr, count } = await supabase
+    .from("coach_queue_entries")
+    .update({ status: "cancelled" } as never, { count: "exact" })
+    .eq("match_id", matchId)
+    .eq("status", "in_match");
+  if (entriesErr) {
+    return { success: false, error: "Erro ao cancelar entries: " + entriesErr.message };
+  }
+
+  // Marcar match como cancelada
+  const { error: matchErr } = await supabase
+    .from("matches")
+    .update({
+      status: "cancelada",
+      notas_pedro: reason.trim(),
+    })
+    .eq("id", matchId);
+  if (matchErr) {
+    return { success: false, error: "Erro ao cancelar match: " + matchErr.message };
+  }
+
+  revalidatePath("/admin/pros");
+  revalidatePath("/dashboard");
+  return { success: true, data: { cancelledEntries: count ?? 0 } };
+}
+
+// ============== removeFromQueue ==============
+// PRO remove aluno específico da própria fila. Ficha fica intacta.
+
+export async function removeFromQueue(
+  entryId: string,
+  reason: string
+): Promise<ActionResult<{ entryId: string }>> {
+  const supabase = await createClient();
+  const { coach, error: authErr } = await requireCoach(supabase);
+  if (!coach) return { success: false, error: authErr };
+
+  const { data: entry } = await supabase
+    .from("coach_queue_entries")
+    .select("id, coach_id, status")
+    .eq("id", entryId)
+    .single();
+  if (!entry) return { success: false, error: "Entry não encontrada." };
+  if (entry.coach_id !== coach.id) {
+    return { success: false, error: "Entry não pertence à sua fila." };
+  }
+  if (entry.status !== "waiting") {
+    return { success: false, error: `Entry já está ${entry.status}.` };
+  }
+
+  const { error } = await supabase
+    .from("coach_queue_entries")
+    .update({ status: "cancelled" } as never)
+    .eq("id", entryId);
+  if (error) {
+    return { success: false, error: "Erro ao remover: " + error.message };
+  }
+
+  // Log opcional pra auditoria (notas_pedro do entry seria ideal mas não há campo)
+  console.log(`[removeFromQueue] PRO ${coach.id} removeu entry ${entryId}: ${reason}`);
+
+  revalidatePath("/");
+  revalidatePath("/dashboard");
+  revalidatePath("/admin/pros");
+  return { success: true, data: { entryId } };
+}
+
 // ============== enrichMatchFromOpenDota ==============
+// Busca dados OpenDota e popula match_players. Se match ainda está em
+// status='agendada', dispara trigger que consome fichas.
 
 export async function enrichMatchFromOpenDota(
   matchId: string,
@@ -163,7 +306,6 @@ export async function enrichMatchFromOpenDota(
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Não autenticado." };
 
-  // Validar permissão: admin OU PRO dono do match
   const { data: profile } = await supabase
     .from("profiles")
     .select("is_admin")
@@ -173,7 +315,7 @@ export async function enrichMatchFromOpenDota(
 
   const { data: match } = await supabase
     .from("matches")
-    .select("id, coach_id, enriched_at")
+    .select("id, coach_id, enriched_at, status")
     .eq("id", matchId)
     .single();
   if (!match) return { success: false, error: "Match não encontrado." };
@@ -192,8 +334,10 @@ export async function enrichMatchFromOpenDota(
   if (match.enriched_at) {
     return { success: false, error: "Match já foi enriquecido anteriormente." };
   }
+  if (match.status === "cancelada") {
+    return { success: false, error: "PT cancelada — não há o que enriquecer." };
+  }
 
-  // Buscar dados na OpenDota
   let opendotaMatch;
   try {
     opendotaMatch = await fetchOpenDotaMatch(dotaMatchId);
@@ -204,7 +348,6 @@ export async function enrichMatchFromOpenDota(
 
   const normalized = normalizePlayers(opendotaMatch);
 
-  // Mapear steam_account_id → user_id via steam_links
   const accountIds = normalized.map((p) => p.steam_account_id).filter((id) => id > 0);
   const steamId64Strings = accountIds.map((aid) =>
     (BigInt(aid) + STEAM_64_OFFSET).toString()
@@ -221,7 +364,6 @@ export async function enrichMatchFromOpenDota(
     steamToUserId.set(account32, link.user_id);
   }
 
-  // Achar profile_id do PRO desse match pra marcar is_pro=true na linha dele
   const { data: coachWithProfile } = await supabase
     .from("coaches")
     .select("profile_id")
@@ -229,7 +371,6 @@ export async function enrichMatchFromOpenDota(
     .single();
   const proProfileId = coachWithProfile?.profile_id ?? null;
 
-  // Montar payload pra insert
   const playerRows = normalized.map((p) => {
     const userId = steamToUserId.get(p.steam_account_id) ?? null;
     return {
@@ -265,7 +406,7 @@ export async function enrichMatchFromOpenDota(
     return { success: false, error: "Erro ao inserir players: " + insErr.message };
   }
 
-  // Atualizar match com metadados
+  // Atualizar match. Se status era 'agendada', trigger PG consome fichas.
   const { error: matchUpdErr } = await supabase
     .from("matches")
     .update({
@@ -282,6 +423,6 @@ export async function enrichMatchFromOpenDota(
   }
 
   revalidatePath("/admin/pros");
-  revalidatePath(`/admin/pros/${matchId}`);
+  revalidatePath("/dashboard");
   return { success: true, data: { playersInserted: playerRows.length } };
 }

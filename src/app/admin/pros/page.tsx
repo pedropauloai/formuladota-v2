@@ -1,15 +1,15 @@
-// /admin/pros — painel PRO pra abrir/fechar fila, iniciar PT e submeter
-// match_id pra enriquecimento via OpenDota.
-//
-// Server-rendered; componentes interativos são client islands.
+// /admin/pros — painel PRO pra abrir/fechar fila, iniciar PT, confirmar
+// como realizada (cobra fichas) ou cancelar (zero cobrança).
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ToggleFilaButton } from "./toggle-fila-button";
 import { QueueList, type QueueEntry } from "./queue-list";
+import { PendingMatches } from "./pending-matches";
 import { EnrichForm } from "./enrich-form";
 
 export const metadata = { title: "PROs — Admin FORMULADOTA" };
+export const revalidate = 5;
 
 export default async function AdminProsPage() {
   const supabase = await createClient();
@@ -18,7 +18,6 @@ export default async function AdminProsPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  // Achar coach do user (PRO)
   const { data: coach } = await supabase
     .from("coaches")
     .select("id, slug, headline, fila_aberta, fila_aberta_em, fila_max_vagas")
@@ -28,14 +27,14 @@ export default async function AdminProsPage() {
   if (!coach) {
     return (
       <div className="p-8">
-        <p className="rounded-md border border-dashed border-[var(--color-border)] bg-[var(--color-card)]/30 p-6 font-mono-ui text-sm text-[var(--color-muted-foreground)]">
+        <p className="rounded-md border border-dashed border-[var(--color-border)] bg-[var(--color-card)]/30 p-6 font-mono text-sm text-[var(--color-muted-foreground)]">
           Você não é PRO ainda. Fale com o admin pra ser certificado.
         </p>
       </div>
     );
   }
 
-  // Buscar entries waiting da fila desse coach
+  // Entries waiting da fila
   const { data: rawEntries } = await supabase
     .from("coach_queue_entries")
     .select("id, joined_at, user_id")
@@ -45,7 +44,6 @@ export default async function AdminProsPage() {
 
   const entriesList = rawEntries ?? [];
 
-  // Buscar dados dos alunos
   const userIds = entriesList.map((e) => e.user_id);
   const { data: profiles } = userIds.length
     ? await supabase
@@ -53,10 +51,7 @@ export default async function AdminProsPage() {
         .select("id, username, avatar_url")
         .in("id", userIds)
     : { data: [] };
-
-  const profileById = new Map(
-    (profiles ?? []).map((p) => [p.id, p])
-  );
+  const profileById = new Map((profiles ?? []).map((p) => [p.id, p]));
 
   const queueEntries: QueueEntry[] = entriesList.map((e) => {
     const prof = profileById.get(e.user_id);
@@ -72,35 +67,67 @@ export default async function AdminProsPage() {
     };
   });
 
-  // Matches do coach (pra enriquecimento)
-  const { data: matchesRaw } = await supabase
+  // PTs agendadas (in_match entries) — aguardam confirmação ou cancelamento
+  const { data: pendingMatchesRaw } = await supabase
     .from("matches")
-    .select("id, created_at, enriched_at, dota_match_id")
+    .select("id, created_at")
     .eq("coach_id", coach.id)
+    .eq("status", "agendada")
     .order("created_at", { ascending: false })
     .limit(20);
 
-  // Contar alunos por match
-  const matchIds = (matchesRaw ?? []).map((m) => m.id);
-  const { data: matchEntries } = matchIds.length
+  const pendingIds = (pendingMatchesRaw ?? []).map((m) => m.id);
+  const { data: pendingMatchEntries } = pendingIds.length
     ? await supabase
         .from("coach_queue_entries")
         .select("match_id")
-        .in("match_id", matchIds)
-        .eq("status", "consumed")
+        .in("match_id", pendingIds)
+        .eq("status", "in_match")
     : { data: [] };
 
   const countByMatch = new Map<string, number>();
-  for (const me of matchEntries ?? []) {
+  for (const me of pendingMatchEntries ?? []) {
     if (me.match_id) {
       countByMatch.set(me.match_id, (countByMatch.get(me.match_id) ?? 0) + 1);
     }
   }
 
-  const matches = (matchesRaw ?? []).map((m) => ({
+  const pendingMatches = (pendingMatchesRaw ?? []).map((m) => ({
     id: m.id,
     createdAt: m.created_at,
     alunoCount: countByMatch.get(m.id) ?? 0,
+  }));
+
+  // PTs realizadas (pra histórico/enrich pós-fato)
+  const { data: realizedMatchesRaw } = await supabase
+    .from("matches")
+    .select("id, created_at, enriched_at, dota_match_id")
+    .eq("coach_id", coach.id)
+    .eq("status", "realizada")
+    .is("enriched_at", null)
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  const realizedIds = (realizedMatchesRaw ?? []).map((m) => m.id);
+  const { data: realizedEntries } = realizedIds.length
+    ? await supabase
+        .from("coach_queue_entries")
+        .select("match_id")
+        .in("match_id", realizedIds)
+        .eq("status", "consumed")
+    : { data: [] };
+
+  const realizedCountByMatch = new Map<string, number>();
+  for (const me of realizedEntries ?? []) {
+    if (me.match_id) {
+      realizedCountByMatch.set(me.match_id, (realizedCountByMatch.get(me.match_id) ?? 0) + 1);
+    }
+  }
+
+  const realizedNoData = (realizedMatchesRaw ?? []).map((m) => ({
+    id: m.id,
+    createdAt: m.created_at,
+    alunoCount: realizedCountByMatch.get(m.id) ?? 0,
     enrichedAt: m.enriched_at,
     dotaMatchId: m.dota_match_id,
   }));
@@ -114,8 +141,8 @@ export default async function AdminProsPage() {
         <h1 className="mt-3 font-display text-3xl uppercase tracking-tight text-[var(--color-foreground)]">
           Gerenciar fila e PTs
         </h1>
-        <p className="mt-2 font-mono-ui text-xs text-[var(--color-muted-foreground)]">
-          Slug: {coach.slug} · headline: {coach.headline ?? "(sem headline)"}
+        <p className="mt-2 font-mono text-xs text-[var(--color-muted-foreground)]">
+          Slug: {coach.slug} · {coach.headline ?? "(sem headline)"}
         </p>
         <div className="mt-4 brand-divider" />
       </header>
@@ -133,38 +160,31 @@ export default async function AdminProsPage() {
           <h2 className="mt-8 font-display text-xl uppercase tracking-wide text-white">
             2. Alunos na fila
           </h2>
-          <p className="font-mono-ui text-xs text-[var(--color-muted-foreground)]">
-            {queueEntries.length} esperando · máx {coach.fila_max_vagas} por PT
+          <p className="font-mono text-xs text-[var(--color-muted-foreground)]">
+            {queueEntries.length} aguardando · máx {coach.fila_max_vagas} por PT
           </p>
           <QueueList entries={queueEntries} filaAberta={coach.fila_aberta} />
         </div>
 
         <div className="space-y-6">
           <h2 className="font-display text-xl uppercase tracking-wide text-white">
-            3. Submeter Dota Match ID
+            3. PTs agendadas
           </h2>
-          <p className="font-mono-ui text-xs text-[var(--color-muted-foreground)]">
-            Depois da PT terminar, cole o ID da partida pra puxar todos os dados via
-            OpenDota (10 jogadores, KDA, GPM, items, hero, vitória).
+          <p className="font-mono text-xs text-[var(--color-muted-foreground)]">
+            Confirme quando a partida ocorrer (cobra fichas) ou cancele se não rolar.
           </p>
-          <EnrichForm matches={matches} />
+          <PendingMatches matches={pendingMatches} />
 
-          {matches.filter((m) => m.enrichedAt).length > 0 && (
-            <div className="mt-8 space-y-2">
-              <h3 className="font-display text-sm uppercase tracking-wide text-white/70">
-                PTs já enriquecidas
-              </h3>
-              <ul className="space-y-1 font-mono-ui text-xs text-[var(--color-muted-foreground)]">
-                {matches
-                  .filter((m) => m.enrichedAt)
-                  .slice(0, 5)
-                  .map((m) => (
-                    <li key={m.id}>
-                      {new Date(m.createdAt).toLocaleString("pt-BR")} · #{m.dotaMatchId}
-                    </li>
-                  ))}
-              </ul>
-            </div>
+          {realizedNoData.length > 0 && (
+            <>
+              <h2 className="mt-8 font-display text-xl uppercase tracking-wide text-white">
+                4. Realizadas sem dados OpenDota
+              </h2>
+              <p className="font-mono text-xs text-[var(--color-muted-foreground)]">
+                Submeta o match_id Dota pra enriquecer com KDA, GPM, etc.
+              </p>
+              <EnrichForm matches={realizedNoData} />
+            </>
           )}
         </div>
       </section>

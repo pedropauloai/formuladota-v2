@@ -1,11 +1,11 @@
 "use client";
 
-// Lista de alunos na fila + checkbox pra selecionar quem entra na próxima PT.
-// Botão "Iniciar PT com selecionados" chama startPT action.
+// Lista de alunos na fila com checkbox de seleção + botão remover (X)
+// individual. PRO seleciona quem entra na próxima PT e inicia.
 
 import { useState, useTransition } from "react";
-import { Play, Loader2 } from "lucide-react";
-import { startPT } from "./actions";
+import { Play, Loader2, X } from "lucide-react";
+import { startPT, removeFromQueue } from "./actions";
 
 export interface QueueEntry {
   id: string;
@@ -24,6 +24,7 @@ export function QueueList({ entries, filaAberta }: Props) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [pendingId, setPendingId] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   function toggle(id: string) {
@@ -44,8 +45,33 @@ export function QueueList({ entries, filaAberta }: Props) {
       if (!res.success) {
         setError(res.error);
       } else {
-        setSuccess(`PT criada (${ids.length} aluno${ids.length === 1 ? "" : "s"}). Match ID: ${res.data?.matchId.slice(0, 8)}...`);
+        setSuccess(
+          `PT iniciada (${ids.length} aluno${ids.length === 1 ? "" : "s"}). Confirme abaixo quando terminar pra cobrar fichas.`
+        );
         setSelected(new Set());
+      }
+    });
+  }
+
+  function handleRemove(entryId: string) {
+    const reason = window.prompt(
+      "Motivo da remoção (será logado):",
+      "Sem motivo específico"
+    );
+    if (reason === null) return; // cancelou
+    if (reason.trim().length < 3) {
+      setError("Motivo precisa ter pelo menos 3 caracteres.");
+      return;
+    }
+    setError(null);
+    setPendingId(entryId);
+    startTransition(async () => {
+      const res = await removeFromQueue(entryId, reason);
+      setPendingId(null);
+      if (!res.success) {
+        setError(res.error);
+      } else {
+        setSuccess("Aluno removido da fila. Ficha permanece intacta.");
       }
     });
   }
@@ -71,10 +97,11 @@ export function QueueList({ entries, filaAberta }: Props) {
       <ul className="space-y-2">
         {entries.map((e) => {
           const checked = selected.has(e.id);
+          const isRemoving = pendingId === e.id;
           return (
             <li key={e.id}>
-              <label
-                className={`flex cursor-pointer items-center gap-3 rounded-md border px-4 py-3 transition-colors ${
+              <div
+                className={`flex items-center gap-3 rounded-md border px-4 py-3 transition-colors ${
                   checked
                     ? "border-[var(--color-brand-red)]/60 bg-[var(--color-brand-red)]/10"
                     : "border-[var(--color-border)] bg-[var(--color-card)] hover:border-[var(--color-brand-red)]/40"
@@ -84,7 +111,8 @@ export function QueueList({ entries, filaAberta }: Props) {
                   type="checkbox"
                   checked={checked}
                   onChange={() => toggle(e.id)}
-                  className="size-4 accent-[var(--color-brand-red)]"
+                  className="size-4 cursor-pointer accent-[var(--color-brand-red)]"
+                  aria-label={`Selecionar ${e.username ?? "aluno"} pra PT`}
                 />
                 {e.avatarUrl && (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -102,7 +130,20 @@ export function QueueList({ entries, filaAberta }: Props) {
                     aguardando há {e.waitingMinutes} min
                   </p>
                 </div>
-              </label>
+                <button
+                  type="button"
+                  onClick={() => handleRemove(e.id)}
+                  disabled={isRemoving || pending}
+                  aria-label={`Remover ${e.username ?? "aluno"} da fila`}
+                  className="flex size-8 items-center justify-center rounded-md text-white/40 hover:bg-red-500/15 hover:text-red-300 transition-colors disabled:opacity-50"
+                >
+                  {isRemoving ? (
+                    <Loader2 size={14} className="animate-spin" />
+                  ) : (
+                    <X size={14} />
+                  )}
+                </button>
+              </div>
             </li>
           );
         })}
@@ -120,6 +161,10 @@ export function QueueList({ entries, filaAberta }: Props) {
 
       {error && <p className="font-mono-ui text-sm text-red-400">{error}</p>}
       {success && <p className="font-mono-ui text-sm text-emerald-400">{success}</p>}
+
+      <p className="font-mono text-[10px] text-white/40 text-center">
+        Ficha só é cobrada quando confirmar PT como realizada (abaixo).
+      </p>
     </div>
   );
 }
