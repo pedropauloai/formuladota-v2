@@ -602,12 +602,12 @@ export type Database = {
           match_dataset: string | null
           mmr_change: number | null
           notas_pedro: string | null
-          purchase_id: string
+          purchase_id: string | null
           radiant_win: boolean | null
           resultado: string | null
           status: string
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           coach_id?: string | null
@@ -622,12 +622,12 @@ export type Database = {
           match_dataset?: string | null
           mmr_change?: number | null
           notas_pedro?: string | null
-          purchase_id: string
+          purchase_id?: string | null
           radiant_win?: boolean | null
           resultado?: string | null
           status?: string
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           coach_id?: string | null
@@ -642,12 +642,12 @@ export type Database = {
           match_dataset?: string | null
           mmr_change?: number | null
           notas_pedro?: string | null
-          purchase_id?: string
+          purchase_id?: string | null
           radiant_win?: boolean | null
           resultado?: string | null
           status?: string
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
