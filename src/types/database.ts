@@ -174,7 +174,7 @@ export type Database = {
           id: string
           joined_at: string
           match_id: string | null
-          purchase_id: string
+          purchase_id: string | null
           status: string
           user_id: string
         }
@@ -184,7 +184,7 @@ export type Database = {
           id?: string
           joined_at?: string
           match_id?: string | null
-          purchase_id: string
+          purchase_id?: string | null
           status?: string
           user_id: string
         }
@@ -194,7 +194,7 @@ export type Database = {
           id?: string
           joined_at?: string
           match_id?: string | null
-          purchase_id?: string
+          purchase_id?: string | null
           status?: string
           user_id?: string
         }
@@ -299,6 +299,54 @@ export type Database = {
           version?: number
         }
         Relationships: []
+      }
+      ficha_ledger: {
+        Row: {
+          admin_user_id: string | null
+          created_at: string
+          delta: number
+          id: string
+          reason: string | null
+          source: Database["public"]["Enums"]["ficha_source"]
+          source_id: string | null
+          user_id: string
+        }
+        Insert: {
+          admin_user_id?: string | null
+          created_at?: string
+          delta: number
+          id?: string
+          reason?: string | null
+          source: Database["public"]["Enums"]["ficha_source"]
+          source_id?: string | null
+          user_id: string
+        }
+        Update: {
+          admin_user_id?: string | null
+          created_at?: string
+          delta?: number
+          id?: string
+          reason?: string | null
+          source?: Database["public"]["Enums"]["ficha_source"]
+          source_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ficha_ledger_admin_user_id_fkey"
+            columns: ["admin_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ficha_ledger_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       level_thresholds: {
         Row: {
@@ -1446,6 +1494,32 @@ export type Database = {
           },
         ]
       }
+      user_fichas: {
+        Row: {
+          balance: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_fichas_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_levels: {
         Row: {
           current_level: number
@@ -1775,6 +1849,12 @@ export type Database = {
       reset_dormant_behavior: { Args: never; Returns: number }
     }
     Enums: {
+      ficha_source:
+        | "purchase"
+        | "admin_grant"
+        | "admin_debit"
+        | "pt_consumed"
+        | "refund"
       match_status:
         | "scheduled"
         | "in_progress"
@@ -1916,6 +1996,13 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      ficha_source: [
+        "purchase",
+        "admin_grant",
+        "admin_debit",
+        "pt_consumed",
+        "refund",
+      ],
       match_status: [
         "scheduled",
         "in_progress",

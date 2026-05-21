@@ -115,18 +115,21 @@ export async function startPT(entryIds: string[]): Promise<ActionResult<{ matchI
     return { success: false, error: "Erro ao criar PT: " + (matchErr?.message ?? "desconhecido") };
   }
 
-  // Consumir 1 ficha de cada purchase
+  // Consumir 1 ficha de cada aluno via ledger (trigger atualiza user_fichas.balance)
+  // Se balance == 0 (over-commit), trigger lança CHECK violation e abortamos.
   for (const e of entries) {
-    const { data: p } = await supabase
-      .from("purchases")
-      .select("partidas_usadas")
-      .eq("id", e.purchase_id)
-      .single();
-    if (p) {
-      await supabase
-        .from("purchases")
-        .update({ partidas_usadas: p.partidas_usadas + 1 })
-        .eq("id", e.purchase_id);
+    const { error: ledgerErr } = await supabase.from("ficha_ledger").insert({
+      user_id: e.user_id,
+      delta: -1,
+      source: "pt_consumed",
+      source_id: match.id,
+      reason: `PT iniciada por PRO (match ${match.id.slice(0, 8)})`,
+    } as never);
+    if (ledgerErr) {
+      return {
+        success: false,
+        error: `Saldo insuficiente do aluno ${e.user_id.slice(0, 8)}: ${ledgerErr.message}`,
+      };
     }
   }
 

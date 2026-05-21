@@ -4,7 +4,7 @@
 
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { LayoutDashboard, Users, Calendar, Gamepad2, Radio } from "lucide-react";
+import { LayoutDashboard, Users, Calendar, Gamepad2, Radio, Coins } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ClientShell } from "@/components/client-shell/shell";
 import { getPreviewModeActive } from "@/lib/auth/preview-mode";
@@ -42,6 +42,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <AdminNavLink href="/admin/dashboard" icon={LayoutDashboard} label="Dashboard" />
             <AdminNavLink href="/admin/pros" icon={Radio} label="PROs" />
             <AdminNavLink href="/admin/users" icon={Users} label="Users" />
+            <AdminNavLink href="/admin/fichas" icon={Coins} label="Fichas" />
             <AdminNavLink href="/admin/temporadas" icon={Calendar} label="Temporadas" />
             <AdminNavLink href="/admin/lobbies" icon={Gamepad2} label="Lobbies" />
           </nav>

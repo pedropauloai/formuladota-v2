@@ -1,8 +1,11 @@
 "use server";
 
 // Server Actions usadas pelos componentes da landing pública.
-// joinCoachQueue: cliente entra na fila de um PRO usando uma ficha do saldo.
+// joinCoachQueue: cliente entra na fila de um PRO (valida saldo via user_fichas).
 // leaveCoachQueue: cliente sai da fila (mantém entry com status=cancelled).
+//
+// Saldo é validado mas NÃO decrementado aqui — decremento só no startPT
+// (ledger entry source=pt_consumed) quando o PRO inicia a partida.
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
@@ -20,20 +23,14 @@ export async function joinCoachQueue(coachId: string): Promise<JoinQueueResult> 
     return { success: false, error: "Você precisa estar logado pra entrar na fila." };
   }
 
-  // 1. Achar uma purchase paga com saldo de fichas
-  const { data: purchases, error: pErr } = await supabase
-    .from("purchases")
-    .select("id, partidas_compradas, partidas_usadas")
+  // 1. Validar saldo via user_fichas (ledger pattern)
+  const { data: fichas } = await supabase
+    .from("user_fichas")
+    .select("balance")
     .eq("user_id", user.id)
-    .eq("status", "pago");
-  if (pErr) {
-    return { success: false, error: "Erro ao buscar saldo de fichas." };
-  }
-  type PurchaseRow = { id: string; partidas_compradas: number; partidas_usadas: number };
-  const purchaseWithBalance = ((purchases ?? []) as PurchaseRow[]).find(
-    (p) => p.partidas_compradas - p.partidas_usadas > 0
-  );
-  if (!purchaseWithBalance) {
+    .maybeSingle();
+  const balance = fichas?.balance ?? 0;
+  if (balance <= 0) {
     return {
       success: false,
       error: "Você não tem fichas disponíveis. Compre uma ficha primeiro.",
@@ -57,19 +54,18 @@ export async function joinCoachQueue(coachId: string): Promise<JoinQueueResult> 
     return { success: false, error: "Não há vagas restantes nessa fila." };
   }
 
-  // 3. Inserir entry — RLS valida que user_id = auth.uid()
+  // 3. Inserir entry — purchase_id agora nullable (ficha pode vir de admin_grant)
   const { data, error } = await supabase
     .from("coach_queue_entries")
     .insert({
       coach_id: coachId,
       user_id: user.id,
-      purchase_id: purchaseWithBalance.id,
+      purchase_id: null,
       status: "waiting",
-    })
+    } as never)
     .select("id")
     .single();
   if (error) {
-    // 23505 = unique violation (já está na fila desse PRO)
     if (error.code === "23505") {
       return { success: false, error: "Você já está na fila desse PRO." };
     }
