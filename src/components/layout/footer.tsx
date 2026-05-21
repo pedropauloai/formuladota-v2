@@ -44,9 +44,7 @@ export function Footer() {
 
           <FooterColumn title="Plataforma">
             <FooterLink href="/pacotes" label="Pacotes" />
-            <FooterLink href="/assinatura" label="Assinatura" />
             <FooterLink href="/codigo-de-conduta" label="Código de Conduta" />
-            <FooterLink href="/login" label="Entrar com Discord" />
           </FooterColumn>
         </div>
 

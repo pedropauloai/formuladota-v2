@@ -6,7 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { LogIn, User } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { signOut } from "@/app/login/actions";
+import { signInWithDiscord, signOut } from "@/app/login/actions";
 
 export async function Header() {
   const supabase = await createClient();
@@ -47,13 +47,15 @@ export async function Header() {
           {user ? (
             <UserMenu username={username} avatarUrl={avatarUrl} />
           ) : (
-            <Link
-              href="/login"
-              className="inline-flex items-center gap-2 rounded-md border border-[var(--color-brand-red)] px-4 py-2 text-sm font-semibold uppercase tracking-wide text-[var(--color-foreground)] hover:bg-[var(--color-brand-red)] transition"
-            >
-              <LogIn size={14} />
-              Entrar
-            </Link>
+            <form action={signInWithDiscord}>
+              <button
+                type="submit"
+                className="inline-flex items-center gap-2 rounded-md border border-[var(--color-brand-red)] px-4 py-2 text-sm font-semibold uppercase tracking-wide text-[var(--color-foreground)] hover:bg-[var(--color-brand-red)] transition"
+              >
+                <LogIn size={14} />
+                Entrar
+              </button>
+            </form>
           )}
         </div>
       </div>

@@ -20,6 +20,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { signInWithDiscord } from "@/app/login/actions";
 import { HeroVideo } from "@/components/dota/hero-video";
 import { LivePROStrip } from "@/components/landing/live-pro-strip";
 import { PROsShowcase } from "@/components/landing/pros-showcase";
@@ -86,13 +87,15 @@ function Hero() {
         </p>
 
         <div className="mt-6 flex flex-wrap items-center gap-4">
-          <Link
-            href="/login"
-            className="inline-flex items-center gap-2 rounded-md bg-[var(--color-brand-red)] px-6 py-3 font-sans text-sm font-semibold uppercase tracking-wide text-white transition-colors hover:bg-[var(--color-brand-red)]/80"
-          >
-            Comprar ficha — R$ 15
-            <ArrowRight size={18} />
-          </Link>
+          <form action={signInWithDiscord}>
+            <button
+              type="submit"
+              className="inline-flex items-center gap-2 rounded-md bg-[var(--color-brand-red)] px-6 py-3 font-sans text-sm font-semibold uppercase tracking-wide text-white transition-colors hover:bg-[var(--color-brand-red)]/80"
+            >
+              Comprar ficha — R$ 15
+              <ArrowRight size={18} />
+            </button>
+          </form>
           <Link
             href="#como-funciona"
             className="inline-flex items-center gap-2 rounded-md border border-white/20 bg-transparent px-6 py-3 font-sans text-sm font-semibold uppercase tracking-wide text-white/80 transition-colors hover:border-white/60 hover:text-white"
@@ -264,13 +267,15 @@ function FinalCTA() {
           Até 4 alunos por partida. Sem fila grande, sem matchmaking aleatório. Saldo
           de fichas joga quando quiser.
         </p>
-        <Link
-          href="/login"
-          className="mt-10 inline-flex items-center gap-2 rounded-md bg-[var(--color-brand-red)] px-8 py-4 font-sans text-base font-semibold uppercase tracking-wide text-white transition-colors hover:bg-[var(--color-brand-red)]/80"
-        >
-          Comprar ficha — R$ 15
-          <ArrowRight size={20} />
-        </Link>
+        <form action={signInWithDiscord} className="mt-10 inline-flex">
+          <button
+            type="submit"
+            className="inline-flex items-center gap-2 rounded-md bg-[var(--color-brand-red)] px-8 py-4 font-sans text-base font-semibold uppercase tracking-wide text-white transition-colors hover:bg-[var(--color-brand-red)]/80"
+          >
+            Comprar ficha — R$ 15
+            <ArrowRight size={20} />
+          </button>
+        </form>
       </div>
     </section>
   );

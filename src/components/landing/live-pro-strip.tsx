@@ -5,8 +5,8 @@
 //   - 0 PROs com fila aberta: estado vazio + CTA Discord
 //   - 1+ PROs com fila aberta: status + vagas + CTA pra logar/jogar
 
-import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { signInWithDiscord } from "@/app/login/actions";
 import { getProsLiveStatus } from "@/lib/queries/pros";
 
 export async function LivePROStrip() {
@@ -61,13 +61,15 @@ export async function LivePROStrip() {
             {top.mmrAtual ? ` · ${top.mmrAtual.toLocaleString("pt-BR")} MMR` : ""}
           </span>
         </div>
-        <Link
-          href="/login"
-          className="inline-flex items-center gap-2 rounded-md bg-[var(--color-brand-red)] px-4 py-1.5 font-sans text-xs font-semibold uppercase tracking-widest text-white transition-colors hover:bg-[var(--color-brand-red)]/80"
-        >
-          Entrar pra jogar agora
-          <ArrowRight size={12} />
-        </Link>
+        <form action={signInWithDiscord}>
+          <button
+            type="submit"
+            className="inline-flex items-center gap-2 rounded-md bg-[var(--color-brand-red)] px-4 py-1.5 font-sans text-xs font-semibold uppercase tracking-widest text-white transition-colors hover:bg-[var(--color-brand-red)]/80"
+          >
+            Entrar pra jogar agora
+            <ArrowRight size={12} />
+          </button>
+        </form>
       </div>
     </div>
   );
