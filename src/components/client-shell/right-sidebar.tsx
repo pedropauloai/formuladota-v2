@@ -35,9 +35,11 @@ export function DashboardRightSidebar({
   viewerUserId,
   floating,
 }: Props) {
+  // Sidebar discreta por default (opacidade 70%), realça em hover pra reforçar
+  // hierarquia: Hero+QueueBoard são foco; sidebar é apoio.
   const wrapperCls = floating
-    ? "flex w-full flex-col gap-3 p-3 overflow-y-auto"
-    : "hidden lg:flex flex-col gap-3 bg-gradient-to-l from-black/70 via-black/40 to-transparent p-4 pb-[80px] xl:pb-[96px] 2xl:pb-[112px] backdrop-blur-sm overflow-y-auto";
+    ? "flex w-full flex-col gap-3 p-3 overflow-y-auto opacity-70 hover:opacity-100 transition-opacity"
+    : "hidden lg:flex flex-col gap-3 bg-gradient-to-l from-black/70 via-black/40 to-transparent p-4 pb-[80px] xl:pb-[96px] 2xl:pb-[112px] backdrop-blur-sm overflow-y-auto opacity-70 hover:opacity-100 transition-opacity";
 
   const onlinePros = prosWithQueues.filter((p) => p.coach.filaAberta);
 
