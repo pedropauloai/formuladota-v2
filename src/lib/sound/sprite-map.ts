@@ -3,17 +3,18 @@
  *
  * Offsets em ms [start, duration]. Sincronizado com public/sounds/ui-sprite.{webm,mp3}.
  *
- * Estrutura do sprite (total ~3300ms):
- *   [0      ] hover        — 0 a 100ms     (100ms)
- *   [200    ] click        — 200 a 350ms   (150ms)
- *   [500    ] confirm      — 500 a 900ms   (400ms)
- *   [1000   ] error        — 1000 a 1350ms (350ms)
- *   [1500   ] notification — 1500 a 2100ms (600ms)
- *   [2300   ] reward       — 2300 a 3500ms (1200ms)
+ * Estrutura do sprite (total ~3810ms, gaps de 150ms entre SFX):
+ *   [0    ] hover        — 0 a 120ms      (120ms) — pink noise highpass/lowpass whoosh
+ *   [270  ] click        — 270 a 360ms    (90ms)  — sine 180Hz + white noise transient
+ *   [510  ] confirm      — 510 a 970ms    (460ms) — E5(659Hz) → A5(880Hz) ascending chime
+ *   [1120 ] error        — 1120 a 1510ms  (390ms) — A4(440Hz) → E4(330Hz) descending tone
+ *   [1660 ] notification — 1660 a 2260ms  (600ms) — C5(523Hz) + harmônicos singing bowl
+ *   [2410 ] reward       — 2410 a 3810ms  (1400ms)— Lá maior arpeggio A4→C#5→E5→A5
  *
- * IMPORTANTE: estes offsets são placeholders sincronizados com o sprite stub gerado
- * via ffmpeg em V2.5-F5. Para regenerar com SFX reais curados do Freesound:
+ * Sprite sintetizado via ffmpeg (receitas reproduzíveis em docs/foundations/SOUND_SYSTEM.md § 11).
+ * Licença: domínio público — síntese matemática pura, sem source CC0 derivado.
  *
+ * Para substituir por SFX curados do Freesound CC0 no futuro:
  *   1. Salvar 6 WAV curados em assets/sfx-raw/ (hover.wav, click.wav, etc.)
  *   2. Gerar via audiosprite:
  *      audiosprite --output public/sounds/ui-sprite --format howler2 \
@@ -43,18 +44,18 @@ export interface SpriteEntry {
  * Formato Howler: { id: [start_ms, duration_ms] }
  */
 export const SPRITE_MAP: Record<SoundId, SpriteEntry> = {
-  /** Micro-feedback de presença — 100ms, discreto */
-  hover: { start: 0, duration: 100 },
-  /** Confirmação de ação iniciada — 150ms, tap sólido */
-  click: { start: 200, duration: 150 },
-  /** Feedback de sucesso — 400ms, chime ascendente */
-  confirm: { start: 500, duration: 400 },
-  /** Sinal de falha — 350ms, tom descendente suave */
-  error: { start: 1000, duration: 350 },
-  /** Alerta de evento não-crítico — 600ms, bell warm */
-  notification: { start: 1500, duration: 600 },
-  /** Celebração de conquista — 1200ms, chime com sustain */
-  reward: { start: 2300, duration: 1200 },
+  /** Micro-feedback de presença — 120ms, pink noise filtrado (whoosh aéreo sutil) */
+  hover: { start: 0, duration: 120 },
+  /** Confirmação de ação iniciada — 90ms, sine 180Hz + white noise transient */
+  click: { start: 270, duration: 90 },
+  /** Feedback de sucesso — 460ms, chime ascendente E5→A5 (659→880Hz) */
+  confirm: { start: 510, duration: 460 },
+  /** Sinal de falha — 390ms, tom descendente A4→E4 (440→330Hz), lowpass 2kHz */
+  error: { start: 1120, duration: 390 },
+  /** Alerta de evento não-crítico — 600ms, sino harmônico C5 + overtones (singing bowl) */
+  notification: { start: 1660, duration: 600 },
+  /** Celebração de conquista — 1400ms, arpeggio Lá maior A4→C#5→E5→A5 */
+  reward: { start: 2410, duration: 1400 },
 };
 
 /**
