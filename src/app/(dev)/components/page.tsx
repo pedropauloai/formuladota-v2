@@ -22,7 +22,7 @@
 "use client";
 
 import { useState } from "react";
-import { Trophy } from "lucide-react";
+import { Trophy, Users, Clock, Activity } from "lucide-react";
 
 // Primitives F6
 import { Button } from "@/components/ui/button";
@@ -38,6 +38,22 @@ import { PresenceDot, type PresenceStatus } from "@/components/ui/presence-dot";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingScreen } from "@/components/ui/loading-screen";
 import { DotaRankMedal, RANK_LABELS, type DotaRank } from "@/components/ui/dota-rank-medal";
+
+// Wave D — Sistema de badges + identidade (GamersClub-inspired)
+import { UserAvatar } from "@/components/ui/avatar";
+import { MembershipBadge, type MembershipTier } from "@/components/ui/membership-badge";
+import { AchievementBadge, type AchievementVariant } from "@/components/ui/achievement-badge";
+import { BadgeStack } from "@/components/ui/badge-stack";
+
+// Wave D — Live presence + Season (GamersClub-inspired)
+import { PresenceLive } from "@/components/patterns/presence-live";
+import { LiveCounter } from "@/components/patterns/live-counter";
+import { SeasonBanner } from "@/components/patterns/season-banner";
+
+// Wave D — Premium markers (GamersClub-inspired)
+import { FreeBar } from "@/components/patterns/free-bar";
+import { OnFireOverlay } from "@/components/patterns/on-fire-overlay";
+import { SoldOutOverlay } from "@/components/patterns/sold-out-overlay";
 
 // Patterns F7
 import { MatchCard } from "@/components/patterns/match-card";
@@ -205,6 +221,205 @@ export default function ComponentsPage() {
               ))}
             </div>
           </div>
+        </div>
+      </Section>
+
+      {/* ================================================================== */}
+      {/* WAVE D — BADGES (UserAvatar / Membership / Achievement / Stack)    */}
+      {/* ================================================================== */}
+
+      <Section title="UserAvatar — 4 sizes + badge overlay + presença + ring colorido">
+        <div className="space-y-6">
+          <p className="text-sm text-text-muted">
+            Padrão GamersClub: empilha avatar + ring colorido + badge overlay (ou presença) + identidade textual.
+          </p>
+          {/* 4 sizes side-by-side */}
+          <div className="flex items-end gap-6">
+            {(["sm", "md", "lg", "xl"] as const).map((s) => (
+              <div key={s} className="flex flex-col items-center gap-2">
+                <UserAvatar fallback="PP" size={s} />
+                <span className="font-mono text-[10px] text-text-muted uppercase tracking-widest">{s}</span>
+              </div>
+            ))}
+          </div>
+          {/* Variações: badge / presence / ring */}
+          <div className="border-t border-border-subtle pt-6 grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="flex flex-col items-center gap-2">
+              <UserAvatar fallback="PP" size="lg" badge={<MembershipBadge tier="elite" />} />
+              <span className="text-xs text-text-muted text-center">badge=elite</span>
+            </div>
+            <div className="flex flex-col items-center gap-2">
+              <UserAvatar fallback="PP" size="lg" presence="online" />
+              <span className="text-xs text-text-muted text-center">presence=online</span>
+            </div>
+            <div className="flex flex-col items-center gap-2">
+              <UserAvatar fallback="PP" size="lg" ringColor="brand" />
+              <span className="text-xs text-text-muted text-center">ring=brand</span>
+            </div>
+            <div className="flex flex-col items-center gap-2">
+              <UserAvatar fallback="PP" size="lg" ringColor="tier-immortal" badge={<MembershipBadge tier="fundador" />} />
+              <span className="text-xs text-text-muted text-center">tier-immortal + fundador</span>
+            </div>
+          </div>
+        </div>
+      </Section>
+
+      <Section title="MembershipBadge — 5 tiers (overlay em UserAvatar)">
+        <div className="flex flex-wrap gap-6">
+          {(["free", "aluno", "veterano", "elite", "fundador"] as MembershipTier[]).map((t) => (
+            <div key={t} className="flex flex-col items-center gap-2">
+              <UserAvatar fallback="PP" size="lg" badge={<MembershipBadge tier={t} />} />
+              <span className="font-mono text-[10px] text-text-muted uppercase tracking-widest">{t}</span>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      <Section title="AchievementBadge — 8 variants (conquistas inline)">
+        <div className="flex flex-wrap gap-2">
+          {([
+            "doutrina",
+            "veterano",
+            "fundador",
+            "streak-5",
+            "champion-s1",
+            "comendado",
+            "bom-comportamento",
+            "evento-inaugural",
+          ] as AchievementVariant[]).map((v) => (
+            <AchievementBadge key={v} variant={v} />
+          ))}
+        </div>
+      </Section>
+
+      <Section title="BadgeStack — overflow indicator (+N)">
+        <div className="space-y-4">
+          <div>
+            <p className="text-xs text-text-faded mb-2 font-mono uppercase tracking-widest">max=3 (3 badges → sem overflow)</p>
+            <BadgeStack
+              badges={[
+                { variant: "champion-s1" },
+                { variant: "comendado" },
+                { variant: "fundador" },
+              ]}
+              max={3}
+            />
+          </div>
+          <div>
+            <p className="text-xs text-text-faded mb-2 font-mono uppercase tracking-widest">max=3 (5 badges → overflow +2)</p>
+            <BadgeStack
+              badges={[
+                { variant: "doutrina" },
+                { variant: "veterano" },
+                { variant: "streak-5" },
+                { variant: "bom-comportamento" },
+                { variant: "evento-inaugural" },
+              ]}
+              max={3}
+            />
+          </div>
+        </div>
+      </Section>
+
+      {/* ================================================================== */}
+      {/* WAVE D — LIVE PRESENCE + SEASON                                    */}
+      {/* ================================================================== */}
+
+      <Section title="SeasonBanner — countdown ao vivo (Teko condensed)">
+        <SeasonBanner
+          seasonNumber={1}
+          seasonName="Despertar"
+          endsAt={new Date(Date.now() + 47 * 24 * 60 * 60 * 1000 + 12 * 60 * 60 * 1000)}
+        />
+      </Section>
+
+      <Section title="PresenceLive — variantes compact + expanded">
+        <div className="space-y-6">
+          <div>
+            <p className="text-xs text-text-faded mb-2 font-mono uppercase tracking-widest">variant=compact (header)</p>
+            <PresenceLive
+              proName="Pedro"
+              proStatus="online"
+              weekActiveStudents={12}
+              nextSlotIn={{ hours: 2, minutes: 14 }}
+              variant="compact"
+            />
+          </div>
+          <div>
+            <p className="text-xs text-text-faded mb-2 font-mono uppercase tracking-widest">variant=expanded (dashboard)</p>
+            <PresenceLive
+              proName="Pedro"
+              proStatus="online"
+              weekActiveStudents={12}
+              nextSlotIn={{ hours: 2, minutes: 14 }}
+              variant="expanded"
+            />
+          </div>
+        </div>
+      </Section>
+
+      <Section title="LiveCounter — 3 variants + ícone + pulse">
+        <div className="flex flex-wrap gap-8">
+          <LiveCounter label="Pedro online" icon={Activity} pulse variant="success" />
+          <LiveCounter label="alunos esta semana" value={12} icon={Users} variant="brand" />
+          <LiveCounter label="próxima vaga" icon={Clock} variant="muted" />
+        </div>
+      </Section>
+
+      {/* ================================================================== */}
+      {/* WAVE D — PREMIUM MARKERS (Free Bar / On Fire / Sold Out)           */}
+      {/* ================================================================== */}
+
+      <Section title="FreeBar — banner persistente (voz Mestre, NÃO Vendedor)">
+        <FreeBar
+          show
+          fichasCount={0}
+          nextSlotIn={{ hours: 2, minutes: 14 }}
+          onBuy={() => alert("CTA: garantir vaga")}
+        />
+      </Section>
+
+      <Section title="OnFireOverlay — variant coach + student (sobre Card)">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="relative">
+            <Card variant="hero">
+              <CardHeader>
+                <CardTitle>Coach em sequência</CardTitle>
+                <CardDescription>Card pai com position relative</CardDescription>
+              </CardHeader>
+              <CardContent>
+                Streak ativo detectado — overlay aparece no canto superior.
+              </CardContent>
+            </Card>
+            <OnFireOverlay streakCount={5} variant="coach" position="top-right" />
+          </div>
+          <div className="relative">
+            <Card variant="elevated">
+              <CardHeader>
+                <CardTitle>Aluno em ascensão</CardTitle>
+                <CardDescription>Variant student — exibe ganho semanal de MMR</CardDescription>
+              </CardHeader>
+              <CardContent>
+                MMR delta positivo na semana — destaca progresso.
+              </CardContent>
+            </Card>
+            <OnFireOverlay streakCount={0} variant="student" mmrLabel="+320 MMR esta semana" position="top-right" />
+          </div>
+        </div>
+      </Section>
+
+      <Section title="SoldOutOverlay — estado 'Lotada' (vista mas inacessível)">
+        <div className="relative max-w-md overflow-hidden">
+          <Card variant="elevated">
+            <CardHeader>
+              <CardTitle>Sessão Terça 19h</CardTitle>
+              <CardDescription>4 alunos · Pedro como coach</CardDescription>
+            </CardHeader>
+            <CardContent>
+              Esta sessão atingiu a capacidade máxima. Mantemos visível pra contexto, mas o overlay impede interação.
+            </CardContent>
+          </Card>
+          <SoldOutOverlay message="Lotada" subMessage="Próxima: quinta 19h" />
         </div>
       </Section>
 
