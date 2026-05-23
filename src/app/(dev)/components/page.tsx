@@ -192,7 +192,7 @@ export default function ComponentsPage() {
           {/* Demos de tamanho: sm / md / lg / xl */}
           <div className="border-t border-border-subtle pt-6 space-y-3">
             <p className="font-display text-xs uppercase tracking-widest text-text-faded">
-              Tamanhos disponíveis (Immortal Top 100 com glow)
+              Tamanhos disponíveis (Top 100 Mundial com glow)
             </p>
             <div className="flex items-end gap-6">
               {(["sm", "md", "lg", "xl"] as const).map((s) => (
@@ -238,7 +238,7 @@ export default function ComponentsPage() {
           {/* Tier badges */}
           <div>
             <p className="font-mono text-xs text-text-faded mb-2">
-              Tier (Herald → Immortal)
+              Tier (Arauto → Imortal)
             </p>
             <div className="flex flex-wrap gap-3">
               {TIER_KEYS.map((tier) => (
