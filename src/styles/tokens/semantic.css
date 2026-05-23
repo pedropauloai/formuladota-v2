@@ -84,7 +84,9 @@ html[data-theme="fd-dark"] {
    * GRUPO 6 — CORES DE ESTADO (feedback)
    * ------------------------------------------------------- */
 
-  --color-success:  var(--fd-raw-success);    /* #22c55e */
+  /* success UNIFICADO com play-primary em 2026-05-23 (decisão Pedro) */
+  /* Mesma cor #00C466 GamersClub vibrante — "ação positiva" semântica única */
+  --color-success:  var(--fd-raw-green-500);  /* #00C466 (era #22c55e Tailwind) */
   --color-warning:  var(--fd-raw-amber-500);  /* #f59e0b */
   --color-error:    var(--fd-raw-error);      /* #ef4444 */
   --color-info:     var(--fd-raw-info);       /* #3b82f6 */
@@ -100,6 +102,10 @@ html[data-theme="fd-dark"] {
   --font-body:    "Geist", ui-sans-serif, system-ui, sans-serif;
   /* Mono — código, MMR, stats numéricos */
   --font-mono:    "Geist Mono", ui-monospace, "Courier New", monospace;
+  /* Condensed display — Teko Variable (estilo Teko/Oswald GamersClub esports) */
+  /* RESERVADO pra moments épicos: season countdown, "ON FIRE!", números grandes (MMR, score, online counts), Hall of Fame */
+  /* NÃO usar em UI body — apenas display impactante */
+  --font-display-condensed: "Teko Variable", "Teko", "Oswald", "Bebas Neue", sans-serif;
 
   /* -------------------------------------------------------
    * GRUPO 8 — ESPAÇAMENTO (escala base 4px)
