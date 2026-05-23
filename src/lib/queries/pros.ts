@@ -14,8 +14,10 @@ export type ProLiveStatus = {
   username: string | null;
   avatarUrl: string | null;
   mmrAtual: number | null;
-  vagasOcupadas: number;
-  vagasRestantes: number;
+  /** Total waiting na fila (pode passar de filaMaxVagas). */
+  waitingCount: number;
+  /** Slots livres pra entrar na PRÓXIMA PT (clamp 0..filaMaxVagas). */
+  vagasProximaPT: number;
 };
 
 type RawRow = {
@@ -31,6 +33,8 @@ type RawRow = {
   mmr_atual: number | null;
   vagas_ocupadas: number;
   vagas_restantes: number;
+  waiting_count: number;
+  vagas_proxima_pt: number;
 };
 
 export interface ProWithQueue {
@@ -183,7 +187,7 @@ export async function getProsLiveStatus(): Promise<ProLiveStatus[]> {
     username: r.username,
     avatarUrl: r.avatar_url,
     mmrAtual: r.mmr_atual,
-    vagasOcupadas: r.vagas_ocupadas,
-    vagasRestantes: r.vagas_restantes,
+    waitingCount: r.waiting_count ?? r.vagas_ocupadas,
+    vagasProximaPT: r.vagas_proxima_pt ?? Math.max(0, r.fila_max_vagas - r.vagas_ocupadas),
   }));
 }

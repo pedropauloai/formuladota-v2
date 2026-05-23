@@ -97,7 +97,8 @@ export function JoinQueueModal({ open, onClose, prosOnline, fichaBalance }: Prop
           <ul className="space-y-3">
             {prosOnline.map((pro) => {
               const isBusy = pendingCoachId === pro.coachId;
-              const canJoin = pro.vagasRestantes > 0 && fichaBalance > 0;
+              // Permite entrar mesmo sem vagas livres na próxima PT — vira lista de espera
+              const canJoin = fichaBalance > 0;
               return (
                 <li
                   key={pro.coachId}
@@ -120,7 +121,9 @@ export function JoinQueueModal({ open, onClose, prosOnline, fichaBalance }: Prop
                       </p>
                       <p className="font-mono text-[11px] text-white/60">
                         {pro.mmrAtual ? `${pro.mmrAtual.toLocaleString("pt-BR")} MMR · ` : ""}
-                        {pro.vagasRestantes}/{pro.filaMaxVagas} vagas livres
+                        {pro.vagasProximaPT > 0
+                          ? `${pro.vagasProximaPT}/${pro.filaMaxVagas} vagas livres`
+                          : `${pro.waitingCount} na fila · você entra na espera`}
                       </p>
                     </div>
                   </div>

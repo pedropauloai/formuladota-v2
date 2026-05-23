@@ -54,7 +54,9 @@ export async function LivePROStrip() {
           <span className="font-sans text-xs font-semibold uppercase tracking-widest text-white">
             {online.length} {online.length === 1 ? "PRO online" : "PROs online"}
             {" · "}
-            {top.vagasRestantes} {top.vagasRestantes === 1 ? "vaga" : "vagas"}
+            {top.vagasProximaPT > 0
+              ? `${top.vagasProximaPT} ${top.vagasProximaPT === 1 ? "vaga" : "vagas"} livre${top.vagasProximaPT === 1 ? "" : "s"}`
+              : `${top.waitingCount} na fila`}
           </span>
           <span className="hidden font-sans text-xs text-white/70 sm:inline">
             · {top.username ?? top.slug}

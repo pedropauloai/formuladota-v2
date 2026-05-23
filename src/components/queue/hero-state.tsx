@@ -85,7 +85,7 @@ export function HeroState({
           </HeroTitle>
           <HeroSub>
             {topPro
-              ? `${topPro.coach.username ?? "Você"} online · ${topPro.entries.length} aluno${topPro.entries.length === 1 ? "" : "s"} na fila`
+              ? `${topPro.coach.username ?? "Você"} online · ${topPro.entries.length} ${topPro.entries.length === 1 ? "aluno" : "alunos"} na fila`
               : "Nenhuma fila aberta no momento — vá ao painel pra abrir a sua"}
           </HeroSub>
           <CtaLink href="/admin/pros" variant="green">
@@ -113,22 +113,25 @@ export function HeroState({
         </HeroFrame>
       );
 
-    case "ready_to_play":
+    case "ready_to_play": {
+      const vagas = topPro!.coach.vagasProximaPT;
+      const waiting = topPro!.coach.waitingCount;
       return (
         <HeroFrame variant="emerald" pulse>
           <HeroEyebrow icon={Radio} pulse>
             {topPro!.coach.username ?? "PRO"} ONLINE · FILA ABERTA
           </HeroEyebrow>
           <HeroTitle>
-            {topPro!.coach.vagasRestantes}{" "}
-            {topPro!.coach.vagasRestantes === 1 ? "vaga livre" : "vagas livres"}
+            {vagas > 0
+              ? `${vagas} ${vagas === 1 ? "vaga livre" : "vagas livres"}`
+              : `${waiting} na fila`}
           </HeroTitle>
           <HeroSub>
             {topPro!.coach.mmrAtual
               ? `${topPro!.coach.mmrAtual.toLocaleString("pt-BR")} MMR · `
               : ""}
-            Você tem {fichaBalance} {fichaBalance === 1 ? "ficha" : "fichas"} · entre
-            agora pra próxima PT
+            Você tem {fichaBalance} {fichaBalance === 1 ? "ficha" : "fichas"} ·{" "}
+            {vagas > 0 ? "entre agora pra próxima PT" : "entre na lista de espera"}
           </HeroSub>
           <HeroStateJoinCta
             coachId={topPro!.coach.coachId}
@@ -138,8 +141,11 @@ export function HeroState({
           />
         </HeroFrame>
       );
+    }
 
-    case "needs_ficha_urgent":
+    case "needs_ficha_urgent": {
+      const vagas = topPro!.coach.vagasProximaPT;
+      const waiting = topPro!.coach.waitingCount;
       return (
         <HeroFrame variant="amber" pulse>
           <HeroEyebrow icon={Radio} pulse>
@@ -149,9 +155,9 @@ export function HeroState({
             Você precisa de ficha pra entrar
           </HeroTitle>
           <HeroSub>
-            {topPro!.coach.vagasRestantes}{" "}
-            {topPro!.coach.vagasRestantes === 1 ? "vaga livre" : "vagas livres"} ·
-            corra antes de encher
+            {vagas > 0
+              ? `${vagas} ${vagas === 1 ? "vaga livre" : "vagas livres"} · corra antes de encher`
+              : `${waiting} já na fila · entra na lista de espera`}
           </HeroSub>
           {fichaPackageId && (
             <CtaLink href={`/checkout/${fichaPackageId}`} variant="amber">
@@ -161,6 +167,7 @@ export function HeroState({
           )}
         </HeroFrame>
       );
+    }
 
     case "waiting_pro":
       return (

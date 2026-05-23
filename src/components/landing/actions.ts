@@ -45,14 +45,11 @@ export async function joinCoachQueue(coachId: string): Promise<JoinQueueResult> 
   type ProRow = {
     coach_id: string;
     fila_aberta: boolean;
-    vagas_restantes: number;
   };
   const pro = ((pros ?? []) as ProRow[]).find((p) => p.coach_id === coachId);
   if (!pro) return { success: false, error: "PRO não encontrado." };
   if (!pro.fila_aberta) return { success: false, error: "Fila do PRO está fechada." };
-  if (pro.vagas_restantes <= 0) {
-    return { success: false, error: "Não há vagas restantes nessa fila." };
-  }
+  // Não há limite de vagas pra entrar na fila — overflow vira lista de espera.
 
   // 3. Inserir entry — purchase_id agora nullable (ficha pode vir de admin_grant)
   const { data, error } = await supabase
