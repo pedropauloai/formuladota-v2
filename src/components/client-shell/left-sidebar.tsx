@@ -24,10 +24,11 @@ export function DashboardLeftSidebar({
   fichaBalance,
   floating,
 }: Props) {
-  // Sidebar discreta por default (opacidade 75%), realça em hover.
+  // Sidebar como apoio visual: backdrop blur fixo + bg semi-transparente
+  // (sem fade hover — UI estável, sem comportamento "ativo" no mouse).
   const wrapperCls = floating
-    ? "flex w-full flex-col gap-3 p-3 overflow-y-auto opacity-75 hover:opacity-100 transition-opacity"
-    : "hidden lg:flex flex-col gap-3 bg-gradient-to-r from-black/70 via-black/40 to-transparent p-4 backdrop-blur-sm overflow-y-auto opacity-75 hover:opacity-100 transition-opacity";
+    ? "flex w-full flex-col gap-3 p-3 overflow-y-auto"
+    : "hidden lg:flex flex-col gap-3 bg-gradient-to-r from-black/70 via-black/40 to-transparent p-4 backdrop-blur-sm overflow-y-auto";
 
   return (
     <aside className={wrapperCls}>
