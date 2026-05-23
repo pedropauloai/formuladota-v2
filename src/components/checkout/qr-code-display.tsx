@@ -1,7 +1,7 @@
 "use client";
 
 // Exibe QR Code PIX inline (PNG base64) + botão para copiar o código texto.
-// brCodeBase64 é uma data URL "data:image/png;base64,..." retornada pelo Mercado Pago.
+// brCodeBase64 é uma data URL "data:image/png;base64,..." retornada pela AbacatePay.
 
 import { Copy, Check } from "lucide-react";
 import { useState } from "react";
@@ -62,8 +62,7 @@ export function QRCodeDisplay({ brCode, brCodeBase64, expiresAt }: QRCodeDisplay
 
       <Button
         onClick={handleCopy}
-        variant="outline"
-        className="border-[var(--color-brand-red)] text-[var(--color-brand-red)] hover:bg-[var(--color-brand-red)]/10"
+        variant="ghost"
         aria-label={copied ? "Código PIX copiado" : "Copiar código PIX"}
       >
         {copied ? (
