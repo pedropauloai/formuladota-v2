@@ -41,6 +41,8 @@ export interface ProWithQueue {
     username: string | null;
     avatarUrl: string | null;
     joinedAt: string;
+    /** PTs já jogadas com esse coach nas últimas 24h — usado pra LRU + badge UI. */
+    ptsToday: number;
   }>;
 }
 
@@ -52,6 +54,11 @@ export interface ProRecentStats {
 
 /**
  * Retorna PROs + entries waiting de cada um (pra renderizar QueueBoard).
+ * Entries ordenadas por LRU: quem jogou menos PTs com o coach nas últimas
+ * 24h vem primeiro. Empate desempata por joined_at ASC (FIFO).
+ *
+ * Sem hard cap: cliente pode jogar quantas PTs quiser desde que tenha ficha
+ * — algoritmo apenas reordena pra distribuir vagas com justiça temporal.
  */
 export async function getProsWithQueues(): Promise<ProWithQueue[]> {
   const pros = await getProsLiveStatus();
@@ -60,12 +67,28 @@ export async function getProsWithQueues(): Promise<ProWithQueue[]> {
   const supabase = await createClient();
   const coachIds = pros.map((p) => p.coachId);
 
-  const { data: entries } = await supabase
-    .from("coach_queue_entries")
-    .select("id, coach_id, user_id, joined_at")
-    .in("coach_id", coachIds)
-    .eq("status", "waiting")
-    .order("joined_at", { ascending: true });
+  // Entries waiting + entries consumed nas últimas 24h em 2 queries paralelas
+  const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const [{ data: entries }, { data: consumedRecent }] = await Promise.all([
+    supabase
+      .from("coach_queue_entries")
+      .select("id, coach_id, user_id, joined_at")
+      .in("coach_id", coachIds)
+      .eq("status", "waiting"),
+    supabase
+      .from("coach_queue_entries")
+      .select("user_id, coach_id")
+      .in("coach_id", coachIds)
+      .eq("status", "consumed")
+      .gte("consumed_at", since24h),
+  ]);
+
+  // Mapa (user_id::coach_id) → count de PTs nas últimas 24h
+  const ptsTodayMap = new Map<string, number>();
+  for (const e of consumedRecent ?? []) {
+    const key = `${e.user_id}::${e.coach_id}`;
+    ptsTodayMap.set(key, (ptsTodayMap.get(key) ?? 0) + 1);
+  }
 
   const userIds = (entries ?? []).map((e) => e.user_id);
   const { data: profiles } = userIds.length
@@ -74,15 +97,20 @@ export async function getProsWithQueues(): Promise<ProWithQueue[]> {
         .select("id, username, avatar_url")
         .in("id", userIds)
     : { data: [] };
-  const profileById = new Map(
-    (profiles ?? []).map((p) => [p.id, p])
-  );
+  const profileById = new Map((profiles ?? []).map((p) => [p.id, p]));
 
-  return pros.map((pro) => ({
-    coach: pro,
-    entries: (entries ?? [])
-      .filter((e) => e.coach_id === pro.coachId)
-      .map((e) => {
+  return pros.map((pro) => {
+    const coachEntries = (entries ?? []).filter((e) => e.coach_id === pro.coachId);
+    // Ordena por LRU: pts_today ASC, joined_at ASC
+    coachEntries.sort((a, b) => {
+      const ptsA = ptsTodayMap.get(`${a.user_id}::${a.coach_id}`) ?? 0;
+      const ptsB = ptsTodayMap.get(`${b.user_id}::${b.coach_id}`) ?? 0;
+      if (ptsA !== ptsB) return ptsA - ptsB;
+      return new Date(a.joined_at).getTime() - new Date(b.joined_at).getTime();
+    });
+    return {
+      coach: pro,
+      entries: coachEntries.map((e) => {
         const p = profileById.get(e.user_id);
         return {
           entryId: e.id,
@@ -90,9 +118,11 @@ export async function getProsWithQueues(): Promise<ProWithQueue[]> {
           username: p?.username ?? null,
           avatarUrl: p?.avatar_url ?? null,
           joinedAt: e.joined_at,
+          ptsToday: ptsTodayMap.get(`${e.user_id}::${e.coach_id}`) ?? 0,
         };
       }),
-  }));
+    };
+  });
 }
 
 /**

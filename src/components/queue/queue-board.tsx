@@ -29,6 +29,8 @@ export interface BoardEntry {
   username: string | null;
   avatarUrl: string | null;
   joinedAt: string;
+  /** Opcional: PTs jogadas com esse coach nas últimas 24h. Badge informativo. */
+  ptsToday?: number;
 }
 
 interface Props {
@@ -281,6 +283,16 @@ function Slot({
         <Clock size={isCompact ? 7 : 9} aria-hidden="true" />
         {waitingMinutes}m
       </p>
+      {slot.ptsToday !== undefined && slot.ptsToday > 0 && (
+        <span
+          className={`mt-0.5 inline-flex items-center rounded-full bg-amber-500/15 px-1.5 font-mono text-amber-300/90 ${
+            isCompact ? "text-[8px]" : "text-[9px]"
+          }`}
+          title={`Já jogou ${slot.ptsToday} PT${slot.ptsToday > 1 ? "s" : ""} com este PRO nas últimas 24h — cede vaga pra quem jogou menos`}
+        >
+          {slot.ptsToday}× hoje
+        </span>
+      )}
 
       {isAdmin && onRemoveEntry && (
         <button
