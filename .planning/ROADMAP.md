@@ -3,6 +3,7 @@
 > Reflete pivô estratégico 2026-05-01: formuladota = HUB Dota 2 (não loja de mentoria 1-1).
 > Milestone V1 cumprido (Foundation + Doutrina + Pagamento Avulso).
 > Milestone V2 em execução = HUB.
+> Milestone V2.5 INSERIDO (2026-05-23): Design Foundations AAA Game Client Experience.
 
 ---
 
@@ -33,101 +34,202 @@ Plans:
 
 ---
 
-## Milestone V2 — HUB Dota 2 ◆ CURRENT
+## Milestone V2 — HUB Dota 2 ◆ PARCIALMENTE EM PAUSA (V2.5 tem prioridade)
 
-### Phase 3 — Steam OAuth + Roles + Multi-coach Refactor ◆ IN PROGRESS
+### Phase 3 — Steam OAuth + Roles + Multi-coach Refactor ✓ COMPLETED
 **Goal:** Steam OAuth obrigatório (vinculado ao Discord). Sistema de roles (admin/coach/player). Refator schema `packages` pra `coach_id` FK + `coaches` table com Pedro como coach #1.
 **Requirements:** H1.1, H1.2, H1.3, H1.4
-**Plans:** 5 plans em 2 waves (1/5 completed)
-**Acceptance:**
-- User loga Discord → vê página vincular Steam → autoriza OpenID 2.0 → `steam_links` populada com SteamID 64
-- Tabela `coaches` com Pedro inserido (FK profiles.id)
-- `packages` ganha `coach_id NOT NULL`, todos os 4 pacotes ligados ao Pedro
-- `/pacotes` mostra "Por: Pedro Paulo (Immortal)" no PackageCard
-- `profiles.role` ('admin','coach','player') default 'player' — Pedro = admin AND coach
 
 Plans:
-- [x] 03-01-migration-005-PLAN.md — Migration 005 (coaches, steam_links, profiles.role, packages.coach_id, helpers RLS, seed Pedro) + types regen
-- [x] 03-02-steam-client-env-PLAN.md — Install node-steam-openid + STEAM_WEB_API_KEY env + src/lib/steam.ts (3 helpers tipados)
-- [x] 03-03-vincular-steam-page-PLAN.md — Server Action signInWithSteam + callback /auth/steam/callback + página /vincular/steam
-- [x] 03-04-middleware-steam-gate-PLAN.md — Middleware update com STEAM_REQUIRED_PATHS layer (após doutrina)
-- [x] 03-05-multicoach-refactor-PLAN.md — Refator PackageCard + /pacotes/page.tsx (2-query JOIN coaches+profiles)
+- [x] 03-01-migration-005-PLAN.md
+- [x] 03-02-steam-client-env-PLAN.md
+- [x] 03-03-vincular-steam-page-PLAN.md
+- [x] 03-04-middleware-steam-gate-PLAN.md
+- [x] 03-05-multicoach-refactor-PLAN.md
 
-### Phase 3.5 — Rebrand & Design System Refresh (Dota 2 Official) ◆ NEXT
-**Goal:** Rebrand completo FORMULADOTA inspirado no site oficial Dota 2 (https://www.dota2.com/home). Aplicar logos reais (preto + vermelho), substituir paleta cyan/purple por preto/vermelho/branco-bege (paleta oficial Dota), trocar fonts por Cinzel/Marcellus (alternativa Reaver) + Inter/Geist (alternativa Radiance), padronizar string "FORMULADOTA" maiúsculo sem acento em toda UI/emails, remover toda menção "Pedro Paulo" da UI, integrar hero video oficial Dota 2 (`cdn.steamstatic.com/apps/dota2/videos/dota_react/homepage/dota_montage_webm.webm` HotLink), criar componente `<HeroVideo heroSlug="..." />` reutilizável pra renderizar vídeos idle de heroes em qualquer card/stats/perfil. Ver `.planning/PIVOTS-2026-05-02.md` §2-§6 atualizado.
-**Requirements:** B1, B2, B3, B4, B5, B6 (criar seção B em REQUIREMENTS.md)
-**Acceptance:**
-- Logos movidos pra `public/brand/` (`logo-horizontal.png` + `logo-icon.png`)
-- Paleta tokens em `src/styles/globals.css`: `--brand-red`, `--brand-black`, `--brand-white` (cor vermelha exata derivada via color picker do logo)
-- ZERO ocorrências de cyan `#00F0FF` ou purple `#A855F7` em componentes (grep confirma)
-- ZERO menções "Pedro Paulo", "PPA", "Pedro" em user-facing strings (grep `src/app/**`, `src/components/**`, `src/lib/resend.ts`, `src/lib/doctrine.ts`)
-- ZERO ocorrências de "Fórmula Dota", "FormulaDota", "Formula Dota" — só **FORMULADOTA** (grep + replace global)
-- Bio coach Pedro em DB atualizada (UPDATE Migration 009 ou via MCP) sem "Pedro Paulo (PPA)"
-- Landing `/` reformulada com hero video oficial Dota 2 (HotLink `cdn.steamstatic.com/apps/dota2/videos/dota_react/homepage/dota_montage_webm.webm` autoplay+loop+muted) + estilo dark fantasy oficial Dota
-- Header logo usa `<Image src="/brand/logo-horizontal.png" />`
-- Favicon usa `logo-icon.png`
-- Tipografia: Cinzel ou Marcellus (alternativa open-source pra fonte Reaver Valve) em headings + Inter ou Geist (alternativa Radiance) em body
-- Componente reutilizável `<HeroVideo heroSlug="..." />` em `src/components/dota/hero-video.tsx` renderiza video idle oficial de qualquer hero. Catalogar URLs `.planning/research/dota-hero-video-urls.md` via Playwright loop por `dota2.com/heroes/{slug}` pra cada hero referenciado
-- Disclaimer footer: "Dota e o logo Dota são marcas da Valve Corporation"
-- Build/typecheck/lint verdes
+### Phase 3.5 — Rebrand & Design System Refresh ⚠ DEPRECATED 2026-05-23
+> Absorvida e expandida pelo Milestone V2.5 Design Foundations com qualidade AAA-grade.
+> Research preservado em `.planning/phases/_deprecated/03.5-rebrand-dota2-visual-superseded-by-v2.5-design-foundations/`.
+> Requirements B1-B6 re-entregues dentro de V2.5 (DF2, DF6, DF7, DF8).
 
-### Phase 4 — Subscription Mensal Mercado Pago Pix Automático ○ PENDING (REPLAN)
-**Goal:** Mensalidade R$47/mês via **Mercado Pago Pix Automático** (`/v1/preapproval` API com `payment_method_id=pix`). Subscription nativa real PIX recorrente — sem cron mensal, sem QR manual. Lançado Bacen junho/2025.
-**Requirements:** H2.1, H2.2, H2.3, H2.4 (REQUIREMENTS.md a re-atualizar pós-discuss)
-**Status:** Plans antigos AbacatePay PIX Manual ARQUIVADOS em `.planning/phases/_deprecated/04-subscription-mensal-abacatepay-pix-manual/`. Replan necessário com MP MCP autenticado.
-**Pre-req:** Pedro autenticar MCP Mercado Pago (`claude mcp list` mostra `mercadopago: ✓ Connected`).
+### Phase 4 — Subscription Mensal Mercado Pago Pix Automático ⏸ PAUSED
+> Pausada em 2026-05-23. Retoma após V2.5-F2 (Token Layer) e V2.5-F8 (Templates) entregarem.
+> Plans e contexto em `.planning/phases/_paused/04-mercadopago-migration/`.
+**Requirements:** H2.1, H2.2, H2.3, H2.4
 
-**Acceptance (a refinar pós-discuss-phase 4 com MP MCP):**
-- Migration 008 cria tabela `subscriptions` (mp_preapproval_id, status, next_payment_date, cancelled_at) + helper SQL `public.has_active_subscription()` + RLS
-- `src/lib/mercadopago.ts` (novo) — cliente MP V2 com `createPreapprovalPlan()`, `createPreapproval()`, `cancelPreapproval()`, helpers HMAC se necessário
-- Webhook handler novo `/api/webhooks/mercadopago/route.ts` — eventos MP `subscription_authorized_payment`, `subscription_preapproval`, `payment` (formato MP diferente de AbacatePay)
-- Server Action `subscribeToHub()` — cria preapproval MP → user redirecionado pro fluxo Pix Automático autorização → webhook confirma
-- Server Action `cancelSubscription()` — cancela preapproval MP via API
-- Página `/assinatura` rebrandada (paleta vermelho/preto pós-Phase 3.5) com status + ações
-- Helper `has_active_subscription()` consumido em Phase 5 quando `lobbies` existir
-
-**Plans atuais ARQUIVADOS** (foram baseados em AbacatePay PIX Manual via Cron — abordagem descartada): `.planning/phases/_deprecated/04-subscription-mensal-abacatepay-pix-manual/`
-
-Plans (a serem regenerados via /gsd:plan-phase 4 pós-rebrand):
-- [ ] (replan completo após Phase 3.5 + MCP MP autenticado)
-
-### Phase 5 — Bot Steam Lobby Creator ○ PENDING
-**Goal:** Bot `node-dota2` rodando 24/7 em Railway Hobby (~$3/mês). Cria lobby Dota 2 customizado, captura match_id ao final.
+### Phase 5 — Bot Steam Lobby Creator ⏸ PAUSED
 **Requirements:** H3.1, H3.2, H3.3, H3.4, H3.5, H3.6
-**Acceptance:**
-- Pasta `bot/` com Dockerfile + Railway config
-- Bot autentica via refresh JWT (`steam-user` v5 + `steam-totp`), persiste em volume
-- Endpoint internal API: criar lobby retorna `{lobby_id, password}`
-- Bot fica como espectador, captura `dota_match_id` ao fim → webhook interno → app
-- Conta Steam dedicada (não Pedro), maturação 30+ dias antes de uso
 
-### Phase 6 — Sistema de Ligas + MMR + Temporadas ○ PENDING
-**Goal:** Matchmaking interno (mesmo MMR alvo). MMR Elo K=25 base 1000. Temporadas 3 meses com decay -30%.
+### Phase 6 — Sistema de Ligas + MMR + Temporadas ⏸ PAUSED
 **Requirements:** H4.1, H4.2, H4.3, H4.4
-**Acceptance:**
-- Tabela `seasons` com temporada inicial criada
-- `player_season_mmr` com base 1000
-- Trigger `on_match_completed` aplica delta MMR Elo
-- Página `/criar-lobby` (estilo meta-liga.ggarena.pro) com filtros liga/modo/senha
 
-### Phase 7 — Badges + Ranking + Perfil Expandido ○ PENDING
-**Goal:** Tiers Herald→Immortal × 5 estrelas (badges cyberpunk reskinned). Página /ranking espelhando meta-liga. Perfil com identidades vinculadas + Stratz GraphQL.
+### Phase 7 — Badges + Ranking + Perfil Expandido ⏸ PAUSED
 **Requirements:** H5.1, H5.2, H5.3, H5.4
-**Acceptance:**
-- Função SQL `mmr_to_tier(mmr)` retorna tier+stars
-- Página `/ranking` com top 3 + lista paginada + busca
-- Página `/perfil/[steamid64]` com cards de stats + identidades + histórico temporadas
-- Componente `<TierBadge>` reusável
 
-### Phase 8 — Painel Admin + Painel Player + Polish + Deploy ○ PENDING
-**Goal:** `/admin/*` (Pedro gerencia tudo). `/me` (player). Header/footer global. Landing reformulada. Deploy Vercel + DNS formuladota.com.
+### Phase 8 — Painel Admin + Painel Player + Polish + Deploy ⏸ PAUSED
 **Requirements:** H6.1-H6.5, H7.1-H7.6
-**Acceptance:**
-- `/admin/dashboard` com KPIs, `/admin/users`, `/admin/temporadas`, `/admin/lobbies`
-- `/me` com status assinatura + matches + ranking + identidades + bio editável
-- Header global com logo + nav + auth dropdown
-- Landing reformulada com hero CTA primário "Entrar com Discord"
-- Deploy Vercel produção + DNS Route 53
+
+---
+
+## Milestone V2.5 — Design Foundations: AAA Game Client Experience ◆ ATIVO 2026-05-23
+
+> **Inserido entre V2 e V3.** Pausa todo trabalho de produto pra construir fundação visual/UX permanente
+> que transforma FormulaDota de web app cyberpunk genérico em verdadeiro game client AAA.
+>
+> **Régua de qualidade:** "Isso existe no Riot Client?" — se não, é anti-feature.
+> **Cultura proibida:** SaaS startup, vibecoding, landing-page vibe, excesso cards/grid.
+>
+> **Estimativa:** 7-10 dias.
+
+### Decisão de numeração
+
+Phases V2.5 usam prefixo `V2.5-F1` até `V2.5-F8` (não numeração linear Phase 9-16).
+**Justificativa:** V2 já ocupa Phase 1-8 com tracking próprio. O prefixo `V2.5-F` mantém
+rastreabilidade explícita milestone→phase (ex: "F2 = token gate" documentado em SUMMARY.md
+e REQUIREMENTS.md), evita ambiguidade ao retomar V2 Phase 4-8 pós-V2.5, e a legibilidade
+para dev humano supera a consistência GSD de numeração linear neste contexto multi-milestone.
+Diretórios: `.planning/phases/V2.5-F{N}-{slug}/`.
+
+### Phases V2.5
+
+- [ ] **V2.5-F1: Foundation Docs** — 6 documentos fundacionais em `docs/foundations/` (paralelo a F2-F8)
+- [ ] **V2.5-F2: Token Layer** — Sistema completo de tokens CSS (GATE ABSOLUTO — bloqueia F3-F8)
+- [ ] **V2.5-F3: Atmospheric Layer** — `<AmbientLayer>` tsParticles no root layout (paralelo a F4/F5)
+- [ ] **V2.5-F4: Motion Primitives** — variants nomeados + wrappers `<FadeIn>/<Stagger>/<PageTransition>` (paralelo a F3/F5)
+- [ ] **V2.5-F5: Sound Infrastructure** — Howler singleton + sprite WebM+MP3 + 6 SFX CC0 (paralelo a F3/F4)
+- [ ] **V2.5-F6: Component Primitives AAA-Grade** — Button, Card, Dialog, Toast, Badge, PresenceDot, EmptyState, LoadingScreen
+- [ ] **V2.5-F7: Pattern Components** — MatchCard, ProCard, QueuePanel, HeroVideo, HeroState refatorados
+- [ ] **V2.5-F8: Templates & Pages** — ClientShell top-bar + Landing reformulada + páginas migradas
+
+### Phase Details
+
+#### Phase V2.5-F1: Foundation Docs
+**Goal:** Constituição visual permanente existe em `docs/foundations/` e vira lei para todas as decisões downstream de UX e código.
+**Depends on:** Nada (pode rodar em paralelo com F2-F8)
+**Requirements:** DF1.1, DF1.2, DF1.3, DF1.4, DF1.5, DF1.6
+**Success Criteria** (what must be TRUE):
+  1. `ls docs/foundations/` lista 6 arquivos: VISUAL_PHILOSOPHY.md, UX_PRINCIPLES.md, MOTION_SYSTEM.md, SOUND_SYSTEM.md, PRODUCT_CORE.md, DESIGN_LANGUAGE.md — todos com conteúdo não-vazio (>200 linhas cada).
+  2. VISUAL_PHILOSOPHY.md contém galeria curada de pelo menos 8 refs AAA nomeadas com análise por dimensão (não lista vazia).
+  3. UX_PRINCIPLES.md lista os 11 mandamentos AAA da pesquisa com exemplo positivo + negativo por princípio.
+  4. MOTION_SYSTEM.md especifica hierarquia de durations (micro/standard/hero/cinematic) com valores numéricos em ms e nomes de easing por contexto.
+  5. SOUND_SYSTEM.md especifica as 8 categorias de SFX UI com critérios de curadoria e volume hierarchy numericamente definida.
+**Plans:** TBD
+**Estimated effort:** ~1 dia
+
+#### Phase V2.5-F2: Token Layer
+**Goal:** Todo estilo no codebase flui de tokens CSS canônicos — zero hex hardcoded, zero ad-hoc z-index, zero inline duration.
+**Depends on:** Nada (mas deve completar antes de F3, F4, F5 finalizarem)
+**Requirements:** DF2.1, DF2.2, DF2.3, DF2.4, DF2.5, DF2.6, DF2.7, DF2.8
+**Success Criteria** (what must be TRUE):
+  1. `grep -rE "#[0-9A-Fa-f]{3,6}" src/components/` retorna zero matches (zero hex hardcoded em componentes).
+  2. `grep -rE "z-\[?[0-9]" src/components/` retorna zero matches (zero z-index ad-hoc numérico).
+  3. `grep -rE "duration-[0-9]|transition-duration:\s*[0-9]" src/components/` retorna zero matches (zero duration inline).
+  4. Tailwind `@theme` em `src/styles/tokens/semantic.css` reconhece todos os 8 grupos de token: `--color-brand-*`, `--color-bg-*`, `--color-text-*`, `--font-*`, `--space-*`, `--motion-*`, `--z-*`, `--volume-*`.
+  5. Componente de teste com `data-theme="fd-dark"` no `<html>` renderiza cores corretas sem re-render JavaScript.
+**Plans:** TBD
+**Estimated effort:** ~1 dia
+**UI hint**: yes
+
+#### Phase V2.5-F3: Atmospheric Layer
+**Goal:** Toda page da aplicação nasce com profundidade visual atmosférica — partículas sutis e gradiente animado no background sem impacto perceptível em hardware-alvo.
+**Depends on:** V2.5-F2 (usa tokens `--z-atmosphere`, `--motion-duration-*`)
+**Requirements:** DF3.1, DF3.2, DF3.3, DF3.4, DF3.5
+**Success Criteria** (what must be TRUE):
+  1. `src/components/layout/AmbientLayer.tsx` existe e está montado no root layout com `position: fixed` e `z-index: var(--z-atmosphere)` (verificável via DevTools).
+  2. FPS no Chrome DevTools Performance tab permanece >= 55fps em hardware-alvo com preset "dust" ativo (medição manual).
+  3. Alternar aba (Page Visibility hidden) pausa as partículas — verificável via Performance tab (zero paint/composite frames quando aba oculta).
+  4. Com `prefers-reduced-motion: reduce` ativado no SO, `<AmbientLayer>` renderiza gradient estático (não animado) sem partículas.
+  5. Page com `data-ambient="off"` (ou prop equivalente) não renderiza partículas — canvas ausente no DOM.
+**Plans:** TBD
+**Estimated effort:** ~0.5 dia
+**UI hint**: yes
+
+#### Phase V2.5-F4: Motion Primitives
+**Goal:** Toda animação no produto usa variants nomeados de um vocabulário central — zero reimplementação de stagger ou easing por componente.
+**Depends on:** V2.5-F2 (variants consomem tokens `--motion-duration-*`, `--motion-ease-*`)
+**Requirements:** DF4.1, DF4.2, DF4.3, DF4.4, DF4.5
+**Success Criteria** (what must be TRUE):
+  1. `src/lib/motion/presets.ts` exporta ao menos 7 variants nomeados: `fadeIn`, `fadeInUp`, `scaleIn`, `slideInRight`, `staggerChildren`, `pageEnter`, `pageExit` — cada um com `duration` referenciando token CSS var, não número hardcoded.
+  2. `src/components/ui/motion/` contém 4 wrappers: `<FadeIn>`, `<Stagger>`, `<ScaleEnter>`, `<PageTransition>` — cada um aceita prop `as` polimórfica (testável via TypeScript).
+  3. `useMotionSafe()` retorna `false` quando `prefers-reduced-motion: reduce` está ativo (testável com mídia emulada no DevTools).
+  4. `LazyMotion` com `domAnimation` está no root layout — bundle inicial não carrega layout animations (verificável via Network tab: `framer-motion` ou `motion` chunk não inclui `dom-max`).
+**Plans:** TBD
+**Estimated effort:** ~1 dia
+**UI hint**: yes
+
+#### Phase V2.5-F5: Sound Infrastructure
+**Goal:** Som UI está disponível em toda a aplicação via hook singleton — 6 SFX curados tocam corretamente, mute persiste entre sessões, mobile não quebra.
+**Depends on:** V2.5-F2 (consome tokens `--volume-*`)
+**Requirements:** DF5.1, DF5.2, DF5.3, DF5.4, DF5.5, DF5.6
+**Success Criteria** (what must be TRUE):
+  1. `public/sounds/ui-sprite.webm` e `public/sounds/ui-sprite.mp3` existem — Network tab confirma único request de áudio na inicialização (não múltiplos arquivos separados).
+  2. `useSound()` chamado em qualquer componente executa `hover`, `click`, `confirm`, `error`, `notification`, `reward` sem erro de console — verificável em browser DevTools.
+  3. `useMuteToggle()` persiste estado em `localStorage` key `fd-sound-muted` — refresh da página mantém estado mute (verificável via Application > Storage no DevTools).
+  4. Em mobile (simulado via DevTools), nenhum som dispara antes do primeiro gesto do usuário — console não exibe erros `AudioContext not allowed`.
+  5. `src/lib/sound/manager.ts` exporta interface `ISoundManager` tipada (não implementação Howler exposta diretamente) — TypeScript confirma via `tsc --noEmit`.
+**Plans:** TBD
+**Estimated effort:** ~1.5 dias (inclui ~3h curadoria SFX com Pedro)
+
+#### Phase V2.5-F6: Component Primitives AAA-Grade
+**Goal:** 8 componentes base consomem tokens + motion + sound e provam que a fundação funciona — nenhum deles é shadcn vanilla.
+**Depends on:** V2.5-F2 (tokens) + V2.5-F4 (motion) + V2.5-F5 (sound)
+**Requirements:** DF6.1, DF6.2, DF6.3, DF6.4, DF6.5, DF6.6, DF6.7, DF6.8
+**Success Criteria** (what must be TRUE):
+  1. `<Button variant="primary">` tem weight visual MUITO maior que `variant="secondary"` — diferença visível sem zoom (teste manual em browser).
+  2. Qualquer `<Button>` dispara som `hover` ao mouseenter e `click` ao pressionar — verificável via Network tab de áudio ou `console.log` temporário no SoundManager.
+  3. `<Toast>` aparece bottom-center com slide-up — `grep -rE "top-right|top-0.*right-0" src/components/ui/toast` retorna zero matches.
+  4. `<LoadingScreen>` renderiza princípio doutrinário (texto não-vazio) e NÃO contém elemento `animate-spin` no DOM.
+  5. `<EmptyState>` exibe citação de um dos 14 princípios — prop `principle` aceita string (TypeScript confirma).
+  6. `grep -rE "#[0-9A-Fa-f]{3,6}|z-\[?[0-9]|duration-[0-9]" src/components/ui/` retorna zero matches (compliance cross-cutting C14/C15/C17).
+**Plans:** TBD
+**Estimated effort:** ~2 dias
+**UI hint**: yes
+
+#### Phase V2.5-F7: Pattern Components
+**Goal:** 5 componentes compostos sobre primitives existem e estão prontos para uso nas pages — ProCard, QueuePanel e HeroState substituem versões atuais do MVP fichas pausado.
+**Depends on:** V2.5-F6 (compõe primitives)
+**Requirements:** DF7.1, DF7.2, DF7.3, DF7.4, DF7.5
+**Success Criteria** (what must be TRUE):
+  1. `<MatchCard>` renderiza hero portraits, score, MMR delta e tier badge — verificável via rota `/(dev)/components` em dev mode.
+  2. `<ProCard>` substituiu o componente atual em `src/components/dashboard/` — `git diff` mostra remoção do card anterior (sem duplicata).
+  3. `<QueuePanel>` exibe counter "X/10 jogadores" e timer "Searching... 0:00" com Supabase Realtime Presence — console confirma subscription ativa sem erros.
+  4. `<HeroVideo heroSlug="antimage">` renderiza video CDN Steam sem erro CORS em browser (ou fallback CSS animation sem erro de console quando CDN indisponível).
+  5. `<HeroState>` da branch `feat/hero-state-refactor` reescrito consumindo `<FadeIn>`, `<Card>` e `useSound()` — nenhum style prop hardcoded.
+**Plans:** TBD
+**Estimated effort:** ~1.5 dias
+**UI hint**: yes
+
+#### Phase V2.5-F8: Templates & Pages
+**Goal:** O layout SaaS com sidebar 256px está morto — toda a aplicação usa ClientShell top-bar estilo Dota 2, landing é fullscreen cinematográfica, e developer browser de componentes existe.
+**Depends on:** V2.5-F7 (templates consomem patterns)
+**Requirements:** DF8.1, DF8.2, DF8.3, DF8.4, DF8.5
+**Success Criteria** (what must be TRUE):
+  1. `grep -rE "w-64|sidebar|Sidebar" src/components/` retorna zero matches — sidebar removida do DOM (verificar DevTools Elements).
+  2. `<ClientShell>` renderiza top-bar horizontal com logo esquerda + tabs centrais + auth dropdown direita — verificável via browser em qualquer rota autenticada.
+  3. Landing `/` não contém `max-w-` container SaaS — `grep "max-w-" src/app/page.tsx` retorna zero matches; fullscreen wash verificável via DevTools (html/body 100vw).
+  4. `http://localhost:3000/components` retorna 200 em dev mode e 404 em production build (`NODE_ENV=production`) — gating de rota funciona.
+  5. Todas as rotas existentes (`/pacotes`, `/me`, `/admin/*`, `/codigo-de-conduta`, `/onboarding/doutrina`) carregam sem erro 500 após migração pro novo `<ClientShell>`.
+**Plans:** TBD
+**Estimated effort:** ~1.5-2 dias
+**UI hint**: yes
+
+---
+
+### Progress V2.5
+
+**Execution Order:**
+F1 (pode iniciar imediatamente, paralelo) → F2 (gate absoluto) → F3 + F4 + F5 (paralelos entre si, dependem de F2) → F6 (depende de F2 + F4 + F5) → F7 (depende de F6) → F8 (depende de F7)
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| V2.5-F1. Foundation Docs | 0/TBD | Not started | - |
+| V2.5-F2. Token Layer | 0/TBD | Not started | - |
+| V2.5-F3. Atmospheric Layer | 0/TBD | Not started | - |
+| V2.5-F4. Motion Primitives | 0/TBD | Not started | - |
+| V2.5-F5. Sound Infrastructure | 0/TBD | Not started | - |
+| V2.5-F6. Component Primitives | 0/TBD | Not started | - |
+| V2.5-F7. Pattern Components | 0/TBD | Not started | - |
+| V2.5-F8. Templates & Pages | 0/TBD | Not started | - |
 
 ---
 

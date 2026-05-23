@@ -227,23 +227,70 @@
 
 ## Traceability V2.5
 
-| Requirement | Phase | Status |
-|-------------|-------|--------|
-| DF1.1 a DF1.6 | F1 | Pending |
-| DF2.1 a DF2.8 | F2 | Pending |
-| DF3.1 a DF3.5 | F3 | Pending |
-| DF4.1 a DF4.5 | F4 | Pending |
-| DF5.1 a DF5.6 | F5 | Pending |
-| DF6.1 a DF6.8 | F6 | Pending |
-| DF7.1 a DF7.5 | F7 | Pending |
-| DF8.1 a DF8.5 | F8 | Pending |
+| Requirement | Phase (V2.5) | Status |
+|-------------|--------------|--------|
+| DF1.1 -- VISUAL_PHILOSOPHY.md | V2.5-F1 | Pending |
+| DF1.2 -- UX_PRINCIPLES.md | V2.5-F1 | Pending |
+| DF1.3 -- MOTION_SYSTEM.md | V2.5-F1 | Pending |
+| DF1.4 -- SOUND_SYSTEM.md | V2.5-F1 | Pending |
+| DF1.5 -- PRODUCT_CORE.md | V2.5-F1 | Pending |
+| DF1.6 -- DESIGN_LANGUAGE.md | V2.5-F1 | Pending |
+| DF2.1 -- Raw tokens raw.css | V2.5-F2 | Pending |
+| DF2.2 -- Semantic tokens @theme | V2.5-F2 | Pending |
+| DF2.3 -- Typography tokens | V2.5-F2 | Pending |
+| DF2.4 -- Spacing scale 4px-base | V2.5-F2 | Pending |
+| DF2.5 -- Motion tokens duration+easing | V2.5-F2 | Pending |
+| DF2.6 -- Z-layer system | V2.5-F2 | Pending |
+| DF2.7 -- Sound volume tokens | V2.5-F2 | Pending |
+| DF2.8 -- Theme switching data-theme | V2.5-F2 | Pending |
+| DF3.1 -- AmbientLayer component | V2.5-F3 | Pending |
+| DF3.2 -- tsParticles presets dust+fog | V2.5-F3 | Pending |
+| DF3.3 -- Page Visibility pause + FPS fallback | V2.5-F3 | Pending |
+| DF3.4 -- prefers-reduced-motion support | V2.5-F3 | Pending |
+| DF3.5 -- Per-page opt-out | V2.5-F3 | Pending |
+| DF4.1 -- Motion presets.ts (7 variants) | V2.5-F4 | Pending |
+| DF4.2 -- Choreography sequences | V2.5-F4 | Pending |
+| DF4.3 -- Motion hooks (useMotionSafe etc.) | V2.5-F4 | Pending |
+| DF4.4 -- Motion wrapper components | V2.5-F4 | Pending |
+| DF4.5 -- LazyMotion domAnimation root | V2.5-F4 | Pending |
+| DF5.1 -- Howler singleton ISoundManager | V2.5-F5 | Pending |
+| DF5.2 -- SFX sprite sheet WebM+MP3 | V2.5-F5 | Pending |
+| DF5.3 -- 6 SFX curados Freesound CC0 | V2.5-F5 | Pending |
+| DF5.4 -- Sound hooks (useSound, useAmbient, useMuteToggle) | V2.5-F5 | Pending |
+| DF5.5 -- Mute persistido localStorage | V2.5-F5 | Pending |
+| DF5.6 -- Mobile autoplay gate | V2.5-F5 | Pending |
+| DF6.1 -- Button (5 variantes, sound+motion) | V2.5-F6 | Pending |
+| DF6.2 -- Card (flat/elevated/interactive/hero) | V2.5-F6 | Pending |
+| DF6.3 -- Dialog (fullscreen takeover) | V2.5-F6 | Pending |
+| DF6.4 -- Toast custom (bottom-center, nao SaaS) | V2.5-F6 | Pending |
+| DF6.5 -- Badge (tier-1..8 variants) | V2.5-F6 | Pending |
+| DF6.6 -- PresenceDot (6 estados) | V2.5-F6 | Pending |
+| DF6.7 -- EmptyState narrativo (principios doutrina) | V2.5-F6 | Pending |
+| DF6.8 -- LoadingScreen cinematografico | V2.5-F6 | Pending |
+| DF7.1 -- MatchCard pattern | V2.5-F7 | Pending |
+| DF7.2 -- ProCard refatorado | V2.5-F7 | Pending |
+| DF7.3 -- QueuePanel refatorado | V2.5-F7 | Pending |
+| DF7.4 -- HeroVideo refatorado | V2.5-F7 | Pending |
+| DF7.5 -- HeroState refatorado | V2.5-F7 | Pending |
+| DF8.1 -- ClientShell top-bar Dota 2 style | V2.5-F8 | Pending |
+| DF8.2 -- Landing reformulada fullscreen | V2.5-F8 | Pending |
+| DF8.3 -- Rota /(dev)/components dev-only | V2.5-F8 | Pending |
+| DF8.4 -- Pages migradas para ClientShell | V2.5-F8 | Pending |
+| DF8.5 -- Footer disclaimer Valve + Freesound CC0 | V2.5-F8 | Pending |
+| C14 -- Zero hex hardcoded em componentes | Todas F1-F8 | Pending |
+| C15 -- Zero motion duration inline | Todas F2-F8 | Pending |
+| C16 -- Sound via hook (nao direto onClick) | Todas F5-F8 | Pending |
+| C17 -- Zero z-index ad-hoc numerico | Todas F2-F8 | Pending |
+| C18 -- Container max-w-* proibido em templates | V2.5-F8 | Pending |
+| C19 -- Toast/skeleton/spinner SaaS proibidos | V2.5-F6, F7, F8 | Pending |
+| C20 -- Sound+motion acoplados em toda interacao | V2.5-F6, F7, F8 | Pending |
 
 **Coverage V2.5:**
-- Total requirements DF: 47 (6+8+5+5+6+8+5+5)
-- Cross-cutting V2.5: 7 (C14-C20)
-- Mapped to phases F1-F8: 47 (100%)
-- Unmapped: 0 ✓
+- Total requirements DF: 47 (DF1.1-1.6 + DF2.1-2.8 + DF3.1-3.5 + DF4.1-4.5 + DF5.1-5.6 + DF6.1-6.8 + DF7.1-7.5 + DF8.1-8.5)
+- Cross-cutting V2.5: 7 (C14-C20) -- aplicam a todas as phases relevantes
+- Mapped to phases V2.5-F1 through V2.5-F8: 47 (100%) [OK]
+- Orphaned requirements: 0 [OK]
 
 ---
 
-*Last updated: 2026-05-23 — milestone v2.5 Design Foundations active*
+*Last updated: 2026-05-23 -- traceability expandida (requirement por requirement) pelo roadmapper*
