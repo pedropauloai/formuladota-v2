@@ -1,4 +1,4 @@
-// /dashboard — home logged-in com ClientShell + center MVP fichas.
+// /dashboard — feed vertical de PRO cards iguais.
 
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
@@ -17,10 +17,9 @@ import { getPreviewModeActive } from "@/lib/auth/preview-mode";
 
 export const metadata: Metadata = {
   title: "Dashboard — FORMULADOTA",
-  description: "Painel FORMULADOTA — estilo menu do Dota 2 client.",
+  description: "Feed de PROs disponíveis pra jogar PT ranked.",
 };
 
-// Realtime cobre maioria das atualizações; fallback de 30s pra segurança
 export const revalidate = 30;
 
 export default async function DashboardPage() {
@@ -59,11 +58,14 @@ export default async function DashboardPage() {
   const isAdmin = profile?.is_admin === true && !previewActive;
   const persona = steamLink?.persona ?? profile?.username ?? "Anônimo";
 
-  const top = prosWithQueues.find((p) => p.coach.filaAberta);
-  let topProStats: ProRecentStats | null = null;
-  if (top) {
-    topProStats = await getProRecentStats(top.coach.coachId);
-  }
+  const onlinePros = prosWithQueues.filter((p) => p.coach.filaAberta);
+  const statsEntries = await Promise.all(
+    onlinePros.map(async (p) => {
+      const stats = await getProRecentStats(p.coach.coachId);
+      return [p.coach.coachId, stats] as const;
+    })
+  );
+  const statsByCoach = new Map<string, ProRecentStats>(statsEntries);
 
   return (
     <ClientShell
@@ -80,8 +82,8 @@ export default async function DashboardPage() {
         fichaPackageId={fichaPackage?.id ?? null}
         fichaPreco={fichaPackage?.precoBrl ?? null}
         prosWithQueues={prosWithQueues}
-        topProStats={topProStats}
-        myQueue={myQueues[0] ?? null}
+        statsByCoach={statsByCoach}
+        myQueues={myQueues}
       />
     </ClientShell>
   );

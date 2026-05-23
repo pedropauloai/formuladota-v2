@@ -159,15 +159,7 @@ export async function ClientShell({
           </div>
         ) : (
           <div className={`hidden lg:flex absolute right-0 top-[64px] xl:top-[72px] ${bottomReserveCls} z-20 w-[320px] xl:w-[360px] 2xl:w-[380px]`}>
-            <DashboardRightSidebar
-              isAdmin={adminFlag}
-              fichaBalance={fichaBalance}
-              fichaPackageId={fichaPackage?.id ?? null}
-              fichaPreco={fichaPackage?.precoBrl ?? null}
-              prosWithQueues={prosWithQueues}
-              viewerUserId={user.id}
-              floating
-            />
+            <DashboardRightSidebar floating />
           </div>
         )}
 
@@ -261,14 +253,7 @@ export async function ClientShell({
             {rightSidebar}
           </aside>
         ) : (
-          <DashboardRightSidebar
-            isAdmin={adminFlag}
-            fichaBalance={fichaBalance}
-            fichaPackageId={fichaPackage?.id ?? null}
-            fichaPreco={fichaPackage?.precoBrl ?? null}
-            prosWithQueues={prosWithQueues}
-            viewerUserId={user.id}
-          />
+          <DashboardRightSidebar />
         )}
       </div>
 
