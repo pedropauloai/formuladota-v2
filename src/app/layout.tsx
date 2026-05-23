@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 // Fontes V2.5 — self-hosted via pacotes npm (sem requisição Google Fonts)
-// Cinzel Variable — display/headings (substitui Cinzel via next/font/google)
-import "@fontsource-variable/cinzel";
-// Geist — body/UI/botões via Vercel package (substitui Inter)
+// Atualizado 2026-05-23: Cinzel removida (estética ExitLag — sans-only).
+// Display e body usam mesma família Geist, diferenciados por weight + tracking.
 import { GeistSans, GeistMono } from "geist/font";
 import "@/styles/globals.css";
 import { Toaster } from "@/components/ui/sonner";

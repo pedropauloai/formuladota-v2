@@ -9,21 +9,23 @@
 
 :root {
   /* =========================================================
-   * FAMÍLIA VERMELHA — vermelho brand FORMULADOTA / Dota 2
-   * Inspirado em #ac1d0e (vermelho escudo Dota, site oficial)
+   * FAMÍLIA VERMELHA — vermelho brand FORMULADOTA
+   * Atualizado 2026-05-23: #C42121 alinhado ExitLag (mais punchy que #ac1d0e Dota)
+   * Mantém legacy #ac1d0e como red-700 pra compat com componentes antigos
    * ========================================================= */
 
   --fd-raw-red-50:  #fff1f0;  /* quase branco rosado */
   --fd-raw-red-100: #ffd6d3;  /* rosa muito claro */
   --fd-raw-red-200: #ffada8;  /* rosa claro */
   --fd-raw-red-300: #ff7d76;  /* salmão médio */
-  --fd-raw-red-400: #ff4d44;  /* vermelho vivo claro */
-  --fd-raw-red-500: #e83a2a;  /* vermelho intenso */
-  --fd-raw-red-600: #ac1d0e;  /* BRAND PRIMARY — vermelho Dota 2 */
-  --fd-raw-red-700: #8a1609;  /* hover escuro */
-  --fd-raw-red-800: #6e1008;  /* vermelho profundo */
-  --fd-raw-red-900: #520b05;  /* vermelho quase preto */
-  --fd-raw-red-glow: #ac1d0e33; /* glow com 20% opacidade para efeitos */
+  --fd-raw-red-400: #ef4046;  /* vermelho vivo (checkout accent ExitLag) */
+  --fd-raw-red-500: #ec4046;  /* vermelho footer ExitLag */
+  --fd-raw-red-600: #C42121;  /* BRAND PRIMARY — accent ExitLag (era #ac1d0e Dota) */
+  --fd-raw-red-700: #ac1d0e;  /* legacy Dota — preservado pra compat */
+  --fd-raw-red-800: #931919;  /* hover ExitLag accent-darker */
+  --fd-raw-red-900: #621010;  /* vermelho profundo ExitLag (clientarea border) */
+  --fd-raw-red-glow: rgba(196, 33, 33, 0.20); /* glow brand 20% — explicit rgba */
+  --fd-raw-red-glow-soft: rgba(196, 33, 33, 0.08); /* glow muito sutil ambient */
 
   /* =========================================================
    * FAMÍLIA VERDE — verde "Play" matchmaking
@@ -43,21 +45,28 @@
   --fd-raw-green-glow: #5b8e3a33; /* glow verde 20% opacidade */
 
   /* =========================================================
-   * NEUTROS WARM — preto/branco com leve temperatura quente
-   * Alinhado com a paleta off-white/preto do site Dota 2
+   * NEUTROS — cinza-escuro warm com leve tom azulado
+   * Atualizado 2026-05-23: paleta ExitLag (#0B0C0F deep + #111317 base)
+   * Substitui preto puro #000 por cinza-escuro (estilo Discord/YouTube dark)
+   * Texto continua off-white #f5f5f5 (preserva Dota 2 vibe)
    * ========================================================= */
 
   --fd-raw-neutral-50:  #f5f5f5;  /* off-white — texto primário no dark */
   --fd-raw-neutral-100: #e8e8e8;  /* branco suave */
   --fd-raw-neutral-200: #d1d1d1;  /* cinza claro */
-  --fd-raw-neutral-300: #b0b0b0;  /* cinza médio claro */
-  --fd-raw-neutral-400: #888888;  /* cinza médio */
+  --fd-raw-neutral-300: #b3b3b3;  /* card text muted (ExitLag) */
+  --fd-raw-neutral-400: #878D97;  /* footer social link (ExitLag) */
   --fd-raw-neutral-500: #6b6b6b;  /* cinza neutro */
-  --fd-raw-neutral-600: #4a4a4a;  /* cinza escuro */
-  --fd-raw-neutral-700: #2d2d2d;  /* quase preto elevado */
-  --fd-raw-neutral-800: #1a1a1a;  /* fundo elevado */
-  --fd-raw-neutral-900: #0a0a0a;  /* fundo base */
-  --fd-raw-neutral-950: #000000;  /* preto puro — fundo deep */
+  --fd-raw-neutral-600: #4E4E4E;  /* footer text (ExitLag) */
+  --fd-raw-neutral-700: #292929;  /* topbar background (ExitLag) */
+  --fd-raw-neutral-750: #212630;  /* checkout gray (ExitLag) */
+  --fd-raw-neutral-800: #191D24;  /* input bg / elevated (ExitLag) */
+  --fd-raw-neutral-850: #161A22;  /* gray-blue-700 (ExitLag) */
+  --fd-raw-neutral-900: #111317;  /* card step bg — surfaces (ExitLag) */
+  --fd-raw-neutral-925: #0F0F0F;  /* checkout bgField (ExitLag) */
+  --fd-raw-neutral-950: #0B0C0F;  /* BODY DEEP — bg-darker (ExitLag) */
+  --fd-raw-neutral-975: #07080A;  /* darker than body (raro uso) */
+  --fd-raw-neutral-999: #010206;  /* preto absoluto (raríssimo, takeover) */
 
   /* =========================================================
    * CORES DE ESTADO — feedback semântico universal

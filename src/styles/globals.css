@@ -79,8 +79,8 @@
   --font-mono:     var(--font-mono);
   /* font-sans aponta para Geist (substitui Inter) */
   --font-sans:     var(--font-body);
-  /* font-serif e font-heading preservados para compat com código legado */
-  --font-serif:    "Marcellus", Georgia, serif;
+  /* font-serif legacy → aponta para Geist agora (Marcellus removida 2026-05-23) */
+  --font-serif:    var(--font-body);
   --font-heading:  var(--font-display);
 
   /* -------------------------------------------------------
@@ -147,33 +147,33 @@
   --radius-full:  var(--radius-full);
 
   /* -------------------------------------------------------
-   * CORES LEGADAS — paleta Dota 2 (Phase 3.5, preservadas)
-   * Mantidas para compat com components existentes até F6.
-   * Preferir os tokens semantic acima em código novo.
+   * CORES LEGADAS — re-apontadas para semantic tokens V2.5
+   * Atualizadas 2026-05-23: paleta ExitLag (cinza-escuro warm + #C42121)
+   * Mantidas para compat — código novo deve usar semantic acima.
    * ------------------------------------------------------- */
-  --color-background:      #000000;
-  --color-foreground:      #f5f5f5;
-  --color-muted:           #0a0a0a;
-  --color-muted-foreground: #a1a1aa;
-  --color-card:            #0a0a0a;
-  --color-card-foreground: #f5f5f5;
-  --color-border:          #1f1f1f;
-  --color-input:           #0a0a0a;
+  --color-background:      var(--color-bg-deep);          /* #0B0C0F (era #000) */
+  --color-foreground:      var(--color-text-display);     /* #f5f5f5 */
+  --color-muted:           var(--color-bg-base);          /* #111317 (era #0a0a0a) */
+  --color-muted-foreground: var(--color-text-muted);      /* #b3b3b3 */
+  --color-card:            var(--color-bg-base);          /* #111317 */
+  --color-card-foreground: var(--color-text-display);     /* #f5f5f5 */
+  --color-border:          var(--color-border-strong);    /* #292929 (era #1f1f1f) */
+  --color-input:           var(--color-bg-elevated);      /* #191D24 (era #0a0a0a) */
 
   /* Vermelho brand legado — apontam para semantic equivalente */
-  --color-brand-red:       #ac1d0e;
-  --color-brand-red-dark:  #7a140a;
-  --color-brand-red-glow:  #ac1d0e33;
+  --color-brand-red:       var(--color-brand-primary);    /* #C42121 (era #ac1d0e) */
+  --color-brand-red-dark:  var(--color-brand-primary-hover); /* #931919 (era #7a140a) */
+  --color-brand-red-glow:  var(--color-brand-primary-glow);  /* rgba(196,33,33,0.20) */
 
   /* Verde play legado */
-  --color-play-green:      #5b8e3a;
-  --color-play-green-dark: #3f6a25;
-  --color-play-green-glow: #5b8e3a33;
+  --color-play-green:      var(--color-play-primary);     /* #5b8e3a */
+  --color-play-green-dark: var(--color-play-primary-hover); /* #4a7230 */
+  --color-play-green-glow: var(--color-play-primary-glow);  /* #5b8e3a33 */
 
   /* Estado legado */
-  --color-success-legacy:  #22c55e;
-  --color-warning-legacy:  #f59e0b;
-  --color-danger:          #ef4444;
+  --color-success-legacy:  var(--color-success);  /* #22c55e */
+  --color-warning-legacy:  var(--color-warning);  /* #f59e0b */
+  --color-danger:          var(--color-error);    /* #ef4444 */
 }
 
 /* -------------------------------------------------------
@@ -319,11 +319,11 @@
     background: var(--color-brand-primary);
   }
 
-  /* Grid de fundo sutil — padrão Dota 2 UI */
+  /* Grid de fundo sutil — padrão Dota 2 UI (usa border-strong token) */
   .bg-grid {
     background-image:
-      linear-gradient(to right, #1f1f1f 1px, transparent 1px),
-      linear-gradient(to bottom, #1f1f1f 1px, transparent 1px);
+      linear-gradient(to right, var(--color-border-strong) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--color-border-strong) 1px, transparent 1px);
     background-size: 48px 48px;
   }
 
