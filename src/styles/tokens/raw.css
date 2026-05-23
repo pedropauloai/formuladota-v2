@@ -1,0 +1,92 @@
+/*
+ * FORMULADOTA — Camada Zero: Tokens Brutos (Raw)
+ * valores primitivos — NUNCA consumidos diretamente em components
+ *
+ * Convenção de nomenclatura: --fd-raw-{categoria}-{variante}
+ * Estes valores não têm semântica — são a paleta numérica pura.
+ * Use os semantic tokens em src/styles/tokens/semantic.css.
+ */
+
+:root {
+  /* =========================================================
+   * FAMÍLIA VERMELHA — vermelho brand FORMULADOTA / Dota 2
+   * Inspirado em #ac1d0e (vermelho escudo Dota, site oficial)
+   * ========================================================= */
+
+  --fd-raw-red-50:  #fff1f0;  /* quase branco rosado */
+  --fd-raw-red-100: #ffd6d3;  /* rosa muito claro */
+  --fd-raw-red-200: #ffada8;  /* rosa claro */
+  --fd-raw-red-300: #ff7d76;  /* salmão médio */
+  --fd-raw-red-400: #ff4d44;  /* vermelho vivo claro */
+  --fd-raw-red-500: #e83a2a;  /* vermelho intenso */
+  --fd-raw-red-600: #ac1d0e;  /* BRAND PRIMARY — vermelho Dota 2 */
+  --fd-raw-red-700: #8a1609;  /* hover escuro */
+  --fd-raw-red-800: #6e1008;  /* vermelho profundo */
+  --fd-raw-red-900: #520b05;  /* vermelho quase preto */
+  --fd-raw-red-glow: #ac1d0e33; /* glow com 20% opacidade para efeitos */
+
+  /* =========================================================
+   * FAMÍLIA VERDE — verde "Play" matchmaking
+   * #5b8e3a = verde botão Dota 2 client (ENCONTRAR PARTIDA)
+   * ========================================================= */
+
+  --fd-raw-green-50:  #f0f9ea;  /* verde quase branco */
+  --fd-raw-green-100: #d5efca;  /* verde muito claro */
+  --fd-raw-green-200: #aede97;  /* verde claro */
+  --fd-raw-green-300: #81c960;  /* verde médio claro */
+  --fd-raw-green-400: #60b040;  /* verde médio */
+  --fd-raw-green-500: #5b8e3a;  /* BRAND PLAY — verde Dota 2 matchmaking */
+  --fd-raw-green-600: #4a7230;  /* hover verde escuro */
+  --fd-raw-green-700: #3a5a24;  /* verde profundo */
+  --fd-raw-green-800: #2a4219;  /* verde muito escuro */
+  --fd-raw-green-900: #1a2a0e;  /* verde quase preto */
+  --fd-raw-green-glow: #5b8e3a33; /* glow verde 20% opacidade */
+
+  /* =========================================================
+   * NEUTROS WARM — preto/branco com leve temperatura quente
+   * Alinhado com a paleta off-white/preto do site Dota 2
+   * ========================================================= */
+
+  --fd-raw-neutral-50:  #f5f5f5;  /* off-white — texto primário no dark */
+  --fd-raw-neutral-100: #e8e8e8;  /* branco suave */
+  --fd-raw-neutral-200: #d1d1d1;  /* cinza claro */
+  --fd-raw-neutral-300: #b0b0b0;  /* cinza médio claro */
+  --fd-raw-neutral-400: #888888;  /* cinza médio */
+  --fd-raw-neutral-500: #6b6b6b;  /* cinza neutro */
+  --fd-raw-neutral-600: #4a4a4a;  /* cinza escuro */
+  --fd-raw-neutral-700: #2d2d2d;  /* quase preto elevado */
+  --fd-raw-neutral-800: #1a1a1a;  /* fundo elevado */
+  --fd-raw-neutral-900: #0a0a0a;  /* fundo base */
+  --fd-raw-neutral-950: #000000;  /* preto puro — fundo deep */
+
+  /* =========================================================
+   * CORES DE ESTADO — feedback semântico universal
+   * ========================================================= */
+
+  --fd-raw-amber-500:  #f59e0b;  /* warning / atenção */
+  --fd-raw-success:    #22c55e;  /* sucesso / confirmação verde */
+  --fd-raw-error:      #ef4444;  /* erro / perigo vermelho vivo */
+  --fd-raw-info:       #3b82f6;  /* informação / link azul */
+
+  /* =========================================================
+   * FAMÍLIA AMBER EXPANDIDA — warnings e highlights
+   * ========================================================= */
+
+  --fd-raw-amber-100: #fef3c7;  /* fundo de warning claro */
+  --fd-raw-amber-300: #fcd34d;  /* texto de warning sobre dark */
+  --fd-raw-amber-700: #b45309;  /* warning escuro para borders */
+
+  /* =========================================================
+   * OPACIDADES UTILITÁRIAS — para glow e overlays
+   * Usadas internamente — não expor diretamente em components
+   * ========================================================= */
+
+  /* Overlay preto semitransparente — backdrop de modais */
+  --fd-raw-black-60:  rgba(0, 0, 0, 0.60);
+  /* Overlay preto para cards com foto de fundo */
+  --fd-raw-black-80:  rgba(0, 0, 0, 0.80);
+  /* Brilho branco sutil — highlight de borda superior em cards */
+  --fd-raw-white-04:  rgba(255, 255, 255, 0.04);
+  /* Brilho branco para separadores internos */
+  --fd-raw-white-08:  rgba(255, 255, 255, 0.08);
+}

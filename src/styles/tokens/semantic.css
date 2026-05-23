@@ -1,0 +1,217 @@
+/*
+ * FORMULADOTA — Camada Semântica: Tokens com Significado
+ * Consome os raw tokens via var() — nunca valores literais aqui.
+ *
+ * Estes são os tokens que DEVEM ser usados nos components.
+ * Organização: cores → fonts → spacing → motion → z-layers → volume → radius → shadows
+ *
+ * Theme padrão: :root (carrega automaticamente)
+ * Theme explícito V2.5: html[data-theme="fd-dark"]
+ * Arquitetura data-theme suporta futuros temas Radiant/Dire sem refactor.
+ */
+
+/* =========================================================
+ * TEMA PADRÃO — fd-dark (aplicado em :root e html[data-theme="fd-dark"])
+ * ========================================================= */
+
+:root,
+html[data-theme="fd-dark"] {
+
+  /* -------------------------------------------------------
+   * GRUPO 1 — CORES BRAND (vermelho FORMULADOTA)
+   * ------------------------------------------------------- */
+
+  /* Cor primária de ação e identidade */
+  --color-brand-primary:     var(--fd-raw-red-600);      /* #ac1d0e */
+  /* Hover state — mais escuro que primary */
+  --color-brand-primary-hover: var(--fd-raw-red-700);   /* #8a1609 */
+  /* Efeito glow/brilho sutil em borders e sombras */
+  --color-brand-primary-glow: var(--fd-raw-red-glow);   /* #ac1d0e33 */
+  /* Fundo profundo com toque da cor brand (cards especiais) */
+  --color-brand-primary-deep: var(--fd-raw-red-900);    /* #520b05 */
+
+  /* -------------------------------------------------------
+   * GRUPO 2 — CORES PLAY (verde matchmaking)
+   * ------------------------------------------------------- */
+
+  /* Botão principal de ação do game: "Entrar na Fila" */
+  --color-play-primary:      var(--fd-raw-green-500);    /* #5b8e3a */
+  /* Hover do botão play */
+  --color-play-primary-hover: var(--fd-raw-green-600);  /* #4a7230 */
+  /* Glow verde para animações de disponibilidade */
+  --color-play-primary-glow:  var(--fd-raw-green-glow); /* #5b8e3a33 */
+
+  /* -------------------------------------------------------
+   * GRUPO 3 — CORES DE BACKGROUND
+   * ------------------------------------------------------- */
+
+  /* Fundo absoluto — preto puro Dota 2 */
+  --color-bg-deep:           var(--fd-raw-neutral-950);  /* #000000 */
+  /* Fundo base da aplicação */
+  --color-bg-base:           var(--fd-raw-neutral-900);  /* #0a0a0a */
+  /* Fundo elevado — primeiro nível de elevação */
+  --color-bg-elevated:       var(--fd-raw-neutral-800);  /* #1a1a1a */
+  /* Superfície de cards e painéis */
+  --color-bg-surface:        var(--fd-raw-neutral-700);  /* #2d2d2d */
+
+  /* -------------------------------------------------------
+   * GRUPO 4 — CORES DE TEXTO
+   * ------------------------------------------------------- */
+
+  /* Títulos e display — máximo contraste */
+  --color-text-display:      var(--fd-raw-neutral-50);   /* #f5f5f5 */
+  /* Corpo de texto — leitura confortável */
+  --color-text-body:         var(--fd-raw-neutral-100);  /* #e8e8e8 */
+  /* Texto secundário / labels */
+  --color-text-muted:        var(--fd-raw-neutral-400);  /* #888888 */
+  /* Texto terciário / placeholders / disabled */
+  --color-text-faded:        var(--fd-raw-neutral-600);  /* #4a4a4a */
+  /* Texto sobre fundos coloridos (brand, play) */
+  --color-text-inverse:      var(--fd-raw-neutral-950);  /* #000000 */
+
+  /* -------------------------------------------------------
+   * GRUPO 5 — CORES DE BORDA
+   * ------------------------------------------------------- */
+
+  /* Borda muito sutil — divisores internos */
+  --color-border-subtle:     var(--fd-raw-neutral-800);  /* #1a1a1a */
+  /* Borda padrão — contornos de cards */
+  --color-border-strong:     var(--fd-raw-neutral-700);  /* #2d2d2d */
+  /* Borda com cor brand — foco, seleção, destaque */
+  --color-border-brand:      var(--fd-raw-red-600);      /* #ac1d0e */
+
+  /* -------------------------------------------------------
+   * GRUPO 6 — CORES DE ESTADO (feedback)
+   * ------------------------------------------------------- */
+
+  --color-success:  var(--fd-raw-success);    /* #22c55e */
+  --color-warning:  var(--fd-raw-amber-500);  /* #f59e0b */
+  --color-error:    var(--fd-raw-error);      /* #ef4444 */
+  --color-info:     var(--fd-raw-info);       /* #3b82f6 */
+
+  /* -------------------------------------------------------
+   * GRUPO 7 — TIPOGRAFIA (fonts)
+   * ------------------------------------------------------- */
+
+  /* Cinzel Variable — display/headings estilo inscrição romana (como Reaver Valve) */
+  --font-display: "Cinzel Variable", "Cinzel", Georgia, serif;
+  /* Geist — sans-serif técnico para body/UI/botões (Vercel, visual Steam) */
+  --font-body:    "Geist", ui-sans-serif, system-ui, sans-serif;
+  /* Mono — código, MMR, stats numéricos */
+  --font-mono:    "Geist Mono", ui-monospace, "Courier New", monospace;
+
+  /* -------------------------------------------------------
+   * GRUPO 8 — ESPAÇAMENTO (escala base 4px)
+   * 4px = 1 unidade; escala não-linear para range amplo
+   * ------------------------------------------------------- */
+
+  --space-0:  0px;      /* zero */
+  --space-1:  4px;      /* micro — 1 unidade */
+  --space-2:  8px;      /* pequeno — 2 unidades */
+  --space-3:  12px;     /* pequeno+ — 3 unidades */
+  --space-4:  16px;     /* base — 4 unidades (1rem) */
+  --space-5:  20px;     /* médio- — 5 unidades */
+  --space-6:  24px;     /* médio — 6 unidades (padrão padding interno) */
+  --space-8:  32px;     /* médio+ — 8 unidades */
+  --space-10: 40px;     /* grande- — 10 unidades */
+  --space-12: 48px;     /* grande — 12 unidades */
+  --space-16: 64px;     /* extra-grande */
+  --space-20: 80px;     /* seção */
+  --space-24: 96px;     /* seção grande */
+  --space-32: 128px;    /* hero spacing */
+
+  /* -------------------------------------------------------
+   * GRUPO 9 — MOTION: DURAÇÕES
+   * micro = feedback imediato; cinematic = transição de tela
+   * ------------------------------------------------------- */
+
+  /* Feedback instantâneo — hover, focus, ripple */
+  --motion-duration-micro:      100ms;
+  /* Transições padrão — entrada/saída de elementos */
+  --motion-duration-standard:   240ms;
+  /* Animações de destaque — cards hero, modais */
+  --motion-duration-hero:       500ms;
+  /* Transições cinematográficas — loading, page transitions */
+  --motion-duration-cinematic:  1000ms;
+
+  /* -------------------------------------------------------
+   * GRUPO 10 — MOTION: EASINGS NOMEADOS
+   * Nomes descrevem o comportamento percebido, não a curva
+   * ------------------------------------------------------- */
+
+  /* Snap — saída rápida com desaceleração forte (menus, drawers) */
+  --motion-ease-snappy:         cubic-bezier(0.32, 0.72, 0, 1);
+  /* Soft landing — aceleração suave e pouso gentil (elementos floatando) */
+  --motion-ease-soft-landing:   cubic-bezier(0.4, 0, 0.2, 1);
+  /* Cinematic — aceleração dramática e saída orgânica (hero transitions) */
+  --motion-ease-cinematic:      cubic-bezier(0.65, 0, 0.35, 1);
+  /* Spring — overshoot sutil (notificações, confirmações) */
+  --motion-ease-spring:         cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* -------------------------------------------------------
+   * GRUPO 11 — Z-LAYERS (sistema de profundidade)
+   * NUNCA usar z-index numérico ad-hoc em components
+   * ------------------------------------------------------- */
+
+  /* Camada de atmosfera — particles, gradientes de fundo */
+  --z-atmosphere: -10;
+  /* Conteúdo de página — fluxo normal */
+  --z-content:     0;
+  /* Elementos flutuantes — tooltips hover, cards destacados */
+  --z-elevated:    10;
+  /* Overlays — sidebars, drawers */
+  --z-overlay:     20;
+  /* Modais e dialogs — sobre tudo o conteúdo */
+  --z-modal:       50;
+  /* Sistema — alertas críticos, top-bar fixa */
+  --z-system:      100;
+  /* Takeover — fullscreen loading, onboarding */
+  --z-takeover:    200;
+
+  /* -------------------------------------------------------
+   * GRUPO 12 — VOLUME DE ÁUDIO (consumidos pelo SoundManager)
+   * Valores entre 0.0 e 1.0
+   * ------------------------------------------------------- */
+
+  /* Interactions UI — hover, click, confirm */
+  --volume-interaction: 0.6;
+  /* Ambient loops — fila, lobby idle */
+  --volume-ambient:     0.3;
+  /* Reward sounds — match found, level up */
+  --volume-reward:      0.8;
+  /* Master volume — multiplicador global */
+  --volume-master:      1.0;
+
+  /* -------------------------------------------------------
+   * GRUPO 13 — RADIUS (arredondamento de bordas)
+   * ------------------------------------------------------- */
+
+  --radius-none:  0px;      /* sem arredondamento — cantos retos Dota */
+  --radius-sm:    4px;      /* botões, inputs */
+  --radius-md:    8px;      /* cards padrão */
+  --radius-lg:    12px;     /* painéis, drawers */
+  --radius-xl:    16px;     /* modais, large cards */
+  --radius-full:  9999px;   /* badges, avatars, pills */
+
+  /* -------------------------------------------------------
+   * GRUPO 14 — SOMBRAS E GLOWS
+   * Usam as cores brand para manter coerência temática
+   * ------------------------------------------------------- */
+
+  /* Sombra para elementos elevados (cards sobre fundo) */
+  --shadow-elevated: 0 4px 24px 0 rgba(0, 0, 0, 0.6),
+                     0 1px 4px 0 rgba(0, 0, 0, 0.4);
+
+  /* Sombra cinematográfica — hero cards, modais */
+  --shadow-cinematic: 0 8px 48px 0 rgba(0, 0, 0, 0.8),
+                      0 2px 8px 0 rgba(0, 0, 0, 0.6),
+                      inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+  /* Glow brand vermelho — foco, borders ativos, CTAs */
+  --glow-brand: 0 0 16px var(--color-brand-primary-glow),
+                0 0 48px var(--color-brand-primary-glow);
+
+  /* Glow verde play — botão PLAY ativo, queue online */
+  --glow-play:  0 0 16px var(--color-play-primary-glow),
+                0 0 48px var(--color-play-primary-glow);
+}

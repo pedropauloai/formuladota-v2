@@ -64,7 +64,10 @@ export async function loadPackagesWithCoaches(
     console.error("[/pacotes] erro packages:", pkgErr.message);
   }
   const packagesList: PackageRow[] = packages ?? [];
-  const coachIds = Array.from(new Set(packagesList.map((p) => p.coach_id)));
+  // Filtra nulls antes de passar pro .in() — coach_id pode ser null no schema
+  const coachIds = Array.from(
+    new Set(packagesList.map((p) => p.coach_id).filter((id): id is string => id !== null))
+  );
   let coachesList: CoachRow[] = [];
   if (coachIds.length > 0) {
     const { data: coachRows } = await supabase
@@ -90,7 +93,8 @@ export async function loadPackagesWithCoaches(
   }
   return packagesList.map((pkg) => ({
     ...pkg,
-    coach: coachMap.get(pkg.coach_id) ?? FALLBACK_COACH,
+    // coach_id pode ser null — usa fallback quando não encontrar
+    coach: (pkg.coach_id ? coachMap.get(pkg.coach_id) : undefined) ?? FALLBACK_COACH,
   }));
 }
 

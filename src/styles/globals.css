@@ -1,44 +1,283 @@
+/* Ordem de import obrigatória:
+   1. tailwindcss — engine de utilities
+   2. tw-animate-css — animações CSS extras
+   3. shadcn/tailwind.css — preset shadcn
+   4. tokens/raw.css — paleta primitiva (Camada 0)
+   5. tokens/semantic.css — aliases com semântica (Camada 1) */
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@import "./tokens/raw.css";
+@import "./tokens/semantic.css";
 
 @custom-variant dark (&:is(.dark *));
 
-/* FORMULADOTA — Brand & Design System (Phase 3.5)
-   Paleta inspirada no site oficial Dota 2 (preto + vermelho + off-white).
-   Substitui o tema cyberpunk cyan/purple anterior. */
+/* FORMULADOTA — Design System V2.5 AAA Game Client
+   Paleta canônica: preto Dota 2 + vermelho brand + off-white.
+   Tokens consumidos via @theme (Tailwind v4 transforma em utilities automaticamente).
+   8 grupos expostos: color-brand, color-bg, color-text, font, space, motion, z, volume. */
 @theme {
-  --color-background: #000000;
-  --color-foreground: #f5f5f5;
-  --color-muted: #0a0a0a;
+  /* -------------------------------------------------------
+   * GRUPO 1 — CORES BRAND (vermelho FORMULADOTA)
+   * Ex: bg-brand-primary, text-brand-primary-hover
+   * ------------------------------------------------------- */
+  --color-brand-primary:       var(--color-brand-primary);
+  --color-brand-primary-hover: var(--color-brand-primary-hover);
+  --color-brand-primary-glow:  var(--color-brand-primary-glow);
+  --color-brand-primary-deep:  var(--color-brand-primary-deep);
+
+  /* -------------------------------------------------------
+   * GRUPO 2 — CORES PLAY (verde matchmaking)
+   * Ex: bg-play-primary, border-play-primary-glow
+   * ------------------------------------------------------- */
+  --color-play-primary:        var(--color-play-primary);
+  --color-play-primary-hover:  var(--color-play-primary-hover);
+  --color-play-primary-glow:   var(--color-play-primary-glow);
+
+  /* -------------------------------------------------------
+   * GRUPO 3 — BACKGROUNDS
+   * Ex: bg-bg-deep, bg-bg-surface
+   * ------------------------------------------------------- */
+  --color-bg-deep:             var(--color-bg-deep);
+  --color-bg-base:             var(--color-bg-base);
+  --color-bg-elevated:         var(--color-bg-elevated);
+  --color-bg-surface:          var(--color-bg-surface);
+
+  /* -------------------------------------------------------
+   * GRUPO 4 — TEXTO
+   * Ex: text-text-display, text-text-muted
+   * ------------------------------------------------------- */
+  --color-text-display:        var(--color-text-display);
+  --color-text-body:           var(--color-text-body);
+  --color-text-muted:          var(--color-text-muted);
+  --color-text-faded:          var(--color-text-faded);
+  --color-text-inverse:        var(--color-text-inverse);
+
+  /* -------------------------------------------------------
+   * GRUPO 5 — BORDERS
+   * Ex: border-border-subtle, border-border-brand
+   * ------------------------------------------------------- */
+  --color-border-subtle:       var(--color-border-subtle);
+  --color-border-strong:       var(--color-border-strong);
+  --color-border-brand:        var(--color-border-brand);
+
+  /* -------------------------------------------------------
+   * GRUPO 6 — ESTADO (feedback)
+   * Ex: text-success, bg-error, border-warning
+   * ------------------------------------------------------- */
+  --color-success:             var(--color-success);
+  --color-warning:             var(--color-warning);
+  --color-error:               var(--color-error);
+  --color-info:                var(--color-info);
+
+  /* -------------------------------------------------------
+   * GRUPO 7 — TIPOGRAFIA (fonts)
+   * Ex: font-display (Cinzel), font-body (Geist), font-mono
+   * ------------------------------------------------------- */
+  --font-display:  var(--font-display);
+  --font-body:     var(--font-body);
+  --font-mono:     var(--font-mono);
+  /* font-sans aponta para Geist (substitui Inter) */
+  --font-sans:     var(--font-body);
+  /* font-serif e font-heading preservados para compat com código legado */
+  --font-serif:    "Marcellus", Georgia, serif;
+  --font-heading:  var(--font-display);
+
+  /* -------------------------------------------------------
+   * GRUPO 8 — ESPAÇAMENTO (4px base)
+   * Ex: gap-space-4, p-space-6, m-space-8
+   * ------------------------------------------------------- */
+  --space-0:  var(--space-0);
+  --space-1:  var(--space-1);
+  --space-2:  var(--space-2);
+  --space-3:  var(--space-3);
+  --space-4:  var(--space-4);
+  --space-5:  var(--space-5);
+  --space-6:  var(--space-6);
+  --space-8:  var(--space-8);
+  --space-10: var(--space-10);
+  --space-12: var(--space-12);
+  --space-16: var(--space-16);
+  --space-20: var(--space-20);
+  --space-24: var(--space-24);
+  --space-32: var(--space-32);
+
+  /* -------------------------------------------------------
+   * GRUPO 9+10 — MOTION (durations + easings)
+   * Ex: [transition-duration:var(--motion-duration-standard)]
+   * ------------------------------------------------------- */
+  --motion-duration-micro:     var(--motion-duration-micro);
+  --motion-duration-standard:  var(--motion-duration-standard);
+  --motion-duration-hero:      var(--motion-duration-hero);
+  --motion-duration-cinematic: var(--motion-duration-cinematic);
+  --motion-ease-snappy:        var(--motion-ease-snappy);
+  --motion-ease-soft-landing:  var(--motion-ease-soft-landing);
+  --motion-ease-cinematic:     var(--motion-ease-cinematic);
+  --motion-ease-spring:        var(--motion-ease-spring);
+
+  /* -------------------------------------------------------
+   * GRUPO 11 — Z-LAYERS
+   * Ex: z-[var(--z-modal)], z-[var(--z-atmosphere)]
+   * ------------------------------------------------------- */
+  --z-atmosphere: var(--z-atmosphere);
+  --z-content:    var(--z-content);
+  --z-elevated:   var(--z-elevated);
+  --z-overlay:    var(--z-overlay);
+  --z-modal:      var(--z-modal);
+  --z-system:     var(--z-system);
+  --z-takeover:   var(--z-takeover);
+
+  /* -------------------------------------------------------
+   * GRUPO 12 — VOLUME (consumidos pelo SoundManager JS)
+   * Expostos via CSS var para leitura com getComputedStyle
+   * ------------------------------------------------------- */
+  --volume-interaction: var(--volume-interaction);
+  --volume-ambient:     var(--volume-ambient);
+  --volume-reward:      var(--volume-reward);
+  --volume-master:      var(--volume-master);
+
+  /* -------------------------------------------------------
+   * RADIUS — compartilhados com shadcn
+   * ------------------------------------------------------- */
+  --radius-none:  var(--radius-none);
+  --radius-sm:    var(--radius-sm);
+  --radius-md:    var(--radius-md);
+  --radius-lg:    var(--radius-lg);
+  --radius-xl:    var(--radius-xl);
+  --radius-full:  var(--radius-full);
+
+  /* -------------------------------------------------------
+   * CORES LEGADAS — paleta Dota 2 (Phase 3.5, preservadas)
+   * Mantidas para compat com components existentes até F6.
+   * Preferir os tokens semantic acima em código novo.
+   * ------------------------------------------------------- */
+  --color-background:      #000000;
+  --color-foreground:      #f5f5f5;
+  --color-muted:           #0a0a0a;
   --color-muted-foreground: #a1a1aa;
-  --color-card: #0a0a0a;
+  --color-card:            #0a0a0a;
   --color-card-foreground: #f5f5f5;
-  --color-border: #1f1f1f;
-  --color-input: #0a0a0a;
+  --color-border:          #1f1f1f;
+  --color-input:           #0a0a0a;
 
-  --color-brand-red: #ac1d0e;
-  --color-brand-red-dark: #7a140a;
-  --color-brand-red-glow: #ac1d0e33;
+  /* Vermelho brand legado — apontam para semantic equivalente */
+  --color-brand-red:       #ac1d0e;
+  --color-brand-red-dark:  #7a140a;
+  --color-brand-red-glow:  #ac1d0e33;
 
-  /* Verde "Play matchmaking" inspirado no botão Dota 2 client */
-  --color-play-green: #5b8e3a;
+  /* Verde play legado */
+  --color-play-green:      #5b8e3a;
   --color-play-green-dark: #3f6a25;
   --color-play-green-glow: #5b8e3a33;
 
-  --color-success: #22c55e;
-  --color-warning: #f59e0b;
-  --color-danger: #ef4444;
-
-  --font-display: "Cinzel", "Marcellus", Georgia, serif;
-  --font-serif: "Marcellus", Georgia, serif;
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-
-  --radius-sm: 0.375rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
+  /* Estado legado */
+  --color-success-legacy:  #22c55e;
+  --color-warning-legacy:  #f59e0b;
+  --color-danger:          #ef4444;
 }
 
+/* -------------------------------------------------------
+ * @theme inline — mapeia CSS vars do shadcn/ui para tokens
+ * Necessário porque shadcn usa nomes como --primary, --background
+ * sem o prefixo --color-* que o @theme espera.
+ * ------------------------------------------------------- */
+@theme inline {
+  /* Tipografia — preserva nomes legados */
+  --font-heading:  var(--font-display);
+  --font-sans:     var(--font-body);
+
+  /* Sidebar shadcn — mantém mapeamento existente */
+  --color-sidebar-ring:               var(--sidebar-ring);
+  --color-sidebar-border:             var(--sidebar-border);
+  --color-sidebar-accent-foreground:  var(--sidebar-accent-foreground);
+  --color-sidebar-accent:             var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary:            var(--sidebar-primary);
+  --color-sidebar-foreground:         var(--sidebar-foreground);
+  --color-sidebar:                    var(--sidebar);
+
+  /* Charts shadcn */
+  --color-chart-5:  var(--chart-5);
+  --color-chart-4:  var(--chart-4);
+  --color-chart-3:  var(--chart-3);
+  --color-chart-2:  var(--chart-2);
+  --color-chart-1:  var(--chart-1);
+
+  /* UI shadcn base */
+  --color-ring:                var(--ring);
+  --color-input:               var(--input);
+  --color-border:              var(--border);
+  --color-destructive:         var(--destructive);
+  --color-accent-foreground:   var(--accent-foreground);
+  --color-accent:              var(--accent);
+  --color-muted-foreground:    var(--muted-foreground);
+  --color-muted:               var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary:           var(--secondary);
+  --color-primary-foreground:  var(--primary-foreground);
+  --color-primary:             var(--primary);
+  --color-popover-foreground:  var(--popover-foreground);
+  --color-popover:             var(--popover);
+  --color-card-foreground:     var(--card-foreground);
+  --color-card:                var(--card);
+  --color-foreground:          var(--foreground);
+  --color-background:          var(--background);
+
+  /* Radius shadcn — baseado em var(--radius) */
+  --radius-sm:  calc(var(--radius) * 0.6);
+  --radius-md:  calc(var(--radius) * 0.8);
+  --radius-lg:  var(--radius);
+  --radius-xl:  calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/* -------------------------------------------------------
+ * Tokens shadcn/ui — FORMULADOTA dark-only.
+ * Mapeados para os semantic tokens V2.5 onde possível.
+ * Projeto não tem toggle de tema — sempre fd-dark.
+ * ------------------------------------------------------- */
+:root {
+  /* Cores base — remap para semantic tokens */
+  --background:           var(--color-bg-deep);        /* #000000 */
+  --foreground:           var(--color-text-display);   /* #f5f5f5 */
+  --card:                 var(--color-bg-base);        /* #0a0a0a */
+  --card-foreground:      var(--color-text-display);   /* #f5f5f5 */
+  --popover:              var(--color-bg-base);        /* #0a0a0a */
+  --popover-foreground:   var(--color-text-display);   /* #f5f5f5 */
+
+  /* Primary = vermelho brand → semantic token */
+  --primary:              var(--color-brand-primary);  /* #ac1d0e */
+  --primary-foreground:   var(--color-text-display);   /* #f5f5f5 */
+
+  /* Secondary = fundo base */
+  --secondary:            var(--color-bg-base);        /* #0a0a0a */
+  --secondary-foreground: var(--color-text-display);   /* #f5f5f5 */
+
+  /* Muted = texto e fundo secundários */
+  --muted:                var(--color-bg-base);        /* #0a0a0a */
+  --muted-foreground:     var(--color-text-muted);     /* #888888 */
+
+  /* Accent = hover state */
+  --accent:               var(--color-bg-elevated);    /* #1a1a1a */
+  --accent-foreground:    var(--color-brand-primary);  /* #ac1d0e */
+
+  /* Destructive = erro */
+  --destructive:          var(--color-error);          /* #ef4444 */
+
+  /* Borders e ring de foco */
+  --border:               var(--color-border-strong);  /* #2d2d2d */
+  --input:                var(--color-bg-base);        /* #0a0a0a */
+  --ring:                 var(--color-brand-primary);  /* #ac1d0e */
+
+  /* Radius base shadcn */
+  --radius: 0.5rem;
+}
+
+/* -------------------------------------------------------
+ * BASE STYLES
+ * ------------------------------------------------------- */
 @layer base {
   html {
     color-scheme: dark;
@@ -46,119 +285,51 @@
   }
 
   body {
-    background: var(--color-background);
-    color: var(--color-foreground);
-    font-family: var(--font-sans);
+    background: var(--color-bg-deep);
+    color: var(--color-text-display);
+    font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
     @apply bg-background text-foreground;
   }
 
+  /* Foco visível — ring brand vermelho (WCAG 2.1 AA) */
   *:focus-visible {
-    outline: 2px solid var(--color-brand-red);
+    outline: 2px solid var(--color-brand-primary);
     outline-offset: 2px;
   }
+
   * {
     @apply border-border outline-ring/50;
   }
 }
 
+/* -------------------------------------------------------
+ * UTILITIES CUSTOMIZADAS
+ * ------------------------------------------------------- */
 @layer utilities {
+  /* Glow de texto vermelho brand */
   .text-glow-red {
-    text-shadow: 0 0 12px var(--color-brand-red-glow);
+    text-shadow: 0 0 12px var(--color-brand-primary-glow);
   }
-  /* Linha decorativa vermelha (estilo "linha sob Destructoid" do dota2.com) */
+
+  /* Linha decorativa vermelha (estilo Dota 2 site — divisor sob títulos) */
   .brand-divider {
     height: 2px;
     width: 96px;
-    background: var(--color-brand-red);
+    background: var(--color-brand-primary);
   }
+
+  /* Grid de fundo sutil — padrão Dota 2 UI */
   .bg-grid {
     background-image:
       linear-gradient(to right, #1f1f1f 1px, transparent 1px),
       linear-gradient(to bottom, #1f1f1f 1px, transparent 1px);
     background-size: 48px 48px;
   }
-}
 
-@theme inline {
-  --font-heading: var(--font-display);
-  --font-sans: var(--font-sans);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --color-foreground: var(--foreground);
-  --color-background: var(--background);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
-}
-
-/* Tokens shadcn/ui mapeados para FORMULADOTA dark-only.
-   Projeto não tem toggle de tema — sempre dark. Os valores abaixo substituem
-   o padrão gerado pelo shadcn CLI para refletir a paleta Dota 2 oficial. */
-:root {
-  /* Cores base — paleta Dota 2 oficial (preto + vermelho + off-white) */
-  --background: #000000;
-  --foreground: #f5f5f5;
-  --card: #0a0a0a;
-  --card-foreground: #f5f5f5;
-  --popover: #0a0a0a;
-  --popover-foreground: #f5f5f5;
-
-  /* Primary = vermelho brand FORMULADOTA. Texto sobre primary usa branco off pra contraste WCAG */
-  --primary: #ac1d0e;
-  --primary-foreground: #f5f5f5;
-
-  /* Secondary = preto elevado (cards) */
-  --secondary: #0a0a0a;
-  --secondary-foreground: #f5f5f5;
-
-  /* Muted = preto sutil */
-  --muted: #0a0a0a;
-  --muted-foreground: #a1a1aa;
-
-  /* Accent = vermelho dark hover */
-  --accent: #1f1f1f;
-  --accent-foreground: #ac1d0e;
-
-  /* Destructive = vermelho perigo (mais saturado que brand) */
-  --destructive: #ef4444;
-
-  /* Borders e ring */
-  --border: #1f1f1f;
-  --input: #0a0a0a;
-  --ring: #ac1d0e;
-
-  /* Radius base (shadcn usa calc() sobre esse valor) */
-  --radius: 0.5rem;
+  /* Números tabulares — MMR, stats, scores ficam alinhados */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+  }
 }
