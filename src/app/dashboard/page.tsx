@@ -12,6 +12,7 @@ import {
   type ProRecentStats,
 } from "@/lib/queries/pros";
 import { getFichaPackage } from "@/lib/queries/packages";
+import { getMyQueueStatus } from "@/lib/queries/queue";
 import { getPreviewModeActive } from "@/lib/auth/preview-mode";
 
 export const metadata: Metadata = {
@@ -36,6 +37,7 @@ export default async function DashboardPage() {
     prosWithQueues,
     fichaPackage,
     previewActive,
+    myQueues,
   ] = await Promise.all([
     supabase
       .from("profiles")
@@ -51,6 +53,7 @@ export default async function DashboardPage() {
     getProsWithQueues(),
     getFichaPackage(),
     getPreviewModeActive(),
+    getMyQueueStatus(user.id),
   ]);
 
   const isAdmin = profile?.is_admin === true && !previewActive;
@@ -77,6 +80,7 @@ export default async function DashboardPage() {
         fichaPreco={fichaPackage?.precoBrl ?? null}
         prosWithQueues={prosWithQueues}
         topProStats={topProStats}
+        myQueue={myQueues[0] ?? null}
       />
     </ClientShell>
   );
