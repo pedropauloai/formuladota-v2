@@ -80,7 +80,11 @@
 
 ---
 
-### B — Brand & Design System (Phase 3.5) ◆ NEW 2026-05-02
+### B — Brand & Design System (Phase 3.5) ⚠ DEPRECATED 2026-05-23
+
+> **Phase 3.5 absorvida e expandida pelo Milestone V2.5 Design Foundations.** Requirements B1-B6 abaixo permanecem válidos como subset da nova categoria DF mas serão re-entregues com qualidade AAA-grade (não rebrand tático). Research original preservado em `.planning/phases/_deprecated/03.5-rebrand-dota2-visual-superseded-by-v2.5-design-foundations/`.
+
+### B — Brand & Design System (Phase 3.5 — original spec) ◆ NEW 2026-05-02
 
 > Pedro entregou logos reais + escolheu paleta vermelho/preto + decidiu rebrand seguindo design oficial site Dota 2 (https://www.dota2.com/home).
 
@@ -108,3 +112,138 @@
 - **C11** Async/await sempre — NUNCA `.then().catch()` chains nem `.catch()` solto. Use try/catch blocks ou wrapper async com void call
 - **C12** Comentários PT-BR onde não-óbvio (Pedro é beginner em código)
 - **C13** Service-role Supabase **APENAS** em `/api/webhooks/*` ou jobs sistêmicos. Server Components/Actions de usuário usam cookie client.
+
+---
+
+## Milestone V2.5 — Design Foundations (AAA Game Client Experience) ◆ ACTIVE 2026-05-23
+
+> **Pivô estratégico (memory project_pivot_design_foundations.md):** parar todo trabalho de produto, construir fundação visual/UX permanente que transforma FormulaDota em verdadeiro game client AAA antes de qualquer nova UI. Pausa MVP fichas e Phase 4 MP até pelo menos DF2 (Token Layer) entregar.
+>
+> Régua AAA: *"isso existe no Riot Client?"* — se não, é anti-feature. Cultura proibida: SaaS startup, vibecoding, landing-page vibe, excesso cards/grid.
+>
+> Stack winners (research V2.5): `motion` v12.40.0 + `howler` v2.2.4 + `@tsparticles/slim` + `@fontsource-variable/cinzel` v5.2.8 + `geist` v1.7.1 + Tailwind v4 `@theme`.
+
+### DF1 — Foundation Docs (Phase F1)
+
+> Constituição visual permanente em `docs/foundations/`. Documentos viram lei pra todas as decisões downstream. Independem de código (paralelo a DF2-DF8).
+
+- **DF1.1** `docs/foundations/VISUAL_PHILOSOPHY.md` — princípios de atmosfericidade, layering, profundidade visual, anti-vibecoding. Inclui galeria curada de refs AAA (Dota 2, Steam, Battle.net, Riot Client, FACEIT, CS2 UI, Discord, PoE, D4) com análise por dimensão.
+- **DF1.2** `docs/foundations/UX_PRINCIPLES.md` — 11 mandamentos AAA (table stakes do research FEATURES.md): onboarding, navigation, primary CTA, live state, feedback acoplado, loading cinematográfico, empty states narrativos, profile premium, presence rich, sound feedback obrigatório, atmospheric ambient. Cada princípio com exemplo bom + ruim.
+- **DF1.3** `docs/foundations/MOTION_SYSTEM.md` — motion philosophy, hierarquia de durations (micro 80-120ms, standard 200-280ms, hero 400-600ms+), easings nomeados por contexto, choreography patterns, reduced-motion strategy.
+- **DF1.4** `docs/foundations/SOUND_SYSTEM.md` — sound design philosophy, 8 categorias de sons UI (hover/click/confirm/error/ambient/reward/deny/alert), coupling obrigatório visual+sound, layers (interaction vs ambient), volume hierarchy, mute persistence.
+- **DF1.5** `docs/foundations/PRODUCT_CORE.md` — identidade do produto codificada: NÃO é coaching, é "jogar junto"; doutrina como cola UX; hierarquia de feedback (crítico/importante/informativo/erro); 3 estados do botão primário; voz de marca; arquétipo (mestre, não vendedor).
+- **DF1.6** `docs/foundations/DESIGN_LANGUAGE.md` — síntese visual + tokens conceituais (família de accent vermelho Dota, neutros warm, typography Cinzel+Geist, spacing scale 4px-base, z-layer system). Aponta pra `src/styles/tokens/*` como implementação canônica.
+
+### DF2 — Token Layer (Phase F2) ⚠ GATE ABSOLUTO
+
+> Sem tokens, qualquer componente construído gera dívida exponencial. Bloqueia DF3-DF8.
+
+- **DF2.1** Raw tokens em `src/styles/tokens/raw.css` — `--fd-raw-red-{50..900}`, `--fd-raw-neutral-warm-{50..950}`, `--fd-raw-accent-glow`, etc. Camada zero, sem semântica.
+- **DF2.2** Semantic tokens em `src/styles/tokens/semantic.css` consumidos via Tailwind v4 `@theme` — `--color-brand-primary`, `--color-brand-primary-hover`, `--color-brand-primary-glow`, `--color-bg-deep`, `--color-bg-elevated`, `--color-surface`, `--color-text-display`, `--color-text-body`, `--color-text-muted`. Família de accent (não single color) pra suportar glow/hover/subtle.
+- **DF2.3** Typography tokens — `--font-display` (Cinzel Variable wght 400-900), `--font-body` (Geist), `--font-mono` (Geist Mono ou JetBrains). Type scale com tracking + leading por nível (display tighter, body relaxed). Tabular nums tokens pra MMR/scores.
+- **DF2.4** Spacing scale 4px-base — tokens `--space-0` a `--space-32` mapeados em Tailwind. PROIBIDO hardcoded `px-6` em componentes (sempre via token).
+- **DF2.5** Motion tokens — `--motion-duration-micro` (80-120ms), `--motion-duration-standard` (200-280ms), `--motion-duration-hero` (400-600ms), `--motion-duration-cinematic` (800-1200ms). Easings nomeados: `--motion-ease-snappy`, `--motion-ease-soft-landing`, `--motion-ease-cinematic`, `--motion-ease-spring`.
+- **DF2.6** Z-layer system — `--z-atmosphere` (-10), `--z-content` (0), `--z-elevated` (10), `--z-overlay` (20), `--z-modal` (50), `--z-system` (100). PROIBIDO z-index ad-hoc.
+- **DF2.7** Sound volume tokens — `--volume-interaction` (0.6), `--volume-ambient` (0.3), `--volume-reward` (0.8). Consumidos pelo SoundManager.
+- **DF2.8** Theme switching via `data-theme` no `<html>` — V2.5 = single theme "fd-dark" mas arquitetura suporta `data-theme="radiant"` / `data-theme="dire"` futuros sem refactor de componentes.
+
+### DF3 — Atmospheric Layer (Phase F3)
+
+> Camada de profundidade root-level. Pages futuras nascem com atmosfericidade. Paralelo a DF4/DF5.
+
+- **DF3.1** `<AmbientLayer>` em `src/components/layout/AmbientLayer.tsx` montado no root layout, `position: fixed`, `z-index: var(--z-atmosphere)`. Aceita prop `density` (off/low/medium/high).
+- **DF3.2** Config tsParticles slim em `src/lib/particles/presets.ts` — preset "dust" (partículas sutis flutuantes), preset "fog" (gradiente animado lento).
+- **DF3.3** Pause via Page Visibility API quando aba escondida. Throttle automático se FPS cair abaixo de 30 (low-end fallback).
+- **DF3.4** Respeita `prefers-reduced-motion: reduce` — desliga particles completamente, mantém estética (gradient estático em vez de animado).
+- **DF3.5** Opt-out per-page via prop ou data attribute (alguns templates podem querer black canvas puro).
+
+### DF4 — Motion Primitives (Phase F4)
+
+> Motion variants exportados + wrappers reutilizáveis. Mata "cada componente reimplementa stagger".
+
+- **DF4.1** `src/lib/motion/presets.ts` — variants nomeados (`fadeIn`, `fadeInUp`, `scaleIn`, `slideInRight`, `staggerChildren`, `pageEnter`, `pageExit`). Cada variant usa tokens de DF2.5.
+- **DF4.2** `src/lib/motion/choreography.ts` — sequences compostas (`loginToMenu`, `queueEnterToMatchFound`, `cardHoverChoreography`). Coordenam múltiplos elementos.
+- **DF4.3** `src/lib/motion/hooks.ts` — `useMotionSafe()` (detecta prefers-reduced-motion), `useStaggerChildren(delay)`, `useInViewport(ref)`.
+- **DF4.4** Wrappers em `src/components/ui/motion/` — `<FadeIn>`, `<Stagger>`, `<ScaleEnter>`, `<PageTransition>`. Cada um aceita `as` prop pra polymorphic. Internamente usam `motion` v12 + presets.
+- **DF4.5** `LazyMotion domAnimation` no root layout pra reduzir bundle inicial (~10kb em vez de ~45kb). Componentes que precisam layout animations declaram explicitamente.
+
+### DF5 — Sound Infrastructure (Phase F5)
+
+> Sound manager singleton Tauri-ready + 6-8 SFX curados Freesound CC0.
+
+- **DF5.1** `src/lib/sound/manager.ts` — Howler singleton com interface `ISoundManager` (Tauri-ready). Métodos: `play(id, opts)`, `setMuted(bool)`, `setVolume(layer, value)`, `loadSprite(url)`.
+- **DF5.2** Sprite sheet WebM+MP3 em `public/sounds/ui-sprite.{webm,mp3}` — 6 SFX mínimos: `hover`, `click`, `confirm`, `error`, `notification`, `reward`. Sprite map em `src/lib/sound/sprite-map.ts` (offset em ms por id).
+- **DF5.3** 6 SFX curados Freesound CC0 — sessão dedicada Pedro ~3h. Critérios curadoria documentados (no `docs/foundations/SOUND_SYSTEM.md`): coesos timbralmente, não "stock", duração 50-500ms.
+- **DF5.4** Hooks em `src/lib/sound/hooks.ts` — `useSound()` (retorna `play(id)` callback), `useAmbient(track)` (background looping com fade), `useMuteToggle()`.
+- **DF5.5** Mute persistido em `localStorage` (`fd-sound-muted`, `fd-sound-volume-{layer}`). Restaurado on mount.
+- **DF5.6** Mobile autoplay gate — primeiro user gesture (click anywhere) inicializa AudioContext. Gracefully sem som até gesto.
+
+### DF6 — Component Primitives AAA-Grade (Phase F6)
+
+> Primeiros componentes consumindo tokens + motion + sound. Prova que fundação funciona.
+
+- **DF6.1** `<Button>` em `src/components/ui/button.tsx` — 5 variantes (`primary`, `secondary`, `ghost`, `destructive`, `cinematic`), 5 estados (default/hover/pressed/disabled/loading). Primary tem weight visual MUITO maior (não h-8 igual aos outros). Sound acoplado (hover + click via hook). Motion (scale 0.97 on press) via DF4 preset. CVA pra variants.
+- **DF6.2** `<Card>` — variantes (`flat`, `elevated`, `interactive`, `hero`). Hero tem treatment cinematográfico (ambient glow, hover lift). NÃO usa rounded-lg border 1px shadcn default.
+- **DF6.3** `<Dialog>` — fullscreen takeover variant (não modal centralizado SaaS). Base UI primitives + motion entrance/exit (scale + fade) + sound stinger.
+- **DF6.4** `<Toast>` custom — bottom-center, slide-up + fade, ícone + título + descrição. NÃO top-right slide-in SaaS. Sound feedback por type. Substituir Sonner atual.
+- **DF6.5** `<Badge>` — variantes incluindo `tier-{1..8}` pra MMR. Glow sutil em tiers altos. Tabular nums.
+- **DF6.6** `<PresenceDot>` — 4 cores Discord pattern (online/away/dnd/offline) + estado `in-queue` + `in-match`. Pulse animation em estados ativos.
+- **DF6.7** `<EmptyState>` narrativo — aceita prop `principle` (referência aos 14 princípios doutrina). Renderiza ícone temático + título Cinzel + corpo Geist + cita princípio relevante. NÃO "no data yet" genérico.
+- **DF6.8** `<LoadingScreen>` cinematográfico — fullscreen takeover, exibe princípio doutrina rotativo (a cada 4s), AmbientLayer reforçada, hero portrait opcional. NÃO spinner genérico.
+
+### DF7 — Pattern Components (Phase F7)
+
+> Composições sobre primitives. Reescreve componentes do MVP fichas pausado pra nascerem AAA-grade.
+
+- **DF7.1** `<MatchCard>` em `src/components/patterns/match-card.tsx` — display de partida com hero portraits + score + MMR delta + tier badges + relative time. Hover effect cinematográfico.
+- **DF7.2** `<ProCard>` refatorado — substitui card atual em `src/components/dashboard/`. Hero portrait grande + tier badge proeminente + recent matches inline + presence dot.
+- **DF7.3** `<QueuePanel>` refatorado — fila ao vivo via Supabase Realtime Presence. Counter "5/10 jogadores", timer "Searching... 0:32", primary CTA "Entrar na Fila" massive central.
+- **DF7.4** `<HeroVideo>` refatorado — videos idle Dota 2 CDN Steam com fallback CSS animation se CDN indisponível. Aceita `heroSlug` prop. Lazy load + intersection observer.
+- **DF7.5** `<HeroState>` refatorado — componente da branch atual `feat/hero-state-refactor` reescrito consumindo primitives AAA.
+
+### DF8 — Templates & Pages (Phase F8)
+
+> Templates por último porque consomem tudo. Mata sidebar SaaS atual.
+
+- **DF8.1** `<ClientShell>` em `src/components/templates/client-shell.tsx` — top bar horizontal estilo Dota 2 client (decisão Pedro 2026-05-23): logo esquerda + tabs centrais (Jogar / Perfil / Comunidade / Loja) + auth dropdown direita. CTA primário "PLAY" massivo destacado quando dentro da tab Jogar. KILL sidebar 256px atual.
+- **DF8.2** Landing `/` reformulada — sem `max-w-*` container SaaS. Fullscreen wash + bleed-to-edge + content offset assimétrico. AmbientLayer + hero video oficial Dota 2 + manifest cinematográfico em Cinzel. Sections inspiradas em dota2.com/home mas com voz FormulaDota (cita doutrina).
+- **DF8.3** Rota `/(dev)/components` em dev mode apenas — live browser de tokens + primitives + patterns. Substitui Storybook (overhead pra solo dev).
+- **DF8.4** Pages atuais (`/pacotes`, `/me`, `/admin/*`, `/codigo-de-conduta`, `/onboarding/doutrina`, etc.) refactored consumindo novo `<ClientShell>` e primitives DF6/DF7.
+- **DF8.5** Disclaimer footer mantém spec B3 (Valve trademark) + adiciona crédito SFX Freesound CC0.
+
+---
+
+## Cross-cutting Requirements V2.5 (todas phases DF)
+
+- **C14** Cores **NUNCA** hardcoded em componentes — sempre via token CSS var (`var(--color-brand-primary)`) ou Tailwind class mapeada (`bg-brand-primary`). Grep audit zero matches de hex colors em `src/components/`.
+- **C15** Motion duration **NUNCA** inline — sempre via token (`--motion-duration-standard`) ou preset DF4.1. Grep zero matches de `transition-duration: \d` ou `duration: \d` em components.
+- **C16** Sound calls **NUNCA** direto em onClick — sempre via hook `useSound()` ou wrapper component. Manageable via mute global.
+- **C17** Z-index **NUNCA** ad-hoc — sempre via token `--z-*`. Grep audit zero matches de `z-\[?\d` numérico em components (apenas tokens nomeados).
+- **C18** Container `max-w-*` SaaS pattern **PROIBIDO** em templates principais. Layouts AAA usam fullscreen wash, bleed-to-edge ou offset assimétrico. Exceções (forms longos) documentadas inline.
+- **C19** Toast genérico SaaS (top-right slide-in) **PROIBIDO**. Skeleton shadcn vanilla **PROIBIDO**. Spinner genérico (`animate-spin`) **PROIBIDO**. Use primitives DF6.4/DF6.7/DF6.8.
+- **C20** Cada componente que renderiza interação visível **DEVE** acoplar sound + motion. Botão sem sound de hover/click = bug. Empty state sem motion entrance = bug.
+
+---
+
+## Traceability V2.5
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| DF1.1 a DF1.6 | F1 | Pending |
+| DF2.1 a DF2.8 | F2 | Pending |
+| DF3.1 a DF3.5 | F3 | Pending |
+| DF4.1 a DF4.5 | F4 | Pending |
+| DF5.1 a DF5.6 | F5 | Pending |
+| DF6.1 a DF6.8 | F6 | Pending |
+| DF7.1 a DF7.5 | F7 | Pending |
+| DF8.1 a DF8.5 | F8 | Pending |
+
+**Coverage V2.5:**
+- Total requirements DF: 47 (6+8+5+5+6+8+5+5)
+- Cross-cutting V2.5: 7 (C14-C20)
+- Mapped to phases F1-F8: 47 (100%)
+- Unmapped: 0 ✓
+
+---
+
+*Last updated: 2026-05-23 — milestone v2.5 Design Foundations active*
