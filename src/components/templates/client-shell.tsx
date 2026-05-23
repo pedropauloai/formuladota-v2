@@ -23,9 +23,10 @@
 import { type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Volume2, VolumeX } from "lucide-react";
+import { Volume2, VolumeX, Ticket } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMuteToggle } from "@/lib/sound/hooks";
+import { Button } from "@/components/ui/button";
 
 // ---------------------------------------------------------------------------
 // Tabs de navegação principal
@@ -81,6 +82,12 @@ interface ClientShellProps {
    * Espera um botão/elemento de impacto máximo (ex: variante cinematic).
    */
   playSlot?: ReactNode;
+  /**
+   * Slot de FreeBar — exibido acima da top-bar quando o usuário não tem fichas ativas.
+   * Aceita o componente <FreeBar> ou qualquer ReactNode.
+   * Renderizado antes do <header> — sempre acima de tudo.
+   */
+  freeBar?: ReactNode;
   /** Classe extra aplicada ao wrapper externo (raramente necessária) */
   className?: string;
 }
@@ -93,6 +100,7 @@ export function ClientShell({
   children,
   authSlot,
   playSlot,
+  freeBar,
   className,
 }: ClientShellProps) {
   const pathname = usePathname();
@@ -102,6 +110,13 @@ export function ClientShell({
 
   return (
     <div className={cn("min-h-screen flex flex-col bg-bg-deep", className)}>
+      {/* ----------------------------------------------------------------
+          FREE BAR — slot opcional acima da top-bar
+          Renderiza <FreeBar> quando o usuário não tem fichas ativas.
+          Posicionado fora do <header> para não deslocar o sticky top-0.
+          ---------------------------------------------------------------- */}
+      {freeBar}
+
       {/* ----------------------------------------------------------------
           TOP BAR — Dota 2 client style
           z-system (var(--z-system) = 100) garante sobreposição ao conteúdo
@@ -151,8 +166,17 @@ export function ClientShell({
           })}
         </nav>
 
-        {/* ---- Direita: mute toggle + auth slot ---- */}
+        {/* ---- Direita: "Comprar Ficha" + mute toggle + auth slot ---- */}
         <div className="flex items-center gap-2">
+          {/* Botão permanente — sempre visível para qualquer estado de auth.
+              Leva para /pacotes (página de fichas).
+              Voz Mestre: "Comprar Ficha" — direto, sem "OFERTA" ou "AGORA!" */}
+          <Link href="/pacotes" aria-label="Comprar ficha de vaga">
+            <Button variant="primary" size="sm">
+              <Ticket className="size-4" aria-hidden="true" />
+              Comprar Ficha
+            </Button>
+          </Link>
           <SoundToggle />
           {authSlot}
         </div>
