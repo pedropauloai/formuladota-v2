@@ -4,6 +4,7 @@
 // e botão sair. Pode estar em N filas simultâneas (lista todas).
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Loader2, Users, ArrowLeftFromLine } from "lucide-react";
 import type { MyQueueEntry } from "@/lib/queries/queue";
 import { leaveCoachQueue } from "./actions";
@@ -17,6 +18,7 @@ interface Props {
 export function QueueStatusModal({ open, onClose, myQueues }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const router = useRouter();
 
   if (!open) return null;
 
@@ -40,7 +42,9 @@ export function QueueStatusModal({ open, onClose, myQueues }: Props) {
           return next;
         });
         setError(res.error);
+        return;
       }
+      router.refresh();
     });
   }
 

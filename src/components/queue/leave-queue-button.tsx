@@ -1,15 +1,16 @@
 "use client";
 
 // Botão de sair da fila — optimistic UI (some imediato em vez de spinner).
-// Usado no sticky banner global.
+// Usado no sticky banner global. router.refresh() força refetch após success.
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { X, Loader2 } from "lucide-react";
 import { leaveCoachQueue } from "@/components/landing/actions";
 
 export function LeaveQueueButton({ entryId }: { entryId: string }) {
   const [pending, startTransition] = useTransition();
-  // Optimistic: ao clicar, esconde o botão. Se action falhar, mostra de novo.
+  const router = useRouter();
   const [optimisticGone, setOptimisticGone] = useState(false);
 
   if (optimisticGone && !pending) return null;
@@ -22,7 +23,11 @@ export function LeaveQueueButton({ entryId }: { entryId: string }) {
         setOptimisticGone(true);
         startTransition(async () => {
           const res = await leaveCoachQueue(entryId);
-          if (!res.success) setOptimisticGone(false);
+          if (!res.success) {
+            setOptimisticGone(false);
+            return;
+          }
+          router.refresh();
         });
       }}
       disabled={pending || optimisticGone}

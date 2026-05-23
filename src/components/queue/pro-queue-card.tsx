@@ -9,6 +9,7 @@
 //   - CTA contextual (Entrar / Sair / Sem ficha / Em outra fila)
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   Radio,
@@ -59,6 +60,7 @@ export function ProQueueCard({
 }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const router = useRouter();
 
   // Optimistic state — espelha props mas user pode flip imediato pra UI
   // responder em 0ms. Sincroniza com server via realtime (push) ou rollback.
@@ -97,10 +99,11 @@ export function ProQueueCard({
         // Rollback: server rejeitou
         setOptimisticInQueue(false);
         setError(res.error);
+        return;
       }
-      // Sucesso: realtime push vai sincronizar via router.refresh.
-      // Quando os props server-side chegarem refletindo myEntryIdHere,
-      // optimisticInQueue fica redundante mas não conflita.
+      // Sucesso: força refresh dos Server Components pra sincronizar
+      // props reais (myEntryIdHere, fichaBalance, etc). Antes do realtime.
+      router.refresh();
     });
   }
 
@@ -116,7 +119,9 @@ export function ProQueueCard({
         // Rollback: action falhou
         setOptimisticInQueue(true);
         setError(res.error);
+        return;
       }
+      router.refresh();
     });
   }
 
