@@ -192,7 +192,7 @@ export default function ComponentsPage() {
           {/* Demos de tamanho: sm / md / lg / xl */}
           <div className="border-t border-border-subtle pt-6 space-y-3">
             <p className="font-display text-xs uppercase tracking-widest text-text-faded">
-              Tamanhos disponíveis (Top 100 Mundial com glow)
+              Tamanhos disponíveis (Imortal Top 100 com glow)
             </p>
             <div className="flex items-end gap-6">
               {(["sm", "md", "lg", "xl"] as const).map((s) => (

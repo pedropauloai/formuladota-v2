@@ -39,9 +39,9 @@ export type DotaRank =
   | "immortal-top-100"
 
 /**
- * Labels PT-BR legíveis de cada rank (regra Pedro 2026-05-23: plataforma exclusiva BR).
- * Tradução literal dos rank names oficiais Valve.
- * Top 100 mantém "Top 100" (jargão universal) + sufixo "Mundial" pra contexto.
+ * Labels PT-BR dos rank names oficiais Valve (regra Pedro 2026-05-23: plataforma BR).
+ * APENAS nomes de medalhas traduzidos — jargões como "Streak", "Season", "Top 100"
+ * mantêm inglês por serem universalmente reconhecidos na comunidade Dota BR.
  */
 export const RANK_LABELS: Record<DotaRank, string> = {
   herald: "Arauto",
@@ -52,7 +52,7 @@ export const RANK_LABELS: Record<DotaRank, string> = {
   ancient: "Ancião",
   divine: "Divino",
   immortal: "Imortal",
-  "immortal-top-100": "Top 100 Mundial",
+  "immortal-top-100": "Imortal Top 100",
 }
 
 /**

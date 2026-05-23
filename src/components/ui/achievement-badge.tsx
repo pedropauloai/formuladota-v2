@@ -92,7 +92,7 @@ const ACHIEVEMENT_CONFIG: Record<AchievementVariant, AchievementConfig> = {
    * Streak 5 — 5 partidas consecutivas sem faltas (âmbar warning)
    */
   "streak-5": {
-    label: "Sequência 5",
+    label: "Streak 5",
     icon:  Flame,
     classes:
       "bg-warning/10 border-warning/30 text-warning",
@@ -102,7 +102,7 @@ const ACHIEVEMENT_CONFIG: Record<AchievementVariant, AchievementConfig> = {
    * Champion S1 — #1 no ranking da Temporada 1 (âmbar + glow especial)
    */
   "champion-s1": {
-    label: "#1 Temporada 1",
+    label: "#1 Season 1",
     icon:  Trophy,
     classes:
       "bg-warning/15 border-warning/50 text-warning",
