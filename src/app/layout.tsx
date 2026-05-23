@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
-import { Cinzel, Marcellus, Inter } from "next/font/google";
+// Fontes V2.5 — self-hosted via pacotes npm (sem requisição Google Fonts)
+// Cinzel Variable — display/headings (substitui Cinzel via next/font/google)
+import "@fontsource-variable/cinzel";
+// Geist — body/UI/botões via Vercel package (substitui Inter)
+import { GeistSans, GeistMono } from "geist/font";
 import "@/styles/globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { Header } from "@/components/layout/header";
@@ -7,31 +11,6 @@ import { Footer } from "@/components/layout/footer";
 import { ConditionalChrome } from "@/components/layout/conditional-chrome";
 import { StickyQueueBanner } from "@/components/queue/sticky-banner";
 import { QueueRealtimeListener } from "@/components/queue/realtime-listener";
-
-// Cinzel — fonte de impacto pra headings (alternativa open-source da Reaver Valve).
-// Substitui Space Grotesk como display font do projeto.
-const cinzel = Cinzel({
-  subsets: ["latin"],
-  weight: ["600", "700", "900"],
-  variable: "--font-display",
-  display: "swap",
-});
-
-// Marcellus — romana clean pra subheadings e quotes (alternativa Goudy Trajan Valve).
-const marcellus = Marcellus({
-  subsets: ["latin"],
-  weight: ["400"],
-  variable: "--font-serif",
-  display: "swap",
-});
-
-// Inter — sans-serif moderna pra body, nav, buttons, forms (alternativa Radiance Valve).
-const inter = Inter({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-sans",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: "FORMULADOTA — HUB Dota 2 Brasil",
@@ -48,11 +27,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
+    /* data-theme="fd-dark" — V2.5 token layer.
+     * Arquitetura suporta data-theme="radiant" / "dire" no futuro
+     * sem refactor de nenhum componente (CSS vars redefinem automaticamente).
+     * GeistSans.variable expõe --font-geist-sans como CSS var no DOM. */
     <html
       lang="pt-BR"
-      className={`${cinzel.variable} ${marcellus.variable} ${inter.variable}`}
+      data-theme="fd-dark"
+      className={`${GeistSans.variable} ${GeistMono.variable}`}
     >
-      <body className="min-h-screen flex flex-col">
+      <body className="min-h-screen flex flex-col font-body">
         {/* Sticky banner persistente — aparece em todas as rotas se user em fila */}
         <StickyQueueBanner />
         {/* Realtime listener (client) — sem UI, escuta changes em queue */}
