@@ -166,15 +166,15 @@ export function QueueBoard({
       )}
 
       {/* Footer status */}
-      <footer className={`flex items-center justify-between ${isCompact ? "mt-2" : "mt-4"}`}>
+      <footer className={`flex items-center justify-between gap-2 ${isCompact ? "mt-3" : "mt-5"}`}>
         <span
-          className={`inline-flex items-center gap-1.5 font-mono uppercase tracking-widest ${
-            isCompact ? "text-[9px]" : "text-[10px]"
+          className={`inline-flex items-center gap-1.5 font-mono uppercase tracking-widest font-semibold ${
+            isCompact ? "text-[11px]" : "text-xs"
           } ${coach.filaAberta ? "text-emerald-300" : "text-white/40"}`}
         >
           {coach.filaAberta ? (
             <>
-              <Radio size={isCompact ? 8 : 10} aria-hidden="true" />
+              <Radio size={isCompact ? 10 : 12} aria-hidden="true" />
               Fila aberta
             </>
           ) : (
@@ -182,15 +182,15 @@ export function QueueBoard({
           )}
         </span>
         <span
-          className={`font-mono text-white/40 ${
-            isCompact ? "text-[9px]" : "text-[10px]"
+          className={`font-mono text-white/60 text-right ${
+            isCompact ? "text-[11px]" : "text-xs"
           }`}
         >
-          <Users size={isCompact ? 8 : 10} className="inline mr-1 -mt-0.5" aria-hidden="true" />
-          {entries.length} na fila · {Math.min(entries.length, slotsCount)}/{slotsCount} na próxima PT
+          <Users size={isCompact ? 10 : 12} className="inline mr-1 -mt-0.5" aria-hidden="true" />
+          {entries.length} na fila
           {waitingList.length > 0 && (
-            <span className="ml-1 text-amber-300/80">
-              · +{waitingList.length} aguardando
+            <span className="ml-1 text-amber-300">
+              · {waitingList.length} aguardando
             </span>
           )}
         </span>
@@ -237,11 +237,11 @@ function WaitingList({
   }
 
   return (
-    <div className="mt-4 rounded-md border border-white/10 bg-black/30 p-3">
-      <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-amber-300/70">
+    <div className="mt-4 rounded-md border border-white/10 bg-black/30 p-4">
+      <p className="mb-3 font-mono text-xs font-semibold uppercase tracking-widest text-amber-300">
         Aguardando próxima rodada ({entries.length})
       </p>
-      <ul className="space-y-1.5">
+      <ul className="space-y-2">
         {entries.map((e, idx) => {
           const position = startPosition + idx;
           const isViewer = e.userId === viewerUserId;
@@ -252,15 +252,15 @@ function WaitingList({
           return (
             <li
               key={e.entryId}
-              className={`flex items-center gap-2 rounded px-2 py-1.5 ${
+              className={`flex items-center gap-3 rounded-md px-3 py-2 ${
                 isViewer
                   ? "bg-amber-400/15 ring-1 ring-amber-400/40"
                   : "hover:bg-white/5"
               }`}
             >
               <span
-                className={`font-mono text-[10px] tabular-nums ${
-                  isViewer ? "font-bold text-amber-300" : "text-white/40"
+                className={`font-mono text-sm font-semibold tabular-nums w-7 ${
+                  isViewer ? "font-bold text-amber-300" : "text-white/60"
                 }`}
               >
                 {position}º
@@ -270,26 +270,26 @@ function WaitingList({
                 <img
                   src={e.avatarUrl}
                   alt=""
-                  className={`size-5 rounded-full ${
-                    isViewer ? "ring-1 ring-amber-400" : ""
+                  className={`size-7 rounded-full ${
+                    isViewer ? "ring-2 ring-amber-400" : "ring-1 ring-white/20"
                   }`}
                 />
               ) : (
-                <div className="size-5 rounded-full bg-white/10" />
+                <div className="size-7 rounded-full bg-white/10" />
               )}
               <span
-                className={`flex-1 truncate font-sans text-xs ${
-                  isViewer ? "font-bold text-white" : "text-white/80"
+                className={`flex-1 truncate font-sans text-sm ${
+                  isViewer ? "font-bold text-white" : "text-white/90"
                 }`}
               >
                 {isViewer ? "VOCÊ" : e.username ?? "—"}
               </span>
               {e.ptsToday !== undefined && e.ptsToday > 0 && (
-                <span className="rounded-full bg-amber-500/15 px-1.5 font-mono text-[9px] text-amber-300/90">
+                <span className="rounded-full bg-amber-500/20 px-2 py-0.5 font-mono text-[11px] font-semibold text-amber-200">
                   {e.ptsToday}× hoje
                 </span>
               )}
-              <span className="font-mono text-[9px] text-white/40 tabular-nums">
+              <span className="font-mono text-xs text-white/55 tabular-nums w-10 text-right">
                 {waitingMinutes}m
               </span>
               {isAdmin && onRemoveEntry && (
@@ -298,12 +298,12 @@ function WaitingList({
                   onClick={() => handleRemove(e.entryId, e.username)}
                   disabled={isRemoving}
                   aria-label={`Remover ${e.username ?? "aluno"}`}
-                  className="flex size-5 items-center justify-center rounded-full text-white/30 hover:bg-red-500/20 hover:text-red-300 transition-colors disabled:opacity-50"
+                  className="flex size-6 items-center justify-center rounded-full text-white/40 hover:bg-red-500/20 hover:text-red-300 transition-colors disabled:opacity-50"
                 >
                   {isRemoving ? (
-                    <Loader2 size={9} className="animate-spin" />
+                    <Loader2 size={11} className="animate-spin" />
                   ) : (
-                    <X size={9} />
+                    <X size={11} />
                   )}
                 </button>
               )}
@@ -340,17 +340,17 @@ function Slot({
     return (
       <div
         className={`flex flex-col items-center justify-center rounded-md border border-dashed border-white/10 bg-black/20 ${
-          isCompact ? "p-1.5 min-h-[56px]" : "p-3 min-h-[100px]"
+          isCompact ? "p-2 min-h-[64px]" : "p-3 min-h-[110px]"
         }`}
       >
         <span
-          className={`font-mono text-white/20 ${isCompact ? "text-[9px]" : "text-[10px]"}`}
+          className={`font-mono text-white/30 ${isCompact ? "text-[11px]" : "text-xs"}`}
         >
           slot {index + 1}
         </span>
         <span
-          className={`font-mono text-white/30 mt-1 ${
-            isCompact ? "text-[8px]" : "text-[9px]"
+          className={`font-mono text-white/40 mt-1 ${
+            isCompact ? "text-[10px]" : "text-[11px]"
           } uppercase tracking-widest`}
         >
           livre
@@ -405,24 +405,24 @@ function Slot({
         />
       )}
       <p
-        className={`mt-1 font-sans text-white truncate max-w-full text-center ${
-          isCompact ? "text-[10px]" : "text-xs"
+        className={`mt-1.5 font-sans text-white truncate max-w-full text-center font-medium ${
+          isCompact ? "text-xs" : "text-sm"
         } ${isViewer ? "font-bold" : ""}`}
       >
         {isViewer ? "VOCÊ" : slot.username ?? "—"}
       </p>
       <p
-        className={`font-mono text-white/40 ${
-          isCompact ? "text-[8px]" : "text-[10px]"
-        } flex items-center gap-0.5`}
+        className={`mt-0.5 font-mono text-white/55 ${
+          isCompact ? "text-[10px]" : "text-xs"
+        } flex items-center gap-1`}
       >
-        <Clock size={isCompact ? 7 : 9} aria-hidden="true" />
+        <Clock size={isCompact ? 9 : 11} aria-hidden="true" />
         {waitingMinutes}m
       </p>
       {slot.ptsToday !== undefined && slot.ptsToday > 0 && (
         <span
-          className={`mt-0.5 inline-flex items-center rounded-full bg-amber-500/15 px-1.5 font-mono text-amber-300/90 ${
-            isCompact ? "text-[8px]" : "text-[9px]"
+          className={`mt-1 inline-flex items-center rounded-full bg-amber-500/20 px-2 py-0.5 font-mono font-semibold text-amber-200 ${
+            isCompact ? "text-[10px]" : "text-[11px]"
           }`}
           title={`Já jogou ${slot.ptsToday} PT${slot.ptsToday > 1 ? "s" : ""} com este PRO nas últimas 24h — cede vaga pra quem jogou menos`}
         >
