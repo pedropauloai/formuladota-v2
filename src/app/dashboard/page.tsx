@@ -69,6 +69,7 @@ export default async function DashboardPage() {
     <ClientShell
       currentRoute="/dashboard"
       immersive
+      hideBottomBar
       centerHero="https://cdn.steamstatic.com/apps/dota2/images/dota_react/home/background3.png"
     >
       <DashboardCenter

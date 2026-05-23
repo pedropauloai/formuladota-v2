@@ -34,6 +34,12 @@ interface ClientShellProps {
   immersive?: boolean;
   /** Imagem hero de background. */
   centerHero?: string;
+  /**
+   * Esconde a bottom-bar (botão Jogar Dota). Usado em /dashboard onde o
+   * HeroState já tem CTA dominante — bottom-bar duplicaria ação.
+   * Em outras rotas (admin, perfil) mantém bottom-bar como atalho persistente.
+   */
+  hideBottomBar?: boolean;
 }
 
 export async function ClientShell({
@@ -44,6 +50,7 @@ export async function ClientShell({
   wideRightSidebar,
   immersive,
   centerHero,
+  hideBottomBar,
 }: ClientShellProps) {
   const supabase = await createClient();
   const {
@@ -84,6 +91,10 @@ export async function ClientShell({
   const shellHeightCls = hasBanner
     ? "h-[calc(100dvh-44px)]"
     : "h-screen";
+  // Reserva espaço de bottom-bar (~80-96px). Sem bottom-bar, sidebars/main vão
+  // até o fim da viewport.
+  const bottomReserveCls = hideBottomBar ? "bottom-0" : "bottom-[80px] xl:bottom-[96px]";
+  const mainPbCls = hideBottomBar ? "" : "pb-[80px] xl:pb-[96px] 2xl:pb-[112px]";
 
   const realIsAdmin = profile?.is_admin === true;
   // effectiveIsAdmin: false se admin ativou preview mode (ver como user comum)
@@ -122,7 +133,7 @@ export async function ClientShell({
         </div>
 
         {!hideLeftSidebar && (
-          <div className="hidden lg:flex absolute left-0 top-[64px] xl:top-[72px] bottom-[80px] xl:bottom-[96px] z-20 w-[340px] xl:w-[400px] 2xl:w-[460px]">
+          <div className={`hidden lg:flex absolute left-0 top-[64px] xl:top-[72px] ${bottomReserveCls} z-20 w-[340px] xl:w-[400px] 2xl:w-[460px]`}>
             <DashboardLeftSidebar
               persona={persona}
               avatar={avatar}
@@ -136,7 +147,7 @@ export async function ClientShell({
 
         {rightSidebar !== undefined ? (
           <div
-            className={`hidden lg:flex absolute right-0 top-[64px] xl:top-[72px] bottom-[80px] xl:bottom-[96px] z-20 ${
+            className={`hidden lg:flex absolute right-0 top-[64px] xl:top-[72px] ${bottomReserveCls} z-20 ${
               wideRightSidebar
                 ? "w-[480px] xl:w-[520px] 2xl:w-[560px]"
                 : "w-[320px] xl:w-[360px] 2xl:w-[380px]"
@@ -147,7 +158,7 @@ export async function ClientShell({
             </aside>
           </div>
         ) : (
-          <div className="hidden lg:flex absolute right-0 top-[64px] xl:top-[72px] bottom-[80px] xl:bottom-[96px] z-20 w-[320px] xl:w-[360px] 2xl:w-[380px]">
+          <div className={`hidden lg:flex absolute right-0 top-[64px] xl:top-[72px] ${bottomReserveCls} z-20 w-[320px] xl:w-[360px] 2xl:w-[380px]`}>
             <DashboardRightSidebar
               isAdmin={adminFlag}
               fichaBalance={fichaBalance}
@@ -161,7 +172,7 @@ export async function ClientShell({
         )}
 
         <main
-          className={`absolute inset-0 top-[64px] xl:top-[72px] bottom-[80px] xl:bottom-[96px] z-10 overflow-y-auto ${
+          className={`absolute inset-0 top-[64px] xl:top-[72px] ${bottomReserveCls} z-10 overflow-y-auto ${
             !hideLeftSidebar
               ? "lg:pl-[340px] xl:pl-[400px] 2xl:pl-[460px]"
               : ""
@@ -170,15 +181,17 @@ export async function ClientShell({
           {children}
         </main>
 
-        <div className="absolute bottom-0 inset-x-0 z-30">
-          <DashboardBottomBar
-            isAdmin={adminFlag}
-            fichaBalance={fichaBalance}
-            fichaPackageId={fichaPackage?.id ?? null}
-            prosOnline={prosOnline}
-            myQueues={myQueues}
-          />
-        </div>
+        {!hideBottomBar && (
+          <div className="absolute bottom-0 inset-x-0 z-30">
+            <DashboardBottomBar
+              isAdmin={adminFlag}
+              fichaBalance={fichaBalance}
+              fichaPackageId={fichaPackage?.id ?? null}
+              prosOnline={prosOnline}
+              myQueues={myQueues}
+            />
+          </div>
+        )}
       </div>
     );
   }
@@ -228,7 +241,7 @@ export async function ClientShell({
           />
         )}
 
-        <main className="relative overflow-y-auto pb-[80px] xl:pb-[96px] 2xl:pb-[112px]">
+        <main className={`relative overflow-y-auto ${mainPbCls}`}>
           {centerHero && (
             <div
               className="pointer-events-none absolute inset-0 -z-0"
@@ -259,15 +272,17 @@ export async function ClientShell({
         )}
       </div>
 
-      <div className="absolute bottom-0 inset-x-0 z-30 pointer-events-none">
-        <DashboardBottomBar
-          isAdmin={adminFlag}
-          fichaBalance={fichaBalance}
-          fichaPackageId={fichaPackage?.id ?? null}
-          prosOnline={prosOnline}
-          myQueues={myQueues}
-        />
-      </div>
+      {!hideBottomBar && (
+        <div className="absolute bottom-0 inset-x-0 z-30 pointer-events-none">
+          <DashboardBottomBar
+            isAdmin={adminFlag}
+            fichaBalance={fichaBalance}
+            fichaPackageId={fichaPackage?.id ?? null}
+            prosOnline={prosOnline}
+            myQueues={myQueues}
+          />
+        </div>
+      )}
     </div>
   );
 }
