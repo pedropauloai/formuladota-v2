@@ -3,16 +3,21 @@
 /**
  * LoadingScreen — Tela fullscreen cinematográfica FormulaDota [DF6.8]
  *
- * - Exibe princípio doutrinário rotativo a cada `rotateMs` ms
- * - AmbientLayer reforçada com gradiente radial roxo/ciano de fundo
- * - Hero portrait opcional (idle video)
- * - NÃO usa animate-spin — animação via CSS opacity/transform
- * - Z-index 9999 (cobre tudo, inclusive AmbientLayer)
+ * Princípio doutrinário rotativo a cada `rotateMs` ms.
+ * AmbientLayer reforçada via gradiente radial vermelho brand.
+ * Hero portrait opcional (idle video Dota 2).
+ * NÃO usa animate-spin — substituído por barra de progresso deslizante.
+ * Z-index `--z-takeover` (cobre tudo, inclusive AmbientLayer).
+ *
+ * Brand string: FORMULADOTA (maiúsculo, sem acento — regra B1).
  */
 
 import { useEffect, useState } from "react";
+import { AnimatePresence, m } from "motion/react";
 import { cn } from "@/lib/utils";
 import { PRINCIPLES } from "@/lib/doctrine";
+import { DURATIONS, EASINGS } from "@/lib/motion/presets";
+import { useMotionSafeBool } from "@/lib/motion/hooks";
 
 // ─── Tipos ──────────────────────────────────────────────────────────────────
 
@@ -34,30 +39,12 @@ const FALLBACK_BODIES: string[] = [
   "Errar faz parte do aprendizado — o primeiro passo para a evolução.",
 ];
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-/** Resolve array de strings a partir dos Principle[] do doctrine.ts */
 function resolvePrincipleBodies(): string[] {
   if (!Array.isArray(PRINCIPLES) || PRINCIPLES.length === 0) {
     return FALLBACK_BODIES;
   }
   const bodies = PRINCIPLES.map((p) => p.body).filter(Boolean);
   return bodies.length > 0 ? bodies : FALLBACK_BODIES;
-}
-
-/** Habilita animações apenas quando `prefers-reduced-motion: no-preference` */
-function useMotionSafe(): boolean {
-  const [safe, setSafe] = useState(false);
-
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: no-preference)");
-    setSafe(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setSafe(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
-
-  return safe;
 }
 
 // ─── Componente ──────────────────────────────────────────────────────────────
@@ -70,69 +57,51 @@ export function LoadingScreen({
 }: LoadingScreenProps) {
   const principles = resolvePrincipleBodies();
   const [idx, setIdx] = useState(0);
-  const [visible, setVisible] = useState(true);
-  const motionSafe = useMotionSafe();
+  const motionSafe = useMotionSafeBool();
 
-  // Rotação: fade-out → troca → fade-in
   useEffect(() => {
     const interval = setInterval(() => {
-      if (motionSafe) {
-        setVisible(false);
-        const swap = setTimeout(() => {
-          setIdx((i) => (i + 1) % principles.length);
-          setVisible(true);
-        }, 300);
-        return () => clearTimeout(swap);
-      } else {
-        setIdx((i) => (i + 1) % principles.length);
-      }
+      setIdx((i) => (i + 1) % principles.length);
     }, rotateMs);
-
     return () => clearInterval(interval);
-  }, [principles.length, rotateMs, motionSafe]);
+  }, [principles.length, rotateMs]);
 
   const principle = principles[idx] ?? FALLBACK_BODIES[0] ?? "";
-  const total = PRINCIPLES?.length > 0 ? PRINCIPLES.length : FALLBACK_BODIES.length;
-  const principleNum = (idx % total) + 1;
+  const principleNum = idx + 1;
+  const total = principles.length;
 
   return (
     <div
       className={cn(
-        "fixed inset-0 flex flex-col items-center justify-center gap-8 px-8 py-12",
+        "fixed inset-0 flex flex-col items-center justify-center gap-8 px-8 py-12 bg-bg-deep",
         className,
       )}
-      style={{ zIndex: 9999, background: "var(--color-background)" }}
+      style={{ zIndex: "var(--z-takeover)" }}
       role="status"
       aria-live="polite"
-      aria-label={message ?? "Carregando FormulaDota…"}
+      aria-label={message ?? "Carregando FORMULADOTA…"}
     >
-      {/* ── AmbientLayer reforçada: gradiente radial roxo/ciano ── */}
+      {/* AmbientLayer reforçada: gradiente radial vermelho brand */}
       <div
         className="pointer-events-none absolute inset-0"
         aria-hidden="true"
         style={{
-          /* rgba sem hex — usa canais numéricos decimais */
-          background: [
-            "radial-gradient(ellipse 80% 60% at 50% 50%, rgba(168,85,247,0.18) 0%, transparent 65%)",
-            "radial-gradient(ellipse 100% 40% at 50% 100%, rgba(0,240,255,0.08) 0%, transparent 70%)",
-          ].join(", "),
+          background:
+            "radial-gradient(ellipse 80% 60% at 50% 50%, var(--color-brand-primary-glow) 0%, transparent 65%)",
         }}
       />
 
-      {/* ── Grade sutil de fundo ── */}
+      {/* Grade sutil de fundo */}
       <div
         className="bg-grid pointer-events-none absolute inset-0 opacity-20"
         aria-hidden="true"
       />
 
-      {/* ── Hero portrait (idle video, opcional) ── */}
+      {/* Hero portrait opcional (idle video Dota 2) */}
       {heroPortrait && (
         <div
-          className="relative size-48 overflow-hidden rounded-full border-2"
-          style={{
-            borderColor: "var(--color-cyan)",
-            boxShadow: "0 0 32px rgba(0,240,255,0.35)",
-          }}
+          className="relative size-48 overflow-hidden rounded-full border-2 border-brand-primary"
+          style={{ boxShadow: "var(--glow-brand)" }}
         >
           <video
             src={heroPortrait}
@@ -145,70 +114,65 @@ export function LoadingScreen({
         </div>
       )}
 
-      {/* ── Logo / identidade ── */}
-      <div className="relative flex flex-col items-center gap-1">
-        <span
-          className="font-display text-3xl font-bold uppercase tracking-widest"
-          style={{ color: "var(--color-cyan)" }}
-        >
-          Fórmula
-        </span>
-        <span
-          className="font-display text-xs font-semibold uppercase tracking-[0.4em]"
-          style={{ color: "var(--color-purple)" }}
-        >
-          Dota
+      {/* Logo / identidade — FORMULADOTA (regra B1) */}
+      <div className="relative flex flex-col items-center">
+        <span className="font-display text-4xl font-bold uppercase tracking-widest text-text-display">
+          FORMULA<span className="text-brand-primary">DOTA</span>
         </span>
       </div>
 
-      {/* ── Mensagem de contexto ── */}
+      {/* Mensagem de contexto opcional */}
       {message && (
-        <p
-          className="relative font-display text-base font-medium uppercase tracking-wide"
-          style={{ color: "var(--color-muted-foreground)" }}
-        >
+        <p className="relative font-display text-base font-medium uppercase tracking-wide text-text-muted">
           {message}
         </p>
       )}
 
-      {/* ── Barra de progresso deslizante (substitui spinner) ── */}
+      {/* Barra de progresso deslizante (substitui spinner) */}
       <div
-        className="relative h-px w-48 overflow-hidden rounded-full"
-        style={{ background: "var(--color-muted)" }}
+        className="relative h-px w-48 overflow-hidden rounded-full bg-bg-elevated"
         aria-hidden="true"
       >
         <div
           className="absolute inset-y-0 left-0 w-1/2 rounded-full"
           style={{
             background:
-              "linear-gradient(90deg, transparent, var(--color-cyan), transparent)",
+              "linear-gradient(90deg, transparent, var(--color-brand-primary), transparent)",
             animation: "loading-bar 1.6s ease-in-out infinite",
           }}
         />
       </div>
 
-      {/* ── Princípio doutrinário rotativo ── */}
+      {/* Princípio doutrinário rotativo */}
       <div className="relative max-w-2xl text-center">
-        <p
-          className="mb-3 font-display text-xs font-medium uppercase tracking-widest"
-          style={{ color: "var(--color-muted-foreground)" }}
-        >
+        <p className="mb-3 font-display text-xs font-medium uppercase tracking-widest text-text-faded">
           Princípio {principleNum}&nbsp;/&nbsp;{total}
         </p>
 
-        <p
-          className="font-display text-lg italic leading-relaxed transition-all duration-300 ease-in-out md:text-xl"
-          style={{
-            color: "var(--color-foreground)",
-            opacity: !motionSafe || visible ? 1 : 0,
-            transform: !motionSafe || visible ? "translateY(0)" : "translateY(-8px)",
-          }}
-        >
-          &ldquo;{principle}&rdquo;
-        </p>
+        <AnimatePresence mode="wait">
+          {motionSafe ? (
+            <m.p
+              key={idx}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: DURATIONS.hero, ease: EASINGS.cinematic }}
+              className="font-display text-lg italic leading-relaxed text-text-body md:text-xl"
+            >
+              &ldquo;{principle}&rdquo;
+            </m.p>
+          ) : (
+            <p
+              key={idx}
+              className="font-display text-lg italic leading-relaxed text-text-body md:text-xl"
+            >
+              &ldquo;{principle}&rdquo;
+            </p>
+          )}
+        </AnimatePresence>
       </div>
 
-      {/* ── Keyframes para a barra de progresso deslizante ── */}
+      {/* Keyframes da barra de progresso */}
       <style>{`
         @keyframes loading-bar {
           0%   { transform: translateX(-100%); }
