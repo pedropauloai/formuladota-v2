@@ -53,7 +53,11 @@ export function QueueBoard({
   onRemoveEntry,
   showHeadline = true,
 }: Props) {
-  const slots = Array.from({ length: coach.filaMaxVagas }, (_, i) => entries[i] ?? null);
+  // Slots ativos = "próxima PT" (top N pelo algoritmo LRU)
+  const slotsCount = coach.filaMaxVagas;
+  const slots = Array.from({ length: slotsCount }, (_, i) => entries[i] ?? null);
+  // Restante da fila esperando (5º em diante quando filaMaxVagas=4)
+  const waitingList = entries.slice(slotsCount);
   const minutesOpen = coach.filaAbertaEm
     ? Math.floor((Date.now() - new Date(coach.filaAbertaEm).getTime()) / 60000)
     : 0;
@@ -150,6 +154,17 @@ export function QueueBoard({
         ))}
       </div>
 
+      {/* Waiting list — só na variante presentation/admin se há overflow além dos slots */}
+      {!isCompact && waitingList.length > 0 && (
+        <WaitingList
+          entries={waitingList}
+          startPosition={slotsCount + 1}
+          viewerUserId={viewerUserId}
+          isAdmin={isAdmin}
+          onRemoveEntry={onRemoveEntry}
+        />
+      )}
+
       {/* Footer status */}
       <footer className={`flex items-center justify-between ${isCompact ? "mt-2" : "mt-4"}`}>
         <span
@@ -172,10 +187,131 @@ export function QueueBoard({
           }`}
         >
           <Users size={isCompact ? 8 : 10} className="inline mr-1 -mt-0.5" aria-hidden="true" />
-          {entries.length}/{coach.filaMaxVagas}
+          {entries.length} na fila · {Math.min(entries.length, slotsCount)}/{slotsCount} na próxima PT
+          {waitingList.length > 0 && (
+            <span className="ml-1 text-amber-300/80">
+              · +{waitingList.length} aguardando
+            </span>
+          )}
         </span>
       </footer>
     </article>
+  );
+}
+
+// ============== Waiting list — slots além dos primeiros N ==============
+
+interface WaitingListProps {
+  entries: BoardEntry[];
+  startPosition: number;
+  viewerUserId: string | null;
+  isAdmin: boolean;
+  onRemoveEntry?: (entryId: string, reason: string) => Promise<void>;
+}
+
+function WaitingList({
+  entries,
+  startPosition,
+  viewerUserId,
+  isAdmin,
+  onRemoveEntry,
+}: WaitingListProps) {
+  const [pendingId, setPendingId] = useState<string | null>(null);
+  const [, startTransition] = useTransition();
+
+  function handleRemove(entryId: string, username: string | null) {
+    if (!onRemoveEntry) return;
+    const reason = window.prompt(
+      `Remover ${username ?? "aluno"} da fila? Motivo (mín 3 chars):`,
+      "Removido pelo PRO"
+    );
+    if (!reason || reason.trim().length < 3) return;
+    setPendingId(entryId);
+    startTransition(async () => {
+      try {
+        await onRemoveEntry(entryId, reason);
+      } finally {
+        setPendingId(null);
+      }
+    });
+  }
+
+  return (
+    <div className="mt-4 rounded-md border border-white/10 bg-black/30 p-3">
+      <p className="mb-2 font-mono text-[10px] uppercase tracking-widest text-amber-300/70">
+        Aguardando próxima rodada ({entries.length})
+      </p>
+      <ul className="space-y-1.5">
+        {entries.map((e, idx) => {
+          const position = startPosition + idx;
+          const isViewer = e.userId === viewerUserId;
+          const waitingMinutes = Math.floor(
+            (Date.now() - new Date(e.joinedAt).getTime()) / 60000
+          );
+          const isRemoving = pendingId === e.entryId;
+          return (
+            <li
+              key={e.entryId}
+              className={`flex items-center gap-2 rounded px-2 py-1.5 ${
+                isViewer
+                  ? "bg-amber-400/15 ring-1 ring-amber-400/40"
+                  : "hover:bg-white/5"
+              }`}
+            >
+              <span
+                className={`font-mono text-[10px] tabular-nums ${
+                  isViewer ? "font-bold text-amber-300" : "text-white/40"
+                }`}
+              >
+                {position}º
+              </span>
+              {e.avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={e.avatarUrl}
+                  alt=""
+                  className={`size-5 rounded-full ${
+                    isViewer ? "ring-1 ring-amber-400" : ""
+                  }`}
+                />
+              ) : (
+                <div className="size-5 rounded-full bg-white/10" />
+              )}
+              <span
+                className={`flex-1 truncate font-sans text-xs ${
+                  isViewer ? "font-bold text-white" : "text-white/80"
+                }`}
+              >
+                {isViewer ? "VOCÊ" : e.username ?? "—"}
+              </span>
+              {e.ptsToday !== undefined && e.ptsToday > 0 && (
+                <span className="rounded-full bg-amber-500/15 px-1.5 font-mono text-[9px] text-amber-300/90">
+                  {e.ptsToday}× hoje
+                </span>
+              )}
+              <span className="font-mono text-[9px] text-white/40 tabular-nums">
+                {waitingMinutes}m
+              </span>
+              {isAdmin && onRemoveEntry && (
+                <button
+                  type="button"
+                  onClick={() => handleRemove(e.entryId, e.username)}
+                  disabled={isRemoving}
+                  aria-label={`Remover ${e.username ?? "aluno"}`}
+                  className="flex size-5 items-center justify-center rounded-full text-white/30 hover:bg-red-500/20 hover:text-red-300 transition-colors disabled:opacity-50"
+                >
+                  {isRemoving ? (
+                    <Loader2 size={9} className="animate-spin" />
+                  ) : (
+                    <X size={9} />
+                  )}
+                </button>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }
 
