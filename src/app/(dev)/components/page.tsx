@@ -103,6 +103,12 @@ function Section({
 }
 
 // ---------------------------------------------------------------------------
+// Dados mock — fora do componente para evitar Date.now() impure em render
+// ---------------------------------------------------------------------------
+
+const MOCK_MATCH_PLAYED_AT = new Date(Date.now() - 1000 * 60 * 30);
+
+// ---------------------------------------------------------------------------
 // Componente principal
 // ---------------------------------------------------------------------------
 
@@ -313,7 +319,7 @@ export default function ComponentsPage() {
               { slug: "rubick", name: "Rubick" },
               { slug: "puck", name: "Puck" },
             ]}
-            playedAt={new Date(Date.now() - 1000 * 60 * 30)}
+            playedAt={MOCK_MATCH_PLAYED_AT}
           />
         </div>
       </Section>

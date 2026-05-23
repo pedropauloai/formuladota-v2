@@ -8,7 +8,7 @@
 //   - Slots em miniatura (4 mini-slots da próxima PT) + waiting count
 //   - CTA contextual (Entrar / Sair / Sem ficha / Em outra fila)
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -335,6 +335,8 @@ function ExpandedWaitingList({
   startPosition,
   viewerUserId,
 }: WaitingListProps) {
+  // Snapshot do horário atual — evita Date.now() impure em render
+  const now = useMemo(() => Date.now(), []);
   return (
     <div className="mt-3 rounded-md border border-white/10 bg-black/30 p-3">
       <p className="mb-3 font-mono text-[11px] font-semibold uppercase tracking-widest text-amber-300/80">
@@ -345,7 +347,7 @@ function ExpandedWaitingList({
           const position = startPosition + idx;
           const isViewer = e.userId === viewerUserId;
           const waitingMinutes = Math.floor(
-            (Date.now() - new Date(e.joinedAt).getTime()) / 60000
+            (now - new Date(e.joinedAt).getTime()) / 60000
           );
           return (
             <li

@@ -198,6 +198,9 @@ export function useInViewportReset<T extends Element>(
  */
 export function useAnimationComplete(callback: () => void): () => void {
   const callbackRef = useRef(callback);
-  callbackRef.current = callback;
+  // Atualiza o ref via efeito — evita mutação durante render
+  useEffect(() => {
+    callbackRef.current = callback;
+  });
   return () => callbackRef.current();
 }

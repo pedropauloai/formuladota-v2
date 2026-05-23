@@ -38,7 +38,7 @@ export default async function AdminUsersPage() {
         </h1>
         <div className="mt-4 brand-divider" />
         <p className="mt-3 font-sans text-sm text-[var(--color-muted-foreground)]">
-          {profiles?.length ?? 0} users mais recentes · clique em "Ajustar" pra mexer no saldo de fichas
+          {profiles?.length ?? 0} users mais recentes · clique em &ldquo;Ajustar&rdquo; pra mexer no saldo de fichas
         </p>
       </header>
 

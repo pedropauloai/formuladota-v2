@@ -19,11 +19,12 @@ export function QueueStatusModal({ open, onClose, myQueues }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const router = useRouter();
+  // Optimistic: registra entries que já saíram (some da lista imediato)
+  // Declarado antes do early return — regra dos hooks
+  const [optimisticLeftIds, setOptimisticLeftIds] = useState<Set<string>>(new Set());
 
   if (!open) return null;
 
-  // Optimistic: registra entries que já saíram (some da lista imediato)
-  const [optimisticLeftIds, setOptimisticLeftIds] = useState<Set<string>>(new Set());
   const visibleQueues = myQueues.filter((q) => !optimisticLeftIds.has(q.entryId));
 
   function handleLeave(entryId: string) {

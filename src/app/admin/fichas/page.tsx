@@ -138,7 +138,7 @@ export default async function AdminFichasPage() {
                   colSpan={6}
                   className="px-4 py-8 text-center font-mono text-xs text-[var(--color-muted-foreground)]"
                 >
-                  Nenhum ajuste registrado ainda. Vá em "Users" pra ajustar fichas de alguém.
+                  Nenhum ajuste registrado ainda. Vá em &ldquo;Users&rdquo; pra ajustar fichas de alguém.
                 </td>
               </tr>
             )}

@@ -219,9 +219,9 @@ export default async function HomePage() {
             margin: 0,
           }}
         >
-          "Vencer nao e ser o melhor.
+          &ldquo;Vencer nao e ser o melhor.
           <br />
-          E ser o que aprende mais rapido."
+          E ser o que aprende mais rapido.&rdquo;
         </blockquote>
       </section>
 

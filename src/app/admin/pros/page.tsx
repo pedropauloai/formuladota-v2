@@ -53,10 +53,12 @@ export default async function AdminProsPage() {
     : { data: [] };
   const profileById = new Map((profiles ?? []).map((p) => [p.id, p]));
 
+  // Snapshot fora do map para evitar Date.now() impure em render context
+  const nowMs = Date.now();
   const queueEntries: QueueEntry[] = entriesList.map((e) => {
     const prof = profileById.get(e.user_id);
     const waitingMinutes = Math.floor(
-      (Date.now() - new Date(e.joined_at).getTime()) / 60000
+      (nowMs - new Date(e.joined_at).getTime()) / 60000
     );
     return {
       id: e.id,

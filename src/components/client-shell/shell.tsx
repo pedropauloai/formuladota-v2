@@ -10,7 +10,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getMyFichaBalance } from "@/lib/queries/fichas";
-import { getProsLiveStatus, getProsWithQueues } from "@/lib/queries/pros";
+import { getProsWithQueues } from "@/lib/queries/pros";
 import { getFichaPackage } from "@/lib/queries/packages";
 import { getMyQueueStatus } from "@/lib/queries/queue";
 import { getPreviewModeActive } from "@/lib/auth/preview-mode";

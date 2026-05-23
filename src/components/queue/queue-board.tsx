@@ -9,7 +9,7 @@
 // Componente puro de visualização. Ações (entrar, sair, iniciar PT, remover)
 // ficam no parent — QueueBoard só renderiza estado.
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useMemo } from "react";
 import { Radio, X, Loader2, Clock, Users, Crown } from "lucide-react";
 
 export interface BoardCoach {
@@ -58,8 +58,10 @@ export function QueueBoard({
   const slots = Array.from({ length: slotsCount }, (_, i) => entries[i] ?? null);
   // Restante da fila esperando (5º em diante quando filaMaxVagas=4)
   const waitingList = entries.slice(slotsCount);
+  // Snapshot do horário atual — evita Date.now() impure diretamente em render
+  const now = useMemo(() => Date.now(), []);
   const minutesOpen = coach.filaAbertaEm
-    ? Math.floor((Date.now() - new Date(coach.filaAbertaEm).getTime()) / 60000)
+    ? Math.floor((now - new Date(coach.filaAbertaEm).getTime()) / 60000)
     : 0;
   const isCompact = variant === "compact";
   const isAdmin = variant === "admin";
@@ -218,6 +220,8 @@ function WaitingList({
 }: WaitingListProps) {
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
+  // Snapshot do horário atual — evita Date.now() impure diretamente em render
+  const now = useMemo(() => Date.now(), []);
 
   function handleRemove(entryId: string, username: string | null) {
     if (!onRemoveEntry) return;
@@ -246,7 +250,7 @@ function WaitingList({
           const position = startPosition + idx;
           const isViewer = e.userId === viewerUserId;
           const waitingMinutes = Math.floor(
-            (Date.now() - new Date(e.joinedAt).getTime()) / 60000
+            (now - new Date(e.joinedAt).getTime()) / 60000
           );
           const isRemoving = pendingId === e.entryId;
           return (
@@ -334,6 +338,8 @@ function Slot({
 }: SlotProps) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  // Snapshot do horário ao montar — via useState inicial (não muda entre renders)
+  const [mountNow] = useState(() => Date.now());
 
   // Slot vazio
   if (!slot) {
@@ -377,7 +383,7 @@ function Slot({
   }
 
   const waitingMinutes = Math.floor(
-    (Date.now() - new Date(slot.joinedAt).getTime()) / 60000
+    (mountNow - new Date(slot.joinedAt).getTime()) / 60000
   );
 
   return (
