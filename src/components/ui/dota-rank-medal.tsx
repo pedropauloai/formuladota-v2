@@ -11,6 +11,10 @@
  * Fonte das imagens: Liquipedia (SeasonalRank{N}-1.png / SeasonalRankTop*.png)
  * Diretório local: /public/icons/dota-ranks/
  *
+ * Mapeamento das medalhas Immortal (corrigido 2026-05-23 — Pedro):
+ *   - immortal.png             = SeasonalRankTop0 (Imortal base com asas)
+ *   - immortal-top-100.png     = SeasonalRankTop2 (medalha VERMELHA exclusiva Top 100 Mundial)
+ *
  * Server Component: sem interatividade, sem motion, sem sound.
  * Design V2.5 AAA-Grade: zero hex hardcoded, apenas tokens semânticos.
  */
@@ -34,17 +38,21 @@ export type DotaRank =
   | "immortal"
   | "immortal-top-100"
 
-/** Labels PT-BR legíveis de cada rank */
+/**
+ * Labels PT-BR legíveis de cada rank (regra Pedro 2026-05-23: plataforma exclusiva BR).
+ * Tradução literal dos rank names oficiais Valve.
+ * Top 100 mantém "Top 100" (jargão universal) + sufixo "Mundial" pra contexto.
+ */
 export const RANK_LABELS: Record<DotaRank, string> = {
-  herald: "Herald",
-  guardian: "Guardian",
-  crusader: "Crusader",
-  archon: "Archon",
-  legend: "Legend",
-  ancient: "Ancient",
-  divine: "Divine",
-  immortal: "Immortal",
-  "immortal-top-100": "Immortal Top 100",
+  herald: "Arauto",
+  guardian: "Guardião",
+  crusader: "Cruzado",
+  archon: "Arconte",
+  legend: "Lenda",
+  ancient: "Ancião",
+  divine: "Divino",
+  immortal: "Imortal",
+  "immortal-top-100": "Top 100 Mundial",
 }
 
 /**

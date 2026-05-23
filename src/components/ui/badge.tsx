@@ -28,18 +28,19 @@ import { cn } from "@/lib/utils"
  * ------------------------------------------------------------------ */
 
 /**
- * TIER_NAMES — label PT-BR de cada faixa MMR interna
- * tier-1 = Herald (menor MMR), tier-8 = Immortal (maior MMR)
+ * TIER_NAMES — labels PT-BR de cada faixa MMR (regra Pedro 2026-05-23: plataforma BR).
+ * tier-1 = Arauto (menor MMR), tier-8 = Imortal (maior MMR).
+ * Tradução literal dos nomes oficiais Valve (Herald/Guardian/Crusader/Archon/Legend/Ancient/Divine/Immortal).
  */
 export const TIER_NAMES = {
-  1: "Herald",
-  2: "Guardian",
-  3: "Crusader",
-  4: "Archon",
-  5: "Legend",
-  6: "Ancient",
-  7: "Divine",
-  8: "Immortal",
+  1: "Arauto",
+  2: "Guardião",
+  3: "Cruzado",
+  4: "Arconte",
+  5: "Lenda",
+  6: "Ancião",
+  7: "Divino",
+  8: "Imortal",
 } as const
 
 export type Tier = keyof typeof TIER_NAMES
