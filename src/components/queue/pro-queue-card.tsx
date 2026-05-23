@@ -20,6 +20,8 @@ import {
   Loader2,
   Crown,
   AlertCircle,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import type { BoardCoach, BoardEntry } from "./queue-board";
 import { joinCoachQueue, leaveCoachQueue } from "@/components/landing/actions";
@@ -61,7 +63,12 @@ export function ProQueueCard({
   // 4 slots em miniatura (próxima PT) + waitingCount
   const slotsCount = coach.filaMaxVagas;
   const activeSlots = entries.slice(0, slotsCount);
-  const waitingExtra = Math.max(0, entries.length - slotsCount);
+  const waitingList = entries.slice(slotsCount);
+  const waitingExtra = waitingList.length;
+
+  // Default: expandido se viewer está na fila deste PRO (vê própria posição).
+  // Caso contrário colapsado. User pode togglar manual.
+  const [expanded, setExpanded] = useState<boolean>(!!myEntryIdHere);
 
   function handleJoin() {
     setError(null);
@@ -241,8 +248,114 @@ export function ProQueueCard({
             {error}
           </p>
         )}
+
+        {/* Toggle expand — só se houver overflow */}
+        {waitingExtra > 0 && (
+          <button
+            type="button"
+            onClick={() => setExpanded((v) => !v)}
+            className="mt-4 flex w-full items-center justify-center gap-2 rounded border border-white/10 bg-black/20 py-2 font-mono text-xs uppercase tracking-widest text-white/60 hover:bg-white/5 hover:text-white transition-colors"
+          >
+            {expanded ? (
+              <>
+                <ChevronUp size={14} aria-hidden="true" />
+                Recolher fila
+              </>
+            ) : (
+              <>
+                <ChevronDown size={14} aria-hidden="true" />
+                Ver fila completa ({waitingExtra} aguardando)
+              </>
+            )}
+          </button>
+        )}
+
+        {/* Waiting list expandida */}
+        {expanded && waitingExtra > 0 && (
+          <ExpandedWaitingList
+            entries={waitingList}
+            startPosition={slotsCount + 1}
+            viewerUserId={viewerUserId}
+          />
+        )}
       </div>
     </article>
+  );
+}
+
+// ============== Expanded waiting list ==============
+
+interface WaitingListProps {
+  entries: BoardEntry[];
+  startPosition: number;
+  viewerUserId: string;
+}
+
+function ExpandedWaitingList({
+  entries,
+  startPosition,
+  viewerUserId,
+}: WaitingListProps) {
+  return (
+    <div className="mt-3 rounded-md border border-white/10 bg-black/30 p-3">
+      <p className="mb-3 font-mono text-[11px] font-semibold uppercase tracking-widest text-amber-300/80">
+        Aguardando próxima rodada
+      </p>
+      <ul className="space-y-1.5">
+        {entries.map((e, idx) => {
+          const position = startPosition + idx;
+          const isViewer = e.userId === viewerUserId;
+          const waitingMinutes = Math.floor(
+            (Date.now() - new Date(e.joinedAt).getTime()) / 60000
+          );
+          return (
+            <li
+              key={e.entryId}
+              className={`flex items-center gap-3 rounded px-3 py-2 ${
+                isViewer
+                  ? "bg-amber-400/15 ring-1 ring-amber-400/40"
+                  : "hover:bg-white/5"
+              }`}
+            >
+              <span
+                className={`w-7 font-mono text-sm font-semibold tabular-nums ${
+                  isViewer ? "text-amber-300" : "text-white/60"
+                }`}
+              >
+                {position}º
+              </span>
+              {e.avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={e.avatarUrl}
+                  alt=""
+                  className={`size-7 rounded-full ${
+                    isViewer ? "ring-2 ring-amber-400" : "ring-1 ring-white/20"
+                  }`}
+                />
+              ) : (
+                <div className="size-7 rounded-full bg-white/10" />
+              )}
+              <span
+                className={`flex-1 truncate font-sans text-sm ${
+                  isViewer ? "font-bold text-white" : "text-white/90"
+                }`}
+              >
+                {isViewer ? "VOCÊ" : e.username ?? "—"}
+              </span>
+              {e.ptsToday !== undefined && e.ptsToday > 0 && (
+                <span className="rounded-full bg-amber-500/20 px-2 py-0.5 font-mono text-[11px] font-semibold text-amber-200">
+                  {e.ptsToday}× hoje
+                </span>
+              )}
+              <span className="w-10 text-right font-mono text-xs text-white/55 tabular-nums">
+                {waitingMinutes}m
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }
 
