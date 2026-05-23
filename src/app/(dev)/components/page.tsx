@@ -331,10 +331,17 @@ export default function ComponentsPage() {
         <div className="max-w-sm">
           <ProCard
             proName="IMMORTAL_PRO"
-            tier={8}
             mmr={9200}
+            tierLabel="Immortal · 9.2k MMR"
+            membershipTier="elite"
+            ringColor="tier-immortal"
             presence="online"
             bio="Top 0.5%. 15 anos de Dota. Vamos jogar."
+            achievements={[
+              { variant: "champion-s1" },
+              { variant: "comendado" },
+              { variant: "fundador" },
+            ]}
             recentMatches={[
               { result: "win", mmrDelta: 25 },
               { result: "win", mmrDelta: 28 },
