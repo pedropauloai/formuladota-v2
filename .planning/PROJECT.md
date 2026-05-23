@@ -88,10 +88,48 @@ Definidos em `.planning/REQUIREMENTS.md` e referenciados em `.planning/ROADMAP.m
 - **H6** (Hub-Dashboards): Painel admin (Pedro gerencia tudo) + painel player (status, matches, ranking)
 - **H7** (Hub-Polish): Header/footer global, landing reformulada, deploy Vercel + DNS
 
+## Current Milestone: v2.5 Design Foundations — AAA Game Client Experience
+
+**Goal:** Estabelecer constituição visual permanente + design system completo implementado, transformando FormulaDota de web app cyberpunk genérico em verdadeiro game client AAA, ANTES de qualquer nova UI.
+
+**Target features:**
+- 6 documentos fundacionais permanentes em `docs/foundations/` (VISUAL_PHILOSOPHY, UX_PRINCIPLES, MOTION_SYSTEM, SOUND_SYSTEM, PRODUCT_CORE, DESIGN_LANGUAGE)
+- Design system completo em código (tokens cores/typography/spacing/motion/sound + motion primitives + sound primitives + layout system)
+- 5-7 componentes base AAA-grade (Button, Card, Modal/Dialog, Toast, HeroVideo, QueueCard/MatchCard)
+- Deep research em `.planning/research/` (clients AAA referência + tech stack libs)
+
+**Key context (pivô 2026-05-23):**
+- Pausa MVP fichas (memory `project_mvp_fichas.md` 2026-05-21) e Phase 4 Mercado Pago até pelo menos os Design Tokens (F3) entregarem.
+- Phase 3.5 antiga (Rebrand Dota 2 raso) DEPRECADA — absorvida e expandida por este milestone. Research preservado em `.planning/phases/_deprecated/03.5-rebrand-dota2-visual-superseded-by-v2.5-design-foundations/`.
+- Phase 4 Mercado Pago PAUSADA em `.planning/phases/_paused/04-mercadopago-migration/`.
+- Refs obrigatórias: Dota 2 client, Steam, Battle.net, Riot Client, FACEIT, CS2 UI, Discord, Path of Exile, Diablo IV, MMO launchers.
+- Estética PROIBIDA: SaaS startup, excesso de cards/grid/widgets, landing-page vibe, vibecoding.
+- Estética OBRIGATÓRIA: sistema vivo, atmosfericidade, clareza de ação principal, UX cinematográfica, software premium.
+- Docs vivem em `docs/foundations/` (raiz do repo, máxima visibilidade).
+- Estimativa: 7-10 dias.
+
 ## Current State
 
-- **Phase 1, 1.5, 2 — concluídas** (auth Discord, doutrina, checkout PIX avulso)
-- **Phase 2 → modo "loja de coaches"** — refator multi-coach na Phase 3 (schema com `coaches` table + `packages.coach_id`)
-- **Milestone V2 — HUB iniciando** (Phase 3 em planejamento)
+- **Milestone V1 — concluído** (Phase 1, 1.5, 2): auth Discord, doutrina, checkout PIX avulso.
+- **Milestone V2 — HUB em pausa parcial**: Phase 3 (Steam OAuth + multi-coach) concluída; Phase 3.5 (Rebrand) deprecada e absorvida pelo V2.5; Phase 4 (MP) pausada; Phases 5-8 pendentes pós-V2.5.
+- **Milestone V2.5 — Design Foundations ◆ ATIVO** (este milestone).
+- Branch corrente `feat/hero-state-refactor` com trabalho recente em queue/dashboard relacionado ao MVP fichas (pausado até V2.5 entregar).
 
-Last updated: 2026-05-01
+## Evolution
+
+This document evolves at phase transitions and milestone boundaries.
+
+**After each phase transition** (via `/gsd:transition`):
+1. Requirements invalidated? → Move to Out of Scope with reason
+2. Requirements validated? → Move to Validated with phase reference
+3. New requirements emerged? → Add to Active
+4. Decisions to log? → Add to Key Decisions
+5. "What This Is" still accurate? → Update if drifted
+
+**After each milestone** (via `/gsd:complete-milestone`):
+1. Full review of all sections
+2. Core Value check — still the right priority?
+3. Audit Out of Scope — reasons still valid?
+4. Update Context with current state
+
+Last updated: 2026-05-23 — milestone v2.5 Design Foundations started (pivô estratégico AAA game client experience)
