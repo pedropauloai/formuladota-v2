@@ -8,6 +8,14 @@
  *
  * Server Component: sem interatividade, sem motion, sem sound
  * Design V2.5 AAA-Grade: zero hex hardcoded, zero Tailwind inline colors
+ *
+ * NOTA DE UPGRADE VISUAL:
+ * Para contextos onde a medalha oficial do Dota 2 tem espaço (cards hero,
+ * perfil, ProCard tamanho grande), use <DotaRankMedal> em vez de Badge tier-N.
+ * As variantes tier-1..8 permanecem aqui para labels compactos (MatchCard,
+ * inline text, etc.) onde uma imagem 48px não cabe.
+ *
+ * @see src/components/ui/dota-rank-medal.tsx
  */
 
 import { forwardRef, type HTMLAttributes } from "react"

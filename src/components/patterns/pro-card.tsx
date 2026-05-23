@@ -1,14 +1,19 @@
 "use client";
 /**
- * ProCard — FormulaDota V2.5-F8 (refatorado de F7.2)
+ * ProCard — FormulaDota V2.5-F9 (refatorado de F8)
  *
- * Composição de nível Pattern sobre primitives F8:
+ * Composição de nível Pattern sobre primitives F9:
  *   Card + UserAvatar + MembershipBadge + BadgeStack + AchievementBadge
+ *   + DotaRankMedal (NOVO F9)
+ *
+ * Novidades F9:
+ *   - Tier agora pode ser exibido como imagem oficial via <DotaRankMedal>
+ *   - Nova prop `rank` (DotaRank) — se fornecida, exibe medalha em vez de texto
+ *   - Props novas são opcionais — compat com ProCardProps existente mantida
  *
  * Novidades F8:
  *   - Retrato agora usa <UserAvatar size="xl"> com badge overlay e ring colorido
  *   - <BadgeStack> exibe conquistas do PRO abaixo do nome
- *   - Props novas são opcionais — compat com ProCardProps existente mantida
  *
  * Voz: Mestre — autoritativa, sem jargão startup, sem giria de vendedor.
  * B6 — ZERO nome próprio do admin em strings user-facing.
@@ -20,6 +25,7 @@ import { Card } from "@/components/ui/card";
 import { UserAvatar, type PresenceStatus, type RingColor } from "@/components/ui/avatar";
 import { MembershipBadge, type MembershipTier } from "@/components/ui/membership-badge";
 import { BadgeStack, type BadgeItem } from "@/components/ui/badge-stack";
+import { DotaRankMedal, type DotaRank } from "@/components/ui/dota-rank-medal";
 import { cn } from "@/lib/utils";
 
 // ---------------------------------------------------------------------------
@@ -93,6 +99,13 @@ export interface ProCardProps {
    */
   ringColor?: RingColor;
 
+  /**
+   * [F9 NOVO] Rank oficial Dota 2 — exibe <DotaRankMedal> com imagem real.
+   * Se fornecido, substitui o tierLabel CSS-only por medalha visual.
+   * Para labels compactos inline use Badge tier-N diretamente.
+   */
+  rank?: DotaRank;
+
   className?: string;
 }
 
@@ -119,10 +132,12 @@ function formatDelta(delta: number): string {
  * e recent matches em layout vertical centrado.
  *
  * @example
+ * // Com medalha oficial Dota 2 (F9 — recomendado para hero cards)
  * <ProCard
  *   proName="Coach Immortal"
  *   mmr={7200}
  *   presence="online"
+ *   rank="immortal"
  *   membershipTier="elite"
  *   achievements={[
  *     { variant: "champion-s1" },
@@ -132,6 +147,10 @@ function formatDelta(delta: number): string {
  *   bio="Top 0.5% — 15 anos de Dota. Metodologia FORMULADOTA."
  *   action={<Button>Entrar na Fila</Button>}
  * />
+ *
+ * @example
+ * // Fallback CSS-only (compat F8 — sem prop rank)
+ * <ProCard proName="Coach" mmr={7200} presence="online" tierLabel="Immortal" />
  */
 export function ProCard({
   proName,
@@ -145,6 +164,7 @@ export function ProCard({
   membershipTier = "aluno",
   achievements = [],
   ringColor = "brand",
+  rank,
   className,
 }: ProCardProps) {
   /* Máximo 5 partidas recentes exibidas inline */
@@ -196,10 +216,22 @@ export function ProCard({
             {proName}
           </h2>
 
-          {/* Tier label + MMR — informação técnica em mono */}
+          {/* Tier — medalha oficial (F9) ou label texto (compat F8) + MMR */}
           <div className="flex items-center justify-center gap-3 flex-wrap">
-            {/* Tier em text-xs display-condensed se disponível */}
-            {tierLabel && (
+            {/*
+             * F9: se `rank` fornecido, usa DotaRankMedal com imagem oficial.
+             * Fallback: tierLabel CSS-only (compat F8 — sem quebra de API).
+             */}
+            {rank ? (
+              /* Medalha oficial Dota 2 — imagem PNG real com glow Immortal */
+              <DotaRankMedal
+                rank={rank}
+                size="md"
+                glow={rank === "immortal" || rank === "immortal-top-100"}
+                showLabel
+              />
+            ) : tierLabel ? (
+              /* Fallback CSS-only para quando rank não é fornecido */
               <span
                 className={cn(
                   "text-xs font-bold uppercase tracking-widest",
@@ -209,7 +241,7 @@ export function ProCard({
               >
                 {tierLabel}
               </span>
-            )}
+            ) : null}
 
             {/* MMR em tabular nums — leitura rápida */}
             <span
