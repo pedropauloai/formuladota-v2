@@ -37,6 +37,7 @@ import { Badge, TIER_NAMES, type Tier } from "@/components/ui/badge";
 import { PresenceDot, type PresenceStatus } from "@/components/ui/presence-dot";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingScreen } from "@/components/ui/loading-screen";
+import { DotaRankMedal, RANK_LABELS, type DotaRank } from "@/components/ui/dota-rank-medal";
 
 // Patterns F7
 import { MatchCard } from "@/components/patterns/match-card";
@@ -167,6 +168,46 @@ export default function ComponentsPage() {
       </Section>
 
       {/* ================================================================== */}
+      {/* ================================================================== */}
+      {/* SECTION 1.6 — DotaRankMedal (NOVO 2026-05-23)                      */}
+      {/* ================================================================== */}
+      <Section title="DotaRankMedal — 9 medalhas oficiais Dota 2 (Liquipedia)">
+        <div className="space-y-6">
+          <p className="text-sm text-text-muted">
+            Imagens oficiais Liquipedia. Substituem o Badge tier-N CSS-only em contextos com espaço (ProCard hero, perfil, achievements).
+          </p>
+          {/* Grid completo com showLabel */}
+          <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-4">
+            {(Object.keys(RANK_LABELS) as DotaRank[]).map((rank) => (
+              <div key={rank} className="flex flex-col items-center gap-2">
+                <DotaRankMedal
+                  rank={rank}
+                  size="md"
+                  showLabel
+                  glow={rank === "immortal" || rank === "immortal-top-100"}
+                />
+              </div>
+            ))}
+          </div>
+          {/* Demos de tamanho: sm / md / lg / xl */}
+          <div className="border-t border-border-subtle pt-6 space-y-3">
+            <p className="font-display text-xs uppercase tracking-widest text-text-faded">
+              Tamanhos disponíveis (Immortal Top 100 com glow)
+            </p>
+            <div className="flex items-end gap-6">
+              {(["sm", "md", "lg", "xl"] as const).map((s) => (
+                <div key={s} className="flex flex-col items-center gap-2">
+                  <DotaRankMedal rank="immortal-top-100" size={s} glow />
+                  <span className="font-mono text-[10px] text-text-muted uppercase tracking-widest">
+                    {s}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </Section>
+
       {/* ================================================================== */}
       {/* SECTION 2 — Button                                                 */}
       {/* ================================================================== */}
@@ -333,7 +374,8 @@ export default function ComponentsPage() {
           <ProCard
             proName="IMMORTAL_PRO"
             mmr={9200}
-            tierLabel="Immortal · 9.2k MMR"
+            rank="immortal-top-100"
+            tierLabel="Top 0.5%"
             membershipTier="elite"
             ringColor="tier-immortal"
             presence="online"
