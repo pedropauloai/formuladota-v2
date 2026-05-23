@@ -27,7 +27,7 @@
 
 import * as React from "react";
 import { Dialog as BaseDialog } from "@base-ui/react/dialog";
-import { motion, AnimatePresence } from "motion/react";
+import { m, AnimatePresence } from "motion/react";
 import { cn } from "@/lib/utils";
 import { useSound } from "@/lib/sound/hooks";
 import { useMotionSafeBool } from "@/lib/motion/hooks";
@@ -165,7 +165,7 @@ export function DialogContent({
         >
           {canAnimate ? (
             <AnimatePresence mode="wait">
-              <motion.div
+              <m.div
                 key="takeover-content"
                 // Entrada: escala de 0.96 → 1 com fade — cinematic timing
                 initial={{ opacity: 0, scale: 0.96 }}
@@ -180,7 +180,7 @@ export function DialogContent({
                 className="font-display w-full flex flex-col items-center"
               >
                 {children}
-              </motion.div>
+              </m.div>
             </AnimatePresence>
           ) : (
             // Fallback reduced-motion: sem scale/translate, apenas presença
@@ -222,7 +222,7 @@ export function DialogContent({
       >
         {canAnimate ? (
           <AnimatePresence mode="wait">
-            <motion.div
+            <m.div
               key="centered-content"
               // scaleIn preset inline (standard 240ms, soft-landing)
               initial={{ opacity: 0, scale: 0.94 }}
@@ -234,7 +234,7 @@ export function DialogContent({
               }}
             >
               {children}
-            </motion.div>
+            </m.div>
           </AnimatePresence>
         ) : (
           // Fallback reduced-motion: sem scale

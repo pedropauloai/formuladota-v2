@@ -16,7 +16,7 @@
 "use client";
 
 import { forwardRef, type ButtonHTMLAttributes } from "react";
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 import { useSound } from "@/lib/sound/hooks";
@@ -148,7 +148,7 @@ const buttonVariants = cva(
 interface ButtonProps
   extends Omit<
     ButtonHTMLAttributes<HTMLButtonElement>,
-    // Omit props que conflitam com motion.button
+    // Omit props que conflitam com m.button
     "onAnimationStart" | "onDragStart" | "onDragEnd" | "onDrag"
   >,
   VariantProps<typeof buttonVariants> {
@@ -213,7 +213,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       : {};
 
     return (
-      <motion.button
+      <m.button
         ref={ref}
         disabled={isBlocked}
         onMouseEnter={handleMouseEnter}
@@ -235,7 +235,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ) : (
           children
         )}
-      </motion.button>
+      </m.button>
     );
   }
 );

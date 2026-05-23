@@ -12,7 +12,7 @@
 "use client";
 
 import { forwardRef, type HTMLAttributes } from "react";
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 import { useMotionSafeBool } from "@/lib/motion/hooks";
@@ -97,7 +97,7 @@ const dotVariants = cva(
 export interface PresenceDotProps
   extends Omit<
     HTMLAttributes<HTMLSpanElement>,
-    /* Excluir props que colidem com motion.span */
+    /* Excluir props que colidem com m.span */
     "onAnimationStart" | "onDragStart" | "onDragEnd" | "onDrag"
   >,
     VariantProps<typeof dotVariants> {
@@ -138,7 +138,7 @@ export const PresenceDot = forwardRef<HTMLSpanElement, PresenceDotProps>(
     // Dot — animado quando estado ativo + motion habilitado
     const dot =
       isActive && motionSafe ? (
-        <motion.span
+        <m.span
           className={cn(dotVariants({ size }), STATUS_COLORS[status])}
           animate={{ opacity: [0.55, 1, 0.55] }}
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}

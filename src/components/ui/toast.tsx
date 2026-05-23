@@ -28,7 +28,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, m } from "motion/react";
 import { CheckCircle, AlertCircle, XCircle, Info, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSound } from "@/lib/sound/hooks";
@@ -197,7 +197,7 @@ function ToastItem({ toast: t, onDismiss }: ToastItemProps) {
   const Icon = ICON_BY_TYPE[t.type];
 
   return (
-    <motion.div
+    <m.div
       layout
       /*
        * Animação slide-up + fade (DF6.4):
@@ -263,6 +263,6 @@ function ToastItem({ toast: t, onDismiss }: ToastItemProps) {
       >
         <X className="size-4" aria-hidden="true" />
       </button>
-    </motion.div>
+    </m.div>
   );
 }

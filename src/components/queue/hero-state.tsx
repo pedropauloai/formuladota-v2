@@ -13,14 +13,14 @@
 // Refactor V2.5 — DF7.5:
 //   - Tokens: semantic.css V2.5 via Tailwind (zero hex hardcoded)
 //   - Primitives: Card (elevated/hero), Button, Badge, PresenceDot
-//   - Motion: AnimatePresence + motion.div via presets DF4
+//   - Motion: AnimatePresence + m.div via presets DF4
 //   - Sound: useSound() nos CTA interativos
 //   - API pública preservada (props names inalterados)
 
 "use client";
 
 import Link from "next/link";
-import { motion, AnimatePresence } from "motion/react";
+import { m, AnimatePresence } from "motion/react";
 import {
   Crown,
   Hourglass,
@@ -112,7 +112,7 @@ export function HeroState({
 
   return (
     <AnimatePresence mode="wait">
-      <motion.div
+      <m.div
         key={state}
         variants={entryVariant}
         initial="hidden"
@@ -120,7 +120,7 @@ export function HeroState({
         exit="exit"
       >
         {renderState()}
-      </motion.div>
+      </m.div>
     </AnimatePresence>
   );
 
@@ -292,7 +292,7 @@ export function HeroState({
 
 // MotionLink — motion wrapper de next/link criado no nível de módulo.
 // DEVE estar fora dos componentes para não recriar o componente a cada render.
-const MotionLink = motion.create(Link);
+const MotionLink = m.create(Link);
 
 // ---------------------------------------------------------------------------
 // HeroFrame — wrapper de seção com variante de cor via tokens V2.5
@@ -337,7 +337,7 @@ function HeroFrame({
   const motionVariant = useMotionSafe(scaleIn, fadeInUp);
 
   return (
-    <motion.section
+    <m.section
       variants={motionVariant}
       initial="hidden"
       animate="visible"
@@ -355,7 +355,7 @@ function HeroFrame({
       ].join(" ")}
     >
       {children}
-    </motion.section>
+    </m.section>
   );
 }
 
@@ -377,7 +377,7 @@ function HeroEyebrow({
     <p className="inline-flex items-center gap-2 font-[family-name:var(--font-body)] text-[11px] font-semibold uppercase tracking-[0.35em] text-[var(--color-text-muted)]">
       {pulse ? (
         // Indicador de presença pulsante — online / fila aberta
-        // bg-[var()] é a forma canônica de usar token CSS no Tailwind v4
+        // Tokens CSS via bg-[var(--token)] é a forma canônica no Tailwind v4
         <span className="relative flex size-2.5" aria-hidden="true">
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--color-play-primary)] opacity-75" />
           <span className="relative inline-flex size-2.5 rounded-full bg-[var(--color-play-primary)]" />
@@ -418,7 +418,7 @@ function HeroSub({ children }: { children: React.ReactNode }) {
 // CtaLink — link de navegação estilizado como CTA de alta hierarquia.
 // Usa buttonVariants do Button F6 para tokens de tamanho/tipografia.
 // Sound via useSound() acoplado ao click — regra C16/M10.
-// motion.* garante scale 1.02 hover e 0.97 press sem animate-spin (C19).
+// m.* garante scale 1.02 hover e 0.97 press sem animate-spin (C19).
 // ---------------------------------------------------------------------------
 
 function CtaLink({
@@ -476,7 +476,7 @@ function CtaLink({
 
   if (external) {
     return (
-      <motion.a
+      <m.a
         href={href}
         target="_blank"
         rel="noopener noreferrer"
@@ -485,7 +485,7 @@ function CtaLink({
         {...motionProps}
       >
         {content}
-      </motion.a>
+      </m.a>
     );
   }
 

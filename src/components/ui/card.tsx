@@ -20,7 +20,7 @@
  */
 
 import { forwardRef, type HTMLAttributes } from "react";
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 import { useSound } from "@/lib/sound/hooks";
@@ -67,7 +67,7 @@ const cardVariants = cva(
 
         // hero — treatment cinematográfico: sem radius (peso máximo),
         // sombra cinematic, glow ambient via camada absoluta interna.
-        // hover lift é gerenciado pelo motion.div quando motionSafe=true.
+        // hover lift é gerenciado pelo m.div quando motionSafe=true.
         hero: [
           "rounded-none",
           "p-8",
@@ -114,7 +114,7 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
     // whileHover lift de -4px via spring (AAA feel)
     if (variant === "hero" && motionSafe) {
       return (
-        <motion.div
+        <m.div
           ref={ref}
           whileHover={{ y: -4 }}
           transition={{
@@ -137,7 +137,7 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
           />
           {/* Conteúdo acima do glow (relative garante z-order) */}
           <div className="relative">{children}</div>
-        </motion.div>
+        </m.div>
       );
     }
 

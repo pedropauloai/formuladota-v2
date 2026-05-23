@@ -15,7 +15,7 @@
  * Composto sobre primitives F6: Card, Badge (DF6.2, DF6.5)
  */
 
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import { TrendingUp, TrendingDown } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge, TIER_NAMES, type Tier } from "@/components/ui/badge";
@@ -330,12 +330,12 @@ export function MatchCard({
   );
 
   // ---------------------------------------------------------------------------
-  // Hover lift cinematográfico — motion.div wrapper quando onClick + motionSafe
+  // Hover lift cinematográfico — m.div wrapper quando onClick + motionSafe
   // Mantém isolado do Card para não interferir com a lógica de variante dele
   // ---------------------------------------------------------------------------
   if (onClick && motionSafe) {
     return (
-      <motion.div
+      <m.div
         whileHover={{ y: -2, scale: 1.01 }}
         whileTap={{ scale: 0.99 }}
         transition={{
@@ -345,7 +345,7 @@ export function MatchCard({
         }}
       >
         {cardContent}
-      </motion.div>
+      </m.div>
     );
   }
 
