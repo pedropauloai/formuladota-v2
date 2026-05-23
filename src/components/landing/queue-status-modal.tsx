@@ -16,24 +16,30 @@ interface Props {
 
 export function QueueStatusModal({ open, onClose, myQueues }: Props) {
   const [error, setError] = useState<string | null>(null);
-  const [pendingEntryId, setPendingEntryId] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   if (!open) return null;
 
+  // Optimistic: registra entries que já saíram (some da lista imediato)
+  const [optimisticLeftIds, setOptimisticLeftIds] = useState<Set<string>>(new Set());
+  const visibleQueues = myQueues.filter((q) => !optimisticLeftIds.has(q.entryId));
+
   function handleLeave(entryId: string) {
     setError(null);
-    setPendingEntryId(entryId);
+    // Optimistic: some imediato
+    setOptimisticLeftIds((prev) => new Set(prev).add(entryId));
+    // Se era a única, fecha modal já
+    if (myQueues.length === 1) onClose();
     startTransition(async () => {
       const res = await leaveCoachQueue(entryId);
-      setPendingEntryId(null);
       if (!res.success) {
+        // Rollback
+        setOptimisticLeftIds((prev) => {
+          const next = new Set(prev);
+          next.delete(entryId);
+          return next;
+        });
         setError(res.error);
-      } else {
-        // Se essa era a única fila, fechar modal
-        if (myQueues.length === 1) {
-          onClose();
-        }
       }
     });
   }
@@ -72,8 +78,8 @@ export function QueueStatusModal({ open, onClose, myQueues }: Props) {
         </header>
 
         <ul className="space-y-3">
-          {myQueues.map((q) => {
-            const isBusy = pendingEntryId === q.entryId;
+          {visibleQueues.map((q) => {
+            const isBusy = false;
             return (
               <li
                 key={q.entryId}

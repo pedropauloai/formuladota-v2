@@ -60,6 +60,22 @@ export function ProQueueCard({
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
+  // Optimistic state — espelha props mas user pode flip imediato pra UI
+  // responder em 0ms. Sincroniza com server via realtime (push) ou rollback.
+  const [optimisticInQueue, setOptimisticInQueue] = useState<boolean | null>(
+    null
+  );
+  // Efeito: quando props server-side mudam (realtime push chegou), reset
+  // optimistic pra estado real do server.
+  // Nota: useState(null) garante que enquanto null = usa props real;
+  // só sobrescreve quando user clicou. Quando realtime chega e props
+  // refletem mudança, optimistic vira redundante — reset pra null no
+  // próximo render.
+  // (Mantido em useEffect-less style: rollback explícito se action falhar)
+
+  const effectiveInQueue =
+    optimisticInQueue !== null ? optimisticInQueue : !!myEntryIdHere;
+
   // 4 slots em miniatura (próxima PT) + waitingCount
   const slotsCount = coach.filaMaxVagas;
   const activeSlots = entries.slice(0, slotsCount);
@@ -72,9 +88,19 @@ export function ProQueueCard({
 
   function handleJoin() {
     setError(null);
+    // Optimistic: UI vira "Na fila" instantaneamente (0ms percebido)
+    setOptimisticInQueue(true);
+    if (!expanded) setExpanded(true);
     startTransition(async () => {
       const res = await joinCoachQueue(coach.coachId);
-      if (!res.success) setError(res.error);
+      if (!res.success) {
+        // Rollback: server rejeitou
+        setOptimisticInQueue(false);
+        setError(res.error);
+      }
+      // Sucesso: realtime push vai sincronizar via router.refresh.
+      // Quando os props server-side chegarem refletindo myEntryIdHere,
+      // optimisticInQueue fica redundante mas não conflita.
     });
   }
 
@@ -82,15 +108,22 @@ export function ProQueueCard({
     if (!myEntryIdHere) return;
     if (!window.confirm("Sair da fila deste PRO?")) return;
     setError(null);
+    // Optimistic: UI vira "Entrar" instantaneamente
+    setOptimisticInQueue(false);
     startTransition(async () => {
-      await leaveCoachQueue(myEntryIdHere);
+      const res = await leaveCoachQueue(myEntryIdHere);
+      if (!res.success) {
+        // Rollback: action falhou
+        setOptimisticInQueue(true);
+        setError(res.error);
+      }
     });
   }
 
   return (
     <article
       className={`relative rounded-md border-2 backdrop-blur-md transition-colors ${
-        myEntryIdHere
+        effectiveInQueue
           ? "border-amber-500/60 bg-amber-500/5"
           : coach.filaAberta
             ? "border-emerald-500/40 bg-emerald-500/[0.03]"
@@ -231,6 +264,7 @@ export function ProQueueCard({
 
           <CtaButton
             myEntryIdHere={myEntryIdHere}
+            effectiveInQueue={effectiveInQueue}
             myEntryIdElsewhere={myEntryIdElsewhere}
             otherCoachUsername={otherCoachUsername}
             fichaBalance={fichaBalance}
@@ -363,6 +397,8 @@ function ExpandedWaitingList({
 
 interface CtaProps {
   myEntryIdHere: string | null;
+  /** Estado optimistic (true=na fila, false=fora) que sobrescreve myEntryIdHere visualmente */
+  effectiveInQueue: boolean;
   myEntryIdElsewhere: string | null;
   otherCoachUsername: string | null;
   fichaBalance: number;
@@ -375,7 +411,7 @@ interface CtaProps {
 }
 
 function CtaButton({
-  myEntryIdHere,
+  effectiveInQueue,
   myEntryIdElsewhere,
   otherCoachUsername,
   fichaBalance,
@@ -401,7 +437,7 @@ function CtaButton({
     );
   }
 
-  if (myEntryIdHere) {
+  if (effectiveInQueue) {
     return (
       <button
         type="button"
