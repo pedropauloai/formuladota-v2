@@ -13,6 +13,10 @@ import { ConditionalChrome } from "@/components/layout/conditional-chrome";
 import { SoundProvider } from "@/components/layout/sound-provider";
 import { StickyQueueBanner } from "@/components/queue/sticky-banner";
 import { QueueRealtimeListener } from "@/components/queue/realtime-listener";
+// V2.5-F6: ToastProvider — sistema de toasts bottom-center custom (DF6.4)
+// Substitui Sonner como novo padrão para features V2.5+.
+// sonner.tsx mantido como compat layer para código legado.
+import { ToastProvider } from "@/components/ui/toast";
 // V2.5-F3: Camada atmosférica root-level com tsParticles (DF3.1)
 // position:fixed, z-index:var(--z-atmosphere)=-10, pointer-events:none
 import { AmbientLayer } from "@/components/layout/AmbientLayer";
@@ -54,6 +58,10 @@ export default function RootLayout({
             Transparente no DOM — nenhum elemento visual.
             Deve envolver todo o conteúdo que pode disparar sons. */}
         <SoundProvider>
+        {/* V2.5-F6: ToastProvider — toasts bottom-center custom (DF6.4).
+            Montado após SoundProvider (toasts disparam sons via useSound).
+            Substitui Sonner como padrão para features V2.5+. */}
+        <ToastProvider>
         {/* V2.5-F3: Camada atmosférica — partículas "dust" sutis em toda a app.
             position:fixed, z-index:-10 (var(--z-atmosphere)), pointer-events:none.
             Pausa automaticamente quando aba fica oculta (Page Visibility API).
@@ -72,8 +80,9 @@ export default function RootLayout({
         <ConditionalChrome>
           <Footer />
         </ConditionalChrome>
-        {/* Toaster global — qualquer Client Component pode chamar toast() */}
+        {/* Toaster global (Sonner compat) — mantido para código legado */}
         <Toaster />
+        </ToastProvider>
         </SoundProvider>
         </MotionProvider>
       </body>
