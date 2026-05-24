@@ -1,4 +1,4 @@
-// Catálogo público de pacotes — F2.2 + Multi-coach refactor (Phase 3 — H1.4).
+// Catálogo de pacotes — F2.2 + Multi-coach refactor (Phase 3 — H1.4).
 // Server Component: helper loadPackagesWithCoaches faz 2-3 queries + merge,
 // PacotesPage só renderiza (≤ 30 linhas — per C2 sem exceção).
 // RLS permite SELECT em packages.ativo=true e coaches.ativo=true para todos.
@@ -6,6 +6,11 @@
 // 2-query approach (NÃO Supabase relationship JOIN): Phase 2 viu issues
 // de tipo com nested .select() retornando objeto vs array. Manter merge no JS
 // é mais previsível em TS strict zero-any.
+//
+// Auth: middleware já exige login + doutrina + Steam vinculado pra /pacotes
+// (STEAM_REQUIRED_PATHS em src/lib/supabase/middleware.ts). Sistema A
+// (client-shell/shell.tsx) reforça com redirect("/login") interno — coerente
+// com o resto do funil (/checkout etc).
 
 import type { Metadata } from "next";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -13,7 +18,7 @@ import { createClient } from "@/lib/supabase/server";
 import { PackageGrid } from "@/components/catalog/package-grid";
 import type { CoachInfo } from "@/components/catalog/package-card";
 import type { Database, Tables } from "@/types/database";
-import { ClientShell } from "@/components/templates/client-shell";
+import { ClientShell } from "@/components/client-shell/shell";
 
 type PackageRow = Tables<"packages">;
 type CoachRow = Pick<Tables<"coaches">, "id" | "profile_id" | "slug">;
@@ -103,7 +108,7 @@ export default async function PacotesPage() {
   const packagesWithCoach = await loadPackagesWithCoaches(supabase);
 
   return (
-    <ClientShell>
+    <ClientShell currentRoute="/pacotes">
       <div className="px-4 py-10 md:py-14 mx-auto max-w-7xl">
         <header className="mb-10 md:mb-14 text-center">
           <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
