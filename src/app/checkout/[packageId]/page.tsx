@@ -38,10 +38,13 @@ export default async function CheckoutPage({ params }: PageProps) {
     <ClientShell currentRoute="/checkout">
       <div className="px-4 py-10 mx-auto max-w-3xl">
         <header className="mb-8 text-center">
-          <h1 className="text-3xl md:text-4xl font-display text-[var(--color-foreground)]">
-            Pagamento <span className="text-[var(--color-brand-red)]">PIX</span>
+          <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-brand-primary">
+            Checkout
+          </p>
+          <h1 className="mt-2 font-display text-3xl md:text-4xl uppercase tracking-tight text-text-display">
+            Pagamento <span className="text-brand-primary">PIX</span>
           </h1>
-          <p className="mt-2 text-[var(--color-muted-foreground)]">
+          <p className="mt-2 text-sm text-text-muted">
             Escaneie o QR Code ou copie o código no seu banco.
           </p>
         </header>

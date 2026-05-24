@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { Loader2, Trophy, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { registerTeamForTournament } from "@/app/times/actions";
+import { Button } from "@/components/ui/button";
 
 interface AvailableTeam {
   id: string;
@@ -41,46 +42,48 @@ export function TournamentRegisterButton({
 
   if (availableTeams.length === 0) return null;
 
-  // 1 time só → botão direto
+  // 1 time só → botão direto (cinematic — torneios são CTA de máximo impacto)
   const singleTeam = availableTeams.length === 1 ? availableTeams[0] : null;
   if (singleTeam) {
     return (
-      <button
+      <Button
         type="button"
+        variant="cinematic"
+        size="md"
         onClick={() => handleRegister(singleTeam.id)}
         disabled={isPending}
-        className="inline-flex h-12 items-center gap-2 rounded-md border border-[var(--color-play-green)] bg-gradient-to-b from-[var(--color-play-green)] to-[var(--color-play-green-dark)] px-6 font-display text-sm 2xl:text-base font-bold uppercase tracking-[0.25em] text-white shadow-lg shadow-[var(--color-play-green)]/30 hover:brightness-110 hover:shadow-[var(--color-play-green)]/50 transition-all disabled:opacity-50"
       >
         {isPending ? <Loader2 size={14} className="animate-spin" /> : <Trophy size={14} />}
         Inscrever {singleTeam.name}
-      </button>
+      </Button>
     );
   }
 
   return (
     <div className="relative inline-block">
-      <button
+      <Button
         type="button"
+        variant="cinematic"
+        size="md"
         onClick={() => setShowDropdown(!showDropdown)}
         disabled={isPending}
-        className="inline-flex h-12 items-center gap-2 rounded-md border border-[var(--color-play-green)] bg-gradient-to-b from-[var(--color-play-green)] to-[var(--color-play-green-dark)] px-6 font-display text-sm 2xl:text-base font-bold uppercase tracking-[0.25em] text-white shadow-lg shadow-[var(--color-play-green)]/30 hover:brightness-110 hover:shadow-[var(--color-play-green)]/50 transition-all disabled:opacity-50"
       >
         {isPending ? <Loader2 size={14} className="animate-spin" /> : <Trophy size={14} />}
         Inscrever time
         <ChevronDown size={14} />
-      </button>
+      </Button>
       {showDropdown && (
-        <div className="absolute left-0 top-full mt-2 w-64 rounded-md border border-[var(--color-border)] bg-black/95 backdrop-blur-md shadow-2xl z-30">
+        <div className="absolute left-0 top-full mt-2 w-64 rounded-md border border-border-subtle bg-bg-base/95 backdrop-blur-md shadow-2xl z-30">
           {availableTeams.map((t) => (
             <button
               key={t.id}
               type="button"
               onClick={() => handleRegister(t.id)}
               disabled={isPending}
-              className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left hover:bg-white/5 transition-colors first:rounded-t-md last:rounded-b-md"
+              className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left hover:bg-bg-elevated transition-colors first:rounded-t-md last:rounded-b-md"
             >
-              <span className="font-sans text-sm text-white">{t.name}</span>
-              <span className="font-mono text-[10px] uppercase tracking-widest text-white/40">
+              <span className="font-sans text-sm text-text-display">{t.name}</span>
+              <span className="font-mono text-[10px] uppercase tracking-widest text-text-faded">
                 [{t.tag}]
               </span>
             </button>

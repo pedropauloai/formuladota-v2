@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { joinTeam, leaveLobby, startMatch, cancelLobby } from "./actions";
+import { Button } from "@/components/ui/button";
 
 interface PlayerSlot {
   userId: string;
@@ -88,7 +89,7 @@ export function LobbyRoom({
   return (
     <div className="flex h-full flex-col">
       {/* Header — nome + líder + senha */}
-      <header className="border-b border-[var(--color-border)] bg-black/60 px-4 py-3">
+      <header className="border-b border-border-subtle bg-black/60 px-4 py-3">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-2 min-w-0">
             {onBack && (
@@ -115,7 +116,7 @@ export function LobbyRoom({
         {(lobby.status === "in_progress" || lobby.steamLobbyId?.startsWith("DEV-")) && (
           <p className="mt-1 font-mono text-[9px] uppercase tracking-widest">
             {lobby.status === "in_progress" && (
-              <span className="text-[var(--color-warning)]">Em andamento</span>
+              <span className="text-warning">Em andamento</span>
             )}
             {lobby.steamLobbyId?.startsWith("DEV-") && (
               <span className="text-white/40 ml-2">Modo dev (bot offline)</span>
@@ -125,7 +126,7 @@ export function LobbyRoom({
       </header>
 
       {/* Times — 2 cols */}
-      <section className="grid grid-cols-2 divide-x divide-[var(--color-border)] border-b border-[var(--color-border)]">
+      <section className="grid grid-cols-2 divide-x divide-border-subtle border-b border-border-subtle">
         <TeamColumn
           label="Os Iluminados"
           accent="cyan"
@@ -172,7 +173,7 @@ export function LobbyRoom({
                   "Encerrar sala" (força descarte com confirm) +
                   "Iniciar partida"
           Member: "Sair da sala" simples. */}
-      <div className="mt-auto border-t border-[var(--color-border)] bg-black/60 p-3 space-y-2">
+      <div className="mt-auto border-t border-border-subtle bg-black/60 p-3 space-y-2">
         {!inLobby && (
           <p className="text-center font-mono text-[10px] uppercase tracking-widest text-white/30 py-2">
             Você não está na sala
@@ -378,7 +379,7 @@ function PlayerSlotRow({
           )}
         </p>
         {isCurrent && (
-          <p className="font-mono text-[9px] uppercase tracking-widest text-[var(--color-brand-red)]">
+          <p className="font-mono text-[9px] uppercase tracking-widest text-brand-primary">
             você
           </p>
         )}
@@ -448,7 +449,7 @@ function SpectatorRow({
   const iAmSpectator = currentTeam === "spectator";
 
   return (
-    <section className="border-b border-[var(--color-border)] bg-black/30">
+    <section className="border-b border-border-subtle bg-black/30">
       <header className="flex items-center justify-between border-b border-white/5 px-3 py-2">
         <h3 className="font-sans text-[10px] font-semibold uppercase tracking-[0.25em] text-white/60">
           Jogadores de fora
@@ -477,7 +478,7 @@ function SpectatorRow({
                 key={s.userId}
                 className={`inline-flex items-center gap-1 rounded-sm border px-1.5 py-0.5 ${
                   isCurrent
-                    ? "border-[var(--color-brand-red)]/40 bg-[var(--color-brand-red)]/10"
+                    ? "border-brand-primary/40 bg-brand-primary/10"
                     : "border-white/10 bg-black/40"
                 }`}
               >
@@ -519,7 +520,7 @@ function SettingsPanel({
   isLeader: boolean;
 }) {
   return (
-    <section className="border-b border-[var(--color-border)] bg-black/30 px-3 py-3">
+    <section className="border-b border-border-subtle bg-black/30 px-3 py-3">
       <div className="mb-2 flex items-center justify-between">
         <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.25em] text-white/60">
           Configurações da sala
@@ -544,7 +545,7 @@ function SettingsPanel({
         <SettingRow
           label="Trapaças"
           value="Não"
-          valueClass="text-[var(--color-success)]"
+          valueClass="text-success"
         />
         <SettingRow label="Visibilidade" value="Pública" />
         <SettingRow label="Liga" value="Nenhuma" />
@@ -596,9 +597,9 @@ function PasswordBadge({ password }: { password: string }) {
   };
 
   return (
-    <div className="flex shrink-0 items-center gap-1.5 rounded-sm border border-[var(--color-border)] bg-black/40 px-2 py-1">
+    <div className="flex shrink-0 items-center gap-1.5 rounded-sm border border-border-subtle bg-black/40 px-2 py-1">
       <Lock size={10} className="text-white/40" aria-hidden="true" />
-      <code className="font-mono text-[10px] text-[var(--color-brand-red)]">
+      <code className="font-mono text-[10px] text-brand-primary">
         {reveal ? password : "••••••"}
       </code>
       <button
@@ -676,7 +677,7 @@ function EndLobbyButton({ lobbyId }: { lobbyId: string }) {
       <input type="hidden" name="lobbyId" value={lobbyId} />
       <button
         type="submit"
-        className="w-full inline-flex items-center justify-center gap-2 rounded-sm border border-[var(--color-danger)]/30 bg-black/40 px-4 py-2.5 font-sans text-[11px] font-semibold uppercase tracking-[0.2em] text-white/70 hover:bg-[var(--color-danger)]/20 hover:border-[var(--color-danger)] hover:text-white transition-colors"
+        className="w-full inline-flex items-center justify-center gap-2 rounded-sm border border-error/30 bg-black/40 px-4 py-2.5 font-sans text-[11px] font-semibold uppercase tracking-[0.2em] text-white/70 hover:bg-error/20 hover:border-error hover:text-white transition-colors"
       >
         Encerrar sala
       </button>
@@ -706,12 +707,17 @@ function StartMatchButton({
     });
   };
 
+  // INICIAR PARTIDA é VERMELHO (M2 ref lobby criado.png #7 mostra CTA RED) —
+  // representa fim do lobby/início da ação. Usa <Button variant="primary"> +
+  // h-12 + tracking massivo para CTA de máximo peso em painel lateral.
   return (
-    <button
+    <Button
       type="button"
+      variant="primary"
+      size="md"
       onClick={handleStart}
       disabled={disabled || isPending}
-      className="group relative w-full inline-flex h-12 items-center justify-center gap-2 overflow-hidden rounded-sm border border-[var(--color-play-green)] bg-gradient-to-b from-[var(--color-play-green)] to-[var(--color-play-green-dark)] px-6 font-display text-sm font-bold uppercase tracking-[0.3em] text-white shadow-lg shadow-[var(--color-play-green)]/30 hover:brightness-110 hover:shadow-[var(--color-play-green)]/50 transition-all disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:brightness-100"
+      className="w-full tracking-[0.3em]"
     >
       {isPending ? (
         <Loader2 size={14} className="animate-spin" aria-hidden="true" />
@@ -719,6 +725,6 @@ function StartMatchButton({
         <Play size={14} fill="currentColor" aria-hidden="true" />
       )}
       <span>{isPending ? "Iniciando..." : "Iniciar partida"}</span>
-    </button>
+    </Button>
   );
 }

@@ -8,6 +8,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { RefreshCw } from "lucide-react";
 import { CreateLobbyModal } from "./create-lobby-modal";
+import { Button } from "@/components/ui/button";
 
 interface LobbyRow {
   id: string;
@@ -75,7 +76,7 @@ export function LobbiesContent({ lobbies, onSelectLobby, onCreate }: LobbiesCont
     <>
       <div className="flex h-full flex-col">
         {/* Header */}
-        <header className="flex items-center justify-between border-b border-[var(--color-border)] bg-black/60 px-4 py-3">
+        <header className="flex items-center justify-between border-b border-border-subtle bg-black/60 px-4 py-3">
           <h1 className="font-display text-sm uppercase tracking-[0.25em] text-white">
             Salas Personalizadas
           </h1>
@@ -93,7 +94,7 @@ export function LobbiesContent({ lobbies, onSelectLobby, onCreate }: LobbiesCont
         {/* Tabela */}
         <div className="flex-1 min-h-0 overflow-y-auto">
           <table className="w-full text-left">
-            <thead className="border-b border-[var(--color-border)] bg-black/40 sticky top-0">
+            <thead className="border-b border-border-subtle bg-black/40 sticky top-0">
               <tr>
                 <Th>Nome da sala</Th>
                 <Th align="center">Vagas</Th>
@@ -111,7 +112,7 @@ export function LobbiesContent({ lobbies, onSelectLobby, onCreate }: LobbiesCont
                     <button
                       type="button"
                       onClick={handleCreate}
-                      className="mt-2 font-sans text-[10px] uppercase tracking-widest text-[var(--color-brand-red)] hover:text-white transition-colors"
+                      className="mt-2 font-sans text-[10px] uppercase tracking-widest text-brand-primary hover:text-text-display transition-colors"
                     >
                       Criar a primeira →
                     </button>
@@ -127,7 +128,7 @@ export function LobbiesContent({ lobbies, onSelectLobby, onCreate }: LobbiesCont
                       onDoubleClick={() => handleRowDoubleClick(lobby.id)}
                       className={`cursor-pointer border-b border-white/5 transition-colors ${
                         isSel
-                          ? "bg-[var(--color-brand-red)]/15"
+                          ? "bg-brand-primary/15"
                           : "hover:bg-white/5"
                       }`}
                     >
@@ -160,7 +161,7 @@ export function LobbiesContent({ lobbies, onSelectLobby, onCreate }: LobbiesCont
         </div>
 
         {/* Filtros */}
-        <section className="border-t border-[var(--color-border)] bg-black/40 px-4 py-3">
+        <section className="border-t border-border-subtle bg-black/40 px-4 py-3">
           <p className="mb-2 font-sans text-[10px] font-semibold uppercase tracking-[0.25em] text-white/60">
             Filtrar salas
           </p>
@@ -217,7 +218,7 @@ export function LobbiesContent({ lobbies, onSelectLobby, onCreate }: LobbiesCont
         </section>
 
         {/* Ações finais — Criar + Entrar */}
-        <div className="border-t border-[var(--color-border)] bg-black/60 p-3 space-y-2">
+        <div className="border-t border-border-subtle bg-black/60 p-3 space-y-2">
           <button
             type="button"
             onClick={handleCreate}
@@ -225,14 +226,16 @@ export function LobbiesContent({ lobbies, onSelectLobby, onCreate }: LobbiesCont
           >
             Criar sala
           </button>
-          <button
+          <Button
             type="button"
+            variant="cinematic"
+            size="md"
             onClick={handleEnter}
             disabled={!selected}
-            className="w-full inline-flex h-12 items-center justify-center overflow-hidden rounded-sm border border-[var(--color-play-green)] bg-gradient-to-b from-[var(--color-play-green)] to-[var(--color-play-green-dark)] px-6 font-display text-sm font-bold uppercase tracking-[0.3em] text-white shadow-lg shadow-[var(--color-play-green)]/30 hover:brightness-110 hover:shadow-[var(--color-play-green)]/50 transition-all disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:brightness-100"
+            className="w-full tracking-[0.3em]"
           >
             Entrar na sala
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -291,7 +294,7 @@ function FilterField({
       <span className="block mb-1 font-mono text-[9px] uppercase tracking-widest text-white/40">
         {label}
       </span>
-      <div className="rounded-sm border border-[var(--color-border)] bg-black/40 px-2 py-1.5">
+      <div className="rounded-sm border border-border-subtle bg-black/40 px-2 py-1.5">
         {children}
       </div>
     </label>

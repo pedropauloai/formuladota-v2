@@ -100,10 +100,10 @@ export default async function ProgressoPage() {
     <ClientShell currentRoute="/progresso">
       <div className="px-6 py-8 xl:px-12 xl:py-10 2xl:px-16 2xl:py-12 space-y-10">
         <header>
-          <p className="font-sans text-xs 2xl:text-sm font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
+          <p className="font-sans text-xs 2xl:text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
             FORMULADOTA · Progressão
           </p>
-          <h1 className="mt-2 font-display text-3xl 2xl:text-5xl uppercase tracking-tight text-white">
+          <h1 className="mt-2 font-display text-3xl 2xl:text-5xl uppercase tracking-tight text-text-display">
             Progresso
           </h1>
           <div className="mt-4 brand-divider" />
@@ -261,9 +261,9 @@ export default async function ProgressoPage() {
           <h2 className="mb-4 font-sans text-xs 2xl:text-sm font-semibold uppercase tracking-[0.2em] text-white/70">
             Tabela de levels
           </h2>
-          <div className="rounded-md border border-[var(--color-border)] bg-black/40 overflow-hidden">
+          <div className="rounded-md border border-border-subtle bg-bg-base overflow-hidden">
             <table className="w-full text-left">
-              <thead className="border-b border-[var(--color-border)] bg-black/40">
+              <thead className="border-b border-border-subtle bg-bg-elevated">
                 <tr>
                   <Th>Level</Th>
                   <Th align="right">XP necessário</Th>
@@ -282,15 +282,15 @@ export default async function ProgressoPage() {
                     <tr
                       key={t.level}
                       className={`border-b border-white/5 last:border-0 ${
-                        isCurrent ? "bg-[var(--color-brand-red)]/15" : ""
+                        isCurrent ? "bg-brand-primary/15" : ""
                       } ${!isUnlocked ? "opacity-40" : ""}`}
                     >
                       <Td>
-                        <span className="font-display text-sm text-white">
+                        <span className="font-display text-sm text-text-display">
                           {t.level}
                         </span>
                         {isCurrent && (
-                          <span className="ml-2 font-mono text-[9px] uppercase tracking-widest text-[var(--color-brand-red)]">
+                          <span className="ml-2 font-mono text-[9px] uppercase tracking-widest text-brand-primary">
                             ATUAL
                           </span>
                         )}
@@ -334,7 +334,7 @@ export default async function ProgressoPage() {
             Histórico de XP <span className="text-white/40">(últimos 20)</span>
           </h2>
           {events && events.length > 0 ? (
-            <div className="rounded-md border border-[var(--color-border)] bg-black/40 divide-y divide-white/5">
+            <div className="rounded-md border border-border-subtle bg-bg-base divide-y divide-white/5">
               {events.map((e, i) => {
                 const leveledUp =
                   e.level_before !== null &&
@@ -377,7 +377,7 @@ export default async function ProgressoPage() {
                         </span>
                       )}
                       {leveledUp && (
-                        <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--color-brand-red)]">
+                        <span className="font-mono text-[10px] uppercase tracking-widest text-brand-primary">
                           Level {e.level_before} → {e.level_after}
                         </span>
                       )}

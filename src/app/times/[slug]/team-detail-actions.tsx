@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { Loader2, LogOut, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { leaveTeam, kickMember, deleteTeam } from "../actions";
+import { Button } from "@/components/ui/button";
 
 interface Member {
   user_id: string;
@@ -85,8 +86,8 @@ export function TeamDetailActions({
 
       {/* Captain: gerenciar membros (kick) */}
       {isCaptain && members.length > 1 && (
-        <div className="rounded-md border border-[var(--color-border)] bg-black/40 p-4 space-y-3">
-          <p className="font-sans text-xs font-semibold uppercase tracking-wide text-white/70">
+        <div className="rounded-md border border-border-subtle bg-bg-base p-4 space-y-3">
+          <p className="font-sans text-xs font-semibold uppercase tracking-wide text-text-body">
             Gerenciar roster
           </p>
           <div className="space-y-2">
@@ -95,11 +96,11 @@ export function TeamDetailActions({
               .map((m) => (
                 <div
                   key={m.user_id}
-                  className="flex items-center justify-between gap-3 rounded-sm bg-black/40 px-3 py-2"
+                  className="flex items-center justify-between gap-3 rounded-sm bg-bg-elevated px-3 py-2"
                 >
-                  <span className="font-sans text-sm text-white">
+                  <span className="font-sans text-sm text-text-display">
                     {m.profile?.username ?? "Anônimo"}{" "}
-                    <span className="font-mono text-[10px] uppercase tracking-widest text-white/40">
+                    <span className="font-mono text-[10px] uppercase tracking-widest text-text-faded">
                       · {m.role}
                     </span>
                   </span>
@@ -107,7 +108,7 @@ export function TeamDetailActions({
                     type="button"
                     onClick={() => handleKick(m.user_id, m.profile?.username ?? null)}
                     disabled={isPending}
-                    className="text-white/50 hover:text-[var(--color-danger)] transition-colors disabled:opacity-30"
+                    className="text-text-muted hover:text-error transition-colors disabled:opacity-30"
                     aria-label="Remover membro"
                   >
                     <X size={14} />
@@ -120,23 +121,25 @@ export function TeamDetailActions({
 
       <div className="flex gap-3">
         {isMember && !isCaptain && (
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="md"
             onClick={handleLeave}
             disabled={isPending}
-            className="inline-flex items-center gap-2 rounded-md border border-white/10 bg-black/40 px-4 py-2.5 font-sans text-xs font-semibold uppercase tracking-wide text-white/70 hover:bg-white/5 hover:text-white transition-colors disabled:opacity-50"
           >
             {isPending ? <Loader2 size={14} className="animate-spin" /> : <LogOut size={14} />}
             Sair do time
-          </button>
+          </Button>
         )}
 
         {isCaptain && (
-          <button
+          <Button
             type="button"
+            variant="destructive"
+            size="md"
             onClick={handleDelete}
             disabled={isPending}
-            className="inline-flex items-center gap-2 rounded-md border border-[var(--color-danger)]/40 bg-[var(--color-danger)]/10 px-4 py-2.5 font-sans text-xs font-semibold uppercase tracking-wide text-white/80 hover:bg-[var(--color-danger)]/20 hover:text-white transition-colors disabled:opacity-50"
           >
             {isPending ? (
               <Loader2 size={14} className="animate-spin" />
@@ -144,7 +147,7 @@ export function TeamDetailActions({
               <Trash2 size={14} />
             )}
             Deletar time
-          </button>
+          </Button>
         )}
       </div>
 

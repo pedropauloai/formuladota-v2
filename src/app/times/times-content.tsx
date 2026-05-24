@@ -13,6 +13,7 @@ import {
   declineInvite,
   leaveTeam,
 } from "./actions";
+import { Button } from "@/components/ui/button";
 
 interface UserTeam {
   id: string;
@@ -70,7 +71,7 @@ export function TimesContent({
         <button
           type="button"
           onClick={() => setShowCreate(true)}
-          className="inline-flex items-center gap-2 rounded-md border border-[var(--color-brand-red)] bg-[var(--color-brand-red)]/15 px-4 py-2 font-sans text-xs 2xl:text-sm font-semibold uppercase tracking-wide text-white hover:bg-[var(--color-brand-red)] transition-colors"
+          className="inline-flex items-center gap-2 rounded-md border border-brand-primary bg-brand-primary/15 px-4 py-2 font-sans text-xs 2xl:text-sm font-semibold uppercase tracking-wide text-white hover:bg-brand-primary transition-colors"
         >
           <Plus size={14} aria-hidden="true" />
           Criar time
@@ -152,11 +153,13 @@ function InviteCard({ invite }: { invite: Invite }) {
         </p>
       )}
       <div className="flex gap-2 pt-1">
-        <button
+        <Button
           type="button"
+          variant="cinematic"
+          size="sm"
           onClick={handleAccept}
           disabled={isPending}
-          className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-sm border border-[var(--color-play-green)] bg-gradient-to-b from-[var(--color-play-green)] to-[var(--color-play-green-dark)] px-3 py-2 font-sans text-[11px] font-bold uppercase tracking-wide text-white hover:brightness-110 transition-all disabled:opacity-50"
+          className="flex-1"
         >
           {isPending ? (
             <Loader2 size={12} className="animate-spin" />
@@ -164,16 +167,18 @@ function InviteCard({ invite }: { invite: Invite }) {
             <Check size={12} />
           )}
           Aceitar
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          variant="ghost"
+          size="sm"
           onClick={handleDecline}
           disabled={isPending}
-          className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-sm border border-white/10 bg-black/40 px-3 py-2 font-sans text-[11px] font-semibold uppercase tracking-wide text-white/70 hover:bg-white/5 hover:text-white transition-colors disabled:opacity-50"
+          className="flex-1"
         >
           <X size={12} />
           Recusar
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -201,7 +206,7 @@ function TeamCard({ team }: { team: UserTeam }) {
   return (
     <Link
       href={`/times/${team.slug}`}
-      className="group relative rounded-md border border-[var(--color-border)] bg-gradient-to-b from-black/60 to-black/40 p-5 hover:border-[var(--color-brand-red)]/60 transition-colors block"
+      className="group relative rounded-md border border-border-subtle bg-gradient-to-b from-black/60 to-black/40 p-5 hover:border-brand-primary/60 transition-colors block"
     >
       <div className="flex items-start gap-3">
         {team.logo_url ? (
@@ -212,14 +217,14 @@ function TeamCard({ team }: { team: UserTeam }) {
             className="size-12 rounded-md border border-white/10 shrink-0"
           />
         ) : (
-          <div className="size-12 rounded-md border border-white/10 bg-[var(--color-brand-red)]/15 flex items-center justify-center shrink-0">
-            <span className="font-display text-base text-[var(--color-brand-red)]">
+          <div className="size-12 rounded-md border border-white/10 bg-brand-primary/15 flex items-center justify-center shrink-0">
+            <span className="font-display text-base text-brand-primary">
               {team.tag}
             </span>
           </div>
         )}
         <div className="min-w-0 flex-1">
-          <p className="font-display text-base uppercase tracking-wide text-white truncate group-hover:text-[var(--color-brand-red)] transition-colors">
+          <p className="font-display text-base uppercase tracking-wide text-white truncate group-hover:text-brand-primary transition-colors">
             {team.name}
           </p>
           <p className="font-mono text-[10px] uppercase tracking-widest text-white/40 mt-0.5">
@@ -245,7 +250,7 @@ function TeamCard({ team }: { team: UserTeam }) {
         <span className="text-white/50">
           <Users size={10} className="inline mr-1" /> {team.memberCount}/7
         </span>
-        <span className="text-[var(--color-brand-red)]">{team.role}</span>
+        <span className="text-brand-primary">{team.role}</span>
       </div>
 
       {!team.isCaptain && (
@@ -257,7 +262,7 @@ function TeamCard({ team }: { team: UserTeam }) {
             handleLeave();
           }}
           disabled={isPending}
-          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-white/40 hover:text-[var(--color-danger)] transition-all"
+          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-white/40 hover:text-error transition-all"
           aria-label="Sair do time"
           title="Sair do time"
         >
@@ -318,7 +323,7 @@ function CreateTeamModal({ onClose }: { onClose: () => void }) {
       />
       <form
         onSubmit={handleSubmit}
-        className="relative w-full max-w-lg rounded-md border border-[var(--color-border)] bg-gradient-to-b from-[#0c0c0c] to-black p-6 space-y-4 shadow-2xl"
+        className="relative w-full max-w-lg rounded-md border border-border-subtle bg-gradient-to-b from-[#0c0c0c] to-black p-6 space-y-4 shadow-2xl"
       >
         <div className="flex items-center justify-between">
           <h2 className="font-display text-base uppercase tracking-[0.2em] text-white">
@@ -344,7 +349,7 @@ function CreateTeamModal({ onClose }: { onClose: () => void }) {
               value={name}
               onChange={(e) => handleNameChange(e.target.value)}
               placeholder="Ex.: Os Imortais BR"
-              className="w-full rounded-md border border-[var(--color-border)] bg-black/40 px-3 py-2 font-sans text-sm text-white placeholder:text-white/30 focus:border-[var(--color-brand-red)] focus:outline-none"
+              className="w-full rounded-md border border-border-subtle bg-black/40 px-3 py-2 font-sans text-sm text-white placeholder:text-white/30 focus:border-brand-primary focus:outline-none"
             />
           </Field>
 
@@ -360,7 +365,7 @@ function CreateTeamModal({ onClose }: { onClose: () => void }) {
                   setTag(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""))
                 }
                 placeholder="IMRT"
-                className="w-full rounded-md border border-[var(--color-border)] bg-black/40 px-3 py-2 font-mono text-sm uppercase text-white placeholder:text-white/30 focus:border-[var(--color-brand-red)] focus:outline-none"
+                className="w-full rounded-md border border-border-subtle bg-black/40 px-3 py-2 font-mono text-sm uppercase text-white placeholder:text-white/30 focus:border-brand-primary focus:outline-none"
               />
             </Field>
             <Field label="Slug URL">
@@ -374,7 +379,7 @@ function CreateTeamModal({ onClose }: { onClose: () => void }) {
                   setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))
                 }
                 placeholder="os-imortais-br"
-                className="w-full rounded-md border border-[var(--color-border)] bg-black/40 px-3 py-2 font-mono text-sm text-white placeholder:text-white/30 focus:border-[var(--color-brand-red)] focus:outline-none"
+                className="w-full rounded-md border border-border-subtle bg-black/40 px-3 py-2 font-mono text-sm text-white placeholder:text-white/30 focus:border-brand-primary focus:outline-none"
               />
             </Field>
           </div>
@@ -386,7 +391,7 @@ function CreateTeamModal({ onClose }: { onClose: () => void }) {
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Time competitivo focado em..."
               rows={3}
-              className="w-full rounded-md border border-[var(--color-border)] bg-black/40 px-3 py-2 font-sans text-sm text-white placeholder:text-white/30 focus:border-[var(--color-brand-red)] focus:outline-none resize-none"
+              className="w-full rounded-md border border-border-subtle bg-black/40 px-3 py-2 font-sans text-sm text-white placeholder:text-white/30 focus:border-brand-primary focus:outline-none resize-none"
             />
             <p className="mt-1 text-right font-mono text-[9px] text-white/30">
               {description.length}/280
@@ -395,22 +400,26 @@ function CreateTeamModal({ onClose }: { onClose: () => void }) {
         </div>
 
         <div className="flex gap-2 pt-2">
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="md"
             onClick={onClose}
             disabled={isPending}
-            className="flex-1 inline-flex items-center justify-center rounded-sm border border-white/10 bg-black/40 px-4 py-2.5 font-sans text-[11px] font-semibold uppercase tracking-wide text-white/70 hover:bg-white/5 hover:text-white transition-colors disabled:opacity-50"
+            className="flex-1"
           >
             Cancelar
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
+            variant="cinematic"
+            size="md"
             disabled={isPending || name.length < 3 || tag.length < 2 || slug.length < 3}
-            className="flex-1 inline-flex h-11 items-center justify-center gap-2 rounded-sm border border-[var(--color-play-green)] bg-gradient-to-b from-[var(--color-play-green)] to-[var(--color-play-green-dark)] px-4 font-display text-sm font-bold uppercase tracking-[0.2em] text-white shadow-lg shadow-[var(--color-play-green)]/30 hover:brightness-110 transition-all disabled:opacity-50"
+            className="flex-1"
           >
             {isPending ? <Loader2 size={14} className="animate-spin" /> : null}
             {isPending ? "Criando..." : "Criar time"}
-          </button>
+          </Button>
         </div>
       </form>
     </div>

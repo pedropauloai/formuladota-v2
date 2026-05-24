@@ -175,14 +175,20 @@ export default async function HomePage() {
                   Ler a Doutrina
                 </Button>
               </Link>
+
+              <Link href="/metodologia" style={{ textDecoration: "none" }}>
+                <Button variant="ghost" size="lg">
+                  Ler a Metodologia
+                </Button>
+              </Link>
             </div>
 
             {/* Subtexto — honesto, sem hype, sem promessa quantitativa */}
             <p
+              className="text-text-faded"
               style={{
                 fontFamily: "var(--font-body)",
                 fontSize: "0.8rem",
-                color: "var(--color-text-faded)",
                 lineHeight: 1.5,
                 margin: 0,
               }}
@@ -210,36 +216,142 @@ export default async function HomePage() {
       >
         {/* Label */}
         <p
+          className="text-text-faded"
           style={{
             fontFamily: "var(--font-display)",
             fontSize: "0.65rem",
             textTransform: "uppercase",
             letterSpacing: "0.45em",
-            color: "var(--color-text-faded)",
             marginBottom: "var(--space-6)",
           }}
         >
           Manifesto
         </p>
 
-        {/* Citação de impacto — bleed assimétrico, sem container SaaS */}
+        {/* Citação de impacto — tese central da Fórmula (METHODOLOGY.md §1) */}
         <blockquote
           style={{
             fontFamily: "var(--font-display)",
-            fontSize: "clamp(1.8rem, 5vw, 4rem)",
+            fontSize: "clamp(1.5rem, 4vw, 3.2rem)",
             fontStyle: "italic",
             fontWeight: 600,
             color: "var(--color-text-display)",
-            lineHeight: 1.2,
+            lineHeight: 1.25,
             borderLeft: "3px solid var(--color-brand-primary)",
             paddingLeft: "var(--space-8)",
             margin: 0,
           }}
         >
-          &ldquo;Vencer nao e ser o melhor.
+          &ldquo;Dota 2 nao e sobre matar herois.
           <br />
-          E ser o que aprende mais rapido.&rdquo;
+          E sobre progredir o seu heroi de forma consistente
+          <br />
+          e impedir a progressao consistente do adversario.&rdquo;
         </blockquote>
+
+        {/* Subtitulo / chamada complementar */}
+        <p
+          className="text-text-faded"
+          style={{
+            fontFamily: "var(--font-display)",
+            fontSize: "clamp(0.9rem, 1.8vw, 1.2rem)",
+            fontStyle: "italic",
+            lineHeight: 1.5,
+            marginTop: "var(--space-8)",
+            paddingLeft: "var(--space-8)",
+          }}
+        >
+          Permita-se questionar. Sobre tudo e qualquer coisa.
+          <br />
+          Isso sim e o que evolui um ser.
+        </p>
+      </section>
+
+      {/* ================================================================
+          SEÇÃO 2.5 — DADOS: argumento estatístico de quem é o público
+          Fonte: OpenDota API distributions (maio 2026)
+          ================================================================ */}
+      <section
+        style={{
+          position: "relative",
+          width: "100vw",
+          borderTop: "1px solid var(--color-border-subtle)",
+          paddingTop: "clamp(4rem, 10vw, 10rem)",
+          paddingBottom: "clamp(4rem, 10vw, 10rem)",
+          paddingLeft: "clamp(2rem, 8vw, 10rem)",
+          paddingRight: "clamp(2rem, 8vw, 10rem)",
+        }}
+      >
+        <p
+          style={{
+            fontFamily: "var(--font-display)",
+            fontSize: "0.65rem",
+            textTransform: "uppercase",
+            letterSpacing: "0.45em",
+            color: "var(--color-brand-primary)",
+            marginBottom: "var(--space-3)",
+          }}
+        >
+          Pra quem
+        </p>
+
+        <h2
+          style={{
+            fontFamily: "var(--font-display)",
+            fontSize: "clamp(2rem, 5vw, 4rem)",
+            fontWeight: 700,
+            textTransform: "uppercase",
+            color: "var(--color-text-display)",
+            letterSpacing: "0.06em",
+            margin: 0,
+            marginBottom: "var(--space-12)",
+            maxWidth: "30ch",
+            lineHeight: 1.1,
+          }}
+        >
+          A Formula foi desenhada para sair desta estatistica.
+        </h2>
+
+        {/* Grid de 3 numeros — hierarquia tipografica massiva */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+            gap: "clamp(2rem, 5vw, 5rem)",
+            marginTop: "var(--space-12)",
+          }}
+        >
+          <StatBlock
+            number="8.109.737"
+            label="Jogadores calibrados no mundo"
+            note="Dados OpenDota, maio 2026"
+          />
+          <StatBlock
+            number="56%"
+            label="Presos em Guardiao · Cruzado · Arconte"
+            note="4.5 milhoes de pessoas paradas"
+          />
+          <StatBlock
+            number="9,6%"
+            label="Chegaram em Divine ou Imortal"
+            note="O resto e treinable"
+          />
+        </div>
+
+        <p
+          style={{
+            fontFamily: "var(--font-body)",
+            fontStyle: "italic",
+            fontSize: "clamp(1rem, 1.8vw, 1.3rem)",
+            color: "var(--color-text-body)",
+            lineHeight: 1.6,
+            marginTop: "clamp(3rem, 6vw, 5rem)",
+            maxWidth: "55ch",
+          }}
+        >
+          Quem fica preso nao esta preso por falta de talento. Esta preso por
+          falta de metodo. A Formula e o metodo.
+        </p>
       </section>
 
       {/* ================================================================
@@ -455,31 +567,31 @@ export default async function HomePage() {
         }}
       >
         <p
+          className="text-text-faded"
           style={{
             fontFamily: "var(--font-display)",
             fontSize: "0.75rem",
             textTransform: "uppercase",
             letterSpacing: "0.3em",
-            color: "var(--color-text-faded)",
           }}
         >
           FORMULADOTA — Hub Dota 2 Brasil
         </p>
         <p
+          className="text-text-faded"
           style={{
             fontFamily: "var(--font-body)",
             fontSize: "0.7rem",
-            color: "var(--color-text-faded)",
           }}
         >
           Dota e o logotipo do Dota sao marcas e/ou marcas registradas da Valve Corporation.
           FORMULADOTA nao e afiliado a Valve Corporation.
         </p>
         <p
+          className="text-text-faded"
           style={{
             fontFamily: "var(--font-body)",
             fontSize: "0.7rem",
-            color: "var(--color-text-faded)",
           }}
         >
           Sons UI: Freesound.org (licenca CC0). Creditos detalhados em /sounds/CREDITS.md.
@@ -566,6 +678,75 @@ function StepBlock({
 }
 
 /**
+ * StatBlock — bloco de número grande + label.
+ * Hierarquia cinematográfica: número domina 60% da atenção visual do bloco.
+ */
+function StatBlock({
+  number,
+  label,
+  note,
+}: {
+  number: string;
+  label: string;
+  note: string;
+}) {
+  return (
+    <div
+      style={{
+        borderLeft: "2px solid var(--color-brand-primary)",
+        paddingLeft: "var(--space-6)",
+        paddingTop: "var(--space-4)",
+        paddingBottom: "var(--space-4)",
+      }}
+    >
+      {/* Número massivo — elemento de 60% */}
+      <p
+        style={{
+          fontFamily: "var(--font-display)",
+          fontSize: "clamp(2.5rem, 6vw, 5rem)",
+          fontWeight: 900,
+          color: "var(--color-text-display)",
+          letterSpacing: "0.02em",
+          lineHeight: 1,
+          marginBottom: "var(--space-4)",
+          fontVariantNumeric: "tabular-nums",
+        }}
+      >
+        {number}
+      </p>
+
+      {/* Label principal */}
+      <p
+        style={{
+          fontFamily: "var(--font-display)",
+          fontSize: "clamp(0.85rem, 1.3vw, 1rem)",
+          textTransform: "uppercase",
+          letterSpacing: "0.1em",
+          color: "var(--color-text-body)",
+          lineHeight: 1.4,
+          marginBottom: "var(--space-3)",
+        }}
+      >
+        {label}
+      </p>
+
+      {/* Nota / fonte */}
+      <p
+        className="text-text-faded"
+        style={{
+          fontFamily: "var(--font-body)",
+          fontSize: "0.75rem",
+          fontStyle: "italic",
+          lineHeight: 1.5,
+        }}
+      >
+        {note}
+      </p>
+    </div>
+  );
+}
+
+/**
  * PrincipleBlock — exibe um princípio da doutrina.
  * Border-left brand-primary, texto Cinzel para título.
  * Sem container max-w — ocupa largura total da coluna pai.
@@ -582,12 +763,12 @@ function PrincipleBlock({ principle }: { principle: (typeof PRINCIPLES)[0] }) {
     >
       {/* Meta: numero + categoria */}
       <p
+        className="text-text-faded"
         style={{
           fontFamily: "var(--font-display)",
           fontSize: "0.65rem",
           textTransform: "uppercase",
           letterSpacing: "0.4em",
-          color: "var(--color-text-faded)",
           marginBottom: "var(--space-2)",
         }}
       >

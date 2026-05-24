@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { X, Loader2, ChevronDown, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { createLobby } from "@/app/criar-lobby/actions";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   open: boolean;
@@ -56,10 +57,10 @@ export function CreateLobbyModal({ open, onClose }: Props) {
       <div
         role="dialog"
         aria-label="Configurações da sala"
-        className="absolute left-1/2 top-1/2 w-full max-w-2xl -translate-x-1/2 -translate-y-1/2 rounded-md border-2 border-[var(--color-border)] bg-gradient-to-b from-[#0c0c0c] to-black shadow-2xl xl:max-w-3xl"
+        className="absolute left-1/2 top-1/2 w-full max-w-2xl -translate-x-1/2 -translate-y-1/2 rounded-md border-2 border-border-subtle bg-gradient-to-b from-[#0c0c0c] to-black shadow-2xl xl:max-w-3xl"
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[var(--color-border)] px-6 py-4">
+        <div className="flex items-center justify-between border-b border-border-subtle px-6 py-4">
           <h2 className="font-display text-base uppercase tracking-[0.25em] text-white">
             Configurações da sala
           </h2>
@@ -84,7 +85,7 @@ export function CreateLobbyModal({ open, onClose }: Props) {
                 minLength={3}
                 maxLength={60}
                 placeholder="FORMULADOTA #42"
-                className="w-full rounded-md border border-[var(--color-border)] bg-black/40 px-3 py-2 font-sans text-sm text-white placeholder:text-white/40 focus:border-[var(--color-brand-red)] focus:outline-none"
+                className="w-full rounded-md border border-border-subtle bg-black/40 px-3 py-2 font-sans text-sm text-white placeholder:text-white/40 focus:border-brand-primary focus:outline-none"
               />
             </Field>
 
@@ -150,7 +151,7 @@ export function CreateLobbyModal({ open, onClose }: Props) {
           </button>
 
           {showAdvanced && (
-            <div className="space-y-4 rounded-md border border-[var(--color-border)] bg-black/30 p-5">
+            <div className="space-y-4 rounded-md border border-border-subtle bg-black/30 p-5">
               <p className="font-mono text-[11px] uppercase tracking-widest text-white/40">
                 Recursos avançados — V2 (placeholder)
               </p>
@@ -195,23 +196,25 @@ export function CreateLobbyModal({ open, onClose }: Props) {
           )}
 
           {/* Footer botões */}
-          <div className="flex items-center justify-end gap-3 border-t border-[var(--color-border)] pt-5">
-            <button
+          <div className="flex items-center justify-end gap-3 border-t border-border-subtle pt-5">
+            <Button
               type="button"
+              variant="ghost"
+              size="md"
               onClick={onClose}
               disabled={isPending}
-              className="rounded-md border border-[var(--color-border)] bg-black/40 px-5 py-2.5 font-sans text-xs font-semibold uppercase tracking-wide text-white/70 hover:bg-white/5 hover:text-white transition-colors disabled:opacity-50"
             >
               Cancelar
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
+              variant="cinematic"
+              size="md"
               disabled={isPending}
-              className="inline-flex items-center gap-2 rounded-md border border-[var(--color-play-green)] bg-gradient-to-b from-[var(--color-play-green)] to-[var(--color-play-green-dark)] px-6 py-2.5 font-sans text-xs font-semibold uppercase tracking-wide text-white shadow-lg shadow-[var(--color-play-green)]/30 hover:scale-[1.02] hover:shadow-[var(--color-play-green)]/50 transition-all disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isPending && <Loader2 size={14} className="animate-spin" aria-hidden="true" />}
               {isPending ? "Bot criando lobby..." : "Criar sala"}
-            </button>
+            </Button>
           </div>
         </form>
       </div>
@@ -247,7 +250,7 @@ function SelectInput({
         name={name}
         defaultValue={defaultValue}
         disabled={disabled}
-        className="w-full appearance-none rounded-md border border-[var(--color-border)] bg-black/40 px-3 py-2 pr-8 font-sans text-sm text-white focus:border-[var(--color-brand-red)] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full appearance-none rounded-md border border-border-subtle bg-black/40 px-3 py-2 pr-8 font-sans text-sm text-white focus:border-brand-primary focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value} className="bg-black">
@@ -272,7 +275,7 @@ function PasswordReadonly() {
         type={reveal ? "text" : "password"}
         readOnly
         value="auto-gerada · 8 caracteres"
-        className="w-full rounded-md border border-[var(--color-border)] bg-black/30 px-3 py-2 pr-9 font-mono text-xs text-white/60 focus:outline-none"
+        className="w-full rounded-md border border-border-subtle bg-black/30 px-3 py-2 pr-9 font-mono text-xs text-white/60 focus:outline-none"
         aria-label="Senha auto-gerada"
       />
       <button
