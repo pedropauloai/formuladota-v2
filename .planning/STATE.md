@@ -49,7 +49,7 @@ See: .planning/PROJECT.md (updated 2026-05-23)
 
 - **Curadoria SFX Freesound CC0 manual** (Pedro ou com FREESOUND_API_KEY) — F5 entregou stubs silenciosos. Howler está integrado, só falta os .mp3 reais nos sprite slots.
 - **FPS benchmark tsParticles em hardware Pedro** (Chrome DevTools Performance) — F3 entregou AmbientLayer, mas config de partículas não foi testada em hardware real.
-- **Migrar 6 pages do Sistema B → Sistema A (REVERTIDO 2026-05-24)** — direção original "DF8.4: migrar para templates/client-shell.tsx (sem sidebar)" foi invertida após Pedro confirmar Dota 2 client real (3 colunas) como referência canônica. Agora: páginas órfãs (`/me`, `/perfil`, `/partidas`, `/pacotes`, `/codigo-de-conduta`, `/metodologia`) migram para `src/components/client-shell/shell.tsx` (Sistema A canônico). Tasks #50-#54.
+- **Migração 6 pages Sistema B → Sistema A — CONCLUÍDA 2026-05-24** ✓ — todas 6 pages órfãs (`/me`, `/perfil`, `/partidas`, `/pacotes`, `/codigo-de-conduta`, `/metodologia`) migradas para Sistema A canônico. `src/components/templates/client-shell.tsx` DELETADO (zero callsites). Tasks #50-#54 + #57 todas concluídas. 7 commits em série: 4646543 → fc09c32 + cleanup.
 - **Limpeza débito técnico C14/C15/C17/C19 em components legacy** — C14: 11 hex hardcoded; C15: 1 duration inline; C17: 23 z-index ad-hoc; C19: 19 animate-spin. Em components que **não são** client-shell (queue/, catalog/, checkout/) — components V2.5 novos estão limpos. Sistema A (client-shell/) é canônico agora, não legacy.
 - **Componente Toast precisa que pages migrem** — useToast() hook em vez de sonner. Ativado quando migração Sistema B → A completar.
 - **react-hooks/purity cleanup pós-migração shell** — após migrar pages, revisar Date.now() nos novos components e substituir por padrão aprovado (useServerInsertedHTML ou data vinda do server).
@@ -58,7 +58,7 @@ See: .planning/PROJECT.md (updated 2026-05-23)
 ### Blockers/Concerns
 
 - **V2.5-F5 stubs silenciosos:** Todo botão "toca" silêncio. Impacto UX notável — curadoria SFX é prioridade pós-milestone.
-- **6 pages órfãs no Sistema B (deprecated):** após reversão 2026-05-24, `/me`, `/perfil`, `/partidas`, `/pacotes`, `/codigo-de-conduta`, `/metodologia` ainda usam `templates/client-shell.tsx` (sem sidebar). Migração para Sistema A canônico é tasks #50-#54.
+- ~~**6 pages órfãs no Sistema B (deprecated):**~~ ✓ RESOLVIDO 2026-05-24 — todas migradas, Sistema B deletado.
 - **Howler+ambiente:** Sem teste real em ambiente de produção. ISoundManager interface permite trocar implementação se necessário.
 
 ## MVP Fichas — Status (2026-05-23)
@@ -106,7 +106,7 @@ Resume file: .planning/phases/V2.5-VERIFICATION.md
 1. Curar SFX agora pra V2.5 ficar funcionalmente completo (com FREESOUND_API_KEY ou manual)
 2. Rodar `pnpm dev` e validar visualmente componentes em /components
 3. Retomar MVP fichas (Phase 4 MP pausada) ou Phase 5 Bot Steam
-4. Aprovar migração Sistema B → A das 6 pages órfãs (~1-2 dias) — tasks #50-#54 (REVERTIDO 2026-05-24 — ver UX_PRINCIPLES.md M2)
+4. ~~Aprovar migração Sistema B → A~~ ✓ CONCLUÍDA 2026-05-24 — DF8.4 fechado, 18 pages no Sistema A canônico
 
 ---
 

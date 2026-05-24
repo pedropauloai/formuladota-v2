@@ -12,9 +12,10 @@
 // fichas, PROs online, package ficha) e passa pra top-bar + sidebars +
 // bottom-bar.
 //
-// Tasks de aprimoramento em curso: #52 (sidebar direita contextual estilo
-// COMPETITIVA Dota 2) + #51 (migração das 6 páginas órfãs do template
-// simplificado src/components/templates/client-shell.tsx, que é @deprecated).
+// Histórico: Sistema B (templates/client-shell.tsx — sem sidebars, estilo
+// Riot/Valorant) foi @deprecated 2026-05-24 e deletado após migração das
+// 6 páginas órfãs (/me, /perfil, /partidas, /pacotes, /codigo-de-conduta,
+// /metodologia). Tasks #50-#54 + #57 concluídas.
 //
 // 2 modos:
 // - default (grid): layout 3-col, sidebars com bg sólido cortando o background

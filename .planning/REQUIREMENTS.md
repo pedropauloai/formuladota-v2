@@ -275,7 +275,7 @@
 | DF8.1 -- ClientShell top-bar Dota 2 style | V2.5-F8 | Pending |
 | DF8.2 -- Landing reformulada fullscreen | V2.5-F8 | Pending |
 | DF8.3 -- Rota /(dev)/components dev-only | V2.5-F8 | Pending |
-| DF8.4 -- 6 pages órfãs migradas Sistema B → A (revertido 2026-05-24) | V2.5-F8 | Pending |
+| DF8.4 -- 6 pages órfãs migradas Sistema B → A (revertido 2026-05-24) | V2.5-F8 | **Done** ✓ |
 | DF8.5 -- Footer disclaimer Valve + Freesound CC0 | V2.5-F8 | Pending |
 | C14 -- Zero hex hardcoded em componentes | Todas F1-F8 | Pending |
 | C15 -- Zero motion duration inline | Todas F2-F8 | Pending |

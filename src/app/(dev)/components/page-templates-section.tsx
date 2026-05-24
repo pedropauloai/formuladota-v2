@@ -277,9 +277,9 @@ export function PageTemplatesSection() {
           </code>{" "}
           é o shell <strong className="text-text-body">canônico</strong> da plataforma
           — replica fielmente o client Dota 2 real (3 colunas + bottom-bar [JOGAR DOTA]).
-          Hoje <strong className="text-text-body">12 páginas</strong> consomem este shell;{" "}
-          <strong className="text-text-body">6 ainda migrando</strong> do Sistema B
-          (`templates/client-shell.tsx`, <code className="text-error">@deprecated</code>).
+          Hoje <strong className="text-text-body">18 páginas</strong> consomem este shell
+          (migração Sistema B → A concluída em 2026-05-24, arquivo legacy{" "}
+          <code className="font-mono text-text-faded">templates/client-shell.tsx</code> deletado).
           Referência visual:{" "}
           <code className="font-mono text-brand-primary">
             docs/foundations/DOTA2_CLIENT_REFERENCE.md
@@ -459,12 +459,9 @@ export function PageTemplatesSection() {
                 da sidebar direita contextual estilo COMPETITIVA Dota 2
               </li>
               <li>
-                <code className="font-mono text-brand-primary">#54</code> — deletar
-                Sistema B (
-                <code className="font-mono text-error">
-                  src/components/templates/client-shell.tsx
-                </code>
-                ) após migração completa
+                <code className="font-mono text-success">#54</code> ✓ <strong className="text-success">CONCLUÍDO</strong>{" "}
+                — Sistema B (<code className="font-mono text-text-faded">templates/client-shell.tsx</code>)
+                deletado em 2026-05-24 após zero callsites
               </li>
             </ul>
           </div>
