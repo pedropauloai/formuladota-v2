@@ -1,22 +1,25 @@
 /**
- * ComponentsPage — FormulaDota V2.5-F8 (DF8.3)
+ * ComponentsPage — FormulaDota V2.5-F8 (DF8.4)
  *
  * Design system browser ao vivo. Substitui Storybook para solo dev.
  * Rota: /components (via route group (dev) — sem impacto na URL)
  * Gating: src/app/(dev)/layout.tsx retorna notFound() em production.
  *
  * Sections:
- *   1. Cores Semânticas (tokens)
- *   2. Button — 5 variants × 4 sizes
- *   3. Badge — 8 variantes tier + variantes base
- *   4. PresenceDot — 6 status
- *   5. Card — 4 variantes
- *   6. EmptyState
- *   7. LoadingScreen (trigger)
- *   8. MatchCard
- *   9. ProCard
- *  10. QueuePanel
- *  11. HeroVideo
+ *   1.   Cores Semânticas (tokens)
+ *   1.5. DotaRankMedal — 9 medalhas SKILL (Valve official)
+ *   1.7. HonorRankMedal — 8 medalhas HONOR (PHILOSOPHY.md 2026-05-23)
+ *   2.   UserAvatar
+ *   3.   MembershipBadge
+ *   4.   AchievementBadge — 15 variants (8 originais + 7 comportamentais)
+ *   5.   BadgeStack
+ *   6.   SeasonBanner
+ *   7.   PresenceLive
+ *   8.   LiveCounter
+ *   9.   FreeBar
+ *   10.  OnFireOverlay — 6 variants (2 originais + 4 comportamentais)
+ *   11.  SoldOutOverlay
+ *   ...  Button / Badge / PresenceDot / Card / EmptyState / Loading / Patterns
  */
 
 "use client";
@@ -38,6 +41,11 @@ import { PresenceDot, type PresenceStatus } from "@/components/ui/presence-dot";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingScreen } from "@/components/ui/loading-screen";
 import { DotaRankMedal, RANK_LABELS, type DotaRank } from "@/components/ui/dota-rank-medal";
+import {
+  HonorRankMedal,
+  HONOR_RANK_LABELS,
+  type HonorRank,
+} from "@/components/ui/honor-rank-medal";
 
 // Wave D — Sistema de badges + identidade (GamersClub-inspired)
 import { UserAvatar } from "@/components/ui/avatar";
@@ -225,6 +233,71 @@ export default function ComponentsPage() {
       </Section>
 
       {/* ================================================================== */}
+      {/* SECTION 1.7 — HonorRankMedal (PHILOSOPHY.md 2026-05-23)           */}
+      {/* ================================================================== */}
+      <Section title="HonorRankMedal — 8 tiers HONOR (eixo paralelo a SKILL)">
+        <div className="space-y-6">
+          <p className="text-sm text-text-muted">
+            Sistema 2-eixos PHILOSOPHY.md. HONOR mede CONDUTA. SKILL mede CAPACIDADE.
+            Toda exibição de perfil mostra ambos lado a lado.
+          </p>
+
+          {/* Grid: todos os 8 tiers com label */}
+          <div className="grid grid-cols-4 md:grid-cols-8 gap-4">
+            {(Object.keys(HONOR_RANK_LABELS) as HonorRank[]).map((rank) => (
+              <div key={rank} className="flex flex-col items-center gap-2">
+                <HonorRankMedal
+                  rank={rank}
+                  size="md"
+                  showLabel
+                  glow={rank === "imortal-da-formula"}
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Demo de tamanhos */}
+          <div className="border-t border-border-subtle pt-6 space-y-3">
+            <p className="font-display text-xs uppercase tracking-widest text-text-faded">
+              Tamanhos disponíveis (Imortal da Fórmula com glow brand)
+            </p>
+            <div className="flex items-end gap-6">
+              {(["sm", "md", "lg", "xl"] as const).map((s) => (
+                <div key={s} className="flex flex-col items-center gap-2">
+                  <HonorRankMedal rank="imortal-da-formula" size={s} glow />
+                  <span className="font-mono text-[10px] text-text-muted uppercase tracking-widest">
+                    {s}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Demo: SKILL + HONOR lado a lado — padrão canônico */}
+          <div className="border-t border-border-subtle pt-6">
+            <p className="font-display text-xs uppercase tracking-widest text-text-faded mb-4">
+              Padrao: Skill + Honor lado a lado (M12 mandamento)
+            </p>
+            <div className="flex items-center gap-8">
+              <div className="flex flex-col items-center gap-2">
+                <DotaRankMedal rank="immortal-top-100" size="lg" glow showLabel />
+                <span className="text-[10px] text-text-muted uppercase tracking-widest">
+                  SKILL
+                </span>
+              </div>
+              <span className="font-display text-2xl text-text-faded">+</span>
+              <div className="flex flex-col items-center gap-2">
+                <HonorRankMedal rank="imortal-da-formula" size="lg" glow showLabel />
+                <span className="text-[10px] text-text-muted uppercase tracking-widest">
+                  HONOR
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Section>
+
+      {/* ================================================================== */}
       {/* WAVE D — BADGES (UserAvatar / Membership / Achievement / Stack)    */}
       {/* ================================================================== */}
 
@@ -245,8 +318,8 @@ export default function ComponentsPage() {
           {/* Variações: badge / presence / ring */}
           <div className="border-t border-border-subtle pt-6 grid grid-cols-2 md:grid-cols-4 gap-6">
             <div className="flex flex-col items-center gap-2">
-              <UserAvatar fallback="PP" size="lg" badge={<MembershipBadge tier="elite" />} />
-              <span className="text-xs text-text-muted text-center">badge=elite</span>
+              <UserAvatar fallback="PP" size="lg" badge={<MembershipBadge tier="consagrado" />} />
+              <span className="text-xs text-text-muted text-center">badge=consagrado</span>
             </div>
             <div className="flex flex-col items-center gap-2">
               <UserAvatar fallback="PP" size="lg" presence="online" />
@@ -264,9 +337,14 @@ export default function ComponentsPage() {
         </div>
       </Section>
 
+      {/* 5 tiers SEM hierarquia de pagamento — ver PHILOSOPHY.md */}
       <Section title="MembershipBadge — 5 tiers (overlay em UserAvatar)">
+        <p className="text-xs text-text-faded mb-4">
+          Tiers nao sao progressao de pagamento. Visitante tem dignidade visual igual aos demais.
+          Consagrado = conduta comportamental, nao pagamento.
+        </p>
         <div className="flex flex-wrap gap-6">
-          {(["free", "aluno", "veterano", "elite", "fundador"] as MembershipTier[]).map((t) => (
+          {(["visitante", "aluno", "veterano", "consagrado", "fundador"] as MembershipTier[]).map((t) => (
             <div key={t} className="flex flex-col items-center gap-2">
               <UserAvatar fallback="PP" size="lg" badge={<MembershipBadge tier={t} />} />
               <span className="font-mono text-[10px] text-text-muted uppercase tracking-widest">{t}</span>
@@ -275,20 +353,48 @@ export default function ComponentsPage() {
         </div>
       </Section>
 
-      <Section title="AchievementBadge — 8 variants (conquistas inline)">
-        <div className="flex flex-wrap gap-2">
-          {([
-            "doutrina",
-            "veterano",
-            "fundador",
-            "streak-5",
-            "champion-s1",
-            "comendado",
-            "bom-comportamento",
-            "evento-inaugural",
-          ] as AchievementVariant[]).map((v) => (
-            <AchievementBadge key={v} variant={v} />
-          ))}
+      <Section title="AchievementBadge — 15 variants (8 SKILL + 7 HONOR comportamentais)">
+        <div className="space-y-4">
+          {/* Eixo SKILL — originais */}
+          <div>
+            <p className="font-display text-xs uppercase tracking-widest text-text-faded mb-2">
+              Eixo SKILL / Performance (originais)
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {([
+                "doutrina",
+                "veterano",
+                "fundador",
+                "streak-5",
+                "champion-s1",
+                "comendado",
+                "bom-comportamento",
+                "evento-inaugural",
+              ] as AchievementVariant[]).map((v) => (
+                <AchievementBadge key={v} variant={v} />
+              ))}
+            </div>
+          </div>
+
+          {/* Eixo HONOR — novos comportamentais (PHILOSOPHY.md 2026-05-23) */}
+          <div className="border-t border-border-subtle pt-4">
+            <p className="font-display text-xs uppercase tracking-widest text-text-faded mb-2">
+              Eixo HONOR / Conduta (PHILOSOPHY.md 2026-05-23)
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {([
+                "champion-s1-honor",
+                "derrotado-com-honra",
+                "mentor",
+                "reconciliado",
+                "voz-construtiva",
+                "estabilidade-emocional",
+                "presenca-disciplina",
+              ] as AchievementVariant[]).map((v) => (
+                <AchievementBadge key={v} variant={v} />
+              ))}
+            </div>
+          </div>
         </div>
       </Section>
 
@@ -379,25 +485,29 @@ export default function ComponentsPage() {
         />
       </Section>
 
-      <Section title="OnFireOverlay — variant coach + student (sobre Card)">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <Section title="OnFireOverlay — 6 variants: 2 SKILL + 4 HONOR (PHILOSOPHY.md 2026-05-23)">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+          {/* Variant 1: coach — ON FIRE (SKILL) */}
           <div className="relative">
             <Card variant="hero">
               <CardHeader>
                 <CardTitle>Coach em sequência</CardTitle>
-                <CardDescription>Card pai com position relative</CardDescription>
+                <CardDescription>variant=coach — streak de vitórias</CardDescription>
               </CardHeader>
               <CardContent>
-                Streak ativo detectado — overlay aparece no canto superior.
+                Streak ativo detectado — overlay no canto superior.
               </CardContent>
             </Card>
             <OnFireOverlay streakCount={5} variant="coach" position="top-right" />
           </div>
+
+          {/* Variant 2: student — MMR (SKILL) */}
           <div className="relative">
             <Card variant="elevated">
               <CardHeader>
                 <CardTitle>Aluno em ascensão</CardTitle>
-                <CardDescription>Variant student — exibe ganho semanal de MMR</CardDescription>
+                <CardDescription>variant=student — ganho semanal de MMR</CardDescription>
               </CardHeader>
               <CardContent>
                 MMR delta positivo na semana — destaca progresso.
@@ -405,6 +515,63 @@ export default function ComponentsPage() {
             </Card>
             <OnFireOverlay streakCount={0} variant="student" mmrLabel="+320 MMR esta semana" position="top-right" />
           </div>
+
+          {/* Variant 3: disciplina — EM RITMO (HONOR) */}
+          <div className="relative">
+            <Card variant="elevated">
+              <CardHeader>
+                <CardTitle>Em ritmo disciplinado</CardTitle>
+                <CardDescription>variant=disciplina — partidas consecutivas</CardDescription>
+              </CardHeader>
+              <CardContent>
+                Presença constante sem faltas — HONOR manifesto em ação.
+              </CardContent>
+            </Card>
+            <OnFireOverlay streakCount={10} variant="disciplina" position="top-right" />
+          </div>
+
+          {/* Variant 4: mentoria — MENTOR ATIVO (HONOR) */}
+          <div className="relative">
+            <Card variant="flat">
+              <CardHeader>
+                <CardTitle>Mentor ativo</CardTitle>
+                <CardDescription>variant=mentoria — elogios recebidos</CardDescription>
+              </CardHeader>
+              <CardContent>
+                Orientação voluntária reconhecida — liderança positiva.
+              </CardContent>
+            </Card>
+            <OnFireOverlay streakCount={3} variant="mentoria" position="top-right" />
+          </div>
+
+          {/* Variant 5: aprendizado — EVOLUÇÃO (HONOR) */}
+          <div className="relative">
+            <Card variant="elevated">
+              <CardHeader>
+                <CardTitle>Derrota com aprendizado</CardTitle>
+                <CardDescription>variant=aprendizado — derrotas com atitude</CardDescription>
+              </CardHeader>
+              <CardContent>
+                Humildade de aprender — derrota honrada vale mais que vitória vazia.
+              </CardContent>
+            </Card>
+            <OnFireOverlay streakCount={5} variant="aprendizado" position="top-right" />
+          </div>
+
+          {/* Variant 6: estabilidade — ESTÁVEL (HONOR) */}
+          <div className="relative">
+            <Card variant="elevated">
+              <CardHeader>
+                <CardTitle>Estabilidade emocional</CardTitle>
+                <CardDescription>variant=estabilidade — partidas sem strike</CardDescription>
+              </CardHeader>
+              <CardContent>
+                Controle emocional contínuo — pilar da filosofia FormulaDota.
+              </CardContent>
+            </Card>
+            <OnFireOverlay streakCount={20} variant="estabilidade" position="top-right" />
+          </div>
+
         </div>
       </Section>
 
@@ -591,7 +758,7 @@ export default function ComponentsPage() {
             mmr={9200}
             rank="immortal-top-100"
             tierLabel="Top 0.5%"
-            membershipTier="elite"
+            membershipTier="consagrado"
             ringColor="tier-immortal"
             presence="online"
             bio="Top 0.5%. 15 anos de Dota. Vamos jogar."

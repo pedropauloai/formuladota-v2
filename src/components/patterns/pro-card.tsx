@@ -138,7 +138,7 @@ function formatDelta(delta: number): string {
  *   mmr={7200}
  *   presence="online"
  *   rank="immortal"
- *   membershipTier="elite"
+ *   membershipTier="consagrado"
  *   achievements={[
  *     { variant: "champion-s1" },
  *     { variant: "comendado" },

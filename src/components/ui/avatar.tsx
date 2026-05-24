@@ -144,7 +144,7 @@ export interface UserAvatarProps
  *   src="https://cdn.example.com/avatar.jpg"
  *   alt="Coach Immortal"
  *   size="xl"
- *   badge={<MembershipBadge tier="elite" />}
+ *   badge={<MembershipBadge tier="consagrado" />}
  *   ringColor="brand"
  * />
  *
