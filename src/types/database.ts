@@ -869,6 +869,54 @@ export type Database = {
           },
         ]
       }
+      package_price_history: {
+        Row: {
+          changed_by_user_id: string
+          created_at: string
+          honor_tier_at_change: string | null
+          id: string
+          package_id: string
+          price_after: number
+          price_before: number
+          reason: string | null
+        }
+        Insert: {
+          changed_by_user_id: string
+          created_at?: string
+          honor_tier_at_change?: string | null
+          id?: string
+          package_id: string
+          price_after: number
+          price_before: number
+          reason?: string | null
+        }
+        Update: {
+          changed_by_user_id?: string
+          created_at?: string
+          honor_tier_at_change?: string | null
+          id?: string
+          package_id?: string
+          price_after?: number
+          price_before?: number
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "package_price_history_changed_by_user_id_fkey"
+            columns: ["changed_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "package_price_history_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       packages: {
         Row: {
           ativo: boolean
@@ -877,6 +925,7 @@ export type Database = {
           descricao: string | null
           display_order: number
           id: string
+          last_price_change_at: string | null
           nome: string
           preco_brl: number
           qtd_partidas: number
@@ -890,6 +939,7 @@ export type Database = {
           descricao?: string | null
           display_order?: number
           id?: string
+          last_price_change_at?: string | null
           nome: string
           preco_brl: number
           qtd_partidas: number
@@ -903,6 +953,7 @@ export type Database = {
           descricao?: string | null
           display_order?: number
           id?: string
+          last_price_change_at?: string | null
           nome?: string
           preco_brl?: number
           qtd_partidas?: number
@@ -2166,6 +2217,14 @@ export type Database = {
         }
         Returns: undefined
       }
+      can_change_price: {
+        Args: { p_package_id: string }
+        Returns: {
+          can_change: boolean
+          days_remaining: number
+          next_change_allowed_at: string
+        }[]
+      }
       cancel_pro_waiting_entries: {
         Args: { p_coach_id: string; p_reason: string }
         Returns: number
@@ -2177,6 +2236,7 @@ export type Database = {
       }
       get_honor_score: { Args: { p_user_id: string }; Returns: number }
       get_honor_tier: { Args: { p_score: number }; Returns: string }
+      get_max_price_for_pro: { Args: { p_user_id: string }; Returns: number }
       get_pro_revenue_summary: {
         Args: { p_pro_user_id: string; p_since?: string }
         Returns: {
