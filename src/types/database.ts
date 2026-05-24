@@ -14,6 +14,96 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_audit_log: {
+        Row: {
+          action: string
+          admin_user_id: string
+          created_at: string
+          id: string
+          payload_after: Json | null
+          payload_before: Json | null
+          reason: string | null
+          target_user_id: string | null
+        }
+        Insert: {
+          action: string
+          admin_user_id: string
+          created_at?: string
+          id?: string
+          payload_after?: Json | null
+          payload_before?: Json | null
+          reason?: string | null
+          target_user_id?: string | null
+        }
+        Update: {
+          action?: string
+          admin_user_id?: string
+          created_at?: string
+          id?: string
+          payload_after?: Json | null
+          payload_before?: Json | null
+          reason?: string | null
+          target_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_audit_log_admin_user_id_fkey"
+            columns: ["admin_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_audit_log_target_user_id_fkey"
+            columns: ["target_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      admin_notes: {
+        Row: {
+          admin_user_id: string
+          created_at: string
+          id: string
+          note: string
+          target_user_id: string
+          updated_at: string
+        }
+        Insert: {
+          admin_user_id: string
+          created_at?: string
+          id?: string
+          note: string
+          target_user_id: string
+          updated_at?: string
+        }
+        Update: {
+          admin_user_id?: string
+          created_at?: string
+          id?: string
+          note?: string
+          target_user_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_notes_admin_user_id_fkey"
+            columns: ["admin_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_notes_target_user_id_fkey"
+            columns: ["target_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       availability_windows: {
         Row: {
           ativo: boolean
@@ -341,6 +431,64 @@ export type Database = {
           },
           {
             foreignKeyName: "ficha_ledger_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      honor_ledger: {
+        Row: {
+          admin_user_id: string | null
+          created_at: string
+          delta: number
+          id: string
+          reason: string | null
+          season_id: number | null
+          source: string
+          source_id: string | null
+          user_id: string
+        }
+        Insert: {
+          admin_user_id?: string | null
+          created_at?: string
+          delta: number
+          id?: string
+          reason?: string | null
+          season_id?: number | null
+          source: string
+          source_id?: string | null
+          user_id: string
+        }
+        Update: {
+          admin_user_id?: string | null
+          created_at?: string
+          delta?: number
+          id?: string
+          reason?: string | null
+          season_id?: number | null
+          source?: string
+          source_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "honor_ledger_admin_user_id_fkey"
+            columns: ["admin_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "honor_ledger_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "honor_ledger_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -869,6 +1017,8 @@ export type Database = {
           banned_at: string | null
           banned_reason: string | null
           behavior_status: string
+          calibration_partidas_completas: number | null
+          calibration_status: string | null
           created_at: string
           discord_id: string | null
           doctrine_accepted_at: string | null
@@ -891,6 +1041,8 @@ export type Database = {
           banned_at?: string | null
           banned_reason?: string | null
           behavior_status?: string
+          calibration_partidas_completas?: number | null
+          calibration_status?: string | null
           created_at?: string
           discord_id?: string | null
           doctrine_accepted_at?: string | null
@@ -913,6 +1065,8 @@ export type Database = {
           banned_at?: string | null
           banned_reason?: string | null
           behavior_status?: string
+          calibration_partidas_completas?: number | null
+          calibration_status?: string | null
           created_at?: string
           discord_id?: string | null
           doctrine_accepted_at?: string | null
@@ -1854,6 +2008,8 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: undefined
       }
+      get_honor_score: { Args: { p_user_id: string }; Returns: number }
+      get_honor_tier: { Args: { p_score: number }; Returns: string }
       get_pros_live_status: {
         Args: never
         Returns: {
