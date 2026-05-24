@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 // Fontes V2.5 — self-hosted via pacotes npm (sem requisição Google Fonts)
 // Atualizado 2026-05-23: Cinzel removida (estética ExitLag — sans-only).
 // Display e body usam mesma família Geist, diferenciados por weight + tracking.
+// Teko Variable adicionada 2026-05-23: condensed display pra moments épicos (countdown, "ON FIRE!", números grandes) — estilo GamersClub esports.
+import "@fontsource-variable/teko";
 import { GeistSans, GeistMono } from "geist/font";
 import "@/styles/globals.css";
 import { Toaster } from "@/components/ui/sonner";

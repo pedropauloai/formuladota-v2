@@ -69,7 +69,7 @@ export default async function MePage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/");
 
   const [
     { data: profile },

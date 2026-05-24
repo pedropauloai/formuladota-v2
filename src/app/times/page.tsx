@@ -17,7 +17,7 @@ export default async function TimesPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/");
 
   // Times do user
   const { data: memberships } = await supabase

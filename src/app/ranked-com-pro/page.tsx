@@ -31,7 +31,7 @@ export default async function RankedComProPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/");
 
   const [
     { data: profile },

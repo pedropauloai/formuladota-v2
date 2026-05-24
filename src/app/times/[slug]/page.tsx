@@ -27,7 +27,7 @@ export default async function TeamDetailPage(props: PageProps) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/");
 
   const { data: team } = await supabase
     .from("teams")

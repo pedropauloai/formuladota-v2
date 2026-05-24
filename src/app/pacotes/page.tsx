@@ -9,7 +9,7 @@
 //
 // Auth: middleware já exige login + doutrina + Steam vinculado pra /pacotes
 // (STEAM_REQUIRED_PATHS em src/lib/supabase/middleware.ts). Sistema A
-// (client-shell/shell.tsx) reforça com redirect("/login") interno — coerente
+// (client-shell/shell.tsx) reforça com redirect("/") interno — coerente
 // com o resto do funil (/checkout etc).
 
 import type { Metadata } from "next";

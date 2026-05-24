@@ -25,7 +25,7 @@ export default async function ProgressoPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/");
 
   // Inicializa user_levels se não existe (upsert idempotente — Migration 022
   // adicionou INSERT policy + trigger init_user_levels_on_profile)

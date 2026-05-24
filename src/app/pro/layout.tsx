@@ -22,7 +22,7 @@ export default async function ProLayout({
 
   // Gate 1: autenticação
   if (!user) {
-    redirect("/login");
+    redirect("/");
   }
 
   // Gate 2: verifica pro_promotion ativa ou pausada (pausa voluntária mantém acesso)

@@ -39,7 +39,7 @@ export default async function DashboardPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/");
 
   // Fetches mínimos pro HUB — paralelizados.
   const [

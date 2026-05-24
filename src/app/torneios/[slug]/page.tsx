@@ -64,7 +64,7 @@ export default async function TournamentDetailPage(props: PageProps) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/");
 
   const { data: tournament } = await supabase
     .from("tournaments")

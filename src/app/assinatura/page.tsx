@@ -41,7 +41,7 @@ export default async function AssinaturaPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) redirect("/login");
+  if (!user) redirect("/");
 
   const params = await searchParams;
 

@@ -116,7 +116,7 @@ export async function leaveLobby(formData: FormData): Promise<void> {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/");
 
   const { data: lobby } = await supabase
     .from("lobbies")

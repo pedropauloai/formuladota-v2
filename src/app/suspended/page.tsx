@@ -18,7 +18,7 @@ export default async function SuspendedPage() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login");
+    redirect("/"); // sem auth, manda pro HUB visitor (login via header)
   }
 
   const { data: profile } = await supabase

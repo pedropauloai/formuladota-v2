@@ -35,7 +35,7 @@ export async function createSubscription(): Promise<void> {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login");
+    redirect("/");
   }
 
   // Verifica se já tem assinatura ativa ou pendente (não duplicar)
@@ -104,7 +104,7 @@ export async function cancelSubscription(): Promise<void> {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login");
+    redirect("/");
   }
 
   // Busca assinatura ativa do user
@@ -162,7 +162,7 @@ export async function reactivateSubscription(): Promise<void> {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login");
+    redirect("/");
   }
 
   // Deleta subscription cancelada/expirada para permitir nova criação

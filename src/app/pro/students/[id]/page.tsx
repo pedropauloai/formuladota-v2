@@ -53,7 +53,7 @@ export default async function StudentDetailPage({ params }: PageProps) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) redirect("/login");
+  if (!user) redirect("/");
 
   // Valida PRO ativo
   const { data: promo } = await supabase

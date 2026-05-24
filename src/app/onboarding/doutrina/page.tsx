@@ -37,7 +37,7 @@ export default async function OnboardingDoutrinaPage({
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login");
+    redirect("/");
   }
 
   const { data: profile } = await supabase

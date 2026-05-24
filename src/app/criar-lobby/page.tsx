@@ -20,7 +20,7 @@ export default async function CriarLobbyPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/");
 
   // Verifica subscription ativa (helper SQL Phase 4)
   const { data: hasSub } = await supabase.rpc("has_active_subscription");

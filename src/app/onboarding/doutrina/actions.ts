@@ -33,7 +33,7 @@ export async function acceptDoctrine(formData: FormData): Promise<void> {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login");
+    redirect("/");
   }
 
   const { error } = await supabase
