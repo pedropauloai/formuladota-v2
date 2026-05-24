@@ -112,6 +112,26 @@ async function handlePaymentNotification(
     return; // duplicado ou external_payment_id desconhecido
   }
 
+  // Gap 2 MVP Fichas: inserir em ficha_ledger pra cada partida comprada.
+  // O trigger apply_ficha_ledger atualiza user_fichas.balance automaticamente.
+  // source_id = purchase.id pra rastreabilidade e idempotência por design
+  // (purchase só vira 'pago' uma vez — UPDATE conditional acima garante).
+  if (updated.partidas_compradas > 0) {
+    const { error: ledgerErr } = await supabase
+      .from("ficha_ledger")
+      .insert({
+        user_id: updated.user_id,
+        delta: updated.partidas_compradas,
+        source: "purchase" as const,
+        source_id: updated.id,
+        reason: `Compra PIX confirmada (purchase ${updated.id.slice(0, 8)})`,
+      });
+    if (ledgerErr) {
+      console.error("[mp-webhook] ficha_ledger insert falhou:", ledgerErr.message);
+      // Não abortar — purchase já marcado como pago. Log pra reconciliação manual.
+    }
+  }
+
   void sendPurchaseEmailSafely(supabase, updated as ProcessedPurchase, payment.payer?.email);
 }
 
