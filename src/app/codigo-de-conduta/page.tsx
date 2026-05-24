@@ -6,7 +6,7 @@ import {
   PROGRESSIVE_MODERATION,
 } from "@/lib/doctrine";
 import { DotaBackdrop } from "@/components/dota/dota-backdrop";
-import { ClientShell } from "@/components/templates/client-shell";
+import { ClientShell } from "@/components/client-shell/shell";
 
 // Página pública canônica do código de conduta.
 // Acessível sem login — referência permanente da cultura.
@@ -18,18 +18,18 @@ export const metadata = {
 
 const TOC_SECTIONS = [
   { id: "principios", label: "Os 14 princípios" },
-  { id: "antipadroes", label: "10 padrões tóxicos" },
+  { id: "antipadroes", label: "15 padrões tóxicos" },
   { id: "moderacao", label: "Sistema progressivo" },
   { id: "compromisso", label: "Compromisso final" },
 ];
 
-export default function CodigoDeCondutaPage() {
+export default async function CodigoDeCondutaPage() {
   const comportamentais = PRINCIPLES.filter((p) => p.category === "comportamental");
   const tecnicos = PRINCIPLES.filter((p) => p.category === "tecnico");
   const progressao = PRINCIPLES.filter((p) => p.category === "progressao");
 
   return (
-    <ClientShell>
+    <ClientShell currentRoute="/codigo-de-conduta">
       <a
         href="#conteudo"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-[var(--color-brand-red)] focus:px-4 focus:py-2 focus:font-medium focus:text-[var(--color-background)]"
@@ -112,7 +112,7 @@ export default function CodigoDeCondutaPage() {
             </Subsection>
           </Section>
 
-          <Section id="antipadroes" title="Os 10 padrões tóxicos (proibidos)">
+          <Section id="antipadroes" title="Os 15 padrões tóxicos (proibidos)">
             <p className="text-sm text-[var(--color-muted-foreground)]">
               Esses comportamentos são incompatíveis com a cultura da FORMULADOTA.
               Geram advertência, suspensão ou banimento conforme as regras abaixo.
