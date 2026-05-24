@@ -128,37 +128,38 @@ export function FreeBar({
               "border-b border-[var(--color-border-brand)]/30",
             )}
           >
-            {/* ---- Texto: estado atual de fichas ---- */}
+            {/* ---- CTA "SUBIR DE MMR" — contexto atração, visitante sem ficha ---- */}
+            {/* Regra PHILOSOPHY.md §Reconciliações: FreeBar para visitante = contexto de atração */}
+            {/* Quem tem ficha ativa não vê este banner — usa PresenceLive ou similar */}
             <span
               className={cn(
-                "text-sm",
-                "text-[var(--color-text-muted)]",
-                // Sem destaque — informativo, não alarmista (voz Mestre)
-                "font-[family-name:var(--font-body)]",
-                // Ocultar em telas muito pequenas — manter CTA visível
+                "text-sm font-semibold",
+                "text-[var(--color-text-display)]",
+                "font-[family-name:var(--font-display)]",
+                "uppercase tracking-widest",
                 "hidden xs:block",
               )}
             >
-              Você tem 0 fichas
+              SUBIR DE MMR
             </span>
 
-            {/* ---- Separador visual — ponto central ---- */}
+            {/* ---- Separador visual ---- */}
             {nextSlotIn && (
               <span
                 className="text-[var(--color-text-faded)] text-xs hidden xs:block"
                 aria-hidden="true"
               >
-                •
+                ·
               </span>
             )}
 
-            {/* ---- Próxima vaga — font-display-condensed Teko em destaque ---- */}
+            {/* ---- Próxima partida — font-display-condensed Teko em destaque ---- */}
             {nextSlotIn && (
               <span className="flex items-baseline gap-1.5">
                 <span
                   className="text-sm text-[var(--color-text-muted)] font-[family-name:var(--font-body)] hidden sm:block"
                 >
-                  Próxima vaga em
+                  Próxima partida em
                 </span>
                 {/* Countdown em Teko — reservado para momentos de impacto (semantic.css § 7) */}
                 <span
@@ -170,24 +171,23 @@ export function FreeBar({
                     "tabular-nums",
                   )}
                   // Acessibilidade: anuncia o tempo restante
-                  aria-label={`Próxima vaga em ${formatNextSlot(nextSlotIn)}`}
+                  aria-label={`Próxima partida em ${formatNextSlot(nextSlotIn)}`}
                 >
                   {formatNextSlot(nextSlotIn)}
                 </span>
               </span>
             )}
 
-            {/* ---- CTA: "Garantir Vaga" — voz Mestre, não Vendedor ---- */}
-            {/* "Garantir" = autoridade calma. NÃO "Compre já!", NÃO "Não perca!" */}
+            {/* ---- CTA: "Garantir vaga" — voz direta, sem urgência artificial ---- */}
             <Button
               variant="cinematic"
               size="sm"
               onClick={onBuy}
               className="shrink-0"
-              aria-label="Garantir vaga — ir para página de fichas"
+              aria-label="Garantir vaga para subir de MMR — ir para página de fichas"
             >
               <Ticket className="size-3.5" aria-hidden="true" />
-              Garantir Vaga
+              Garantir vaga
             </Button>
           </div>
         </m.div>
