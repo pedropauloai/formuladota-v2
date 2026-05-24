@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { signOut } from "../login/actions";
 import { getPreviewModeActive } from "@/lib/auth/preview-mode";
 import { getMyFichaBalance } from "@/lib/queries/fichas";
-import { ClientShell } from "@/components/templates/client-shell";
+import { ClientShell } from "@/components/client-shell/shell";
 
 export const metadata = {
   title: "Perfil — FORMULADOTA",
@@ -31,7 +31,7 @@ export default async function PerfilPage() {
   const showAsAdmin = profile?.is_admin === true && !previewActive;
 
   return (
-    <ClientShell>
+    <ClientShell currentRoute="/perfil">
       <div className="flex h-full overflow-hidden">
         <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 overflow-y-auto p-6 xl:p-8">
           <header className="space-y-2">
