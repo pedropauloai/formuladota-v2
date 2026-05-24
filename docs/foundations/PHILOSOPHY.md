@@ -45,9 +45,29 @@ Essa definição exige um sistema de avaliação que vai além do placar.
 
 ---
 
-## Os 13 Pilares Filosoficos
+## Adicao 2026-05-24 — Doutrina expandida para 15 anti-padroes
 
-Os 13 pilares abaixo nao sao principios de conduta operacional — esses estao na Doutrina.
+Apos sintese dos 71 transcripts do canal @formuladota (ver `.planning/research/youtube-synthesis.md`),
+Pedro Paulo aprovou em 2026-05-23/24 a expansao da lista de anti-padroes da Doutrina de 10
+para 15, com adicao dos seguintes — todos derivados de falas literais do autor em video publico:
+
+- **#11 Simulador de Heroi** — usa as habilidades sem jogar com base nos objetivos do mapa
+- **#12 Criar Expectativas em Terceiros** — projetar resultados em aliados de forma ativa
+- **#13 Vitimizacao Sistemica** — identidade cronica de vitima, distinta de cultura da culpa
+- **#14 Recusa de Auditoria Pos-Derrota** — omitir a pergunta "o que eu poderia ter feito diferente?"
+- **#15 Buscar Diversao em Espaco de Competicao** — mismatch de proposito (FormulaDota nao e turbo)
+
+Detalhes operacionais (severidade, acoes) estao em `HONOR_SYSTEM.md` secao "Criterios de Strike".
+Texto canonico esta em `A FÓRMULA DO DOTA DE CORRIDA.txt`.
+
+A missao historica declarada na Doutrina foi prorrogada de 2025 para **2026**: *"Formar pelo
+menos 200 jogadores na medalha Imortal de forma 100% legitima"*.
+
+---
+
+## Os 14 Pilares Filosoficos
+
+Os 14 pilares abaixo nao sao principios de conduta operacional — esses estao na Doutrina.
 Sao os fundamentos filosoficos que explicam por que o FormulaDota existe, o que nos diferencia,
 e como toda decisao de produto deve ser calibrada.
 
@@ -344,6 +364,56 @@ Ver PRO_PROMOTION.md e MULTIPLICATION_MODEL.md para especificacao completa.
 
 ---
 
+### Pilar 14 — Competicao entre Iguais
+
+A Liga FormulaDota so admite Imortais da Formula (tier 8 HONOR mantido por 2+ seasons
+consecutivas). Vitorias contam DENTRO da Liga porque ego foi filtrado antes do gate.
+
+#### O que isso resolve
+
+A tensao classica entre "valorizar vitoria" (atrai publico competitivo) e "valorizar conduta"
+(filosofia central): quando os dois importam simultaneamente, ou um corrompe o outro, ou viram
+declaracoes vazias.
+
+A solucao e arquitetonica: **separar contextos por gate de elegibilidade.**
+
+- Fora da Liga: HONOR e a metrica unica que importa (conduta cultural)
+- Dentro da Liga: vitorias contam (competicao pura)
+- Gate Liga: so Imortal da Formula entra (carater ja provado)
+
+Quem entra na Liga ja provou que NAO se corrompe por ego. Competir contra quem te respeita
+e diferente de competir contra quem te tolera.
+
+#### Implicacoes praticas
+
+- **HONOR e o sistema de merito interno operacional** — substitui necessidade de MMR interno
+  paralelo (Glicko-2, Elo, etc.). Ver HONOR_SYSTEM.md para decisao arquitetural lockada.
+- **Liga Imortal** = competicao win-rate dentro do pool de doutrinados (ver LIGA_IMORTAL.md)
+- **3 ligas paralelas** atendem perfis diferentes: PROs, Nao-PROs (alunos Imortais), Combinada
+  (eventos especiais)
+- Imortal Valve != Imortal da Formula — Liga FormulaDota nao admite Imortal Valve sem ser
+  Imortal da Formula
+
+#### Anti-padroes proibidos
+
+- Liga "aberta" que admite qualquer um com skill (sem gate HONOR)
+- MMR interno paralelo ao HONOR (over-engineering — HONOR ja cumpre essa funcao)
+- Hall of Fame que glorifica skill puro sem carater
+- Promover "ranqueado toxico subindo MMR" — nao existe na Liga FormulaDota
+
+#### Distincao critica
+
+**Vencer no Dota oficial** = subir MMR em ambiente anonimo/toxico.
+
+**Vencer na Liga FormulaDota** = ser o melhor entre os doutrinados — vitoria e purificada
+pelo gate.
+
+**Implicacao de produto:** a rota `/liga` e seus leaderboards existem separados do leaderboard
+principal. Acesso ao leaderboard da Liga exige autenticacao com HONOR tier visivel. Ver
+LIGA_IMORTAL.md para blueprint completo de implementacao futura.
+
+---
+
 ## Reconciliacoes Estrategicas
 
 Esta secao documenta tensoes CONSCIENTES entre os pilares filosoficos e decisoes de mercado.
@@ -429,7 +499,7 @@ profundidade. Toda copy promete o que efetivamente acontece.
 
 ## Implicacoes Praticas para o Produto
 
-Esta secao traduz os 13 pilares em decisoes concretas de produto. Quando houver duvida sobre
+Esta secao traduz os 14 pilares em decisoes concretas de produto. Quando houver duvida sobre
 como implementar algo, retornar a esta secao antes de decidir.
 
 ---
@@ -545,7 +615,7 @@ de artes marciais high-tech" do que "torneio de e-sports corporativo".
 
 ## Anti-Padroes Proibidos
 
-Estes anti-padroes derivam diretamente dos 13 pilares. Cada um deles contradiz um ou mais
+Estes anti-padroes derivam diretamente dos 14 pilares. Cada um deles contradiz um ou mais
 pilares fundamentais. Implementar qualquer um deles e uma violacao filosofica, nao apenas
 uma escolha de design ruim.
 
@@ -562,6 +632,13 @@ uma escolha de design ruim.
 | Monetizacao com recompensa financeira por vitoria | Pilar 10 | Transforma ambiente em cassino competitivo |
 | UX que parece SaaS dashboard | Pilar 12 | Comunica "ferramenta", nao "ambiente competitivo com cultura" |
 | Onboarding de checklist para doutrina | Pilar 7, 12 | A doutrina e ritual de entrada, nao formulario de aceite |
+| Tolerar "Simulador de Heroi" | Pilar 4, 11 | Anti-padrao #11 da Doutrina — jogador usa habilidades sem objetivos do mapa |
+| Tolerar Vitimizacao Sistemica | Pilar 4, 11 | Anti-padrao #13 — identidade cronica de vitima contradiz responsabilidade individual (Pilar 4) |
+| Sistema sem pergunta pos-partida obrigatoria | Pilar 5 | Anti-padrao #14 (Recusa de Auditoria) so e prevenido se o sistema cobra a reflexao |
+| Tolerar busca de diversao casual | Pilar 12 | Anti-padrao #15 — FormulaDota nao e turbo, e ambiente de competicao com peso cerimonial |
+| Liga aberta sem gate HONOR | Pilar 14 | Competicao entre iguais exige gate de elegibilidade — Liga sem gate e cassino de ego |
+| MMR interno paralelo ao HONOR | Pilar 14 | HONOR ja e o sistema de merito interno — MMR interno seria over-engineering redundante |
+| Hall of Fame de skill puro | Pilar 14, 11 | Glorifica vitorias sem carater — contradiz a premissa de competicao entre doutrinados |
 
 ---
 
@@ -606,4 +683,5 @@ PHILOSOPHY e o fundamento filosofico. Doutrina = como agir. Philosophy = por que
 
 *Este documento e permanente e nao esta sujeito a revisao por conveniencia de produto.
 Atualizacoes requerem decisao explicita do autor original (Pedro Paulo) com justificativa
-documentada no PR. Versao 1.0 — 2026-05-23.*
+documentada no PR. Versao 1.1 — 2026-05-24 (Pilar 14 adicionado apos esclarecimento Pedro
+sobre HONOR como MMR interno e Liga Imortal blueprint).*
