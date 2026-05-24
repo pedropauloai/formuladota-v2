@@ -20,7 +20,9 @@ export async function signInWithDiscord() {
 
   if (error) {
     console.error("[auth] erro Discord OAuth:", error.message);
-    redirect("/login?error=oauth");
+    // Task #67 (2026-05-24): /login deletado — visitante volta pro HUB
+    // (HubCenter rendereriza CTA Entrar no header via EntrarBadge).
+    redirect("/?error=oauth");
   }
 
   if (data.url) {

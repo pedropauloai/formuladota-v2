@@ -7,10 +7,17 @@
 // Decisão Pedro 2026-05-23 — parte do sistema de pricing descentralizado.
 //
 // URL canônica: /coaches/pedro-paulo, /coaches/maria-silva
+//
+// Task #66 (2026-05-24): agora wrappa conteúdo em <ClientShell> — visitante
+// deslogado consome o shell normalmente (ClientShell tolera user === null
+// desde task #63). Elimina dependência do Header global; rota faz parte do
+// "client" canônico igual /pro, /me, /dashboard etc. Abre caminho pra task
+// #68 deletar Header/Footer/ConditionalChrome.
 
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { ClientShell } from "@/components/client-shell/shell";
 import { UserAvatar } from "@/components/ui/avatar";
 import { DotaRankMedal, type DotaRank } from "@/components/ui/dota-rank-medal";
 import { HonorRankMedal, type HonorRank } from "@/components/ui/honor-rank-medal";
@@ -220,7 +227,8 @@ export default async function CoachProfilePage({ params }: PageProps) {
   const isFounder = profile.is_admin;
 
   return (
-    <main className="flex flex-col gap-8 p-6 max-w-3xl mx-auto">
+    <ClientShell currentRoute="/coaches">
+      <main className="flex flex-col gap-8 p-6 max-w-3xl mx-auto">
       {/* ----------------------------------------------------------------
           Identidade do PRO
           ---------------------------------------------------------------- */}
@@ -437,6 +445,7 @@ export default async function CoachProfilePage({ params }: PageProps) {
         Subir de tier HONOR é o único caminho para desbloquear ceiling maior — reputação precede
         preço.
       </p>
-    </main>
+      </main>
+    </ClientShell>
   );
 }

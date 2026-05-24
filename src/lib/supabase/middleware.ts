@@ -7,9 +7,11 @@ type CookieToSet = { name: string; value: string; options: CookieOptions };
 
 // Rotas que NÃO exigem aceite da doutrina (mesmo logado).
 // Tudo o mais pra usuário autenticado é bloqueado até aceitar.
+// Task #67 (2026-05-24): /login removido — OAuth Discord agora dispara direto
+// via EntrarBadge no TopBar (signInWithDiscord Server Action). Visitante não
+// passa mais por tela splash intermediária.
 const PUBLIC_PATHS = [
   "/",
-  "/login",
   "/codigo-de-conduta",
   "/privacidade",
   "/cookies",
