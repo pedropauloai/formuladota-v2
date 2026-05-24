@@ -1,7 +1,31 @@
-# Phase 6 — MMR + Seasons (sistema 2-eixos)
+# Phase 6 — MMR Valve + Seasons + HONOR (sistema 2-eixos)
 
-> **Status:** Spec — não implementado. Aguarda Phase 5 (Bot Steam + PostMatchScreen + Honor Ledger).
-> **Data desta spec:** 2026-05-23
+## ATUALIZACAO 2026-05-24 — MMR interno opcional
+
+Modelo REAL confirmado por Pedro: alunos perseguem MMR Valve oficial (ranked do Dota 2
+client). FormulaDota mede SKILL via MMR Valve sincronizado da API (OpenDota/Stratz).
+
+**MMR interno FormulaDota** (Glicko-2 originalmente proposto) vira **opcional futuro** —
+so faz sentido quando:
+- Massa critica de PROs ativos justifica liga propria interna
+- Comunidade quer competicao "FormulaDota Cup" separada do Valve
+- Houver disputa de Imortal da Formula em formato de liga proprio
+
+**Por enquanto (V1):**
+- SKILL eixo = MMR Valve oficial (Steam/OpenDota API sync periodico)
+- HONOR eixo = sistema interno FormulaDota (implementado conforme esta spec)
+- Imortal da Formula = combinacao MMR Valve alto + HONOR alto + criterios extras
+- Liga interna FormulaDota = adiada para quando volume justificar
+
+**Impacto em tabelas:** campo `mmr_atual` em `player_season_mmr` passa a armazenar o
+MMR Valve sincronizado, nao MMR calculado internamente por Glicko-2. O algoritmo Glicko-2
+desta spec fica documentado mas NAO implementado em V1 — e a spec de referencia para futura
+liga interna.
+
+---
+
+> **Status:** Spec — não implementado. Aguarda Phase 5 (Bot Discord + PostMatchScreen + Honor Ledger).
+> **Data desta spec:** 2026-05-23 (revisada 2026-05-24)
 > **Autoria:** Pedro Paulo (decisor) + Agent B (documentação)
 
 **Depende de:**
@@ -268,9 +292,14 @@ create table if not exists immortal_badges (
 
 ## 4. Algoritmo de MMR (SKILL eixo)
 
-### 4.1 Base: Glicko-2
+> **Nota 2026-05-24:** Em V1, o SKILL eixo usa MMR Valve oficial sincronizado via API —
+> nao Glicko-2 calculado internamente. A secao abaixo documenta o algoritmo Glicko-2 para
+> uso futuro quando uma liga interna FormulaDota separada do Valve for justificada pelo volume.
 
-O FormulaDota usa **Glicko-2** como sistema de rating para o eixo SKILL. Justificativa:
+### 4.1 Base: Glicko-2 (FUTURO — liga interna FormulaDota)
+
+O FormulaDota *poderia* usar **Glicko-2** como sistema de rating para o eixo SKILL em uma
+liga interna propria. Justificativa (para referencia futura):
 
 - **Valve migrou de ELO para Glicko** em abril de 2023 (patch 7.33) — sinal de que Glicko é o estado da arte para jogos team-based
 - **Glicko-2 lida bem com irregularidade** — players que jogam pouco têm maior variância (RD = Rating Deviation). Isso é correto para uma inhouse league onde nem todos jogam toda semana
@@ -289,15 +318,21 @@ interface GlickoPlayer {
 // Implementação: usar biblioteca `glicko2-typescript` ou port próprio do algoritmo
 // Referência: http://www.glicko.net/glicko/glicko2.pdf
 
-// Calibração (5 primeiras partidas):
-// - RD começa em 200 (máxima incerteza)
-// - Após calibração: RD cai para ~80-100
-// - MMR muda mais durante calibração (sistema aprendendo)
+// Calibracao (5 primeiras partidas):
+// - Em V1 (MMR Valve): nao ha calibracao interna — MMR Valve do player e sincronizado direto
+// - Em liga interna futura: RD comeca em 200 (maxima incerteza)
+// - Apos calibracao: RD cai para ~80-100
+// - MMR muda mais durante calibracao (sistema aprendendo)
 
-// Seed inicial de cada season:
+// Seed inicial de cada season (V1 — MMR Valve sincronizado):
+// - mmr_inicio = MMR Valve do player no momento de inicio da season (via API)
+// - Sem reset percentual — o MMR Valve nao pertence ao FormulaDota para resetar
+// - Reset parcial apenas em liga interna futura
+
+// Seed inicial (futuro — liga interna):
 // - Se player jogou season anterior: mmr_inicio = mmr_anterior * (1 - skill_reset_percent/100)
-// - Se player é novo: mmr_inicio = seasons.mmr_start (1000 padrão)
-// - RD reset a cada season: 150 (memória parcial do rating anterior)
+// - Se player e novo: mmr_inicio = seasons.mmr_start (1000 padrao)
+// - RD reset a cada season: 150 (memoria parcial do rating anterior)
 ```
 
 ### 4.2 Tiers e estrelas (mapeamento MMR → tier visual)
