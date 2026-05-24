@@ -24,7 +24,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Trophy, Users, Clock, Activity } from "lucide-react";
 
 // Primitives F6
@@ -40,12 +40,13 @@ import { Badge, TIER_NAMES, type Tier } from "@/components/ui/badge";
 import { PresenceDot, type PresenceStatus } from "@/components/ui/presence-dot";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingScreen } from "@/components/ui/loading-screen";
-import { DotaRankMedal, RANK_LABELS, type DotaRank } from "@/components/ui/dota-rank-medal";
+import { DotaRankMedal, RANK_LABELS, type DotaRank, type CalibrationStatus } from "@/components/ui/dota-rank-medal";
 import {
   HonorRankMedal,
   HONOR_RANK_LABELS,
   type HonorRank,
 } from "@/components/ui/honor-rank-medal";
+import { CalibrationGraduation } from "@/components/patterns/calibration-graduation";
 
 // Wave D — Sistema de badges + identidade (GamersClub-inspired)
 import { UserAvatar } from "@/components/ui/avatar";
@@ -137,8 +138,11 @@ const MOCK_MATCH_PLAYED_AT = new Date(Date.now() - 1000 * 60 * 30);
 // Componente principal
 // ---------------------------------------------------------------------------
 
+const CALIBRATION_STATES: CalibrationStatus[] = ["visitante", "calibrando", "ranqueado"];
+
 export default function ComponentsPage() {
   const [showLoading, setShowLoading] = useState(false);
+  const [showGraduation, setShowGraduation] = useState(false);
 
   // Fullscreen LoadingScreen takeover
   if (showLoading) {
@@ -152,6 +156,15 @@ export default function ComponentsPage() {
         </button>
         <LoadingScreen message="Buscando partida" />
       </>
+    );
+  }
+
+  // Fullscreen CalibrationGraduation cerimônia
+  if (showGraduation) {
+    return (
+      <CalibrationGraduation
+        onContinue={() => setShowGraduation(false)}
+      />
     );
   }
 
@@ -816,6 +829,80 @@ export default function ComponentsPage() {
             ))}
           </div>
         </div>
+      </Section>
+
+      {/* ================================================================== */}
+      {/* SECTION 12 — Calibration States (DotaRankMedal + HonorRankMedal)  */}
+      {/* ================================================================== */}
+      <Section title="Calibration States — RankMedal (3 estados)">
+        <p className="text-text-muted text-sm mb-6">
+          Prop <code className="font-mono text-brand-primary text-xs">calibrationStatus</code> em
+          DotaRankMedal e HonorRankMedal. Cada estado tem visual distinto.
+        </p>
+
+        <div className="space-y-8">
+          {CALIBRATION_STATES.map((state) => (
+            <div key={state}>
+              <p className="font-mono text-[10px] uppercase tracking-widest text-text-faded mb-4">
+                {state}
+              </p>
+              <div className="flex gap-10 flex-wrap items-start">
+                {/* DotaRankMedal */}
+                <div className="flex flex-col items-center gap-2">
+                  <p className="font-mono text-[9px] uppercase tracking-widest text-text-faded">
+                    DotaRankMedal
+                  </p>
+                  <DotaRankMedal
+                    rank="immortal"
+                    size="lg"
+                    showLabel
+                    calibrationStatus={state}
+                  />
+                </div>
+                {/* HonorRankMedal */}
+                <div className="flex flex-col items-center gap-2">
+                  <p className="font-mono text-[9px] uppercase tracking-widest text-text-faded">
+                    HonorRankMedal
+                  </p>
+                  <HonorRankMedal
+                    rank="mestre"
+                    size="lg"
+                    showLabel
+                    calibrationStatus={
+                      state === "visitante"
+                        ? "visitante"
+                        : state === "calibrando"
+                          ? "calibrando"
+                          : undefined
+                    }
+                  />
+                </div>
+                {/* Sizes sm / md para validação */}
+                <div className="flex items-end gap-4">
+                  <DotaRankMedal rank="divine" size="sm" calibrationStatus={state} />
+                  <DotaRankMedal rank="divine" size="md" calibrationStatus={state} />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      {/* ================================================================== */}
+      {/* SECTION 13 — CalibrationGraduation cerimônia                       */}
+      {/* ================================================================== */}
+      <Section title="CalibrationGraduation — cerimônia de tier inicial">
+        <p className="text-text-muted text-sm mb-4">
+          Takeover fullscreen exibido quando o usuário completa a calibração.
+          Sequência de fases animadas: reveal medalha Aprendiz + princípio doutrinário.
+        </p>
+        <button
+          type="button"
+          onClick={() => setShowGraduation(true)}
+          className="inline-flex items-center gap-2 rounded-md border border-brand-primary/60 bg-brand-primary/10 px-5 py-2.5 font-display text-sm font-semibold uppercase tracking-widest text-brand-primary hover:bg-brand-primary/20 transition-colors"
+        >
+          Mostrar cerimonia
+        </button>
       </Section>
     </div>
   );
