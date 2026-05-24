@@ -2,15 +2,20 @@
 
 // PTs em status='agendada' — PRO precisa decidir: confirmar (cobra fichas)
 // ou cancelar (libera entries sem cobrar). Opcionalmente enriquece via OpenDota.
+//
+// Após confirmação: exibe CoachNotesPanel pra registrar conduta dos alunos.
 
 import { useState, useTransition } from "react";
 import { Check, X, Database, Loader2 } from "lucide-react";
 import { confirmPTRealized, cancelPT, enrichMatchFromOpenDota } from "./actions";
+import { CoachNotesPanel, type CoachNoteEntry } from "./coach-notes-panel";
 
 interface PendingMatch {
   id: string;
   createdAt: string;
   alunoCount: number;
+  /** Alunos da PT — para exibir CoachNotesPanel após confirmação */
+  entries?: CoachNoteEntry[];
 }
 
 interface Props {
@@ -23,6 +28,8 @@ export function PendingMatches({ matches }: Props) {
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [enrichInput, setEnrichInput] = useState<Record<string, string>>({});
+  // IDs de PTs confirmadas (para exibir CoachNotesPanel)
+  const [confirmedMatchIds, setConfirmedMatchIds] = useState<Set<string>>(new Set());
 
   function handleConfirm(matchId: string) {
     if (!window.confirm("Confirmar que a PT ocorreu? Isso cobrará 1 ficha de cada aluno.")) {
@@ -35,7 +42,10 @@ export function PendingMatches({ matches }: Props) {
       const res = await confirmPTRealized(matchId);
       setPendingId(null);
       if (!res.success) setError(res.error);
-      else setSuccess("PT confirmada — fichas cobradas.");
+      else {
+        setSuccess("PT confirmada — fichas cobradas.");
+        setConfirmedMatchIds((prev) => new Set([...prev, matchId]));
+      }
     });
   }
 
@@ -130,6 +140,14 @@ export function PendingMatches({ matches }: Props) {
                 Cancelar
               </button>
             </div>
+
+            {/* CoachNotesPanel — exibido após confirmação */}
+            {confirmedMatchIds.has(m.id) && (m.entries ?? []).length > 0 && (
+              <CoachNotesPanel
+                entries={m.entries ?? []}
+                matchId={m.id}
+              />
+            )}
 
             {/* OpenDota enrichment opcional */}
             <details className="rounded-md border border-[var(--color-border)] bg-black/30">
