@@ -7,9 +7,17 @@ import {
 } from "@/lib/doctrine";
 import { DotaBackdrop } from "@/components/dota/dota-backdrop";
 import { ClientShell } from "@/components/client-shell/shell";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 // Página pública canônica do código de conduta.
 // Acessível sem login — referência permanente da cultura.
+// Refatorada para Design System V2.5: tokens semânticos + Card primitive
+// + hierarquia tipográfica font-display/font-body. Texto integralmente preservado.
 export const metadata = {
   title: "Código de Conduta — FORMULADOTA",
   description:
@@ -32,7 +40,7 @@ export default async function CodigoDeCondutaPage() {
     <ClientShell currentRoute="/codigo-de-conduta">
       <a
         href="#conteudo"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-[var(--color-brand-red)] focus:px-4 focus:py-2 focus:font-medium focus:text-[var(--color-background)]"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-brand-primary focus:px-4 focus:py-2 focus:font-medium focus:text-text-inverse"
       >
         Pular para o conteúdo
       </a>
@@ -40,52 +48,57 @@ export default async function CodigoDeCondutaPage() {
       <div id="conteudo" className="relative px-6 py-16">
         <DotaBackdrop />
         <div className="relative z-10 mx-auto max-w-3xl space-y-16">
+          {/* Hero — eyebrow + título + subtítulo (tipografia V2.5) */}
           <header className="space-y-4 text-center">
-            <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-brand-red)]">
-              código de conduta · v1
+            <p className="font-display text-xs uppercase tracking-[0.4em] text-brand-primary">
+              Código de Conduta · v1
             </p>
-            <h1 className="text-4xl font-bold leading-tight md:text-5xl">
-              A Fórmula do <span className="text-[var(--color-brand-red)] text-glow-red">Dota</span> de Corrida
+            <h1 className="font-display text-4xl tracking-wide text-text-display md:text-5xl">
+              A Fórmula do{" "}
+              <span className="text-brand-primary text-glow-red">Dota</span> de Corrida
             </h1>
-            <p className="mx-auto max-w-2xl text-base text-[var(--color-muted-foreground)]">
+            <p className="mx-auto max-w-2xl font-body text-base text-text-muted leading-relaxed">
               {CANONICAL_QUOTES.opening}
             </p>
           </header>
 
-          <aside className="rounded-lg border border-[var(--color-brand-red)] bg-[var(--color-card)] p-6 text-center">
-            <p className="text-2xl font-bold tracking-wide text-[var(--color-brand-red)] text-glow-red">
+          {/* Card destaque — primeira regra (highlight brand) */}
+          <Card variant="elevated" className="border-border-brand text-center">
+            <p className="font-display text-2xl tracking-wide text-brand-primary text-glow-red">
               {CANONICAL_QUOTES.firstRule}
             </p>
-            <p className="mt-3 text-sm text-[var(--color-muted-foreground)]">
+            <p className="mt-3 font-body text-sm text-text-muted">
               A primeira regra. A responsabilidade é sempre sua, 100% das vezes.
             </p>
-          </aside>
+          </Card>
 
-          <aside className="rounded-md border border-[var(--color-brand-red)]/40 bg-[var(--color-card)] p-5 text-center">
-            <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-brand-red)]">
-              missão
+          {/* Card missão — citação canônica */}
+          <Card variant="flat" className="border-border-brand/40 text-center">
+            <p className="font-display text-xs uppercase tracking-[0.4em] text-brand-primary">
+              Missão
             </p>
-            <p className="mt-2 text-base italic text-[var(--color-foreground)]">
+            <p className="mt-2 font-body text-base italic text-text-body">
               “{CANONICAL_QUOTES.mission}”
             </p>
-          </aside>
+          </Card>
 
+          {/* Sumário (TOC) */}
           <nav
             aria-label="Sumário do código de conduta"
-            className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5"
+            className="rounded-[var(--radius-lg)] border border-border-subtle bg-bg-elevated p-5"
           >
-            <p className="mb-3 font-mono text-xs uppercase tracking-widest text-[var(--color-brand-red)]">
-              sumário
+            <p className="mb-3 font-display text-xs uppercase tracking-[0.4em] text-brand-primary">
+              Sumário
             </p>
-            <ol className="space-y-2 text-sm">
+            <ol className="space-y-2 font-body text-sm">
               {TOC_SECTIONS.map((s, i) => (
                 <li key={s.id} className="flex gap-3">
-                  <span className="font-mono text-[var(--color-brand-red)]">
+                  <span className="font-mono text-brand-primary">
                     {String(i + 1).padStart(2, "0")}
                   </span>
                   <a
                     href={`#${s.id}`}
-                    className="text-[var(--color-foreground)] hover:text-[var(--color-brand-red)] transition"
+                    className="text-text-body transition hover:text-brand-primary"
                   >
                     {s.label}
                   </a>
@@ -113,7 +126,7 @@ export default async function CodigoDeCondutaPage() {
           </Section>
 
           <Section id="antipadroes" title="Os 15 padrões tóxicos (proibidos)">
-            <p className="text-sm text-[var(--color-muted-foreground)]">
+            <p className="font-body text-sm text-text-muted leading-relaxed">
               Esses comportamentos são incompatíveis com a cultura da FORMULADOTA.
               Geram advertência, suspensão ou banimento conforme as regras abaixo.
             </p>
@@ -125,51 +138,51 @@ export default async function CodigoDeCondutaPage() {
           </Section>
 
           <Section id="moderacao" title="Sistema progressivo de moderação">
-          <p className="text-sm text-[var(--color-muted-foreground)]">
-            Toda violação registrada cita o princípio ou anti-padrão violado.
-            Não é punição arbitrária — é aplicação da regra que você aceitou ao entrar.
-          </p>
-          <ol className="space-y-4">
-            <ModerationStep
-              step={1}
-              label={PROGRESSIVE_MODERATION.step1.label}
-              description={PROGRESSIVE_MODERATION.step1.description}
-            />
-            <ModerationStep
-              step={2}
-              label={PROGRESSIVE_MODERATION.step2.label}
-              description={PROGRESSIVE_MODERATION.step2.description}
-            />
-            <ModerationStep
-              step={3}
-              label={PROGRESSIVE_MODERATION.step3.label}
-              description={PROGRESSIVE_MODERATION.step3.description}
-            />
-          </ol>
-          <p className="rounded-md border border-[var(--color-border)] bg-[var(--color-muted)] px-4 py-3 text-sm text-[var(--color-muted-foreground)]">
-            <strong className="text-[var(--color-foreground)]">Reset automático:</strong>{" "}
-            {PROGRESSIVE_MODERATION.reset}
-          </p>
-          <p className="text-sm text-[var(--color-muted-foreground)]">
-            <strong className="text-[var(--color-foreground)]">Direito ao contraditório:</strong>{" "}
-            você pode contestar qualquer decisão via Discord oficial. A equipe FORMULADOTA
-            revisa caso a caso e reverte manualmente se entender que houve erro.
-          </p>
-        </Section>
+            <p className="font-body text-sm text-text-muted leading-relaxed">
+              Toda violação registrada cita o princípio ou anti-padrão violado.
+              Não é punição arbitrária — é aplicação da regra que você aceitou ao entrar.
+            </p>
+            <ol className="space-y-4">
+              <ModerationStep
+                step={1}
+                label={PROGRESSIVE_MODERATION.step1.label}
+                description={PROGRESSIVE_MODERATION.step1.description}
+              />
+              <ModerationStep
+                step={2}
+                label={PROGRESSIVE_MODERATION.step2.label}
+                description={PROGRESSIVE_MODERATION.step2.description}
+              />
+              <ModerationStep
+                step={3}
+                label={PROGRESSIVE_MODERATION.step3.label}
+                description={PROGRESSIVE_MODERATION.step3.description}
+              />
+            </ol>
+            <p className="rounded-md border border-border-subtle bg-bg-base px-4 py-3 font-body text-sm text-text-muted">
+              <strong className="text-text-display">Reset automático:</strong>{" "}
+              {PROGRESSIVE_MODERATION.reset}
+            </p>
+            <p className="font-body text-sm text-text-muted leading-relaxed">
+              <strong className="text-text-display">Direito ao contraditório:</strong>{" "}
+              você pode contestar qualquer decisão via Discord oficial. A equipe FORMULADOTA
+              revisa caso a caso e reverte manualmente se entender que houve erro.
+            </p>
+          </Section>
 
           <Section id="compromisso" title="Compromisso final">
-            <blockquote className="border-l-2 border-[var(--color-brand-red)] pl-6 italic text-[var(--color-foreground)]">
+            <blockquote className="border-l-2 border-brand-primary pl-6 font-body text-base italic text-text-body leading-relaxed">
               {CANONICAL_QUOTES.responsibility}
             </blockquote>
-            <blockquote className="border-l-2 border-[var(--color-brand-red)] pl-6 italic text-[var(--color-foreground)]">
+            <blockquote className="border-l-2 border-brand-primary pl-6 font-body text-base italic text-text-body leading-relaxed">
               {CANONICAL_QUOTES.competitiveMindset}
             </blockquote>
           </Section>
 
-          <footer className="border-t border-[var(--color-border)] pt-8 text-center">
+          <footer className="border-t border-border-subtle pt-8 text-center">
             <Link
               href="/"
-              className="font-mono text-xs uppercase tracking-widest text-[var(--color-brand-red)] hover:text-glow-red transition"
+              className="font-mono text-xs uppercase tracking-widest text-brand-primary transition hover:text-glow-red"
             >
               ← voltar à home
             </Link>
@@ -180,6 +193,9 @@ export default async function CodigoDeCondutaPage() {
   );
 }
 
+// ---------------------------------------------------------------------------
+// Section — heading h2 (font-display tracking-wide) + área de conteúdo
+// ---------------------------------------------------------------------------
 function Section({
   id,
   title,
@@ -191,16 +207,21 @@ function Section({
 }) {
   return (
     <section id={id} className="space-y-6 scroll-mt-8">
-      <h2 className="text-2xl font-bold">{title}</h2>
+      <h2 className="font-display text-2xl tracking-wide text-text-display">
+        {title}
+      </h2>
       <div className="space-y-6">{children}</div>
     </section>
   );
 }
 
+// ---------------------------------------------------------------------------
+// Subsection — h3 uppercase tracking-wider (sub-cabeçalho de categoria)
+// ---------------------------------------------------------------------------
 function Subsection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="space-y-3">
-      <h3 className="font-mono text-xs uppercase tracking-widest text-[var(--color-brand-red)]">
+      <h3 className="font-display text-lg uppercase tracking-wider text-text-display">
         {title}
       </h3>
       <div className="space-y-3">{children}</div>
@@ -208,6 +229,10 @@ function Subsection({ title, children }: { title: string; children: React.ReactN
   );
 }
 
+// ---------------------------------------------------------------------------
+// PrincipleCard — Card primitive + numeração mono + título display + body
+// highlight = primeiro princípio (border brand + glow)
+// ---------------------------------------------------------------------------
 function PrincipleCard({
   principle,
   highlight,
@@ -216,63 +241,76 @@ function PrincipleCard({
   highlight?: boolean;
 }) {
   return (
-    <article
-      className={[
-        "rounded-lg border p-5 space-y-2",
-        highlight
-          ? "border-[var(--color-brand-red)] bg-[var(--color-card)]"
-          : "border-[var(--color-border)] bg-[var(--color-card)]",
-      ].join(" ")}
+    <Card
+      variant="flat"
+      className={highlight ? "border-border-brand" : undefined}
     >
-      <header className="flex items-baseline gap-3">
-        <span
-          className={[
-            "font-mono text-xs",
-            highlight ? "text-[var(--color-brand-red)] text-glow-red" : "text-[var(--color-brand-red)]",
-          ].join(" ")}
-        >
-          {String(principle.id).padStart(2, "0")}
-        </span>
-        <h4 className={highlight ? "font-semibold text-glow-red" : "font-semibold"}>
-          {principle.title}
-        </h4>
-      </header>
-      <p className="text-sm leading-relaxed text-[var(--color-muted-foreground)]">
-        {principle.body}
-      </p>
-    </article>
+      <CardHeader className="mb-2">
+        <div className="flex items-baseline gap-3">
+          <span
+            className={[
+              "font-mono text-xs",
+              highlight ? "text-brand-primary text-glow-red" : "text-brand-primary",
+            ].join(" ")}
+          >
+            {String(principle.id).padStart(2, "0")}
+          </span>
+          <CardTitle
+            className={highlight ? "text-glow-red" : undefined}
+          >
+            {principle.title}
+          </CardTitle>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <p className="font-body text-sm text-text-muted leading-relaxed">
+          {principle.body}
+        </p>
+      </CardContent>
+    </Card>
   );
 }
 
+// ---------------------------------------------------------------------------
+// AntipatternCard — Card + numeração com X (error) + exemplos em <ul>
+// + nota de severidade opcional (banner error sutil)
+// ---------------------------------------------------------------------------
 function AntipatternCard({
   antipattern,
 }: {
   antipattern: (typeof ANTIPATTERNS)[number];
 }) {
   return (
-    <article className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5 space-y-3">
-      <header className="flex items-baseline gap-3">
-        <span className="font-mono text-xs text-[var(--color-danger)]">
-          ✕ {String(antipattern.id).padStart(2, "0")}
-        </span>
-        <h4 className="font-semibold">{antipattern.title}</h4>
-      </header>
-      <ul className="space-y-1 text-sm text-[var(--color-muted-foreground)]">
-        {antipattern.examples.map((ex, i) => (
-          <li key={i} className="leading-relaxed">
-            • {ex}
-          </li>
-        ))}
-      </ul>
-      {antipattern.directSeverityNote && (
-        <p className="rounded-md border border-[var(--color-danger)]/40 bg-[var(--color-danger)]/10 px-3 py-2 text-xs font-medium text-[var(--color-danger)]">
-          ⚠ {antipattern.directSeverityNote}
-        </p>
-      )}
-    </article>
+    <Card variant="flat">
+      <CardHeader className="mb-3">
+        <div className="flex items-baseline gap-3">
+          <span className="font-mono text-xs text-error">
+            ✕ {String(antipattern.id).padStart(2, "0")}
+          </span>
+          <CardTitle>{antipattern.title}</CardTitle>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <ul className="space-y-1 font-body text-sm text-text-muted">
+          {antipattern.examples.map((ex, i) => (
+            <li key={i} className="leading-relaxed">
+              • {ex}
+            </li>
+          ))}
+        </ul>
+        {antipattern.directSeverityNote && (
+          <p className="rounded-md border border-error/40 bg-error/10 px-3 py-2 font-mono text-xs font-medium text-error">
+            ⚠ {antipattern.directSeverityNote}
+          </p>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
+// ---------------------------------------------------------------------------
+// ModerationStep — passo numerado da escala progressiva (Card + círculo brand)
+// ---------------------------------------------------------------------------
 function ModerationStep({
   step,
   label,
@@ -283,13 +321,15 @@ function ModerationStep({
   description: string;
 }) {
   return (
-    <li className="flex gap-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5">
-      <div className="flex size-10 shrink-0 items-center justify-center rounded-full border border-[var(--color-brand-red)] font-mono text-sm font-bold text-[var(--color-brand-red)]">
+    <li className="flex gap-4 rounded-[var(--radius-lg)] border border-border-subtle bg-bg-elevated p-5">
+      <div className="flex size-10 shrink-0 items-center justify-center rounded-full border border-brand-primary font-mono text-sm font-bold text-brand-primary">
         {step}
       </div>
       <div className="space-y-1">
-        <h4 className="font-semibold">{label}</h4>
-        <p className="text-sm leading-relaxed text-[var(--color-muted-foreground)]">
+        <h4 className="font-display text-base tracking-wide text-text-display">
+          {label}
+        </h4>
+        <p className="font-body text-sm text-text-muted leading-relaxed">
           {description}
         </p>
       </div>

@@ -1,10 +1,13 @@
 import Link from "next/link";
 import { DotaBackdrop } from "@/components/dota/dota-backdrop";
 import { ClientShell } from "@/components/client-shell/shell";
+import { Card } from "@/components/ui/card";
 
 // Página pública canônica da Metodologia FORMULADOTA.
 // Acessível sem login — base teórica da Fórmula do Dota de Corrida.
 // Doc fonte: docs/foundations/METHODOLOGY.md (10 seções).
+// Refatorada para Design System V2.5: tokens semânticos + Card primitive
+// + hierarquia tipográfica font-display/font-body. Texto integralmente preservado.
 export const metadata = {
   title: "Metodologia — A Fórmula do Dota de Corrida",
   description:
@@ -40,7 +43,7 @@ export default async function MetodologiaPage() {
     <ClientShell currentRoute="/metodologia">
       <a
         href="#conteudo"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-[var(--color-brand-red)] focus:px-4 focus:py-2 focus:font-medium focus:text-[var(--color-background)]"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-brand-primary focus:px-4 focus:py-2 focus:font-medium focus:text-text-inverse"
       >
         Pular para o conteúdo
       </a>
@@ -48,61 +51,62 @@ export default async function MetodologiaPage() {
       <div id="conteudo" className="relative px-6 py-16">
         <DotaBackdrop />
         <div className="relative z-10 mx-auto max-w-3xl space-y-16">
+          {/* Hero — eyebrow + título + subtítulo (tipografia V2.5) */}
           <header className="space-y-6 text-center">
-            <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-brand-red)]">
-              metodologia · v1
+            <p className="font-display text-xs uppercase tracking-[0.4em] text-brand-primary">
+              Metodologia · v1
             </p>
-            <h1 className="text-4xl font-bold leading-tight md:text-5xl">
+            <h1 className="font-display text-4xl tracking-wide text-text-display md:text-5xl">
               A Teoria por Trás da{" "}
-              <span className="text-[var(--color-brand-red)] text-glow-red">
+              <span className="text-brand-primary text-glow-red">
                 Fórmula
               </span>
             </h1>
-            <p className="mx-auto max-w-2xl text-base italic text-[var(--color-muted-foreground)]">
+            <p className="mx-auto max-w-2xl font-body text-base italic text-text-muted leading-relaxed">
               Por que Dota é jogo de corrida. Por que patrimônio em relação ao
               tempo é o KPI universal. Por que a metodologia funciona além do
               jogo.
             </p>
           </header>
 
-          {/* Tese central — destacada no topo */}
-          <aside className="rounded-lg border border-[var(--color-brand-red)] bg-[var(--color-card)] p-8 text-center">
-            <p className="mb-2 font-mono text-xs uppercase tracking-widest text-[var(--color-brand-red)]">
-              tese central
+          {/* Tese central — destacada no topo (Card com border brand) */}
+          <Card variant="elevated" className="border-border-brand p-8 text-center">
+            <p className="mb-2 font-display text-xs uppercase tracking-[0.4em] text-brand-primary">
+              Tese Central
             </p>
-            <blockquote className="text-xl font-bold italic leading-relaxed text-[var(--color-foreground)] md:text-2xl">
+            <blockquote className="font-display text-xl tracking-wide italic leading-relaxed text-text-display md:text-2xl">
               “Dota 2 não é sobre matar heróis. É sobre progredir o seu herói de
               forma consistente e impedir a progressão consistente do
               adversário.”
             </blockquote>
-          </aside>
+          </Card>
 
           {/* Frase canônica — Permita-se questionar */}
-          <aside className="rounded-md border border-[var(--color-brand-red)]/40 bg-[var(--color-card)] p-6 text-center">
-            <p className="text-base italic text-[var(--color-foreground)]">
+          <Card variant="flat" className="border-border-brand/40 p-6 text-center">
+            <p className="font-body text-base italic text-text-body leading-relaxed">
               “Permita-se questionar. Sobre tudo e qualquer coisa. Isso sim é o
               que evolui um ser. O FORMULADOTA é um lugar pra quem busca a
               verdadeira evolução.”
             </p>
-          </aside>
+          </Card>
 
-          {/* Sumário */}
+          {/* Sumário (TOC) */}
           <nav
             aria-label="Sumário da metodologia"
-            className="rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5"
+            className="rounded-[var(--radius-lg)] border border-border-subtle bg-bg-elevated p-5"
           >
-            <p className="mb-3 font-mono text-xs uppercase tracking-widest text-[var(--color-brand-red)]">
-              sumário
+            <p className="mb-3 font-display text-xs uppercase tracking-[0.4em] text-brand-primary">
+              Sumário
             </p>
-            <ol className="space-y-2 text-sm">
+            <ol className="space-y-2 font-body text-sm">
               {TOC_SECTIONS.map((s, i) => (
                 <li key={s.id} className="flex gap-3">
-                  <span className="font-mono text-[var(--color-brand-red)]">
+                  <span className="font-mono text-brand-primary">
                     {String(i + 1).padStart(2, "0")}
                   </span>
                   <a
                     href={`#${s.id}`}
-                    className="text-[var(--color-foreground)] transition hover:text-[var(--color-brand-red)]"
+                    className="text-text-body transition hover:text-brand-primary"
                   >
                     {s.label}
                   </a>
@@ -145,28 +149,36 @@ export default async function MetodologiaPage() {
               que passa sem você extrair recurso do mapa é minuto que seu
               adversário usou para extrair.
             </p>
-            <div className="overflow-hidden rounded-lg border border-[var(--color-border)]">
-              <table className="w-full text-sm">
-                <thead className="bg-[var(--color-card)] text-left">
+            <div className="overflow-hidden rounded-[var(--radius-lg)] border border-border-subtle">
+              <table className="w-full font-body text-sm text-text-body">
+                <thead className="bg-bg-elevated text-left">
                   <tr>
-                    <th className="px-4 py-3 font-semibold">Função</th>
-                    <th className="px-4 py-3 font-semibold">Meta @ 10min</th>
-                    <th className="px-4 py-3 font-semibold">Meta @ 20min</th>
-                    <th className="px-4 py-3 font-semibold">GPM</th>
+                    <th className="px-4 py-3 font-display text-xs uppercase tracking-wider text-text-display">
+                      Função
+                    </th>
+                    <th className="px-4 py-3 font-display text-xs uppercase tracking-wider text-text-display">
+                      Meta @ 10min
+                    </th>
+                    <th className="px-4 py-3 font-display text-xs uppercase tracking-wider text-text-display">
+                      Meta @ 20min
+                    </th>
+                    <th className="px-4 py-3 font-display text-xs uppercase tracking-wider text-text-display">
+                      GPM
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr className="border-t border-[var(--color-border)]">
-                    <td className="px-4 py-3 font-bold">Core</td>
-                    <td className="px-4 py-3">5.000 ouro</td>
-                    <td className="px-4 py-3">10.000 ouro</td>
-                    <td className="px-4 py-3">500</td>
+                  <tr className="border-t border-border-subtle">
+                    <td className="px-4 py-3 font-display tracking-wide text-text-display">Core</td>
+                    <td className="px-4 py-3 font-mono tabular-nums">5.000 ouro</td>
+                    <td className="px-4 py-3 font-mono tabular-nums">10.000 ouro</td>
+                    <td className="px-4 py-3 font-mono tabular-nums">500</td>
                   </tr>
-                  <tr className="border-t border-[var(--color-border)]">
-                    <td className="px-4 py-3 font-bold">Suporte</td>
-                    <td className="px-4 py-3">2.500 ouro</td>
-                    <td className="px-4 py-3">5.000 ouro</td>
-                    <td className="px-4 py-3">250</td>
+                  <tr className="border-t border-border-subtle">
+                    <td className="px-4 py-3 font-display tracking-wide text-text-display">Suporte</td>
+                    <td className="px-4 py-3 font-mono tabular-nums">2.500 ouro</td>
+                    <td className="px-4 py-3 font-mono tabular-nums">5.000 ouro</td>
+                    <td className="px-4 py-3 font-mono tabular-nums">250</td>
                   </tr>
                 </tbody>
               </table>
@@ -241,24 +253,32 @@ export default async function MetodologiaPage() {
               <strong>8.109.737 jogadores calibrados no mundo</strong>.
               Distribuição por medalha:
             </p>
-            <div className="overflow-hidden rounded-lg border border-[var(--color-border)]">
-              <table className="w-full text-sm">
-                <thead className="bg-[var(--color-card)] text-left">
+            <div className="overflow-hidden rounded-[var(--radius-lg)] border border-border-subtle">
+              <table className="w-full font-body text-sm text-text-body">
+                <thead className="bg-bg-elevated text-left">
                   <tr>
-                    <th className="px-4 py-3 font-semibold">Medalha</th>
-                    <th className="px-4 py-3 font-semibold">Jogadores</th>
-                    <th className="px-4 py-3 font-semibold">% mundial</th>
+                    <th className="px-4 py-3 font-display text-xs uppercase tracking-wider text-text-display">
+                      Medalha
+                    </th>
+                    <th className="px-4 py-3 font-display text-xs uppercase tracking-wider text-text-display">
+                      Jogadores
+                    </th>
+                    <th className="px-4 py-3 font-display text-xs uppercase tracking-wider text-text-display">
+                      % mundial
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {MEDAL_DATA.map((m) => (
                     <tr
                       key={m.medal}
-                      className="border-t border-[var(--color-border)]"
+                      className="border-t border-border-subtle"
                     >
-                      <td className="px-4 py-3 font-bold">{m.medal}</td>
-                      <td className="px-4 py-3 font-mono">{m.count}</td>
-                      <td className="px-4 py-3">{m.pct}</td>
+                      <td className="px-4 py-3 font-display tracking-wide text-text-display">
+                        {m.medal}
+                      </td>
+                      <td className="px-4 py-3 font-mono tabular-nums">{m.count}</td>
+                      <td className="px-4 py-3 font-mono tabular-nums">{m.pct}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -443,26 +463,26 @@ export default async function MetodologiaPage() {
               lugar para <strong>quem busca a verdadeira evolução</strong> —
               começando pelo Dota, terminando na vida inteira.
             </p>
-            <blockquote className="my-6 border-l-2 border-[var(--color-brand-red)] pl-6 italic text-[var(--color-foreground)]">
+            <blockquote className="my-6 border-l-2 border-brand-primary pl-6 font-body text-base italic text-text-body leading-relaxed">
               “A ideia aqui não é te entreter — é te mudar por dentro, na forma
               de pensar, jogar e reagir ao Dota.”
             </blockquote>
-            <p className="text-right text-sm text-[var(--color-muted-foreground)]">
+            <p className="text-right font-body text-sm text-text-muted italic">
               — Pedro Paulo, autor da metodologia
             </p>
           </Section>
 
-          <footer className="space-y-4 border-t border-[var(--color-border)] pt-8 text-center">
+          <footer className="space-y-4 border-t border-border-subtle pt-8 text-center">
             <div className="flex flex-wrap justify-center gap-4">
               <Link
                 href="/codigo-de-conduta"
-                className="font-mono text-xs uppercase tracking-widest text-[var(--color-brand-red)] transition hover:text-glow-red"
+                className="font-mono text-xs uppercase tracking-widest text-brand-primary transition hover:text-glow-red"
               >
                 ler a doutrina →
               </Link>
               <Link
                 href="/"
-                className="font-mono text-xs uppercase tracking-widest text-[var(--color-muted-foreground)] transition hover:text-[var(--color-foreground)]"
+                className="font-mono text-xs uppercase tracking-widest text-text-muted transition hover:text-text-display"
               >
                 ← voltar à home
               </Link>
@@ -474,6 +494,9 @@ export default async function MetodologiaPage() {
   );
 }
 
+// ---------------------------------------------------------------------------
+// Section — heading h2 (font-display tracking-wide) + corpo body relaxado
+// ---------------------------------------------------------------------------
 function Section({
   id,
   title,
@@ -485,17 +508,22 @@ function Section({
 }) {
   return (
     <section id={id} className="space-y-6 scroll-mt-8">
-      <h2 className="text-2xl font-bold">{title}</h2>
-      <div className="space-y-4 text-base leading-relaxed text-[var(--color-foreground)]">
+      <h2 className="font-display text-2xl tracking-wide text-text-display">
+        {title}
+      </h2>
+      <div className="space-y-4 font-body text-base leading-relaxed text-text-body">
         {children}
       </div>
     </section>
   );
 }
 
+// ---------------------------------------------------------------------------
+// Quote — citação canônica (Pedro Paulo) com border brand + bg sutil
+// ---------------------------------------------------------------------------
 function Quote({ children }: { children: React.ReactNode }) {
   return (
-    <blockquote className="border-l-2 border-[var(--color-brand-red)] bg-[var(--color-card)]/40 py-3 pl-6 italic text-[var(--color-muted-foreground)]">
+    <blockquote className="border-l-2 border-brand-primary bg-bg-elevated/40 py-3 pl-6 font-body italic text-text-muted leading-relaxed">
       {children}
     </blockquote>
   );
