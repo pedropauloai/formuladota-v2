@@ -14,7 +14,7 @@ import type { Tables } from "@/types/database";
 import { SaldoCard } from "@/components/partidas/saldo-card";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ClientShell } from "@/components/client-shell/shell";
+import { ClientShell } from "@/components/templates/client-shell";
 
 export const metadata: Metadata = {
   title: "Minhas Partidas — FORMULADOTA",
@@ -80,7 +80,7 @@ export default async function PartidasPage() {
   const semSaldo = partidasDisponiveis === 0 && sessoesDisponiveis === 0;
 
   return (
-    <ClientShell currentRoute="/partidas">
+    <ClientShell>
       <div className="px-4 py-10 mx-auto max-w-4xl">
         <header className="mb-8">
           <h1 className="text-3xl md:text-4xl font-display text-[var(--color-foreground)]">
