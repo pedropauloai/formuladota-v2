@@ -61,6 +61,41 @@ See: .planning/PROJECT.md (updated 2026-05-23)
 - **ClientShell não migrado em pages:** M2 mandamento "kill sidebar" não 100% completado até DF8.4 migration.
 - **Howler+ambiente:** Sem teste real em ambiente de produção. ISoundManager interface permite trocar implementação se necessário.
 
+## MVP Fichas — Status (2026-05-23)
+
+Branch: `feat/hero-state-refactor`
+
+### Gaps fechados (agent mvp-fichas 2026-05-23)
+
+| Gap | Status | Detalhes |
+|-----|--------|----------|
+| Gap 1 — Package ficha preço | FIXED | "Ficha avulsa" preço corrigido de R$15 → R$10 no Supabase (UPDATE direto) |
+| Gap 2 — Webhook → ficha_ledger | FIXED | `handlePaymentNotification` agora insere em `ficha_ledger` com source='purchase' após purchase virar 'pago'. Trigger apply_ficha_ledger atualiza balance. |
+| Gap 3 — Dashboard saldo visível | OK | Dashboard, UserStatusBar, DashboardCenter e queries já existiam e funcionam. |
+| Gap 4 — Coach row Pedro | OK | Pedro já tem coach row (slug='pedro-paulo', ativo=true, fila_aberta=true). |
+| Gap 5 — Email PT confirmada | FIXED | sendPTConfirmedEmail() + template + chamada em confirmPTRealized (fire-and-forget). |
+
+### Commits feitos
+- `3161c62` fix(mvp-fichas): Gap 2 — webhook MP insere em ficha_ledger após PIX aprovado
+- `ea1a2aa` feat(mvp-fichas): Gap 5 — email PT confirmada (sendPTConfirmedEmail + template)
+- `f4bde89` feat(mvp-fichas): Gap 5 — confirmPTRealized dispara email pra alunos consumidos
+
+### UAT criteria — status
+1. Pedro acessa /admin/pros → PENDENTE validação visual Pedro
+2. Aluno vê "Sem fichas" + CTA comprar → PENDENTE validação visual Pedro
+3. Checkout → PIX → webhook → ficha aparece → PENDENTE teste sandbox MP
+4. Aluno entra na fila → Pedro vê em /admin/pros → PENDENTE validação Pedro
+5. 4 alunos preenchem slots → PENDENTE validação Pedro
+6. startPT → status in_match → PENDENTE validação Pedro
+7. Jogo manual no Dota 2 → N/A (manual)
+8. confirmPTRealized → fichas consumidas → email pra alunos → PENDENTE validação Pedro
+9. Aluno vê 0 fichas + histórico em /partidas → PENDENTE validação Pedro
+
+### Pendente para Pedro testar
+- Rodar `pnpm dev` e validar fluxo visual completo (dashboard → checkout → fila → admin/pros)
+- Testar webhook com PIX sandbox Mercado Pago (confirmar ficha aparece após pagar)
+- Confirmar que email de "PT confirmada" chega após confirmPTRealized
+
 ## Session Continuity
 
 Last session: 2026-05-23
