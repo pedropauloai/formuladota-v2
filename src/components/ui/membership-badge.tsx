@@ -5,7 +5,15 @@
  * Badge circular pequeno (16-20px) para uso como overlay em UserAvatar.
  * Representa o tier de membership do usuário dentro da plataforma.
  *
- * 5 tiers: free | aluno | veterano | elite | fundador
+ * TIERS NÃO SÃO PROGRESSÃO DE PAGAMENTO.
+ *
+ * Visitante → Aluno: vem de comprar primeira ficha.
+ * Aluno → Veterano: vem de TEMPO ativo (3+ meses).
+ * Veterano → Consagrado: vem de CONDUTA (não pagamento).
+ * Fundador: identidade histórica (primeiros 50).
+ *
+ * Filosofia PHILOSOPHY.md: NÃO criar pay-to-status visual.
+ * Nenhum tier é "premium" sobre outro — todos têm dignidade visual.
  *
  * Diferente do <Badge> genérico (shadcn-based) — este é especializado
  * para ser encaixado no slot badge do <UserAvatar>.
@@ -16,6 +24,7 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import {
   Check,
+  Award,
   Star,
   Crown,
   Shield,
@@ -27,8 +36,16 @@ import { cn } from "@/lib/utils";
 // Tipos públicos
 // ---------------------------------------------------------------------------
 
-/** Tiers de membership disponíveis na plataforma FormulaDota */
-export type MembershipTier = "free" | "aluno" | "veterano" | "elite" | "fundador";
+/**
+ * Tiers de membership da plataforma FormulaDota.
+ *
+ * - visitante:  não comprou ainda — tem dignidade visual, sem "pobreza"
+ * - aluno:      comprou primeira ficha
+ * - veterano:   ativo há 3+ meses
+ * - consagrado: reconhecimento comportamental (conduta + pares) — NÃO financeiro
+ * - fundador:   early adopter histórico (primeiros 50)
+ */
+export type MembershipTier = "visitante" | "aluno" | "veterano" | "consagrado" | "fundador";
 
 // ---------------------------------------------------------------------------
 // CVA — variantes de tier
@@ -40,30 +57,30 @@ const membershipBadgeVariants = cva(
     "inline-flex items-center justify-center",
     "rounded-full",
     "size-5",            /* 20px — visível mas discreto sobre o avatar */
-    "ring-2 ring-bg-deep", /* anel branco/dark para contraste sobre qualquer fundo */
+    "ring-2 ring-bg-deep", /* anel dark para contraste sobre qualquer fundo */
     "shrink-0",
   ].join(" "),
   {
     variants: {
       tier: {
-        /* Sem membership — cinza muted, borda sutil, sem ícone colorido */
-        free:
+        /* Visitante — cinza muted com borda sutil; presença digna, sem pobreza visual */
+        visitante:
           "bg-bg-elevated border border-border-subtle text-text-faded",
         /* Aluno ativo — brand-primary vermelho FORMULADOTA */
         aluno:
           "bg-brand-primary text-text-inverse border border-brand-primary",
-        /* Veterano — brand-primary com glow leve (border mais brilhante) */
+        /* Veterano — brand-primary mais escuro, borda reforçada */
         veterano:
           "bg-brand-primary text-text-inverse border border-brand-primary-hover",
-        /* Elite — âmbar warning, destaque premium */
-        elite:
-          "bg-warning text-bg-deep border border-warning",
+        /* Consagrado — âmbar warning controlado; destaque sutil, sem glow excessivo */
+        consagrado:
+          "bg-warning/80 text-bg-deep border border-warning",
         /* Fundador — brand-primary-deep + borda especial (primeiros 50) */
         fundador:
           "bg-brand-primary-deep text-text-inverse border border-brand-primary",
       },
     },
-    defaultVariants: { tier: "free" },
+    defaultVariants: { tier: "visitante" },
   }
 );
 
@@ -84,20 +101,20 @@ export interface MembershipBadgeProps
 
 /** Componente de ícone Lucide para cada tier */
 const TIER_ICONS: Record<MembershipTier, React.FC<LucideProps>> = {
-  free:     Shield,   /* escudo sutil — "sem proteção" / ainda não ativo */
-  aluno:    Check,    /* check — confirmado como aluno */
-  veterano: Star,     /* estrela — veterano da plataforma */
-  elite:    Crown,    /* coroa — tier elite premium */
-  fundador: Shield,   /* escudo especial — fundador, os primeiros 50 */
+  visitante: Shield,    /* escudo sutil — presença digna mesmo sem adesão */
+  aluno:     Check,     /* check — confirmado como aluno */
+  veterano:  Award,     /* medalha — veterano da plataforma */
+  consagrado: Star,     /* estrela — reconhecimento comportamental peer */
+  fundador:  Crown,     /* coroa — fundador, os primeiros 50 */
 };
 
 /** Rótulos de acessibilidade PT-BR por tier */
 const TIER_LABELS: Record<MembershipTier, string> = {
-  free:     "Membro Free",
-  aluno:    "Aluno",
-  veterano: "Veterano",
-  elite:    "Elite",
-  fundador: "Fundador",
+  visitante:  "Visitante",
+  aluno:      "Aluno",
+  veterano:   "Veterano",
+  consagrado: "Consagrado",
+  fundador:   "Fundador",
 };
 
 // ---------------------------------------------------------------------------
@@ -110,7 +127,7 @@ const TIER_LABELS: Record<MembershipTier, string> = {
  * Cada tier tem cor e ícone próprios. Encaixe no slot badge do UserAvatar:
  *
  * @example
- * <UserAvatar size="xl" badge={<MembershipBadge tier="elite" />} />
+ * <UserAvatar size="xl" badge={<MembershipBadge tier="consagrado" />} />
  *
  * @example
  * // Badge standalone (incomum mas válido em listas)
