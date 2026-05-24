@@ -1,16 +1,33 @@
-// Top Bar — réplica do header do Dota 2 client, adaptada pro MVP.
-// Esquerda: logo branca + settings + tabs (Conduta, Painel PROs admin)
+// Top Bar — réplica do header do Dota 2 client (M2 reformulado 2026-05-24).
+// Esquerda: logo branca + settings + tabs principais + tabs contextuais
 // Centro: status PROs online em tempo real
 // Direita: badge "Comprar Ficha" (yellow, ex-FORMULA+) + logout
 //
-// MVP: removidos tabs Progresso/Ranking/Times/Torneios (v2), bell de
-// notificações (placeholder v2), badge mensalidade FORMULA+ (v2).
+// Tabs principais (sempre visíveis): PROGRESSO / RANKING / TIMES / TORNEIOS /
+// CONDUTA. Tabs contextuais: PRO (se isPro) e ADMIN (se isAdmin).
+// JOGAR é implícito — clique no logo FORMULADOTA leva pra /dashboard.
+// Ref: docs/foundations/DOTA2_CLIENT_REFERENCE.md #2 (dashboard-current.png).
 
 import Image from "next/image";
 import Link from "next/link";
 import { Settings, LogOut, Coins, Radio, Eye, EyeOff } from "lucide-react";
 import { signOut } from "@/app/login/actions";
 import { togglePreviewMode } from "@/lib/auth/preview-mode";
+
+type TopBarTabDef = {
+  href: string;
+  label: string;
+  /** Prefixo usado pra match active state. Omitido = usa href. */
+  matchPrefix?: string;
+};
+
+const PRINCIPAL_TABS: TopBarTabDef[] = [
+  { href: "/progresso", label: "Progresso" },
+  { href: "/ranking", label: "Ranking" },
+  { href: "/times", label: "Times" },
+  { href: "/torneios", label: "Torneios" },
+  { href: "/codigo-de-conduta", label: "Conduta" },
+];
 
 interface Props {
   currentRoute?: string;
@@ -20,6 +37,8 @@ interface Props {
   realIsAdmin: boolean;
   /** Preview mode ativo (admin vendo como user comum). */
   previewActive: boolean;
+  /** User tem pro_promotion ativa/pausada — exibe tab contextual PRO. */
+  isPro: boolean;
   prosOnlineCount: number;
   fichaPackageId: string | null;
 }
@@ -29,15 +48,24 @@ export function DashboardTopBar({
   isAdmin,
   realIsAdmin,
   previewActive,
+  isPro,
   prosOnlineCount,
   fichaPackageId,
 }: Props) {
-  const tabs: { href: string; label: string }[] = [
-    { href: "/codigo-de-conduta", label: "Conduta" },
-  ];
-  if (isAdmin) {
-    tabs.unshift({ href: "/admin/pros", label: "Painel PROs" });
+  const contextualTabs: TopBarTabDef[] = [];
+  if (isPro) {
+    contextualTabs.push({ href: "/pro", label: "Pro" });
   }
+  if (isAdmin) {
+    contextualTabs.push({
+      href: "/admin/dashboard",
+      label: "Admin",
+      matchPrefix: "/admin",
+    });
+  }
+
+  const isActive = (t: TopBarTabDef) =>
+    currentRoute?.startsWith(t.matchPrefix ?? t.href) ?? false;
 
   return (
     <header className="relative z-[var(--z-overlay)] flex h-16 shrink-0 items-center justify-between bg-gradient-to-b from-black/85 via-black/55 to-transparent px-4 backdrop-blur-md xl:h-20 xl:px-6">
@@ -65,22 +93,41 @@ export function DashboardTopBar({
 
         <TopBarIcon icon={Settings} label="Configurações" href="/me" />
 
-        {tabs.length > 0 && (
+        <div
+          className="h-6 w-px bg-white/15 xl:h-8 xl:mx-1"
+          aria-hidden="true"
+        />
+
+        <nav
+          aria-label="Navegação principal"
+          className="hidden lg:flex items-center gap-1"
+        >
+          {PRINCIPAL_TABS.map((t) => (
+            <TopBarTab
+              key={t.href}
+              href={t.href}
+              label={t.label}
+              active={isActive(t)}
+            />
+          ))}
+        </nav>
+
+        {contextualTabs.length > 0 && (
           <>
             <div
-              className="h-6 w-px bg-white/15 xl:h-8 xl:mx-1"
+              className="hidden lg:block h-6 w-px bg-white/15 xl:h-8 xl:mx-1"
               aria-hidden="true"
             />
             <nav
-              aria-label="Navegação principal"
+              aria-label="Navegação contextual"
               className="hidden lg:flex items-center gap-1"
             >
-              {tabs.map((t) => (
+              {contextualTabs.map((t) => (
                 <TopBarTab
                   key={t.href}
                   href={t.href}
                   label={t.label}
-                  active={currentRoute?.startsWith(t.href) ?? false}
+                  active={isActive(t)}
                 />
               ))}
             </nav>

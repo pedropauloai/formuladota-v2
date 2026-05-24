@@ -75,6 +75,7 @@ export async function ClientShell({
   const [
     { data: profile },
     { data: steamLink },
+    { data: proPromotion },
     fichaBalance,
     prosWithQueues,
     fichaPackage,
@@ -91,6 +92,13 @@ export async function ClientShell({
       .select("steam_id_64, persona, avatar_url")
       .eq("user_id", user.id)
       .single(),
+    // Tab contextual PRO no top-bar — visível se user tem promoção ativa/pausada.
+    supabase
+      .from("pro_promotions")
+      .select("id")
+      .eq("user_id", user.id)
+      .in("status", ["active", "paused"])
+      .maybeSingle(),
     getMyFichaBalance(user.id),
     getProsWithQueues(),
     getFichaPackage(),
@@ -113,6 +121,8 @@ export async function ClientShell({
   const realIsAdmin = profile?.is_admin === true;
   // effectiveIsAdmin: false se admin ativou preview mode (ver como user comum)
   const adminFlag = realIsAdmin && !previewActive;
+  // Preview mode também oculta tab PRO contextual (admin vendo como user comum).
+  const isPro = proPromotion != null && !previewActive;
   const persona = steamLink?.persona ?? profile?.username ?? "Anônimo";
   const avatar = steamLink?.avatar_url ?? profile?.avatar_url ?? null;
   const userTag = adminFlag ? "ADMIN" : "MEMBER";
@@ -141,6 +151,7 @@ export async function ClientShell({
             isAdmin={adminFlag}
             realIsAdmin={realIsAdmin}
             previewActive={previewActive}
+            isPro={isPro}
             prosOnlineCount={prosOnlineCount}
             fichaPackageId={fichaPackage?.id ?? null}
           />
@@ -222,6 +233,7 @@ export async function ClientShell({
         isAdmin={adminFlag}
         realIsAdmin={realIsAdmin}
         previewActive={previewActive}
+        isPro={isPro}
         prosOnlineCount={prosOnlineCount}
         fichaPackageId={fichaPackage?.id ?? null}
       />
