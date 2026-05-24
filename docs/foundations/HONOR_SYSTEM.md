@@ -7,6 +7,50 @@
 
 ---
 
+## HONOR e o Sistema de Merito Interno Operacional
+
+**Decisao arquitetural lockada 2026-05-24 (Pedro Paulo):**
+
+> "O MMR interno JA E o nosso sistema de honor e conduta."
+
+HONOR substitui completamente a necessidade de um MMR interno paralelo (Glicko-2, Elo
+tradicional, etc.). Nao ha "skill rating" interno separado — o que importa internamente
+e HONOR. O eixo SKILL e mensurado via MMR Valve oficial, sincronizado por API (OpenDota).
+
+### Razoes arquiteturais
+
+1. **Skill ja e mensurado via MMR Valve oficial** (sincronizado via Steam/OpenDota API).
+   Reimplementar internamente seria redundancia sem valor adicional.
+2. **HONOR mede o que a Valve NAO mede**: conduta, presenca, mentoria, maturidade emocional.
+3. **Simplicidade operacional**: 1 sistema interno (HONOR) e mais coeso que 2 (MMR interno
+   + HONOR). Menos superficie de bug, menos sincronizacao, menos custo de manutencao.
+4. **Filosofia 2-eixos preservada**: SKILL (Valve oficial) + HONOR (interno) = os 2 eixos
+   que importam. A distincao e externa vs interno, nao ambos internos.
+5. **Liga Imortal V3+** usa HONOR como gate de elegibilidade + win-rate dentro da Liga
+   (ver `docs/foundations/LIGA_IMORTAL.md`).
+
+### O que isso descarta
+
+- Glicko-2 interno (over-engineering)
+- Elo tradicional interno
+- "Calibracao de skill interno" via partidas in-house
+- MMR interno paralelo ao Valve
+
+### O que isso mantém
+
+- Sistema HONOR 8 tiers (Aprendiz → Imortal da Formula)
+- MMR Valve oficial como eixo SKILL externo (sincronizado, nao calculado)
+- Calibracao 3 estagios (visitante → calibrando → ranqueado) — focada em HONOR
+- Liga Imortal V3+ usa HONOR como gate + win-rate como metrica interna da Liga
+
+### Imortal da Formula = portal para a Liga
+
+Tier 8 HONOR (Imortal da Formula) nao e apenas status visual. E o **gate de elegibilidade
+para a Liga competitiva** (ver `docs/foundations/LIGA_IMORTAL.md`). Somente quem manteve
+Imortal por 2+ seasons consecutivas pode participar da Liga Imortal FormulaDota.
+
+---
+
 ## Por que HONOR existe
 
 O matchmaking da Valve nunca tentou medir qualidade de participacao. Seu unico criterio de
@@ -78,6 +122,49 @@ esses thresholds interagem com o sistema de seasons e o reset parcial entre temp
 **Nota sobre mobilidade:** Tiers de HONOR podem subir e descer. Um jogador Honrado que acumula
 strikes em uma temporada pode regredir para Confiavel ou Respeitado. O sistema nao e uma
 conquista permanente — e uma avaliacao continua de participacao.
+
+---
+
+## Criterios de Strike — Os 15 Anti-Padroes da Doutrina
+
+Strike e o mecanismo formal de penalizacao no eixo HONOR. Cada strike e um evento auditavel
+que cita literalmente qual dos 15 anti-padroes da Doutrina foi violado. A mensagem ao usuario
+nunca e "voce foi punido" — sempre e "voce violou o principio X que voce aceitou no onboarding".
+
+**Originais (1-10) — do doc canonico `A FÓRMULA DO DOTA DE CORRIDA.txt`:**
+
+1. Cultura da Culpa — culpar aliados pelo resultado
+2. Desistencia Precoce — "gg go next" antes do minuto 15
+3. Forcar Estrategias Inadequadas — heroi/build fora do meta sem dominio
+4. Comunicacao Toxica ou Ausente
+5. Rage Quit / AFK Disfarcado
+6. Feeding Intencional (Griefing)
+7. Ego Inflado
+8. Brigas por Funcao e Rota
+9. Desrespeito a Lideranca (Anti-time)
+10. Preconceito, Xenofobia, Racismo
+
+**Novos (11-15) — aprovados em 2026-05-23/24 apos sintese dos transcripts do canal:**
+
+11. **Simulador de Heroi** — usa as habilidades sem jogar com base nos objetivos do mapa (relogio, patrimonio liquido, runas, altar). Pedro: *"99,5% dos jogadores de Dota jogam simulador de heroi"*.
+12. **Criar Expectativas em Terceiros** — projetar resultados em aliados de forma ativa (esperar pull, gank, ajuda especifica). Distinto do principio mental "frustracao nasce de expectativas" — aqui e o comportamento, nao a reacao.
+13. **Vitimizacao Sistemica** — construir identidade cronica de vitima ("matchmake me persegue", "tenho azar"). Distinto da Cultura da Culpa (#1) por ser padrao recorrente, nao reacao pontual.
+14. **Recusa de Auditoria Pos-Derrota** — anti-padrao por omissao: nao fazer a pergunta-pivo *"o que eu poderia ter feito diferente para ter ganho essa partida, mesmo com o time jogando mal?"*.
+15. **Buscar Diversao em Espaco de Competicao** — mismatch de proposito. O FormulaDota nao e ambiente de diversao casual.
+
+### Severidade e Acoes
+
+| Anti-padrao | Severidade default | Acao default |
+|------------|-------------------|--------------|
+| 1, 4, 5, 7, 13 | Leve | Advertencia + perda de HONOR score |
+| 2, 3, 8, 12, 14, 15 | Media | Strike formal + perda significativa de HONOR |
+| 11 | Leve (educativo) | Advertencia + obrigatoriedade de assistir conteudo da Fórmula do MMR sobre objetivos |
+| 6, 9 | Grave | Suspensao 7-14 dias + perda alta de HONOR |
+| 10 | Critica | Ban imediato (sem direito a reentrada) |
+
+**Auditoria publica de override:** qualquer aplicacao de severidade fora do default e logada
+publicamente em `audit_log` com justificativa do moderador. Founder authority (Pedro) pode
+override mas o registro permanece.
 
 ---
 
@@ -423,4 +510,5 @@ superfície onde o jogador aparece.
 
 *Este documento e fundacional e permanente. Valores numericos do algoritmo sao drafts e
 serao calibrados apos dados das primeiras temporadas. Estrutura filosofica e intocavel
-sem decisao explicita do autor original (Pedro Paulo). Versao 1.0 — 2026-05-23.*
+sem decisao explicita do autor original (Pedro Paulo). Versao 1.1 — 2026-05-24 (decisao
+arquitetural lockada: HONOR substitui MMR interno — nao ha Glicko-2 ou Elo interno em V1).*
