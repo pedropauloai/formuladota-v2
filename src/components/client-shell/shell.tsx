@@ -1,6 +1,20 @@
-// ClientShell — wrapper compartilhado pra todas pages logged-in (MVP fichas).
-// Server Component que fetcha dados do user (profile, steam) + MVP (saldo fichas,
-// PROs online, package ficha) e passa pra top-bar + sidebars + bottom-bar.
+// ClientShell — Sistema CANÔNICO da plataforma (2026-05-24).
+//
+// Fiel ao client do Dota 2 REAL: 3 colunas (sidebar esquerda com amigos +
+// centro + sidebar direita contextual com matchmaking + bottom-bar com
+// [JOGAR DOTA] verde). Referências visuais na raiz do projeto:
+//   - dota 2 menu.png             (Dota 2 real)
+//   - dashboard-current.png       (FormulaDota /dashboard já fiel)
+//   - menu lateral - competitiva.png       (sidebar direita matchmaking)
+//   - menu lateral - salas personalizadas.png
+//
+// Server Component que fetcha dados do user (profile, steam) + MVP (saldo
+// fichas, PROs online, package ficha) e passa pra top-bar + sidebars +
+// bottom-bar.
+//
+// Tasks de aprimoramento em curso: #52 (sidebar direita contextual estilo
+// COMPETITIVA Dota 2) + #51 (migração das 6 páginas órfãs do template
+// simplificado src/components/templates/client-shell.tsx, que é @deprecated).
 //
 // 2 modos:
 // - default (grid): layout 3-col, sidebars com bg sólido cortando o background

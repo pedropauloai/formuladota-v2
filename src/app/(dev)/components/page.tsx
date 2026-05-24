@@ -70,6 +70,9 @@ import { ProCard } from "@/components/patterns/pro-card";
 import { QueuePanel } from "@/components/patterns/queue-panel";
 import { HeroVideo } from "@/components/dota/hero-video";
 
+// Section 0 — Typography showcase (3 famílias, 4 tokens)
+import { TypographySection } from "./typography-section";
+
 // ---------------------------------------------------------------------------
 // Helpers de tipo para iterar TIER_NAMES de forma type-safe
 // ---------------------------------------------------------------------------
@@ -184,6 +187,11 @@ export default function ComponentsPage() {
           Dev-only route — production retorna 404. (DF8.3)
         </p>
       </header>
+
+      {/* ================================================================== */}
+      {/* SECTION 0 — Tipografia (3 famílias, 4 tokens)                      */}
+      {/* ================================================================== */}
+      <TypographySection />
 
       {/* ================================================================== */}
       {/* SECTION 1 — Cores Semânticas                                       */}

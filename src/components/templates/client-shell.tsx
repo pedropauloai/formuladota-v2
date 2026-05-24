@@ -1,5 +1,20 @@
 /**
- * ClientShell — Template AAA Canônico V2.5 (DF8.1)
+ * ClientShell — Template SIMPLIFICADO (sem sidebars).
+ *
+ * @deprecated 2026-05-24 — divergiu da referência canônica do client Dota 2 real,
+ * que possui 3 colunas (sidebar esquerda com amigos + centro + sidebar direita
+ * contextual com matchmaking + bottom-bar com [JOGAR DOTA] verde).
+ *
+ * Use em vez disso: `src/components/client-shell/shell.tsx` (Sistema A canônico).
+ *
+ * Migração das 6 páginas que ainda dependem deste template (`/me`, `/perfil`,
+ * `/partidas`, `/pacotes`, `/codigo-de-conduta`, `/metodologia`) é tracked
+ * em task #51. Após zero callsites, este arquivo será deletado (task #54).
+ *
+ * Histórico: criado no Wave 7-8 (DF8.1) com intenção de ser o "Canônico V2.5",
+ * mas removeu as sidebars que são parte essencial da identidade Dota 2 client.
+ * Revertido em 2026-05-24 após Pedro apontar as imagens de referência
+ * (dota 2 menu.png, dashboard-current.png, menu lateral - competitiva.png).
  *
  * Top-bar horizontal estilo Dota 2 client:
  *   Esquerda: logo FORMULADOTA
@@ -7,12 +22,6 @@
  *   Direita:  mute toggle + auth slot
  *
  * CTA "PLAY" massivo: aparece centralizado abaixo da top-bar APENAS na tab Jogar.
- *
- * @deprecated legacy shell.tsx → será migrado em DF8.4
- * O componente legacy `src/components/client-shell/shell.tsx` permanece funcional
- * para callsites existentes até a migração em DF8.4.
- *
- * ZERO sidebar de 256px — layout fullscreen estilo game client.
  *
  * Tokens: apenas variáveis CSS semânticas de src/styles/tokens/semantic.css.
  * Zero hex hardcoded conforme regra C14 (DESIGN_LANGUAGE.md).
