@@ -1,5 +1,9 @@
 // Right Sidebar — enxuta: só news + doutrina + comunidade.
 // PROs e status de fila ficam SOMENTE no center (sem duplicação).
+//
+// VISITANTE DESLOGADO (task #63 — 2026-05-24): sem mudança comportamental.
+// Conteúdo (news/comunidade/primeira regra) é 100% público — visitante vê
+// igual a usuário logado. Discord oficial é convite aberto.
 
 import Link from "next/link";
 import { MessageSquare, BookOpen } from "lucide-react";

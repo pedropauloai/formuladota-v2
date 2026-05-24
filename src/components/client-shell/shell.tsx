@@ -17,12 +17,16 @@
 // 6 páginas órfãs (/me, /perfil, /partidas, /pacotes, /codigo-de-conduta,
 // /metodologia). Tasks #50-#54 + #57 concluídas.
 //
+// VISITANTE DESLOGADO (task #63 — 2026-05-24): shell NÃO redireciona mais
+// pra /login. Visitante sem sessão (user === null) consome o shell normalmente
+// com dados privados zerados/null. Filosofia "tudo é client" — base das
+// tasks #64-#68 (HUB visitante, /coaches, /login deletado, Header global morre).
+//
 // 2 modos:
 // - default (grid): layout 3-col, sidebars com bg sólido cortando o background
 // - immersive: background fullscreen, sidebars como overlays flutuantes
 //   (espelha cliente Dota 2 — usado em /dashboard)
 
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getMyFichaBalance } from "@/lib/queries/fichas";
 import { getProsWithQueues } from "@/lib/queries/pros";
@@ -71,46 +75,36 @@ export async function ClientShell({
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+
+  // Visitante deslogado: shell tolera user === null sem redirect (task #63).
+  // Fetches privados (profile, steam, fichas, fila, etc.) ficam null/0/[].
+  // Fetches públicos (PROs online + package) sempre rodam.
+  const isVisitor = user === null;
 
   const [
-    { data: profile },
-    { data: steamLink },
-    { data: proPromotion },
-    fichaBalance,
+    privateData,
     prosWithQueues,
     fichaPackage,
     previewActive,
-    myQueues,
   ] = await Promise.all([
-    supabase
-      .from("profiles")
-      .select("username, avatar_url, role, is_admin")
-      .eq("id", user.id)
-      .single(),
-    supabase
-      .from("steam_links")
-      .select("steam_id_64, persona, avatar_url")
-      .eq("user_id", user.id)
-      .single(),
-    // Tab contextual PRO no top-bar — visível se user tem promoção ativa/pausada.
-    supabase
-      .from("pro_promotions")
-      .select("id")
-      .eq("user_id", user.id)
-      .in("status", ["active", "paused"])
-      .maybeSingle(),
-    getMyFichaBalance(user.id),
+    isVisitor ? Promise.resolve(null) : fetchPrivateData(supabase, user.id),
     getProsWithQueues(),
     getFichaPackage(),
-    getPreviewModeActive(),
-    getMyQueueStatus(user.id),
+    // Preview mode só faz sentido pra admin logado — pra visitante retorna false.
+    isVisitor ? Promise.resolve(false) : getPreviewModeActive(),
   ]);
+
+  const profile = privateData?.profile ?? null;
+  const steamLink = privateData?.steamLink ?? null;
+  const proPromotion = privateData?.proPromotion ?? null;
+  const fichaBalance = privateData?.fichaBalance ?? 0;
+  const myQueues = privateData?.myQueues ?? [];
 
   const prosOnline = prosWithQueues.map((p) => p.coach);
   // StickyQueueBanner adiciona ~40px ao topo do viewport quando user está em fila.
   // Shell precisa subtrair essa altura pra não gerar scroll de página.
-  const hasBanner = myQueues.length > 0;
+  // Visitante nunca tem banner (não pode estar em fila).
+  const hasBanner = !isVisitor && myQueues.length > 0;
   const shellHeightCls = hasBanner
     ? "h-[calc(100dvh-44px)]"
     : "h-screen";
@@ -119,13 +113,19 @@ export async function ClientShell({
   const bottomReserveCls = hideBottomBar ? "bottom-0" : "bottom-[80px] xl:bottom-[96px]";
   const mainPbCls = hideBottomBar ? "" : "pb-[80px] xl:pb-[96px] 2xl:pb-[112px]";
 
-  const realIsAdmin = profile?.is_admin === true;
+  // Flags derivados — todos `false` pra visitante (sem acesso a admin/PRO).
+  const realIsAdmin = !isVisitor && profile?.is_admin === true;
   // effectiveIsAdmin: false se admin ativou preview mode (ver como user comum)
   const adminFlag = realIsAdmin && !previewActive;
   // Preview mode também oculta tab PRO contextual (admin vendo como user comum).
-  const isPro = proPromotion != null && !previewActive;
-  const persona = steamLink?.persona ?? profile?.username ?? "Anônimo";
-  const avatar = steamLink?.avatar_url ?? profile?.avatar_url ?? null;
+  const isPro = !isVisitor && proPromotion != null && !previewActive;
+  // Persona/avatar: null pra visitante (LeftSidebar mostra VisitorCard).
+  const persona = isVisitor
+    ? null
+    : (steamLink?.persona ?? profile?.username ?? "Anônimo");
+  const avatar = isVisitor
+    ? null
+    : (steamLink?.avatar_url ?? profile?.avatar_url ?? null);
   const userTag = adminFlag ? "ADMIN" : "MEMBER";
 
   const prosOnlineCount = prosOnline.filter((p) => p.filaAberta).length;
@@ -149,6 +149,7 @@ export async function ClientShell({
         <div className="absolute top-0 inset-x-0 z-[var(--z-overlay)]">
           <DashboardTopBar
             currentRoute={currentRoute}
+            isVisitor={isVisitor}
             isAdmin={adminFlag}
             realIsAdmin={realIsAdmin}
             previewActive={previewActive}
@@ -160,6 +161,7 @@ export async function ClientShell({
         {!hideLeftSidebar && (
           <div className={`hidden lg:flex absolute left-0 top-[64px] xl:top-[72px] ${bottomReserveCls} z-[var(--z-overlay)] w-[340px] xl:w-[400px] 2xl:w-[460px]`}>
             <DashboardLeftSidebar
+              isVisitor={isVisitor}
               persona={persona}
               avatar={avatar}
               tag={userTag}
@@ -201,6 +203,7 @@ export async function ClientShell({
         {!hideBottomBar && (
           <div className="absolute bottom-0 inset-x-0 z-[var(--z-overlay)]">
             <DashboardBottomBar
+              isVisitor={isVisitor}
               isAdmin={adminFlag}
               fichaBalance={fichaBalance}
               fichaPackageId={fichaPackage?.id ?? null}
@@ -230,6 +233,7 @@ export async function ClientShell({
 
       <DashboardTopBar
         currentRoute={currentRoute}
+        isVisitor={isVisitor}
         isAdmin={adminFlag}
         realIsAdmin={realIsAdmin}
         previewActive={previewActive}
@@ -250,6 +254,7 @@ export async function ClientShell({
       >
         {!hideLeftSidebar && (
           <DashboardLeftSidebar
+            isVisitor={isVisitor}
             persona={persona}
             avatar={avatar}
             tag={userTag}
@@ -285,6 +290,7 @@ export async function ClientShell({
       {!hideBottomBar && (
         <div className="absolute bottom-0 inset-x-0 z-[var(--z-overlay)] pointer-events-none">
           <DashboardBottomBar
+            isVisitor={isVisitor}
             isAdmin={adminFlag}
             fichaBalance={fichaBalance}
             fichaPackageId={fichaPackage?.id ?? null}
@@ -295,4 +301,41 @@ export async function ClientShell({
       )}
     </div>
   );
+}
+
+// Fetcher helper — só roda quando há sessão. Mantém shell legível e isola
+// queries privadas em um único Promise.all (latência total ≈ slowest query).
+async function fetchPrivateData(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string
+) {
+  const [
+    { data: profile },
+    { data: steamLink },
+    { data: proPromotion },
+    fichaBalance,
+    myQueues,
+  ] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("username, avatar_url, role, is_admin")
+      .eq("id", userId)
+      .single(),
+    supabase
+      .from("steam_links")
+      .select("steam_id_64, persona, avatar_url")
+      .eq("user_id", userId)
+      .single(),
+    // Tab contextual PRO no top-bar — visível se user tem promoção ativa/pausada.
+    supabase
+      .from("pro_promotions")
+      .select("id")
+      .eq("user_id", userId)
+      .in("status", ["active", "paused"])
+      .maybeSingle(),
+    getMyFichaBalance(userId),
+    getMyQueueStatus(userId),
+  ]);
+
+  return { profile, steamLink, proPromotion, fichaBalance, myQueues };
 }

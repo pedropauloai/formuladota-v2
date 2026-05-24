@@ -12,11 +12,16 @@
 // "Comprar Ficha" (rebaixado pra tab LOJA e dentro de /ranked-com-pro).
 // Filosofia: MMR é fim, ficha é meio. Header pavimenta a JORNADA PRINCIPAL.
 // Ref: docs/foundations/UX_PRINCIPLES.md M3 (CTA com weight massivo).
+//
+// VISITANTE DESLOGADO (task #63 — 2026-05-24): quando isVisitor=true, badge
+// principal vira "ENTRAR" (Server Action signInWithDiscord), logout e
+// PreviewToggle ficam ocultos. Tabs PRO/ADMIN já são filtrados naturalmente
+// (props isPro/isAdmin são `false` pra visitante).
 
 import Image from "next/image";
 import Link from "next/link";
-import { Settings, LogOut, Swords, Radio, Eye, EyeOff } from "lucide-react";
-import { signOut } from "@/app/login/actions";
+import { Settings, LogOut, LogIn, Swords, Radio, Eye, EyeOff } from "lucide-react";
+import { signOut, signInWithDiscord } from "@/app/login/actions";
 import { togglePreviewMode } from "@/lib/auth/preview-mode";
 import { cn } from "@/lib/utils";
 
@@ -37,6 +42,8 @@ const PRINCIPAL_TABS: TopBarTabDef[] = [
 
 interface Props {
   currentRoute?: string;
+  /** Visitante deslogado: esconde logout, troca SubirMmr por Entrar, esconde PreviewToggle. */
+  isVisitor: boolean;
   /** Effective admin (false se admin tá em preview mode). Usado pra UI condicional. */
   isAdmin: boolean;
   /** Admin real no banco (não muda com preview). Usado só pra mostrar toggle. */
@@ -50,6 +57,7 @@ interface Props {
 
 export function DashboardTopBar({
   currentRoute,
+  isVisitor,
   isAdmin,
   realIsAdmin,
   previewActive,
@@ -71,6 +79,8 @@ export function DashboardTopBar({
   const isActive = (t: TopBarTabDef) =>
     currentRoute?.startsWith(t.matchPrefix ?? t.href) ?? false;
 
+  // Configurações é privado (rota /me). Pra visitante esconde o ícone — ele
+  // não tem perfil pra configurar.
   return (
     <header className="relative z-[var(--z-overlay)] flex h-16 shrink-0 items-center justify-between bg-gradient-to-b from-black/85 via-black/55 to-transparent px-4 backdrop-blur-md xl:h-20 xl:px-6">
       {/* Esquerda — logo + settings + tabs */}
@@ -95,12 +105,15 @@ export function DashboardTopBar({
           aria-hidden="true"
         />
 
-        <TopBarIcon icon={Settings} label="Configurações" href="/me" />
-
-        <div
-          className="h-6 w-px bg-white/15 xl:h-8 xl:mx-1"
-          aria-hidden="true"
-        />
+        {!isVisitor && (
+          <>
+            <TopBarIcon icon={Settings} label="Configurações" href="/me" />
+            <div
+              className="h-6 w-px bg-white/15 xl:h-8 xl:mx-1"
+              aria-hidden="true"
+            />
+          </>
+        )}
 
         <nav
           aria-label="Navegação principal"
@@ -154,19 +167,22 @@ export function DashboardTopBar({
         </div>
       )}
 
-      {/* Direita — Preview toggle (só admin real) + SUBIR DE MMR + Logout */}
+      {/* Direita — CTA dominante (Subir MMR pra logado / Entrar pra visitante) +
+          PreviewToggle (só admin real) + Logout (só logado). */}
       <div className="flex items-center gap-1.5 xl:gap-2">
         {realIsAdmin && <PreviewModeToggle previewActive={previewActive} />}
-        <SubirMmrBadge />
-        <form action={signOut}>
-          <button
-            type="submit"
-            aria-label="Sair"
-            className="flex size-9 items-center justify-center rounded-md text-white/60 hover:bg-white/5 hover:text-white transition-colors"
-          >
-            <LogOut size={16} aria-hidden="true" />
-          </button>
-        </form>
+        {isVisitor ? <EntrarBadge /> : <SubirMmrBadge />}
+        {!isVisitor && (
+          <form action={signOut}>
+            <button
+              type="submit"
+              aria-label="Sair"
+              className="flex size-9 items-center justify-center rounded-md text-white/60 hover:bg-white/5 hover:text-white transition-colors"
+            >
+              <LogOut size={16} aria-hidden="true" />
+            </button>
+          </form>
+        )}
       </div>
     </header>
   );
@@ -227,6 +243,34 @@ function SubirMmrBadge() {
       <Swords size={12} aria-hidden="true" />
       <span>Subir de MMR</span>
     </Link>
+  );
+}
+
+function EntrarBadge() {
+  // CTA dominante pra visitante — Discord OAuth via Server Action. Mesma
+  // estética brand cinematic do SubirMmrBadge (consistência visual: header
+  // sempre tem UM CTA dominante, varia só o destino conforme estado da sessão).
+  return (
+    <form action={signInWithDiscord}>
+      <button
+        type="submit"
+        aria-label="Entrar com Discord"
+        className={cn(
+          "group inline-flex items-center gap-1.5 rounded-md",
+          "px-3 py-1.5 xl:px-4 xl:py-2",
+          "border-2 border-brand-primary",
+          "bg-gradient-to-b from-brand-primary to-brand-primary-hover",
+          "font-display text-xs xl:text-sm font-bold uppercase",
+          "tracking-[0.15em] xl:tracking-[0.2em] text-text-display",
+          "shadow-[0_0_12px_var(--color-brand-primary-glow)]",
+          "hover:shadow-[0_0_24px_var(--color-brand-primary-glow)]",
+          "hover:brightness-110 transition-all"
+        )}
+      >
+        <LogIn size={12} aria-hidden="true" />
+        <span>Entrar</span>
+      </button>
+    </form>
   );
 }
 
