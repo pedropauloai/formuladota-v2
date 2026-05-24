@@ -2,12 +2,17 @@
 
 import { useState, useSyncExternalStore } from "react";
 import { useFormStatus } from "react-dom";
+import { m } from "motion/react";
 import {
   ANTIPATTERNS,
   CANONICAL_QUOTES,
   PRINCIPLES,
   PROGRESSIVE_MODERATION,
 } from "@/lib/doctrine";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { DURATIONS, EASINGS } from "@/lib/motion/presets";
+import { cn } from "@/lib/utils";
 import { acceptDoctrine } from "./actions";
 
 type Props = {
@@ -77,7 +82,7 @@ export function OnboardingFlow({
       {errorMessage && (
         <div
           role="alert"
-          className="mb-6 rounded-md border border-[var(--color-danger)]/60 bg-[var(--color-danger)]/10 px-4 py-3 text-sm text-[var(--color-danger)]"
+          className="mb-6 rounded-md border border-error/60 bg-error/10 px-4 py-3 text-sm text-error"
         >
           {errorMessage}
         </div>
@@ -85,7 +90,13 @@ export function OnboardingFlow({
 
       <ProgressBar current={slide} total={TOTAL_SLIDES} />
 
-      <div className="flex-1 py-12">
+      <m.div
+        key={slide}
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: DURATIONS.hero, ease: EASINGS.softLanding }}
+        className="flex-1 py-12"
+      >
         {slide === 1 && (
           <SlideWelcome username={username} quotes={quotes} />
         )}
@@ -108,35 +119,37 @@ export function OnboardingFlow({
             quotes={quotes}
           />
         )}
-      </div>
+      </m.div>
 
       <nav
         aria-label="Navegação do onboarding"
-        className="flex items-center justify-between border-t border-[var(--color-border)] pt-6"
+        className="flex items-center justify-between border-t border-border-subtle pt-6"
       >
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="sm"
           onClick={back}
           disabled={slide === 1}
           aria-label="Slide anterior"
-          className="font-mono text-xs uppercase tracking-widest text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] disabled:opacity-30 transition"
         >
           ← anterior
-        </button>
+        </Button>
 
-        <span className="font-mono text-xs text-[var(--color-muted-foreground)]">
+        <span className="font-mono text-xs text-text-muted">
           {slide} / {TOTAL_SLIDES}
         </span>
 
         {slide < TOTAL_SLIDES ? (
-          <button
+          <Button
             type="button"
+            variant="secondary"
+            size="md"
             onClick={next}
             aria-label="Próximo slide"
-            className="rounded-md border border-[var(--color-brand-red)] px-5 py-2 font-medium text-[var(--color-brand-red)] hover:bg-[var(--color-brand-red)]/10 transition"
           >
             Continuar →
-          </button>
+          </Button>
         ) : (
           <AcceptButton acceptedVersion={version} disabled={!accepted} />
         )}
@@ -150,10 +163,10 @@ function ProgressBar({ current, total }: { current: number; total: number }) {
   return (
     <div className="space-y-2">
       <div className="flex items-baseline justify-between">
-        <span className="font-mono text-xs uppercase tracking-widest text-[var(--color-brand-red)]">
+        <span className="font-mono text-xs uppercase tracking-widest text-brand-primary">
           A Fórmula do Dota de Corrida
         </span>
-        <span className="font-mono text-xs text-[var(--color-muted-foreground)]">
+        <span className="font-mono text-xs text-text-muted">
           onboarding obrigatório
         </span>
       </div>
@@ -164,14 +177,25 @@ function ProgressBar({ current, total }: { current: number; total: number }) {
         aria-valuemin={1}
         aria-valuemax={total}
         aria-valuetext={`Slide ${current} de ${total}`}
-        className="h-1 w-full overflow-hidden rounded-full bg-[var(--color-muted)]"
+        className="h-1 w-full overflow-hidden rounded-full bg-bg-elevated"
       >
         <div
-          className="h-full bg-[var(--color-brand-red)] transition-all duration-500"
-          style={{ width: `${pct}%` }}
+          className="h-full bg-brand-primary transition-all duration-500"
+          style={{
+            width: `${pct}%`,
+            boxShadow: "0 0 12px var(--color-brand-primary-glow)",
+          }}
         />
       </div>
     </div>
+  );
+}
+
+function SlideEyebrow({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="font-mono text-xs uppercase tracking-[0.35em] text-brand-primary">
+      {children}
+    </p>
   );
 }
 
@@ -184,38 +208,58 @@ function SlideWelcome({
 }) {
   return (
     <article className="space-y-8">
-      <header className="space-y-3">
-        <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-brand-red)]">
-          slide 1 — boas-vindas
-        </p>
-        <h1 className="text-4xl font-bold leading-tight md:text-5xl">
-          Bem-vindo, <span className="text-[var(--color-brand-red)] text-glow-red">{username}</span>.
+      <header className="space-y-4">
+        <SlideEyebrow>slide 1 — boas-vindas</SlideEyebrow>
+        <h1 className="font-display text-4xl font-bold leading-tight tracking-wide text-text-display md:text-5xl">
+          Bem-vindo,{" "}
+          <span
+            className="text-brand-primary"
+            style={{ textShadow: "0 0 24px var(--color-brand-primary-glow)" }}
+          >
+            {username}
+          </span>
+          .
         </h1>
+        <p className="pt-2 font-body text-base italic leading-relaxed text-text-muted">
+          Permita-se questionar. Sobre tudo e qualquer coisa.
+          <br />
+          Isso sim é o que evolui um ser.
+        </p>
       </header>
 
-      <p className="text-lg italic leading-relaxed text-[var(--color-foreground)]">
+      <p className="font-body text-lg italic leading-relaxed text-text-body">
         “{quotes.opening}”
       </p>
 
-      <div className="rounded-lg border border-[var(--color-brand-red)] bg-[var(--color-card)] p-6 text-center">
-        <p className="text-xl font-bold tracking-wide text-[var(--color-brand-red)] text-glow-red">
-          {quotes.firstRule}
-        </p>
-        <p className="mt-3 text-sm text-[var(--color-muted-foreground)]">
-          Esta é a primeira regra. A responsabilidade é sempre sua, 100% das
-          vezes.
-        </p>
-      </div>
+      <Card
+        variant="hero"
+        className="text-center"
+      >
+        <CardContent>
+          <p
+            className="font-display text-2xl font-bold uppercase tracking-wide text-brand-primary"
+            style={{ textShadow: "0 0 24px var(--color-brand-primary-glow)" }}
+          >
+            {quotes.firstRule}
+          </p>
+          <p className="mt-3 font-body text-sm text-text-muted">
+            Esta é a primeira regra. A responsabilidade é sempre sua, 100% das
+            vezes.
+          </p>
+        </CardContent>
+      </Card>
 
-      <p className="text-base leading-relaxed text-[var(--color-muted-foreground)]">
+      <p className="font-body text-base leading-relaxed text-text-muted">
         Nas próximas telas, você vai conhecer as regras que regem esta
-        comunidade — os 14 princípios da Fórmula do Dota de Corrida, os 10
+        comunidade — os 14 princípios da Fórmula do Dota de Corrida, os 15
         padrões tóxicos proibidos, e o sistema progressivo de moderação que
         protege a cultura coletiva.
       </p>
 
-      <p className="text-base font-medium text-[var(--color-foreground)]">
-        Aceitar essas regras é <strong className="text-[var(--color-brand-red)]">obrigatório</strong> pra usar a plataforma.
+      <p className="font-body text-base font-medium text-text-body">
+        Aceitar essas regras é{" "}
+        <strong className="text-brand-primary">obrigatório</strong> pra usar a
+        plataforma.
       </p>
     </article>
   );
@@ -229,13 +273,11 @@ function SlideAntipatterns({
   return (
     <article className="space-y-8">
       <header className="space-y-3">
-        <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-brand-red)]">
-          slide 2 — os 10 padrões tóxicos
-        </p>
-        <h1 className="text-3xl font-bold">
-          O que <span className="text-[var(--color-danger)]">não</span> é tolerado
+        <SlideEyebrow>slide 2 — os 10 padrões tóxicos</SlideEyebrow>
+        <h1 className="font-display text-3xl font-bold tracking-wide text-text-display">
+          O que <span className="text-error">não</span> é tolerado
         </h1>
-        <p className="text-sm text-[var(--color-muted-foreground)]">
+        <p className="font-body text-sm text-text-muted">
           Esses comportamentos são incompatíveis com a cultura da Fórmula
           Dota. Geram advertência, suspensão ou banimento.
         </p>
@@ -243,21 +285,22 @@ function SlideAntipatterns({
 
       <ul className="space-y-3">
         {antipatterns.map((a) => (
-          <li
-            key={a.id}
-            className="flex gap-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-4"
-          >
-            <span className="font-mono text-xs text-[var(--color-danger)] shrink-0">
-              ✕ {String(a.id).padStart(2, "0")}
-            </span>
-            <div className="space-y-1">
-              <h3 className="font-semibold">{a.title}</h3>
-              {a.directSeverityNote && (
-                <p className="text-xs font-medium text-[var(--color-danger)]">
-                  ⚠ {a.directSeverityNote}
-                </p>
-              )}
-            </div>
+          <li key={a.id}>
+            <Card variant="flat" className="flex gap-4">
+              <span className="shrink-0 font-mono text-xs text-error">
+                ✕ {String(a.id).padStart(2, "0")}
+              </span>
+              <div className="space-y-1">
+                <h3 className="font-display text-sm font-semibold tracking-wide text-text-display">
+                  {a.title}
+                </h3>
+                {a.directSeverityNote && (
+                  <p className="font-body text-xs font-medium text-error">
+                    ⚠ {a.directSeverityNote}
+                  </p>
+                )}
+              </div>
+            </Card>
           </li>
         ))}
       </ul>
@@ -277,20 +320,27 @@ function SlidePrinciples({
   return (
     <article className="space-y-8">
       <header className="space-y-3">
-        <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-brand-red)]">
-          slide 3 — os 14 princípios
-        </p>
-        <h1 className="text-3xl font-bold">
-          A <span className="text-[var(--color-brand-red)]">Fórmula</span>
+        <SlideEyebrow>slide 3 — os 14 princípios</SlideEyebrow>
+        <h1 className="font-display text-3xl font-bold tracking-wide text-text-display">
+          A <span className="text-brand-primary">Fórmula</span>
         </h1>
-        <p className="text-sm text-[var(--color-muted-foreground)]">
-          Texto completo dos 14 princípios em <a href="/codigo-de-conduta" className="underline text-[var(--color-brand-red)]" target="_blank" rel="noreferrer">/codigo-de-conduta</a>. Aqui o resumo executivo.
+        <p className="font-body text-sm text-text-muted">
+          Texto completo dos 14 princípios em{" "}
+          <a
+            href="/codigo-de-conduta"
+            className="text-brand-primary underline"
+            target="_blank"
+            rel="noreferrer"
+          >
+            /codigo-de-conduta
+          </a>
+          . Aqui o resumo executivo.
         </p>
       </header>
 
-      <PrincipleGroup label="Mentais e comportamentais" items={comportamentais} accent="cyan" />
-      <PrincipleGroup label="Técnicos e de execução" items={tecnicos} accent="purple" />
-      <PrincipleGroup label="Progressão" items={progressao} accent="cyan" />
+      <PrincipleGroup label="Mentais e comportamentais" items={comportamentais} />
+      <PrincipleGroup label="Técnicos e de execução" items={tecnicos} />
+      <PrincipleGroup label="Progressão" items={progressao} />
     </article>
   );
 }
@@ -298,29 +348,26 @@ function SlidePrinciples({
 function PrincipleGroup({
   label,
   items,
-  accent,
 }: {
   label: string;
   items: typeof PRINCIPLES;
-  accent: "cyan" | "purple";
 }) {
-  const accentClass =
-    accent === "cyan" ? "text-[var(--color-brand-red)]" : "text-[var(--color-brand-red)]";
   return (
     <div className="space-y-2">
-      <h3 className="font-mono text-xs uppercase tracking-widest text-[var(--color-muted-foreground)]">
+      <h3 className="font-mono text-xs uppercase tracking-widest text-text-faded">
         {label}
       </h3>
       <ul className="space-y-2">
         {items.map((p) => (
-          <li
-            key={p.id}
-            className="flex gap-3 rounded-md border border-[var(--color-border)] bg-[var(--color-card)] p-3"
-          >
-            <span className={`font-mono text-xs shrink-0 ${accentClass}`}>
-              {String(p.id).padStart(2, "0")}
-            </span>
-            <span className="text-sm font-medium">{p.title}</span>
+          <li key={p.id}>
+            <Card variant="flat" className={cn("flex gap-3 p-3")}>
+              <span className="shrink-0 font-mono text-xs text-brand-primary">
+                {String(p.id).padStart(2, "0")}
+              </span>
+              <span className="font-body text-sm font-medium text-text-body">
+                {p.title}
+              </span>
+            </Card>
           </li>
         ))}
       </ul>
@@ -336,52 +383,53 @@ function SlideModeration({
   return (
     <article className="space-y-8">
       <header className="space-y-3">
-        <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-brand-red)]">
-          slide 4 — moderação progressiva
-        </p>
-        <h1 className="text-3xl font-bold">
+        <SlideEyebrow>slide 4 — moderação progressiva</SlideEyebrow>
+        <h1 className="font-display text-3xl font-bold tracking-wide text-text-display">
           Como funciona quando alguém viola as regras
         </h1>
       </header>
 
       <ol className="space-y-4">
         {[moderation.step1, moderation.step2, moderation.step3].map((step, i) => (
-          <li
-            key={i}
-            className="flex gap-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-card)] p-5"
-          >
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-full border border-[var(--color-brand-red)] font-mono text-sm font-bold text-[var(--color-brand-red)]">
-              {i + 1}
-            </div>
-            <div className="space-y-1">
-              <h3 className="font-semibold">{step.label}</h3>
-              <p className="text-sm leading-relaxed text-[var(--color-muted-foreground)]">
-                {step.description}
-              </p>
-            </div>
+          <li key={i}>
+            <Card variant="elevated" className="flex gap-4">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-full border border-brand-primary font-mono text-sm font-bold text-brand-primary">
+                {i + 1}
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-display text-sm font-semibold tracking-wide text-text-display">
+                  {step.label}
+                </h3>
+                <p className="font-body text-sm leading-relaxed text-text-muted">
+                  {step.description}
+                </p>
+              </div>
+            </Card>
           </li>
         ))}
       </ol>
 
-      <div className="space-y-3 rounded-md border border-[var(--color-border)] bg-[var(--color-muted)] p-4 text-sm">
+      <Card variant="flat" className="space-y-3 text-sm">
         <p>
-          <strong className="text-[var(--color-foreground)]">Reset automático: </strong>
-          <span className="text-[var(--color-muted-foreground)]">{moderation.reset}</span>
+          <strong className="text-text-display">Reset automático: </strong>
+          <span className="text-text-muted">{moderation.reset}</span>
         </p>
         <p>
-          <strong className="text-[var(--color-foreground)]">Override direto: </strong>
-          <span className="text-[var(--color-muted-foreground)]">
+          <strong className="text-text-display">Override direto: </strong>
+          <span className="text-text-muted">
             preconceito vai direto pra banimento; feeding em partida com coach
-            vai direto pra suspensão de 14 dias; fraude de pagamento é banimento imediato.
+            vai direto pra suspensão de 14 dias; fraude de pagamento é
+            banimento imediato.
           </span>
         </p>
         <p>
-          <strong className="text-[var(--color-foreground)]">Direito ao contraditório: </strong>
-          <span className="text-[var(--color-muted-foreground)]">
-            você pode contestar via Discord oficial. A equipe FORMULADOTA revisa caso a caso.
+          <strong className="text-text-display">Direito ao contraditório: </strong>
+          <span className="text-text-muted">
+            você pode contestar via Discord oficial. A equipe FORMULADOTA
+            revisa caso a caso.
           </span>
         </p>
-      </div>
+      </Card>
     </article>
   );
 }
@@ -400,45 +448,57 @@ function SlideAccept({
   return (
     <article className="space-y-8">
       <header className="space-y-3">
-        <p className="font-mono text-xs uppercase tracking-widest text-[var(--color-brand-red)]">
-          slide 5 — aceite final
-        </p>
-        <h1 className="text-3xl font-bold">
+        <SlideEyebrow>slide 5 — aceite final</SlideEyebrow>
+        <h1 className="font-display text-3xl font-bold tracking-wide text-text-display">
           Compromisso
         </h1>
       </header>
 
-      <blockquote className="border-l-2 border-[var(--color-brand-red)] pl-6 italic text-[var(--color-foreground)]">
+      <blockquote className="border-l-2 border-brand-primary pl-6 font-body italic text-text-body">
         “{quotes.responsibility}”
       </blockquote>
 
-      <blockquote className="border-l-2 border-[var(--color-brand-red)] pl-6 italic text-[var(--color-foreground)]">
+      <blockquote className="border-l-2 border-brand-primary pl-6 font-body italic text-text-body">
         “{quotes.competitiveMindset}”
       </blockquote>
 
       <label
         htmlFor="accept-doctrine"
-        className="flex cursor-pointer gap-4 rounded-lg border-2 border-[var(--color-border)] bg-[var(--color-card)] p-5 hover:border-[var(--color-brand-red)] transition"
+        className={cn(
+          "flex cursor-pointer gap-4 rounded-[var(--radius-lg)] border-2 p-5 transition-colors",
+          accepted
+            ? "border-brand-primary bg-brand-primary/5"
+            : "border-border-subtle bg-bg-elevated hover:border-brand-primary"
+        )}
       >
         <input
           id="accept-doctrine"
           type="checkbox"
           checked={accepted}
           onChange={(e) => onToggle(e.target.checked)}
-          className="mt-1 size-5 cursor-pointer accent-[var(--color-brand-red)]"
+          className="mt-1 size-5 cursor-pointer accent-brand-primary"
+          style={{ accentColor: "var(--color-brand-primary)" }}
         />
-        <span className="text-sm leading-relaxed">
+        <span className="font-body text-sm leading-relaxed text-text-body">
           Eu li, compreendi e aceito os 14 princípios da Fórmula do Dota de
           Corrida, os 10 padrões tóxicos proibidos, e o sistema progressivo de
           moderação. Sei que violações geram advertência, suspensão ou
-          banimento — e que o admin FORMULADOTA tem autoridade final na aplicação dessas
-          regras.
+          banimento — e que o admin FORMULADOTA tem autoridade final na
+          aplicação dessas regras.
         </span>
       </label>
 
-      <p className="text-center font-mono text-xs text-[var(--color-muted-foreground)]">
+      <p className="text-center font-mono text-xs text-text-muted">
         versão {version} · aceitando esta versão você concorda com o texto
-        canônico em <a href="/codigo-de-conduta" className="underline text-[var(--color-brand-red)]" target="_blank" rel="noreferrer">/codigo-de-conduta</a>
+        canônico em{" "}
+        <a
+          href="/codigo-de-conduta"
+          className="text-brand-primary underline"
+          target="_blank"
+          rel="noreferrer"
+        >
+          /codigo-de-conduta
+        </a>
       </p>
     </article>
   );
@@ -461,15 +521,16 @@ function AcceptButton({
 
 function SubmitButton({ disabled }: { disabled: boolean }) {
   const { pending } = useFormStatus();
-  const isDisabled = disabled || pending;
   return (
-    <button
+    <Button
       type="submit"
-      disabled={isDisabled}
+      variant="primary"
+      size="lg"
+      disabled={disabled}
+      loading={pending}
       aria-busy={pending}
-      className="rounded-md bg-[var(--color-brand-red)] px-6 py-2 font-bold text-[var(--color-background)] hover:bg-[var(--color-brand-red)]/90 disabled:cursor-not-allowed disabled:opacity-30 transition"
     >
       {pending ? "Registrando..." : "Aceitar e entrar →"}
-    </button>
+    </Button>
   );
 }

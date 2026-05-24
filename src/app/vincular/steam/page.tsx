@@ -3,6 +3,8 @@ import { Gamepad2, ShieldCheck, AlertCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { signInWithSteam } from "./actions";
 import { DotaBackdrop } from "@/components/dota/dota-backdrop";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 // Página obrigatória de vinculação Steam (Phase 3 — H1.1).
 // Middleware já garante:
@@ -42,10 +44,10 @@ function ErrorBanner({ message }: { message: string }) {
   return (
     <div
       role="alert"
-      className="mb-6 flex items-start gap-3 rounded-lg border border-[var(--color-brand-red)]/40 bg-[#1A0A2A] p-4 text-sm text-[var(--color-foreground)]"
+      className="mb-6 flex items-start gap-3 rounded-[var(--radius-lg)] border border-error/40 bg-error/10 p-4 text-sm text-text-body"
     >
       <AlertCircle
-        className="h-5 w-5 text-[var(--color-brand-red)] flex-shrink-0 mt-0.5"
+        className="mt-0.5 h-5 w-5 flex-shrink-0 text-error"
         aria-hidden="true"
       />
       <span>{message}</span>
@@ -81,10 +83,19 @@ export default async function VincularSteamPage({
       <DotaBackdrop />
       <div className="relative z-10 mx-auto max-w-2xl">
         <header className="mb-8 text-center">
-          <h1 className="text-3xl md:text-4xl font-display text-[var(--color-foreground)]">
-            Vincular <span className="text-[var(--color-brand-red)]">Steam</span>
+          <p className="font-mono text-xs uppercase tracking-[0.35em] text-brand-primary">
+            identidade gamer
+          </p>
+          <h1 className="mt-3 font-display text-3xl font-bold tracking-wide text-text-display md:text-4xl">
+            Vincular{" "}
+            <span
+              className="text-brand-primary"
+              style={{ textShadow: "0 0 24px var(--color-brand-primary-glow)" }}
+            >
+              Steam
+            </span>
           </h1>
-          <p className="mt-3 text-[var(--color-muted-foreground)]">
+          <p className="mt-3 font-body text-text-muted">
             Identidade gamer obrigatória para acessar pacotes e lobbies.
           </p>
         </header>
@@ -105,38 +116,39 @@ export default async function VincularSteamPage({
   );
 }
 
-// Estado: SEM Steam vinculado (CTA primário cyan)
+// Estado: SEM Steam vinculado — Card hero + CTA primary massivo (M3)
 function UnlinkedState() {
   return (
-    <section
+    <Card
+      variant="hero"
       aria-labelledby="unlinked-heading"
-      className="rounded-xl border border-[var(--color-brand-red)]/30 bg-[var(--color-card)] p-6 md:p-8"
+      className="md:p-10"
     >
       <div className="mb-4 flex items-center gap-3">
-        <Gamepad2 className="h-6 w-6 text-[var(--color-brand-red)]" aria-hidden="true" />
-        <h2 id="unlinked-heading" className="text-xl font-display text-[var(--color-foreground)]">
+        <Gamepad2 className="h-6 w-6 text-brand-primary" aria-hidden="true" />
+        <h2
+          id="unlinked-heading"
+          className="font-display text-xl font-semibold tracking-wide text-text-display"
+        >
           Conecte sua conta Steam
         </h2>
       </div>
-      <p className="mb-6 text-[var(--color-muted-foreground)] text-sm leading-relaxed">
+      <p className="mb-6 font-body text-sm leading-relaxed text-text-muted">
         Você vai abrir a página oficial da Steam, autorizar o FORMULADOTA
         e voltar pra cá automaticamente. Sua senha NUNCA passa pelo nosso
         servidor — autenticação direto com a Valve.
       </p>
       <form action={signInWithSteam}>
-        <button
-          type="submit"
-          className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--color-brand-red)] px-6 py-3 font-medium text-black transition-colors hover:bg-[var(--color-brand-red)]/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-red)]/50"
-        >
+        <Button type="submit" variant="primary" size="lg" className="w-full">
           <Gamepad2 className="h-5 w-5" aria-hidden="true" />
           Continuar com Steam
-        </button>
+        </Button>
       </form>
-    </section>
+    </Card>
   );
 }
 
-// Estado: COM Steam vinculado (card verde + revincular secundário)
+// Estado: COM Steam vinculado — Card elevated + revincular ghost
 function LinkedState({
   persona,
   avatarUrl,
@@ -147,13 +159,17 @@ function LinkedState({
   steamId64: string;
 }) {
   return (
-    <section
+    <Card
+      variant="elevated"
       aria-labelledby="linked-heading"
-      className="rounded-xl border border-emerald-500/40 bg-[var(--color-card)] p-6 md:p-8"
+      className="border-success/40 md:p-8"
     >
       <div className="mb-4 flex items-center gap-3">
-        <ShieldCheck className="h-6 w-6 text-emerald-400" aria-hidden="true" />
-        <h2 id="linked-heading" className="text-xl font-display text-[var(--color-foreground)]">
+        <ShieldCheck className="h-6 w-6 text-success" aria-hidden="true" />
+        <h2
+          id="linked-heading"
+          className="font-display text-xl font-semibold tracking-wide text-text-display"
+        >
           Steam vinculado
         </h2>
       </div>
@@ -164,32 +180,29 @@ function LinkedState({
           <img
             src={avatarUrl}
             alt={`Avatar de ${persona ?? "usuário Steam"}`}
-            className="h-16 w-16 rounded-full border-2 border-emerald-400/60"
+            className="h-16 w-16 rounded-full border-2 border-success/60"
           />
         ) : (
           <div
             aria-hidden="true"
-            className="h-16 w-16 rounded-full border-2 border-[var(--color-border)] bg-[var(--color-background)]"
+            className="h-16 w-16 rounded-full border-2 border-border-strong bg-bg-deep"
           />
         )}
         <div>
-          <p className="text-lg font-display text-[var(--color-foreground)]">
+          <p className="font-display text-lg font-semibold tracking-wide text-text-display">
             {persona ?? "Sem nickname"}
           </p>
-          <p className="text-xs text-[var(--color-muted-foreground)] font-mono mt-1">
+          <p className="mt-1 font-mono text-xs text-text-muted">
             SteamID 64: {steamId64}
           </p>
         </div>
       </div>
 
       <form action={signInWithSteam}>
-        <button
-          type="submit"
-          className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[var(--color-border)] bg-transparent px-6 py-3 font-medium text-[var(--color-muted-foreground)] transition-colors hover:border-[var(--color-brand-red)]/40 hover:text-[var(--color-brand-red)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-red)]/30"
-        >
+        <Button type="submit" variant="ghost" size="md" className="w-full">
           Revincular outra conta Steam
-        </button>
+        </Button>
       </form>
-    </section>
+    </Card>
   );
 }
