@@ -263,3 +263,51 @@ function buildEmailWrapper(content: string): string {
     </div>
   `;
 }
+
+// ====================================================
+// Email: Partida (PT) confirmada — disparado após Pedro confirmar fim da partida
+// Gap 5 MVP Fichas (2026-05-23) — preservado durante merge Agent D/F
+// ====================================================
+
+interface SendPTConfirmedEmailInput {
+  matchId: string;
+  customerEmail: string;
+  customerName?: string;
+  fichasConsumidas: number;
+}
+
+export async function sendPTConfirmedEmail(
+  input: SendPTConfirmedEmailInput
+): Promise<void> {
+  const resend = getResend();
+  const from = process.env.EMAIL_FROM ?? "onboarding@resend.dev";
+  const greeting = input.customerName ? `Olá, ${input.customerName}!` : "Olá!";
+
+  try {
+    const { error } = await resend.emails.send(
+      {
+        from,
+        to: [input.customerEmail],
+        subject: "Partida confirmada — FORMULADOTA",
+        html: buildEmailWrapper(`
+          <h1 style="color:#c53030;font-size:24px;margin:0 0 16px 0;letter-spacing:-0.02em">Partida Confirmada</h1>
+          <p style="font-size:16px;line-height:1.5;margin:0 0 16px 0">${greeting}</p>
+          <p style="font-size:16px;line-height:1.5;margin:0 0 16px 0">
+            Sua partida com o coach foi confirmada. <strong style="color:#f4f4f5">${input.fichasConsumidas}</strong> ficha(s) consumida(s).
+          </p>
+          <p style="font-size:14px;line-height:1.5;color:#71717a;margin:0">
+            Veja o histórico completo em /partidas. Bons jogos.
+          </p>
+        `),
+      },
+      {
+        idempotencyKey: `pt-confirmed-${input.matchId}-${input.customerEmail}`,
+      }
+    );
+    if (error) {
+      console.error("[resend] PT confirmation envio retornou erro:", error.message);
+    }
+  } catch (err) {
+    console.error("[resend] PT confirmation envio jogou exceção:", err);
+  }
+}

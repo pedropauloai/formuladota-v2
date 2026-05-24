@@ -195,7 +195,7 @@ function SubscriptionStateCard({
           <Button
             onClick={onSubscribe}
             disabled={loading !== null}
-            variant="outline"
+            variant="ghost"
             className="w-full border-red-800 text-red-400 hover:bg-red-950/30"
             size="lg"
           >

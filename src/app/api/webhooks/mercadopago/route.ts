@@ -147,7 +147,7 @@ async function handlePaymentEvent(
         user_id: updated.user_id,
         delta: updated.partidas_compradas,
         source: "purchase",
-        reference_id: updated.id,
+        source_id: updated.id,
       });
     if (ledgerError) {
       console.error("[webhook/mp] insert ficha_ledger falhou:", ledgerError.message);
