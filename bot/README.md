@@ -1,108 +1,90 @@
-# FORMULADOTA Bot — Steam Lobby Creator (Phase 5)
+# FORMULADOTA Discord Bot (Phase 5)
 
-Bot Steam que roda 24/7 em Railway Hobby (~$3/mês). Cria lobbies Dota 2 customizados via Game Coordinator (GC), captura match_id ao final, comunica com app FORMULADOTA via API interna key-auth.
+Coordena voice channels Discord enquanto PRO e alunos jogam ranked Valve oficial.
 
-## Setup Pedro (manual — uma vez)
+O bot NÃO cria lobby Dota custom. Apenas organiza comunicação de voz no servidor Discord.
 
-### 1. Conta Steam dedicada
+## Modelo de funcionamento
 
-**NÃO use a conta pessoal do Pedro** — conta dedicada protege.
+1. Sala geral (`FORMULADOTA — Fila`) — criada on-demand quando fila abre, apagada quando vazia
+2. Sala temp (ex: `Sessao Sabado 19h`) — criada pelo PRO no painel ao iniciar partida, apagada ao finalizar
 
-1. Criar conta Steam nova (não-Pedro pessoal): https://store.steampowered.com/join/
-2. Comprar Dota 2 (free) + 1 jogo R$ 1-5 (anti-botting policy Steam exige conta paga)
-3. **Maturar 30+ dias** — login esporádico, jogar 1-2 partidas, evitar lock
-4. Habilitar **Steam Guard Mobile** — ESSENCIAL pra TOTP
-5. Extrair `shared_secret` + `identity_secret` do app Steam Mobile (jailbreak/root necessário, OU usar SDA — Steam Desktop Authenticator)
-
-### 2. Variáveis de ambiente Railway
-
-No painel Railway, criar projeto FORMULADOTA-BOT e setar:
-
-```bash
-STEAM_ACCOUNT_NAME=formuladota_bot
-STEAM_PASSWORD=...                  # senha conta Steam dedicada
-STEAM_SHARED_SECRET=...             # base64 do shared_secret (TOTP)
-SUPABASE_URL=https://nyvbfdsxjpiwgdroptdi.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=...       # mesmo key do app Next
-BOT_API_KEY=<openssl rand -hex 32>  # gera novo, copia tambem pro app .env como BOT_API_KEY
-```
-
-### 3. Volume persistente
-
-Criar volume Railway montado em `/data` — armazena refresh tokens (200d JWT Steam).
-
-### 4. Deploy inicial
+## Rodar local
 
 ```bash
 cd bot
-git push railway main           # ou via UI Railway "Connect repo"
+cp .env.example .env
+# Preencha .env com DISCORD_BOT_TOKEN, DISCORD_GUILD_ID, INTERNAL_API_KEY
+pnpm install
+pnpm dev
 ```
 
-Primeiro boot vai logar com password+TOTP, gerar refresh token, salvar em volume. Próximos boots usam refresh token automaticamente.
+Verificar health:
 
-### 5. Atualizar app Next .env.local + Vercel
+```bash
+curl http://localhost:8080/health
+```
 
-Adicionar:
+## Deploy no Railway
+
+1. Criar projeto no [Railway](https://railway.app)
+2. Conectar repositório, apontar para pasta `bot/`
+3. Selecionar `Dockerfile` como builder (ou usar `railway.toml`)
+4. Configurar variáveis de ambiente (ver `.env.example`)
+5. Railway usa `railway.toml` para healthcheck automático
+
+Custo estimado: ~$3-5/mês (Railway Hobby Plan)
+
+## Variáveis de ambiente
+
+| Variável | Obrigatória | Descrição |
+|---|---|---|
+| `DISCORD_BOT_TOKEN` | Sim | Token do bot (Discord Developer Portal → Applications) |
+| `DISCORD_GUILD_ID` | Sim | ID do servidor Discord (clicar com direito no servidor → Copiar ID) |
+| `INTERNAL_API_KEY` | Sim | Chave compartilhada com a plataforma Next.js (`openssl rand -hex 32`) |
+| `PORT` | Nao | Porta HTTP (padrao: 8080) |
+| `DISCORD_VOICE_CATEGORY_ID` | Nao | ID da categoria onde as salas sao criadas (deixar vazio = raiz do servidor) |
+
+## Como configurar na plataforma (Next.js)
+
+Adicionar ao `.env.local` e no Vercel:
+
 ```
 BOT_API_URL=https://formuladota-bot-production.up.railway.app
-BOT_API_KEY=<mesmo gerado acima>
+BOT_INTERNAL_API_KEY=<mesmo valor de INTERNAL_API_KEY acima>
 ```
 
-## API endpoints
+## Endpoints HTTP
 
-### POST /lobby/create
-Cria lobby Dota 2 no GC.
+Todas as rotas (exceto `/health`) exigem header `x-api-key: <INTERNAL_API_KEY>`.
 
-**Headers:** `Authorization: Bearer ${BOT_API_KEY}`
+```
+GET  /health
+  Verifica se bot esta conectado ao Discord e guild disponivel.
 
-**Body:**
-```json
-{
-  "lobbyId": "<uuid lobbies row>",
-  "name": "FORMULADOTA #123",
-  "password": "abc12345",
-  "gameMode": "all_pick"
-}
+POST /api/general-room/ensure
+  Garante que sala geral existe. Cria se nao existir.
+  Resposta: { channelId, existed, created }
+
+DELETE /api/general-room
+  Apaga sala geral. Chamar apenas quando fila vazia + sem matches ativas.
+
+POST /api/match-room/create
+  Body: { customName: string, userDiscordIds: string[] }
+  Cria voice channel temp + move usuarios pra la.
+  Resposta: { channelId, movedCount }
+
+DELETE /api/match-room/:channelId
+  Move usuarios de volta pra sala geral + apaga canal temp.
+  Resposta: { deleted }
 ```
 
-**Response:**
-```json
-{ "ok": true, "steamLobbyId": "104242..." }
-```
+## Permissoes necessarias no Discord
 
-### POST /lobby/capture-match
-Captura match_id ao final + atualiza row `lobbies.dota_match_id`.
+O bot precisa das seguintes permissoes no servidor:
 
-**Body:**
-```json
-{ "lobbyId": "<uuid>" }
-```
+- `View Channels` — ver canais
+- `Manage Channels` — criar e apagar voice channels
+- `Move Members` — mover usuarios entre voice channels
 
-### GET /health
-Health check Railway. Retorna 200 se Steam+Dota GC conectados.
-
-## Custo
-
-- Railway Hobby: $5/mês inclui 500h compute + 100GB egress (mais que suficiente)
-- Steam: gratuito (após maturação inicial)
-- Total: ~R$ 13/mês
-
-## Pendências Pedro
-
-1. ☐ Criar conta Steam dedicada (não-Pedro)
-2. ☐ Comprar Dota 2 free + 1 jogo R$ 1-5
-3. ☐ Maturar 30+ dias
-4. ☐ Habilitar Steam Guard Mobile
-5. ☐ Extrair `shared_secret` via SDA
-6. ☐ Criar projeto Railway + volume `/data`
-7. ☐ Setar env vars no Railway
-8. ☐ Deploy inicial
-9. ☐ Adicionar `BOT_API_URL` + `BOT_API_KEY` em `.env.local` do app + Vercel prod
-10. ☐ Smoke test: criar lobby via UI app `/criar-lobby` → confirmar lobby aparece no Dota 2 client
-
-## Notas técnicas
-
-- **Sentry hash deprecated** — ecossistema atual usa refresh JWT (200 dias) via `steam-user` v5
-- **`createPracticeLobby`** — node-dota2 API
-- **GC reconnection** — `steam-user.autoRelogin: true` + `dota.on('unready')` segue tentando
-- **Multiple bots V2** — pra escalar, criar pool de bots com round-robin (V2)
+Configure no Discord Developer Portal → Applications → Bot → Permissions.
