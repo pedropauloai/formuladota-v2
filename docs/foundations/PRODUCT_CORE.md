@@ -4,7 +4,94 @@
 > texto antes de ser implementada. Se há conflito entre este documento e um requisito pontual,
 > este documento prevalece — o requisito é revisado, não o contrário.
 >
-> Versao: 1.0 | Data: 2026-05-23 | Milestone: V2.5 Design Foundations
+> Versao: 1.1 | Data original: 2026-05-23 | Atualizado: 2026-05-23 | Milestone: V2.5 Design Foundations
+
+---
+
+## [PRIORIDADE MAXIMA] — Ler PHILOSOPHY.md antes deste documento
+
+Este documento define COMO o produto se manifesta. `docs/foundations/PHILOSOPHY.md` define
+POR QUE o FormulaDota existe e QUAL e sua filosofia central.
+
+**Hierarquia de leitura obrigatoria:**
+
+1. `docs/foundations/PHILOSOPHY.md` — fundamento filosofico (12 pilares, por que existimos)
+2. `docs/foundations/HONOR_SYSTEM.md` — o segundo eixo de avaliacao (HONOR paralelo ao SKILL)
+3. Este documento — como o produto expressa essa filosofia em identidade, voz e padrao de UI
+
+Qualquer decisao de produto que contradiga PHILOSOPHY.md invalida PRODUCT_CORE.md em seu
+aspecto de conflito — e PRODUCT_CORE.md e revisado, nao PHILOSOPHY.md.
+
+---
+
+## Atualizacao 2026-05-23 — Sistema de Dois Eixos
+
+Em 2026-05-23, Pedro Paulo articulou o manifesto filosofico completo do FormulaDota.
+O ponto central que impacta este documento e o seguinte:
+
+**O FormulaDota avalia jogadores em dois eixos simultaneos e paralelos:**
+
+**Eixo SKILL/PERFORMANCE** — o que ja existia implicitamente
+Capacidade tecnica competitiva: MMR interno, winrate, contribuicao em partidas.
+A hierarquia de feedback deste documento (Secao 6) se aplica a eventos de SKILL.
+
+**Eixo HONOR/CONDUTA** — formalizado em 2026-05-23
+Qualidade de participacao comunitaria: presenca, elogios peer, mentoria reconhecida,
+historico de conduta sob pressao.
+
+**A hierarquia de feedback da Secao 6 se estende ao eixo HONOR:**
+
+| Nivel | Evento de HONOR | Exemplo |
+|-------|----------------|---------|
+| Critico | Conquista de Imortal da Formula | Full-screen takeover, stinger dedicado, badge reveal animado |
+| Importante | Avanco de tier HONOR | Toast customizado bottom-center, som confirm, badge atualizado |
+| Informativo | Commendation recebida | Pill no perfil atualiza, notificacao inline sem interrupcao |
+| Erro | Strike aplicado — nivel importante | Toast de erro especifico citando o principio violado |
+| Critico (negativo) | Strike grave ou banimento | Full-screen critico, principio violado em Cinzel, sem dismiss automatico |
+
+Eventos de HONOR Critico (Imortal da Formula) e Critico negativo (banimento) compartilham
+o nivel Critico da hierarquia mas com visual oposto: o positivo usa elementos de celebracao;
+o negativo usa os elementos de bloqueio documentados na Secao 9 (Banimento Triggered).
+
+---
+
+## Arquetipo Refinado — Mestre + Guardiao
+
+O documento original (Secao 4) define o arquetipo de marca como "O Mestre". Em 2026-05-23,
+esse arquetipo foi refinado com uma segunda dimensao: "O Guardiao".
+
+**Mestre** (dimensao original, permanece intacta):
+O Mestre conhece o caminho. Comunica com gravidade. Espera disciplina. Recompensa perseveranca.
+Nao valida desculpas. Fala com autoridade — respeitosa, mas assimetrica.
+
+**Guardiao** (dimensao adicionada):
+O Guardiao preserva a cultura. Protege a experiencia coletiva de quem pertence ao ambiente.
+Nao tolera que o ecossistema seja degradado — nem por jogadores de skill alto, nem por
+qualquer justificativa de performance. O Guardiao nao e policia; e o custodio do que o
+FormulaDota construiu para ser.
+
+**Pedro Paulo = Mestre + Guardiao**
+
+Como criador e admin, Pedro e simultaneamente:
+- O Mestre que conhece o caminho tecnico (Immortal Top 0.5%) e guia jogadores por osmose
+- O Guardiao que preserva a cultura da doutrina e protege o ambiente de vozes que o degradam
+
+**A plataforma = ecossistema protegido por principios**
+
+A plataforma nao e um espaco neutro onde qualquer comportamento e tolerado enquanto as
+metricas tecnicas se sustentam. E um ecossistema com principios ativos — e o arquetipo
+Mestre + Guardiao se manifesta em toda decisao de moderacao, em toda mensagem de strike,
+em todo banimento e em todo reconhecimento de conduta exemplar.
+
+**Como o arquetipo Guardiao complementa a voz de marca (complemento a Secao 5):**
+
+Alem das regras ja documentadas de voz do Mestre:
+- O Guardiao fala quando a cultura e ameacada: direto, sem amenizacao, sem negociacao
+- O Guardiao reconhece quem preserva o ambiente: elogioso com peso, nao com leveza
+- O Guardiao explica as razoes, nao apenas as consequencias: "Principio 3 foi violado porque
+  voce atribuiu a derrota a companheiros antes de avaliar suas proprias decisoes."
+
+O arquetipo combinado nao e mais severo — e mais completo. O Mestre ensina; o Guardiao protege.
 
 ---
 

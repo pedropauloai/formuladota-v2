@@ -1,12 +1,13 @@
-# UX_PRINCIPLES.md — Os 11 Mandamentos AAA do FormulaDota
+# UX_PRINCIPLES.md — Os 13 Mandamentos do FormulaDota
 
-> Documento fundacional permanente. Versao: 1.0. Data: 2026-05-23.
+> Documento fundacional permanente. Versao: 1.1. Data original: 2026-05-23. Atualizado: 2026-05-23.
 > Milestone: V2.5 Design Foundations.
 > Status: LEI. Toda decisao de UX deve passar pela Regua de Validacao da Secao 6.
+> M12 e M13 adicionados em 2026-05-23 — derivados de PHILOSOPHY.md Pilares 3 e 5.
 
 ---
 
-## 1. Preambulo — Os 11 Mandamentos sao lei. Sem excecoes.
+## 1. Preambulo — Os 13 Mandamentos sao lei. Sem excecoes.
 
 O FormulaDota nao e um SaaS. Nao e uma landing page. Nao e um produto de startup.
 
@@ -20,7 +21,7 @@ FACEIT v4, CS2 HUD, Path of Exile 2 client — aprenderam ao longo de duas decad
 jogadores nao querem interfaces gentis. Jogadores querem interfaces responsivas, imersivas,
 e que tratam toda interacao como um evento que importa.
 
-Este documento formaliza os 11 principios nao-negociaveis que governam cada decisao de UX
+Este documento formaliza os 13 principios nao-negociaveis que governam cada decisao de UX
 no FormulaDota V2.5 e versoes posteriores. Cada mandamento define um comportamento esperado
 do sistema, um exemplo concreto de acerto (com referencia de produto AAA especifica), um
 anti-pattern com codigo ou descricao de falha, e a aplicacao exata em telas do FormulaDota.
@@ -807,7 +808,172 @@ O `<AmbientLayer>` (V2.5-F3) implementa:
 
 ---
 
-## 3. Resumo dos 11 Mandamentos (referencia rapida)
+### M12 — Dois Eixos Sempre Visiveis
+
+#### Principio
+
+Toda exibicao de perfil, ranking, card de jogador ou achievement deve mostrar SKILL e HONOR
+lado a lado. Nenhuma superfície do produto exibe apenas um dos eixos.
+
+#### Why
+
+O Pilar 3 da PHILOSOPHY.md e inequivoco: o FormulaDota avalia jogadores em dois eixos
+separados e paralelos. Se a interface exibe apenas o eixo de SKILL, ela replica exatamente
+o problema que o FormulaDota foi construido para superar — a logica da Valve de avaliar
+jogadores por performance tecnica isolada.
+
+A visibilidade dual nao e feature opcional ou de "versao avancada". E o mandamento central
+que diferencia o FormulaDota de qualquer plataforma competitiva existente. Um card de jogador
+que exibe apenas MMR ou apenas winrate e, do ponto de vista filosofico, um erro critico — ele
+comunica que HONOR nao importa, que conduta e secundaria, que o FormulaDota mede o mesmo que
+a Valve so que com UI diferente.
+
+Isso e o oposto do que o FormulaDota e.
+
+#### Exemplo positivo
+
+Card de jogador em lobby com dual-badge:
+
+```tsx
+// CORRETO: exibe ambos os eixos com peso equivalente
+export function PlayerCard({ player }: { player: Player }) {
+  return (
+    <div className="flex flex-col gap-1 p-3 bg-[#0A0A1A] rounded-lg">
+      <span className="font-display text-sm font-bold">{player.username}</span>
+      <div className="flex items-center gap-3">
+        <DotaRankMedal rank={player.skillTier} size="sm" showLabel />
+        <HonorRankMedal rank={player.honorTier} size="sm" showLabel />
+      </div>
+    </div>
+  );
+}
+```
+
+Os dois badges tem o mesmo `size`, o mesmo `showLabel`, o mesmo peso visual. Nenhum fica
+maior ou mais proeminente que o outro. Paridade de eixos = paridade visual.
+
+#### Anti-pattern
+
+```tsx
+// PROIBIDO: card que exibe apenas eixo de SKILL
+export function PlayerCard({ player }: { player: Player }) {
+  return (
+    <div className="flex items-center gap-2 p-3">
+      <DotaRankMedal rank={player.skillTier} size="sm" />
+      <span>{player.username}</span>
+    </div>
+  );
+}
+// HonorRankMedal ausente = HONOR invisivel = replica logica Valve
+```
+
+#### Como aplicar no FormulaDota
+
+- `<ProCard>` (card do jogador na tela de fila): dois badges side-by-side, mesmo tamanho
+- `<MatchCard>` (historico de partidas): exibir HONOR ganho/perdido na partida ao lado do resultado
+- Leaderboards: duas colunas separadas — ranking SKILL e ranking HONOR — o jogador aparece
+  em posicoes potencialmente diferentes em cada coluna
+- `/me` (perfil): `<DotaRankMedal>` e `<HonorRankMedal>` centralizados lado a lado sobre o
+  hero portrait, com `glow={true}` nos dois
+- Tela pos-partida: primeiro elemento visivel e o delta de HONOR da partida (nao o KDA)
+
+---
+
+### M13 — Pos-Derrota e Ritual, Nao Punicao
+
+#### Principio
+
+A tela pos-partida — em vitoria OU em derrota — inclui reflexao qualitativa sobre conduta
+antes de exibir estatisticas tecnicas brutas. A derrota nao e tratada como falha — e tratada
+como dado de evolucao.
+
+#### Why
+
+O Pilar 5 da PHILOSOPHY.md: derrota pode ser mais valiosa que vitoria. Uma derrota bem
+processada — onde o jogador analisa decisoes, identifica erros e assume responsabilidade —
+produz mais aprendizado do que uma vitoria onde o jogador nao reflete sobre nada.
+
+A tela pos-partida e o momento de maior vulnerabilidade do jogador. Depois de uma derrota,
+o impulso natural e atribuir a culpa a outros (companheiros, heroi, sorte). E exatamente esse
+impulso que a tela pos-partida deve interromper — nao de forma agressiva, mas de forma que
+convide a reflexao antes da racionalização.
+
+Se a tela pos-partida começa com KDA e MMR delta, o usuario recebe informacao tecnica no
+momento em que precisa de perspectiva cultural. O sistema reforça o reflexo que a Doutrina
+tenta desconstruir. Isso e um erro estrutural de UX.
+
+A tela pos-partida que comeca com HONOR — o que voce ganhou ou perdeu em conduta nesta
+partida — muda o enquadramento. Antes do numero de mortes, o usuario ve: "Derrota com Honra
++15 HONOR". Isso comunica que o FormulaDota avalia mais do que o placar.
+
+#### Exemplo positivo
+
+Estrutura da tela pos-partida no FormulaDota:
+
+```
+[RESULTADO DA PARTIDA — DERROTA]
+
+[Delta HONOR desta partida]
++15 HONOR — Derrota com Honra
+Voce manteve conduta exemplar mesmo em situacao adversa.
+
+[Commendations recebidas nesta partida]
+Pedro te elogiou por "comunicacao" — +8 HONOR
+
+[Separador visual]
+
+[Estatisticas tecnicas]
+KDA: 3/7/11 | GPM: 432 | XPM: 524 | Resultado: Derrota
+[Delta MMR interno]
+
+[Acao sugerida]
+[VER REPLAY]   [ENTRAR NA FILA]
+```
+
+O HONOR e o primeiro elemento — nao o placar. O usuario que perdeu ve primeiro o que ganhou
+em conduta. Esse enquadramento e uma decisao filosofica, nao estetica.
+
+#### Anti-pattern
+
+```tsx
+// PROIBIDO: pos-partida como dump de stats sem reflexao qualitativa
+export function PostMatchScreen({ match }: { match: Match }) {
+  return (
+    <div className="p-6 space-y-4">
+      <h1 className="text-2xl font-bold text-red-500">DERROTA</h1>
+      <div className="grid grid-cols-3 gap-4">
+        <Stat label="Kills" value={match.kills} />
+        <Stat label="Deaths" value={match.deaths} />
+        <Stat label="Assists" value={match.assists} />
+      </div>
+      <p className="text-sm text-muted">MMR: {match.mmrDelta > 0 ? '+' : ''}{match.mmrDelta}</p>
+    </div>
+  );
+}
+// Sem HONOR. Sem reflexao. Idêntico a qualquer tracker de Dota. Replica logica Valve.
+```
+
+#### Como aplicar no FormulaDota
+
+Este mandamento e programado para implementacao quando o bot Steam capturar dados de partida
+(Phase 5+). Porem o design da tela pos-partida deve ser especificado com esta estrutura
+desde o inicio — para que a implementacao tecnica nao precise ser refeita quando o HONOR
+system for ativado.
+
+**Para implementacoes parciais (antes do HONOR system ativo):**
+A tela pos-partida pode exibir placeholder de HONOR no lugar do delta real: "Conduta desta
+partida sera avaliada em breve" — mantendo o enquadramento sem mentir sobre dados nao disponiveis.
+
+**Para a tela completa (Phase 6+):**
+- HONOR delta primeiro, obrigatorio
+- Commendations recebidas na partida
+- Separador visual claro entre reflexao qualitativa e estatisticas tecnicas
+- Estatisticas tecnicas em segundo plano visual (menor destaque, nao ausentes)
+- CTA principal: entrar na fila (nao revisar stats, que e acao secundaria)
+
+---
+
+## 3. Resumo dos 13 Mandamentos (referencia rapida)
 
 | # | Mandamento | Anti-pattern proibido | Produto de referencia |
 |---|-----------|----------------------|----------------------|
@@ -822,6 +988,8 @@ O `<AmbientLayer>` (V2.5-F3) implementa:
 | M9 | Presence rich 4 estados | Online/Offline binario | Discord v2024 |
 | M10 | Sound feedback 6 sons minimos | Silencio total | CS2 HUD |
 | M11 | Atmospheric ambient | Background estatico liso | Diablo IV client |
+| M12 | Dois eixos sempre visiveis | Card com apenas SKILL badge | PHILOSOPHY.md Pilar 3 |
+| M13 | Pos-derrota e ritual, nao punicao | Dump de KDA sem reflexao | PHILOSOPHY.md Pilar 5 |
 
 ---
 
@@ -1023,4 +1191,5 @@ Se qualquer um desses itens for "nao", o elemento esta incompleto.
 ---
 
 *Este documento e lei. Atualizacoes requerem PR com justificativa alinhada ao milestone
-V2.5 ou posterior. Versao 1.0 — 2026-05-23.*
+V2.5 ou posterior. Versao 1.1 — 2026-05-23. M12 e M13 adicionados derivados da filosofia
+central formalizada em PHILOSOPHY.md (Pedro Paulo, 2026-05-23).*
