@@ -91,6 +91,8 @@ export async function adjustUserFichas(input: AdjustInput): Promise<AdjustResult
 
   revalidatePath("/admin/users");
   revalidatePath("/admin/fichas");
+  // Saldo aparece tanto na rota dedicada (UserStatusBar) quanto no HUB.
+  revalidatePath("/ranked-com-pro");
   revalidatePath("/dashboard");
   revalidatePath("/");
 

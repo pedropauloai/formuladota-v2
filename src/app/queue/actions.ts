@@ -79,6 +79,8 @@ export async function enterQueue(input: {
     return { success: false, error: "Erro ao entrar na fila." };
   }
 
+  // Revalida tanto a rota dedicada (feed PROs) quanto o HUB (badges/contadores).
+  revalidatePath("/ranked-com-pro");
   revalidatePath("/dashboard");
   return { success: true, queueId: data.id };
 }
@@ -110,6 +112,8 @@ export async function leaveQueue(): Promise<QueueResult> {
     return { success: false, error: "Erro ao sair da fila." };
   }
 
+  // Revalida tanto a rota dedicada (feed PROs) quanto o HUB (badges/contadores).
+  revalidatePath("/ranked-com-pro");
   revalidatePath("/dashboard");
   return { success: true, queueId: existing.id };
 }

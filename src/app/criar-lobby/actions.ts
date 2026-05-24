@@ -114,5 +114,5 @@ export async function cancelLobby(formData: FormData): Promise<void> {
   // Lobby some completamente — não pode existir sala sem dono.
   await supabase.from("lobbies").delete().eq("id", lobbyId);
 
-  redirect("/dashboard?play=lobbies-list");
+  redirect("/ranked-com-pro?play=lobbies-list");
 }

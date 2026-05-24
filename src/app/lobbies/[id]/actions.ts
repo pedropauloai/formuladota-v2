@@ -159,7 +159,7 @@ export async function leaveLobby(formData: FormData): Promise<void> {
       .eq("user_id", user.id);
   }
 
-  redirect("/dashboard?play=lobbies-list");
+  redirect("/ranked-com-pro?play=lobbies-list");
 }
 
 /**
@@ -209,5 +209,5 @@ export async function cancelLobby(formData: FormData): Promise<void> {
   const supabase = await createClient();
   await supabase.from("lobbies").delete().eq("id", lobbyId);
 
-  redirect("/dashboard?play=lobbies-list");
+  redirect("/ranked-com-pro?play=lobbies-list");
 }

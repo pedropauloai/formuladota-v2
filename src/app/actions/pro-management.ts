@@ -319,6 +319,8 @@ export async function pausePro(): Promise<{ success: boolean; error?: string }> 
     reason: "Pausa voluntária pelo PRO",
   });
 
+  // Feed de PROs vive em /ranked-com-pro; HUB também pode exibir status.
+  revalidatePath("/ranked-com-pro");
   revalidatePath("/dashboard");
 
   return { success: true };
@@ -377,6 +379,8 @@ export async function resumePro(): Promise<{ success: boolean; error?: string }>
     reason: "Retorno voluntário pelo PRO",
   });
 
+  // Feed de PROs vive em /ranked-com-pro; HUB também pode exibir status.
+  revalidatePath("/ranked-com-pro");
   revalidatePath("/dashboard");
 
   return { success: true };

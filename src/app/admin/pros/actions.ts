@@ -75,6 +75,7 @@ export async function togglePROFila(
   }
 
   revalidatePath("/");
+  revalidatePath("/ranked-com-pro");
   revalidatePath("/dashboard");
   revalidatePath("/admin/pros");
   return { success: true, data: { filaAberta: open, cancelledEntries } };
@@ -146,6 +147,7 @@ export async function startPT(
   }
 
   revalidatePath("/");
+  revalidatePath("/ranked-com-pro");
   revalidatePath("/dashboard");
   revalidatePath("/admin/pros");
   return { success: true, data: { matchId: match.id } };
@@ -192,6 +194,7 @@ export async function confirmPTRealized(
   void sendPTEmailsToParticipants(supabase, matchId);
 
   revalidatePath("/admin/pros");
+  revalidatePath("/ranked-com-pro");
   revalidatePath("/dashboard");
   return { success: true, data: { matchId } };
 }
@@ -289,6 +292,7 @@ export async function cancelPT(
   }
 
   revalidatePath("/admin/pros");
+  revalidatePath("/ranked-com-pro");
   revalidatePath("/dashboard");
   return { success: true, data: { cancelledEntries: count ?? 0 } };
 }
@@ -329,6 +333,7 @@ export async function removeFromQueue(
   console.log(`[removeFromQueue] PRO ${coach.id} removeu entry ${entryId}: ${reason}`);
 
   revalidatePath("/");
+  revalidatePath("/ranked-com-pro");
   revalidatePath("/dashboard");
   revalidatePath("/admin/pros");
   return { success: true, data: { entryId } };
@@ -465,6 +470,7 @@ export async function enrichMatchFromOpenDota(
   }
 
   revalidatePath("/admin/pros");
+  revalidatePath("/ranked-com-pro");
   revalidatePath("/dashboard");
   return { success: true, data: { playersInserted: playerRows.length } };
 }

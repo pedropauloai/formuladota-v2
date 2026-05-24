@@ -142,6 +142,8 @@ export async function adjustUserFichasAdmin(input: {
 
   revalidatePath("/admin/users");
   revalidatePath(`/admin/users/${input.userId}`);
+  // Saldo aparece tanto na rota dedicada (UserStatusBar) quanto no HUB.
+  revalidatePath("/ranked-com-pro");
   revalidatePath("/dashboard");
 
   return { success: true, newBalance };
