@@ -1,18 +1,24 @@
 // Top Bar — réplica do header do Dota 2 client (M2 reformulado 2026-05-24).
 // Esquerda: logo branca + settings + tabs principais + tabs contextuais
 // Centro: status PROs online em tempo real
-// Direita: badge "Comprar Ficha" (yellow, ex-FORMULA+) + logout
+// Direita: badge "SUBIR DE MMR" (brand cinematic) + logout
 //
 // Tabs principais (sempre visíveis): PROGRESSO / RANKING / TIMES / TORNEIOS /
 // CONDUTA. Tabs contextuais: PRO (se isPro) e ADMIN (se isAdmin).
 // JOGAR é implícito — clique no logo FORMULADOTA leva pra /dashboard.
 // Ref: docs/foundations/DOTA2_CLIENT_REFERENCE.md #2 (dashboard-current.png).
+//
+// CTA dominante (2026-05-24): "SUBIR DE MMR" → /ranked-com-pro. Substitui
+// "Comprar Ficha" (rebaixado pra tab LOJA e dentro de /ranked-com-pro).
+// Filosofia: MMR é fim, ficha é meio. Header pavimenta a JORNADA PRINCIPAL.
+// Ref: docs/foundations/UX_PRINCIPLES.md M3 (CTA com weight massivo).
 
 import Image from "next/image";
 import Link from "next/link";
-import { Settings, LogOut, Coins, Radio, Eye, EyeOff } from "lucide-react";
+import { Settings, LogOut, Swords, Radio, Eye, EyeOff } from "lucide-react";
 import { signOut } from "@/app/login/actions";
 import { togglePreviewMode } from "@/lib/auth/preview-mode";
+import { cn } from "@/lib/utils";
 
 type TopBarTabDef = {
   href: string;
@@ -40,7 +46,6 @@ interface Props {
   /** User tem pro_promotion ativa/pausada — exibe tab contextual PRO. */
   isPro: boolean;
   prosOnlineCount: number;
-  fichaPackageId: string | null;
 }
 
 export function DashboardTopBar({
@@ -50,7 +55,6 @@ export function DashboardTopBar({
   previewActive,
   isPro,
   prosOnlineCount,
-  fichaPackageId,
 }: Props) {
   const contextualTabs: TopBarTabDef[] = [];
   if (isPro) {
@@ -150,10 +154,10 @@ export function DashboardTopBar({
         </div>
       )}
 
-      {/* Direita — Preview toggle (só admin real) + Comprar Ficha + Logout */}
+      {/* Direita — Preview toggle (só admin real) + SUBIR DE MMR + Logout */}
       <div className="flex items-center gap-1.5 xl:gap-2">
         {realIsAdmin && <PreviewModeToggle previewActive={previewActive} />}
-        {fichaPackageId && <BuyFichaBadge packageId={fichaPackageId} />}
+        <SubirMmrBadge />
         <form action={signOut}>
           <button
             type="submit"
@@ -198,16 +202,30 @@ function PreviewModeToggle({ previewActive }: { previewActive: boolean }) {
   );
 }
 
-function BuyFichaBadge({ packageId }: { packageId: string }) {
-  // Mantém estética yellow do antigo FORMULA+ — gatilho principal de monetização.
+function SubirMmrBadge() {
+  // CTA dominante do header — pavimenta a JORNADA PRINCIPAL (subir de MMR).
+  // Estética cinematic brand (vermelho FormulaDota + glow) substitui o yellow
+  // do antigo "Comprar Ficha". Ficha continua acessível na tab LOJA e dentro
+  // de /ranked-com-pro quando user não tem ficha.
   return (
     <Link
-      href={`/checkout/${packageId}`}
-      aria-label="Comprar Ficha"
-      className="group inline-flex items-center gap-1.5 rounded-md border border-amber-400/70 bg-gradient-to-b from-amber-300 to-amber-500 px-3 py-1.5 font-display text-xs font-bold uppercase tracking-[0.15em] text-black shadow-md shadow-amber-500/40 hover:brightness-110 hover:shadow-amber-400/60 transition-all xl:px-4 xl:py-2 xl:text-sm xl:tracking-[0.2em]"
+      href="/ranked-com-pro"
+      aria-label="Subir de MMR — entrar em fila com PRO Imortal"
+      className={cn(
+        "group inline-flex items-center gap-1.5 rounded-md",
+        "px-3 py-1.5 xl:px-4 xl:py-2",
+        "border-2 border-brand-primary",
+        "bg-gradient-to-b from-brand-primary to-brand-primary-hover",
+        "font-display text-xs xl:text-sm font-bold uppercase",
+        "tracking-[0.15em] xl:tracking-[0.2em] text-text-display",
+        "shadow-[0_0_12px_var(--color-brand-primary-glow)]",
+        "hover:shadow-[0_0_24px_var(--color-brand-primary-glow)]",
+        "hover:brightness-110",
+        "transition-all"
+      )}
     >
-      <Coins size={12} aria-hidden="true" />
-      <span>Comprar Ficha</span>
+      <Swords size={12} aria-hidden="true" />
+      <span>Subir de MMR</span>
     </Link>
   );
 }

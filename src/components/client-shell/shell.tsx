@@ -154,7 +154,6 @@ export async function ClientShell({
             previewActive={previewActive}
             isPro={isPro}
             prosOnlineCount={prosOnlineCount}
-            fichaPackageId={fichaPackage?.id ?? null}
           />
         </div>
 
@@ -236,7 +235,6 @@ export async function ClientShell({
         previewActive={previewActive}
         isPro={isPro}
         prosOnlineCount={prosOnlineCount}
-        fichaPackageId={fichaPackage?.id ?? null}
       />
 
       <div
