@@ -1,5 +1,11 @@
 // /perfil — dentro do ClientShell (mesma estética do dashboard).
 // Mostra dados do user logado, saldo de fichas, e botão sair.
+//
+// Refatorado para Design System V2.5 (Wave 8 — 2026-05-24):
+//   - <UserAvatar> no header em vez de só texto
+//   - <Card>/<CardContent> em vez de div ad-hoc com CSS vars legacy
+//   - <Button variant="ghost"> em vez de <button> com classes manuais
+//   - Tokens semânticos: text-text-display/body/muted/faded, border-border-subtle, bg-bg-elevated
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -7,6 +13,9 @@ import { signOut } from "../login/actions";
 import { getPreviewModeActive } from "@/lib/auth/preview-mode";
 import { getMyFichaBalance } from "@/lib/queries/fichas";
 import { ClientShell } from "@/components/client-shell/shell";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { UserAvatar } from "@/components/ui/avatar";
 
 export const metadata = {
   title: "Perfil — FORMULADOTA",
@@ -29,49 +38,67 @@ export default async function PerfilPage() {
     getMyFichaBalance(user.id),
   ]);
   const showAsAdmin = profile?.is_admin === true && !previewActive;
+  const displayName = profile?.username ?? "imortal";
 
   return (
     <ClientShell currentRoute="/perfil">
       <div className="flex h-full overflow-hidden">
         <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 overflow-y-auto p-6 xl:p-8">
-          <header className="space-y-2">
-            <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
-              Perfil
-            </p>
-            <h1 className="font-display text-3xl uppercase tracking-tight text-white">
-              Olá, {profile?.username ?? "imortal"}
-            </h1>
-            <div className="brand-divider" />
+          {/* ------------------------------------------------------------
+              Header — Identidade do usuário com avatar V2.5
+              ------------------------------------------------------------ */}
+          <header className="flex items-center gap-4">
+            <UserAvatar
+              src={profile?.avatar_url ?? undefined}
+              alt={`Avatar de ${displayName}`}
+              fallback={displayName.slice(0, 2).toUpperCase()}
+              size="lg"
+            />
+            <div className="space-y-2">
+              <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-brand-primary">
+                Perfil
+              </p>
+              <h1 className="font-display text-3xl uppercase tracking-tight text-text-display">
+                Olá, {displayName}
+              </h1>
+            </div>
           </header>
 
-          <section className="rounded-md border border-[var(--color-border)] bg-[var(--color-card)]/80 backdrop-blur-sm p-6 space-y-3">
-            <Row label="Discord ID" value={profile?.discord_id ?? "—"} mono />
-            <Row label="Email" value={profile?.email ?? "—"} />
-            <Row
-              label="Saldo de fichas"
-              value={showAsAdmin ? "∞ admin" : `${fichaBalance}`}
-              highlight
-            />
-            <Row label="MMR atual" value={profile?.mmr_atual?.toString() ?? "não informado"} />
-            <Row label="Role preferida" value={profile?.role_preferida ?? "não informado"} />
-            {showAsAdmin && (
-              <Row label="Acesso" value="Administrador" highlight />
-            )}
-          </section>
+          {/* ------------------------------------------------------------
+              Card de dados — usa <Card variant="elevated"> + Row
+              ------------------------------------------------------------ */}
+          <Card variant="elevated">
+            <CardContent className="space-y-3">
+              <Row label="Discord ID" value={profile?.discord_id ?? "—"} mono />
+              <Row label="Email" value={profile?.email ?? "—"} />
+              <Row
+                label="Saldo de fichas"
+                value={showAsAdmin ? "∞ admin" : `${fichaBalance}`}
+                highlight
+              />
+              <Row label="MMR atual" value={profile?.mmr_atual?.toString() ?? "não informado"} />
+              <Row label="Role preferida" value={profile?.role_preferida ?? "não informado"} />
+              {showAsAdmin && <Row label="Acesso" value="Administrador" highlight />}
+            </CardContent>
+          </Card>
 
+          {/* ------------------------------------------------------------
+              Sair da conta — Server Action + Button V2.5
+              ------------------------------------------------------------ */}
           <form action={signOut}>
-            <button
-              type="submit"
-              className="rounded-md border border-[var(--color-border)] px-4 py-2 font-sans text-xs uppercase tracking-widest text-white/60 hover:text-white transition"
-            >
+            <Button type="submit" variant="ghost" size="sm">
               Sair da conta
-            </button>
+            </Button>
           </form>
         </div>
       </div>
     </ClientShell>
   );
 }
+
+// ---------------------------------------------------------------------------
+// Row — par label/value semântico (<dl>-like) com tokens V2.5
+// ---------------------------------------------------------------------------
 
 function Row({
   label,
@@ -86,14 +113,14 @@ function Row({
 }) {
   return (
     <div className="flex items-center justify-between gap-4 text-sm">
-      <span className="font-sans text-xs uppercase tracking-widest text-white/50">
+      <span className="font-sans text-xs uppercase tracking-widest text-text-muted">
         {label}
       </span>
       <span
         className={[
-          "text-white",
           mono ? "font-mono text-xs" : "font-sans text-sm",
-          highlight ? "text-emerald-300" : "",
+          // Highlight usa success (verde) para destacar saldo/acesso — semântico V2.5
+          highlight ? "text-success" : "text-text-display",
         ].join(" ")}
       >
         {value}
