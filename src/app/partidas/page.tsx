@@ -14,6 +14,7 @@ import type { Tables } from "@/types/database";
 import { SaldoCard } from "@/components/partidas/saldo-card";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
 import { ClientShell } from "@/components/client-shell/shell";
 
 export const metadata: Metadata = {
@@ -82,11 +83,14 @@ export default async function PartidasPage() {
   return (
     <ClientShell currentRoute="/partidas">
       <div className="px-4 py-10 mx-auto max-w-4xl">
-        <header className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-display text-[var(--color-foreground)]">
-            Minhas <span className="text-[var(--color-brand-red)]">partidas</span>
+        <header className="mb-8 space-y-3">
+          <p className="font-display text-xs uppercase tracking-[0.4em] text-brand-primary">
+            Minhas partidas
+          </p>
+          <h1 className="font-display text-4xl uppercase tracking-wide text-text-display">
+            Seu saldo
           </h1>
-          <p className="mt-2 text-[var(--color-muted-foreground)]">
+          <p className="text-text-muted">
             Saldo disponível para agendar partidas e sessões com o coach.
           </p>
         </header>
@@ -97,33 +101,27 @@ export default async function PartidasPage() {
         />
 
         {semSaldo && (
-          <Card className="mt-8 bg-[var(--color-card)] border-[var(--color-border)] border-dashed">
-            <CardContent className="py-12 text-center">
-              <ShoppingBag
-                className="h-12 w-12 mx-auto text-[var(--color-muted-foreground)] mb-4"
-                aria-hidden="true"
-              />
-              <h2 className="text-xl text-[var(--color-foreground)] mb-2">
-                Sem saldo ainda
-              </h2>
-              <p className="text-[var(--color-muted-foreground)] mb-6 max-w-md mx-auto">
-                Você ainda não tem partidas ou sessões disponíveis. Conheça os
-                pacotes e comece sua mentoria.
-              </p>
-              {/* Button de base-ui não suporta asChild; usar Link estilizado diretamente */}
-              <Link
-                href="/pacotes"
-                className="inline-flex items-center justify-center rounded-lg bg-[var(--color-brand-red)] text-black font-medium text-sm px-4 py-2 transition-colors hover:bg-[var(--color-brand-red)]/90"
-              >
-                Ver pacotes
-              </Link>
-            </CardContent>
-          </Card>
+          <div className="mt-8">
+            <EmptyState
+              title="Sem saldo ainda"
+              description="Você ainda não tem partidas ou sessões disponíveis. Conheça os pacotes e comece sua mentoria."
+              icon={ShoppingBag}
+              principle={5}
+              action={
+                <Link
+                  href="/pacotes"
+                  className="inline-flex h-12 items-center justify-center rounded-[var(--radius-sm)] bg-brand-primary px-8 font-display text-sm font-bold uppercase tracking-widest text-text-display shadow-[var(--glow-brand)] transition-colors hover:bg-brand-primary-hover"
+                >
+                  Ver pacotes
+                </Link>
+              }
+            />
+          </div>
         )}
 
         {!semSaldo && compras.length > 0 && (
           <section className="mt-10" aria-label="Histórico de compras">
-            <h2 className="text-xl text-[var(--color-foreground)] mb-4">
+            <h2 className="font-display text-base uppercase tracking-widest text-text-display mb-4">
               Compras pagas
             </h2>
             <ul className="space-y-3">
@@ -138,30 +136,24 @@ export default async function PartidasPage() {
 
                 return (
                   <li key={p.id}>
-                    <Card className="bg-[var(--color-card)] border-[var(--color-border)]">
-                      <CardContent className="py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <Card variant="flat">
+                      <CardContent className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                         <div>
-                          <p className="text-[var(--color-foreground)] font-medium">
+                          <p className="text-text-display font-medium">
                             {packageNome}
                           </p>
-                          <p className="text-xs text-[var(--color-muted-foreground)]">
+                          <p className="text-xs text-text-muted">
                             #{p.id.slice(0, 8)} &bull; {dataCompra}
                           </p>
                         </div>
                         <div className="flex flex-wrap gap-2">
                           {partidasRest > 0 && (
-                            <Badge
-                              variant="outline"
-                              className="border-[var(--color-brand-red)] text-[var(--color-brand-red)]"
-                            >
+                            <Badge variant="outline">
                               {partidasRest} partida{partidasRest === 1 ? "" : "s"}
                             </Badge>
                           )}
                           {sessoesRest > 0 && (
-                            <Badge
-                              variant="outline"
-                              className="border-[var(--color-brand-red)] text-[var(--color-brand-red)]"
-                            >
+                            <Badge variant="outline">
                               {sessoesRest} sess{sessoesRest === 1 ? "ão" : "ões"}
                             </Badge>
                           )}

@@ -2,10 +2,14 @@
 
 // Client Component — Card que renderiza estado da subscription + ações.
 // 5 estados: null (sem subscription), pending, authorized, cancelled (ativo/expirado), paused.
+// V2.5 Design System: primitives Card + Button + tokens semânticos (text-brand-primary,
+// text-text-display/body/muted, success/warning/error).
 
 import { useState, useTransition } from "react";
 import { CheckCircle2, XCircle, Clock, AlertCircle, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   createSubscription,
   cancelSubscription,
@@ -121,6 +125,31 @@ export function AssinaturaCard({ subscription }: AssinaturaCardProps) {
 
 // =================== Sub-componentes (cada estado) ===================
 
+/**
+ * IconFrame — ícone com border colorido por estado (brand/success/warning/error).
+ * Mantém a moldura quadrada uniforme entre todos os 5 estados.
+ */
+function IconFrame({
+  tone,
+  children,
+}: {
+  tone: "brand" | "success" | "warning" | "error";
+  children: React.ReactNode;
+}) {
+  const borderClass = {
+    brand: "border-brand-primary",
+    success: "border-success",
+    warning: "border-warning",
+    error: "border-error",
+  }[tone];
+
+  return (
+    <div className={`rounded-[var(--radius-sm)] border p-2 ${borderClass}`}>
+      {children}
+    </div>
+  );
+}
+
 function NoSubscriptionState({
   onCreate,
   loading,
@@ -129,30 +158,34 @@ function NoSubscriptionState({
   loading: boolean;
 }) {
   return (
-    <div className="rounded-md border border-[var(--color-brand-red)]/40 bg-[var(--color-card)] p-8 space-y-6">
-      <div className="flex items-start gap-4">
-        <div className="rounded-md border border-[var(--color-brand-red)] p-2">
-          <ArrowRight className="size-5 text-[var(--color-brand-red)]" aria-hidden="true" />
+    <Card variant="elevated" className="space-y-6 border-brand-primary/40">
+      <CardContent className="space-y-6">
+        <div className="flex items-start gap-4">
+          <IconFrame tone="brand">
+            <ArrowRight className="size-5 text-brand-primary" aria-hidden="true" />
+          </IconFrame>
+          <div className="flex-1">
+            <h2 className="font-display text-2xl uppercase tracking-wide text-text-display">
+              Ative seu acesso ao HUB
+            </h2>
+            <p className="mt-3 text-text-muted">
+              R$ 47/mês via Pix Automático (débito recorrente direto na sua conta).
+              Você autoriza UMA vez no Mercado Pago e a cobrança mensal é automática.
+            </p>
+          </div>
         </div>
-        <div className="flex-1">
-          <h2 className="font-display text-2xl uppercase tracking-wide text-[var(--color-foreground)]">
-            Ative seu acesso ao HUB
-          </h2>
-          <p className="mt-3 font-sans text-[var(--color-muted-foreground)]">
-            R$ 47/mês via Pix Automático (débito recorrente direto na sua conta).
-            Você autoriza UMA vez no Mercado Pago e a cobrança mensal é automática.
-          </p>
-        </div>
-      </div>
-      <button
-        onClick={onCreate}
-        disabled={loading}
-        className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-[var(--color-brand-red)] bg-[var(--color-brand-red)]/10 px-6 py-3 font-sans text-sm font-semibold uppercase tracking-wide text-[var(--color-foreground)] transition-colors hover:bg-[var(--color-brand-red)] disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {loading ? "Redirecionando..." : "Iniciar mensalidade R$ 47"}
-        <ArrowRight size={16} />
-      </button>
-    </div>
+        <Button
+          variant="primary"
+          size="lg"
+          loading={loading}
+          onClick={onCreate}
+          className="w-full"
+        >
+          {loading ? "Redirecionando..." : "Iniciar mensalidade R$ 47"}
+          {!loading && <ArrowRight size={16} />}
+        </Button>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -166,28 +199,33 @@ function ActiveState({
   loading: boolean;
 }) {
   return (
-    <div className="rounded-md border border-[var(--color-success)]/40 bg-[var(--color-card)] p-8 space-y-6">
-      <div className="flex items-start gap-4">
-        <div className="rounded-md border border-[var(--color-success)] p-2">
-          <CheckCircle2 className="size-5 text-[var(--color-success)]" aria-hidden="true" />
+    <Card variant="elevated" className="space-y-6 border-success/40">
+      <CardContent className="space-y-6">
+        <div className="flex items-start gap-4">
+          <IconFrame tone="success">
+            <CheckCircle2 className="size-5 text-success" aria-hidden="true" />
+          </IconFrame>
+          <div className="flex-1">
+            <h2 className="font-display text-2xl uppercase tracking-wide text-text-display">
+              Mensalidade ativa
+            </h2>
+            <p className="mt-3 text-text-muted">
+              Acesso ao HUB liberado. Próxima cobrança em{" "}
+              <strong className="text-text-display">{formatBRDate(nextPayment)}</strong>.
+            </p>
+          </div>
         </div>
-        <div className="flex-1">
-          <h2 className="font-display text-2xl uppercase tracking-wide text-[var(--color-foreground)]">
-            Mensalidade ativa
-          </h2>
-          <p className="mt-3 font-sans text-[var(--color-muted-foreground)]">
-            Acesso ao HUB liberado. Próxima cobrança em <strong className="text-[var(--color-foreground)]">{formatBRDate(nextPayment)}</strong>.
-          </p>
-        </div>
-      </div>
-      <button
-        onClick={onCancel}
-        disabled={loading}
-        className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-[var(--color-border)] bg-transparent px-6 py-3 font-sans text-sm font-semibold uppercase tracking-wide text-[var(--color-muted-foreground)] transition-colors hover:border-[var(--color-brand-red)] hover:text-[var(--color-foreground)] disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {loading ? "Cancelando..." : "Cancelar mensalidade"}
-      </button>
-    </div>
+        <Button
+          variant="secondary"
+          size="lg"
+          loading={loading}
+          onClick={onCancel}
+          className="w-full"
+        >
+          {loading ? "Cancelando..." : "Cancelar mensalidade"}
+        </Button>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -201,51 +239,58 @@ function CancelledStillActiveState({
   loading: boolean;
 }) {
   return (
-    <div className="rounded-md border border-[var(--color-warning)]/40 bg-[var(--color-card)] p-8 space-y-6">
-      <div className="flex items-start gap-4">
-        <div className="rounded-md border border-[var(--color-warning)] p-2">
-          <Clock className="size-5 text-[var(--color-warning)]" aria-hidden="true" />
+    <Card variant="elevated" className="space-y-6 border-warning/40">
+      <CardContent className="space-y-6">
+        <div className="flex items-start gap-4">
+          <IconFrame tone="warning">
+            <Clock className="size-5 text-warning" aria-hidden="true" />
+          </IconFrame>
+          <div className="flex-1">
+            <h2 className="font-display text-2xl uppercase tracking-wide text-text-display">
+              Cancelada
+            </h2>
+            <p className="mt-3 text-text-muted">
+              Você mantém acesso ao HUB até{" "}
+              <strong className="text-text-display">{formatBRDate(nextPayment)}</strong> (fim do período pago).
+              Quer voltar? Reative agora.
+            </p>
+          </div>
         </div>
-        <div className="flex-1">
-          <h2 className="font-display text-2xl uppercase tracking-wide text-[var(--color-foreground)]">
-            Cancelada
-          </h2>
-          <p className="mt-3 font-sans text-[var(--color-muted-foreground)]">
-            Você mantém acesso ao HUB até <strong className="text-[var(--color-foreground)]">{formatBRDate(nextPayment)}</strong> (fim do período pago).
-            Quer voltar? Reative agora.
-          </p>
-        </div>
-      </div>
-      <button
-        onClick={onReactivate}
-        disabled={loading}
-        className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-[var(--color-brand-red)] bg-[var(--color-brand-red)]/10 px-6 py-3 font-sans text-sm font-semibold uppercase tracking-wide text-[var(--color-foreground)] transition-colors hover:bg-[var(--color-brand-red)] disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {loading ? "Redirecionando..." : "Reativar mensalidade"}
-        <ArrowRight size={16} />
-      </button>
-    </div>
+        <Button
+          variant="primary"
+          size="lg"
+          loading={loading}
+          onClick={onReactivate}
+          className="w-full"
+        >
+          {loading ? "Redirecionando..." : "Reativar mensalidade"}
+          {!loading && <ArrowRight size={16} />}
+        </Button>
+      </CardContent>
+    </Card>
   );
 }
 
 function PendingState() {
   return (
-    <div className="rounded-md border border-[var(--color-warning)]/40 bg-[var(--color-card)] p-8 space-y-4">
-      <div className="flex items-start gap-4">
-        <div className="rounded-md border border-[var(--color-warning)] p-2">
-          <Clock className="size-5 text-[var(--color-warning)]" aria-hidden="true" />
+    <Card variant="elevated" className="space-y-4 border-warning/40">
+      <CardContent>
+        <div className="flex items-start gap-4">
+          <IconFrame tone="warning">
+            <Clock className="size-5 text-warning" aria-hidden="true" />
+          </IconFrame>
+          <div className="flex-1">
+            <h2 className="font-display text-2xl uppercase tracking-wide text-text-display">
+              Aguardando autorização
+            </h2>
+            <p className="mt-3 text-text-muted">
+              Sua mensalidade está pendente. Volte ao Mercado Pago pra autorizar o Pix Automático,
+              ou recarregue esta página depois de autorizar.
+            </p>
+          </div>
         </div>
-        <div className="flex-1">
-          <h2 className="font-display text-2xl uppercase tracking-wide text-[var(--color-foreground)]">
-            Aguardando autorização
-          </h2>
-          <p className="mt-3 font-sans text-[var(--color-muted-foreground)]">
-            Sua mensalidade está pendente. Volte ao Mercado Pago pra autorizar o Pix Automático,
-            ou recarregue esta página depois de autorizar.
-          </p>
-        </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -260,30 +305,34 @@ function ExpiredState({
 }) {
   const Icon = paused ? AlertCircle : XCircle;
   return (
-    <div className="rounded-md border border-[var(--color-danger)]/40 bg-[var(--color-card)] p-8 space-y-6">
-      <div className="flex items-start gap-4">
-        <div className="rounded-md border border-[var(--color-danger)] p-2">
-          <Icon className="size-5 text-[var(--color-danger)]" aria-hidden="true" />
+    <Card variant="elevated" className="space-y-6 border-error/40">
+      <CardContent className="space-y-6">
+        <div className="flex items-start gap-4">
+          <IconFrame tone="error">
+            <Icon className="size-5 text-error" aria-hidden="true" />
+          </IconFrame>
+          <div className="flex-1">
+            <h2 className="font-display text-2xl uppercase tracking-wide text-text-display">
+              {paused ? "Pausada" : "Sem acesso ativo"}
+            </h2>
+            <p className="mt-3 text-text-muted">
+              {paused
+                ? "Sua assinatura está pausada no Mercado Pago. Reative pra voltar a ter acesso."
+                : "Sua mensalidade expirou ou foi cancelada faz tempo. Reative pra voltar a acessar o HUB."}
+            </p>
+          </div>
         </div>
-        <div className="flex-1">
-          <h2 className="font-display text-2xl uppercase tracking-wide text-[var(--color-foreground)]">
-            {paused ? "Pausada" : "Sem acesso ativo"}
-          </h2>
-          <p className="mt-3 font-sans text-[var(--color-muted-foreground)]">
-            {paused
-              ? "Sua assinatura está pausada no Mercado Pago. Reative pra voltar a ter acesso."
-              : "Sua mensalidade expirou ou foi cancelada faz tempo. Reative pra voltar a acessar o HUB."}
-          </p>
-        </div>
-      </div>
-      <button
-        onClick={onCreate}
-        disabled={loading}
-        className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-[var(--color-brand-red)] bg-[var(--color-brand-red)]/10 px-6 py-3 font-sans text-sm font-semibold uppercase tracking-wide text-[var(--color-foreground)] transition-colors hover:bg-[var(--color-brand-red)] disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {loading ? "Redirecionando..." : "Iniciar mensalidade R$ 47"}
-        <ArrowRight size={16} />
-      </button>
-    </div>
+        <Button
+          variant="primary"
+          size="lg"
+          loading={loading}
+          onClick={onCreate}
+          className="w-full"
+        >
+          {loading ? "Redirecionando..." : "Iniciar mensalidade R$ 47"}
+          {!loading && <ArrowRight size={16} />}
+        </Button>
+      </CardContent>
+    </Card>
   );
 }

@@ -110,15 +110,15 @@ export default async function PacotesPage() {
   return (
     <ClientShell currentRoute="/pacotes">
       <div className="px-4 py-10 md:py-14 mx-auto max-w-7xl">
-        <header className="mb-10 md:mb-14 text-center">
-          <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
+        <header className="mb-10 md:mb-14 text-center space-y-3">
+          <p className="font-display text-xs uppercase tracking-[0.4em] text-brand-primary">
             Pacotes
           </p>
-          <h1 className="mt-3 font-display text-4xl uppercase tracking-tight text-[var(--color-foreground)] md:text-6xl">
+          <h1 className="font-display text-4xl uppercase tracking-wide text-text-display md:text-6xl">
             Escolha seu pacote
           </h1>
           <div className="mx-auto mt-6 brand-divider" />
-          <p className="mx-auto mt-6 max-w-2xl font-serif text-[var(--color-muted-foreground)]">
+          <p className="mx-auto mt-6 max-w-2xl text-text-muted">
             Mentoria 1-1 com coaches credenciados pela FORMULADOTA. Pague via PIX, agende e jogue ranked junto.
           </p>
         </header>
