@@ -77,6 +77,28 @@ export async function sendSubscriptionRenewedEmail(
   });
 }
 
+interface SendPTConfirmedInput {
+  matchId: string;
+  customerEmail: string;
+  customerName?: string;
+  fichasConsumidas: number;  // quantas fichas foram debitadas (= 1 por aluno)
+}
+
+/**
+ * Email enviado para cada aluno quando Pedro confirma que a PT foi realizada.
+ * Dispara após confirmPTRealized no admin/pros/actions.ts.
+ */
+export async function sendPTConfirmedEmail(
+  input: SendPTConfirmedInput
+): Promise<void> {
+  await sendEmailSafely({
+    to: input.customerEmail,
+    subject: "Partida com coach confirmada — FORMULADOTA",
+    html: buildPTConfirmedHtml(input),
+    idempotencyKey: `pt-confirmed-${input.matchId}-${input.customerEmail}`,
+  });
+}
+
 /**
  * Email enviado quando user cancela subscription (mantém acesso até fim do período).
  */
@@ -135,6 +157,22 @@ const DIVIDER = `<div style="height:2px;width:80px;background:#ac1d0e;margin:16p
 function formatBRDate(iso?: string): string {
   if (!iso) return "—";
   return new Date(iso).toLocaleDateString("pt-BR", { dateStyle: "long" });
+}
+
+function buildPTConfirmedHtml(input: SendPTConfirmedInput): string {
+  const greeting = input.customerName ? `Olá, ${input.customerName}!` : "Olá!";
+  return `${SHELL_OPEN}
+    <h1 style="${HEADING_STYLE}">Partida Confirmada</h1>
+    ${DIVIDER}
+    <p style="font-size:16px;line-height:1.6;margin:0 0 16px 0">${greeting}</p>
+    <p style="font-size:16px;line-height:1.6;margin:0 0 24px 0">
+      Sua partida com o coach foi <strong style="color:#ac1d0e">confirmada e registrada</strong>.
+      <strong>${input.fichasConsumidas}</strong> ficha(s) foram descontadas do seu saldo.
+    </p>
+    <p style="font-size:16px;line-height:1.6;margin:0 0 24px 0">
+      Acesse o FORMULADOTA pra ver seu histórico de partidas e comprar mais fichas quando quiser.
+    </p>
+    ${SHELL_CLOSE}`;
 }
 
 function buildPurchaseConfirmationHtml(input: SendPurchaseConfirmationInput): string {
