@@ -790,6 +790,7 @@ export type Database = {
           created_at: string
           data_agendada: string
           dota_match_id: string | null
+          dota_match_id_verified: boolean
           duracao_min: number | null
           enriched_at: string | null
           heroi_jogado: string | null
@@ -804,12 +805,16 @@ export type Database = {
           status: string
           updated_at: string
           user_id: string | null
+          voice_channel_archived_at: string | null
+          voice_channel_id_discord: string | null
+          voice_channel_name: string | null
         }
         Insert: {
           coach_id?: string | null
           created_at?: string
           data_agendada: string
           dota_match_id?: string | null
+          dota_match_id_verified?: boolean
           duracao_min?: number | null
           enriched_at?: string | null
           heroi_jogado?: string | null
@@ -824,12 +829,16 @@ export type Database = {
           status?: string
           updated_at?: string
           user_id?: string | null
+          voice_channel_archived_at?: string | null
+          voice_channel_id_discord?: string | null
+          voice_channel_name?: string | null
         }
         Update: {
           coach_id?: string | null
           created_at?: string
           data_agendada?: string
           dota_match_id?: string | null
+          dota_match_id_verified?: boolean
           duracao_min?: number | null
           enriched_at?: string | null
           heroi_jogado?: string | null
@@ -844,6 +853,9 @@ export type Database = {
           status?: string
           updated_at?: string
           user_id?: string | null
+          voice_channel_archived_at?: string | null
+          voice_channel_id_discord?: string | null
+          voice_channel_name?: string | null
         }
         Relationships: [
           {
