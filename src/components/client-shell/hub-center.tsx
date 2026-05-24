@@ -1,13 +1,23 @@
-// HubCenter — centro do /dashboard como HUB CENTRAL do client (Pedro 2026-05-24).
+// HubCenter — centro do HUB CENTRAL do client (Pedro 2026-05-24).
 //
-// Filosofia: /dashboard deixou de ser a feature de matchmaking PRO (essa virou
-// /ranked-com-pro). Aqui mora o ponto de partida fiel ao home do Dota 2 menu
-// principal — resumo contextual + ação primária massiva (M3) + temporada ativa
-// (análogo Quiosque do Quartero) + slot de novidades.
+// Filosofia: / e /dashboard compartilham o mesmo HUB — visitante deslogado
+// e logado veem versões do mesmo componente. /dashboard deixou de ser
+// matchmaking PRO (essa virou /ranked-com-pro). Aqui mora o ponto de
+// partida fiel ao home do Dota 2 menu principal — resumo contextual +
+// ação primária massiva (M3) + temporada ativa (análogo Quiosque do
+// Quartero) + slot de novidades.
 //
 // O HUB NÃO duplica nav (top-bar tabs cobrem) nem identidade (sidebar esquerda
 // cobre) — apenas eyebrow + h1 + status line sintética + hero CTA + banner
 // temporada + placeholder novidades.
+//
+// Modo VISITOR (isVisitor=true, task #64 — 2026-05-24):
+//   - Eyebrow: "Bem-vindo, visitante" (sem persona)
+//   - StatusLine: stats da COMUNIDADE (PROs em fila) em vez de stats pessoais
+//   - Hero CTA: form action signInWithDiscord (Discord OAuth) em vez de
+//     <Link href="/ranked-com-pro"> — visitante precisa logar antes de entrar
+//     na fila
+//   - Banner temporada + Novidades: idênticos ao logado (públicos)
 //
 // Server Component — sem estado de cliente. Componentes filhos como
 // <SeasonBanner> são "use client" e gerenciam seu próprio Date.now() interno.
@@ -24,6 +34,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SeasonBanner } from "@/components/patterns/season-banner";
+import { signInWithDiscord } from "@/app/login/actions";
 
 // ---------------------------------------------------------------------------
 // Tipos públicos
@@ -39,18 +50,27 @@ export interface HubSeason {
 }
 
 export interface HubCenterProps {
-  /** Nome/persona do user — exibido no eyebrow ("Bem-vindo, X"). */
-  persona: string;
-  /** Saldo de fichas — exibido na status line. */
+  /**
+   * True = visitante deslogado. Adapta header/status/CTA. Default false
+   * (backward-compat com /dashboard/page.tsx que sempre tem user logado).
+   */
+  isVisitor?: boolean;
+  /** Nome/persona do user — exibido no eyebrow ("Bem-vindo, X"). Null quando visitor. */
+  persona: string | null;
+  /** Saldo de fichas — exibido na status line. 0 quando visitor. */
   fichaBalance: number;
-  /** Quantidade de PROs com fila aberta agora — exibido na status line. */
+  /** Quantidade de PROs com fila aberta agora — exibido na status line (sempre público). */
   prosOnlineCount: number;
-  /** Filas em que o user está atualmente. 0 = "SEM FILA". */
+  /** Filas em que o user está atualmente. 0 = "SEM FILA". 0 quando visitor. */
   myQueueCount: number;
   /** Season ativa. null quando não houver season em curso. */
   season: HubSeason | null;
-  /** Posição no ranking da temporada. null quando user ainda não tem partidas. */
+  /** Posição no ranking da temporada. null quando user ainda não tem partidas ou é visitor. */
   rankingPosition: number | null;
+  /** Total de partidas hoje (stat de comunidade, opcional, visitor only). */
+  partidasHoje?: number;
+  /** Total de membros ativos (stat de comunidade, opcional, visitor only). */
+  membrosAtivos?: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -102,6 +122,48 @@ function StatusLine({
   );
 }
 
+// Status line modo VISITOR — sem stats pessoais (fichas/fila/ranking).
+// Mostra apenas pulso da comunidade: PROs em fila + (opcional) partidas hoje
+// e membros ativos. Mesma estética visual (mono, uppercase, tracking-widest).
+interface VisitorStatusLineProps {
+  prosOnlineCount: number;
+  partidasHoje?: number;
+  membrosAtivos?: number;
+}
+
+function VisitorStatusLine({
+  prosOnlineCount,
+  partidasHoje,
+  membrosAtivos,
+}: VisitorStatusLineProps) {
+  const prosToken =
+    prosOnlineCount === 0
+      ? "NENHUM PRO EM FILA AGORA"
+      : `${prosOnlineCount} ${prosOnlineCount === 1 ? "PRO" : "PROS"} EM FILA AGORA`;
+
+  return (
+    <p
+      className="font-mono text-xs uppercase tracking-widest text-text-muted"
+      role="status"
+      aria-label="Pulso da comunidade FormulaDota"
+    >
+      <span className="text-text-display">{prosToken}</span>
+      {partidasHoje !== undefined && (
+        <>
+          <BulletSep />
+          {`${partidasHoje} ${partidasHoje === 1 ? "PARTIDA HOJE" : "PARTIDAS HOJE"}`}
+        </>
+      )}
+      {membrosAtivos !== undefined && (
+        <>
+          <BulletSep />
+          {`${membrosAtivos} ${membrosAtivos === 1 ? "MEMBRO ATIVO" : "MEMBROS ATIVOS"}`}
+        </>
+      )}
+    </p>
+  );
+}
+
 function BulletSep() {
   return (
     <span
@@ -118,38 +180,62 @@ function BulletSep() {
 // ---------------------------------------------------------------------------
 
 /**
- * HubCenter — viewport central do /dashboard como HUB do client.
+ * HubCenter — viewport central do HUB do client.
  *
  * Estrutura:
  *   1. Header — eyebrow "Bem-vindo" + h1 "FORMULADOTA HUB" + StatusLine
  *   2. Hero CTA — Card variant="hero" + Button cinematic "SUBIR DE MMR"
+ *      (visitor: form action signInWithDiscord; logado: Link /ranked-com-pro)
  *   3. Banner temporada ativa (ou EmptyState se sem season)
  *   4. Slot Novidades — placeholder V2 com EmptyState
  */
 export function HubCenter({
+  isVisitor,
   persona,
   fichaBalance,
   prosOnlineCount,
   myQueueCount,
   season,
   rankingPosition,
+  partidasHoje,
+  membrosAtivos,
 }: HubCenterProps) {
+  // Eyebrow: "Bem-vindo, visitante" pra deslogado; "Bem-vindo, {persona}" logado.
+  const eyebrowText = isVisitor
+    ? "Bem-vindo, visitante"
+    : `Bem-vindo, ${persona ?? "Anônimo"}`;
+
+  // Subtexto do CTA — adaptado pra visitor (convite a logar) ou logado (estado fila).
+  const ctaSubtext = isVisitor
+    ? "Entre com Discord pra acessar a fila ranked"
+    : prosOnlineCount === 0
+      ? "Nenhum PRO disponível agora — entre no Discord pra ser avisado"
+      : `${prosOnlineCount} ${prosOnlineCount === 1 ? "PRO disponível" : "PROs disponíveis"} aceitando alunos agora`;
+
   return (
     <section className="relative mx-auto flex h-full w-full max-w-5xl flex-col gap-10 overflow-y-auto px-6 py-8 xl:px-12 xl:py-12">
       {/* (1) HEADER — eyebrow + h1 + status line sintética */}
       <header className="space-y-3">
         <p className="font-display text-xs uppercase tracking-[0.4em] text-brand-primary">
-          Bem-vindo, {persona}
+          {eyebrowText}
         </p>
         <h1 className="font-display text-5xl uppercase tracking-wide text-text-display xl:text-6xl">
           FORMULADOTA <span className="text-brand-primary">HUB</span>
         </h1>
-        <StatusLine
-          fichaBalance={fichaBalance}
-          prosOnlineCount={prosOnlineCount}
-          myQueueCount={myQueueCount}
-          rankingPosition={rankingPosition}
-        />
+        {isVisitor ? (
+          <VisitorStatusLine
+            prosOnlineCount={prosOnlineCount}
+            partidasHoje={partidasHoje}
+            membrosAtivos={membrosAtivos}
+          />
+        ) : (
+          <StatusLine
+            fichaBalance={fichaBalance}
+            prosOnlineCount={prosOnlineCount}
+            myQueueCount={myQueueCount}
+            rankingPosition={rankingPosition}
+          />
+        )}
       </header>
 
       {/* (2) HERO CTA — SUBIR DE MMR (M3 weight massivo) */}
@@ -168,16 +254,30 @@ export function HubCenter({
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap items-center gap-4 pt-2">
-            <Link href="/ranked-com-pro" aria-label="Ir para Ranked com PRO">
-              <Button variant="cinematic" size="lg">
-                <Swords size={22} aria-hidden="true" />
-                Subir de MMR
-              </Button>
-            </Link>
+            {isVisitor ? (
+              // Visitante: form Server Action — Discord OAuth direto.
+              // HTML <form> obrigatório (não onClick) porque é Server Action.
+              <form action={signInWithDiscord}>
+                <Button
+                  type="submit"
+                  variant="cinematic"
+                  size="lg"
+                  aria-label="Entrar com Discord pra subir de MMR"
+                >
+                  <Swords size={22} aria-hidden="true" />
+                  Subir de MMR
+                </Button>
+              </form>
+            ) : (
+              <Link href="/ranked-com-pro" aria-label="Ir para Ranked com PRO">
+                <Button variant="cinematic" size="lg">
+                  <Swords size={22} aria-hidden="true" />
+                  Subir de MMR
+                </Button>
+              </Link>
+            )}
             <p className="font-mono text-xs uppercase tracking-widest text-text-faded">
-              {prosOnlineCount === 0
-                ? "Nenhum PRO disponível agora — entre no Discord pra ser avisado"
-                : `${prosOnlineCount} ${prosOnlineCount === 1 ? "PRO disponível" : "PROs disponíveis"} aceitando alunos agora`}
+              {ctaSubtext}
             </p>
           </div>
         </CardContent>
