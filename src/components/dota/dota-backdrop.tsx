@@ -32,7 +32,7 @@ export function DotaBackdrop({ src, overlay = "strong" }: DotaBackdropProps) {
       : "bg-gradient-to-b from-black/55 via-black/65 to-black/85";
 
   return (
-    <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+    <div className="pointer-events-none fixed inset-0 z-[var(--z-atmosphere)] overflow-hidden">
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${imageUrl})` }}

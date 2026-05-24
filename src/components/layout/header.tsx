@@ -26,7 +26,7 @@ export async function Header() {
   const avatarUrl = profile?.data?.avatar_url ?? null;
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[var(--color-border)] bg-[var(--color-background)]/80 backdrop-blur-xl">
+    <header className="sticky top-0 z-[var(--z-modal)] border-b border-[var(--color-border)] bg-[var(--color-background)]/80 backdrop-blur-xl">
       <div className="mx-auto flex h-20 max-w-6xl items-center justify-between px-6">
         <Link
           href="/"
