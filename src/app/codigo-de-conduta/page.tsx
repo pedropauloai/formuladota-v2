@@ -6,6 +6,7 @@ import {
   PROGRESSIVE_MODERATION,
 } from "@/lib/doctrine";
 import { DotaBackdrop } from "@/components/dota/dota-backdrop";
+import { ClientShell } from "@/components/templates/client-shell";
 
 // Página pública canônica do código de conduta.
 // Acessível sem login — referência permanente da cultura.
@@ -28,7 +29,7 @@ export default function CodigoDeCondutaPage() {
   const progressao = PRINCIPLES.filter((p) => p.category === "progressao");
 
   return (
-    <>
+    <ClientShell>
       <a
         href="#conteudo"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-[var(--color-brand-red)] focus:px-4 focus:py-2 focus:font-medium focus:text-[var(--color-background)]"
@@ -36,7 +37,7 @@ export default function CodigoDeCondutaPage() {
         Pular para o conteúdo
       </a>
 
-      <main id="conteudo" className="relative min-h-screen px-6 py-16">
+      <div id="conteudo" className="relative px-6 py-16">
         <DotaBackdrop />
         <div className="relative z-10 mx-auto max-w-3xl space-y-16">
           <header className="space-y-4 text-center">
@@ -174,8 +175,8 @@ export default function CodigoDeCondutaPage() {
             </Link>
           </footer>
         </div>
-      </main>
-    </>
+      </div>
+    </ClientShell>
   );
 }
 
