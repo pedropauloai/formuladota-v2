@@ -19,6 +19,7 @@
  * Design V2.5 AAA-Grade: zero hex hardcoded, apenas tokens semânticos.
  */
 
+import { Lock } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 /* ------------------------------------------------------------------
@@ -118,6 +119,9 @@ const SIZE_CLASS: Record<NonNullable<HonorRankMedalProps["size"]>, string> = {
  * Props
  * ------------------------------------------------------------------ */
 
+/** Estado de calibração no eixo HONOR — alinhado com DotaRankMedal */
+export type HonorCalibrationStatus = "visitante" | "calibrando" | "ranqueado"
+
 export interface HonorRankMedalProps {
   /** Tier de HONOR a exibir */
   rank: HonorRank
@@ -142,6 +146,14 @@ export interface HonorRankMedalProps {
    * @default false
    */
   glow?: boolean
+
+  /**
+   * Estado de calibração no eixo HONOR.
+   * - "visitante": placeholder cinza com Lock — sem partidas
+   * - "calibrando": tier 1 (aprendiz) com badge overlay
+   * - "ranqueado" ou undefined: exibição normal do rank
+   */
+  calibrationStatus?: HonorCalibrationStatus
 
   /** Classes CSS adicionais para o container externo */
   className?: string
@@ -368,6 +380,7 @@ export function HonorRankMedal({
   size = "md",
   showLabel = false,
   glow = false,
+  calibrationStatus,
   className,
 }: HonorRankMedalProps) {
   const px = SIZE_PX[size]
@@ -379,6 +392,75 @@ export function HonorRankMedal({
    * Outros ranks só recebem glow quando a prop for true.
    */
   const hasGlow = glow || rank === "imortal-da-formula"
+
+  /* ------------------------------------------------------------------
+   * Estado: visitante — placeholder cinza com ícone Lock
+   * ------------------------------------------------------------------ */
+  if (calibrationStatus === "visitante") {
+    return (
+      <div className={cn("inline-flex flex-col items-center gap-1", className)}>
+        <div
+          className={cn(
+            sizeClass,
+            "flex items-center justify-center rounded-full",
+            "bg-bg-elevated border border-border-subtle text-text-faded",
+          )}
+        >
+          <Lock size={px * 0.45} strokeWidth={1.5} aria-hidden="true" />
+        </div>
+        {showLabel && (
+          <span
+            className={cn(
+              "font-display-condensed",
+              size === "sm" ? "text-[9px]" : size === "xl" ? "text-sm" : "text-xs",
+              "uppercase tracking-widest text-text-faded whitespace-nowrap",
+            )}
+          >
+            Sem HONOR
+          </span>
+        )}
+      </div>
+    )
+  }
+
+  /* ------------------------------------------------------------------
+   * Estado: calibrando — tier aprendiz com badge overlay
+   * ------------------------------------------------------------------ */
+  if (calibrationStatus === "calibrando") {
+    const calibratingColors = TIER_COLORS["aprendiz"]
+    return (
+      <div className={cn("inline-flex flex-col items-center gap-1", className)}>
+        <div className={cn(sizeClass, "relative flex items-center justify-center isolate opacity-60")}>
+          <LaurelSVG primary={calibratingColors.primary} secondary={calibratingColors.secondary} px={px} />
+          <span
+            className={cn(
+              "absolute -bottom-1 left-1/2 -translate-x-1/2",
+              "rounded-sm px-1 py-px",
+              "font-mono text-[8px] uppercase tracking-widest whitespace-nowrap",
+              "bg-warning/20 border border-warning/40 text-warning",
+            )}
+          >
+            Calibrando
+          </span>
+        </div>
+        {showLabel && (
+          <span
+            className={cn(
+              "font-display-condensed",
+              size === "sm" ? "text-[9px]" : size === "xl" ? "text-sm" : "text-xs",
+              "uppercase tracking-widest text-warning whitespace-nowrap",
+            )}
+          >
+            Em calibração
+          </span>
+        )}
+      </div>
+    )
+  }
+
+  /* ------------------------------------------------------------------
+   * Estado: ranqueado (ou undefined) — exibição normal
+   * ------------------------------------------------------------------ */
 
   return (
     <div

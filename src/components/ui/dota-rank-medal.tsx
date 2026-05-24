@@ -20,6 +20,7 @@
  */
 
 import Image from "next/image"
+import { Lock } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 /* ------------------------------------------------------------------
@@ -92,6 +93,12 @@ const GLOW_CLASS: Partial<Record<DotaRank, string>> = {
 }
 
 /* ------------------------------------------------------------------
+ * Calibration status — estado de progressão do usuário no sistema
+ * ------------------------------------------------------------------ */
+
+export type CalibrationStatus = "visitante" | "calibrando" | "ranqueado"
+
+/* ------------------------------------------------------------------
  * Props
  * ------------------------------------------------------------------ */
 
@@ -119,6 +126,14 @@ export interface DotaRankMedalProps {
    * @default false
    */
   glow?: boolean
+
+  /**
+   * Estado de calibração do usuário.
+   * - "visitante": usuário sem partidas — mostra placeholder cinza com Lock
+   * - "calibrando": em processo — mostra tier 1 com badge overlay
+   * - "ranqueado" ou undefined: exibe medalha normal
+   */
+  calibrationStatus?: CalibrationStatus
 
   /** Classes CSS adicionais para o container externo */
   className?: string
@@ -148,6 +163,7 @@ export function DotaRankMedal({
   size = "md",
   showLabel = false,
   glow = false,
+  calibrationStatus,
   className,
 }: DotaRankMedalProps) {
   const px = SIZE_PX[size]
@@ -155,7 +171,103 @@ export function DotaRankMedal({
   const glowClass = glow ? (GLOW_CLASS[rank] ?? "") : ""
   const label = RANK_LABELS[rank]
 
-  /* Caminho da imagem no diretório público */
+  /* ------------------------------------------------------------------
+   * Estado: visitante — placeholder cinza com ícone Lock
+   * ------------------------------------------------------------------ */
+  if (calibrationStatus === "visitante") {
+    return (
+      <div
+        className={cn(
+          "inline-flex flex-col items-center gap-1",
+          className
+        )}
+      >
+        <div
+          className={cn(
+            sizeClass,
+            "relative flex items-center justify-center",
+            "rounded-full bg-bg-elevated border border-border-subtle",
+            "text-text-faded",
+          )}
+        >
+          <Lock
+            size={px * 0.45}
+            strokeWidth={1.5}
+            aria-hidden="true"
+          />
+        </div>
+        {showLabel && (
+          <span
+            className={cn(
+              "font-display-condensed",
+              size === "sm" ? "text-[9px]" : size === "xl" ? "text-sm" : "text-xs",
+              "uppercase tracking-widest text-text-faded whitespace-nowrap",
+            )}
+          >
+            Não calibrado
+          </span>
+        )}
+      </div>
+    )
+  }
+
+  /* ------------------------------------------------------------------
+   * Estado: calibrando — tier 1 (herald) com badge overlay
+   * ------------------------------------------------------------------ */
+  if (calibrationStatus === "calibrando") {
+    const calibratingSrc = `/icons/dota-ranks/herald.png`
+    return (
+      <div
+        className={cn(
+          "inline-flex flex-col items-center gap-1",
+          className
+        )}
+      >
+        <div
+          className={cn(
+            sizeClass,
+            "relative flex items-center justify-center isolate",
+          )}
+        >
+          <Image
+            src={calibratingSrc}
+            alt="Rank em calibração"
+            width={px}
+            height={px}
+            className="object-contain w-full h-full opacity-60"
+            loading="lazy"
+            placeholder="empty"
+          />
+          {/* Overlay badge "Calibrando" */}
+          <span
+            className={cn(
+              "absolute -bottom-1 left-1/2 -translate-x-1/2",
+              "rounded-sm px-1 py-px",
+              "font-mono text-[8px] uppercase tracking-widest whitespace-nowrap",
+              "bg-warning/20 border border-warning/40 text-warning",
+            )}
+          >
+            Calibrando
+          </span>
+        </div>
+        {showLabel && (
+          <span
+            className={cn(
+              "font-display-condensed",
+              size === "sm" ? "text-[9px]" : size === "xl" ? "text-sm" : "text-xs",
+              "uppercase tracking-widest text-warning whitespace-nowrap",
+            )}
+          >
+            Em calibração
+          </span>
+        )}
+      </div>
+    )
+  }
+
+  /* ------------------------------------------------------------------
+   * Estado: ranqueado (ou sem calibrationStatus) — exibição normal
+   * ------------------------------------------------------------------ */
   const src = `/icons/dota-ranks/${rank}.png`
 
   return (
