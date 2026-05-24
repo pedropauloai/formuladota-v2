@@ -40,7 +40,7 @@ export function DashboardTopBar({
   }
 
   return (
-    <header className="relative z-20 flex h-16 shrink-0 items-center justify-between bg-gradient-to-b from-black/85 via-black/55 to-transparent px-4 backdrop-blur-md xl:h-20 xl:px-6">
+    <header className="relative z-[var(--z-overlay)] flex h-16 shrink-0 items-center justify-between bg-gradient-to-b from-black/85 via-black/55 to-transparent px-4 backdrop-blur-md xl:h-20 xl:px-6">
       {/* Esquerda — logo + settings + tabs */}
       <div className="flex items-center gap-2 xl:gap-4">
         <Link

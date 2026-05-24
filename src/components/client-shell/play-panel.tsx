@@ -117,7 +117,7 @@ export function PlayPanel({ open, onClose, initialState }: PlayPanelProps) {
 
   return (
     <>
-      <div className="fixed inset-0 z-40">
+      <div className="fixed inset-0 z-[var(--z-modal)]">
         {/* Backdrop transparente — captura click-out mas mantém background visível */}
         <button
           type="button"
@@ -128,7 +128,7 @@ export function PlayPanel({ open, onClose, initialState }: PlayPanelProps) {
 
         {/* Panel direito — largura aumentada pra ultra-wide */}
         <aside
-          className="absolute right-0 top-0 h-full w-full max-w-[560px] flex flex-col border-l-2 border-[var(--color-border)] bg-gradient-to-b from-[#0c0c0c]/95 to-black/95 backdrop-blur-md shadow-2xl xl:max-w-[640px] 2xl:max-w-[720px]"
+          className="absolute right-0 top-0 h-full w-full max-w-[560px] flex flex-col border-l-2 border-[var(--color-border)] bg-gradient-to-b from-[var(--color-bg-deep)]/95 to-black/95 backdrop-blur-md shadow-2xl xl:max-w-[640px] 2xl:max-w-[720px]"
           role="dialog"
           aria-label="Painel de jogo"
         >
@@ -706,7 +706,7 @@ function LobbiesListView({
         aria-label="Atualizar lista"
         onClick={() => setRefreshKey((k) => k + 1)}
         title="Atualizar"
-        className="absolute right-3 top-3 z-10 inline-flex items-center justify-center size-8 rounded-md text-white/50 hover:text-white hover:bg-white/5 transition-colors"
+        className="absolute right-3 top-3 z-[var(--z-elevated)] inline-flex items-center justify-center size-8 rounded-md text-white/50 hover:text-white hover:bg-white/5 transition-colors"
       >
         <RefreshCw size={13} aria-hidden="true" />
       </button>
@@ -822,7 +822,7 @@ function CreateLobbyDialog({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+    <div className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center px-4">
       {/* Backdrop com dimming */}
       <button
         type="button"
@@ -834,7 +834,7 @@ function CreateLobbyDialog({
       <div
         role="dialog"
         aria-label="Criar sala"
-        className="relative w-full max-w-lg 2xl:max-w-2xl rounded-md border border-[var(--color-border)] bg-gradient-to-b from-[#0c0c0c] to-black shadow-2xl"
+        className="relative w-full max-w-lg 2xl:max-w-2xl rounded-md border border-[var(--color-border)] bg-gradient-to-b from-[var(--color-bg-deep)] to-black shadow-2xl"
       >
         <header className="flex items-center justify-between border-b border-[var(--color-border)] px-5 py-3 2xl:py-4">
           <h2 className="font-display text-base 2xl:text-lg uppercase tracking-[0.25em] text-white">
@@ -946,7 +946,7 @@ function CreateLobbyDialog({
 function LobbyChatOverlay({ lobbyId }: { lobbyId: string }) {
   const [tab, setTab] = useState<"sala" | "grupo">("sala");
   return (
-    <div className="hidden lg:flex pointer-events-none fixed left-[320px] xl:left-[340px] 2xl:left-[360px] right-[560px] xl:right-[640px] 2xl:right-[720px] bottom-[80px] xl:bottom-[96px] 2xl:bottom-[112px] z-30 justify-center">
+    <div className="hidden lg:flex pointer-events-none fixed left-[320px] xl:left-[340px] 2xl:left-[360px] right-[560px] xl:right-[640px] 2xl:right-[720px] bottom-[80px] xl:bottom-[96px] 2xl:bottom-[112px] z-[var(--z-overlay)] justify-center">
       <div className="pointer-events-auto w-full max-w-md xl:max-w-lg 2xl:max-w-xl rounded-md border border-[var(--color-border)] bg-black/85 backdrop-blur-md shadow-2xl">
         <header className="flex items-center border-b border-[var(--color-border)]">
           <ChatTab label="Sala" active={tab === "sala"} onClick={() => setTab("sala")} />

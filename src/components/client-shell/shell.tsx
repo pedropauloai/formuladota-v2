@@ -111,7 +111,7 @@ export async function ClientShell({
       <div className={`relative ${shellHeightCls} overflow-hidden bg-black`}>
         {centerHero && (
           <div
-            className="pointer-events-none fixed inset-0 -z-10"
+            className="pointer-events-none fixed inset-0 z-[var(--z-atmosphere)]"
             style={{
               backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.2) 30%, rgba(0,0,0,0.4) 70%, rgba(0,0,0,0.85) 100%), url(${centerHero})`,
               backgroundSize: "cover",
@@ -121,7 +121,7 @@ export async function ClientShell({
           />
         )}
 
-        <div className="absolute top-0 inset-x-0 z-30">
+        <div className="absolute top-0 inset-x-0 z-[var(--z-overlay)]">
           <DashboardTopBar
             currentRoute={currentRoute}
             isAdmin={adminFlag}
@@ -133,7 +133,7 @@ export async function ClientShell({
         </div>
 
         {!hideLeftSidebar && (
-          <div className={`hidden lg:flex absolute left-0 top-[64px] xl:top-[72px] ${bottomReserveCls} z-20 w-[340px] xl:w-[400px] 2xl:w-[460px]`}>
+          <div className={`hidden lg:flex absolute left-0 top-[64px] xl:top-[72px] ${bottomReserveCls} z-[var(--z-overlay)] w-[340px] xl:w-[400px] 2xl:w-[460px]`}>
             <DashboardLeftSidebar
               persona={persona}
               avatar={avatar}
@@ -147,7 +147,7 @@ export async function ClientShell({
 
         {rightSidebar !== undefined ? (
           <div
-            className={`hidden lg:flex absolute right-0 top-[64px] xl:top-[72px] ${bottomReserveCls} z-20 ${
+            className={`hidden lg:flex absolute right-0 top-[64px] xl:top-[72px] ${bottomReserveCls} z-[var(--z-overlay)] ${
               wideRightSidebar
                 ? "w-[480px] xl:w-[520px] 2xl:w-[560px]"
                 : "w-[320px] xl:w-[360px] 2xl:w-[380px]"
@@ -158,13 +158,13 @@ export async function ClientShell({
             </aside>
           </div>
         ) : (
-          <div className={`hidden lg:flex absolute right-0 top-[64px] xl:top-[72px] ${bottomReserveCls} z-20 w-[320px] xl:w-[360px] 2xl:w-[380px]`}>
+          <div className={`hidden lg:flex absolute right-0 top-[64px] xl:top-[72px] ${bottomReserveCls} z-[var(--z-overlay)] w-[320px] xl:w-[360px] 2xl:w-[380px]`}>
             <DashboardRightSidebar floating />
           </div>
         )}
 
         <main
-          className={`absolute inset-0 top-[64px] xl:top-[72px] ${bottomReserveCls} z-10 overflow-y-auto ${
+          className={`absolute inset-0 top-[64px] xl:top-[72px] ${bottomReserveCls} z-[var(--z-elevated)] overflow-y-auto ${
             !hideLeftSidebar
               ? "lg:pl-[340px] xl:pl-[400px] 2xl:pl-[460px]"
               : ""
@@ -174,7 +174,7 @@ export async function ClientShell({
         </main>
 
         {!hideBottomBar && (
-          <div className="absolute bottom-0 inset-x-0 z-30">
+          <div className="absolute bottom-0 inset-x-0 z-[var(--z-overlay)]">
             <DashboardBottomBar
               isAdmin={adminFlag}
               fichaBalance={fichaBalance}
@@ -192,12 +192,12 @@ export async function ClientShell({
   return (
     <div className={`relative flex ${shellHeightCls} flex-col overflow-hidden bg-black`}>
       <div
-        className="pointer-events-none fixed inset-0 -z-10"
+        className="pointer-events-none fixed inset-0 z-[var(--z-atmosphere)]"
         style={{
           backgroundImage: `
             radial-gradient(ellipse at 50% 0%, rgba(172, 29, 14, 0.08) 0%, transparent 60%),
             radial-gradient(ellipse at 50% 100%, rgba(0, 0, 0, 0.95) 0%, transparent 80%),
-            linear-gradient(to bottom, #0a0a0a 0%, #050505 50%, #000000 100%)
+            linear-gradient(to bottom, var(--color-bg-base) 0%, var(--color-bg-deep) 50%, black 100%)
           `,
         }}
         aria-hidden="true"
@@ -236,7 +236,7 @@ export async function ClientShell({
         <main className={`relative overflow-y-auto ${mainPbCls}`}>
           {centerHero && (
             <div
-              className="pointer-events-none absolute inset-0 -z-0"
+              className="pointer-events-none absolute inset-0 z-[var(--z-content)]"
               style={{
                 backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 30%, rgba(0,0,0,0.2) 70%, rgba(0,0,0,0.85) 100%), url(${centerHero})`,
                 backgroundSize: "cover",
@@ -245,7 +245,7 @@ export async function ClientShell({
               aria-hidden="true"
             />
           )}
-          <div className="relative z-10 h-full">{children}</div>
+          <div className="relative z-[var(--z-elevated)] h-full">{children}</div>
         </main>
 
         {rightSidebar !== undefined ? (
@@ -258,7 +258,7 @@ export async function ClientShell({
       </div>
 
       {!hideBottomBar && (
-        <div className="absolute bottom-0 inset-x-0 z-30 pointer-events-none">
+        <div className="absolute bottom-0 inset-x-0 z-[var(--z-overlay)] pointer-events-none">
           <DashboardBottomBar
             isAdmin={adminFlag}
             fichaBalance={fichaBalance}

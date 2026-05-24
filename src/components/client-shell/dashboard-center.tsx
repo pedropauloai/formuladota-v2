@@ -39,7 +39,7 @@ export function DashboardCenter({
   return (
     <section className="relative flex h-full flex-col overflow-hidden">
       {/* Conteúdo principal scrollável */}
-      <div className="relative z-10 flex flex-1 flex-col gap-4 overflow-y-auto px-6 py-6 min-h-0 xl:px-10 xl:py-8 max-w-5xl mx-auto w-full">
+      <div className="relative z-[var(--z-elevated)] flex flex-1 flex-col gap-4 overflow-y-auto px-6 py-6 min-h-0 xl:px-10 xl:py-8 max-w-5xl mx-auto w-full">
         {/* Status do user (1 linha) */}
         <UserStatusBar
           isAdmin={isAdmin}
