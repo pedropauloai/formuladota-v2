@@ -1,18 +1,37 @@
--- Migration 010 — purchases.payment_provider (Phase 4 Mercado Pago migration)
--- Aplicada em 2026-05-03 via mcp__supabase__apply_migration.
+-- Migration 010 — purchases.payment_provider: default → mercadopago
+-- Phase 4: AbacatePay era o provider Phase 2; Mercado Pago é o provider padrão daqui pra frente.
 --
--- Phase 2 (AbacatePay) foi completamente migrado pra Mercado Pago em 2026-05-02 (Phase 4).
--- Adicionando coluna payment_provider pra rastrear provider de cada purchase.
--- Registros existentes (pré-Phase 4) marcados como 'abacatepay' historical.
--- Registros novos (pós-Phase 4) default 'mercadopago'.
+-- ATENÇÃO: payment_provider JÁ EXISTE em 001_initial_schema.sql com default 'abacatepay'.
+-- Esta migration NÃO usa ADD COLUMN — usa ALTER COLUMN para mudar apenas o DEFAULT.
+--
+-- Historicamente: registros criados antes desta migration têm payment_provider='abacatepay' (correto).
+-- Novos registros (MP PIX avulso Phase 4+) terão payment_provider='mercadopago' automaticamente.
 
+-- Alterar default para novos registros de compras (MP é o provider padrão agora)
 alter table public.purchases
-  add column if not exists payment_provider text default 'mercadopago' not null
-  check (payment_provider in ('abacatepay', 'mercadopago'));
+  alter column payment_provider set default 'mercadopago';
 
--- Backfill rows existentes (Phase 2 era AbacatePay).
--- Idempotente: se rodou 2x, segunda vez não muda nada (rows já têm provider != 'mercadopago')
-update public.purchases
-set payment_provider = 'abacatepay'
-where created_at < '2026-05-03'::timestamptz
-  and payment_provider = 'mercadopago';
+-- Adicionar 'mercadopago' ao CHECK constraint se ainda não inclui.
+-- Tentativa segura: se constraint já existir com esse nome, drop+recreate.
+-- Se não existir, cria do zero.
+do $$
+begin
+  -- Remove constraint antiga se existir (pode ter só 'abacatepay')
+  if exists (
+    select 1 from information_schema.table_constraints
+    where table_name = 'purchases'
+      and constraint_name = 'purchases_payment_provider_check'
+  ) then
+    alter table public.purchases
+      drop constraint purchases_payment_provider_check;
+  end if;
+
+  -- Recria com ambos providers
+  alter table public.purchases
+    add constraint purchases_payment_provider_check
+    check (payment_provider in ('abacatepay', 'mercadopago'));
+end $$;
+
+-- Comentário: backfill de registros existentes não é necessário.
+-- Registros Phase 2 (AbacatePay) já têm payment_provider='abacatepay' (valor salvo, não o default).
+-- Registros Phase 4+ (MP) terão payment_provider='mercadopago' pelo novo default.
