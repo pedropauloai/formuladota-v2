@@ -57,13 +57,13 @@ function behaviorLabel(status: string | null): { label: string; cls: string } {
     suspended: { label: "Suspenso", cls: "text-amber-500 border-amber-600/60" },
     banned: { label: "Banido", cls: "text-red-400 border-red-500/60" },
   };
-  return map[status ?? ""] ?? { label: status ?? "—", cls: "text-text-muted border-[var(--color-border)]" };
+  return map[status ?? ""] ?? { label: status ?? "—", cls: "text-text-muted border-border-subtle" };
 }
 
 function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-md border border-[var(--color-border)] bg-[var(--color-card)] overflow-hidden">
-      <div className="border-b border-[var(--color-border)] px-5 py-3">
+    <section className="rounded-md border border-border-subtle bg-bg-elevated overflow-hidden">
+      <div className="border-b border-border-subtle px-5 py-3">
         <h2 className="font-display text-sm uppercase tracking-widest text-text-display">
           {title}
         </h2>
@@ -75,7 +75,7 @@ function SectionCard({ title, children }: { title: string; children: React.React
 
 function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="flex items-start justify-between gap-4 py-2 border-b border-[var(--color-border)]/50 last:border-0">
+    <div className="flex items-start justify-between gap-4 py-2 border-b border-border-subtle/50 last:border-0">
       <span className="font-mono text-[10px] uppercase tracking-widest text-text-faded min-w-[120px]">
         {label}
       </span>
@@ -86,7 +86,7 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
 
 function CriterioRow({ ok, label }: { ok: boolean; label: string }) {
   return (
-    <div className="flex items-center gap-3 py-2 border-b border-[var(--color-border)]/40 last:border-0">
+    <div className="flex items-center gap-3 py-2 border-b border-border-subtle/40 last:border-0">
       {ok ? (
         <CheckCircle size={14} className="text-emerald-400 shrink-0" />
       ) : (
@@ -363,10 +363,10 @@ export default async function AdminUserDetailPage({
 
         {/* Ledger */}
         {(fichaLedger ?? []).length > 0 ? (
-          <div className="overflow-x-auto rounded-md border border-[var(--color-border)]">
+          <div className="overflow-x-auto rounded-md border border-border-subtle">
             <table className="w-full text-xs">
               <thead>
-                <tr className="border-b border-[var(--color-border)]">
+                <tr className="border-b border-border-subtle">
                   <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-text-faded">Data</th>
                   <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-text-faded">Delta</th>
                   <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-text-faded">Fonte</th>
@@ -375,7 +375,7 @@ export default async function AdminUserDetailPage({
               </thead>
               <tbody>
                 {(fichaLedger ?? []).map((l) => (
-                  <tr key={l.id} className="border-b border-[var(--color-border)]/50 last:border-0">
+                  <tr key={l.id} className="border-b border-border-subtle/50 last:border-0">
                     <td className="px-3 py-2 font-mono text-[10px] text-text-faded">
                       {new Date(l.created_at).toLocaleDateString("pt-BR")}
                     </td>
@@ -443,7 +443,7 @@ export default async function AdminUserDetailPage({
             {(warnings as Array<{ id: string; severity: string; reason: string; created_at: string }> | null ?? []).map((w) => (
               <div
                 key={w.id}
-                className="flex items-start gap-3 rounded-md border border-[var(--color-border)]/50 bg-bg-elevated/30 px-3 py-2"
+                className="flex items-start gap-3 rounded-md border border-border-subtle/50 bg-bg-elevated/30 px-3 py-2"
               >
                 <AlertTriangle
                   size={12}
@@ -472,7 +472,7 @@ export default async function AdminUserDetailPage({
       <SectionCard title="4. Honor e Skill">
         <div className="grid grid-cols-2 gap-6 mb-6">
           {/* HONOR */}
-          <div className="flex flex-col items-center gap-3 p-4 rounded-md border border-[var(--color-border)]/50 bg-bg-elevated/20">
+          <div className="flex flex-col items-center gap-3 p-4 rounded-md border border-border-subtle/50 bg-bg-elevated/20">
             <p className="font-mono text-[10px] uppercase tracking-widest text-text-faded">
               HONOR
             </p>
@@ -490,7 +490,7 @@ export default async function AdminUserDetailPage({
           </div>
 
           {/* SKILL */}
-          <div className="flex flex-col items-center gap-3 p-4 rounded-md border border-[var(--color-border)]/50 bg-bg-elevated/20">
+          <div className="flex flex-col items-center gap-3 p-4 rounded-md border border-border-subtle/50 bg-bg-elevated/20">
             <p className="font-mono text-[10px] uppercase tracking-widest text-text-faded">
               SKILL (Valve)
             </p>
@@ -582,7 +582,7 @@ export default async function AdminUserDetailPage({
         </div>
 
         {/* Checklist de critérios */}
-        <div className="rounded-md border border-[var(--color-border)]/50 overflow-hidden mb-5">
+        <div className="rounded-md border border-border-subtle/50 overflow-hidden mb-5">
           <CriterioRow
             ok={eligCriteria.honor8}
             label="Atingiu tier 8 HONOR (Imortal da Formula)"

@@ -32,7 +32,7 @@ function BehaviorBadge({ status }: { status: string | null }) {
   const conf =
     map[status ?? ""] ?? {
       label: status ?? "—",
-      cls: "border-[var(--color-border)] text-[var(--color-muted-foreground)]",
+      cls: "border-border-subtle text-text-muted",
     };
   return (
     <span
@@ -47,9 +47,9 @@ function RoleBadge({ role }: { role: string | null }) {
   const map: Record<string, { label: string; cls: string }> = {
     admin: { label: "Admin", cls: "border-brand-primary/60 text-brand-primary" },
     coach: { label: "Coach", cls: "border-purple-500/60 text-purple-400" },
-    player: { label: "Jogador", cls: "border-[var(--color-border)] text-text-muted" },
+    player: { label: "Jogador", cls: "border-border-subtle text-text-muted" },
   };
-  const conf = map[role ?? ""] ?? { label: role ?? "—", cls: "border-[var(--color-border)] text-text-muted" };
+  const conf = map[role ?? ""] ?? { label: role ?? "—", cls: "border-border-subtle text-text-muted" };
   return (
     <span className={`rounded-md border px-2 py-1 font-mono text-[10px] uppercase tracking-widest ${conf.cls}`}>
       {conf.label}
@@ -157,12 +157,12 @@ export default async function AdminUsersPage({
           name="q"
           defaultValue={search}
           placeholder="Buscar username ou email..."
-          className="rounded-md border border-[var(--color-border)] bg-bg-elevated px-3 py-2 font-mono text-xs text-text-body placeholder:text-text-faded focus:outline-none focus:border-brand-primary/60 min-w-[200px]"
+          className="rounded-md border border-border-subtle bg-bg-elevated px-3 py-2 font-mono text-xs text-text-body placeholder:text-text-faded focus:outline-none focus:border-brand-primary/60 min-w-[200px]"
         />
         <select
           name="role"
           defaultValue={roleFilter}
-          className="rounded-md border border-[var(--color-border)] bg-bg-elevated px-3 py-2 font-mono text-xs text-text-body focus:outline-none focus:border-brand-primary/60"
+          className="rounded-md border border-border-subtle bg-bg-elevated px-3 py-2 font-mono text-xs text-text-body focus:outline-none focus:border-brand-primary/60"
         >
           <option value="">Todos os roles</option>
           <option value="admin">Admin</option>
@@ -172,7 +172,7 @@ export default async function AdminUsersPage({
         <select
           name="calibration"
           defaultValue={calibrationFilter}
-          className="rounded-md border border-[var(--color-border)] bg-bg-elevated px-3 py-2 font-mono text-xs text-text-body focus:outline-none focus:border-brand-primary/60"
+          className="rounded-md border border-border-subtle bg-bg-elevated px-3 py-2 font-mono text-xs text-text-body focus:outline-none focus:border-brand-primary/60"
         >
           <option value="">Todos os status</option>
           <option value="visitante">Visitante</option>
@@ -181,7 +181,7 @@ export default async function AdminUsersPage({
         </select>
         <button
           type="submit"
-          className="rounded-md border border-[var(--color-border)] bg-bg-elevated px-4 py-2 font-mono text-xs text-text-body hover:border-brand-primary/60 transition-colors"
+          className="rounded-md border border-border-subtle bg-bg-elevated px-4 py-2 font-mono text-xs text-text-body hover:border-brand-primary/60 transition-colors"
         >
           Filtrar
         </button>
@@ -196,9 +196,9 @@ export default async function AdminUsersPage({
       </form>
 
       {/* ── Tabela ── */}
-      <div className="overflow-x-auto rounded-md border border-[var(--color-border)] bg-[var(--color-card)]">
+      <div className="overflow-x-auto rounded-md border border-border-subtle bg-bg-elevated">
         <table className="w-full">
-          <thead className="border-b border-[var(--color-border)]">
+          <thead className="border-b border-border-subtle">
             <tr>
               <Th>Usuário</Th>
               <Th>Role</Th>
@@ -222,7 +222,7 @@ export default async function AdminUsersPage({
                 return (
                   <tr
                     key={p.id}
-                    className="border-b border-[var(--color-border)] last:border-0 hover:bg-[var(--color-background)]/20 transition-colors"
+                    className="border-b border-border-subtle last:border-0 hover:bg-bg-deep/20 transition-colors"
                   >
                     {/* Usuário */}
                     <Td>
@@ -282,7 +282,7 @@ export default async function AdminUsersPage({
                     <Td>
                       <Link
                         href={`/admin/users/${p.id}`}
-                        className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest text-text-muted hover:border-brand-primary/60 hover:text-brand-primary transition-colors"
+                        className="inline-flex items-center gap-1.5 rounded-md border border-border-subtle px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest text-text-muted hover:border-brand-primary/60 hover:text-brand-primary transition-colors"
                       >
                         <Eye size={11} />
                         Ver detalhes
@@ -303,7 +303,7 @@ export default async function AdminUsersPage({
           {page > 1 && (
             <Link
               href={buildFilterUrl({ page: String(page - 1) })}
-              className="rounded-md border border-[var(--color-border)] px-3 py-1.5 font-mono text-xs text-text-muted hover:border-brand-primary/60 hover:text-brand-primary transition-colors"
+              className="rounded-md border border-border-subtle px-3 py-1.5 font-mono text-xs text-text-muted hover:border-brand-primary/60 hover:text-brand-primary transition-colors"
             >
               Anterior
             </Link>
@@ -314,7 +314,7 @@ export default async function AdminUsersPage({
           {page < totalPages && (
             <Link
               href={buildFilterUrl({ page: String(page + 1) })}
-              className="rounded-md border border-[var(--color-border)] px-3 py-1.5 font-mono text-xs text-text-muted hover:border-brand-primary/60 hover:text-brand-primary transition-colors"
+              className="rounded-md border border-border-subtle px-3 py-1.5 font-mono text-xs text-text-muted hover:border-brand-primary/60 hover:text-brand-primary transition-colors"
             >
               Próxima
             </Link>

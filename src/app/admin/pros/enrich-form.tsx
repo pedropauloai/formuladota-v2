@@ -5,8 +5,9 @@
 // jogadores via API OpenDota e popula match_players.
 
 import { useState, useTransition } from "react";
-import { Database, Loader2 } from "lucide-react";
+import { Database } from "lucide-react";
 import { enrichMatchFromOpenDota } from "./actions";
+import { Button } from "@/components/ui/button";
 
 interface Match {
   id: string;
@@ -55,7 +56,7 @@ export function EnrichForm({ matches }: Props) {
 
   if (pendingMatches.length === 0) {
     return (
-      <p className="rounded-md border border-dashed border-[var(--color-border)] bg-[var(--color-card)]/30 p-6 text-center font-mono-ui text-sm text-[var(--color-muted-foreground)]">
+      <p className="rounded-md border border-dashed border-border-subtle bg-bg-elevated/30 p-6 text-center font-mono-ui text-sm text-text-muted">
         Nenhuma PT pendente de submissão. Inicie uma PT primeiro.
       </p>
     );
@@ -66,7 +67,7 @@ export function EnrichForm({ matches }: Props) {
       <div>
         <label
           htmlFor="match-select"
-          className="mb-2 block font-sans text-xs font-semibold uppercase tracking-widest text-[var(--color-muted-foreground)]"
+          className="mb-2 block font-sans text-xs font-semibold uppercase tracking-widest text-text-muted"
         >
           PT pendente
         </label>
@@ -74,7 +75,7 @@ export function EnrichForm({ matches }: Props) {
           id="match-select"
           value={selected ?? ""}
           onChange={(e) => setSelected(e.target.value)}
-          className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-card)] px-3 py-2 font-mono-ui text-sm text-white"
+          className="w-full rounded-md border border-border-subtle bg-bg-elevated px-3 py-2 font-mono-ui text-sm text-text-body"
         >
           {pendingMatches.map((m) => (
             <option key={m.id} value={m.id}>
@@ -88,7 +89,7 @@ export function EnrichForm({ matches }: Props) {
       <div>
         <label
           htmlFor="dota-match-id"
-          className="mb-2 block font-sans text-xs font-semibold uppercase tracking-widest text-[var(--color-muted-foreground)]"
+          className="mb-2 block font-sans text-xs font-semibold uppercase tracking-widest text-text-muted"
         >
           Dota Match ID
         </label>
@@ -100,24 +101,27 @@ export function EnrichForm({ matches }: Props) {
           value={dotaMatchId}
           onChange={(e) => setDotaMatchId(e.target.value)}
           placeholder="ex: 7891234567"
-          className="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-card)] px-3 py-2 font-mono-ui text-sm text-white placeholder:text-[var(--color-muted-foreground)]/50"
+          className="w-full rounded-md border border-border-subtle bg-bg-elevated px-3 py-2 font-mono-ui text-sm text-text-body placeholder:text-text-faded"
         />
-        <p className="mt-2 font-mono-ui text-xs text-[var(--color-muted-foreground)]">
+        <p className="mt-2 font-mono-ui text-xs text-text-muted">
           Encontre o match ID no histórico do Dota 2 ou em https://dotabuff.com/
         </p>
       </div>
 
-      <button
+      <Button
         type="submit"
+        variant="primary"
+        size="md"
+        loading={pending}
         disabled={pending}
-        className="flex w-full items-center justify-center gap-2 rounded-md bg-[var(--color-brand-red)] px-6 py-3 font-sans text-sm font-semibold uppercase tracking-wide text-white transition-colors hover:bg-[var(--color-brand-red)]/80 disabled:opacity-50"
+        className="w-full"
       >
-        {pending ? <Loader2 size={16} className="animate-spin" /> : <Database size={16} />}
+        <Database size={16} />
         Buscar dados na OpenDota
-      </button>
+      </Button>
 
-      {error && <p className="font-mono-ui text-sm text-red-400">{error}</p>}
-      {success && <p className="font-mono-ui text-sm text-emerald-400">{success}</p>}
+      {error && <p className="font-mono-ui text-sm text-error">{error}</p>}
+      {success && <p className="font-mono-ui text-sm text-success">{success}</p>}
     </form>
   );
 }

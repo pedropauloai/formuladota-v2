@@ -3,6 +3,7 @@
 import type { Metadata } from "next";
 import { Users, CreditCard, Trophy, Activity } from "lucide-react";
 import { createServiceClient } from "@/lib/supabase/service";
+import { Card, CardContent } from "@/components/ui/card";
 
 export const metadata: Metadata = { title: "Admin Dashboard — FORMULADOTA" };
 
@@ -43,10 +44,10 @@ export default async function AdminDashboardPage() {
   return (
     <div className="p-8 space-y-10">
       <header>
-        <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
+        <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-brand-primary">
           Dashboard
         </p>
-        <h1 className="mt-3 font-display text-3xl uppercase tracking-tight text-[var(--color-foreground)]">
+        <h1 className="mt-3 font-display text-3xl uppercase tracking-tight text-text-display">
           Visão geral
         </h1>
         <div className="mt-4 brand-divider" />
@@ -85,12 +86,14 @@ function KpiCard({
   icon: typeof Users;
 }) {
   return (
-    <article className="rounded-md border border-[var(--color-border)] bg-[var(--color-card)] p-6 space-y-2">
-      <div className="flex items-start justify-between">
-        <p className="font-sans text-xs uppercase tracking-widest text-[var(--color-text-faded)]">{label}</p>
-        <Icon size={18} className="text-[var(--color-brand-red)]" aria-hidden="true" />
-      </div>
-      <p className="font-display text-3xl text-[var(--color-foreground)]">{value}</p>
-    </article>
+    <Card variant="flat" className="p-4">
+      <CardContent className="space-y-2">
+        <div className="flex items-start justify-between">
+          <p className="font-sans text-xs uppercase tracking-widest text-text-faded">{label}</p>
+          <Icon size={18} className="text-brand-primary" aria-hidden="true" />
+        </div>
+        <p className="font-display text-3xl text-text-display">{value}</p>
+      </CardContent>
+    </Card>
   );
 }

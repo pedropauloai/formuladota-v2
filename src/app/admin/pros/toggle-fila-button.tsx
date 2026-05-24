@@ -47,20 +47,20 @@ export function ToggleFilaButton({ filaAberta, filaAbertaEm }: Props) {
         disabled={pending}
         className={`flex w-full items-center justify-center gap-3 rounded-md border px-6 py-4 font-sans text-base font-semibold uppercase tracking-wide transition-colors disabled:opacity-60 ${
           open
-            ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20"
-            : "border-[var(--color-border)] bg-[var(--color-card)] text-white/70 hover:border-[var(--color-brand-red)]/60 hover:text-white"
+            ? "border-success/40 bg-success/10 text-success hover:bg-success/20"
+            : "border-border-subtle bg-bg-elevated text-text-body hover:border-brand-primary/60 hover:text-text-display"
         }`}
       >
         {open ? <Radio size={20} /> : <PowerOff size={20} />}
         {open ? "Fila aberta — clicar pra fechar" : "Abrir fila pra alunos"}
       </button>
       {open && filaAbertaEm && (
-        <p className="text-center font-mono-ui text-xs text-emerald-300/80">
+        <p className="text-center font-mono-ui text-xs text-success/80">
           Aberta há {minutesOpen} min
         </p>
       )}
       {error && (
-        <p className="text-center font-mono-ui text-xs text-red-400">{error}</p>
+        <p className="text-center font-mono-ui text-xs text-error">{error}</p>
       )}
     </div>
   );

@@ -49,7 +49,7 @@ function ModalBase({
       }}
     >
       <div
-        className="w-full max-w-md rounded-md border border-[var(--color-border)] bg-[var(--color-card)] p-6 shadow-2xl"
+        className="w-full max-w-md rounded-md border border-border-subtle bg-bg-elevated p-6 shadow-2xl"
         role="dialog"
         aria-modal="true"
       >
@@ -98,7 +98,7 @@ function FormTextarea({ id, value, onChange, placeholder, rows = 3 }: {
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className="w-full resize-none rounded-md border border-[var(--color-border)] bg-black/40 px-3 py-2 font-sans text-xs text-text-body placeholder:text-text-faded focus:outline-none focus:border-brand-primary/60"
+      className="w-full resize-none rounded-md border border-border-subtle bg-black/40 px-3 py-2 font-sans text-xs text-text-body placeholder:text-text-faded focus:outline-none focus:border-brand-primary/60"
     />
   );
 }
@@ -232,7 +232,7 @@ export function AdjustFichasModal({
                   ? m === "grant"
                     ? "border-emerald-500/60 bg-emerald-500/10 text-emerald-300"
                     : "border-amber-500/60 bg-amber-500/10 text-amber-300"
-                  : "border-[var(--color-border)] text-text-faded hover:text-text-muted"
+                  : "border-border-subtle text-text-faded hover:text-text-muted"
               }`}
             >
               {m === "grant" ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
@@ -251,7 +251,7 @@ export function AdjustFichasModal({
               max="1000"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="w-full rounded-md border border-[var(--color-border)] bg-black/40 px-3 py-2 font-mono text-sm text-text-body"
+              className="w-full rounded-md border border-border-subtle bg-black/40 px-3 py-2 font-mono text-sm text-text-body"
             />
           </div>
           <div>
@@ -343,7 +343,7 @@ export function ApplyStrikeModal({
                       ? s === "leve"
                         ? "border-amber-500/60 bg-amber-500/10 text-amber-300"
                         : "border-red-500/60 bg-red-500/10 text-red-300"
-                      : "border-[var(--color-border)] text-text-faded hover:text-text-muted"
+                      : "border-border-subtle text-text-faded hover:text-text-muted"
                   }`}
                 >
                   {s === "leve" ? "Leve (−20 honor)" : "Grave (−50 honor)"}
@@ -439,7 +439,7 @@ export function HonorBonusModal({
               max="500"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="w-full rounded-md border border-[var(--color-border)] bg-black/40 px-3 py-2 font-mono text-sm text-text-body"
+              className="w-full rounded-md border border-border-subtle bg-black/40 px-3 py-2 font-mono text-sm text-text-body"
             />
           </div>
           <div>
@@ -531,7 +531,7 @@ export function GrantAchievementModal({
               id="ach-variant"
               value={variant}
               onChange={(e) => setVariant(e.target.value)}
-              className="w-full rounded-md border border-[var(--color-border)] bg-black/40 px-3 py-2 font-mono text-xs text-text-body"
+              className="w-full rounded-md border border-border-subtle bg-black/40 px-3 py-2 font-mono text-xs text-text-body"
             >
               {ACHIEVEMENT_VARIANTS.map((v) => (
                 <option key={v} value={v}>{v}</option>
@@ -770,7 +770,7 @@ export function CoachNotesModal({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest text-text-muted hover:border-brand-primary/60 hover:text-brand-primary transition-colors"
+        className="inline-flex items-center gap-1.5 rounded-md border border-border-subtle px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest text-text-muted hover:border-brand-primary/60 hover:text-brand-primary transition-colors"
       >
         Notas privadas Pedro
       </button>

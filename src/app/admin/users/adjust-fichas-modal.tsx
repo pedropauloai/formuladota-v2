@@ -60,7 +60,7 @@ export function AdjustFichasModal({ userId, username, currentBalance }: Props) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 rounded-md border border-[var(--color-brand-red)]/40 bg-[var(--color-brand-red)]/5 px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest text-[var(--color-brand-red)] hover:bg-[var(--color-brand-red)]/15 transition-colors"
+        className="inline-flex items-center gap-1.5 rounded-md border border-brand-primary/40 bg-brand-primary/5 px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest text-brand-primary hover:bg-brand-primary/15 transition-colors"
       >
         <Coins size={11} />
         Ajustar
@@ -75,13 +75,13 @@ export function AdjustFichasModal({ userId, username, currentBalance }: Props) {
         >
           <div
             ref={dialogRef}
-            className="w-full max-w-md rounded-md border border-[var(--color-border)] bg-[var(--color-card)] p-6 shadow-2xl"
+            className="w-full max-w-md rounded-md border border-border-subtle bg-bg-elevated p-6 shadow-2xl"
             role="dialog"
             aria-modal="true"
             aria-labelledby="adjust-fichas-title"
           >
             <header className="mb-5 space-y-1">
-              <p className="font-mono text-[10px] uppercase tracking-widest text-[var(--color-brand-red)]">
+              <p className="font-mono text-[10px] uppercase tracking-widest text-brand-primary">
                 Ajustar fichas
               </p>
               <h2
@@ -90,7 +90,7 @@ export function AdjustFichasModal({ userId, username, currentBalance }: Props) {
               >
                 {username}
               </h2>
-              <p className="font-mono text-xs text-[var(--color-muted-foreground)]">
+              <p className="font-mono text-xs text-text-muted">
                 Saldo atual:{" "}
                 <span className="text-white">
                   {currentBalance} {currentBalance === 1 ? "ficha" : "fichas"}
@@ -106,7 +106,7 @@ export function AdjustFichasModal({ userId, username, currentBalance }: Props) {
                 className={`flex items-center justify-center gap-2 rounded-md border px-3 py-2 font-sans text-xs font-semibold uppercase tracking-widest transition-colors ${
                   mode === "grant"
                     ? "border-emerald-500/60 bg-emerald-500/10 text-emerald-300"
-                    : "border-[var(--color-border)] text-white/50 hover:text-white"
+                    : "border-border-subtle text-white/50 hover:text-white"
                 }`}
               >
                 <Plus size={12} />
@@ -118,7 +118,7 @@ export function AdjustFichasModal({ userId, username, currentBalance }: Props) {
                 className={`flex items-center justify-center gap-2 rounded-md border px-3 py-2 font-sans text-xs font-semibold uppercase tracking-widest transition-colors ${
                   mode === "debit"
                     ? "border-amber-500/60 bg-amber-500/10 text-amber-300"
-                    : "border-[var(--color-border)] text-white/50 hover:text-white"
+                    : "border-border-subtle text-white/50 hover:text-white"
                 }`}
               >
                 <Minus size={12} />
@@ -142,7 +142,7 @@ export function AdjustFichasModal({ userId, username, currentBalance }: Props) {
                   step="1"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className="w-full rounded-md border border-[var(--color-border)] bg-black/40 px-3 py-2 font-mono text-sm text-white"
+                  className="w-full rounded-md border border-border-subtle bg-black/40 px-3 py-2 font-mono text-sm text-white"
                 />
               </div>
 
@@ -159,7 +159,7 @@ export function AdjustFichasModal({ userId, username, currentBalance }: Props) {
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   placeholder="ex: bonificação de boas-vindas, compensação por PT cancelada, estorno PIX"
-                  className="w-full resize-none rounded-md border border-[var(--color-border)] bg-black/40 px-3 py-2 font-sans text-xs text-white placeholder:text-white/30"
+                  className="w-full resize-none rounded-md border border-border-subtle bg-black/40 px-3 py-2 font-sans text-xs text-white placeholder:text-white/30"
                 />
                 <p className="mt-1 font-mono text-[9px] text-white/30">
                   {reason.length}/500 — fica no log permanente da plataforma

@@ -30,7 +30,7 @@ interface CoachNotesPanelProps {
 
 export function CoachNotesPanel({ entries, matchId }: CoachNotesPanelProps) {
   return (
-    <div className="mt-3 rounded-md border border-[var(--color-border)] bg-bg-elevated/20 p-3 space-y-3">
+    <div className="mt-3 rounded-md border border-border-subtle bg-bg-elevated/20 p-3 space-y-3">
       <p className="font-mono text-[10px] uppercase tracking-widest text-text-faded">
         Coach Notes — registrar conduta dos alunos desta PT
       </p>
@@ -111,7 +111,7 @@ function StudentNoteRow({
   }
 
   return (
-    <div className="rounded-md border border-[var(--color-border)]/40 bg-black/20 p-3 space-y-2">
+    <div className="rounded-md border border-border-subtle/40 bg-bg-base/40 p-3 space-y-2">
       <p className="font-mono text-xs font-semibold text-text-body">{username}</p>
 
       {/* Nota opcional */}
@@ -120,7 +120,7 @@ function StudentNoteRow({
         value={note}
         onChange={(e) => setNote(e.target.value)}
         placeholder="Nota opcional (aparece no log)..."
-        className="w-full rounded-md border border-[var(--color-border)] bg-black/30 px-2 py-1.5 font-mono text-[10px] text-text-body placeholder:text-text-faded focus:outline-none focus:border-brand-primary/40"
+        className="w-full rounded-md border border-border-subtle bg-bg-base/60 px-2 py-1.5 font-mono text-[10px] text-text-body placeholder:text-text-faded focus:outline-none focus:border-brand-primary/40"
       />
 
       {/* Botões */}
@@ -129,7 +129,7 @@ function StudentNoteRow({
           type="button"
           onClick={() => handleCoachNote(5)}
           disabled={pending}
-          className="inline-flex items-center gap-1.5 rounded-md border border-emerald-500/40 bg-emerald-500/5 px-2 py-1 font-mono text-[10px] uppercase tracking-widest text-emerald-400 hover:bg-emerald-500/15 transition-colors disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-md border border-success/40 bg-success/10 px-2 py-1 font-mono text-[10px] uppercase tracking-widest text-success hover:bg-success/20 transition-colors disabled:opacity-50"
         >
           {pendingAction === "note_pos" ? (
             <Loader2 size={10} className="animate-spin" />
@@ -142,7 +142,7 @@ function StudentNoteRow({
           type="button"
           onClick={() => handleCoachNote(-5)}
           disabled={pending}
-          className="inline-flex items-center gap-1.5 rounded-md border border-amber-500/40 bg-amber-500/5 px-2 py-1 font-mono text-[10px] uppercase tracking-widest text-amber-400 hover:bg-amber-500/15 transition-colors disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-md border border-warning/40 bg-warning/10 px-2 py-1 font-mono text-[10px] uppercase tracking-widest text-warning hover:bg-warning/20 transition-colors disabled:opacity-50"
         >
           {pendingAction === "note_neg" ? (
             <Loader2 size={10} className="animate-spin" />
@@ -155,7 +155,7 @@ function StudentNoteRow({
           type="button"
           onClick={handleStrike}
           disabled={pending}
-          className="inline-flex items-center gap-1.5 rounded-md border border-red-500/40 bg-red-500/5 px-2 py-1 font-mono text-[10px] uppercase tracking-widest text-red-400 hover:bg-red-500/15 transition-colors disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-md border border-error/40 bg-error/10 px-2 py-1 font-mono text-[10px] uppercase tracking-widest text-error hover:bg-error/20 transition-colors disabled:opacity-50"
         >
           {pendingAction === "strike" ? (
             <Loader2 size={10} className="animate-spin" />
@@ -168,7 +168,7 @@ function StudentNoteRow({
 
       {/* Feedback inline */}
       {result && (
-        <div className={`flex items-center gap-1.5 font-mono text-[10px] ${isError ? "text-error" : "text-emerald-400"}`}>
+        <div className={`flex items-center gap-1.5 font-mono text-[10px] ${isError ? "text-error" : "text-success"}`}>
           {!isError && <Check size={10} />}
           {result}
         </div>

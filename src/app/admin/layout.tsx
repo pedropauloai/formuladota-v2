@@ -34,8 +34,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <ClientShell currentRoute="/admin" hideLeftSidebar>
       <div className="flex h-full">
         {/* Admin sidebar interna (substitui left sidebar do user) */}
-        <aside className="w-60 border-r border-[var(--color-border)] bg-black/60 backdrop-blur-sm p-5 hidden md:block">
-          <p className="mb-5 font-sans text-xs font-semibold uppercase tracking-[0.25em] text-[var(--color-brand-red)]">
+        <aside className="w-60 border-r border-border-subtle bg-bg-base/60 backdrop-blur-sm p-5 hidden md:block">
+          <p className="mb-5 font-sans text-xs font-semibold uppercase tracking-[0.25em] text-brand-primary">
             Admin
           </p>
           <nav className="space-y-1">
@@ -57,7 +57,7 @@ function AdminNavLink({ href, icon: Icon, label }: { href: string; icon: typeof 
   return (
     <Link
       href={href}
-      className="flex items-center gap-3 rounded-md px-3 py-2 font-sans text-sm font-medium text-white/70 hover:bg-white/5 hover:text-white transition-colors"
+      className="flex items-center gap-3 rounded-md px-3 py-2 font-sans text-sm font-medium text-text-body hover:bg-bg-elevated hover:text-text-display transition-colors"
     >
       <Icon size={16} aria-hidden="true" />
       {label}

@@ -4,6 +4,8 @@
 import type { Metadata } from "next";
 import { Plus, Minus, Coins } from "lucide-react";
 import { createServiceClient } from "@/lib/supabase/service";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 export const metadata: Metadata = { title: "Log de fichas — Admin" };
 
@@ -45,10 +47,10 @@ export default async function AdminFichasPage() {
   return (
     <div className="p-8 space-y-6">
       <header>
-        <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
+        <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-brand-primary">
           Fichas · Log Admin
         </p>
-        <h1 className="mt-3 font-display text-3xl uppercase tracking-tight text-[var(--color-foreground)]">
+        <h1 className="mt-3 font-display text-3xl uppercase tracking-tight text-text-display">
           Movimentações admin
         </h1>
         <div className="mt-4 brand-divider" />
@@ -60,26 +62,26 @@ export default async function AdminFichasPage() {
           icon={Plus}
           label="Total concedido"
           value={totalGrants}
-          color="emerald"
+          tone="success"
         />
         <StatCard
           icon={Minus}
           label="Total removido"
           value={totalDebits}
-          color="amber"
+          tone="warning"
         />
         <StatCard
           icon={Coins}
           label="Total de eventos"
           value={ledger?.length ?? 0}
-          color="brand"
+          tone="brand"
         />
       </div>
 
       {/* Tabela log */}
-      <div className="overflow-x-auto rounded-md border border-[var(--color-border)] bg-[var(--color-card)]">
+      <Card variant="flat" className="overflow-x-auto p-0">
         <table className="w-full">
-          <thead className="border-b border-[var(--color-border)]">
+          <thead className="border-b border-border-subtle">
             <tr>
               <Th>Quando</Th>
               <Th>Tipo</Th>
@@ -93,10 +95,10 @@ export default async function AdminFichasPage() {
             {(ledger ?? []).map((e) => (
               <tr
                 key={e.id}
-                className="border-b border-[var(--color-border)] last:border-0 hover:bg-[var(--color-background)]/30"
+                className="border-b border-border-subtle last:border-0 hover:bg-bg-deep/40"
               >
                 <Td>
-                  <span className="font-mono text-xs text-[var(--color-muted-foreground)]">
+                  <span className="font-mono text-xs text-text-muted">
                     {new Date(e.created_at).toLocaleString("pt-BR")}
                   </span>
                 </Td>
@@ -104,14 +106,14 @@ export default async function AdminFichasPage() {
                   <SourceBadge source={e.source} />
                 </Td>
                 <Td>
-                  <span className="font-sans text-sm text-white">
+                  <span className="font-sans text-sm text-text-body">
                     {nameMap.get(e.user_id) ?? e.user_id.slice(0, 8)}
                   </span>
                 </Td>
                 <Td>
                   <span
                     className={`font-display text-base ${
-                      e.delta > 0 ? "text-emerald-400" : "text-amber-400"
+                      e.delta > 0 ? "text-success" : "text-warning"
                     }`}
                   >
                     {e.delta > 0 ? "+" : ""}
@@ -119,14 +121,14 @@ export default async function AdminFichasPage() {
                   </span>
                 </Td>
                 <Td>
-                  <span className="font-mono text-xs text-[var(--color-muted-foreground)]">
+                  <span className="font-mono text-xs text-text-muted">
                     {e.admin_user_id
                       ? nameMap.get(e.admin_user_id) ?? e.admin_user_id.slice(0, 8)
                       : "—"}
                   </span>
                 </Td>
                 <Td>
-                  <span className="font-sans text-xs text-white/70">
+                  <span className="font-sans text-xs text-text-body">
                     {e.reason ?? "—"}
                   </span>
                 </Td>
@@ -136,7 +138,7 @@ export default async function AdminFichasPage() {
               <tr>
                 <td
                   colSpan={6}
-                  className="px-4 py-8 text-center font-mono text-xs text-[var(--color-muted-foreground)]"
+                  className="px-4 py-8 text-center font-mono text-xs text-text-muted"
                 >
                   Nenhum ajuste registrado ainda. Vá em &ldquo;Users&rdquo; pra ajustar fichas de alguém.
                 </td>
@@ -144,7 +146,7 @@ export default async function AdminFichasPage() {
             )}
           </tbody>
         </table>
-      </div>
+      </Card>
     </div>
   );
 }
@@ -153,34 +155,37 @@ function StatCard({
   icon: Icon,
   label,
   value,
-  color,
+  tone,
 }: {
   icon: typeof Plus;
   label: string;
   value: number;
-  color: "emerald" | "amber" | "brand";
+  tone: "success" | "warning" | "brand";
 }) {
-  const colors = {
-    emerald: "border-emerald-500/40 bg-emerald-500/5 text-emerald-400",
-    amber: "border-amber-500/40 bg-amber-500/5 text-amber-400",
-    brand: "border-[var(--color-brand-red)]/40 bg-[var(--color-brand-red)]/5 text-[var(--color-brand-red)]",
-  };
+  const toneCls = {
+    success: "text-success",
+    warning: "text-warning",
+    brand: "text-brand-primary",
+  }[tone];
+
   return (
-    <article className={`rounded-md border p-4 ${colors[color]}`}>
-      <div className="flex items-center gap-2">
-        <Icon size={14} aria-hidden="true" />
-        <p className="font-sans text-[10px] font-semibold uppercase tracking-widest">
-          {label}
-        </p>
-      </div>
-      <p className="mt-2 font-display text-3xl text-white">{value}</p>
-    </article>
+    <Card variant="flat" className="p-4">
+      <CardContent>
+        <div className={`flex items-center gap-2 ${toneCls}`}>
+          <Icon size={14} aria-hidden="true" />
+          <p className="font-sans text-[10px] font-semibold uppercase tracking-widest">
+            {label}
+          </p>
+        </div>
+        <p className="mt-2 font-display text-3xl text-text-display">{value}</p>
+      </CardContent>
+    </Card>
   );
 }
 
 function Th({ children }: { children: React.ReactNode }) {
   return (
-    <th className="text-left px-4 py-3 font-sans text-xs font-semibold uppercase tracking-widest text-[var(--color-text-faded)]">
+    <th className="text-left px-4 py-3 font-sans text-xs font-semibold uppercase tracking-widest text-text-faded">
       {children}
     </th>
   );
@@ -193,16 +198,16 @@ function Td({ children }: { children: React.ReactNode }) {
 function SourceBadge({ source }: { source: string }) {
   if (source === "admin_grant") {
     return (
-      <span className="inline-flex items-center gap-1 rounded-md border border-emerald-500/40 bg-emerald-500/5 px-2 py-1 font-mono text-[10px] uppercase tracking-widest text-emerald-400">
+      <Badge variant="success" className="gap-1">
         <Plus size={9} />
         Grant
-      </span>
+      </Badge>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 rounded-md border border-amber-500/40 bg-amber-500/5 px-2 py-1 font-mono text-[10px] uppercase tracking-widest text-amber-400">
+    <Badge variant="warning" className="gap-1">
       <Minus size={9} />
       Debit
-    </span>
+    </Badge>
   );
 }

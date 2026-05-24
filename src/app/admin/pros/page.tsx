@@ -27,7 +27,7 @@ export default async function AdminProsPage() {
   if (!coach) {
     return (
       <div className="p-8">
-        <p className="rounded-md border border-dashed border-[var(--color-border)] bg-[var(--color-card)]/30 p-6 font-mono text-sm text-[var(--color-muted-foreground)]">
+        <p className="rounded-md border border-dashed border-border-subtle bg-bg-elevated/30 p-6 font-mono text-sm text-text-muted">
           Você não é PRO ainda. Fale com o admin pra ser certificado.
         </p>
       </div>
@@ -137,13 +137,13 @@ export default async function AdminProsPage() {
   return (
     <div className="space-y-10 p-8">
       <header>
-        <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
+        <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-brand-primary">
           PROs · Painel
         </p>
-        <h1 className="mt-3 font-display text-3xl uppercase tracking-tight text-[var(--color-foreground)]">
+        <h1 className="mt-3 font-display text-3xl uppercase tracking-tight text-text-display">
           Gerenciar fila e PTs
         </h1>
-        <p className="mt-2 font-mono text-xs text-[var(--color-muted-foreground)]">
+        <p className="mt-2 font-mono text-xs text-text-muted">
           Slug: {coach.slug} · {coach.headline ?? "(sem headline)"}
         </p>
         <div className="mt-4 brand-divider" />
@@ -151,7 +151,7 @@ export default async function AdminProsPage() {
 
       <section className="grid gap-8 lg:grid-cols-2">
         <div className="space-y-6">
-          <h2 className="font-display text-xl uppercase tracking-wide text-white">
+          <h2 className="font-display text-xl uppercase tracking-wide text-text-display">
             1. Status da fila
           </h2>
           <ToggleFilaButton
@@ -159,30 +159,30 @@ export default async function AdminProsPage() {
             filaAbertaEm={coach.fila_aberta_em}
           />
 
-          <h2 className="mt-8 font-display text-xl uppercase tracking-wide text-white">
+          <h2 className="mt-8 font-display text-xl uppercase tracking-wide text-text-display">
             2. Alunos na fila
           </h2>
-          <p className="font-mono text-xs text-[var(--color-muted-foreground)]">
+          <p className="font-mono text-xs text-text-muted">
             {queueEntries.length} aguardando · máx {coach.fila_max_vagas} por PT
           </p>
           <QueueList entries={queueEntries} filaAberta={coach.fila_aberta} />
         </div>
 
         <div className="space-y-6">
-          <h2 className="font-display text-xl uppercase tracking-wide text-white">
+          <h2 className="font-display text-xl uppercase tracking-wide text-text-display">
             3. PTs agendadas
           </h2>
-          <p className="font-mono text-xs text-[var(--color-muted-foreground)]">
+          <p className="font-mono text-xs text-text-muted">
             Confirme quando a partida ocorrer (cobra fichas) ou cancele se não rolar.
           </p>
           <PendingMatches matches={pendingMatches} />
 
           {realizedNoData.length > 0 && (
             <>
-              <h2 className="mt-8 font-display text-xl uppercase tracking-wide text-white">
+              <h2 className="mt-8 font-display text-xl uppercase tracking-wide text-text-display">
                 4. Realizadas sem dados OpenDota
               </h2>
-              <p className="font-mono text-xs text-[var(--color-muted-foreground)]">
+              <p className="font-mono text-xs text-text-muted">
                 Submeta o match_id Dota pra enriquecer com KDA, GPM, etc.
               </p>
               <EnrichForm matches={realizedNoData} />

@@ -89,7 +89,7 @@ export function PendingMatches({ matches }: Props) {
 
   if (matches.length === 0) {
     return (
-      <p className="rounded-md border border-dashed border-[var(--color-border)] bg-[var(--color-card)]/30 p-6 text-center font-mono text-sm text-[var(--color-muted-foreground)]">
+      <p className="rounded-md border border-dashed border-border-subtle bg-bg-elevated/30 p-6 text-center font-mono text-sm text-text-muted">
         Nenhuma PT pendente. Inicie uma com alunos da fila.
       </p>
     );
@@ -102,19 +102,19 @@ export function PendingMatches({ matches }: Props) {
         return (
           <article
             key={m.id}
-            className="rounded-md border border-amber-500/30 bg-amber-500/5 p-4 space-y-3"
+            className="rounded-md border border-warning/30 bg-warning/5 p-4 space-y-3"
           >
             <header className="flex items-center justify-between">
               <div>
-                <p className="font-display text-sm uppercase tracking-wide text-amber-200">
+                <p className="font-display text-sm uppercase tracking-wide text-warning">
                   PT agendada
                 </p>
-                <p className="font-mono text-xs text-white/60 mt-0.5">
+                <p className="font-mono text-xs text-text-muted mt-0.5">
                   {new Date(m.createdAt).toLocaleString("pt-BR")} · {m.alunoCount}{" "}
                   aluno{m.alunoCount === 1 ? "" : "s"}
                 </p>
               </div>
-              <span className="font-mono text-[10px] text-white/40">
+              <span className="font-mono text-[10px] text-text-faded">
                 #{m.id.slice(0, 8)}
               </span>
             </header>
@@ -125,7 +125,7 @@ export function PendingMatches({ matches }: Props) {
                 type="button"
                 onClick={() => handleConfirm(m.id)}
                 disabled={isBusy || pending}
-                className="flex items-center justify-center gap-2 rounded-md bg-emerald-600 px-3 py-2 font-sans text-xs font-semibold uppercase tracking-widest text-white transition-colors hover:bg-emerald-500 disabled:opacity-50"
+                className="flex items-center justify-center gap-2 rounded-md bg-success/80 px-3 py-2 font-sans text-xs font-semibold uppercase tracking-widest text-text-display transition-colors hover:bg-success disabled:opacity-50"
               >
                 {isBusy ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
                 Confirmar
@@ -134,7 +134,7 @@ export function PendingMatches({ matches }: Props) {
                 type="button"
                 onClick={() => handleCancel(m.id)}
                 disabled={isBusy || pending}
-                className="flex items-center justify-center gap-2 rounded-md border border-[var(--color-border)] px-3 py-2 font-sans text-xs font-semibold uppercase tracking-widest text-white/70 transition-colors hover:border-red-500/60 hover:bg-red-500/10 hover:text-red-300 disabled:opacity-50"
+                className="flex items-center justify-center gap-2 rounded-md border border-border-subtle px-3 py-2 font-sans text-xs font-semibold uppercase tracking-widest text-text-body transition-colors hover:border-error/60 hover:bg-error/10 hover:text-error disabled:opacity-50"
               >
                 <X size={12} />
                 Cancelar
@@ -150,11 +150,11 @@ export function PendingMatches({ matches }: Props) {
             )}
 
             {/* OpenDota enrichment opcional */}
-            <details className="rounded-md border border-[var(--color-border)] bg-black/30">
-              <summary className="cursor-pointer px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-white/60 hover:text-white">
+            <details className="rounded-md border border-border-subtle bg-bg-base/60">
+              <summary className="cursor-pointer px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-text-muted hover:text-text-display">
                 ou submeter dota match_id (OpenDota) →
               </summary>
-              <div className="border-t border-[var(--color-border)] p-3 space-y-2">
+              <div className="border-t border-border-subtle p-3 space-y-2">
                 <input
                   type="text"
                   inputMode="numeric"
@@ -163,13 +163,13 @@ export function PendingMatches({ matches }: Props) {
                     setEnrichInput({ ...enrichInput, [m.id]: e.target.value })
                   }
                   placeholder="ex: 7891234567"
-                  className="w-full rounded-md border border-[var(--color-border)] bg-black/40 px-3 py-2 font-mono text-xs text-white placeholder:text-white/30"
+                  className="w-full rounded-md border border-border-subtle bg-bg-elevated px-3 py-2 font-mono text-xs text-text-body placeholder:text-text-faded"
                 />
                 <button
                   type="button"
                   onClick={() => handleEnrich(m.id)}
                   disabled={isBusy || pending}
-                  className="inline-flex items-center gap-2 rounded-md border border-[var(--color-brand-red)]/50 bg-[var(--color-brand-red)]/10 px-3 py-1.5 font-sans text-[10px] font-semibold uppercase tracking-widest text-[var(--color-brand-red)] transition-colors hover:bg-[var(--color-brand-red)]/20 disabled:opacity-50"
+                  className="inline-flex items-center gap-2 rounded-md border border-brand-primary/50 bg-brand-primary/10 px-3 py-1.5 font-sans text-[10px] font-semibold uppercase tracking-widest text-brand-primary transition-colors hover:bg-brand-primary/20 disabled:opacity-50"
                 >
                   {isBusy ? <Loader2 size={12} className="animate-spin" /> : <Database size={12} />}
                   Buscar OpenDota + Confirmar
@@ -180,8 +180,8 @@ export function PendingMatches({ matches }: Props) {
         );
       })}
 
-      {error && <p className="font-mono text-sm text-red-400">{error}</p>}
-      {success && <p className="font-mono text-sm text-emerald-400">{success}</p>}
+      {error && <p className="font-mono text-sm text-error">{error}</p>}
+      {success && <p className="font-mono text-sm text-success">{success}</p>}
     </div>
   );
 }

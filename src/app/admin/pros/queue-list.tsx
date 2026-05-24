@@ -6,6 +6,7 @@
 import { useState, useTransition } from "react";
 import { Play, Loader2, X } from "lucide-react";
 import { startPT, removeFromQueue } from "./actions";
+import { Button } from "@/components/ui/button";
 
 export interface QueueEntry {
   id: string;
@@ -78,7 +79,7 @@ export function QueueList({ entries, filaAberta }: Props) {
 
   if (!filaAberta) {
     return (
-      <p className="rounded-md border border-dashed border-[var(--color-border)] bg-[var(--color-card)]/30 p-6 text-center font-mono-ui text-sm text-[var(--color-muted-foreground)]">
+      <p className="rounded-md border border-dashed border-border-subtle bg-bg-elevated/30 p-6 text-center font-mono-ui text-sm text-text-muted">
         Abra a fila pra começar a receber alunos.
       </p>
     );
@@ -86,7 +87,7 @@ export function QueueList({ entries, filaAberta }: Props) {
 
   if (entries.length === 0) {
     return (
-      <p className="rounded-md border border-dashed border-[var(--color-border)] bg-[var(--color-card)]/30 p-6 text-center font-mono-ui text-sm text-[var(--color-muted-foreground)]">
+      <p className="rounded-md border border-dashed border-border-subtle bg-bg-elevated/30 p-6 text-center font-mono-ui text-sm text-text-muted">
         Nenhum aluno na fila ainda. Aguardando primeira ficha.
       </p>
     );
@@ -103,15 +104,15 @@ export function QueueList({ entries, filaAberta }: Props) {
               <div
                 className={`flex items-center gap-3 rounded-md border px-4 py-3 transition-colors ${
                   checked
-                    ? "border-[var(--color-brand-red)]/60 bg-[var(--color-brand-red)]/10"
-                    : "border-[var(--color-border)] bg-[var(--color-card)] hover:border-[var(--color-brand-red)]/40"
+                    ? "border-brand-primary/60 bg-brand-primary/10"
+                    : "border-border-subtle bg-bg-elevated hover:border-brand-primary/40"
                 }`}
               >
                 <input
                   type="checkbox"
                   checked={checked}
                   onChange={() => toggle(e.id)}
-                  className="size-4 cursor-pointer accent-[var(--color-brand-red)]"
+                  className="size-4 cursor-pointer accent-brand-primary"
                   aria-label={`Selecionar ${e.username ?? "aluno"} pra PT`}
                 />
                 {e.avatarUrl && (
@@ -123,10 +124,10 @@ export function QueueList({ entries, filaAberta }: Props) {
                   />
                 )}
                 <div className="flex-1">
-                  <p className="font-sans text-sm font-medium text-white">
+                  <p className="font-sans text-sm font-medium text-text-display">
                     {e.username ?? "(sem username)"}
                   </p>
-                  <p className="font-mono-ui text-xs text-[var(--color-muted-foreground)]">
+                  <p className="font-mono-ui text-xs text-text-muted">
                     aguardando há {e.waitingMinutes} min
                   </p>
                 </div>
@@ -135,7 +136,7 @@ export function QueueList({ entries, filaAberta }: Props) {
                   onClick={() => handleRemove(e.id)}
                   disabled={isRemoving || pending}
                   aria-label={`Remover ${e.username ?? "aluno"} da fila`}
-                  className="flex size-8 items-center justify-center rounded-md text-white/40 hover:bg-red-500/15 hover:text-red-300 transition-colors disabled:opacity-50"
+                  className="flex size-8 items-center justify-center rounded-md text-text-faded hover:bg-error/15 hover:text-error transition-colors disabled:opacity-50"
                 >
                   {isRemoving ? (
                     <Loader2 size={14} className="animate-spin" />
@@ -149,20 +150,23 @@ export function QueueList({ entries, filaAberta }: Props) {
         })}
       </ul>
 
-      <button
+      <Button
         type="button"
+        variant="primary"
+        size="md"
         onClick={handleStart}
         disabled={selected.size === 0 || pending}
-        className="flex w-full items-center justify-center gap-2 rounded-md bg-[var(--color-brand-red)] px-6 py-3 font-sans text-sm font-semibold uppercase tracking-wide text-white transition-colors hover:bg-[var(--color-brand-red)]/80 disabled:opacity-50"
+        loading={pending}
+        className="w-full"
       >
-        {pending ? <Loader2 size={16} className="animate-spin" /> : <Play size={16} />}
+        <Play size={16} />
         Iniciar PT com {selected.size} aluno{selected.size === 1 ? "" : "s"}
-      </button>
+      </Button>
 
-      {error && <p className="font-mono-ui text-sm text-red-400">{error}</p>}
-      {success && <p className="font-mono-ui text-sm text-emerald-400">{success}</p>}
+      {error && <p className="font-mono-ui text-sm text-error">{error}</p>}
+      {success && <p className="font-mono-ui text-sm text-success">{success}</p>}
 
-      <p className="font-mono text-[10px] text-white/40 text-center">
+      <p className="font-mono text-[10px] text-text-faded text-center">
         Ficha só é cobrada quando confirmar PT como realizada (abaixo).
       </p>
     </div>
