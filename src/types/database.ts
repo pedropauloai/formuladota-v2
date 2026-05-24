@@ -1011,6 +1011,102 @@ export type Database = {
           },
         ]
       }
+      pro_audit_log: {
+        Row: {
+          action: string
+          actor_user_id: string
+          created_at: string
+          id: string
+          payload: Json | null
+          reason: string | null
+          target_user_id: string | null
+        }
+        Insert: {
+          action: string
+          actor_user_id: string
+          created_at?: string
+          id?: string
+          payload?: Json | null
+          reason?: string | null
+          target_user_id?: string | null
+        }
+        Update: {
+          action?: string
+          actor_user_id?: string
+          created_at?: string
+          id?: string
+          payload?: Json | null
+          reason?: string | null
+          target_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pro_audit_log_actor_user_id_fkey"
+            columns: ["actor_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pro_audit_log_target_user_id_fkey"
+            columns: ["target_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pro_promotions: {
+        Row: {
+          created_at: string
+          id: string
+          promoted_at: string
+          promotion_notes: string | null
+          revoked_at: string | null
+          revoked_reason: string | null
+          sponsor_user_id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          promoted_at?: string
+          promotion_notes?: string | null
+          revoked_at?: string | null
+          revoked_reason?: string | null
+          sponsor_user_id: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          promoted_at?: string
+          promotion_notes?: string | null
+          revoked_at?: string | null
+          revoked_reason?: string | null
+          sponsor_user_id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pro_promotions_sponsor_user_id_fkey"
+            columns: ["sponsor_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pro_promotions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -1146,6 +1242,77 @@ export type Database = {
           {
             foreignKeyName: "purchases_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      revenue_splits: {
+        Row: {
+          created_at: string
+          ficha_ledger_id: string
+          id: string
+          is_first_sale: boolean
+          platform_share_brl: number
+          pro_share_brl: number
+          pro_user_id: string
+          purchase_id: string | null
+          sponsor_share_brl: number
+          sponsor_user_id: string | null
+          total_brl: number
+        }
+        Insert: {
+          created_at?: string
+          ficha_ledger_id: string
+          id?: string
+          is_first_sale?: boolean
+          platform_share_brl: number
+          pro_share_brl: number
+          pro_user_id: string
+          purchase_id?: string | null
+          sponsor_share_brl?: number
+          sponsor_user_id?: string | null
+          total_brl: number
+        }
+        Update: {
+          created_at?: string
+          ficha_ledger_id?: string
+          id?: string
+          is_first_sale?: boolean
+          platform_share_brl?: number
+          pro_share_brl?: number
+          pro_user_id?: string
+          purchase_id?: string | null
+          sponsor_share_brl?: number
+          sponsor_user_id?: string | null
+          total_brl?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revenue_splits_ficha_ledger_id_fkey"
+            columns: ["ficha_ledger_id"]
+            isOneToOne: false
+            referencedRelation: "ficha_ledger"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "revenue_splits_pro_user_id_fkey"
+            columns: ["pro_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "revenue_splits_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "purchases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "revenue_splits_sponsor_user_id_fkey"
+            columns: ["sponsor_user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -2010,6 +2177,16 @@ export type Database = {
       }
       get_honor_score: { Args: { p_user_id: string }; Returns: number }
       get_honor_tier: { Args: { p_score: number }; Returns: string }
+      get_pro_revenue_summary: {
+        Args: { p_pro_user_id: string; p_since?: string }
+        Returns: {
+          is_first_sale_done: boolean
+          pro_earnings: number
+          sponsor_given: number
+          total_revenue: number
+          total_sales: number
+        }[]
+      }
       get_pros_live_status: {
         Args: never
         Returns: {
@@ -2029,10 +2206,19 @@ export type Database = {
           waiting_count: number
         }[]
       }
+      get_sponsored_pros: {
+        Args: { p_sponsor_user_id: string }
+        Returns: {
+          promoted_at: string
+          status: string
+          user_id: string
+        }[]
+      }
       has_accepted_doctrine: { Args: { p_user_id: string }; Returns: boolean }
       has_active_subscription: { Args: never; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
       is_coach: { Args: never; Returns: boolean }
+      is_pro_first_sale: { Args: { p_pro_user_id: string }; Returns: boolean }
       is_user_active: { Args: { p_user_id: string }; Returns: boolean }
       join_coach_queue: { Args: { p_coach_id: string }; Returns: Json }
       leave_coach_queue: { Args: { p_entry_id: string }; Returns: Json }
