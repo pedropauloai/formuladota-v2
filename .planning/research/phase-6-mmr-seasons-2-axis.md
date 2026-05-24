@@ -1,32 +1,49 @@
-# Phase 6 — MMR Valve + Seasons + HONOR (sistema 2-eixos)
+# Phase 6 — Seasons + HONOR (sistema 2-eixos)
 
-## ATUALIZACAO 2026-05-24 — MMR interno opcional
-
-Modelo REAL confirmado por Pedro: alunos perseguem MMR Valve oficial (ranked do Dota 2
-client). FormulaDota mede SKILL via MMR Valve sincronizado da API (OpenDota/Stratz).
-
-**MMR interno FormulaDota** (Glicko-2 originalmente proposto) vira **opcional futuro** —
-so faz sentido quando:
-- Massa critica de PROs ativos justifica liga propria interna
-- Comunidade quer competicao "FormulaDota Cup" separada do Valve
-- Houver disputa de Imortal da Formula em formato de liga proprio
-
-**Por enquanto (V1):**
-- SKILL eixo = MMR Valve oficial (Steam/OpenDota API sync periodico)
-- HONOR eixo = sistema interno FormulaDota (implementado conforme esta spec)
-- Imortal da Formula = combinacao MMR Valve alto + HONOR alto + criterios extras
-- Liga interna FormulaDota = adiada para quando volume justificar
-
-**Impacto em tabelas:** campo `mmr_atual` em `player_season_mmr` passa a armazenar o
-MMR Valve sincronizado, nao MMR calculado internamente por Glicko-2. O algoritmo Glicko-2
-desta spec fica documentado mas NAO implementado em V1 — e a spec de referencia para futura
-liga interna.
+> **REESCRITA 2026-05-24:** Phase 6 original previa MMR interno Glicko-2. Pedro esclareceu
+> em 2026-05-24: *"O MMR interno JA E o nosso sistema de honor e conduta."* Spec simplificada —
+> V1 usa HONOR (interno) + MMR Valve (externo, sincronizado por API). Liga competitiva V3+
+> documentada em separado em `docs/foundations/LIGA_IMORTAL.md`. Glicko-2 descartado como
+> over-engineering — HONOR substitui o MMR interno completamente.
 
 ---
 
-> **Status:** Spec — não implementado. Aguarda Phase 5 (Bot Discord + PostMatchScreen + Honor Ledger).
-> **Data desta spec:** 2026-05-23 (revisada 2026-05-24)
-> **Autoria:** Pedro Paulo (decisor) + Agent B (documentação)
+> **Status:** Spec — nao implementado. Aguarda Phase 5 (Bot Discord + PostMatchScreen + Honor Ledger).
+> **Data desta spec:** 2026-05-23 (reescrita 2026-05-24)
+> **Autoria:** Pedro Paulo (decisor) + Agent B (documentacao)
+
+## Modelo V1 confirmado — 2 eixos simplificados
+
+**SKILL eixo:** MMR Valve oficial — sincronizado periodicamente via OpenDota API pelo
+steam_id do player. Nao calculado internamente. O FormulaDota registra o MMR Valve, nao
+cria um MMR proprio.
+
+**HONOR eixo:** sistema interno FormulaDota — os 8 tiers (Aprendiz → Imortal da Formula)
+calculados conforme algoritmo em `docs/foundations/HONOR_SYSTEM.md`. Este e o unico
+sistema de rating interno do FormulaDota.
+
+**Imortal da Formula:** combinacao de MMR Valve alto (referencia externa de skill) +
+HONOR alto + criterios extras de conduta (ver HONOR_SYSTEM.md secao "Criterio Especial").
+
+**Liga interna V3+:** documentada em `docs/foundations/LIGA_IMORTAL.md`. Nao implementar
+antes de 10+ Imortais da Formula ativos. A Liga usa HONOR como gate e win-rate interno
+como metrica de competicao — nao usa Glicko-2 nem MMR interno paralelo.
+
+### O que esta spec NAO implementa mais
+
+- Glicko-2 calculado internamente (descartado — over-engineering)
+- Elo interno paralelo ao Valve (descartado — redundancia)
+- "Calibracao de skill interno" via partidas (descartado — MMR Valve ja calibra)
+- Reset parcial de MMR interno entre seasons (descartado — MMR e da Valve, nao do FormulaDota)
+
+### O que esta spec implementa
+
+- Ciclo de vida de seasons (tabela `seasons` + estados)
+- Tabela `player_season_mmr` armazena MMR Valve sincronizado (nao calculado)
+- Tabela `player_season_honor` + algoritmo HONOR (conforme HONOR_SYSTEM.md)
+- Reset parcial de HONOR entre seasons (10%)
+- 3 leaderboards publicos (SKILL/MMR Valve, HONOR, Imortal da Formula)
+- Badge Imortal da Formula ao encerrar season
 
 **Depende de:**
 - `docs/foundations/PHILOSOPHY.md` (Agent G)
@@ -292,11 +309,12 @@ create table if not exists immortal_badges (
 
 ## 4. Algoritmo de MMR (SKILL eixo)
 
-> **Nota 2026-05-24:** Em V1, o SKILL eixo usa MMR Valve oficial sincronizado via API —
-> nao Glicko-2 calculado internamente. A secao abaixo documenta o algoritmo Glicko-2 para
-> uso futuro quando uma liga interna FormulaDota separada do Valve for justificada pelo volume.
+> **DESCARTADO para V1 (decisao 2026-05-24):** Glicko-2 interno nao sera implementado.
+> MMR Valve oficial e sincronizado via API — nao calculado internamente. A secao 4.1 abaixo
+> e preservada como referencia historica e blueprint para a Liga Imortal V3+ (ver
+> `docs/foundations/LIGA_IMORTAL.md`). Nao implementar Glicko-2 em V1.
 
-### 4.1 Base: Glicko-2 (FUTURO — liga interna FormulaDota)
+### 4.1 Base: Glicko-2 (PRESERVADO como referencia — Liga Interna V3+ apenas)
 
 O FormulaDota *poderia* usar **Glicko-2** como sistema de rating para o eixo SKILL em uma
 liga interna propria. Justificativa (para referencia futura):
@@ -838,7 +856,7 @@ create policy "seasons_admin_write"
 ## 12. UAT (critérios de validação futura)
 
 - [ ] Season criada por Pedro com status 'planned' → muda para 'calibration' na data de início
-- [ ] MMR de todos os players calculado corretamente com Glicko-2 após 3 partidas de teste
+- [ ] MMR Valve de todos os players sincronizado corretamente via OpenDota API (nao calculado internamente)
 - [ ] Tier visual atualiza automaticamente após mudança de MMR
 - [ ] HONOR score atualiza em tempo real após insert em honor_ledger
 - [ ] Três leaderboards públicos carregam sem erro na rota `/ranking`
@@ -855,23 +873,27 @@ create policy "seasons_admin_write"
 
 ## 13. Referências e próximos passos
 
-**Para implementação:**
+**Para implementacao:**
 1. Aguardar Phase 5 completa (dados de match_players e honor_ledger com dados reais)
-2. Validar pesos de HONOR com Pedro e Agent G (HONOR_SYSTEM.md)
+2. Validar pesos de HONOR com Pedro (HONOR_SYSTEM.md)
 3. Criar migration completa (seasons, player_season_mmr, player_season_honor, immortal_badges)
 4. Implementar triggers PostgreSQL (update_honor_atual, refresh_combined_leaderboard)
 5. Implementar Edge Function de fim de season (award_immortal_badges)
-6. Criar Season 1 "Fundação" com Pedro como admin (datas TBD)
-7. Implementar páginas de leaderboard (Phase 7 cuida do frontend)
+6. Criar Season 1 "Fundacao" com Pedro como admin (datas TBD)
+7. Implementar paginas de leaderboard (Phase 7 cuida do frontend)
 
-**Referências:**
-- Glicko-2 paper: http://www.glicko.net/glicko/glicko2.pdf
-- IxDL matchmaking histórico: `.planning/research/ixdl-lessons.md` §3.2
-- Meta-liga implementação BR: `.planning/research/integrations.md` §1.3
-- HONOR System weights: `docs/foundations/HONOR_SYSTEM.md` (Agent G)
-- Filosofia 2-eixos: `docs/foundations/PHILOSOPHY.md` (Agent G)
+**Referencias:**
+- HONOR System (algoritmo e pesos): `docs/foundations/HONOR_SYSTEM.md`
+- Filosofia 2-eixos: `docs/foundations/PHILOSOPHY.md`
+- Liga Imortal V3+ blueprint: `docs/foundations/LIGA_IMORTAL.md`
+- Roadmap de camadas de gameplay: `.planning/research/ROADMAP_CAMADAS_GAMEPLAY.md`
+- IxDL matchmaking historico: `.planning/research/ixdl-lessons.md` §3.2
+- Meta-liga implementacao BR: `.planning/research/integrations.md` §1.3
+- Glicko-2 paper (referencia futura — nao implementar V1): http://www.glicko.net/glicko/glicko2.pdf
 
 ---
 
-*Spec criada em 2026-05-23 para alimentar execução futura de Phase 6.*
-*Não modifica código existente — apenas documenta visão.*
+*Spec criada em 2026-05-23 para alimentar execucao futura de Phase 6.*
+*Reescrita em 2026-05-24: MMR interno Glicko-2 descartado. V1 usa HONOR (interno) + MMR Valve
+(externo). Liga V3+ documentada em docs/foundations/LIGA_IMORTAL.md.*
+*Nao modifica codigo existente — apenas documenta visao.*
