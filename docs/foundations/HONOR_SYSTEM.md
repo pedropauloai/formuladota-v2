@@ -275,6 +275,48 @@ Mas no contexto do FormulaDota, Imortal da Formula e o titulo maximo possivel.
 
 ---
 
+## Imortal da Formula = Gate de Elegibilidade PRO
+
+Tier 8 HONOR (Imortal da Formula) nao e apenas status final visual. E o **gate de elegibilidade**
+para promocao a PRO — o nivel mais alto de responsabilidade dentro do FormulaDota.
+
+Atingir o tier nao e suficiente por si so. E a condicao necessaria, nao a condicao suficiente.
+
+### Criterios cumulativos para elegibilidade PRO
+
+O jogador deve satisfazer TODOS os criterios abaixo simultaneamente:
+
+| Criterio | Descricao | Como e verificado |
+|----------|-----------|-------------------|
+| Tier 8 HONOR ativo | Imortal da Formula na temporada corrente | `honor_scores.tier = 'imortal-da-formula'` |
+| Sustentacao de tier | Manteve tier Honrado+ por 2+ temporadas consecutivas | `honor_tier_history` — ultimas 2 seasons |
+| Achievements mentor | Minimo 3 commendations do tipo "mentor" recebidas na carreira | `peer_commendations` — tipo "mentor", all-time |
+| Skill minima | Tier 6 interno (Mestre) ou equivalente Valve documentado | `skill_tier >= 6` no sistema interno |
+| Historico limpo | Zero strikes graves em todo o historico permanente | `honor_ledger` — nenhum `strike_grave` |
+| Tempo na doutrina | Aceitou a doutrina ha 6+ meses | `profiles.doctrine_accepted_at` |
+
+### O que elegibilidade NAO e
+
+Tornar-se elegivel NAO e tornar-se PRO automaticamente. Elegibilidade e apenas o acesso ao
+processo de promocao. A promocao em si exige etapas adicionais documentadas em PRO_PROMOTION.md.
+
+Um jogador pode ser elegivel por multiplas temporadas sem ser promovido — a capacidade
+pedagogica e o alinhamento cultural profundo sao avaliados na entrevista, nao pelo banco de dados.
+
+### Processo de promocao (resumo — ver PRO_PROMOTION.md)
+
+1. Pedro (ou Conselho futuro) identifica elegivel ou elegivel solicita avaliacao
+2. Entrevista cultural via Discord (criterios qualitativos)
+3. Endosso formal documentado
+4. Assinatura de contrato de conduta PRO
+5. Ativacao de acesso `/pro/dashboard`
+6. Audit log publico da promocao (transparencia)
+
+Rejeicao e possivel mesmo com criterios quantitativos satisfeitos. Pedro mantem founder
+authority — a decisao final e qualitativa, nunca apenas algoritmica.
+
+---
+
 ## Visibilidade Publica do HONOR
 
 O HONOR de cada jogador e visivel para todos os membros do FormulaDota. Nao existe modo

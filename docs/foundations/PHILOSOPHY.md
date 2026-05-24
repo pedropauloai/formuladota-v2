@@ -45,9 +45,9 @@ Essa definição exige um sistema de avaliação que vai além do placar.
 
 ---
 
-## Os 12 Pilares Filosoficos
+## Os 13 Pilares Filosoficos
 
-Os 12 pilares abaixo nao sao principios de conduta operacional — esses estao na Doutrina.
+Os 13 pilares abaixo nao sao principios de conduta operacional — esses estao na Doutrina.
 Sao os fundamentos filosoficos que explicam por que o FormulaDota existe, o que nos diferencia,
 e como toda decisao de produto deve ser calibrada.
 
@@ -291,9 +291,62 @@ ferramenta?". Se comunica ferramenta, revisar. Ver UX_PRINCIPLES.md.
 
 ---
 
+### Pilar 13 — Multiplicacao por Exemplo
+
+A plataforma NAO escala com Pedro jogando com 1000 alunos. Pedro e o **primeiro exemplo** —
+nao o unico.
+
+Cada **Imortal da Formula** representa alguem pronto para carregar a doutrina adiante. A
+elegibilidade para ser PRO nao e dada por skill puro — e dada por um conjunto de dimensoes
+simultaneas:
+
+- Skill minima (Mestre Dota ou superior no sistema interno)
+- HONOR consistente (tier Honrado+ por temporadas consecutivas)
+- Achievements de mentoria (recebeu elogios "mentor" de novatos)
+- Zero strikes graves no historico
+- Endosso de Pedro (founder authority) ou Conselho de PROs (futuro)
+
+Cultura competitiva saudavel NAO se transmite por palestra. Se transmite por **embodiment** —
+cada PRO carrega a doutrina para sua geracao de alunos. Pedro fundou o ambiente. Os PROs o
+perpetuam.
+
+**Implicacoes praticas:**
+
+- Plataforma e **rede meritocratica em arvore** (nao marketplace 1-N)
+- PROs G1 promovidos por Pedro podem ter proprios alunos
+- Alguns alunos G2 podem virar PROs tambem (G3+)
+- Geracao nao significa piramide financeira (ver REVENUE_MODEL.md)
+- Pedro mantem founder authority (poder de veto sobre promocoes)
+
+**Distincao critica:**
+
+**Bom jogador nao e igual a bom PRO.** Imortal Dota toxico nao e PRO. Imortal da Formula
+sem capacidade pedagogica nao e PRO.
+
+Ser PRO exige tres dimensoes simultaneas:
+1. Capacidade tecnica (skill)
+2. Alinhamento cultural (doutrina + zero strikes graves)
+3. Capacidade de transmitir (pedagogia + maturidade)
+
+**Anti-padroes proibidos derivados deste pilar:**
+
+- Promocao por skill puro (sem honor sustentado)
+- Promocao por relacionamento pessoal (criterio objetivo e inegociavel)
+- Hierarquia financeira piramidal (mentor nao extrai perpetuamente de mentees)
+- Conselho de PROs corrompido por favoritismo
+
+A multiplicacao saudavel e mecanismo de PRESERVACAO cultural, nao instrumento de escala
+comercial. O objetivo nao e crescer rapido — e crescer sem corromper o ambiente.
+
+**Implicacao de produto:** a plataforma deve ter sistema de PRO com dashboard proprio,
+criterios de elegibilidade mensuraveis automaticamente, e audit log publico de cada promocao.
+Ver PRO_PROMOTION.md e MULTIPLICATION_MODEL.md para especificacao completa.
+
+---
+
 ## Implicacoes Praticas para o Produto
 
-Esta secao traduz os 12 pilares em decisoes concretas de produto. Quando houver duvida sobre
+Esta secao traduz os 13 pilares em decisoes concretas de produto. Quando houver duvida sobre
 como implementar algo, retornar a esta secao antes de decidir.
 
 ---
@@ -409,7 +462,7 @@ de artes marciais high-tech" do que "torneio de e-sports corporativo".
 
 ## Anti-Padroes Proibidos
 
-Estes anti-padroes derivam diretamente dos 12 pilares. Cada um deles contradiz um ou mais
+Estes anti-padroes derivam diretamente dos 13 pilares. Cada um deles contradiz um ou mais
 pilares fundamentais. Implementar qualquer um deles e uma violacao filosofica, nao apenas
 uma escolha de design ruim.
 
