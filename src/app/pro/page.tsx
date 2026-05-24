@@ -1,21 +1,26 @@
 // /pro — Dashboard PRO scope limitado.
 //
 // Server Component: busca dados do PRO logado e passa para componentes.
-// 4 seções:
+// 5 seções:
 //   1. Visao Geral (ProStatsHeader + status + ações pausar/retomar)
 //   2. Meus Alunos (StudentRow com coach notes)
 //   3. Revenue (RevenueSummaryCard)
-//   4. Ações de status PRO (pausar / retomar)
+//   4. Meu Pricing (PriceEditorCard — guardrails HONOR + cooldown)
+//   5. Ações de status PRO (pausar / retomar)
+//
+// Seção 4 adicionada em 2026-05-23 — pricing descentralizado decisão Pedro.
 
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ProStatsHeader } from "@/components/pro/pro-stats-header";
 import { RevenueSummaryCard } from "@/components/pro/revenue-summary-card";
+import { PriceEditorCard } from "@/components/pro/price-editor-card";
 import { StudentListClient } from "./student-list-client";
 import { ProStatusActions } from "./pro-status-actions";
 import { getMyProRevenue } from "@/app/actions/pro-management";
 import { getMyStudents } from "@/app/pro/actions";
+import { getMyPricingInfo } from "@/app/pro/pricing-actions";
 
 export const metadata: Metadata = {
   title: "Painel PRO — FORMULADOTA",
@@ -52,6 +57,31 @@ export default async function ProPage() {
     month: "long",
     year: "numeric",
   });
+
+  // Busca package do PRO pra pricing (precisa do coach_id)
+  const { data: coach } = await supabase
+    .from("coaches")
+    .select("id")
+    .eq("profile_id", user.id)
+    .maybeSingle();
+
+  // Busca package avulso do PRO (primeiro ativo, tipo avulso)
+  const { data: proPackage } = coach
+    ? await supabase
+        .from("packages")
+        .select("id, nome")
+        .eq("coach_id", coach.id)
+        .eq("tipo", "avulso")
+        .eq("ativo", true)
+        .order("display_order", { ascending: true })
+        .limit(1)
+        .maybeSingle()
+    : { data: null };
+
+  // Busca pricing info do package (se existir)
+  const pricingInfo = proPackage
+    ? await getMyPricingInfo(proPackage.id)
+    : null;
 
   // Busca revenue e alunos em paralelo
   const [revenueResult, studentsResult] = await Promise.all([
@@ -111,7 +141,45 @@ export default async function ProPage() {
       </section>
 
       {/* ----------------------------------------------------------------
-          Seção 3 — Revenue
+          Seção 3 — Meu Pricing
+          Pricing descentralizado: PRO edita próprio preço com guardrails HONOR.
+          Decisão Pedro 2026-05-23.
+          ---------------------------------------------------------------- */}
+      <section id="pricing" aria-labelledby="heading-pricing">
+        <div className="flex items-center justify-between mb-4">
+          <h2
+            id="heading-pricing"
+            className="font-display text-base uppercase tracking-widest text-text-display"
+          >
+            Meu Pricing
+          </h2>
+        </div>
+
+        {proPackage && pricingInfo?.success && pricingInfo.data ? (
+          <PriceEditorCard
+            packageId={proPackage.id}
+            packageName={proPackage.nome}
+            currentPrice={pricingInfo.data.currentPrice}
+            maxAllowed={pricingInfo.data.maxAllowed}
+            honorTier={pricingInfo.data.honorTier}
+            honorScore={pricingInfo.data.honorScore}
+            canChangeNow={pricingInfo.data.canChangeNow}
+            nextChangeAt={pricingInfo.data.nextChangeAt}
+            daysRemaining={pricingInfo.data.daysRemaining}
+            history={pricingInfo.data.history}
+          />
+        ) : (
+          <div className="rounded-xl border border-border-subtle bg-bg-elevated p-8 text-center">
+            <p className="text-text-muted text-sm">
+              Nenhum package avulso ativo encontrado. O admin cria packages para PROs — entre em
+              contato com Pedro para configurar seu pricing.
+            </p>
+          </div>
+        )}
+      </section>
+
+      {/* ----------------------------------------------------------------
+          Seção 4 — Revenue
           ---------------------------------------------------------------- */}
       <section id="revenue" aria-labelledby="heading-revenue">
         <h2
