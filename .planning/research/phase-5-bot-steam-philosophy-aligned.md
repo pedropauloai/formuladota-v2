@@ -1,7 +1,12 @@
-# Phase 5 — Bot Steam Lobby Creator (filosofia-aligned)
+# Phase 5 — Bot Steam Party Coordinator (filosofia-aligned)
+
+> **Atualizacao 2026-05-24 (Pedro esclareceu modelo real):** Phase 5 NAO cria lobby in-house
+> custom. Coordena party Steam para ranked Valve oficial. Spec ajustada para refletir isso.
+> Lobby in-house custom fica documentado como opcao futura (ver secao "Por que NAO lobby
+> in-house V1") para quando massa de PROs justificar liga propria.
 
 > **Status:** Spec — não implementado. Aguarda conclusão do Milestone V2.5 Design Foundations.
-> **Data desta spec:** 2026-05-23
+> **Data desta spec:** 2026-05-23 (revisada 2026-05-24)
 > **Autoria:** Pedro Paulo (decisor) + Agent B (documentação)
 
 **Depende de:**
@@ -27,24 +32,45 @@ Esta spec redesenha Phase 5 sob a filosofia 2-eixos antes que qualquer linha de 
 
 ---
 
-## 2. Goal técnico (preservado do roadmap)
+## 2. Goal técnico (modelo real confirmado 2026-05-24)
 
-Bot Steam com conta dedicada cria lobby Dota 2 customizado quando 10 jogadores estão na fila. Bot captura Match ID pós-partida. Dados da partida alimentam sistema interno de SKILL rating (MMR FormulaDota).
+Bot Discord coordena party Steam de 5 jogadores (PRO + 4 alunos). Party entra na fila
+ranked oficial da Valve. Objetivo direto do aluno: subir MMR oficial Valve (nao MMR interno
+FormulaDota). Apos a partida, bot captura match_id via OpenDota ou Stratz API. Dados
+alimentam HONOR e SKILL (MMR Valve sincronizado).
 
-Stack técnica:
+**Por que NAO lobby in-house custom V1:**
+O lobby in-house custom (via Game Coordinator Dota 2) exige conta Steam bot dedicada,
+node-dota2 (arquivado 2022), e dependencia do GC da Valve (instavel por natureza).
+Para V1 com 1 PRO e grupos de 4 alunos, o custo de infra nao justifica o ganho.
+A alternativa — party Steam + fila ranked oficial — e identica em experiencia para o aluno
+e elimina toda dependencia do GC. Lobby in-house custom sera revisado quando houver massa
+critica de PROs ativos para justificar liga propria FormulaDota separada do Valve.
+
+Stack tecnica (modelo party Steam):
 ```
 Discord Bot (Node.js + Discord.js v14)
-    ↓ fila confirmada (10 players)
-Steam Bot Account (steam-user v5 + steam-totp + node-dota2 || go-dota2)
-    ↓ cria lobby + convida SteamIDs
-Game Coordinator Dota 2
-    ↓ partida acontece
-Stratz GraphQL API (match_id → stats completos)
-    ↓
+    fila confirmada (PRO + 4 alunos = 5 players)
+    bot envia steam_id de cada aluno ao PRO
+PRO forma party manualmente no Dota 2 client oficial
+    convida os 4 alunos pelo Steam
+    party entra na fila ranked oficial Valve
+Game Coordinator Valve
+    partida acontece — ranked real
+OpenDota API ou Stratz GraphQL (match_id capturado post-match)
+    busca por steam_id do PRO, filtra partidas recentes
 Supabase (tabelas match_data, honor_ledger, match_reviews)
-    ↓ Realtime trigger
+    Realtime trigger
 App Web (Next.js) — PostMatchScreen
 ```
+
+**Captura de match_id:** feita via OpenDota match endpoint OU Stratz GraphQL consultando
+partidas recentes do steam_id do PRO. Nao depende de Steam GC. Apos a partida encerrar
+no Valve, aguardar 5 minutos para API indexar, entao buscar.
+
+**Match data:** vem inteiramente de OpenDota/Stratz (publicos, gratuitos, sem dependencia
+de GC). Stratz tem acesso a campos de comportamento (leaverStatus, communication_score)
+que OpenDota nao expoe — Stratz preferido para HONOR data.
 
 ---
 
@@ -104,54 +130,56 @@ Presença e comprometimento contribuem para HONOR score mas são calculados pelo
 
 ---
 
-## 5. Flow completo da partida (técnico + filosófico)
+## 5. Flow completo da partida (tecnico + filosofico)
+
+Modelo: party de 5 (PRO + 4 alunos) na fila ranked oficial Valve. Nao e lobby in-house.
 
 ```
 [1] FILA
-  Player entra na fila via app web (/jogar) ou Discord (!queue)
-  Sistema verifica: subscription ativa? Steam vinculado? Sem ban ativo?
-  Fila exibe: "X/10 jogadores" + nomes + presença histórica de cada um
-  
-[2] MATCH FOUND
-  10 players confirmados → Discord notifica (@mention todos)
-  App web dispara toast + som de notificação (Howler)
-  Timer: 3 minutos para aceitar convite Steam
-  
-[3] LOBBY CREATION (Steam Bot)
-  Bot Steam (conta dedicada) cria lobby via Game Coordinator:
-    - Modo: All Pick ou Captains Mode (configurável por temporada)
-    - Servidor: South America (SA) — menor latência BR
-    - Password: hash aleatório 8 chars
-    - Nome: "FORMULADOTA-{season_id}-{lobby_n}"
-  Bot convida cada SteamID via GC
-  Popup aparece no cliente Dota 2 de cada player
-  
-[4] LOBBY FILL
-  Bot rastreia quais players aceitaram o convite
-  Se player não aceita em 3 min → marcado como no-show
-  No-show: penalidade de presença (não entra em fila por 30 min)
-  
+  Aluno entra na fila via app web (/queue) ou Discord (!queue)
+  Sistema verifica: ficha ativa? Steam vinculado? Sem ban ativo?
+  Fila exibe: "X/5 players" + nomes + presenca historica
+
+[2] PARTY FOUND
+  PRO + 4 alunos confirmados → Discord notifica (@mention todos com steam_ids)
+  App web dispara toast + som de notificacao (Howler)
+  PRO recebe lista dos 4 steam_ids de alunos para formar party manualmente
+
+[3] PARTY FORMATION (Steam client oficial)
+  PRO abre o Dota 2 client
+  Convida os 4 alunos pelo Steam (Friend invite ou steam_id direto)
+  Alunos aceitam o convite — popup padrao no Dota 2 client
+  Timer recomendado: 5 minutos para todos aceitarem
+  Se aluno nao aceita em 5 min: marcado como no-show pelo PRO via app admin
+
+[4] FILA RANKED (Valve oficial)
+  Party de 5 entra na fila ranked do client Dota 2
+  MMR da fila: media do time (padrao Valve)
+  Partida acontece no matchmaking oficial — MMR Valve e afetado normalmente
+
 [5] DRAFT + PARTIDA
-  Draft acontece normalmente no Dota 2
-  Bot monitora estado do lobby (criado → draft → ativo)
-  
+  Draft e partida acontecem normalmente no Dota 2 oficial
+  O bot Discord nao interfere nesta etapa
+  PRO pode usar Discord para comunicacao de voz durante a partida
+
 [6] PARTIDA ENCERRA
-  Bot recebe evento de fim de partida via GC
-  Match ID capturado automaticamente
-  Sistema faz request Stratz GraphQL (aguarda 5 min pós-fim — Stratz delay)
+  PRO informa ao bot via Discord o resultado (ou bot detecta automaticamente)
+  Bot consulta OpenDota/Stratz com steam_id do PRO (partidas recentes)
+  Aguarda 5 minutos apos fim (API indexing delay)
+  Match ID capturado via ultima partida ranked do PRO
   Dados parseados e inseridos em: matches, match_players
-  
-[7] POST-MATCH RITUAL (ver seção 6)
-  Trigger Supabase Realtime → app notifica todos os 10 players
+
+[7] POST-MATCH RITUAL (ver secao 6)
+  Trigger Supabase Realtime → app notifica todos os 5 players
   PostMatchScreen abre obrigatoriamente no app de cada player
-  
-[8] PEER REVIEWS (ver seção 7)
-  Após completar auto-review: formulário de peer review de cada companheiro
-  Anônimo entre players; Pedro vê como admin
-  
+
+[8] PEER REVIEWS (ver secao 7)
+  Apos completar auto-review: formulario de peer review de cada companheiro
+  Anonimo entre players; PRO e Pedro veem como admins
+
 [9] SCORE UPDATE
   Todos reviews coletados (ou timeout 24h) → triggers calculam:
-    - SKILL delta (Glicko-2) → inserido em player_season_mmr
+    - SKILL: MMR Valve delta registrado (sincronizado da API — nao calculado internamente)
     - HONOR delta → inserido em honor_ledger
   Leaderboard atualizado (materialized view refresh)
 ```
@@ -457,102 +485,62 @@ create policy "honor_ledger_own"
 
 ---
 
-## 9. Lógica do Steam Bot (sketch técnico)
+## 9. Logica do Bot Discord (sketch tecnico)
 
 ### 9.1 Stack do bot
+
+Modelo V1: bot Discord puro. Sem Steam bot account. Sem GC connection. PRO forma party
+manualmente no client Dota 2 apos receber a lista de steam_ids dos alunos via Discord.
 
 ```
 bot/
 ├── src/
-│   ├── lobby/
-│   │   ├── SteamBot.ts          # Conexão ao Steam GC via steam-user + node-dota2
-│   │   ├── LobbyManager.ts      # CRUD de lobbies, estado, reconexão
-│   │   └── LobbyStates.ts       # Enum: IDLE | CREATING | FILLING | DRAFT | ACTIVE | ENDED
 │   ├── queue/
-│   │   ├── QueueManager.ts      # Gerencia fila de 10 players
-│   │   └── QueueValidator.ts    # Verifica subscription + Steam + ban
+│   │   ├── QueueManager.ts      # Gerencia fila de 5 players (PRO + 4 alunos)
+│   │   └── QueueValidator.ts    # Verifica ficha ativa + Steam vinculado + sem ban
 │   ├── match/
-│   │   ├── StratzClient.ts      # GraphQL client para Stratz
-│   │   ├── MatchParser.ts       # Parse dos dados Stratz → formato interno
-│   │   └── MatchProcessor.ts    # Orquestra: Stratz fetch → Supabase insert → trigger PostMatch
+│   │   ├── OpenDotaClient.ts    # REST client para OpenDota API (match lookup por steam_id)
+│   │   ├── StratzClient.ts      # GraphQL client para Stratz (comportamento + leaverStatus)
+│   │   ├── MatchParser.ts       # Parse dados API → formato interno
+│   │   └── MatchProcessor.ts   # Orquestra: API fetch → Supabase insert → trigger PostMatch
 │   └── discord/
-│       └── QueueCommands.ts     # !queue, !sair, !fila (Discord slash commands)
+│       └── QueueCommands.ts     # !queue, !sair, !fila, !partida (Discord slash commands)
 ├── package.json
 └── Dockerfile
 ```
 
-### 9.2 Reconexão automática (crítico)
+**Sem SteamBot.ts, LobbyManager.ts, LobbyStates.ts:** esses modulos eram necessarios para
+o modelo de lobby in-house custom. No modelo party Steam V1, o PRO age manualmente no
+client. O bot Discord e apenas coordenador de fila e notificador.
 
-O Game Coordinator do Dota 2 é notoriamente instável. O bot precisa de lógica robusta:
+### 9.2 Captura de match apos partida ranked
 
 ```typescript
-// SteamBot.ts
-class SteamBot {
-  private reconnectDelay = 5000;        // 5s inicial
-  private maxReconnectDelay = 300000;   // 5 min máximo
-  private reconnectAttempts = 0;
+// OpenDotaClient.ts — consulta partidas recentes do PRO pelo steam_id
+async function findRecentMatchId(proSteamId64: string): Promise<bigint | null> {
+  // Converter steam_id64 para steam_id32 (OpenDota usa steam_id32)
+  const steam32 = BigInt(proSteamId64) - BigInt('76561197960265728');
 
-  async connect() {
-    this.client.logOn({
-      accountName: process.env.STEAM_BOT_USERNAME,
-      password:   process.env.STEAM_BOT_PASSWORD,
-      twoFactorCode: steamTotp.generateAuthCode(process.env.STEAM_SHARED_SECRET)
-    });
-  }
+  // Aguardar 5 minutos apos fim (indexing delay)
+  await new Promise(r => setTimeout(r, 5 * 60 * 1000));
 
-  onDisconnected(eresult: number) {
-    const delay = Math.min(
-      this.reconnectDelay * Math.pow(2, this.reconnectAttempts),
-      this.maxReconnectDelay
-    );
-    this.reconnectAttempts++;
-    console.error(`[SteamBot] Desconectado (${eresult}). Tentativa ${this.reconnectAttempts} em ${delay}ms`);
-    setTimeout(() => this.connect(), delay);
-  }
+  const response = await fetch(
+    `https://api.opendota.com/api/players/${steam32}/recentMatches?limit=1`
+  );
+  const matches = await response.json();
 
-  onConnected() {
-    this.reconnectDelay = 5000; // reset
-    this.reconnectAttempts = 0;
-    this.client.setPersona(SteamUser.EPersonaState.Online);
-    this.dota2Client.launch(); // conectar ao GC
-  }
+  if (!matches || matches.length === 0) return null;
+
+  const latest = matches[0];
+  // Verificar se e partida ranked (lobby_type = 7) e recente (< 30 min atras)
+  const ageMinutes = (Date.now() / 1000 - latest.start_time) / 60;
+  if (latest.lobby_type !== 7 || ageMinutes > 30) return null;
+
+  return BigInt(latest.match_id);
 }
 ```
 
-### 9.3 Criação de lobby
-
-```typescript
-// LobbyManager.ts
-async createLobby(players: QueuedPlayer[], seasonId: string): Promise<Lobby> {
-  const passKey = crypto.randomBytes(4).toString('hex').toUpperCase();
-  const lobbyN  = await this.getNextLobbyNumber(seasonId);
-
-  const config = {
-    game_name:   `FORMULADOTA-${seasonId.slice(0,8)}-${lobbyN}`,
-    pass_key:    passKey,
-    server_region: Dota2.ServerRegion.SOUTHAMERICA,
-    game_mode:   Dota2.DOTA_GameMode.DOTA_GAMEMODE_AP,  // All Pick
-    allow_cheats:  false,
-    fill_with_bots: false,
-    allow_spectating: true,
-  };
-
-  return new Promise((resolve, reject) => {
-    this.dota2Client.createPracticeLobby(config, (err, body) => {
-      if (err) return reject(err);
-
-      // Convidar cada player pelo SteamID
-      for (const player of players) {
-        this.dota2Client.inviteToLobby(player.steam_id64);
-      }
-
-      resolve({ lobbyId: body.lobby_id, passKey, config });
-    });
-  });
-}
-```
-
-### 9.4 Fetch Stratz pós-partida
+### 9.3 Fetch Stratz pos-partida
 
 ```typescript
 // StratzClient.ts
@@ -654,35 +642,42 @@ async function fetchMatchData(matchId: bigint): Promise<StratzMatch> {
 
 ---
 
-## 12. UAT (critérios de validação futura)
+## 12. UAT (criterios de validacao futura)
 
-Quando Phase 5 for implementada, os seguintes testes devem passar antes de marcar como complete:
+Quando Phase 5 for implementada, os seguintes testes devem passar antes de marcar como completa:
 
-- [ ] Bot Steam cria lobby com sucesso e envia convites para 10 SteamIDs
-- [ ] Convite aparece como popup no cliente Dota 2 de pelo menos 2 testers
-- [ ] Match ID capturado pelo bot após fim da partida
-- [ ] Stratz retorna dados completos para o Match ID capturado
+- [ ] Bot Discord exibe fila corretamente com PRO + alunos confirmados
+- [ ] Bot Discord envia lista de steam_ids dos alunos para o PRO via mensagem privada
+- [ ] PRO forma party no Dota 2 client e confirma inicio via comando Discord
+- [ ] Party entra em fila ranked Valve; partida acontece normalmente
+- [ ] Apos partida, OpenDota API retorna match_id correto pelo steam_id do PRO
+- [ ] Stratz retorna dados completos (incluindo leaverStatus) para o Match ID capturado
 - [ ] Dados inseridos corretamente em `matches` + `match_players`
-- [ ] Trigger Supabase Realtime dispara PostMatchScreen no app de todos os 10 players
-- [ ] PostMatchScreen exibe resultado, MMR delta, princípio correto
-- [ ] Gate de fila funciona: player com PostMatchScreen pendente não consegue entrar em nova fila
+- [ ] MMR Valve delta registrado para cada aluno (via API sync, nao calculo interno)
+- [ ] Trigger Supabase Realtime dispara PostMatchScreen no app de todos os 5 players
+- [ ] PostMatchScreen exibe resultado, MMR Valve delta, HONOR delta estimado, principio correto
+- [ ] Gate de fila funciona: player com PostMatchScreen pendente nao consegue entrar em nova fila
 - [ ] Peer review completo para 4 companheiros; dados inseridos em `match_reviews`
-- [ ] Honor ledger recebe eventos de `self_review` e `peer_review` após conclusão
-- [ ] Admin (Pedro) consegue ver reviews de todos os players identificados
+- [ ] Honor ledger recebe eventos de `self_review` e `peer_review` apos conclusao
+- [ ] PRO e Pedro (admin) conseguem ver reviews de todos os players identificados
 - [ ] Abandono registrado corretamente como `abandoned=true` + honor delta negativo em `honor_ledger`
-- [ ] Reconexão do bot Steam funciona após desconexão simulada (kill -9 processo)
 
 ---
 
-## 13. Dependências externas e riscos
+## 13. Dependencias externas e riscos
 
-| Dependência | Risco | Mitigação |
+| Dependencia | Risco | Mitigacao |
 |---|---|---|
-| Steam Game Coordinator (GC) | Instável, API não oficial, pode mudar | Exponential backoff, monitoramento de health, fallback: Pedro cria lobby manualmente enquanto bot recupera |
-| Stratz GraphQL API | Rate limit (2000 req/h Free Tier) | 10 req/partida × máx 3 partidas/dia = 30 req/dia — bem dentro do limite |
-| node-dota2 (arquivado 2022) | Sem manutenção ativa | Opção A: go-dota2 (Go, ativo). Opção B: fork próprio de node-dota2 para manutenção pontual |
-| Conta Steam dedicada | VAC ban em conta errada | Conta separada, sem jogos pagos valiosos, sem histórico sensível. Dota 2 free = risco mínimo |
-| Docker no Railway | Custo ~$3/mês (Hobby) | Aceitável. Escalar para $5-10 conforme crescimento |
+| OpenDota API (match lookup) | Indexing delay variavel (2-10 min pos-partida) | Retry com backoff exponencial; timeout de 30 min; PRO confirma match_id manualmente se necessario |
+| Stratz GraphQL API | Rate limit (2000 req/h Free Tier) | 5 req/partida x max 3 partidas/dia = 15 req/dia — bem dentro do limite |
+| Discord.js v14 | Breaking changes entre versoes | Pinnar versao + testar upgrades em branch separada |
+| Party Steam (PRO forma manualmente) | PRO pode esquecer ou errar steam_ids | Bot Discord exibe lista formatada; PRO confirma no Discord antes de entrar em fila |
+| Docker no Railway | Custo ~$3/mes (Hobby) | Aceitavel. Escalar para $5-10 conforme crescimento |
+
+**Risco eliminado V1:** Steam GC (Game Coordinator) era o maior risco de estabilidade do modelo
+anterior (lobby in-house custom). O modelo party Steam elimina essa dependencia completamente.
+O PRO usa o client oficial Valve, que e estavel por definicao. O bot Discord e stateless e
+simples de reiniciar.
 
 ---
 
