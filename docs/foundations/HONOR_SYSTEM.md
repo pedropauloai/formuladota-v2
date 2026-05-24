@@ -57,16 +57,23 @@ Os tiers de HONOR sao paralelos aos tiers internos de SKILL, mas com nomenclatur
 propria. O objetivo e que os dois sistemas coexistam como identidades distintas — o badge
 de HONOR nao e copia do badge de SKILL.
 
-| Tier | Nome | Criterio de ingresso | Descricao |
-|------|------|---------------------|-----------|
-| 1 | Aprendiz | Aceitou a Doutrina + 0-9 partidas | Novo membro. Recebeu o codigo de conduta. Ainda sem historico suficiente para classificacao. |
-| 2 | Disciplinado | 10+ partidas, ausencia de strikes graves | Demonstrou regularidade basica. Comparece, joga ate o fim, sem comportamento destrutivo. |
-| 3 | Confiavel | 30+ partidas, presenca maior ou igual a 80%, maximo 1 strike menor | Pode ser contado. Outros jogadores sabem que ele vai comparecer e vai jogar inteiro. |
-| 4 | Respeitado | Recebe elogios de companheiros com consistencia, contribui com novatos quando presente | Reconhecido pelos pares. Sua presenca melhora o ambiente da partida perceptivelmente. |
-| 5 | Honrado | Top 20% de HONOR score da temporada em curso, conduta exemplar sustentada | Referencia de conduta na temporada atual. |
-| 6 | Mestre | Top 10% de HONOR score, historico de mentoria ativa reconhecida, comunicacao como modelo | Jogadores aprendem com ele apenas por jogar ao lado. Comunicacao construtiva e padrao. |
-| 7 | Lendario | Top 5% de HONOR score, referencia cultural consolidada na comunidade | Reconhecido pela comunidade como guardiao da cultura do FormulaDota, nao apenas como jogador. |
-| 8 | Imortal da Formula | Ver criterio especial na secao abaixo | Atingiu o topo de ambos os eixos simultaneamente. O titulo mais alto do FormulaDota. |
+| Tier | Nome | HONOR Score | Criterio de ingresso | Descricao |
+|------|------|-------------|---------------------|-----------|
+| 1 | Aprendiz | < 800 ou em calibracao | Aceitou a Doutrina. Status de exibicao em calibracao (5-9 partidas): sempre Aprendiz. Pos-calibracao: score < 800. | Novo membro. Recebeu o codigo de conduta. Ainda sem historico suficiente para classificacao. |
+| 2 | Disciplinado | 800 – 1099 | Baseline. Score inicial = 1000. Player que joga regularmente sem strikes fica aqui. | Demonstrou regularidade basica. Comparece, joga ate o fim, sem comportamento destrutivo. |
+| 3 | Confiavel | 1100 – 1299 | +100 acima do inicio. Presenca >= 80%, no maximo 1 strike leve acumulado. | Pode ser contado. Outros jogadores sabem que ele vai comparecer e vai jogar inteiro. |
+| 4 | Respeitado | 1300 – 1499 | +300 acima do inicio. Elogios peer consistentes. Contribui ativamente com novatos. | Reconhecido pelos pares. Sua presenca melhora o ambiente da partida perceptivelmente. |
+| 5 | Honrado | 1500 – 1699 | +500 acima do inicio. Top ~20% de HONOR score da temporada. Conduta exemplar sustentada. | Referencia de conduta na temporada atual. |
+| 6 | Mestre | 1700 – 1899 | +700 acima do inicio. Top ~10% de HONOR score. Mentoria ativa reconhecida por pares. | Jogadores aprendem com ele apenas por jogar ao lado. Comunicacao construtiva e padrao. |
+| 7 | Lendario | 1900 – 2099 | +900 acima do inicio. Top ~5% de HONOR score. Referencia cultural consolidada. | Reconhecido pela comunidade como guardiao da cultura do FormulaDota, nao apenas como jogador. |
+| 8 | Imortal da Formula | 2100+ (+ criterios extras) | Top ~1% de HONOR score + requisitos multi-dimensionais. Ver criterio especial abaixo. | Atingiu o topo de ambos os eixos simultaneamente. O titulo mais alto do FormulaDota. |
+
+**Nota sobre calibracao:** Os thresholds acima se aplicam a players com `calibration_status = 'ranqueado'`
+(10+ partidas confirmadas). Durante calibracao ativa (5-9 partidas), o tier exibido e sempre **Aprendiz**,
+independente do score acumulado. Players com menos de 5 partidas (visitantes) exibem "Nao calibrado".
+
+**Referencia cruzada:** `.planning/research/phase-6-mmr-seasons-2-axis.md` secao 5.3 detalha como
+esses thresholds interagem com o sistema de seasons e o reset parcial entre temporadas.
 
 **Nota sobre mobilidade:** Tiers de HONOR podem subir e descer. Um jogador Honrado que acumula
 strikes em uma temporada pode regredir para Confiavel ou Respeitado. O sistema nao e uma

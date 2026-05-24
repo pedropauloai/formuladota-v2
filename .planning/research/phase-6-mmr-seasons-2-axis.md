@@ -161,9 +161,9 @@ create table if not exists player_season_honor (
   reviews_positivos   int not null default 0, -- soma de todos "would_play_again = true"
   reviews_negativos   int not null default 0,
   
-  -- Honor tier (separado do skill tier)
-  honor_tier      text not null default 'discipulo',
-                  -- 'iniciante'|'discipulo'|'honrado'|'exemplar'|'lendario'
+  -- Honor tier (separado do skill tier) — 8 tiers (decisão Pedro 2026-05-23)
+  honor_tier      text not null default 'aprendiz',
+                  -- 'aprendiz'|'disciplinado'|'confiavel'|'respeitado'|'honrado'|'mestre'|'lendario'|'imortal-da-formula'
   
   updated_at      timestamptz not null default now(),
   created_at      timestamptz not null default now(),
@@ -405,34 +405,103 @@ Os valores abaixo são **defaults sugeridos**. Os valores finais são definidos 
 
 ### 5.3 Tiers de HONOR
 
-```
-Honor tier = função(honor_atual):
+**Decisão Pedro 2026-05-23: manter 8 tiers conforme `docs/foundations/HONOR_SYSTEM.md`.
+Os 5 tiers anteriores (iniciante/discipulo/honrado/exemplar/lendario) foram descartados.**
 
-'iniciante'   :   0 ≤ honor < 700    — player novo ou com muitos strikes
-'discipulo'   : 700 ≤ honor < 1000   — baseline (onde todos começam)
-'honrado'     : 1000 ≤ honor < 1400  — acima da média, bom comportamento
-'exemplar'    : 1400 ≤ honor < 1800  — referência de conduta na comunidade
-'lendario'    : 1800+                 — condutor cultural raro
+Os 8 tiers estão alinhados com o componente `<HonorRankMedal>` já implementado.
+
+```
+Honor tier = função(honor_atual, calibration_status):
+
+ESTÁGIO VISITANTE (calibration_status = 'visitante'):
+  Não exibe tier — display "Não calibrado"
+  HONOR acumula internamente mas fica oculto do user
+
+ESTÁGIO CALIBRANDO (calibration_status = 'calibrando', 5-9 partidas):
+  Tier sempre exibido como 'aprendiz' — independente do score acumulado
+  HONOR score revelado ao user pela primeira vez
+
+ESTÁGIO RANQUEADO (calibration_status = 'ranqueado', 10+ partidas):
+  Tier calculado dinamicamente conforme honor_atual:
+
+  'aprendiz'          :   honor <  800   — em calibração ou com muitos strikes
+  'disciplinado'      :  800 ≤ honor < 1100  — baseline (score inicial = 1000)
+  'confiavel'         : 1100 ≤ honor < 1300  — acima da média, comparece e completa
+  'respeitado'        : 1300 ≤ honor < 1500  — reconhecido pelos pares
+  'honrado'           : 1500 ≤ honor < 1700  — top ~20% de conduta
+  'mestre'            : 1700 ≤ honor < 1900  — top ~10% de conduta
+  'lendario'          : 1900 ≤ honor < 2100  — top ~5% de conduta
+  'imortal-da-formula': 2100+                — top ~1% + critérios extras (ver seção 8)
 ```
 
-*Nota: escala calibrada para season de 3 meses. Player que joga toda semana com conduta média deve fechar em "honrado". "Exemplar" requer esforço consistente. "Lendário" deve ser raro (< 5% dos players).*
+**Calibração dos thresholds para season de 3 meses:**
+
+| Tier | Threshold | Progressão necessária | % esperada da base |
+|------|-----------|----------------------|-------------------|
+| Aprendiz | < 800 | Score negativo — muitos strikes | < 5% |
+| Disciplinado | 800–1099 | Baseline — joga, não abandona, neutro | ~40% |
+| Confiavel | 1100–1299 | +100 acima do início (presença consistente) | ~25% |
+| Respeitado | 1300–1499 | +300 — elogios peer ativos | ~15% |
+| Honrado | 1500–1699 | +500 — top 20% conduta | ~8% |
+| Mestre | 1700–1899 | +700 — top 10% conduta | ~4% |
+| Lendario | 1900–2099 | +900 — top 5% conduta | ~2% |
+| Imortal da Fórmula | 2100+ | +1100 + critérios extras | ~1% |
+
+*Nota: distribuição estimada para season de 3 meses com ~3 partidas/semana. Player que joga
+regularmente com conduta neutra fecha em Disciplinado. Confiavel requer presença consistente.
+Respeitado em diante requer elogios ativos de pares. Mestre e acima são raros por design.*
+
+**Enum do banco de dados** (campo `honor_tier` em `player_season_honor`):
+
+```sql
+-- Enum values — compatível com componente HonorRankMedal
+check (honor_tier in (
+  'aprendiz',
+  'disciplinado',
+  'confiavel',
+  'respeitado',
+  'honrado',
+  'mestre',
+  'lendario',
+  'imortal-da-formula'
+))
+```
 
 ### 5.4 Reset parcial entre seasons
 
 ```
 HONOR season N+1 início = max(honor_start, floor(honor_final_season_N * (1 - honor_reset_percent/100)))
 
-Exemplo:
-- Player fechou Season 1 com 1.600 HONOR (exemplar)
+Exemplo com os 8 tiers (decisão Pedro 2026-05-23):
+- Player fechou Season 1 com 1.700 HONOR (tier: Mestre)
 - honor_reset_percent = 10% (memória mais persistente que skill)
-- HONOR início Season 2 = floor(1600 * 0.90) = 1.440 (ainda exemplar)
+- HONOR início Season 2 = floor(1700 * 0.90) = 1.530 (cai para: Honrado)
 
-Por que 10% e não 30%?
+- Player fechou Season 1 com 1.100 HONOR (tier: Confiavel)
+- HONOR início Season 2 = floor(1100 * 0.90) = 990 (cai para: Disciplinado — abaixo do threshold 1100)
+
+- Player novo (sem season anterior): começa em honor_start = 1000 (Disciplinado)
+```
+
+**Mapeamento tier → threshold pós-reset (referência):**
+
+| Tier ao fechar Season N | HONOR final | HONOR início Season N+1 | Tier inicial N+1 |
+|-------------------------|-------------|-------------------------|-----------------|
+| Imortal da Fórmula | 2100+ | 1890+ | Lendario |
+| Lendario | 1900–2099 | 1710–1889 | Mestre |
+| Mestre | 1700–1899 | 1530–1709 | Honrado |
+| Honrado | 1500–1699 | 1350–1529 | Respeitado |
+| Respeitado | 1300–1499 | 1170–1349 | Confiavel |
+| Confiavel | 1100–1299 | 990–1169 | Disciplinado |
+| Disciplinado | 800–1099 | 720–989 | Aprendiz ou Disciplinado |
+| Aprendiz | < 800 | < 720 | Aprendiz |
+
+**Por que 10% e não 30%?**
 - Conduta é cultural — se formou durante meses de comunidade
 - Não faz sentido "punir" boa conduta tão agressivamente quanto skill
-- Player que foi "exemplar" tem DNA de boa conduta — começa a frente dos novatos
+- Player que foi Mestre tem DNA de boa conduta — começa à frente dos novatos na nova season
 - Dá incentivo de longo prazo: "construir reputação de conduta vale o investimento"
-```
+- Com 8 tiers, o rebaixamento de 10% já gera movimento de tier natural sem ser punitivo
 
 ---
 
@@ -452,9 +521,10 @@ PASSO 1 — Pool de candidatos
 
 PASSO 2 — Filtro de honor_tier mínimo da fila
   Cada fila tem um honor_tier_minimo configurável (admin define por season):
-    - Fila "Livre": honor_tier >= 'iniciante' (qualquer um)
+    - Fila "Livre": honor_tier >= 'disciplinado' (qualquer calibrado)
     - Fila "Honrada": honor_tier >= 'honrado'
-    - Fila "Exemplar": honor_tier >= 'exemplar'
+    - Fila "Mestre": honor_tier >= 'mestre'
+  Visitantes (não-calibrados) só acessam fila livre durante as 5 primeiras partidas.
   Novos players sempre têm acesso à fila livre.
   Fila mais restrita = convivência mais homogênea.
 
@@ -510,8 +580,9 @@ Mostra os top performers em habilidade técnica pura.
 ```
 Ranking HONOR — Season 1 — Fundação
 Posição | Player | HONOR | Honor Tier | Presença | Elogios
-   1    | Jogador C | 1892 | Lendário | 97% | 23
-   2    | Jogador D | 1743 | Exemplar | 94% | 19
+   1    | Jogador C | 1950 | Lendario | 97% | 23
+   2    | Jogador D | 1820 | Mestre | 94% | 19
+   3    | Jogador E | 1680 | Honrado | 91% | 14
    ...
 ```
 
