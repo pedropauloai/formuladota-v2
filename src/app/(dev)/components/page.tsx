@@ -73,6 +73,9 @@ import { HeroVideo } from "@/components/dota/hero-video";
 // Section 0 — Typography showcase (3 famílias, 4 tokens)
 import { TypographySection } from "./typography-section";
 
+// Section 0.5 — Page Templates (Sistema A canônico)
+import { PageTemplatesSection } from "./page-templates-section";
+
 // ---------------------------------------------------------------------------
 // Helpers de tipo para iterar TIER_NAMES de forma type-safe
 // ---------------------------------------------------------------------------
@@ -192,6 +195,11 @@ export default function ComponentsPage() {
       {/* SECTION 0 — Tipografia (3 famílias, 4 tokens)                      */}
       {/* ================================================================== */}
       <TypographySection />
+
+      {/* ================================================================== */}
+      {/* SECTION 0.5 — Page Templates (Sistema A canônico)                  */}
+      {/* ================================================================== */}
+      <PageTemplatesSection />
 
       {/* ================================================================== */}
       {/* SECTION 1 — Cores Semânticas                                       */}
