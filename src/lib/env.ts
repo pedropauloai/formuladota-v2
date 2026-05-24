@@ -14,21 +14,24 @@ const serverSchema = z.object({
   DISCORD_CLIENT_SECRET: optional,
   DISCORD_BOT_TOKEN: optional,
   DISCORD_GUILD_ID: optional,
-  // Mercado Pago (Phase 4 — substitui AbacatePay 2026-05-02)
+  // AbacatePay — PIX avulso/fichas (coexiste com MP)
+  ABACATEPAY_API_KEY: optional,
+  ABACATEPAY_WEBHOOK_SECRET: optional,
+  // Mercado Pago (Phase 4 — assinatura mensal Pix Automático)
   MP_ACCESS_TOKEN: optional,        // production APP_USR-... ou sandbox TEST-...
   MP_PUBLIC_KEY: optional,          // public key pra frontend (se necessário)
   MP_WEBHOOK_SECRET: optional,      // secret pra HMAC validation x-signature header
   MP_PREAPPROVAL_PLAN_ID: optional, // opcional — plan_id se Pedro criar plano fixo via MCP
   HUB_PRICE_BRL: optional,          // mensalidade R$ (default 47, validado em call site)
-  // Bot Steam (Phase 5)
-  BOT_API_URL: optional,            // ex: https://formuladota-bot-production.up.railway.app
-  BOT_API_KEY: optional,            // mesma key configurada no bot Railway
-  // Stratz GraphQL (Phase 7)
-  STRATZ_API_KEY: optional,         // Tier 1 grátis 2k req/h
-  OPENDOTA_API_KEY: optional,
   // Steam Web API key (Phase 3): server-only. Validada cirurgicamente via
   // requireServerEnv("STEAM_WEB_API_KEY") em src/lib/steam.ts.
   STEAM_WEB_API_KEY: optional,
+  // Bot Steam (Phase 5)
+  BOT_API_URL: optional,
+  BOT_API_KEY: optional,
+  // Stratz GraphQL (Phase 7)
+  STRATZ_API_KEY: optional,
+  OPENDOTA_API_KEY: optional,
   RESEND_API_KEY: optional,
   EMAIL_FROM: z.preprocess(
     (v) => (v === "" ? undefined : v),
