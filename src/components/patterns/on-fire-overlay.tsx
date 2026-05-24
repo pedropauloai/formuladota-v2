@@ -26,26 +26,50 @@ import { useMotionSafeBool } from "@/lib/motion/hooks";
 // Tipos públicos
 // ---------------------------------------------------------------------------
 
-export type OnFireVariant = "coach" | "student";
+/**
+ * 6 variantes disponíveis — 2 originais + 4 comportamentais (PHILOSOPHY.md 2026-05-23).
+ *
+ * Eixo SKILL/PERFORMANCE (originais):
+ *   "coach"       — "ON FIRE • 5 wins" (streak de vitórias do coach)
+ *   "student"     — "+320 MMR esta semana" (evolução semanal do aluno)
+ *
+ * Eixo HONOR/CONDUTA (novos — filosofia 2-eixos):
+ *   "disciplina"  — "EM RITMO • N partidas disciplinadas"
+ *   "mentoria"    — "MENTOR ATIVO • N elogios esta semana"
+ *   "aprendizado" — "EVOLUÇÃO • N derrotas com aprendizado"
+ *   "estabilidade"— "ESTÁVEL • N partidas sem strike"
+ */
+export type OnFireVariant =
+  | "coach"
+  | "student"
+  | "disciplina"
+  | "mentoria"
+  | "aprendizado"
+  | "estabilidade";
+
 export type OnFirePosition = "top-right" | "top-left";
 
 export interface OnFireOverlayProps {
   /**
-   * Número de vitórias consecutivas (streak).
-   * Exibido no texto: "ON FIRE • 5 wins"
+   * Número principal do badge (streak, partidas, elogios, etc).
+   * Interpretação varia por variant — ver getBadgeText().
    */
   streakCount: number;
   /**
-   * Contexto do badge:
-   *   "coach"   — mostra streak de vitórias do coach
-   *   "student" — mostra evolução de MMR desta semana
+   * Contexto do badge (default: "coach"):
+   *   "coach"       — streak de vitórias do coach
+   *   "student"     — evolução de MMR semanal
+   *   "disciplina"  — sequência de partidas disciplinadas
+   *   "mentoria"    — elogios recebidos na semana
+   *   "aprendizado" — derrotas com atitude positiva
+   *   "estabilidade"— partidas consecutivas sem strike emocional
    */
   variant?: OnFireVariant;
   /** Posição do badge no card pai (default: top-right) */
   position?: OnFirePosition;
   /**
-   * Texto customizado de evolução para variant "student".
-   * Default: "+X MMR esta semana" calculado internamente.
+   * Texto customizado — sobrescreve o texto calculado automaticamente.
+   * Útil para "student" com mmrLabel específico.
    */
   mmrLabel?: string;
   /** Classes extras aplicadas ao badge */
@@ -56,17 +80,47 @@ export interface OnFireOverlayProps {
 // Helper — texto do badge por variante
 // ---------------------------------------------------------------------------
 
+/**
+ * Gera o texto exibido no badge conforme a variante e o número fornecido.
+ * PHILOSOPHY.md 2026-05-23: 6 variantes (2 originais + 4 comportamentais).
+ *
+ * mmrLabel sobrescreve o texto calculado quando fornecido — útil para
+ * mensagens específicas como "+320 MMR esta semana".
+ */
 function getBadgeText(
   variant: OnFireVariant,
   streakCount: number,
   mmrLabel?: string
 ): string {
-  if (variant === "student") {
-    // Ex: "+320 MMR esta semana" — pode ser sobrescrito via mmrLabel
-    return mmrLabel ?? `+${streakCount} MMR esta semana`;
+  // mmrLabel sobrescreve sempre — qualquer variante pode ter texto customizado
+  if (mmrLabel) return mmrLabel;
+
+  switch (variant) {
+    case "student":
+      // Ex: "+320 MMR esta semana"
+      return `+${streakCount} MMR esta semana`;
+
+    case "disciplina":
+      // Ex: "EM RITMO • 10 partidas disciplinadas"
+      return `EM RITMO • ${streakCount} partidas disciplinadas`;
+
+    case "mentoria":
+      // Ex: "MENTOR ATIVO • 3 elogios esta semana"
+      return `MENTOR ATIVO • ${streakCount} elogios esta semana`;
+
+    case "aprendizado":
+      // Ex: "EVOLUÇÃO • 5 derrotas com aprendizado"
+      return `EVOLUÇÃO • ${streakCount} derrotas com aprendizado`;
+
+    case "estabilidade":
+      // Ex: "ESTÁVEL • 20 partidas sem strike"
+      return `ESTÁVEL • ${streakCount} partidas sem strike`;
+
+    case "coach":
+    default:
+      // "ON FIRE • 5 wins" — número de vitórias em sequência
+      return `ON FIRE • ${streakCount} wins`;
   }
-  // Coach: "ON FIRE • 5 wins" — número de vitórias em sequência
-  return `ON FIRE • ${streakCount} wins`;
 }
 
 // ---------------------------------------------------------------------------
