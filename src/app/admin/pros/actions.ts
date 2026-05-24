@@ -15,6 +15,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { fetchOpenDotaMatch, normalizePlayers } from "@/lib/dota/opendota";
+import { sendPTConfirmedEmail } from "@/lib/resend";
 
 const STEAM_64_OFFSET = 76561197960265728n;
 function steam64To32(steamId64: string): number {
@@ -187,9 +188,50 @@ export async function confirmPTRealized(
     return { success: false, error: "Erro ao confirmar PT: " + error.message };
   }
 
+  // Email não-crítico: notificar alunos que a PT foi confirmada e fichas debitadas.
+  void sendPTEmailsToParticipants(supabase, matchId);
+
   revalidatePath("/admin/pros");
   revalidatePath("/dashboard");
   return { success: true, data: { matchId } };
+}
+
+// Busca alunos do match e envia email de confirmação pra cada um (fire-and-forget).
+async function sendPTEmailsToParticipants(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  matchId: string
+): Promise<void> {
+  try {
+    const { data: entries } = await supabase
+      .from("coach_queue_entries")
+      .select("user_id")
+      .eq("match_id", matchId)
+      .eq("status", "consumed");
+
+    if (!entries || entries.length === 0) return;
+
+    const userIds = entries.map((e) => e.user_id);
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("id, email, username")
+      .in("id", userIds);
+
+    if (!profiles) return;
+
+    await Promise.all(
+      profiles.map((p) => {
+        if (!p.email) return Promise.resolve();
+        return sendPTConfirmedEmail({
+          matchId,
+          customerEmail: p.email,
+          customerName: p.username ?? undefined,
+          fichasConsumidas: 1,
+        });
+      })
+    );
+  } catch (err) {
+    console.error("[confirmPTRealized] email PT falhou:", err);
+  }
 }
 
 // ============== cancelPT ==============
