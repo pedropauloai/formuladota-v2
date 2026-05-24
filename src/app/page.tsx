@@ -152,26 +152,43 @@ export default async function HomePage() {
             Aqui voce joga junto e aprende por osmose.
           </p>
 
-          {/* CTAs — primário "Entrar com Discord" + secundário "Ler a Doutrina" */}
+          {/* CTAs — primário "SUBIR DE MMR" (atração, contexto público) + secundário */}
+          {/* Regra PHILOSOPHY.md §Reconciliações: CTA MMR apenas em contextos de atração */}
           <div
             style={{
               display: "flex",
-              flexWrap: "wrap",
+              flexDirection: "column",
               gap: "var(--space-4)",
-              alignItems: "center",
+              alignItems: "flex-start",
             }}
           >
-            <form action={signInWithDiscord}>
-              <Button type="submit" variant="cinematic" size="xl">
-                Entrar com Discord
-              </Button>
-            </form>
+            {/* CTA primário — atração por MMR (linguagem do desejo presente) */}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-4)", alignItems: "center" }}>
+              <form action={signInWithDiscord}>
+                <Button type="submit" variant="cinematic" size="xl">
+                  SUBIR DE MMR jogando junto com PRO Imortal
+                </Button>
+              </form>
 
-            <Link href="/codigo-de-conduta" style={{ textDecoration: "none" }}>
-              <Button variant="ghost" size="lg">
-                Ler a Doutrina
-              </Button>
-            </Link>
+              <Link href="/codigo-de-conduta" style={{ textDecoration: "none" }}>
+                <Button variant="ghost" size="lg">
+                  Ler a Doutrina
+                </Button>
+              </Link>
+            </div>
+
+            {/* Subtexto — honesto, sem hype, sem promessa quantitativa */}
+            <p
+              style={{
+                fontFamily: "var(--font-body)",
+                fontSize: "0.8rem",
+                color: "var(--color-text-faded)",
+                lineHeight: 1.5,
+                margin: 0,
+              }}
+            >
+              Sua proxima partida ranked com quem chegou onde voce quer chegar.
+            </p>
           </div>
         </div>
       </section>
@@ -409,12 +426,13 @@ export default async function HomePage() {
             padding: "0 var(--space-8)",
           }}
         >
-          Pronto para evoluir?
+          Suba MMR com quem chegou la.
         </h2>
 
+        {/* CTA de atração — contexto público (PHILOSOPHY.md §Reconciliações) */}
         <form action={signInWithDiscord}>
           <Button type="submit" variant="cinematic" size="xl">
-            Entrar com Discord
+            SUBIR DE MMR jogando junto com PRO Imortal
           </Button>
         </form>
       </section>
