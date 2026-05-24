@@ -205,10 +205,10 @@
 
 > Templates por último porque consomem tudo. Mata sidebar SaaS atual.
 
-- **DF8.1** `<ClientShell>` em `src/components/templates/client-shell.tsx` — top bar horizontal estilo Dota 2 client (decisão Pedro 2026-05-23): logo esquerda + tabs centrais (Jogar / Perfil / Comunidade / Loja) + auth dropdown direita. CTA primário "PLAY" massivo destacado quando dentro da tab Jogar. KILL sidebar 256px atual.
+- **DF8.1 (REVERTIDO 2026-05-24)** Direção original: `<ClientShell>` em `templates/client-shell.tsx` — top bar horizontal sem sidebars (decisão Pedro 2026-05-23 baseada em Riot Client). Após reformulação de M2: ClientShell canônico é `src/components/client-shell/shell.tsx` (Sistema A — 3 colunas fiel ao Dota 2 client real): top-bar central + sidebar esquerda (avatar+amigos) + sidebar direita contextual (matchmaking) + bottom-bar [JOGAR DOTA] verde. Sidebar SaaS de rotas (estilo Slack) continua proibida. Template B é @deprecated.
 - **DF8.2** Landing `/` reformulada — sem `max-w-*` container SaaS. Fullscreen wash + bleed-to-edge + content offset assimétrico. AmbientLayer + hero video oficial Dota 2 + manifest cinematográfico em Cinzel. Sections inspiradas em dota2.com/home mas com voz FormulaDota (cita doutrina).
 - **DF8.3** Rota `/(dev)/components` em dev mode apenas — live browser de tokens + primitives + patterns. Substitui Storybook (overhead pra solo dev).
-- **DF8.4** Pages atuais (`/pacotes`, `/me`, `/admin/*`, `/codigo-de-conduta`, `/onboarding/doutrina`, etc.) refactored consumindo novo `<ClientShell>` e primitives DF6/DF7.
+- **DF8.4 (REVERTIDO 2026-05-24)** Direção original era migrar para `templates/client-shell.tsx` (sem sidebar, baseado em Riot Client). Após reformulação de M2 (UX_PRINCIPLES.md), direção correta é migrar 6 pages órfãs (`/me`, `/perfil`, `/partidas`, `/pacotes`, `/codigo-de-conduta`, `/metodologia`) DO templates/client-shell.tsx PARA `src/components/client-shell/shell.tsx` (Sistema A canônico — 3 colunas fiel ao Dota 2 client real).
 - **DF8.5** Disclaimer footer mantém spec B3 (Valve trademark) + adiciona crédito SFX Freesound CC0.
 
 ---
@@ -275,7 +275,7 @@
 | DF8.1 -- ClientShell top-bar Dota 2 style | V2.5-F8 | Pending |
 | DF8.2 -- Landing reformulada fullscreen | V2.5-F8 | Pending |
 | DF8.3 -- Rota /(dev)/components dev-only | V2.5-F8 | Pending |
-| DF8.4 -- Pages migradas para ClientShell | V2.5-F8 | Pending |
+| DF8.4 -- 6 pages órfãs migradas Sistema B → A (revertido 2026-05-24) | V2.5-F8 | Pending |
 | DF8.5 -- Footer disclaimer Valve + Freesound CC0 | V2.5-F8 | Pending |
 | C14 -- Zero hex hardcoded em componentes | Todas F1-F8 | Pending |
 | C15 -- Zero motion duration inline | Todas F2-F8 | Pending |

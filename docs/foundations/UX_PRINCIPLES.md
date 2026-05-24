@@ -113,41 +113,91 @@ vermelho semitransparente, nao um fundo escuro liso com card centralizado.
 
 ---
 
-### M2 — Navigation Top-Bar Dota 2 Style
+### M2 — Navigation 3-col Dota 2 Client Style
 
 #### Principio
 
-Elimine a sidebar de 256px. A navegacao principal e uma top-bar horizontal com tabs e
-CTA central, nao um painel lateral.
+A navegacao segue a estrutura de 3 colunas fiel ao client do Dota 2 REAL:
+sidebar esquerda persistente (identidade + amigos), top-bar central + viewport
+da view ativa, sidebar direita contextual (matchmaking + opcoes da view), e
+bottom-bar com [JOGAR DOTA] verde grande no canto direito.
+
+NAO existe versao minimalista sem sidebars (estilo Riot/Valorant menu). NAO
+existe sidebar generica de navegacao de rotas (estilo Slack/Linear/Notion).
+
+#### Historico — Reformulacao 2026-05-24
+
+M2 original (Wave 7-8) defendia "kill sidebar" tendo Riot Client v6 como
+referencia (apesar do titulo dizer "Dota 2 Style"). Resultou em divergencia
+do produto da identidade visual desejada. Reformulado apos Pedro apontar as
+imagens de referencia presentes na raiz do projeto:
+
+- `dota 2 menu.png` — client Dota 2 real (3 colunas)
+- `dashboard-current.png` — /dashboard FormulaDota ja fiel
+- `menu lateral - competitiva.png` — sidebar direita matchmaking
+- `menu lateral - salas personalizadas.png` — sub-opcoes contextuais
+- `find por role.png` — busca por funcoes configurada
+- `configuração lobby.png`, `lobby criado.png` — telas de lobby
 
 #### Why
 
-Sidebars de 256px sao o padrao de SaaS enterprise (Slack, Linear, Notion, GitHub). Elas
-comunicam "ferramenta de trabalho", nao "plataforma de jogo". O Dota 2 client v7.37 usa
-top-bar horizontal com tabs: PLAY / HEROES / ITEMS / WATCH / LEARN. O Riot Client v6
-usa top-bar com logo esquerda, navegacao central, controles de auth direita. O FACEIT
-v4 usa top-bar horizontal. O Battle.net v22 usa top-bar com jogo selecionado e navegacao
-por tabs.
+O Dota 2 client v7.37 (referencia canonica) usa 3 colunas:
 
-A top-bar maximiza a area de conteudo vertical — crucial em game clients onde o conteudo
-principal (hero portrait, fila, ranking) precisa de espaco vertical. Uma sidebar rouba
-20-25% da largura em monitores 1080p, que e o hardware mais comum do publico-alvo
-(jogadores brasileiros de Dota 2 usando setups de custo medio).
+1. **Sidebar esquerda** (~300-400px): avatar do jogador + medalha de rank +
+   nick + busca de amigos + lista categorizada de amigos online (NO DOTA /
+   MEMBROS DO CLA / FAVORITOS / EM LINHA). Esta sidebar e identidade + social,
+   NAO navegacao de rotas.
+2. **Top-bar central** (~56-64px): logo esquerda + tabs centrais (PLAY / HEROES
+   / ITEMS / WATCH / LEARN) + controles direita (notifications, store, settings).
+3. **Sidebar direita contextual** (~280-380px): aparece quando user esta na tab
+   PLAY (ou similar) mostrando OPCOES DA ACAO selecionada — categorias de
+   matchmaking (COMPETITIVA / SALAS PERSONALIZADAS / JOGAR CONTRA BOTS /
+   CASUAL) com sub-opcoes (BUSCA POR FUNCOES / CLASSICO / CRIAR / NAVEGAR) e
+   [BUSCAR PARTIDA] verde no fundo da sidebar.
+4. **Bottom-bar** (~80-96px): notificacoes esquerda + status server + idioma +
+   settings centro + [JOGAR DOTA] verde grande direita.
+
+Sidebars genericas de navegacao SaaS (Slack, Linear, Notion, GitHub) sao
+proibidas porque comunicam "ferramenta de trabalho", nao "plataforma de jogo".
+Mas sidebars DO DOTA 2 (identity+social esquerda, matchmaking contextual
+direita) sao obrigatorias porque sao parte da assinatura visual de "client
+de Dota". A diferenca semantica e clara: SaaS sidebar = lista de rotas;
+Dota sidebar = identity ou contexto de acao.
+
+A versao Riot/Valorant minimalista (top-bar + viewport fullscreen sem sidebars)
+foi consciente decisao desses produtos — mas afasta da fidelidade com o Dota 2
+client. FormulaDota escolheu fidelidade Dota 2 como ancoragem cultural do
+publico brasileiro de Dota.
 
 #### Exemplo positivo
 
-Dota 2 client v7.37 (2024): top-bar com altura de 56px. Logo "DOTA" no canto esquerdo.
-Tabs no centro: "PLAY", "HEROES", "ITEMS", "WATCH", "LEARN", "SHOP". Cada tab e um
-elemento de texto uppercase com underline animado ao hover. Direita: avatar do usuario,
-notificacoes, loja, configuracoes. O conteudo principal ocupa 100% da altura restante
-do viewport.
+Dota 2 client v7.37 (2024) tela principal:
 
-#### Anti-pattern — Exemplo negativo
+- **Esquerda**: avatar circular grande + medalha Imortal acima + nick
+  "only mid (ACR1)" abaixo + barra "BUSCAR AMIGOS" + lista de amigos com
+  avatares pequenos agrupados (NO DOTA 5 / MEMBROS DO CLA / FAVORITOS /
+  EM LINHA 18).
+- **Centro top**: tabs HERÓIS / ARSENAL / ASSISTIR / APRENDER / SALÃO DE
+  JOGOS com estado ativo destacado.
+- **Centro**: hero portrait de evento ativo (ex: "QUIOSQUE DO QUARTERO") com
+  personagens em destaque + medalha de progresso.
+- **Direita** (quando JOGAR ativo): COPA DE BATALHAS / SALAS PERSONALIZADAS
+  / JOGAR CONTRA BOTS / COMPETITIVA com sub-opcoes BUSCA POR FUNCOES /
+  CLASSICO e [BUSCAR PARTIDA] verde grande no fundo.
+- **Bottom**: notificacoes + tag "Para [ACME Corp.]" + servidor + idioma +
+  settings + [JOGAR DOTA] verde no canto direito.
 
-Layout com sidebar presente no codebase atual do FormulaDota:
+FormulaDota /dashboard atual (2026-05-24, ver `dashboard-current.png`) e
+estruturalmente identico — sidebar esquerda com avatar/medalha/amigos +
+centro hero (TEMPORADA I - GENESIS) + tabs PROGRESSO/RANKING/TIMES/TORNEIOS/
+CONDUTA + [JOGAR DOTA] verde bottom direito.
+
+#### Anti-pattern — 2 erros opostos a evitar
+
+##### Erro 1: Sidebar generica de navegacao SaaS (estilo Slack/Linear)
 
 ```tsx
-// PROIBIDO: sidebar de 256px estilo SaaS
+// PROIBIDO: sidebar de 256px estilo SaaS — lista de rotas, semantica CRUD
 export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-screen">
@@ -158,26 +208,64 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <Link href="/ranking">Ranking</Link>
         </nav>
       </aside>
-      <main className="flex-1 overflow-y-auto">
-        {children}
-      </main>
+      <main className="flex-1 overflow-y-auto">{children}</main>
     </div>
   );
 }
 ```
 
-Este layout deve ser substituido pelo `<ClientShell>` com top-bar (V2.5-F8).
+Esta sidebar e uma lista de rotas — semantica de CRUD/admin, nao de game
+client. Navegacao de rotas e responsabilidade da TOP-BAR, nao da sidebar.
+
+##### Erro 2: Remover sidebars completamente (estilo Riot/Valorant minimalista)
+
+```tsx
+// PROIBIDO: shell minimalista sem sidebars — afasta do Dota 2 client real
+export function ClientShell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col h-screen">
+      <header><Tabs /></header>
+      <main className="flex-1">{children}</main>
+    </div>
+  );
+}
+```
+
+Este shell e estilo Riot Client v6 / Valorant menu — minimalista e focado em
+"acao primaria unica". Mas afasta da fidelidade Dota 2 e remove a presenca
+social (amigos online) e o contexto de acao (matchmaking categorizado). O
+Sistema B (`src/components/templates/client-shell.tsx`) entrou neste anti-
+pattern e e `@deprecated 2026-05-24`.
 
 #### Como aplicar no FormulaDota
 
-O `<ClientShell>` (V2.5-F8) implementa:
+O `<ClientShell>` canonico (`src/components/client-shell/shell.tsx`) implementa:
 
-- Top-bar altura 56px, `position: sticky top-0`, `z-index: var(--z-navigation)`.
-- Logo FORMULADOTA esquerda (fonte Cinzel, cor brand-red).
-- Tabs centrais: JOGAR / RANKING / PERFIL / COACHES.
-- Direita: `<PresenceDot>` do usuario + avatar + dropdown auth.
-- Aba "JOGAR" contem o CTA primario de "Entrar na Fila" com glow pulsante (ver M3).
-- Zero sidebar. `grep -rE "w-64|sidebar"` deve retornar zero apos V2.5-F8.
+- **Top-bar** altura 56-64px com tabs JOGAR / PROGRESSO / RANKING / TIMES /
+  TORNEIOS / CONDUTA + condicionais PRO / ADMIN. Logo FORMULADOTA esquerda.
+  Mute toggle + auth slot direita.
+- **Sidebar esquerda** ~340-460px (responsiva) com `<DashboardLeftSidebar>`:
+  avatar grande + medalha rank + nick + saldo de fichas + (futuro) busca de
+  amigos + lista de amigos online.
+- **Sidebar direita** ~320-560px (responsiva) com `<DashboardRightSidebar>` ou
+  slot custom: contexto da view ativa. Em "JOGAR" mostra `<PlayPanel>` com
+  categorias de matchmaking. Em outras views pode mostrar widgets relevantes
+  ou nada (`hideRightSidebar` flag).
+- **Bottom-bar** com `<DashboardBottomBar>`: status + queue indicator + atalhos
+  + [JOGAR DOTA] verde grande no canto direito (Botao h-14+, glow verde, M3).
+- **Modo immersive** opcional: background fullscreen + sidebars como overlays
+  flutuantes (usado em /dashboard).
+
+Validacao automatizada (substitui a antiga regra "grep w-64 deve retornar zero"):
+
+```bash
+# Devem RETORNAR matches — sidebars sao obrigatorias
+grep -rE "DashboardLeftSidebar|DashboardRightSidebar|DashboardBottomBar" src/
+
+# Devem RETORNAR ZERO — anti-patterns
+grep -rE "<aside .*w-64.*<nav" src/             # sidebar SaaS de rotas
+grep -rE "templates/client-shell" src/app/      # uso de Sistema B deprecated
+```
 
 ---
 
@@ -960,6 +1048,55 @@ Este mandamento e programado para implementacao quando o bot Steam capturar dado
 desde o inicio — para que a implementacao tecnica nao precise ser refeita quando o HONOR
 system for ativado.
 
+#### Pergunta Canonica de Auditoria — componente obrigatorio pos-derrota
+
+A **pergunta canonica da Fórmula** — que Pedro Paulo formula publicamente como pivo de
+transformacao do jogador — vira componente OBRIGATORIO da tela pos-partida em DERROTA:
+
+> *"O que eu poderia ter feito diferente para ter ganho essa partida, mesmo com o time
+> jogando mal?"*
+
+Esta pergunta:
+
+- Cita LITERALMENTE o texto do autor da metodologia
+- Previne o anti-padrao #14 da Doutrina (Recusa de Auditoria Pos-Derrota)
+- Bloqueia o reflexo de terceirizar culpa (anti-padroes #1 e #13)
+- Cobra reflexao ANTES do dump de estatisticas
+
+**Implementacao na estrutura da tela pos-derrota:**
+
+```
+[RESULTADO DA PARTIDA — DERROTA]
+
+[Delta HONOR desta partida]
++15 HONOR — Derrota com Honra
+
+[CAMPO OBRIGATORIO DE AUDITORIA — não pode ser dismissed]
+> O que voce poderia ter feito diferente para ter ganho essa partida,
+> mesmo com o time jogando mal?
+
+[textarea, minimo 30 caracteres, deve ser preenchido para fechar a tela]
+
+[Estatisticas tecnicas — desbloqueia apos resposta submetida]
+KDA: 3/7/11 | GPM: 432 | XPM: 524
+[Delta MMR interno]
+
+[Acao sugerida]
+[VER REPLAY]   [ENTRAR NA FILA]
+```
+
+A resposta do usuario e armazenada em `match_reflections` (privada por padrao, opcional
+compartilhar com Pedro/mentor). O texto submetido NAO e analisado por IA nem julgado
+automaticamente — o valor esta no ato de escrever, nao no conteudo. O sistema apenas
+verifica `LENGTH(content) >= 30` antes de liberar fechamento da tela.
+
+**Frequencia:** apenas em DERROTA. Em VITORIA a reflexao e opcional (campo presente mas
+nao bloqueante) — a Doutrina considera que a derrota e mais valiosa que a vitoria para
+aprendizado (Pilar 5).
+
+**Tom da copy do campo:** direto, sem amenizacao. Nao "Compartilhe seus sentimentos" nem
+"Como voce avalia sua partida?". A pergunta canonica do autor da metodologia, literal.
+
 **Para implementacoes parciais (antes do HONOR system ativo):**
 A tela pos-partida pode exibir placeholder de HONOR no lugar do delta real: "Conduta desta
 partida sera avaliada em breve" — mantendo o enquadramento sem mentir sobre dados nao disponiveis.
@@ -978,7 +1115,7 @@ partida sera avaliada em breve" — mantendo o enquadramento sem mentir sobre da
 | # | Mandamento | Anti-pattern proibido | Produto de referencia |
 |---|-----------|----------------------|----------------------|
 | M1 | Onboarding cinematografico | Modal centralizado SaaS | Dota 2 client v7.37 |
-| M2 | Navigation top-bar horizontal | Sidebar 256px estilo Slack | Riot Client v6 |
+| M2 | Navigation 3-col Dota 2 client | Sidebar SaaS de rotas OU remover sidebars | Dota 2 client v7.37 |
 | M3 | CTA com weight massivo | Botoes h-8 uniformes shadcn | Riot Client v6 |
 | M4 | Live state sempre visivel | Fetch estatico sem realtime | Dota 2 client v7.37 |
 | M5 | Feedback visual + sonoro acoplado | Toast generico sem som | FACEIT v4 |
@@ -1145,7 +1282,9 @@ de codigo ser escrito.
 Se a resposta e "nao", questione se e um diferencial intencional do FormulaDota
 ou um erro de padrao SaaS infiltrado. Exemplos de diferenciais intencionais:
 a Doutrina nos loading screens (unico no mercado). Exemplos de erros infiltrados:
-sidebar de 256px, toast no top-right, spinner de loading.
+sidebar SaaS de rotas (estilo Slack), shell minimalista sem sidebars (estilo
+Riot/Valorant — afasta do Dota 2 client real, ver M2), toast no top-right,
+spinner de loading.
 
 Se nao existe em nenhum cliente AAA de referencia e nao e um diferencial intencional
 documentado, o elemento deve ser redesenhado.

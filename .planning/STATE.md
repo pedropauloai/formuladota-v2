@@ -49,16 +49,16 @@ See: .planning/PROJECT.md (updated 2026-05-23)
 
 - **Curadoria SFX Freesound CC0 manual** (Pedro ou com FREESOUND_API_KEY) — F5 entregou stubs silenciosos. Howler está integrado, só falta os .mp3 reais nos sprite slots.
 - **FPS benchmark tsParticles em hardware Pedro** (Chrome DevTools Performance) — F3 entregou AmbientLayer, mas config de partículas não foi testada em hardware real.
-- **Migrar pages pra novo ClientShell (DF8.4) — ~1-2 dias adicionais** — substituir `src/components/client-shell/shell.tsx` legacy por `src/components/templates/client-shell.tsx` AAA. Pages afetadas: dashboard, criar-lobby, lobbies, me, perfil, codigo-de-conduta, onboarding/doutrina, pacotes, partidas, assinatura, admin/*.
-- **Limpeza débito técnico C14/C15/C17/C19 em components legacy** — C14: 11 hex hardcoded; C15: 1 duration inline; C17: 23 z-index ad-hoc; C19: 19 animate-spin. Todos em components legacy (client-shell/, queue/, catalog/, checkout/) — components V2.5 novos estão limpos.
-- **Componente Toast precisa que pages migrem** — useToast() hook em vez de sonner. Ativado quando DF8.4 migration completar.
-- **react-hooks/purity cleanup pós-DF8.4** — após migrar pages, revisar Date.now() nos novos components e substituir por padrão aprovado (useServerInsertedHTML ou data vinda do server).
-- **Sidebar 256px legacy (shell.tsx)** — M2 mandamento "kill sidebar" parcialmente completo. ClientShell template (templates/client-shell.tsx) já não usa sidebar, mas o shell.tsx legacy ainda existe para as pages não-migradas.
+- **Migrar 6 pages do Sistema B → Sistema A (REVERTIDO 2026-05-24)** — direção original "DF8.4: migrar para templates/client-shell.tsx (sem sidebar)" foi invertida após Pedro confirmar Dota 2 client real (3 colunas) como referência canônica. Agora: páginas órfãs (`/me`, `/perfil`, `/partidas`, `/pacotes`, `/codigo-de-conduta`, `/metodologia`) migram para `src/components/client-shell/shell.tsx` (Sistema A canônico). Tasks #50-#54.
+- **Limpeza débito técnico C14/C15/C17/C19 em components legacy** — C14: 11 hex hardcoded; C15: 1 duration inline; C17: 23 z-index ad-hoc; C19: 19 animate-spin. Em components que **não são** client-shell (queue/, catalog/, checkout/) — components V2.5 novos estão limpos. Sistema A (client-shell/) é canônico agora, não legacy.
+- **Componente Toast precisa que pages migrem** — useToast() hook em vez de sonner. Ativado quando migração Sistema B → A completar.
+- **react-hooks/purity cleanup pós-migração shell** — após migrar pages, revisar Date.now() nos novos components e substituir por padrão aprovado (useServerInsertedHTML ou data vinda do server).
+- **M2 doutrina reformulado 2026-05-24** — "kill sidebar" original (que tinha Riot Client v6 como referência inconfessa) substituído por "Navigation 3-col Dota 2 client". Sidebars contextuais (esquerda identidade+amigos, direita matchmaking) são OBRIGATÓRIAS. Sidebar SaaS de rotas continua PROIBIDA. Ver UX_PRINCIPLES.md M2.
 
 ### Blockers/Concerns
 
 - **V2.5-F5 stubs silenciosos:** Todo botão "toca" silêncio. Impacto UX notável — curadoria SFX é prioridade pós-milestone.
-- **ClientShell não migrado em pages:** M2 mandamento "kill sidebar" não 100% completado até DF8.4 migration.
+- **6 pages órfãs no Sistema B (deprecated):** após reversão 2026-05-24, `/me`, `/perfil`, `/partidas`, `/pacotes`, `/codigo-de-conduta`, `/metodologia` ainda usam `templates/client-shell.tsx` (sem sidebar). Migração para Sistema A canônico é tasks #50-#54.
 - **Howler+ambiente:** Sem teste real em ambiente de produção. ISoundManager interface permite trocar implementação se necessário.
 
 ## MVP Fichas — Status (2026-05-23)
@@ -106,7 +106,7 @@ Resume file: .planning/phases/V2.5-VERIFICATION.md
 1. Curar SFX agora pra V2.5 ficar funcionalmente completo (com FREESOUND_API_KEY ou manual)
 2. Rodar `pnpm dev` e validar visualmente componentes em /components
 3. Retomar MVP fichas (Phase 4 MP pausada) ou Phase 5 Bot Steam
-4. Aprovar migração DF8.4 pages (~1-2 dias) antes do V3
+4. Aprovar migração Sistema B → A das 6 pages órfãs (~1-2 dias) — tasks #50-#54 (REVERTIDO 2026-05-24 — ver UX_PRINCIPLES.md M2)
 
 ---
 

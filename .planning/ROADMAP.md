@@ -199,16 +199,16 @@ Diretórios: `.planning/phases/V2.5-F{N}-{slug}/`.
 **Estimated effort:** ~1.5 dias
 **UI hint**: yes
 
-#### Phase V2.5-F8: Templates & Pages
-**Goal:** O layout SaaS com sidebar 256px está morto — toda a aplicação usa ClientShell top-bar estilo Dota 2, landing é fullscreen cinematográfica, e developer browser de componentes existe.
+#### Phase V2.5-F8: Templates & Pages (REVERTIDO 2026-05-24)
+**Goal:** Toda a aplicação usa o ClientShell canônico (Sistema A — 3 colunas fiel ao Dota 2 client real): top-bar central + sidebar esquerda (identidade+amigos) + sidebar direita contextual (matchmaking) + bottom-bar [JOGAR DOTA] verde. Landing é fullscreen cinematográfica. Developer browser de componentes existe. Sidebar SaaS genérica de rotas e shell minimalista sem sidebars (estilo Riot) são anti-patterns proibidos (M2 reformulado).
 **Depends on:** V2.5-F7 (templates consomem patterns)
 **Requirements:** DF8.1, DF8.2, DF8.3, DF8.4, DF8.5
 **Success Criteria** (what must be TRUE):
-  1. `grep -rE "w-64|sidebar|Sidebar" src/components/` retorna zero matches — sidebar removida do DOM (verificar DevTools Elements).
-  2. `<ClientShell>` renderiza top-bar horizontal com logo esquerda + tabs centrais + auth dropdown direita — verificável via browser em qualquer rota autenticada.
+  1. `grep -rE "DashboardLeftSidebar|DashboardRightSidebar|DashboardBottomBar" src/` retorna matches — sidebars 3-col Dota 2 são obrigatórias (M2 reformulado 2026-05-24). Anti-pattern `<aside .*w-64.*<nav` (sidebar SaaS de rotas) deve retornar zero.
+  2. `<ClientShell>` canônico (`src/components/client-shell/shell.tsx`) renderiza 3 colunas + bottom-bar — verificável via browser em qualquer rota autenticada. Template simplificado (`templates/client-shell.tsx`) é @deprecated e tem zero callsites.
   3. Landing `/` não contém `max-w-` container SaaS — `grep "max-w-" src/app/page.tsx` retorna zero matches; fullscreen wash verificável via DevTools (html/body 100vw).
   4. `http://localhost:3000/components` retorna 200 em dev mode e 404 em production build (`NODE_ENV=production`) — gating de rota funciona.
-  5. Todas as rotas existentes (`/pacotes`, `/me`, `/admin/*`, `/codigo-de-conduta`, `/onboarding/doutrina`) carregam sem erro 500 após migração pro novo `<ClientShell>`.
+  5. Todas as rotas existentes (`/pacotes`, `/me`, `/admin/*`, `/codigo-de-conduta`, `/metodologia`, `/partidas`, `/perfil`) carregam sem erro 500 após migração pro `<ClientShell>` Sistema A.
 **Plans:** TBD
 **Estimated effort:** ~1.5-2 dias
 **UI hint**: yes

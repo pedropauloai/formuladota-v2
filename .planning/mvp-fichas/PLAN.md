@@ -78,7 +78,7 @@ gaps pontuais que impedem o uso real.
 - Sistema MMR/Ranking interno
 - Multi-coach UI (schema existe mas Pedro é o único coach)
 - Badges/Achievements unlock real (componentes existem, dados mock)
-- Migração pages pro ClientShell AAA V2.5 (pending todo STATE.md DF8.4)
+- Migração 6 pages órfãs Sistema B → A (REVERTIDO 2026-05-24 — ver STATE.md, UX_PRINCIPLES.md M2)
 
 ---
 

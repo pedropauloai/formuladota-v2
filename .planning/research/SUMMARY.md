@@ -186,7 +186,7 @@ Phases with standard patterns (skip research-phase):
 ## Open Questions (Resolvidas pelo Pedro 2026-05-23)
 
 - ✅ **SFX Licensing:** Freesound CC0 + curadoria manual (R$ 0, ~3h dedicadas)
-- ✅ **Nav Layout:** Top bar horizontal estilo Dota 2 client (kill sidebar 256px atual)
+- ⚠️ **Nav Layout (REVERTIDO 2026-05-24):** Top bar horizontal era a decisão original (Wave 7-8 baseada em Riot Client v6). Reformulado para "Navigation 3-col Dota 2 client real" — sidebar esquerda persistente (identidade+amigos) + top-bar central + sidebar direita contextual (matchmaking) + bottom-bar [JOGAR DOTA] verde. Ver UX_PRINCIPLES.md M2.
 
 ## Critical Risks
 
