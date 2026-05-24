@@ -1,12 +1,17 @@
 // Página /ranking — Phase 7 H5.3.
 // Server Component cyberpunk dark fantasy. Top 3 destacados + lista paginada.
+// Refatorado para Design System V2.5: primitives + tokens semânticos.
 
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Trophy, Search } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { TierBadge } from "@/components/dota/tier-badge";
 import { ClientShell } from "@/components/client-shell/shell";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
+import { UserAvatar } from "@/components/ui/avatar";
+import { DotaRankMedal, type DotaRank } from "@/components/ui/dota-rank-medal";
 
 export const metadata: Metadata = {
   title: "Ranking — FORMULADOTA",
@@ -24,6 +29,20 @@ interface RankRow {
 }
 
 const PAGE_SIZE = 50;
+
+// Conversão MMR → rank Dota 2 (espelhada de coaches/[slug]/page.tsx)
+function mmrToDotaRank(mmr: number | null): DotaRank {
+  if (mmr === null) return "herald";
+  if (mmr >= 9000) return "immortal-top-100";
+  if (mmr >= 6000) return "immortal";
+  if (mmr >= 5000) return "divine";
+  if (mmr >= 4000) return "ancient";
+  if (mmr >= 3000) return "legend";
+  if (mmr >= 2000) return "archon";
+  if (mmr >= 1500) return "crusader";
+  if (mmr >= 770) return "guardian";
+  return "herald";
+}
 
 export default async function RankingPage(props: {
   searchParams: Promise<{ page?: string; q?: string }>;
@@ -45,7 +64,7 @@ export default async function RankingPage(props: {
   if (!season) {
     return (
       <ClientShell currentRoute="/ranking">
-        <EmptyRanking />
+        <RankingEmptyShell />
       </ClientShell>
     );
   }
@@ -78,7 +97,7 @@ export default async function RankingPage(props: {
     if (matchIds.length === 0) {
       return (
         <ClientShell currentRoute="/ranking">
-          <NoMatchState searchTerm={search} seasonName={season.name} />
+          <NoMatchShell searchTerm={search} seasonName={season.name} />
         </ClientShell>
       );
     }
@@ -120,20 +139,23 @@ export default async function RankingPage(props: {
   return (
     <ClientShell currentRoute="/ranking">
       <div className="px-6 py-10 xl:px-12">
+        {/* Header padronizado V2.5: eyebrow + h1 + descrição */}
         <header className="mb-12">
-          <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
-            Ranking
+          <p className="font-display text-xs font-semibold uppercase tracking-[0.3em] text-brand-primary">
+            Ranking · Temporada
           </p>
-          <h1 className="mt-3 font-display text-4xl uppercase tracking-tight text-[var(--color-foreground)] md:text-5xl">
+          <h1 className="mt-3 font-display text-4xl uppercase tracking-tight text-text-display md:text-5xl">
             {season.name}
           </h1>
-          <div className="mt-6 brand-divider" />
+          <p className="mt-3 font-body text-sm text-text-muted max-w-2xl">
+            Classificação dos jogadores pelo MMR da temporada atual. Top 3 destacados, demais paginados.
+          </p>
         </header>
 
         {/* Top 3 cards */}
         {top3Hydrated.length > 0 && !search && (
           <section className="mb-12">
-            <h2 className="mb-6 font-sans text-xs font-semibold uppercase tracking-widest text-[var(--color-text-faded)]">
+            <h2 className="mb-6 font-display text-xs font-semibold uppercase tracking-widest text-text-faded">
               Top 3
             </h2>
             <div className="grid gap-4 md:grid-cols-3">
@@ -164,114 +186,137 @@ export default async function RankingPage(props: {
         )}
 
         {listHydrated.length === 0 && !search && top3Hydrated.length === 0 && (
-          <EmptyRanking />
+          <EmptyState
+            title="Temporada começando"
+            description="Ainda sem partidas oficiais. Seja um dos primeiros — ative sua mensalidade e crie um lobby."
+            icon={Trophy}
+            principle="random"
+          />
         )}
       </div>
     </ClientShell>
   );
 }
 
+// ----------------------------------------------------------------
+// TopCard — Destaque pódio (Top 3). Posição 1 ganha glow brand.
+// ----------------------------------------------------------------
 function TopCard({ row, position }: { row: RankRow; position: number }) {
-  const podiumColor = position === 1
-    ? "border-[var(--color-brand-red)] bg-[var(--color-brand-red)]/10"
-    : position === 2
-      ? "border-zinc-300/40 bg-[var(--color-card)]"
-      : "border-amber-700/40 bg-[var(--color-card)]";
+  const isChampion = position === 1;
+  const dotaRank = mmrToDotaRank(row.mmr);
 
   return (
-    <article className={`rounded-md border p-6 space-y-3 ${podiumColor}`}>
-      <div className="flex items-center justify-between">
-        <Trophy
-          size={20}
-          className={position === 1 ? "text-[var(--color-brand-red)]" : "text-[var(--color-muted-foreground)]"}
-          aria-hidden="true"
-        />
-        <span className="font-display text-2xl text-[var(--color-foreground)]">#{position}</span>
-      </div>
-      <div className="flex items-center gap-3">
-        {row.avatar_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={row.avatar_url} alt="" className="size-12 rounded-full border border-[var(--color-border)]" />
-        ) : (
-          <div className="size-12 rounded-full border border-[var(--color-border)] bg-[var(--color-background)]" />
-        )}
-        <div className="min-w-0">
-          <p className="font-display text-base uppercase tracking-wide text-[var(--color-foreground)] truncate">
-            {row.username ?? "Anônimo"}
-          </p>
-          <p className="font-mono text-xs text-[var(--color-muted-foreground)]">{row.mmr} MMR</p>
+    <Card
+      variant="elevated"
+      className={
+        isChampion
+          ? "border-brand-primary shadow-[var(--glow-brand)]"
+          : undefined
+      }
+    >
+      <CardContent className="space-y-3">
+        <div className="flex items-center justify-between">
+          <Trophy
+            size={20}
+            className={isChampion ? "text-brand-primary" : "text-text-muted"}
+            aria-hidden="true"
+          />
+          <span className="font-display text-2xl text-text-display">#{position}</span>
         </div>
-      </div>
-      <div className="flex items-center justify-between border-t border-[var(--color-border)] pt-3">
-        <TierBadge mmr={row.mmr} size="sm" showName />
-        <span className="font-mono text-xs text-[var(--color-muted-foreground)]">
-          {row.vitorias}V — {row.derrotas}D
-        </span>
-      </div>
-    </article>
+        <div className="flex items-center gap-3">
+          <UserAvatar
+            src={row.avatar_url ?? undefined}
+            alt={row.username ?? "Anônimo"}
+            fallback={(row.username ?? "??").slice(0, 2)}
+            size="lg"
+            ringColor={isChampion ? "brand" : null}
+          />
+          <div className="min-w-0">
+            <p className="font-display text-base uppercase tracking-wide text-text-display truncate">
+              {row.username ?? "Anônimo"}
+            </p>
+            <p className="font-mono text-xs text-text-muted">{row.mmr} MMR</p>
+          </div>
+        </div>
+        <div className="flex items-center justify-between border-t border-border-subtle pt-3">
+          <DotaRankMedal rank={dotaRank} size="sm" showLabel />
+          <span className="font-mono text-xs text-text-muted">
+            {row.vitorias}V — {row.derrotas}D
+          </span>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
+// ----------------------------------------------------------------
+// RankingRow — Linha individual da lista paginada
+// ----------------------------------------------------------------
 function RankingRow({ row, position }: { row: RankRow; position: number }) {
+  const dotaRank = mmrToDotaRank(row.mmr);
+
   return (
-    <li className="flex items-center gap-4 rounded-md border border-[var(--color-border)] bg-[var(--color-card)] p-4 transition-colors hover:border-[var(--color-brand-red)]/40">
-      <span className="font-display text-lg w-12 text-[var(--color-muted-foreground)]">#{position}</span>
-      {row.avatar_url ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={row.avatar_url} alt="" className="size-10 rounded-full border border-[var(--color-border)]" />
-      ) : (
-        <div className="size-10 rounded-full border border-[var(--color-border)] bg-[var(--color-background)]" />
-      )}
+    <li className="flex items-center gap-4 rounded-md border border-border-subtle bg-bg-base p-4 transition-colors hover:border-border-brand">
+      <span className="font-display text-lg w-12 text-text-muted">#{position}</span>
+      <UserAvatar
+        src={row.avatar_url ?? undefined}
+        alt={row.username ?? "Anônimo"}
+        fallback={(row.username ?? "??").slice(0, 2)}
+        size="md"
+      />
       <div className="flex-1 min-w-0">
-        <p className="font-sans text-sm font-medium text-[var(--color-foreground)] truncate">
+        <p className="font-body text-sm font-medium text-text-display truncate">
           {row.username ?? "Anônimo"}
         </p>
-        <p className="font-mono text-xs text-[var(--color-muted-foreground)]">
+        <p className="font-mono text-xs text-text-muted">
           {row.partidas_total} partidas — {row.vitorias}V/{row.derrotas}D
         </p>
       </div>
-      <TierBadge mmr={row.mmr} size="sm" />
-      <span className="font-mono text-sm text-[var(--color-foreground)] w-16 text-right">{row.mmr}</span>
+      <DotaRankMedal rank={dotaRank} size="sm" />
+      <span className="font-mono text-sm text-text-display w-16 text-right">{row.mmr}</span>
     </li>
   );
 }
 
+// ----------------------------------------------------------------
+// SearchBar — Form de busca por nickname (GET — recarrega page)
+// ----------------------------------------------------------------
 function SearchBar({ initialQuery }: { initialQuery: string }) {
   return (
-    <form className="flex items-center gap-2 rounded-md border border-[var(--color-border)] bg-[var(--color-card)] p-2">
-      <Search size={16} className="ml-2 text-[var(--color-muted-foreground)]" aria-hidden="true" />
+    <form className="flex items-center gap-2 rounded-md border border-border-subtle bg-bg-base p-2">
+      <Search size={16} className="ml-2 text-text-muted" aria-hidden="true" />
       <input
         type="search"
         name="q"
         defaultValue={initialQuery}
         placeholder="Buscar por nickname..."
-        className="flex-1 bg-transparent px-2 py-2 font-sans text-sm text-[var(--color-foreground)] placeholder:text-[var(--color-text-faded)] focus:outline-none"
+        className="flex-1 bg-transparent px-2 py-2 font-body text-sm text-text-display placeholder:text-text-faded focus:outline-none"
       />
-      <button
-        type="submit"
-        className="rounded-md border border-[var(--color-border)] px-3 py-1.5 font-sans text-xs uppercase tracking-widest text-[var(--color-muted-foreground)] hover:border-[var(--color-brand-red)] hover:text-[var(--color-foreground)] transition-colors"
-      >
+      <Button type="submit" variant="secondary" size="sm">
         Buscar
-      </button>
+      </Button>
     </form>
   );
 }
 
+// ----------------------------------------------------------------
+// Pagination — Anterior / Próxima via querystring
+// ----------------------------------------------------------------
 function Pagination({ currentPage }: { currentPage: number }) {
   return (
     <nav className="mt-8 flex items-center justify-center gap-4">
       {currentPage > 1 && (
         <Link
           href={`/ranking?page=${currentPage - 1}`}
-          className="font-sans text-xs uppercase tracking-widest text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] transition-colors"
+          className="font-display text-xs uppercase tracking-widest text-text-muted hover:text-text-display transition-colors"
         >
           ← Anterior
         </Link>
       )}
-      <span className="font-mono text-sm text-[var(--color-foreground)]">página {currentPage}</span>
+      <span className="font-mono text-sm text-text-display">página {currentPage}</span>
       <Link
         href={`/ranking?page=${currentPage + 1}`}
-        className="font-sans text-xs uppercase tracking-widest text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)] transition-colors"
+        className="font-display text-xs uppercase tracking-widest text-text-muted hover:text-text-display transition-colors"
       >
         Próxima →
       </Link>
@@ -279,43 +324,38 @@ function Pagination({ currentPage }: { currentPage: number }) {
   );
 }
 
-function NoMatchState({ searchTerm, seasonName }: { searchTerm: string; seasonName: string }) {
-  // Renderizado dentro do <ClientShell> do caller — retorna só o conteúdo.
+// ----------------------------------------------------------------
+// Empty states — Renderizados dentro do <ClientShell> do caller.
+// ----------------------------------------------------------------
+
+function NoMatchShell({ searchTerm, seasonName }: { searchTerm: string; seasonName: string }) {
   return (
     <div className="px-6 py-20">
-      <div className="mx-auto max-w-2xl text-center space-y-6">
-        <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
-          {seasonName}
-        </p>
-        <h1 className="font-display text-4xl uppercase text-white">
-          Nenhum resultado pra {`"${searchTerm}"`}
-        </h1>
-        <Link
-          href="/ranking"
-          className="inline-flex items-center gap-2 rounded-md border border-[var(--color-border)] px-6 py-3 font-sans text-sm font-semibold uppercase tracking-wide text-white/70 hover:text-white transition-colors"
-        >
-          ← Voltar ao ranking
-        </Link>
-      </div>
+      <EmptyState
+        title={`Nenhum resultado para "${searchTerm}"`}
+        description={`Temporada ${seasonName} — tente outro nickname ou volte ao ranking completo.`}
+        icon={Search}
+        action={
+          <Link href="/ranking">
+            <Button variant="secondary" size="md">
+              ← Voltar ao ranking
+            </Button>
+          </Link>
+        }
+      />
     </div>
   );
 }
 
-function EmptyRanking() {
-  // Renderizado dentro do <ClientShell> do caller — retorna só o conteúdo.
+function RankingEmptyShell() {
   return (
     <div className="px-6 py-20">
-      <div className="mx-auto max-w-2xl text-center space-y-6">
-        <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
-          Ranking
-        </p>
-        <h1 className="font-display text-4xl uppercase text-white">
-          Temporada começando
-        </h1>
-        <p className="font-serif text-white/70">
-          Ainda sem partidas oficiais. Seja um dos primeiros — ative sua mensalidade e crie um lobby.
-        </p>
-      </div>
+      <EmptyState
+        title="Temporada começando"
+        description="Ainda sem partidas oficiais. Seja um dos primeiros — ative sua mensalidade e crie um lobby."
+        icon={Trophy}
+        principle="random"
+      />
     </div>
   );
 }

@@ -80,14 +80,17 @@ export default async function TimesPage() {
   return (
     <ClientShell currentRoute="/times">
       <div className="px-6 py-8 xl:px-12 xl:py-10 2xl:px-16 2xl:py-12">
+        {/* Header padronizado V2.5: eyebrow + h1 + descrição */}
         <header className="mb-8 2xl:mb-10">
-          <p className="font-sans text-xs 2xl:text-sm font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
+          <p className="font-display text-xs 2xl:text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
             FORMULADOTA · Competitivo
           </p>
-          <h1 className="mt-2 font-display text-3xl 2xl:text-5xl uppercase tracking-tight text-white">
+          <h1 className="mt-2 font-display text-3xl 2xl:text-5xl uppercase tracking-tight text-text-display">
             Times
           </h1>
-          <div className="mt-4 brand-divider" />
+          <p className="mt-3 font-body text-sm text-text-muted max-w-2xl">
+            Seus times competitivos, convites pendentes e ações de capitão.
+          </p>
         </header>
 
         <TimesContent userTeams={userTeams} invites={invites} />

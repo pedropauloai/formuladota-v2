@@ -1,5 +1,6 @@
 // /torneios/[slug] — detalhe do torneio. V1 minimal: header + teams registrados +
 // bracket simples (lista de matches por round). Captain pode inscrever team.
+// Refatorado para Design System V2.5: primitives + tokens semânticos.
 
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
@@ -7,6 +8,8 @@ import Link from "next/link";
 import { ArrowLeft, Trophy, Calendar, Users, Award } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ClientShell } from "@/components/client-shell/shell";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { TournamentRegisterButton } from "./register-button";
 
 interface PageProps {
@@ -18,12 +21,16 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
   return { title: `Torneio ${slug} — FORMULADOTA` };
 }
 
-const STATUS_LABEL: Record<string, { label: string; cls: string }> = {
-  open: { label: "Inscrições abertas", cls: "border-emerald-400/40 text-emerald-400" },
-  in_progress: { label: "Em andamento", cls: "border-amber-400/40 text-amber-400" },
-  completed: { label: "Encerrado", cls: "border-white/20 text-white/50" },
-  draft: { label: "Rascunho", cls: "border-white/10 text-white/30" },
-  cancelled: { label: "Cancelado", cls: "border-rose-400/40 text-rose-400" },
+// Status → label + variant Badge V2.5 (semântico)
+const STATUS_LABEL: Record<
+  string,
+  { label: string; variant: NonNullable<BadgeProps["variant"]> }
+> = {
+  open: { label: "Inscrições abertas", variant: "success" },
+  in_progress: { label: "Em andamento", variant: "warning" },
+  completed: { label: "Encerrado", variant: "secondary" },
+  draft: { label: "Rascunho", variant: "outline" },
+  cancelled: { label: "Cancelado", variant: "error" },
 };
 
 const FORMAT_LABEL: Record<string, string> = {
@@ -118,7 +125,7 @@ export default async function TournamentDetailPage(props: PageProps) {
 
   const status = STATUS_LABEL[tournament.status] ?? {
     label: tournament.status,
-    cls: "border-white/10 text-white/30",
+    variant: "outline" as const,
   };
   const canRegister = tournament.status === "open" && captainTeamsAvailable.length > 0;
 
@@ -127,7 +134,7 @@ export default async function TournamentDetailPage(props: PageProps) {
       <div className="px-6 py-8 xl:px-12 xl:py-10 2xl:px-16 2xl:py-12">
         <Link
           href="/torneios"
-          className="inline-flex items-center gap-2 mb-6 font-sans text-xs uppercase tracking-widest text-white/50 hover:text-white transition-colors"
+          className="inline-flex items-center gap-2 mb-6 font-display text-xs uppercase tracking-widest text-text-muted hover:text-text-display transition-colors"
         >
           <ArrowLeft size={14} />
           Voltar pra torneios
@@ -142,25 +149,23 @@ export default async function TournamentDetailPage(props: PageProps) {
           />
         )}
 
+        {/* Header torneio — nome em destaque V2.5 */}
         <header className="mb-8">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
-              <h1 className="font-display text-3xl 2xl:text-5xl uppercase tracking-tight text-white">
+              <h1 className="font-display text-4xl uppercase tracking-wide text-text-display 2xl:text-5xl">
                 {tournament.name}
               </h1>
               {tournament.description && (
-                <p className="mt-3 font-sans text-sm 2xl:text-base text-white/60 max-w-3xl">
+                <p className="mt-3 font-body text-sm 2xl:text-base text-text-muted max-w-3xl">
                   {tournament.description}
                 </p>
               )}
             </div>
-            <span
-              className={`shrink-0 rounded-sm border px-3 py-1 font-mono text-[10px] 2xl:text-xs uppercase tracking-widest ${status.cls}`}
-            >
+            <Badge variant={status.variant} className="shrink-0">
               {status.label}
-            </span>
+            </Badge>
           </div>
-          <div className="mt-4 brand-divider" />
         </header>
 
         {/* Stats */}
@@ -197,11 +202,11 @@ export default async function TournamentDetailPage(props: PageProps) {
 
         {/* Times registrados */}
         <section className="mt-8">
-          <h2 className="mb-4 font-sans text-xs 2xl:text-sm font-semibold uppercase tracking-[0.2em] text-white/70">
+          <h2 className="mb-4 font-display text-xs 2xl:text-sm font-semibold uppercase tracking-[0.2em] text-text-body">
             Times registrados
           </h2>
           {registeredTeams.length === 0 ? (
-            <p className="font-sans text-sm text-white/40">Nenhum time inscrito ainda.</p>
+            <p className="font-body text-sm text-text-faded">Nenhum time inscrito ainda.</p>
           ) : (
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
               {registeredTeams.map((rt) =>
@@ -209,30 +214,30 @@ export default async function TournamentDetailPage(props: PageProps) {
                   <Link
                     key={rt.team_id}
                     href={`/times/${rt.team.slug}`}
-                    className="rounded-md border border-[var(--color-border)] bg-black/40 p-3 flex items-center gap-3 hover:border-[var(--color-brand-red)]/60 transition-colors"
+                    className="rounded-md border border-border-subtle bg-bg-base p-3 flex items-center gap-3 hover:border-border-brand transition-colors"
                   >
                     {rt.team.logo_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={rt.team.logo_url}
                         alt=""
-                        className="size-10 rounded-sm border border-white/10"
+                        className="size-10 rounded-sm border border-border-subtle"
                       />
                     ) : (
-                      <div className="size-10 rounded-sm border border-white/10 bg-[var(--color-brand-red)]/15 flex items-center justify-center">
-                        <span className="font-display text-xs text-[var(--color-brand-red)]">
+                      <div className="size-10 rounded-sm border border-border-subtle bg-brand-primary/15 flex items-center justify-center">
+                        <span className="font-display text-xs text-brand-primary">
                           {rt.team.tag}
                         </span>
                       </div>
                     )}
                     <div className="min-w-0 flex-1">
-                      <p className="font-sans text-sm text-white truncate">
+                      <p className="font-body text-sm text-text-display truncate">
                         {rt.team.name}
                       </p>
-                      <p className="font-mono text-[10px] uppercase tracking-widest text-white/40">
+                      <p className="font-mono text-[10px] uppercase tracking-widest text-text-faded">
                         [{rt.team.tag}]
                         {rt.eliminated_at && (
-                          <span className="ml-2 text-[var(--color-danger)]">eliminado</span>
+                          <span className="ml-2 text-error">eliminado</span>
                         )}
                       </p>
                     </div>
@@ -246,7 +251,7 @@ export default async function TournamentDetailPage(props: PageProps) {
         {/* Bracket */}
         {matches && matches.length > 0 && (
           <section className="mt-10">
-            <h2 className="mb-4 font-sans text-xs 2xl:text-sm font-semibold uppercase tracking-[0.2em] text-white/70">
+            <h2 className="mb-4 font-display text-xs 2xl:text-sm font-semibold uppercase tracking-[0.2em] text-text-body">
               Chave
             </h2>
             <div className="space-y-6">
@@ -254,12 +259,12 @@ export default async function TournamentDetailPage(props: PageProps) {
                 .sort(([a], [b]) => a - b)
                 .map(([round, roundMatches]) => (
                   <div key={round}>
-                    <h3 className="mb-3 font-display text-sm 2xl:text-base uppercase tracking-[0.2em] text-[var(--color-brand-red)]">
+                    <h3 className="mb-3 font-display text-sm 2xl:text-base uppercase tracking-[0.2em] text-brand-primary">
                       {roundName(round, totalRounds)}
                     </h3>
                     <div className="grid gap-2 md:grid-cols-2">
                       {(roundMatches ?? []).map((m) => (
-                        <MatchCard key={m.id} match={m} />
+                        <BracketMatchCard key={m.id} match={m} />
                       ))}
                     </div>
                   </div>
@@ -271,14 +276,18 @@ export default async function TournamentDetailPage(props: PageProps) {
         {/* Regras */}
         {tournament.rules && (
           <section className="mt-10">
-            <h2 className="mb-3 font-sans text-xs 2xl:text-sm font-semibold uppercase tracking-[0.2em] text-white/70">
-              Regras
-            </h2>
-            <div className="rounded-md border border-[var(--color-border)] bg-black/40 p-5">
-              <p className="font-sans text-sm 2xl:text-base text-white/70 whitespace-pre-wrap">
-                {tournament.rules}
-              </p>
-            </div>
+            <Card variant="elevated">
+              <CardHeader>
+                <CardTitle className="text-sm uppercase tracking-[0.2em]">
+                  Regras
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="font-body text-sm 2xl:text-base text-text-body whitespace-pre-wrap">
+                  {tournament.rules}
+                </p>
+              </CardContent>
+            </Card>
           </section>
         )}
       </div>
@@ -296,14 +305,14 @@ function StatBlock({
   value: string;
 }) {
   return (
-    <div className="rounded-md border border-[var(--color-border)] bg-black/40 p-4 space-y-1">
-      <div className="flex items-center gap-2 text-white/40">
+    <div className="rounded-md border border-border-subtle bg-bg-base p-4 space-y-1">
+      <div className="flex items-center gap-2 text-text-faded">
         <Icon size={12} aria-hidden="true" />
         <span className="font-mono text-[10px] 2xl:text-[11px] uppercase tracking-widest">
           {label}
         </span>
       </div>
-      <p className="font-display text-base 2xl:text-lg text-white">{value}</p>
+      <p className="font-display text-base 2xl:text-lg text-text-display">{value}</p>
     </div>
   );
 }
@@ -323,12 +332,14 @@ interface MatchRow {
   scheduled_at: string | null;
 }
 
-function MatchCard({ match }: { match: MatchRow }) {
+// Card local pra match do bracket — distinto do <MatchCard> pattern (que é
+// para partidas de mentoria 1-1). Aqui é um placar simples team A vs team B.
+function BracketMatchCard({ match }: { match: MatchRow }) {
   const winnerA = match.winner_team_id && match.winner_team_id === match.team_a_id;
   const winnerB = match.winner_team_id && match.winner_team_id === match.team_b_id;
 
   return (
-    <div className="rounded-md border border-[var(--color-border)] bg-black/40 overflow-hidden">
+    <div className="rounded-md border border-border-subtle bg-bg-base overflow-hidden">
       <TeamLine
         name={match.team_a_name}
         tag={match.team_a_tag}
@@ -336,7 +347,7 @@ function MatchCard({ match }: { match: MatchRow }) {
         winner={Boolean(winnerA)}
         showScore={match.status === "completed"}
       />
-      <div className="border-t border-white/5" />
+      <div className="border-t border-border-subtle" />
       <TeamLine
         name={match.team_b_name}
         tag={match.team_b_tag}
@@ -345,7 +356,7 @@ function MatchCard({ match }: { match: MatchRow }) {
         showScore={match.status === "completed"}
       />
       {match.scheduled_at && match.status === "scheduled" && (
-        <div className="px-3 py-1.5 bg-black/60 font-mono text-[9px] uppercase tracking-widest text-white/40 text-center">
+        <div className="px-3 py-1.5 bg-bg-deep font-mono text-[9px] uppercase tracking-widest text-text-faded text-center">
           {new Date(match.scheduled_at).toLocaleString("pt-BR", {
             day: "2-digit",
             month: "2-digit",
@@ -374,18 +385,18 @@ function TeamLine({
   return (
     <div
       className={`flex items-center justify-between px-3 py-2.5 ${
-        winner ? "bg-[var(--color-brand-red)]/10" : ""
+        winner ? "bg-brand-primary/10" : ""
       }`}
     >
       <div className="flex items-center gap-2 min-w-0">
         {tag && (
-          <span className="font-mono text-[10px] uppercase tracking-widest text-white/40 shrink-0">
+          <span className="font-mono text-[10px] uppercase tracking-widest text-text-faded shrink-0">
             [{tag}]
           </span>
         )}
         <span
-          className={`font-sans text-sm truncate ${
-            winner ? "text-white font-semibold" : "text-white/70"
+          className={`font-body text-sm truncate ${
+            winner ? "text-text-display font-semibold" : "text-text-muted"
           }`}
         >
           {name ?? "TBD"}
@@ -394,7 +405,7 @@ function TeamLine({
       {showScore && (
         <span
           className={`font-display text-base shrink-0 ${
-            winner ? "text-[var(--color-brand-red)]" : "text-white/50"
+            winner ? "text-brand-primary" : "text-text-faded"
           }`}
         >
           {score}

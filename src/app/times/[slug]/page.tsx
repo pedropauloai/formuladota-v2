@@ -1,12 +1,15 @@
 // /times/[slug] — detalhe do time. V1 minimal: header + members list + ações.
 // Captain ganha controles extras (kick/delete). Members ganham botão sair.
+// Refatorado para Design System V2.5: primitives + tokens semânticos.
 
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Crown } from "lucide-react";
+import { ArrowLeft, Crown, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ClientShell } from "@/components/client-shell/shell";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { UserAvatar } from "@/components/ui/avatar";
 import { TeamDetailActions } from "./team-detail-actions";
 
 interface PageProps {
@@ -62,77 +65,87 @@ export default async function TeamDetailPage(props: PageProps) {
       <div className="px-6 py-8 xl:px-12 xl:py-10 2xl:px-16 2xl:py-12">
         <Link
           href="/times"
-          className="inline-flex items-center gap-2 mb-6 font-sans text-xs uppercase tracking-widest text-white/50 hover:text-white transition-colors"
+          className="inline-flex items-center gap-2 mb-6 font-display text-xs uppercase tracking-widest text-text-muted hover:text-text-display transition-colors"
         >
           <ArrowLeft size={14} />
           Voltar pra times
         </Link>
 
+        {/* Header do time — nome em destaque V2.5 */}
         <header className="mb-8 flex items-start gap-5">
           {team.logo_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={team.logo_url}
               alt=""
-              className="size-20 rounded-md border-2 border-[var(--color-brand-red)]/60"
+              className="size-20 rounded-md border-2 border-brand-primary/60"
             />
           ) : (
-            <div className="size-20 rounded-md border-2 border-[var(--color-brand-red)]/60 bg-[var(--color-brand-red)]/15 flex items-center justify-center">
-              <span className="font-display text-2xl text-[var(--color-brand-red)]">
+            <div className="size-20 rounded-md border-2 border-brand-primary/60 bg-brand-primary/15 flex items-center justify-center">
+              <span className="font-display text-2xl text-brand-primary">
                 {team.tag}
               </span>
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <p className="font-mono text-xs 2xl:text-sm uppercase tracking-widest text-[var(--color-brand-red)]">
+            <p className="font-mono text-xs 2xl:text-sm uppercase tracking-widest text-brand-primary">
               [{team.tag}]
             </p>
-            <h1 className="mt-1 font-display text-3xl 2xl:text-4xl uppercase tracking-tight text-white">
+            <h1 className="mt-1 font-display text-4xl uppercase tracking-wide text-text-display 2xl:text-5xl">
               {team.name}
             </h1>
             {team.description && (
-              <p className="mt-2 font-sans text-sm 2xl:text-base text-white/60 max-w-2xl">
+              <p className="mt-2 font-body text-sm 2xl:text-base text-text-muted max-w-2xl">
                 {team.description}
               </p>
             )}
           </div>
         </header>
 
-        <section className="mb-8">
-          <h2 className="mb-4 font-sans text-xs 2xl:text-sm font-semibold uppercase tracking-[0.2em] text-white/70">
-            Roster <span className="text-white/40">({enrichedMembers.length}/7)</span>
-          </h2>
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {enrichedMembers.map((m) => (
-              <div
-                key={m.user_id}
-                className="rounded-md border border-[var(--color-border)] bg-black/40 p-4 flex items-center gap-3"
-              >
-                {m.profile?.avatar_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={m.profile.avatar_url}
-                    alt=""
-                    className="size-10 rounded-full border border-white/10"
+        {/* Roster — Card com lista de members */}
+        <Card variant="elevated" className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-[0.2em]">
+              <Users size={14} className="text-text-muted" aria-hidden="true" />
+              Roster
+              <span className="font-mono text-xs text-text-faded normal-case tracking-normal">
+                ({enrichedMembers.length}/7)
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {enrichedMembers.map((m) => (
+                <div
+                  key={m.user_id}
+                  className="rounded-md border border-border-subtle bg-bg-base p-4 flex items-center gap-3"
+                >
+                  <UserAvatar
+                    src={m.profile?.avatar_url ?? undefined}
+                    alt={m.profile?.username ?? "Anônimo"}
+                    fallback={(m.profile?.username ?? "??").slice(0, 2)}
+                    size="md"
                   />
-                ) : (
-                  <div className="size-10 rounded-full border border-white/10 bg-black/40" />
-                )}
-                <div className="min-w-0 flex-1">
-                  <p className="font-sans text-sm text-white truncate flex items-center gap-1.5">
-                    {m.profile?.username ?? "Anônimo"}
-                    {m.role === "captain" && (
-                      <Crown size={12} className="text-amber-400" />
-                    )}
-                  </p>
-                  <p className="font-mono text-[10px] uppercase tracking-widest text-white/40">
-                    {m.role}
-                  </p>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-body text-sm text-text-display truncate flex items-center gap-1.5">
+                      {m.profile?.username ?? "Anônimo"}
+                      {m.role === "captain" && (
+                        <Crown
+                          size={12}
+                          className="text-warning"
+                          aria-label="Capitão"
+                        />
+                      )}
+                    </p>
+                    <p className="font-mono text-[10px] uppercase tracking-widest text-text-faded">
+                      {m.role}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </section>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
         <TeamDetailActions
           teamId={team.id}
