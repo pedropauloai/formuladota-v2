@@ -395,7 +395,7 @@ export function PageTemplatesSection() {
             stateful — alterna entre 6 modos conforme o user navega o matchmaking.
             CTA persistente no rodapé muda de cor apenas no modo{" "}
             <code className="font-mono text-error text-xs">lobby-ativo</code>{" "}
-            (verde → vermelho), indicando ação comprometedora ("começar" vs "buscar").
+            (verde → vermelho), indicando ação comprometedora (&ldquo;começar&rdquo; vs &ldquo;buscar&rdquo;).
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

@@ -24,7 +24,7 @@
 
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { Trophy, Users, Clock, Activity } from "lucide-react";
 
 // Primitives F6
@@ -149,6 +149,10 @@ const CALIBRATION_STATES: CalibrationStatus[] = ["visitante", "calibrando", "ran
 export default function ComponentsPage() {
   const [showLoading, setShowLoading] = useState(false);
   const [showGraduation, setShowGraduation] = useState(false);
+  // Snapshot do horário de fim da season ao montar — evita Date.now() impure em render
+  const [seasonEndsAt] = useState(
+    () => new Date(Date.now() + 47 * 24 * 60 * 60 * 1000 + 12 * 60 * 60 * 1000)
+  );
 
   // Fullscreen LoadingScreen takeover
   if (showLoading) {
@@ -464,7 +468,7 @@ export default function ComponentsPage() {
         <SeasonBanner
           seasonNumber={1}
           seasonName="Despertar"
-          endsAt={new Date(Date.now() + 47 * 24 * 60 * 60 * 1000 + 12 * 60 * 60 * 1000)}
+          endsAt={seasonEndsAt}
         />
       </Section>
 

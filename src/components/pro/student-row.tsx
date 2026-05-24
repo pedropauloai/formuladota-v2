@@ -102,6 +102,22 @@ function ConfirmModal({
 }
 
 // ---------------------------------------------------------------------------
+// Helper externo: formata data relativa simples (ex: "há 3 dias")
+// Mantido fora do componente para evitar Date.now() impure em render context
+// ---------------------------------------------------------------------------
+
+function formatRelative(dateStr: string | null): string {
+  if (!dateStr) return "—";
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  if (days === 0) return "hoje";
+  if (days === 1) return "ontem";
+  if (days < 30) return `há ${days} dias`;
+  const months = Math.floor(days / 30);
+  return `há ${months} ${months === 1 ? "mês" : "meses"}`;
+}
+
+// ---------------------------------------------------------------------------
 // Componente principal: StudentRow
 // ---------------------------------------------------------------------------
 
@@ -129,18 +145,6 @@ export function StudentRow({ student, onActionSuccess }: StudentRowProps) {
   } | null>(null);
 
   const initials = (student.username ?? "?").slice(0, 2).toUpperCase();
-
-  // Formata data relativa simples (ex: "há 3 dias")
-  function formatRelative(dateStr: string | null): string {
-    if (!dateStr) return "—";
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    if (days === 0) return "hoje";
-    if (days === 1) return "ontem";
-    if (days < 30) return `há ${days} dias`;
-    const months = Math.floor(days / 30);
-    return `há ${months} ${months === 1 ? "mês" : "meses"}`;
-  }
 
   function handleCoachNote(delta: 5 | -5, reason: string) {
     startTransition(async () => {

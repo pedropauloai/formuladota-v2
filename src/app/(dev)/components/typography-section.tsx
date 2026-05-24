@@ -357,7 +357,7 @@ export function TypographySection() {
               <span>
                 <strong className="text-text-body">tabular-nums obrigatório</strong> em qualquer
                 número que vá ser comparado vertical ou horizontalmente (countdowns, valores,
-                rankings) — evita "dança" de dígitos.
+                rankings) — evita &ldquo;dança&rdquo; de dígitos.
               </span>
             </li>
             <li className="flex gap-3">

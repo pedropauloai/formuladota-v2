@@ -3,7 +3,7 @@
 // Botão grande pra PRO abrir/fechar a própria fila — atualiza visualmente
 // imediato via optimistic state, recarrega via revalidatePath.
 
-import { useState, useTransition, useMemo } from "react";
+import { useState, useTransition } from "react";
 import { Radio, PowerOff } from "lucide-react";
 import { togglePROFila } from "./actions";
 
@@ -18,13 +18,10 @@ export function ToggleFilaButton({ filaAberta, filaAbertaEm }: Props) {
   const [pending, startTransition] = useTransition();
 
   // Snapshot do horário ao montar — evita Date.now() impure em render
-  const minutesOpen = useMemo(
-    () =>
-      filaAbertaEm
-        ? Math.floor((Date.now() - new Date(filaAbertaEm).getTime()) / 60000)
-        : 0,
-    [filaAbertaEm]
-  );
+  const [mountedAt] = useState(() => Date.now());
+  const minutesOpen = filaAbertaEm
+    ? Math.floor((mountedAt - new Date(filaAbertaEm).getTime()) / 60000)
+    : 0;
 
   function handleClick() {
     setError(null);

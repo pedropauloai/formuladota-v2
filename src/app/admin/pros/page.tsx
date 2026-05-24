@@ -11,6 +11,11 @@ import { EnrichForm } from "./enrich-form";
 export const metadata = { title: "PROs — Admin FORMULADOTA" };
 export const revalidate = 5;
 
+// Helper externo — isola Date.now() do contexto de render do component
+function getNowMs(): number {
+  return Date.now();
+}
+
 export default async function AdminProsPage() {
   const supabase = await createClient();
   const {
@@ -54,7 +59,7 @@ export default async function AdminProsPage() {
   const profileById = new Map((profiles ?? []).map((p) => [p.id, p]));
 
   // Snapshot fora do map para evitar Date.now() impure em render context
-  const nowMs = Date.now();
+  const nowMs = getNowMs();
   const queueEntries: QueueEntry[] = entriesList.map((e) => {
     const prof = profileById.get(e.user_id);
     const waitingMinutes = Math.floor(

@@ -9,7 +9,7 @@
 //   - RevokeCoachModal: revogar status PRO
 //   - CoachNotesModal: notas privadas admin (leitura/edição via admin_notes)
 
-import { useState, useTransition, type FormEvent } from "react";
+import { useState, useTransition } from "react";
 import {
   Coins, ShieldAlert, Star, Trophy, ChevronUp, ChevronDown,
   Loader2, X, CheckCircle, AlertCircle,
@@ -733,7 +733,7 @@ export function RevokeCoachModal({
 // ─── CoachNotesModal ─────────────────────────────────────────────────────────
 
 export function CoachNotesModal({
-  targetUserId,
+  targetUserId: _targetUserId,
   username,
   initialNotes,
 }: {

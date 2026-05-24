@@ -17,12 +17,17 @@ import {
   CoachNotesModal,
 } from "./user-modals";
 import {
-  ChevronLeft, CheckCircle, XCircle, Clock, Shield,
-  Coins, Star, AlertTriangle,
+  ChevronLeft, CheckCircle, XCircle, Shield,
+  AlertTriangle,
 } from "lucide-react";
 import { getProRevenue } from "@/app/actions/pro-management";
 
 export const revalidate = 0;
+
+// Helper externo — isola Date.now() do contexto de render do component
+function getNowMs(): number {
+  return Date.now();
+}
 
 // ─── Helpers de tipo ─────────────────────────────────────────────────────────
 
@@ -212,9 +217,10 @@ export default async function AdminUserDetailPage({
   ).length;
 
   // ── Critérios de elegibilidade PRO
-  const accountAgeDays = (Date.now() - new Date(profile.created_at).getTime()) / (1000 * 60 * 60 * 24);
+  const nowMs = getNowMs();
+  const accountAgeDays = (nowMs - new Date(profile.created_at).getTime()) / (1000 * 60 * 60 * 24);
   const doctrineSince = profile.doctrine_accepted_at
-    ? (Date.now() - new Date(profile.doctrine_accepted_at).getTime()) / (1000 * 60 * 60 * 24)
+    ? (nowMs - new Date(profile.doctrine_accepted_at).getTime()) / (1000 * 60 * 60 * 24)
     : 0;
 
   const mentorAchievements = (achievements as Array<{ variant: string }> | null ?? []).filter(
