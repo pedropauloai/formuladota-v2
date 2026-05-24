@@ -1,9 +1,11 @@
-// Cliente Resend para email transacional FORMULADOTA.
-// Usado pelo webhook handler /api/webhooks/mercadopago APÓS payment.created/updated.
+// Cliente Resend para email transacional.
+// Usado por:
+//   - Webhook /api/webhooks/mercadopago (pagamento avulso + subscription events)
+//   - Server Actions subscription.ts (cancelamento)
 //
-// IMPORTANTE: email é side-effect NÃO-CRÍTICO do webhook. Falha de envio
-// NÃO deve derrubar o webhook (que já liberou saldo). A função usa try/catch
-// interno e retorna void — nunca propaga exceção.
+// IMPORTANTE: email é side-effect NÃO-CRÍTICO. Falha de envio NÃO deve
+// derrubar o webhook ou a action. Funções usam try/catch interno e retornam
+// void — nunca propagam exceção.
 
 import { Resend } from "resend";
 import { requireServerEnv } from "@/lib/env";
@@ -28,99 +30,15 @@ interface SendPurchaseConfirmationInput {
 }
 
 /**
- * Envia email de confirmação de pagamento avulso (PIX Mercado Pago).
+ * Envia email de confirmação de pagamento.
+ *
+ * Retorna `void` — falhas são logadas via console.error mas NÃO propagam.
+ * Use idempotencyKey baseada em purchaseId para evitar envios duplicados
+ * caso o webhook handler rode duas vezes (Pitfall 5 do RESEARCH.md).
  */
 export async function sendPurchaseConfirmationEmail(
   input: SendPurchaseConfirmationInput
 ): Promise<void> {
-  await sendEmailSafely({
-    to: input.customerEmail,
-    subject: `Pagamento confirmado — ${input.packageName}`,
-    html: buildPurchaseConfirmationHtml(input),
-    idempotencyKey: `purchase-confirmed-${input.purchaseId}`,
-  });
-}
-
-interface SendSubscriptionEmailInput {
-  subscriptionId: string;
-  customerEmail: string;
-  customerName?: string;
-  nextPaymentDate?: string;       // ISO; convertido pra PT-BR no body
-  amountBrl: number;              // ex: 47
-}
-
-/**
- * Email enviado quando subscription Pix Automático é autorizada (primeiro pagamento).
- */
-export async function sendSubscriptionAuthorizedEmail(
-  input: SendSubscriptionEmailInput
-): Promise<void> {
-  await sendEmailSafely({
-    to: input.customerEmail,
-    subject: "Mensalidade FORMULADOTA ativada",
-    html: buildSubscriptionAuthorizedHtml(input),
-    idempotencyKey: `subscription-authorized-${input.subscriptionId}`,
-  });
-}
-
-/**
- * Email enviado quando subscription Pix Automático tem renovação mensal paga.
- */
-export async function sendSubscriptionRenewedEmail(
-  input: SendSubscriptionEmailInput
-): Promise<void> {
-  await sendEmailSafely({
-    to: input.customerEmail,
-    subject: "Mensalidade FORMULADOTA renovada",
-    html: buildSubscriptionRenewedHtml(input),
-    idempotencyKey: `subscription-renewed-${input.subscriptionId}-${input.nextPaymentDate ?? "no-date"}`,
-  });
-}
-
-interface SendPTConfirmedInput {
-  matchId: string;
-  customerEmail: string;
-  customerName?: string;
-  fichasConsumidas: number;  // quantas fichas foram debitadas (= 1 por aluno)
-}
-
-/**
- * Email enviado para cada aluno quando Pedro confirma que a PT foi realizada.
- * Dispara após confirmPTRealized no admin/pros/actions.ts.
- */
-export async function sendPTConfirmedEmail(
-  input: SendPTConfirmedInput
-): Promise<void> {
-  await sendEmailSafely({
-    to: input.customerEmail,
-    subject: "Partida com coach confirmada — FORMULADOTA",
-    html: buildPTConfirmedHtml(input),
-    idempotencyKey: `pt-confirmed-${input.matchId}-${input.customerEmail}`,
-  });
-}
-
-/**
- * Email enviado quando user cancela subscription (mantém acesso até fim do período).
- */
-export async function sendSubscriptionCancelledEmail(
-  input: SendSubscriptionEmailInput
-): Promise<void> {
-  await sendEmailSafely({
-    to: input.customerEmail,
-    subject: "Mensalidade FORMULADOTA cancelada",
-    html: buildSubscriptionCancelledHtml(input),
-    idempotencyKey: `subscription-cancelled-${input.subscriptionId}`,
-  });
-}
-
-interface SendEmailSafelyInput {
-  to: string;
-  subject: string;
-  html: string;
-  idempotencyKey: string;
-}
-
-async function sendEmailSafely(input: SendEmailSafelyInput): Promise<void> {
   const resend = getResend();
   const from = process.env.EMAIL_FROM ?? "onboarding@resend.dev";
 
@@ -128,11 +46,14 @@ async function sendEmailSafely(input: SendEmailSafelyInput): Promise<void> {
     const { error } = await resend.emails.send(
       {
         from,
-        to: [input.to],
-        subject: input.subject,
-        html: input.html,
+        to: [input.customerEmail],
+        subject: `Pagamento confirmado — ${input.packageName}`,
+        html: buildConfirmationHtml(input),
       },
-      { idempotencyKey: input.idempotencyKey }
+      {
+        // Previne envios duplicados se webhook rodar 2x (Resend SDK v6)
+        idempotencyKey: `purchase-confirmed-${input.purchaseId}`,
+      }
     );
 
     if (error) {
@@ -140,107 +61,205 @@ async function sendEmailSafely(input: SendEmailSafelyInput): Promise<void> {
       return;
     }
   } catch (err) {
+    // Defensivo — Resend SDK não deveria throw, mas isolar é melhor
     console.error("[resend] envio jogou exceção:", err);
   }
 }
 
-// =================== Templates HTML (paleta FORMULADOTA Dota 2) ===================
-
-const FONT_STACK_DISPLAY = "'Cinzel', 'Marcellus', Georgia, serif";
-const FONT_STACK_BODY = "'Inter', 'Helvetica', Arial, sans-serif";
-
-const SHELL_OPEN = `<div style="background:#000000;color:#f5f5f5;font-family:${FONT_STACK_BODY};padding:32px;max-width:600px;margin:0 auto;border-radius:8px;border:1px solid #1f1f1f">`;
-const SHELL_CLOSE = `<p style="color:#71717a;font-size:11px;margin-top:32px;border-top:1px solid #1f1f1f;padding-top:16px;line-height:1.5">FORMULADOTA — HUB Dota 2 Brasil</p></div>`;
-const HEADING_STYLE = `color:#ac1d0e;font-size:28px;margin:0 0 16px 0;letter-spacing:0.02em;text-transform:uppercase;font-family:${FONT_STACK_DISPLAY};font-weight:700`;
-const DIVIDER = `<div style="height:2px;width:80px;background:#ac1d0e;margin:16px 0 24px 0"></div>`;
-
-function formatBRDate(iso?: string): string {
-  if (!iso) return "—";
-  return new Date(iso).toLocaleDateString("pt-BR", { dateStyle: "long" });
-}
-
-function buildPTConfirmedHtml(input: SendPTConfirmedInput): string {
-  const greeting = input.customerName ? `Olá, ${input.customerName}!` : "Olá!";
-  return `${SHELL_OPEN}
-    <h1 style="${HEADING_STYLE}">Partida Confirmada</h1>
-    ${DIVIDER}
-    <p style="font-size:16px;line-height:1.6;margin:0 0 16px 0">${greeting}</p>
-    <p style="font-size:16px;line-height:1.6;margin:0 0 24px 0">
-      Sua partida com o coach foi <strong style="color:#ac1d0e">confirmada e registrada</strong>.
-      <strong>${input.fichasConsumidas}</strong> ficha(s) foram descontadas do seu saldo.
-    </p>
-    <p style="font-size:16px;line-height:1.6;margin:0 0 24px 0">
-      Acesse o FORMULADOTA pra ver seu histórico de partidas e comprar mais fichas quando quiser.
-    </p>
-    ${SHELL_CLOSE}`;
-}
-
-function buildPurchaseConfirmationHtml(input: SendPurchaseConfirmationInput): string {
+function buildConfirmationHtml(input: SendPurchaseConfirmationInput): string {
   const greeting = input.customerName ? `Olá, ${input.customerName}!` : "Olá!";
   const partidasLine = input.partidasCompradas > 0
-    ? `<li style="margin-bottom:8px"><strong>${input.partidasCompradas}</strong> partida(s) com coach</li>`
+    ? `<li><strong>${input.partidasCompradas}</strong> partida(s)</li>`
     : "";
   const sessoesLine = input.sessoesCompradas > 0
-    ? `<li style="margin-bottom:8px"><strong>${input.sessoesCompradas}</strong> sessão(ões) teórica(s)</li>`
+    ? `<li><strong>${input.sessoesCompradas}</strong> sessão(ões) teórica(s)</li>`
     : "";
 
-  return `${SHELL_OPEN}
-    <h1 style="${HEADING_STYLE}">Pagamento Confirmado</h1>
-    ${DIVIDER}
-    <p style="font-size:16px;line-height:1.6;margin:0 0 16px 0">${greeting}</p>
-    <p style="font-size:16px;line-height:1.6;margin:0 0 24px 0">
-      Recebemos seu pagamento de <strong style="color:#ac1d0e">${input.packageName}</strong>. Seu saldo foi liberado:
+  return buildEmailWrapper(`
+    <h1 style="color:#c53030;font-size:24px;margin:0 0 16px 0;letter-spacing:-0.02em">Pagamento Confirmado</h1>
+    <p style="font-size:16px;line-height:1.5;margin:0 0 16px 0">${greeting}</p>
+    <p style="font-size:16px;line-height:1.5;margin:0 0 24px 0">
+      Recebemos seu pagamento de <strong style="color:#f4f4f5">${input.packageName}</strong>. Seu saldo foi liberado:
     </p>
-    <ul style="background:#0a0a0a;border:1px solid #1f1f1f;padding:16px 24px;border-radius:6px;list-style:none;margin:0 0 24px 0">
+    <ul style="background:#0a0a1a;border:1px solid #27272a;padding:16px 24px;border-radius:6px;list-style:none;margin:0 0 24px 0">
       ${partidasLine}
       ${sessoesLine}
     </ul>
-    <p style="font-size:16px;line-height:1.6;margin:0 0 24px 0">
-      Acesse o HUB pra agendar suas partidas.
+    <p style="font-size:14px;line-height:1.5;color:#71717a;margin:0">
+      Quando o agendamento estiver disponível, você poderá reservar seus horários direto no site.
     </p>
-    ${SHELL_CLOSE}`;
+  `);
 }
 
-function buildSubscriptionAuthorizedHtml(input: SendSubscriptionEmailInput): string {
+// ====================================================
+// Emails de Subscription (Phase 4 — Mercado Pago Pix Automático)
+// ====================================================
+
+interface SendSubscriptionEmailInput {
+  userId: string;
+  customerEmail: string;
+  customerName?: string;
+}
+
+interface SendSubscriptionRenewalInput extends SendSubscriptionEmailInput {
+  nextPaymentDate: string; // ISO 8601
+}
+
+interface SendSubscriptionCancelledInput extends SendSubscriptionEmailInput {
+  accessUntil?: string | null; // ISO 8601 — next_payment_date
+}
+
+/**
+ * Email: assinatura criada e autorizada (primeiro pagamento confirmado).
+ * Idempotência: chave `subscription-created-${userId}` (1 email por user).
+ */
+export async function sendSubscriptionCreatedEmail(
+  input: SendSubscriptionEmailInput
+): Promise<void> {
+  const resend = getResend();
+  const from = process.env.EMAIL_FROM ?? "onboarding@resend.dev";
   const greeting = input.customerName ? `Olá, ${input.customerName}!` : "Olá!";
-  return `${SHELL_OPEN}
-    <h1 style="${HEADING_STYLE}">Mensalidade Ativa</h1>
-    ${DIVIDER}
-    <p style="font-size:16px;line-height:1.6;margin:0 0 16px 0">${greeting}</p>
-    <p style="font-size:16px;line-height:1.6;margin:0 0 24px 0">
-      Sua mensalidade FORMULADOTA de <strong style="color:#ac1d0e">R$ ${input.amountBrl.toFixed(2)}</strong> foi autorizada via Pix Automático.
-      Acesso ao HUB liberado.
-    </p>
-    <p style="font-size:16px;line-height:1.6;margin:0 0 24px 0">
-      Próxima cobrança: <strong>${formatBRDate(input.nextPaymentDate)}</strong>
-    </p>
-    ${SHELL_CLOSE}`;
+
+  try {
+    const { error } = await resend.emails.send(
+      {
+        from,
+        to: [input.customerEmail],
+        subject: "Assinatura FORMULADOTA HUB confirmada",
+        html: buildEmailWrapper(`
+          <h1 style="color:#c53030;font-size:24px;margin:0 0 16px 0;letter-spacing:-0.02em">Assinatura Confirmada</h1>
+          <p style="font-size:16px;line-height:1.5;margin:0 0 16px 0">${greeting}</p>
+          <p style="font-size:16px;line-height:1.5;margin:0 0 24px 0">
+            Sua assinatura do <strong style="color:#f4f4f5">FORMULADOTA HUB</strong> está ativa.
+            O PIX Automático foi autorizado — a renovação acontece automaticamente todo mês.
+          </p>
+          <p style="font-size:14px;line-height:1.5;color:#71717a;margin:0">
+            Para gerenciar ou cancelar sua assinatura, acesse a página /assinatura no site.
+          </p>
+        `),
+      },
+      {
+        idempotencyKey: `subscription-created-${input.userId}`,
+      }
+    );
+
+    if (error) {
+      console.error("[resend] subscription-created erro:", error.message);
+    }
+  } catch (err) {
+    console.error("[resend] subscription-created exceção:", err);
+  }
 }
 
-function buildSubscriptionRenewedHtml(input: SendSubscriptionEmailInput): string {
-  return `${SHELL_OPEN}
-    <h1 style="${HEADING_STYLE}">Mensalidade Renovada</h1>
-    ${DIVIDER}
-    <p style="font-size:16px;line-height:1.6;margin:0 0 24px 0">
-      Recebemos seu pagamento mensal de <strong style="color:#ac1d0e">R$ ${input.amountBrl.toFixed(2)}</strong> via Pix Automático.
-      Acesso ao HUB renovado por mais 30 dias.
-    </p>
-    <p style="font-size:16px;line-height:1.6;margin:0 0 24px 0">
-      Próxima cobrança: <strong>${formatBRDate(input.nextPaymentDate)}</strong>
-    </p>
-    ${SHELL_CLOSE}`;
+/**
+ * Email: renovação mensal confirmada (subscription_authorized_payment).
+ * Idempotência: chave inclui data próxima para distinguir meses.
+ */
+export async function sendSubscriptionRenewalEmail(
+  input: SendSubscriptionRenewalInput
+): Promise<void> {
+  const resend = getResend();
+  const from = process.env.EMAIL_FROM ?? "onboarding@resend.dev";
+  const greeting = input.customerName ? `Olá, ${input.customerName}!` : "Olá!";
+  const nextDate = new Date(input.nextPaymentDate).toLocaleDateString("pt-BR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+  // idempotência: uma notificação por data de renovação
+  const idempotencyKey = `subscription-renewed-${input.userId}-${input.nextPaymentDate.slice(0, 10)}`;
+
+  try {
+    const { error } = await resend.emails.send(
+      {
+        from,
+        to: [input.customerEmail],
+        subject: "Renovação FORMULADOTA HUB confirmada",
+        html: buildEmailWrapper(`
+          <h1 style="color:#c53030;font-size:24px;margin:0 0 16px 0;letter-spacing:-0.02em">Renovação Confirmada</h1>
+          <p style="font-size:16px;line-height:1.5;margin:0 0 16px 0">${greeting}</p>
+          <p style="font-size:16px;line-height:1.5;margin:0 0 24px 0">
+            Sua mensalidade do <strong style="color:#f4f4f5">FORMULADOTA HUB</strong> foi renovada.
+            Acesso garantido até <strong style="color:#f4f4f5">${nextDate}</strong>.
+          </p>
+          <p style="font-size:14px;line-height:1.5;color:#71717a;margin:0">
+            Para gerenciar sua assinatura, acesse /assinatura no site.
+          </p>
+        `),
+      },
+      {
+        idempotencyKey,
+      }
+    );
+
+    if (error) {
+      console.error("[resend] subscription-renewal erro:", error.message);
+    }
+  } catch (err) {
+    console.error("[resend] subscription-renewal exceção:", err);
+  }
 }
 
-function buildSubscriptionCancelledHtml(input: SendSubscriptionEmailInput): string {
-  return `${SHELL_OPEN}
-    <h1 style="${HEADING_STYLE}">Mensalidade Cancelada</h1>
-    ${DIVIDER}
-    <p style="font-size:16px;line-height:1.6;margin:0 0 24px 0">
-      Recebemos sua solicitação de cancelamento. Você mantém acesso ao HUB até <strong>${formatBRDate(input.nextPaymentDate)}</strong>
-      (fim do período pago).
-    </p>
-    <p style="font-size:16px;line-height:1.6;margin:0 0 24px 0">
-      Sentiremos sua falta. Se quiser voltar, é só reativar em qualquer momento na página de assinatura.
-    </p>
-    ${SHELL_CLOSE}`;
+/**
+ * Email: assinatura cancelada.
+ * Informa até quando o acesso permanece válido (cancel híbrido).
+ */
+export async function sendSubscriptionCancelledEmail(
+  input: SendSubscriptionCancelledInput
+): Promise<void> {
+  const resend = getResend();
+  const from = process.env.EMAIL_FROM ?? "onboarding@resend.dev";
+  const greeting = input.customerName ? `Olá, ${input.customerName}!` : "Olá!";
+  const accessUntilText = input.accessUntil
+    ? `Seu acesso permanece válido até <strong style="color:#f4f4f5">${new Date(input.accessUntil).toLocaleDateString("pt-BR", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })}</strong>.`
+    : "Seu acesso foi removido imediatamente.";
+
+  try {
+    const { error } = await resend.emails.send(
+      {
+        from,
+        to: [input.customerEmail],
+        subject: "Cancelamento FORMULADOTA HUB confirmado",
+        html: buildEmailWrapper(`
+          <h1 style="color:#c53030;font-size:24px;margin:0 0 16px 0;letter-spacing:-0.02em">Cancelamento Confirmado</h1>
+          <p style="font-size:16px;line-height:1.5;margin:0 0 16px 0">${greeting}</p>
+          <p style="font-size:16px;line-height:1.5;margin:0 0 24px 0">
+            Sua assinatura do <strong style="color:#f4f4f5">FORMULADOTA HUB</strong> foi cancelada.
+            ${accessUntilText}
+          </p>
+          <p style="font-size:14px;line-height:1.5;color:#71717a;margin:0">
+            Para reativar sua assinatura a qualquer momento, acesse /assinatura no site.
+          </p>
+        `),
+      },
+      {
+        idempotencyKey: `subscription-cancelled-${input.userId}`,
+      }
+    );
+
+    if (error) {
+      console.error("[resend] subscription-cancelled erro:", error.message);
+    }
+  } catch (err) {
+    console.error("[resend] subscription-cancelled exceção:", err);
+  }
+}
+
+// ====================================================
+// Helper: wrapper HTML do email (brand FORMULADOTA)
+// ====================================================
+
+function buildEmailWrapper(content: string): string {
+  return `
+    <div style="background:#050505;color:#f4f4f5;font-family:'Space Grotesk',Arial,sans-serif;padding:32px;max-width:600px;margin:0 auto;border-radius:8px;border:1px solid #27272a">
+      ${content}
+      <p style="color:#3f3f46;font-size:11px;margin-top:32px;border-top:1px solid #27272a;padding-top:16px">
+        FORMULADOTA — HUB Dota 2
+      </p>
+    </div>
+  `;
 }
