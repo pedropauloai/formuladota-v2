@@ -344,6 +344,89 @@ Ver PRO_PROMOTION.md e MULTIPLICATION_MODEL.md para especificacao completa.
 
 ---
 
+## Reconciliacoes Estrategicas
+
+Esta secao documenta tensoes CONSCIENTES entre os pilares filosoficos e decisoes de mercado.
+Tensoes aqui sao reconhecidas, nao negadas — sao estrategias deliberadas com regras claras
+de uso. Toda tensao aqui documentada foi decidida pelo autor original (Pedro Paulo) com
+justificativa explicita.
+
+---
+
+### Tensao 1: CTA "SUBIR DE MMR" vs Pilares 4 e 11
+
+**O conflito real:**
+- Pilar 4: "Ganhar nao e suficiente. Ser bom e continuo, nao pontual."
+- Pilar 11: "Vitorias vazias, individualismo e ego nao sao valores"
+- CTA "SUBIR DE MMR" celebra exatamente o que esses pilares criticam: MMR como metrica
+  primaria de desejo e validacao.
+
+**Por que aceitamos essa tensao:**
+- Publico-alvo (jogador Dota BR) fala MMR como **unica metrica de desejo presente** no
+  momento de compra. Nao fala de cultura, filosofia ou jornada — fala de MMR.
+- CTA filosofico ("Adira a comunidade", "Evolua sua jornada") seria abstrato e frio para
+  esse publico no momento de atencao zero do primeiro contato.
+- Marketing funcional precisa falar a linguagem do desejo presente — mesmo que a entrega
+  seja uma transformacao mais profunda do que o CTA prometeu literalmente.
+
+**Como reconciliamos: FUNIL DE CONVERSAO**
+
+```
+ETAPA 1 — Atracao (CTA externo "SUBIR DE MMR")
+  fala linguagem do desejo presente
+  filtra quem nem isso quer
+
+ETAPA 2 — Onboarding (doutrina obrigatoria)
+  14 principios + aceite ritualistico
+  cultura entra antes da primeira partida
+
+ETAPA 3 — Calibracao (5-10 partidas)
+  HONOR comeca a registrar conduta
+  aluno percebe sistema mede MAIS que MMR
+
+ETAPA 4 — Pos-conversao (narrativa filosofica)
+  PRO panel, dashboard, post-match falam HONOR/jornada
+  "subi de MMR" vira efeito colateral, nao meta primaria
+
+RESULTADO:
+  Quem entra so por MMR sem absorver filosofia: vai embora (filtro natural sadio)
+  Quem fica: foi convertido pela cultura, nao pela vitoria
+```
+
+**Regras OBRIGATORIAS de uso do CTA "SUBIR DE MMR":**
+
+| Contexto | CTA "SUBIR DE MMR" permitido? |
+|----------|-------------------------------|
+| Landing publica `/` | SIM (atracao) |
+| `/coaches/[slug]` publico | SIM (atracao) |
+| FreeBar para visitante (nao-cliente) | SIM (atracao) |
+| Anuncios externos | SIM (atracao) |
+| `/dashboard` (aluno logado) | **NAO** (ja e cliente — usar "Proxima partida") |
+| `/pro` (PRO logado) | **NAO** (usar "Confirmar partida" / "Coach Note") |
+| `/admin/*` | **NAO** (terminology HONOR/Conduta) |
+| PostMatchScreen | **NAO** isolado — sempre dual: "MMR delta + HONOR delta" |
+| Emails transacionais | **NAO** (voz Mestre+Guardiao) |
+
+**A condicao absoluta: NUNCA mentir.**
+
+Voce entrega o que prometeu (MMR real via ranked Valve oficial jogando com PRO) E mais
+(cultura + HONOR + comunidade). Nao e bait-and-switch — e onboarding gradual de
+profundidade. Toda copy promete o que efetivamente acontece.
+
+**Anti-padroes proibidos mesmo na atracao:**
+- "GARANTA SEU MMR" — garantia falsa, Dota e volatil
+- "SUBA 1000 MMR EM 1 MES" — promessa quantitativa falsa
+- "EVITE PERDER MMR" — fala da dor errada, frustacao toxica
+- "JOGUE SEM FRUSTRACAO" — mentira, vai ter frustracao, e Dota
+- Urgencia fabricada ("ULTIMAS 3 VAGAS! AGORA!")
+
+**Copys de atracao aceitaveis (honestas):**
+- "SUBIR DE MMR jogando junto com PRO Imortal"
+- "Suba MMR com quem chegou onde voce quer chegar"
+- "Proxima partida ranked: voce + PRO + 3 alunos na fila oficial Valve"
+
+---
+
 ## Implicacoes Praticas para o Produto
 
 Esta secao traduz os 13 pilares em decisoes concretas de produto. Quando houver duvida sobre
