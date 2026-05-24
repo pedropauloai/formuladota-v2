@@ -53,7 +53,7 @@ export function CheckoutClient({ packageId, packageName, precoFormatado }: Check
         {/* Estado de erro: mensagem amigável + link para voltar */}
         {result?.success === false && (
           <div className="flex flex-col items-center gap-4 py-8" role="alert">
-            <AlertCircle className="h-12 w-12 text-[#ef4444]" aria-hidden="true" />
+            <AlertCircle className="h-12 w-12 text-[var(--color-error)]" aria-hidden="true" />
             <p className="text-[var(--color-foreground)] text-center max-w-md">
               {result.error}
             </p>

@@ -18,10 +18,10 @@ export function PackageGrid({ packages }: PackageGridProps) {
   if (packages.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-[#a1a1aa] text-lg">
+        <p className="text-text-muted text-lg">
           Catálogo em breve.
         </p>
-        <p className="text-[#a1a1aa] text-sm mt-2">
+        <p className="text-text-muted text-sm mt-2">
           Coach principal entrando em breve — volte em instantes.
         </p>
       </div>
