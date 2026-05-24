@@ -1,14 +1,18 @@
 // /pro — Dashboard PRO scope limitado.
 //
 // Server Component: busca dados do PRO logado e passa para componentes.
-// 5 seções:
-//   1. Visao Geral (ProStatsHeader + status + ações pausar/retomar)
+// 6 seções:
+//   0. Coordenação de Partida (nova — Wave 7 2026-05-24)
+//      - Sessao ativa: mostra partida em curso com botao Finalizar
+//      - Iniciar Partida: botao disponivel se fila >= 4 alunos
+//   1. Visao Geral (ProStatsHeader + status + acoes pausar/retomar)
 //   2. Meus Alunos (StudentRow com coach notes)
 //   3. Revenue (RevenueSummaryCard)
 //   4. Meu Pricing (PriceEditorCard — guardrails HONOR + cooldown)
-//   5. Ações de status PRO (pausar / retomar)
+//   5. Acoes de status PRO (pausar / retomar)
 //
-// Seção 4 adicionada em 2026-05-23 — pricing descentralizado decisão Pedro.
+// Secao pricing adicionada em 2026-05-23 — pricing descentralizado decisao Pedro.
+// Secao coordenacao adicionada em 2026-05-24 — Wave 7 Bot Discord V1.
 
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
@@ -21,6 +25,8 @@ import { ProStatusActions } from "./pro-status-actions";
 import { getMyProRevenue } from "@/app/actions/pro-management";
 import { getMyStudents } from "@/app/pro/actions";
 import { getMyPricingInfo } from "@/app/pro/pricing-actions";
+import { getActiveMatchSession } from "@/app/actions/match-coordination";
+import { MatchCoordinationClient } from "@/app/pro/match-coordination-client";
 
 export const metadata: Metadata = {
   title: "Painel PRO — FORMULADOTA",
@@ -83,16 +89,61 @@ export default async function ProPage() {
     ? await getMyPricingInfo(proPackage.id)
     : null;
 
-  // Busca revenue e alunos em paralelo
-  const [revenueResult, studentsResult] = await Promise.all([
+  // Busca revenue, alunos e sessao ativa em paralelo
+  const [revenueResult, studentsResult, activeSessionResult] = await Promise.all([
     getMyProRevenue(firstDayOfMonth),
     getMyStudents(),
+    getActiveMatchSession(),
   ]);
 
   const students = studentsResult.data ?? [];
+  const activeSession = activeSessionResult.data ?? null;
+
+  // Busca alunos em fila do PRO (waiting) para o painel de coordenacao
+  const { data: queueRows } = await supabase
+    .from("coach_queue_entries")
+    .select("user_id, profiles(username)")
+    .eq("coach_id", coach?.id ?? "")
+    .eq("status", "waiting")
+    .order("joined_at", { ascending: true })
+    .limit(20);
+
+  // Formata participantes da fila para o client component
+  const queueParticipants = (queueRows ?? []).map((row) => {
+    // Supabase retorna join como objeto ou array — normalizar
+    const profile = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
+    return {
+      userId: row.user_id,
+      username: profile?.username ?? null,
+      honorTier: "aprendiz", // default — honor tier requer join adicional, simplificando V1
+    };
+  });
 
   return (
     <main className="flex flex-col gap-8 p-6 max-w-4xl">
+      {/* ----------------------------------------------------------------
+          Seção 0 — Coordenação de Partida (Wave 7)
+          Mostra sessao ativa ou botao de iniciar se fila >= 4 alunos.
+          MatchCoordinationClient e Client Component — modals dinamicos.
+          ---------------------------------------------------------------- */}
+      {(activeSession || queueParticipants.length > 0) && (
+        <section id="coordenacao" aria-labelledby="heading-coordenacao">
+          <div className="flex items-center justify-between mb-4">
+            <h2
+              id="heading-coordenacao"
+              className="font-display text-base uppercase tracking-widest text-text-display"
+            >
+              {activeSession ? "Partida Ativa" : "Proxima Partida"}
+            </h2>
+          </div>
+
+          <MatchCoordinationClient
+            queueParticipants={queueParticipants}
+            activeSession={activeSession}
+          />
+        </section>
+      )}
+
       {/* ----------------------------------------------------------------
           Seção 1 — Visão Geral
           ---------------------------------------------------------------- */}
