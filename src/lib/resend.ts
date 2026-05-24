@@ -125,16 +125,16 @@ export async function sendSubscriptionCreatedEmail(
       {
         from,
         to: [input.customerEmail],
-        subject: "Assinatura FORMULADOTA HUB confirmada",
+        subject: "Adesão à Comunidade FormulaDota ativada",
         html: buildEmailWrapper(`
-          <h1 style="color:#c53030;font-size:24px;margin:0 0 16px 0;letter-spacing:-0.02em">Assinatura Confirmada</h1>
+          <h1 style="color:#c53030;font-size:24px;margin:0 0 16px 0;letter-spacing:-0.02em">Adesão à Comunidade Ativada</h1>
           <p style="font-size:16px;line-height:1.5;margin:0 0 16px 0">${greeting}</p>
           <p style="font-size:16px;line-height:1.5;margin:0 0 24px 0">
-            Sua assinatura do <strong style="color:#f4f4f5">FORMULADOTA HUB</strong> está ativa.
-            O PIX Automático foi autorizado — a renovação acontece automaticamente todo mês.
+            Sua adesão ao <strong style="color:#f4f4f5">FORMULADOTA HUB</strong> foi autorizada via Pix Automático.
+            Bem-vindo à comunidade FormulaDota. A renovação acontece automaticamente todo mês.
           </p>
           <p style="font-size:14px;line-height:1.5;color:#71717a;margin:0">
-            Para gerenciar ou cancelar sua assinatura, acesse a página /assinatura no site.
+            Para gerenciar ou encerrar sua adesão, acesse a página /assinatura no site.
           </p>
         `),
       },
@@ -174,16 +174,16 @@ export async function sendSubscriptionRenewalEmail(
       {
         from,
         to: [input.customerEmail],
-        subject: "Renovação FORMULADOTA HUB confirmada",
+        subject: "Adesão FormulaDota renovada",
         html: buildEmailWrapper(`
-          <h1 style="color:#c53030;font-size:24px;margin:0 0 16px 0;letter-spacing:-0.02em">Renovação Confirmada</h1>
+          <h1 style="color:#c53030;font-size:24px;margin:0 0 16px 0;letter-spacing:-0.02em">Adesão Renovada</h1>
           <p style="font-size:16px;line-height:1.5;margin:0 0 16px 0">${greeting}</p>
           <p style="font-size:16px;line-height:1.5;margin:0 0 24px 0">
-            Sua mensalidade do <strong style="color:#f4f4f5">FORMULADOTA HUB</strong> foi renovada.
-            Acesso garantido até <strong style="color:#f4f4f5">${nextDate}</strong>.
+            Mais 30 dias na comunidade <strong style="color:#f4f4f5">FORMULADOTA</strong>.
+            Próxima cobrança: <strong style="color:#f4f4f5">${nextDate}</strong>.
           </p>
           <p style="font-size:14px;line-height:1.5;color:#71717a;margin:0">
-            Para gerenciar sua assinatura, acesse /assinatura no site.
+            Para gerenciar sua adesão, acesse /assinatura no site.
           </p>
         `),
       },
@@ -223,16 +223,16 @@ export async function sendSubscriptionCancelledEmail(
       {
         from,
         to: [input.customerEmail],
-        subject: "Cancelamento FORMULADOTA HUB confirmado",
+        subject: "Adesão FormulaDota encerrada",
         html: buildEmailWrapper(`
-          <h1 style="color:#c53030;font-size:24px;margin:0 0 16px 0;letter-spacing:-0.02em">Cancelamento Confirmado</h1>
+          <h1 style="color:#c53030;font-size:24px;margin:0 0 16px 0;letter-spacing:-0.02em">Adesão Encerrada</h1>
           <p style="font-size:16px;line-height:1.5;margin:0 0 16px 0">${greeting}</p>
           <p style="font-size:16px;line-height:1.5;margin:0 0 24px 0">
-            Sua assinatura do <strong style="color:#f4f4f5">FORMULADOTA HUB</strong> foi cancelada.
-            ${accessUntilText}
+            Recebemos sua solicitação. ${accessUntilText}
           </p>
           <p style="font-size:14px;line-height:1.5;color:#71717a;margin:0">
-            Para reativar sua assinatura a qualquer momento, acesse /assinatura no site.
+            Continua sendo visitante dignificado da plataforma.
+            Quando quiser voltar, é só reativar em /assinatura.
           </p>
         `),
       },
