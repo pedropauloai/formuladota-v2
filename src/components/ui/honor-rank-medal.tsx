@@ -240,19 +240,6 @@ function ShieldSVG({ primary, secondary, px }: { primary: string; secondary: str
  * Simbolismo: excelência, maestria, reconhecimento amplo
  */
 function StarSVG({ primary, secondary, px }: { primary: string; secondary: string; px: number }) {
-  /* Estrela 6 pontas via path manual */
-  const pts = Array.from({ length: 6 }).map((_, i) => {
-    const angle = (Math.PI / 3) * i - Math.PI / 2
-    const outerR = 17
-    const innerR = 9
-    const ox = 20 + outerR * Math.cos(angle)
-    const oy = 20 + outerR * Math.sin(angle)
-    const ix = 20 + innerR * Math.cos(angle + Math.PI / 6)
-    const iy = 20 + innerR * Math.sin(angle + Math.PI / 6)
-    return `${ox},${oy} ${ix},${iy}`
-  })
-  const starPath = "M " + pts.join(" L ") + " Z"
-
   return (
     <svg
       width={px}

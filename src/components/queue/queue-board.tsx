@@ -9,7 +9,7 @@
 // Componente puro de visualização. Ações (entrar, sair, iniciar PT, remover)
 // ficam no parent — QueueBoard só renderiza estado.
 
-import { useState, useTransition, useMemo } from "react";
+import { useState, useTransition } from "react";
 import { Radio, X, Loader2, Clock, Users, Crown } from "lucide-react";
 
 export interface BoardCoach {
@@ -58,8 +58,8 @@ export function QueueBoard({
   const slots = Array.from({ length: slotsCount }, (_, i) => entries[i] ?? null);
   // Restante da fila esperando (5º em diante quando filaMaxVagas=4)
   const waitingList = entries.slice(slotsCount);
-  // Snapshot do horário atual — evita Date.now() impure diretamente em render
-  const now = useMemo(() => Date.now(), []);
+  // Snapshot do horário ao montar — useState lazy init é puro (não invoca em re-renders)
+  const [now] = useState(() => Date.now());
   const minutesOpen = coach.filaAbertaEm
     ? Math.floor((now - new Date(coach.filaAbertaEm).getTime()) / 60000)
     : 0;
@@ -220,8 +220,8 @@ function WaitingList({
 }: WaitingListProps) {
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
-  // Snapshot do horário atual — evita Date.now() impure diretamente em render
-  const now = useMemo(() => Date.now(), []);
+  // Snapshot do horário ao montar — useState lazy init é puro (não invoca em re-renders)
+  const [now] = useState(() => Date.now());
 
   function handleRemove(entryId: string, username: string | null) {
     if (!onRemoveEntry) return;
