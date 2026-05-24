@@ -401,7 +401,8 @@ export default async function CoachProfilePage({ params }: PageProps) {
             </div>
           )}
 
-          {/* CTA compra */}
+          {/* CTA compra — "SUBIR DE MMR com {nome}" (contexto público de atração) */}
+          {/* Regra PHILOSOPHY.md §Reconciliações: CTA MMR permitido em /coaches/[slug] público */}
           <a
             href={`/checkout?package=${mainPackage.id}`}
             className={cn(
@@ -412,11 +413,12 @@ export default async function CoachProfilePage({ params }: PageProps) {
               "focus:outline-none focus:ring-2 focus:ring-brand-cyan/50 focus:ring-offset-2 focus:ring-offset-bg-base"
             )}
           >
-            Comprar ficha — R$ {Number(mainPackage.preco_brl).toFixed(2)}
+            SUBIR DE MMR com {profile.username} — R$ {Number(mainPackage.preco_brl).toFixed(2)}
           </a>
 
+          {/* Subtexto honesto: tiers visíveis + sem promessa quantitativa */}
           <p className="text-xs text-text-subtle text-center">
-            Pagamento via PIX — vaga liberada após confirmação.
+            {tierLabel} HONOR · {profile.mmr_atual ? `${profile.mmr_atual} MMR` : "Imortal"} · Pagamento via PIX — vaga liberada após confirmação.
           </p>
         </section>
       ) : (
