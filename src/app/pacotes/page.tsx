@@ -13,7 +13,7 @@ import { createClient } from "@/lib/supabase/server";
 import { PackageGrid } from "@/components/catalog/package-grid";
 import type { CoachInfo } from "@/components/catalog/package-card";
 import type { Database, Tables } from "@/types/database";
-import { ClientShell } from "@/components/client-shell/shell";
+import { ClientShell } from "@/components/templates/client-shell";
 
 type PackageRow = Tables<"packages">;
 type CoachRow = Pick<Tables<"coaches">, "id" | "profile_id" | "slug">;
@@ -103,7 +103,7 @@ export default async function PacotesPage() {
   const packagesWithCoach = await loadPackagesWithCoaches(supabase);
 
   return (
-    <ClientShell currentRoute="/pacotes">
+    <ClientShell>
       <div className="px-4 py-10 md:py-14 mx-auto max-w-7xl">
         <header className="mb-10 md:mb-14 text-center">
           <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
