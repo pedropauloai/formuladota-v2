@@ -1,92 +1,100 @@
-// Página /assinatura — gerenciar mensalidade FORMULADOTA via Mercado Pago Pix Automático.
-// Server Component. Phase 4 (2026-05-02).
+// /assinatura — Status e gerenciamento da mensalidade HUB.
+// Server Component: lê estado atual da subscription do DB.
+// Client Component (assinatura-client.tsx): botões com Server Actions.
 //
-// 4 estados visuais (paleta Phase 3.5: preto + vermelho + off-white):
-// - Sem subscription: card com CTA "Iniciar mensalidade R$ 47"
-// - status='authorized': card verde sutil com next_payment_date + botão Cancelar
-// - status='cancelled' AND next_payment_date > now(): "Cancelada — acesso até X" + botão Reativar
-// - status='cancelled'+expirado OR 'paused' OR 'pending': estados especiais
+// 4 estados visuais:
+//   A) Sem assinatura — CTA "Assinar HUB"
+//   B) Authorized — mensalidade ativa, próxima cobrança
+//   C) Cancelled + within period — cancelada mas ainda com acesso
+//   D) Cancelled+expirado / Paused / sem subscription — "Sem acesso HUB" + CTA reativar
 
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { Crown } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { AssinaturaCard } from "./assinatura-card";
-import { ClientShell } from "@/components/client-shell/shell";
+import { AssinaturaClient } from "./assinatura-client";
 
 export const metadata: Metadata = {
-  title: "Assinatura — FORMULADOTA",
-  description: "Gerencie sua mensalidade FORMULADOTA HUB.",
+  title: "Mensalidade — FORMULADOTA HUB",
+  description: "Gerencie sua mensalidade de acesso ao HUB FORMULADOTA.",
 };
 
-export default async function AssinaturaPage() {
+// Tipo mínimo da subscription para evitar over-fetch
+interface SubscriptionRow {
+  id: string;
+  status: string;
+  started_at: string | null;
+  next_payment_date: string | null;
+  cancelled_at: string | null;
+}
+
+export default async function AssinaturaPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ success?: string; cancelled?: string; error?: string; info?: string }>;
+}) {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    redirect("/login");
-  }
+  if (!user) redirect("/login");
 
-  // Admin tem bypass — não precisa de mensalidade (Migration 013).
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("is_admin")
-    .eq("id", user.id)
-    .single();
-  const isAdmin = profile?.is_admin === true;
+  const params = await searchParams;
 
-  // Busca subscription mais recente do user (não bloqueia se não existir).
-  // Sem .maybeSingle() para evitar erro 406 quando filtra in() sem rows.
-  const { data: subscriptions } = await supabase
+  // Busca assinatura mais recente do user (pode ser null se nunca assinou)
+  const { data: subscription, error } = await supabase
     .from("subscriptions")
-    .select(
-      "id, status, started_at, next_payment_date, cancelled_at, mp_preapproval_id, created_at"
-    )
+    .select("id, status, started_at, next_payment_date, cancelled_at")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
-    .limit(1);
+    .limit(1)
+    .maybeSingle();
 
-  const subscription = subscriptions?.[0] ?? null;
+  if (error) {
+    console.error("[/assinatura] erro ao buscar subscription:", error.message);
+  }
+
+  // Determina estado visual
+  const state = resolveSubscriptionState(subscription ?? null);
 
   return (
-    <ClientShell currentRoute="/assinatura">
-      <div className="px-6 py-10 mx-auto max-w-3xl">
-        <header className="mb-12 text-center">
-          <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
-            Assinatura
-          </p>
-          <h1 className="mt-3 font-display text-4xl uppercase tracking-tight text-[var(--color-foreground)] md:text-5xl">
-            Mensalidade HUB
-          </h1>
-          <div className="mx-auto mt-6 brand-divider" />
-          <p className="mx-auto mt-6 max-w-xl font-serif text-[var(--color-muted-foreground)]">
-            Pix Automático recorrente via Mercado Pago. Autorização única, renovação mensal automática. Cancele quando quiser.
-          </p>
-        </header>
-
-        {isAdmin ? (
-          <div className="rounded-md border border-[var(--color-brand-red)]/60 bg-gradient-to-br from-[var(--color-brand-red)]/10 to-[var(--color-card)] p-8 text-center space-y-4">
-            <Crown size={32} className="mx-auto text-[var(--color-brand-red)]" aria-hidden="true" />
-            <h2 className="font-display text-2xl uppercase tracking-wide text-[var(--color-foreground)]">
-              Acesso administrador
-            </h2>
-            <p className="font-sans text-[var(--color-muted-foreground)]">
-              Sua conta tem bypass total de mensalidade — acesso ao HUB liberado independente de assinatura.
-            </p>
-          </div>
-        ) : (
-          <>
-            <AssinaturaCard subscription={subscription} />
-
-            <p className="mt-8 text-center text-xs text-[var(--color-text-faded)]">
-              Pagamento processado pelo Mercado Pago. Você autoriza o Pix Automático
-              uma vez e o débito mensal é feito direto na sua conta bancária.
-            </p>
-          </>
-        )}
-      </div>
-    </ClientShell>
+    <AssinaturaClient
+      state={state}
+      subscription={subscription as SubscriptionRow | null}
+      queryParams={{
+        success: params.success === "1",
+        cancelled: params.cancelled === "1",
+        error: params.error,
+        info: params.info,
+      }}
+    />
   );
+}
+
+// Estado derivado para o Client Component — evita lógica de datas no client
+export type SubscriptionState =
+  | "none"            // Nunca assinou
+  | "pending"         // Preapproval criado, aguardando autorização MP
+  | "authorized"      // Ativa
+  | "cancelled_active" // Cancelada mas next_payment_date no futuro
+  | "expired";        // Cancelada/paused e expirada, ou null
+
+function resolveSubscriptionState(
+  subscription: SubscriptionRow | null
+): SubscriptionState {
+  if (!subscription) return "none";
+
+  if (subscription.status === "authorized") return "authorized";
+
+  if (subscription.status === "pending") return "pending";
+
+  if (
+    (subscription.status === "cancelled" || subscription.status === "paused") &&
+    subscription.next_payment_date &&
+    new Date(subscription.next_payment_date) > new Date()
+  ) {
+    return "cancelled_active";
+  }
+
+  return "expired";
 }
