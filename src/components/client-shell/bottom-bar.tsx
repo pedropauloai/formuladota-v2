@@ -97,7 +97,7 @@ function Cta({
     return (
       <Link
         href="/admin/pros"
-        className={`${base} border-[var(--color-play-green)] bg-gradient-to-b from-[var(--color-play-green)] to-[var(--color-play-green-dark)] text-white shadow-[var(--color-play-green)]/40 hover:shadow-[var(--color-play-green)]/60`}
+        className={`${base} border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover text-text-display shadow-[var(--color-play-primary-glow)] hover:shadow-[var(--color-play-primary-glow)]`}
       >
         <Radio size={22} aria-hidden="true" />
         <span>Painel PROs</span>
@@ -127,7 +127,7 @@ function Cta({
       <button
         type="button"
         onClick={onJoinClick}
-        className={`${base} border-[var(--color-play-green)] bg-gradient-to-b from-[var(--color-play-green)] to-[var(--color-play-green-dark)] text-white shadow-[var(--color-play-green)]/40 hover:shadow-[var(--color-play-green)]/60`}
+        className={`${base} border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover text-text-display shadow-[var(--color-play-primary-glow)] hover:shadow-[var(--color-play-primary-glow)]`}
       >
         <Play size={22} fill="currentColor" aria-hidden="true" />
         <span>Jogar Dota</span>

@@ -132,7 +132,7 @@ export function ProQueueCard({
           ? "border-amber-500/60 bg-amber-500/5"
           : coach.filaAberta
             ? "border-emerald-500/40 bg-emerald-500/[0.03]"
-            : "border-[var(--color-border)] bg-[var(--color-card)]/40"
+            : "border-border-subtle bg-bg-elevated/40"
       }`}
     >
       {/* Ring pulsante quando fila aberta */}
@@ -161,7 +161,7 @@ export function ProQueueCard({
           )}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <Crown size={14} className="text-[var(--color-brand-red)]" aria-hidden="true" />
+              <Crown size={14} className="text-brand-primary" aria-hidden="true" />
               <h3 className="font-display text-lg uppercase tracking-wide text-white truncate xl:text-2xl">
                 {coach.username ?? "PRO"}
               </h3>
@@ -436,7 +436,7 @@ function CtaButton({
     return (
       <Link
         href="/admin/pros"
-        className={`${baseCls} border-[var(--color-play-green)] bg-gradient-to-b from-[var(--color-play-green)] to-[var(--color-play-green-dark)] text-white shadow-md shadow-emerald-500/30 hover:shadow-emerald-500/50`}
+        className={`${baseCls} border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover text-text-display shadow-md shadow-emerald-500/30 hover:shadow-emerald-500/50`}
       >
         <Crown size={16} aria-hidden="true" />
         Painel PROs
@@ -504,7 +504,7 @@ function CtaButton({
       type="button"
       onClick={onJoin}
       disabled={pending}
-      className={`${baseCls} border-[var(--color-play-green)] bg-gradient-to-b from-[var(--color-play-green)] to-[var(--color-play-green-dark)] text-white shadow-md shadow-emerald-500/40 hover:shadow-emerald-500/60`}
+      className={`${baseCls} border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover text-text-display shadow-md shadow-emerald-500/40 hover:shadow-emerald-500/60`}
     >
       {pending ? (
         <Loader2 size={14} className="animate-spin" />
@@ -537,9 +537,9 @@ export function UserStatusBar({
 }: StatusBarProps) {
   if (isAdmin) {
     return (
-      <div className="flex items-center justify-between gap-4 rounded-md border border-[var(--color-brand-red)]/40 bg-[var(--color-brand-red)]/5 px-4 py-3">
-        <div className="flex items-center gap-3 font-mono text-sm text-white/80">
-          <Crown size={16} className="text-[var(--color-brand-red)]" aria-hidden="true" />
+      <div className="flex items-center justify-between gap-4 rounded-md border border-brand-primary/40 bg-brand-primary/5 px-4 py-3">
+        <div className="flex items-center gap-3 font-mono text-sm text-text-body">
+          <Crown size={16} className="text-brand-primary" aria-hidden="true" />
           Admin · saldo ∞ ·{" "}
           <span className="text-emerald-300">{prosOnlineCount}</span>{" "}
           {prosOnlineCount === 1 ? "PRO online" : "PROs online"}

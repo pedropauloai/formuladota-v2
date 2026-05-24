@@ -128,24 +128,24 @@ export function PlayPanel({ open, onClose, initialState }: PlayPanelProps) {
 
         {/* Panel direito — largura aumentada pra ultra-wide */}
         <aside
-          className="absolute right-0 top-0 h-full w-full max-w-[560px] flex flex-col border-l-2 border-[var(--color-border)] bg-gradient-to-b from-[var(--color-bg-deep)]/95 to-black/95 backdrop-blur-md shadow-2xl xl:max-w-[640px] 2xl:max-w-[720px]"
+          className="absolute right-0 top-0 h-full w-full max-w-[560px] flex flex-col border-l-2 border-border-strong bg-gradient-to-b from-bg-deep/95 to-bg-deep/95 backdrop-blur-md shadow-2xl xl:max-w-[640px] 2xl:max-w-[720px]"
           role="dialog"
           aria-label="Painel de jogo"
         >
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-[var(--color-border)] px-5 py-3 2xl:py-4 shrink-0">
+          <div className="flex items-center justify-between border-b border-border-subtle px-5 py-3 2xl:py-4 shrink-0">
             <div className="flex items-center gap-2">
               {showBack && (
                 <button
                   type="button"
                   onClick={handleBack}
                   aria-label="Voltar"
-                  className="flex size-7 items-center justify-center rounded text-white/60 hover:bg-white/5 hover:text-white transition-colors"
+                  className="flex size-7 items-center justify-center rounded text-text-muted hover:bg-bg-elevated hover:text-text-display transition-colors"
                 >
                   <ArrowLeft size={14} aria-hidden="true" />
                 </button>
               )}
-              <h2 className="font-display text-base 2xl:text-lg uppercase tracking-[0.2em] text-white">
+              <h2 className="font-display text-base 2xl:text-lg uppercase tracking-[0.2em] text-text-display">
                 {viewTitle(view)}
               </h2>
             </div>
@@ -153,7 +153,7 @@ export function PlayPanel({ open, onClose, initialState }: PlayPanelProps) {
               type="button"
               onClick={onClose}
               aria-label="Fechar"
-              className="flex size-8 items-center justify-center rounded-md text-white/60 hover:bg-white/5 hover:text-white transition-colors"
+              className="flex size-8 items-center justify-center rounded-md text-text-muted hover:bg-bg-elevated hover:text-text-display transition-colors"
             >
               <X size={16} aria-hidden="true" />
             </button>
@@ -161,7 +161,7 @@ export function PlayPanel({ open, onClose, initialState }: PlayPanelProps) {
 
           {/* Mode list — só visível em "modes". Salas expande inline abaixo */}
           {showModeNav && (
-            <nav className="border-b border-[var(--color-border)] shrink-0">
+            <nav className="border-b border-border-subtle shrink-0">
               {MODES.map((m) => (
                 <div key={m.id}>
                   <ModeButton
@@ -171,7 +171,7 @@ export function PlayPanel({ open, onClose, initialState }: PlayPanelProps) {
                   />
                   {/* Sub-menu inline pra "Salas Personalizadas" */}
                   {m.id === "salas" && mode === "salas" && (
-                    <div className="border-t border-[var(--color-border)] bg-black/40 px-5 py-3 2xl:py-4 grid grid-cols-2 gap-2">
+                    <div className="border-t border-border-subtle bg-bg-deep/40 px-5 py-3 2xl:py-4 grid grid-cols-2 gap-2">
                       <SubAction
                         label="Criar"
                         icon={Plus}
@@ -275,14 +275,14 @@ function ModeButton({
       aria-pressed={active}
       className={`flex w-full items-center gap-3 px-5 py-2.5 2xl:py-3 text-left font-sans text-xs 2xl:text-sm font-semibold uppercase tracking-[0.15em] transition-colors ${
         active
-          ? "bg-[var(--color-brand-red)]/15 text-white border-l-2 border-[var(--color-brand-red)]"
-          : "text-white/55 hover:bg-white/5 hover:text-white border-l-2 border-transparent"
+          ? "bg-brand-primary/15 text-text-display border-l-2 border-brand-primary"
+          : "text-text-muted hover:bg-bg-elevated hover:text-text-display border-l-2 border-transparent"
       }`}
     >
       <mode.icon size={14} aria-hidden="true" />
       <span className="flex-1">{mode.label}</span>
       {mode.v2 && (
-        <span className="font-mono text-[9px] 2xl:text-[10px] uppercase tracking-widest text-white/30">
+        <span className="font-mono text-[9px] 2xl:text-[10px] uppercase tracking-widest text-text-faded">
           V2
         </span>
       )}
@@ -305,7 +305,7 @@ function SubAction({
     <button
       type="button"
       onClick={onClick}
-      className="flex items-center justify-center gap-2 rounded-sm border border-[var(--color-border)] bg-black/40 px-3 py-2.5 2xl:py-3 font-sans text-[11px] 2xl:text-xs font-semibold uppercase tracking-[0.2em] text-white/80 hover:bg-[var(--color-brand-red)]/15 hover:border-[var(--color-brand-red)]/60 hover:text-white transition-colors"
+      className="flex items-center justify-center gap-2 rounded-sm border border-border-subtle bg-bg-deep/40 px-3 py-2.5 2xl:py-3 font-sans text-[11px] 2xl:text-xs font-semibold uppercase tracking-[0.2em] text-text-body hover:bg-brand-primary/15 hover:border-brand-primary/60 hover:text-text-display transition-colors"
     >
       <Icon size={13} aria-hidden="true" />
       {label}
@@ -318,16 +318,16 @@ function SubAction({
 function SalasInfo() {
   return (
     <div className="space-y-4">
-      <p className="font-sans text-xs 2xl:text-sm text-white/60 leading-relaxed">
-        Escolha <span className="text-white">CRIAR</span> pra abrir uma sala
-        in-house ou <span className="text-white">NAVEGAR</span> pra entrar em
+      <p className="font-sans text-xs 2xl:text-sm text-text-muted leading-relaxed">
+        Escolha <span className="text-text-display">CRIAR</span> pra abrir uma sala
+        in-house ou <span className="text-text-display">NAVEGAR</span> pra entrar em
         salas abertas da comunidade.
       </p>
-      <div className="rounded-md border border-[var(--color-border)] bg-black/30 p-4 2xl:p-5 space-y-2">
-        <p className="font-sans text-xs 2xl:text-sm font-semibold uppercase tracking-[0.15em] text-white/70">
+      <div className="rounded-md border border-border-subtle bg-bg-deep/30 p-4 2xl:p-5 space-y-2">
+        <p className="font-sans text-xs 2xl:text-sm font-semibold uppercase tracking-[0.15em] text-text-body">
           Como funciona
         </p>
-        <ul className="font-sans text-[11px] 2xl:text-xs text-white/55 leading-relaxed space-y-1">
+        <ul className="font-sans text-[11px] 2xl:text-xs text-text-muted leading-relaxed space-y-1">
           <li>· Você cria a sala e o bot Steam abre o lobby Dota 2</li>
           <li>· Senha gerada automaticamente — compartilhe com 9 jogadores</li>
           <li>· Match ID capturado ao fim da partida</li>
@@ -454,7 +454,7 @@ function CompetitivaForm({
   return (
     <>
       <div className="flex-1 overflow-y-auto px-5 py-5 2xl:px-7 2xl:py-7 space-y-5 2xl:space-y-6">
-        <div className="grid grid-cols-2 rounded-md border border-[var(--color-border)] overflow-hidden">
+        <div className="grid grid-cols-2 rounded-md border border-border-subtle overflow-hidden">
           <SearchTab
             label="Busca por funções"
             active={searchType === "role"}
@@ -467,26 +467,26 @@ function CompetitivaForm({
           />
         </div>
 
-        <div className="rounded-md border border-[var(--color-brand-red)]/30 bg-gradient-to-r from-[var(--color-brand-red)]/10 to-transparent px-4 py-3 2xl:px-5 2xl:py-4 flex items-center justify-between">
+        <div className="rounded-md border border-brand-primary/30 bg-gradient-to-r from-brand-primary/10 to-transparent px-4 py-3 2xl:px-5 2xl:py-4 flex items-center justify-between">
           <div>
-            <p className="font-mono text-[10px] 2xl:text-[11px] uppercase tracking-widest text-white/50">
+            <p className="font-mono text-[10px] 2xl:text-[11px] uppercase tracking-widest text-text-muted">
               Sua medalha
             </p>
-            <p className="font-display text-sm 2xl:text-base uppercase tracking-wide text-white">
+            <p className="font-display text-sm 2xl:text-base uppercase tracking-wide text-text-display">
               Não classificado
             </p>
           </div>
-          <span className="font-mono text-[10px] 2xl:text-[11px] uppercase tracking-widest text-[var(--color-brand-red)]">
+          <span className="font-mono text-[10px] 2xl:text-[11px] uppercase tracking-widest text-brand-primary">
             Calibrar →
           </span>
         </div>
 
         {searchType === "role" && (
           <div className="space-y-2">
-            <p className="font-sans text-xs 2xl:text-sm font-semibold uppercase tracking-[0.15em] text-white/70">
+            <p className="font-sans text-xs 2xl:text-sm font-semibold uppercase tracking-[0.15em] text-text-body">
               Busca com função
             </p>
-            <p className="font-sans text-[11px] 2xl:text-xs text-white/50">
+            <p className="font-sans text-[11px] 2xl:text-xs text-text-muted">
               Selecione 1 ou mais funções pra encontrar partidas mais rápido.
             </p>
             <div className="space-y-1.5 mt-2">
@@ -504,7 +504,7 @@ function CompetitivaForm({
         )}
 
         <div className="space-y-2">
-          <p className="font-sans text-xs 2xl:text-sm font-semibold uppercase tracking-[0.15em] text-white/70">
+          <p className="font-sans text-xs 2xl:text-sm font-semibold uppercase tracking-[0.15em] text-text-body">
             Modo de jogo
           </p>
           <SelectField
@@ -518,21 +518,21 @@ function CompetitivaForm({
           />
         </div>
 
-        <div className="space-y-2 border-t border-[var(--color-border)] pt-4">
+        <div className="space-y-2 border-t border-border-subtle pt-4">
           <ToggleRow label="Casual" disabled />
           <ToggleRow label="Modo para novatos" disabled />
         </div>
       </div>
 
       {/* Footer — botão verde Buscar/Cancelar */}
-      <div className="border-t border-[var(--color-border)] p-4 2xl:p-5 shrink-0">
+      <div className="border-t border-border-subtle p-4 2xl:p-5 shrink-0">
         {inQueue ? (
           <>
             <button
               type="button"
               onClick={handleCancel}
               disabled={isPending}
-              className="group relative flex w-full h-12 2xl:h-14 items-center justify-center gap-2 overflow-hidden rounded-md border-2 border-[var(--color-danger)] bg-gradient-to-b from-[var(--color-danger)]/40 to-[var(--color-danger)]/20 px-6 font-display text-base 2xl:text-lg font-bold uppercase tracking-[0.25em] text-white shadow-lg transition-all hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50"
+              className="group relative flex w-full h-12 2xl:h-14 items-center justify-center gap-2 overflow-hidden rounded-md border-2 border-error bg-gradient-to-b from-error/40 to-error/20 px-6 font-display text-base 2xl:text-lg font-bold uppercase tracking-[0.25em] text-text-display shadow-lg transition-all hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isPending ? (
                 <Loader2 size={16} className="animate-spin" aria-hidden="true" />
@@ -541,7 +541,7 @@ function CompetitivaForm({
               )}
               <span>Cancelar busca</span>
             </button>
-            <p className="mt-2 text-center font-mono text-xs 2xl:text-sm uppercase tracking-widest text-[var(--color-warning)]">
+            <p className="mt-2 text-center font-mono text-xs 2xl:text-sm uppercase tracking-widest text-warning">
               Procurando partida · {formatTime(waitingSeconds)}
             </p>
           </>
@@ -551,7 +551,7 @@ function CompetitivaForm({
               type="button"
               onClick={handleSearch}
               disabled={isPending}
-              className="group relative flex w-full h-12 2xl:h-14 items-center justify-center gap-2 overflow-hidden rounded-md border-2 border-[var(--color-play-green)] bg-gradient-to-b from-[var(--color-play-green)] to-[var(--color-play-green-dark)] px-6 font-display text-base 2xl:text-lg font-bold uppercase tracking-[0.25em] text-white shadow-lg shadow-[var(--color-play-green)]/30 transition-all hover:scale-[1.01] hover:shadow-[var(--color-play-green)]/50 disabled:cursor-not-allowed disabled:opacity-50"
+              className="group relative flex w-full h-12 2xl:h-14 items-center justify-center gap-2 overflow-hidden rounded-md border-2 border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover px-6 font-display text-base 2xl:text-lg font-bold uppercase tracking-[0.25em] text-text-display shadow-lg shadow-[var(--color-play-primary-glow)] transition-all hover:scale-[1.01] hover:shadow-[var(--color-play-primary-glow)] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isPending ? (
                 <Loader2 size={16} className="animate-spin" aria-hidden="true" />
@@ -560,7 +560,7 @@ function CompetitivaForm({
               )}
               <span>{isPending ? "Entrando..." : "Buscar partida"}</span>
             </button>
-            <p className="mt-2 text-center font-mono text-[10px] 2xl:text-[11px] uppercase tracking-widest text-white/40">
+            <p className="mt-2 text-center font-mono text-[10px] 2xl:text-[11px] uppercase tracking-widest text-text-faded">
               Matchmaking via fila · Fase B
             </p>
           </>
@@ -586,8 +586,8 @@ function SearchTab({
       aria-pressed={active}
       className={`px-3 py-2 2xl:py-2.5 font-sans text-xs 2xl:text-sm font-semibold uppercase tracking-[0.1em] transition-colors ${
         active
-          ? "bg-[var(--color-brand-red)]/15 text-white"
-          : "text-white/50 hover:bg-white/5 hover:text-white"
+          ? "bg-brand-primary/15 text-text-display"
+          : "text-text-muted hover:bg-bg-elevated hover:text-text-display"
       }`}
     >
       {label}
@@ -612,8 +612,8 @@ function RoleCheckbox({
         disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"
       } ${
         checked
-          ? "border-[var(--color-brand-red)]/50 bg-[var(--color-brand-red)]/8"
-          : "border-[var(--color-border)] bg-black/30 hover:bg-white/5"
+          ? "border-brand-primary/50 bg-brand-primary/[0.08]"
+          : "border-border-subtle bg-bg-deep/30 hover:bg-bg-elevated"
       }`}
     >
       <input
@@ -621,10 +621,10 @@ function RoleCheckbox({
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
         disabled={disabled}
-        className="size-4 accent-[var(--color-brand-red)]"
+        className="size-4 accent-brand-primary"
       />
       <role.icon size={14} className={role.color} aria-hidden="true" />
-      <span className="font-sans text-xs 2xl:text-sm text-white/85">
+      <span className="font-sans text-xs 2xl:text-sm text-text-body">
         {role.label}
       </span>
     </label>
@@ -645,17 +645,17 @@ function SelectField({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full appearance-none rounded-md border border-[var(--color-border)] bg-black/40 px-3 py-2 2xl:py-2.5 pr-8 font-sans text-xs 2xl:text-sm text-white focus:border-[var(--color-brand-red)] focus:outline-none"
+        className="w-full appearance-none rounded-md border border-border-subtle bg-bg-deep/40 px-3 py-2 2xl:py-2.5 pr-8 font-sans text-xs 2xl:text-sm text-text-display focus:border-brand-primary focus:outline-none"
       >
         {options.map((o) => (
-          <option key={o.value} value={o.value} className="bg-black">
+          <option key={o.value} value={o.value} className="bg-bg-deep">
             {o.label}
           </option>
         ))}
       </select>
       <ChevronDown
         size={14}
-        className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-white/40"
+        className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-text-faded"
         aria-hidden="true"
       />
     </div>
@@ -664,12 +664,12 @@ function SelectField({
 
 function ToggleRow({ label, disabled }: { label: string; disabled?: boolean }) {
   return (
-    <label className="flex items-center justify-between gap-3 rounded-md px-2 py-1.5 2xl:py-2 cursor-pointer hover:bg-white/5">
-      <span className="font-sans text-xs 2xl:text-sm text-white/70">{label}</span>
+    <label className="flex items-center justify-between gap-3 rounded-md px-2 py-1.5 2xl:py-2 cursor-pointer hover:bg-bg-elevated">
+      <span className="font-sans text-xs 2xl:text-sm text-text-body">{label}</span>
       <input
         type="checkbox"
         disabled={disabled}
-        className="size-4 accent-[var(--color-brand-red)]"
+        className="size-4 accent-brand-primary"
       />
     </label>
   );
@@ -694,7 +694,7 @@ function LobbiesListView({
   if (lobbies === null) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <Loader2 size={20} className="animate-spin text-white/30" />
+        <Loader2 size={20} className="animate-spin text-text-faded" />
       </div>
     );
   }
@@ -706,7 +706,7 @@ function LobbiesListView({
         aria-label="Atualizar lista"
         onClick={() => setRefreshKey((k) => k + 1)}
         title="Atualizar"
-        className="absolute right-3 top-3 z-[var(--z-elevated)] inline-flex items-center justify-center size-8 rounded-md text-white/50 hover:text-white hover:bg-white/5 transition-colors"
+        className="absolute right-3 top-3 z-[var(--z-elevated)] inline-flex items-center justify-center size-8 rounded-md text-text-muted hover:text-text-display hover:bg-bg-elevated transition-colors"
       >
         <RefreshCw size={13} aria-hidden="true" />
       </button>
@@ -744,13 +744,13 @@ function LobbyRoomView({
   if (error) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center px-6 text-center space-y-3">
-        <p className="font-display text-sm 2xl:text-base uppercase tracking-wide text-white/70">
+        <p className="font-display text-sm 2xl:text-base uppercase tracking-wide text-text-body">
           {error}
         </p>
         <button
           type="button"
           onClick={onBack}
-          className="font-sans text-xs uppercase tracking-widest text-[var(--color-brand-red)] hover:text-white transition-colors"
+          className="font-sans text-xs uppercase tracking-widest text-brand-primary hover:text-text-display transition-colors"
         >
           ← Voltar pra lista
         </button>
@@ -761,7 +761,7 @@ function LobbyRoomView({
   if (!data) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <Loader2 size={20} className="animate-spin text-white/30" />
+        <Loader2 size={20} className="animate-spin text-text-faded" />
       </div>
     );
   }
@@ -834,17 +834,17 @@ function CreateLobbyDialog({
       <div
         role="dialog"
         aria-label="Criar sala"
-        className="relative w-full max-w-lg 2xl:max-w-2xl rounded-md border border-[var(--color-border)] bg-gradient-to-b from-[var(--color-bg-deep)] to-black shadow-2xl"
+        className="relative w-full max-w-lg 2xl:max-w-2xl rounded-md border border-border-subtle bg-gradient-to-b from-bg-deep to-bg-deep shadow-2xl"
       >
-        <header className="flex items-center justify-between border-b border-[var(--color-border)] px-5 py-3 2xl:py-4">
-          <h2 className="font-display text-base 2xl:text-lg uppercase tracking-[0.25em] text-white">
+        <header className="flex items-center justify-between border-b border-border-subtle px-5 py-3 2xl:py-4">
+          <h2 className="font-display text-base 2xl:text-lg uppercase tracking-[0.25em] text-text-display">
             Configurações da sala
           </h2>
           <button
             type="button"
             onClick={onClose}
             aria-label="Fechar"
-            className="flex size-8 items-center justify-center rounded-md text-white/60 hover:bg-white/5 hover:text-white transition-colors"
+            className="flex size-8 items-center justify-center rounded-md text-text-muted hover:bg-bg-elevated hover:text-text-display transition-colors"
           >
             <X size={16} aria-hidden="true" />
           </button>
@@ -856,7 +856,7 @@ function CreateLobbyDialog({
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block font-sans text-xs 2xl:text-sm font-semibold uppercase tracking-[0.15em] text-white/70 mb-1.5">
+              <label className="block font-sans text-xs 2xl:text-sm font-semibold uppercase tracking-[0.15em] text-text-body mb-1.5">
                 Nome da sala
               </label>
               <input
@@ -867,11 +867,11 @@ function CreateLobbyDialog({
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Ex.: Coro do Pedro"
-                className="w-full rounded-md border border-[var(--color-border)] bg-black/40 px-3 py-2 2xl:py-2.5 font-sans text-sm 2xl:text-base text-white placeholder:text-white/30 focus:border-[var(--color-brand-red)] focus:outline-none"
+                className="w-full rounded-md border border-border-subtle bg-bg-deep/40 px-3 py-2 2xl:py-2.5 font-sans text-sm 2xl:text-base text-text-display placeholder:text-text-faded focus:border-brand-primary focus:outline-none"
               />
             </div>
             <div>
-              <label className="block font-sans text-xs 2xl:text-sm font-semibold uppercase tracking-[0.15em] text-white/70 mb-1.5">
+              <label className="block font-sans text-xs 2xl:text-sm font-semibold uppercase tracking-[0.15em] text-text-body mb-1.5">
                 Modo
               </label>
               <SelectField
@@ -895,20 +895,20 @@ function CreateLobbyDialog({
             </div>
           </div>
 
-          <div className="rounded-md border border-[var(--color-border)] bg-black/30 px-4 py-3 2xl:px-5 2xl:py-4">
-            <p className="font-mono text-[10px] 2xl:text-[11px] uppercase tracking-widest text-white/50">
+          <div className="rounded-md border border-border-subtle bg-bg-deep/30 px-4 py-3 2xl:px-5 2xl:py-4">
+            <p className="font-mono text-[10px] 2xl:text-[11px] uppercase tracking-widest text-text-muted">
               Senha
             </p>
-            <p className="mt-1 font-sans text-xs 2xl:text-sm text-white/70">
+            <p className="mt-1 font-sans text-xs 2xl:text-sm text-text-body">
               Gerada automaticamente · 8 caracteres hexadecimais
             </p>
           </div>
 
-          <div className="rounded-md border border-[var(--color-border)] bg-black/30 px-4 py-3 2xl:px-5 2xl:py-4 space-y-1">
-            <p className="font-mono text-[10px] 2xl:text-[11px] uppercase tracking-widest text-white/50">
+          <div className="rounded-md border border-border-subtle bg-bg-deep/30 px-4 py-3 2xl:px-5 2xl:py-4 space-y-1">
+            <p className="font-mono text-[10px] 2xl:text-[11px] uppercase tracking-widest text-text-muted">
               Padrões V1
             </p>
-            <ul className="font-sans text-xs 2xl:text-sm text-white/60 leading-relaxed">
+            <ul className="font-sans text-xs 2xl:text-sm text-text-muted leading-relaxed">
               <li>· Servidor: Brasil</li>
               <li>· Visibilidade: Pública</li>
               <li>· Trapaças: Não</li>
@@ -922,14 +922,14 @@ function CreateLobbyDialog({
               type="button"
               onClick={onClose}
               disabled={isPending}
-              className="inline-flex items-center justify-center rounded-sm border border-white/10 bg-black/40 px-5 py-2.5 2xl:py-3 font-sans text-[11px] 2xl:text-xs font-semibold uppercase tracking-[0.2em] text-white/70 hover:bg-white/5 hover:text-white transition-colors disabled:opacity-50"
+              className="inline-flex items-center justify-center rounded-sm border border-border-subtle bg-bg-deep/40 px-5 py-2.5 2xl:py-3 font-sans text-[11px] 2xl:text-xs font-semibold uppercase tracking-[0.2em] text-text-body hover:bg-bg-elevated hover:text-text-display transition-colors disabled:opacity-50"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={isPending || name.length < 3}
-              className="inline-flex h-11 2xl:h-12 items-center justify-center gap-2 rounded-sm border border-[var(--color-play-green)] bg-gradient-to-b from-[var(--color-play-green)] to-[var(--color-play-green-dark)] px-6 font-display text-sm 2xl:text-base font-bold uppercase tracking-[0.25em] text-white shadow-lg shadow-[var(--color-play-green)]/30 hover:brightness-110 hover:shadow-[var(--color-play-green)]/50 transition-all disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex h-11 2xl:h-12 items-center justify-center gap-2 rounded-sm border border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover px-6 font-display text-sm 2xl:text-base font-bold uppercase tracking-[0.25em] text-text-display shadow-lg shadow-[var(--color-play-primary-glow)] hover:brightness-110 hover:shadow-[var(--color-play-primary-glow)] transition-all disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isPending ? <Loader2 size={14} className="animate-spin" /> : null}
               {isPending ? "Criando..." : "Criar sala"}
@@ -947,25 +947,25 @@ function LobbyChatOverlay({ lobbyId }: { lobbyId: string }) {
   const [tab, setTab] = useState<"sala" | "grupo">("sala");
   return (
     <div className="hidden lg:flex pointer-events-none fixed left-[320px] xl:left-[340px] 2xl:left-[360px] right-[560px] xl:right-[640px] 2xl:right-[720px] bottom-[80px] xl:bottom-[96px] 2xl:bottom-[112px] z-[var(--z-overlay)] justify-center">
-      <div className="pointer-events-auto w-full max-w-md xl:max-w-lg 2xl:max-w-xl rounded-md border border-[var(--color-border)] bg-black/85 backdrop-blur-md shadow-2xl">
-        <header className="flex items-center border-b border-[var(--color-border)]">
+      <div className="pointer-events-auto w-full max-w-md xl:max-w-lg 2xl:max-w-xl rounded-md border border-border-subtle bg-bg-deep/85 backdrop-blur-md shadow-2xl">
+        <header className="flex items-center border-b border-border-subtle">
           <ChatTab label="Sala" active={tab === "sala"} onClick={() => setTab("sala")} />
           <ChatTab label="Grupo" active={tab === "grupo"} onClick={() => setTab("grupo")} />
-          <span className="ml-auto px-3 font-mono text-[9px] 2xl:text-[10px] uppercase tracking-widest text-white/30 truncate max-w-[180px]">
+          <span className="ml-auto px-3 font-mono text-[9px] 2xl:text-[10px] uppercase tracking-widest text-text-faded truncate max-w-[180px]">
             {lobbyId.slice(0, 8)}
           </span>
         </header>
         <div className="px-4 py-3 2xl:py-4 min-h-[120px] 2xl:min-h-[160px] max-h-[200px] 2xl:max-h-[260px] overflow-y-auto">
-          <p className="font-mono text-[10px] 2xl:text-[11px] uppercase tracking-widest text-white/30 text-center mt-2">
+          <p className="font-mono text-[10px] 2xl:text-[11px] uppercase tracking-widest text-text-faded text-center mt-2">
             Chat em breve · V2
           </p>
         </div>
-        <div className="border-t border-[var(--color-border)] p-2 2xl:p-3">
+        <div className="border-t border-border-subtle p-2 2xl:p-3">
           <input
             type="text"
             disabled
             placeholder={`Para [Sala] · digite uma mensagem...`}
-            className="w-full bg-transparent font-sans text-xs 2xl:text-sm text-white placeholder:text-white/30 focus:outline-none disabled:cursor-not-allowed"
+            className="w-full bg-transparent font-sans text-xs 2xl:text-sm text-text-display placeholder:text-text-faded focus:outline-none disabled:cursor-not-allowed"
             aria-label="Chat (em breve)"
           />
         </div>
@@ -990,8 +990,8 @@ function ChatTab({
       aria-pressed={active}
       className={`px-4 py-2 font-sans text-[11px] 2xl:text-xs font-semibold uppercase tracking-[0.2em] transition-colors border-b-2 ${
         active
-          ? "border-[var(--color-brand-red)] text-white"
-          : "border-transparent text-white/50 hover:text-white"
+          ? "border-brand-primary text-text-display"
+          : "border-transparent text-text-muted hover:text-text-display"
       }`}
     >
       {label}
@@ -1012,13 +1012,13 @@ function ComingSoon({ mode }: { mode: Mode }) {
   };
   return (
     <div className="flex h-full flex-col items-center justify-center text-center py-12 space-y-3">
-      <p className="font-display text-lg 2xl:text-xl uppercase tracking-wide text-white">
+      <p className="font-display text-lg 2xl:text-xl uppercase tracking-wide text-text-display">
         {labels[mode]}
       </p>
-      <p className="font-mono text-[11px] 2xl:text-xs uppercase tracking-widest text-white/40">
+      <p className="font-mono text-[11px] 2xl:text-xs uppercase tracking-widest text-text-faded">
         Em desenvolvimento — V2
       </p>
-      <p className="font-sans text-xs 2xl:text-sm text-white/50 max-w-xs">
+      <p className="font-sans text-xs 2xl:text-sm text-text-muted max-w-xs">
         Esse modo entra em uma fase futura. Por enquanto use Competitiva ou Salas Personalizadas.
       </p>
     </div>

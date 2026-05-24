@@ -33,23 +33,23 @@ export function DashboardLeftSidebar({
   return (
     <aside className={wrapperCls}>
       {/* Profile Card */}
-      <div className="rounded-md border border-[var(--color-border)] bg-gradient-to-b from-[var(--color-card)]/90 to-black/60 p-3">
+      <div className="rounded-md border border-border-subtle bg-gradient-to-b from-bg-elevated/90 to-bg-deep/60 p-3">
         <div className="flex items-center gap-3">
           {avatar ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={avatar}
               alt=""
-              className="size-12 shrink-0 rounded-full border-2 border-[var(--color-brand-red)]/60 ring-2 ring-[var(--color-brand-red)]/20"
+              className="size-12 shrink-0 rounded-full border-2 border-brand-primary/60 ring-2 ring-brand-primary/20"
             />
           ) : (
-            <div className="size-12 shrink-0 rounded-full border-2 border-[var(--color-brand-red)]/60 bg-[var(--color-card)]" />
+            <div className="size-12 shrink-0 rounded-full border-2 border-brand-primary/60 bg-bg-elevated" />
           )}
           <div className="flex-1 min-w-0">
-            <p className="font-display text-sm uppercase tracking-wide text-white truncate">
+            <p className="font-display text-sm uppercase tracking-wide text-text-display truncate">
               {persona}
             </p>
-            <p className="font-mono text-[10px] uppercase tracking-widest text-[var(--color-brand-red)]/80 mt-0.5">
+            <p className="font-mono text-[10px] uppercase tracking-widest text-brand-primary/80 mt-0.5">
               [{tag}]
               {isAdmin && <span className="ml-1 text-yellow-500">★</span>}
             </p>
@@ -61,7 +61,7 @@ export function DashboardLeftSidebar({
       <FichasCard balance={fichaBalance} isAdmin={isAdmin} />
 
       {/* Links rápidos */}
-      <nav aria-label="Atalhos" className="space-y-1 rounded-md border border-[var(--color-border)] bg-[var(--color-card)]/60 p-2">
+      <nav aria-label="Atalhos" className="space-y-1 rounded-md border border-border-subtle bg-bg-elevated/60 p-2">
         <SidebarLink href="/me" label="Meu perfil" icon={null} />
         <SidebarLink href="/codigo-de-conduta" label="Código de Conduta" icon={BookOpen} />
         <SidebarLink
@@ -73,8 +73,8 @@ export function DashboardLeftSidebar({
       </nav>
 
       {/* Espaço vazio reservado pra futuras features (amigos online, chat) */}
-      <div className="flex-1 rounded-md border border-dashed border-white/10 bg-black/30 p-4 flex items-center justify-center">
-        <p className="text-center font-sans text-[10px] text-white/30">
+      <div className="flex-1 rounded-md border border-dashed border-border-subtle bg-bg-deep/30 p-4 flex items-center justify-center">
+        <p className="text-center font-sans text-[10px] text-text-faded">
           Lista de amigos · em breve V2
         </p>
       </div>
@@ -84,21 +84,21 @@ export function DashboardLeftSidebar({
 
 function FichasCard({ balance, isAdmin }: { balance: number; isAdmin: boolean }) {
   return (
-    <div className="rounded-md border border-[var(--color-brand-red)]/40 bg-gradient-to-br from-[var(--color-brand-red)]/10 to-transparent p-3">
+    <div className="rounded-md border border-brand-primary/40 bg-gradient-to-br from-brand-primary/10 to-transparent p-3">
       <div className="flex items-center gap-2">
-        <Coins size={14} className="text-[var(--color-brand-red)]" aria-hidden="true" />
-        <p className="font-sans text-[10px] font-semibold uppercase tracking-widest text-white/70">
+        <Coins size={14} className="text-brand-primary" aria-hidden="true" />
+        <p className="font-sans text-[10px] font-semibold uppercase tracking-widest text-text-body">
           Saldo de fichas
         </p>
       </div>
-      <p className="mt-2 font-display text-3xl font-bold text-white">
+      <p className="mt-2 font-display text-3xl font-bold text-text-display">
         {isAdmin ? "∞" : balance}
-        <span className="ml-2 font-mono text-xs text-white/50">
+        <span className="ml-2 font-mono text-xs text-text-muted">
           {isAdmin ? "admin" : balance === 1 ? "ficha" : "fichas"}
         </span>
       </p>
       {!isAdmin && balance === 0 && (
-        <p className="mt-1 font-mono text-[10px] text-white/40">
+        <p className="mt-1 font-mono text-[10px] text-text-faded">
           Compre uma pra entrar em fila
         </p>
       )}
@@ -118,13 +118,13 @@ function SidebarLink({
   external?: boolean;
 }) {
   const cls =
-    "flex items-center gap-2 rounded px-2 py-1.5 font-sans text-xs text-white/70 hover:bg-white/5 hover:text-white transition-colors";
+    "flex items-center gap-2 rounded px-2 py-1.5 font-sans text-xs text-text-body hover:bg-bg-elevated hover:text-text-display transition-colors";
   if (external) {
     return (
       <a href={href} target="_blank" rel="noreferrer" className={cls}>
         {Icon ? <Icon size={12} aria-hidden="true" /> : null}
         {label}
-        <ExternalLink size={9} className="ml-auto text-white/40" aria-hidden="true" />
+        <ExternalLink size={9} className="ml-auto text-text-faded" aria-hidden="true" />
       </a>
     );
   }

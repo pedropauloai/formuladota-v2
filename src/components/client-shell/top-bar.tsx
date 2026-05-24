@@ -245,8 +245,8 @@ function TopBarTab({
       aria-current={active ? "page" : undefined}
       className={`rounded-md px-3 py-1.5 font-sans text-xs font-semibold uppercase tracking-[0.15em] transition-colors xl:px-4 xl:text-sm xl:tracking-[0.2em] ${
         active
-          ? "bg-[var(--color-brand-red)]/15 text-white border-b-2 border-[var(--color-brand-red)] rounded-b-none"
-          : "text-white/70 hover:bg-white/5 hover:text-white"
+          ? "bg-brand-primary/15 text-text-display border-b-2 border-brand-primary rounded-b-none"
+          : "text-text-body hover:bg-bg-elevated hover:text-text-display"
       }`}
     >
       {label}

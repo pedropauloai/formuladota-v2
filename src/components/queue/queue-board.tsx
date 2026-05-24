@@ -71,7 +71,7 @@ export function QueueBoard({
       className={`relative rounded-md border backdrop-blur-sm ${
         coach.filaAberta
           ? "border-emerald-500/40 bg-emerald-500/5"
-          : "border-[var(--color-border)] bg-[var(--color-card)]/50"
+          : "border-border-subtle bg-bg-elevated/50"
       } ${isCompact ? "p-3" : "p-5"}`}
       aria-label={`Fila do PRO ${coach.username ?? coach.coachId}`}
     >
@@ -94,13 +94,13 @@ export function QueueBoard({
             src={coach.avatarUrl}
             alt=""
             className={`shrink-0 rounded-full border-2 ${
-              coach.filaAberta ? "border-emerald-500/60" : "border-[var(--color-border)]"
+              coach.filaAberta ? "border-emerald-500/60" : "border-border-subtle"
             } ${isCompact ? "size-8" : "size-12"}`}
           />
         ) : (
           <div
-            className={`shrink-0 rounded-full border-2 bg-black/40 ${
-              coach.filaAberta ? "border-emerald-500/60" : "border-[var(--color-border)]"
+            className={`shrink-0 rounded-full border-2 bg-bg-deep/40 ${
+              coach.filaAberta ? "border-emerald-500/60" : "border-border-subtle"
             } ${isCompact ? "size-8" : "size-12"}`}
           />
         )}
@@ -108,7 +108,7 @@ export function QueueBoard({
           <div className="flex items-center gap-1.5">
             <Crown
               size={isCompact ? 10 : 12}
-              className="text-[var(--color-brand-red)] shrink-0"
+              className="text-brand-primary shrink-0"
               aria-hidden="true"
             />
             <p

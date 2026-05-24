@@ -53,10 +53,10 @@ export function DashboardCenter({
         {/* Header da seção PROs */}
         <header className="flex items-end justify-between gap-4 pt-2">
           <div>
-            <h2 className="font-display text-2xl uppercase tracking-tight text-white xl:text-3xl">
+            <h2 className="font-display text-2xl uppercase tracking-tight text-text-display xl:text-3xl">
               PROs disponíveis
             </h2>
-            <p className="mt-1 font-mono text-xs text-white/60">
+            <p className="mt-1 font-mono text-xs text-text-muted">
               {onlinePros.length === 0
                 ? "Nenhum PRO online no momento"
                 : `${onlinePros.length} ${onlinePros.length === 1 ? "PRO" : "PROs"} aceitando alunos agora`}
@@ -108,15 +108,15 @@ export function DashboardCenter({
 
         {/* Offline PROs (collapsível visualmente) */}
         {offlinePros.length > 0 && (
-          <details className="mt-4 rounded-md border border-[var(--color-border)] bg-[var(--color-card)]/30 px-4 py-3">
-            <summary className="cursor-pointer font-mono text-xs uppercase tracking-widest text-white/50 hover:text-white/80">
+          <details className="mt-4 rounded-md border border-border-subtle bg-bg-elevated/30 px-4 py-3">
+            <summary className="cursor-pointer font-mono text-xs uppercase tracking-widest text-text-muted hover:text-text-body">
               PROs offline ({offlinePros.length})
             </summary>
             <ul className="mt-3 space-y-1.5">
               {offlinePros.map((pro) => (
                 <li
                   key={pro.coach.coachId}
-                  className="flex items-center gap-3 rounded px-2 py-1.5 hover:bg-white/5"
+                  className="flex items-center gap-3 rounded px-2 py-1.5 hover:bg-bg-elevated"
                 >
                   {pro.coach.avatarUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -126,13 +126,13 @@ export function DashboardCenter({
                       className="size-6 rounded-full grayscale opacity-60"
                     />
                   ) : (
-                    <div className="size-6 rounded-full bg-white/10" />
+                    <div className="size-6 rounded-full bg-bg-elevated" />
                   )}
-                  <span className="flex-1 font-sans text-sm text-white/70 truncate">
+                  <span className="flex-1 font-sans text-sm text-text-body truncate">
                     {pro.coach.username ?? pro.coach.slug}
                   </span>
                   {pro.coach.mmrAtual && (
-                    <span className="font-mono text-xs text-white/40">
+                    <span className="font-mono text-xs text-text-faded">
                       {pro.coach.mmrAtual.toLocaleString("pt-BR")} MMR
                     </span>
                   )}
@@ -148,12 +148,12 @@ export function DashboardCenter({
 
 function EmptyState() {
   return (
-    <div className="flex flex-1 items-center justify-center rounded-md border border-dashed border-[var(--color-border)] bg-black/20 px-8 py-12">
+    <div className="flex flex-1 items-center justify-center rounded-md border border-dashed border-border-subtle bg-bg-deep/20 px-8 py-12">
       <div className="text-center space-y-3">
-        <p className="font-display text-lg uppercase tracking-wide text-white/60">
+        <p className="font-display text-lg uppercase tracking-wide text-text-muted">
           Nenhum PRO online
         </p>
-        <p className="max-w-sm font-mono text-xs text-white/40">
+        <p className="max-w-sm font-mono text-xs text-text-faded">
           Os PROs abrem fila quando estão prontos pra jogar. Receba o aviso no
           Discord oficial pra ser notificado quando alguém abrir.
         </p>
@@ -161,7 +161,7 @@ function EmptyState() {
           href="https://discord.com/invite/v3pSuZhjBE"
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-3 inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-[var(--color-brand-red)] hover:text-white transition-colors"
+          className="mt-3 inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-brand-primary hover:text-text-display transition-colors"
         >
           Ativar aviso no Discord →
         </a>
