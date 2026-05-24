@@ -7,9 +7,6 @@ import "@fontsource-variable/teko";
 import { GeistSans, GeistMono } from "geist/font";
 import "@/styles/globals.css";
 import { Toaster } from "@/components/ui/sonner";
-import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
-import { ConditionalChrome } from "@/components/layout/conditional-chrome";
 // V2.5-F5: Sound infrastructure — singleton Howler + mobile autoplay gate (DF5.1, DF5.4, DF5.6)
 import { SoundProvider } from "@/components/layout/sound-provider";
 import { StickyQueueBanner } from "@/components/queue/sticky-banner";
@@ -73,14 +70,13 @@ export default function RootLayout({
         <StickyQueueBanner />
         {/* Realtime listener (client) — sem UI, escuta changes em queue */}
         <QueueRealtimeListener />
-        {/* Header/Footer ocultos em /dashboard (fullscreen estilo client Dota 2) */}
-        <ConditionalChrome>
-          <Header />
-        </ConditionalChrome>
+        {/* Pedro 2026-05-24: filosofia "tudo é client" — Header/Footer globais
+            removidos (tasks #63-#68). Toda rota usa ClientShell (sistema A
+            canônico — 3-col Dota 2 client real) ou é fullscreen splash (gates
+            como /banned, /suspended, cerimônias como /onboarding/doutrina,
+            /vincular/steam). Layout root não impõe mais chrome — cada rota é
+            responsável pelo próprio. */}
         <div className="flex-1">{children}</div>
-        <ConditionalChrome>
-          <Footer />
-        </ConditionalChrome>
         {/* Toaster global (Sonner compat) — mantido para código legado */}
         <Toaster />
         </ToastProvider>
