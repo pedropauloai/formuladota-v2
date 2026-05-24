@@ -1,0 +1,209 @@
+"use server";
+
+// Server Actions: gerenciamento da assinatura mensal HUB (R$47/mês via MP Pix Automático).
+//
+// Fluxo createSubscription:
+//   1. Verifica user autenticado
+//   2. Verifica se já tem assinatura ativa (bloqueia dupla assinatura)
+//   3. Cria preapproval no MP → retorna init_point
+//   4. Insere subscription no DB com status 'pending'
+//   5. Redireciona user para init_point (sandbox ou produção)
+//
+// Após autorização: MP dispara webhook → handler em /api/webhooks/mercadopago
+// atualiza status para 'authorized' + envia email.
+//
+// Cancel flow híbrido: cancela no MP imediatamente, mas next_payment_date não muda.
+// Helper has_active_subscription() retorna true até next_payment_date mesmo cancelado.
+
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import {
+  createPreapproval,
+  cancelPreapproval,
+  isTestMode,
+} from "@/lib/mercadopago/client";
+import { sendSubscriptionCancelledEmail } from "@/lib/resend";
+
+// ====================================================
+// createSubscription — inicia assinatura PIX Automático
+// ====================================================
+
+export async function createSubscription(): Promise<void> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  // Verifica se já tem assinatura ativa ou pendente (não duplicar)
+  const { data: existing } = await supabase
+    .from("subscriptions")
+    .select("id, status")
+    .eq("user_id", user.id)
+    .in("status", ["pending", "authorized", "cancelled"])
+    .maybeSingle();
+
+  if (existing?.status === "authorized") {
+    // Já tem assinatura ativa — redireciona para página com estado atual
+    redirect("/assinatura?info=already_active");
+  }
+
+  if (existing?.status === "pending") {
+    // Tem preapproval pendente de autorização — mas pode ter expirado
+    // V1: criar novo preapproval (o MP vai retornar erro se ainda ativo — ignoramos e criamos novo)
+    // Deletar o pending antigo antes de criar novo
+    await supabase.from("subscriptions").delete().eq("id", existing.id);
+  }
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://formuladota.com";
+  const price = Number(process.env.HUB_PRICE_BRL ?? "47");
+
+  const result = await createPreapproval({
+    reason: "FORMULADOTA HUB — Mensalidade",
+    payerEmail: user.email ?? "",
+    externalReference: `user-${user.id}`,
+    transactionAmount: price,
+    backUrl: `${siteUrl}/assinatura?success=1`,
+  });
+
+  if (!result.success) {
+    redirect("/assinatura?error=payment_failed");
+  }
+
+  // Inserir no DB com status 'pending' (webhook atualiza para 'authorized')
+  const { error: insertError } = await supabase.from("subscriptions").insert({
+    user_id: user.id,
+    mp_preapproval_id: result.data.id,
+    status: "pending",
+  });
+
+  if (insertError) {
+    console.error("[subscription] insert falhou:", insertError.message);
+    redirect("/assinatura?error=db_failed");
+  }
+
+  // Usar sandbox_init_point em modo de teste (TOKEN começa com TEST-)
+  const redirectUrl = isTestMode()
+    ? result.data.sandboxInitPoint
+    : result.data.initPoint;
+
+  redirect(redirectUrl);
+}
+
+// ====================================================
+// cancelSubscription — cancela assinatura ativa
+// ====================================================
+
+export async function cancelSubscription(): Promise<void> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  // Busca assinatura ativa do user
+  const { data: subscription, error: fetchError } = await supabase
+    .from("subscriptions")
+    .select("id, mp_preapproval_id, status, next_payment_date, user_id")
+    .eq("user_id", user.id)
+    .eq("status", "authorized")
+    .maybeSingle();
+
+  if (fetchError || !subscription) {
+    redirect("/assinatura?error=not_found");
+  }
+
+  if (!subscription.mp_preapproval_id) {
+    redirect("/assinatura?error=invalid_state");
+  }
+
+  // 1) Cancela no Mercado Pago
+  const mpResult = await cancelPreapproval(subscription.mp_preapproval_id);
+  if (!mpResult.success) {
+    console.error("[subscription] cancelPreapproval MP falhou:", mpResult.error);
+    redirect("/assinatura?error=cancel_failed");
+  }
+
+  // 2) Atualiza DB local: status=cancelled + cancelled_at=now()
+  // NÃO modifica next_payment_date — cancel híbrido mantém acesso até fim do período
+  const { error: updateError } = await supabase
+    .from("subscriptions")
+    .update({
+      status: "cancelled",
+      cancelled_at: new Date().toISOString(),
+    })
+    .eq("id", subscription.id);
+
+  if (updateError) {
+    console.error("[subscription] update cancelled falhou:", updateError.message);
+    // Continuar mesmo assim — MP já cancelou, DB será corrigido pelo webhook
+  }
+
+  // 3) Email de cancelamento (fire-and-forget)
+  void sendCancelledEmailSafely(supabase, user.id, subscription.next_payment_date);
+
+  redirect("/assinatura?cancelled=1");
+}
+
+// ====================================================
+// reactivateSubscription — recria assinatura após cancel
+// ====================================================
+
+export async function reactivateSubscription(): Promise<void> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  // Deleta subscription cancelada/expirada para permitir nova criação
+  // (unique index subscriptions_one_active_per_user bloqueia duplicata)
+  await supabase
+    .from("subscriptions")
+    .delete()
+    .eq("user_id", user.id)
+    .in("status", ["cancelled", "paused"]);
+
+  // Delega para createSubscription (mesmo fluxo, DB limpo)
+  await createSubscription();
+}
+
+// ====================================================
+// Helper: email cancelamento (fire-and-forget)
+// ====================================================
+
+type SupabaseSrv = Awaited<ReturnType<typeof createClient>>;
+
+async function sendCancelledEmailSafely(
+  supabase: SupabaseSrv,
+  userId: string,
+  nextPaymentDate: string | null
+): Promise<void> {
+  try {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("email, username")
+      .eq("id", userId)
+      .single();
+
+    if (!profile?.email) return;
+
+    await sendSubscriptionCancelledEmail({
+      userId,
+      customerEmail: profile.email,
+      customerName: profile.username ?? undefined,
+      accessUntil: nextPaymentDate ?? undefined,
+    });
+  } catch (err) {
+    console.error("[subscription] email cancel falhou:", err);
+  }
+}
