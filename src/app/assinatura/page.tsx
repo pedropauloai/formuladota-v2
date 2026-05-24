@@ -1,12 +1,16 @@
-// /assinatura — Status e gerenciamento da mensalidade HUB.
+// /assinatura — Status e gerenciamento da adesão à comunidade FormulaDota.
 // Server Component: lê estado atual da subscription do DB.
 // Client Component (assinatura-client.tsx): botões com Server Actions.
 //
+// Filosofia: adesão = compromisso mútuo (você + plataforma).
+// NÃO é paywall hostil — visitante continua dignificado sem adesão.
+//
 // 4 estados visuais:
-//   A) Sem assinatura — CTA "Assinar HUB"
-//   B) Authorized — mensalidade ativa, próxima cobrança
-//   C) Cancelled + within period — cancelada mas ainda com acesso
-//   D) Cancelled+expirado / Paused / sem subscription — "Sem acesso HUB" + CTA reativar
+//   A) Sem adesão (visitante) — convite sem pressão, CTA "Adira quando estiver pronto"
+//   B) Pending — aguardando autorização Pix Automático
+//   C) Authorized — adesão ativa, renovação automática
+//   D) Cancelled + within period — encerrada mas acesso mantido até data
+//   E) Cancelled+expirado / sem subscription — visitante dignificado + CTA reativar
 
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
@@ -14,8 +18,8 @@ import { createClient } from "@/lib/supabase/server";
 import { AssinaturaClient } from "./assinatura-client";
 
 export const metadata: Metadata = {
-  title: "Mensalidade — FORMULADOTA HUB",
-  description: "Gerencie sua mensalidade de acesso ao HUB FORMULADOTA.",
+  title: "Adesão à Comunidade — FORMULADOTA",
+  description: "Gerencie sua adesão à comunidade FormulaDota.",
 };
 
 // Tipo mínimo da subscription para evitar over-fetch

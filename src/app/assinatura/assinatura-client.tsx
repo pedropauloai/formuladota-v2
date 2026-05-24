@@ -3,6 +3,9 @@
 // Client Component para /assinatura.
 // Gerencia estado local de loading e chama Server Actions.
 // UI: paleta dark/vermelho alinhada com brand FORMULADOTA.
+//
+// Voz: Mestre + Guardião — calma, sem urgência fabricada, sem manipulação.
+// Filosofia: adesão = compromisso mútuo. Visitante continua dignificado.
 
 import { useState } from "react";
 import { Shield, CheckCircle, XCircle, Clock, AlertCircle } from "lucide-react";
@@ -75,7 +78,7 @@ export function AssinaturaClient({
             FORMULADOTA HUB
           </h1>
           <p className="text-sm text-zinc-500">
-            Mensalidade — acesso completo ao HUB
+            Adesão à Comunidade — compromisso compartilhado
           </p>
         </div>
 
@@ -89,7 +92,7 @@ export function AssinaturaClient({
         {queryParams.cancelled && (
           <div className="flex items-center gap-3 rounded-lg border border-zinc-700/40 bg-zinc-900/30 px-4 py-3 text-sm text-zinc-400">
             <XCircle className="size-4 shrink-0" />
-            Cancelamento confirmado. Acesso mantido até a data indicada abaixo.
+            Adesão encerrada. Acesso mantido até a data indicada abaixo.
           </div>
         )}
         {queryParams.error && (
@@ -98,7 +101,7 @@ export function AssinaturaClient({
         {queryParams.info === "already_active" && (
           <div className="flex items-center gap-3 rounded-lg border border-zinc-700/40 bg-zinc-900/30 px-4 py-3 text-sm text-zinc-400">
             <AlertCircle className="size-4 shrink-0" />
-            Sua assinatura já está ativa.
+            Sua adesão já está ativa.
           </div>
         )}
 
@@ -147,14 +150,14 @@ function SubscriptionStateCard({
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-white">
               <Shield className="size-5 text-zinc-500" />
-              Sem assinatura ativa
+              Você é visitante
             </CardTitle>
             <Badge variant="outline" className="border-zinc-700 text-zinc-500">
-              Inativo
+              Visitante
             </Badge>
           </div>
           <CardDescription>
-            Assine o HUB para criar lobbies, participar de seasons e subir no ranking.
+            Adira quando estiver pronto. Sem pressão. A comunidade está aqui quando você decidir.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -164,7 +167,7 @@ function SubscriptionStateCard({
             className="w-full bg-red-700 text-white hover:bg-red-600 focus-visible:ring-red-600/50"
             size="lg"
           >
-            {loading === "subscribe" ? "Redirecionando..." : "Assinar HUB — R$ 47/mês"}
+            {loading === "subscribe" ? "Redirecionando..." : "Adira agora — R$ 47/mês"}
           </Button>
           <p className="mt-3 text-center text-xs text-zinc-600">
             Via PIX Automático. Você autoriza uma vez, a cobrança é automática todo mês.
@@ -181,14 +184,14 @@ function SubscriptionStateCard({
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-white">
               <Clock className="size-5 text-yellow-500" />
-              Aguardando autorização
+              Aguardando autorização Pix Automático
             </CardTitle>
             <Badge variant="outline" className="border-yellow-800 text-yellow-600">
               Pendente
             </Badge>
           </div>
           <CardDescription>
-            Autorize o Pix Automático no app do seu banco para ativar o acesso.
+            Autorize o Pix Automático no app do seu banco para confirmar a adesão.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -213,24 +216,24 @@ function SubscriptionStateCard({
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-white">
               <CheckCircle className="size-5 text-red-500" />
-              Mensalidade ativa
+              Adesão ativa
             </CardTitle>
             <Badge className="bg-red-900/50 text-red-400 border-red-800/50">
-              Ativo
+              Adesao ativa
             </Badge>
           </div>
           <CardDescription>
-            Renovação automática em{" "}
+            Adesão ativa até{" "}
             <span className="text-zinc-300">
               {formatDate(subscription?.next_payment_date ?? null)}
             </span>
-            .
+            . Renovação automática.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="rounded-md border border-zinc-800 bg-zinc-900/30 p-3 text-sm text-zinc-400">
             <div className="flex justify-between">
-              <span>Plano</span>
+              <span>Adesao</span>
               <span className="text-zinc-200">HUB Mensal</span>
             </div>
             <div className="mt-1 flex justify-between">
@@ -238,14 +241,14 @@ function SubscriptionStateCard({
               <span className="text-zinc-200">R$ 47,00/mês</span>
             </div>
             <div className="mt-1 flex justify-between">
-              <span>Próxima cobrança</span>
+              <span>Próxima renovação</span>
               <span className="text-zinc-200">
                 {formatDate(subscription?.next_payment_date ?? null)}
               </span>
             </div>
             {subscription?.started_at && (
               <div className="mt-1 flex justify-between">
-                <span>Ativo desde</span>
+                <span>Membro desde</span>
                 <span className="text-zinc-200">{formatDate(subscription.started_at)}</span>
               </div>
             )}
@@ -258,36 +261,41 @@ function SubscriptionStateCard({
             size="sm"
             className="w-full"
           >
-            {loading === "cancel" ? "Cancelando..." : "Cancelar assinatura"}
+            {loading === "cancel" ? "Encerrando..." : "Encerrar adesão"}
           </Button>
           <p className="text-center text-xs text-zinc-600">
-            Ao cancelar, você mantém acesso até{" "}
+            Ao encerrar, você mantém acesso até{" "}
             {formatDate(subscription?.next_payment_date ?? null)}.
+            Saia sem ressentimento — a comunidade continua aqui.
           </p>
         </CardContent>
       </Card>
     );
   }
 
-  // cancelled_active — cancelada mas ainda com acesso
+  // cancelled_active — adesão encerrada mas acesso ainda válido até next_payment_date
   return (
     <Card className="border-zinc-800 bg-[#0A0A1A]">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-white">
             <XCircle className="size-5 text-zinc-500" />
-            Assinatura cancelada
+            Adesão encerrada
           </CardTitle>
           <Badge variant="outline" className="border-zinc-700 text-zinc-500">
-            Cancelada
+            Encerrada
           </Badge>
         </div>
         <CardDescription>
-          Acesso mantido até{" "}
+          Adesão encerrada em{" "}
+          <span className="text-zinc-300">
+            {formatDate(subscription?.cancelled_at ?? null)}
+          </span>
+          . Acesso mantido até{" "}
           <span className="text-zinc-300">
             {formatDate(subscription?.next_payment_date ?? null)}
           </span>
-          . Após essa data o acesso é removido.
+          . Quando quiser voltar, é só reativar.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -297,8 +305,11 @@ function SubscriptionStateCard({
           className="w-full bg-red-700 text-white hover:bg-red-600 focus-visible:ring-red-600/50"
           size="lg"
         >
-          {loading === "reactivate" ? "Redirecionando..." : "Reativar assinatura"}
+          {loading === "reactivate" ? "Redirecionando..." : "Reativar adesão"}
         </Button>
+        <p className="mt-3 text-center text-xs text-zinc-600">
+          Continua sendo visitante dignificado da plataforma.
+        </p>
       </CardContent>
     </Card>
   );
@@ -312,7 +323,7 @@ function PlanInfoCard() {
   return (
     <Card className="border-zinc-800 bg-[#0A0A1A]">
       <CardHeader>
-        <CardTitle className="text-sm text-zinc-400">O que está incluso</CardTitle>
+        <CardTitle className="text-sm text-zinc-400">Compromisso compartilhado — o que você acessa</CardTitle>
       </CardHeader>
       <CardContent>
         <ul className="space-y-2 text-sm text-zinc-500">
@@ -329,7 +340,7 @@ function PlanInfoCard() {
           ))}
         </ul>
         <p className="mt-4 text-xs text-zinc-700">
-          Coaching e serviços de mentoria individual são separados da mensalidade.
+          Coaching e serviços de mentoria individual são separados da adesão mensal.
         </p>
       </CardContent>
     </Card>
@@ -344,7 +355,7 @@ function ErrorBanner({ code }: { code: string }) {
   const messages: Record<string, string> = {
     payment_failed: "Não foi possível criar a assinatura no Mercado Pago. Tente novamente.",
     db_failed: "Erro interno ao salvar a assinatura. Tente novamente.",
-    cancel_failed: "Não foi possível cancelar. Tente novamente ou entre em contato.",
+    cancel_failed: "Não foi possível encerrar a adesão. Tente novamente ou entre em contato.",
     not_found: "Assinatura não encontrada.",
     invalid_state: "Estado inválido. Recarregue a página.",
   };
