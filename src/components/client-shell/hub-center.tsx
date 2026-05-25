@@ -115,7 +115,7 @@ function StatusLine({
 
   return (
     <p
-      className="font-mono text-sm text-text-muted"
+      className="font-display-condensed text-lg text-text-muted"
       role="status"
       aria-label="Resumo do estado da conta"
     >
@@ -153,7 +153,7 @@ function VisitorStatusLine({
 
   return (
     <p
-      className="font-mono text-sm text-text-muted"
+      className="font-display-condensed text-lg text-text-muted"
       role="status"
       aria-label="Pulso da comunidade FormulaDota"
     >
@@ -229,7 +229,7 @@ export function HubCenter({
           visual em panfleto) pra case natural discreto. H1 mantém uppercase
           pq FORMULADOTA é marca (regra B1) e é o único título dominante. */}
       <header className="space-y-3">
-        <p className="font-mono text-sm text-text-muted">{eyebrowText}</p>
+        <p className="font-display-condensed text-lg text-text-muted">{eyebrowText}</p>
         <h1 className="font-display text-5xl uppercase tracking-wide text-text-display xl:text-6xl">
           FORMULADOTA <span className="text-brand-primary">HUB</span>
         </h1>
