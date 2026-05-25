@@ -159,7 +159,7 @@ export function DashboardTopBar({
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
             <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
           </span>
-          <span className="font-mono text-sm uppercase tracking-widest text-emerald-300/90">
+          <span className="font-display text-sm font-semibold text-emerald-300/90">
             {prosOnlineCount}{" "}
             {prosOnlineCount === 1 ? "PRO online" : "PROs online"}
           </span>

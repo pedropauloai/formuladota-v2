@@ -62,11 +62,11 @@ export function DashboardLeftSidebar({
                 <div className="size-12 shrink-0 rounded-full border-2 border-brand-primary/60 bg-bg-elevated" />
               )}
               <div className="flex-1 min-w-0">
-                <p className="font-display text-sm uppercase tracking-wide text-text-display truncate">
+                <p className="font-display text-base font-semibold text-text-display truncate">
                   {persona ?? "Anônimo"}
                 </p>
-                <p className="font-mono text-sm uppercase tracking-widest text-brand-primary/80 mt-0.5">
-                  [{tag}]
+                <p className="font-display text-sm font-semibold text-brand-primary/80 mt-0.5">
+                  {(tag ?? "").toLowerCase()}
                   {isAdmin && <span className="ml-1 text-yellow-500">★</span>}
                 </p>
               </div>
