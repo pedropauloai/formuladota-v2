@@ -206,7 +206,7 @@ export default async function TournamentDetailPage(props: PageProps) {
             Times registrados
           </h2>
           {registeredTeams.length === 0 ? (
-            <p className="font-body text-sm text-text-faded">Nenhum time inscrito ainda.</p>
+            <p className="font-display text-sm font-medium text-text-muted">Nenhum time inscrito ainda.</p>
           ) : (
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
               {registeredTeams.map((rt) =>

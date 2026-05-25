@@ -193,7 +193,7 @@ export default async function MePage() {
                     {subActive ? "Mensalidade ativa" : "Sem mensalidade ativa"}
                   </p>
                   {subscription?.next_payment_date && (
-                    <p className="mt-1 font-mono text-sm text-text-muted">
+                    <p className="mt-1 font-display text-sm font-semibold text-text-body">
                       Próxima cobrança:{" "}
                       {new Date(subscription.next_payment_date).toLocaleDateString("pt-BR")}
                     </p>

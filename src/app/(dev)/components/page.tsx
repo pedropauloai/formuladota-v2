@@ -255,7 +255,7 @@ export default function ComponentsPage() {
               {(["sm", "md", "lg", "xl"] as const).map((s) => (
                 <div key={s} className="flex flex-col items-center gap-2">
                   <DotaRankMedal rank="immortal-top-100" size={s} glow />
-                  <span className="font-mono text-sm text-text-muted uppercase tracking-widest">
+                  <span className="font-display text-sm font-semibold text-text-body uppercase tracking-widest">
                     {s}
                   </span>
                 </div>
@@ -298,7 +298,7 @@ export default function ComponentsPage() {
               {(["sm", "md", "lg", "xl"] as const).map((s) => (
                 <div key={s} className="flex flex-col items-center gap-2">
                   <HonorRankMedal rank="imortal-da-formula" size={s} glow />
-                  <span className="font-mono text-sm text-text-muted uppercase tracking-widest">
+                  <span className="font-display text-sm font-semibold text-text-body uppercase tracking-widest">
                     {s}
                   </span>
                 </div>
@@ -344,7 +344,7 @@ export default function ComponentsPage() {
             {(["sm", "md", "lg", "xl"] as const).map((s) => (
               <div key={s} className="flex flex-col items-center gap-2">
                 <UserAvatar fallback="PP" size={s} />
-                <span className="font-mono text-sm text-text-muted uppercase tracking-widest">{s}</span>
+                <span className="font-display text-sm font-semibold text-text-body uppercase tracking-widest">{s}</span>
               </div>
             ))}
           </div>
@@ -380,7 +380,7 @@ export default function ComponentsPage() {
           {(["visitante", "aluno", "veterano", "consagrado", "fundador"] as MembershipTier[]).map((t) => (
             <div key={t} className="flex flex-col items-center gap-2">
               <UserAvatar fallback="PP" size="lg" badge={<MembershipBadge tier={t} />} />
-              <span className="font-mono text-sm text-text-muted uppercase tracking-widest">{t}</span>
+              <span className="font-display text-sm font-semibold text-text-body uppercase tracking-widest">{t}</span>
             </div>
           ))}
         </div>

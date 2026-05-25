@@ -136,7 +136,7 @@ export function OnboardingFlow({
           ← anterior
         </Button>
 
-        <span className="font-mono text-sm text-text-muted">
+        <span className="font-display text-sm font-semibold text-text-body">
           {slide} / {TOTAL_SLIDES}
         </span>
 
@@ -166,7 +166,7 @@ function ProgressBar({ current, total }: { current: number; total: number }) {
         <span className="font-mono text-sm uppercase tracking-widest text-brand-primary">
           A Fórmula do Dota de Corrida
         </span>
-        <span className="font-mono text-sm text-text-muted">
+        <span className="font-display text-sm font-semibold text-text-body">
           onboarding obrigatório
         </span>
       </div>
@@ -242,7 +242,7 @@ function SlideWelcome({
           >
             {quotes.firstRule}
           </p>
-          <p className="mt-3 font-body text-sm text-text-muted">
+          <p className="mt-3 font-display text-sm font-semibold text-text-body">
             Esta é a primeira regra. A responsabilidade é sempre sua, 100% das
             vezes.
           </p>
@@ -277,7 +277,7 @@ function SlideAntipatterns({
         <h1 className="font-display text-3xl font-bold tracking-wide text-text-display">
           O que <span className="text-error">não</span> é tolerado
         </h1>
-        <p className="font-body text-sm text-text-muted">
+        <p className="font-display text-sm font-semibold text-text-body">
           Esses comportamentos são incompatíveis com a cultura da Fórmula
           Dota. Geram advertência, suspensão ou banimento.
         </p>
@@ -324,7 +324,7 @@ function SlidePrinciples({
         <h1 className="font-display text-3xl font-bold tracking-wide text-text-display">
           A <span className="text-brand-primary">Fórmula</span>
         </h1>
-        <p className="font-body text-sm text-text-muted">
+        <p className="font-display text-sm font-semibold text-text-body">
           Texto completo dos 14 princípios em{" "}
           <a
             href="/codigo-de-conduta"
@@ -488,7 +488,7 @@ function SlideAccept({
         </span>
       </label>
 
-      <p className="text-center font-mono text-sm text-text-muted">
+      <p className="text-center font-display text-sm font-semibold text-text-body">
         versão {version} · aceitando esta versão você concorda com o texto
         canônico em{" "}
         <a

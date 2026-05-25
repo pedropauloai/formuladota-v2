@@ -128,7 +128,7 @@ export function CriarLobbyForm() {
           </select>
         </div>
 
-        <p className="font-body text-sm text-text-faded">
+        <p className="font-display text-sm font-medium text-text-muted">
           Senha gerada automaticamente. Servidor South America. 5v5.
         </p>
 

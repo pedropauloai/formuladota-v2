@@ -44,7 +44,7 @@ export default async function AdminTemporadasPage() {
                   <Calendar size={18} className="text-brand-primary" aria-hidden="true" />
                   <div>
                     <h3 className="font-display text-xl uppercase tracking-wide text-text-display">{s.name}</h3>
-                    <p className="font-mono text-sm text-text-muted">
+                    <p className="font-display text-sm font-semibold text-text-body">
                       Iniciada em {new Date(s.started_at).toLocaleDateString("pt-BR")}
                       {s.ended_at && ` · Encerrada em ${new Date(s.ended_at).toLocaleDateString("pt-BR")}`}
                     </p>

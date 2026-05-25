@@ -199,7 +199,7 @@ export function ProQueueCard({
             </h3>
           </div>
           {coach.mmrAtual && (
-            <p className="mt-0.5 font-mono text-sm text-text-muted xl:text-sm">
+            <p className="mt-0.5 font-display text-sm font-semibold text-text-body xl:text-sm">
               {coach.mmrAtual.toLocaleString("pt-BR")} MMR
             </p>
           )}
@@ -289,7 +289,7 @@ export function ProQueueCard({
 
       {/* Footer com stats + status + CTA */}
       <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap items-center gap-3 font-mono text-sm text-text-muted">
+        <div className="flex flex-wrap items-center gap-3 font-display text-sm font-semibold text-text-body">
           <span className="inline-flex items-center gap-1">
             <Users size={12} aria-hidden="true" />
             {entries.length} na fila
@@ -427,7 +427,7 @@ function ExpandedWaitingList({
                   {e.ptsToday}× hoje
                 </span>
               )}
-              <span className="w-10 text-right font-mono text-sm text-text-muted tabular-nums">
+              <span className="w-10 text-right font-display text-sm font-semibold text-text-body tabular-nums">
                 {waitingMinutes}m
               </span>
             </li>

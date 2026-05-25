@@ -192,7 +192,7 @@ function LinkedState({
           <p className="font-display text-lg font-semibold tracking-wide text-text-display">
             {persona ?? "Sem nickname"}
           </p>
-          <p className="mt-1 font-mono text-sm text-text-muted">
+          <p className="mt-1 font-display text-sm font-semibold text-text-body">
             SteamID 64: {steamId64}
           </p>
         </div>

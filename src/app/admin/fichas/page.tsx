@@ -98,7 +98,7 @@ export default async function AdminFichasPage() {
                 className="border-b border-border-subtle last:border-0 hover:bg-bg-deep/40"
               >
                 <Td>
-                  <span className="font-mono text-sm text-text-muted">
+                  <span className="font-display text-sm font-semibold text-text-body">
                     {new Date(e.created_at).toLocaleString("pt-BR")}
                   </span>
                 </Td>
@@ -121,7 +121,7 @@ export default async function AdminFichasPage() {
                   </span>
                 </Td>
                 <Td>
-                  <span className="font-mono text-sm text-text-muted">
+                  <span className="font-display text-sm font-semibold text-text-body">
                     {e.admin_user_id
                       ? nameMap.get(e.admin_user_id) ?? e.admin_user_id.slice(0, 8)
                       : "—"}
@@ -138,7 +138,7 @@ export default async function AdminFichasPage() {
               <tr>
                 <td
                   colSpan={6}
-                  className="px-4 py-8 text-center font-mono text-sm text-text-muted"
+                  className="px-4 py-8 text-center font-display text-sm font-semibold text-text-body"
                 >
                   Nenhum ajuste registrado ainda. Vá em &ldquo;Users&rdquo; pra ajustar fichas de alguém.
                 </td>

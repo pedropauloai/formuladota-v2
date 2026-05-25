@@ -95,7 +95,7 @@ export function DashboardLeftSidebar({
 
       {/* Espaço vazio reservado pra futuras features (amigos online, chat) */}
       <div className="flex-1 rounded-md border border-dashed border-border-subtle bg-bg-deep/30 p-4 flex items-center justify-center">
-        <p className="text-center font-sans text-sm text-text-faded">
+        <p className="text-center font-display text-sm font-medium text-text-muted">
           Lista de amigos · em breve V2
         </p>
       </div>
@@ -114,7 +114,7 @@ function VisitorCard() {
         </div>
         <div className="flex-1 min-w-0">
           <p className="font-display text-base text-text-display">Visitante</p>
-          <p className="font-body text-sm text-text-faded mt-0.5">Sem sessão</p>
+          <p className="font-display text-sm font-medium text-text-muted mt-0.5">Sem sessão</p>
         </div>
       </div>
       <p className="mt-3 font-sans text-sm leading-relaxed text-text-body">
@@ -138,11 +138,11 @@ function FichasCard({ balance, isAdmin }: { balance: number; isAdmin: boolean })
     <div className="rounded-md border border-brand-primary/40 bg-gradient-to-br from-brand-primary/10 to-transparent p-3">
       <div className="flex items-center gap-2">
         <Coins size={14} className="text-brand-primary" aria-hidden="true" />
-        <p className="font-body text-sm text-text-muted">Saldo de fichas</p>
+        <p className="font-display text-sm font-semibold text-text-body">Saldo de fichas</p>
       </div>
       <p className="mt-2 font-display text-3xl font-bold text-text-display">
         {isAdmin ? "∞" : balance}
-        <span className="ml-2 font-mono text-sm text-text-muted">
+        <span className="ml-2 font-display text-sm font-semibold text-text-body">
           {isAdmin ? "admin" : balance === 1 ? "ficha" : "fichas"}
         </span>
       </p>

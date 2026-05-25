@@ -41,7 +41,7 @@ export default function GlobalError({
           </p>
 
           {error.digest && (
-            <p className="rounded-md border border-border-subtle bg-bg-base p-3 font-mono text-sm text-text-muted">
+            <p className="rounded-md border border-border-subtle bg-bg-base p-3 font-display text-sm font-semibold text-text-body">
               ID do erro: {error.digest}
             </p>
           )}

@@ -88,7 +88,7 @@ export default async function TimesPage() {
           <h1 className="mt-2 font-display text-3xl 2xl:text-5xl uppercase tracking-tight text-text-display">
             Times
           </h1>
-          <p className="mt-3 font-body text-sm text-text-muted max-w-2xl">
+          <p className="mt-3 font-display text-sm font-semibold text-text-body max-w-2xl">
             Seus times competitivos, convites pendentes e ações de capitão.
           </p>
         </header>

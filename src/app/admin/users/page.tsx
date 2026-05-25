@@ -145,7 +145,7 @@ export default async function AdminUsersPage({
           Comunidade
         </h1>
         <div className="mt-4 brand-divider" />
-        <p className="mt-3 font-mono text-sm text-text-muted">
+        <p className="mt-3 font-display text-sm font-semibold text-text-body">
           {count ?? 0} usuários encontrados · página {page} de {Math.max(1, totalPages)}
         </p>
       </header>
@@ -273,7 +273,7 @@ export default async function AdminUsersPage({
 
                     {/* Cadastro */}
                     <Td>
-                      <span className="font-mono text-sm text-text-muted">
+                      <span className="font-display text-sm font-semibold text-text-body">
                         {new Date(p.created_at).toLocaleDateString("pt-BR")}
                       </span>
                     </Td>
@@ -303,7 +303,7 @@ export default async function AdminUsersPage({
           {page > 1 && (
             <Link
               href={buildFilterUrl({ page: String(page - 1) })}
-              className="rounded-md border border-border-subtle px-3 py-1.5 font-mono text-sm text-text-muted hover:border-brand-primary/60 hover:text-brand-primary transition-colors"
+              className="rounded-md border border-border-subtle px-3 py-1.5 font-display text-sm font-semibold text-text-body hover:border-brand-primary/60 hover:text-brand-primary transition-colors"
             >
               Anterior
             </Link>
@@ -314,7 +314,7 @@ export default async function AdminUsersPage({
           {page < totalPages && (
             <Link
               href={buildFilterUrl({ page: String(page + 1) })}
-              className="rounded-md border border-border-subtle px-3 py-1.5 font-mono text-sm text-text-muted hover:border-brand-primary/60 hover:text-brand-primary transition-colors"
+              className="rounded-md border border-border-subtle px-3 py-1.5 font-display text-sm font-semibold text-text-body hover:border-brand-primary/60 hover:text-brand-primary transition-colors"
             >
               Próxima
             </Link>

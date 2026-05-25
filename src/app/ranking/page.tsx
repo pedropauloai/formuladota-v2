@@ -147,7 +147,7 @@ export default async function RankingPage(props: {
           <h1 className="mt-3 font-display text-4xl uppercase tracking-tight text-text-display md:text-5xl">
             {season.name}
           </h1>
-          <p className="mt-3 font-body text-sm text-text-muted max-w-2xl">
+          <p className="mt-3 font-display text-sm font-semibold text-text-body max-w-2xl">
             Classificação dos jogadores pelo MMR da temporada atual. Top 3 destacados, demais paginados.
           </p>
         </header>
@@ -235,12 +235,12 @@ function TopCard({ row, position }: { row: RankRow; position: number }) {
             <p className="font-display text-base uppercase tracking-wide text-text-display truncate">
               {row.username ?? "Anônimo"}
             </p>
-            <p className="font-mono text-sm text-text-muted">{row.mmr} MMR</p>
+            <p className="font-display text-sm font-semibold text-text-body">{row.mmr} MMR</p>
           </div>
         </div>
         <div className="flex items-center justify-between border-t border-border-subtle pt-3">
           <DotaRankMedal rank={dotaRank} size="sm" showLabel />
-          <span className="font-mono text-sm text-text-muted">
+          <span className="font-display text-sm font-semibold text-text-body">
             {row.vitorias}V — {row.derrotas}D
           </span>
         </div>
@@ -268,7 +268,7 @@ function RankingRow({ row, position }: { row: RankRow; position: number }) {
         <p className="font-body text-sm font-medium text-text-display truncate">
           {row.username ?? "Anônimo"}
         </p>
-        <p className="font-mono text-sm text-text-muted">
+        <p className="font-display text-sm font-semibold text-text-body">
           {row.partidas_total} partidas — {row.vitorias}V/{row.derrotas}D
         </p>
       </div>

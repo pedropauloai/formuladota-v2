@@ -90,7 +90,7 @@ export function AdjustFichasModal({ userId, username, currentBalance }: Props) {
               >
                 {username}
               </h2>
-              <p className="font-mono text-sm text-text-muted">
+              <p className="font-display text-sm font-semibold text-text-body">
                 Saldo atual:{" "}
                 <span className="text-white">
                   {currentBalance} {currentBalance === 1 ? "ficha" : "fichas"}

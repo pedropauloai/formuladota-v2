@@ -67,7 +67,7 @@ export default async function CodigoDeCondutaPage() {
             <p className="font-display text-2xl tracking-wide text-brand-primary text-glow-red">
               {CANONICAL_QUOTES.firstRule}
             </p>
-            <p className="mt-3 font-body text-sm text-text-muted">
+            <p className="mt-3 font-display text-sm font-semibold text-text-body">
               A primeira regra. A responsabilidade é sempre sua, 100% das vezes.
             </p>
           </Card>
@@ -126,7 +126,7 @@ export default async function CodigoDeCondutaPage() {
           </Section>
 
           <Section id="antipadroes" title="Os 15 padrões tóxicos (proibidos)">
-            <p className="font-body text-sm text-text-muted leading-relaxed">
+            <p className="font-display text-sm font-semibold text-text-body leading-relaxed">
               Esses comportamentos são incompatíveis com a cultura da FORMULADOTA.
               Geram advertência, suspensão ou banimento conforme as regras abaixo.
             </p>
@@ -138,7 +138,7 @@ export default async function CodigoDeCondutaPage() {
           </Section>
 
           <Section id="moderacao" title="Sistema progressivo de moderação">
-            <p className="font-body text-sm text-text-muted leading-relaxed">
+            <p className="font-display text-sm font-semibold text-text-body leading-relaxed">
               Toda violação registrada cita o princípio ou anti-padrão violado.
               Não é punição arbitrária — é aplicação da regra que você aceitou ao entrar.
             </p>
@@ -159,11 +159,11 @@ export default async function CodigoDeCondutaPage() {
                 description={PROGRESSIVE_MODERATION.step3.description}
               />
             </ol>
-            <p className="rounded-md border border-border-subtle bg-bg-base px-4 py-3 font-body text-sm text-text-muted">
+            <p className="rounded-md border border-border-subtle bg-bg-base px-4 py-3 font-display text-sm font-semibold text-text-body">
               <strong className="text-text-display">Reset automático:</strong>{" "}
               {PROGRESSIVE_MODERATION.reset}
             </p>
-            <p className="font-body text-sm text-text-muted leading-relaxed">
+            <p className="font-display text-sm font-semibold text-text-body leading-relaxed">
               <strong className="text-text-display">Direito ao contraditório:</strong>{" "}
               você pode contestar qualquer decisão via Discord oficial. A equipe FORMULADOTA
               revisa caso a caso e reverte manualmente se entender que houve erro.
@@ -263,7 +263,7 @@ function PrincipleCard({
         </div>
       </CardHeader>
       <CardContent>
-        <p className="font-body text-sm text-text-muted leading-relaxed">
+        <p className="font-display text-sm font-semibold text-text-body leading-relaxed">
           {principle.body}
         </p>
       </CardContent>
@@ -291,7 +291,7 @@ function AntipatternCard({
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        <ul className="space-y-1 font-body text-sm text-text-muted">
+        <ul className="space-y-1 font-display text-sm font-semibold text-text-body">
           {antipattern.examples.map((ex, i) => (
             <li key={i} className="leading-relaxed">
               • {ex}
@@ -329,7 +329,7 @@ function ModerationStep({
         <h4 className="font-display text-base tracking-wide text-text-display">
           {label}
         </h4>
-        <p className="font-body text-sm text-text-muted leading-relaxed">
+        <p className="font-display text-sm font-semibold text-text-body leading-relaxed">
           {description}
         </p>
       </div>

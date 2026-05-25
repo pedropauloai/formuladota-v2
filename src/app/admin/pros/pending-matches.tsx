@@ -89,7 +89,7 @@ export function PendingMatches({ matches }: Props) {
 
   if (matches.length === 0) {
     return (
-      <p className="rounded-md border border-dashed border-border-subtle bg-bg-elevated/30 p-6 text-center font-mono text-sm text-text-muted">
+      <p className="rounded-md border border-dashed border-border-subtle bg-bg-elevated/30 p-6 text-center font-display text-sm font-semibold text-text-body">
         Nenhuma PT pendente. Inicie uma com alunos da fila.
       </p>
     );
@@ -109,7 +109,7 @@ export function PendingMatches({ matches }: Props) {
                 <p className="font-display text-sm uppercase tracking-wide text-warning">
                   PT agendada
                 </p>
-                <p className="font-mono text-sm text-text-muted mt-0.5">
+                <p className="font-display text-sm font-semibold text-text-body mt-0.5">
                   {new Date(m.createdAt).toLocaleString("pt-BR")} · {m.alunoCount}{" "}
                   aluno{m.alunoCount === 1 ? "" : "s"}
                 </p>

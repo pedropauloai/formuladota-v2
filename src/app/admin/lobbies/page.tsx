@@ -45,7 +45,7 @@ export default async function AdminLobbiesPage() {
               <tr key={l.id} className="border-b border-border-subtle last:border-0">
                 <Td>
                   <div className="font-medium text-text-display">{l.name}</div>
-                  <div className="font-mono text-sm text-text-muted">
+                  <div className="font-display text-sm font-semibold text-text-body">
                     {new Date(l.created_at).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
                   </div>
                 </Td>

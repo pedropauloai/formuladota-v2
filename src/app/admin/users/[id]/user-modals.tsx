@@ -215,7 +215,7 @@ export function AdjustFichasModal({
       </button>
 
       <ModalBase open={open} onClose={close} eyebrow="Fichas" title={username}>
-        <p className="font-mono text-sm text-text-muted mb-4">
+        <p className="font-display text-sm font-semibold text-text-body mb-4">
           Saldo atual:{" "}
           <span className="text-text-body">{currentBalance} fichas</span>
         </p>

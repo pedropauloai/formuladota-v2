@@ -84,7 +84,7 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
       <span className="font-mono text-sm uppercase tracking-widest text-text-faded min-w-[120px]">
         {label}
       </span>
-      <span className="font-mono text-sm text-text-muted text-right">{value}</span>
+      <span className="font-display text-sm font-semibold text-text-body text-right">{value}</span>
     </div>
   );
 }
@@ -263,7 +263,7 @@ export default async function AdminUserDetailPage({
           Usuários
         </Link>
         <span className="font-mono text-sm text-text-faded">/</span>
-        <span className="font-mono text-sm text-text-muted">
+        <span className="font-display text-sm font-semibold text-text-body">
           {profile.username ?? id}
         </span>
       </nav>
@@ -391,7 +391,7 @@ export default async function AdminUserDetailPage({
                     <td className="px-3 py-2 font-mono text-sm text-text-faded uppercase tracking-widest">
                       {l.source}
                     </td>
-                    <td className="px-3 py-2 font-sans text-sm text-text-muted max-w-[200px] truncate">
+                    <td className="px-3 py-2 font-display text-sm font-semibold text-text-body max-w-[200px] truncate">
                       {l.reason ?? "—"}
                     </td>
                   </tr>
@@ -460,7 +460,7 @@ export default async function AdminUserDetailPage({
                     {w.severity === "grave" ? "Strike grave" : "Strike leve"} ·{" "}
                     {new Date(w.created_at).toLocaleDateString("pt-BR")}
                   </p>
-                  <p className="font-sans text-sm text-text-muted mt-0.5">
+                  <p className="font-display text-sm font-semibold text-text-body mt-0.5">
                     {w.reason}
                   </p>
                 </div>
@@ -520,7 +520,7 @@ export default async function AdminUserDetailPage({
             <p className="font-mono text-sm uppercase tracking-widest text-text-faded">
               Status de calibração
             </p>
-            <span className="font-mono text-sm text-text-muted capitalize">
+            <span className="font-display text-sm font-semibold text-text-body capitalize">
               {calibrationStatus}
             </span>
           </div>
@@ -624,7 +624,7 @@ export default async function AdminUserDetailPage({
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <p className="font-mono text-sm text-text-faded uppercase tracking-widest mb-1">Promovido em</p>
-                <p className="font-mono text-sm text-text-muted">
+                <p className="font-display text-sm font-semibold text-text-body">
                   {new Date(proPromo.created_at).toLocaleDateString("pt-BR")}
                 </p>
               </div>
@@ -632,7 +632,7 @@ export default async function AdminUserDetailPage({
                 <>
                   <div>
                     <p className="font-mono text-sm text-text-faded uppercase tracking-widest mb-1">Total vendas</p>
-                    <p className="font-mono text-sm text-text-muted">{proRevenue.totalSales}</p>
+                    <p className="font-display text-sm font-semibold text-text-body">{proRevenue.totalSales}</p>
                   </div>
                   <div>
                     <p className="font-mono text-sm text-text-faded uppercase tracking-widest mb-1">Ganhos PRO</p>

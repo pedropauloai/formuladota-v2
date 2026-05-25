@@ -74,7 +74,7 @@ export function DashboardCenter({
             <h2 className="font-display text-2xl uppercase tracking-tight text-text-display xl:text-3xl">
               PROs disponíveis
             </h2>
-            <p className="mt-1 font-mono text-sm text-text-muted">
+            <p className="mt-1 font-display text-sm font-semibold text-text-body">
               {onlinePros.length === 0
                 ? "Nenhum PRO online no momento"
                 : `${onlinePros.length} ${onlinePros.length === 1 ? "PRO" : "PROs"} aceitando alunos agora`}

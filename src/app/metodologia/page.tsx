@@ -467,7 +467,7 @@ export default async function MetodologiaPage() {
               “A ideia aqui não é te entreter — é te mudar por dentro, na forma
               de pensar, jogar e reagir ao Dota.”
             </blockquote>
-            <p className="text-right font-body text-sm text-text-muted italic">
+            <p className="text-right font-display text-sm font-semibold text-text-body italic">
               — Pedro Paulo, autor da metodologia
             </p>
           </Section>
