@@ -4,9 +4,16 @@
 // iguais — sem hierarquia arbitrária. Cliente lê de cima a baixo e escolhe.
 //
 // Composição:
-//   - Header: avatar + nome + MMR + headline + status fila
+//   - Header: <UserAvatar> + nome + medalhas SKILL+HONOR + headline + status fila
 //   - Slots em miniatura (4 mini-slots da próxima PT) + waiting count
 //   - CTA contextual (Entrar / Sair / Sem ficha / Em outra fila)
+//
+// Refatorado para Design System V2.5 (task #70 — 2026-05-25):
+//   - Wrapper <article> ad-hoc → <Card variant="elevated">
+//   - <img> cru → <UserAvatar size="md" ringColor="play"|null>
+//   - Adicionado par canônico <DotaRankMedal> + <HonorRankMedal> (pattern /me, /coaches)
+//   - <button> cru → <Button variant="primary|secondary|ghost|cinematic">
+//   - Tokens semânticos (success/warning/text-text-display/etc) — zero hex
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -26,6 +33,36 @@ import {
 } from "lucide-react";
 import type { BoardCoach, BoardEntry } from "./queue-board";
 import { joinCoachQueue, leaveCoachQueue } from "@/components/landing/actions";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { UserAvatar } from "@/components/ui/avatar";
+import { DotaRankMedal, type DotaRank } from "@/components/ui/dota-rank-medal";
+import { HonorRankMedal, type HonorRank } from "@/components/ui/honor-rank-medal";
+
+// ---------------------------------------------------------------------------
+// Helpers de tier (mesmo padrão de /me/page.tsx e /coaches/[slug]/page.tsx)
+// ---------------------------------------------------------------------------
+
+// Mapeia MMR Valve → DotaRank V2.5 (escala oficial Valve, mesma de /me)
+function mmrToDotaRank(mmr: number | null | undefined): DotaRank {
+  if (mmr == null) return "herald";
+  if (mmr >= 9000) return "immortal-top-100";
+  if (mmr >= 6000) return "immortal";
+  if (mmr >= 5000) return "divine";
+  if (mmr >= 4000) return "ancient";
+  if (mmr >= 3000) return "legend";
+  if (mmr >= 2000) return "archon";
+  if (mmr >= 1500) return "crusader";
+  if (mmr >= 770) return "guardian";
+  return "herald";
+}
+
+// TODO(schema): integrar tier real do coach quando ProLiveStatus expor
+// honor_tier (hoje schema BoardCoach não traz). Todos PROs são Mestre+ por
+// modelo de admissão — fallback seguro pra "mestre".
+function coachHonorRank(_coach: BoardCoach): HonorRank {
+  return "mestre";
+}
 
 interface Props {
   coach: BoardCoach;
@@ -67,13 +104,6 @@ export function ProQueueCard({
   const [optimisticInQueue, setOptimisticInQueue] = useState<boolean | null>(
     null
   );
-  // Efeito: quando props server-side mudam (realtime push chegou), reset
-  // optimistic pra estado real do server.
-  // Nota: useState(null) garante que enquanto null = usa props real;
-  // só sobrescreve quando user clicou. Quando realtime chega e props
-  // refletem mudança, optimistic vira redundante — reset pra null no
-  // próximo render.
-  // (Mantido em useEffect-less style: rollback explícito se action falhar)
 
   const effectiveInQueue =
     optimisticInQueue !== null ? optimisticInQueue : !!myEntryIdHere;
@@ -85,8 +115,11 @@ export function ProQueueCard({
   const waitingExtra = waitingList.length;
 
   // Default: expandido se viewer está na fila deste PRO (vê própria posição).
-  // Caso contrário colapsado. User pode togglar manual.
   const [expanded, setExpanded] = useState<boolean>(!!myEntryIdHere);
+
+  // Medalhas — par canônico SKILL + HONOR (pattern V2.5 de /me e /coaches)
+  const dotaRank = mmrToDotaRank(coach.mmrAtual);
+  const honorRank = coachHonorRank(coach);
 
   function handleJoin() {
     setError(null);
@@ -125,200 +158,210 @@ export function ProQueueCard({
     });
   }
 
+  // Border destacada por estado: âmbar (viewer na fila), success (aberta), neutra (fechada)
+  const stateBorderCls = effectiveInQueue
+    ? "border-warning/60 bg-warning/5"
+    : coach.filaAberta
+      ? "border-success/40 bg-success/[0.03]"
+      : "border-border-subtle";
+
   return (
-    <article
-      className={`relative rounded-md border-2 backdrop-blur-md transition-colors ${
-        effectiveInQueue
-          ? "border-amber-500/60 bg-amber-500/5"
-          : coach.filaAberta
-            ? "border-emerald-500/40 bg-emerald-500/[0.03]"
-            : "border-border-subtle bg-bg-elevated/40"
-      }`}
+    <Card
+      variant="elevated"
+      className={`relative ${stateBorderCls}`}
+      aria-label={`PRO ${coach.username ?? "anônimo"}, ${coach.filaAberta ? "fila aberta" : "fila fechada"}`}
     >
-      {/* Ring pulsante quando fila aberta */}
+      {/* Ring pulsante quando fila aberta — marcador "ao vivo" */}
       {coach.filaAberta && (
         <span
           className="absolute -top-1.5 -right-1.5 flex size-3.5"
           aria-hidden="true"
         >
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-          <span className="relative inline-flex size-3.5 rounded-full bg-emerald-500" />
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75" />
+          <span className="relative inline-flex size-3.5 rounded-full bg-success" />
         </span>
       )}
 
-      <div className="p-5 xl:p-6">
-        {/* Header — info do PRO */}
-        <header className="flex items-center gap-4">
-          {coach.avatarUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={coach.avatarUrl}
-              alt=""
-              className="size-14 shrink-0 rounded-full border-2 border-emerald-500/50 ring-2 ring-emerald-500/20 xl:size-16"
-            />
-          ) : (
-            <div className="size-14 shrink-0 rounded-full border-2 border-emerald-500/50 bg-black/40 xl:size-16" />
-          )}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <Crown size={14} className="text-brand-primary" aria-hidden="true" />
-              <h3 className="font-display text-lg uppercase tracking-wide text-white truncate xl:text-2xl">
-                {coach.username ?? "PRO"}
-              </h3>
-            </div>
-            {coach.mmrAtual && (
-              <p className="mt-0.5 font-mono text-xs text-white/70 xl:text-sm">
-                {coach.mmrAtual.toLocaleString("pt-BR")} MMR
-              </p>
-            )}
-            {coach.headline && (
-              <p className="mt-1 font-serif text-sm italic text-white/60 line-clamp-1 xl:text-base">
-                {coach.headline}
-              </p>
-            )}
+      {/* Header — identidade do PRO com avatar + medalhas SKILL+HONOR */}
+      <header className="flex items-start gap-4">
+        <UserAvatar
+          src={coach.avatarUrl ?? undefined}
+          alt={coach.username ?? "PRO"}
+          fallback={(coach.username ?? "PR").slice(0, 2)}
+          size="lg"
+          ringColor={coach.filaAberta ? "play" : null}
+        />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <Crown size={14} className="text-brand-primary" aria-hidden="true" />
+            <h3 className="font-display text-lg uppercase tracking-wide text-text-display truncate xl:text-2xl">
+              {coach.username ?? "PRO"}
+            </h3>
           </div>
-        </header>
+          {coach.mmrAtual && (
+            <p className="mt-0.5 font-mono text-xs text-text-muted xl:text-sm">
+              {coach.mmrAtual.toLocaleString("pt-BR")} MMR
+            </p>
+          )}
+          {coach.headline && (
+            <p className="mt-1 font-display text-sm italic text-text-muted line-clamp-1 border-l-2 border-brand-primary/30 pl-2 xl:text-base">
+              {coach.headline}
+            </p>
+          )}
 
-        {/* Mini-slots da próxima PT */}
-        <div className="mt-5 flex items-center gap-2">
-          <div className="grid flex-1 grid-cols-4 gap-2">
-            {Array.from({ length: slotsCount }).map((_, idx) => {
-              const slot = activeSlots[idx] ?? null;
-              if (!slot) {
-                return (
-                  <div
-                    key={`empty-${idx}`}
-                    className="flex h-12 items-center justify-center rounded border border-dashed border-white/15 bg-black/20 xl:h-14"
-                    title={`Slot ${idx + 1} livre`}
-                  >
-                    <span className="font-mono text-[10px] uppercase text-white/30 xl:text-xs">
-                      livre
-                    </span>
-                  </div>
-                );
-              }
-              const isViewer = slot.userId === viewerUserId;
+          {/* Par canônico SKILL + HONOR — pattern V2.5 (igual /me e /coaches/[slug]) */}
+          <div className="mt-2 flex flex-wrap items-center gap-3">
+            <DotaRankMedal
+              rank={dotaRank}
+              size="sm"
+              glow={dotaRank === "immortal" || dotaRank === "immortal-top-100"}
+              calibrationStatus={coach.mmrAtual ? "ranqueado" : "visitante"}
+            />
+            <HonorRankMedal
+              rank={honorRank}
+              size="sm"
+              calibrationStatus="ranqueado"
+            />
+          </div>
+        </div>
+      </header>
+
+      {/* Mini-slots da próxima PT — visual customizado mantido (4 círculos) */}
+      <div className="mt-5 flex items-center gap-2">
+        <div className="grid flex-1 grid-cols-4 gap-2">
+          {Array.from({ length: slotsCount }).map((_, idx) => {
+            const slot = activeSlots[idx] ?? null;
+            if (!slot) {
               return (
                 <div
-                  key={slot.entryId}
-                  className={`flex h-12 items-center gap-1.5 rounded px-2 xl:h-14 ${
-                    isViewer
-                      ? "bg-amber-400/15 ring-1 ring-amber-400/50"
-                      : "bg-emerald-500/10 ring-1 ring-emerald-500/30"
-                  }`}
-                  title={isViewer ? "VOCÊ" : slot.username ?? ""}
+                  key={`empty-${idx}`}
+                  className="flex h-12 items-center justify-center rounded border border-dashed border-border-subtle bg-bg-deep/30 xl:h-14"
+                  title={`Slot ${idx + 1} livre`}
                 >
-                  {slot.avatarUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={slot.avatarUrl}
-                      alt=""
-                      className={`size-7 shrink-0 rounded-full xl:size-8 ${
-                        isViewer ? "ring-2 ring-amber-400" : ""
-                      }`}
-                    />
-                  ) : (
-                    <div className="size-7 shrink-0 rounded-full bg-white/10 xl:size-8" />
-                  )}
-                  <span
-                    className={`min-w-0 flex-1 truncate font-sans text-[11px] xl:text-xs ${
-                      isViewer ? "font-bold text-amber-200" : "text-white/90"
-                    }`}
-                  >
-                    {isViewer ? "VOCÊ" : slot.username ?? "—"}
+                  <span className="font-mono text-[10px] uppercase text-text-faded xl:text-xs">
+                    livre
                   </span>
                 </div>
               );
-            })}
-          </div>
+            }
+            const isViewer = slot.userId === viewerUserId;
+            return (
+              <div
+                key={slot.entryId}
+                className={`flex h-12 items-center gap-1.5 rounded px-2 xl:h-14 ${
+                  isViewer
+                    ? "bg-warning/15 ring-1 ring-warning/50"
+                    : "bg-success/10 ring-1 ring-success/30"
+                }`}
+                title={isViewer ? "VOCÊ" : slot.username ?? ""}
+              >
+                <UserAvatar
+                  src={slot.avatarUrl ?? undefined}
+                  alt={slot.username ?? ""}
+                  fallback={(slot.username ?? "??").slice(0, 2)}
+                  size="sm"
+                  ringColor={isViewer ? "tier-immortal" : null}
+                />
+                <span
+                  className={`min-w-0 flex-1 truncate font-sans text-[11px] xl:text-xs ${
+                    isViewer ? "font-bold text-warning" : "text-text-body"
+                  }`}
+                >
+                  {isViewer ? "VOCÊ" : slot.username ?? "—"}
+                </span>
+              </div>
+            );
+          })}
+        </div>
 
-          {/* Badge "+N aguardando" */}
-          {waitingExtra > 0 && (
-            <div className="flex h-12 shrink-0 flex-col items-center justify-center rounded bg-amber-500/15 px-3 xl:h-14">
-              <span className="font-display text-base font-bold text-amber-200 xl:text-lg">
-                +{waitingExtra}
-              </span>
-              <span className="font-mono text-[9px] uppercase tracking-widest text-amber-300/80">
-                espera
-              </span>
-            </div>
+        {/* Badge "+N aguardando" */}
+        {waitingExtra > 0 && (
+          <div className="flex h-12 shrink-0 flex-col items-center justify-center rounded bg-warning/15 px-3 xl:h-14">
+            <span className="font-display text-base font-bold text-warning xl:text-lg">
+              +{waitingExtra}
+            </span>
+            <span className="font-mono text-[9px] uppercase tracking-widest text-warning/80">
+              espera
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Footer com stats + status + CTA */}
+      <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-3 font-mono text-xs text-text-muted">
+          <span className="inline-flex items-center gap-1">
+            <Users size={12} aria-hidden="true" />
+            {entries.length} na fila
+          </span>
+          {coach.filaAberta && (
+            <span className="inline-flex items-center gap-1 text-success">
+              <Radio size={12} aria-hidden="true" />
+              Fila aberta
+            </span>
+          )}
+          {ptsHoje > 0 && (
+            <span className="inline-flex items-center gap-1">
+              <Clock size={12} aria-hidden="true" />
+              {ptsHoje} PT{ptsHoje > 1 ? "s" : ""} hoje
+              {alunosHoje > 0 && ` · ${alunosHoje} alunos`}
+            </span>
           )}
         </div>
 
-        {/* Footer com stats + status + CTA */}
-        <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-wrap items-center gap-3 font-mono text-xs text-white/55">
-            <span className="inline-flex items-center gap-1">
-              <Users size={12} aria-hidden="true" />
-              {entries.length} {entries.length === 1 ? "na fila" : "na fila"}
-            </span>
-            {coach.filaAberta && (
-              <span className="inline-flex items-center gap-1 text-emerald-300">
-                <Radio size={12} aria-hidden="true" />
-                Fila aberta
-              </span>
-            )}
-            {ptsHoje > 0 && (
-              <span className="inline-flex items-center gap-1">
-                <Clock size={12} aria-hidden="true" />
-                {ptsHoje} PT{ptsHoje > 1 ? "s" : ""} hoje
-                {alunosHoje > 0 && ` · ${alunosHoje} alunos`}
-              </span>
-            )}
-          </div>
-
-          <CtaButton
-            myEntryIdHere={myEntryIdHere}
-            effectiveInQueue={effectiveInQueue}
-            myEntryIdElsewhere={myEntryIdElsewhere}
-            otherCoachUsername={otherCoachUsername}
-            fichaBalance={fichaBalance}
-            fichaPackageId={fichaPackageId}
-            filaAberta={coach.filaAberta}
-            isAdmin={isAdmin}
-            pending={pending}
-            onJoin={handleJoin}
-            onLeave={handleLeave}
-          />
-        </div>
-
-        {error && (
-          <p className="mt-3 rounded border border-red-500/30 bg-red-500/5 px-3 py-2 font-mono text-xs text-red-300">
-            {error}
-          </p>
-        )}
-
-        {/* Toggle expand — só se houver overflow */}
-        {waitingExtra > 0 && (
-          <button
-            type="button"
-            onClick={() => setExpanded((v) => !v)}
-            className="mt-4 flex w-full items-center justify-center gap-2 rounded border border-white/10 bg-black/20 py-2 font-mono text-xs uppercase tracking-widest text-white/60 hover:bg-white/5 hover:text-white transition-colors"
-          >
-            {expanded ? (
-              <>
-                <ChevronUp size={14} aria-hidden="true" />
-                Recolher fila
-              </>
-            ) : (
-              <>
-                <ChevronDown size={14} aria-hidden="true" />
-                Ver fila completa ({waitingExtra} aguardando)
-              </>
-            )}
-          </button>
-        )}
-
-        {/* Waiting list expandida */}
-        {expanded && waitingExtra > 0 && (
-          <ExpandedWaitingList
-            entries={waitingList}
-            startPosition={slotsCount + 1}
-            viewerUserId={viewerUserId}
-          />
-        )}
+        <CtaButton
+          myEntryIdHere={myEntryIdHere}
+          effectiveInQueue={effectiveInQueue}
+          myEntryIdElsewhere={myEntryIdElsewhere}
+          otherCoachUsername={otherCoachUsername}
+          fichaBalance={fichaBalance}
+          fichaPackageId={fichaPackageId}
+          filaAberta={coach.filaAberta}
+          isAdmin={isAdmin}
+          pending={pending}
+          onJoin={handleJoin}
+          onLeave={handleLeave}
+        />
       </div>
-    </article>
+
+      {error && (
+        <p className="mt-3 rounded border border-error/30 bg-error/5 px-3 py-2 font-mono text-xs text-error">
+          {error}
+        </p>
+      )}
+
+      {/* Toggle expand — só se houver overflow */}
+      {waitingExtra > 0 && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => setExpanded((v) => !v)}
+          className="mt-4 w-full"
+        >
+          {expanded ? (
+            <>
+              <ChevronUp size={14} aria-hidden="true" />
+              Recolher fila
+            </>
+          ) : (
+            <>
+              <ChevronDown size={14} aria-hidden="true" />
+              Ver fila completa ({waitingExtra} aguardando)
+            </>
+          )}
+        </Button>
+      )}
+
+      {/* Waiting list expandida */}
+      {expanded && waitingExtra > 0 && (
+        <ExpandedWaitingList
+          entries={waitingList}
+          startPosition={slotsCount + 1}
+          viewerUserId={viewerUserId}
+        />
+      )}
+    </Card>
   );
 }
 
@@ -338,8 +381,8 @@ function ExpandedWaitingList({
   // Snapshot do horário atual — evita Date.now() impure em render
   const [now] = useState(() => Date.now());
   return (
-    <div className="mt-3 rounded-md border border-white/10 bg-black/30 p-3">
-      <p className="mb-3 font-mono text-[11px] font-semibold uppercase tracking-widest text-amber-300/80">
+    <div className="mt-3 rounded-md border border-border-subtle bg-bg-deep/30 p-3">
+      <p className="mb-3 font-mono text-[11px] font-semibold uppercase tracking-widest text-warning/80">
         Aguardando próxima rodada
       </p>
       <ul className="space-y-1.5">
@@ -354,42 +397,37 @@ function ExpandedWaitingList({
               key={e.entryId}
               className={`flex items-center gap-3 rounded px-3 py-2 ${
                 isViewer
-                  ? "bg-amber-400/15 ring-1 ring-amber-400/40"
-                  : "hover:bg-white/5"
+                  ? "bg-warning/15 ring-1 ring-warning/40"
+                  : "hover:bg-bg-elevated"
               }`}
             >
               <span
                 className={`w-7 font-mono text-sm font-semibold tabular-nums ${
-                  isViewer ? "text-amber-300" : "text-white/60"
+                  isViewer ? "text-warning" : "text-text-muted"
                 }`}
               >
                 {position}º
               </span>
-              {e.avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={e.avatarUrl}
-                  alt=""
-                  className={`size-7 rounded-full ${
-                    isViewer ? "ring-2 ring-amber-400" : "ring-1 ring-white/20"
-                  }`}
-                />
-              ) : (
-                <div className="size-7 rounded-full bg-white/10" />
-              )}
+              <UserAvatar
+                src={e.avatarUrl ?? undefined}
+                alt={e.username ?? ""}
+                fallback={(e.username ?? "??").slice(0, 2)}
+                size="sm"
+                ringColor={isViewer ? "tier-immortal" : null}
+              />
               <span
                 className={`flex-1 truncate font-sans text-sm ${
-                  isViewer ? "font-bold text-white" : "text-white/90"
+                  isViewer ? "font-bold text-text-display" : "text-text-body"
                 }`}
               >
                 {isViewer ? "VOCÊ" : e.username ?? "—"}
               </span>
               {e.ptsToday !== undefined && e.ptsToday > 0 && (
-                <span className="rounded-full bg-amber-500/20 px-2 py-0.5 font-mono text-[11px] font-semibold text-amber-200">
+                <span className="rounded-full bg-warning/20 px-2 py-0.5 font-mono text-[11px] font-semibold text-warning">
                   {e.ptsToday}× hoje
                 </span>
               )}
-              <span className="w-10 text-right font-mono text-xs text-white/55 tabular-nums">
+              <span className="w-10 text-right font-mono text-xs text-text-muted tabular-nums">
                 {waitingMinutes}m
               </span>
             </li>
@@ -429,46 +467,44 @@ function CtaButton({
   onJoin,
   onLeave,
 }: CtaProps) {
-  const baseCls =
-    "inline-flex items-center justify-center gap-2 rounded-md border-2 px-5 py-2.5 font-display text-sm font-bold uppercase tracking-[0.15em] transition-all hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 xl:px-6 xl:py-3 xl:text-base";
-
   if (isAdmin) {
     return (
-      <Link
-        href="/admin/pros"
-        className={`${baseCls} border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover text-text-display shadow-md shadow-emerald-500/30 hover:shadow-emerald-500/50`}
-      >
-        <Crown size={16} aria-hidden="true" />
-        Painel PROs
+      <Link href="/admin/pros">
+        <Button variant="cinematic" size="md">
+          <Crown size={16} aria-hidden="true" />
+          Painel PROs
+        </Button>
       </Link>
     );
   }
 
   if (effectiveInQueue) {
     return (
-      <button
+      <Button
         type="button"
+        variant="secondary"
+        size="md"
         onClick={onLeave}
         disabled={pending}
-        className={`${baseCls} border-amber-500/60 bg-amber-500/10 text-amber-200 hover:bg-amber-500/20`}
+        className="border-warning/60 bg-warning/10 text-warning hover:bg-warning/20"
       >
-        {pending ? <Loader2 size={14} className="animate-spin" /> : <ArrowLeftFromLine size={14} />}
+        {pending ? (
+          <Loader2 size={14} className="animate-spin" />
+        ) : (
+          <ArrowLeftFromLine size={14} />
+        )}
         Sair da fila
-      </button>
+      </Button>
     );
   }
 
   if (myEntryIdElsewhere) {
     return (
       <div className="inline-flex flex-col items-end gap-1">
-        <button
-          type="button"
-          disabled
-          className={`${baseCls} border-white/15 bg-white/5 text-white/40`}
-        >
+        <Button type="button" variant="secondary" size="md" disabled>
           Você está em outra fila
-        </button>
-        <p className="font-mono text-[10px] text-white/40">
+        </Button>
+        <p className="font-mono text-[10px] text-text-faded">
           Saia da fila de {otherCoachUsername ?? "outro PRO"} pra entrar aqui
         </p>
       </div>
@@ -477,13 +513,9 @@ function CtaButton({
 
   if (!filaAberta) {
     return (
-      <button
-        type="button"
-        disabled
-        className={`${baseCls} border-white/15 bg-white/5 text-white/40`}
-      >
+      <Button type="button" variant="secondary" size="md" disabled>
         Fila fechada
-      </button>
+      </Button>
     );
   }
 
@@ -491,20 +523,22 @@ function CtaButton({
     return (
       <Link
         href={fichaPackageId ? `/checkout/${fichaPackageId}` : "/codigo-de-conduta"}
-        className={`${baseCls} border-amber-400 bg-gradient-to-b from-amber-300 to-amber-500 text-black shadow-md shadow-amber-500/40 hover:shadow-amber-400/60`}
       >
-        <Coins size={16} aria-hidden="true" />
-        Comprar ficha pra entrar
+        <Button variant="primary" size="md">
+          <Coins size={16} aria-hidden="true" />
+          Comprar ficha pra entrar
+        </Button>
       </Link>
     );
   }
 
   return (
-    <button
+    <Button
       type="button"
+      variant="cinematic"
+      size="md"
       onClick={onJoin}
       disabled={pending}
-      className={`${baseCls} border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover text-text-display shadow-md shadow-emerald-500/40 hover:shadow-emerald-500/60`}
     >
       {pending ? (
         <Loader2 size={14} className="animate-spin" />
@@ -512,7 +546,7 @@ function CtaButton({
         <Play size={14} fill="currentColor" aria-hidden="true" />
       )}
       Entrar na fila
-    </button>
+    </Button>
   );
 }
 
@@ -541,12 +575,12 @@ export function UserStatusBar({
         <div className="flex items-center gap-3 font-mono text-sm text-text-body">
           <Crown size={16} className="text-brand-primary" aria-hidden="true" />
           Admin · saldo ∞ ·{" "}
-          <span className="text-emerald-300">{prosOnlineCount}</span>{" "}
+          <span className="text-success">{prosOnlineCount}</span>{" "}
           {prosOnlineCount === 1 ? "PRO online" : "PROs online"}
         </div>
         <Link
           href="/admin/pros"
-          className="font-sans text-xs font-semibold uppercase tracking-widest text-white/70 hover:text-white transition-colors"
+          className="font-sans text-xs font-semibold uppercase tracking-widest text-text-muted hover:text-text-display transition-colors"
         >
           Painel PROs →
         </Link>
@@ -556,11 +590,11 @@ export function UserStatusBar({
 
   if (myQueueCount > 0) {
     return (
-      <div className="flex items-center gap-3 rounded-md border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 font-mono text-sm text-emerald-200">
+      <div className="flex items-center gap-3 rounded-md border border-success/40 bg-success/10 px-4 py-3 font-mono text-sm text-success">
         <Radio size={16} aria-hidden="true" />
         Você está em {myQueueCount}{" "}
         {myQueueCount === 1 ? "fila ativa" : "filas ativas"} ·{" "}
-        <span className="text-white">{fichaBalance}</span>{" "}
+        <span className="text-text-display">{fichaBalance}</span>{" "}
         {fichaBalance === 1 ? "ficha disponível" : "fichas disponíveis"}
       </div>
     );
@@ -568,9 +602,9 @@ export function UserStatusBar({
 
   if (fichaBalance > 0) {
     return (
-      <div className="flex items-center gap-3 rounded-md border border-emerald-500/30 bg-emerald-500/5 px-4 py-3 font-mono text-sm text-white/80">
-        <Coins size={16} className="text-emerald-400" aria-hidden="true" />
-        Você tem <span className="text-white font-bold">{fichaBalance}</span>{" "}
+      <div className="flex items-center gap-3 rounded-md border border-success/30 bg-success/5 px-4 py-3 font-mono text-sm text-text-body">
+        <Coins size={16} className="text-success" aria-hidden="true" />
+        Você tem <span className="text-text-display font-bold">{fichaBalance}</span>{" "}
         {fichaBalance === 1 ? "ficha" : "fichas"} ·{" "}
         {prosOnlineCount > 0
           ? `escolha um PRO abaixo pra entrar`
@@ -582,18 +616,17 @@ export function UserStatusBar({
   const precoTxt =
     fichaPreco !== null ? `R$ ${fichaPreco.toFixed(2).replace(".", ",")}` : "PIX";
   return (
-    <div className="flex flex-col items-start justify-between gap-3 rounded-md border border-amber-500/40 bg-amber-500/5 px-4 py-3 sm:flex-row sm:items-center">
-      <div className="flex items-center gap-3 font-mono text-sm text-white/80">
-        <AlertCircle size={16} className="text-amber-400" aria-hidden="true" />
+    <div className="flex flex-col items-start justify-between gap-3 rounded-md border border-warning/40 bg-warning/5 px-4 py-3 sm:flex-row sm:items-center">
+      <div className="flex items-center gap-3 font-mono text-sm text-text-body">
+        <AlertCircle size={16} className="text-warning" aria-hidden="true" />
         Sem fichas · compre 1 por {precoTxt} pra entrar em qualquer fila
       </div>
       {fichaPackageId && (
-        <Link
-          href={`/checkout/${fichaPackageId}`}
-          className="inline-flex items-center gap-2 rounded-md border-2 border-amber-400 bg-gradient-to-b from-amber-300 to-amber-500 px-4 py-1.5 font-sans text-xs font-bold uppercase tracking-widest text-black hover:brightness-110 transition-all"
-        >
-          <Coins size={12} aria-hidden="true" />
-          Comprar
+        <Link href={`/checkout/${fichaPackageId}`}>
+          <Button variant="primary" size="sm">
+            <Coins size={12} aria-hidden="true" />
+            Comprar
+          </Button>
         </Link>
       )}
     </div>

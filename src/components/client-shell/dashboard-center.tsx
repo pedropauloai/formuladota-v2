@@ -1,10 +1,25 @@
+"use client";
+
 // Dashboard center — feed vertical de PRO cards iguais.
 // Sem destaque arbitrário; todos PROs são opções equivalentes.
 // Cliente lê de cima a baixo e escolhe em qual fila entrar.
+//
+// Refatorado para Design System V2.5 (task #70 — 2026-05-25):
+//   - <EmptyState> primitive (substituiu função local)
+//   - <Card variant="flat"> envolve lista de PROs offline
+//   - <UserAvatar size="sm"> em cada PRO offline (substituiu <img> cru)
+//   - "use client" adicionado: EmptyState primitive é Client Component
+//     (passar icon LucideIcon de Server quebra — mesmo problema do HubCenter)
+//   - /ranked-com-pro/page.tsx é o único importador; Server renderiza Client OK
 
+import { useState } from "react";
+import { Radio, ChevronDown, ChevronUp } from "lucide-react";
 import type { ProWithQueue, ProRecentStats } from "@/lib/queries/pros";
 import type { MyQueueEntry } from "@/lib/queries/queue";
 import { ProQueueCard, UserStatusBar } from "@/components/queue/pro-queue-card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Card } from "@/components/ui/card";
+import { UserAvatar } from "@/components/ui/avatar";
 
 interface CenterProps {
   persona: string;
@@ -35,6 +50,9 @@ export function DashboardCenter({
   // Mapas pra calcular estado por coach (em fila aqui? em outra?)
   const myEntriesByCoach = new Map(myQueues.map((q) => [q.coachId, q.entryId]));
   const inAnyQueue = myQueues[0] ?? null;
+
+  // Estado collapsível da lista de PROs offline (antes era <details>)
+  const [offlineExpanded, setOfflineExpanded] = useState(false);
 
   return (
     <section className="relative flex h-full flex-col overflow-hidden">
@@ -67,7 +85,22 @@ export function DashboardCenter({
 
         {/* Feed vertical de cards — todos PROs equivalentes */}
         {onlinePros.length === 0 ? (
-          <EmptyState />
+          <EmptyState
+            icon={Radio}
+            title="Nenhum PRO online"
+            description="Os PROs abrem fila quando estão prontos. Ative aviso no Discord pra saber quando alguém abrir."
+            principle="random"
+            action={
+              <a
+                href="https://discord.com/invite/v3pSuZhjBE"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-brand-primary hover:text-text-display transition-colors"
+              >
+                Ativar aviso no Discord →
+              </a>
+            }
+          />
         ) : (
           <div className="flex flex-col gap-3">
             {onlinePros.map((pro) => {
@@ -106,66 +139,51 @@ export function DashboardCenter({
           </div>
         )}
 
-        {/* Offline PROs (collapsível visualmente) */}
+        {/* PROs offline (collapsível) — agora wrappado em Card primitive */}
         {offlinePros.length > 0 && (
-          <details className="mt-4 rounded-md border border-border-subtle bg-bg-elevated/30 px-4 py-3">
-            <summary className="cursor-pointer font-mono text-xs uppercase tracking-widest text-text-muted hover:text-text-body">
-              PROs offline ({offlinePros.length})
-            </summary>
-            <ul className="mt-3 space-y-1.5">
-              {offlinePros.map((pro) => (
-                <li
-                  key={pro.coach.coachId}
-                  className="flex items-center gap-3 rounded px-2 py-1.5 hover:bg-bg-elevated"
-                >
-                  {pro.coach.avatarUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={pro.coach.avatarUrl}
-                      alt=""
-                      className="size-6 rounded-full grayscale opacity-60"
+          <Card variant="flat" className="mt-4">
+            <button
+              type="button"
+              onClick={() => setOfflineExpanded((v) => !v)}
+              className="flex w-full items-center justify-between gap-2 font-mono text-xs uppercase tracking-widest text-text-muted hover:text-text-body transition-colors"
+              aria-expanded={offlineExpanded}
+            >
+              <span>PROs offline ({offlinePros.length})</span>
+              {offlineExpanded ? (
+                <ChevronUp size={14} aria-hidden="true" />
+              ) : (
+                <ChevronDown size={14} aria-hidden="true" />
+              )}
+            </button>
+            {offlineExpanded && (
+              <ul className="mt-3 space-y-1.5">
+                {offlinePros.map((pro) => (
+                  <li
+                    key={pro.coach.coachId}
+                    className="flex items-center gap-3 rounded px-2 py-1.5 hover:bg-bg-elevated"
+                  >
+                    <UserAvatar
+                      size="sm"
+                      src={pro.coach.avatarUrl ?? undefined}
+                      alt={pro.coach.username ?? pro.coach.slug}
+                      fallback={(pro.coach.username ?? pro.coach.slug).slice(0, 2)}
+                      className="opacity-60 grayscale"
                     />
-                  ) : (
-                    <div className="size-6 rounded-full bg-bg-elevated" />
-                  )}
-                  <span className="flex-1 font-sans text-sm text-text-body truncate">
-                    {pro.coach.username ?? pro.coach.slug}
-                  </span>
-                  {pro.coach.mmrAtual && (
-                    <span className="font-mono text-xs text-text-faded">
-                      {pro.coach.mmrAtual.toLocaleString("pt-BR")} MMR
+                    <span className="flex-1 font-sans text-sm text-text-body truncate">
+                      {pro.coach.username ?? pro.coach.slug}
                     </span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </details>
+                    {pro.coach.mmrAtual && (
+                      <span className="font-mono text-xs text-text-faded">
+                        {pro.coach.mmrAtual.toLocaleString("pt-BR")} MMR
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
         )}
       </div>
     </section>
-  );
-}
-
-function EmptyState() {
-  return (
-    <div className="flex flex-1 items-center justify-center rounded-md border border-dashed border-border-subtle bg-bg-deep/20 px-8 py-12">
-      <div className="text-center space-y-3">
-        <p className="font-display text-lg uppercase tracking-wide text-text-muted">
-          Nenhum PRO online
-        </p>
-        <p className="max-w-sm font-mono text-xs text-text-faded">
-          Os PROs abrem fila quando estão prontos pra jogar. Receba o aviso no
-          Discord oficial pra ser notificado quando alguém abrir.
-        </p>
-        <a
-          href="https://discord.com/invite/v3pSuZhjBE"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-3 inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-brand-primary hover:text-text-display transition-colors"
-        >
-          Ativar aviso no Discord →
-        </a>
-      </div>
-    </div>
   );
 }
