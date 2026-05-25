@@ -70,7 +70,7 @@ export default async function SuspendedPage() {
 
           {formattedUntil && (
             <div className="rounded-md border border-border-subtle bg-bg-base p-4 text-center">
-              <p className="font-mono text-sm uppercase tracking-widest text-text-muted">
+              <p className="font-display font-semibold text-sm uppercase tracking-wide text-text-muted">
                 suspensão até
               </p>
               <p className="mt-1 text-xl font-bold text-warning">
@@ -81,7 +81,7 @@ export default async function SuspendedPage() {
 
           {lastWarning && (
             <div className="space-y-2 rounded-md border border-border-subtle bg-bg-deep p-4">
-              <p className="font-mono text-sm uppercase tracking-widest text-text-muted">
+              <p className="font-display font-semibold text-sm uppercase tracking-wide text-text-muted">
                 motivo registrado
               </p>
               <p className="text-sm text-text-body">
@@ -120,7 +120,7 @@ export default async function SuspendedPage() {
           <div className="flex items-center justify-between border-t border-border-subtle pt-4">
             <Link
               href="/codigo-de-conduta"
-              className="font-mono text-sm uppercase tracking-widest text-text-muted hover:text-text-display transition-colors"
+              className="font-display font-semibold text-sm uppercase tracking-wide text-text-muted hover:text-text-display transition-colors"
             >
               código de conduta
             </Link>

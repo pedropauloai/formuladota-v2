@@ -32,7 +32,7 @@ export function LeaveQueueButton({ entryId }: { entryId: string }) {
       }}
       disabled={pending || optimisticGone}
       aria-label="Sair da fila"
-      className="inline-flex items-center gap-1 rounded-md border border-emerald-500/40 bg-black/40 px-2.5 py-1 font-mono text-sm font-semibold uppercase tracking-widest text-emerald-200 hover:bg-red-500/15 hover:text-red-300 hover:border-red-500/50 transition-colors disabled:opacity-50"
+      className="inline-flex items-center gap-1 rounded-md border border-emerald-500/40 bg-black/40 px-2.5 py-1 font-display font-semibold text-sm font-semibold uppercase tracking-wide text-emerald-200 hover:bg-red-500/15 hover:text-red-300 hover:border-red-500/50 transition-colors disabled:opacity-50"
     >
       {pending ? <Loader2 size={10} className="animate-spin" /> : <X size={10} />}
       Sair

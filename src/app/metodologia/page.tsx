@@ -476,13 +476,13 @@ export default async function MetodologiaPage() {
             <div className="flex flex-wrap justify-center gap-4">
               <Link
                 href="/codigo-de-conduta"
-                className="font-mono text-sm uppercase tracking-widest text-brand-primary transition hover:text-glow-red"
+                className="font-display font-semibold text-sm uppercase tracking-wide text-brand-primary transition hover:text-glow-red"
               >
                 ler a doutrina →
               </Link>
               <Link
                 href="/"
-                className="font-mono text-sm uppercase tracking-widest text-text-muted transition hover:text-text-display"
+                className="font-display font-semibold text-sm uppercase tracking-wide text-text-muted transition hover:text-text-display"
               >
                 ← voltar à home
               </Link>

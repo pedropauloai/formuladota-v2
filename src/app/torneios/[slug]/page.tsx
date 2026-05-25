@@ -234,7 +234,7 @@ export default async function TournamentDetailPage(props: PageProps) {
                       <p className="font-body text-sm text-text-display truncate">
                         {rt.team.name}
                       </p>
-                      <p className="font-mono text-sm uppercase tracking-widest text-text-faded">
+                      <p className="font-display font-semibold text-sm uppercase tracking-wide text-text-faded">
                         [{rt.team.tag}]
                         {rt.eliminated_at && (
                           <span className="ml-2 text-error">eliminado</span>
@@ -308,7 +308,7 @@ function StatBlock({
     <div className="rounded-md border border-border-subtle bg-bg-base p-4 space-y-1">
       <div className="flex items-center gap-2 text-text-faded">
         <Icon size={12} aria-hidden="true" />
-        <span className="font-mono text-sm 2xl:text-sm uppercase tracking-widest">
+        <span className="font-display font-semibold text-sm 2xl:text-sm uppercase tracking-wide">
           {label}
         </span>
       </div>
@@ -356,7 +356,7 @@ function BracketMatchCard({ match }: { match: MatchRow }) {
         showScore={match.status === "completed"}
       />
       {match.scheduled_at && match.status === "scheduled" && (
-        <div className="px-3 py-1.5 bg-bg-deep font-mono text-sm uppercase tracking-widest text-text-faded text-center">
+        <div className="px-3 py-1.5 bg-bg-deep font-display font-semibold text-sm uppercase tracking-wide text-text-faded text-center">
           {new Date(match.scheduled_at).toLocaleString("pt-BR", {
             day: "2-digit",
             month: "2-digit",
@@ -390,7 +390,7 @@ function TeamLine({
     >
       <div className="flex items-center gap-2 min-w-0">
         {tag && (
-          <span className="font-mono text-sm uppercase tracking-widest text-text-faded shrink-0">
+          <span className="font-display font-semibold text-sm uppercase tracking-wide text-text-faded shrink-0">
             [{tag}]
           </span>
         )}

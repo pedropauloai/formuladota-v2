@@ -182,7 +182,7 @@ export default async function CodigoDeCondutaPage() {
           <footer className="border-t border-border-subtle pt-8 text-center">
             <Link
               href="/"
-              className="font-mono text-sm uppercase tracking-widest text-brand-primary transition hover:text-glow-red"
+              className="font-display font-semibold text-sm uppercase tracking-wide text-brand-primary transition hover:text-glow-red"
             >
               ← voltar à home
             </Link>

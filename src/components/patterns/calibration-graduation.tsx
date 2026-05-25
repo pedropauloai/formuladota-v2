@@ -117,7 +117,7 @@ export function CalibrationGraduation({
         <p className="font-display text-sm font-semibold uppercase tracking-[0.5em] text-brand-primary">
           FORMULADOTA
         </p>
-        <p className="font-mono text-sm uppercase tracking-widest text-text-faded">
+        <p className="font-display font-semibold text-sm uppercase tracking-wide text-text-faded">
           Calibração concluída
         </p>
       </div>

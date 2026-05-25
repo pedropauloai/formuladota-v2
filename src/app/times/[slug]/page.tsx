@@ -88,7 +88,7 @@ export default async function TeamDetailPage(props: PageProps) {
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <p className="font-mono text-sm 2xl:text-sm uppercase tracking-widest text-brand-primary">
+            <p className="font-display font-semibold text-sm 2xl:text-sm uppercase tracking-wide text-brand-primary">
               [{team.tag}]
             </p>
             <h1 className="mt-1 font-display text-4xl uppercase tracking-wide text-text-display 2xl:text-5xl">
@@ -137,7 +137,7 @@ export default async function TeamDetailPage(props: PageProps) {
                         />
                       )}
                     </p>
-                    <p className="font-mono text-sm uppercase tracking-widest text-text-faded">
+                    <p className="font-display font-semibold text-sm uppercase tracking-wide text-text-faded">
                       {m.role}
                     </p>
                   </div>

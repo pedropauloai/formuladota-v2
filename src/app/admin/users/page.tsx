@@ -36,7 +36,7 @@ function BehaviorBadge({ status }: { status: string | null }) {
     };
   return (
     <span
-      className={`rounded-md border px-2 py-1 font-mono text-sm uppercase tracking-widest ${conf.cls}`}
+      className={`rounded-md border px-2 py-1 font-display text-sm font-semibold ${conf.cls}`}
     >
       {conf.label}
     </span>
@@ -51,7 +51,7 @@ function RoleBadge({ role }: { role: string | null }) {
   };
   const conf = map[role ?? ""] ?? { label: role ?? "—", cls: "border-border-subtle text-text-muted" };
   return (
-    <span className={`rounded-md border px-2 py-1 font-mono text-sm uppercase tracking-widest ${conf.cls}`}>
+    <span className={`rounded-md border px-2 py-1 font-display text-sm font-semibold ${conf.cls}`}>
       {conf.label}
     </span>
   );
@@ -247,7 +247,7 @@ export default async function AdminUsersPage({
 
                     {/* Calibração */}
                     <Td>
-                      <span className="font-mono text-sm uppercase tracking-widest text-text-muted">
+                      <span className="font-display font-semibold text-sm uppercase tracking-wide text-text-muted">
                         {p.calibration_status ?? "visitante"}
                       </span>
                     </Td>
@@ -266,7 +266,7 @@ export default async function AdminUsersPage({
                       >
                         {balance}
                       </span>
-                      <span className="ml-1 font-mono text-sm text-text-faded uppercase tracking-widest">
+                      <span className="ml-1 font-display font-semibold text-sm text-text-faded uppercase tracking-wide">
                         {balance === 1 ? "ficha" : "fichas"}
                       </span>
                     </Td>
@@ -282,7 +282,7 @@ export default async function AdminUsersPage({
                     <Td>
                       <Link
                         href={`/admin/users/${p.id}`}
-                        className="inline-flex items-center gap-1.5 rounded-md border border-border-subtle px-2.5 py-1 font-mono text-sm uppercase tracking-widest text-text-muted hover:border-brand-primary/60 hover:text-brand-primary transition-colors"
+                        className="inline-flex items-center gap-1.5 rounded-md border border-border-subtle px-2.5 py-1 font-display font-semibold text-sm uppercase tracking-wide text-text-muted hover:border-brand-primary/60 hover:text-brand-primary transition-colors"
                       >
                         <Eye size={11} />
                         Ver detalhes

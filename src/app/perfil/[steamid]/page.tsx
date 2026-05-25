@@ -257,7 +257,7 @@ export default async function PerfilPublicoPage(props: PageProps) {
               Stats expandidos
             </h2>
             {externalStats && (
-              <span className="font-mono text-sm uppercase tracking-widest text-text-faded">
+              <span className="font-display font-semibold text-sm uppercase tracking-wide text-text-faded">
                 Fonte: {externalStats.source}
               </span>
             )}
@@ -300,13 +300,13 @@ export default async function PerfilPublicoPage(props: PageProps) {
                 >
                   <Card variant="interactive">
                     <CardContent className="space-y-1">
-                      <p className="font-mono text-sm uppercase tracking-widest text-text-faded">
+                      <p className="font-display font-semibold text-sm uppercase tracking-wide text-text-faded">
                         Herói #{h.heroId}
                       </p>
                       <p className="font-display text-2xl text-text-display">
                         {h.winRate}%
                       </p>
-                      <p className="font-mono text-sm uppercase tracking-widest text-text-muted">
+                      <p className="font-display font-semibold text-sm uppercase tracking-wide text-text-muted">
                         {h.wins}V / {h.matches - h.wins}D em {h.matches}
                       </p>
                     </CardContent>
@@ -421,7 +421,7 @@ function BadgeCard({
       <CardContent className="space-y-2">
         <div className="flex items-start justify-between">
           <IconComponent size={20} className="text-text-display" />
-          <span className="font-mono text-sm uppercase tracking-widest text-text-faded">
+          <span className="font-display font-semibold text-sm uppercase tracking-wide text-text-faded">
             T{badge.tier}
           </span>
         </div>
@@ -432,7 +432,7 @@ function BadgeCard({
           {badge.description}
         </p>
         {badge.earned_at && (
-          <p className="font-mono text-sm uppercase tracking-widest text-text-faded">
+          <p className="font-display font-semibold text-sm uppercase tracking-wide text-text-faded">
             {new Date(badge.earned_at).toLocaleDateString("pt-BR")}
           </p>
         )}

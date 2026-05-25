@@ -27,7 +27,7 @@ export default function GlobalError({
       <Card variant="elevated" className="w-full max-w-md border-error">
         <CardContent className="space-y-6">
           <header className="space-y-2 text-center">
-            <p className="font-mono text-sm uppercase tracking-widest text-error">
+            <p className="font-display font-semibold text-sm uppercase tracking-wide text-error">
               erro inesperado
             </p>
             <h1 className="font-display text-2xl uppercase tracking-tight text-text-display">
@@ -52,7 +52,7 @@ export default function GlobalError({
             </Button>
             <Link
               href="/"
-              className="font-mono text-sm uppercase tracking-widest text-text-muted hover:text-text-display transition-colors"
+              className="font-display font-semibold text-sm uppercase tracking-wide text-text-muted hover:text-text-display transition-colors"
             >
               ← home
             </Link>

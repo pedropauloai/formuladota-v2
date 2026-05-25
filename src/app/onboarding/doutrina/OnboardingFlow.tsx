@@ -163,7 +163,7 @@ function ProgressBar({ current, total }: { current: number; total: number }) {
   return (
     <div className="space-y-2">
       <div className="flex items-baseline justify-between">
-        <span className="font-mono text-sm uppercase tracking-widest text-brand-primary">
+        <span className="font-display font-semibold text-sm uppercase tracking-wide text-brand-primary">
           A Fórmula do Dota de Corrida
         </span>
         <span className="font-display text-sm font-semibold text-text-body">
@@ -193,7 +193,7 @@ function ProgressBar({ current, total }: { current: number; total: number }) {
 
 function SlideEyebrow({ children }: { children: React.ReactNode }) {
   return (
-    <p className="font-mono text-sm uppercase tracking-[0.35em] text-brand-primary">
+    <p className="font-display font-semibold text-sm uppercase tracking-[0.35em] text-brand-primary">
       {children}
     </p>
   );
@@ -354,7 +354,7 @@ function PrincipleGroup({
 }) {
   return (
     <div className="space-y-2">
-      <h3 className="font-mono text-sm uppercase tracking-widest text-text-faded">
+      <h3 className="font-display font-semibold text-sm uppercase tracking-wide text-text-faded">
         {label}
       </h3>
       <ul className="space-y-2">

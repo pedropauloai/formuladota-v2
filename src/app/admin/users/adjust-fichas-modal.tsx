@@ -60,7 +60,7 @@ export function AdjustFichasModal({ userId, username, currentBalance }: Props) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 rounded-md border border-brand-primary/40 bg-brand-primary/5 px-2.5 py-1 font-mono text-sm uppercase tracking-widest text-brand-primary hover:bg-brand-primary/15 transition-colors"
+        className="inline-flex items-center gap-1.5 rounded-md border border-brand-primary/40 bg-brand-primary/5 px-2.5 py-1 font-display font-semibold text-sm uppercase tracking-wide text-brand-primary hover:bg-brand-primary/15 transition-colors"
       >
         <Coins size={11} />
         Ajustar
@@ -81,7 +81,7 @@ export function AdjustFichasModal({ userId, username, currentBalance }: Props) {
             aria-labelledby="adjust-fichas-title"
           >
             <header className="mb-5 space-y-1">
-              <p className="font-mono text-sm uppercase tracking-widest text-brand-primary">
+              <p className="font-display font-semibold text-sm uppercase tracking-wide text-brand-primary">
                 Ajustar fichas
               </p>
               <h2
@@ -130,7 +130,7 @@ export function AdjustFichasModal({ userId, username, currentBalance }: Props) {
               <div>
                 <label
                   htmlFor="amount"
-                  className="mb-2 block font-mono text-sm uppercase tracking-widest text-white/60"
+                  className="mb-2 block font-display font-semibold text-sm uppercase tracking-wide text-white/60"
                 >
                   Quantidade
                 </label>
@@ -149,7 +149,7 @@ export function AdjustFichasModal({ userId, username, currentBalance }: Props) {
               <div>
                 <label
                   htmlFor="reason"
-                  className="mb-2 block font-mono text-sm uppercase tracking-widest text-white/60"
+                  className="mb-2 block font-display font-semibold text-sm uppercase tracking-wide text-white/60"
                 >
                   Razão (obrigatória)
                 </label>

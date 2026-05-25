@@ -137,7 +137,7 @@ function InviteCard({ invite }: { invite: Invite }) {
     <div className="rounded-md border border-amber-400/30 bg-gradient-to-b from-amber-500/10 to-transparent p-4 space-y-3">
       <div className="flex items-center gap-2">
         <Mail size={14} className="text-amber-400" aria-hidden="true" />
-        <span className="font-mono text-sm uppercase tracking-widest text-amber-400">
+        <span className="font-display font-semibold text-sm uppercase tracking-wide text-amber-400">
           Convite
         </span>
       </div>
@@ -227,7 +227,7 @@ function TeamCard({ team }: { team: UserTeam }) {
           <p className="font-display text-base uppercase tracking-wide text-white truncate group-hover:text-brand-primary transition-colors">
             {team.name}
           </p>
-          <p className="font-mono text-sm uppercase tracking-widest text-white/40 mt-0.5">
+          <p className="font-display font-semibold text-sm uppercase tracking-wide text-white/40 mt-0.5">
             [{team.tag}]
           </p>
         </div>
@@ -246,7 +246,7 @@ function TeamCard({ team }: { team: UserTeam }) {
         </p>
       )}
 
-      <div className="mt-3 flex items-center justify-between text-sm uppercase tracking-widest font-mono">
+      <div className="mt-3 flex items-center justify-between text-sm uppercase tracking-wide font-display font-semibold">
         <span className="text-white/50">
           <Users size={10} className="inline mr-1" /> {team.memberCount}/7
         </span>
@@ -365,7 +365,7 @@ function CreateTeamModal({ onClose }: { onClose: () => void }) {
                   setTag(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""))
                 }
                 placeholder="IMRT"
-                className="w-full rounded-md border border-border-subtle bg-black/40 px-3 py-2 font-mono text-sm uppercase text-white placeholder:text-white/30 focus:border-brand-primary focus:outline-none"
+                className="w-full rounded-md border border-border-subtle bg-black/40 px-3 py-2 font-display font-semibold text-sm uppercase text-white placeholder:text-white/30 focus:border-brand-primary focus:outline-none"
               />
             </Field>
             <Field label="Slug URL">

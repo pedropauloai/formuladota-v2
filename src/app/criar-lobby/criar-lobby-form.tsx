@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import { createLobby, type CreateLobbyResult } from "./actions";
 
 const FIELD_LABEL =
-  "font-mono text-sm uppercase tracking-widest text-text-faded";
+  "font-display text-sm font-semibold text-text-faded";
 
 const FIELD_INPUT = cn(
   "w-full rounded-[var(--radius-sm)] border border-border-subtle bg-bg-elevated",

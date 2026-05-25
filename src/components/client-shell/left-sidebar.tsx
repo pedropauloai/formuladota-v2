@@ -66,7 +66,7 @@ export function DashboardLeftSidebar({
                   {persona ?? "Anônimo"}
                 </p>
                 <p className="font-display text-sm font-semibold text-brand-primary/80 mt-0.5">
-                  {(tag ?? "").toLowerCase()}
+                  [{tag}]
                   {isAdmin && <span className="ml-1 text-yellow-500">★</span>}
                 </p>
               </div>

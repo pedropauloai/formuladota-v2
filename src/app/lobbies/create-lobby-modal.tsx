@@ -152,7 +152,7 @@ export function CreateLobbyModal({ open, onClose }: Props) {
 
           {showAdvanced && (
             <div className="space-y-4 rounded-md border border-border-subtle bg-black/30 p-5">
-              <p className="font-mono text-sm uppercase tracking-widest text-white/40">
+              <p className="font-display font-semibold text-sm uppercase tracking-wide text-white/40">
                 Recursos avançados — V2 (placeholder)
               </p>
               <div className="grid gap-3 md:grid-cols-3">
@@ -225,7 +225,7 @@ export function CreateLobbyModal({ open, onClose }: Props) {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="block mb-1.5 font-mono text-sm uppercase tracking-widest text-white/50">
+      <span className="block mb-1.5 font-display font-semibold text-sm uppercase tracking-wide text-white/50">
         {label}
       </span>
       {children}

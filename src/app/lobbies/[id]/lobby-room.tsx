@@ -106,7 +106,7 @@ export function LobbyRoom({
               <h1 className="font-display text-base uppercase tracking-wide text-white truncate">
                 {lobby.name}
               </h1>
-              <p className="mt-0.5 font-mono text-sm uppercase tracking-widest text-white/50 truncate">
+              <p className="mt-0.5 font-display font-semibold text-sm uppercase tracking-wide text-white/50 truncate">
                 Líder: {leaderUsername}
               </p>
             </div>
@@ -114,7 +114,7 @@ export function LobbyRoom({
           <PasswordBadge password={lobby.password} />
         </div>
         {(lobby.status === "in_progress" || lobby.steamLobbyId?.startsWith("DEV-")) && (
-          <p className="mt-1 font-mono text-sm uppercase tracking-widest">
+          <p className="mt-1 font-display font-semibold text-sm uppercase tracking-wide">
             {lobby.status === "in_progress" && (
               <span className="text-warning">Em andamento</span>
             )}
@@ -175,7 +175,7 @@ export function LobbyRoom({
           Member: "Sair da sala" simples. */}
       <div className="mt-auto border-t border-border-subtle bg-black/60 p-3 space-y-2">
         {!inLobby && (
-          <p className="text-center font-mono text-sm uppercase tracking-widest text-white/30 py-2">
+          <p className="text-center font-display font-semibold text-sm uppercase tracking-wide text-white/30 py-2">
             Você não está na sala
           </p>
         )}
@@ -255,7 +255,7 @@ function TeamColumn({
         >
           {label}
         </h2>
-        <span className="font-mono text-sm uppercase tracking-widest text-white/40">
+        <span className="font-display font-semibold text-sm uppercase tracking-wide text-white/40">
           {players.length}/{size}
         </span>
       </header>
@@ -338,7 +338,7 @@ function PlayerSlotRow({
         } transition-colors`}
         onClick={showJoin && !isPending ? handleJoin : undefined}
       >
-        <span className="font-mono text-sm uppercase tracking-widest text-white/15">
+        <span className="font-display font-semibold text-sm uppercase tracking-wide text-white/15">
           ────
         </span>
         {showJoin && (
@@ -379,7 +379,7 @@ function PlayerSlotRow({
           )}
         </p>
         {isCurrent && (
-          <p className="font-mono text-sm uppercase tracking-widest text-brand-primary">
+          <p className="font-display font-semibold text-sm uppercase tracking-wide text-brand-primary">
             você
           </p>
         )}
@@ -467,7 +467,7 @@ function SpectatorRow({
       </header>
       <div className="px-3 py-2.5 flex flex-wrap items-center gap-1.5 min-h-[40px]">
         {spectators.length === 0 ? (
-          <span className="font-mono text-sm uppercase tracking-widest text-white/20">
+          <span className="font-display font-semibold text-sm uppercase tracking-wide text-white/20">
             Nenhum
           </span>
         ) : (
@@ -553,7 +553,7 @@ function SettingsPanel({
         <SettingRow label="Jogadores" value={`${lobby.maxPlayers}`} />
       </div>
       {lobby.steamLobbyId && (
-        <p className="mt-2 font-mono text-sm uppercase tracking-widest text-white/30 truncate">
+        <p className="mt-2 font-display font-semibold text-sm uppercase tracking-wide text-white/30 truncate">
           Steam: {lobby.steamLobbyId}
         </p>
       )}
@@ -572,7 +572,7 @@ function SettingRow({
 }) {
   return (
     <div className="flex items-center justify-between gap-1 border-b border-white/5 pb-1 last:border-0 last:pb-0">
-      <span className="font-mono text-sm uppercase tracking-widest text-white/40">
+      <span className="font-display font-semibold text-sm uppercase tracking-wide text-white/40">
         {label}
       </span>
       <span

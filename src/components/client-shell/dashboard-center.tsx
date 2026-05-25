@@ -95,7 +95,7 @@ export function DashboardCenter({
                 href="https://discord.com/invite/v3pSuZhjBE"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 font-mono text-sm uppercase tracking-widest text-brand-primary hover:text-text-display transition-colors"
+                className="inline-flex items-center gap-2 font-display font-semibold text-sm uppercase tracking-wide text-brand-primary hover:text-text-display transition-colors"
               >
                 Ativar aviso no Discord →
               </a>
@@ -145,7 +145,7 @@ export function DashboardCenter({
             <button
               type="button"
               onClick={() => setOfflineExpanded((v) => !v)}
-              className="flex w-full items-center justify-between gap-2 font-mono text-sm uppercase tracking-widest text-text-muted hover:text-text-body transition-colors"
+              className="flex w-full items-center justify-between gap-2 font-display font-semibold text-sm uppercase tracking-wide text-text-muted hover:text-text-body transition-colors"
               aria-expanded={offlineExpanded}
             >
               <span>PROs offline ({offlinePros.length})</span>

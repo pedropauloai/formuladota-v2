@@ -423,7 +423,7 @@ export function HonorRankMedal({
             className={cn(
               "absolute -bottom-1 left-1/2 -translate-x-1/2",
               "rounded-sm px-1 py-px",
-              "font-mono text-sm uppercase tracking-widest whitespace-nowrap",
+              "font-display text-sm font-semibold whitespace-nowrap",
               "bg-warning/20 border border-warning/40 text-warning",
             )}
           >

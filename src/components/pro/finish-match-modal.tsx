@@ -150,7 +150,7 @@ export function FinishMatchModal({
           {/* Alunos da sessao */}
           {students.length > 0 && (
             <div>
-              <p className="mb-2 text-sm text-[#556070] uppercase tracking-wider font-mono">
+              <p className="mb-2 text-sm text-[#556070] uppercase tracking-wider font-display font-semibold">
                 Participantes
               </p>
               <ul className="flex flex-wrap gap-2" role="list">
@@ -170,7 +170,7 @@ export function FinishMatchModal({
           <div>
             <label
               htmlFor="dota-match-id"
-              className="mb-2 block text-sm text-[#556070] uppercase tracking-wider font-mono"
+              className="mb-2 block text-sm text-[#556070] uppercase tracking-wider font-display font-semibold"
             >
               Match ID Dota 2
             </label>

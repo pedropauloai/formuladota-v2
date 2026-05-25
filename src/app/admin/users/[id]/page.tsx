@@ -81,7 +81,7 @@ function SectionCard({ title, children }: { title: string; children: React.React
 function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-start justify-between gap-4 py-2 border-b border-border-subtle/50 last:border-0">
-      <span className="font-mono text-sm uppercase tracking-widest text-text-faded min-w-[120px]">
+      <span className="font-display font-semibold text-sm uppercase tracking-wide text-text-faded min-w-[120px]">
         {label}
       </span>
       <span className="font-display text-sm font-semibold text-text-body text-right">{value}</span>
@@ -282,17 +282,17 @@ export default async function AdminUserDetailPage({
           </div>
           <div className="flex items-center gap-2 flex-wrap justify-end">
             {profile.is_admin && (
-              <span className="rounded-md border border-yellow-500/60 px-2 py-1 font-mono text-sm uppercase tracking-widest text-yellow-400">
+              <span className="rounded-md border border-yellow-500/60 px-2 py-1 font-display font-semibold text-sm uppercase tracking-wide text-yellow-400">
                 Admin
               </span>
             )}
             {isProAtivo && (
-              <span className="rounded-md border border-brand-primary/60 px-2 py-1 font-mono text-sm uppercase tracking-widest text-brand-primary">
+              <span className="rounded-md border border-brand-primary/60 px-2 py-1 font-display font-semibold text-sm uppercase tracking-wide text-brand-primary">
                 PRO Ativo
               </span>
             )}
             {isBanned && (
-              <span className="rounded-md border border-red-500/60 px-2 py-1 font-mono text-sm uppercase tracking-widest text-red-400">
+              <span className="rounded-md border border-red-500/60 px-2 py-1 font-display font-semibold text-sm uppercase tracking-wide text-red-400">
                 Banido
               </span>
             )}
@@ -350,7 +350,7 @@ export default async function AdminUserDetailPage({
       <SectionCard title="2. Fichas">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <p className="font-mono text-sm uppercase tracking-widest text-text-faded mb-1">
+            <p className="font-display font-semibold text-sm uppercase tracking-wide text-text-faded mb-1">
               Saldo atual
             </p>
             <p className="font-display text-4xl text-emerald-400">
@@ -373,10 +373,10 @@ export default async function AdminUserDetailPage({
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border-subtle">
-                  <th className="text-left px-3 py-2 font-mono text-sm uppercase tracking-widest text-text-faded">Data</th>
-                  <th className="text-left px-3 py-2 font-mono text-sm uppercase tracking-widest text-text-faded">Delta</th>
-                  <th className="text-left px-3 py-2 font-mono text-sm uppercase tracking-widest text-text-faded">Fonte</th>
-                  <th className="text-left px-3 py-2 font-mono text-sm uppercase tracking-widest text-text-faded">Razão</th>
+                  <th className="text-left px-3 py-2 font-display font-semibold text-sm uppercase tracking-wide text-text-faded">Data</th>
+                  <th className="text-left px-3 py-2 font-display font-semibold text-sm uppercase tracking-wide text-text-faded">Delta</th>
+                  <th className="text-left px-3 py-2 font-display font-semibold text-sm uppercase tracking-wide text-text-faded">Fonte</th>
+                  <th className="text-left px-3 py-2 font-display font-semibold text-sm uppercase tracking-wide text-text-faded">Razão</th>
                 </tr>
               </thead>
               <tbody>
@@ -388,7 +388,7 @@ export default async function AdminUserDetailPage({
                     <td className={`px-3 py-2 font-mono text-sm font-semibold ${l.delta > 0 ? "text-emerald-400" : "text-red-400"}`}>
                       {l.delta > 0 ? `+${l.delta}` : l.delta}
                     </td>
-                    <td className="px-3 py-2 font-mono text-sm text-text-faded uppercase tracking-widest">
+                    <td className="px-3 py-2 font-display font-semibold text-sm text-text-faded uppercase tracking-wide">
                       {l.source}
                     </td>
                     <td className="px-3 py-2 font-display text-sm font-semibold text-text-body max-w-[200px] truncate">
@@ -412,11 +412,11 @@ export default async function AdminUserDetailPage({
           <div className="flex items-center gap-3">
             <Shield size={20} className="text-text-faded" />
             <div>
-              <p className="font-mono text-sm uppercase tracking-widest text-text-faded mb-0.5">
+              <p className="font-display font-semibold text-sm uppercase tracking-wide text-text-faded mb-0.5">
                 Status de conduta
               </p>
               <span
-                className={`inline-block rounded-md border px-2 py-1 font-mono text-sm uppercase tracking-widest ${conductInfo.cls}`}
+                className={`inline-block rounded-md border px-2 py-1 font-display text-sm font-semibold ${conductInfo.cls}`}
               >
                 {conductInfo.label}
               </span>
@@ -426,7 +426,7 @@ export default async function AdminUserDetailPage({
             <span className="font-display text-2xl text-text-muted">
               {(warnings as unknown[] | null ?? []).length}
             </span>
-            <span className="font-mono text-sm uppercase tracking-widest text-text-faded">
+            <span className="font-display font-semibold text-sm uppercase tracking-wide text-text-faded">
               {(warnings as unknown[] | null ?? []).length === 1 ? "strike" : "strikes"}
             </span>
           </div>
@@ -456,7 +456,7 @@ export default async function AdminUserDetailPage({
                   className={w.severity === "grave" ? "text-red-400 mt-0.5" : "text-amber-400 mt-0.5"}
                 />
                 <div className="flex-1 min-w-0">
-                  <p className="font-mono text-sm uppercase tracking-widest text-text-faded">
+                  <p className="font-display font-semibold text-sm uppercase tracking-wide text-text-faded">
                     {w.severity === "grave" ? "Strike grave" : "Strike leve"} ·{" "}
                     {new Date(w.created_at).toLocaleDateString("pt-BR")}
                   </p>
@@ -479,7 +479,7 @@ export default async function AdminUserDetailPage({
         <div className="grid grid-cols-2 gap-6 mb-6">
           {/* HONOR */}
           <div className="flex flex-col items-center gap-3 p-4 rounded-md border border-border-subtle/50 bg-bg-elevated/20">
-            <p className="font-mono text-sm uppercase tracking-widest text-text-faded">
+            <p className="font-display font-semibold text-sm uppercase tracking-wide text-text-faded">
               HONOR
             </p>
             <HonorRankMedal
@@ -497,7 +497,7 @@ export default async function AdminUserDetailPage({
 
           {/* SKILL */}
           <div className="flex flex-col items-center gap-3 p-4 rounded-md border border-border-subtle/50 bg-bg-elevated/20">
-            <p className="font-mono text-sm uppercase tracking-widest text-text-faded">
+            <p className="font-display font-semibold text-sm uppercase tracking-wide text-text-faded">
               SKILL (Valve)
             </p>
             <DotaRankMedal
@@ -517,7 +517,7 @@ export default async function AdminUserDetailPage({
         {/* Calibração */}
         <div className="mb-5">
           <div className="flex items-center justify-between mb-2">
-            <p className="font-mono text-sm uppercase tracking-widest text-text-faded">
+            <p className="font-display font-semibold text-sm uppercase tracking-wide text-text-faded">
               Status de calibração
             </p>
             <span className="font-display text-sm font-semibold text-text-body capitalize">
@@ -537,7 +537,7 @@ export default async function AdminUserDetailPage({
         {/* Achievements */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <p className="font-mono text-sm uppercase tracking-widest text-text-faded">
+            <p className="font-display font-semibold text-sm uppercase tracking-wide text-text-faded">
               Achievements
             </p>
             <GrantAchievementModal
@@ -550,7 +550,7 @@ export default async function AdminUserDetailPage({
               {(achievements as Array<{ id: string; variant: string; granted_at: string }> | null ?? []).map((a) => (
                 <span
                   key={a.id}
-                  className="rounded-md border border-purple-500/40 bg-purple-500/5 px-2 py-1 font-mono text-sm uppercase tracking-widest text-purple-400"
+                  className="rounded-md border border-purple-500/40 bg-purple-500/5 px-2 py-1 font-display font-semibold text-sm uppercase tracking-wide text-purple-400"
                   title={new Date(a.granted_at).toLocaleDateString("pt-BR")}
                 >
                   {a.variant}
@@ -618,12 +618,12 @@ export default async function AdminUserDetailPage({
         {/* PRO ativo: info de revenue */}
         {isProAtivo && proPromo && (
           <div className="mb-5 rounded-md border border-brand-primary/20 bg-brand-primary/5 p-4">
-            <p className="font-mono text-sm uppercase tracking-widest text-brand-primary mb-3">
+            <p className="font-display font-semibold text-sm uppercase tracking-wide text-brand-primary mb-3">
               Dados PRO
             </p>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <p className="font-mono text-sm text-text-faded uppercase tracking-widest mb-1">Promovido em</p>
+                <p className="font-display font-semibold text-sm text-text-faded uppercase tracking-wide mb-1">Promovido em</p>
                 <p className="font-display text-sm font-semibold text-text-body">
                   {new Date(proPromo.created_at).toLocaleDateString("pt-BR")}
                 </p>
@@ -631,15 +631,15 @@ export default async function AdminUserDetailPage({
               {proRevenue && (
                 <>
                   <div>
-                    <p className="font-mono text-sm text-text-faded uppercase tracking-widest mb-1">Total vendas</p>
+                    <p className="font-display font-semibold text-sm text-text-faded uppercase tracking-wide mb-1">Total vendas</p>
                     <p className="font-display text-sm font-semibold text-text-body">{proRevenue.totalSales}</p>
                   </div>
                   <div>
-                    <p className="font-mono text-sm text-text-faded uppercase tracking-widest mb-1">Ganhos PRO</p>
+                    <p className="font-display font-semibold text-sm text-text-faded uppercase tracking-wide mb-1">Ganhos PRO</p>
                     <p className="font-display text-lg text-emerald-400">R$ {proRevenue.proEarnings.toFixed(2)}</p>
                   </div>
                   <div>
-                    <p className="font-mono text-sm text-text-faded uppercase tracking-widest mb-1">Revenue total</p>
+                    <p className="font-display font-semibold text-sm text-text-faded uppercase tracking-wide mb-1">Revenue total</p>
                     <p className="font-display text-lg text-text-display">R$ {proRevenue.totalRevenue.toFixed(2)}</p>
                   </div>
                 </>

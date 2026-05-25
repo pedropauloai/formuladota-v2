@@ -194,7 +194,7 @@ function PreviewModeToggle({ previewActive }: { previewActive: boolean }) {
       <button
         type="submit"
         aria-label={previewActive ? "Voltar pra modo admin" : "Ver como usuário comum"}
-        className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 font-mono text-sm font-semibold uppercase tracking-widest transition-colors xl:px-3 ${
+        className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 font-display text-sm font-semibold transition-colors xl:px-3 ${
           previewActive
             ? "border-amber-500/60 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20"
             : "border-white/15 bg-white/5 text-white/60 hover:border-white/30 hover:text-white"

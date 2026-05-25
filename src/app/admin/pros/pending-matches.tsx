@@ -151,7 +151,7 @@ export function PendingMatches({ matches }: Props) {
 
             {/* OpenDota enrichment opcional */}
             <details className="rounded-md border border-border-subtle bg-bg-base/60">
-              <summary className="cursor-pointer px-3 py-2 font-mono text-sm uppercase tracking-widest text-text-muted hover:text-text-display">
+              <summary className="cursor-pointer px-3 py-2 font-display font-semibold text-sm uppercase tracking-wide text-text-muted hover:text-text-display">
                 ou submeter dota match_id (OpenDota) →
               </summary>
               <div className="border-t border-border-subtle p-3 space-y-2">

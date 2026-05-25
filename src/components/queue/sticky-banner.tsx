@@ -60,7 +60,7 @@ export async function StickyQueueBanner() {
 
         <Link
           href="/dashboard"
-          className="hidden sm:inline-flex items-center font-mono text-sm uppercase tracking-widest text-emerald-300/80 hover:text-white transition-colors"
+          className="hidden sm:inline-flex items-center font-display font-semibold text-sm uppercase tracking-wide text-emerald-300/80 hover:text-white transition-colors"
         >
           Ver dashboard →
         </Link>

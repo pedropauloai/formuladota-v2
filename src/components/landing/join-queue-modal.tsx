@@ -51,7 +51,7 @@ export function JoinQueueModal({ open, onClose, prosOnline, fichaBalance }: Prop
       >
         <header className="mb-5 flex items-center justify-between">
           <div>
-            <p className="font-mono text-sm uppercase tracking-widest text-[var(--color-brand-red)]">
+            <p className="font-display font-semibold text-sm uppercase tracking-wide text-[var(--color-brand-red)]">
               Jogar Dota
             </p>
             <h2

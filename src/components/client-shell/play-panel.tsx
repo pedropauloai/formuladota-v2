@@ -282,7 +282,7 @@ function ModeButton({
       <mode.icon size={14} aria-hidden="true" />
       <span className="flex-1">{mode.label}</span>
       {mode.v2 && (
-        <span className="font-mono text-sm 2xl:text-sm uppercase tracking-widest text-text-faded">
+        <span className="font-display font-semibold text-sm 2xl:text-sm uppercase tracking-wide text-text-faded">
           V2
         </span>
       )}
@@ -469,14 +469,14 @@ function CompetitivaForm({
 
         <div className="rounded-md border border-brand-primary/30 bg-gradient-to-r from-brand-primary/10 to-transparent px-4 py-3 2xl:px-5 2xl:py-4 flex items-center justify-between">
           <div>
-            <p className="font-mono text-sm 2xl:text-sm uppercase tracking-widest text-text-muted">
+            <p className="font-display font-semibold text-sm 2xl:text-sm uppercase tracking-wide text-text-muted">
               Sua medalha
             </p>
             <p className="font-display text-sm 2xl:text-base uppercase tracking-wide text-text-display">
               Não classificado
             </p>
           </div>
-          <span className="font-mono text-sm 2xl:text-sm uppercase tracking-widest text-brand-primary">
+          <span className="font-display font-semibold text-sm 2xl:text-sm uppercase tracking-wide text-brand-primary">
             Calibrar →
           </span>
         </div>
@@ -541,7 +541,7 @@ function CompetitivaForm({
               )}
               <span>Cancelar busca</span>
             </button>
-            <p className="mt-2 text-center font-mono text-sm 2xl:text-sm uppercase tracking-widest text-warning">
+            <p className="mt-2 text-center font-display font-semibold text-sm 2xl:text-sm uppercase tracking-wide text-warning">
               Procurando partida · {formatTime(waitingSeconds)}
             </p>
           </>
@@ -560,7 +560,7 @@ function CompetitivaForm({
               )}
               <span>{isPending ? "Entrando..." : "Buscar partida"}</span>
             </button>
-            <p className="mt-2 text-center font-mono text-sm 2xl:text-sm uppercase tracking-widest text-text-faded">
+            <p className="mt-2 text-center font-display font-semibold text-sm 2xl:text-sm uppercase tracking-wide text-text-faded">
               Matchmaking via fila · Fase B
             </p>
           </>
@@ -896,7 +896,7 @@ function CreateLobbyDialog({
           </div>
 
           <div className="rounded-md border border-border-subtle bg-bg-deep/30 px-4 py-3 2xl:px-5 2xl:py-4">
-            <p className="font-mono text-sm 2xl:text-sm uppercase tracking-widest text-text-muted">
+            <p className="font-display font-semibold text-sm 2xl:text-sm uppercase tracking-wide text-text-muted">
               Senha
             </p>
             <p className="mt-1 font-sans text-sm 2xl:text-sm text-text-body">
@@ -905,7 +905,7 @@ function CreateLobbyDialog({
           </div>
 
           <div className="rounded-md border border-border-subtle bg-bg-deep/30 px-4 py-3 2xl:px-5 2xl:py-4 space-y-1">
-            <p className="font-mono text-sm 2xl:text-sm uppercase tracking-widest text-text-muted">
+            <p className="font-display font-semibold text-sm 2xl:text-sm uppercase tracking-wide text-text-muted">
               Padrões V1
             </p>
             <ul className="font-sans text-sm 2xl:text-sm text-text-muted leading-relaxed">
@@ -951,12 +951,12 @@ function LobbyChatOverlay({ lobbyId }: { lobbyId: string }) {
         <header className="flex items-center border-b border-border-subtle">
           <ChatTab label="Sala" active={tab === "sala"} onClick={() => setTab("sala")} />
           <ChatTab label="Grupo" active={tab === "grupo"} onClick={() => setTab("grupo")} />
-          <span className="ml-auto px-3 font-mono text-sm 2xl:text-sm uppercase tracking-widest text-text-faded truncate max-w-[180px]">
+          <span className="ml-auto px-3 font-display font-semibold text-sm 2xl:text-sm uppercase tracking-wide text-text-faded truncate max-w-[180px]">
             {lobbyId.slice(0, 8)}
           </span>
         </header>
         <div className="px-4 py-3 2xl:py-4 min-h-[120px] 2xl:min-h-[160px] max-h-[200px] 2xl:max-h-[260px] overflow-y-auto">
-          <p className="font-mono text-sm 2xl:text-sm uppercase tracking-widest text-text-faded text-center mt-2">
+          <p className="font-display font-semibold text-sm 2xl:text-sm uppercase tracking-wide text-text-faded text-center mt-2">
             Chat em breve · V2
           </p>
         </div>
@@ -1015,7 +1015,7 @@ function ComingSoon({ mode }: { mode: Mode }) {
       <p className="font-display text-lg 2xl:text-xl uppercase tracking-wide text-text-display">
         {labels[mode]}
       </p>
-      <p className="font-mono text-sm 2xl:text-sm uppercase tracking-widest text-text-faded">
+      <p className="font-display font-semibold text-sm 2xl:text-sm uppercase tracking-wide text-text-faded">
         Em desenvolvimento — V2
       </p>
       <p className="font-sans text-sm 2xl:text-sm text-text-muted max-w-xs">

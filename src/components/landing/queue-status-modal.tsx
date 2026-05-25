@@ -62,7 +62,7 @@ export function QueueStatusModal({ open, onClose, myQueues }: Props) {
       >
         <header className="mb-5 flex items-center justify-between">
           <div>
-            <p className="font-mono text-sm uppercase tracking-widest text-emerald-400">
+            <p className="font-display font-semibold text-sm uppercase tracking-wide text-emerald-400">
               Aguardando PT
             </p>
             <h2

@@ -106,7 +106,7 @@ export function LobbiesContent({ lobbies, onSelectLobby, onCreate }: LobbiesCont
               {filtered.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="px-3 py-10 text-center">
-                    <p className="font-mono text-sm uppercase tracking-widest text-white/40">
+                    <p className="font-display font-semibold text-sm uppercase tracking-wide text-white/40">
                       Nenhuma sala aberta
                     </p>
                     <button
@@ -291,7 +291,7 @@ function FilterField({
 }) {
   return (
     <label className="block">
-      <span className="block mb-1 font-mono text-sm uppercase tracking-widest text-white/40">
+      <span className="block mb-1 font-display font-semibold text-sm uppercase tracking-wide text-white/40">
         {label}
       </span>
       <div className="rounded-sm border border-border-subtle bg-black/40 px-2 py-1.5">

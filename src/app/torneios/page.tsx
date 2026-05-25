@@ -209,7 +209,7 @@ function Stat({
         className="text-text-faded shrink-0"
         aria-hidden="true"
       />
-      <span className="font-mono uppercase tracking-widest text-text-faded">
+      <span className="font-display font-semibold uppercase tracking-wide text-text-faded">
         {label}:
       </span>
       <span className="font-body text-text-body">{value}</span>

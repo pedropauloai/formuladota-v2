@@ -57,7 +57,7 @@ export default async function BannedPage() {
 
           {formattedBannedAt && (
             <div className="rounded-md border border-border-subtle bg-bg-deep p-4 text-center">
-              <p className="font-mono text-sm uppercase tracking-widest text-text-muted">
+              <p className="font-display font-semibold text-sm uppercase tracking-wide text-text-muted">
                 banido em
               </p>
               <p className="mt-1 text-base font-medium text-text-display">
@@ -68,7 +68,7 @@ export default async function BannedPage() {
 
           {profile.banned_reason && (
             <div className="space-y-2 rounded-md border border-border-subtle bg-bg-base p-4">
-              <p className="font-mono text-sm uppercase tracking-widest text-text-muted">
+              <p className="font-display font-semibold text-sm uppercase tracking-wide text-text-muted">
                 motivo
               </p>
               <p className="text-sm text-text-body">{profile.banned_reason}</p>
@@ -103,7 +103,7 @@ export default async function BannedPage() {
           <div className="border-t border-border-subtle pt-4 text-center">
             <Link
               href="/codigo-de-conduta"
-              className="font-mono text-sm uppercase tracking-widest text-text-muted hover:text-text-display transition-colors"
+              className="font-display font-semibold text-sm uppercase tracking-wide text-text-muted hover:text-text-display transition-colors"
             >
               código de conduta · referência
             </Link>

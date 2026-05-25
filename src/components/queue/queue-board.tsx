@@ -244,7 +244,7 @@ function WaitingList({
 
   return (
     <div className="mt-4 rounded-md border border-white/10 bg-black/30 p-4">
-      <p className="mb-3 font-mono text-sm font-semibold uppercase tracking-widest text-amber-300">
+      <p className="mb-3 font-display font-semibold text-sm font-semibold uppercase tracking-wide text-amber-300">
         Aguardando próxima rodada ({entries.length})
       </p>
       <ul className="space-y-2">

@@ -100,7 +100,7 @@ export function TeamDetailActions({
                 >
                   <span className="font-sans text-sm text-text-display">
                     {m.profile?.username ?? "Anônimo"}{" "}
-                    <span className="font-mono text-sm uppercase tracking-widest text-text-faded">
+                    <span className="font-display font-semibold text-sm uppercase tracking-wide text-text-faded">
                       · {m.role}
                     </span>
                   </span>
@@ -151,7 +151,7 @@ export function TeamDetailActions({
         )}
       </div>
 
-      <p className="font-mono text-sm uppercase tracking-widest text-white/30">
+      <p className="font-display font-semibold text-sm uppercase tracking-wide text-white/30">
         Invite por username · V2
       </p>
     </section>

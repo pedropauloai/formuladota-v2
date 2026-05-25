@@ -238,7 +238,7 @@ export function ProQueueCard({
                   className="flex h-12 items-center justify-center rounded border border-dashed border-border-subtle bg-bg-deep/30 xl:h-14"
                   title={`Slot ${idx + 1} livre`}
                 >
-                  <span className="font-mono text-sm uppercase text-text-faded xl:text-sm">
+                  <span className="font-display font-semibold text-sm uppercase text-text-faded xl:text-sm">
                     livre
                   </span>
                 </div>
@@ -280,7 +280,7 @@ export function ProQueueCard({
             <span className="font-display text-base font-bold text-warning xl:text-lg">
               +{waitingExtra}
             </span>
-            <span className="font-mono text-sm uppercase tracking-widest text-warning/80">
+            <span className="font-display font-semibold text-sm uppercase tracking-wide text-warning/80">
               espera
             </span>
           </div>
@@ -382,7 +382,7 @@ function ExpandedWaitingList({
   const [now] = useState(() => Date.now());
   return (
     <div className="mt-3 rounded-md border border-border-subtle bg-bg-deep/30 p-3">
-      <p className="mb-3 font-mono text-sm font-semibold uppercase tracking-widest text-warning/80">
+      <p className="mb-3 font-display font-semibold text-sm font-semibold uppercase tracking-wide text-warning/80">
         Aguardando próxima rodada
       </p>
       <ul className="space-y-1.5">

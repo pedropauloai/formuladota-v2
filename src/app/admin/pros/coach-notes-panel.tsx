@@ -31,7 +31,7 @@ interface CoachNotesPanelProps {
 export function CoachNotesPanel({ entries, matchId }: CoachNotesPanelProps) {
   return (
     <div className="mt-3 rounded-md border border-border-subtle bg-bg-elevated/20 p-3 space-y-3">
-      <p className="font-mono text-sm uppercase tracking-widest text-text-faded">
+      <p className="font-display font-semibold text-sm uppercase tracking-wide text-text-faded">
         Coach Notes — registrar conduta dos alunos desta PT
       </p>
       <div className="space-y-2">
@@ -129,7 +129,7 @@ function StudentNoteRow({
           type="button"
           onClick={() => handleCoachNote(5)}
           disabled={pending}
-          className="inline-flex items-center gap-1.5 rounded-md border border-success/40 bg-success/10 px-2 py-1 font-mono text-sm uppercase tracking-widest text-success hover:bg-success/20 transition-colors disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-md border border-success/40 bg-success/10 px-2 py-1 font-display font-semibold text-sm uppercase tracking-wide text-success hover:bg-success/20 transition-colors disabled:opacity-50"
         >
           {pendingAction === "note_pos" ? (
             <Loader2 size={10} className="animate-spin" />
@@ -142,7 +142,7 @@ function StudentNoteRow({
           type="button"
           onClick={() => handleCoachNote(-5)}
           disabled={pending}
-          className="inline-flex items-center gap-1.5 rounded-md border border-warning/40 bg-warning/10 px-2 py-1 font-mono text-sm uppercase tracking-widest text-warning hover:bg-warning/20 transition-colors disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-md border border-warning/40 bg-warning/10 px-2 py-1 font-display font-semibold text-sm uppercase tracking-wide text-warning hover:bg-warning/20 transition-colors disabled:opacity-50"
         >
           {pendingAction === "note_neg" ? (
             <Loader2 size={10} className="animate-spin" />
@@ -155,7 +155,7 @@ function StudentNoteRow({
           type="button"
           onClick={handleStrike}
           disabled={pending}
-          className="inline-flex items-center gap-1.5 rounded-md border border-error/40 bg-error/10 px-2 py-1 font-mono text-sm uppercase tracking-widest text-error hover:bg-error/20 transition-colors disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-md border border-error/40 bg-error/10 px-2 py-1 font-display font-semibold text-sm uppercase tracking-wide text-error hover:bg-error/20 transition-colors disabled:opacity-50"
         >
           {pendingAction === "strike" ? (
             <Loader2 size={10} className="animate-spin" />
