@@ -290,6 +290,12 @@
     background: var(--color-bg-deep);
     color: var(--color-text-display);
     font-family: var(--font-body);
+    /* Pedro 2026-05-25 ("REMOVA TODAS fonte anêmica"): weight default 600
+       (semibold) em vez de 400 (regular). Geist Variable suporta sem custo
+       extra de bundle. Cobre QUALQUER elemento que não declare weight
+       explicitamente. Headings e primitives com peso próprio (bold/black)
+       continuam funcionando. */
+    font-weight: 600;
     -webkit-font-smoothing: antialiased;
     @apply bg-background text-foreground;
   }

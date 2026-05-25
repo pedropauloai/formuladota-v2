@@ -285,7 +285,7 @@ export function HubCenter({
                 </Button>
               </Link>
             )}
-            <p className="font-display text-sm font-medium text-text-muted">{ctaSubtext}</p>
+            <p className="font-display text-sm font-semibold text-text-body">{ctaSubtext}</p>
           </div>
         </CardContent>
       </Card>

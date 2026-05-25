@@ -212,7 +212,7 @@ export function SeasonBanner({
       />
 
       {/* Nome da season */}
-      <span className="text-sm font-medium text-text-body whitespace-nowrap">
+      <span className="text-sm font-semibold text-text-body whitespace-nowrap">
         {seasonLabel}
       </span>
 
