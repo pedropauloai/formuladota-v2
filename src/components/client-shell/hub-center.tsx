@@ -1,4 +1,11 @@
+"use client";
+
 // HubCenter — centro do HUB CENTRAL do client (Pedro 2026-05-24).
+//
+// IMPORTANTE: Client Component. Razão: passa `icon={Megaphone}` (referência de
+// LucideIcon) pro <EmptyState> que é Client — funções não são serializáveis
+// na fronteira Server→Client. Como HubCenter não faz fetches (recebe tudo via
+// props do page.tsx que é Server Component), tornar Client é seguro e simples.
 //
 // Filosofia: / e /dashboard compartilham o mesmo HUB — visitante deslogado
 // e logado veem versões do mesmo componente. /dashboard deixou de ser
