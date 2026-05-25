@@ -113,12 +113,8 @@ function VisitorCard() {
           <LogIn size={16} className="text-text-muted" aria-hidden="true" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-display text-sm uppercase tracking-wide text-text-display">
-            Visitante
-          </p>
-          <p className="font-mono text-[10px] uppercase tracking-widest text-text-faded mt-0.5">
-            [SEM SESSÃO]
-          </p>
+          <p className="font-display text-base text-text-display">Visitante</p>
+          <p className="font-body text-xs text-text-faded mt-0.5">Sem sessão</p>
         </div>
       </div>
       <p className="mt-3 font-sans text-[11px] leading-relaxed text-text-body">
@@ -127,7 +123,7 @@ function VisitorCard() {
       <form action={signInWithDiscord} className="mt-3">
         <button
           type="submit"
-          className="w-full inline-flex items-center justify-center gap-1.5 rounded-md border border-brand-primary/60 bg-brand-primary/10 px-3 py-2 font-sans text-[11px] font-semibold uppercase tracking-widest text-brand-primary hover:bg-brand-primary/20 hover:text-text-display transition-colors"
+          className="w-full inline-flex items-center justify-center gap-1.5 rounded-md border border-brand-primary/60 bg-brand-primary/10 px-3 py-2 font-display text-xs font-semibold text-brand-primary hover:bg-brand-primary/20 hover:text-text-display transition-colors"
         >
           <LogIn size={11} aria-hidden="true" />
           <span>Entrar com Discord</span>
@@ -142,9 +138,7 @@ function FichasCard({ balance, isAdmin }: { balance: number; isAdmin: boolean })
     <div className="rounded-md border border-brand-primary/40 bg-gradient-to-br from-brand-primary/10 to-transparent p-3">
       <div className="flex items-center gap-2">
         <Coins size={14} className="text-brand-primary" aria-hidden="true" />
-        <p className="font-sans text-[10px] font-semibold uppercase tracking-widest text-text-body">
-          Saldo de fichas
-        </p>
+        <p className="font-body text-xs text-text-muted">Saldo de fichas</p>
       </div>
       <p className="mt-2 font-display text-3xl font-bold text-text-display">
         {isAdmin ? "∞" : balance}

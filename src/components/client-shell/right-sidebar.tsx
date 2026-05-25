@@ -24,7 +24,7 @@ export function DashboardRightSidebar({ floating }: Props) {
     <aside className={wrapperCls}>
       <NewsCard
         eyebrow="Boost de MMR · Brasil"
-        title="EVOLUA SEU MMR"
+        title="Evolua seu MMR"
         description="Compre fichas, jogue PT ranked oficial com um PRO da Fórmula. Ou você ganha, ou você aprende."
         bg={HEROES_FULL_BG}
         href="/codigo-de-conduta"
@@ -32,7 +32,7 @@ export function DashboardRightSidebar({ floating }: Props) {
       />
 
       <article className="rounded-md border border-border-subtle bg-bg-elevated/80 backdrop-blur-sm overflow-hidden">
-        <p className="border-b border-border-subtle px-3 py-2 font-sans text-[11px] font-semibold uppercase tracking-[0.2em] text-text-body">
+        <p className="border-b border-border-subtle px-3 py-2 font-display text-sm text-text-display">
           Comunidade
         </p>
         <div className="space-y-1 p-2">
@@ -51,7 +51,7 @@ export function DashboardRightSidebar({ floating }: Props) {
       </article>
 
       <article className="rounded-md border border-border-subtle bg-bg-elevated/40 p-3 backdrop-blur-sm">
-        <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-amber-300/80 mb-2">
+        <p className="font-display text-sm text-amber-300/80 mb-2">
           A primeira regra
         </p>
         <p className="font-serif text-sm italic text-text-body leading-relaxed">
@@ -90,10 +90,8 @@ function NewsCard({
       >
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
         <div className="absolute bottom-3 left-3 right-3">
-          <p className="font-sans text-[9px] font-semibold uppercase tracking-[0.3em] text-brand-primary">
-            {eyebrow}
-          </p>
-          <p className="mt-1 font-display text-base uppercase tracking-wide text-text-display drop-shadow-md leading-tight">
+          <p className="font-body text-xs text-brand-primary">{eyebrow}</p>
+          <p className="mt-1 font-display text-lg text-text-display drop-shadow-md leading-tight">
             {title}
           </p>
         </div>
@@ -104,7 +102,7 @@ function NewsCard({
         </p>
         <Link
           href={href}
-          className="inline-block font-sans text-[11px] uppercase tracking-widest text-brand-primary hover:text-text-display transition-colors"
+          className="inline-block font-body text-sm text-brand-primary hover:text-text-display transition-colors"
         >
           {cta} →
         </Link>

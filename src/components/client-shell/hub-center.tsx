@@ -97,24 +97,25 @@ function StatusLine({
   myQueueCount,
   rankingPosition,
 }: StatusLineProps) {
-  // Cada token é uma string curta. Bullets entre tokens via <BulletSep />.
-  const fichaToken = `${fichaBalance} ${fichaBalance === 1 ? "FICHA" : "FICHAS"}`;
+  // Pedro 2026-05-25: case natural sem uppercase/tracking — labels secundárias
+  // ficam discretas (uppercase+tracking-widest era ruído visual em demasia).
+  const fichaToken = `${fichaBalance} ${fichaBalance === 1 ? "ficha" : "fichas"}`;
   const prosToken =
     prosOnlineCount === 0
-      ? "NENHUM PRO EM FILA"
-      : `${prosOnlineCount} ${prosOnlineCount === 1 ? "PRO" : "PROS"} EM FILA`;
+      ? "Nenhum PRO em fila"
+      : `${prosOnlineCount} ${prosOnlineCount === 1 ? "PRO" : "PROs"} em fila`;
   const queueToken =
     myQueueCount === 0
-      ? "SEM FILA"
-      : `EM FILA: ${myQueueCount}`;
+      ? "Sem fila"
+      : `Em fila: ${myQueueCount}`;
   const rankingToken =
     rankingPosition === null
-      ? "SEM RANKING"
-      : `RANKING #${rankingPosition}`;
+      ? "Sem ranking"
+      : `Ranking #${rankingPosition}`;
 
   return (
     <p
-      className="font-display-condensed text-sm uppercase tracking-wider text-text-muted"
+      className="font-body text-sm text-text-muted"
       role="status"
       aria-label="Resumo do estado da conta"
     >
@@ -145,12 +146,12 @@ function VisitorStatusLine({
 }: VisitorStatusLineProps) {
   const prosToken =
     prosOnlineCount === 0
-      ? "NENHUM PRO EM FILA AGORA"
-      : `${prosOnlineCount} ${prosOnlineCount === 1 ? "PRO" : "PROS"} EM FILA AGORA`;
+      ? "Nenhum PRO em fila agora"
+      : `${prosOnlineCount} ${prosOnlineCount === 1 ? "PRO" : "PROs"} em fila agora`;
 
   return (
     <p
-      className="font-display-condensed text-sm uppercase tracking-wider text-text-muted"
+      className="font-body text-sm text-text-muted"
       role="status"
       aria-label="Pulso da comunidade FormulaDota"
     >
@@ -221,11 +222,12 @@ export function HubCenter({
 
   return (
     <section className="relative mx-auto flex h-full w-full max-w-5xl flex-col gap-10 overflow-y-auto px-6 py-8 xl:px-12 xl:py-12">
-      {/* (1) HEADER — eyebrow + h1 + status line sintética */}
+      {/* (1) HEADER — eyebrow case natural + h1 + status line sintética.
+          Pedro 2026-05-25: eyebrow saiu de uppercase tracking-[0.4em] (ruído
+          visual em panfleto) pra case natural discreto. H1 mantém uppercase
+          pq FORMULADOTA é marca (regra B1) e é o único título dominante. */}
       <header className="space-y-3">
-        <p className="font-display text-xs uppercase tracking-[0.4em] text-brand-primary">
-          {eyebrowText}
-        </p>
+        <p className="font-body text-sm text-text-muted">{eyebrowText}</p>
         <h1 className="font-display text-5xl uppercase tracking-wide text-text-display xl:text-6xl">
           FORMULADOTA <span className="text-brand-primary">HUB</span>
         </h1>
@@ -245,15 +247,13 @@ export function HubCenter({
         )}
       </header>
 
-      {/* (2) HERO CTA — SUBIR DE MMR (M3 weight massivo) */}
+      {/* (2) HERO CTA — SUBIR DE MMR (M3 weight massivo).
+          Pedro 2026-05-25: eyebrow "Ação primária do client" removido (texto
+          burocrático sem valor). CardTitle perdeu uppercase (mantém peso pelo
+          tamanho 3xl/4xl + font-display). */}
       <Card variant="hero">
         <CardHeader>
-          <p className="font-display text-[10px] uppercase tracking-[0.4em] text-brand-primary">
-            Ação primária do client
-          </p>
-          <CardTitle className="text-3xl uppercase xl:text-4xl">
-            Subir de MMR
-          </CardTitle>
+          <CardTitle className="text-3xl xl:text-4xl">Subir de MMR</CardTitle>
           <CardDescription className="text-base">
             Ranked oficial Valve em grupo com PRO Imortal — única via de subir
             MMR oficial dentro do FormulaDota.
@@ -283,9 +283,7 @@ export function HubCenter({
                 </Button>
               </Link>
             )}
-            <p className="font-display-condensed text-sm uppercase tracking-wider text-text-faded">
-              {ctaSubtext}
-            </p>
+            <p className="font-body text-sm text-text-faded">{ctaSubtext}</p>
           </div>
         </CardContent>
       </Card>
@@ -295,14 +293,14 @@ export function HubCenter({
         <header className="flex items-end justify-between gap-4">
           <h2
             id="hub-temporada-title"
-            className="font-display text-xl uppercase tracking-wider text-text-display"
+            className="font-display text-xl text-text-display"
           >
             Temporada ativa
           </h2>
           {season && (
             <Link
               href="/ranking"
-              className="font-display-condensed text-sm uppercase tracking-wider text-brand-primary transition-colors hover:text-text-display"
+              className="font-body text-sm text-brand-primary transition-colors hover:text-text-display"
             >
               Ver ranking →
             </Link>
@@ -327,7 +325,7 @@ export function HubCenter({
       <section aria-labelledby="hub-novidades-title">
         <h2
           id="hub-novidades-title"
-          className="mb-3 font-display text-xl uppercase tracking-wider text-text-display"
+          className="mb-3 font-display text-xl text-text-display"
         >
           Novidades
         </h2>

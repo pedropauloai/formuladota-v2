@@ -109,7 +109,6 @@ export default async function HomePage() {
       currentRoute="/"
       immersive
       hideBottomBar
-      centerHero="https://cdn.steamstatic.com/apps/dota2/images/dota_react/home/background3.png"
     >
       <HubCenter
         isVisitor={isVisitor}
