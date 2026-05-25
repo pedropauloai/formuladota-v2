@@ -114,7 +114,7 @@ function StatusLine({
 
   return (
     <p
-      className="font-mono text-xs uppercase tracking-widest text-text-muted"
+      className="font-display-condensed text-sm uppercase tracking-wider text-text-muted"
       role="status"
       aria-label="Resumo do estado da conta"
     >
@@ -150,7 +150,7 @@ function VisitorStatusLine({
 
   return (
     <p
-      className="font-mono text-xs uppercase tracking-widest text-text-muted"
+      className="font-display-condensed text-sm uppercase tracking-wider text-text-muted"
       role="status"
       aria-label="Pulso da comunidade FormulaDota"
     >
@@ -283,7 +283,7 @@ export function HubCenter({
                 </Button>
               </Link>
             )}
-            <p className="font-mono text-xs uppercase tracking-widest text-text-faded">
+            <p className="font-display-condensed text-sm uppercase tracking-wider text-text-faded">
               {ctaSubtext}
             </p>
           </div>
@@ -302,7 +302,7 @@ export function HubCenter({
           {season && (
             <Link
               href="/ranking"
-              className="font-mono text-xs uppercase tracking-widest text-brand-primary transition-colors hover:text-text-display"
+              className="font-display-condensed text-sm uppercase tracking-wider text-brand-primary transition-colors hover:text-text-display"
             >
               Ver ranking →
             </Link>

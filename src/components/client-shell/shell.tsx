@@ -133,10 +133,13 @@ export async function ClientShell({
   // ============== Modo IMMERSIVE — overlays sobre background fullscreen ==============
   if (immersive) {
     return (
-      <div className={`relative ${shellHeightCls} overflow-hidden bg-black`}>
+      // Pedro 2026-05-25: removido bg-black do wrapper (cobria o centerHero
+      // que ficava em z=-10 atrás do bg-bg-deep do body). Wrapper agora
+      // transparente — centerHero promovido a z-0 renderiza por cima do body.
+      <div className={`relative ${shellHeightCls} overflow-hidden`}>
         {centerHero && (
           <div
-            className="pointer-events-none fixed inset-0 z-[var(--z-atmosphere)]"
+            className="pointer-events-none fixed inset-0 z-0"
             style={{
               backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.2) 30%, rgba(0,0,0,0.4) 70%, rgba(0,0,0,0.85) 100%), url(${centerHero})`,
               backgroundSize: "cover",
