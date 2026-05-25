@@ -1,12 +1,18 @@
 import type { Metadata } from "next";
 // Fontes V2.5 — self-hosted via @fontsource (sem requisição Google Fonts).
-// Atualizado 2026-05-25: Geist (Sans+Mono) REMOVIDA — Vercel-feel quebrava
-// padrão AAA game client. Substituída por Space Grotesk Variable (geometric
-// com character distintivo, peso natural forte). Mesma família serve display,
-// body e mono (tabular-nums via font-variant-numeric quando necessário).
-// Teko Variable mantida pra moments épicos (countdown, "ON FIRE!", números
-// grandes — estilo GamersClub esports).
-import "@fontsource-variable/space-grotesk";
+// Atualizado 2026-05-25 (segunda iteração): Space Grotesk REMOVIDA, adotada
+// UBUNTU — mesma fonte usada pelo ExitLag.com (referência AAA gaming brasileira
+// que Pedro citou). Ubuntu (Canonical, free Google Fonts) tem character forte
+// natural, weight visível em todos os pesos. ExitLag usa Ubuntu pra body+h2+
+// eyebrows e Organetto (paga) pra h1 hero — substituímos Organetto pela Teko
+// (já self-hosted, vibe condensed esports similar).
+//
+// 4 pesos: 300/400/500/700 (sem variable axis, mas cobre todas necessidades).
+// Teko Variable continua pra moments épicos (countdown, "ON FIRE!").
+import "@fontsource/ubuntu/300.css";
+import "@fontsource/ubuntu/400.css";
+import "@fontsource/ubuntu/500.css";
+import "@fontsource/ubuntu/700.css";
 import "@fontsource-variable/teko";
 import "@/styles/globals.css";
 import { Toaster } from "@/components/ui/sonner";

@@ -95,15 +95,15 @@ html[data-theme="fd-dark"] {
    * GRUPO 7 — TIPOGRAFIA (fonts)
    * ------------------------------------------------------- */
 
-  /* Pedro 2026-05-25: Geist REMOVIDA completamente. Geist (Vercel) era ótima
-     pra SaaS/dev tools mas faltava character/densidade pra AAA game client.
-     Substituída por Space Grotesk Variable (Florian Karsten 2018) — geometric
-     com character distintivo, peso natural forte, vibe tech/esports modern.
-     Mesma fonte serve display, body e mono (tabular-nums via Variable). */
-  --font-display: "Space Grotesk Variable", "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
-  --font-body:    "Space Grotesk Variable", "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
-  /* Mono — Space Grotesk tabular (variable axis suporta números monoespaçados via font-variant-numeric: tabular-nums) */
-  --font-mono:    "Space Grotesk Variable", "Space Grotesk", ui-monospace, "Courier New", monospace;
+  /* Pedro 2026-05-25 (segunda iteração): Space Grotesk REMOVIDA. Adotada
+     UBUNTU — mesma fonte do ExitLag.com (referência AAA gaming brasileira
+     que Pedro citou). Ubuntu (Canonical, free Google Fonts) tem character
+     forte natural, weight visível em todos os pesos. ExitLag usa Ubuntu
+     pra body+h2+eyebrows e Organetto (paga) pra h1 hero — substituímos
+     Organetto pela Teko (já self-hosted, vibe condensed esports similar). */
+  --font-display: "Ubuntu", ui-sans-serif, system-ui, sans-serif;
+  --font-body:    "Ubuntu", ui-sans-serif, system-ui, sans-serif;
+  --font-mono:    "Ubuntu", ui-monospace, "Courier New", monospace;
   /* Condensed display — Teko Variable (estilo Teko/Oswald GamersClub esports) */
   /* RESERVADO pra moments épicos: season countdown, "ON FIRE!", números grandes (MMR, score, online counts), Hall of Fame */
   /* NÃO usar em UI body — apenas display impactante */
