@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
-// Fontes V2.5 — self-hosted via pacotes npm (sem requisição Google Fonts)
-// Atualizado 2026-05-23: Cinzel removida (estética ExitLag — sans-only).
-// Display e body usam mesma família Geist, diferenciados por weight + tracking.
-// Teko Variable adicionada 2026-05-23: condensed display pra moments épicos (countdown, "ON FIRE!", números grandes) — estilo GamersClub esports.
+// Fontes V2.5 — self-hosted via @fontsource (sem requisição Google Fonts).
+// Atualizado 2026-05-25: Geist (Sans+Mono) REMOVIDA — Vercel-feel quebrava
+// padrão AAA game client. Substituída por Space Grotesk Variable (geometric
+// com character distintivo, peso natural forte). Mesma família serve display,
+// body e mono (tabular-nums via font-variant-numeric quando necessário).
+// Teko Variable mantida pra moments épicos (countdown, "ON FIRE!", números
+// grandes — estilo GamersClub esports).
+import "@fontsource-variable/space-grotesk";
 import "@fontsource-variable/teko";
-import { GeistSans, GeistMono } from "geist/font";
 import "@/styles/globals.css";
 import { Toaster } from "@/components/ui/sonner";
 // V2.5-F5: Sound infrastructure — singleton Howler + mobile autoplay gate (DF5.1, DF5.4, DF5.6)
@@ -41,11 +44,11 @@ export default function RootLayout({
     /* data-theme="fd-dark" — V2.5 token layer.
      * Arquitetura suporta data-theme="radiant" / "dire" no futuro
      * sem refactor de nenhum componente (CSS vars redefinem automaticamente).
-     * GeistSans.variable expõe --font-geist-sans como CSS var no DOM. */
+     * Space Grotesk + Teko via @fontsource-variable carregam font-face
+     * automaticamente — não precisa expor CSS var no html className. */
     <html
       lang="pt-BR"
       data-theme="fd-dark"
-      className={`${GeistSans.variable} ${GeistMono.variable}`}
     >
       <body className="min-h-screen flex flex-col font-body">
         {/* V2.5-F4: MotionProvider — LazyMotion domAnimation (~10kb vs ~45kb full bundle).
