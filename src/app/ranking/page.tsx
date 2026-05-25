@@ -141,7 +141,7 @@ export default async function RankingPage(props: {
       <div className="px-6 py-10 xl:px-12">
         {/* Header padronizado V2.5: eyebrow + h1 + descrição */}
         <header className="mb-12">
-          <p className="font-display text-xs font-semibold uppercase tracking-[0.3em] text-brand-primary">
+          <p className="font-display text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
             Ranking · Temporada
           </p>
           <h1 className="mt-3 font-display text-4xl uppercase tracking-tight text-text-display md:text-5xl">
@@ -155,7 +155,7 @@ export default async function RankingPage(props: {
         {/* Top 3 cards */}
         {top3Hydrated.length > 0 && !search && (
           <section className="mb-12">
-            <h2 className="mb-6 font-display text-xs font-semibold uppercase tracking-widest text-text-faded">
+            <h2 className="mb-6 font-display text-sm font-semibold uppercase tracking-widest text-text-faded">
               Top 3
             </h2>
             <div className="grid gap-4 md:grid-cols-3">
@@ -235,12 +235,12 @@ function TopCard({ row, position }: { row: RankRow; position: number }) {
             <p className="font-display text-base uppercase tracking-wide text-text-display truncate">
               {row.username ?? "Anônimo"}
             </p>
-            <p className="font-mono text-xs text-text-muted">{row.mmr} MMR</p>
+            <p className="font-mono text-sm text-text-muted">{row.mmr} MMR</p>
           </div>
         </div>
         <div className="flex items-center justify-between border-t border-border-subtle pt-3">
           <DotaRankMedal rank={dotaRank} size="sm" showLabel />
-          <span className="font-mono text-xs text-text-muted">
+          <span className="font-mono text-sm text-text-muted">
             {row.vitorias}V — {row.derrotas}D
           </span>
         </div>
@@ -268,7 +268,7 @@ function RankingRow({ row, position }: { row: RankRow; position: number }) {
         <p className="font-body text-sm font-medium text-text-display truncate">
           {row.username ?? "Anônimo"}
         </p>
-        <p className="font-mono text-xs text-text-muted">
+        <p className="font-mono text-sm text-text-muted">
           {row.partidas_total} partidas — {row.vitorias}V/{row.derrotas}D
         </p>
       </div>
@@ -308,7 +308,7 @@ function Pagination({ currentPage }: { currentPage: number }) {
       {currentPage > 1 && (
         <Link
           href={`/ranking?page=${currentPage - 1}`}
-          className="font-display text-xs uppercase tracking-widest text-text-muted hover:text-text-display transition-colors"
+          className="font-display text-sm uppercase tracking-widest text-text-muted hover:text-text-display transition-colors"
         >
           ← Anterior
         </Link>
@@ -316,7 +316,7 @@ function Pagination({ currentPage }: { currentPage: number }) {
       <span className="font-mono text-sm text-text-display">página {currentPage}</span>
       <Link
         href={`/ranking?page=${currentPage + 1}`}
-        className="font-display text-xs uppercase tracking-widest text-text-muted hover:text-text-display transition-colors"
+        className="font-display text-sm uppercase tracking-widest text-text-muted hover:text-text-display transition-colors"
       >
         Próxima →
       </Link>

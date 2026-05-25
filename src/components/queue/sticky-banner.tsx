@@ -45,14 +45,14 @@ export async function StickyQueueBanner() {
 
         <Hourglass size={14} className="text-emerald-300" aria-hidden="true" />
 
-        <p className="flex-1 font-sans text-xs uppercase tracking-widest text-emerald-200">
+        <p className="flex-1 font-sans text-sm uppercase tracking-widest text-emerald-200">
           Na fila de <strong className="font-semibold text-white">{q.coachUsername ?? "PRO"}</strong>
           {" · "}
           <span className="font-mono">{q.position}º de {q.total}</span>
           {" · "}
           <span className="font-mono text-emerald-300/80">{q.waitingMinutes}m aguardando</span>
           {extra > 0 && (
-            <span className="ml-2 rounded-md bg-emerald-500/20 px-1.5 py-0.5 font-mono text-[10px]">
+            <span className="ml-2 rounded-md bg-emerald-500/20 px-1.5 py-0.5 font-mono text-sm">
               +{extra} {extra === 1 ? "outra fila" : "outras filas"}
             </span>
           )}
@@ -60,7 +60,7 @@ export async function StickyQueueBanner() {
 
         <Link
           href="/dashboard"
-          className="hidden sm:inline-flex items-center font-mono text-[10px] uppercase tracking-widest text-emerald-300/80 hover:text-white transition-colors"
+          className="hidden sm:inline-flex items-center font-mono text-sm uppercase tracking-widest text-emerald-300/80 hover:text-white transition-colors"
         >
           Ver dashboard →
         </Link>

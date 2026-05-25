@@ -51,7 +51,7 @@ export function JoinQueueModal({ open, onClose, prosOnline, fichaBalance }: Prop
       >
         <header className="mb-5 flex items-center justify-between">
           <div>
-            <p className="font-mono text-[10px] uppercase tracking-widest text-[var(--color-brand-red)]">
+            <p className="font-mono text-sm uppercase tracking-widest text-[var(--color-brand-red)]">
               Jogar Dota
             </p>
             <h2
@@ -73,7 +73,7 @@ export function JoinQueueModal({ open, onClose, prosOnline, fichaBalance }: Prop
 
         <div className="mb-4 flex items-center gap-2 rounded-md border border-emerald-500/30 bg-emerald-500/5 px-3 py-2">
           <Coins size={14} className="text-emerald-400" />
-          <p className="font-mono text-xs text-emerald-300">
+          <p className="font-mono text-sm text-emerald-300">
             Você tem {fichaBalance} {fichaBalance === 1 ? "ficha" : "fichas"} ·
             cada PT usa 1 quando confirmada pelo PRO
           </p>
@@ -89,7 +89,7 @@ export function JoinQueueModal({ open, onClose, prosOnline, fichaBalance }: Prop
             <p className="font-mono text-sm text-white/50">
               Nenhum PRO online no momento.
             </p>
-            <p className="mt-1 font-mono text-xs text-white/30">
+            <p className="mt-1 font-mono text-sm text-white/30">
               Você será avisado no Discord oficial quando algum abrir fila.
             </p>
           </div>
@@ -119,7 +119,7 @@ export function JoinQueueModal({ open, onClose, prosOnline, fichaBalance }: Prop
                       <p className="font-display text-base uppercase text-white truncate">
                         {pro.username ?? pro.slug}
                       </p>
-                      <p className="font-mono text-[11px] text-white/60">
+                      <p className="font-mono text-sm text-white/60">
                         {pro.mmrAtual ? `${pro.mmrAtual.toLocaleString("pt-BR")} MMR · ` : ""}
                         {pro.vagasProximaPT > 0
                           ? `${pro.vagasProximaPT}/${pro.filaMaxVagas} vagas livres`
@@ -128,7 +128,7 @@ export function JoinQueueModal({ open, onClose, prosOnline, fichaBalance }: Prop
                     </div>
                   </div>
                   {pro.headline && (
-                    <p className="mt-2 font-serif text-xs italic text-white/60">
+                    <p className="mt-2 font-serif text-sm italic text-white/60">
                       {pro.headline}
                     </p>
                   )}
@@ -136,7 +136,7 @@ export function JoinQueueModal({ open, onClose, prosOnline, fichaBalance }: Prop
                     type="button"
                     onClick={() => handleJoin(pro.coachId)}
                     disabled={!canJoin || isBusy || pending}
-                    className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-md bg-emerald-600 px-4 py-2 font-sans text-xs font-semibold uppercase tracking-widest text-white transition-colors hover:bg-emerald-500 disabled:opacity-50"
+                    className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-md bg-emerald-600 px-4 py-2 font-sans text-sm font-semibold uppercase tracking-widest text-white transition-colors hover:bg-emerald-500 disabled:opacity-50"
                   >
                     {isBusy ? (
                       <>
@@ -156,12 +156,12 @@ export function JoinQueueModal({ open, onClose, prosOnline, fichaBalance }: Prop
         )}
 
         {error && (
-          <p className="mt-4 rounded-md border border-red-500/30 bg-red-500/5 px-3 py-2 font-mono text-xs text-red-300">
+          <p className="mt-4 rounded-md border border-red-500/30 bg-red-500/5 px-3 py-2 font-mono text-sm text-red-300">
             {error}
           </p>
         )}
 
-        <p className="mt-5 font-mono text-[10px] text-white/30 text-center">
+        <p className="mt-5 font-mono text-sm text-white/30 text-center">
           A ficha só é debitada quando o PRO confirmar que a partida ocorreu.
         </p>
       </div>

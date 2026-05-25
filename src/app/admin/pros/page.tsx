@@ -142,13 +142,13 @@ export default async function AdminProsPage() {
   return (
     <div className="space-y-10 p-8">
       <header>
-        <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-brand-primary">
+        <p className="font-sans text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
           PROs · Painel
         </p>
         <h1 className="mt-3 font-display text-3xl uppercase tracking-tight text-text-display">
           Gerenciar fila e PTs
         </h1>
-        <p className="mt-2 font-mono text-xs text-text-muted">
+        <p className="mt-2 font-mono text-sm text-text-muted">
           Slug: {coach.slug} · {coach.headline ?? "(sem headline)"}
         </p>
         <div className="mt-4 brand-divider" />
@@ -167,7 +167,7 @@ export default async function AdminProsPage() {
           <h2 className="mt-8 font-display text-xl uppercase tracking-wide text-text-display">
             2. Alunos na fila
           </h2>
-          <p className="font-mono text-xs text-text-muted">
+          <p className="font-mono text-sm text-text-muted">
             {queueEntries.length} aguardando · máx {coach.fila_max_vagas} por PT
           </p>
           <QueueList entries={queueEntries} filaAberta={coach.fila_aberta} />
@@ -177,7 +177,7 @@ export default async function AdminProsPage() {
           <h2 className="font-display text-xl uppercase tracking-wide text-text-display">
             3. PTs agendadas
           </h2>
-          <p className="font-mono text-xs text-text-muted">
+          <p className="font-mono text-sm text-text-muted">
             Confirme quando a partida ocorrer (cobra fichas) ou cancele se não rolar.
           </p>
           <PendingMatches matches={pendingMatches} />
@@ -187,7 +187,7 @@ export default async function AdminProsPage() {
               <h2 className="mt-8 font-display text-xl uppercase tracking-wide text-text-display">
                 4. Realizadas sem dados OpenDota
               </h2>
-              <p className="font-mono text-xs text-text-muted">
+              <p className="font-mono text-sm text-text-muted">
                 Submeta o match_id Dota pra enriquecer com KDA, GPM, etc.
               </p>
               <EnrichForm matches={realizedNoData} />

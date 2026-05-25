@@ -52,12 +52,12 @@ export function ToggleFilaButton({ filaAberta, filaAbertaEm }: Props) {
         {open ? "Fila aberta — clicar pra fechar" : "Abrir fila pra alunos"}
       </button>
       {open && filaAbertaEm && (
-        <p className="text-center font-mono-ui text-xs text-success/80">
+        <p className="text-center font-mono-ui text-sm text-success/80">
           Aberta há {minutesOpen} min
         </p>
       )}
       {error && (
-        <p className="text-center font-mono-ui text-xs text-error">{error}</p>
+        <p className="text-center font-mono-ui text-sm text-error">{error}</p>
       )}
     </div>
   );

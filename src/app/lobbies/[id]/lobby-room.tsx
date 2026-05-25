@@ -106,7 +106,7 @@ export function LobbyRoom({
               <h1 className="font-display text-base uppercase tracking-wide text-white truncate">
                 {lobby.name}
               </h1>
-              <p className="mt-0.5 font-mono text-[10px] uppercase tracking-widest text-white/50 truncate">
+              <p className="mt-0.5 font-mono text-sm uppercase tracking-widest text-white/50 truncate">
                 Líder: {leaderUsername}
               </p>
             </div>
@@ -114,7 +114,7 @@ export function LobbyRoom({
           <PasswordBadge password={lobby.password} />
         </div>
         {(lobby.status === "in_progress" || lobby.steamLobbyId?.startsWith("DEV-")) && (
-          <p className="mt-1 font-mono text-[9px] uppercase tracking-widest">
+          <p className="mt-1 font-mono text-sm uppercase tracking-widest">
             {lobby.status === "in_progress" && (
               <span className="text-warning">Em andamento</span>
             )}
@@ -175,7 +175,7 @@ export function LobbyRoom({
           Member: "Sair da sala" simples. */}
       <div className="mt-auto border-t border-border-subtle bg-black/60 p-3 space-y-2">
         {!inLobby && (
-          <p className="text-center font-mono text-[10px] uppercase tracking-widest text-white/30 py-2">
+          <p className="text-center font-mono text-sm uppercase tracking-widest text-white/30 py-2">
             Você não está na sala
           </p>
         )}
@@ -251,11 +251,11 @@ function TeamColumn({
         className={`flex items-center justify-between border-b ${a.border} ${a.headerBg} px-3 py-2`}
       >
         <h2
-          className={`font-display text-xs uppercase tracking-[0.25em] ${a.text}`}
+          className={`font-display text-sm uppercase tracking-[0.25em] ${a.text}`}
         >
           {label}
         </h2>
-        <span className="font-mono text-[9px] uppercase tracking-widest text-white/40">
+        <span className="font-mono text-sm uppercase tracking-widest text-white/40">
           {players.length}/{size}
         </span>
       </header>
@@ -338,12 +338,12 @@ function PlayerSlotRow({
         } transition-colors`}
         onClick={showJoin && !isPending ? handleJoin : undefined}
       >
-        <span className="font-mono text-[10px] uppercase tracking-widest text-white/15">
+        <span className="font-mono text-sm uppercase tracking-widest text-white/15">
           ────
         </span>
         {showJoin && (
           <span
-            className={`font-sans text-[10px] font-semibold uppercase tracking-[0.2em] ${a.text} opacity-50 group-hover:opacity-100 transition-opacity`}
+            className={`font-sans text-sm font-semibold uppercase tracking-[0.2em] ${a.text} opacity-50 group-hover:opacity-100 transition-opacity`}
           >
             {isPending ? "..." : "Entrar"}
           </span>
@@ -368,7 +368,7 @@ function PlayerSlotRow({
         <div className="size-7 rounded-sm border border-white/10 bg-black/40 shrink-0" />
       )}
       <div className="min-w-0 flex-1">
-        <p className="font-sans text-xs text-white truncate flex items-center gap-1">
+        <p className="font-sans text-sm text-white truncate flex items-center gap-1">
           {slot.username}
           {slotIsLeader && (
             <Crown
@@ -379,7 +379,7 @@ function PlayerSlotRow({
           )}
         </p>
         {isCurrent && (
-          <p className="font-mono text-[9px] uppercase tracking-widest text-brand-primary">
+          <p className="font-mono text-sm uppercase tracking-widest text-brand-primary">
             você
           </p>
         )}
@@ -451,7 +451,7 @@ function SpectatorRow({
   return (
     <section className="border-b border-border-subtle bg-black/30">
       <header className="flex items-center justify-between border-b border-white/5 px-3 py-2">
-        <h3 className="font-sans text-[10px] font-semibold uppercase tracking-[0.25em] text-white/60">
+        <h3 className="font-sans text-sm font-semibold uppercase tracking-[0.25em] text-white/60">
           Jogadores de fora
         </h3>
         {!disabled && !iAmSpectator && currentTeam !== null && (
@@ -459,7 +459,7 @@ function SpectatorRow({
             type="button"
             onClick={handleSpectate}
             disabled={isPending}
-            className="font-sans text-[10px] uppercase tracking-widest text-white/50 hover:text-white transition-colors disabled:opacity-50"
+            className="font-sans text-sm uppercase tracking-widest text-white/50 hover:text-white transition-colors disabled:opacity-50"
           >
             {isPending ? "..." : "Assistir"}
           </button>
@@ -467,7 +467,7 @@ function SpectatorRow({
       </header>
       <div className="px-3 py-2.5 flex flex-wrap items-center gap-1.5 min-h-[40px]">
         {spectators.length === 0 ? (
-          <span className="font-mono text-[10px] uppercase tracking-widest text-white/20">
+          <span className="font-mono text-sm uppercase tracking-widest text-white/20">
             Nenhum
           </span>
         ) : (
@@ -486,7 +486,7 @@ function SpectatorRow({
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={s.avatarUrl} alt="" className="size-3.5 rounded-sm" />
                 ) : null}
-                <span className="font-sans text-[11px] text-white/80">
+                <span className="font-sans text-sm text-white/80">
                   {s.username}
                 </span>
                 {isCurrent && !disabled && (
@@ -522,14 +522,14 @@ function SettingsPanel({
   return (
     <section className="border-b border-border-subtle bg-black/30 px-3 py-3">
       <div className="mb-2 flex items-center justify-between">
-        <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.25em] text-white/60">
+        <p className="font-sans text-sm font-semibold uppercase tracking-[0.25em] text-white/60">
           Configurações da sala
         </p>
         {isLeader && (
           <button
             type="button"
             disabled
-            className="font-sans text-[10px] uppercase tracking-widest text-white/40 hover:text-white transition-colors disabled:cursor-not-allowed"
+            className="font-sans text-sm uppercase tracking-widest text-white/40 hover:text-white transition-colors disabled:cursor-not-allowed"
             title="Editar (V2)"
           >
             Editar
@@ -553,7 +553,7 @@ function SettingsPanel({
         <SettingRow label="Jogadores" value={`${lobby.maxPlayers}`} />
       </div>
       {lobby.steamLobbyId && (
-        <p className="mt-2 font-mono text-[9px] uppercase tracking-widest text-white/30 truncate">
+        <p className="mt-2 font-mono text-sm uppercase tracking-widest text-white/30 truncate">
           Steam: {lobby.steamLobbyId}
         </p>
       )}
@@ -572,11 +572,11 @@ function SettingRow({
 }) {
   return (
     <div className="flex items-center justify-between gap-1 border-b border-white/5 pb-1 last:border-0 last:pb-0">
-      <span className="font-mono text-[9px] uppercase tracking-widest text-white/40">
+      <span className="font-mono text-sm uppercase tracking-widest text-white/40">
         {label}
       </span>
       <span
-        className={`font-sans text-[11px] font-medium truncate ${valueClass ?? "text-white/80"}`}
+        className={`font-sans text-sm font-medium truncate ${valueClass ?? "text-white/80"}`}
       >
         {value}
       </span>
@@ -599,7 +599,7 @@ function PasswordBadge({ password }: { password: string }) {
   return (
     <div className="flex shrink-0 items-center gap-1.5 rounded-sm border border-border-subtle bg-black/40 px-2 py-1">
       <Lock size={10} className="text-white/40" aria-hidden="true" />
-      <code className="font-mono text-[10px] text-brand-primary">
+      <code className="font-mono text-sm text-brand-primary">
         {reveal ? password : "••••••"}
       </code>
       <button
@@ -653,7 +653,7 @@ function LeaveLobbyButton({
       <input type="hidden" name="lobbyId" value={lobbyId} />
       <button
         type="submit"
-        className="w-full inline-flex items-center justify-center gap-2 rounded-sm border border-white/10 bg-black/40 px-4 py-2.5 font-sans text-[11px] font-semibold uppercase tracking-[0.2em] text-white/70 hover:bg-white/5 hover:text-white transition-colors"
+        className="w-full inline-flex items-center justify-center gap-2 rounded-sm border border-white/10 bg-black/40 px-4 py-2.5 font-sans text-sm font-semibold uppercase tracking-[0.2em] text-white/70 hover:bg-white/5 hover:text-white transition-colors"
       >
         Sair da sala
       </button>
@@ -677,7 +677,7 @@ function EndLobbyButton({ lobbyId }: { lobbyId: string }) {
       <input type="hidden" name="lobbyId" value={lobbyId} />
       <button
         type="submit"
-        className="w-full inline-flex items-center justify-center gap-2 rounded-sm border border-error/30 bg-black/40 px-4 py-2.5 font-sans text-[11px] font-semibold uppercase tracking-[0.2em] text-white/70 hover:bg-error/20 hover:border-error hover:text-white transition-colors"
+        className="w-full inline-flex items-center justify-center gap-2 rounded-sm border border-error/30 bg-black/40 px-4 py-2.5 font-sans text-sm font-semibold uppercase tracking-[0.2em] text-white/70 hover:bg-error/20 hover:border-error hover:text-white transition-colors"
       >
         Encerrar sala
       </button>

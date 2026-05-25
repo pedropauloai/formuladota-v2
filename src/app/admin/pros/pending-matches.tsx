@@ -109,12 +109,12 @@ export function PendingMatches({ matches }: Props) {
                 <p className="font-display text-sm uppercase tracking-wide text-warning">
                   PT agendada
                 </p>
-                <p className="font-mono text-xs text-text-muted mt-0.5">
+                <p className="font-mono text-sm text-text-muted mt-0.5">
                   {new Date(m.createdAt).toLocaleString("pt-BR")} · {m.alunoCount}{" "}
                   aluno{m.alunoCount === 1 ? "" : "s"}
                 </p>
               </div>
-              <span className="font-mono text-[10px] text-text-faded">
+              <span className="font-mono text-sm text-text-faded">
                 #{m.id.slice(0, 8)}
               </span>
             </header>
@@ -125,7 +125,7 @@ export function PendingMatches({ matches }: Props) {
                 type="button"
                 onClick={() => handleConfirm(m.id)}
                 disabled={isBusy || pending}
-                className="flex items-center justify-center gap-2 rounded-md bg-success/80 px-3 py-2 font-sans text-xs font-semibold uppercase tracking-widest text-text-display transition-colors hover:bg-success disabled:opacity-50"
+                className="flex items-center justify-center gap-2 rounded-md bg-success/80 px-3 py-2 font-sans text-sm font-semibold uppercase tracking-widest text-text-display transition-colors hover:bg-success disabled:opacity-50"
               >
                 {isBusy ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
                 Confirmar
@@ -134,7 +134,7 @@ export function PendingMatches({ matches }: Props) {
                 type="button"
                 onClick={() => handleCancel(m.id)}
                 disabled={isBusy || pending}
-                className="flex items-center justify-center gap-2 rounded-md border border-border-subtle px-3 py-2 font-sans text-xs font-semibold uppercase tracking-widest text-text-body transition-colors hover:border-error/60 hover:bg-error/10 hover:text-error disabled:opacity-50"
+                className="flex items-center justify-center gap-2 rounded-md border border-border-subtle px-3 py-2 font-sans text-sm font-semibold uppercase tracking-widest text-text-body transition-colors hover:border-error/60 hover:bg-error/10 hover:text-error disabled:opacity-50"
               >
                 <X size={12} />
                 Cancelar
@@ -151,7 +151,7 @@ export function PendingMatches({ matches }: Props) {
 
             {/* OpenDota enrichment opcional */}
             <details className="rounded-md border border-border-subtle bg-bg-base/60">
-              <summary className="cursor-pointer px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-text-muted hover:text-text-display">
+              <summary className="cursor-pointer px-3 py-2 font-mono text-sm uppercase tracking-widest text-text-muted hover:text-text-display">
                 ou submeter dota match_id (OpenDota) →
               </summary>
               <div className="border-t border-border-subtle p-3 space-y-2">
@@ -163,13 +163,13 @@ export function PendingMatches({ matches }: Props) {
                     setEnrichInput({ ...enrichInput, [m.id]: e.target.value })
                   }
                   placeholder="ex: 7891234567"
-                  className="w-full rounded-md border border-border-subtle bg-bg-elevated px-3 py-2 font-mono text-xs text-text-body placeholder:text-text-faded"
+                  className="w-full rounded-md border border-border-subtle bg-bg-elevated px-3 py-2 font-mono text-sm text-text-body placeholder:text-text-faded"
                 />
                 <button
                   type="button"
                   onClick={() => handleEnrich(m.id)}
                   disabled={isBusy || pending}
-                  className="inline-flex items-center gap-2 rounded-md border border-brand-primary/50 bg-brand-primary/10 px-3 py-1.5 font-sans text-[10px] font-semibold uppercase tracking-widest text-brand-primary transition-colors hover:bg-brand-primary/20 disabled:opacity-50"
+                  className="inline-flex items-center gap-2 rounded-md border border-brand-primary/50 bg-brand-primary/10 px-3 py-1.5 font-sans text-sm font-semibold uppercase tracking-widest text-brand-primary transition-colors hover:bg-brand-primary/20 disabled:opacity-50"
                 >
                   {isBusy ? <Loader2 size={12} className="animate-spin" /> : <Database size={12} />}
                   Buscar OpenDota + Confirmar

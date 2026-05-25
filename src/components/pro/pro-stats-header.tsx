@@ -128,7 +128,7 @@ export async function ProStatsHeader({ proUserId }: ProStatsHeaderProps) {
             {/* Badge de status PRO */}
             <span
               className={cn(
-                "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium uppercase tracking-wider",
+                "inline-flex items-center px-2 py-0.5 rounded-full text-sm font-medium uppercase tracking-wider",
                 isActive
                   ? "bg-success/15 text-success border border-success/30"
                   : "bg-warning/15 text-warning border border-warning/30"
@@ -149,13 +149,13 @@ export async function ProStatsHeader({ proUserId }: ProStatsHeaderProps) {
           <div className="flex items-center gap-4 mt-1">
             <div className="flex items-center gap-1.5">
               <DotaRankMedal rank={dotaRank} size="sm" />
-              <span className="text-xs text-text-muted font-mono">
+              <span className="text-sm text-text-muted font-mono">
                 {mmr ? `${mmr} MMR` : "MMR —"}
               </span>
             </div>
             <div className="flex items-center gap-1.5">
               <HonorRankMedal rank={honorRank} size="sm" />
-              <span className="text-xs text-text-muted font-mono">
+              <span className="text-sm text-text-muted font-mono">
                 {honorScore ?? 0} pts
               </span>
             </div>
@@ -166,7 +166,7 @@ export async function ProStatsHeader({ proUserId }: ProStatsHeaderProps) {
       {/* Direita: data de promoção */}
       {promo?.promoted_at && (
         <div className="text-right">
-          <span className="text-xs text-text-muted uppercase tracking-wider">
+          <span className="text-sm text-text-muted uppercase tracking-wider">
             PRO desde
           </span>
           <p className="text-sm text-text-body font-mono">

@@ -273,7 +273,7 @@ function ModeButton({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`flex w-full items-center gap-3 px-5 py-2.5 2xl:py-3 text-left font-sans text-xs 2xl:text-sm font-semibold uppercase tracking-[0.15em] transition-colors ${
+      className={`flex w-full items-center gap-3 px-5 py-2.5 2xl:py-3 text-left font-sans text-sm 2xl:text-sm font-semibold uppercase tracking-[0.15em] transition-colors ${
         active
           ? "bg-brand-primary/15 text-text-display border-l-2 border-brand-primary"
           : "text-text-muted hover:bg-bg-elevated hover:text-text-display border-l-2 border-transparent"
@@ -282,7 +282,7 @@ function ModeButton({
       <mode.icon size={14} aria-hidden="true" />
       <span className="flex-1">{mode.label}</span>
       {mode.v2 && (
-        <span className="font-mono text-[9px] 2xl:text-[10px] uppercase tracking-widest text-text-faded">
+        <span className="font-mono text-sm 2xl:text-sm uppercase tracking-widest text-text-faded">
           V2
         </span>
       )}
@@ -305,7 +305,7 @@ function SubAction({
     <button
       type="button"
       onClick={onClick}
-      className="flex items-center justify-center gap-2 rounded-sm border border-border-subtle bg-bg-deep/40 px-3 py-2.5 2xl:py-3 font-sans text-[11px] 2xl:text-xs font-semibold uppercase tracking-[0.2em] text-text-body hover:bg-brand-primary/15 hover:border-brand-primary/60 hover:text-text-display transition-colors"
+      className="flex items-center justify-center gap-2 rounded-sm border border-border-subtle bg-bg-deep/40 px-3 py-2.5 2xl:py-3 font-sans text-sm 2xl:text-sm font-semibold uppercase tracking-[0.2em] text-text-body hover:bg-brand-primary/15 hover:border-brand-primary/60 hover:text-text-display transition-colors"
     >
       <Icon size={13} aria-hidden="true" />
       {label}
@@ -318,16 +318,16 @@ function SubAction({
 function SalasInfo() {
   return (
     <div className="space-y-4">
-      <p className="font-sans text-xs 2xl:text-sm text-text-muted leading-relaxed">
+      <p className="font-sans text-sm 2xl:text-sm text-text-muted leading-relaxed">
         Escolha <span className="text-text-display">CRIAR</span> pra abrir uma sala
         in-house ou <span className="text-text-display">NAVEGAR</span> pra entrar em
         salas abertas da comunidade.
       </p>
       <div className="rounded-md border border-border-subtle bg-bg-deep/30 p-4 2xl:p-5 space-y-2">
-        <p className="font-sans text-xs 2xl:text-sm font-semibold uppercase tracking-[0.15em] text-text-body">
+        <p className="font-sans text-sm 2xl:text-sm font-semibold uppercase tracking-[0.15em] text-text-body">
           Como funciona
         </p>
-        <ul className="font-sans text-[11px] 2xl:text-xs text-text-muted leading-relaxed space-y-1">
+        <ul className="font-sans text-sm 2xl:text-sm text-text-muted leading-relaxed space-y-1">
           <li>· Você cria a sala e o bot Steam abre o lobby Dota 2</li>
           <li>· Senha gerada automaticamente — compartilhe com 9 jogadores</li>
           <li>· Match ID capturado ao fim da partida</li>
@@ -469,24 +469,24 @@ function CompetitivaForm({
 
         <div className="rounded-md border border-brand-primary/30 bg-gradient-to-r from-brand-primary/10 to-transparent px-4 py-3 2xl:px-5 2xl:py-4 flex items-center justify-between">
           <div>
-            <p className="font-mono text-[10px] 2xl:text-[11px] uppercase tracking-widest text-text-muted">
+            <p className="font-mono text-sm 2xl:text-sm uppercase tracking-widest text-text-muted">
               Sua medalha
             </p>
             <p className="font-display text-sm 2xl:text-base uppercase tracking-wide text-text-display">
               Não classificado
             </p>
           </div>
-          <span className="font-mono text-[10px] 2xl:text-[11px] uppercase tracking-widest text-brand-primary">
+          <span className="font-mono text-sm 2xl:text-sm uppercase tracking-widest text-brand-primary">
             Calibrar →
           </span>
         </div>
 
         {searchType === "role" && (
           <div className="space-y-2">
-            <p className="font-sans text-xs 2xl:text-sm font-semibold uppercase tracking-[0.15em] text-text-body">
+            <p className="font-sans text-sm 2xl:text-sm font-semibold uppercase tracking-[0.15em] text-text-body">
               Busca com função
             </p>
-            <p className="font-sans text-[11px] 2xl:text-xs text-text-muted">
+            <p className="font-sans text-sm 2xl:text-sm text-text-muted">
               Selecione 1 ou mais funções pra encontrar partidas mais rápido.
             </p>
             <div className="space-y-1.5 mt-2">
@@ -504,7 +504,7 @@ function CompetitivaForm({
         )}
 
         <div className="space-y-2">
-          <p className="font-sans text-xs 2xl:text-sm font-semibold uppercase tracking-[0.15em] text-text-body">
+          <p className="font-sans text-sm 2xl:text-sm font-semibold uppercase tracking-[0.15em] text-text-body">
             Modo de jogo
           </p>
           <SelectField
@@ -541,7 +541,7 @@ function CompetitivaForm({
               )}
               <span>Cancelar busca</span>
             </button>
-            <p className="mt-2 text-center font-mono text-xs 2xl:text-sm uppercase tracking-widest text-warning">
+            <p className="mt-2 text-center font-mono text-sm 2xl:text-sm uppercase tracking-widest text-warning">
               Procurando partida · {formatTime(waitingSeconds)}
             </p>
           </>
@@ -560,7 +560,7 @@ function CompetitivaForm({
               )}
               <span>{isPending ? "Entrando..." : "Buscar partida"}</span>
             </button>
-            <p className="mt-2 text-center font-mono text-[10px] 2xl:text-[11px] uppercase tracking-widest text-text-faded">
+            <p className="mt-2 text-center font-mono text-sm 2xl:text-sm uppercase tracking-widest text-text-faded">
               Matchmaking via fila · Fase B
             </p>
           </>
@@ -584,7 +584,7 @@ function SearchTab({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`px-3 py-2 2xl:py-2.5 font-sans text-xs 2xl:text-sm font-semibold uppercase tracking-[0.1em] transition-colors ${
+      className={`px-3 py-2 2xl:py-2.5 font-sans text-sm 2xl:text-sm font-semibold uppercase tracking-[0.1em] transition-colors ${
         active
           ? "bg-brand-primary/15 text-text-display"
           : "text-text-muted hover:bg-bg-elevated hover:text-text-display"
@@ -624,7 +624,7 @@ function RoleCheckbox({
         className="size-4 accent-brand-primary"
       />
       <role.icon size={14} className={role.color} aria-hidden="true" />
-      <span className="font-sans text-xs 2xl:text-sm text-text-body">
+      <span className="font-sans text-sm 2xl:text-sm text-text-body">
         {role.label}
       </span>
     </label>
@@ -645,7 +645,7 @@ function SelectField({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full appearance-none rounded-md border border-border-subtle bg-bg-deep/40 px-3 py-2 2xl:py-2.5 pr-8 font-sans text-xs 2xl:text-sm text-text-display focus:border-brand-primary focus:outline-none"
+        className="w-full appearance-none rounded-md border border-border-subtle bg-bg-deep/40 px-3 py-2 2xl:py-2.5 pr-8 font-sans text-sm 2xl:text-sm text-text-display focus:border-brand-primary focus:outline-none"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value} className="bg-bg-deep">
@@ -665,7 +665,7 @@ function SelectField({
 function ToggleRow({ label, disabled }: { label: string; disabled?: boolean }) {
   return (
     <label className="flex items-center justify-between gap-3 rounded-md px-2 py-1.5 2xl:py-2 cursor-pointer hover:bg-bg-elevated">
-      <span className="font-sans text-xs 2xl:text-sm text-text-body">{label}</span>
+      <span className="font-sans text-sm 2xl:text-sm text-text-body">{label}</span>
       <input
         type="checkbox"
         disabled={disabled}
@@ -750,7 +750,7 @@ function LobbyRoomView({
         <button
           type="button"
           onClick={onBack}
-          className="font-sans text-xs uppercase tracking-widest text-brand-primary hover:text-text-display transition-colors"
+          className="font-sans text-sm uppercase tracking-widest text-brand-primary hover:text-text-display transition-colors"
         >
           ← Voltar pra lista
         </button>
@@ -856,7 +856,7 @@ function CreateLobbyDialog({
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block font-sans text-xs 2xl:text-sm font-semibold uppercase tracking-[0.15em] text-text-body mb-1.5">
+              <label className="block font-sans text-sm 2xl:text-sm font-semibold uppercase tracking-[0.15em] text-text-body mb-1.5">
                 Nome da sala
               </label>
               <input
@@ -871,7 +871,7 @@ function CreateLobbyDialog({
               />
             </div>
             <div>
-              <label className="block font-sans text-xs 2xl:text-sm font-semibold uppercase tracking-[0.15em] text-text-body mb-1.5">
+              <label className="block font-sans text-sm 2xl:text-sm font-semibold uppercase tracking-[0.15em] text-text-body mb-1.5">
                 Modo
               </label>
               <SelectField
@@ -896,19 +896,19 @@ function CreateLobbyDialog({
           </div>
 
           <div className="rounded-md border border-border-subtle bg-bg-deep/30 px-4 py-3 2xl:px-5 2xl:py-4">
-            <p className="font-mono text-[10px] 2xl:text-[11px] uppercase tracking-widest text-text-muted">
+            <p className="font-mono text-sm 2xl:text-sm uppercase tracking-widest text-text-muted">
               Senha
             </p>
-            <p className="mt-1 font-sans text-xs 2xl:text-sm text-text-body">
+            <p className="mt-1 font-sans text-sm 2xl:text-sm text-text-body">
               Gerada automaticamente · 8 caracteres hexadecimais
             </p>
           </div>
 
           <div className="rounded-md border border-border-subtle bg-bg-deep/30 px-4 py-3 2xl:px-5 2xl:py-4 space-y-1">
-            <p className="font-mono text-[10px] 2xl:text-[11px] uppercase tracking-widest text-text-muted">
+            <p className="font-mono text-sm 2xl:text-sm uppercase tracking-widest text-text-muted">
               Padrões V1
             </p>
-            <ul className="font-sans text-xs 2xl:text-sm text-text-muted leading-relaxed">
+            <ul className="font-sans text-sm 2xl:text-sm text-text-muted leading-relaxed">
               <li>· Servidor: Brasil</li>
               <li>· Visibilidade: Pública</li>
               <li>· Trapaças: Não</li>
@@ -922,7 +922,7 @@ function CreateLobbyDialog({
               type="button"
               onClick={onClose}
               disabled={isPending}
-              className="inline-flex items-center justify-center rounded-sm border border-border-subtle bg-bg-deep/40 px-5 py-2.5 2xl:py-3 font-sans text-[11px] 2xl:text-xs font-semibold uppercase tracking-[0.2em] text-text-body hover:bg-bg-elevated hover:text-text-display transition-colors disabled:opacity-50"
+              className="inline-flex items-center justify-center rounded-sm border border-border-subtle bg-bg-deep/40 px-5 py-2.5 2xl:py-3 font-sans text-sm 2xl:text-sm font-semibold uppercase tracking-[0.2em] text-text-body hover:bg-bg-elevated hover:text-text-display transition-colors disabled:opacity-50"
             >
               Cancelar
             </button>
@@ -951,12 +951,12 @@ function LobbyChatOverlay({ lobbyId }: { lobbyId: string }) {
         <header className="flex items-center border-b border-border-subtle">
           <ChatTab label="Sala" active={tab === "sala"} onClick={() => setTab("sala")} />
           <ChatTab label="Grupo" active={tab === "grupo"} onClick={() => setTab("grupo")} />
-          <span className="ml-auto px-3 font-mono text-[9px] 2xl:text-[10px] uppercase tracking-widest text-text-faded truncate max-w-[180px]">
+          <span className="ml-auto px-3 font-mono text-sm 2xl:text-sm uppercase tracking-widest text-text-faded truncate max-w-[180px]">
             {lobbyId.slice(0, 8)}
           </span>
         </header>
         <div className="px-4 py-3 2xl:py-4 min-h-[120px] 2xl:min-h-[160px] max-h-[200px] 2xl:max-h-[260px] overflow-y-auto">
-          <p className="font-mono text-[10px] 2xl:text-[11px] uppercase tracking-widest text-text-faded text-center mt-2">
+          <p className="font-mono text-sm 2xl:text-sm uppercase tracking-widest text-text-faded text-center mt-2">
             Chat em breve · V2
           </p>
         </div>
@@ -965,7 +965,7 @@ function LobbyChatOverlay({ lobbyId }: { lobbyId: string }) {
             type="text"
             disabled
             placeholder={`Para [Sala] · digite uma mensagem...`}
-            className="w-full bg-transparent font-sans text-xs 2xl:text-sm text-text-display placeholder:text-text-faded focus:outline-none disabled:cursor-not-allowed"
+            className="w-full bg-transparent font-sans text-sm 2xl:text-sm text-text-display placeholder:text-text-faded focus:outline-none disabled:cursor-not-allowed"
             aria-label="Chat (em breve)"
           />
         </div>
@@ -988,7 +988,7 @@ function ChatTab({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`px-4 py-2 font-sans text-[11px] 2xl:text-xs font-semibold uppercase tracking-[0.2em] transition-colors border-b-2 ${
+      className={`px-4 py-2 font-sans text-sm 2xl:text-sm font-semibold uppercase tracking-[0.2em] transition-colors border-b-2 ${
         active
           ? "border-brand-primary text-text-display"
           : "border-transparent text-text-muted hover:text-text-display"
@@ -1015,10 +1015,10 @@ function ComingSoon({ mode }: { mode: Mode }) {
       <p className="font-display text-lg 2xl:text-xl uppercase tracking-wide text-text-display">
         {labels[mode]}
       </p>
-      <p className="font-mono text-[11px] 2xl:text-xs uppercase tracking-widest text-text-faded">
+      <p className="font-mono text-sm 2xl:text-sm uppercase tracking-widest text-text-faded">
         Em desenvolvimento — V2
       </p>
-      <p className="font-sans text-xs 2xl:text-sm text-text-muted max-w-xs">
+      <p className="font-sans text-sm 2xl:text-sm text-text-muted max-w-xs">
         Esse modo entra em uma fase futura. Por enquanto use Competitiva ou Salas Personalizadas.
       </p>
     </div>

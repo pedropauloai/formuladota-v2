@@ -83,7 +83,7 @@ export function TournamentRegisterButton({
               className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left hover:bg-bg-elevated transition-colors first:rounded-t-md last:rounded-b-md"
             >
               <span className="font-sans text-sm text-text-display">{t.name}</span>
-              <span className="font-mono text-[10px] uppercase tracking-widest text-text-faded">
+              <span className="font-mono text-sm uppercase tracking-widest text-text-faded">
                 [{t.tag}]
               </span>
             </button>

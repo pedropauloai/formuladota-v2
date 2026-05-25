@@ -248,7 +248,7 @@ function ToastItem({ toast: t, onDismiss }: ToastItemProps) {
           {t.title}
         </p>
         {t.description && (
-          <p className="text-xs text-[var(--color-text-muted)] mt-1 leading-relaxed">
+          <p className="text-sm text-[var(--color-text-muted)] mt-1 leading-relaxed">
             {t.description}
           </p>
         )}

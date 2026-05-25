@@ -80,14 +80,14 @@ export function TeamDetailActions({
 
   return (
     <section className="mt-10 space-y-4">
-      <h2 className="font-sans text-xs 2xl:text-sm font-semibold uppercase tracking-[0.2em] text-white/70">
+      <h2 className="font-sans text-sm 2xl:text-sm font-semibold uppercase tracking-[0.2em] text-white/70">
         Ações
       </h2>
 
       {/* Captain: gerenciar membros (kick) */}
       {isCaptain && members.length > 1 && (
         <div className="rounded-md border border-border-subtle bg-bg-base p-4 space-y-3">
-          <p className="font-sans text-xs font-semibold uppercase tracking-wide text-text-body">
+          <p className="font-sans text-sm font-semibold uppercase tracking-wide text-text-body">
             Gerenciar roster
           </p>
           <div className="space-y-2">
@@ -100,7 +100,7 @@ export function TeamDetailActions({
                 >
                   <span className="font-sans text-sm text-text-display">
                     {m.profile?.username ?? "Anônimo"}{" "}
-                    <span className="font-mono text-[10px] uppercase tracking-widest text-text-faded">
+                    <span className="font-mono text-sm uppercase tracking-widest text-text-faded">
                       · {m.role}
                     </span>
                   </span>
@@ -151,7 +151,7 @@ export function TeamDetailActions({
         )}
       </div>
 
-      <p className="font-mono text-[10px] uppercase tracking-widest text-white/30">
+      <p className="font-mono text-sm uppercase tracking-widest text-white/30">
         Invite por username · V2
       </p>
     </section>

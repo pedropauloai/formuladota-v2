@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import { createLobby, type CreateLobbyResult } from "./actions";
 
 const FIELD_LABEL =
-  "font-mono text-xs uppercase tracking-widest text-text-faded";
+  "font-mono text-sm uppercase tracking-widest text-text-faded";
 
 const FIELD_INPUT = cn(
   "w-full rounded-[var(--radius-sm)] border border-border-subtle bg-bg-elevated",
@@ -128,7 +128,7 @@ export function CriarLobbyForm() {
           </select>
         </div>
 
-        <p className="font-body text-xs text-text-faded">
+        <p className="font-body text-sm text-text-faded">
           Senha gerada automaticamente. Servidor South America. 5v5.
         </p>
 

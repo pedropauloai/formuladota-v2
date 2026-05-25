@@ -146,7 +146,7 @@ export function FreeBar({
             {/* ---- Separador visual ---- */}
             {nextSlotIn && (
               <span
-                className="text-[var(--color-text-faded)] text-xs hidden xs:block"
+                className="text-[var(--color-text-faded)] text-sm hidden xs:block"
                 aria-hidden="true"
               >
                 ·

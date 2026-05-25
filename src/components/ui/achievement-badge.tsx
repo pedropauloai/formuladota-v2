@@ -252,7 +252,7 @@ const achievementBadgeVariants = cva(
     "rounded-full border",
     "whitespace-nowrap",
     "font-display-condensed",  /* Teko — condensed display font */
-    "text-[10px] uppercase tracking-widest",
+    "text-sm uppercase tracking-widest",
     "leading-none",
     "transition-colors",
     /* Ícones internos — tamanho fixo 10px via CSS */

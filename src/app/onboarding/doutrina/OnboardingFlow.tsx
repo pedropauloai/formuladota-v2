@@ -136,7 +136,7 @@ export function OnboardingFlow({
           ← anterior
         </Button>
 
-        <span className="font-mono text-xs text-text-muted">
+        <span className="font-mono text-sm text-text-muted">
           {slide} / {TOTAL_SLIDES}
         </span>
 
@@ -163,10 +163,10 @@ function ProgressBar({ current, total }: { current: number; total: number }) {
   return (
     <div className="space-y-2">
       <div className="flex items-baseline justify-between">
-        <span className="font-mono text-xs uppercase tracking-widest text-brand-primary">
+        <span className="font-mono text-sm uppercase tracking-widest text-brand-primary">
           A Fórmula do Dota de Corrida
         </span>
-        <span className="font-mono text-xs text-text-muted">
+        <span className="font-mono text-sm text-text-muted">
           onboarding obrigatório
         </span>
       </div>
@@ -193,7 +193,7 @@ function ProgressBar({ current, total }: { current: number; total: number }) {
 
 function SlideEyebrow({ children }: { children: React.ReactNode }) {
   return (
-    <p className="font-mono text-xs uppercase tracking-[0.35em] text-brand-primary">
+    <p className="font-mono text-sm uppercase tracking-[0.35em] text-brand-primary">
       {children}
     </p>
   );
@@ -287,7 +287,7 @@ function SlideAntipatterns({
         {antipatterns.map((a) => (
           <li key={a.id}>
             <Card variant="flat" className="flex gap-4">
-              <span className="shrink-0 font-mono text-xs text-error">
+              <span className="shrink-0 font-mono text-sm text-error">
                 ✕ {String(a.id).padStart(2, "0")}
               </span>
               <div className="space-y-1">
@@ -295,7 +295,7 @@ function SlideAntipatterns({
                   {a.title}
                 </h3>
                 {a.directSeverityNote && (
-                  <p className="font-body text-xs font-medium text-error">
+                  <p className="font-body text-sm font-medium text-error">
                     ⚠ {a.directSeverityNote}
                   </p>
                 )}
@@ -354,14 +354,14 @@ function PrincipleGroup({
 }) {
   return (
     <div className="space-y-2">
-      <h3 className="font-mono text-xs uppercase tracking-widest text-text-faded">
+      <h3 className="font-mono text-sm uppercase tracking-widest text-text-faded">
         {label}
       </h3>
       <ul className="space-y-2">
         {items.map((p) => (
           <li key={p.id}>
             <Card variant="flat" className={cn("flex gap-3 p-3")}>
-              <span className="shrink-0 font-mono text-xs text-brand-primary">
+              <span className="shrink-0 font-mono text-sm text-brand-primary">
                 {String(p.id).padStart(2, "0")}
               </span>
               <span className="font-body text-sm font-medium text-text-body">
@@ -488,7 +488,7 @@ function SlideAccept({
         </span>
       </label>
 
-      <p className="text-center font-mono text-xs text-text-muted">
+      <p className="text-center font-mono text-sm text-text-muted">
         versão {version} · aceitando esta versão você concorda com o texto
         canônico em{" "}
         <a

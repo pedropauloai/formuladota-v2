@@ -199,7 +199,7 @@ export function ProQueueCard({
             </h3>
           </div>
           {coach.mmrAtual && (
-            <p className="mt-0.5 font-mono text-xs text-text-muted xl:text-sm">
+            <p className="mt-0.5 font-mono text-sm text-text-muted xl:text-sm">
               {coach.mmrAtual.toLocaleString("pt-BR")} MMR
             </p>
           )}
@@ -238,7 +238,7 @@ export function ProQueueCard({
                   className="flex h-12 items-center justify-center rounded border border-dashed border-border-subtle bg-bg-deep/30 xl:h-14"
                   title={`Slot ${idx + 1} livre`}
                 >
-                  <span className="font-mono text-[10px] uppercase text-text-faded xl:text-xs">
+                  <span className="font-mono text-sm uppercase text-text-faded xl:text-sm">
                     livre
                   </span>
                 </div>
@@ -263,7 +263,7 @@ export function ProQueueCard({
                   ringColor={isViewer ? "tier-immortal" : null}
                 />
                 <span
-                  className={`min-w-0 flex-1 truncate font-sans text-[11px] xl:text-xs ${
+                  className={`min-w-0 flex-1 truncate font-sans text-sm xl:text-sm ${
                     isViewer ? "font-bold text-warning" : "text-text-body"
                   }`}
                 >
@@ -280,7 +280,7 @@ export function ProQueueCard({
             <span className="font-display text-base font-bold text-warning xl:text-lg">
               +{waitingExtra}
             </span>
-            <span className="font-mono text-[9px] uppercase tracking-widest text-warning/80">
+            <span className="font-mono text-sm uppercase tracking-widest text-warning/80">
               espera
             </span>
           </div>
@@ -289,7 +289,7 @@ export function ProQueueCard({
 
       {/* Footer com stats + status + CTA */}
       <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap items-center gap-3 font-mono text-xs text-text-muted">
+        <div className="flex flex-wrap items-center gap-3 font-mono text-sm text-text-muted">
           <span className="inline-flex items-center gap-1">
             <Users size={12} aria-hidden="true" />
             {entries.length} na fila
@@ -325,7 +325,7 @@ export function ProQueueCard({
       </div>
 
       {error && (
-        <p className="mt-3 rounded border border-error/30 bg-error/5 px-3 py-2 font-mono text-xs text-error">
+        <p className="mt-3 rounded border border-error/30 bg-error/5 px-3 py-2 font-mono text-sm text-error">
           {error}
         </p>
       )}
@@ -382,7 +382,7 @@ function ExpandedWaitingList({
   const [now] = useState(() => Date.now());
   return (
     <div className="mt-3 rounded-md border border-border-subtle bg-bg-deep/30 p-3">
-      <p className="mb-3 font-mono text-[11px] font-semibold uppercase tracking-widest text-warning/80">
+      <p className="mb-3 font-mono text-sm font-semibold uppercase tracking-widest text-warning/80">
         Aguardando próxima rodada
       </p>
       <ul className="space-y-1.5">
@@ -423,11 +423,11 @@ function ExpandedWaitingList({
                 {isViewer ? "VOCÊ" : e.username ?? "—"}
               </span>
               {e.ptsToday !== undefined && e.ptsToday > 0 && (
-                <span className="rounded-full bg-warning/20 px-2 py-0.5 font-mono text-[11px] font-semibold text-warning">
+                <span className="rounded-full bg-warning/20 px-2 py-0.5 font-mono text-sm font-semibold text-warning">
                   {e.ptsToday}× hoje
                 </span>
               )}
-              <span className="w-10 text-right font-mono text-xs text-text-muted tabular-nums">
+              <span className="w-10 text-right font-mono text-sm text-text-muted tabular-nums">
                 {waitingMinutes}m
               </span>
             </li>
@@ -504,7 +504,7 @@ function CtaButton({
         <Button type="button" variant="secondary" size="md" disabled>
           Você está em outra fila
         </Button>
-        <p className="font-mono text-[10px] text-text-faded">
+        <p className="font-mono text-sm text-text-faded">
           Saia da fila de {otherCoachUsername ?? "outro PRO"} pra entrar aqui
         </p>
       </div>
@@ -580,7 +580,7 @@ export function UserStatusBar({
         </div>
         <Link
           href="/admin/pros"
-          className="font-sans text-xs font-semibold uppercase tracking-widest text-text-muted hover:text-text-display transition-colors"
+          className="font-sans text-sm font-semibold uppercase tracking-widest text-text-muted hover:text-text-display transition-colors"
         >
           Painel PROs →
         </Link>

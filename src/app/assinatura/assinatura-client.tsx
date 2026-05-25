@@ -169,7 +169,7 @@ function SubscriptionStateCard({
           >
             {loading === "subscribe" ? "Redirecionando..." : "Adira agora — R$ 47/mês"}
           </Button>
-          <p className="mt-3 text-center text-xs text-zinc-600">
+          <p className="mt-3 text-center text-sm text-zinc-600">
             Via PIX Automático. Você autoriza uma vez, a cobrança é automática todo mês.
           </p>
         </CardContent>
@@ -263,7 +263,7 @@ function SubscriptionStateCard({
           >
             {loading === "cancel" ? "Encerrando..." : "Encerrar adesão"}
           </Button>
-          <p className="text-center text-xs text-zinc-600">
+          <p className="text-center text-sm text-zinc-600">
             Ao encerrar, você mantém acesso até{" "}
             {formatDate(subscription?.next_payment_date ?? null)}.
             Saia sem ressentimento — a comunidade continua aqui.
@@ -307,7 +307,7 @@ function SubscriptionStateCard({
         >
           {loading === "reactivate" ? "Redirecionando..." : "Reativar adesão"}
         </Button>
-        <p className="mt-3 text-center text-xs text-zinc-600">
+        <p className="mt-3 text-center text-sm text-zinc-600">
           Continua sendo visitante dignificado da plataforma.
         </p>
       </CardContent>
@@ -339,7 +339,7 @@ function PlanInfoCard() {
             </li>
           ))}
         </ul>
-        <p className="mt-4 text-xs text-zinc-700">
+        <p className="mt-4 text-sm text-zinc-700">
           Coaching e serviços de mentoria individual são separados da adesão mensal.
         </p>
       </CardContent>

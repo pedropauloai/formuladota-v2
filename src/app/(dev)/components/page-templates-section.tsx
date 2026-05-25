@@ -47,26 +47,26 @@ function PlayPanelModeCard({
   return (
     <div className="bg-bg-elevated rounded-md border border-border-subtle p-4 space-y-3">
       <div className="flex items-baseline gap-2 flex-wrap">
-        <code className="font-mono text-[10px] uppercase tracking-widest text-brand-primary">
+        <code className="font-mono text-sm uppercase tracking-widest text-brand-primary">
           {id}
         </code>
       </div>
       <h4 className="font-display text-sm text-text-display tracking-wide uppercase">
         {name}
       </h4>
-      <p className="text-xs text-text-muted leading-relaxed">{description}</p>
+      <p className="text-sm text-text-muted leading-relaxed">{description}</p>
       <div className="pt-2 border-t border-border-subtle/40 space-y-2">
-        <p className="text-[10px] font-mono text-text-faded uppercase tracking-widest">
+        <p className="text-sm font-mono text-text-faded uppercase tracking-widest">
           Ref. visual
         </p>
-        <code className="block text-[10px] font-mono text-text-body bg-bg-deep px-2 py-1 rounded border border-border-subtle/60 truncate">
+        <code className="block text-sm font-mono text-text-body bg-bg-deep px-2 py-1 rounded border border-border-subtle/60 truncate">
           {reference}
         </code>
       </div>
       <div className="pt-2">
         <div
           className={cn(
-            "rounded-sm px-3 py-2 text-center font-display text-xs uppercase tracking-widest border",
+            "rounded-sm px-3 py-2 text-center font-display text-sm uppercase tracking-widest border",
             ctaColor === "red"
               ? "bg-error/10 border-error/60 text-error"
               : "bg-success/10 border-success/60 text-success"
@@ -92,8 +92,8 @@ interface PropRowProps {
 function PropRow({ name, type, effect }: PropRowProps) {
   return (
     <div className="grid grid-cols-[140px_140px_1fr] gap-4 px-4 py-3 border-b border-border-subtle/40 last:border-b-0 items-baseline">
-      <code className="font-mono text-xs text-brand-primary">{name}</code>
-      <code className="font-mono text-[11px] text-text-muted">{type}</code>
+      <code className="font-mono text-sm text-brand-primary">{name}</code>
+      <code className="font-mono text-sm text-text-muted">{type}</code>
       <p className="font-body text-sm text-text-body leading-relaxed">{effect}</p>
     </div>
   );
@@ -260,15 +260,15 @@ export function PageTemplatesSection() {
           Page Templates
         </h2>
         <div className="flex-1 h-px bg-border-subtle" />
-        <span className="text-[10px] font-mono text-text-faded uppercase tracking-widest">
+        <span className="text-sm font-mono text-text-faded uppercase tracking-widest">
           Sistema A · 2 variantes · 6 props · 6 modos
         </span>
       </div>
 
       {/* Nota explicativa do estado do shell canônico */}
       <div className="bg-bg-elevated/50 border-l-2 border-brand-primary/60 px-4 py-3 rounded-r">
-        <p className="text-xs text-text-muted leading-relaxed">
-          <span className="text-brand-primary font-mono uppercase tracking-widest text-[10px]">
+        <p className="text-sm text-text-muted leading-relaxed">
+          <span className="text-brand-primary font-mono uppercase tracking-widest text-sm">
             Sistema A · canônico 2026-05-24
           </span>
           <br />
@@ -297,7 +297,7 @@ export function PageTemplatesSection() {
             <h3 className="font-display text-xl text-text-display tracking-wide">
               Variantes
             </h3>
-            <span className="text-[10px] font-mono text-text-faded uppercase tracking-widest">
+            <span className="text-sm font-mono text-text-faded uppercase tracking-widest">
               default (grid) · immersive (overlay)
             </span>
           </div>
@@ -306,17 +306,17 @@ export function PageTemplatesSection() {
             {/* Variante: default (grid 3-col) */}
             <div className="space-y-3">
               <div className="flex items-baseline gap-2 flex-wrap">
-                <code className="font-mono text-xs text-brand-primary uppercase tracking-widest">
+                <code className="font-mono text-sm text-brand-primary uppercase tracking-widest">
                   default
                 </code>
-                <span className="text-[10px] font-mono text-text-faded uppercase tracking-widest">
+                <span className="text-sm font-mono text-text-faded uppercase tracking-widest">
                   grid 3-col, sidebars com bg sólido
                 </span>
               </div>
-              <pre className="font-mono text-[10px] leading-tight text-text-body bg-bg-elevated border border-border-subtle rounded-md p-4 overflow-x-auto">
+              <pre className="font-mono text-sm leading-tight text-text-body bg-bg-elevated border border-border-subtle rounded-md p-4 overflow-x-auto">
                 {ASCII_DEFAULT}
               </pre>
-              <p className="text-xs text-text-muted leading-relaxed">
+              <p className="text-sm text-text-muted leading-relaxed">
                 Padrão da maioria das páginas (progresso, ranking, times, torneios,
                 checkout, admin). Background fica contido na coluna central.
               </p>
@@ -325,17 +325,17 @@ export function PageTemplatesSection() {
             {/* Variante: immersive (overlay) */}
             <div className="space-y-3">
               <div className="flex items-baseline gap-2 flex-wrap">
-                <code className="font-mono text-xs text-brand-primary uppercase tracking-widest">
+                <code className="font-mono text-sm text-brand-primary uppercase tracking-widest">
                   immersive
                 </code>
-                <span className="text-[10px] font-mono text-text-faded uppercase tracking-widest">
+                <span className="text-sm font-mono text-text-faded uppercase tracking-widest">
                   overlay sobre background fullscreen
                 </span>
               </div>
-              <pre className="font-mono text-[10px] leading-tight text-text-body bg-bg-elevated border border-border-subtle rounded-md p-4 overflow-x-auto">
+              <pre className="font-mono text-sm leading-tight text-text-body bg-bg-elevated border border-border-subtle rounded-md p-4 overflow-x-auto">
                 {ASCII_IMMERSIVE}
               </pre>
-              <p className="text-xs text-text-muted leading-relaxed">
+              <p className="text-sm text-text-muted leading-relaxed">
                 Usado em <code className="font-mono text-brand-primary">/dashboard</code>{" "}
                 — espelha o client Dota 2 real (background fullscreen tipo QUIOSQUE DO
                 QUARTERO, sidebars flutuantes com backdrop-blur).
@@ -352,7 +352,7 @@ export function PageTemplatesSection() {
             <h3 className="font-display text-xl text-text-display tracking-wide">
               Props
             </h3>
-            <span className="text-[10px] font-mono text-text-faded uppercase tracking-widest">
+            <span className="text-sm font-mono text-text-faded uppercase tracking-widest">
               6 props públicas do ClientShell
             </span>
           </div>
@@ -360,13 +360,13 @@ export function PageTemplatesSection() {
           <div className="bg-bg-elevated/40 border border-border-subtle rounded-md overflow-hidden">
             {/* Header */}
             <div className="grid grid-cols-[140px_140px_1fr] gap-4 px-4 py-2 bg-bg-elevated border-b border-border-subtle">
-              <span className="font-display text-[10px] uppercase tracking-widest text-text-faded">
+              <span className="font-display text-sm uppercase tracking-widest text-text-faded">
                 Prop
               </span>
-              <span className="font-display text-[10px] uppercase tracking-widest text-text-faded">
+              <span className="font-display text-sm uppercase tracking-widest text-text-faded">
                 Tipo
               </span>
-              <span className="font-display text-[10px] uppercase tracking-widest text-text-faded">
+              <span className="font-display text-sm uppercase tracking-widest text-text-faded">
                 Efeito visual
               </span>
             </div>
@@ -385,16 +385,16 @@ export function PageTemplatesSection() {
             <h3 className="font-display text-xl text-text-display tracking-wide">
               Sidebar Direita — 6 modos (PlayPanel)
             </h3>
-            <span className="text-[10px] font-mono text-text-faded uppercase tracking-widest">
+            <span className="text-sm font-mono text-text-faded uppercase tracking-widest">
               src/components/client-shell/play-panel.tsx
             </span>
           </div>
 
           <p className="text-sm text-text-muted mb-6 max-w-3xl">
-            O <code className="font-mono text-brand-primary text-xs">PlayPanel</code> é
+            O <code className="font-mono text-brand-primary text-sm">PlayPanel</code> é
             stateful — alterna entre 6 modos conforme o user navega o matchmaking.
             CTA persistente no rodapé muda de cor apenas no modo{" "}
-            <code className="font-mono text-error text-xs">lobby-ativo</code>{" "}
+            <code className="font-mono text-error text-sm">lobby-ativo</code>{" "}
             (verde → vermelho), indicando ação comprometedora (&ldquo;começar&rdquo; vs &ldquo;buscar&rdquo;).
           </p>
 
@@ -413,7 +413,7 @@ export function PageTemplatesSection() {
             <h3 className="font-display text-xl text-text-display tracking-wide">
               Status da Migração
             </h3>
-            <span className="text-[10px] font-mono text-text-faded uppercase tracking-widest">
+            <span className="text-sm font-mono text-text-faded uppercase tracking-widest">
               Sistema B → Sistema A · tasks #51 / #52 / #54
             </span>
           </div>
@@ -421,10 +421,10 @@ export function PageTemplatesSection() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Sistema A — adopters */}
             <div className="bg-bg-elevated/50 border-l-2 border-success/60 rounded-r px-4 py-3 space-y-2">
-              <p className="font-display text-[10px] uppercase tracking-widest text-success">
+              <p className="font-display text-sm uppercase tracking-widest text-success">
                 ✓ 12 pages usam Sistema A
               </p>
-              <ul className="text-xs text-text-body font-mono space-y-1">
+              <ul className="text-sm text-text-body font-mono space-y-1">
                 {PAGES_SYSTEM_A.map((p) => (
                   <li key={p}>{p}</li>
                 ))}
@@ -433,10 +433,10 @@ export function PageTemplatesSection() {
 
             {/* Sistema B — órfãs */}
             <div className="bg-bg-elevated/50 border-l-2 border-warning/60 rounded-r px-4 py-3 space-y-2">
-              <p className="font-display text-[10px] uppercase tracking-widest text-warning">
+              <p className="font-display text-sm uppercase tracking-widest text-warning">
                 ⏳ 6 pages órfãs no Sistema B (a migrar)
               </p>
-              <ul className="text-xs text-text-body font-mono space-y-1">
+              <ul className="text-sm text-text-body font-mono space-y-1">
                 {PAGES_SYSTEM_B.map((p) => (
                   <li key={p}>{p}</li>
                 ))}
@@ -446,10 +446,10 @@ export function PageTemplatesSection() {
 
           {/* Task tracking */}
           <div className="mt-4 bg-bg-elevated/30 border border-border-subtle/60 rounded-md px-4 py-3">
-            <p className="font-display text-[10px] uppercase tracking-widest text-text-faded mb-2">
+            <p className="font-display text-sm uppercase tracking-widest text-text-faded mb-2">
               Task tracking
             </p>
-            <ul className="space-y-1 text-xs text-text-muted">
+            <ul className="space-y-1 text-sm text-text-muted">
               <li>
                 <code className="font-mono text-brand-primary">#51</code> — migração
                 das 6 órfãs do Sistema B → Sistema A

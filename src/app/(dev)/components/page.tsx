@@ -160,7 +160,7 @@ export default function ComponentsPage() {
       <>
         <button
           onClick={() => setShowLoading(false)}
-          className="fixed top-4 right-4 z-[300] font-mono text-xs text-text-body bg-bg-elevated px-3 py-1 rounded border border-border-subtle hover:border-border-strong transition-colors"
+          className="fixed top-4 right-4 z-[300] font-mono text-sm text-text-body bg-bg-elevated px-3 py-1 rounded border border-border-subtle hover:border-border-strong transition-colors"
         >
           Fechar Loading
         </button>
@@ -184,7 +184,7 @@ export default function ComponentsPage() {
       {/* HEADER                                                              */}
       {/* ------------------------------------------------------------------ */}
       <header className="space-y-2">
-        <p className="font-display text-xs uppercase tracking-[0.4em] text-brand-primary">
+        <p className="font-display text-sm uppercase tracking-[0.4em] text-brand-primary">
           FormulaDota V2.5 · Design System Browser
         </p>
         <h1 className="font-display text-5xl text-text-display tracking-wide">
@@ -216,7 +216,7 @@ export default function ComponentsPage() {
                 className="h-16 rounded-md border border-border-subtle"
                 style={{ background: `var(--color-${token})` }}
               />
-              <p className="text-[10px] font-mono text-text-muted leading-tight">
+              <p className="text-sm font-mono text-text-muted leading-tight">
                 --color-{token}
               </p>
             </div>
@@ -248,14 +248,14 @@ export default function ComponentsPage() {
           </div>
           {/* Demos de tamanho: sm / md / lg / xl */}
           <div className="border-t border-border-subtle pt-6 space-y-3">
-            <p className="font-display text-xs uppercase tracking-widest text-text-faded">
+            <p className="font-display text-sm uppercase tracking-widest text-text-faded">
               Tamanhos disponíveis (Imortal Top 100 com glow)
             </p>
             <div className="flex items-end gap-6">
               {(["sm", "md", "lg", "xl"] as const).map((s) => (
                 <div key={s} className="flex flex-col items-center gap-2">
                   <DotaRankMedal rank="immortal-top-100" size={s} glow />
-                  <span className="font-mono text-[10px] text-text-muted uppercase tracking-widest">
+                  <span className="font-mono text-sm text-text-muted uppercase tracking-widest">
                     {s}
                   </span>
                 </div>
@@ -291,14 +291,14 @@ export default function ComponentsPage() {
 
           {/* Demo de tamanhos */}
           <div className="border-t border-border-subtle pt-6 space-y-3">
-            <p className="font-display text-xs uppercase tracking-widest text-text-faded">
+            <p className="font-display text-sm uppercase tracking-widest text-text-faded">
               Tamanhos disponíveis (Imortal da Fórmula com glow brand)
             </p>
             <div className="flex items-end gap-6">
               {(["sm", "md", "lg", "xl"] as const).map((s) => (
                 <div key={s} className="flex flex-col items-center gap-2">
                   <HonorRankMedal rank="imortal-da-formula" size={s} glow />
-                  <span className="font-mono text-[10px] text-text-muted uppercase tracking-widest">
+                  <span className="font-mono text-sm text-text-muted uppercase tracking-widest">
                     {s}
                   </span>
                 </div>
@@ -308,20 +308,20 @@ export default function ComponentsPage() {
 
           {/* Demo: SKILL + HONOR lado a lado — padrão canônico */}
           <div className="border-t border-border-subtle pt-6">
-            <p className="font-display text-xs uppercase tracking-widest text-text-faded mb-4">
+            <p className="font-display text-sm uppercase tracking-widest text-text-faded mb-4">
               Padrao: Skill + Honor lado a lado (M12 mandamento)
             </p>
             <div className="flex items-center gap-8">
               <div className="flex flex-col items-center gap-2">
                 <DotaRankMedal rank="immortal-top-100" size="lg" glow showLabel />
-                <span className="text-[10px] text-text-muted uppercase tracking-widest">
+                <span className="text-sm text-text-muted uppercase tracking-widest">
                   SKILL
                 </span>
               </div>
               <span className="font-display text-2xl text-text-faded">+</span>
               <div className="flex flex-col items-center gap-2">
                 <HonorRankMedal rank="imortal-da-formula" size="lg" glow showLabel />
-                <span className="text-[10px] text-text-muted uppercase tracking-widest">
+                <span className="text-sm text-text-muted uppercase tracking-widest">
                   HONOR
                 </span>
               </div>
@@ -344,7 +344,7 @@ export default function ComponentsPage() {
             {(["sm", "md", "lg", "xl"] as const).map((s) => (
               <div key={s} className="flex flex-col items-center gap-2">
                 <UserAvatar fallback="PP" size={s} />
-                <span className="font-mono text-[10px] text-text-muted uppercase tracking-widest">{s}</span>
+                <span className="font-mono text-sm text-text-muted uppercase tracking-widest">{s}</span>
               </div>
             ))}
           </div>
@@ -352,19 +352,19 @@ export default function ComponentsPage() {
           <div className="border-t border-border-subtle pt-6 grid grid-cols-2 md:grid-cols-4 gap-6">
             <div className="flex flex-col items-center gap-2">
               <UserAvatar fallback="PP" size="lg" badge={<MembershipBadge tier="consagrado" />} />
-              <span className="text-xs text-text-muted text-center">badge=consagrado</span>
+              <span className="text-sm text-text-muted text-center">badge=consagrado</span>
             </div>
             <div className="flex flex-col items-center gap-2">
               <UserAvatar fallback="PP" size="lg" presence="online" />
-              <span className="text-xs text-text-muted text-center">presence=online</span>
+              <span className="text-sm text-text-muted text-center">presence=online</span>
             </div>
             <div className="flex flex-col items-center gap-2">
               <UserAvatar fallback="PP" size="lg" ringColor="brand" />
-              <span className="text-xs text-text-muted text-center">ring=brand</span>
+              <span className="text-sm text-text-muted text-center">ring=brand</span>
             </div>
             <div className="flex flex-col items-center gap-2">
               <UserAvatar fallback="PP" size="lg" ringColor="tier-immortal" badge={<MembershipBadge tier="fundador" />} />
-              <span className="text-xs text-text-muted text-center">tier-immortal + fundador</span>
+              <span className="text-sm text-text-muted text-center">tier-immortal + fundador</span>
             </div>
           </div>
         </div>
@@ -372,7 +372,7 @@ export default function ComponentsPage() {
 
       {/* 5 tiers SEM hierarquia de pagamento — ver PHILOSOPHY.md */}
       <Section title="MembershipBadge — 5 tiers (overlay em UserAvatar)">
-        <p className="text-xs text-text-faded mb-4">
+        <p className="text-sm text-text-faded mb-4">
           Tiers nao sao progressao de pagamento. Visitante tem dignidade visual igual aos demais.
           Consagrado = conduta comportamental, nao pagamento.
         </p>
@@ -380,7 +380,7 @@ export default function ComponentsPage() {
           {(["visitante", "aluno", "veterano", "consagrado", "fundador"] as MembershipTier[]).map((t) => (
             <div key={t} className="flex flex-col items-center gap-2">
               <UserAvatar fallback="PP" size="lg" badge={<MembershipBadge tier={t} />} />
-              <span className="font-mono text-[10px] text-text-muted uppercase tracking-widest">{t}</span>
+              <span className="font-mono text-sm text-text-muted uppercase tracking-widest">{t}</span>
             </div>
           ))}
         </div>
@@ -390,7 +390,7 @@ export default function ComponentsPage() {
         <div className="space-y-4">
           {/* Eixo SKILL — originais */}
           <div>
-            <p className="font-display text-xs uppercase tracking-widest text-text-faded mb-2">
+            <p className="font-display text-sm uppercase tracking-widest text-text-faded mb-2">
               Eixo SKILL / Performance (originais)
             </p>
             <div className="flex flex-wrap gap-2">
@@ -411,7 +411,7 @@ export default function ComponentsPage() {
 
           {/* Eixo HONOR — novos comportamentais (PHILOSOPHY.md 2026-05-23) */}
           <div className="border-t border-border-subtle pt-4">
-            <p className="font-display text-xs uppercase tracking-widest text-text-faded mb-2">
+            <p className="font-display text-sm uppercase tracking-widest text-text-faded mb-2">
               Eixo HONOR / Conduta (PHILOSOPHY.md 2026-05-23)
             </p>
             <div className="flex flex-wrap gap-2">
@@ -434,7 +434,7 @@ export default function ComponentsPage() {
       <Section title="BadgeStack — overflow indicator (+N)">
         <div className="space-y-4">
           <div>
-            <p className="text-xs text-text-faded mb-2 font-mono uppercase tracking-widest">max=3 (3 badges → sem overflow)</p>
+            <p className="text-sm text-text-faded mb-2 font-mono uppercase tracking-widest">max=3 (3 badges → sem overflow)</p>
             <BadgeStack
               badges={[
                 { variant: "champion-s1" },
@@ -445,7 +445,7 @@ export default function ComponentsPage() {
             />
           </div>
           <div>
-            <p className="text-xs text-text-faded mb-2 font-mono uppercase tracking-widest">max=3 (5 badges → overflow +2)</p>
+            <p className="text-sm text-text-faded mb-2 font-mono uppercase tracking-widest">max=3 (5 badges → overflow +2)</p>
             <BadgeStack
               badges={[
                 { variant: "doutrina" },
@@ -475,7 +475,7 @@ export default function ComponentsPage() {
       <Section title="PresenceLive — variantes compact + expanded">
         <div className="space-y-6">
           <div>
-            <p className="text-xs text-text-faded mb-2 font-mono uppercase tracking-widest">variant=compact (header)</p>
+            <p className="text-sm text-text-faded mb-2 font-mono uppercase tracking-widest">variant=compact (header)</p>
             <PresenceLive
               proName="Pedro"
               proStatus="online"
@@ -485,7 +485,7 @@ export default function ComponentsPage() {
             />
           </div>
           <div>
-            <p className="text-xs text-text-faded mb-2 font-mono uppercase tracking-widest">variant=expanded (dashboard)</p>
+            <p className="text-sm text-text-faded mb-2 font-mono uppercase tracking-widest">variant=expanded (dashboard)</p>
             <PresenceLive
               proName="Pedro"
               proStatus="online"
@@ -632,7 +632,7 @@ export default function ComponentsPage() {
             ["primary", "secondary", "ghost", "destructive", "cinematic"] as const
           ).map((variant) => (
             <div key={variant} className="space-y-2">
-              <p className="font-mono text-xs text-text-faded uppercase tracking-wider">
+              <p className="font-mono text-sm text-text-faded uppercase tracking-wider">
                 {variant}
               </p>
               {(["sm", "md", "lg", "xl"] as const).map((size) => (
@@ -652,7 +652,7 @@ export default function ComponentsPage() {
         <div className="space-y-4">
           {/* Tier badges */}
           <div>
-            <p className="font-mono text-xs text-text-faded mb-2">
+            <p className="font-mono text-sm text-text-faded mb-2">
               Tier (Arauto → Imortal)
             </p>
             <div className="flex flex-wrap gap-3">
@@ -668,7 +668,7 @@ export default function ComponentsPage() {
           </div>
           {/* Variantes base */}
           <div>
-            <p className="font-mono text-xs text-text-faded mb-2">
+            <p className="font-mono text-sm text-text-faded mb-2">
               Base variants
             </p>
             <div className="flex flex-wrap gap-3">
@@ -856,20 +856,20 @@ export default function ComponentsPage() {
       {/* ================================================================== */}
       <Section title="Calibration States — RankMedal (3 estados)">
         <p className="text-text-muted text-sm mb-6">
-          Prop <code className="font-mono text-brand-primary text-xs">calibrationStatus</code> em
+          Prop <code className="font-mono text-brand-primary text-sm">calibrationStatus</code> em
           DotaRankMedal e HonorRankMedal. Cada estado tem visual distinto.
         </p>
 
         <div className="space-y-8">
           {CALIBRATION_STATES.map((state) => (
             <div key={state}>
-              <p className="font-mono text-[10px] uppercase tracking-widest text-text-faded mb-4">
+              <p className="font-mono text-sm uppercase tracking-widest text-text-faded mb-4">
                 {state}
               </p>
               <div className="flex gap-10 flex-wrap items-start">
                 {/* DotaRankMedal */}
                 <div className="flex flex-col items-center gap-2">
-                  <p className="font-mono text-[9px] uppercase tracking-widest text-text-faded">
+                  <p className="font-mono text-sm uppercase tracking-widest text-text-faded">
                     DotaRankMedal
                   </p>
                   <DotaRankMedal
@@ -881,7 +881,7 @@ export default function ComponentsPage() {
                 </div>
                 {/* HonorRankMedal */}
                 <div className="flex flex-col items-center gap-2">
-                  <p className="font-mono text-[9px] uppercase tracking-widest text-text-faded">
+                  <p className="font-mono text-sm uppercase tracking-widest text-text-faded">
                     HonorRankMedal
                   </p>
                   <HonorRankMedal

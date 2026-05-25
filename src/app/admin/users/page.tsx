@@ -36,7 +36,7 @@ function BehaviorBadge({ status }: { status: string | null }) {
     };
   return (
     <span
-      className={`rounded-md border px-2 py-1 font-mono text-[10px] uppercase tracking-widest ${conf.cls}`}
+      className={`rounded-md border px-2 py-1 font-mono text-sm uppercase tracking-widest ${conf.cls}`}
     >
       {conf.label}
     </span>
@@ -51,7 +51,7 @@ function RoleBadge({ role }: { role: string | null }) {
   };
   const conf = map[role ?? ""] ?? { label: role ?? "—", cls: "border-border-subtle text-text-muted" };
   return (
-    <span className={`rounded-md border px-2 py-1 font-mono text-[10px] uppercase tracking-widest ${conf.cls}`}>
+    <span className={`rounded-md border px-2 py-1 font-mono text-sm uppercase tracking-widest ${conf.cls}`}>
       {conf.label}
     </span>
   );
@@ -59,7 +59,7 @@ function RoleBadge({ role }: { role: string | null }) {
 
 function Th({ children }: { children: React.ReactNode }) {
   return (
-    <th className="text-left px-4 py-3 font-sans text-xs font-semibold uppercase tracking-widest text-text-faded">
+    <th className="text-left px-4 py-3 font-sans text-sm font-semibold uppercase tracking-widest text-text-faded">
       {children}
     </th>
   );
@@ -138,14 +138,14 @@ export default async function AdminUsersPage({
     <div className="p-8 space-y-6">
       {/* ── Header ── */}
       <header>
-        <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-brand-primary">
+        <p className="font-sans text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
           Admin / Users
         </p>
         <h1 className="mt-3 font-display text-3xl uppercase tracking-tight text-text-display">
           Comunidade
         </h1>
         <div className="mt-4 brand-divider" />
-        <p className="mt-3 font-mono text-xs text-text-muted">
+        <p className="mt-3 font-mono text-sm text-text-muted">
           {count ?? 0} usuários encontrados · página {page} de {Math.max(1, totalPages)}
         </p>
       </header>
@@ -157,12 +157,12 @@ export default async function AdminUsersPage({
           name="q"
           defaultValue={search}
           placeholder="Buscar username ou email..."
-          className="rounded-md border border-border-subtle bg-bg-elevated px-3 py-2 font-mono text-xs text-text-body placeholder:text-text-faded focus:outline-none focus:border-brand-primary/60 min-w-[200px]"
+          className="rounded-md border border-border-subtle bg-bg-elevated px-3 py-2 font-mono text-sm text-text-body placeholder:text-text-faded focus:outline-none focus:border-brand-primary/60 min-w-[200px]"
         />
         <select
           name="role"
           defaultValue={roleFilter}
-          className="rounded-md border border-border-subtle bg-bg-elevated px-3 py-2 font-mono text-xs text-text-body focus:outline-none focus:border-brand-primary/60"
+          className="rounded-md border border-border-subtle bg-bg-elevated px-3 py-2 font-mono text-sm text-text-body focus:outline-none focus:border-brand-primary/60"
         >
           <option value="">Todos os roles</option>
           <option value="admin">Admin</option>
@@ -172,7 +172,7 @@ export default async function AdminUsersPage({
         <select
           name="calibration"
           defaultValue={calibrationFilter}
-          className="rounded-md border border-border-subtle bg-bg-elevated px-3 py-2 font-mono text-xs text-text-body focus:outline-none focus:border-brand-primary/60"
+          className="rounded-md border border-border-subtle bg-bg-elevated px-3 py-2 font-mono text-sm text-text-body focus:outline-none focus:border-brand-primary/60"
         >
           <option value="">Todos os status</option>
           <option value="visitante">Visitante</option>
@@ -181,14 +181,14 @@ export default async function AdminUsersPage({
         </select>
         <button
           type="submit"
-          className="rounded-md border border-border-subtle bg-bg-elevated px-4 py-2 font-mono text-xs text-text-body hover:border-brand-primary/60 transition-colors"
+          className="rounded-md border border-border-subtle bg-bg-elevated px-4 py-2 font-mono text-sm text-text-body hover:border-brand-primary/60 transition-colors"
         >
           Filtrar
         </button>
         {(search || roleFilter || calibrationFilter) && (
           <Link
             href="/admin/users"
-            className="rounded-md px-4 py-2 font-mono text-xs text-text-faded hover:text-text-muted transition-colors"
+            className="rounded-md px-4 py-2 font-mono text-sm text-text-faded hover:text-text-muted transition-colors"
           >
             Limpar
           </Link>
@@ -229,13 +229,13 @@ export default async function AdminUsersPage({
                       <div className="font-medium text-text-body">
                         {p.username ?? "(sem nome)"}
                         {p.is_admin && (
-                          <span className="ml-1.5 text-yellow-500 text-[10px]">ADMIN</span>
+                          <span className="ml-1.5 text-yellow-500 text-sm">ADMIN</span>
                         )}
                         {p.banned_at && (
-                          <span className="ml-1.5 text-red-500 text-[10px]">BANIDO</span>
+                          <span className="ml-1.5 text-red-500 text-sm">BANIDO</span>
                         )}
                       </div>
-                      <div className="font-mono text-[10px] text-text-faded">
+                      <div className="font-mono text-sm text-text-faded">
                         {p.email ?? "—"}
                       </div>
                     </Td>
@@ -247,7 +247,7 @@ export default async function AdminUsersPage({
 
                     {/* Calibração */}
                     <Td>
-                      <span className="font-mono text-[10px] uppercase tracking-widest text-text-muted">
+                      <span className="font-mono text-sm uppercase tracking-widest text-text-muted">
                         {p.calibration_status ?? "visitante"}
                       </span>
                     </Td>
@@ -266,14 +266,14 @@ export default async function AdminUsersPage({
                       >
                         {balance}
                       </span>
-                      <span className="ml-1 font-mono text-[10px] text-text-faded uppercase tracking-widest">
+                      <span className="ml-1 font-mono text-sm text-text-faded uppercase tracking-widest">
                         {balance === 1 ? "ficha" : "fichas"}
                       </span>
                     </Td>
 
                     {/* Cadastro */}
                     <Td>
-                      <span className="font-mono text-xs text-text-muted">
+                      <span className="font-mono text-sm text-text-muted">
                         {new Date(p.created_at).toLocaleDateString("pt-BR")}
                       </span>
                     </Td>
@@ -282,7 +282,7 @@ export default async function AdminUsersPage({
                     <Td>
                       <Link
                         href={`/admin/users/${p.id}`}
-                        className="inline-flex items-center gap-1.5 rounded-md border border-border-subtle px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest text-text-muted hover:border-brand-primary/60 hover:text-brand-primary transition-colors"
+                        className="inline-flex items-center gap-1.5 rounded-md border border-border-subtle px-2.5 py-1 font-mono text-sm uppercase tracking-widest text-text-muted hover:border-brand-primary/60 hover:text-brand-primary transition-colors"
                       >
                         <Eye size={11} />
                         Ver detalhes
@@ -303,18 +303,18 @@ export default async function AdminUsersPage({
           {page > 1 && (
             <Link
               href={buildFilterUrl({ page: String(page - 1) })}
-              className="rounded-md border border-border-subtle px-3 py-1.5 font-mono text-xs text-text-muted hover:border-brand-primary/60 hover:text-brand-primary transition-colors"
+              className="rounded-md border border-border-subtle px-3 py-1.5 font-mono text-sm text-text-muted hover:border-brand-primary/60 hover:text-brand-primary transition-colors"
             >
               Anterior
             </Link>
           )}
-          <span className="font-mono text-xs text-text-faded">
+          <span className="font-mono text-sm text-text-faded">
             {page} / {totalPages}
           </span>
           {page < totalPages && (
             <Link
               href={buildFilterUrl({ page: String(page + 1) })}
-              className="rounded-md border border-border-subtle px-3 py-1.5 font-mono text-xs text-text-muted hover:border-brand-primary/60 hover:text-brand-primary transition-colors"
+              className="rounded-md border border-border-subtle px-3 py-1.5 font-mono text-sm text-text-muted hover:border-brand-primary/60 hover:text-brand-primary transition-colors"
             >
               Próxima
             </Link>

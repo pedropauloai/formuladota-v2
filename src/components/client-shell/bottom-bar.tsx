@@ -166,7 +166,7 @@ function Cta({
         <Play size={22} fill="currentColor" aria-hidden="true" />
         <span>Jogar Dota</span>
         {onlineProsCount === 0 && (
-          <span className="ml-2 rounded-md bg-black/30 px-2 py-0.5 font-mono text-[10px] tracking-widest">
+          <span className="ml-2 rounded-md bg-black/30 px-2 py-0.5 font-mono text-sm tracking-widest">
             sem PRO
           </span>
         )}

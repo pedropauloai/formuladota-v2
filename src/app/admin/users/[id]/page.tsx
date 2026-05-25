@@ -81,10 +81,10 @@ function SectionCard({ title, children }: { title: string; children: React.React
 function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-start justify-between gap-4 py-2 border-b border-border-subtle/50 last:border-0">
-      <span className="font-mono text-[10px] uppercase tracking-widest text-text-faded min-w-[120px]">
+      <span className="font-mono text-sm uppercase tracking-widest text-text-faded min-w-[120px]">
         {label}
       </span>
-      <span className="font-mono text-xs text-text-muted text-right">{value}</span>
+      <span className="font-mono text-sm text-text-muted text-right">{value}</span>
     </div>
   );
 }
@@ -97,7 +97,7 @@ function CriterioRow({ ok, label }: { ok: boolean; label: string }) {
       ) : (
         <XCircle size={14} className="text-text-faded shrink-0" />
       )}
-      <span className={`font-sans text-xs ${ok ? "text-text-body" : "text-text-faded"}`}>
+      <span className={`font-sans text-sm ${ok ? "text-text-body" : "text-text-faded"}`}>
         {label}
       </span>
     </div>
@@ -257,13 +257,13 @@ export default async function AdminUserDetailPage({
       <nav className="flex items-center gap-2">
         <Link
           href="/admin/users"
-          className="inline-flex items-center gap-1 font-mono text-xs text-text-faded hover:text-text-muted transition-colors"
+          className="inline-flex items-center gap-1 font-mono text-sm text-text-faded hover:text-text-muted transition-colors"
         >
           <ChevronLeft size={12} />
           Usuários
         </Link>
-        <span className="font-mono text-xs text-text-faded">/</span>
-        <span className="font-mono text-xs text-text-muted">
+        <span className="font-mono text-sm text-text-faded">/</span>
+        <span className="font-mono text-sm text-text-muted">
           {profile.username ?? id}
         </span>
       </nav>
@@ -272,27 +272,27 @@ export default async function AdminUserDetailPage({
       <header className="space-y-3">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-brand-primary">
+            <p className="font-sans text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
               Admin / Usuário
             </p>
             <h1 className="mt-2 font-display text-3xl uppercase tracking-tight text-text-display">
               {profile.username ?? "(sem nome)"}
             </h1>
-            <p className="mt-1 font-mono text-xs text-text-faded">{profile.email}</p>
+            <p className="mt-1 font-mono text-sm text-text-faded">{profile.email}</p>
           </div>
           <div className="flex items-center gap-2 flex-wrap justify-end">
             {profile.is_admin && (
-              <span className="rounded-md border border-yellow-500/60 px-2 py-1 font-mono text-[10px] uppercase tracking-widest text-yellow-400">
+              <span className="rounded-md border border-yellow-500/60 px-2 py-1 font-mono text-sm uppercase tracking-widest text-yellow-400">
                 Admin
               </span>
             )}
             {isProAtivo && (
-              <span className="rounded-md border border-brand-primary/60 px-2 py-1 font-mono text-[10px] uppercase tracking-widest text-brand-primary">
+              <span className="rounded-md border border-brand-primary/60 px-2 py-1 font-mono text-sm uppercase tracking-widest text-brand-primary">
                 PRO Ativo
               </span>
             )}
             {isBanned && (
-              <span className="rounded-md border border-red-500/60 px-2 py-1 font-mono text-[10px] uppercase tracking-widest text-red-400">
+              <span className="rounded-md border border-red-500/60 px-2 py-1 font-mono text-sm uppercase tracking-widest text-red-400">
                 Banido
               </span>
             )}
@@ -350,7 +350,7 @@ export default async function AdminUserDetailPage({
       <SectionCard title="2. Fichas">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <p className="font-mono text-[10px] uppercase tracking-widest text-text-faded mb-1">
+            <p className="font-mono text-sm uppercase tracking-widest text-text-faded mb-1">
               Saldo atual
             </p>
             <p className="font-display text-4xl text-emerald-400">
@@ -370,28 +370,28 @@ export default async function AdminUserDetailPage({
         {/* Ledger */}
         {(fichaLedger ?? []).length > 0 ? (
           <div className="overflow-x-auto rounded-md border border-border-subtle">
-            <table className="w-full text-xs">
+            <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border-subtle">
-                  <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-text-faded">Data</th>
-                  <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-text-faded">Delta</th>
-                  <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-text-faded">Fonte</th>
-                  <th className="text-left px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-text-faded">Razão</th>
+                  <th className="text-left px-3 py-2 font-mono text-sm uppercase tracking-widest text-text-faded">Data</th>
+                  <th className="text-left px-3 py-2 font-mono text-sm uppercase tracking-widest text-text-faded">Delta</th>
+                  <th className="text-left px-3 py-2 font-mono text-sm uppercase tracking-widest text-text-faded">Fonte</th>
+                  <th className="text-left px-3 py-2 font-mono text-sm uppercase tracking-widest text-text-faded">Razão</th>
                 </tr>
               </thead>
               <tbody>
                 {(fichaLedger ?? []).map((l) => (
                   <tr key={l.id} className="border-b border-border-subtle/50 last:border-0">
-                    <td className="px-3 py-2 font-mono text-[10px] text-text-faded">
+                    <td className="px-3 py-2 font-mono text-sm text-text-faded">
                       {new Date(l.created_at).toLocaleDateString("pt-BR")}
                     </td>
-                    <td className={`px-3 py-2 font-mono text-xs font-semibold ${l.delta > 0 ? "text-emerald-400" : "text-red-400"}`}>
+                    <td className={`px-3 py-2 font-mono text-sm font-semibold ${l.delta > 0 ? "text-emerald-400" : "text-red-400"}`}>
                       {l.delta > 0 ? `+${l.delta}` : l.delta}
                     </td>
-                    <td className="px-3 py-2 font-mono text-[10px] text-text-faded uppercase tracking-widest">
+                    <td className="px-3 py-2 font-mono text-sm text-text-faded uppercase tracking-widest">
                       {l.source}
                     </td>
-                    <td className="px-3 py-2 font-sans text-xs text-text-muted max-w-[200px] truncate">
+                    <td className="px-3 py-2 font-sans text-sm text-text-muted max-w-[200px] truncate">
                       {l.reason ?? "—"}
                     </td>
                   </tr>
@@ -400,7 +400,7 @@ export default async function AdminUserDetailPage({
             </table>
           </div>
         ) : (
-          <p className="font-mono text-xs text-text-faded">Nenhuma movimentação registrada.</p>
+          <p className="font-mono text-sm text-text-faded">Nenhuma movimentação registrada.</p>
         )}
       </SectionCard>
 
@@ -412,11 +412,11 @@ export default async function AdminUserDetailPage({
           <div className="flex items-center gap-3">
             <Shield size={20} className="text-text-faded" />
             <div>
-              <p className="font-mono text-[10px] uppercase tracking-widest text-text-faded mb-0.5">
+              <p className="font-mono text-sm uppercase tracking-widest text-text-faded mb-0.5">
                 Status de conduta
               </p>
               <span
-                className={`inline-block rounded-md border px-2 py-1 font-mono text-xs uppercase tracking-widest ${conductInfo.cls}`}
+                className={`inline-block rounded-md border px-2 py-1 font-mono text-sm uppercase tracking-widest ${conductInfo.cls}`}
               >
                 {conductInfo.label}
               </span>
@@ -426,7 +426,7 @@ export default async function AdminUserDetailPage({
             <span className="font-display text-2xl text-text-muted">
               {(warnings as unknown[] | null ?? []).length}
             </span>
-            <span className="font-mono text-[10px] uppercase tracking-widest text-text-faded">
+            <span className="font-mono text-sm uppercase tracking-widest text-text-faded">
               {(warnings as unknown[] | null ?? []).length === 1 ? "strike" : "strikes"}
             </span>
           </div>
@@ -456,11 +456,11 @@ export default async function AdminUserDetailPage({
                   className={w.severity === "grave" ? "text-red-400 mt-0.5" : "text-amber-400 mt-0.5"}
                 />
                 <div className="flex-1 min-w-0">
-                  <p className="font-mono text-[10px] uppercase tracking-widest text-text-faded">
+                  <p className="font-mono text-sm uppercase tracking-widest text-text-faded">
                     {w.severity === "grave" ? "Strike grave" : "Strike leve"} ·{" "}
                     {new Date(w.created_at).toLocaleDateString("pt-BR")}
                   </p>
-                  <p className="font-sans text-xs text-text-muted mt-0.5">
+                  <p className="font-sans text-sm text-text-muted mt-0.5">
                     {w.reason}
                   </p>
                 </div>
@@ -468,7 +468,7 @@ export default async function AdminUserDetailPage({
             ))}
           </div>
         ) : (
-          <p className="font-mono text-xs text-text-faded">Nenhuma ocorrência registrada.</p>
+          <p className="font-mono text-sm text-text-faded">Nenhuma ocorrência registrada.</p>
         )}
       </SectionCard>
 
@@ -479,7 +479,7 @@ export default async function AdminUserDetailPage({
         <div className="grid grid-cols-2 gap-6 mb-6">
           {/* HONOR */}
           <div className="flex flex-col items-center gap-3 p-4 rounded-md border border-border-subtle/50 bg-bg-elevated/20">
-            <p className="font-mono text-[10px] uppercase tracking-widest text-text-faded">
+            <p className="font-mono text-sm uppercase tracking-widest text-text-faded">
               HONOR
             </p>
             <HonorRankMedal
@@ -491,13 +491,13 @@ export default async function AdminUserDetailPage({
             />
             <p className="font-display text-2xl text-text-display">
               {honorScore}
-              <span className="ml-1 font-mono text-xs text-text-faded">pts</span>
+              <span className="ml-1 font-mono text-sm text-text-faded">pts</span>
             </p>
           </div>
 
           {/* SKILL */}
           <div className="flex flex-col items-center gap-3 p-4 rounded-md border border-border-subtle/50 bg-bg-elevated/20">
-            <p className="font-mono text-[10px] uppercase tracking-widest text-text-faded">
+            <p className="font-mono text-sm uppercase tracking-widest text-text-faded">
               SKILL (Valve)
             </p>
             <DotaRankMedal
@@ -509,7 +509,7 @@ export default async function AdminUserDetailPage({
             />
             <p className="font-display text-2xl text-text-display">
               {profile.mmr_atual ?? "?"}
-              <span className="ml-1 font-mono text-xs text-text-faded">MMR</span>
+              <span className="ml-1 font-mono text-sm text-text-faded">MMR</span>
             </p>
           </div>
         </div>
@@ -517,10 +517,10 @@ export default async function AdminUserDetailPage({
         {/* Calibração */}
         <div className="mb-5">
           <div className="flex items-center justify-between mb-2">
-            <p className="font-mono text-[10px] uppercase tracking-widest text-text-faded">
+            <p className="font-mono text-sm uppercase tracking-widest text-text-faded">
               Status de calibração
             </p>
-            <span className="font-mono text-xs text-text-muted capitalize">
+            <span className="font-mono text-sm text-text-muted capitalize">
               {calibrationStatus}
             </span>
           </div>
@@ -537,7 +537,7 @@ export default async function AdminUserDetailPage({
         {/* Achievements */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <p className="font-mono text-[10px] uppercase tracking-widest text-text-faded">
+            <p className="font-mono text-sm uppercase tracking-widest text-text-faded">
               Achievements
             </p>
             <GrantAchievementModal
@@ -550,7 +550,7 @@ export default async function AdminUserDetailPage({
               {(achievements as Array<{ id: string; variant: string; granted_at: string }> | null ?? []).map((a) => (
                 <span
                   key={a.id}
-                  className="rounded-md border border-purple-500/40 bg-purple-500/5 px-2 py-1 font-mono text-[10px] uppercase tracking-widest text-purple-400"
+                  className="rounded-md border border-purple-500/40 bg-purple-500/5 px-2 py-1 font-mono text-sm uppercase tracking-widest text-purple-400"
                   title={new Date(a.granted_at).toLocaleDateString("pt-BR")}
                 >
                   {a.variant}
@@ -558,7 +558,7 @@ export default async function AdminUserDetailPage({
               ))}
             </div>
           ) : (
-            <p className="font-mono text-xs text-text-faded">Nenhum achievement.</p>
+            <p className="font-mono text-sm text-text-faded">Nenhum achievement.</p>
           )}
         </div>
       </SectionCard>
@@ -618,28 +618,28 @@ export default async function AdminUserDetailPage({
         {/* PRO ativo: info de revenue */}
         {isProAtivo && proPromo && (
           <div className="mb-5 rounded-md border border-brand-primary/20 bg-brand-primary/5 p-4">
-            <p className="font-mono text-[10px] uppercase tracking-widest text-brand-primary mb-3">
+            <p className="font-mono text-sm uppercase tracking-widest text-brand-primary mb-3">
               Dados PRO
             </p>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <p className="font-mono text-[10px] text-text-faded uppercase tracking-widest mb-1">Promovido em</p>
-                <p className="font-mono text-xs text-text-muted">
+                <p className="font-mono text-sm text-text-faded uppercase tracking-widest mb-1">Promovido em</p>
+                <p className="font-mono text-sm text-text-muted">
                   {new Date(proPromo.created_at).toLocaleDateString("pt-BR")}
                 </p>
               </div>
               {proRevenue && (
                 <>
                   <div>
-                    <p className="font-mono text-[10px] text-text-faded uppercase tracking-widest mb-1">Total vendas</p>
-                    <p className="font-mono text-xs text-text-muted">{proRevenue.totalSales}</p>
+                    <p className="font-mono text-sm text-text-faded uppercase tracking-widest mb-1">Total vendas</p>
+                    <p className="font-mono text-sm text-text-muted">{proRevenue.totalSales}</p>
                   </div>
                   <div>
-                    <p className="font-mono text-[10px] text-text-faded uppercase tracking-widest mb-1">Ganhos PRO</p>
+                    <p className="font-mono text-sm text-text-faded uppercase tracking-widest mb-1">Ganhos PRO</p>
                     <p className="font-display text-lg text-emerald-400">R$ {proRevenue.proEarnings.toFixed(2)}</p>
                   </div>
                   <div>
-                    <p className="font-mono text-[10px] text-text-faded uppercase tracking-widest mb-1">Revenue total</p>
+                    <p className="font-mono text-sm text-text-faded uppercase tracking-widest mb-1">Revenue total</p>
                     <p className="font-display text-lg text-text-display">R$ {proRevenue.totalRevenue.toFixed(2)}</p>
                   </div>
                 </>

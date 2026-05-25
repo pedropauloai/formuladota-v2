@@ -135,13 +135,28 @@ export const PRINCIPLES: Principle[] = [
 ];
 
 /**
- * Os 10 padrões tóxicos — anti-cultura. Geram advertência, suspensão ou banimento.
- * Numeração e descrição extraídas literais do doc canônico.
+ * Os 15 padrões tóxicos — anti-cultura. Geram advertência, suspensão ou banimento.
+ * Numeração e descrição extraídas literais do doc canônico (A FÓRMULA DO DOTA DE CORRIDA.txt).
+ *
+ * Matriz de severidade (referência: docs/foundations/HONOR_SYSTEM.md):
+ * - Leve    → 1, 4, 5, 7, 11, 13 → advertência primeiro + HONOR loss pequeno
+ * - Média   → 2, 3, 8, 12, 14, 15 → advertência primeiro + HONOR loss significativo
+ * - Grave   → 6, 9 → suspensão direta + HONOR loss alto
+ * - Crítica → 10 → banimento imediato
  */
 export type Antipattern = {
   id: number;
   title: string;
   examples: string[];
+  /**
+   * Classificação semântica do anti-padrão (HONOR_SYSTEM.md "Critérios de Strike").
+   * Usado pelo sistema de HONOR loss (Phase 6+) pra calcular delta_honor por strike.
+   * - leve    → advertência primeiro + HONOR loss pequeno
+   * - media   → advertência primeiro + HONOR loss significativo
+   * - grave   → suspensão direta + HONOR loss alto
+   * - critica → banimento imediato
+   */
+  severity: "leve" | "media" | "grave" | "critica";
   /** Override pro sistema progressivo: se preenchido, vai direto pra severidade indicada. */
   directSeverity?: "suspensao" | "banimento";
   directSeverityNote?: string;
@@ -150,6 +165,7 @@ export type Antipattern = {
 export const ANTIPATTERNS: Antipattern[] = [
   {
     id: 1,
+    severity: "leve",
     title: "Cultura da Culpa (Blame Culture)",
     examples: [
       "Culpar sempre os outros pelos próprios erros — \"mid diff\", \"pós 5 bot\", \"noob carry\".",
@@ -159,6 +175,7 @@ export const ANTIPATTERNS: Antipattern[] = [
   },
   {
     id: 2,
+    severity: "media",
     title: "Desistência Precoce (Give Up Mentality)",
     examples: [
       "Aos 10-15 minutos, já escrevem \"gg go next\" no chat.",
@@ -168,6 +185,7 @@ export const ANTIPATTERNS: Antipattern[] = [
   },
   {
     id: 3,
+    severity: "media",
     title: "Forçar Estratégias Inadequadas (Stubborn Playstyle)",
     examples: [
       "Insistência em táticas ou heróis fora do meta sem domínio.",
@@ -176,6 +194,7 @@ export const ANTIPATTERNS: Antipattern[] = [
   },
   {
     id: 4,
+    severity: "leve",
     title: "Falta de Comunicação ou Comunicação Tóxica",
     examples: [
       "Ignoram completamente o chat e pings, ou usam apenas para xingar.",
@@ -184,6 +203,7 @@ export const ANTIPATTERNS: Antipattern[] = [
   },
   {
     id: 5,
+    severity: "leve",
     title: "Rage Quit / AFK Disfarçado",
     examples: [
       "Após morrer algumas vezes, vão farmar jungle sem interagir com o time.",
@@ -192,6 +212,7 @@ export const ANTIPATTERNS: Antipattern[] = [
   },
   {
     id: 6,
+    severity: "grave",
     title: "Feeding Intencional (Griefing)",
     examples: [
       "Por ego ferido ou birra, passam a morrer de propósito.",
@@ -203,6 +224,7 @@ export const ANTIPATTERNS: Antipattern[] = [
   },
   {
     id: 7,
+    severity: "leve",
     title: "Ego Inflado",
     examples: [
       "\"Eu merecia estar no Ancient/Divino, mas meu time me segura aqui.\"",
@@ -211,6 +233,7 @@ export const ANTIPATTERNS: Antipattern[] = [
   },
   {
     id: 8,
+    severity: "media",
     title: "Brigas por Função e Rota",
     examples: [
       "Disputam a mesma lane ou função já escolhida (2 mids, 3 carries).",
@@ -219,6 +242,7 @@ export const ANTIPATTERNS: Antipattern[] = [
   },
   {
     id: 9,
+    severity: "grave",
     title: "Desrespeito à Liderança (Anti-time)",
     examples: [
       "Recusam-se a ouvir calls ou seguir as jogadas do time.",
@@ -228,6 +252,7 @@ export const ANTIPATTERNS: Antipattern[] = [
   },
   {
     id: 10,
+    severity: "critica",
     title: "Preconceito, Xenofobia e Racismo",
     examples: [
       "Comentários ofensivos sobre nacionalidades, sotaques e estilos de jogo.",
@@ -236,6 +261,56 @@ export const ANTIPATTERNS: Antipattern[] = [
     ],
     directSeverity: "banimento",
     directSeverityNote: "Banimento imediato. Sem advertência, sem segunda chance.",
+  },
+  {
+    id: 11,
+    severity: "leve",
+    title: "Simulador de Herói",
+    examples: [
+      "Sabe usar as habilidades do herói mas joga sem objetivos do jogo (relógio, patrimônio, runas, altar).",
+      "Reage às jogadas adversárias em vez de extrair patrimônio no menor tempo possível.",
+      "A própria Valve já reconheceu: 99,5% dos jogadores não sabem jogar Dota 2 — jogam no automático.",
+    ],
+  },
+  {
+    id: 12,
+    severity: "media",
+    title: "Criar Expectativas em Terceiros",
+    examples: [
+      "Esperar pull do suporte, gank do mid, ajuda específica de aliado que nunca vem.",
+      "Distinto de \"frustração nasce de expectativas\" (princípio mental) — aqui é o COMPORTAMENTO ATIVO de projetar resultados em outros.",
+      "Você pode (e deve) criar expectativas sobre você mesmo. Sobre outras pessoas, jamais.",
+    ],
+  },
+  {
+    id: 13,
+    severity: "leve",
+    title: "Vitimização Sistêmica",
+    examples: [
+      "Construir identidade crônica de vítima: \"o matchmake me persegue\", \"sempre tem azar do meu lado\", \"o Dota é injusto comigo\".",
+      "Distinto de Cultura da Culpa (#1) — não é reação pontual a uma partida, é padrão recorrente.",
+      "Toda vez que você perde e coloca a culpa nos outros, cria uma blindagem contra o próprio crescimento.",
+    ],
+  },
+  {
+    id: 14,
+    severity: "media",
+    title: "Recusa de Auditoria Pós-Derrota",
+    examples: [
+      "Anti-padrão por OMISSÃO: não fazer a pergunta-pivô após cada derrota.",
+      "A pergunta canônica: \"o que eu poderia ter feito diferente para ter ganho essa partida, mesmo com o time jogando mal?\"",
+      "Sem auditoria, não há aprendizado — e sem aprendizado, derrota deixa de ser degrau e vira ciclo.",
+    ],
+  },
+  {
+    id: 15,
+    severity: "media",
+    title: "Buscar Diversão em Espaço de Competição",
+    examples: [
+      "Entrar na FORMULADOTA buscando diversão viola o contrato cultural.",
+      "Aqui não é ambiente para se divertir — é para aprender, evoluir e competir.",
+      "Competição não está coligada com diversão. Quem quer se divertir, joga turbo ou casual.",
+    ],
   },
 ];
 

@@ -100,7 +100,7 @@ export default async function ProgressoPage() {
     <ClientShell currentRoute="/progresso">
       <div className="px-6 py-8 xl:px-12 xl:py-10 2xl:px-16 2xl:py-12 space-y-10">
         <header>
-          <p className="font-sans text-xs 2xl:text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
+          <p className="font-sans text-sm 2xl:text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
             FORMULADOTA · Progressão
           </p>
           <h1 className="mt-2 font-display text-3xl 2xl:text-5xl uppercase tracking-tight text-text-display">
@@ -127,7 +127,7 @@ export default async function ProgressoPage() {
               />
             )}
             <div className="flex-1 min-w-0">
-              <p className="font-mono text-[10px] 2xl:text-xs uppercase tracking-widest text-white/50">
+              <p className="font-mono text-sm 2xl:text-sm uppercase tracking-widest text-white/50">
                 {persona}
               </p>
               <div className="flex items-center gap-2 mt-1">
@@ -140,7 +140,7 @@ export default async function ProgressoPage() {
                   Level {currentLevel}
                 </h2>
                 <span
-                  className={`font-mono text-xs 2xl:text-sm uppercase tracking-widest ${tierConfig.color}`}
+                  className={`font-mono text-sm 2xl:text-sm uppercase tracking-widest ${tierConfig.color}`}
                 >
                   · {tierConfig.label}
                 </span>
@@ -148,11 +148,11 @@ export default async function ProgressoPage() {
               {currentLevel < 30 && nextThreshold && (
                 <div className="mt-3 max-w-md">
                   <div className="flex items-baseline justify-between mb-1">
-                    <span className="font-mono text-[10px] 2xl:text-xs uppercase tracking-widest text-white/50">
+                    <span className="font-mono text-sm 2xl:text-sm uppercase tracking-widest text-white/50">
                       {currentXp.toLocaleString("pt-BR")} /{" "}
                       {xpRequiredForNext.toLocaleString("pt-BR")} XP
                     </span>
-                    <span className="font-mono text-[10px] 2xl:text-xs text-white/40">
+                    <span className="font-mono text-sm 2xl:text-sm text-white/40">
                       {progressPct}%
                     </span>
                   </div>
@@ -162,25 +162,25 @@ export default async function ProgressoPage() {
                       style={{ width: `${progressPct}%` }}
                     />
                   </div>
-                  <p className="mt-1.5 font-mono text-[10px] uppercase tracking-widest text-white/40">
+                  <p className="mt-1.5 font-mono text-sm uppercase tracking-widest text-white/40">
                     Próximo: Level {currentLevel + 1}
                   </p>
                 </div>
               )}
               {currentLevel === 30 && (
-                <p className="mt-3 font-mono text-xs uppercase tracking-widest text-rose-400">
+                <p className="mt-3 font-mono text-sm uppercase tracking-widest text-rose-400">
                   Level máximo atingido — Grão-Mestre
                 </p>
               )}
             </div>
             <div className="flex flex-col items-end gap-1">
-              <p className="font-mono text-[10px] uppercase tracking-widest text-white/50">
+              <p className="font-mono text-sm uppercase tracking-widest text-white/50">
                 Shards
               </p>
               <p className="font-display text-3xl 2xl:text-4xl text-white">
                 {shards.toLocaleString("pt-BR")}
               </p>
-              <p className="font-mono text-[10px] uppercase tracking-widest text-white/40">
+              <p className="font-mono text-sm uppercase tracking-widest text-white/40">
                 Total: {(userLevel?.total_shards_earned ?? 0).toLocaleString("pt-BR")}
               </p>
             </div>
@@ -202,7 +202,7 @@ export default async function ProgressoPage() {
             </div>
             <Link
               href="/assinatura"
-              className="inline-flex items-center rounded-md border border-amber-400/70 bg-gradient-to-b from-amber-300 to-amber-500 px-4 py-2 font-display text-xs font-bold uppercase tracking-[0.2em] text-black hover:brightness-110 transition-all"
+              className="inline-flex items-center rounded-md border border-amber-400/70 bg-gradient-to-b from-amber-300 to-amber-500 px-4 py-2 font-display text-sm font-bold uppercase tracking-[0.2em] text-black hover:brightness-110 transition-all"
             >
               Ativar Formula+
             </Link>
@@ -211,7 +211,7 @@ export default async function ProgressoPage() {
 
         {/* Tiers grid */}
         <section>
-          <h2 className="mb-4 font-sans text-xs 2xl:text-sm font-semibold uppercase tracking-[0.2em] text-white/70">
+          <h2 className="mb-4 font-sans text-sm 2xl:text-sm font-semibold uppercase tracking-[0.2em] text-white/70">
             Tiers
           </h2>
           <div className="grid gap-3 grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
@@ -241,12 +241,12 @@ export default async function ProgressoPage() {
                   >
                     {cfg.label}
                   </p>
-                  <p className="font-mono text-[10px] uppercase tracking-widest text-white/50">
+                  <p className="font-mono text-sm uppercase tracking-widest text-white/50">
                     Level {cfg.levels[0]}
                     {cfg.levels[0] !== cfg.levels[1] && ` – ${cfg.levels[1]}`}
                   </p>
                   {isCurrent && (
-                    <p className="font-mono text-[9px] uppercase tracking-widest text-white">
+                    <p className="font-mono text-sm uppercase tracking-widest text-white">
                       ATUAL
                     </p>
                   )}
@@ -258,7 +258,7 @@ export default async function ProgressoPage() {
 
         {/* Tabela completa 30 levels */}
         <section>
-          <h2 className="mb-4 font-sans text-xs 2xl:text-sm font-semibold uppercase tracking-[0.2em] text-white/70">
+          <h2 className="mb-4 font-sans text-sm 2xl:text-sm font-semibold uppercase tracking-[0.2em] text-white/70">
             Tabela de levels
           </h2>
           <div className="rounded-md border border-border-subtle bg-bg-base overflow-hidden">
@@ -290,23 +290,23 @@ export default async function ProgressoPage() {
                           {t.level}
                         </span>
                         {isCurrent && (
-                          <span className="ml-2 font-mono text-[9px] uppercase tracking-widest text-brand-primary">
+                          <span className="ml-2 font-mono text-sm uppercase tracking-widest text-brand-primary">
                             ATUAL
                           </span>
                         )}
                       </Td>
                       <Td align="right">
-                        <span className="font-mono text-xs text-white/70">
+                        <span className="font-mono text-sm text-white/70">
                           {t.xp_required.toLocaleString("pt-BR")}
                         </span>
                       </Td>
                       <Td align="right">
-                        <span className="font-mono text-xs text-white/50">
+                        <span className="font-mono text-sm text-white/50">
                           {t.total_xp.toLocaleString("pt-BR")}
                         </span>
                       </Td>
                       <Td align="right">
-                        <span className="font-mono text-xs text-amber-400">
+                        <span className="font-mono text-sm text-amber-400">
                           {t.shards_reward.toLocaleString("pt-BR")}
                         </span>
                       </Td>
@@ -314,7 +314,7 @@ export default async function ProgressoPage() {
                         <span className="inline-flex items-center gap-1.5">
                           <TIcon size={12} className={tCfg.color} aria-hidden="true" />
                           <span
-                            className={`font-mono text-[10px] uppercase tracking-widest ${tCfg.color}`}
+                            className={`font-mono text-sm uppercase tracking-widest ${tCfg.color}`}
                           >
                             {tCfg.label}
                           </span>
@@ -330,7 +330,7 @@ export default async function ProgressoPage() {
 
         {/* Histórico recente */}
         <section>
-          <h2 className="mb-4 font-sans text-xs 2xl:text-sm font-semibold uppercase tracking-[0.2em] text-white/70">
+          <h2 className="mb-4 font-sans text-sm 2xl:text-sm font-semibold uppercase tracking-[0.2em] text-white/70">
             Histórico de XP <span className="text-white/40">(últimos 20)</span>
           </h2>
           {events && events.length > 0 ? (
@@ -355,7 +355,7 @@ export default async function ProgressoPage() {
                         <p className="font-sans text-sm text-white truncate">
                           {XP_SOURCE_LABELS[e.source] ?? e.source}
                         </p>
-                        <p className="font-mono text-[10px] uppercase tracking-widest text-white/40">
+                        <p className="font-mono text-sm uppercase tracking-widest text-white/40">
                           {e.created_at
                             ? new Date(e.created_at).toLocaleString("pt-BR", {
                                 day: "2-digit",
@@ -377,7 +377,7 @@ export default async function ProgressoPage() {
                         </span>
                       )}
                       {leveledUp && (
-                        <span className="font-mono text-[10px] uppercase tracking-widest text-brand-primary">
+                        <span className="font-mono text-sm uppercase tracking-widest text-brand-primary">
                           Level {e.level_before} → {e.level_after}
                         </span>
                       )}
@@ -388,10 +388,10 @@ export default async function ProgressoPage() {
             </div>
           ) : (
             <div className="rounded-md border border-dashed border-white/10 bg-black/30 p-8 text-center">
-              <p className="font-mono text-xs uppercase tracking-widest text-white/40">
+              <p className="font-mono text-sm uppercase tracking-widest text-white/40">
                 Nenhum evento de XP ainda
               </p>
-              <p className="mt-2 font-sans text-xs text-white/50">
+              <p className="mt-2 font-sans text-sm text-white/50">
                 Aceita a doutrina, joga partidas ou conquista badges pra ganhar XP.
               </p>
             </div>
@@ -413,7 +413,7 @@ function Th({
     align === "right" ? "text-right" : align === "center" ? "text-center" : "text-left";
   return (
     <th
-      className={`px-4 py-3 font-sans text-[10px] font-semibold uppercase tracking-[0.2em] text-white/50 ${alignCls}`}
+      className={`px-4 py-3 font-sans text-sm font-semibold uppercase tracking-[0.2em] text-white/50 ${alignCls}`}
     >
       {children}
     </th>

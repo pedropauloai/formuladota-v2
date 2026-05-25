@@ -84,7 +84,7 @@ export function LobbiesContent({ lobbies, onSelectLobby, onCreate }: LobbiesCont
             type="button"
             aria-label="Atualizar lista"
             onClick={() => router.refresh()}
-            className="inline-flex items-center gap-1.5 font-sans text-[10px] uppercase tracking-widest text-white/50 hover:text-white transition-colors"
+            className="inline-flex items-center gap-1.5 font-sans text-sm uppercase tracking-widest text-white/50 hover:text-white transition-colors"
           >
             <RefreshCw size={11} aria-hidden="true" />
             Atualizar
@@ -106,13 +106,13 @@ export function LobbiesContent({ lobbies, onSelectLobby, onCreate }: LobbiesCont
               {filtered.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="px-3 py-10 text-center">
-                    <p className="font-mono text-[10px] uppercase tracking-widest text-white/40">
+                    <p className="font-mono text-sm uppercase tracking-widest text-white/40">
                       Nenhuma sala aberta
                     </p>
                     <button
                       type="button"
                       onClick={handleCreate}
-                      className="mt-2 font-sans text-[10px] uppercase tracking-widest text-brand-primary hover:text-text-display transition-colors"
+                      className="mt-2 font-sans text-sm uppercase tracking-widest text-brand-primary hover:text-text-display transition-colors"
                     >
                       Criar a primeira →
                     </button>
@@ -133,22 +133,22 @@ export function LobbiesContent({ lobbies, onSelectLobby, onCreate }: LobbiesCont
                       }`}
                     >
                       <Td>
-                        <span className="font-sans text-xs text-white truncate block max-w-[160px]">
+                        <span className="font-sans text-sm text-white truncate block max-w-[160px]">
                           {lobby.name}
                         </span>
                       </Td>
                       <Td align="center">
-                        <span className="font-mono text-[11px] text-white/70">
+                        <span className="font-mono text-sm text-white/70">
                           {lobby.player_count}/{lobby.max_players}
                         </span>
                       </Td>
                       <Td>
-                        <span className="font-sans text-[11px] text-white/70 truncate block max-w-[90px]">
+                        <span className="font-sans text-sm text-white/70 truncate block max-w-[90px]">
                           {GAME_MODE_LABELS[lobby.game_mode] ?? lobby.game_mode}
                         </span>
                       </Td>
                       <Td>
-                        <span className="font-sans text-[11px] text-white/70">
+                        <span className="font-sans text-sm text-white/70">
                           Brasil
                         </span>
                       </Td>
@@ -162,7 +162,7 @@ export function LobbiesContent({ lobbies, onSelectLobby, onCreate }: LobbiesCont
 
         {/* Filtros */}
         <section className="border-t border-border-subtle bg-black/40 px-4 py-3">
-          <p className="mb-2 font-sans text-[10px] font-semibold uppercase tracking-[0.25em] text-white/60">
+          <p className="mb-2 font-sans text-sm font-semibold uppercase tracking-[0.25em] text-white/60">
             Filtrar salas
           </p>
           <div className="grid grid-cols-2 gap-2">
@@ -170,7 +170,7 @@ export function LobbiesContent({ lobbies, onSelectLobby, onCreate }: LobbiesCont
               <select
                 value={filterRegion}
                 onChange={(e) => setFilterRegion(e.target.value)}
-                className="w-full appearance-none bg-transparent font-sans text-[11px] text-white focus:outline-none"
+                className="w-full appearance-none bg-transparent font-sans text-sm text-white focus:outline-none"
               >
                 <option value="brasil" className="bg-black">
                   Brasil
@@ -187,7 +187,7 @@ export function LobbiesContent({ lobbies, onSelectLobby, onCreate }: LobbiesCont
               <select
                 value={filterMode}
                 onChange={(e) => setFilterMode(e.target.value)}
-                className="w-full appearance-none bg-transparent font-sans text-[11px] text-white focus:outline-none"
+                className="w-full appearance-none bg-transparent font-sans text-sm text-white focus:outline-none"
               >
                 <option value="all" className="bg-black">
                   Todos
@@ -211,7 +211,7 @@ export function LobbiesContent({ lobbies, onSelectLobby, onCreate }: LobbiesCont
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Buscar..."
-                className="w-full bg-transparent font-sans text-[11px] text-white placeholder:text-white/30 focus:outline-none"
+                className="w-full bg-transparent font-sans text-sm text-white placeholder:text-white/30 focus:outline-none"
               />
             </FilterField>
           </div>
@@ -222,7 +222,7 @@ export function LobbiesContent({ lobbies, onSelectLobby, onCreate }: LobbiesCont
           <button
             type="button"
             onClick={handleCreate}
-            className="w-full inline-flex items-center justify-center rounded-sm border border-white/10 bg-black/40 px-4 py-2.5 font-sans text-[11px] font-semibold uppercase tracking-[0.2em] text-white/80 hover:bg-white/5 hover:text-white transition-colors"
+            className="w-full inline-flex items-center justify-center rounded-sm border border-white/10 bg-black/40 px-4 py-2.5 font-sans text-sm font-semibold uppercase tracking-[0.2em] text-white/80 hover:bg-white/5 hover:text-white transition-colors"
           >
             Criar sala
           </button>
@@ -259,7 +259,7 @@ function Th({
         : "text-left";
   return (
     <th
-      className={`px-3 py-2 font-sans text-[9px] font-semibold uppercase tracking-[0.2em] text-white/40 ${alignCls}`}
+      className={`px-3 py-2 font-sans text-sm font-semibold uppercase tracking-[0.2em] text-white/40 ${alignCls}`}
     >
       {children}
     </th>
@@ -291,7 +291,7 @@ function FilterField({
 }) {
   return (
     <label className="block">
-      <span className="block mb-1 font-mono text-[9px] uppercase tracking-widest text-white/40">
+      <span className="block mb-1 font-mono text-sm uppercase tracking-widest text-white/40">
         {label}
       </span>
       <div className="rounded-sm border border-border-subtle bg-black/40 px-2 py-1.5">

@@ -175,7 +175,7 @@ export default async function ProPage() {
           >
             Meus Alunos
           </h2>
-          <span className="text-xs text-text-muted font-mono">
+          <span className="text-sm text-text-muted font-mono">
             {students.length} aluno{students.length !== 1 ? "s" : ""}
           </span>
         </div>

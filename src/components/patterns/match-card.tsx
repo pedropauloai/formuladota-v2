@@ -131,7 +131,7 @@ function HeroPortrait({ hero, side }: HeroPortraitProps) {
             "bg-[var(--color-bg-surface)]",
             "text-[var(--color-text-muted)]",
             // Caption size (10px) — texto de fallback mínimo
-            "text-[10px]",
+            "text-sm",
             "font-[family-name:var(--font-display)]",
             "uppercase tracking-widest",
           )}
@@ -228,7 +228,7 @@ export function MatchCard({
             <span
               className={cn(
                 "font-[family-name:var(--font-display)]",
-                "tracking-widest uppercase text-xs",
+                "tracking-widest uppercase text-sm",
                 "px-2 py-0.5",
                 "rounded-[var(--radius-sm)]",
                 "border",
@@ -296,7 +296,7 @@ export function MatchCard({
             "pt-2",
             // Separador sutil via token de borda (C14)
             "border-t border-[var(--color-border-subtle)]",
-            "text-xs",
+            "text-sm",
           )}
         >
           {/* MMR delta com ícone direcional */}

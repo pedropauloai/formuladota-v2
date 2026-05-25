@@ -145,7 +145,7 @@ export function LoadingScreen({
 
       {/* Princípio doutrinário rotativo */}
       <div className="relative max-w-2xl text-center">
-        <p className="mb-3 font-display text-xs font-medium uppercase tracking-widest text-text-faded">
+        <p className="mb-3 font-display text-sm font-medium uppercase tracking-widest text-text-faded">
           Princípio {principleNum}&nbsp;/&nbsp;{total}
         </p>
 

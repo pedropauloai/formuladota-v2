@@ -90,14 +90,14 @@ function NewsCard({
       >
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
         <div className="absolute bottom-3 left-3 right-3">
-          <p className="font-body text-xs text-brand-primary">{eyebrow}</p>
+          <p className="font-body text-sm text-brand-primary">{eyebrow}</p>
           <p className="mt-1 font-display text-lg text-text-display drop-shadow-md leading-tight">
             {title}
           </p>
         </div>
       </div>
       <div className="p-3 space-y-2">
-        <p className="font-sans text-[12px] leading-relaxed text-text-body">
+        <p className="font-sans text-sm leading-relaxed text-text-body">
           {description}
         </p>
         <Link
@@ -129,7 +129,7 @@ function CommunityLink({
       <a href={href} target="_blank" rel="noreferrer" className={cls}>
         <Icon size={14} aria-hidden="true" />
         {label}
-        <span className="ml-auto text-[10px] text-text-faded">↗</span>
+        <span className="ml-auto text-sm text-text-faded">↗</span>
       </a>
     );
   }

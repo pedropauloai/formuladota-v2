@@ -212,14 +212,14 @@ export function SeasonBanner({
       />
 
       {/* Nome da season */}
-      <span className="text-xs font-medium text-text-body whitespace-nowrap">
+      <span className="text-sm font-medium text-text-body whitespace-nowrap">
         {seasonLabel}
       </span>
 
       {/* Separador • com pulse atmospheric */}
       {motionSafe ? (
         <m.span
-          className="text-brand-primary/60 text-xs"
+          className="text-brand-primary/60 text-sm"
           animate={{ opacity: [0.3, 1, 0.3] }}
           transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
           aria-hidden="true"
@@ -227,14 +227,14 @@ export function SeasonBanner({
           •
         </m.span>
       ) : (
-        <span className="text-brand-primary/60 text-xs" aria-hidden="true">•</span>
+        <span className="text-brand-primary/60 text-sm" aria-hidden="true">•</span>
       )}
 
       {/* Countdown OU mensagem de encerramento */}
       {remaining !== null ? (
         <CountdownDisplay remaining={remaining} />
       ) : (
-        <span className="text-xs text-text-muted">
+        <span className="text-sm text-text-muted">
           Season encerrada — aguarde Season {seasonNumber + 1}
         </span>
       )}

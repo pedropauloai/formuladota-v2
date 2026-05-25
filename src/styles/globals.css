@@ -77,6 +77,8 @@
   --font-display:  var(--font-display);
   --font-body:     var(--font-body);
   --font-mono:     var(--font-mono);
+  /* Condensed display Teko — exposto como font-display-condensed em Tailwind */
+  --font-display-condensed: var(--font-display-condensed);
   /* font-sans aponta para Geist (substitui Inter) */
   --font-sans:     var(--font-body);
   /* font-serif legacy → aponta para Geist agora (Marcellus removida 2026-05-23) */

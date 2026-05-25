@@ -50,7 +50,7 @@ export default async function CodigoDeCondutaPage() {
         <div className="relative z-10 mx-auto max-w-3xl space-y-16">
           {/* Hero — eyebrow + título + subtítulo (tipografia V2.5) */}
           <header className="space-y-4 text-center">
-            <p className="font-display text-xs uppercase tracking-[0.4em] text-brand-primary">
+            <p className="font-display text-sm uppercase tracking-[0.4em] text-brand-primary">
               Código de Conduta · v1
             </p>
             <h1 className="font-display text-4xl tracking-wide text-text-display md:text-5xl">
@@ -74,7 +74,7 @@ export default async function CodigoDeCondutaPage() {
 
           {/* Card missão — citação canônica */}
           <Card variant="flat" className="border-border-brand/40 text-center">
-            <p className="font-display text-xs uppercase tracking-[0.4em] text-brand-primary">
+            <p className="font-display text-sm uppercase tracking-[0.4em] text-brand-primary">
               Missão
             </p>
             <p className="mt-2 font-body text-base italic text-text-body">
@@ -87,7 +87,7 @@ export default async function CodigoDeCondutaPage() {
             aria-label="Sumário do código de conduta"
             className="rounded-[var(--radius-lg)] border border-border-subtle bg-bg-elevated p-5"
           >
-            <p className="mb-3 font-display text-xs uppercase tracking-[0.4em] text-brand-primary">
+            <p className="mb-3 font-display text-sm uppercase tracking-[0.4em] text-brand-primary">
               Sumário
             </p>
             <ol className="space-y-2 font-body text-sm">
@@ -182,7 +182,7 @@ export default async function CodigoDeCondutaPage() {
           <footer className="border-t border-border-subtle pt-8 text-center">
             <Link
               href="/"
-              className="font-mono text-xs uppercase tracking-widest text-brand-primary transition hover:text-glow-red"
+              className="font-mono text-sm uppercase tracking-widest text-brand-primary transition hover:text-glow-red"
             >
               ← voltar à home
             </Link>
@@ -249,7 +249,7 @@ function PrincipleCard({
         <div className="flex items-baseline gap-3">
           <span
             className={[
-              "font-mono text-xs",
+              "font-mono text-sm",
               highlight ? "text-brand-primary text-glow-red" : "text-brand-primary",
             ].join(" ")}
           >
@@ -284,7 +284,7 @@ function AntipatternCard({
     <Card variant="flat">
       <CardHeader className="mb-3">
         <div className="flex items-baseline gap-3">
-          <span className="font-mono text-xs text-error">
+          <span className="font-mono text-sm text-error">
             ✕ {String(antipattern.id).padStart(2, "0")}
           </span>
           <CardTitle>{antipattern.title}</CardTitle>
@@ -299,7 +299,7 @@ function AntipatternCard({
           ))}
         </ul>
         {antipattern.directSeverityNote && (
-          <p className="rounded-md border border-error/40 bg-error/10 px-3 py-2 font-mono text-xs font-medium text-error">
+          <p className="rounded-md border border-error/40 bg-error/10 px-3 py-2 font-mono text-sm font-medium text-error">
             ⚠ {antipattern.directSeverityNote}
           </p>
         )}

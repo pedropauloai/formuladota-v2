@@ -59,7 +59,7 @@ const badgeVariants = cva(
     // Layout inline
     "inline-flex items-center justify-center gap-1",
     // Tipografia: Cinzel (font-display) — estilo game client AAA
-    "font-display tracking-widest uppercase text-xs",
+    "font-display tracking-widest uppercase text-sm",
     // Espaçamento e borda
     "px-2 py-0.5 border",
     // Radius quadrado — estilo Dota 2 (não pill/rounded-full)

@@ -251,8 +251,8 @@ export const UserAvatar = forwardRef<HTMLDivElement, UserAvatarProps>(
                 "flex items-center justify-center",
                 "font-display text-text-display font-bold",
                 /* Tamanho de fonte proporcional ao avatar */
-                size === "sm" && "text-[10px]",
-                size === "md" && "text-xs",
+                size === "sm" && "text-sm",
+                size === "md" && "text-sm",
                 size === "lg" && "text-xl",
                 size === "xl" && "text-3xl",
               )}

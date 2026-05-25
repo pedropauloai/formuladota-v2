@@ -62,7 +62,7 @@ export function QueueStatusModal({ open, onClose, myQueues }: Props) {
       >
         <header className="mb-5 flex items-center justify-between">
           <div>
-            <p className="font-mono text-[10px] uppercase tracking-widest text-emerald-400">
+            <p className="font-mono text-sm uppercase tracking-widest text-emerald-400">
               Aguardando PT
             </p>
             <h2
@@ -105,7 +105,7 @@ export function QueueStatusModal({ open, onClose, myQueues }: Props) {
                     <p className="font-display text-base uppercase text-white truncate">
                       Na fila de {q.coachUsername ?? "PRO"}
                     </p>
-                    <p className="font-mono text-[11px] text-white/60">
+                    <p className="font-mono text-sm text-white/60">
                       <Users
                         size={10}
                         className="inline mr-1 -mt-0.5"
@@ -120,7 +120,7 @@ export function QueueStatusModal({ open, onClose, myQueues }: Props) {
                   type="button"
                   onClick={() => handleLeave(q.entryId)}
                   disabled={isBusy || pending}
-                  className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-md border border-[var(--color-border)] px-4 py-2 font-sans text-xs font-semibold uppercase tracking-widest text-white/70 transition-colors hover:border-amber-500/60 hover:bg-amber-500/10 hover:text-amber-300 disabled:opacity-50"
+                  className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-md border border-[var(--color-border)] px-4 py-2 font-sans text-sm font-semibold uppercase tracking-widest text-white/70 transition-colors hover:border-amber-500/60 hover:bg-amber-500/10 hover:text-amber-300 disabled:opacity-50"
                 >
                   {isBusy ? (
                     <>
@@ -140,12 +140,12 @@ export function QueueStatusModal({ open, onClose, myQueues }: Props) {
         </ul>
 
         {error && (
-          <p className="mt-4 rounded-md border border-red-500/30 bg-red-500/5 px-3 py-2 font-mono text-xs text-red-300">
+          <p className="mt-4 rounded-md border border-red-500/30 bg-red-500/5 px-3 py-2 font-mono text-sm text-red-300">
             {error}
           </p>
         )}
 
-        <p className="mt-5 font-mono text-[10px] text-white/30 text-center">
+        <p className="mt-5 font-mono text-sm text-white/30 text-center">
           Quando o PRO iniciar a PT com você, será avisado no Discord oficial.
         </p>
       </div>

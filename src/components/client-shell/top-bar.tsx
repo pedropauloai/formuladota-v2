@@ -159,7 +159,7 @@ export function DashboardTopBar({
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
             <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
           </span>
-          <span className="font-mono text-[10px] uppercase tracking-widest text-emerald-300/90">
+          <span className="font-mono text-sm uppercase tracking-widest text-emerald-300/90">
             {prosOnlineCount}{" "}
             {prosOnlineCount === 1 ? "PRO online" : "PROs online"}
           </span>
@@ -194,7 +194,7 @@ function PreviewModeToggle({ previewActive }: { previewActive: boolean }) {
       <button
         type="submit"
         aria-label={previewActive ? "Voltar pra modo admin" : "Ver como usuário comum"}
-        className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-widest transition-colors xl:px-3 ${
+        className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 font-mono text-sm font-semibold uppercase tracking-widest transition-colors xl:px-3 ${
           previewActive
             ? "border-amber-500/60 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20"
             : "border-white/15 bg-white/5 text-white/60 hover:border-white/30 hover:text-white"
@@ -232,7 +232,7 @@ function SubirMmrBadge() {
         "px-3 py-1.5 xl:px-4 xl:py-2",
         "border-2 border-brand-primary",
         "bg-gradient-to-b from-brand-primary to-brand-primary-hover",
-        "font-display text-xs xl:text-sm font-bold uppercase",
+        "font-display text-sm xl:text-sm font-bold uppercase",
         "tracking-[0.15em] xl:tracking-[0.2em] text-text-display",
         "shadow-[0_0_12px_var(--color-brand-primary-glow)]",
         "hover:shadow-[0_0_24px_var(--color-brand-primary-glow)]",
@@ -260,7 +260,7 @@ function EntrarBadge() {
           "px-3 py-1.5 xl:px-4 xl:py-2",
           "border-2 border-brand-primary",
           "bg-gradient-to-b from-brand-primary to-brand-primary-hover",
-          "font-display text-xs xl:text-sm font-bold uppercase",
+          "font-display text-sm xl:text-sm font-bold uppercase",
           "tracking-[0.15em] xl:tracking-[0.2em] text-text-display",
           "shadow-[0_0_12px_var(--color-brand-primary-glow)]",
           "hover:shadow-[0_0_24px_var(--color-brand-primary-glow)]",
@@ -287,7 +287,7 @@ function TopBarTab({
     <Link
       href={href}
       aria-current={active ? "page" : undefined}
-      className={`rounded-md px-3 py-1.5 font-sans text-xs font-semibold uppercase tracking-[0.15em] transition-colors xl:px-4 xl:text-sm xl:tracking-[0.2em] ${
+      className={`rounded-md px-3 py-1.5 font-sans text-sm font-semibold uppercase tracking-[0.15em] transition-colors xl:px-4 xl:text-sm xl:tracking-[0.2em] ${
         active
           ? "bg-brand-primary/15 text-text-display border-b-2 border-brand-primary rounded-b-none"
           : "text-text-body hover:bg-bg-elevated hover:text-text-display"

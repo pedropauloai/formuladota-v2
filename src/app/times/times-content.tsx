@@ -52,7 +52,7 @@ export function TimesContent({
       {/* Convites pendentes */}
       {invites.length > 0 && (
         <section className="mb-8">
-          <h2 className="mb-3 font-sans text-xs 2xl:text-sm font-semibold uppercase tracking-[0.2em] text-white/70">
+          <h2 className="mb-3 font-sans text-sm 2xl:text-sm font-semibold uppercase tracking-[0.2em] text-white/70">
             Convites pendentes <span className="text-white/40">({invites.length})</span>
           </h2>
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -65,13 +65,13 @@ export function TimesContent({
 
       {/* Header times + botão criar */}
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="font-sans text-xs 2xl:text-sm font-semibold uppercase tracking-[0.2em] text-white/70">
+        <h2 className="font-sans text-sm 2xl:text-sm font-semibold uppercase tracking-[0.2em] text-white/70">
           Meus times <span className="text-white/40">({userTeams.length})</span>
         </h2>
         <button
           type="button"
           onClick={() => setShowCreate(true)}
-          className="inline-flex items-center gap-2 rounded-md border border-brand-primary bg-brand-primary/15 px-4 py-2 font-sans text-xs 2xl:text-sm font-semibold uppercase tracking-wide text-white hover:bg-brand-primary transition-colors"
+          className="inline-flex items-center gap-2 rounded-md border border-brand-primary bg-brand-primary/15 px-4 py-2 font-sans text-sm 2xl:text-sm font-semibold uppercase tracking-wide text-white hover:bg-brand-primary transition-colors"
         >
           <Plus size={14} aria-hidden="true" />
           Criar time
@@ -91,7 +91,7 @@ export function TimesContent({
           <p className="font-display text-base 2xl:text-lg uppercase tracking-wide text-white/60">
             Você ainda não está em nenhum time
           </p>
-          <p className="mt-2 font-sans text-xs 2xl:text-sm text-white/40">
+          <p className="mt-2 font-sans text-sm 2xl:text-sm text-white/40">
             Crie um time ou aceite um convite pra começar a competir.
           </p>
         </div>
@@ -137,7 +137,7 @@ function InviteCard({ invite }: { invite: Invite }) {
     <div className="rounded-md border border-amber-400/30 bg-gradient-to-b from-amber-500/10 to-transparent p-4 space-y-3">
       <div className="flex items-center gap-2">
         <Mail size={14} className="text-amber-400" aria-hidden="true" />
-        <span className="font-mono text-[10px] uppercase tracking-widest text-amber-400">
+        <span className="font-mono text-sm uppercase tracking-widest text-amber-400">
           Convite
         </span>
       </div>
@@ -145,10 +145,10 @@ function InviteCard({ invite }: { invite: Invite }) {
         <p className="font-display text-base uppercase tracking-wide text-white">
           {invite.team.name}
         </p>
-        <p className="font-mono text-xs text-white/50">[{invite.team.tag}]</p>
+        <p className="font-mono text-sm text-white/50">[{invite.team.tag}]</p>
       </div>
       {invite.message && (
-        <p className="font-sans text-xs text-white/60 italic">
+        <p className="font-sans text-sm text-white/60 italic">
           &ldquo;{invite.message}&rdquo;
         </p>
       )}
@@ -227,7 +227,7 @@ function TeamCard({ team }: { team: UserTeam }) {
           <p className="font-display text-base uppercase tracking-wide text-white truncate group-hover:text-brand-primary transition-colors">
             {team.name}
           </p>
-          <p className="font-mono text-[10px] uppercase tracking-widest text-white/40 mt-0.5">
+          <p className="font-mono text-sm uppercase tracking-widest text-white/40 mt-0.5">
             [{team.tag}]
           </p>
         </div>
@@ -241,12 +241,12 @@ function TeamCard({ team }: { team: UserTeam }) {
       </div>
 
       {team.description && (
-        <p className="mt-3 font-sans text-xs text-white/60 line-clamp-2">
+        <p className="mt-3 font-sans text-sm text-white/60 line-clamp-2">
           {team.description}
         </p>
       )}
 
-      <div className="mt-3 flex items-center justify-between text-[10px] uppercase tracking-widest font-mono">
+      <div className="mt-3 flex items-center justify-between text-sm uppercase tracking-widest font-mono">
         <span className="text-white/50">
           <Users size={10} className="inline mr-1" /> {team.memberCount}/7
         </span>
@@ -393,7 +393,7 @@ function CreateTeamModal({ onClose }: { onClose: () => void }) {
               rows={3}
               className="w-full rounded-md border border-border-subtle bg-black/40 px-3 py-2 font-sans text-sm text-white placeholder:text-white/30 focus:border-brand-primary focus:outline-none resize-none"
             />
-            <p className="mt-1 text-right font-mono text-[9px] text-white/30">
+            <p className="mt-1 text-right font-mono text-sm text-white/30">
               {description.length}/280
             </p>
           </Field>
@@ -435,7 +435,7 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="block mb-1 font-sans text-[11px] font-semibold uppercase tracking-wide text-white/70">
+      <span className="block mb-1 font-sans text-sm font-semibold uppercase tracking-wide text-white/70">
         {label}
       </span>
       {children}

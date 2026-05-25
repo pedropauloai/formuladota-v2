@@ -54,7 +54,7 @@ export function PackageCard({ pkg, coach }: PackageCardProps) {
       <CardHeader>
         {/* Header de coach: avatar + nome genérico + badge tier. */}
         {/* V1 mostra "Coach Immortal" (sem nome próprio per B6). V3 multi-coach usa nome real. */}
-        <div className="mb-3 flex items-center gap-2 text-xs">
+        <div className="mb-3 flex items-center gap-2 text-sm">
           {coach.avatarUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -75,7 +75,7 @@ export function PackageCard({ pkg, coach }: PackageCardProps) {
           {coach.badge && (
             <Badge
               variant="outline"
-              className="border-[var(--color-brand-red)]/40 text-[var(--color-brand-red)] text-[10px] py-0 px-1.5"
+              className="border-[var(--color-brand-red)]/40 text-[var(--color-brand-red)] text-sm py-0 px-1.5"
             >
               {coach.badge}
             </Badge>

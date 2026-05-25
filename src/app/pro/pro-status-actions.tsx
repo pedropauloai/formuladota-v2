@@ -148,13 +148,13 @@ export function ProStatusActions({ isActive }: ProStatusActionsProps) {
             disabled={isBioPending}
           />
           <div className="flex items-center justify-between">
-            <span className="text-xs text-text-muted">{bioText.length}/500</span>
+            <span className="text-sm text-text-muted">{bioText.length}/500</span>
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => setEditingBio(false)}
                 disabled={isBioPending}
-                className="flex items-center gap-1 rounded px-3 py-1.5 text-xs text-text-muted hover:text-text-body transition-colors"
+                className="flex items-center gap-1 rounded px-3 py-1.5 text-sm text-text-muted hover:text-text-body transition-colors"
               >
                 <X size={12} aria-hidden="true" />
                 Cancelar
@@ -164,7 +164,7 @@ export function ProStatusActions({ isActive }: ProStatusActionsProps) {
                 onClick={handleBioSave}
                 disabled={isBioPending}
                 className={cn(
-                  "flex items-center gap-1 rounded px-3 py-1.5 text-xs font-medium",
+                  "flex items-center gap-1 rounded px-3 py-1.5 text-sm font-medium",
                   "bg-brand-primary text-white hover:bg-brand-primary/80",
                   "transition-colors disabled:opacity-50"
                 )}

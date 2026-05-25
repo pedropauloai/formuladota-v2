@@ -60,7 +60,7 @@ export function AdjustFichasModal({ userId, username, currentBalance }: Props) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 rounded-md border border-brand-primary/40 bg-brand-primary/5 px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest text-brand-primary hover:bg-brand-primary/15 transition-colors"
+        className="inline-flex items-center gap-1.5 rounded-md border border-brand-primary/40 bg-brand-primary/5 px-2.5 py-1 font-mono text-sm uppercase tracking-widest text-brand-primary hover:bg-brand-primary/15 transition-colors"
       >
         <Coins size={11} />
         Ajustar
@@ -81,7 +81,7 @@ export function AdjustFichasModal({ userId, username, currentBalance }: Props) {
             aria-labelledby="adjust-fichas-title"
           >
             <header className="mb-5 space-y-1">
-              <p className="font-mono text-[10px] uppercase tracking-widest text-brand-primary">
+              <p className="font-mono text-sm uppercase tracking-widest text-brand-primary">
                 Ajustar fichas
               </p>
               <h2
@@ -90,7 +90,7 @@ export function AdjustFichasModal({ userId, username, currentBalance }: Props) {
               >
                 {username}
               </h2>
-              <p className="font-mono text-xs text-text-muted">
+              <p className="font-mono text-sm text-text-muted">
                 Saldo atual:{" "}
                 <span className="text-white">
                   {currentBalance} {currentBalance === 1 ? "ficha" : "fichas"}
@@ -103,7 +103,7 @@ export function AdjustFichasModal({ userId, username, currentBalance }: Props) {
               <button
                 type="button"
                 onClick={() => setMode("grant")}
-                className={`flex items-center justify-center gap-2 rounded-md border px-3 py-2 font-sans text-xs font-semibold uppercase tracking-widest transition-colors ${
+                className={`flex items-center justify-center gap-2 rounded-md border px-3 py-2 font-sans text-sm font-semibold uppercase tracking-widest transition-colors ${
                   mode === "grant"
                     ? "border-emerald-500/60 bg-emerald-500/10 text-emerald-300"
                     : "border-border-subtle text-white/50 hover:text-white"
@@ -115,7 +115,7 @@ export function AdjustFichasModal({ userId, username, currentBalance }: Props) {
               <button
                 type="button"
                 onClick={() => setMode("debit")}
-                className={`flex items-center justify-center gap-2 rounded-md border px-3 py-2 font-sans text-xs font-semibold uppercase tracking-widest transition-colors ${
+                className={`flex items-center justify-center gap-2 rounded-md border px-3 py-2 font-sans text-sm font-semibold uppercase tracking-widest transition-colors ${
                   mode === "debit"
                     ? "border-amber-500/60 bg-amber-500/10 text-amber-300"
                     : "border-border-subtle text-white/50 hover:text-white"
@@ -130,7 +130,7 @@ export function AdjustFichasModal({ userId, username, currentBalance }: Props) {
               <div>
                 <label
                   htmlFor="amount"
-                  className="mb-2 block font-mono text-[10px] uppercase tracking-widest text-white/60"
+                  className="mb-2 block font-mono text-sm uppercase tracking-widest text-white/60"
                 >
                   Quantidade
                 </label>
@@ -149,7 +149,7 @@ export function AdjustFichasModal({ userId, username, currentBalance }: Props) {
               <div>
                 <label
                   htmlFor="reason"
-                  className="mb-2 block font-mono text-[10px] uppercase tracking-widest text-white/60"
+                  className="mb-2 block font-mono text-sm uppercase tracking-widest text-white/60"
                 >
                   Razão (obrigatória)
                 </label>
@@ -159,18 +159,18 @@ export function AdjustFichasModal({ userId, username, currentBalance }: Props) {
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   placeholder="ex: bonificação de boas-vindas, compensação por PT cancelada, estorno PIX"
-                  className="w-full resize-none rounded-md border border-border-subtle bg-black/40 px-3 py-2 font-sans text-xs text-white placeholder:text-white/30"
+                  className="w-full resize-none rounded-md border border-border-subtle bg-black/40 px-3 py-2 font-sans text-sm text-white placeholder:text-white/30"
                 />
-                <p className="mt-1 font-mono text-[9px] text-white/30">
+                <p className="mt-1 font-mono text-sm text-white/30">
                   {reason.length}/500 — fica no log permanente da plataforma
                 </p>
               </div>
 
               {error && (
-                <p className="font-mono text-xs text-red-400">{error}</p>
+                <p className="font-mono text-sm text-red-400">{error}</p>
               )}
               {success && (
-                <p className="font-mono text-xs text-emerald-400">{success}</p>
+                <p className="font-mono text-sm text-emerald-400">{success}</p>
               )}
             </div>
 
@@ -179,7 +179,7 @@ export function AdjustFichasModal({ userId, username, currentBalance }: Props) {
                 type="button"
                 onClick={close}
                 disabled={pending}
-                className="rounded-md px-4 py-2 font-sans text-xs uppercase tracking-widest text-white/60 hover:text-white transition-colors"
+                className="rounded-md px-4 py-2 font-sans text-sm uppercase tracking-widest text-white/60 hover:text-white transition-colors"
               >
                 Fechar
               </button>
@@ -187,7 +187,7 @@ export function AdjustFichasModal({ userId, username, currentBalance }: Props) {
                 type="button"
                 onClick={submit}
                 disabled={pending || !reason.trim() || !amount}
-                className={`inline-flex items-center gap-2 rounded-md px-5 py-2 font-sans text-xs font-semibold uppercase tracking-widest text-white transition-colors disabled:opacity-50 ${
+                className={`inline-flex items-center gap-2 rounded-md px-5 py-2 font-sans text-sm font-semibold uppercase tracking-widest text-white transition-colors disabled:opacity-50 ${
                   mode === "grant"
                     ? "bg-emerald-600 hover:bg-emerald-500"
                     : "bg-amber-600 hover:bg-amber-500"

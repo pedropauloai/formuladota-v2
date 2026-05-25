@@ -55,7 +55,7 @@ export default async function PerfilPage() {
               size="lg"
             />
             <div className="space-y-2">
-              <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-brand-primary">
+              <p className="font-sans text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
                 Perfil
               </p>
               <h1 className="font-display text-3xl uppercase tracking-tight text-text-display">
@@ -113,12 +113,12 @@ function Row({
 }) {
   return (
     <div className="flex items-center justify-between gap-4 text-sm">
-      <span className="font-sans text-xs uppercase tracking-widest text-text-muted">
+      <span className="font-sans text-sm uppercase tracking-widest text-text-muted">
         {label}
       </span>
       <span
         className={[
-          mono ? "font-mono text-xs" : "font-sans text-sm",
+          mono ? "font-mono text-sm" : "font-sans text-sm",
           // Highlight usa success (verde) para destacar saldo/acesso — semântico V2.5
           highlight ? "text-success" : "text-text-display",
         ].join(" ")}

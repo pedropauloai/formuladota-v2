@@ -161,7 +161,7 @@ export const PresenceDot = forwardRef<HTMLSpanElement, PresenceDotProps>(
           {...props}
         >
           {dot}
-          <span className="text-xs text-text-muted leading-none">
+          <span className="text-sm text-text-muted leading-none">
             {STATUS_LABELS[status]}
           </span>
         </span>

@@ -244,7 +244,7 @@ export function QueuePanel({
       <div className="space-y-[var(--space-2)]">
         {/* Status label — micro uppercase tracking-widest */}
         <p
-          className="font-[family-name:var(--font-display)] text-xs uppercase tracking-widest"
+          className="font-[family-name:var(--font-display)] text-sm uppercase tracking-widest"
           style={{ color: "var(--color-text-faded)" }}
         >
           {getStatusLabel(status)}
@@ -293,7 +293,7 @@ export function QueuePanel({
             >
               {/* Label "Buscando..." */}
               <p
-                className="font-[family-name:var(--font-body)] text-xs uppercase tracking-widest mb-[var(--space-2)]"
+                className="font-[family-name:var(--font-body)] text-sm uppercase tracking-widest mb-[var(--space-2)]"
                 style={{ color: "var(--color-text-muted)" }}
               >
                 Buscando...

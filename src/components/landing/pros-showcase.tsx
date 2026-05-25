@@ -9,7 +9,7 @@ export function PROsShowcase() {
     <section className="border-y border-[var(--color-border)] bg-[var(--color-background)]">
       <div className="mx-auto max-w-6xl px-6 py-24">
         <header className="mb-12 space-y-4">
-          <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
+          <p className="font-sans text-sm font-semibold uppercase tracking-[0.3em] text-[var(--color-brand-red)]">
             Quem te leva ao Imortal
           </p>
           <h2 className="font-display text-4xl font-bold uppercase leading-tight text-white md:text-5xl">
@@ -26,7 +26,7 @@ export function PROsShowcase() {
         <div className="grid gap-6 md:grid-cols-4">
           {/* Card grande Pedro — span 2 colunas */}
           <article className="flex flex-col rounded-md border border-[var(--color-brand-red)]/40 bg-gradient-to-br from-[var(--color-brand-red)]/8 to-transparent p-8 md:col-span-2">
-            <div className="mb-6 flex items-center gap-2 font-sans text-xs font-semibold uppercase tracking-widest text-[var(--color-brand-red)]">
+            <div className="mb-6 flex items-center gap-2 font-sans text-sm font-semibold uppercase tracking-widest text-[var(--color-brand-red)]">
               <Shield size={14} />
               Fundador
             </div>
@@ -34,7 +34,7 @@ export function PROsShowcase() {
               Pedro Paulo
             </h3>
             <p className="mb-6 font-mono-ui text-sm text-[var(--color-muted-foreground)]">
-              Peter PPA · 28 anos · Imortal
+              PeterPPA · 29 anos · Imortal
             </p>
             <p className="mb-8 font-serif text-base leading-relaxed text-white/80">
               Criador da Fórmula do Dota de Corrida. Calibrou em 2.300 de MMR, hoje em
@@ -64,17 +64,17 @@ export function PROsShowcase() {
               className="flex min-h-[280px] flex-col items-center justify-center rounded-md border border-dashed border-[var(--color-border)] bg-[var(--color-card)]/40 p-6 text-center"
             >
               <div className="mb-4 size-16 rounded-full bg-[var(--color-border)]/40" />
-              <p className="font-sans text-xs font-semibold uppercase tracking-widest text-[var(--color-muted-foreground)]">
+              <p className="font-sans text-sm font-semibold uppercase tracking-widest text-[var(--color-muted-foreground)]">
                 Em breve
               </p>
-              <p className="mt-2 font-sans text-xs text-[var(--color-muted-foreground)]/60">
+              <p className="mt-2 font-sans text-sm text-[var(--color-muted-foreground)]/60">
                 Próximo PRO certificado
               </p>
             </article>
           ))}
         </div>
 
-        <p className="mt-8 font-sans text-xs text-[var(--color-muted-foreground)]">
+        <p className="mt-8 font-sans text-sm text-[var(--color-muted-foreground)]">
           Quer ser PRO? Fale com o Pedro no Discord oficial. Network em formação — só
           jogadores alinhados culturalmente com a metodologia entram.
         </p>

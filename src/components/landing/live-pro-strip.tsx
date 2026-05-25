@@ -17,7 +17,7 @@ export async function LivePROStrip() {
     return (
       <div className="border-b border-[var(--color-border)] bg-[var(--color-card)]/60 backdrop-blur">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-6 py-3">
-          <span className="flex items-center gap-2 font-sans text-xs uppercase tracking-widest text-[var(--color-muted-foreground)]">
+          <span className="flex items-center gap-2 font-sans text-sm uppercase tracking-widest text-[var(--color-muted-foreground)]">
             <span
               className="size-2 rounded-full bg-[var(--color-muted-foreground)]/60"
               aria-hidden="true"
@@ -28,7 +28,7 @@ export async function LivePROStrip() {
             href="https://discord.com/invite/v3pSuZhjBE"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 font-sans text-xs font-semibold uppercase tracking-widest text-[var(--color-brand-red)] transition-colors hover:text-white"
+            className="inline-flex items-center gap-2 font-sans text-sm font-semibold uppercase tracking-widest text-[var(--color-brand-red)] transition-colors hover:text-white"
           >
             Receba aviso no Discord quando abrir
             <ArrowRight size={12} />
@@ -51,14 +51,14 @@ export async function LivePROStrip() {
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
             <span className="relative inline-flex size-2.5 rounded-full bg-emerald-500" />
           </span>
-          <span className="font-sans text-xs font-semibold uppercase tracking-widest text-white">
+          <span className="font-sans text-sm font-semibold uppercase tracking-widest text-white">
             {online.length} {online.length === 1 ? "PRO online" : "PROs online"}
             {" · "}
             {top.vagasProximaPT > 0
               ? `${top.vagasProximaPT} ${top.vagasProximaPT === 1 ? "vaga" : "vagas"} livre${top.vagasProximaPT === 1 ? "" : "s"}`
               : `${top.waitingCount} na fila`}
           </span>
-          <span className="hidden font-sans text-xs text-white/70 sm:inline">
+          <span className="hidden font-sans text-sm text-white/70 sm:inline">
             · {top.username ?? top.slug}
             {top.mmrAtual ? ` · ${top.mmrAtual.toLocaleString("pt-BR")} MMR` : ""}
           </span>
@@ -66,7 +66,7 @@ export async function LivePROStrip() {
         <form action={signInWithDiscord}>
           <button
             type="submit"
-            className="inline-flex items-center gap-2 rounded-md bg-[var(--color-brand-red)] px-4 py-1.5 font-sans text-xs font-semibold uppercase tracking-widest text-white transition-colors hover:bg-[var(--color-brand-red)]/80"
+            className="inline-flex items-center gap-2 rounded-md bg-[var(--color-brand-red)] px-4 py-1.5 font-sans text-sm font-semibold uppercase tracking-widest text-white transition-colors hover:bg-[var(--color-brand-red)]/80"
           >
             Entrar pra jogar agora
             <ArrowRight size={12} />

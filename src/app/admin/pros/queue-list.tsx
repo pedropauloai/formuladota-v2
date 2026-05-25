@@ -127,7 +127,7 @@ export function QueueList({ entries, filaAberta }: Props) {
                   <p className="font-sans text-sm font-medium text-text-display">
                     {e.username ?? "(sem username)"}
                   </p>
-                  <p className="font-mono-ui text-xs text-text-muted">
+                  <p className="font-mono-ui text-sm text-text-muted">
                     aguardando há {e.waitingMinutes} min
                   </p>
                 </div>
@@ -166,7 +166,7 @@ export function QueueList({ entries, filaAberta }: Props) {
       {error && <p className="font-mono-ui text-sm text-error">{error}</p>}
       {success && <p className="font-mono-ui text-sm text-success">{success}</p>}
 
-      <p className="font-mono text-[10px] text-text-faded text-center">
+      <p className="font-mono text-sm text-text-faded text-center">
         Ficha só é cobrada quando confirmar PT como realizada (abaixo).
       </p>
     </div>

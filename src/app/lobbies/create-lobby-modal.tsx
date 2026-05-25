@@ -140,7 +140,7 @@ export function CreateLobbyModal({ open, onClose }: Props) {
           <button
             type="button"
             onClick={() => setShowAdvanced(!showAdvanced)}
-            className="flex items-center gap-2 font-sans text-xs font-semibold uppercase tracking-[0.2em] text-white/60 hover:text-white transition-colors"
+            className="flex items-center gap-2 font-sans text-sm font-semibold uppercase tracking-[0.2em] text-white/60 hover:text-white transition-colors"
           >
             <ChevronDown
               size={14}
@@ -152,7 +152,7 @@ export function CreateLobbyModal({ open, onClose }: Props) {
 
           {showAdvanced && (
             <div className="space-y-4 rounded-md border border-border-subtle bg-black/30 p-5">
-              <p className="font-mono text-[11px] uppercase tracking-widest text-white/40">
+              <p className="font-mono text-sm uppercase tracking-widest text-white/40">
                 Recursos avançados — V2 (placeholder)
               </p>
               <div className="grid gap-3 md:grid-cols-3">
@@ -225,7 +225,7 @@ export function CreateLobbyModal({ open, onClose }: Props) {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="block mb-1.5 font-mono text-[10px] uppercase tracking-widest text-white/50">
+      <span className="block mb-1.5 font-mono text-sm uppercase tracking-widest text-white/50">
         {label}
       </span>
       {children}
@@ -275,7 +275,7 @@ function PasswordReadonly() {
         type={reveal ? "text" : "password"}
         readOnly
         value="auto-gerada · 8 caracteres"
-        className="w-full rounded-md border border-border-subtle bg-black/30 px-3 py-2 pr-9 font-mono text-xs text-white/60 focus:outline-none"
+        className="w-full rounded-md border border-border-subtle bg-black/30 px-3 py-2 pr-9 font-mono text-sm text-white/60 focus:outline-none"
         aria-label="Senha auto-gerada"
       />
       <button

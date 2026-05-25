@@ -121,7 +121,7 @@ export function QueueBoard({
           </div>
           <p
             className={`font-mono text-white/60 mt-0.5 ${
-              isCompact ? "text-[10px]" : "text-xs"
+              isCompact ? "text-sm" : "text-sm"
             }`}
           >
             {coach.mmrAtual ? `${coach.mmrAtual.toLocaleString("pt-BR")} MMR` : "—"}
@@ -167,11 +167,13 @@ export function QueueBoard({
         />
       )}
 
-      {/* Footer status */}
+      {/* Footer status — Teko condensed (font-display-condensed) pra labels
+          pequenas. Substitui Geist Mono que ficava pesada/espalhada em
+          11-12px. Pedro 2026-05-25: teste de fonte pra labels minúsculas. */}
       <footer className={`flex items-center justify-between gap-2 ${isCompact ? "mt-3" : "mt-5"}`}>
         <span
-          className={`inline-flex items-center gap-1.5 font-mono uppercase tracking-widest font-semibold ${
-            isCompact ? "text-[11px]" : "text-xs"
+          className={`inline-flex items-center gap-1.5 font-display-condensed uppercase tracking-wider font-semibold ${
+            isCompact ? "text-sm" : "text-sm"
           } ${coach.filaAberta ? "text-emerald-300" : "text-white/40"}`}
         >
           {coach.filaAberta ? (
@@ -184,8 +186,8 @@ export function QueueBoard({
           )}
         </span>
         <span
-          className={`font-mono text-white/60 text-right ${
-            isCompact ? "text-[11px]" : "text-xs"
+          className={`font-display-condensed uppercase tracking-wider text-white/60 text-right ${
+            isCompact ? "text-sm" : "text-sm"
           }`}
         >
           <Users size={isCompact ? 10 : 12} className="inline mr-1 -mt-0.5" aria-hidden="true" />
@@ -242,7 +244,7 @@ function WaitingList({
 
   return (
     <div className="mt-4 rounded-md border border-white/10 bg-black/30 p-4">
-      <p className="mb-3 font-mono text-xs font-semibold uppercase tracking-widest text-amber-300">
+      <p className="mb-3 font-mono text-sm font-semibold uppercase tracking-widest text-amber-300">
         Aguardando próxima rodada ({entries.length})
       </p>
       <ul className="space-y-2">
@@ -289,11 +291,11 @@ function WaitingList({
                 {isViewer ? "VOCÊ" : e.username ?? "—"}
               </span>
               {e.ptsToday !== undefined && e.ptsToday > 0 && (
-                <span className="rounded-full bg-amber-500/20 px-2 py-0.5 font-mono text-[11px] font-semibold text-amber-200">
+                <span className="rounded-full bg-amber-500/20 px-2 py-0.5 font-mono text-sm font-semibold text-amber-200">
                   {e.ptsToday}× hoje
                 </span>
               )}
-              <span className="font-mono text-xs text-white/55 tabular-nums w-10 text-right">
+              <span className="font-mono text-sm text-white/55 tabular-nums w-10 text-right">
                 {waitingMinutes}m
               </span>
               {isAdmin && onRemoveEntry && (
@@ -350,13 +352,13 @@ function Slot({
         }`}
       >
         <span
-          className={`font-mono text-white/30 ${isCompact ? "text-[11px]" : "text-xs"}`}
+          className={`font-mono text-white/30 ${isCompact ? "text-sm" : "text-sm"}`}
         >
           slot {index + 1}
         </span>
         <span
           className={`font-mono text-white/40 mt-1 ${
-            isCompact ? "text-[10px]" : "text-[11px]"
+            isCompact ? "text-sm" : "text-sm"
           } uppercase tracking-widest`}
         >
           livre
@@ -412,14 +414,14 @@ function Slot({
       )}
       <p
         className={`mt-1.5 font-sans text-white truncate max-w-full text-center font-medium ${
-          isCompact ? "text-xs" : "text-sm"
+          isCompact ? "text-sm" : "text-sm"
         } ${isViewer ? "font-bold" : ""}`}
       >
         {isViewer ? "VOCÊ" : slot.username ?? "—"}
       </p>
       <p
         className={`mt-0.5 font-mono text-white/55 ${
-          isCompact ? "text-[10px]" : "text-xs"
+          isCompact ? "text-sm" : "text-sm"
         } flex items-center gap-1`}
       >
         <Clock size={isCompact ? 9 : 11} aria-hidden="true" />
@@ -428,7 +430,7 @@ function Slot({
       {slot.ptsToday !== undefined && slot.ptsToday > 0 && (
         <span
           className={`mt-1 inline-flex items-center rounded-full bg-amber-500/20 px-2 py-0.5 font-mono font-semibold text-amber-200 ${
-            isCompact ? "text-[10px]" : "text-[11px]"
+            isCompact ? "text-sm" : "text-sm"
           }`}
           title={`Já jogou ${slot.ptsToday} PT${slot.ptsToday > 1 ? "s" : ""} com este PRO nas últimas 24h — cede vaga pra quem jogou menos`}
         >
@@ -448,7 +450,7 @@ function Slot({
         </button>
       )}
       {error && (
-        <p className="absolute -bottom-5 left-0 right-0 text-center font-mono text-[8px] text-red-400">
+        <p className="absolute -bottom-5 left-0 right-0 text-center font-mono text-sm text-red-400">
           {error}
         </p>
       )}

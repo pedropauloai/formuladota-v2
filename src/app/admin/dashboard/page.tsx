@@ -44,7 +44,7 @@ export default async function AdminDashboardPage() {
   return (
     <div className="p-8 space-y-10">
       <header>
-        <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-brand-primary">
+        <p className="font-sans text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
           Dashboard
         </p>
         <h1 className="mt-3 font-display text-3xl uppercase tracking-tight text-text-display">
@@ -89,7 +89,7 @@ function KpiCard({
     <Card variant="flat" className="p-4">
       <CardContent className="space-y-2">
         <div className="flex items-start justify-between">
-          <p className="font-sans text-xs uppercase tracking-widest text-text-faded">{label}</p>
+          <p className="font-sans text-sm uppercase tracking-widest text-text-faded">{label}</p>
           <Icon size={18} className="text-brand-primary" aria-hidden="true" />
         </div>
         <p className="font-display text-3xl text-text-display">{value}</p>

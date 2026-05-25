@@ -65,7 +65,7 @@ export function DashboardLeftSidebar({
                 <p className="font-display text-sm uppercase tracking-wide text-text-display truncate">
                   {persona ?? "Anônimo"}
                 </p>
-                <p className="font-mono text-[10px] uppercase tracking-widest text-brand-primary/80 mt-0.5">
+                <p className="font-mono text-sm uppercase tracking-widest text-brand-primary/80 mt-0.5">
                   [{tag}]
                   {isAdmin && <span className="ml-1 text-yellow-500">★</span>}
                 </p>
@@ -95,7 +95,7 @@ export function DashboardLeftSidebar({
 
       {/* Espaço vazio reservado pra futuras features (amigos online, chat) */}
       <div className="flex-1 rounded-md border border-dashed border-border-subtle bg-bg-deep/30 p-4 flex items-center justify-center">
-        <p className="text-center font-sans text-[10px] text-text-faded">
+        <p className="text-center font-sans text-sm text-text-faded">
           Lista de amigos · em breve V2
         </p>
       </div>
@@ -114,16 +114,16 @@ function VisitorCard() {
         </div>
         <div className="flex-1 min-w-0">
           <p className="font-display text-base text-text-display">Visitante</p>
-          <p className="font-body text-xs text-text-faded mt-0.5">Sem sessão</p>
+          <p className="font-body text-sm text-text-faded mt-0.5">Sem sessão</p>
         </div>
       </div>
-      <p className="mt-3 font-sans text-[11px] leading-relaxed text-text-body">
+      <p className="mt-3 font-sans text-sm leading-relaxed text-text-body">
         Entre com Discord pra acompanhar seu perfil, saldo de fichas e fila.
       </p>
       <form action={signInWithDiscord} className="mt-3">
         <button
           type="submit"
-          className="w-full inline-flex items-center justify-center gap-1.5 rounded-md border border-brand-primary/60 bg-brand-primary/10 px-3 py-2 font-display text-xs font-semibold text-brand-primary hover:bg-brand-primary/20 hover:text-text-display transition-colors"
+          className="w-full inline-flex items-center justify-center gap-1.5 rounded-md border border-brand-primary/60 bg-brand-primary/10 px-3 py-2 font-display text-sm font-semibold text-brand-primary hover:bg-brand-primary/20 hover:text-text-display transition-colors"
         >
           <LogIn size={11} aria-hidden="true" />
           <span>Entrar com Discord</span>
@@ -138,16 +138,16 @@ function FichasCard({ balance, isAdmin }: { balance: number; isAdmin: boolean })
     <div className="rounded-md border border-brand-primary/40 bg-gradient-to-br from-brand-primary/10 to-transparent p-3">
       <div className="flex items-center gap-2">
         <Coins size={14} className="text-brand-primary" aria-hidden="true" />
-        <p className="font-body text-xs text-text-muted">Saldo de fichas</p>
+        <p className="font-body text-sm text-text-muted">Saldo de fichas</p>
       </div>
       <p className="mt-2 font-display text-3xl font-bold text-text-display">
         {isAdmin ? "∞" : balance}
-        <span className="ml-2 font-mono text-xs text-text-muted">
+        <span className="ml-2 font-mono text-sm text-text-muted">
           {isAdmin ? "admin" : balance === 1 ? "ficha" : "fichas"}
         </span>
       </p>
       {!isAdmin && balance === 0 && (
-        <p className="mt-1 font-mono text-[10px] text-text-faded">
+        <p className="mt-1 font-mono text-sm text-text-faded">
           Compre uma pra entrar em fila
         </p>
       )}
@@ -167,7 +167,7 @@ function SidebarLink({
   external?: boolean;
 }) {
   const cls =
-    "flex items-center gap-2 rounded px-2 py-1.5 font-sans text-xs text-text-body hover:bg-bg-elevated hover:text-text-display transition-colors";
+    "flex items-center gap-2 rounded px-2 py-1.5 font-sans text-sm text-text-body hover:bg-bg-elevated hover:text-text-display transition-colors";
   if (external) {
     return (
       <a href={href} target="_blank" rel="noreferrer" className={cls}>

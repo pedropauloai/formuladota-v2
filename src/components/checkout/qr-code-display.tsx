@@ -53,7 +53,7 @@ export function QRCodeDisplay({ brCode, brCodeBase64, expiresAt }: QRCodeDisplay
       {/* Código PIX copia-e-cola em tag <code> para acessibilidade e font-mono */}
       <div className="w-full max-w-md">
         <code
-          className="block px-3 py-2 bg-[var(--color-muted)] border border-[var(--color-border)] rounded text-xs font-mono break-all text-[var(--color-foreground)]"
+          className="block px-3 py-2 bg-[var(--color-muted)] border border-[var(--color-border)] rounded text-sm font-mono break-all text-[var(--color-foreground)]"
           aria-label="Código PIX copia-e-cola"
         >
           {brCode}
@@ -73,7 +73,7 @@ export function QRCodeDisplay({ brCode, brCodeBase64, expiresAt }: QRCodeDisplay
         {copied ? "Copiado!" : "Copiar código PIX"}
       </Button>
 
-      <p className="text-xs text-[var(--color-muted-foreground)]">
+      <p className="text-sm text-[var(--color-muted-foreground)]">
         Expira em {expiresFormatted}
       </p>
     </div>

@@ -38,7 +38,7 @@ export default async function CheckoutPage({ params }: PageProps) {
     <ClientShell currentRoute="/checkout">
       <div className="px-4 py-10 mx-auto max-w-3xl">
         <header className="mb-8 text-center">
-          <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-brand-primary">
+          <p className="font-sans text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
             Checkout
           </p>
           <h1 className="mt-2 font-display text-3xl md:text-4xl uppercase tracking-tight text-text-display">

@@ -44,7 +44,7 @@ export function TierBadge({ mmr, tier, stars, size = "md", showName = false }: T
     void computed;
   }
 
-  const sizeCls = size === "lg" ? "text-base px-4 py-2" : size === "sm" ? "text-xs px-2 py-1" : "text-sm px-3 py-1.5";
+  const sizeCls = size === "lg" ? "text-base px-4 py-2" : size === "sm" ? "text-sm px-2 py-1" : "text-sm px-3 py-1.5";
   const iconSize = size === "lg" ? 14 : size === "sm" ? 10 : 12;
   const colorCls = TIER_COLORS[computedTier] ?? TIER_COLORS[1];
 

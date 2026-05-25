@@ -120,7 +120,7 @@ export function SoldOutOverlay({
       {subMessage && (
         <span
           className={cn(
-            "text-xs",
+            "text-sm",
             "text-[var(--color-text-muted)]",
             "font-[family-name:var(--font-body)]",
             // Centraliza e limita largura para legibilidade

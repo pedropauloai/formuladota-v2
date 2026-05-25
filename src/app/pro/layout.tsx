@@ -45,7 +45,7 @@ export default async function ProLayout({
       <div className="flex h-full">
         {/* Sidebar interna do painel PRO */}
         <aside className="w-56 border-r border-border-subtle bg-black/60 backdrop-blur-sm p-5 hidden md:block">
-          <p className="mb-4 font-sans text-xs font-semibold uppercase tracking-[0.25em] text-[var(--color-brand-primary)]">
+          <p className="mb-4 font-sans text-sm font-semibold uppercase tracking-[0.25em] text-[var(--color-brand-primary)]">
             Painel PRO
           </p>
           <nav className="space-y-1 text-sm">

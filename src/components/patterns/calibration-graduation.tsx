@@ -114,10 +114,10 @@ export function CalibrationGraduation({
 
       {/* ── Eyebrow — FORMULADOTA ── */}
       <div className="relative flex flex-col items-center gap-2 text-center">
-        <p className="font-display text-xs font-semibold uppercase tracking-[0.5em] text-brand-primary">
+        <p className="font-display text-sm font-semibold uppercase tracking-[0.5em] text-brand-primary">
           FORMULADOTA
         </p>
-        <p className="font-mono text-[10px] uppercase tracking-widest text-text-faded">
+        <p className="font-mono text-sm uppercase tracking-widest text-text-faded">
           Calibração concluída
         </p>
       </div>
@@ -150,7 +150,7 @@ export function CalibrationGraduation({
 
             {/* Tier name — cerimônia dramática */}
             <div className="text-center">
-              <p className="font-display-condensed text-[10px] uppercase tracking-[0.5em] text-text-faded">
+              <p className="font-display-condensed text-sm uppercase tracking-[0.5em] text-text-faded">
                 Tier inicial
               </p>
               <h1
@@ -185,7 +185,7 @@ export function CalibrationGraduation({
             {/* Divider decorativo */}
             <div className="mx-auto mb-6 h-px w-24 bg-border-strong" aria-hidden="true" />
 
-            <p className="font-sans text-xs uppercase tracking-widest text-brand-primary mb-3">
+            <p className="font-sans text-sm uppercase tracking-widest text-brand-primary mb-3">
               Doutrina FormulaDota
             </p>
 

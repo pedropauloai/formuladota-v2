@@ -126,7 +126,7 @@ export function EmptyState({
           className="mt-2 max-w-md border-l-2 border-primary pl-4 py-2 text-left"
           aria-label={`Princípio ${principleRef.id} da Fórmula do Dota`}
         >
-          <p className="text-xs font-display uppercase tracking-widest text-primary mb-1 font-medium">
+          <p className="text-sm font-display uppercase tracking-widest text-primary mb-1 font-medium">
             Princípio {principleRef.id} — {principleRef.title}
           </p>
           <p className="text-sm text-muted-foreground italic leading-relaxed">

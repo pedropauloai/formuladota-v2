@@ -19,7 +19,7 @@ export default async function AdminLobbiesPage() {
   return (
     <div className="p-8 space-y-6">
       <header>
-        <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-brand-primary">
+        <p className="font-sans text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
           Lobbies
         </p>
         <h1 className="mt-3 font-display text-3xl uppercase tracking-tight text-text-display">
@@ -45,20 +45,20 @@ export default async function AdminLobbiesPage() {
               <tr key={l.id} className="border-b border-border-subtle last:border-0">
                 <Td>
                   <div className="font-medium text-text-display">{l.name}</div>
-                  <div className="font-mono text-xs text-text-muted">
+                  <div className="font-mono text-sm text-text-muted">
                     {new Date(l.created_at).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
                   </div>
                 </Td>
                 <Td>{l.game_mode}</Td>
                 <Td><StatusBadge status={l.status} /></Td>
                 <Td>
-                  <span className="font-mono text-xs">{l.steam_lobby_id ?? "—"}</span>
+                  <span className="font-mono text-sm">{l.steam_lobby_id ?? "—"}</span>
                 </Td>
                 <Td>
-                  <span className="font-mono text-xs">{l.dota_match_id ?? "—"}</span>
+                  <span className="font-mono text-sm">{l.dota_match_id ?? "—"}</span>
                 </Td>
                 <Td>
-                  <span className="font-mono text-xs text-error">
+                  <span className="font-mono text-sm text-error">
                     {l.bot_error?.slice(0, 60) ?? "—"}
                   </span>
                 </Td>
@@ -73,7 +73,7 @@ export default async function AdminLobbiesPage() {
 
 function Th({ children }: { children: React.ReactNode }) {
   return (
-    <th className="text-left px-4 py-3 font-sans text-xs font-semibold uppercase tracking-widest text-text-faded">
+    <th className="text-left px-4 py-3 font-sans text-sm font-semibold uppercase tracking-widest text-text-faded">
       {children}
     </th>
   );

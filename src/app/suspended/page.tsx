@@ -60,7 +60,7 @@ export default async function SuspendedPage() {
       >
         <CardContent className="space-y-8">
           <header className="space-y-3 text-center">
-            <p className="font-display text-xs uppercase tracking-[0.4em] text-warning">
+            <p className="font-display text-sm uppercase tracking-[0.4em] text-warning">
               conta suspensa
             </p>
             <h1 className="font-display text-3xl uppercase tracking-tight text-text-display">
@@ -70,7 +70,7 @@ export default async function SuspendedPage() {
 
           {formattedUntil && (
             <div className="rounded-md border border-border-subtle bg-bg-base p-4 text-center">
-              <p className="font-mono text-xs uppercase tracking-widest text-text-muted">
+              <p className="font-mono text-sm uppercase tracking-widest text-text-muted">
                 suspensão até
               </p>
               <p className="mt-1 text-xl font-bold text-warning">
@@ -81,7 +81,7 @@ export default async function SuspendedPage() {
 
           {lastWarning && (
             <div className="space-y-2 rounded-md border border-border-subtle bg-bg-deep p-4">
-              <p className="font-mono text-xs uppercase tracking-widest text-text-muted">
+              <p className="font-mono text-sm uppercase tracking-widest text-text-muted">
                 motivo registrado
               </p>
               <p className="text-sm text-text-body">
@@ -120,13 +120,13 @@ export default async function SuspendedPage() {
           <div className="flex items-center justify-between border-t border-border-subtle pt-4">
             <Link
               href="/codigo-de-conduta"
-              className="font-mono text-xs uppercase tracking-widest text-text-muted hover:text-text-display transition-colors"
+              className="font-mono text-sm uppercase tracking-widest text-text-muted hover:text-text-display transition-colors"
             >
               código de conduta
             </Link>
             <Link
               href="/"
-              className="font-sans text-xs uppercase tracking-widest text-brand-primary hover:text-text-display transition-colors"
+              className="font-sans text-sm uppercase tracking-widest text-brand-primary hover:text-text-display transition-colors"
             >
               ← home
             </Link>

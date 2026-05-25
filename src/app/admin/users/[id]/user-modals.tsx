@@ -56,7 +56,7 @@ function ModalBase({
         <div className="flex items-start justify-between mb-5">
           <div>
             {eyebrow && (
-              <p className="font-mono text-[10px] uppercase tracking-widest text-brand-primary mb-1">
+              <p className="font-mono text-sm uppercase tracking-widest text-brand-primary mb-1">
                 {eyebrow}
               </p>
             )}
@@ -82,7 +82,7 @@ function ModalBase({
 // Campos reutilizáveis
 function FormLabel({ htmlFor, children }: { htmlFor: string; children: React.ReactNode }) {
   return (
-    <label htmlFor={htmlFor} className="block font-mono text-[10px] uppercase tracking-widest text-text-faded mb-2">
+    <label htmlFor={htmlFor} className="block font-mono text-sm uppercase tracking-widest text-text-faded mb-2">
       {children}
     </label>
   );
@@ -98,14 +98,14 @@ function FormTextarea({ id, value, onChange, placeholder, rows = 3 }: {
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className="w-full resize-none rounded-md border border-border-subtle bg-black/40 px-3 py-2 font-sans text-xs text-text-body placeholder:text-text-faded focus:outline-none focus:border-brand-primary/60"
+      className="w-full resize-none rounded-md border border-border-subtle bg-black/40 px-3 py-2 font-sans text-sm text-text-body placeholder:text-text-faded focus:outline-none focus:border-brand-primary/60"
     />
   );
 }
 
 function StatusMsg({ type, msg }: { type: "error" | "success"; msg: string }) {
   return (
-    <div className={`flex items-center gap-2 font-mono text-xs ${type === "error" ? "text-error" : "text-emerald-400"}`}>
+    <div className={`flex items-center gap-2 font-mono text-sm ${type === "error" ? "text-error" : "text-emerald-400"}`}>
       {type === "error" ? <AlertCircle size={12} /> : <CheckCircle size={12} />}
       {msg}
     </div>
@@ -133,7 +133,7 @@ function ModalActions({
         type="button"
         onClick={onClose}
         disabled={pending}
-        className="rounded-md px-4 py-2 font-sans text-xs uppercase tracking-widest text-text-faded hover:text-text-muted transition-colors"
+        className="rounded-md px-4 py-2 font-sans text-sm uppercase tracking-widest text-text-faded hover:text-text-muted transition-colors"
       >
         Fechar
       </button>
@@ -141,7 +141,7 @@ function ModalActions({
         type="button"
         onClick={onConfirm}
         disabled={pending || disabled}
-        className={`inline-flex items-center gap-2 rounded-md px-5 py-2 font-sans text-xs font-semibold uppercase tracking-widest text-white transition-colors disabled:opacity-50 ${confirmCls ?? "bg-brand-primary hover:bg-brand-primary/80"}`}
+        className={`inline-flex items-center gap-2 rounded-md px-5 py-2 font-sans text-sm font-semibold uppercase tracking-widest text-white transition-colors disabled:opacity-50 ${confirmCls ?? "bg-brand-primary hover:bg-brand-primary/80"}`}
       >
         {pending && <Loader2 size={12} className="animate-spin" />}
         {confirmLabel}
@@ -208,14 +208,14 @@ export function AdjustFichasModal({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 rounded-md border border-emerald-500/40 bg-emerald-500/5 px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest text-emerald-400 hover:bg-emerald-500/15 transition-colors"
+        className="inline-flex items-center gap-1.5 rounded-md border border-emerald-500/40 bg-emerald-500/5 px-2.5 py-1 font-mono text-sm uppercase tracking-widest text-emerald-400 hover:bg-emerald-500/15 transition-colors"
       >
         <Coins size={11} />
         Ajustar fichas
       </button>
 
       <ModalBase open={open} onClose={close} eyebrow="Fichas" title={username}>
-        <p className="font-mono text-xs text-text-muted mb-4">
+        <p className="font-mono text-sm text-text-muted mb-4">
           Saldo atual:{" "}
           <span className="text-text-body">{currentBalance} fichas</span>
         </p>
@@ -227,7 +227,7 @@ export function AdjustFichasModal({
               key={m}
               type="button"
               onClick={() => setMode(m)}
-              className={`flex items-center justify-center gap-2 rounded-md border px-3 py-2 font-sans text-xs font-semibold uppercase tracking-widest transition-colors ${
+              className={`flex items-center justify-center gap-2 rounded-md border px-3 py-2 font-sans text-sm font-semibold uppercase tracking-widest transition-colors ${
                 mode === m
                   ? m === "grant"
                     ? "border-emerald-500/60 bg-emerald-500/10 text-emerald-300"
@@ -322,7 +322,7 @@ export function ApplyStrikeModal({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 rounded-md border border-red-500/40 bg-red-500/5 px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest text-red-400 hover:bg-red-500/15 transition-colors"
+        className="inline-flex items-center gap-1.5 rounded-md border border-red-500/40 bg-red-500/5 px-2.5 py-1 font-mono text-sm uppercase tracking-widest text-red-400 hover:bg-red-500/15 transition-colors"
       >
         <ShieldAlert size={11} />
         Aplicar strike
@@ -338,7 +338,7 @@ export function ApplyStrikeModal({
                   key={s}
                   type="button"
                   onClick={() => setSeverity(s)}
-                  className={`rounded-md border px-3 py-2 font-sans text-xs font-semibold uppercase tracking-widest transition-colors ${
+                  className={`rounded-md border px-3 py-2 font-sans text-sm font-semibold uppercase tracking-widest transition-colors ${
                     severity === s
                       ? s === "leve"
                         ? "border-amber-500/60 bg-amber-500/10 text-amber-300"
@@ -422,7 +422,7 @@ export function HonorBonusModal({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 rounded-md border border-yellow-500/40 bg-yellow-500/5 px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest text-yellow-400 hover:bg-yellow-500/15 transition-colors"
+        className="inline-flex items-center gap-1.5 rounded-md border border-yellow-500/40 bg-yellow-500/5 px-2.5 py-1 font-mono text-sm uppercase tracking-widest text-yellow-400 hover:bg-yellow-500/15 transition-colors"
       >
         <Star size={11} />
         Bonus HONOR
@@ -517,7 +517,7 @@ export function GrantAchievementModal({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 rounded-md border border-purple-500/40 bg-purple-500/5 px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest text-purple-400 hover:bg-purple-500/15 transition-colors"
+        className="inline-flex items-center gap-1.5 rounded-md border border-purple-500/40 bg-purple-500/5 px-2.5 py-1 font-mono text-sm uppercase tracking-widest text-purple-400 hover:bg-purple-500/15 transition-colors"
       >
         <Trophy size={11} />
         Conceder achievement
@@ -531,7 +531,7 @@ export function GrantAchievementModal({
               id="ach-variant"
               value={variant}
               onChange={(e) => setVariant(e.target.value)}
-              className="w-full rounded-md border border-border-subtle bg-black/40 px-3 py-2 font-mono text-xs text-text-body"
+              className="w-full rounded-md border border-border-subtle bg-black/40 px-3 py-2 font-mono text-sm text-text-body"
             >
               {ACHIEVEMENT_VARIANTS.map((v) => (
                 <option key={v} value={v}>{v}</option>
@@ -610,7 +610,7 @@ export function PromoveCoachModal({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 rounded-md border border-brand-primary/60 bg-brand-primary/10 px-3 py-1.5 font-sans text-xs font-semibold uppercase tracking-widest text-brand-primary hover:bg-brand-primary/20 transition-colors"
+        className="inline-flex items-center gap-1.5 rounded-md border border-brand-primary/60 bg-brand-primary/10 px-3 py-1.5 font-sans text-sm font-semibold uppercase tracking-widest text-brand-primary hover:bg-brand-primary/20 transition-colors"
       >
         <Trophy size={12} />
         Promover a PRO
@@ -619,11 +619,11 @@ export function PromoveCoachModal({
       <ModalBase open={open} onClose={close} eyebrow="Elegibilidade PRO" title={`Promover ${username}`}>
         {criteriosAtendidos.length > 0 && (
           <div className="mb-4 space-y-1.5">
-            <p className="font-mono text-[10px] uppercase tracking-widest text-text-faded mb-2">
+            <p className="font-mono text-sm uppercase tracking-widest text-text-faded mb-2">
               Critérios atendidos
             </p>
             {criteriosAtendidos.map((c) => (
-              <div key={c} className="flex items-center gap-2 font-mono text-xs text-emerald-400">
+              <div key={c} className="flex items-center gap-2 font-mono text-sm text-emerald-400">
                 <CheckCircle size={11} />
                 {c}
               </div>
@@ -696,7 +696,7 @@ export function RevokeCoachModal({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 rounded-md border border-red-500/40 bg-red-500/5 px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest text-red-400 hover:bg-red-500/15 transition-colors"
+        className="inline-flex items-center gap-1.5 rounded-md border border-red-500/40 bg-red-500/5 px-2.5 py-1 font-mono text-sm uppercase tracking-widest text-red-400 hover:bg-red-500/15 transition-colors"
       >
         <ShieldAlert size={11} />
         Revogar status PRO
@@ -770,13 +770,13 @@ export function CoachNotesModal({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 rounded-md border border-border-subtle px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest text-text-muted hover:border-brand-primary/60 hover:text-brand-primary transition-colors"
+        className="inline-flex items-center gap-1.5 rounded-md border border-border-subtle px-2.5 py-1 font-mono text-sm uppercase tracking-widest text-text-muted hover:border-brand-primary/60 hover:text-brand-primary transition-colors"
       >
         Notas privadas Pedro
       </button>
 
       <ModalBase open={open} onClose={close} eyebrow="Privado" title={`Notas — ${username}`}>
-        <p className="mb-4 font-mono text-[10px] text-text-faded">
+        <p className="mb-4 font-mono text-sm text-text-faded">
           Visível apenas para admin. Nunca exposto ao usuário.
         </p>
         <div>

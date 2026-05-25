@@ -193,7 +193,7 @@ export default async function PerfilPublicoPage(props: PageProps) {
           />
 
           <div className="flex-1 min-w-0">
-            <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-brand-primary">
+            <p className="font-sans text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
               Perfil público
             </p>
             <h1 className="mt-1 font-display text-4xl uppercase tracking-tight text-text-display truncate">
@@ -224,7 +224,7 @@ export default async function PerfilPublicoPage(props: PageProps) {
         {/* Voltar — link textual leve (não é CTA primário) */}
         <Link
           href="/ranking"
-          className="inline-flex items-center gap-2 font-sans text-xs uppercase tracking-widest text-text-muted hover:text-text-display transition-colors"
+          className="inline-flex items-center gap-2 font-sans text-sm uppercase tracking-widest text-text-muted hover:text-text-display transition-colors"
         >
           <ArrowLeft size={14} aria-hidden="true" />
           Voltar ao ranking
@@ -234,7 +234,7 @@ export default async function PerfilPublicoPage(props: PageProps) {
             Stats locais — temporada atual
             ---------------------------------------------------------------- */}
         <section>
-          <h2 className="mb-4 font-sans text-xs font-semibold uppercase tracking-widest text-text-faded">
+          <h2 className="mb-4 font-sans text-sm font-semibold uppercase tracking-widest text-text-faded">
             Temporada atual
           </h2>
           <div className="grid gap-4 md:grid-cols-4">
@@ -253,11 +253,11 @@ export default async function PerfilPublicoPage(props: PageProps) {
             ---------------------------------------------------------------- */}
         <section>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="font-sans text-xs font-semibold uppercase tracking-widest text-text-faded">
+            <h2 className="font-sans text-sm font-semibold uppercase tracking-widest text-text-faded">
               Stats expandidos
             </h2>
             {externalStats && (
-              <span className="font-mono text-[10px] uppercase tracking-widest text-text-faded">
+              <span className="font-mono text-sm uppercase tracking-widest text-text-faded">
                 Fonte: {externalStats.source}
               </span>
             )}
@@ -286,7 +286,7 @@ export default async function PerfilPublicoPage(props: PageProps) {
             ---------------------------------------------------------------- */}
         {externalStats && externalStats.topHeroes.length > 0 && (
           <section>
-            <h2 className="mb-4 font-sans text-xs font-semibold uppercase tracking-widest text-text-faded">
+            <h2 className="mb-4 font-sans text-sm font-semibold uppercase tracking-widest text-text-faded">
               Heróis mais jogados
             </h2>
             <div className="grid gap-3 md:grid-cols-5">
@@ -300,13 +300,13 @@ export default async function PerfilPublicoPage(props: PageProps) {
                 >
                   <Card variant="interactive">
                     <CardContent className="space-y-1">
-                      <p className="font-mono text-[10px] uppercase tracking-widest text-text-faded">
+                      <p className="font-mono text-sm uppercase tracking-widest text-text-faded">
                         Herói #{h.heroId}
                       </p>
                       <p className="font-display text-2xl text-text-display">
                         {h.winRate}%
                       </p>
-                      <p className="font-mono text-[10px] uppercase tracking-widest text-text-muted">
+                      <p className="font-mono text-sm uppercase tracking-widest text-text-muted">
                         {h.wins}V / {h.matches - h.wins}D em {h.matches}
                       </p>
                     </CardContent>
@@ -321,7 +321,7 @@ export default async function PerfilPublicoPage(props: PageProps) {
             Badges conquistadas
             ---------------------------------------------------------------- */}
         <section>
-          <h2 className="mb-4 font-sans text-xs font-semibold uppercase tracking-widest text-text-faded">
+          <h2 className="mb-4 font-sans text-sm font-semibold uppercase tracking-widest text-text-faded">
             Badges conquistadas{" "}
             <span className="text-text-faded">({userBadges.length})</span>
           </h2>
@@ -348,14 +348,14 @@ export default async function PerfilPublicoPage(props: PageProps) {
             Identidades vinculadas — Steam + Discord como cards compactos
             ---------------------------------------------------------------- */}
         <section>
-          <h2 className="mb-4 font-sans text-xs font-semibold uppercase tracking-widest text-text-faded">
+          <h2 className="mb-4 font-sans text-sm font-semibold uppercase tracking-widest text-text-faded">
             Identidades vinculadas
           </h2>
           <div className="flex flex-wrap gap-3">
-            <span className="inline-flex items-center rounded-md border border-border-brand bg-bg-elevated px-4 py-2 font-mono text-xs text-text-display">
+            <span className="inline-flex items-center rounded-md border border-border-brand bg-bg-elevated px-4 py-2 font-mono text-sm text-text-display">
               Steam: {params.steamid}
             </span>
-            <span className="inline-flex items-center rounded-md border border-border-subtle bg-bg-elevated px-4 py-2 font-mono text-xs text-text-muted">
+            <span className="inline-flex items-center rounded-md border border-border-subtle bg-bg-elevated px-4 py-2 font-mono text-sm text-text-muted">
               Discord: {profile?.username ?? "—"}
             </span>
           </div>
@@ -373,7 +373,7 @@ function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
     <Card variant="flat">
       <CardHeader>
-        <CardTitle className="font-sans text-xs uppercase tracking-widest text-text-faded font-normal">
+        <CardTitle className="font-sans text-sm uppercase tracking-widest text-text-faded font-normal">
           {label}
         </CardTitle>
       </CardHeader>
@@ -421,18 +421,18 @@ function BadgeCard({
       <CardContent className="space-y-2">
         <div className="flex items-start justify-between">
           <IconComponent size={20} className="text-text-display" />
-          <span className="font-mono text-[9px] uppercase tracking-widest text-text-faded">
+          <span className="font-mono text-sm uppercase tracking-widest text-text-faded">
             T{badge.tier}
           </span>
         </div>
         <p className="font-display text-sm uppercase tracking-wide text-text-display">
           {badge.name}
         </p>
-        <p className="font-sans text-[11px] text-text-muted leading-relaxed">
+        <p className="font-sans text-sm text-text-muted leading-relaxed">
           {badge.description}
         </p>
         {badge.earned_at && (
-          <p className="font-mono text-[9px] uppercase tracking-widest text-text-faded">
+          <p className="font-mono text-sm uppercase tracking-widest text-text-faded">
             {new Date(badge.earned_at).toLocaleDateString("pt-BR")}
           </p>
         )}

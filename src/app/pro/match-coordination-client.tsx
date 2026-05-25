@@ -61,11 +61,11 @@ export function MatchCoordinationClient({
                 Partida em Curso
               </p>
               {activeSession.voiceChannelName && (
-                <p className="text-xs text-[#556070] font-mono">
+                <p className="text-sm text-[#556070] font-mono">
                   {activeSession.voiceChannelName}
                 </p>
               )}
-              <p className="text-xs text-[#334455] font-mono">
+              <p className="text-sm text-[#334455] font-mono">
                 {activeSession.students.length} aluno{activeSession.students.length !== 1 ? "s" : ""}:{" "}
                 {activeSession.students
                   .map((s) => s.username ?? "Jogador")
@@ -92,7 +92,7 @@ export function MatchCoordinationClient({
               <p className="font-display text-sm uppercase tracking-widest text-text-display">
                 Fila
               </p>
-              <p className="text-xs text-[#556070]">
+              <p className="text-sm text-[#556070]">
                 {queueParticipants.length} aluno{queueParticipants.length !== 1 ? "s" : ""} aguardando
                 {queueParticipants.length < 4 && (
                   <span className="text-[#334455]">
@@ -123,7 +123,7 @@ export function MatchCoordinationClient({
               {queueParticipants.map((p) => (
                 <span
                   key={p.userId}
-                  className="flex items-center gap-1 rounded border border-[#0D0D2A] bg-[#050510] px-2 py-1 text-xs text-[#8899AA]"
+                  className="flex items-center gap-1 rounded border border-[#0D0D2A] bg-[#050510] px-2 py-1 text-sm text-[#8899AA]"
                 >
                   <Users className="h-3 w-3 text-[#334455]" aria-hidden="true" />
                   {p.username ?? "Jogador"}

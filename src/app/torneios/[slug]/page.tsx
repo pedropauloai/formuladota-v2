@@ -134,7 +134,7 @@ export default async function TournamentDetailPage(props: PageProps) {
       <div className="px-6 py-8 xl:px-12 xl:py-10 2xl:px-16 2xl:py-12">
         <Link
           href="/torneios"
-          className="inline-flex items-center gap-2 mb-6 font-display text-xs uppercase tracking-widest text-text-muted hover:text-text-display transition-colors"
+          className="inline-flex items-center gap-2 mb-6 font-display text-sm uppercase tracking-widest text-text-muted hover:text-text-display transition-colors"
         >
           <ArrowLeft size={14} />
           Voltar pra torneios
@@ -202,7 +202,7 @@ export default async function TournamentDetailPage(props: PageProps) {
 
         {/* Times registrados */}
         <section className="mt-8">
-          <h2 className="mb-4 font-display text-xs 2xl:text-sm font-semibold uppercase tracking-[0.2em] text-text-body">
+          <h2 className="mb-4 font-display text-sm 2xl:text-sm font-semibold uppercase tracking-[0.2em] text-text-body">
             Times registrados
           </h2>
           {registeredTeams.length === 0 ? (
@@ -225,7 +225,7 @@ export default async function TournamentDetailPage(props: PageProps) {
                       />
                     ) : (
                       <div className="size-10 rounded-sm border border-border-subtle bg-brand-primary/15 flex items-center justify-center">
-                        <span className="font-display text-xs text-brand-primary">
+                        <span className="font-display text-sm text-brand-primary">
                           {rt.team.tag}
                         </span>
                       </div>
@@ -234,7 +234,7 @@ export default async function TournamentDetailPage(props: PageProps) {
                       <p className="font-body text-sm text-text-display truncate">
                         {rt.team.name}
                       </p>
-                      <p className="font-mono text-[10px] uppercase tracking-widest text-text-faded">
+                      <p className="font-mono text-sm uppercase tracking-widest text-text-faded">
                         [{rt.team.tag}]
                         {rt.eliminated_at && (
                           <span className="ml-2 text-error">eliminado</span>
@@ -251,7 +251,7 @@ export default async function TournamentDetailPage(props: PageProps) {
         {/* Bracket */}
         {matches && matches.length > 0 && (
           <section className="mt-10">
-            <h2 className="mb-4 font-display text-xs 2xl:text-sm font-semibold uppercase tracking-[0.2em] text-text-body">
+            <h2 className="mb-4 font-display text-sm 2xl:text-sm font-semibold uppercase tracking-[0.2em] text-text-body">
               Chave
             </h2>
             <div className="space-y-6">
@@ -308,7 +308,7 @@ function StatBlock({
     <div className="rounded-md border border-border-subtle bg-bg-base p-4 space-y-1">
       <div className="flex items-center gap-2 text-text-faded">
         <Icon size={12} aria-hidden="true" />
-        <span className="font-mono text-[10px] 2xl:text-[11px] uppercase tracking-widest">
+        <span className="font-mono text-sm 2xl:text-sm uppercase tracking-widest">
           {label}
         </span>
       </div>
@@ -356,7 +356,7 @@ function BracketMatchCard({ match }: { match: MatchRow }) {
         showScore={match.status === "completed"}
       />
       {match.scheduled_at && match.status === "scheduled" && (
-        <div className="px-3 py-1.5 bg-bg-deep font-mono text-[9px] uppercase tracking-widest text-text-faded text-center">
+        <div className="px-3 py-1.5 bg-bg-deep font-mono text-sm uppercase tracking-widest text-text-faded text-center">
           {new Date(match.scheduled_at).toLocaleString("pt-BR", {
             day: "2-digit",
             month: "2-digit",
@@ -390,7 +390,7 @@ function TeamLine({
     >
       <div className="flex items-center gap-2 min-w-0">
         {tag && (
-          <span className="font-mono text-[10px] uppercase tracking-widest text-text-faded shrink-0">
+          <span className="font-mono text-sm uppercase tracking-widest text-text-faded shrink-0">
             [{tag}]
           </span>
         )}

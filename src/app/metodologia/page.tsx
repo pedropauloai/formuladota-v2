@@ -53,7 +53,7 @@ export default async function MetodologiaPage() {
         <div className="relative z-10 mx-auto max-w-3xl space-y-16">
           {/* Hero — eyebrow + título + subtítulo (tipografia V2.5) */}
           <header className="space-y-6 text-center">
-            <p className="font-display text-xs uppercase tracking-[0.4em] text-brand-primary">
+            <p className="font-display text-sm uppercase tracking-[0.4em] text-brand-primary">
               Metodologia · v1
             </p>
             <h1 className="font-display text-4xl tracking-wide text-text-display md:text-5xl">
@@ -71,7 +71,7 @@ export default async function MetodologiaPage() {
 
           {/* Tese central — destacada no topo (Card com border brand) */}
           <Card variant="elevated" className="border-border-brand p-8 text-center">
-            <p className="mb-2 font-display text-xs uppercase tracking-[0.4em] text-brand-primary">
+            <p className="mb-2 font-display text-sm uppercase tracking-[0.4em] text-brand-primary">
               Tese Central
             </p>
             <blockquote className="font-display text-xl tracking-wide italic leading-relaxed text-text-display md:text-2xl">
@@ -95,7 +95,7 @@ export default async function MetodologiaPage() {
             aria-label="Sumário da metodologia"
             className="rounded-[var(--radius-lg)] border border-border-subtle bg-bg-elevated p-5"
           >
-            <p className="mb-3 font-display text-xs uppercase tracking-[0.4em] text-brand-primary">
+            <p className="mb-3 font-display text-sm uppercase tracking-[0.4em] text-brand-primary">
               Sumário
             </p>
             <ol className="space-y-2 font-body text-sm">
@@ -153,16 +153,16 @@ export default async function MetodologiaPage() {
               <table className="w-full font-body text-sm text-text-body">
                 <thead className="bg-bg-elevated text-left">
                   <tr>
-                    <th className="px-4 py-3 font-display text-xs uppercase tracking-wider text-text-display">
+                    <th className="px-4 py-3 font-display text-sm uppercase tracking-wider text-text-display">
                       Função
                     </th>
-                    <th className="px-4 py-3 font-display text-xs uppercase tracking-wider text-text-display">
+                    <th className="px-4 py-3 font-display text-sm uppercase tracking-wider text-text-display">
                       Meta @ 10min
                     </th>
-                    <th className="px-4 py-3 font-display text-xs uppercase tracking-wider text-text-display">
+                    <th className="px-4 py-3 font-display text-sm uppercase tracking-wider text-text-display">
                       Meta @ 20min
                     </th>
-                    <th className="px-4 py-3 font-display text-xs uppercase tracking-wider text-text-display">
+                    <th className="px-4 py-3 font-display text-sm uppercase tracking-wider text-text-display">
                       GPM
                     </th>
                   </tr>
@@ -257,13 +257,13 @@ export default async function MetodologiaPage() {
               <table className="w-full font-body text-sm text-text-body">
                 <thead className="bg-bg-elevated text-left">
                   <tr>
-                    <th className="px-4 py-3 font-display text-xs uppercase tracking-wider text-text-display">
+                    <th className="px-4 py-3 font-display text-sm uppercase tracking-wider text-text-display">
                       Medalha
                     </th>
-                    <th className="px-4 py-3 font-display text-xs uppercase tracking-wider text-text-display">
+                    <th className="px-4 py-3 font-display text-sm uppercase tracking-wider text-text-display">
                       Jogadores
                     </th>
-                    <th className="px-4 py-3 font-display text-xs uppercase tracking-wider text-text-display">
+                    <th className="px-4 py-3 font-display text-sm uppercase tracking-wider text-text-display">
                       % mundial
                     </th>
                   </tr>
@@ -476,13 +476,13 @@ export default async function MetodologiaPage() {
             <div className="flex flex-wrap justify-center gap-4">
               <Link
                 href="/codigo-de-conduta"
-                className="font-mono text-xs uppercase tracking-widest text-brand-primary transition hover:text-glow-red"
+                className="font-mono text-sm uppercase tracking-widest text-brand-primary transition hover:text-glow-red"
               >
                 ler a doutrina →
               </Link>
               <Link
                 href="/"
-                className="font-mono text-xs uppercase tracking-widest text-text-muted transition hover:text-text-display"
+                className="font-mono text-sm uppercase tracking-widest text-text-muted transition hover:text-text-display"
               >
                 ← voltar à home
               </Link>

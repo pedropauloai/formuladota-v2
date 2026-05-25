@@ -82,7 +82,7 @@ export default async function TimesPage() {
       <div className="px-6 py-8 xl:px-12 xl:py-10 2xl:px-16 2xl:py-12">
         {/* Header padronizado V2.5: eyebrow + h1 + descrição */}
         <header className="mb-8 2xl:mb-10">
-          <p className="font-display text-xs 2xl:text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
+          <p className="font-display text-sm 2xl:text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
             FORMULADOTA · Competitivo
           </p>
           <h1 className="mt-2 font-display text-3xl 2xl:text-5xl uppercase tracking-tight text-text-display">

@@ -65,7 +65,7 @@ export default async function TeamDetailPage(props: PageProps) {
       <div className="px-6 py-8 xl:px-12 xl:py-10 2xl:px-16 2xl:py-12">
         <Link
           href="/times"
-          className="inline-flex items-center gap-2 mb-6 font-display text-xs uppercase tracking-widest text-text-muted hover:text-text-display transition-colors"
+          className="inline-flex items-center gap-2 mb-6 font-display text-sm uppercase tracking-widest text-text-muted hover:text-text-display transition-colors"
         >
           <ArrowLeft size={14} />
           Voltar pra times
@@ -88,7 +88,7 @@ export default async function TeamDetailPage(props: PageProps) {
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <p className="font-mono text-xs 2xl:text-sm uppercase tracking-widest text-brand-primary">
+            <p className="font-mono text-sm 2xl:text-sm uppercase tracking-widest text-brand-primary">
               [{team.tag}]
             </p>
             <h1 className="mt-1 font-display text-4xl uppercase tracking-wide text-text-display 2xl:text-5xl">
@@ -108,7 +108,7 @@ export default async function TeamDetailPage(props: PageProps) {
             <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-[0.2em]">
               <Users size={14} className="text-text-muted" aria-hidden="true" />
               Roster
-              <span className="font-mono text-xs text-text-faded normal-case tracking-normal">
+              <span className="font-mono text-sm text-text-faded normal-case tracking-normal">
                 ({enrichedMembers.length}/7)
               </span>
             </CardTitle>
@@ -137,7 +137,7 @@ export default async function TeamDetailPage(props: PageProps) {
                         />
                       )}
                     </p>
-                    <p className="font-mono text-[10px] uppercase tracking-widest text-text-faded">
+                    <p className="font-mono text-sm uppercase tracking-widest text-text-faded">
                       {m.role}
                     </p>
                   </div>

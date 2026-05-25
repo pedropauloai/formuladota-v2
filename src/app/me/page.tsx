@@ -140,7 +140,7 @@ export default async function MePage() {
           />
 
           <div className="flex-1 min-w-0">
-            <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-brand-primary">
+            <p className="font-sans text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
               Meu painel
             </p>
             <h1 className="mt-2 font-display text-3xl uppercase tracking-tight text-text-display">
@@ -170,7 +170,7 @@ export default async function MePage() {
             Mensalidade
             ---------------------------------------------------------------- */}
         <section className="space-y-3">
-          <h2 className="font-sans text-xs font-semibold uppercase tracking-widest text-text-faded">
+          <h2 className="font-sans text-sm font-semibold uppercase tracking-widest text-text-faded">
             Mensalidade
           </h2>
           <Card
@@ -193,7 +193,7 @@ export default async function MePage() {
                     {subActive ? "Mensalidade ativa" : "Sem mensalidade ativa"}
                   </p>
                   {subscription?.next_payment_date && (
-                    <p className="mt-1 font-mono text-xs text-text-muted">
+                    <p className="mt-1 font-mono text-sm text-text-muted">
                       Próxima cobrança:{" "}
                       {new Date(subscription.next_payment_date).toLocaleDateString("pt-BR")}
                     </p>
@@ -226,7 +226,7 @@ export default async function MePage() {
             Identidades vinculadas — Discord + Steam com PresenceDot
             ---------------------------------------------------------------- */}
         <section className="space-y-3">
-          <h2 className="font-sans text-xs font-semibold uppercase tracking-widest text-text-faded">
+          <h2 className="font-sans text-sm font-semibold uppercase tracking-widest text-text-faded">
             Identidades vinculadas
           </h2>
           <div className="grid gap-3 md:grid-cols-2">
@@ -265,7 +265,7 @@ function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
     <Card variant="flat">
       <CardHeader>
-        <CardTitle className="font-sans text-xs uppercase tracking-widest text-text-faded font-normal">
+        <CardTitle className="font-sans text-sm uppercase tracking-widest text-text-faded font-normal">
           {label}
         </CardTitle>
       </CardHeader>
@@ -292,7 +292,7 @@ function IdentityCard({
     <Card variant={href ? "interactive" : "flat"}>
       <CardContent className="flex items-center justify-between">
         <div className="min-w-0">
-          <p className="font-sans text-xs uppercase tracking-widest text-text-faded">
+          <p className="font-sans text-sm uppercase tracking-widest text-text-faded">
             {label}
           </p>
           <p className="mt-1 font-mono text-sm text-text-display truncate">

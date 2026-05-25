@@ -399,7 +399,7 @@ export function HonorRankMedal({
           <span
             className={cn(
               "font-display-condensed",
-              size === "sm" ? "text-[9px]" : size === "xl" ? "text-sm" : "text-xs",
+              size === "sm" ? "text-sm" : size === "xl" ? "text-sm" : "text-sm",
               "uppercase tracking-widest text-text-faded whitespace-nowrap",
             )}
           >
@@ -423,7 +423,7 @@ export function HonorRankMedal({
             className={cn(
               "absolute -bottom-1 left-1/2 -translate-x-1/2",
               "rounded-sm px-1 py-px",
-              "font-mono text-[8px] uppercase tracking-widest whitespace-nowrap",
+              "font-mono text-sm uppercase tracking-widest whitespace-nowrap",
               "bg-warning/20 border border-warning/40 text-warning",
             )}
           >
@@ -434,7 +434,7 @@ export function HonorRankMedal({
           <span
             className={cn(
               "font-display-condensed",
-              size === "sm" ? "text-[9px]" : size === "xl" ? "text-sm" : "text-xs",
+              size === "sm" ? "text-sm" : size === "xl" ? "text-sm" : "text-sm",
               "uppercase tracking-widest text-warning whitespace-nowrap",
             )}
           >
@@ -488,7 +488,7 @@ export function HonorRankMedal({
             /* Fonte condensada display — Teko via font-display-condensed */
             "font-display-condensed",
             /* Tamanho relativo ao size da medalha */
-            size === "sm" ? "text-[9px]" : size === "xl" ? "text-sm" : "text-xs",
+            size === "sm" ? "text-sm" : size === "xl" ? "text-sm" : "text-sm",
             /* Estilo cerimonial: uppercase + tracking largo */
             "uppercase tracking-widest",
             /* Imortal da Fórmula recebe cor brand, outros ficam muted */

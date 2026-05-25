@@ -118,7 +118,7 @@ export default async function StudentDetailPage({ params }: PageProps) {
   return (
     <main className="flex flex-col gap-8 p-6 max-w-3xl">
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-xs text-text-muted">
+      <nav className="flex items-center gap-2 text-sm text-text-muted">
         <a href="/pro" className="hover:text-text-body transition-colors">
           Painel PRO
         </a>
@@ -155,7 +155,7 @@ export default async function StudentDetailPage({ params }: PageProps) {
                 {username}
               </span>
 
-              <div className="flex items-center gap-4 text-xs text-text-muted">
+              <div className="flex items-center gap-4 text-sm text-text-muted">
                 <span>
                   MMR: {studentProfile.mmr_atual ? `${studentProfile.mmr_atual}` : "—"}
                 </span>
@@ -170,7 +170,7 @@ export default async function StudentDetailPage({ params }: PageProps) {
               {/* Status de comportamento */}
               <span
                 className={cn(
-                  "mt-1 self-start text-xs px-2 py-0.5 rounded-full border uppercase tracking-wider",
+                  "mt-1 self-start text-sm px-2 py-0.5 rounded-full border uppercase tracking-wider",
                   studentProfile.behavior_status === "ok"
                     ? "bg-success/10 text-success border-success/20"
                     : "bg-warning/10 text-warning border-warning/20"
@@ -187,7 +187,7 @@ export default async function StudentDetailPage({ params }: PageProps) {
               <span className="text-sm text-warning font-medium">
                 {strikeCount} strike{strikeCount > 1 ? "s" : ""} registrado{strikeCount > 1 ? "s" : ""}
               </span>
-              <span className="text-xs text-text-muted">
+              <span className="text-sm text-text-muted">
                 (notas negativas de coaches)
               </span>
             </div>
@@ -237,11 +237,11 @@ export default async function StudentDetailPage({ params }: PageProps) {
                 )}
               >
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-xs font-medium text-text-body">
+                  <span className="text-sm font-medium text-text-body">
                     {honorSourceLabel(entry.source)}
                   </span>
                   {entry.reason && (
-                    <span className="text-xs text-text-muted">
+                    <span className="text-sm text-text-muted">
                       {entry.reason}
                     </span>
                   )}
@@ -257,7 +257,7 @@ export default async function StudentDetailPage({ params }: PageProps) {
                     {entry.delta > 0 ? "+" : ""}
                     {entry.delta}
                   </span>
-                  <span className="text-xs text-text-muted">
+                  <span className="text-sm text-text-muted">
                     {new Date(entry.createdAt).toLocaleDateString("pt-BR")}
                   </span>
                 </div>

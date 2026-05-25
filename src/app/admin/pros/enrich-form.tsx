@@ -67,7 +67,7 @@ export function EnrichForm({ matches }: Props) {
       <div>
         <label
           htmlFor="match-select"
-          className="mb-2 block font-sans text-xs font-semibold uppercase tracking-widest text-text-muted"
+          className="mb-2 block font-sans text-sm font-semibold uppercase tracking-widest text-text-muted"
         >
           PT pendente
         </label>
@@ -89,7 +89,7 @@ export function EnrichForm({ matches }: Props) {
       <div>
         <label
           htmlFor="dota-match-id"
-          className="mb-2 block font-sans text-xs font-semibold uppercase tracking-widest text-text-muted"
+          className="mb-2 block font-sans text-sm font-semibold uppercase tracking-widest text-text-muted"
         >
           Dota Match ID
         </label>
@@ -103,7 +103,7 @@ export function EnrichForm({ matches }: Props) {
           placeholder="ex: 7891234567"
           className="w-full rounded-md border border-border-subtle bg-bg-elevated px-3 py-2 font-mono-ui text-sm text-text-body placeholder:text-text-faded"
         />
-        <p className="mt-2 font-mono-ui text-xs text-text-muted">
+        <p className="mt-2 font-mono-ui text-sm text-text-muted">
           Encontre o match ID no histórico do Dota 2 ou em https://dotabuff.com/
         </p>
       </div>

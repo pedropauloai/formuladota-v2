@@ -150,14 +150,14 @@ export function FinishMatchModal({
           {/* Alunos da sessao */}
           {students.length > 0 && (
             <div>
-              <p className="mb-2 text-xs text-[#556070] uppercase tracking-wider font-mono">
+              <p className="mb-2 text-sm text-[#556070] uppercase tracking-wider font-mono">
                 Participantes
               </p>
               <ul className="flex flex-wrap gap-2" role="list">
                 {students.map((student) => (
                   <li
                     key={student.userId}
-                    className="rounded border border-[#0D0D2A] bg-[#050510] px-3 py-1 text-xs text-[#8899AA]"
+                    className="rounded border border-[#0D0D2A] bg-[#050510] px-3 py-1 text-sm text-[#8899AA]"
                   >
                     {student.username ?? "Jogador"}
                   </li>
@@ -170,7 +170,7 @@ export function FinishMatchModal({
           <div>
             <label
               htmlFor="dota-match-id"
-              className="mb-2 block text-xs text-[#556070] uppercase tracking-wider font-mono"
+              className="mb-2 block text-sm text-[#556070] uppercase tracking-wider font-mono"
             >
               Match ID Dota 2
             </label>
@@ -206,7 +206,7 @@ export function FinishMatchModal({
             </div>
             <p
               id="match-id-hint"
-              className="mt-1 text-xs text-[#334455]"
+              className="mt-1 text-sm text-[#334455]"
             >
               8 a 12 digitos. Disponivel na aba Recentes do Dota 2 apos a partida.
             </p>
@@ -234,17 +234,17 @@ export function FinishMatchModal({
                     <span className="font-medium">
                       {preview.participantsFound}/{preview.participantsExpected} participantes confirmados na partida.
                     </span>
-                    <span className="text-xs text-[#00F0FF]/70">
+                    <span className="text-sm text-[#00F0FF]/70">
                       Partida valida. Confirme para finalizar e consumir as fichas.
                     </span>
                   </>
                 ) : (
                   <>
                     <span className="font-medium">Validacao falhou</span>
-                    <span className="text-xs text-amber-400/70">
+                    <span className="text-sm text-amber-400/70">
                       {preview.reason ?? "Erro desconhecido na validacao."}
                     </span>
-                    <span className="text-xs text-amber-400/70 mt-1">
+                    <span className="text-sm text-amber-400/70 mt-1">
                       Voce ainda pode confirmar — a partida sera registrada como nao verificada.
                     </span>
                   </>
@@ -273,7 +273,7 @@ export function FinishMatchModal({
                 {finalResult.success ? (
                   <>
                     <span className="font-medium">Partida finalizada.</span>
-                    <span className="text-xs text-[#00F0FF]/70">
+                    <span className="text-sm text-[#00F0FF]/70">
                       {finalResult.validated
                         ? "Fichas consumidas e match validado via OpenDota."
                         : "Fichas consumidas. Match registrado como nao verificado (OpenDota pode demorar)."}

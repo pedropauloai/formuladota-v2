@@ -74,7 +74,7 @@ function ConfirmModal({
           disabled={loading}
         />
 
-        <p className="mt-1 text-xs text-text-muted">
+        <p className="mt-1 text-sm text-text-muted">
           {text.length}/{minLength} caracteres mínimos
         </p>
 
@@ -208,7 +208,7 @@ export function StudentRow({ student, onActionSuccess }: StudentRowProps) {
             </span>
 
             {/* Métricas inline */}
-            <div className="flex items-center gap-3 mt-0.5 text-xs text-text-muted">
+            <div className="flex items-center gap-3 mt-0.5 text-sm text-text-muted">
               <span>{student.totalMatches} PTs</span>
               <span>Ultima: {formatRelative(student.lastMatchAt)}</span>
               {student.strikeCount > 0 && (
@@ -229,7 +229,7 @@ export function StudentRow({ student, onActionSuccess }: StudentRowProps) {
             disabled={isPending}
             title="Coach Note +5 Honor"
             className={cn(
-              "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium",
+              "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium",
               "bg-success/10 text-success border border-success/20",
               "hover:bg-success/20 transition-colors disabled:opacity-50"
             )}
@@ -245,7 +245,7 @@ export function StudentRow({ student, onActionSuccess }: StudentRowProps) {
             disabled={isPending}
             title="Coach Note -5 Honor"
             className={cn(
-              "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium",
+              "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium",
               "bg-error/10 text-error border border-error/20",
               "hover:bg-error/20 transition-colors disabled:opacity-50"
             )}
@@ -261,7 +261,7 @@ export function StudentRow({ student, onActionSuccess }: StudentRowProps) {
             disabled={isPending}
             title="Recomendar para promoção PRO"
             className={cn(
-              "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium",
+              "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium",
               "bg-brand-primary/10 text-brand-primary border border-brand-primary/20",
               "hover:bg-brand-primary/20 transition-colors disabled:opacity-50"
             )}
@@ -274,7 +274,7 @@ export function StudentRow({ student, onActionSuccess }: StudentRowProps) {
           <a
             href={`/pro/students/${student.userId}`}
             className={cn(
-              "flex items-center gap-1 rounded-md px-3 py-1.5 text-xs font-medium",
+              "flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium",
               "text-text-muted hover:text-text-body bg-bg-base border border-border-subtle",
               "hover:border-border-primary/30 transition-colors"
             )}
@@ -289,7 +289,7 @@ export function StudentRow({ student, onActionSuccess }: StudentRowProps) {
         {feedback && (
           <div
             className={cn(
-              "absolute bottom-2 right-4 text-xs px-3 py-1 rounded-full border",
+              "absolute bottom-2 right-4 text-sm px-3 py-1 rounded-full border",
               feedback.type === "success"
                 ? "bg-success/10 text-success border-success/20"
                 : "bg-error/10 text-error border-error/20"

@@ -206,7 +206,7 @@ export function OnFireOverlay({
       <span
         className={cn(
           "font-[family-name:var(--font-display-condensed)]",
-          "text-xs font-semibold uppercase tracking-wider",
+          "text-sm font-semibold uppercase tracking-wider",
           "text-[var(--color-text-display)]",
           // Tabular nums para os números (streak, MMR) ficarem alinhados
           "tabular-nums",

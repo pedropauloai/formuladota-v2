@@ -30,7 +30,7 @@ export default async function CriarLobbyPage() {
     <ClientShell currentRoute="/criar-lobby">
       <div className="px-6 py-10 mx-auto max-w-2xl">
         <header className="mb-12 text-center">
-          <p className="font-sans text-xs font-semibold uppercase tracking-[0.3em] text-brand-primary">
+          <p className="font-sans text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
             Criar Lobby
           </p>
           <h1 className="mt-3 font-display text-4xl uppercase tracking-tight text-text-display md:text-5xl">

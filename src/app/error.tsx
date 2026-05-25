@@ -27,7 +27,7 @@ export default function GlobalError({
       <Card variant="elevated" className="w-full max-w-md border-error">
         <CardContent className="space-y-6">
           <header className="space-y-2 text-center">
-            <p className="font-mono text-xs uppercase tracking-widest text-error">
+            <p className="font-mono text-sm uppercase tracking-widest text-error">
               erro inesperado
             </p>
             <h1 className="font-display text-2xl uppercase tracking-tight text-text-display">
@@ -41,7 +41,7 @@ export default function GlobalError({
           </p>
 
           {error.digest && (
-            <p className="rounded-md border border-border-subtle bg-bg-base p-3 font-mono text-xs text-text-muted">
+            <p className="rounded-md border border-border-subtle bg-bg-base p-3 font-mono text-sm text-text-muted">
               ID do erro: {error.digest}
             </p>
           )}
@@ -52,7 +52,7 @@ export default function GlobalError({
             </Button>
             <Link
               href="/"
-              className="font-mono text-xs uppercase tracking-widest text-text-muted hover:text-text-display transition-colors"
+              className="font-mono text-sm uppercase tracking-widest text-text-muted hover:text-text-display transition-colors"
             >
               ← home
             </Link>

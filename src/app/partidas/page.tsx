@@ -84,7 +84,7 @@ export default async function PartidasPage() {
     <ClientShell currentRoute="/partidas">
       <div className="px-4 py-10 mx-auto max-w-4xl">
         <header className="mb-8 space-y-3">
-          <p className="font-display text-xs uppercase tracking-[0.4em] text-brand-primary">
+          <p className="font-display text-sm uppercase tracking-[0.4em] text-brand-primary">
             Minhas partidas
           </p>
           <h1 className="font-display text-4xl uppercase tracking-wide text-text-display">
@@ -142,7 +142,7 @@ export default async function PartidasPage() {
                           <p className="text-text-display font-medium">
                             {packageNome}
                           </p>
-                          <p className="text-xs text-text-muted">
+                          <p className="text-sm text-text-muted">
                             #{p.id.slice(0, 8)} &bull; {dataCompra}
                           </p>
                         </div>

@@ -120,7 +120,7 @@ export function PriceEditorCard({
           <h3 className="font-display text-base uppercase tracking-widest text-text-display">
             {packageName}
           </h3>
-          <p className="text-xs text-text-muted mt-0.5 font-mono">
+          <p className="text-sm text-text-muted mt-0.5 font-mono">
             Preço atual:{" "}
             <span className="text-brand-cyan font-semibold">
               R$ {currentPrice.toFixed(2)}
@@ -131,10 +131,10 @@ export function PriceEditorCard({
         {/* Badge de tier HONOR */}
         <div className="flex items-center gap-1.5 shrink-0">
           <TrendingUp className="w-3.5 h-3.5 text-text-muted" aria-hidden="true" />
-          <span className="text-xs text-text-muted uppercase tracking-wider">
+          <span className="text-sm text-text-muted uppercase tracking-wider">
             {tierLabel}
           </span>
-          <span className="text-xs font-mono text-text-subtle">
+          <span className="text-sm font-mono text-text-subtle">
             ({honorScore} pts)
           </span>
         </div>
@@ -160,7 +160,7 @@ export function PriceEditorCard({
               Cooldown ativo — {daysRemaining} dia{daysRemaining !== 1 ? "s" : ""} restantes
             </p>
             {nextChangeAt && (
-              <p className="text-xs text-text-muted mt-0.5 font-mono">
+              <p className="text-sm text-text-muted mt-0.5 font-mono">
                 Próxima mudança permitida em:{" "}
                 {new Date(nextChangeAt).toLocaleDateString("pt-BR", {
                   day: "2-digit",
@@ -169,7 +169,7 @@ export function PriceEditorCard({
                 })}
               </p>
             )}
-            <p className="text-xs text-text-muted mt-1">
+            <p className="text-sm text-text-muted mt-1">
               Preço é compromisso. O cooldown de 30 dias protege seus alunos de instabilidade.
             </p>
           </div>
@@ -184,7 +184,7 @@ export function PriceEditorCard({
         <div className="flex flex-col gap-1.5">
           <label
             htmlFor={`price-input-${packageId}`}
-            className="text-xs uppercase tracking-wider text-text-muted"
+            className="text-sm uppercase tracking-wider text-text-muted"
           >
             Novo preço (R$)
           </label>
@@ -220,13 +220,13 @@ export function PriceEditorCard({
               )}
               aria-label="Slider de preço"
             />
-            <span className="text-xs font-mono text-text-muted shrink-0" id={`price-range-${packageId}`}>
+            <span className="text-sm font-mono text-text-muted shrink-0" id={`price-range-${packageId}`}>
               máx R$ {maxAllowed.toFixed(0)}
             </span>
           </div>
 
           {/* Escala visual do range */}
-          <div className="flex justify-between text-xs text-text-subtle font-mono px-0.5">
+          <div className="flex justify-between text-sm text-text-subtle font-mono px-0.5">
             <span>R$ 10</span>
             <span>R$ {maxAllowed.toFixed(0)}</span>
           </div>
@@ -236,7 +236,7 @@ export function PriceEditorCard({
         <div className="flex flex-col gap-1.5">
           <label
             htmlFor={`reason-input-${packageId}`}
-            className="text-xs uppercase tracking-wider text-text-muted"
+            className="text-sm uppercase tracking-wider text-text-muted"
           >
             Justificativa da mudança{" "}
             <span className="text-text-subtle font-normal normal-case">(obrigatória, 10–500 chars)</span>
@@ -260,7 +260,7 @@ export function PriceEditorCard({
           <div className="flex justify-between items-center">
             <span
               className={cn(
-                "text-xs font-mono",
+                "text-sm font-mono",
                 reason.trim().length < 10 ? "text-text-subtle" : "text-success"
               )}
             >
@@ -299,7 +299,7 @@ export function PriceEditorCard({
       </fieldset>
 
       {/* Disclaimer filosófico */}
-      <p className="text-xs text-text-subtle italic border-t border-border-subtle pt-4">
+      <p className="text-sm text-text-subtle italic border-t border-border-subtle pt-4">
         Preço é compromisso, não marketing. Cobrar mais exige entregar mais. O cooldown de 30 dias
         protege seus alunos de instabilidade. Subir tier HONOR destrava ceiling maior — a reputação
         precede o preço.
@@ -310,7 +310,7 @@ export function PriceEditorCard({
         <div className="border-t border-border-subtle pt-4">
           <button
             onClick={() => setShowHistory((v) => !v)}
-            className="flex items-center gap-2 text-xs uppercase tracking-wider text-text-muted hover:text-text-body transition-colors"
+            className="flex items-center gap-2 text-sm uppercase tracking-wider text-text-muted hover:text-text-body transition-colors"
             aria-expanded={showHistory}
             aria-controls={`history-${packageId}`}
           >
@@ -337,24 +337,24 @@ export function PriceEditorCard({
                   className="rounded-lg border border-border-subtle bg-bg-base p-3 flex flex-col gap-1"
                 >
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-mono text-xs text-text-subtle line-through">
+                    <span className="font-mono text-sm text-text-subtle line-through">
                       R$ {entry.priceBefore.toFixed(2)}
                     </span>
                     <span className="text-text-subtle">→</span>
-                    <span className="font-mono text-xs font-semibold text-brand-cyan">
+                    <span className="font-mono text-sm font-semibold text-brand-cyan">
                       R$ {entry.priceAfter.toFixed(2)}
                     </span>
                     {entry.honorTierAtChange && (
-                      <span className="text-xs text-text-subtle">
+                      <span className="text-sm text-text-subtle">
                         ({TIER_LABELS[entry.honorTierAtChange] ?? entry.honorTierAtChange})
                       </span>
                     )}
-                    <span className="ml-auto text-xs font-mono text-text-subtle">
+                    <span className="ml-auto text-sm font-mono text-text-subtle">
                       {new Date(entry.changedAt).toLocaleDateString("pt-BR")}
                     </span>
                   </div>
                   {entry.reason && (
-                    <p className="text-xs text-text-muted italic">{entry.reason}</p>
+                    <p className="text-sm text-text-muted italic">{entry.reason}</p>
                   )}
                 </div>
               ))}

@@ -131,7 +131,7 @@ export function StartMatchModal({
         <div className="flex flex-col gap-5 p-5">
           {/* Selecao de alunos */}
           <div>
-            <p className="mb-3 text-xs text-[#556070] uppercase tracking-wider font-mono">
+            <p className="mb-3 text-sm text-[#556070] uppercase tracking-wider font-mono">
               Selecione 4 alunos{" "}
               <span
                 className={cn(
@@ -189,7 +189,7 @@ export function StartMatchModal({
                           {participant.username ?? "Jogador"}
                         </span>
 
-                        <span className="font-mono text-xs text-[#556070]">
+                        <span className="font-mono text-sm text-[#556070]">
                           {participant.honorTier}
                         </span>
                       </button>
@@ -204,7 +204,7 @@ export function StartMatchModal({
           <div>
             <label
               htmlFor="room-name"
-              className="mb-2 block text-xs text-[#556070] uppercase tracking-wider font-mono"
+              className="mb-2 block text-sm text-[#556070] uppercase tracking-wider font-mono"
             >
               <Mic className="inline h-3 w-3 mr-1" aria-hidden="true" />
               Nome da sala de voz
@@ -218,7 +218,7 @@ export function StartMatchModal({
               placeholder="Ex: Sessao Sabado 19h"
               className="w-full rounded-lg border border-[#0D0D2A] bg-[#050510] px-4 py-2.5 text-sm text-white placeholder-[#334455] focus:border-[#00F0FF]/40 focus:outline-none focus:ring-1 focus:ring-[#00F0FF]/20"
             />
-            <p className="mt-1 text-xs text-[#334455]">
+            <p className="mt-1 text-sm text-[#334455]">
               {roomName.length}/50 caracteres
             </p>
           </div>

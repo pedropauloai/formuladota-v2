@@ -234,7 +234,7 @@ export function ProCard({
               /* Fallback CSS-only para quando rank não é fornecido */
               <span
                 className={cn(
-                  "text-xs font-bold uppercase tracking-widest",
+                  "text-sm font-bold uppercase tracking-widest",
                   "text-brand-primary",
                   "font-display-condensed",
                 )}
@@ -285,7 +285,7 @@ export function ProCard({
             <p
               className={cn(
                 "font-display",
-                "text-[10px] uppercase tracking-[0.18em]",
+                "text-sm uppercase tracking-[0.18em]",
                 "text-text-faded",
               )}
             >
@@ -305,7 +305,7 @@ export function ProCard({
                       "rounded-sm",
                       "border",
                       "flex items-center justify-center gap-1",
-                      "font-mono text-[11px] font-semibold tabular-nums",
+                      "font-mono text-sm font-semibold tabular-nums",
                       /* Cores semânticas via tokens (C14) */
                       isWin
                         ? "bg-success/10 border-success/30 text-success"

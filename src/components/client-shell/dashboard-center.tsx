@@ -74,7 +74,7 @@ export function DashboardCenter({
             <h2 className="font-display text-2xl uppercase tracking-tight text-text-display xl:text-3xl">
               PROs disponíveis
             </h2>
-            <p className="mt-1 font-mono text-xs text-text-muted">
+            <p className="mt-1 font-mono text-sm text-text-muted">
               {onlinePros.length === 0
                 ? "Nenhum PRO online no momento"
                 : `${onlinePros.length} ${onlinePros.length === 1 ? "PRO" : "PROs"} aceitando alunos agora`}
@@ -95,7 +95,7 @@ export function DashboardCenter({
                 href="https://discord.com/invite/v3pSuZhjBE"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-brand-primary hover:text-text-display transition-colors"
+                className="inline-flex items-center gap-2 font-mono text-sm uppercase tracking-widest text-brand-primary hover:text-text-display transition-colors"
               >
                 Ativar aviso no Discord →
               </a>
@@ -145,7 +145,7 @@ export function DashboardCenter({
             <button
               type="button"
               onClick={() => setOfflineExpanded((v) => !v)}
-              className="flex w-full items-center justify-between gap-2 font-mono text-xs uppercase tracking-widest text-text-muted hover:text-text-body transition-colors"
+              className="flex w-full items-center justify-between gap-2 font-mono text-sm uppercase tracking-widest text-text-muted hover:text-text-body transition-colors"
               aria-expanded={offlineExpanded}
             >
               <span>PROs offline ({offlinePros.length})</span>
@@ -173,7 +173,7 @@ export function DashboardCenter({
                       {pro.coach.username ?? pro.coach.slug}
                     </span>
                     {pro.coach.mmrAtual && (
-                      <span className="font-mono text-xs text-text-faded">
+                      <span className="font-mono text-sm text-text-faded">
                         {pro.coach.mmrAtual.toLocaleString("pt-BR")} MMR
                       </span>
                     )}

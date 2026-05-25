@@ -111,7 +111,7 @@ export default async function PacotesPage() {
     <ClientShell currentRoute="/pacotes">
       <div className="px-4 py-10 md:py-14 mx-auto max-w-7xl">
         <header className="mb-10 md:mb-14 text-center space-y-3">
-          <p className="font-display text-xs uppercase tracking-[0.4em] text-brand-primary">
+          <p className="font-display text-sm uppercase tracking-[0.4em] text-brand-primary">
             Pacotes
           </p>
           <h1 className="font-display text-4xl uppercase tracking-wide text-text-display md:text-6xl">

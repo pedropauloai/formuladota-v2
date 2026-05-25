@@ -67,7 +67,7 @@ function ConfirmModal({
           onChange={(e) => setText(e.target.value)}
           disabled={loading}
         />
-        <p className="mt-1 text-xs text-text-muted">
+        <p className="mt-1 text-sm text-text-muted">
           {text.length}/{minLength} mínimo
         </p>
         <div className="mt-4 flex items-center justify-end gap-3">

@@ -83,7 +83,7 @@ export default async function VincularSteamPage({
       <DotaBackdrop />
       <div className="relative z-10 mx-auto max-w-2xl">
         <header className="mb-8 text-center">
-          <p className="font-mono text-xs uppercase tracking-[0.35em] text-brand-primary">
+          <p className="font-mono text-sm uppercase tracking-[0.35em] text-brand-primary">
             identidade gamer
           </p>
           <h1 className="mt-3 font-display text-3xl font-bold tracking-wide text-text-display md:text-4xl">
@@ -192,7 +192,7 @@ function LinkedState({
           <p className="font-display text-lg font-semibold tracking-wide text-text-display">
             {persona ?? "Sem nickname"}
           </p>
-          <p className="mt-1 font-mono text-xs text-text-muted">
+          <p className="mt-1 font-mono text-sm text-text-muted">
             SteamID 64: {steamId64}
           </p>
         </div>

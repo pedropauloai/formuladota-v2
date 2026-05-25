@@ -86,7 +86,7 @@ export function BadgeStack({ badges, max = 3, className }: BadgeStackProps) {
             "h-5 px-2",
             "rounded-full border border-border-subtle",
             "bg-bg-elevated text-text-muted",
-            "text-[10px] leading-none",
+            "text-sm leading-none",
             "whitespace-nowrap",
           )}
           aria-label={`e mais ${overflow} conquista${overflow !== 1 ? "s" : ""}`}
