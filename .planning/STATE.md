@@ -3,20 +3,20 @@ gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: milestone
 status: completed
-stopped_at: Completed 09-perfil-dota-social/09-05b
-last_updated: "2026-05-26T15:40:11.636Z"
+stopped_at: Completed 09-perfil-dota-social-07-PLAN.md
+last_updated: "2026-05-26T15:51:10.263Z"
 last_activity: 2026-05-26
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 23
-  completed_plans: 17
+  completed_plans: 18
 ---
 
 ## Current Position
 
 Phase: 09 (perfil-dota-social) — EXECUTING
-Plan: 4 of 9
+Plan: 5 of 9
 
 ### Roadmap Evolution
 
@@ -112,8 +112,8 @@ Branch: `feat/hero-state-refactor`
 
 ## Session Continuity
 
-Last session: 2026-05-26T15:40:11.631Z
-Stopped at: Completed 09-perfil-dota-social/09-05b
+Last session: 2026-05-26T15:51:10.258Z
+Stopped at: Completed 09-perfil-dota-social-07-PLAN.md
 Resume file: None
 
 **Próximos passos Pedro decide:**

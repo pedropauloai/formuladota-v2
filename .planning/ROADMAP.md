@@ -267,7 +267,7 @@ Diretórios: `.planning/phases/{NN}-{slug}/`.
 - [x] 09-05a-backend-profile-sidebar-actions-PLAN.md — toggleSidebar + edit profile/avatar Server Actions (3 arquivos)
 - [x] 09-05b-backend-friends-presence-PLAN.md — 5 Server Actions friends (D-31 incluindo blockUser) + presence hook + queries (4 arquivos)
 - [ ] 09-06-sidebar-collapsible-friends-PLAN.md — shell.tsx + left-sidebar.tsx refactor + FriendsList realtime (zero console.* compliance)
-- [ ] 09-07-me-page-3col-tabs-PLAN.md — /me reescrita usando ClientShell IMMERSIVE + centerHero (hero portrait fullscreen via shell) + 4 tabs
+- [x] 09-07-me-page-3col-tabs-PLAN.md — /me reescrita usando ClientShell IMMERSIVE + centerHero (hero portrait fullscreen via shell) + 4 tabs
 - [ ] 09-08-edit-profile-modal-PLAN.md — Dialog takeover 4 abas + HeroPicker + AvatarUpload + toast feedback em cada save
 **UI hint**: yes (high fidelity — UI-SPEC.md APPROVED revision 1)
 **Estimated effort:** 2-4 dias
