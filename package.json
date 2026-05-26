@@ -10,7 +10,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "db:gen-types": "supabase gen types typescript --project-id $SUPABASE_PROJECT_ID --schema public > src/types/database.ts",
-    "gen:heroes": "tsx scripts/gen-heroes.ts"
+    "gen:heroes": "npx tsx scripts/gen-heroes.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
