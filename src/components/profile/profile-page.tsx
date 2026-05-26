@@ -47,26 +47,30 @@ export function ProfilePage({ profile, activeTab, dotaRank, honorRank, editing }
   return (
     <div className="relative flex flex-col min-h-full">
       {/* ──────────────────────────────────────────────────────────────
-          BARRA SUPERIOR — Tabs à esquerda + Botão Editar à direita
-          (logo abaixo do topbar, fidelidade Dota 2 client)
+          BARRA SUPERIOR — Tabs CENTRALIZADAS, encostada no topbar,
+          shadow escura pra contraste com background.
+          Botão Editar à direita absolute (fora do flow das tabs).
+          (fidelidade Dota 2 client)
           ────────────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between gap-4 px-6 pt-4 pb-2 border-b border-border-subtle/60">
+      <div className="relative flex items-center justify-center gap-4 px-6 py-3 border-b border-border-subtle/60 bg-bg-deep/60 backdrop-blur-sm shadow-lg shadow-black/60">
         <ProfileTabs activeTab={activeTab} />
-        {editing ? (
-          <Link href="/me">
-            <Button variant="secondary" size="md">
-              <X size={14} aria-hidden="true" />
-              Sair da edição
-            </Button>
-          </Link>
-        ) : (
-          <Link href="/me?edit=1">
-            <Button variant="cinematic" size="md">
-              <Pencil size={14} aria-hidden="true" />
-              Editar Perfil
-            </Button>
-          </Link>
-        )}
+        <div className="absolute right-6 top-1/2 -translate-y-1/2">
+          {editing ? (
+            <Link href="/me">
+              <Button variant="secondary" size="md">
+                <X size={14} aria-hidden="true" />
+                Sair da edição
+              </Button>
+            </Link>
+          ) : (
+            <Link href="/me?edit=1">
+              <Button variant="cinematic" size="md">
+                <Pencil size={14} aria-hidden="true" />
+                Editar Perfil
+              </Button>
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* ──────────────────────────────────────────────────────────────
