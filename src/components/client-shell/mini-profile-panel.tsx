@@ -80,14 +80,14 @@ export function MiniProfilePanel({
   // Visitante: card minimal com CTA entrar (não tem painel de amigos)
   if (isVisitor) {
     return (
-      <div className="pointer-events-auto fixed left-4 bottom-[88px] xl:bottom-[104px] z-[var(--z-overlay)] w-[280px]">
+      <div className="pointer-events-auto fixed left-4 bottom-4 z-[var(--z-overlay)] w-[280px]">
         <VisitorCardCompact />
       </div>
     );
   }
 
   return (
-    <div className="pointer-events-auto fixed left-4 bottom-[88px] xl:bottom-[104px] z-[var(--z-overlay)] flex flex-col items-start">
+    <div className="pointer-events-auto fixed left-4 bottom-4 z-[var(--z-overlay)] flex flex-col items-start">
       {/* Painel expandido — cresce A PARTIR do card retraído (conectado, sem gap).
           Quando expanded=true, borda inferior do painel + borda superior do card
           são planas, formando um único componente visual contínuo. */}
@@ -223,7 +223,7 @@ function ExpandedPanel({
   return (
     <aside
       aria-label="Mini-perfil e lista de amigos"
-      className="flex w-[340px] xl:w-[380px] flex-col gap-3 rounded-t-md rounded-b-none border border-b-0 border-brand-primary/40 bg-bg-deep/95 backdrop-blur-xl p-4 shadow-2xl shadow-black/80 h-[calc(100dvh-220px)] xl:h-[calc(100dvh-236px)] overflow-hidden animate-in slide-in-from-bottom-4 fade-in duration-200"
+      className="flex w-[340px] xl:w-[380px] flex-col gap-3 rounded-t-md rounded-b-none border border-b-0 border-brand-primary/40 bg-bg-deep/95 backdrop-blur-xl p-4 shadow-2xl shadow-black/80 h-[calc(100dvh-152px)] xl:h-[calc(100dvh-168px)] overflow-hidden animate-in slide-in-from-bottom-4 fade-in duration-200"
     >
       {/* Header — avatar + nome = Link pra /me */}
       <header>
