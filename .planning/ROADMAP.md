@@ -264,7 +264,7 @@ Diretórios: `.planning/phases/{NN}-{slug}/`.
 - [ ] 09-02-migration-034-profile-extended-PLAN.md — 5 colunas em profiles (REQUER APROVAÇÃO PEDRO) — serial Wave 1
 - [ ] 09-03-migration-035-friendships-PLAN.md — tabela friendships + RLS + indexes (REQUER APROVAÇÃO PEDRO) — serial Wave 1 (depende de 09-02)
 - [ ] 09-04-migration-036-storage-avatars-PLAN.md — bucket profile-avatars + storage policies + gen-types único (REQUER APROVAÇÃO PEDRO) — serial Wave 1 (depende de 09-03)
-- [ ] 09-05a-backend-profile-sidebar-actions-PLAN.md — toggleSidebar + edit profile/avatar Server Actions (3 arquivos)
+- [x] 09-05a-backend-profile-sidebar-actions-PLAN.md — toggleSidebar + edit profile/avatar Server Actions (3 arquivos)
 - [ ] 09-05b-backend-friends-presence-PLAN.md — 5 Server Actions friends (D-31 incluindo blockUser) + presence hook + queries (4 arquivos)
 - [ ] 09-06-sidebar-collapsible-friends-PLAN.md — shell.tsx + left-sidebar.tsx refactor + FriendsList realtime (zero console.* compliance)
 - [ ] 09-07-me-page-3col-tabs-PLAN.md — /me reescrita usando ClientShell IMMERSIVE + centerHero (hero portrait fullscreen via shell) + 4 tabs
