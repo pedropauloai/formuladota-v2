@@ -101,8 +101,10 @@ export function MiniProfilePanel({
         />
       )}
 
-      {/* Linha inferior — card retraído + ícone toggle SEMPRE visíveis */}
-      <div className="flex items-stretch gap-2">
+      {/* Linha inferior — card retraído + ícone toggle SEMPRE visíveis.
+          Width total IGUAL ao painel expandido (340/380px) — card flex-1
+          preenche o restante após gap (8px) + ícone fixo (48px). */}
+      <div className="flex w-[340px] xl:w-[380px] items-stretch gap-2">
         <CollapsedCard
           persona={persona}
           avatar={avatar}
@@ -134,7 +136,7 @@ function CollapsedCard({
     <Link
       href="/me"
       aria-label="Ver meu perfil"
-      className="flex w-[280px] xl:w-[320px] items-center gap-3 rounded-md border border-brand-primary/30 bg-bg-deep/90 backdrop-blur-md px-3 py-2 shadow-lg shadow-black/60 hover:border-brand-primary/60 hover:bg-bg-elevated/80 transition-colors"
+      className="flex flex-1 min-w-0 items-center gap-3 rounded-md border border-brand-primary/30 bg-bg-deep/90 backdrop-blur-md px-3 py-2 shadow-lg shadow-black/60 hover:border-brand-primary/60 hover:bg-bg-elevated/80 transition-colors"
     >
       <UserAvatar
         src={avatar ?? undefined}
@@ -174,13 +176,13 @@ function ToggleIcon({
       aria-label={expanded ? "Fechar painel de amigos" : "Abrir painel de amigos"}
       aria-expanded={expanded}
       title={expanded ? "Fechar amigos" : "Abrir amigos"}
-      className={`flex shrink-0 items-center justify-center rounded-md border backdrop-blur-md transition-all shadow-lg shadow-black/60 ${
+      className={`flex w-12 shrink-0 items-center justify-center rounded-md border backdrop-blur-md transition-all shadow-lg shadow-black/60 ${
         expanded
           ? "border-brand-primary bg-brand-primary/20 text-text-display shadow-[0_0_16px_var(--color-brand-primary-glow)]"
           : "border-brand-primary/30 bg-bg-deep/90 text-text-muted hover:border-brand-primary/60 hover:text-text-display"
       }`}
     >
-      <Users size={20} className="mx-3" aria-hidden="true" />
+      <Users size={20} aria-hidden="true" />
     </button>
   );
 }
