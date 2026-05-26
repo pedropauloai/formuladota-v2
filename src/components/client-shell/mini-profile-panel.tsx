@@ -223,7 +223,7 @@ function ExpandedPanel({
   return (
     <aside
       aria-label="Mini-perfil e lista de amigos"
-      className="flex w-[340px] xl:w-[380px] flex-col gap-3 rounded-t-md rounded-b-none border border-b-0 border-brand-primary/40 bg-bg-deep/95 backdrop-blur-xl p-4 shadow-2xl shadow-black/80 max-h-[calc(100dvh-260px)] overflow-hidden animate-in slide-in-from-bottom-4 fade-in duration-200"
+      className="flex w-[340px] xl:w-[380px] flex-col gap-3 rounded-t-md rounded-b-none border border-b-0 border-brand-primary/40 bg-bg-deep/95 backdrop-blur-xl p-4 shadow-2xl shadow-black/80 h-[calc(100dvh-220px)] xl:h-[calc(100dvh-236px)] overflow-hidden animate-in slide-in-from-bottom-4 fade-in duration-200"
     >
       {/* Header — avatar + nome = Link pra /me */}
       <header>
