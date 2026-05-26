@@ -140,6 +140,43 @@ function Section({
 
 const MOCK_MATCH_PLAYED_AT = new Date(Date.now() - 1000 * 60 * 30);
 
+// Mock queue entries pro ProCard variante "fila ao vivo" — gerados no
+// load do módulo, NUNCA dentro do componente (React purity rule).
+const MOCK_QUEUE_ACTIVE_SLOTS = [
+  {
+    entryId: "e1",
+    userId: "u1",
+    username: "aluno_pedro_1",
+    avatarUrl: null,
+    joinedAt: new Date(Date.now() - 1000 * 60 * 4).toISOString(),
+  },
+  {
+    entryId: "e2",
+    userId: "u2",
+    username: "aluno_pedro_2",
+    avatarUrl: null,
+    joinedAt: new Date(Date.now() - 1000 * 60 * 2).toISOString(),
+  },
+];
+
+const MOCK_QUEUE_WAITING_LIST = [
+  {
+    entryId: "e3",
+    userId: "u3",
+    username: "aluno_pedro_3",
+    avatarUrl: null,
+    joinedAt: new Date(Date.now() - 1000 * 60 * 1).toISOString(),
+    ptsToday: 1,
+  },
+  {
+    entryId: "e4",
+    userId: "u4",
+    username: "aluno_pedro_4",
+    avatarUrl: null,
+    joinedAt: new Date(Date.now() - 30 * 1000).toISOString(),
+  },
+];
+
 // ---------------------------------------------------------------------------
 // Componente principal
 // ---------------------------------------------------------------------------
@@ -782,37 +819,73 @@ export default function ComponentsPage() {
       </Section>
 
       {/* ================================================================== */}
-      {/* SECTION 9 — ProCard                                                */}
+      {/* SECTION 9 — ProCard (2 variantes: hero + fila ao vivo)             */}
       {/* ================================================================== */}
-      <Section title="ProCard — pattern F7">
-        <div className="max-w-sm">
-          <ProCard
-            proName="IMMORTAL_PRO"
-            mmr={9200}
-            rank="immortal-top-100"
-            tierLabel="Top 0.5%"
-            membershipTier="consagrado"
-            ringColor="tier-immortal"
-            presence="online"
-            bio="Top 0.5%. 15 anos de Dota. Vamos jogar."
-            achievements={[
-              { variant: "champion-s1" },
-              { variant: "comendado" },
-              { variant: "fundador" },
-            ]}
-            recentMatches={[
-              { result: "win", mmrDelta: 25 },
-              { result: "win", mmrDelta: 28 },
-              { result: "loss", mmrDelta: -22 },
-              { result: "win", mmrDelta: 30 },
-              { result: "win", mmrDelta: 26 },
-            ]}
-            action={
-              <Button variant="cinematic" size="lg" className="w-full">
-                Entrar na Fila
-              </Button>
-            }
-          />
+      <Section title="ProCard — hero (perfil/showcase) e fila ao vivo (/ranked-com-pro)">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Variante 1: hero — perfil/showcase */}
+          <div className="space-y-2">
+            <p className="font-display text-sm uppercase tracking-widest text-text-faded">
+              variant: hero (perfil)
+            </p>
+            <ProCard
+              proName="IMMORTAL_PRO"
+              mmr={9200}
+              rank="immortal-top-100"
+              tierLabel="Top 0.5%"
+              membershipTier="consagrado"
+              ringColor="tier-immortal"
+              presence="online"
+              bio="Top 0.5%. 15 anos de Dota. Vamos jogar."
+              achievements={[
+                { variant: "champion-s1" },
+                { variant: "comendado" },
+                { variant: "fundador" },
+              ]}
+              recentMatches={[
+                { result: "win", mmrDelta: 25 },
+                { result: "win", mmrDelta: 28 },
+                { result: "loss", mmrDelta: -22 },
+                { result: "win", mmrDelta: 30 },
+                { result: "win", mmrDelta: 26 },
+              ]}
+              action={
+                <Button variant="cinematic" size="lg" className="w-full">
+                  Entrar na Fila
+                </Button>
+              }
+            />
+          </div>
+
+          {/* Variante 2: fila ao vivo — usado em /ranked-com-pro */}
+          <div className="space-y-2">
+            <p className="font-display text-sm uppercase tracking-widest text-text-faded">
+              variant: fila ao vivo (/ranked-com-pro)
+            </p>
+            <ProCard
+              proName="PETERPRA"
+              mmr={7200}
+              rank="immortal"
+              honorRank="mestre"
+              headline="Criador da FormulaDota — Imortal Top 0.5%"
+              membershipTier="consagrado"
+              ringColor="play"
+              presence="online"
+              filaAberta
+              borderAccent="success"
+              queueSlots={MOCK_QUEUE_ACTIVE_SLOTS}
+              maxQueueSlots={4}
+              waitingExtra={2}
+              waitingList={MOCK_QUEUE_WAITING_LIST}
+              viewerUserId="u-viewer"
+              queueStats={{ entriesCount: 4, ptsHoje: 3, alunosHoje: 7 }}
+              action={
+                <Button variant="cinematic" size="md" className="w-full">
+                  Entrar na fila
+                </Button>
+              }
+            />
+          </div>
         </div>
       </Section>
 

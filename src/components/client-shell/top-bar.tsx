@@ -1,26 +1,26 @@
-// Top Bar — réplica do header do Dota 2 client (M2 reformulado 2026-05-24).
-// Esquerda: logo branca + settings + tabs principais + tabs contextuais
+// Top Bar — réplica do header do Dota 2 client (M2 reformulado 2026-05-26).
+// Esquerda: settings + logo branca + tabs principais + tabs contextuais
 // Centro: status PROs online em tempo real
-// Direita: badge "SUBIR DE MMR" (brand cinematic) + logout
+// Direita: badge CONDUTA (brand cinematic) + (ENTRAR se visitante / Logout se logado)
 //
-// Tabs principais (sempre visíveis): PROGRESSO / RANKING / TIMES / TORNEIOS /
-// CONDUTA. Tabs contextuais: PRO (se isPro) e ADMIN (se isAdmin).
+// Tabs principais (visíveis por role):
+//   - SUBIR MMR   → sempre visível (visitante/user/admin) — jornada principal
+//   - Progresso, Ranking, Times, Torneios → SÓ admin (em desenvolvimento)
+//   - PRO (se isPro), ADMIN (se isAdmin) → tabs contextuais
+//
 // JOGAR é implícito — clique no logo FORMULADOTA leva pra /dashboard.
-// Ref: docs/foundations/DOTA2_CLIENT_REFERENCE.md #2 (dashboard-current.png).
+// Ref: docs/foundations/DOTA2_CLIENT_REFERENCE.md #2.
 //
-// CTA dominante (2026-05-24): "SUBIR DE MMR" → /ranked-com-pro. Substitui
-// "Comprar Ficha" (rebaixado pra tab LOJA e dentro de /ranked-com-pro).
-// Filosofia: MMR é fim, ficha é meio. Header pavimenta a JORNADA PRINCIPAL.
-// Ref: docs/foundations/UX_PRINCIPLES.md M3 (CTA com weight massivo).
+// CTA dominante na direita (2026-05-26): "CONDUTA" → /codigo-de-conduta.
+// Mensagem institucional sempre visível (filosofia, manifesto). Substitui
+// "SUBIR DE MMR" cinematic que virou tab simples na nav principal.
 //
-// VISITANTE DESLOGADO (task #63 — 2026-05-24): quando isVisitor=true, badge
-// principal vira "ENTRAR" (Server Action signInWithDiscord), logout e
-// PreviewToggle ficam ocultos. Tabs PRO/ADMIN já são filtrados naturalmente
-// (props isPro/isAdmin são `false` pra visitante).
+// VISITANTE DESLOGADO: vê CONDUTA + ENTRAR lado a lado na direita. Tabs
+// PRO/ADMIN/Progresso/etc são filtrados naturalmente por role.
 
 import Image from "next/image";
 import Link from "next/link";
-import { Settings, LogOut, LogIn, Swords, Radio, Eye, EyeOff } from "lucide-react";
+import { Settings, LogOut, LogIn, Shield, Eye, EyeOff, Radio } from "lucide-react";
 import { signOut, signInWithDiscord } from "@/app/login/actions";
 import { togglePreviewMode } from "@/lib/auth/preview-mode";
 import { cn } from "@/lib/utils";
@@ -32,17 +32,23 @@ type TopBarTabDef = {
   matchPrefix?: string;
 };
 
-const PRINCIPAL_TABS: TopBarTabDef[] = [
+// Tab sempre visível pra todos (visitante/user/admin) — jornada principal
+const SUBIR_MMR_TAB: TopBarTabDef = {
+  href: "/ranked-com-pro",
+  label: "Subir MMR",
+};
+
+// Tabs em desenvolvimento — só admin testa enquanto features não estão prontas
+const ADMIN_ONLY_TABS: TopBarTabDef[] = [
   { href: "/progresso", label: "Progresso" },
   { href: "/ranking", label: "Ranking" },
   { href: "/times", label: "Times" },
   { href: "/torneios", label: "Torneios" },
-  { href: "/codigo-de-conduta", label: "Conduta" },
 ];
 
 interface Props {
   currentRoute?: string;
-  /** Visitante deslogado: esconde logout, troca SubirMmr por Entrar, esconde PreviewToggle. */
+  /** Visitante deslogado: esconde logout, troca botão direita por Entrar, esconde PreviewToggle. */
   isVisitor: boolean;
   /** Effective admin (false se admin tá em preview mode). Usado pra UI condicional. */
   isAdmin: boolean;
@@ -64,6 +70,12 @@ export function DashboardTopBar({
   isPro,
   prosOnlineCount,
 }: Props) {
+  // Compõe nav principal: SUBIR MMR sempre + (Progresso/Ranking/Times/Torneios só admin)
+  const principalTabs: TopBarTabDef[] = [SUBIR_MMR_TAB];
+  if (isAdmin) {
+    principalTabs.push(...ADMIN_ONLY_TABS);
+  }
+
   const contextualTabs: TopBarTabDef[] = [];
   if (isPro) {
     contextualTabs.push({ href: "/pro", label: "Pro" });
@@ -79,12 +91,28 @@ export function DashboardTopBar({
   const isActive = (t: TopBarTabDef) =>
     currentRoute?.startsWith(t.matchPrefix ?? t.href) ?? false;
 
-  // Configurações é privado (rota /me). Pra visitante esconde o ícone — ele
-  // não tem perfil pra configurar.
   return (
-    <header className="relative z-[var(--z-overlay)] flex h-16 shrink-0 items-center justify-between bg-gradient-to-b from-black/85 via-black/55 to-transparent px-4 backdrop-blur-md xl:h-20 xl:px-6">
-      {/* Esquerda — logo + settings + tabs */}
+    <header
+      className={cn(
+        "relative z-[var(--z-overlay)] flex h-12 shrink-0 items-center justify-between px-4 xl:h-14 xl:px-6",
+        // Glassmorphism — mesma cor do bg-deep (conteúdo) com leve transparência + blur
+        "bg-bg-deep/75 backdrop-blur-xl",
+        // Border accent brand — única "régua" visual marcando fim do header
+        "border-b border-brand-primary/60",
+      )}
+    >
+      {/* Esquerda — settings + logo + tabs (configurações só pra logado) */}
       <div className="flex items-center gap-2 xl:gap-4">
+        {!isVisitor && (
+          <>
+            <TopBarIcon icon={Settings} label="Configurações" href="/me" />
+            <div
+              className="h-5 w-px bg-white/15 xl:h-6 xl:mx-1"
+              aria-hidden="true"
+            />
+          </>
+        )}
+
         <Link
           href="/dashboard"
           aria-label="FORMULADOTA — dashboard"
@@ -96,30 +124,20 @@ export function DashboardTopBar({
             width={1933}
             height={400}
             priority
-            className="h-10 w-auto xl:h-12"
+            className="h-7 w-auto xl:h-9"
           />
         </Link>
 
         <div
-          className="h-6 w-px bg-white/15 xl:h-8 xl:mx-1"
+          className="h-5 w-px bg-white/15 xl:h-6 xl:mx-1"
           aria-hidden="true"
         />
-
-        {!isVisitor && (
-          <>
-            <TopBarIcon icon={Settings} label="Configurações" href="/me" />
-            <div
-              className="h-6 w-px bg-white/15 xl:h-8 xl:mx-1"
-              aria-hidden="true"
-            />
-          </>
-        )}
 
         <nav
           aria-label="Navegação principal"
           className="hidden lg:flex items-center gap-1"
         >
-          {PRINCIPAL_TABS.map((t) => (
+          {principalTabs.map((t) => (
             <TopBarTab
               key={t.href}
               href={t.href}
@@ -132,7 +150,7 @@ export function DashboardTopBar({
         {contextualTabs.length > 0 && (
           <>
             <div
-              className="hidden lg:block h-6 w-px bg-white/15 xl:h-8 xl:mx-1"
+              className="hidden lg:block h-5 w-px bg-white/15 xl:h-6 xl:mx-1"
               aria-hidden="true"
             />
             <nav
@@ -154,7 +172,7 @@ export function DashboardTopBar({
 
       {/* Centro — status PROs online em tempo real */}
       {prosOnlineCount > 0 && (
-        <div className="hidden xl:flex items-center gap-2 rounded-md border border-emerald-500/30 bg-emerald-500/5 px-4 py-1.5">
+        <div className="hidden xl:flex items-center gap-2 rounded-md border border-emerald-500/30 bg-emerald-500/5 px-3 py-1">
           <span className="relative flex size-2" aria-hidden="true">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
             <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
@@ -167,17 +185,18 @@ export function DashboardTopBar({
         </div>
       )}
 
-      {/* Direita — CTA dominante (Subir MMR pra logado / Entrar pra visitante) +
-          PreviewToggle (só admin real) + Logout (só logado). */}
+      {/* Direita — CONDUTA cinematic (todos) + (Entrar/Logout) + PreviewToggle (admin real) */}
       <div className="flex items-center gap-1.5 xl:gap-2">
         {realIsAdmin && <PreviewModeToggle previewActive={previewActive} />}
-        {isVisitor ? <EntrarBadge /> : <SubirMmrBadge />}
-        {!isVisitor && (
+        <CondutaBadge />
+        {isVisitor ? (
+          <EntrarBadge />
+        ) : (
           <form action={signOut}>
             <button
               type="submit"
               aria-label="Sair"
-              className="flex size-9 items-center justify-center rounded-md text-white/60 hover:bg-white/5 hover:text-white transition-colors"
+              className="flex size-8 items-center justify-center rounded-md text-white/60 hover:bg-white/5 hover:text-white transition-colors"
             >
               <LogOut size={16} aria-hidden="true" />
             </button>
@@ -194,7 +213,7 @@ function PreviewModeToggle({ previewActive }: { previewActive: boolean }) {
       <button
         type="submit"
         aria-label={previewActive ? "Voltar pra modo admin" : "Ver como usuário comum"}
-        className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 font-display text-sm font-semibold transition-colors xl:px-3 ${
+        className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 font-display text-sm font-semibold transition-colors xl:px-3 ${
           previewActive
             ? "border-amber-500/60 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20"
             : "border-white/15 bg-white/5 text-white/60 hover:border-white/30 hover:text-white"
@@ -218,38 +237,35 @@ function PreviewModeToggle({ previewActive }: { previewActive: boolean }) {
   );
 }
 
-function SubirMmrBadge() {
-  // CTA dominante do header — pavimenta a JORNADA PRINCIPAL (subir de MMR).
-  // Estética cinematic brand (vermelho FormulaDota + glow) substitui o yellow
-  // do antigo "Comprar Ficha". Ficha continua acessível na tab LOJA e dentro
-  // de /ranked-com-pro quando user não tem ficha.
+function CondutaBadge() {
+  // CTA institucional sempre visível — manifesto/filosofia da plataforma.
+  // Estética cinematic brand (vermelho + glow) — antes ocupada pelo SUBIR MMR.
+  // Conduta é gate cultural: lido por todos antes de jogar a primeira PT.
   return (
     <Link
-      href="/ranked-com-pro"
-      aria-label="Subir de MMR — entrar em fila com PRO Imortal"
+      href="/codigo-de-conduta"
+      aria-label="Código de Conduta — manifesto FORMULADOTA"
       className={cn(
         "group inline-flex items-center gap-1.5 rounded-md",
-        "px-3 py-1.5 xl:px-4 xl:py-2",
+        "px-2.5 py-1 xl:px-3 xl:py-1.5",
         "border-2 border-brand-primary",
         "bg-gradient-to-b from-brand-primary to-brand-primary-hover",
         "font-display text-sm xl:text-sm font-bold uppercase",
         "tracking-[0.15em] xl:tracking-[0.2em] text-text-display",
         "shadow-[0_0_12px_var(--color-brand-primary-glow)]",
         "hover:shadow-[0_0_24px_var(--color-brand-primary-glow)]",
-        "hover:brightness-110",
-        "transition-all"
+        "hover:brightness-110 transition-all",
       )}
     >
-      <Swords size={12} aria-hidden="true" />
-      <span>Subir de MMR</span>
+      <Shield size={12} aria-hidden="true" />
+      <span>Conduta</span>
     </Link>
   );
 }
 
 function EntrarBadge() {
-  // CTA dominante pra visitante — Discord OAuth via Server Action. Mesma
-  // estética brand cinematic do SubirMmrBadge (consistência visual: header
-  // sempre tem UM CTA dominante, varia só o destino conforme estado da sessão).
+  // CTA Discord OAuth pra visitante — estética cinematic igual ao CondutaBadge
+  // pra consistência visual; aparece AO LADO da Conduta.
   return (
     <form action={signInWithDiscord}>
       <button
@@ -257,7 +273,7 @@ function EntrarBadge() {
         aria-label="Entrar com Discord"
         className={cn(
           "group inline-flex items-center gap-1.5 rounded-md",
-          "px-3 py-1.5 xl:px-4 xl:py-2",
+          "px-2.5 py-1 xl:px-3 xl:py-1.5",
           "border-2 border-brand-primary",
           "bg-gradient-to-b from-brand-primary to-brand-primary-hover",
           "font-display text-sm xl:text-sm font-bold uppercase",
@@ -287,7 +303,7 @@ function TopBarTab({
     <Link
       href={href}
       aria-current={active ? "page" : undefined}
-      className={`rounded-md px-3 py-1.5 font-sans text-sm font-semibold uppercase tracking-[0.15em] transition-colors xl:px-4 xl:text-sm xl:tracking-[0.2em] ${
+      className={`rounded-md px-2.5 py-1 font-sans text-sm font-semibold uppercase tracking-[0.15em] transition-colors xl:px-3 xl:tracking-[0.2em] ${
         active
           ? "bg-brand-primary/15 text-text-display border-b-2 border-brand-primary rounded-b-none"
           : "text-text-body hover:bg-bg-elevated hover:text-text-display"
@@ -308,7 +324,7 @@ function TopBarIcon({
   href?: string;
 }) {
   const cls =
-    "flex size-9 items-center justify-center rounded-md text-white/60 hover:bg-white/5 hover:text-white transition-colors";
+    "flex size-8 items-center justify-center rounded-md text-white/60 hover:bg-white/5 hover:text-white transition-colors";
   if (href) {
     return (
       <Link href={href} aria-label={label} className={cls}>
