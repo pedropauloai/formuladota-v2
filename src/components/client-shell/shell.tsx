@@ -36,7 +36,7 @@ import { getPreviewModeActive } from "@/lib/auth/preview-mode";
 import { getSidebarExpanded } from "@/lib/auth/sidebar-preference";
 import { getAcceptedFriends } from "@/lib/queries/friends";
 import { DashboardTopBar } from "./top-bar";
-import { DashboardLeftSidebar } from "./left-sidebar";
+import { MiniProfilePanel } from "./mini-profile-panel";
 import { DashboardRightSidebar } from "./right-sidebar";
 import { DashboardBottomBar } from "./bottom-bar";
 
@@ -169,23 +169,6 @@ export async function ClientShell({
           />
         </div>
 
-        {!hideLeftSidebar && (
-          <div className={`hidden lg:flex absolute left-0 top-[64px] xl:top-[72px] ${bottomReserveCls} z-[var(--z-overlay)] ${sidebarExpanded ? "w-[340px] xl:w-[400px] 2xl:w-[460px]" : "w-[72px]"}`}>
-            <DashboardLeftSidebar
-              isVisitor={isVisitor}
-              persona={persona}
-              avatar={avatar}
-              tag={userTag}
-              isAdmin={adminFlag}
-              fichaBalance={fichaBalance}
-              floating
-              expanded={sidebarExpanded}
-              currentUserId={user?.id ?? null}
-              initialFriends={acceptedFriends}
-            />
-          </div>
-        )}
-
         {rightSidebar !== undefined ? (
           <div
             className={`hidden lg:flex absolute right-0 top-[64px] xl:top-[72px] ${bottomReserveCls} z-[var(--z-overlay)] ${
@@ -205,14 +188,25 @@ export async function ClientShell({
         )}
 
         <main
-          className={`absolute inset-0 top-[64px] xl:top-[72px] ${bottomReserveCls} z-[var(--z-elevated)] overflow-y-auto ${
-            !hideLeftSidebar
-              ? (sidebarExpanded ? "lg:pl-[340px] xl:pl-[400px] 2xl:pl-[460px]" : "lg:pl-[72px]")
-              : ""
-          } lg:pr-[320px] xl:pr-[360px] 2xl:pr-[380px]`}
+          className={`absolute inset-0 top-[64px] xl:top-[72px] ${bottomReserveCls} z-[var(--z-elevated)] overflow-y-auto lg:pr-[320px] xl:pr-[360px] 2xl:pr-[380px]`}
         >
           {children}
         </main>
+
+        {/* Mini-Profile Panel — overlay ancorado bottom-left (estilo Dota 2) */}
+        {!hideLeftSidebar && (
+          <MiniProfilePanel
+            isVisitor={isVisitor}
+            persona={persona}
+            avatar={avatar}
+            tag={userTag}
+            isAdmin={adminFlag}
+            fichaBalance={fichaBalance}
+            initialExpanded={sidebarExpanded}
+            currentUserId={user?.id ?? null}
+            initialFriends={acceptedFriends}
+          />
+        )}
 
         {!hideBottomBar && (
           <div className="absolute bottom-0 inset-x-0 z-[var(--z-overlay)]">
@@ -255,38 +249,16 @@ export async function ClientShell({
         prosOnlineCount={prosOnlineCount}
       />
 
-      {/* Grid columns — Tailwind purge-safe (WARNING #10 fix):
-          6 strings estáticas completas — Tailwind detecta todas as variantes em build time.
-          Sem template literals dinâmicos, inline style ou safelist. */}
+      {/* Grid columns — sidebar lateral REMOVIDA 2026-05-26 (refator pra fidelidade Dota 2).
+          Mini-profile + amigos agora é overlay ancorado bottom-left (MiniProfilePanel),
+          não coluna. Layout reduzido a main + right-sidebar. */}
       <div
         className={`grid flex-1 min-h-0 grid-cols-1 ${
-          hideLeftSidebar
-            ? wideRightSidebar
-              ? "lg:grid-cols-[1fr_480px] xl:grid-cols-[1fr_520px] 2xl:grid-cols-[1fr_560px]"
-              : "lg:grid-cols-[1fr_320px] xl:grid-cols-[1fr_360px] 2xl:grid-cols-[1fr_380px]"
-            : sidebarExpanded
-              ? wideRightSidebar
-                ? "lg:grid-cols-[340px_1fr_480px] xl:grid-cols-[400px_1fr_520px] 2xl:grid-cols-[460px_1fr_560px]"
-                : "lg:grid-cols-[340px_1fr_320px] xl:grid-cols-[400px_1fr_360px] 2xl:grid-cols-[460px_1fr_380px]"
-              : wideRightSidebar
-                ? "lg:grid-cols-[72px_1fr_480px] xl:grid-cols-[72px_1fr_520px] 2xl:grid-cols-[72px_1fr_560px]"
-                : "lg:grid-cols-[72px_1fr_320px] xl:grid-cols-[72px_1fr_360px] 2xl:grid-cols-[72px_1fr_380px]"
+          wideRightSidebar
+            ? "lg:grid-cols-[1fr_480px] xl:grid-cols-[1fr_520px] 2xl:grid-cols-[1fr_560px]"
+            : "lg:grid-cols-[1fr_320px] xl:grid-cols-[1fr_360px] 2xl:grid-cols-[1fr_380px]"
         }`}
       >
-        {!hideLeftSidebar && (
-          <DashboardLeftSidebar
-            isVisitor={isVisitor}
-            persona={persona}
-            avatar={avatar}
-            tag={userTag}
-            isAdmin={adminFlag}
-            fichaBalance={fichaBalance}
-            expanded={sidebarExpanded}
-            currentUserId={user?.id ?? null}
-            initialFriends={acceptedFriends}
-          />
-        )}
-
         <main className={`relative overflow-y-auto ${mainPbCls}`}>
           {centerHero && (
             <div
@@ -310,6 +282,21 @@ export async function ClientShell({
           <DashboardRightSidebar />
         )}
       </div>
+
+      {/* Mini-Profile Panel — overlay ancorado bottom-left (estilo Dota 2) */}
+      {!hideLeftSidebar && (
+        <MiniProfilePanel
+          isVisitor={isVisitor}
+          persona={persona}
+          avatar={avatar}
+          tag={userTag}
+          isAdmin={adminFlag}
+          fichaBalance={fichaBalance}
+          initialExpanded={sidebarExpanded}
+          currentUserId={user?.id ?? null}
+          initialFriends={acceptedFriends}
+        />
+      )}
 
       {!hideBottomBar && (
         <div className="absolute bottom-0 inset-x-0 z-[var(--z-overlay)] pointer-events-none">

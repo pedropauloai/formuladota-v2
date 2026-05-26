@@ -1,15 +1,27 @@
 // Coluna central da /me — identidade canônica + status_message + heróis favoritos.
 // O hero portrait gigante de background é gerenciado pelo ClientShell via centerHero —
 // este componente NÃO renderiza absolute inset-0 (BLOCKER #3 fix).
-// Server Component — sem interatividade, sem "use client".
+//
+// EDIÇÃO INLINE (refator 2026-05-26): quando `editing=true`, blocos de leitura são
+// substituídos pelos componentes de edição inline (StatusEditor, HeroesEditor,
+// PortraitEditor, AvatarEditor) — sem modal, sem nova rota.
+//
+// Server Component — controles editáveis são Client Components em inline-edit-controls.tsx.
 
 import Image from "next/image";
 import { UserAvatar } from "@/components/ui/avatar";
 import { DotaRankMedal, type DotaRank } from "@/components/ui/dota-rank-medal";
 import { HonorRankMedal, type HonorRank } from "@/components/ui/honor-rank-medal";
+import {
+  StatusEditor,
+  HeroesEditor,
+  PortraitEditor,
+  AvatarEditor,
+} from "./inline-edit-controls";
 import type { HeroData } from "@/lib/queries/heroes";
 
 interface Props {
+  userId: string;
   avatarUrl: string | null;
   username: string | null;
   dotaRank: DotaRank;
@@ -17,9 +29,12 @@ interface Props {
   ranqueado: boolean;
   statusMessage: string | null;
   favoriteHeroes: HeroData[];
+  heroPortraitSlug: string | null;
+  editing: boolean;
 }
 
 export function ProfileIdentity({
+  userId,
   avatarUrl,
   username,
   dotaRank,
@@ -27,6 +42,8 @@ export function ProfileIdentity({
   ranqueado,
   statusMessage,
   favoriteHeroes,
+  heroPortraitSlug,
+  editing,
 }: Props) {
   return (
     <div className="flex-1 min-w-0 p-6 flex flex-col gap-4">
@@ -67,22 +84,27 @@ export function ProfileIdentity({
         />
       </div>
 
-      {/* Status message — Body 16px, italic (UI-SPEC) */}
-      <p
-        className={`font-display text-base font-semibold leading-relaxed ${
-          statusMessage ? "text-text-body italic" : "text-text-faded italic"
-        }`}
-      >
-        {statusMessage ??
-          "Nenhum status definido. Clique em Editar Perfil para adicionar um."}
-      </p>
+      {/* Status message — editável inline quando editing=true */}
+      {editing ? (
+        <StatusEditor initialStatus={statusMessage} />
+      ) : (
+        <p
+          className={`font-display text-base font-semibold leading-relaxed ${
+            statusMessage ? "text-text-body italic" : "text-text-faded italic"
+          }`}
+        >
+          {statusMessage ??
+            "Nenhum status definido. Clique em Editar Perfil para adicionar um."}
+        </p>
+      )}
 
-      {/* Heróis favoritos — até 3 cards horizontais 72x40px (UI-SPEC) */}
-      {favoriteHeroes.length > 0 ? (
+      {/* Heróis favoritos — editável inline quando editing=true */}
+      {editing ? (
+        <HeroesEditor initialFavorites={favoriteHeroes} />
+      ) : favoriteHeroes.length > 0 ? (
         <div className="flex items-end gap-3 mt-2">
           {favoriteHeroes.slice(0, 3).map((hero) => (
             <div key={hero.slug} className="flex flex-col items-center gap-1">
-              {/* Hero portrait 72x40px com border border-subtle */}
               <div className="relative w-[72px] h-[40px] rounded-md overflow-hidden border border-border-subtle">
                 <Image
                   src={hero.image_full}
@@ -93,7 +115,6 @@ export function ProfileIdentity({
                   unoptimized
                 />
               </div>
-              {/* Nome 11px — exceção tipográfica por espaço físico limitado */}
               <p className="font-display text-[11px] font-semibold text-text-faded truncate max-w-[72px]">
                 {hero.name_pt}
               </p>
@@ -104,6 +125,14 @@ export function ProfileIdentity({
         <p className="font-display text-[13px] font-semibold text-text-faded italic mt-2">
           Nenhum herói favorito definido.
         </p>
+      )}
+
+      {/* Editores adicionais — só visíveis em modo edição */}
+      {editing && (
+        <>
+          <PortraitEditor initialPortrait={heroPortraitSlug} />
+          <AvatarEditor userId={userId} initialAvatar={avatarUrl} />
+        </>
       )}
     </div>
   );

@@ -48,7 +48,7 @@ function toHonorRank(tierStr: string | null | undefined): HonorRank {
 
 // Next.js 15+: searchParams é uma Promise que precisa de await (pitfall 5)
 interface PageProps {
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ tab?: string; edit?: string }>;
 }
 
 export default async function MePage({ searchParams }: PageProps) {
@@ -57,11 +57,13 @@ export default async function MePage({ searchParams }: PageProps) {
   if (!profile) redirect("/");
 
   // Resolve tab ativa: default "perfil", fallback pra qualquer tab inválida
-  const { tab: rawTab } = await searchParams;
+  const { tab: rawTab, edit } = await searchParams;
   const activeTab: ProfileTab =
     rawTab && (VALID_TABS as readonly string[]).includes(rawTab)
       ? (rawTab as ProfileTab)
       : "perfil";
+  // Edit mode via searchParams — ?edit=1 ativa edição inline
+  const editing = edit === "1";
 
   const dotaRank = mmrToDotaRank(profile.mmr);
 
@@ -87,6 +89,7 @@ export default async function MePage({ searchParams }: PageProps) {
         activeTab={activeTab}
         dotaRank={dotaRank}
         honorRank={honorRank}
+        editing={editing}
       />
     </ClientShell>
   );

@@ -5,9 +5,17 @@
 // do ClientShell modo immersive (centerHero prop). Este componente renderiza APENAS
 // o conteúdo sobre esse background. Sem absolute inset-0, sem portrait absolute fill.
 //
-// Server Component — sem "use client".
+// EDIÇÃO INLINE (refator 2026-05-26 — Pedro pediu sem modal):
+//   - editing=true ativado via searchParams `?edit=1` (controlado por /me/page.tsx)
+//   - Botão "EDITAR PERFIL" vira Link `?edit=1`; quando editing=true vira "SAIR DA EDIÇÃO" /me
+//   - ProfileIdentity recebe `editing` prop e mostra controles inline em vez do modo leitura
+//
+// Server Component — sem "use client". Controles editáveis ficam em
+// inline-edit-controls.tsx (Client Component carregado condicionalmente).
 
-import { EditProfileModal } from "./edit-profile-modal";
+import Link from "next/link";
+import { Pencil, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { ProfileStats } from "./profile-stats";
 import { ProfileIdentity } from "./profile-identity";
 import { ProfileTabs, type ProfileTab } from "./profile-tabs";
@@ -24,23 +32,32 @@ interface Props {
   activeTab: ProfileTab;
   dotaRank: DotaRank;
   honorRank: HonorRank;
+  editing: boolean;
 }
 
-export function ProfilePage({ profile, activeTab, dotaRank, honorRank }: Props) {
+export function ProfilePage({ profile, activeTab, dotaRank, honorRank, editing }: Props) {
   const ranqueado = profile.mmr !== null;
 
   return (
     <div className="relative min-h-full">
-      {/* Botão EDITAR PERFIL — canto superior direito (UI-SPEC D-11).
-          Modal real via EditProfileModal (plan 09-08 — substituí stub do plan 09-07). */}
+      {/* Botão EDITAR PERFIL / SAIR DA EDIÇÃO — canto superior direito (D-11).
+          Edição inline via ?edit=1 (sem modal — refator 2026-05-26). */}
       <div className="absolute top-4 right-4 z-[var(--z-elevated)]">
-        <EditProfileModal
-          userId={profile.userId}
-          initialStatus={profile.statusMessage}
-          initialFavorites={profile.favoriteHeroes.map((h) => h.slug)}
-          initialPortrait={profile.heroPortraitSlug}
-          initialAvatar={profile.avatarUrl}
-        />
+        {editing ? (
+          <Link href="/me">
+            <Button variant="secondary" size="md">
+              <X size={14} aria-hidden="true" />
+              Sair da edição
+            </Button>
+          </Link>
+        ) : (
+          <Link href="/me?edit=1">
+            <Button variant="cinematic" size="md">
+              <Pencil size={14} aria-hidden="true" />
+              Editar Perfil
+            </Button>
+          </Link>
+        )}
       </div>
 
       {/* Layout interno 2-col (stats | identidade) + tabs no center-col do ClientShell.
@@ -60,6 +77,7 @@ export function ProfilePage({ profile, activeTab, dotaRank, honorRank }: Props) 
 
         <div className="flex-1 flex flex-col">
           <ProfileIdentity
+            userId={profile.userId}
             avatarUrl={profile.avatarUrl}
             username={profile.username}
             dotaRank={dotaRank}
@@ -67,6 +85,8 @@ export function ProfilePage({ profile, activeTab, dotaRank, honorRank }: Props) 
             ranqueado={ranqueado}
             statusMessage={profile.statusMessage}
             favoriteHeroes={profile.favoriteHeroes}
+            heroPortraitSlug={profile.heroPortraitSlug}
+            editing={editing}
           />
 
           {/* Tabs + conteúdo da tab ativa */}
@@ -92,4 +112,3 @@ export function ProfilePage({ profile, activeTab, dotaRank, honorRank }: Props) 
     </div>
   );
 }
-
