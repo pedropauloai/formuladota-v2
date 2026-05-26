@@ -87,8 +87,10 @@ export function MiniProfilePanel({
   }
 
   return (
-    <div className="pointer-events-auto fixed left-4 bottom-[88px] xl:bottom-[104px] z-[var(--z-overlay)] flex flex-col items-start gap-2">
-      {/* Painel expandido — cresce ACIMA do card retraído + ícone */}
+    <div className="pointer-events-auto fixed left-4 bottom-[88px] xl:bottom-[104px] z-[var(--z-overlay)] flex flex-col items-start">
+      {/* Painel expandido — cresce A PARTIR do card retraído (conectado, sem gap).
+          Quando expanded=true, borda inferior do painel + borda superior do card
+          são planas, formando um único componente visual contínuo. */}
       {expanded && (
         <ExpandedPanel
           persona={persona}
@@ -102,7 +104,7 @@ export function MiniProfilePanel({
       )}
 
       {/* Linha inferior — card retraído + ícone toggle SEMPRE visíveis.
-          Card tem mesma largura do painel expandido (340/380px).
+          Card conecta visualmente ao painel quando expanded (sem gap, bordas planas).
           Ícone fica FORA (externo ao card) na lateral direita. */}
       <div className="flex items-stretch gap-2">
         <CollapsedCard
@@ -110,6 +112,7 @@ export function MiniProfilePanel({
           avatar={avatar}
           tag={tag}
           isAdmin={isAdmin}
+          connectedTop={expanded}
         />
         <ToggleIcon expanded={expanded} onToggle={handleToggle} />
       </div>
@@ -126,17 +129,25 @@ function CollapsedCard({
   avatar,
   tag,
   isAdmin,
+  connectedTop = false,
 }: {
   persona: string | null;
   avatar: string | null;
   tag: string;
   isAdmin: boolean;
+  /** Quando true (painel expandido aberto), borda superior + canto superior
+      ficam planos pra conectar visualmente ao ExpandedPanel acima. */
+  connectedTop?: boolean;
 }) {
   return (
     <Link
       href="/me"
       aria-label="Ver meu perfil"
-      className="flex w-[340px] xl:w-[380px] items-center gap-3 rounded-md border border-brand-primary/30 bg-bg-deep/90 backdrop-blur-md px-3 py-2 shadow-lg shadow-black/60 hover:border-brand-primary/60 hover:bg-bg-elevated/80 transition-colors"
+      className={`flex w-[340px] xl:w-[380px] items-center gap-3 border border-brand-primary/30 bg-bg-deep/90 backdrop-blur-md px-3 py-2 shadow-lg shadow-black/60 hover:border-brand-primary/60 hover:bg-bg-elevated/80 transition-colors ${
+        connectedTop
+          ? "rounded-b-md rounded-t-none border-t-0"
+          : "rounded-md"
+      }`}
     >
       <UserAvatar
         src={avatar ?? undefined}
@@ -212,7 +223,7 @@ function ExpandedPanel({
   return (
     <aside
       aria-label="Mini-perfil e lista de amigos"
-      className="flex w-[340px] xl:w-[380px] flex-col gap-3 rounded-md border border-brand-primary/40 bg-bg-deep/95 backdrop-blur-xl p-4 shadow-2xl shadow-black/80 max-h-[calc(100dvh-260px)] overflow-hidden animate-in slide-in-from-bottom-4 fade-in duration-200"
+      className="flex w-[340px] xl:w-[380px] flex-col gap-3 rounded-t-md rounded-b-none border border-b-0 border-brand-primary/40 bg-bg-deep/95 backdrop-blur-xl p-4 shadow-2xl shadow-black/80 max-h-[calc(100dvh-260px)] overflow-hidden animate-in slide-in-from-bottom-4 fade-in duration-200"
     >
       {/* Header — avatar + nome = Link pra /me */}
       <header>
