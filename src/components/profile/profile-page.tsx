@@ -1,14 +1,20 @@
-// ProfilePage — orquestrador do conteúdo do /me (Phase 9).
-// Layout interno 2 colunas (stats | identidade) + tabs.
+// ProfilePage — orquestrador do conteúdo do /me (Phase 9 — refator 2026-05-26).
 //
-// ARQUITETURA (BLOCKER #3 fix): hero portrait gigante de background é responsabilidade
-// do ClientShell modo immersive (centerHero prop). Este componente renderiza APENAS
-// o conteúdo sobre esse background. Sem absolute inset-0, sem portrait absolute fill.
+// LAYOUT (Pedro pediu fidelidade Dota 2):
+//   ┌─────────────────────────────────────────────────────────────────┐
+//   │ TABS [Perfil/Histórico/Conquistas/Conduta]      [EDITAR PERFIL] │ ← topo
+//   ├─────────────────────────────────────────────────────────────────┤
+//   │ STATS │ IDENTIDADE (avatar+nome+medalhas+status+heróis)        │ ← 2-col
+//   │ 280px │ flex-1                                                 │
+//   ├─────────────────────────────────────────────────────────────────┤
+//   │ [conteúdo da tab ativa — full width]                            │
+//   └─────────────────────────────────────────────────────────────────┘
 //
-// EDIÇÃO INLINE (refator 2026-05-26 — Pedro pediu sem modal):
-//   - editing=true ativado via searchParams `?edit=1` (controlado por /me/page.tsx)
-//   - Botão "EDITAR PERFIL" vira Link `?edit=1`; quando editing=true vira "SAIR DA EDIÇÃO" /me
-//   - ProfileIdentity recebe `editing` prop e mostra controles inline em vez do modo leitura
+// Tabs no TOPO (não dentro de uma coluna) — igual Dota 2 client real.
+// Hero portrait gigante de background fica atrás de tudo (ClientShell.centerHero).
+//
+// EDIÇÃO INLINE: editing=true via searchParams ?edit=1 → ProfileIdentity mostra
+// controles inline em vez do modo leitura. Botão "EDITAR PERFIL" vira "SAIR".
 //
 // Server Component — sem "use client". Controles editáveis ficam em
 // inline-edit-controls.tsx (Client Component carregado condicionalmente).
@@ -39,10 +45,13 @@ export function ProfilePage({ profile, activeTab, dotaRank, honorRank, editing }
   const ranqueado = profile.mmr !== null;
 
   return (
-    <div className="relative min-h-full">
-      {/* Botão EDITAR PERFIL / SAIR DA EDIÇÃO — canto superior direito (D-11).
-          Edição inline via ?edit=1 (sem modal — refator 2026-05-26). */}
-      <div className="absolute top-4 right-4 z-[var(--z-elevated)]">
+    <div className="relative flex flex-col min-h-full">
+      {/* ──────────────────────────────────────────────────────────────
+          BARRA SUPERIOR — Tabs à esquerda + Botão Editar à direita
+          (logo abaixo do topbar, fidelidade Dota 2 client)
+          ────────────────────────────────────────────────────────────── */}
+      <div className="flex items-center justify-between gap-4 px-6 pt-4 pb-2 border-b border-border-subtle/60">
+        <ProfileTabs activeTab={activeTab} />
         {editing ? (
           <Link href="/me">
             <Button variant="secondary" size="md">
@@ -60,10 +69,11 @@ export function ProfilePage({ profile, activeTab, dotaRank, honorRank, editing }
         )}
       </div>
 
-      {/* Layout interno 2-col (stats | identidade) + tabs no center-col do ClientShell.
-          Hero portrait fullscreen está atrás de tudo via ClientShell.centerHero.
-          Mobile: empilha verticalmente (flex-col → flex-row em lg+). */}
-      <div className="flex flex-col lg:flex-row gap-0 min-h-full">
+      {/* ──────────────────────────────────────────────────────────────
+          LAYOUT 2-COL — stats à esquerda | identidade à direita
+          (sem tabs aqui — foram pra cima)
+          ────────────────────────────────────────────────────────────── */}
+      <div className="flex flex-col lg:flex-row gap-0">
         <ProfileStats
           avatarUrl={profile.avatarUrl}
           username={profile.username}
@@ -75,7 +85,7 @@ export function ProfilePage({ profile, activeTab, dotaRank, honorRank, editing }
           derrotas={profile.derrotas}
         />
 
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1">
           <ProfileIdentity
             userId={profile.userId}
             avatarUrl={profile.avatarUrl}
@@ -88,26 +98,25 @@ export function ProfilePage({ profile, activeTab, dotaRank, honorRank, editing }
             heroPortraitSlug={profile.heroPortraitSlug}
             editing={editing}
           />
-
-          {/* Tabs + conteúdo da tab ativa */}
-          <div className="px-6 pb-6">
-            <ProfileTabs activeTab={activeTab} />
-            <div className="mt-6">
-              {activeTab === "perfil" && <TabPerfil />}
-              {activeTab === "historico" && <TabHistorico />}
-              {activeTab === "conquistas" && <TabConquistas />}
-              {activeTab === "conduta" && (
-                <TabConduta
-                  honorRank={honorRank}
-                  behaviorStatus={profile.behaviorStatus}
-                  doctrineAcceptedAt={profile.doctrineAcceptedAt}
-                  commends={null /* V2: RPC get_user_commends */}
-                  strikes={null /* V2: RPC get_user_strikes */}
-                />
-              )}
-            </div>
-          </div>
         </div>
+      </div>
+
+      {/* ──────────────────────────────────────────────────────────────
+          CONTEÚDO DA TAB ATIVA — full width abaixo das 2 colunas
+          ────────────────────────────────────────────────────────────── */}
+      <div className="px-6 pb-6 mt-4">
+        {activeTab === "perfil" && <TabPerfil />}
+        {activeTab === "historico" && <TabHistorico />}
+        {activeTab === "conquistas" && <TabConquistas />}
+        {activeTab === "conduta" && (
+          <TabConduta
+            honorRank={honorRank}
+            behaviorStatus={profile.behaviorStatus}
+            doctrineAcceptedAt={profile.doctrineAcceptedAt}
+            commends={null /* V2: RPC get_user_commends */}
+            strikes={null /* V2: RPC get_user_strikes */}
+          />
+        )}
       </div>
     </div>
   );

@@ -123,7 +123,7 @@ export function MiniProfilePanel({
           avatar={avatar}
           tag={tag}
           isAdmin={isAdmin}
-          onClick={handleToggle}
+          onToggle={handleToggle}
         />
       )}
     </div>
@@ -131,8 +131,8 @@ export function MiniProfilePanel({
 }
 
 // ===========================================================================
-// CollapsedCard — caixinha ~280x60px ancorada bottom-left
-// Click todo expande (D-07 redefinido).
+// CollapsedCard — mesmo tamanho do expanded (340x px). Avatar+nome são Link
+// pra /me; chevron à direita expande pra mostrar amigos.
 // ===========================================================================
 
 function CollapsedCard({
@@ -140,40 +140,50 @@ function CollapsedCard({
   avatar,
   tag,
   isAdmin,
-  onClick,
+  onToggle,
 }: {
   persona: string | null;
   avatar: string | null;
   tag: string;
   isAdmin: boolean;
-  onClick: () => void;
+  onToggle: () => void;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label="Expandir mini-perfil + amigos"
-      aria-expanded={false}
-      className="flex w-[280px] items-center gap-3 rounded-md border border-brand-primary/30 bg-bg-deep/90 backdrop-blur-md px-3 py-2 hover:border-brand-primary/60 hover:bg-bg-elevated/80 transition-colors shadow-lg shadow-black/60"
-    >
-      <UserAvatar
-        src={avatar ?? undefined}
-        alt={`Avatar de ${persona ?? "Anônimo"}`}
-        fallback={(persona ?? "??").slice(0, 2)}
-        size="md"
-        ringColor="brand"
-      />
-      <div className="flex-1 min-w-0 text-left">
-        <p className="font-display text-sm font-semibold text-text-display truncate">
-          {persona ?? "Anônimo"}
-        </p>
-        <p className="font-display text-sm font-semibold text-brand-primary/80 leading-tight">
-          [{tag}]
-          {isAdmin && <span className="ml-1 text-yellow-500">★</span>}
-        </p>
-      </div>
-      <ChevronUp size={14} className="text-text-muted shrink-0" aria-hidden="true" />
-    </button>
+    <div className="flex w-[340px] xl:w-[380px] items-center gap-3 rounded-md border border-brand-primary/30 bg-bg-deep/90 backdrop-blur-md px-3 py-2 shadow-lg shadow-black/60">
+      {/* Avatar + nome = Link pra /me (D-07 redefinido pelo Pedro 2026-05-26) */}
+      <Link
+        href="/me"
+        aria-label="Ver meu perfil"
+        className="flex flex-1 min-w-0 items-center gap-3 rounded hover:bg-bg-elevated/40 transition-colors p-1 -m-1"
+      >
+        <UserAvatar
+          src={avatar ?? undefined}
+          alt={`Avatar de ${persona ?? "Anônimo"}`}
+          fallback={(persona ?? "??").slice(0, 2)}
+          size="md"
+          ringColor="brand"
+        />
+        <div className="flex-1 min-w-0 text-left">
+          <p className="font-display text-sm font-semibold text-text-display truncate">
+            {persona ?? "Anônimo"}
+          </p>
+          <p className="font-display text-sm font-semibold text-brand-primary/80 leading-tight">
+            [{tag}]
+            {isAdmin && <span className="ml-1 text-yellow-500">★</span>}
+          </p>
+        </div>
+      </Link>
+      {/* Chevron — único trigger pra expandir o painel de amigos */}
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-label="Expandir lista de amigos"
+        aria-expanded={false}
+        className="shrink-0 rounded p-1 text-text-muted hover:bg-bg-elevated hover:text-text-display transition-colors"
+      >
+        <ChevronUp size={14} aria-hidden="true" />
+      </button>
+    </div>
   );
 }
 
@@ -206,24 +216,30 @@ function ExpandedPanel({
       aria-label="Mini-perfil e lista de amigos"
       className="flex w-[340px] xl:w-[380px] flex-col gap-3 rounded-md border border-brand-primary/40 bg-bg-deep/95 backdrop-blur-xl p-4 shadow-2xl shadow-black/80 max-h-[calc(100dvh-200px)] overflow-hidden animate-in slide-in-from-bottom-4 fade-in duration-200"
     >
-      {/* Header — avatar + nome + close button */}
+      {/* Header — avatar + nome = Link pra /me; X fecha o painel */}
       <header className="flex items-start gap-3">
-        <UserAvatar
-          src={avatar ?? undefined}
-          alt={`Avatar de ${persona ?? "Anônimo"}`}
-          fallback={(persona ?? "??").slice(0, 2)}
-          size="lg"
-          ringColor="brand"
-        />
-        <div className="flex-1 min-w-0">
-          <p className="font-display text-lg font-semibold text-text-display truncate">
-            {persona ?? "Anônimo"}
-          </p>
-          <p className="font-display text-sm font-semibold text-brand-primary/80 mt-0.5">
-            [{tag}]
-            {isAdmin && <span className="ml-1 text-yellow-500">★</span>}
-          </p>
-        </div>
+        <Link
+          href="/me"
+          aria-label="Ver meu perfil"
+          className="flex flex-1 min-w-0 items-start gap-3 rounded hover:bg-bg-elevated/40 transition-colors p-1 -m-1"
+        >
+          <UserAvatar
+            src={avatar ?? undefined}
+            alt={`Avatar de ${persona ?? "Anônimo"}`}
+            fallback={(persona ?? "??").slice(0, 2)}
+            size="lg"
+            ringColor="brand"
+          />
+          <div className="flex-1 min-w-0">
+            <p className="font-display text-lg font-semibold text-text-display truncate">
+              {persona ?? "Anônimo"}
+            </p>
+            <p className="font-display text-sm font-semibold text-brand-primary/80 mt-0.5">
+              [{tag}]
+              {isAdmin && <span className="ml-1 text-yellow-500">★</span>}
+            </p>
+          </div>
+        </Link>
         <button
           type="button"
           onClick={onClose}
@@ -236,14 +252,6 @@ function ExpandedPanel({
 
       {/* Saldo de fichas compact */}
       <FichasCard balance={fichaBalance} isAdmin={isAdmin} />
-
-      {/* Link "Ver perfil completo" → /me */}
-      <Link
-        href="/me"
-        className="rounded border border-border-subtle bg-bg-elevated/40 px-3 py-2 text-center font-display text-sm font-semibold uppercase tracking-wide text-text-body hover:border-brand-primary/40 hover:text-text-display transition-colors"
-      >
-        Ver perfil completo →
-      </Link>
 
       {/* Lista de amigos (scrollable) */}
       <div className="flex-1 min-h-0 overflow-y-auto">
