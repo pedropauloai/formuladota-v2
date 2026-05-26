@@ -209,7 +209,9 @@ export async function ClientShell({
         )}
 
         {!hideBottomBar && (
-          <div className="absolute bottom-0 inset-x-0 z-[var(--z-overlay)]">
+          // pointer-events-none no wrapper full-width pra deixar mini-perfil clicável atrás.
+          // O DashboardBottomBar deve usar pointer-events-auto nos botões reais.
+          <div className="absolute bottom-0 inset-x-0 z-[var(--z-overlay)] pointer-events-none">
             <DashboardBottomBar
               isVisitor={isVisitor}
               isAdmin={adminFlag}
