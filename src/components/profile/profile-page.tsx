@@ -55,27 +55,28 @@ export function ProfilePage({ profile, activeTab, dotaRank, honorRank, editing }
         <ProfileTabs activeTab={activeTab} />
       </div>
 
-      {/* Botão Editar Perfil — FIXED logo abaixo do topbar (top-12/14 = 48-56px,
-          a altura do topbar h-12 xl:h-14), alinhado à direita.
-          FORA do submenu de tabs (sobreposto via z-overlay).
-          Contraste visual: cinematic brand vermelho sobre o submenu escuro. */}
-      <div className="fixed top-12 xl:top-14 right-2 mt-1 z-[var(--z-overlay)]">
-        {editing ? (
-          <Link href="/me">
-            <Button variant="secondary" size="sm">
-              <X size={12} aria-hidden="true" />
-              Sair da edição
-            </Button>
-          </Link>
-        ) : (
-          <Link href="/me?edit=1">
-            <Button variant="cinematic" size="sm">
-              <Pencil size={12} aria-hidden="true" />
-              Editar Perfil
-            </Button>
-          </Link>
-        )}
-      </div>
+      {/* Botão Editar Perfil — SÓ aparece quando activeTab === "perfil" (fidelidade Dota 2).
+          Fixed logo abaixo do topbar (top-12 xl:top-14), alinhado à direita.
+          Quando editing=true, vira "Sair da edição" e mantém visível. */}
+      {(activeTab === "perfil" || editing) && (
+        <div className="fixed top-12 xl:top-14 right-2 mt-1 z-[var(--z-overlay)]">
+          {editing ? (
+            <Link href="/me">
+              <Button variant="secondary" size="sm">
+                <X size={12} aria-hidden="true" />
+                Sair da edição
+              </Button>
+            </Link>
+          ) : (
+            <Link href="/me?edit=1">
+              <Button variant="cinematic" size="sm">
+                <Pencil size={12} aria-hidden="true" />
+                Editar Perfil
+              </Button>
+            </Link>
+          )}
+        </div>
+      )}
 
       {/* ──────────────────────────────────────────────────────────────
           LAYOUT 2-COL — stats à esquerda | identidade à direita

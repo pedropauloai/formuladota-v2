@@ -46,7 +46,7 @@ export function ProfileIdentity({
   editing,
 }: Props) {
   return (
-    <div className="flex-1 min-w-0 p-6 flex flex-col gap-4">
+    <div className="flex-1 min-w-0 p-6 flex flex-col items-center gap-4 text-center">
       {/* Avatar XL com ring brand (UI-SPEC: ring=brand no topo do /me) */}
       <UserAvatar
         src={avatarUrl ?? undefined}
@@ -68,7 +68,7 @@ export function ProfileIdentity({
       </div>
 
       {/* Sistema 2-eixos SKILL + HONOR lado a lado (M12 mandamento) */}
-      <div className="flex items-center gap-3 flex-wrap">
+      <div className="flex items-center justify-center gap-3 flex-wrap">
         <DotaRankMedal
           rank={dotaRank}
           size="lg"
@@ -86,10 +86,12 @@ export function ProfileIdentity({
 
       {/* Status message — editável inline quando editing=true */}
       {editing ? (
-        <StatusEditor initialStatus={statusMessage} />
+        <div className="w-full max-w-md">
+          <StatusEditor initialStatus={statusMessage} />
+        </div>
       ) : (
         <p
-          className={`font-display text-base font-semibold leading-relaxed ${
+          className={`font-display text-base font-semibold leading-relaxed max-w-md ${
             statusMessage ? "text-text-body italic" : "text-text-faded italic"
           }`}
         >
@@ -100,9 +102,11 @@ export function ProfileIdentity({
 
       {/* Heróis favoritos — editável inline quando editing=true */}
       {editing ? (
-        <HeroesEditor initialFavorites={favoriteHeroes} />
+        <div className="w-full max-w-md">
+          <HeroesEditor initialFavorites={favoriteHeroes} />
+        </div>
       ) : favoriteHeroes.length > 0 ? (
-        <div className="flex items-end gap-3 mt-2">
+        <div className="flex items-end justify-center gap-3 mt-2">
           {favoriteHeroes.slice(0, 3).map((hero) => (
             <div key={hero.slug} className="flex flex-col items-center gap-1">
               <div className="relative w-[72px] h-[40px] rounded-md overflow-hidden border border-border-subtle">
@@ -129,10 +133,10 @@ export function ProfileIdentity({
 
       {/* Editores adicionais — só visíveis em modo edição */}
       {editing && (
-        <>
+        <div className="w-full max-w-md space-y-4">
           <PortraitEditor initialPortrait={heroPortraitSlug} />
           <AvatarEditor userId={userId} initialAvatar={avatarUrl} />
-        </>
+        </div>
       )}
     </div>
   );
