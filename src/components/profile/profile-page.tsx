@@ -25,7 +25,6 @@ import { Button } from "@/components/ui/button";
 import { ProfileStats } from "./profile-stats";
 import { ProfileIdentity } from "./profile-identity";
 import { ProfileTabs, type ProfileTab } from "./profile-tabs";
-import { TabPerfil } from "./tab-perfil";
 import { TabHistorico } from "./tab-historico";
 import { TabConquistas } from "./tab-conquistas";
 import { TabConduta } from "./tab-conduta";
@@ -79,45 +78,53 @@ export function ProfilePage({ profile, activeTab, dotaRank, honorRank, editing }
       )}
 
       {/* ──────────────────────────────────────────────────────────────
-          LAYOUT 2-COL — stats à esquerda | identidade à direita
-          (sem tabs aqui — foram pra cima)
+          CONTEÚDO POR TAB — cada aba tem suas informações próprias.
+          Tab Perfil: layout 2-col (ProfileStats à esquerda | ProfileIdentity).
+          Outras tabs: full width, sem ProfileStats nem ProfileIdentity.
           ────────────────────────────────────────────────────────────── */}
-      <div className="flex flex-col lg:flex-row gap-0">
-        <ProfileStats
-          avatarUrl={profile.avatarUrl}
-          username={profile.username}
-          dotaRank={dotaRank}
-          honorRank={honorRank}
-          mmr={profile.mmr}
-          partidas={profile.partidas}
-          vitorias={profile.vitorias}
-          derrotas={profile.derrotas}
-        />
-
-        <div className="flex-1">
-          <ProfileIdentity
-            userId={profile.userId}
+      {activeTab === "perfil" && (
+        <div className="flex flex-col lg:flex-row gap-0 flex-1 min-h-0">
+          <ProfileStats
             avatarUrl={profile.avatarUrl}
             username={profile.username}
             dotaRank={dotaRank}
             honorRank={honorRank}
-            ranqueado={ranqueado}
-            statusMessage={profile.statusMessage}
-            favoriteHeroes={profile.favoriteHeroes}
-            heroPortraitSlug={profile.heroPortraitSlug}
-            editing={editing}
+            mmr={profile.mmr}
+            partidas={profile.partidas}
+            vitorias={profile.vitorias}
+            derrotas={profile.derrotas}
           />
+          <div className="flex-1 min-w-0">
+            <ProfileIdentity
+              userId={profile.userId}
+              avatarUrl={profile.avatarUrl}
+              username={profile.username}
+              dotaRank={dotaRank}
+              honorRank={honorRank}
+              ranqueado={ranqueado}
+              statusMessage={profile.statusMessage}
+              favoriteHeroes={profile.favoriteHeroes}
+              heroPortraitSlug={profile.heroPortraitSlug}
+              editing={editing}
+            />
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* ──────────────────────────────────────────────────────────────
-          CONTEÚDO DA TAB ATIVA — full width abaixo das 2 colunas
-          ────────────────────────────────────────────────────────────── */}
-      <div className="px-6 pb-6 mt-4">
-        {activeTab === "perfil" && <TabPerfil />}
-        {activeTab === "historico" && <TabHistorico />}
-        {activeTab === "conquistas" && <TabConquistas />}
-        {activeTab === "conduta" && (
+      {activeTab === "historico" && (
+        <div className="flex-1 min-h-0 p-6">
+          <TabHistorico />
+        </div>
+      )}
+
+      {activeTab === "conquistas" && (
+        <div className="flex-1 min-h-0 p-6">
+          <TabConquistas />
+        </div>
+      )}
+
+      {activeTab === "conduta" && (
+        <div className="flex-1 min-h-0 p-6">
           <TabConduta
             honorRank={honorRank}
             behaviorStatus={profile.behaviorStatus}
@@ -125,8 +132,8 @@ export function ProfilePage({ profile, activeTab, dotaRank, honorRank, editing }
             commends={null /* V2: RPC get_user_commends */}
             strikes={null /* V2: RPC get_user_strikes */}
           />
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
