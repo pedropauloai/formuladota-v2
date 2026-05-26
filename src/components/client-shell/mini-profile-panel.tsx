@@ -1,23 +1,24 @@
 "use client";
 
-// Mini-Profile Panel — Phase 9 refatorado pra fidelidade Dota 2 client.
+// Mini-Profile Panel — Phase 9 refator 2026-05-26 (fidelidade Dota 2 client).
 //
-// Diferente da sidebar lateral anterior (full-height 340px lateral fixa),
-// este painel é ancorado no canto inferior esquerdo (acima do bottom-bar):
+// LAYOUT (Pedro pediu literal):
 //
-//   FECHADO (~280x60px): caixa pequena com avatar + nome compacto.
-//     Click no card todo expande (D-07 redefinido pelo Pedro 2026-05-26).
+//   ESTADO FECHADO:
+//     [Users icon]   ← só um botão pequeno ancorado bottom-left
 //
-//   ABERTO (~340x600px slideup overlay): cresce verticalmente pra cima
-//     sobreposto ao conteúdo. Mostra user header + status + lista de amigos
-//     + link "Ver perfil completo" → /me.
+//   ESTADO ABERTO (panel cresce ACIMA do ícone):
+//     ┌──────────────────────┐
+//     │ Avatar | Nome [tag]  │
+//     │ Saldo de fichas      │
+//     │ AMIGOS               │
+//     │ ...                  │
+//     │ Atalhos              │
+//     └──────────────────────┘
+//     [Users icon highlighted]  ← ícone sempre visível, vira "ativo"
 //
-// Conteúdo do main NÃO reajusta largura (overlay, não shift).
-// z-index entre conteúdo e top-bar.
-//
-// Estado: useState client-side inicializado do cookie SSR-safe (passado
-// como prop). Click toggle = instant + dispara Server Action em background
-// pra persistir entre rotas.
+// O ícone é SEMPRE visível (fora do painel). Click no ícone toggle.
+// Painel só fecha pelo ícone (sem click-outside, sem X interno).
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
@@ -27,8 +28,7 @@ import {
   MessageSquare,
   BookOpen,
   LogIn,
-  ChevronUp,
-  ChevronDown,
+  Users,
 } from "lucide-react";
 import { signInWithDiscord } from "@/app/login/actions";
 import { toggleSidebar } from "@/lib/auth/sidebar-preference";
@@ -63,8 +63,6 @@ export function MiniProfilePanel({
   initialFriends,
 }: Props) {
   // Estado client-side pra UX instant (sem reload). Cookie persiste async.
-  // Pedro 2026-05-26: removido click-outside-fecha (UX Dota 2 = só fecha
-  // pelo chevron toggle).
   const [expanded, setExpanded] = useState(initialExpanded);
   const [, startTransition] = useTransition();
 
@@ -75,7 +73,7 @@ export function MiniProfilePanel({
     });
   }
 
-  // Visitante: card minimal com CTA entrar (sem estado expand)
+  // Visitante: card minimal com CTA entrar (não tem painel de amigos)
   if (isVisitor) {
     return (
       <div className="pointer-events-auto fixed left-4 bottom-[88px] xl:bottom-[104px] z-[var(--z-overlay)] w-[280px]">
@@ -85,8 +83,9 @@ export function MiniProfilePanel({
   }
 
   return (
-    <div className="pointer-events-auto fixed left-4 bottom-[88px] xl:bottom-[104px] z-[var(--z-overlay)]">
-      {expanded ? (
+    <div className="pointer-events-auto fixed left-4 bottom-[88px] xl:bottom-[104px] z-[var(--z-overlay)] flex flex-col items-start gap-2">
+      {/* Painel expandido — cresce ACIMA do ícone trigger */}
+      {expanded && (
         <ExpandedPanel
           persona={persona}
           avatar={avatar}
@@ -95,81 +94,48 @@ export function MiniProfilePanel({
           fichaBalance={fichaBalance}
           currentUserId={currentUserId}
           initialFriends={initialFriends}
-          onToggle={handleToggle}
-        />
-      ) : (
-        <CollapsedCard
-          persona={persona}
-          avatar={avatar}
-          tag={tag}
-          isAdmin={isAdmin}
-          onToggle={handleToggle}
         />
       )}
+
+      {/* Ícone trigger — sempre visível ancorado bottom-left.
+          Único toggle pra abrir/fechar o painel de amigos. */}
+      <ToggleIcon expanded={expanded} onToggle={handleToggle} />
     </div>
   );
 }
 
 // ===========================================================================
-// CollapsedCard — mesmo tamanho do expanded (340x px). Avatar+nome são Link
-// pra /me; chevron à direita expande pra mostrar amigos.
+// ToggleIcon — botão pequeno sempre visível (estilo Dota 2 client bottom icons)
 // ===========================================================================
 
-function CollapsedCard({
-  persona,
-  avatar,
-  tag,
-  isAdmin,
+function ToggleIcon({
+  expanded,
   onToggle,
 }: {
-  persona: string | null;
-  avatar: string | null;
-  tag: string;
-  isAdmin: boolean;
+  expanded: boolean;
   onToggle: () => void;
 }) {
   return (
-    <div className="flex w-[340px] xl:w-[380px] items-center gap-3 rounded-md border border-brand-primary/30 bg-bg-deep/90 backdrop-blur-md px-3 py-2 shadow-lg shadow-black/60">
-      {/* Avatar + nome = Link pra /me (D-07 redefinido pelo Pedro 2026-05-26) */}
-      <Link
-        href="/me"
-        aria-label="Ver meu perfil"
-        className="flex flex-1 min-w-0 items-center gap-3 rounded hover:bg-bg-elevated/40 transition-colors p-1 -m-1"
-      >
-        <UserAvatar
-          src={avatar ?? undefined}
-          alt={`Avatar de ${persona ?? "Anônimo"}`}
-          fallback={(persona ?? "??").slice(0, 2)}
-          size="md"
-          ringColor="brand"
-        />
-        <div className="flex-1 min-w-0 text-left">
-          <p className="font-display text-sm font-semibold text-text-display truncate">
-            {persona ?? "Anônimo"}
-          </p>
-          <p className="font-display text-sm font-semibold text-brand-primary/80 leading-tight">
-            [{tag}]
-            {isAdmin && <span className="ml-1 text-yellow-500">★</span>}
-          </p>
-        </div>
-      </Link>
-      {/* Chevron — único trigger pra expandir o painel de amigos */}
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-label="Expandir lista de amigos"
-        aria-expanded={false}
-        className="shrink-0 rounded p-1 text-text-muted hover:bg-bg-elevated hover:text-text-display transition-colors"
-      >
-        <ChevronUp size={14} aria-hidden="true" />
-      </button>
-    </div>
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-label={expanded ? "Fechar painel de amigos" : "Abrir painel de amigos"}
+      aria-expanded={expanded}
+      title={expanded ? "Fechar amigos" : "Abrir amigos"}
+      className={`flex size-12 items-center justify-center rounded-md border backdrop-blur-md transition-all shadow-lg shadow-black/60 ${
+        expanded
+          ? "border-brand-primary bg-brand-primary/20 text-text-display shadow-[0_0_16px_var(--color-brand-primary-glow)]"
+          : "border-brand-primary/30 bg-bg-deep/90 text-text-muted hover:border-brand-primary/60 hover:text-text-display"
+      }`}
+    >
+      <Users size={20} aria-hidden="true" />
+    </button>
   );
 }
 
 // ===========================================================================
-// ExpandedPanel — slideup overlay ~340x600px com user + amigos + atalhos
-// Cresce VERTICALMENTE pra cima a partir do bottom-left.
+// ExpandedPanel — slideup overlay ~340x600px com user + amigos + atalhos.
+// Aparece ACIMA do ToggleIcon quando expanded=true.
 // ===========================================================================
 
 function ExpandedPanel({
@@ -180,7 +146,6 @@ function ExpandedPanel({
   fichaBalance,
   currentUserId,
   initialFriends,
-  onToggle,
 }: {
   persona: string | null;
   avatar: string | null;
@@ -189,19 +154,18 @@ function ExpandedPanel({
   fichaBalance: number;
   currentUserId: string | null;
   initialFriends: FriendListEntry[];
-  onToggle: () => void;
 }) {
   return (
     <aside
       aria-label="Mini-perfil e lista de amigos"
-      className="flex w-[340px] xl:w-[380px] flex-col gap-3 rounded-md border border-brand-primary/40 bg-bg-deep/95 backdrop-blur-xl p-4 shadow-2xl shadow-black/80 max-h-[calc(100dvh-200px)] overflow-hidden animate-in slide-in-from-bottom-4 fade-in duration-200"
+      className="flex w-[340px] xl:w-[380px] flex-col gap-3 rounded-md border border-brand-primary/40 bg-bg-deep/95 backdrop-blur-xl p-4 shadow-2xl shadow-black/80 max-h-[calc(100dvh-220px)] overflow-hidden animate-in slide-in-from-bottom-4 fade-in duration-200"
     >
-      {/* Header — avatar + nome = Link pra /me; X fecha o painel */}
-      <header className="flex items-start gap-3">
+      {/* Header — avatar + nome = Link pra /me (sem botão X — fechar é pelo ícone fora) */}
+      <header>
         <Link
           href="/me"
           aria-label="Ver meu perfil"
-          className="flex flex-1 min-w-0 items-start gap-3 rounded hover:bg-bg-elevated/40 transition-colors p-1 -m-1"
+          className="flex items-start gap-3 rounded hover:bg-bg-elevated/40 transition-colors p-1 -m-1"
         >
           <UserAvatar
             src={avatar ?? undefined}
@@ -220,17 +184,6 @@ function ExpandedPanel({
             </p>
           </div>
         </Link>
-        {/* Mesmo chevron toggle do CollapsedCard, agora apontando pra baixo
-            (= fechar). Pedro 2026-05-26: único trigger pra abrir/fechar. */}
-        <button
-          type="button"
-          onClick={onToggle}
-          aria-label="Recolher lista de amigos"
-          aria-expanded={true}
-          className="shrink-0 rounded p-1 text-text-muted hover:bg-bg-elevated hover:text-text-display transition-colors"
-        >
-          <ChevronDown size={14} aria-hidden="true" />
-        </button>
       </header>
 
       {/* Saldo de fichas compact */}
