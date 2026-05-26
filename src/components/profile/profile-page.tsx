@@ -7,8 +7,7 @@
 //
 // Server Component — sem "use client".
 
-import { Pencil } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { EditProfileModal } from "./edit-profile-modal";
 import { ProfileStats } from "./profile-stats";
 import { ProfileIdentity } from "./profile-identity";
 import { ProfileTabs, type ProfileTab } from "./profile-tabs";
@@ -32,10 +31,16 @@ export function ProfilePage({ profile, activeTab, dotaRank, honorRank }: Props) 
 
   return (
     <div className="relative min-h-full">
-      {/* Botão EDITAR PERFIL — canto superior direito (UI-SPEC).
-          STUB: disabled até plan 09-08 implementar EditProfileModal. */}
+      {/* Botão EDITAR PERFIL — canto superior direito (UI-SPEC D-11).
+          Modal real via EditProfileModal (plan 09-08 — substituí stub do plan 09-07). */}
       <div className="absolute top-4 right-4 z-[var(--z-elevated)]">
-        <EditProfileTrigger />
+        <EditProfileModal
+          userId={profile.userId}
+          initialStatus={profile.statusMessage}
+          initialFavorites={profile.favoriteHeroes.map((h) => h.slug)}
+          initialPortrait={profile.heroPortraitSlug}
+          initialAvatar={profile.avatarUrl}
+        />
       </div>
 
       {/* Layout interno 2-col (stats | identidade) + tabs no center-col do ClientShell.
@@ -88,18 +93,3 @@ export function ProfilePage({ profile, activeTab, dotaRank, honorRank }: Props) 
   );
 }
 
-// STUB do trigger — plan 09-08 substituirá por <EditProfileModal> com Dialog
-// que envolve este botão como trigger. Por ora: disabled + label EDITAR PERFIL.
-function EditProfileTrigger() {
-  return (
-    <Button
-      variant="secondary"
-      size="sm"
-      disabled
-      aria-label="Editar perfil (em breve)"
-    >
-      <Pencil size={14} aria-hidden="true" />
-      EDITAR PERFIL
-    </Button>
-  );
-}
