@@ -233,6 +233,38 @@ F1 (pode iniciar imediatamente, paralelo) → F2 (gate absoluto) → F3 + F4 + F
 
 ---
 
+## Milestone V2.6 — Player Identity + Social Layer ◆ ATIVO 2026-05-26
+
+> **Inserido entre V2.5 e V3.** Após V2.5 entregar a fundação visual AAA, V2.6 entrega
+> a camada de IDENTIDADE PESSOAL do player: perfil estilo Dota 2 client real, sidebar
+> expansível persistida globalmente, sistema de edição completo (status/heróis/portrait/avatar)
+> e camada social de friendships com presença online em tempo real.
+>
+> **Régua de qualidade:** "Isso parece o client do Dota 2 real?" — fidelidade extrema
+> baseada em `perfil-dota.png` e `perfil-dota-miniperfil+amigos-expandido.png` na raiz.
+>
+> **Estimativa:** 2-4 dias.
+
+### Decisão de numeração (correção 2026-05-26)
+
+Phases V2.6 usam **numeração linear GSD** (Phase 9, Phase 10, ...) — não prefixo `V2.6-F*`.
+Motivo: CLI `gsd-tools` espera regex `^(\d+[A-Z]?(?:\.\d+)*)` em nomes de diretório.
+A convenção `V2.5-F*` no roadmap V2.5 era tracking manual de Pedro — as phases V2.5 nunca
+tiveram diretórios GSD reais (executadas em worktrees paralelas). Pra V2.6 em diante, milestone
+V2.6 vira agrupamento conceitual mas as phases têm número linear (Phase 9, 10, 11...).
+Diretórios: `.planning/phases/{NN}-{slug}/`.
+
+### Phase 9 — Perfil Dota 2 + Social (Milestone V2.6)
+
+**Goal:** Player tem identidade visual canônica estilo Dota 2 client: sidebar esquerda expansível/retrátil com preferência persistida em qualquer rota, click no mini-perfil leva pra /me, página /me visual 100% fiel ao Dota 2 (3 colunas, hero portrait gigante de background, tabs Perfil/Histórico/Troféus/Conduta, stats à esquerda, status message + heróis favoritos no centro, botão Editar Perfil), sistema de edição completo (status message, heróis favoritos até 3, hero portrait de fundo, avatar custom) via Server Actions + Zod, e sistema social de friendships (tabela com RLS, add/remove/accept, presença online em tempo real via Supabase Realtime channel).
+**Depends on:** V2.5 completo (tokens, primitives, patterns, ClientShell já entregues)
+**Requirements:** TBD
+**Plans:** TBD (run /gsd:plan-phase 9 to break down)
+**UI hint**: yes (high fidelity — UI-SPEC.md obrigatório)
+**Estimated effort:** 2-4 dias
+
+---
+
 ## Milestone V3 — Multi-Coach Marketplace (futuro) ○ PLANNED
 
 - Coach onboarding (KYC fiscal CPF/CNPJ)

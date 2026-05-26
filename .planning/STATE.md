@@ -1,18 +1,37 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.5
-milestone_name: Design Foundations — AAA Game Client Experience
-status: COMPLETED
-last_updated: "2026-05-23T00:00:00.000Z"
-current_phase: V2.5-F8 (verificação)
+milestone: v2.6
+milestone_name: Player Identity + Social Layer
+status: ACTIVE
+current_phase: 9
+stopped_at: Phase 9 context gathered
+last_updated: "2026-05-26T05:07:42.665Z"
+last_activity: 2026-05-26 — Phase 9 context capturado via /gsd:discuss-phase
 progress:
-  total_phases: 8
-  completed_phases: 8
-  total_plans: 40
-  completed_plans: 40
+  total_phases: 1
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+previous_milestone:
+  name: v2.5 — Design Foundations
+  status: COMPLETED
+  completed: 8/8 phases
 ---
 
 ## Current Position
+
+Phase: 9 — Perfil Dota 2 + Social (planning) — Milestone V2.6
+Status: ACTIVE — milestone V2.6 iniciado 2026-05-26. Aguardando discuss-phase → ui-phase → plan-phase → execute-phase.
+Last activity: 2026-05-26 — Phase 9 (V2.6 milestone) criada após V2.5 COMPLETED.
+
+Progress V2.6: [░░░░░░░░░░] 0% (0/1 phase)
+
+### Roadmap Evolution
+
+- 2026-05-26 — Milestone V2.6 (Player Identity + Social Layer) criado entre V2.5 e V3. Inclui Phase 9 (Perfil Dota 2 + Social).
+- 2026-05-26 — Convenção de numeração: Phase 9 usa naming linear GSD (não V2.6-F1) pra compatibilidade com CLI gsd-tools regex. V2.5-F* convenção foi tracking manual sem diretórios GSD reais.
+
+### Previous Position (V2.5)
 
 Phase: V2.5-F8 CONCLUÍDA — milestone V2.5 COMPLETED
 Status: COMPLETED — todas as 8 phases entregues, validadas, lint 0 errors, typecheck clean.
@@ -76,11 +95,13 @@ Branch: `feat/hero-state-refactor`
 | Gap 5 — Email PT confirmada | FIXED | sendPTConfirmedEmail() + template + chamada em confirmPTRealized (fire-and-forget). |
 
 ### Commits feitos
+
 - `3161c62` fix(mvp-fichas): Gap 2 — webhook MP insere em ficha_ledger após PIX aprovado
 - `ea1a2aa` feat(mvp-fichas): Gap 5 — email PT confirmada (sendPTConfirmedEmail + template)
 - `f4bde89` feat(mvp-fichas): Gap 5 — confirmPTRealized dispara email pra alunos consumidos
 
 ### UAT criteria — status
+
 1. Pedro acessa /admin/pros → PENDENTE validação visual Pedro
 2. Aluno vê "Sem fichas" + CTA comprar → PENDENTE validação visual Pedro
 3. Checkout → PIX → webhook → ficha aparece → PENDENTE teste sandbox MP
@@ -92,17 +113,19 @@ Branch: `feat/hero-state-refactor`
 9. Aluno vê 0 fichas + histórico em /partidas → PENDENTE validação Pedro
 
 ### Pendente para Pedro testar
+
 - Rodar `pnpm dev` e validar fluxo visual completo (dashboard → checkout → fila → admin/pros)
 - Testar webhook com PIX sandbox Mercado Pago (confirmar ficha aparece após pagar)
 - Confirmar que email de "PT confirmada" chega após confirmPTRealized
 
 ## Session Continuity
 
-Last session: 2026-05-23
-Stopped at: V2.5 COMPLETED — wrap-up Wave 5b finalizado. VERIFICATION.md em .planning/phases/V2.5-VERIFICATION.md.
-Resume file: .planning/phases/V2.5-VERIFICATION.md
+Last session: 2026-05-26T05:07:42.661Z
+Stopped at: Phase 9 context gathered
+Resume file: .planning/phases/09-perfil-dota-social/09-CONTEXT.md
 
 **Próximos passos Pedro decide:**
+
 1. Curar SFX agora pra V2.5 ficar funcionalmente completo (com FREESOUND_API_KEY ou manual)
 2. Rodar `pnpm dev` e validar visualmente componentes em /components
 3. Retomar MVP fichas (Phase 4 MP pausada) ou Phase 5 Bot Steam
