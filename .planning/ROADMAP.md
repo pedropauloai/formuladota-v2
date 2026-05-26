@@ -259,8 +259,8 @@ Diretórios: `.planning/phases/{NN}-{slug}/`.
 **Goal:** Player tem identidade visual canônica estilo Dota 2 client: sidebar esquerda expansível/retrátil com preferência persistida em qualquer rota, click no mini-perfil leva pra /me, página /me visual 100% fiel ao Dota 2 (3 colunas, hero portrait gigante de background, tabs Perfil/Histórico/Conquistas/Conduta, stats à esquerda, status message + heróis favoritos no centro, botão Editar Perfil), sistema de edição completo (status message, heróis favoritos até 3, hero portrait de fundo, avatar custom) via Server Actions + Zod, e sistema social de friendships (tabela com RLS, add/remove/accept, presença online em tempo real via Supabase Realtime channel).
 **Depends on:** V2.5 completo (tokens, primitives, patterns, ClientShell já entregues)
 **Requirements:** D-01 a D-40 (decisões CONTEXT) + cross-cutting C14/C17/C18/C19/B6
-**Plans:** 9 plans em 4 waves (Wave 1: 02→03→04 serial | Wave 2: 05a+05b paralelos | Wave 3: 06+07 paralelos | Wave 4: 08) — revisado pós-checker 2026-05-26
-- [ ] 09-01-config-heroes-catalog-PLAN.md — next.config Valve CDN + dota-heroes.json (10 campos D-24 incluindo complexity) + helpers (autonomous)
+**Plans:** 1/9 plans executed
+- [x] 09-01-config-heroes-catalog-PLAN.md — next.config Valve CDN + dota-heroes.json (10 campos D-24 incluindo complexity) + helpers (autonomous)
 - [ ] 09-02-migration-034-profile-extended-PLAN.md — 5 colunas em profiles (REQUER APROVAÇÃO PEDRO) — serial Wave 1
 - [ ] 09-03-migration-035-friendships-PLAN.md — tabela friendships + RLS + indexes (REQUER APROVAÇÃO PEDRO) — serial Wave 1 (depende de 09-02)
 - [ ] 09-04-migration-036-storage-avatars-PLAN.md — bucket profile-avatars + storage policies + gen-types único (REQUER APROVAÇÃO PEDRO) — serial Wave 1 (depende de 09-03)

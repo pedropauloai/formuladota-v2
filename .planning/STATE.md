@@ -1,30 +1,22 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.6
-milestone_name: Player Identity + Social Layer
-status: ACTIVE
-current_phase: 9
-stopped_at: Phase 9 planned — 9 plans verified (revision 1)
-last_updated: "2026-05-26T06:36:58.908Z"
-last_activity: 2026-05-26 — Phase 9 plan-phase COMPLETED. 9 plans em 4 waves prontos pra execute-phase.
+milestone: v2.5
+milestone_name: milestone
+status: completed
+stopped_at: Completed 09-01-config-heroes-catalog-PLAN.md
+last_updated: "2026-05-26T06:47:55.585Z"
+last_activity: 2026-05-26
 progress:
-  total_phases: 1
-  completed_phases: 0
-  total_plans: 9
-  completed_plans: 0
-previous_milestone:
-  name: v2.5 — Design Foundations
-  status: COMPLETED
-  completed: 8/8 phases
+  total_phases: 7
+  completed_phases: 3
+  total_plans: 23
+  completed_plans: 15
 ---
 
 ## Current Position
 
-Phase: 9 — Perfil Dota 2 + Social (planning) — Milestone V2.6
-Status: ACTIVE — milestone V2.6 iniciado 2026-05-26. Aguardando discuss-phase → ui-phase → plan-phase → execute-phase.
-Last activity: 2026-05-26 — Phase 9 (V2.6 milestone) criada após V2.5 COMPLETED.
-
-Progress V2.6: [░░░░░░░░░░] 0% (0/1 phase)
+Phase: 09 (perfil-dota-social) — EXECUTING
+Plan: 2 of 9
 
 ### Roadmap Evolution
 
@@ -35,7 +27,7 @@ Progress V2.6: [░░░░░░░░░░] 0% (0/1 phase)
 
 Phase: V2.5-F8 CONCLUÍDA — milestone V2.5 COMPLETED
 Status: COMPLETED — todas as 8 phases entregues, validadas, lint 0 errors, typecheck clean.
-Last activity: 2026-05-23 — Wave 5b wrap-up: lint corrigido (20 → 0 erros), VERIFICATION.md criado, STATE.md atualizado.
+Last activity: 2026-05-26
 
 Progress V2.5: [██████████] 100% (8/8 phases)
 
@@ -120,9 +112,9 @@ Branch: `feat/hero-state-refactor`
 
 ## Session Continuity
 
-Last session: 2026-05-26T06:36:58.903Z
-Stopped at: Phase 9 planned — 9 plans verified
-Resume file: .planning/phases/09-perfil-dota-social/
+Last session: 2026-05-26T06:47:55.581Z
+Stopped at: Completed 09-01-config-heroes-catalog-PLAN.md
+Resume file: None
 
 **Próximos passos Pedro decide:**
 
