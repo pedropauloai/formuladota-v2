@@ -1,17 +1,20 @@
-// Left Sidebar — perfil do user + saldo de fichas + comunidade.
-// MVP: removidos tier badge/MMR (v2 quando tiver sistema interno),
-// busca amigos / filtros "No jogo/Comunidade/etc" (v2), lista amigos
-// placeholder (v2).
+// Left Sidebar — refatorada Phase 9 (D-01 a D-07).
+// 2 estados visuais:
+//   - collapsed (72px): toggle ChevronsRight + UserAvatar md (Link /me) + ícones empilhados
+//   - expanded (340px): toggle ChevronsLeft + ProfileCard (Link /me) + FichasCard + Atalhos + FriendsList
 //
-// VISITANTE DESLOGADO (task #63 — 2026-05-24): quando isVisitor=true,
-// ProfileCard e FichasCard são substituídos por VisitorCard (CTA secundário
-// "Entrar com Discord"). CTA principal continua no TopBar (EntrarBadge) —
-// VisitorCard é só reforço pra quem rolou o foco pra sidebar.
-// Atalhos (Conduta, Discord) continuam visíveis — são links públicos.
+// Toggle persistido em cookie sidebar_expanded via Server Action toggleSidebar.
+// Cookie não é httpOnly — Server Component lê no SSR (sem flash no hydration — Pitfall 1 RESEARCH).
+//
+// Extração em sub-arquivos (CLAUDE.md limite 300 linhas por arquivo):
+//   - left-sidebar-expanded.tsx   → estado expanded (D-04)
+//   - left-sidebar-collapsed.tsx  → estado collapsed (D-03)
 
-import Link from "next/link";
-import { Coins, ExternalLink, MessageSquare, BookOpen, LogIn } from "lucide-react";
-import { signInWithDiscord } from "@/app/login/actions";
+import { ChevronsLeft, ChevronsRight } from "lucide-react";
+import { toggleSidebar } from "@/lib/auth/sidebar-preference";
+import { ExpandedContent } from "./left-sidebar-expanded";
+import { CollapsedContent } from "./left-sidebar-collapsed";
+import type { FriendListEntry } from "@/lib/queries/friends";
 
 interface Props {
   /** Visitante deslogado: troca ProfileCard + FichasCard por VisitorCard. */
@@ -25,6 +28,12 @@ interface Props {
   fichaBalance: number;
   /** Modo flutuante (immersive shell): wrapper transparente. */
   floating?: boolean;
+  /** Estado do cookie sidebar_expanded — lido no shell.tsx (SSR-safe, sem flash). */
+  expanded: boolean;
+  /** UUID do user logado — pra usePresenceChannel. Null se visitante. */
+  currentUserId: string | null;
+  /** Amigos aceitos — fetched no shell.tsx (server-side). */
+  initialFriends: FriendListEntry[];
 }
 
 export function DashboardLeftSidebar({
@@ -35,152 +44,55 @@ export function DashboardLeftSidebar({
   isAdmin,
   fichaBalance,
   floating,
+  expanded,
+  currentUserId,
+  initialFriends,
 }: Props) {
-  // Sidebar como apoio visual: backdrop blur fixo + bg semi-transparente
-  // (sem fade hover — UI estável, sem comportamento "ativo" no mouse).
+  const baseWrapperCls = expanded
+    ? "flex-col gap-3 bg-gradient-to-r from-black/70 via-black/40 to-transparent p-4 backdrop-blur-sm"
+    : "flex-col items-center gap-3 bg-bg-base/90 backdrop-blur-sm py-4 px-3";
+
   const wrapperCls = floating
-    ? "flex w-full flex-col gap-3 p-3 overflow-y-auto"
-    : "hidden lg:flex flex-col gap-3 bg-gradient-to-r from-black/70 via-black/40 to-transparent p-4 backdrop-blur-sm overflow-y-auto";
+    ? `flex w-full ${baseWrapperCls} overflow-y-auto`
+    : `hidden lg:flex ${baseWrapperCls} overflow-y-auto`;
 
   return (
-    <aside className={wrapperCls}>
-      {isVisitor ? (
-        <VisitorCard />
-      ) : (
-        <>
-          {/* Profile Card */}
-          <div className="rounded-md border border-border-subtle bg-gradient-to-b from-bg-elevated/90 to-bg-deep/60 p-3">
-            <div className="flex items-center gap-3">
-              {avatar ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={avatar}
-                  alt=""
-                  className="size-12 shrink-0 rounded-full border-2 border-brand-primary/60 ring-2 ring-brand-primary/20"
-                />
-              ) : (
-                <div className="size-12 shrink-0 rounded-full border-2 border-brand-primary/60 bg-bg-elevated" />
-              )}
-              <div className="flex-1 min-w-0">
-                <p className="font-display text-base font-semibold text-text-display truncate">
-                  {persona ?? "Anônimo"}
-                </p>
-                <p className="font-display text-sm font-semibold text-brand-primary/80 mt-0.5">
-                  [{tag}]
-                  {isAdmin && <span className="ml-1 text-yellow-500">★</span>}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Saldo de Fichas — card destaque */}
-          <FichasCard balance={fichaBalance} isAdmin={isAdmin} />
-        </>
-      )}
-
-      {/* Links rápidos — públicos. Pra visitante, "Meu perfil" cai pra Conduta
-          (sem rota privada). Logado mantém atalho /me. */}
-      <nav aria-label="Atalhos" className="space-y-1 rounded-md border border-border-subtle bg-bg-elevated/60 p-2">
-        {!isVisitor && (
-          <SidebarLink href="/me" label="Meu perfil" icon={null} />
-        )}
-        <SidebarLink href="/codigo-de-conduta" label="Código de Conduta" icon={BookOpen} />
-        <SidebarLink
-          href="https://discord.com/invite/v3pSuZhjBE"
-          label="Discord oficial"
-          icon={MessageSquare}
-          external
-        />
-      </nav>
-
-      {/* Espaço vazio reservado pra futuras features (amigos online, chat) */}
-      <div className="flex-1 rounded-md border border-dashed border-border-subtle bg-bg-deep/30 p-4 flex items-center justify-center">
-        <p className="text-center font-display text-sm font-medium text-text-muted">
-          Lista de amigos · em breve V2
-        </p>
-      </div>
-    </aside>
-  );
-}
-
-function VisitorCard() {
-  // CTA secundário pro visitante. CTA dominante já está no TopBar — esse aqui
-  // é reforço com mensagem explicativa (sem competir em visual com o header).
-  return (
-    <div className="rounded-md border border-border-subtle bg-gradient-to-b from-bg-elevated/90 to-bg-deep/60 p-4">
-      <div className="flex items-center gap-3">
-        <div className="size-12 shrink-0 rounded-full border-2 border-border-subtle bg-bg-deep/80 flex items-center justify-center">
-          <LogIn size={16} className="text-text-muted" aria-hidden="true" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="font-display text-base text-text-display">Visitante</p>
-          <p className="font-display text-sm font-medium text-text-muted mt-0.5">Sem sessão</p>
-        </div>
-      </div>
-      <p className="mt-3 font-sans text-sm leading-relaxed text-text-body">
-        Entre com Discord pra acompanhar seu perfil, saldo de fichas e fila.
-      </p>
-      <form action={signInWithDiscord} className="mt-3">
+    <aside className={wrapperCls} aria-label="Sidebar de identidade e amigos">
+      {/* Toggle button — visível em ambos estados (D-05) */}
+      <form action={toggleSidebar} className={expanded ? "self-end" : "self-center"}>
         <button
           type="submit"
-          className="w-full inline-flex items-center justify-center gap-1.5 rounded-md border border-brand-primary/60 bg-brand-primary/10 px-3 py-2 font-display text-sm font-semibold text-brand-primary hover:bg-brand-primary/20 hover:text-text-display transition-colors"
+          aria-label={expanded ? "Recolher sidebar" : "Expandir sidebar"}
+          aria-expanded={expanded}
+          title={expanded ? "Recolher sidebar" : "Expandir sidebar"}
+          className="text-text-muted hover:text-text-display p-1 transition-colors"
         >
-          <LogIn size={11} aria-hidden="true" />
-          <span>Entrar com Discord</span>
+          {expanded ? (
+            <ChevronsLeft size={16} aria-hidden="true" />
+          ) : (
+            <ChevronsRight size={16} aria-hidden="true" />
+          )}
         </button>
       </form>
-    </div>
-  );
-}
 
-function FichasCard({ balance, isAdmin }: { balance: number; isAdmin: boolean }) {
-  return (
-    <div className="rounded-md border border-brand-primary/40 bg-gradient-to-br from-brand-primary/10 to-transparent p-3">
-      <div className="flex items-center gap-2">
-        <Coins size={14} className="text-brand-primary" aria-hidden="true" />
-        <p className="font-display text-sm font-semibold text-text-body">Saldo de fichas</p>
-      </div>
-      <p className="mt-2 font-display text-3xl font-bold text-text-display">
-        {isAdmin ? "∞" : balance}
-        <span className="ml-2 font-display text-sm font-semibold text-text-body">
-          {isAdmin ? "admin" : balance === 1 ? "ficha" : "fichas"}
-        </span>
-      </p>
-      {!isAdmin && balance === 0 && (
-        <p className="mt-1 font-mono text-sm text-text-faded">
-          Compre uma pra entrar em fila
-        </p>
+      {expanded ? (
+        <ExpandedContent
+          isVisitor={isVisitor}
+          persona={persona}
+          avatar={avatar}
+          tag={tag}
+          isAdmin={isAdmin}
+          fichaBalance={fichaBalance}
+          currentUserId={currentUserId}
+          initialFriends={initialFriends}
+        />
+      ) : (
+        <CollapsedContent
+          isVisitor={isVisitor}
+          avatar={avatar}
+          persona={persona}
+        />
       )}
-    </div>
-  );
-}
-
-function SidebarLink({
-  href,
-  label,
-  icon: Icon,
-  external,
-}: {
-  href: string;
-  label: string;
-  icon: typeof BookOpen | null;
-  external?: boolean;
-}) {
-  const cls =
-    "flex items-center gap-2 rounded px-2 py-1.5 font-sans text-sm text-text-body hover:bg-bg-elevated hover:text-text-display transition-colors";
-  if (external) {
-    return (
-      <a href={href} target="_blank" rel="noreferrer" className={cls}>
-        {Icon ? <Icon size={12} aria-hidden="true" /> : null}
-        {label}
-        <ExternalLink size={9} className="ml-auto text-text-faded" aria-hidden="true" />
-      </a>
-    );
-  }
-  return (
-    <Link href={href} className={cls}>
-      {Icon ? <Icon size={12} aria-hidden="true" /> : null}
-      {label}
-    </Link>
+    </aside>
   );
 }
