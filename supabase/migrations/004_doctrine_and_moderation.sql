@@ -35,9 +35,9 @@ create table if not exists public.user_warnings (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references public.profiles(id) on delete cascade not null,
 
-  -- Princípio violado: 1-14 (positivos) OU anti-padrão 1-10 (negativos)
+  -- Princípio violado: 1-14 (positivos) OU anti-padrão 1-15 (negativos)
   principle_violated integer check (principle_violated between 1 and 14),
-  antipattern_violated integer check (antipattern_violated between 1 and 10),
+  antipattern_violated integer check (antipattern_violated between 1 and 15),
   -- Pelo menos um deve ser preenchido
   constraint principle_or_antipattern check (
     principle_violated is not null or antipattern_violated is not null

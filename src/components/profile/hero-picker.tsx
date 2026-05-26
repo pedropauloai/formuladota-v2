@@ -91,6 +91,10 @@ export function HeroPicker({
       const attr = h.primary_attr as PrimaryAttr;
       if (attr in groups) groups[attr].push(h);
     });
+    // Ordem alfabética dentro de cada atributo (pt-BR) — pedido Pedro
+    (Object.keys(groups) as PrimaryAttr[]).forEach((attr) => {
+      groups[attr].sort((a, b) => a.name_pt.localeCompare(b.name_pt, "pt-BR"));
+    });
     return groups;
   }, [query]);
 
