@@ -1,21 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.6
-milestone_name: Player Identity + Social Layer
-status: ACTIVE
-current_phase: 9
-stopped_at: Phase 9 context gathered
-last_updated: "2026-05-26T05:07:42.665Z"
-last_activity: 2026-05-26 — Phase 9 context capturado via /gsd:discuss-phase
+milestone: v2.5
+milestone_name: milestone
+status: ACTIVE — milestone V2.6 iniciado 2026-05-26. Aguardando discuss-phase → ui-phase → plan-phase → execute-phase.
+stopped_at: Phase 9 UI-SPEC approved (revision 1)
+last_updated: "2026-05-26T05:26:36.892Z"
+last_activity: 2026-05-26 — Phase 9 (V2.6 milestone) criada após V2.5 COMPLETED.
 progress:
-  total_phases: 1
+  total_phases: 8
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
-previous_milestone:
-  name: v2.5 — Design Foundations
-  status: COMPLETED
-  completed: 8/8 phases
 ---
 
 ## Current Position
@@ -120,9 +115,9 @@ Branch: `feat/hero-state-refactor`
 
 ## Session Continuity
 
-Last session: 2026-05-26T05:07:42.661Z
-Stopped at: Phase 9 context gathered
-Resume file: .planning/phases/09-perfil-dota-social/09-CONTEXT.md
+Last session: 2026-05-26T05:26:36.888Z
+Stopped at: Phase 9 UI-SPEC approved (revision 1)
+Resume file: .planning/phases/09-perfil-dota-social/09-UI-SPEC.md
 
 **Próximos passos Pedro decide:**
 
