@@ -438,6 +438,48 @@ export type Database = {
           },
         ]
       }
+      friendships: {
+        Row: {
+          addressee_id: string
+          created_at: string
+          id: string
+          requester_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          addressee_id: string
+          created_at?: string
+          id?: string
+          requester_id: string
+          status: string
+          updated_at?: string
+        }
+        Update: {
+          addressee_id?: string
+          created_at?: string
+          id?: string
+          requester_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "friendships_addressee_id_fkey"
+            columns: ["addressee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "friendships_requester_id_fkey"
+            columns: ["requester_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       honor_ledger: {
         Row: {
           admin_user_id: string | null
@@ -1172,6 +1214,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_custom_url: string | null
           avatar_url: string | null
           banned_at: string | null
           banned_reason: string | null
@@ -1183,12 +1226,16 @@ export type Database = {
           doctrine_accepted_at: string | null
           doctrine_version: number
           email: string | null
+          favorite_heroes: Json
+          hero_portrait_slug: string | null
           id: string
           is_admin: boolean
+          last_seen_at: string | null
           mmr_atual: number | null
           mmr_inicial: number | null
           role: string
           role_preferida: string | null
+          status_message: string | null
           steam_id: string | null
           suspended_until: string | null
           trial_ends_at: string | null
@@ -1196,6 +1243,7 @@ export type Database = {
           username: string | null
         }
         Insert: {
+          avatar_custom_url?: string | null
           avatar_url?: string | null
           banned_at?: string | null
           banned_reason?: string | null
@@ -1207,12 +1255,16 @@ export type Database = {
           doctrine_accepted_at?: string | null
           doctrine_version?: number
           email?: string | null
+          favorite_heroes?: Json
+          hero_portrait_slug?: string | null
           id: string
           is_admin?: boolean
+          last_seen_at?: string | null
           mmr_atual?: number | null
           mmr_inicial?: number | null
           role?: string
           role_preferida?: string | null
+          status_message?: string | null
           steam_id?: string | null
           suspended_until?: string | null
           trial_ends_at?: string | null
@@ -1220,6 +1272,7 @@ export type Database = {
           username?: string | null
         }
         Update: {
+          avatar_custom_url?: string | null
           avatar_url?: string | null
           banned_at?: string | null
           banned_reason?: string | null
@@ -1231,12 +1284,16 @@ export type Database = {
           doctrine_accepted_at?: string | null
           doctrine_version?: number
           email?: string | null
+          favorite_heroes?: Json
+          hero_portrait_slug?: string | null
           id?: string
           is_admin?: boolean
+          last_seen_at?: string | null
           mmr_atual?: number | null
           mmr_inicial?: number | null
           role?: string
           role_preferida?: string | null
+          status_message?: string | null
           steam_id?: string | null
           suspended_until?: string | null
           trial_ends_at?: string | null
