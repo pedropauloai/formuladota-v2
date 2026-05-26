@@ -33,6 +33,8 @@ import { getProsWithQueues } from "@/lib/queries/pros";
 import { getFichaPackage } from "@/lib/queries/packages";
 import { getMyQueueStatus } from "@/lib/queries/queue";
 import { getPreviewModeActive } from "@/lib/auth/preview-mode";
+import { getSidebarExpanded } from "@/lib/auth/sidebar-preference";
+import { getAcceptedFriends } from "@/lib/queries/friends";
 import { DashboardTopBar } from "./top-bar";
 import { DashboardLeftSidebar } from "./left-sidebar";
 import { DashboardRightSidebar } from "./right-sidebar";
@@ -86,12 +88,18 @@ export async function ClientShell({
     prosWithQueues,
     fichaPackage,
     previewActive,
+    sidebarExpanded,
+    acceptedFriends,
   ] = await Promise.all([
     isVisitor ? Promise.resolve(null) : fetchPrivateData(supabase, user.id),
     getProsWithQueues(),
     getFichaPackage(),
     // Preview mode só faz sentido pra admin logado — pra visitante retorna false.
     isVisitor ? Promise.resolve(false) : getPreviewModeActive(),
+    // Cookie sidebar_expanded lido no SSR — sem flash no hydration (Pitfall 1 RESEARCH).
+    getSidebarExpanded(),
+    // Amigos aceitos — visitante não tem amigos.
+    isVisitor ? Promise.resolve([]) : getAcceptedFriends(),
   ]);
 
   const profile = privateData?.profile ?? null;
@@ -162,7 +170,7 @@ export async function ClientShell({
         </div>
 
         {!hideLeftSidebar && (
-          <div className={`hidden lg:flex absolute left-0 top-[64px] xl:top-[72px] ${bottomReserveCls} z-[var(--z-overlay)] w-[340px] xl:w-[400px] 2xl:w-[460px]`}>
+          <div className={`hidden lg:flex absolute left-0 top-[64px] xl:top-[72px] ${bottomReserveCls} z-[var(--z-overlay)] ${sidebarExpanded ? "w-[340px] xl:w-[400px] 2xl:w-[460px]" : "w-[72px]"}`}>
             <DashboardLeftSidebar
               isVisitor={isVisitor}
               persona={persona}
@@ -171,6 +179,9 @@ export async function ClientShell({
               isAdmin={adminFlag}
               fichaBalance={fichaBalance}
               floating
+              expanded={sidebarExpanded}
+              currentUserId={user?.id ?? null}
+              initialFriends={acceptedFriends}
             />
           </div>
         )}
@@ -196,7 +207,7 @@ export async function ClientShell({
         <main
           className={`absolute inset-0 top-[64px] xl:top-[72px] ${bottomReserveCls} z-[var(--z-elevated)] overflow-y-auto ${
             !hideLeftSidebar
-              ? "lg:pl-[340px] xl:pl-[400px] 2xl:pl-[460px]"
+              ? (sidebarExpanded ? "lg:pl-[340px] xl:pl-[400px] 2xl:pl-[460px]" : "lg:pl-[72px]")
               : ""
           } lg:pr-[320px] xl:pr-[360px] 2xl:pr-[380px]`}
         >
@@ -244,16 +255,23 @@ export async function ClientShell({
         prosOnlineCount={prosOnlineCount}
       />
 
+      {/* Grid columns — Tailwind purge-safe (WARNING #10 fix):
+          6 strings estáticas completas — Tailwind detecta todas as variantes em build time.
+          Sem template literals dinâmicos, inline style ou safelist. */}
       <div
-        className={
+        className={`grid flex-1 min-h-0 grid-cols-1 ${
           hideLeftSidebar
             ? wideRightSidebar
-              ? "grid flex-1 min-h-0 grid-cols-1 lg:grid-cols-[1fr_480px] xl:grid-cols-[1fr_520px] 2xl:grid-cols-[1fr_560px]"
-              : "grid flex-1 min-h-0 grid-cols-1 lg:grid-cols-[1fr_320px] xl:grid-cols-[1fr_360px] 2xl:grid-cols-[1fr_380px]"
-            : wideRightSidebar
-              ? "grid flex-1 min-h-0 grid-cols-1 lg:grid-cols-[340px_1fr_480px] xl:grid-cols-[400px_1fr_520px] 2xl:grid-cols-[460px_1fr_560px]"
-              : "grid flex-1 min-h-0 grid-cols-1 lg:grid-cols-[340px_1fr_320px] xl:grid-cols-[400px_1fr_360px] 2xl:grid-cols-[460px_1fr_380px]"
-        }
+              ? "lg:grid-cols-[1fr_480px] xl:grid-cols-[1fr_520px] 2xl:grid-cols-[1fr_560px]"
+              : "lg:grid-cols-[1fr_320px] xl:grid-cols-[1fr_360px] 2xl:grid-cols-[1fr_380px]"
+            : sidebarExpanded
+              ? wideRightSidebar
+                ? "lg:grid-cols-[340px_1fr_480px] xl:grid-cols-[400px_1fr_520px] 2xl:grid-cols-[460px_1fr_560px]"
+                : "lg:grid-cols-[340px_1fr_320px] xl:grid-cols-[400px_1fr_360px] 2xl:grid-cols-[460px_1fr_380px]"
+              : wideRightSidebar
+                ? "lg:grid-cols-[72px_1fr_480px] xl:grid-cols-[72px_1fr_520px] 2xl:grid-cols-[72px_1fr_560px]"
+                : "lg:grid-cols-[72px_1fr_320px] xl:grid-cols-[72px_1fr_360px] 2xl:grid-cols-[72px_1fr_380px]"
+        }`}
       >
         {!hideLeftSidebar && (
           <DashboardLeftSidebar
@@ -263,6 +281,9 @@ export async function ClientShell({
             tag={userTag}
             isAdmin={adminFlag}
             fichaBalance={fichaBalance}
+            expanded={sidebarExpanded}
+            currentUserId={user?.id ?? null}
+            initialFriends={acceptedFriends}
           />
         )}
 
