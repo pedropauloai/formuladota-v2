@@ -259,13 +259,13 @@ Diretórios: `.planning/phases/{NN}-{slug}/`.
 **Goal:** Player tem identidade visual canônica estilo Dota 2 client: sidebar esquerda expansível/retrátil com preferência persistida em qualquer rota, click no mini-perfil leva pra /me, página /me visual 100% fiel ao Dota 2 (3 colunas, hero portrait gigante de background, tabs Perfil/Histórico/Conquistas/Conduta, stats à esquerda, status message + heróis favoritos no centro, botão Editar Perfil), sistema de edição completo (status message, heróis favoritos até 3, hero portrait de fundo, avatar custom) via Server Actions + Zod, e sistema social de friendships (tabela com RLS, add/remove/accept, presença online em tempo real via Supabase Realtime channel).
 **Depends on:** V2.5 completo (tokens, primitives, patterns, ClientShell já entregues)
 **Requirements:** D-01 a D-40 (decisões CONTEXT) + cross-cutting C14/C17/C18/C19/B6
-**Plans:** 1/9 plans executed
+**Plans:** 3/9 plans executed
 - [x] 09-01-config-heroes-catalog-PLAN.md — next.config Valve CDN + dota-heroes.json (10 campos D-24 incluindo complexity) + helpers (autonomous)
 - [ ] 09-02-migration-034-profile-extended-PLAN.md — 5 colunas em profiles (REQUER APROVAÇÃO PEDRO) — serial Wave 1
 - [ ] 09-03-migration-035-friendships-PLAN.md — tabela friendships + RLS + indexes (REQUER APROVAÇÃO PEDRO) — serial Wave 1 (depende de 09-02)
 - [ ] 09-04-migration-036-storage-avatars-PLAN.md — bucket profile-avatars + storage policies + gen-types único (REQUER APROVAÇÃO PEDRO) — serial Wave 1 (depende de 09-03)
 - [x] 09-05a-backend-profile-sidebar-actions-PLAN.md — toggleSidebar + edit profile/avatar Server Actions (3 arquivos)
-- [ ] 09-05b-backend-friends-presence-PLAN.md — 5 Server Actions friends (D-31 incluindo blockUser) + presence hook + queries (4 arquivos)
+- [x] 09-05b-backend-friends-presence-PLAN.md — 5 Server Actions friends (D-31 incluindo blockUser) + presence hook + queries (4 arquivos)
 - [ ] 09-06-sidebar-collapsible-friends-PLAN.md — shell.tsx + left-sidebar.tsx refactor + FriendsList realtime (zero console.* compliance)
 - [ ] 09-07-me-page-3col-tabs-PLAN.md — /me reescrita usando ClientShell IMMERSIVE + centerHero (hero portrait fullscreen via shell) + 4 tabs
 - [ ] 09-08-edit-profile-modal-PLAN.md — Dialog takeover 4 abas + HeroPicker + AvatarUpload + toast feedback em cada save
