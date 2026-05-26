@@ -19,7 +19,7 @@
 // como prop). Click toggle = instant + dispara Server Action em background
 // pra persistir entre rotas.
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import {
   Coins,
@@ -27,8 +27,8 @@ import {
   MessageSquare,
   BookOpen,
   LogIn,
-  X,
   ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import { signInWithDiscord } from "@/app/login/actions";
 import { toggleSidebar } from "@/lib/auth/sidebar-preference";
@@ -63,24 +63,10 @@ export function MiniProfilePanel({
   initialFriends,
 }: Props) {
   // Estado client-side pra UX instant (sem reload). Cookie persiste async.
+  // Pedro 2026-05-26: removido click-outside-fecha (UX Dota 2 = só fecha
+  // pelo chevron toggle).
   const [expanded, setExpanded] = useState(initialExpanded);
   const [, startTransition] = useTransition();
-  const panelRef = useRef<HTMLDivElement>(null);
-
-  // Click fora fecha (apenas quando expanded — UX Dota 2 client)
-  useEffect(() => {
-    if (!expanded) return;
-    function handleClickOutside(e: MouseEvent) {
-      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
-        setExpanded(false);
-        startTransition(() => {
-          void toggleSidebar();
-        });
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [expanded]);
 
   function handleToggle() {
     setExpanded((prev) => !prev);
@@ -92,20 +78,14 @@ export function MiniProfilePanel({
   // Visitante: card minimal com CTA entrar (sem estado expand)
   if (isVisitor) {
     return (
-      <div
-        ref={panelRef}
-        className="pointer-events-auto fixed left-4 bottom-[88px] xl:bottom-[104px] z-[var(--z-overlay)] w-[280px]"
-      >
+      <div className="pointer-events-auto fixed left-4 bottom-[88px] xl:bottom-[104px] z-[var(--z-overlay)] w-[280px]">
         <VisitorCardCompact />
       </div>
     );
   }
 
   return (
-    <div
-      ref={panelRef}
-      className="pointer-events-auto fixed left-4 bottom-[88px] xl:bottom-[104px] z-[var(--z-overlay)]"
-    >
+    <div className="pointer-events-auto fixed left-4 bottom-[88px] xl:bottom-[104px] z-[var(--z-overlay)]">
       {expanded ? (
         <ExpandedPanel
           persona={persona}
@@ -115,7 +95,7 @@ export function MiniProfilePanel({
           fichaBalance={fichaBalance}
           currentUserId={currentUserId}
           initialFriends={initialFriends}
-          onClose={handleToggle}
+          onToggle={handleToggle}
         />
       ) : (
         <CollapsedCard
@@ -200,7 +180,7 @@ function ExpandedPanel({
   fichaBalance,
   currentUserId,
   initialFriends,
-  onClose,
+  onToggle,
 }: {
   persona: string | null;
   avatar: string | null;
@@ -209,7 +189,7 @@ function ExpandedPanel({
   fichaBalance: number;
   currentUserId: string | null;
   initialFriends: FriendListEntry[];
-  onClose: () => void;
+  onToggle: () => void;
 }) {
   return (
     <aside
@@ -240,13 +220,16 @@ function ExpandedPanel({
             </p>
           </div>
         </Link>
+        {/* Mesmo chevron toggle do CollapsedCard, agora apontando pra baixo
+            (= fechar). Pedro 2026-05-26: único trigger pra abrir/fechar. */}
         <button
           type="button"
-          onClick={onClose}
-          aria-label="Fechar painel"
+          onClick={onToggle}
+          aria-label="Recolher lista de amigos"
+          aria-expanded={true}
           className="shrink-0 rounded p-1 text-text-muted hover:bg-bg-elevated hover:text-text-display transition-colors"
         >
-          <X size={16} aria-hidden="true" />
+          <ChevronDown size={14} aria-hidden="true" />
         </button>
       </header>
 
