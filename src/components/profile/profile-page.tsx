@@ -46,19 +46,22 @@ export function ProfilePage({ profile, activeTab, dotaRank, honorRank, editing }
   return (
     <div className="relative flex flex-col min-h-full">
       {/* ──────────────────────────────────────────────────────────────
-          BARRA SUPERIOR — Tabs CENTRALIZADAS, encostada no topbar.
-          Shadow escura pra contraste com hero portrait de background.
-          (fidelidade Dota 2 client — botão Editar Perfil NÃO pertence aqui)
+          BARRA SUPERIOR — FIXED pra ir realmente de UMA PONTA A OUTRA
+          (passa por cima da right-sidebar e do mini-perfil expanded).
+          Glassmorphism sutil + altura mínima.
           ────────────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-center px-6 py-3 border-b border-border-subtle/60 bg-bg-deep/60 backdrop-blur-sm shadow-lg shadow-black/60">
+      <div className="fixed top-12 xl:top-14 left-0 right-0 z-[22] flex items-center justify-center px-6 py-1.5 border-b border-brand-primary/20 bg-bg-deep/40 backdrop-blur-xl shadow-md shadow-black/40">
         <ProfileTabs activeTab={activeTab} />
       </div>
+
+      {/* Spacer — compensa altura do submenu fixed pra conteúdo não ficar atrás. */}
+      <div className="h-9 shrink-0" aria-hidden="true" />
 
       {/* Botão Editar Perfil — SÓ aparece quando activeTab === "perfil" (fidelidade Dota 2).
           Fixed logo abaixo do topbar (top-12 xl:top-14), alinhado à direita.
           Quando editing=true, vira "Sair da edição" e mantém visível. */}
       {(activeTab === "perfil" || editing) && (
-        <div className="fixed top-12 xl:top-14 right-2 mt-1 z-[var(--z-overlay)]">
+        <div className="fixed top-12 xl:top-14 right-2 mt-1 z-[25]">
           {editing ? (
             <Link href="/me">
               <Button variant="secondary" size="sm">
