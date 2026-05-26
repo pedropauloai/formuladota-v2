@@ -138,16 +138,14 @@ export function HeroesEditor({
         </Button>
       </div>
 
-      {showPicker && (
-        <div className="rounded border border-brand-primary/40 bg-bg-deep/95 backdrop-blur-md p-3 max-h-[400px] overflow-y-auto">
-          <HeroPicker
-            mode="multi"
-            maxSelections={3}
-            initialSelected={favorites}
-            onChange={handleChange}
-          />
-        </div>
-      )}
+      <HeroPicker
+        mode="multi"
+        maxSelections={3}
+        initialSelected={favorites}
+        onChange={handleChange}
+        open={showPicker}
+        onOpenChange={setShowPicker}
+      />
     </div>
   );
 }
@@ -203,15 +201,13 @@ export function PortraitEditor({
         </Button>
       </div>
 
-      {showPicker && (
-        <div className="rounded border border-brand-primary/40 bg-bg-deep/95 backdrop-blur-md p-3 max-h-[400px] overflow-y-auto">
-          <HeroPicker
-            mode="single"
-            initialSelected={initialPortrait ? [initialPortrait] : []}
-            onChange={handleChange}
-          />
-        </div>
-      )}
+      <HeroPicker
+        mode="single"
+        initialSelected={initialPortrait ? [initialPortrait] : []}
+        onChange={handleChange}
+        open={showPicker}
+        onOpenChange={setShowPicker}
+      />
     </div>
   );
 }

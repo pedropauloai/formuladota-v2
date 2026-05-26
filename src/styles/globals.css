@@ -341,3 +341,73 @@
     font-feature-settings: "tnum";
   }
 }
+
+/* ============================================================================
+ * SCROLLBAR CUSTOM — "Feixe de luz vermelha" (FormulaDota game client AAA)
+ * ----------------------------------------------------------------------------
+ * Substitui scrollbar default genérica do browser por barra minimalista vermelha
+ * brand com glow sutil. Inspiração: feixe de luz cinematográfico estilo Dota 2.
+ *
+ * Track: invisível (transparente).
+ * Thumb: 3px wide, vermelho brand com box-shadow glow.
+ * Hover: glow intensifica + thumb fica 4px.
+ *
+ * Suporta: Chromium/WebKit (::-webkit-scrollbar) + Firefox (scrollbar-color).
+ * Aplica globalmente em todo scroll do app (html, divs, modais).
+ * ============================================================================ */
+
+/* Chromium/WebKit/Edge */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+  background: transparent;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+  border: none;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-brand-primary);
+  border-radius: 999px;
+  /* Glow vermelho — efeito feixe de luz */
+  box-shadow: 0 0 8px var(--color-brand-primary-glow),
+              0 0 2px var(--color-brand-primary);
+  /* Margem horizontal pra ficar com 3px visual (track 6px - 1.5px cada lado) */
+  border: 1.5px solid transparent;
+  background-clip: padding-box;
+  transition: box-shadow 200ms ease, background-color 200ms ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-brand-primary-hover);
+  /* Glow intensifica no hover */
+  box-shadow: 0 0 16px var(--color-brand-primary-glow),
+              0 0 4px var(--color-brand-primary);
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: var(--color-brand-primary-hover);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Firefox — scrollbar-width: thin força barra fina, scrollbar-color define track+thumb */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-brand-primary) transparent;
+}
+
+/* Utility — esconde scrollbar completamente quando precisar (ex: modal fullscreen) */
+.no-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge antigo */
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
