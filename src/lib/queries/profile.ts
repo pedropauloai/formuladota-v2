@@ -3,6 +3,10 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { getHeroBySlug, type HeroData } from "@/lib/queries/heroes";
+import {
+  parseDashboardLayout,
+  type DashboardLayout,
+} from "@/lib/queries/dashboard-layout";
 
 export interface ProfileForMe {
   userId: string;
@@ -22,6 +26,8 @@ export interface ProfileForMe {
   partidas: number | null;
   vitorias: number | null;
   derrotas: number | null;
+  // Layout dos widgets do /me (sempre válido — fallback pra DEFAULT_LAYOUT)
+  dashboardLayout: DashboardLayout;
 }
 
 /**
@@ -40,7 +46,7 @@ export async function getProfileForMe(): Promise<ProfileForMe | null> {
       supabase
         .from("profiles")
         .select(
-          "username, avatar_url, status_message, hero_portrait_slug, favorite_heroes, avatar_custom_url, last_seen_at, behavior_status, doctrine_accepted_at"
+          "username, avatar_url, status_message, hero_portrait_slug, favorite_heroes, avatar_custom_url, last_seen_at, behavior_status, doctrine_accepted_at, dashboard_layout"
         )
         .eq("id", user.id)
         .single(),
@@ -104,5 +110,6 @@ export async function getProfileForMe(): Promise<ProfileForMe | null> {
     partidas: mmrRow?.partidas_total ?? null,
     vitorias: mmrRow?.vitorias ?? null,
     derrotas: mmrRow?.derrotas ?? null,
+    dashboardLayout: parseDashboardLayout(profile?.dashboard_layout),
   };
 }

@@ -1222,6 +1222,7 @@ export type Database = {
           calibration_partidas_completas: number | null
           calibration_status: string | null
           created_at: string
+          dashboard_layout: Json | null
           discord_id: string | null
           doctrine_accepted_at: string | null
           doctrine_version: number
@@ -1251,6 +1252,7 @@ export type Database = {
           calibration_partidas_completas?: number | null
           calibration_status?: string | null
           created_at?: string
+          dashboard_layout?: Json | null
           discord_id?: string | null
           doctrine_accepted_at?: string | null
           doctrine_version?: number
@@ -1280,6 +1282,7 @@ export type Database = {
           calibration_partidas_completas?: number | null
           calibration_status?: string | null
           created_at?: string
+          dashboard_layout?: Json | null
           discord_id?: string | null
           doctrine_accepted_at?: string | null
           doctrine_version?: number

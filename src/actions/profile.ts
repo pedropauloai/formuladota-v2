@@ -11,6 +11,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { isValidHeroSlug } from "@/lib/queries/heroes";
+import { dashboardLayoutSchema } from "@/lib/queries/dashboard-layout";
 
 // ---------------------------------------------------------------------------
 // updateStatusMessage — Aba Status do modal (D-18)
@@ -153,3 +154,60 @@ export async function updateLastSeen(): Promise<void> {
     // não throw — heartbeat é best-effort
   }
 }
+
+// ---------------------------------------------------------------------------
+// resetDashboardLayout — restaura layout DEFAULT (Pedro 2026-05-26)
+// ---------------------------------------------------------------------------
+// Seta dashboard_layout=NULL. Na próxima leitura, parseDashboardLayout retorna
+// DEFAULT_LAYOUT (centralizado, cols 3-10). Client chama router.refresh() pra
+// re-fetch o profile e o DashboardGrid remonta com o default.
+
+export async function resetDashboardLayout(): Promise<void> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Não autorizado");
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ dashboard_layout: null })
+    .eq("id", user.id);
+
+  if (error) {
+    console.error("[resetDashboardLayout] error:", error);
+    throw new Error("Não foi possível restaurar o layout padrão");
+  }
+
+  revalidatePath("/me");
+}
+
+// ---------------------------------------------------------------------------
+// updateDashboardLayout — salva posicionamento dos widgets do /me (Phase 9.1)
+// ---------------------------------------------------------------------------
+// Chamada com debounce 1s pelo DashboardGrid client após cada drop em edit mode.
+// Não revalidatePath — UI já tem state local; revalidação seria flicker desnecessário.
+
+export async function updateDashboardLayout(layout: unknown): Promise<void> {
+  const parsed = dashboardLayoutSchema.safeParse(layout);
+  if (!parsed.success) {
+    throw new Error("Layout inválido");
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Não autorizado");
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ dashboard_layout: parsed.data })
+    .eq("id", user.id);
+
+  if (error) {
+    console.error("[updateDashboardLayout] error:", error);
+    throw new Error("Não foi possível salvar o layout");
+  }
+}
+
