@@ -35,6 +35,25 @@ geracao que incentive recrutamento acima de qualidade.
 Todo PRO tem acesso ao proprio historico de splits. A plataforma nao obscurece como o
 dinheiro flui. Cada ficha vendida gera um registro imutavel auditavel.
 
+**Principio R-6:** TAM finito da audiencia Dota 2 BR
+A audiencia mundial de Dota 2 em portugues brasileiro tem teto estimado de **~10.000 usuarios
+ativos** consumindo conteudo na internet (numero declarado por Pedro em transcript do canal).
+Isso significa que o modelo financeiro do FormulaDota nao pode assumir crescimento ilimitado
+de usuarios — nao existe TAM gigantesco a conquistar. Implicacoes:
+
+- Nao tentar premium prematuramente — preco baixo e estrategia, nao falta de ambicao
+- Nao construir features esperando viralizacao de massa
+- A receita por usuario deve ser planejada considerando que o universo total e finito
+- O moat e cultural (doutrina + filtro) e nao geografico ou tecnico
+
+**Principio R-7:** Side project saudavel — sem pressao de monetizacao
+O FormulaDota v2 e declarado pelo Pedro como **"side project saudavel sem pressao de
+monetizacao — limite 1-2h/dia"** no contexto MAI/2026. A fonte de renda principal de Pedro
+esta em outra operacao (ver memoria `reference_mentos_semaforo`). Implicacao para o modelo
+de receita: o produto pode ser paciente, cerimonial, sem urgencia financeira. Decisoes de
+roadmap NAO podem assumir que Pedro precisa que a plataforma gere receita imediata para
+sobreviver. Isso libera espaco para qualidade sobre velocidade.
+
 ---
 
 ## Modelo Aprovado V1

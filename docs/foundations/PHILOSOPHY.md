@@ -45,26 +45,6 @@ Essa definição exige um sistema de avaliação que vai além do placar.
 
 ---
 
-## Adicao 2026-05-24 — Doutrina expandida para 15 anti-padroes
-
-Apos sintese dos 71 transcripts do canal @formuladota (ver `.planning/research/youtube-synthesis.md`),
-Pedro Paulo aprovou em 2026-05-23/24 a expansao da lista de anti-padroes da Doutrina de 10
-para 15, com adicao dos seguintes — todos derivados de falas literais do autor em video publico:
-
-- **#11 Simulador de Heroi** — usa as habilidades sem jogar com base nos objetivos do mapa
-- **#12 Criar Expectativas em Terceiros** — projetar resultados em aliados de forma ativa
-- **#13 Vitimizacao Sistemica** — identidade cronica de vitima, distinta de cultura da culpa
-- **#14 Recusa de Auditoria Pos-Derrota** — omitir a pergunta "o que eu poderia ter feito diferente?"
-- **#15 Buscar Diversao em Espaco de Competicao** — mismatch de proposito (FormulaDota nao e turbo)
-
-Detalhes operacionais (severidade, acoes) estao em `HONOR_SYSTEM.md` secao "Criterios de Strike".
-Texto canonico esta em `A FÓRMULA DO DOTA DE CORRIDA.txt`.
-
-A missao historica declarada na Doutrina foi prorrogada de 2025 para **2026**: *"Formar pelo
-menos 200 jogadores na medalha Imortal de forma 100% legitima"*.
-
----
-
 ## Os 14 Pilares Filosoficos
 
 Os 14 pilares abaixo nao sao principios de conduta operacional — esses estao na Doutrina.

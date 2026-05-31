@@ -8,7 +8,7 @@
 
 ## 0. Cultura e Código de Conduta (NORTE)
 
-> **A plataforma não é só uma loja de mentoria.** É o veículo pra reerguer uma comunidade **doutrinada** nos princípios da **Fórmula do Dota de Corrida** (1ª aula da Fórmula do MMR, autoria Pedro Paulo / PPA / Peter PPA — Immortal/7000 MMR, 15+ anos de Dota, 50.000h, 1ª calibração 2300 MMR).
+> **A plataforma não é só uma loja de mentoria.** É o veículo pra reerguer uma comunidade **doutrinada** nos princípios da **Fórmula do Dota de Corrida** (1ª aula da Fórmula do MMR, autoria Pedro Paulo — nick oficial **PeterPPA** / **PPA**, 29 anos, Immortal/7000 MMR, 15+ anos de Dota, 50.000h, 1ª calibração 2300 MMR).
 >
 > **Doc canônico**: `A FÓRMULA DO DOTA DE CORRIDA.txt` na raiz do repo — fonte da linguagem oficial pra todo copy de moderação, onboarding e pós-partida. Não parafrasear: citar.
 
@@ -22,7 +22,7 @@ Esta versão **não vende partida com Pedro pra qualquer um que pague**. Vende *
 
 > *"Formar pelo menos 200 jogadores na medalha Imortal de forma 100% legítima."*
 
-Meta original era 2025. A reativar/atualizar com Pedro pra contador público no site (ex: "X imortais formados / 200 — meta viva 2026").
+Meta viva 2026. Contador público no site: "X imortais formados / 200 — meta viva 2026".
 
 ### Tom do onboarding (linguagem canônica do Pedro)
 
@@ -62,7 +62,7 @@ Frases que devem aparecer **literais** no fluxo `/onboarding/doutrina` e em `/co
 13. 70% WR → +1000 MMR em 100 partidas (5/dia × 20 dias).
 14. Guardião → Divine em 2 meses com método + disciplina.
 
-### Os 10 padrões tóxicos (anti-cultura — bloqueados / educados)
+### Os 15 padrões tóxicos (anti-cultura — bloqueados / educados)
 
 1. Cultura da culpa (blame culture)
 2. Desistência precoce ("gg go next" aos 10min)
@@ -74,6 +74,11 @@ Frases que devem aparecer **literais** no fluxo `/onboarding/doutrina` e em `/co
 8. Brigas por função e rota
 9. Desrespeito à liderança (anti-time)
 10. Preconceito, xenofobia, racismo
+11. **Simulador de Herói** — sabe usar habilidades mas joga sem objetivos do jogo (99,5% dos players)
+12. **Criar expectativas em terceiros** — projetar resultados em aliados (esperar pull, gank, etc.)
+13. **Vitimização sistêmica** — identidade crônica de vítima ("matchmake me persegue", "tenho azar")
+14. **Recusa de auditoria pós-derrota** — omitir a pergunta "o que eu poderia ter feito diferente?"
+15. **Buscar diversão num espaço de competição** — mismatch de propósito (turbo/casual é pra divertir, FormulaDota é pra evoluir)
 
 ### Como a cultura aparece no produto
 
@@ -106,10 +111,12 @@ Frases que devem aparecer **literais** no fluxo `/onboarding/doutrina` e em `/co
 **formuladota v2** é uma plataforma web onde clientes compram partidas ranked com Pedro Paulo (Immortal/7000 MMR), agendam horários, jogam juntos com mentoria em tempo real, e acompanham progressão (MMR, stats, conquistas) num perfil pessoal integrado ao Discord.
 
 ### Por que existe
-- **Pedro retorna ao Dota 2 como fonte de receita adicional** após 5 meses fora (saiu por burnout em nov/2025)
-- **Modelo "presença reduzida + serviço premium individual"** — sem comunidade aberta tóxica que causou o burnout original
-- **Aproveita ativos**: 14k inscritos canal Fórmula Dota + metodologia documentada + credenciais Immortal
-- **Construir em público** vira case de portfolio dev IA (mentoria Claude Code)
+- **Pedro retorna ao Dota 2 como side project saudável** após 6 meses fora (NOV/2025 → MAI/2026). Retorno é **por escolha estratégica**, não por necessidade financeira — fonte de renda principal está na operação Kit Mentos no semáforo (R$500/dia, ver vault `segundo-cerebro`).
+- **Autoridade preservada**: canal @formuladota mantém 2.700 views/28d mesmo sem postar desde NOV/2025 — capitalizar 10 anos de canal sem precisar produzir conteúdo novo continuamente.
+- **Modelo "presença reduzida + comunidade doutrinada"** — não vende Pedro como mentor 1-1, vende **acesso a uma comunidade filtrada culturalmente** que joga em lobbies privados. Pedro entra como Mestre + Guardião, não como prestador de serviço.
+- **Aproveita ativos**: canal Fórmula Dota + metodologia documentada + credenciais Immortal + Liga V1 (68 assinantes / 50 nível-5 / 400+ participantes históricos como prova).
+- **Construir em público** vira case de portfolio dev IA (mentoria Claude Code).
+- **Sem pressão de monetização imediata** — projeto declarado no vault como "side project saudável, limite 1-2h/dia". Pode ser paciente, cerimonial, sem urgência.
 
 ### Quem usa
 - **Player Dota 2 brasileiro** que quer subir MMR

@@ -88,6 +88,41 @@ ________________
 
                            * Contribuem para um ambiente tóxico e desrespeitoso.
 
+11. Simulador de Herói
+                           * Jogador que sabe usar as habilidades do herói, mas joga sem objetivos do jogo.
+
+                           * Reage às jogadas do adversário em vez de extrair patrimônio no menor tempo possível.
+
+                           * “99,5% dos jogadores de Dota jogam simulador de herói no mapa de Dota 2” — a Valve já reconheceu publicamente que a imensa maioria joga no automático.
+
+12. Criar Expectativas em Terceiros
+                           * Comportamento ATIVO de projetar resultados nos aliados (esperar pull do suporte, gank do mid, ajuda específica que nunca vem).
+
+                           * Distinto do princípio de “frustração nasce de expectativas” — aqui é a ação de criar expectativa, não a reação à frustração.
+
+                           * Você pode (e deve) criar expectativas sobre você mesmo. Sobre outras pessoas, jamais.
+
+13. Vitimização Sistêmica
+                           * Construir identidade de vítima ao longo do tempo: “o matchmake me persegue”, “sempre tem azar do meu lado”, “o Dota é injusto comigo”.
+
+                           * Distinto da Cultura da Culpa (#1) por ser identidade crônica, não reação pontual a uma partida.
+
+                           * Toda vez que você perde e coloca a culpa nos outros, você cria uma blindagem contra o seu próprio crescimento.
+
+14. Recusa de Auditoria Pós-Derrota
+                           * Anti-padrão por OMISSÃO: não fazer a pergunta-pivô da Fórmula após cada derrota: “o que eu poderia ter feito diferente para ter ganho essa partida, mesmo com o time jogando mal?”
+
+                           * Sem auditoria, não há aprendizado — e sem aprendizado, derrota deixa de ser degrau e vira ciclo.
+
+                           * A vitória nasce da autorresponsabilidade.
+
+15. Buscar Diversão num Espaço de Competição
+                           * Mismatch de propósito: entrar na plataforma buscando diversão viola o contrato cultural.
+
+                           * “Aqui não é um ambiente para você se divertir — é um ambiente para você aprender, evoluir e competir.”
+
+                           * Competição não está coligada com diversão. Quem quer se divertir, joga turbo ou casual — não FormulaDota.
+
 ________________
 
 
@@ -224,7 +259,7 @@ O Smurf propõe um desafio. Afinal, só é possível melhorar enfrentando pessoa
 
 
 Entendendo o Objetivo do FORMULADOTA
-A nossa missão é clara: formar pelo menos 200 jogadores na medalha Imortal no ano de 2025, de forma 100% legítima.
+A nossa missão é clara: formar pelo menos 200 jogadores na medalha Imortal no ano de 2026, de forma 100% legítima.
 Este material foi criado para fornecer todo o conhecimento necessário — teórico e prático — capaz de transformar qualquer jogador em Imortal no Dota 2. Porém, para que isso aconteça, também depende de você, do quão determinado a alcançar o seu objetivo você está.
 A partir de hoje, o seu compromisso com o jogo e a forma como você se relaciona com ele precisa mudar. Aqui no FORMULADOTA, a mentalidade é competitiva. Isso significa que, em alguns momentos, você precisará deixar de lado hábitos ou preferências que não contribuem para sua evolução, para focar no que realmente é necessário.
 Não importa:
@@ -235,7 +270,7 @@ Não importa:
                                                          * Quantas partidas você já tem no jogo.
 
 A partir de agora, você irá aplicar a Fórmula do Dota de Corrida com consistência, para alcançar a tão sonhada medalha Imortal.
-E eu posso te garantir: essa será a sua maior satisfação em 2025.
+E eu posso te garantir: essa será a sua maior satisfação em 2026.
 Planejamento: Como Manter a Constância da Sua Evolução no Dota 2
 Se você deseja alcançar um MMR mais alto, precisa desenvolver um olhar mais analítico sobre suas partidas. O principal indicador disso é a sua taxa de vitórias e derrotas.
 Por padrão, a maioria dos jogadores se mantém na casa dos 50% de win rate. Qualquer variação considerável, seja para cima ou para baixo, é um sinal de que algo está diferente. A partir de 55% de win rate, já podemos considerar um desempenho acima da média, e a consequência natural disso é a subida constante de MMR ao longo do tempo.

@@ -58,6 +58,26 @@ membro em calibracao" — sem estigma.
 Visitantes nao aparecem em leaderboards publicos. Nao e punição — e coerencia.
 Um leaderboard deve refletir historico real. Cinco partidas e o minimo para existir historico.
 
+**Sugestao de pre-requisito tecnico durante Visitante:**
+
+Antes de entrar em fila ranqueada, o sistema deve sugerir (nao obrigar) que o Visitante
+complete pelo menos um dos 3 Drills oficiais da Fórmula do MMR e submeta o print do
+scoreboard. A logica e: voce nao consegue jogar bem com 9 estranhos se nao consegue jogar
+bem sozinho.
+
+Os 3 Drills oficiais (do video *"O TREINO QUE TODO JOGADOR DE DOTA2 DEVERIA FAZER"*, NOV/2025):
+
+1. **Last Hits @ 20 min** — em lobby solo contra creeps, heroi do meta. Referencia Queen of Pain: 255 last hits + level 18.
+2. **Corrida de Nivel** — atingir level 25 em menos de 30 minutos no mesmo setup.
+3. **Volume** — completar 1000 last hits no menor tempo possivel.
+
+Frase canonica do autor da metodologia que justifica a sugestao:
+> *"Se voce nao consegue fazer 10.000 de ouro sozinho com os creeps, voce jamais vai conseguir fazer com nove pessoas te atrapalhando."*
+
+**Implicacao de produto:** componente `<DrillSuggestion>` aparece no dashboard do Visitante
+com upload de screenshot do scoreboard. Submissao confere achievement "Treino Validado" no
+eixo HONOR (sem peso de strike — e sinal positivo de comprometimento).
+
 ---
 
 ### Estagio 2 — Calibracao Ativa (partidas 5 a 9)

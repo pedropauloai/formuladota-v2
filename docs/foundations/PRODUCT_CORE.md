@@ -159,6 +159,20 @@ A doutrina nao e politica de uso. Nao e documento legal que o usuario clica "ace
 ler para nunca mais ver. A doutrina e o produto. E a identidade competitiva do FORMULADOTA
 frente a qualquer concorrente.
 
+### Licoes da Liga V1 (operada ate NOV/2025)
+
+Apos sintese, a Liga FORMULADOTA original foi reconstruida com numeros reais: **68 assinantes
+ativos / 50 nivel-5 / 400+ participantes historicos**. Validou a arquitetura de gating em
+camadas mas sofreu 3 falhas estruturais que NAO podem se repetir em V2:
+
+1. **Etapa manual de admissao** — Google Forms + DM no Discord como ultimo passo de gating. Quebra brutal de fluxo. **V2 deve eliminar 100%.**
+2. **Ranking decorativo** — vitorias/derrotas nao eram computadas, ranking existia mas sem calculo real. **V2: scoring real desde dia 1 OU nao mostrar ranking.**
+3. **Single Point of Failure: Pedro** — lobbies dependiam dele estar online. Quando burnou, a Liga parou. **V2: feature "Jogar Agora" funcional sem Pedro estar conectado.** Pedro entra como Mestre/Guardiao em sessoes cerimoniais, nao como dependencia operacional.
+
+**Implicacao de produto:** a arquitetura de matchmaking V2 deve ter modos auto-organizaveis
+pela comunidade (lobby creator via PROs ou alunos avancados), com Pedro presente nos modos
+de maior cerimonia (ex: lobby supervisionado semanal, season finale, calibracao de novo PRO).
+
 ### Os 14 Principios como Lei de Conduta
 
 Os 14 principios da Formula do Dota de Corrida cobrem tres eixos: comportamental (1-6),

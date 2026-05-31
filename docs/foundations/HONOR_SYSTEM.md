@@ -131,26 +131,23 @@ Strike e o mecanismo formal de penalizacao no eixo HONOR. Cada strike e um event
 que cita literalmente qual dos 15 anti-padroes da Doutrina foi violado. A mensagem ao usuario
 nunca e "voce foi punido" — sempre e "voce violou o principio X que voce aceitou no onboarding".
 
-**Originais (1-10) — do doc canonico `A FÓRMULA DO DOTA DE CORRIDA.txt`:**
+Lista completa (referencia canonica: `A FÓRMULA DO DOTA DE CORRIDA.txt`):
 
-1. Cultura da Culpa — culpar aliados pelo resultado
-2. Desistencia Precoce — "gg go next" antes do minuto 15
-3. Forcar Estrategias Inadequadas — heroi/build fora do meta sem dominio
-4. Comunicacao Toxica ou Ausente
-5. Rage Quit / AFK Disfarcado
-6. Feeding Intencional (Griefing)
-7. Ego Inflado
-8. Brigas por Funcao e Rota
-9. Desrespeito a Lideranca (Anti-time)
-10. Preconceito, Xenofobia, Racismo
-
-**Novos (11-15) — aprovados em 2026-05-23/24 apos sintese dos transcripts do canal:**
-
-11. **Simulador de Heroi** — usa as habilidades sem jogar com base nos objetivos do mapa (relogio, patrimonio liquido, runas, altar). Pedro: *"99,5% dos jogadores de Dota jogam simulador de heroi"*.
-12. **Criar Expectativas em Terceiros** — projetar resultados em aliados de forma ativa (esperar pull, gank, ajuda especifica). Distinto do principio mental "frustracao nasce de expectativas" — aqui e o comportamento, nao a reacao.
-13. **Vitimizacao Sistemica** — construir identidade cronica de vitima ("matchmake me persegue", "tenho azar"). Distinto da Cultura da Culpa (#1) por ser padrao recorrente, nao reacao pontual.
-14. **Recusa de Auditoria Pos-Derrota** — anti-padrao por omissao: nao fazer a pergunta-pivo *"o que eu poderia ter feito diferente para ter ganho essa partida, mesmo com o time jogando mal?"*.
-15. **Buscar Diversao em Espaco de Competicao** — mismatch de proposito. O FormulaDota nao e ambiente de diversao casual.
+1. **Cultura da Culpa** — culpar aliados pelo resultado da partida
+2. **Desistencia Precoce** — "gg go next" antes do minuto 15
+3. **Forcar Estrategias Inadequadas** — heroi/build fora do meta sem dominio tecnico
+4. **Comunicacao Toxica ou Ausente** — ignorar chat/pings ou usa-los para xingar
+5. **Rage Quit / AFK Disfarcado** — abandonar a partida sem AFK explicito (jungle, base)
+6. **Feeding Intencional (Griefing)** — morrer de proposito por ego ou birra
+7. **Ego Inflado** — "eu merecia estar no Ancient, meu time me segura"
+8. **Brigas por Funcao e Rota** — disputar lane/role ja definido (2 mids, 3 carries)
+9. **Desrespeito a Lideranca (Anti-time)** — recusar-se a ouvir calls, jogar de forma egoista
+10. **Preconceito, Xenofobia, Racismo** — comentarios ofensivos sobre nacionalidades/sotaques
+11. **Simulador de Heroi** — usa as habilidades sem jogar com base nos objetivos do mapa (relogio, patrimonio liquido, runas, altar)
+12. **Criar Expectativas em Terceiros** — projetar resultados em aliados de forma ativa (esperar pull, gank, ajuda especifica). Distinto do principio mental "frustracao nasce de expectativas" — aqui e o comportamento, nao a reacao
+13. **Vitimizacao Sistemica** — construir identidade cronica de vitima ("matchmake me persegue", "tenho azar"). Distinto da Cultura da Culpa (#1) por ser padrao recorrente, nao reacao pontual
+14. **Recusa de Auditoria Pos-Derrota** — anti-padrao por omissao: nao fazer a pergunta-pivo *"o que eu poderia ter feito diferente para ter ganho essa partida, mesmo com o time jogando mal?"*
+15. **Buscar Diversao em Espaco de Competicao** — mismatch de proposito. O FormulaDota nao e ambiente de diversao casual
 
 ### Severidade e Acoes
 
