@@ -19,8 +19,13 @@ export interface EmptyStateProps {
   title: string;
   /** Descrição opcional em Geist/corpo */
   description?: string;
-  /** Ícone Lucide configurável. Padrão: FileQuestion */
-  icon?: LucideIcon;
+  /**
+   * Ícone configurável. Padrão: FileQuestion.
+   * Aceita um componente Lucide (`icon={Trophy}`) em Client Components, ou um
+   * elemento já renderizado (`icon={<Trophy />}`) — obrigatório ao passar a
+   * partir de Server Components (Next 16 não serializa funções pela fronteira RSC).
+   */
+  icon?: LucideIcon | React.ReactElement;
   /**
    * Princípio da Fórmula do Dota de Corrida a exibir.
    * - number (1-14): princípio específico
@@ -105,7 +110,19 @@ export function EmptyState({
     >
       {/* Ícone temático */}
       <div className="flex items-center justify-center size-16 rounded-full bg-muted border border-border">
-        <Icon className="size-7 text-muted-foreground" aria-hidden />
+        {React.isValidElement(Icon) ? (
+          React.cloneElement(
+            Icon as React.ReactElement<{ className?: string }>,
+            {
+              className: cn(
+                "size-7 text-muted-foreground",
+                (Icon.props as { className?: string }).className
+              ),
+            }
+          )
+        ) : (
+          <Icon className="size-7 text-muted-foreground" aria-hidden />
+        )}
       </div>
 
       {/* Título + descrição */}

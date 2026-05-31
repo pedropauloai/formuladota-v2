@@ -189,7 +189,7 @@ export default async function RankingPage(props: {
           <EmptyState
             title="Temporada começando"
             description="Ainda sem partidas oficiais. Seja um dos primeiros — ative sua mensalidade e crie um lobby."
-            icon={Trophy}
+            icon={<Trophy />}
             principle="random"
           />
         )}
@@ -334,7 +334,7 @@ function NoMatchShell({ searchTerm, seasonName }: { searchTerm: string; seasonNa
       <EmptyState
         title={`Nenhum resultado para "${searchTerm}"`}
         description={`Temporada ${seasonName} — tente outro nickname ou volte ao ranking completo.`}
-        icon={Search}
+        icon={<Search />}
         action={
           <Link href="/ranking">
             <Button variant="secondary" size="md">
@@ -353,7 +353,7 @@ function RankingEmptyShell() {
       <EmptyState
         title="Temporada começando"
         description="Ainda sem partidas oficiais. Seja um dos primeiros — ative sua mensalidade e crie um lobby."
-        icon={Trophy}
+        icon={<Trophy />}
         principle="random"
       />
     </div>

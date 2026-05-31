@@ -772,7 +772,7 @@ export default function ComponentsPage() {
         <EmptyState
           title="Nenhuma partida ainda"
           description="Sua primeira partida vai mudar tudo."
-          icon={Trophy}
+          icon={<Trophy />}
           principle={1}
         />
       </Section>

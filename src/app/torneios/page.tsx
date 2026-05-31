@@ -101,7 +101,7 @@ export default async function TorneiosPage() {
           <EmptyState
             title="Nenhum torneio ativo"
             description="Acompanhe o Discord pra anúncios de novos torneios."
-            icon={Trophy}
+            icon={<Trophy />}
             principle="random"
           />
         ) : (

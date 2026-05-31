@@ -105,7 +105,7 @@ export default async function PartidasPage() {
             <EmptyState
               title="Sem saldo ainda"
               description="Você ainda não tem partidas ou sessões disponíveis. Conheça os pacotes e comece sua mentoria."
-              icon={ShoppingBag}
+              icon={<ShoppingBag />}
               principle={5}
               action={
                 <Link

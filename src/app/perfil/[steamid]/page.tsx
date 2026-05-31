@@ -274,7 +274,7 @@ export default async function PerfilPublicoPage(props: PageProps) {
                 <EmptyState
                   title="Sem stats externos disponíveis"
                   description="Configure STRATZ_API_KEY ou OPENDOTA_API_KEY no .env, ou perfil Steam não tem partidas públicas."
-                  icon={FileQuestion}
+                  icon={<FileQuestion />}
                 />
               </CardContent>
             </Card>
@@ -337,7 +337,7 @@ export default async function PerfilPublicoPage(props: PageProps) {
                 <EmptyState
                   title="Nenhuma badge ainda"
                   description="Jogue partidas e demonstre conduta para conquistar badges."
-                  icon={Trophy}
+                  icon={<Trophy />}
                 />
               </CardContent>
             </Card>
