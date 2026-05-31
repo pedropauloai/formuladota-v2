@@ -11,6 +11,7 @@
 
 import { useState, useTransition } from "react";
 import { Radio, X, Loader2, Clock, Users, Crown } from "lucide-react";
+import { usePrompt } from "@/components/ui/confirm";
 
 export interface BoardCoach {
   coachId: string;
@@ -93,13 +94,13 @@ export function QueueBoard({
           <img
             src={coach.avatarUrl}
             alt=""
-            className={`shrink-0 rounded-full border-2 ${
+            className={`shrink-0 rounded-sm border-2 ${
               coach.filaAberta ? "border-emerald-500/60" : "border-border-subtle"
             } ${isCompact ? "size-8" : "size-12"}`}
           />
         ) : (
           <div
-            className={`shrink-0 rounded-full border-2 bg-bg-deep/40 ${
+            className={`shrink-0 rounded-sm border-2 bg-bg-deep/40 ${
               coach.filaAberta ? "border-emerald-500/60" : "border-border-subtle"
             } ${isCompact ? "size-8" : "size-12"}`}
           />
@@ -222,15 +223,21 @@ function WaitingList({
 }: WaitingListProps) {
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
+  const prompt = usePrompt();
   // Snapshot do horário ao montar — useState lazy init é puro (não invoca em re-renders)
   const [now] = useState(() => Date.now());
 
-  function handleRemove(entryId: string, username: string | null) {
+  async function handleRemove(entryId: string, username: string | null) {
     if (!onRemoveEntry) return;
-    const reason = window.prompt(
-      `Remover ${username ?? "aluno"} da fila? Motivo (mín 3 chars):`,
-      "Removido pelo PRO"
-    );
+    const reason = await prompt({
+      title: `Remover ${username ?? "aluno"} da fila?`,
+      message: "Informe o motivo da remoção (mín 3 caracteres):",
+      placeholder: "Ex: não compareceu na PT",
+      defaultValue: "Removido pelo PRO",
+      required: true,
+      confirmLabel: "Remover",
+      variant: "destructive",
+    });
     if (!reason || reason.trim().length < 3) return;
     setPendingId(entryId);
     startTransition(async () => {
@@ -276,12 +283,12 @@ function WaitingList({
                 <img
                   src={e.avatarUrl}
                   alt=""
-                  className={`size-7 rounded-full ${
+                  className={`size-7 rounded-sm ${
                     isViewer ? "ring-2 ring-amber-400" : "ring-1 ring-white/20"
                   }`}
                 />
               ) : (
-                <div className="size-7 rounded-full bg-white/10" />
+                <div className="size-7 rounded-sm bg-white/10" />
               )}
               <span
                 className={`flex-1 truncate font-sans text-sm ${
@@ -340,6 +347,7 @@ function Slot({
 }: SlotProps) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const prompt = usePrompt();
   // Snapshot do horário ao montar — via useState inicial (não muda entre renders)
   const [mountNow] = useState(() => Date.now());
 
@@ -367,12 +375,17 @@ function Slot({
     );
   }
 
-  function handleRemove() {
+  async function handleRemove() {
     if (!onRemoveEntry) return;
-    const reason = window.prompt(
-      `Remover ${slot?.username ?? "aluno"} da fila? Motivo (mín 3 chars):`,
-      "Removido pelo PRO"
-    );
+    const reason = await prompt({
+      title: `Remover ${slot?.username ?? "aluno"} da fila?`,
+      message: "Informe o motivo da remoção (mín 3 caracteres):",
+      placeholder: "Ex: não compareceu na PT",
+      defaultValue: "Removido pelo PRO",
+      required: true,
+      confirmLabel: "Remover",
+      variant: "destructive",
+    });
     if (!reason || reason.trim().length < 3) return;
     setError(null);
     startTransition(async () => {
@@ -401,13 +414,13 @@ function Slot({
         <img
           src={slot.avatarUrl}
           alt=""
-          className={`rounded-full ${
+          className={`rounded-sm ${
             isCompact ? "size-7" : "size-10"
           } ${isViewer ? "ring-2 ring-amber-400" : "ring-1 ring-emerald-500/40"}`}
         />
       ) : (
         <div
-          className={`rounded-full bg-black/40 ${
+          className={`rounded-sm bg-black/40 ${
             isCompact ? "size-7" : "size-10"
           } ${isViewer ? "ring-2 ring-amber-400" : "ring-1 ring-emerald-500/40"}`}
         />

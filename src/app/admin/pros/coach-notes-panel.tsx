@@ -13,6 +13,7 @@
 import { useState, useTransition } from "react";
 import { ThumbsUp, ThumbsDown, ShieldAlert, Loader2, Check } from "lucide-react";
 import { applyCoachNote, applyStrike } from "@/app/admin/users/actions";
+import { useConfirm } from "@/components/ui/confirm";
 
 // ─── Tipos ───────────────────────────────────────────────────────────────────
 
@@ -64,6 +65,7 @@ function StudentNoteRow({
   const [isError, setIsError] = useState(false);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const confirm = useConfirm();
 
   function feedback(msg: string, error = false) {
     setResult(msg);
@@ -91,8 +93,14 @@ function StudentNoteRow({
     });
   }
 
-  function handleStrike() {
-    if (!window.confirm(`Aplicar strike leve em ${username}? (-20 HONOR)`)) return;
+  async function handleStrike() {
+    const ok = await confirm({
+      title: `Aplicar strike leve em ${username}?`,
+      message: "Isso vai descontar 20 pontos de HONOR do aluno. Ação irreversível.",
+      confirmLabel: "Aplicar strike",
+      variant: "destructive",
+    });
+    if (!ok) return;
     setPendingAction("strike");
     startTransition(async () => {
       const res = await applyStrike({

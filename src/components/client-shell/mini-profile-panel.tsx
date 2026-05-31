@@ -284,7 +284,7 @@ function VisitorCardCompact() {
   return (
     <div className="rounded-md border border-border-subtle bg-bg-deep/95 backdrop-blur-md p-3 shadow-lg shadow-black/60">
       <div className="flex items-center gap-3">
-        <div className="size-10 shrink-0 rounded-full border-2 border-border-subtle bg-bg-deep/80 flex items-center justify-center">
+        <div className="size-10 shrink-0 rounded-sm border-2 border-border-subtle bg-bg-deep/80 flex items-center justify-center">
           <LogIn size={14} className="text-text-muted" aria-hidden="true" />
         </div>
         <div className="flex-1 min-w-0">

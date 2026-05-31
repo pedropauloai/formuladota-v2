@@ -18,12 +18,17 @@ import "@/styles/globals.css";
 import { Toaster } from "@/components/ui/sonner";
 // V2.5-F5: Sound infrastructure — singleton Howler + mobile autoplay gate (DF5.1, DF5.4, DF5.6)
 import { SoundProvider } from "@/components/layout/sound-provider";
-import { StickyQueueBanner } from "@/components/queue/sticky-banner";
+// StickyQueueBanner REMOVIDO (Pedro 2026-05-26) — substituído por QueueStatusPill
+// que vive dentro da topbar (sem forçar scroll de página).
 import { QueueRealtimeListener } from "@/components/queue/realtime-listener";
 // V2.5-F6: ToastProvider — sistema de toasts bottom-center custom (DF6.4)
 // Substitui Sonner como novo padrão para features V2.5+.
 // sonner.tsx mantido como compat layer para código legado.
 import { ToastProvider } from "@/components/ui/toast";
+// ConfirmProvider — substitui window.confirm/alert/prompt nativos do browser
+// por modais customizados FORMULADOTA (Pedro 2026-05-26). API Promise-based
+// via hooks useConfirm() / usePrompt().
+import { ConfirmProvider } from "@/components/ui/confirm";
 // V2.5-F3: Camada atmosférica root-level com tsParticles (DF3.1)
 // position:fixed, z-index:var(--z-atmosphere)=-10, pointer-events:none
 import { AmbientLayer } from "@/components/layout/AmbientLayer";
@@ -69,15 +74,19 @@ export default function RootLayout({
             Montado após SoundProvider (toasts disparam sons via useSound).
             Substitui Sonner como padrão para features V2.5+. */}
         <ToastProvider>
+        {/* ConfirmProvider — dialog global pra confirm/prompt customizado.
+            Montado dentro de ToastProvider (pode disparar toast em erros).
+            Sem UI quando inativo — só renderiza Dialog quando confirm()/prompt() chama. */}
+        <ConfirmProvider>
         {/* V2.5-F3: Camada atmosférica — partículas "dust" sutis em toda a app.
             position:fixed, z-index:-10 (var(--z-atmosphere)), pointer-events:none.
             Pausa automaticamente quando aba fica oculta (Page Visibility API).
             Desabilitar por página: adicionar data-ambient="off" no body/html,
             ou usar prop density="off" se remontar for aceitável. */}
         <AmbientLayer density="medium" preset="dust" />
-        {/* Sticky banner persistente — aparece em todas as rotas se user em fila */}
-        <StickyQueueBanner />
-        {/* Realtime listener (client) — sem UI, escuta changes em queue */}
+        {/* Realtime listener (client) — sem UI, escuta changes em queue.
+            (Pílula "Na fila" foi movida pra topbar via QueueStatusPill — não
+            é mais renderizada aqui pra não forçar scroll de página.) */}
         <QueueRealtimeListener />
         {/* Pedro 2026-05-24: filosofia "tudo é client" — Header/Footer globais
             removidos (tasks #63-#68). Toda rota usa ClientShell (sistema A
@@ -88,6 +97,7 @@ export default function RootLayout({
         <div className="flex-1">{children}</div>
         {/* Toaster global (Sonner compat) — mantido para código legado */}
         <Toaster />
+        </ConfirmProvider>
         </ToastProvider>
         </SoundProvider>
         </MotionProvider>

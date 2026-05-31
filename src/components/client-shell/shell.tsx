@@ -109,13 +109,10 @@ export async function ClientShell({
   const myQueues = privateData?.myQueues ?? [];
 
   const prosOnline = prosWithQueues.map((p) => p.coach);
-  // StickyQueueBanner adiciona ~40px ao topo do viewport quando user está em fila.
-  // Shell precisa subtrair essa altura pra não gerar scroll de página.
-  // Visitante nunca tem banner (não pode estar em fila).
-  const hasBanner = !isVisitor && myQueues.length > 0;
-  const shellHeightCls = hasBanner
-    ? "h-[calc(100dvh-44px)]"
-    : "h-screen";
+  // Pedro 2026-05-26: StickyQueueBanner antigo foi REMOVIDO. Status "Na fila"
+  // agora vive como pílula DENTRO da topbar (QueueStatusPill substitui o
+  // indicador "X PROs online"). Shell sempre h-screen — zero scroll de página.
+  const shellHeightCls = "h-screen";
   // Reserva espaço de bottom-bar (~80-96px). Sem bottom-bar, sidebars/main vão
   // até o fim da viewport.
   const bottomReserveCls = hideBottomBar ? "bottom-0" : "bottom-[80px] xl:bottom-[96px]";
@@ -166,12 +163,13 @@ export async function ClientShell({
             previewActive={previewActive}
             isPro={isPro}
             prosOnlineCount={prosOnlineCount}
+            myQueues={myQueues}
           />
         </div>
 
         {rightSidebar !== undefined ? (
           <div
-            className={`hidden lg:flex absolute right-0 top-[64px] xl:top-[72px] ${bottomReserveCls} z-[var(--z-overlay)] ${
+            className={`hidden lg:flex absolute right-0 top-[96px] xl:top-[104px] ${bottomReserveCls} z-[var(--z-overlay)] ${
               wideRightSidebar
                 ? "w-[480px] xl:w-[520px] 2xl:w-[560px]"
                 : "w-[320px] xl:w-[360px] 2xl:w-[380px]"
@@ -182,13 +180,21 @@ export async function ClientShell({
             </aside>
           </div>
         ) : (
-          <div className={`hidden lg:flex absolute right-0 top-[64px] xl:top-[72px] ${bottomReserveCls} z-[var(--z-overlay)] w-[320px] xl:w-[360px] 2xl:w-[380px]`}>
+          <div className={`hidden lg:flex absolute right-0 top-[96px] xl:top-[104px] ${bottomReserveCls} z-[var(--z-overlay)] w-[320px] xl:w-[360px] 2xl:w-[380px]`}>
             <DashboardRightSidebar floating />
           </div>
         )}
 
+        {/* Main:
+            - top-[64px] continua (logo abaixo topbar). Submenu /me é fixed top-12
+              e o spacer h-9 dentro de profile-page.tsx compensa.
+            - Padding HORIZONTAL SIMÉTRICO em lg+ (Pedro 2026-05-26): o conteúdo
+              fica verdadeiramente centralizado no viewport, não deslocado pra
+              esquerda pela right-sidebar. O lado esquerdo livre passa por baixo
+              do mini-profile-panel (fixed left-4 bottom-4) — sem sobreposição
+              porque o mini só ocupa o canto INFERIOR. */}
         <main
-          className={`absolute inset-0 top-[64px] xl:top-[72px] ${bottomReserveCls} z-[var(--z-elevated)] overflow-y-auto lg:pr-[320px] xl:pr-[360px] 2xl:pr-[380px]`}
+          className={`absolute inset-0 top-[64px] xl:top-[72px] ${bottomReserveCls} z-[var(--z-elevated)] overflow-y-auto lg:pl-[320px] lg:pr-[320px] xl:pl-[360px] xl:pr-[360px] 2xl:pl-[380px] 2xl:pr-[380px]`}
         >
           {children}
         </main>
@@ -249,6 +255,7 @@ export async function ClientShell({
         previewActive={previewActive}
         isPro={isPro}
         prosOnlineCount={prosOnlineCount}
+        myQueues={myQueues}
       />
 
       {/* Grid columns — sidebar lateral REMOVIDA 2026-05-26 (refator pra fidelidade Dota 2).

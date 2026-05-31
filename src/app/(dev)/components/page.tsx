@@ -47,6 +47,7 @@ import {
   type HonorRank,
 } from "@/components/ui/honor-rank-medal";
 import { CalibrationGraduation } from "@/components/patterns/calibration-graduation";
+import { useConfirm, usePrompt } from "@/components/ui/confirm";
 
 // Wave D — Sistema de badges + identidade (GamersClub-inspired)
 import { UserAvatar } from "@/components/ui/avatar";
@@ -186,6 +187,9 @@ const CALIBRATION_STATES: CalibrationStatus[] = ["visitante", "calibrando", "ran
 export default function ComponentsPage() {
   const [showLoading, setShowLoading] = useState(false);
   const [showGraduation, setShowGraduation] = useState(false);
+  const [confirmResult, setConfirmResult] = useState<string | null>(null);
+  const confirmDialog = useConfirm();
+  const promptDialog = usePrompt();
   // Snapshot do horário de fim da season ao montar — evita Date.now() impure em render
   const [seasonEndsAt] = useState(
     () => new Date(Date.now() + 47 * 24 * 60 * 60 * 1000 + 12 * 60 * 60 * 1000)
@@ -551,7 +555,7 @@ export default function ComponentsPage() {
           show
           fichasCount={0}
           nextSlotIn={{ hours: 2, minutes: 14 }}
-          onBuy={() => alert("CTA: garantir vaga")}
+          onBuy={() => setConfirmResult("CTA: garantir vaga (demo)")}
         />
       </Section>
 
@@ -996,6 +1000,93 @@ export default function ComponentsPage() {
         >
           Mostrar cerimonia
         </button>
+      </Section>
+
+      {/* ================================================================== */}
+      {/* SECTION 14 — Confirm Dialog + Prompt Dialog (Pedro 2026-05-26)     */}
+      {/* ================================================================== */}
+      <Section title="Confirm / Prompt — substituem window.confirm/alert/prompt nativos">
+        <p className="text-text-muted text-sm mb-4">
+          API Promise-based via <code>useConfirm()</code> e <code>usePrompt()</code> —
+          montado globalmente no root layout via <code>&lt;ConfirmProvider&gt;</code>.
+          ESC ou click fora cancela. Enter (ou Ctrl+Enter no multiline) confirma.
+        </p>
+        <div className="flex flex-wrap items-center gap-3 mb-4">
+          <Button
+            variant="cinematic"
+            size="md"
+            onClick={async () => {
+              const ok = await confirmDialog({
+                title: "Sair da fila?",
+                message: "Você pode entrar de novo a qualquer momento.",
+                confirmLabel: "Sair",
+                variant: "destructive",
+              });
+              setConfirmResult(ok ? "Confirm → true" : "Confirm → false (cancelado)");
+            }}
+          >
+            Abrir confirm destructive
+          </Button>
+          <Button
+            variant="primary"
+            size="md"
+            onClick={async () => {
+              const ok = await confirmDialog({
+                title: "Confirmar que a PT ocorreu?",
+                message: "Isso cobrará 1 ficha de cada aluno participante.",
+                confirmLabel: "Confirmar PT",
+              });
+              setConfirmResult(ok ? "Confirm → true" : "Confirm → false (cancelado)");
+            }}
+          >
+            Abrir confirm default
+          </Button>
+          <Button
+            variant="secondary"
+            size="md"
+            onClick={async () => {
+              const reason = await promptDialog({
+                title: "Motivo da remoção",
+                message: "Informe o motivo (mín 3 caracteres).",
+                placeholder: "Ex: não compareceu",
+                defaultValue: "Removido pelo PRO",
+                required: true,
+                confirmLabel: "Remover",
+                variant: "destructive",
+              });
+              setConfirmResult(
+                reason === null ? "Prompt → null (cancelado)" : `Prompt → "${reason}"`,
+              );
+            }}
+          >
+            Abrir prompt single-line
+          </Button>
+          <Button
+            variant="secondary"
+            size="md"
+            onClick={async () => {
+              const reason = await promptDialog({
+                title: "Cancelar PT",
+                message: "Descreva o motivo do cancelamento.",
+                placeholder: "Aluno desconectou, partida abortada, etc",
+                required: true,
+                multiline: true,
+                confirmLabel: "Cancelar PT",
+                variant: "destructive",
+              });
+              setConfirmResult(
+                reason === null ? "Prompt → null (cancelado)" : `Prompt → "${reason}"`,
+              );
+            }}
+          >
+            Abrir prompt multiline
+          </Button>
+        </div>
+        {confirmResult && (
+          <p className="font-mono text-sm text-brand-primary">
+            Resultado: {confirmResult}
+          </p>
+        )}
       </Section>
     </div>
   );

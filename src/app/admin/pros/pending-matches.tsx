@@ -9,6 +9,7 @@ import { useState, useTransition } from "react";
 import { Check, X, Database, Loader2 } from "lucide-react";
 import { confirmPTRealized, cancelPT, enrichMatchFromOpenDota } from "./actions";
 import { CoachNotesPanel, type CoachNoteEntry } from "./coach-notes-panel";
+import { useConfirm, usePrompt } from "@/components/ui/confirm";
 
 interface PendingMatch {
   id: string;
@@ -30,11 +31,16 @@ export function PendingMatches({ matches }: Props) {
   const [enrichInput, setEnrichInput] = useState<Record<string, string>>({});
   // IDs de PTs confirmadas (para exibir CoachNotesPanel)
   const [confirmedMatchIds, setConfirmedMatchIds] = useState<Set<string>>(new Set());
+  const confirm = useConfirm();
+  const prompt = usePrompt();
 
-  function handleConfirm(matchId: string) {
-    if (!window.confirm("Confirmar que a PT ocorreu? Isso cobrará 1 ficha de cada aluno.")) {
-      return;
-    }
+  async function handleConfirm(matchId: string) {
+    const ok = await confirm({
+      title: "Confirmar que a PT ocorreu?",
+      message: "Isso cobrará 1 ficha de cada aluno participante. Ação irreversível.",
+      confirmLabel: "Confirmar PT",
+    });
+    if (!ok) return;
     setError(null);
     setSuccess(null);
     setPendingId(matchId);
@@ -49,11 +55,16 @@ export function PendingMatches({ matches }: Props) {
     });
   }
 
-  function handleCancel(matchId: string) {
-    const reason = window.prompt(
-      "Motivo do cancelamento (será salvo):",
-      ""
-    );
+  async function handleCancel(matchId: string) {
+    const reason = await prompt({
+      title: "Cancelar PT",
+      message: "Informe o motivo do cancelamento (será salvo, mín 3 caracteres).",
+      placeholder: "Ex: aluno desconectou, partida abortada, etc",
+      required: true,
+      multiline: true,
+      confirmLabel: "Cancelar PT",
+      variant: "destructive",
+    });
     if (reason === null) return;
     if (reason.trim().length < 3) {
       setError("Motivo precisa ter pelo menos 3 caracteres.");

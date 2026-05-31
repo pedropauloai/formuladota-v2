@@ -23,6 +23,7 @@ import {
   Crown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/ui/confirm";
 import { joinCoachQueue, leaveCoachQueue } from "@/components/landing/actions";
 
 interface Props {
@@ -55,6 +56,7 @@ export function QueueActionButton({
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const router = useRouter();
+  const confirm = useConfirm();
 
   // Optimistic state — espelha props mas user pode flip imediato pra UI
   // responder em 0ms. Sincroniza com server via realtime ou rollback.
@@ -79,9 +81,15 @@ export function QueueActionButton({
     });
   }
 
-  function handleLeave() {
+  async function handleLeave() {
     if (!myEntryIdHere) return;
-    if (!window.confirm("Sair da fila deste PRO?")) return;
+    const ok = await confirm({
+      title: "Sair da fila deste PRO?",
+      message: "Você pode entrar de novo a qualquer momento.",
+      confirmLabel: "Sair",
+      variant: "destructive",
+    });
+    if (!ok) return;
     setError(null);
     setOptimisticInQueue(false);
     startTransition(async () => {

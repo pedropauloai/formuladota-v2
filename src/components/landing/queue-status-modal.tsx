@@ -51,7 +51,7 @@ export function QueueStatusModal({ open, onClose, myQueues }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+      className="pointer-events-auto fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div
@@ -96,10 +96,10 @@ export function QueueStatusModal({ open, onClose, myQueues }: Props) {
                     <img
                       src={q.coachAvatar}
                       alt=""
-                      className="size-10 rounded-full border border-emerald-500/40"
+                      className="size-10 rounded-sm border border-emerald-500/40"
                     />
                   ) : (
-                    <div className="size-10 rounded-full border border-emerald-500/40 bg-black/40" />
+                    <div className="size-10 rounded-sm border border-emerald-500/40 bg-black/40" />
                   )}
                   <div className="flex-1 min-w-0">
                     <p className="font-display text-base uppercase text-white truncate">

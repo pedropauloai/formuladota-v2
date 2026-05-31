@@ -108,7 +108,9 @@ export default async function HomePage() {
     <ClientShell
       currentRoute="/"
       immersive
-      hideBottomBar
+      /* hideBottomBar removido 2026-05-26 — Pedro quer bottom-bar GLOBAL
+         (igual mini-perfil): JOGAR DOTA aparece em todas as rotas que usam
+         ClientShell, não só em /me. */
     >
       <HubCenter
         isVisitor={isVisitor}

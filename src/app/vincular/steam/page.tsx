@@ -180,12 +180,12 @@ function LinkedState({
           <img
             src={avatarUrl}
             alt={`Avatar de ${persona ?? "usuário Steam"}`}
-            className="h-16 w-16 rounded-full border-2 border-success/60"
+            className="h-16 w-16 rounded-sm border-2 border-success/60"
           />
         ) : (
           <div
             aria-hidden="true"
-            className="h-16 w-16 rounded-full border-2 border-border-strong bg-bg-deep"
+            className="h-16 w-16 rounded-sm border-2 border-border-strong bg-bg-deep"
           />
         )}
         <div>

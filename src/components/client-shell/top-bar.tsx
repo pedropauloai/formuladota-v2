@@ -24,6 +24,8 @@ import { Settings, LogOut, LogIn, Shield, Eye, EyeOff, Radio } from "lucide-reac
 import { signOut, signInWithDiscord } from "@/app/login/actions";
 import { togglePreviewMode } from "@/lib/auth/preview-mode";
 import { cn } from "@/lib/utils";
+import { QueueStatusPill } from "@/components/queue/queue-status-pill";
+import type { MyQueueEntry } from "@/lib/queries/queue";
 
 type TopBarTabDef = {
   href: string;
@@ -59,6 +61,9 @@ interface Props {
   /** User tem pro_promotion ativa/pausada — exibe tab contextual PRO. */
   isPro: boolean;
   prosOnlineCount: number;
+  /** Filas do user — quando >0, substitui a pílula "PROs online" por "Na fila".
+   *  Pedro 2026-05-26: solução pro StickyBanner que forçava scroll. */
+  myQueues: MyQueueEntry[];
 }
 
 export function DashboardTopBar({
@@ -69,7 +74,9 @@ export function DashboardTopBar({
   previewActive,
   isPro,
   prosOnlineCount,
+  myQueues,
 }: Props) {
+  const inQueue = myQueues.length > 0;
   // Compõe nav principal: SUBIR MMR sempre + (Progresso/Ranking/Times/Torneios só admin)
   const principalTabs: TopBarTabDef[] = [SUBIR_MMR_TAB];
   if (isAdmin) {
@@ -170,8 +177,14 @@ export function DashboardTopBar({
         )}
       </div>
 
-      {/* Centro — status PROs online em tempo real */}
-      {prosOnlineCount > 0 && (
+      {/* Centro — XOR:
+            - Em fila → pílula "Na fila · 2º · sair" (Pedro 2026-05-26)
+            - Fora de fila → status "X PROs online"
+          A pílula de fila substitui a de PROs porque a info mais relevante no
+          momento é o estado atual do user, não a quantidade de PROs disponíveis. */}
+      {inQueue ? (
+        <QueueStatusPill queues={myQueues} />
+      ) : prosOnlineCount > 0 ? (
         <div className="hidden xl:flex items-center gap-2 rounded-md border border-emerald-500/30 bg-emerald-500/5 px-3 py-1">
           <span className="relative flex size-2" aria-hidden="true">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
@@ -183,7 +196,7 @@ export function DashboardTopBar({
           </span>
           <Radio size={12} className="text-emerald-400/80" aria-hidden="true" />
         </div>
-      )}
+      ) : null}
 
       {/* Direita — CONDUTA cinematic (todos) + (Entrar/Logout) + PreviewToggle (admin real) */}
       <div className="flex items-center gap-1.5 xl:gap-2">

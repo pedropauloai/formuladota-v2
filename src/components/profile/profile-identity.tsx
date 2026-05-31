@@ -1,12 +1,23 @@
-// Coluna central da /me — identidade canônica + status_message + heróis favoritos.
-// O hero portrait gigante de background é gerenciado pelo ClientShell via centerHero —
-// este componente NÃO renderiza absolute inset-0 (BLOCKER #3 fix).
+// Header CANÔNICO do /me — avatar à ESQUERDA + nome/tag/medalhas AO LADO.
+// Layout horizontal estilo Dota 2 client (fidelidade Pedro 2026-05-26).
 //
-// EDIÇÃO INLINE (refator 2026-05-26): quando `editing=true`, blocos de leitura são
-// substituídos pelos componentes de edição inline (StatusEditor, HeroesEditor,
-// PortraitEditor, AvatarEditor) — sem modal, sem nova rota.
+// REFATOR 2026-05-26: removida duplicação de avatar+medalhas com ProfileStats.
+// Agora ProfileIdentity é a ÚNICA fonte do header visual; ProfileStats virou
+// só números puros (sem avatar, sem medalhas).
 //
-// Server Component — controles editáveis são Client Components em inline-edit-controls.tsx.
+// Layout:
+//   ┌─────────────────────────────────────────┐
+//   │ [Avatar] | NOME (28px)                  │  ← linha 1 horizontal
+//   │  XL      | FORMULADOTA                  │
+//   │          | [Medalha Dota] [Honor]       │
+//   ├─────────────────────────────────────────┤
+//   │ "Status message..."                     │  ← linha 2 full-width
+//   ├─────────────────────────────────────────┤
+//   │ HERÓIS FAVORITOS: [h1] [h2] [h3]       │  ← linha 3 full-width
+//   └─────────────────────────────────────────┘
+//
+// EDIÇÃO INLINE: editing=true substitui blocos de leitura pelos editores
+// (StatusEditor, HeroesEditor, PortraitEditor, AvatarEditor).
 
 import Image from "next/image";
 import { UserAvatar } from "@/components/ui/avatar";
@@ -46,52 +57,53 @@ export function ProfileIdentity({
   editing,
 }: Props) {
   return (
-    <div className="flex-1 min-w-0 p-6 flex flex-col items-center gap-4 text-center">
-      {/* Avatar XL com ring brand (UI-SPEC: ring=brand no topo do /me) */}
-      <UserAvatar
-        src={avatarUrl ?? undefined}
-        alt={`Avatar de ${username ?? "Anônimo"}`}
-        fallback={(username ?? "??").slice(0, 2).toUpperCase()}
-        size="xl"
-        ringColor="brand"
-      />
-
-      {/* Identidade: nome + tag FORMULADOTA (B6 — sem nome próprio do coach) */}
-      <div>
-        <h1 className="font-display text-[28px] font-bold text-text-display leading-tight">
-          {username ?? "Anônimo"}
-        </h1>
-        {/* Brand string sempre uppercase — FORMULADOTA sem acento */}
-        <p className="font-display text-[13px] font-bold text-brand-primary tracking-[0.1em] mt-1">
-          FORMULADOTA
-        </p>
-      </div>
-
-      {/* Sistema 2-eixos SKILL + HONOR lado a lado (M12 mandamento) */}
-      <div className="flex items-center justify-center gap-3 flex-wrap">
-        <DotaRankMedal
-          rank={dotaRank}
-          size="lg"
-          showLabel
-          glow={dotaRank === "immortal" || dotaRank === "immortal-top-100"}
-          calibrationStatus={ranqueado ? "ranqueado" : "visitante"}
+    <div className="flex flex-col gap-6 p-6">
+      {/* ─── LINHA 1: header horizontal — avatar | identidade+medalhas ─── */}
+      <header className="flex items-center gap-5">
+        <UserAvatar
+          src={avatarUrl ?? undefined}
+          alt={`Avatar de ${username ?? "Anônimo"}`}
+          fallback={(username ?? "??").slice(0, 2).toUpperCase()}
+          size="xl"
+          ringColor={ranqueado ? "brand" : null}
         />
-        <HonorRankMedal
-          rank={honorRank}
-          size="lg"
-          showLabel
-          calibrationStatus={ranqueado ? "ranqueado" : "visitante"}
-        />
-      </div>
 
-      {/* Status message — editável inline quando editing=true */}
-      {editing ? (
-        <div className="w-full max-w-md">
-          <StatusEditor initialStatus={statusMessage} />
+        <div className="flex-1 min-w-0 flex flex-col gap-2">
+          {/* Nome + brand tag empilhados */}
+          <div>
+            <h1 className="font-display text-[28px] font-bold text-text-display leading-tight truncate">
+              {username ?? "Anônimo"}
+            </h1>
+            <p className="font-display text-[13px] font-bold text-brand-primary tracking-[0.1em] mt-0.5">
+              FORMULADOTA
+            </p>
+          </div>
+
+          {/* Medalhas SKILL + HONOR lado a lado (M12) — logo abaixo do nome */}
+          <div className="flex items-center gap-3 flex-wrap">
+            <DotaRankMedal
+              rank={dotaRank}
+              size="md"
+              showLabel
+              glow={dotaRank === "immortal" || dotaRank === "immortal-top-100"}
+              calibrationStatus={ranqueado ? "ranqueado" : "visitante"}
+            />
+            <HonorRankMedal
+              rank={honorRank}
+              size="md"
+              showLabel
+              calibrationStatus={ranqueado ? "ranqueado" : "visitante"}
+            />
+          </div>
         </div>
+      </header>
+
+      {/* ─── LINHA 2: status message — full width abaixo do header ─── */}
+      {editing ? (
+        <StatusEditor initialStatus={statusMessage} />
       ) : (
         <p
-          className={`font-display text-base font-semibold leading-relaxed max-w-md ${
+          className={`font-display text-base font-semibold leading-relaxed ${
             statusMessage ? "text-text-body italic" : "text-text-faded italic"
           }`}
         >
@@ -100,40 +112,43 @@ export function ProfileIdentity({
         </p>
       )}
 
-      {/* Heróis favoritos — editável inline quando editing=true */}
+      {/* ─── LINHA 3: heróis favoritos — full width ─── */}
       {editing ? (
-        <div className="w-full max-w-md">
-          <HeroesEditor initialFavorites={favoriteHeroes} />
-        </div>
+        <HeroesEditor initialFavorites={favoriteHeroes} />
       ) : favoriteHeroes.length > 0 ? (
-        <div className="flex items-end justify-center gap-3 mt-2">
-          {favoriteHeroes.slice(0, 3).map((hero) => (
-            <div key={hero.slug} className="flex flex-col items-center gap-1">
-              <div className="relative w-[72px] h-[40px] rounded-md overflow-hidden border border-border-subtle">
-                <Image
-                  src={hero.image_full}
-                  alt={hero.name_pt}
-                  fill
-                  sizes="72px"
-                  className="object-cover"
-                  unoptimized
-                />
+        <div>
+          <p className="font-display text-[13px] font-bold uppercase tracking-[0.08em] text-text-faded mb-2">
+            Heróis favoritos
+          </p>
+          <div className="flex items-end gap-3">
+            {favoriteHeroes.slice(0, 3).map((hero) => (
+              <div key={hero.slug} className="flex flex-col items-center gap-1">
+                <div className="relative w-[72px] h-[40px] rounded-sm overflow-hidden border border-border-subtle">
+                  <Image
+                    src={hero.image_full}
+                    alt={hero.name_pt}
+                    fill
+                    sizes="72px"
+                    className="object-cover"
+                    unoptimized
+                  />
+                </div>
+                <p className="font-display text-[11px] font-semibold text-text-faded truncate max-w-[72px]">
+                  {hero.name_pt}
+                </p>
               </div>
-              <p className="font-display text-[11px] font-semibold text-text-faded truncate max-w-[72px]">
-                {hero.name_pt}
-              </p>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       ) : (
-        <p className="font-display text-[13px] font-semibold text-text-faded italic mt-2">
+        <p className="font-display text-[13px] font-semibold text-text-faded italic">
           Nenhum herói favorito definido.
         </p>
       )}
 
-      {/* Editores adicionais — só visíveis em modo edição */}
+      {/* ─── Editores adicionais — só visíveis em modo edição ─── */}
       {editing && (
-        <div className="w-full max-w-md space-y-4">
+        <div className="space-y-4">
           <PortraitEditor initialPortrait={heroPortraitSlug} />
           <AvatarEditor userId={userId} initialAvatar={avatarUrl} />
         </div>

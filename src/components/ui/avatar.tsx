@@ -2,13 +2,13 @@
 /**
  * UserAvatar — FormulaDota V2.5-F8
  *
- * Avatar circular com slots para:
+ * Avatar QUADRADO (rounded-sm) com slots para:
  *   - badge overlay no canto inferior-direito (ex: MembershipBadge)
  *   - PresenceDot integrado (prioridade sobre badge quando ativo)
  *   - ring colorido para destaque de tier (ex: tier Immortal = brand glow)
  *
  * Tamanhos: sm=32px | md=40px | lg=64px | xl=96px (hero portrait)
- * Padrão GamersClub: empilhamento de sinais visuais sobre o avatar.
+ * Padrão GamersClub/Steam: avatar quadrado, NUNCA circular (Pedro 2026-05-26).
  *
  * C14 — zero hex hardcoded; apenas tokens semânticos via Tailwind.
  */
@@ -70,8 +70,8 @@ const RING_CLASSES: Record<NonNullable<RingColor>, string> = {
 // ---------------------------------------------------------------------------
 
 const avatarVariants = cva(
-  /* Base: círculo com overflow hidden para imagem não vazar */
-  "relative inline-flex shrink-0 rounded-full overflow-hidden select-none",
+  /* Base: quadrado com overflow hidden para imagem não vazar */
+  "relative inline-flex shrink-0 rounded-sm overflow-hidden select-none",
   {
     variants: {
       size: {
@@ -218,9 +218,9 @@ export const UserAvatar = forwardRef<HTMLDivElement, UserAvatarProps>(
       <div
         className={cn(
           "relative inline-flex shrink-0 select-none",
-          /* Ring externo — aplicado no wrapper, não no círculo interno */
+          /* Ring externo — aplicado no wrapper, não no quadrado interno */
           ringClass,
-          "rounded-full",
+          "rounded-sm",
           className,
         )}
         ref={ref}

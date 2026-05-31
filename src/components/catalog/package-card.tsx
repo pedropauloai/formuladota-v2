@@ -60,12 +60,12 @@ export function PackageCard({ pkg, coach }: PackageCardProps) {
             <img
               src={coach.avatarUrl}
               alt={`Avatar de ${coach.username}`}
-              className="h-8 w-8 rounded-full border border-[var(--color-brand-red)]/30"
+              className="h-8 w-8 rounded-sm border border-[var(--color-brand-red)]/30"
             />
           ) : (
             <div
               aria-hidden="true"
-              className="h-8 w-8 rounded-full border border-[var(--color-border)] bg-[var(--color-card)]"
+              className="h-8 w-8 rounded-sm border border-[var(--color-border)] bg-[var(--color-card)]"
             />
           )}
           <span className="text-[var(--color-muted-foreground)]">

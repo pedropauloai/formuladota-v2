@@ -193,14 +193,22 @@ html[data-theme="fd-dark"] {
 
   /* -------------------------------------------------------
    * GRUPO 13 — RADIUS (arredondamento de bordas)
+   *
+   * ACHATADO 2026-05-27 (Pedro): bordas muito arredondadas tinham vibe
+   * SaaS/Notion — Pedro chamou de "amador". Padrão Dota 2 / Steam /
+   * GamersClub é arredondamento sutil 2px (quase reto). Achatamos sm/md/lg/xl
+   * pra 2px global; -full mantém 9999px (dots, medalhas, pings circulares).
+   *
+   * O sufixo (-sm, -md, -lg, -xl) só existe agora pra compat com código
+   * legado — todos resolvem pro mesmo valor.
    * ------------------------------------------------------- */
 
-  --radius-none:  0px;      /* sem arredondamento — cantos retos Dota */
-  --radius-sm:    4px;      /* botões, inputs */
-  --radius-md:    8px;      /* cards padrão */
-  --radius-lg:    12px;     /* painéis, drawers */
-  --radius-xl:    16px;     /* modais, large cards */
-  --radius-full:  9999px;   /* badges, avatars, pills */
+  --radius-none:  0px;      /* sem arredondamento — cantos retos */
+  --radius-sm:    2px;      /* botões, inputs */
+  --radius-md:    2px;      /* cards padrão */
+  --radius-lg:    2px;      /* painéis, drawers */
+  --radius-xl:    2px;      /* modais, large cards */
+  --radius-full:  9999px;   /* dots, medalhas, pings circulares (exceção) */
 
   /* -------------------------------------------------------
    * GRUPO 14 — SOMBRAS E GLOWS

@@ -7,6 +7,7 @@ import { useState, useTransition } from "react";
 import { Play, Loader2, X } from "lucide-react";
 import { startPT, removeFromQueue } from "./actions";
 import { Button } from "@/components/ui/button";
+import { usePrompt } from "@/components/ui/confirm";
 
 export interface QueueEntry {
   id: string;
@@ -27,6 +28,7 @@ export function QueueList({ entries, filaAberta }: Props) {
   const [success, setSuccess] = useState<string | null>(null);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const prompt = usePrompt();
 
   function toggle(id: string) {
     setSelected((prev) => {
@@ -54,11 +56,16 @@ export function QueueList({ entries, filaAberta }: Props) {
     });
   }
 
-  function handleRemove(entryId: string) {
-    const reason = window.prompt(
-      "Motivo da remoção (será logado):",
-      "Sem motivo específico"
-    );
+  async function handleRemove(entryId: string) {
+    const reason = await prompt({
+      title: "Remover aluno da fila",
+      message: "Informe o motivo da remoção (será logado).",
+      placeholder: "Ex: aluno desconectou, comportamento tóxico, etc",
+      defaultValue: "Sem motivo específico",
+      required: true,
+      confirmLabel: "Remover",
+      variant: "destructive",
+    });
     if (reason === null) return; // cancelou
     if (reason.trim().length < 3) {
       setError("Motivo precisa ter pelo menos 3 caracteres.");
@@ -120,7 +127,7 @@ export function QueueList({ entries, filaAberta }: Props) {
                   <img
                     src={e.avatarUrl}
                     alt=""
-                    className="size-8 rounded-full"
+                    className="size-8 rounded-sm"
                   />
                 )}
                 <div className="flex-1">

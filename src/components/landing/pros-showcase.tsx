@@ -63,7 +63,7 @@ export function PROsShowcase() {
               key={i}
               className="flex min-h-[280px] flex-col items-center justify-center rounded-md border border-dashed border-[var(--color-border)] bg-[var(--color-card)]/40 p-6 text-center"
             >
-              <div className="mb-4 size-16 rounded-full bg-[var(--color-border)]/40" />
+              <div className="mb-4 size-16 rounded-sm bg-[var(--color-border)]/40" />
               <p className="font-sans text-sm font-semibold uppercase tracking-widest text-[var(--color-muted-foreground)]">
                 Em breve
               </p>

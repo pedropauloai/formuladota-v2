@@ -7,19 +7,27 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { X, Loader2 } from "lucide-react";
 import { leaveCoachQueue } from "@/components/landing/actions";
+import { useConfirm } from "@/components/ui/confirm";
 
 export function LeaveQueueButton({ entryId }: { entryId: string }) {
   const [pending, startTransition] = useTransition();
   const router = useRouter();
   const [optimisticGone, setOptimisticGone] = useState(false);
+  const confirm = useConfirm();
 
   if (optimisticGone && !pending) return null;
 
   return (
     <button
       type="button"
-      onClick={() => {
-        if (!window.confirm("Sair da fila? Você pode entrar de novo a qualquer momento.")) return;
+      onClick={async () => {
+        const ok = await confirm({
+          title: "Sair da fila?",
+          message: "Você pode entrar de novo a qualquer momento.",
+          confirmLabel: "Sair",
+          variant: "destructive",
+        });
+        if (!ok) return;
         setOptimisticGone(true);
         startTransition(async () => {
           const res = await leaveCoachQueue(entryId);

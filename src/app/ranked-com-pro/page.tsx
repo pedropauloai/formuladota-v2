@@ -75,7 +75,8 @@ export default async function RankedComProPage() {
     <ClientShell
       currentRoute="/ranked-com-pro"
       immersive
-      hideBottomBar
+      /* hideBottomBar removido 2026-05-26 — Pedro quer bottom-bar GLOBAL
+         (igual mini-perfil): JOGAR DOTA aparece em todas as rotas. */
     >
       <DashboardCenter
         persona={persona}

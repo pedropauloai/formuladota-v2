@@ -225,14 +225,17 @@
   --color-foreground:          var(--foreground);
   --color-background:          var(--background);
 
-  /* Radius shadcn — baseado em var(--radius) */
-  --radius-sm:  calc(var(--radius) * 0.6);
-  --radius-md:  calc(var(--radius) * 0.8);
+  /* Radius shadcn — baseado em var(--radius).
+     ACHATADO 2026-05-27 (Pedro): todos resolvem pra 2px exceto -2xl+ que
+     resolvem pra 4px pra dar respiro em modals/large cards.
+     Mantém compat com componentes shadcn que usam rounded-2xl etc. */
+  --radius-sm:  var(--radius);
+  --radius-md:  var(--radius);
   --radius-lg:  var(--radius);
-  --radius-xl:  calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-xl:  var(--radius);
+  --radius-2xl: calc(var(--radius) * 2);
+  --radius-3xl: calc(var(--radius) * 2);
+  --radius-4xl: calc(var(--radius) * 2);
 }
 
 /* -------------------------------------------------------
@@ -273,8 +276,9 @@
   --input:                var(--color-bg-base);        /* #0a0a0a */
   --ring:                 var(--color-brand-primary);  /* #ac1d0e */
 
-  /* Radius base shadcn */
-  --radius: 0.5rem;
+  /* Radius base shadcn — ACHATADO 2026-05-27 (Pedro): 8px → 2px global.
+     Padrão Steam/GamersClub/ExitLag (AAA gaming) é arredondamento sutil. */
+  --radius: 2px;
 }
 
 /* -------------------------------------------------------
