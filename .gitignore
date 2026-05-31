@@ -70,3 +70,6 @@ bot/dist/
 
 # Config local do Claude Code (inclui worktrees pesados)
 .claude/
+
+# Logs de teste do Playwright MCP
+.playwright-mcp/
