@@ -59,3 +59,14 @@ yarn-error.log*
 bot/node_modules/
 bot/.env
 bot/dist/
+
+# YouTube transcripts (matéria-prima de pesquisa, não vai pro git)
+.planning/research/youtube-transcripts/
+
+# Screenshots de dev na raiz (lixo de iteração visual, não vai pro git)
+/*.png
+/*.jpg
+/*.jpeg
+
+# Config local do Claude Code (inclui worktrees pesados)
+.claude/
