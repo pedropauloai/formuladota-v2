@@ -78,7 +78,7 @@ export default async function MetodologiaPage() {
         {/* ============================================================
             STATEMENT — Tese central (frase-manifesto que para o scroll)
             ============================================================ */}
-        <FrontierStatement backgroundImage={FRONTIER_ASSETS.featuredPurple}>
+        <FrontierStatement backgroundImage={FRONTIER_ASSETS.featuredTeal}>
           “Dota 2 não é sobre matar heróis. É sobre{" "}
           <span className="text-brand-primary">progredir o seu herói</span> de
           forma consistente e impedir a progressão consistente do adversário.”
@@ -116,7 +116,7 @@ export default async function MetodologiaPage() {
           title="O Jogo de Corrida"
           intro="O que define o resultado de uma partida não é talento individual, herói escolhido ou número de kills — é velocidade de acúmulo de patrimônio em relação ao tempo."
           background="image"
-          backgroundImage={FRONTIER_ASSETS.mapBackground}
+          backgroundImage={FRONTIER_ASSETS.featuredTeal}
           width="prose"
         >
           <Prose>
@@ -217,7 +217,7 @@ export default async function MetodologiaPage() {
             Inspiração: New Frontiers ("há mais de oito bilhões de pessoas
             no planeta, e 99,99% delas são terríveis no Dota").
             ============================================================ */}
-        <FrontierStatement backgroundImage={FRONTIER_ASSETS.mapBackground}>
+        <FrontierStatement backgroundImage={FRONTIER_ASSETS.featuredTeal}>
           Há mais de <span className="text-brand-primary">8 bilhões</span> de
           pessoas no planeta, e <span className="text-brand-primary">99,99%</span>{" "}
           são terríveis em Dota 2. A diferença entre elas e o topo nunca foi
@@ -256,7 +256,7 @@ export default async function MetodologiaPage() {
           title="Jogar no Erro do Adversário"
           intro="A maior parte das partidas é decidida por jogadores esperando o erro do adversário, não criando jogadas espetaculares."
           background="image"
-          backgroundImage={FRONTIER_ASSETS.mapBackground}
+          backgroundImage={FRONTIER_ASSETS.featuredTeal}
           width="prose"
         >
           <Prose>

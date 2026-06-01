@@ -45,7 +45,7 @@ export default async function CodigoDeCondutaPage() {
         {/* Background oficial Dota 2 fixo (roxo) + overlay pra legibilidade */}
         <div
           className="pointer-events-none fixed inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-[0.16]"
-          style={{ backgroundImage: `url(${DOTA_BACKGROUNDS.featuredPurple})` }}
+          style={{ backgroundImage: `url(${DOTA_BACKGROUNDS.featuredTeal})` }}
           aria-hidden="true"
         />
         <div
@@ -69,7 +69,7 @@ export default async function CodigoDeCondutaPage() {
 
           {/* STATEMENT — a primeira regra */}
           <FrontierStatement
-            backgroundImage={DOTA_BACKGROUNDS.featuredPurple}
+            backgroundImage={DOTA_BACKGROUNDS.featuredTeal}
             attribution="A responsabilidade é sempre sua, 100% das vezes"
           >
             <span className="text-brand-primary">{CANONICAL_QUOTES.firstRule}</span>
@@ -117,7 +117,7 @@ export default async function CodigoDeCondutaPage() {
             title="Os 15 Padrões Tóxicos"
             intro="Comportamentos incompatíveis com a cultura da FORMULADOTA. Geram advertência, suspensão ou banimento conforme as regras abaixo."
             background="image"
-            backgroundImage={DOTA_BACKGROUNDS.mapDark}
+            backgroundImage={DOTA_BACKGROUNDS.featuredTeal}
             width="wide"
           >
             <div className="grid gap-4 md:grid-cols-2">
