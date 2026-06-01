@@ -51,12 +51,12 @@ export function FrontierSection({
       {background === "image" && backgroundImage && (
         <>
           <div
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-40"
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-70"
             style={{ backgroundImage: `url(${backgroundImage})` }}
             aria-hidden="true"
           />
           <div
-            className="absolute inset-0 bg-gradient-to-b from-bg-deep via-bg-deep/70 to-bg-deep"
+            className="absolute inset-0 bg-gradient-to-b from-bg-deep/60 via-bg-deep/40 to-bg-deep/75"
             aria-hidden="true"
           />
         </>

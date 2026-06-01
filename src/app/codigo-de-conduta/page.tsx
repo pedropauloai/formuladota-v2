@@ -44,12 +44,14 @@ export default async function CodigoDeCondutaPage() {
       <div className="relative w-full bg-bg-deep">
         {/* Background oficial Dota 2 fixo (roxo) + overlay pra legibilidade */}
         <div
-          className="pointer-events-none fixed inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-[0.16]"
+          className="pointer-events-none fixed inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-60"
           style={{ backgroundImage: `url(${DOTA_BACKGROUNDS.featuredTeal})` }}
           aria-hidden="true"
         />
+        {/* Overlay só o suficiente pra legibilidade do texto — deixa a key-art
+            teal aparecer com força (como na New Frontiers oficial). */}
         <div
-          className="pointer-events-none fixed inset-0 z-0 bg-gradient-to-b from-bg-deep/70 via-bg-deep/85 to-bg-deep"
+          className="pointer-events-none fixed inset-0 z-0 bg-gradient-to-b from-bg-deep/55 via-bg-deep/45 to-bg-deep/70"
           aria-hidden="true"
         />
 

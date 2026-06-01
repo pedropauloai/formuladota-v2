@@ -31,6 +31,17 @@ export const DOTA_BACKGROUNDS = {
 } as const;
 
 // ---------------------------------------------------------------------------
+// Key-arts de UI/matchmaking (New Frontiers) — telas de criação de partidas.
+// Perfeitas pro futuro sistema de LOBBY/fila. Alta resolução (~1.5-1.8MB).
+// ---------------------------------------------------------------------------
+export const DOTA_UI_ART = {
+  /** Tela de matchmaking/criação de partidas — ideal pra seção de lobby/fila. */
+  matchmaking: `${DOTA_IMG}/new_frontiers/matchmaking.png`,
+  /** UI de matchmaking Immortal — destaque pra topo de ranking/elite. */
+  immortalMatchmaking: `${DOTA_IMG}/new_frontiers/immortal_matchmaking_ui.png`,
+} as const;
+
+// ---------------------------------------------------------------------------
 // Renders e retratos de heróis — por slug oficial Valve (npc_dota_hero_<slug>
 // vira só <slug> na URL). Ex: "muerta", "clinkz", "arc_warden", "ogre_magi".
 // ---------------------------------------------------------------------------
@@ -55,12 +66,18 @@ export const ATTR_ICONS = {
 } as const;
 
 // Slugs de heróis convenientes (oficiais Valve) pra usar nos blocos.
+// Todos verificados HTTP 200 no CDN (renders full-body 1440x1440 transparentes).
 export const HERO_SLUGS = {
   muerta: "muerta",
   clinkz: "clinkz",
   arcWarden: "arc_warden",
   ogreMagi: "ogre_magi",
   medusa: "medusa",
+  juggernaut: "juggernaut",
+  invoker: "invoker",
+  phantomAssassin: "phantom_assassin",
+  pudge: "pudge",
+  crystalMaiden: "crystal_maiden",
 } as const;
 
 // ---------------------------------------------------------------------------

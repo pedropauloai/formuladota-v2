@@ -5,8 +5,10 @@ import {
   FrontierSection,
   FrontierStatement,
   FrontierBlockGrid,
+  FrontierShowcase,
   FRONTIER_ASSETS,
   DOTA_BACKGROUNDS,
+  DOTA_UI_ART,
   HERO_SLUGS,
 } from "@/components/frontier";
 
@@ -51,12 +53,14 @@ export default async function MetodologiaPage() {
           com overlay escuro pra legibilidade. */}
       <div className="relative w-full bg-bg-deep">
         <div
-          className="pointer-events-none fixed inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-[0.18]"
+          className="pointer-events-none fixed inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-60"
           style={{ backgroundImage: `url(${DOTA_BACKGROUNDS.featuredTeal})` }}
           aria-hidden="true"
         />
+        {/* Overlay só o suficiente pra legibilidade — deixa a key-art teal
+            aparecer com força (como na New Frontiers oficial). */}
         <div
-          className="pointer-events-none fixed inset-0 z-0 bg-gradient-to-b from-bg-deep/70 via-bg-deep/85 to-bg-deep"
+          className="pointer-events-none fixed inset-0 z-0 bg-gradient-to-b from-bg-deep/55 via-bg-deep/45 to-bg-deep/70"
           aria-hidden="true"
         />
         <div className="relative z-10">
@@ -247,19 +251,32 @@ export default async function MetodologiaPage() {
               É <strong>conhecer e aplicar a metodologia</strong>.
             </p>
           </Prose>
+
+          {/* Showcase: UI oficial de matchmaking Immortal — o topo que a Fórmula
+              busca. (Reutilizável no futuro sistema de lobby/fila.) */}
+          <div className="mt-12">
+            <FrontierShowcase
+              src={DOTA_UI_ART.immortalMatchmaking}
+              alt="Tela de matchmaking Immortal do Dota 2"
+              caption="O topo do ranking — onde a Fórmula quer te levar."
+            />
+          </div>
         </FrontierSection>
 
-        {/* 06 — Jogar no Erro do Adversário */}
+        {/* 06 — Jogar no Erro do Adversário (bloco herói: Pudge, render à direita) */}
         <FrontierSection
           id="erro"
           index="06"
           title="Jogar no Erro do Adversário"
           intro="A maior parte das partidas é decidida por jogadores esperando o erro do adversário, não criando jogadas espetaculares."
-          background="image"
-          backgroundImage={FRONTIER_ASSETS.featuredTeal}
-          width="prose"
+          width="wide"
         >
-          <Prose>
+          <FrontierBlockGrid
+            heroSlug={HERO_SLUGS.pudge}
+            eyebrow="A emboscada"
+            title="O erro do outro é informação livre."
+            renderSide="right"
+          >
             <Quote>
               “Vocês têm que aprender muito a arte de jogar no erro do seu
               adversário. Você não precisa fazer jogadas mirabolantes.”
@@ -290,7 +307,7 @@ export default async function MetodologiaPage() {
               antes do combate começar, o resto da luta é 5x4. Mas o first blood
               que vale é o que se concretiza, não o que se tenta.
             </p>
-          </Prose>
+          </FrontierBlockGrid>
         </FrontierSection>
 
         {/* 07 — A Matemática da Evolução */}
@@ -328,6 +345,16 @@ export default async function MetodologiaPage() {
               falta na maioria dos jogadores não é capacidade — é constância.
             </p>
           </Prose>
+
+          {/* Showcase: tela oficial de matchmaking — a corrida de partidas.
+              (Será reaproveitada no futuro sistema de lobby/fila da plataforma.) */}
+          <div className="mt-12">
+            <FrontierShowcase
+              src={DOTA_UI_ART.matchmaking}
+              alt="Tela de criação de partidas (matchmaking) do Dota 2"
+              caption="Partida após partida — é assim que a constância vira MMR."
+            />
+          </div>
         </FrontierSection>
 
         {/* 08 — Simulador de Herói (bloco estilo "herói em destaque" New Frontiers:
