@@ -18,8 +18,18 @@ function safeNext(next: string | null | undefined): string {
 // Sempre redireciona (pro Discord em sucesso, ou pra "/" em erro).
 async function startDiscordOAuth(next?: string): Promise<never> {
   const supabase = await createClient();
+
+  // Base do redirect: em produção, SEMPRE usar NEXT_PUBLIC_SITE_URL (domínio
+  // canônico). O header `origin` é fallback só pra dev/preview — atrás do proxy
+  // da Vercel ele pode vir ausente/errado, e se cair pra um valor inesperado o
+  // Supabase ignora o redirectTo (fora da allowlist) e usa o Site URL dele,
+  // mandando o user pra localhost. Priorizar a env var blinda contra isso.
+  const configured = publicEnv.NEXT_PUBLIC_SITE_URL;
   const headerStore = await headers();
-  const origin = headerStore.get("origin") ?? publicEnv.NEXT_PUBLIC_SITE_URL;
+  const origin =
+    configured && configured.startsWith("https://")
+      ? configured
+      : headerStore.get("origin") ?? configured;
 
   // Pós-login, o callback OAuth lê `redirect_to` e leva o user de volta à rota
   // que ele tentava acessar (?next=). Default: /dashboard.
