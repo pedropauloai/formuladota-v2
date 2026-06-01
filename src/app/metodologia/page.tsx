@@ -37,7 +37,7 @@ const MEDAL_DATA = [
 
 export default async function MetodologiaPage() {
   return (
-    <ClientShell currentRoute="/metodologia">
+    <ClientShell currentRoute="/metodologia" hideRightSidebar>
       <a
         href="#tese"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-brand-primary focus:px-4 focus:py-2 focus:font-medium focus:text-text-inverse"

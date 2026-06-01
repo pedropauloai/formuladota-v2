@@ -5,31 +5,27 @@ import {
   PRINCIPLES,
   PROGRESSIVE_MODERATION,
 } from "@/lib/doctrine";
-import { DotaBackdrop } from "@/components/dota/dota-backdrop";
 import { ClientShell } from "@/components/client-shell/shell";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  FrontierHero,
+  FrontierSection,
+  FrontierStatement,
+  RevealOnScroll,
+  FRONTIER_ASSETS,
+  DOTA_BACKGROUNDS,
+} from "@/components/frontier";
 
 // Página pública canônica do código de conduta.
 // Acessível sem login — referência permanente da cultura.
-// Refatorada para Design System V2.5: tokens semânticos + Card primitive
-// + hierarquia tipográfica font-display/font-body. Texto integralmente preservado.
+//
+// Redesign 2026-06-01: layout cinematográfico estilo Dota 2 "New Frontiers"
+// (igual /metodologia) — hero key-art, seções full-width, statements, reveal no
+// scroll, background oficial Dota 2. Texto integralmente preservado.
 export const metadata = {
   title: "Código de Conduta — FORMULADOTA",
   description:
     "A Fórmula do Dota de Corrida — princípios, anti-padrões e sistema progressivo de moderação.",
 };
-
-const TOC_SECTIONS = [
-  { id: "principios", label: "Os 14 princípios" },
-  { id: "antipadroes", label: "15 padrões tóxicos" },
-  { id: "moderacao", label: "Sistema progressivo" },
-  { id: "compromisso", label: "Compromisso final" },
-];
 
 export default async function CodigoDeCondutaPage() {
   const comportamentais = PRINCIPLES.filter((p) => p.category === "comportamental");
@@ -37,112 +33,109 @@ export default async function CodigoDeCondutaPage() {
   const progressao = PRINCIPLES.filter((p) => p.category === "progressao");
 
   return (
-    <ClientShell currentRoute="/codigo-de-conduta">
+    <ClientShell currentRoute="/codigo-de-conduta" hideRightSidebar>
       <a
-        href="#conteudo"
+        href="#principios"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-brand-primary focus:px-4 focus:py-2 focus:font-medium focus:text-text-inverse"
       >
         Pular para o conteúdo
       </a>
 
-      <div id="conteudo" className="relative px-6 py-16">
-        <DotaBackdrop />
-        <div className="relative z-10 mx-auto max-w-3xl space-y-16">
-          {/* Hero — eyebrow + título + subtítulo (tipografia V2.5) */}
-          <header className="space-y-4 text-center">
-            <p className="font-display text-sm uppercase tracking-[0.4em] text-brand-primary">
-              Código de Conduta · v1
-            </p>
-            <h1 className="font-display text-4xl tracking-wide text-text-display md:text-5xl">
-              A Fórmula do{" "}
-              <span className="text-brand-primary text-glow-red">Dota</span> de Corrida
-            </h1>
-            <p className="mx-auto max-w-2xl font-body text-base text-text-muted leading-relaxed">
-              {CANONICAL_QUOTES.opening}
-            </p>
-          </header>
+      <div className="relative w-full bg-bg-deep">
+        {/* Background oficial Dota 2 fixo (roxo) + overlay pra legibilidade */}
+        <div
+          className="pointer-events-none fixed inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-[0.16]"
+          style={{ backgroundImage: `url(${DOTA_BACKGROUNDS.featuredPurple})` }}
+          aria-hidden="true"
+        />
+        <div
+          className="pointer-events-none fixed inset-0 z-0 bg-gradient-to-b from-bg-deep/70 via-bg-deep/85 to-bg-deep"
+          aria-hidden="true"
+        />
 
-          {/* Card destaque — primeira regra (highlight brand) */}
-          <Card variant="elevated" className="border-border-brand text-center">
-            <p className="font-display text-2xl tracking-wide text-brand-primary text-glow-red">
-              {CANONICAL_QUOTES.firstRule}
-            </p>
-            <p className="mt-3 font-display text-sm font-semibold text-text-body">
-              A primeira regra. A responsabilidade é sempre sua, 100% das vezes.
-            </p>
-          </Card>
+        <div className="relative z-10">
+          {/* HERO */}
+          <FrontierHero
+            eyebrow="Código de Conduta · v1"
+            title={
+              <>
+                A Fórmula do{" "}
+                <span className="text-brand-primary">Dota</span> de Corrida
+              </>
+            }
+            subtitle={CANONICAL_QUOTES.opening}
+            backgroundImage={FRONTIER_ASSETS.mapBanner}
+          />
 
-          {/* Card missão — citação canônica */}
-          <Card variant="flat" className="border-border-brand/40 text-center">
-            <p className="font-display text-sm uppercase tracking-[0.4em] text-brand-primary">
-              Missão
-            </p>
-            <p className="mt-2 font-body text-base italic text-text-body">
-              “{CANONICAL_QUOTES.mission}”
-            </p>
-          </Card>
-
-          {/* Sumário (TOC) */}
-          <nav
-            aria-label="Sumário do código de conduta"
-            className="rounded-[var(--radius-lg)] border border-border-subtle bg-bg-elevated p-5"
+          {/* STATEMENT — a primeira regra */}
+          <FrontierStatement
+            backgroundImage={DOTA_BACKGROUNDS.featuredPurple}
+            attribution="A responsabilidade é sempre sua, 100% das vezes"
           >
-            <p className="mb-3 font-display text-sm uppercase tracking-[0.4em] text-brand-primary">
-              Sumário
-            </p>
-            <ol className="space-y-2 font-body text-sm">
-              {TOC_SECTIONS.map((s, i) => (
-                <li key={s.id} className="flex gap-3">
-                  <span className="font-mono text-brand-primary">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <a
-                    href={`#${s.id}`}
-                    className="text-text-body transition hover:text-brand-primary"
-                  >
-                    {s.label}
-                  </a>
-                </li>
-              ))}
-            </ol>
-          </nav>
+            <span className="text-brand-primary">{CANONICAL_QUOTES.firstRule}</span>
+          </FrontierStatement>
 
-          <Section id="principios" title="Os 14 princípios da Fórmula do Dota de Corrida">
-            <Subsection title="Mentais e comportamentais">
-              {comportamentais.map((p) => (
-                <PrincipleCard key={p.id} principle={p} highlight={p.id === 1} />
-              ))}
-            </Subsection>
-            <Subsection title="Técnicos e de execução">
-              {tecnicos.map((p) => (
-                <PrincipleCard key={p.id} principle={p} />
-              ))}
-            </Subsection>
-            <Subsection title="Progressão">
-              {progressao.map((p) => (
-                <PrincipleCard key={p.id} principle={p} />
-              ))}
-            </Subsection>
-          </Section>
+          {/* MISSÃO */}
+          <FrontierSection
+            index="·"
+            title="A Missão"
+            intro={`“${CANONICAL_QUOTES.mission}”`}
+            width="prose"
+          />
 
-          <Section id="antipadroes" title="Os 15 padrões tóxicos (proibidos)">
-            <p className="font-display text-sm font-semibold text-text-body leading-relaxed">
-              Esses comportamentos são incompatíveis com a cultura da FORMULADOTA.
-              Geram advertência, suspensão ou banimento conforme as regras abaixo.
-            </p>
-            <div className="space-y-4">
+          {/* 14 PRINCÍPIOS */}
+          <FrontierSection
+            id="principios"
+            index="01"
+            title="Os 14 Princípios"
+            intro="A Fórmula do Dota de Corrida — os princípios que regem a cultura. Mentais, técnicos e de progressão."
+            width="wide"
+          >
+            <div className="space-y-12">
+              <PrincipleGroup title="Mentais e comportamentais">
+                {comportamentais.map((p) => (
+                  <PrincipleCard key={p.id} principle={p} highlight={p.id === 1} />
+                ))}
+              </PrincipleGroup>
+              <PrincipleGroup title="Técnicos e de execução">
+                {tecnicos.map((p) => (
+                  <PrincipleCard key={p.id} principle={p} />
+                ))}
+              </PrincipleGroup>
+              <PrincipleGroup title="Progressão">
+                {progressao.map((p) => (
+                  <PrincipleCard key={p.id} principle={p} />
+                ))}
+              </PrincipleGroup>
+            </div>
+          </FrontierSection>
+
+          {/* 15 ANTI-PADRÕES */}
+          <FrontierSection
+            id="antipadroes"
+            index="02"
+            title="Os 15 Padrões Tóxicos"
+            intro="Comportamentos incompatíveis com a cultura da FORMULADOTA. Geram advertência, suspensão ou banimento conforme as regras abaixo."
+            background="image"
+            backgroundImage={DOTA_BACKGROUNDS.mapDark}
+            width="wide"
+          >
+            <div className="grid gap-4 md:grid-cols-2">
               {ANTIPATTERNS.map((a) => (
                 <AntipatternCard key={a.id} antipattern={a} />
               ))}
             </div>
-          </Section>
+          </FrontierSection>
 
-          <Section id="moderacao" title="Sistema progressivo de moderação">
-            <p className="font-display text-sm font-semibold text-text-body leading-relaxed">
-              Toda violação registrada cita o princípio ou anti-padrão violado.
-              Não é punição arbitrária — é aplicação da regra que você aceitou ao entrar.
-            </p>
-            <ol className="space-y-4">
+          {/* SISTEMA DE MODERAÇÃO */}
+          <FrontierSection
+            id="moderacao"
+            index="03"
+            title="Sistema Progressivo de Moderação"
+            intro="Toda violação registrada cita o princípio ou anti-padrão violado. Não é punição arbitrária — é aplicação da regra que você aceitou ao entrar."
+            width="prose"
+          >
+            <div className="mx-auto max-w-2xl space-y-4">
               <ModerationStep
                 step={1}
                 label={PROGRESSIVE_MODERATION.step1.label}
@@ -158,34 +151,49 @@ export default async function CodigoDeCondutaPage() {
                 label={PROGRESSIVE_MODERATION.step3.label}
                 description={PROGRESSIVE_MODERATION.step3.description}
               />
-            </ol>
-            <p className="rounded-md border border-border-subtle bg-bg-base px-4 py-3 font-display text-sm font-semibold text-text-body">
-              <strong className="text-text-display">Reset automático:</strong>{" "}
-              {PROGRESSIVE_MODERATION.reset}
-            </p>
-            <p className="font-display text-sm font-semibold text-text-body leading-relaxed">
-              <strong className="text-text-display">Direito ao contraditório:</strong>{" "}
-              você pode contestar qualquer decisão via Discord oficial. A equipe FORMULADOTA
-              revisa caso a caso e reverte manualmente se entender que houve erro.
-            </p>
-          </Section>
+              <p className="rounded-md border border-border-subtle bg-bg-base/60 px-4 py-3 font-display text-sm font-semibold text-text-body">
+                <strong className="text-text-display">Reset automático:</strong>{" "}
+                {PROGRESSIVE_MODERATION.reset}
+              </p>
+              <p className="font-body text-sm leading-relaxed text-text-muted">
+                <strong className="text-text-display">
+                  Direito ao contraditório:
+                </strong>{" "}
+                você pode contestar qualquer decisão via Discord oficial. A equipe
+                FORMULADOTA revisa caso a caso e reverte manualmente se entender que
+                houve erro.
+              </p>
+            </div>
+          </FrontierSection>
 
-          <Section id="compromisso" title="Compromisso final">
-            <blockquote className="border-l-2 border-brand-primary pl-6 font-body text-base italic text-text-body leading-relaxed">
-              {CANONICAL_QUOTES.responsibility}
-            </blockquote>
-            <blockquote className="border-l-2 border-brand-primary pl-6 font-body text-base italic text-text-body leading-relaxed">
-              {CANONICAL_QUOTES.competitiveMindset}
-            </blockquote>
-          </Section>
+          {/* COMPROMISSO FINAL */}
+          <FrontierSection index="04" title="Compromisso Final" width="prose">
+            <div className="mx-auto max-w-2xl space-y-6">
+              <blockquote className="border-l-2 border-brand-primary pl-6 font-body text-base italic leading-relaxed text-text-body">
+                {CANONICAL_QUOTES.responsibility}
+              </blockquote>
+              <blockquote className="border-l-2 border-brand-primary pl-6 font-body text-base italic leading-relaxed text-text-body">
+                {CANONICAL_QUOTES.competitiveMindset}
+              </blockquote>
+            </div>
+          </FrontierSection>
 
-          <footer className="border-t border-border-subtle pt-8 text-center">
-            <Link
-              href="/"
-              className="font-display font-semibold text-sm uppercase tracking-wide text-brand-primary transition hover:text-glow-red"
-            >
-              ← voltar à home
-            </Link>
+          {/* Footer CTA */}
+          <footer className="border-t border-border-subtle py-16 text-center">
+            <div className="flex flex-wrap justify-center gap-6">
+              <Link
+                href="/metodologia"
+                className="font-display text-sm font-semibold uppercase tracking-wide text-brand-primary transition hover:text-glow-red"
+              >
+                ler a metodologia →
+              </Link>
+              <Link
+                href="/"
+                className="font-display text-sm font-semibold uppercase tracking-wide text-text-muted transition hover:text-text-display"
+              >
+                ← voltar à home
+              </Link>
+            </div>
           </footer>
         </div>
       </div>
@@ -194,44 +202,27 @@ export default async function CodigoDeCondutaPage() {
 }
 
 // ---------------------------------------------------------------------------
-// Section — heading h2 (font-display tracking-wide) + área de conteúdo
+// PrincipleGroup — subtítulo de categoria + grid de cards
 // ---------------------------------------------------------------------------
-function Section({
-  id,
+function PrincipleGroup({
   title,
   children,
 }: {
-  id?: string;
   title: string;
   children: React.ReactNode;
 }) {
   return (
-    <section id={id} className="space-y-6 scroll-mt-8">
-      <h2 className="font-display text-2xl tracking-wide text-text-display">
-        {title}
-      </h2>
-      <div className="space-y-6">{children}</div>
-    </section>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Subsection — h3 uppercase tracking-wider (sub-cabeçalho de categoria)
-// ---------------------------------------------------------------------------
-function Subsection({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="space-y-3">
-      <h3 className="font-display text-lg uppercase tracking-wider text-text-display">
+    <RevealOnScroll direction="up">
+      <h3 className="mb-5 text-center font-display text-sm uppercase tracking-[0.3em] text-brand-primary">
         {title}
       </h3>
-      <div className="space-y-3">{children}</div>
-    </div>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{children}</div>
+    </RevealOnScroll>
   );
 }
 
 // ---------------------------------------------------------------------------
-// PrincipleCard — Card primitive + numeração mono + título display + body
-// highlight = primeiro princípio (border brand + glow)
+// PrincipleCard — card de princípio (numeração mono + título + body)
 // ---------------------------------------------------------------------------
 function PrincipleCard({
   principle,
@@ -241,39 +232,41 @@ function PrincipleCard({
   highlight?: boolean;
 }) {
   return (
-    <Card
-      variant="flat"
-      className={highlight ? "border-border-brand" : undefined}
+    <div
+      className={[
+        "rounded-[var(--radius-lg)] border bg-bg-elevated/40 p-5 backdrop-blur-sm transition-colors",
+        highlight
+          ? "border-brand-primary shadow-[var(--glow-brand)]"
+          : "border-border-subtle hover:border-border-brand",
+      ].join(" ")}
     >
-      <CardHeader className="mb-2">
-        <div className="flex items-baseline gap-3">
-          <span
-            className={[
-              "font-mono text-sm",
-              highlight ? "text-brand-primary text-glow-red" : "text-brand-primary",
-            ].join(" ")}
-          >
-            {String(principle.id).padStart(2, "0")}
-          </span>
-          <CardTitle
-            className={highlight ? "text-glow-red" : undefined}
-          >
-            {principle.title}
-          </CardTitle>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <p className="font-display text-sm font-semibold text-text-body leading-relaxed">
-          {principle.body}
-        </p>
-      </CardContent>
-    </Card>
+      <div className="mb-2 flex items-baseline gap-3">
+        <span
+          className={[
+            "font-mono text-sm",
+            highlight ? "text-brand-primary text-glow-red" : "text-brand-primary",
+          ].join(" ")}
+        >
+          {String(principle.id).padStart(2, "0")}
+        </span>
+        <h4
+          className={[
+            "font-display text-base uppercase tracking-wide text-text-display",
+            highlight ? "text-glow-red" : "",
+          ].join(" ")}
+        >
+          {principle.title}
+        </h4>
+      </div>
+      <p className="font-body text-sm leading-relaxed text-text-body">
+        {principle.body}
+      </p>
+    </div>
   );
 }
 
 // ---------------------------------------------------------------------------
-// AntipatternCard — Card + numeração com X (error) + exemplos em <ul>
-// + nota de severidade opcional (banner error sutil)
+// AntipatternCard — card de anti-padrão (X error + exemplos + severidade)
 // ---------------------------------------------------------------------------
 function AntipatternCard({
   antipattern,
@@ -281,35 +274,31 @@ function AntipatternCard({
   antipattern: (typeof ANTIPATTERNS)[number];
 }) {
   return (
-    <Card variant="flat">
-      <CardHeader className="mb-3">
-        <div className="flex items-baseline gap-3">
-          <span className="font-mono text-sm text-error">
-            ✕ {String(antipattern.id).padStart(2, "0")}
-          </span>
-          <CardTitle>{antipattern.title}</CardTitle>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <ul className="space-y-1 font-display text-sm font-semibold text-text-body">
-          {antipattern.examples.map((ex, i) => (
-            <li key={i} className="leading-relaxed">
-              • {ex}
-            </li>
-          ))}
-        </ul>
-        {antipattern.directSeverityNote && (
-          <p className="rounded-md border border-error/40 bg-error/10 px-3 py-2 font-mono text-sm font-medium text-error">
-            ⚠ {antipattern.directSeverityNote}
-          </p>
-        )}
-      </CardContent>
-    </Card>
+    <div className="rounded-[var(--radius-lg)] border border-border-subtle bg-bg-elevated/40 p-5 backdrop-blur-sm">
+      <div className="mb-3 flex items-baseline gap-3">
+        <span className="font-mono text-sm text-error">
+          ✕ {String(antipattern.id).padStart(2, "0")}
+        </span>
+        <h4 className="font-display text-base uppercase tracking-wide text-text-display">
+          {antipattern.title}
+        </h4>
+      </div>
+      <ul className="space-y-1 font-body text-sm leading-relaxed text-text-body">
+        {antipattern.examples.map((ex, i) => (
+          <li key={i}>• {ex}</li>
+        ))}
+      </ul>
+      {antipattern.directSeverityNote && (
+        <p className="mt-3 rounded-md border border-error/40 bg-error/10 px-3 py-2 font-mono text-sm font-medium text-error">
+          ⚠ {antipattern.directSeverityNote}
+        </p>
+      )}
+    </div>
   );
 }
 
 // ---------------------------------------------------------------------------
-// ModerationStep — passo numerado da escala progressiva (Card + círculo brand)
+// ModerationStep — passo numerado da escala progressiva
 // ---------------------------------------------------------------------------
 function ModerationStep({
   step,
@@ -321,18 +310,18 @@ function ModerationStep({
   description: string;
 }) {
   return (
-    <li className="flex gap-4 rounded-[var(--radius-lg)] border border-border-subtle bg-bg-elevated p-5">
+    <div className="flex gap-4 rounded-[var(--radius-lg)] border border-border-subtle bg-bg-elevated/40 p-5 backdrop-blur-sm">
       <div className="flex size-10 shrink-0 items-center justify-center rounded-full border border-brand-primary font-mono text-sm font-bold text-brand-primary">
         {step}
       </div>
       <div className="space-y-1">
-        <h4 className="font-display text-base tracking-wide text-text-display">
+        <h4 className="font-display text-base uppercase tracking-wide text-text-display">
           {label}
         </h4>
-        <p className="font-display text-sm font-semibold text-text-body leading-relaxed">
+        <p className="font-body text-sm leading-relaxed text-text-body">
           {description}
         </p>
       </div>
-    </li>
+    </div>
   );
 }

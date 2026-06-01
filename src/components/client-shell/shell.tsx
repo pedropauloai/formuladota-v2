@@ -51,6 +51,13 @@ interface ClientShellProps {
   hideLeftSidebar?: boolean;
   /** Right sidebar largo (~520px). */
   wideRightSidebar?: boolean;
+  /**
+   * Esconde a right-sidebar por completo — o main ocupa a largura toda, então
+   * o conteúdo centraliza no centro REAL da tela. Usado em páginas institucionais
+   * full-width (metodologia, conduta) onde a leitura/marketing domina e a
+   * sidebar de PROs/comunidade deslocaria o eixo visual.
+   */
+  hideRightSidebar?: boolean;
   /** Modo immersive: background fullscreen + sidebars overlay (default /dashboard). */
   immersive?: boolean;
   /** Imagem hero de background. */
@@ -69,6 +76,7 @@ export async function ClientShell({
   rightSidebar,
   hideLeftSidebar,
   wideRightSidebar,
+  hideRightSidebar,
   immersive,
   centerHero,
   hideBottomBar,
@@ -263,9 +271,11 @@ export async function ClientShell({
           não coluna. Layout reduzido a main + right-sidebar. */}
       <div
         className={`grid flex-1 min-h-0 grid-cols-1 ${
-          wideRightSidebar
-            ? "lg:grid-cols-[1fr_480px] xl:grid-cols-[1fr_520px] 2xl:grid-cols-[1fr_560px]"
-            : "lg:grid-cols-[1fr_320px] xl:grid-cols-[1fr_360px] 2xl:grid-cols-[1fr_380px]"
+          hideRightSidebar
+            ? "" // sem coluna lateral — main full-width, centraliza no centro real da tela
+            : wideRightSidebar
+              ? "lg:grid-cols-[1fr_480px] xl:grid-cols-[1fr_520px] 2xl:grid-cols-[1fr_560px]"
+              : "lg:grid-cols-[1fr_320px] xl:grid-cols-[1fr_360px] 2xl:grid-cols-[1fr_380px]"
         }`}
       >
         <main className={`relative overflow-y-auto ${mainPbCls}`}>
@@ -283,7 +293,8 @@ export async function ClientShell({
           <div className="relative z-[var(--z-elevated)] h-full">{children}</div>
         </main>
 
-        {rightSidebar !== undefined ? (
+        {/* Right-sidebar: omitida quando hideRightSidebar (páginas full-width). */}
+        {hideRightSidebar ? null : rightSidebar !== undefined ? (
           <aside className="hidden lg:flex flex-col bg-gradient-to-l from-black/80 via-black/60 to-black/30 backdrop-blur-sm overflow-y-auto">
             {rightSidebar}
           </aside>
