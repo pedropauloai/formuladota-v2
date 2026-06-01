@@ -21,7 +21,7 @@ export default async function AdminProsPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/");
+  if (!user) redirect("/login");
 
   const { data: coach } = await supabase
     .from("coaches")

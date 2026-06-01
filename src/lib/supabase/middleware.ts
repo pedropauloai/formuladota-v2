@@ -5,19 +5,31 @@ import { DOCTRINE_VERSION } from "@/lib/doctrine";
 
 type CookieToSet = { name: string; value: string; options: CookieOptions };
 
-// Rotas que NÃO exigem aceite da doutrina (mesmo logado).
-// Tudo o mais pra usuário autenticado é bloqueado até aceitar.
-// Task #67 (2026-05-24): /login removido — OAuth Discord agora dispara direto
-// via EntrarBadge no TopBar (signInWithDiscord Server Action). Visitante não
-// passa mais por tela splash intermediária.
+// Rotas PÚBLICAS — acessíveis SEM login. Visitante deslogado consome normalmente
+// (ClientShell tolera user === null). Servem como vitrine/marketing antes do cadastro.
+// Qualquer rota FORA desta lista exige login: o middleware redireciona visitante
+// deslogado pra /login?next=<rota> (Discord OAuth, com retorno à rota pretendida).
+//
+// Esta lista é a ÚNICA fonte de verdade do gate de autenticação. Não espalhar
+// `if (!user) redirect(...)` nas páginas — o middleware barra antes de renderizar.
+//
+// Decisão Pedro (2026-05-31): além da base institucional, ranking + perfis públicos
+// + metodologia ficam abertos como vitrine. Subir MMR, fila, checkout, etc. exigem login.
 const PUBLIC_PATHS = [
   "/",
   "/codigo-de-conduta",
   "/privacidade",
   "/cookies",
+  "/metodologia",
+  "/ranking",
+  "/coaches", // /coaches/[slug] — perfis públicos de PROs
 ];
 
+// Login: rota que dispara o Discord OAuth. NUNCA gateada (senão loop infinito).
+const LOGIN_PATHS = ["/login"];
+
 const AUTH_FLOW_PATHS = ["/auth", "/api/auth", "/api/webhooks"];
+
 const ONBOARDING_PATHS = ["/onboarding/doutrina"];
 const BLOCKED_STATUS_PATHS = ["/suspended", "/banned"];
 
@@ -44,6 +56,18 @@ function isPathInList(pathname: string, list: string[]): boolean {
   return list.some(
     (p) => pathname === p || pathname.startsWith(p + "/") || pathname.startsWith(p + "?")
   );
+}
+
+// Perfil público de jogador: /perfil/[steamid] é vitrine (aberto), MAS /perfil
+// (exato) é o perfil privado do user logado (exige login). Por isso não dá pra
+// pôr "/perfil" em PUBLIC_PATHS (casaria os dois) — checamos o sub-path aqui.
+function isPublicPlayerProfile(pathname: string): boolean {
+  return pathname.startsWith("/perfil/") && pathname !== "/perfil";
+}
+
+// Uma rota é pública (sem login) se está em PUBLIC_PATHS OU é perfil público de jogador.
+function isPublicPath(pathname: string): boolean {
+  return isPathInList(pathname, PUBLIC_PATHS) || isPublicPlayerProfile(pathname);
 }
 
 // Refresh da sessão Supabase + enforcement de cultura.
@@ -78,13 +102,26 @@ export async function updateSession(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Rotas de fluxo de auth/webhook nunca são bloqueadas — preserva callback OAuth + webhooks externos.
-  if (isPathInList(pathname, AUTH_FLOW_PATHS)) {
+  // /login também passa livre (é onde o visitante dispara o OAuth — gateá-la seria loop).
+  if (
+    isPathInList(pathname, AUTH_FLOW_PATHS) ||
+    isPathInList(pathname, LOGIN_PATHS)
+  ) {
     return response;
   }
 
-  // Sem usuário logado? Apenas rotas públicas seguem.
+  // GATE DE AUTENTICAÇÃO (fonte única de verdade):
+  // Visitante deslogado só acessa rotas públicas. Qualquer outra rota →
+  // redireciona pro Discord OAuth (/login?next=<rota>), preservando a rota
+  // pretendida pra voltar pra ela após o login.
   if (!user) {
-    return response;
+    if (isPublicPath(pathname)) {
+      return response;
+    }
+    const loginUrl = new URL("/login", request.url);
+    // Preserva path + query da rota pretendida pra retorno pós-login.
+    loginUrl.searchParams.set("next", pathname + request.nextUrl.search);
+    return NextResponse.redirect(loginUrl);
   }
 
   // Usuário logado. Enforcement em camadas:

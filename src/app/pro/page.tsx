@@ -42,7 +42,7 @@ export default async function ProPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) redirect("/");
+  if (!user) redirect("/login");
 
   // Verifica status PRO (layout já faz o gate, mas buscamos o status pra UI)
   const { data: promo } = await supabase

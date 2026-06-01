@@ -41,7 +41,7 @@ export default async function TorneiosPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/");
+  if (!user) redirect("/login");
 
   // Esconde drafts pra users non-admin
   const { data: profile } = await supabase

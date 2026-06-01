@@ -32,7 +32,7 @@ export default async function PartidasPage() {
   } = await supabase.auth.getUser();
 
   // Defensive — middleware já enforça login + aceite. Mas se algo passar, redirect.
-  if (!user) redirect("/");
+  if (!user) redirect("/login");
 
   // Query 1: purchases pagas do user (RLS garante user_id = auth.uid())
   const { data: purchasesData, error: purchasesError } = await supabase

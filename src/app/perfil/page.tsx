@@ -26,7 +26,7 @@ export default async function PerfilPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/");
+  if (!user) redirect("/login");
 
   const [{ data: profile }, previewActive, fichaBalance] = await Promise.all([
     supabase
