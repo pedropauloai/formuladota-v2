@@ -37,13 +37,37 @@ import { AmbientLayer } from "@/components/layout/AmbientLayer";
 // strict={true} garante que nenhum componente carrega o bundle completo acidentalmente.
 import { MotionProvider } from "@/components/layout/motion-provider";
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+const siteTitle = "FORMULADOTA — HUB Dota 2 Brasil";
+const siteDescription =
+  "FORMULADOTA: o HUB Dota 2 brasileiro. Lobbies in-house, ranking por temporadas, doutrina cultural. Comunidade alinhada culturalmente, integrada a Discord e Steam.";
+
 export const metadata: Metadata = {
-  title: "FORMULADOTA — HUB Dota 2 Brasil",
-  description:
-    "FORMULADOTA: o HUB Dota 2 brasileiro. Lobbies in-house, ranking por temporadas, doutrina cultural. Comunidade alinhada culturalmente, integrada a Discord e Steam.",
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"
-  ),
+  title: siteTitle,
+  description: siteDescription,
+  metadataBase: new URL(siteUrl),
+  openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    siteName: "FORMULADOTA",
+    title: siteTitle,
+    description: siteDescription,
+    url: siteUrl,
+    images: [
+      {
+        url: "/brand/og-hero.png",
+        width: 1200,
+        height: 630,
+        alt: "FORMULADOTA — HUB Dota 2 Brasil",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: siteTitle,
+    description: siteDescription,
+    images: ["/brand/og-hero.png"],
+  },
 };
 
 export default function RootLayout({
