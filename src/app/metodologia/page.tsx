@@ -4,7 +4,10 @@ import {
   FrontierHero,
   FrontierSection,
   FrontierStatement,
+  FrontierBlockGrid,
   FRONTIER_ASSETS,
+  DOTA_BACKGROUNDS,
+  HERO_SLUGS,
 } from "@/components/frontier";
 
 // Página pública canônica da Metodologia FORMULADOTA.
@@ -43,8 +46,20 @@ export default async function MetodologiaPage() {
       </a>
 
       {/* Scroll é dono do <main> do ClientShell (overflow-y-auto). Aqui só
-          empilhamos as seções full-width da coluna; sem altura/scroll próprios. */}
+          empilhamos as seções full-width da coluna; sem altura/scroll próprios.
+          Background teal oficial Dota 2 (escolha do Pedro) fixo atrás de tudo,
+          com overlay escuro pra legibilidade. */}
       <div className="relative w-full bg-bg-deep">
+        <div
+          className="pointer-events-none fixed inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-[0.18]"
+          style={{ backgroundImage: `url(${DOTA_BACKGROUNDS.featuredTeal})` }}
+          aria-hidden="true"
+        />
+        <div
+          className="pointer-events-none fixed inset-0 z-0 bg-gradient-to-b from-bg-deep/70 via-bg-deep/85 to-bg-deep"
+          aria-hidden="true"
+        />
+        <div className="relative z-10">
         {/* ============================================================
             HERO — key-art full-bleed + título dominante (estilo New Frontiers)
             ============================================================ */}
@@ -315,17 +330,21 @@ export default async function MetodologiaPage() {
           </Prose>
         </FrontierSection>
 
-        {/* 08 — Simulador de Herói */}
+        {/* 08 — Simulador de Herói (bloco estilo "herói em destaque" New Frontiers:
+            render oficial Valve ao lado do texto, grid 2-col) */}
         <FrontierSection
           id="simulador"
           index="08"
           title="Simulador de Herói"
           intro="A Valve publicou uma vez: “99,5% dos jogadores de Dota 2 não sabem jogar Dota 2.” A Fórmula chama esses 99,5% de simuladores de herói."
-          background="image"
-          backgroundImage={FRONTIER_ASSETS.featuredTeal}
-          width="prose"
+          width="wide"
         >
-          <Prose>
+          <FrontierBlockGrid
+            heroSlug={HERO_SLUGS.muerta}
+            eyebrow="O simulador"
+            title="Sabe tudo do herói. Nada do jogo."
+            renderSide="left"
+          >
             <p>O simulador de herói é o jogador que:</p>
             <ul className="space-y-1 pl-6">
               <li className="list-disc">Sabe usar as habilidades do herói</li>
@@ -341,7 +360,7 @@ export default async function MetodologiaPage() {
               para os <strong>0,5% que entendem o jogo</strong>. E uma vez que
               você vê, você não desvê.
             </p>
-          </Prose>
+          </FrontierBlockGrid>
         </FrontierSection>
 
         {/* 09 — A Expansão da Percepção da Realidade */}
@@ -447,6 +466,7 @@ export default async function MetodologiaPage() {
             </Link>
           </div>
         </footer>
+        </div>
       </div>
     </ClientShell>
   );
