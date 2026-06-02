@@ -11,6 +11,7 @@ import {
   FrontierSection,
   FrontierStatement,
   RevealOnScroll,
+  ParallaxBackground,
   FRONTIER_ASSETS,
   DOTA_BACKGROUNDS,
 } from "@/components/frontier";
@@ -42,14 +43,10 @@ export default async function CodigoDeCondutaPage() {
       </a>
 
       <div className="relative w-full bg-bg-deep">
-        {/* UM ÚNICO background teal oficial Dota 2 fixo, opacidade total. A
-            imagem já é naturalmente escura — texto branco fica legível sem
+        {/* UM ÚNICO background teal oficial Dota 2 com PARALLAX (acompanha a
+            rolagem). Imagem naturalmente escura — texto branco legível sem
             overlay. Seções/statements NÃO repetem o background (evita duplicação). */}
-        <div
-          className="pointer-events-none fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url(${DOTA_BACKGROUNDS.featuredTeal})` }}
-          aria-hidden="true"
-        />
+        <ParallaxBackground src={DOTA_BACKGROUNDS.featuredTeal} />
 
         <div className="relative z-10">
           {/* HERO */}

@@ -5,6 +5,7 @@ export { FrontierSection } from "./frontier-section";
 export { FrontierStatement } from "./frontier-statement";
 export { FrontierBlockGrid } from "./frontier-block-grid";
 export { FrontierShowcase } from "./frontier-showcase";
+export { ParallaxBackground } from "./parallax-background";
 export { RevealOnScroll } from "./reveal-on-scroll";
 export {
   FRONTIER_ASSETS,

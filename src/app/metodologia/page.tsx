@@ -6,6 +6,7 @@ import {
   FrontierStatement,
   FrontierBlockGrid,
   FrontierShowcase,
+  ParallaxBackground,
   FRONTIER_ASSETS,
   DOTA_BACKGROUNDS,
   DOTA_UI_ART,
@@ -49,16 +50,11 @@ export default async function MetodologiaPage() {
 
       {/* Scroll é dono do <main> do ClientShell (overflow-y-auto). Aqui só
           empilhamos as seções full-width da coluna; sem altura/scroll próprios.
-          UM ÚNICO background teal oficial Dota 2 fixo atrás de tudo, em opacidade
-          total (a imagem já é naturalmente escura — texto branco fica legível
-          sem overlay). As seções/statements NÃO repetem o background pra evitar
-          camadas duplicadas/sobrepostas. */}
+          UM ÚNICO background teal oficial Dota 2 com PARALLAX (acompanha a
+          rolagem). Imagem naturalmente escura — texto branco legível sem overlay.
+          Seções/statements NÃO repetem o background (evita duplicação). */}
       <div className="relative w-full bg-bg-deep">
-        <div
-          className="pointer-events-none fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url(${DOTA_BACKGROUNDS.featuredTeal})` }}
-          aria-hidden="true"
-        />
+        <ParallaxBackground src={DOTA_BACKGROUNDS.featuredTeal} />
         <div className="relative z-10">
         {/* ============================================================
             HERO — key-art full-bleed + título dominante (estilo New Frontiers)
