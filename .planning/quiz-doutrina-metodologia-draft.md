@@ -22,10 +22,11 @@
 
 ## Contagem e XP por questão
 
-- **Total de questões neste rascunho: 117** (ver resumo por seção no rodapé).
+- **Total de questões neste rascunho: 136** (ver resumo por seção no rodapé).
   - Conduta — Princípios: 36 (14 princípios × 2–3)
   - Conduta — Anti-padrões: 41 (15 anti-padrões × 2–3)
   - Metodologia — Conceitos: 40 (14 conceitos × 2–3)
+  - Metodologia — Fundamentos Táticos (L1–L6): 19 (6 lições × 2–3) — adicionado 2026-06-02
 - **Regra de XP** (conforme `.planning/PROGRESSION_REDESIGN_SPEC.md` §3):
   `XP_por_questão = (XP cumulativo necessário pra atingir o nível 6) ÷ (total de questões de conduta + metodologia)`.
   Completar **100% do quiz = chegar exatamente ao nível 6 = Aprendiz = doutrinado** =
@@ -1145,6 +1146,198 @@ Qual rota a Fórmula recomenda e até quando?
 
 ---
 
+## Metodologia — Fundamentos Táticos (L1–L6) — adicionado 2026-06-02
+
+> Questões derivadas de `docs/foundations/METODOLOGIA_FUNDAMENTOS.md` (camada
+> operacional/tática — o COMO aplicar em partida). Fidelidade total aos números:
+> 1000 partidas para especialista, runas de 4 em 4 min, 57 XP melee / 69 XP ranged /
+> 240 XP por wave, level 2 na morte do 9º creep. Voz Mestre + Guardião, PT-BR, sem emoji.
+
+## Lição L1 — O meta é obrigatório
+
+**QL1.1.** Um aliado diz que não joga o meta porque "é só modinha e opinião". Como a Fórmula corrige essa visão?
+
+- A) Concordar — o meta muda toda semana e não vale a pena seguir.
+- B) Explicar que meta é Most Effective Tactic Available: o padrão que mais se repete e tem o maior percentual de vitória ao longo do tempo, validado por dado, não por achismo. **(correta)**
+- C) Dizer que o meta só importa em partidas profissionais.
+- D) Falar que cada um joga do jeito que prefere e tudo bem.
+
+> Origem: L1. Meta = Most Effective Tactic Available; é o padrão de maior taxa de vitória medido por dado, não opinião.
+
+**QL1.2.** Você quer saber o que está funcionando no patch atual antes de jogar. Onde a Fórmula manda ler o meta?
+
+- A) Nos comentários de vídeos do YouTube.
+- B) Em dota2protracker.com, a referência de leitura do meta do patch. **(correta)**
+- C) No chat da partida anterior.
+- D) Na sua própria intuição sobre quais heróis parecem fortes.
+
+> Origem: L1. O meta é apresentado e medido em dota2protracker.com.
+
+**QL1.3.** Por que ignorar o meta é considerado um erro de fundamento, e não só uma preferência?
+
+- A) Porque a Valve pune quem foge do meta.
+- B) Porque ignorar o meta é ignorar o padrão de maior taxa de vitória — é apostar opinião contra dado, contrariando a lógica de caos determinístico da Fórmula. **(correta)**
+- C) Porque os aliados vão reportar quem não segue o meta.
+- D) Porque heróis fora do meta não conseguem farmar.
+
+> Origem: L1. Quem joga contra o meta aposta opinião contra dado; conecta com caos determinístico / Fibonacci (METHODOLOGY.md §4).
+
+## Lição L2 — Qualquer herói funciona em qualquer posição (se você for especialista)
+
+**QL2.1.** Você quer levar um herói para uma posição fora do padrão. O que, segundo a Fórmula, habilita isso?
+
+- A) O herói estar no meta naquele momento.
+- B) Ser especialista naquele herói — não é a posição que limita o herói, é a especialização comprovada que o libera. **(correta)**
+- C) O time concordar no chat antes do jogo.
+- D) Ter um item específico que destrava a função.
+
+> Origem: L2. A posição não limita o herói; o que habilita um herói fora do padrão é a especialização comprovada.
+
+**QL2.2.** A Fórmula define um número exato para "especialista" num herói. Qual é, e como se verifica?
+
+- A) 100 partidas, verificável no perfil do jogo.
+- B) 1000 partidas com o mesmo herói, verificável via OpenDota API. **(correta)**
+- C) 500 partidas, comprovadas pela medalha.
+- D) 300 partidas, registradas na plataforma FormulaDota.
+
+> Origem: L2. Especialista = 1000 partidas com o mesmo herói, verificável via OpenDota API.
+
+**QL2.3.** Onde se constrói a maestria que torna você especialista num herói?
+
+- A) Em partidas turbo e casual.
+- B) Na ranked (o jogo oficial) — a plataforma reconhece e usa o que a ranked comprova, não substitui esse caminho. **(correta)**
+- C) Apenas treinando contra bots.
+- D) Assistindo replays de profissionais.
+
+> Origem: L2. A maestria é construída jogando a ranked; a plataforma reconhece o que a ranked comprova.
+
+## Lição L3 — A teoria do lado do mapa
+
+**QL3.1.** Por que existe um padrão estatístico em que os Iluminados vencem mais jogando no top e os Temidos mais jogando no bot?
+
+- A) Porque os creeps do top dão mais ouro.
+- B) Porque levar a 1ª torre da trilha vulnerável do adversário abre muito espaço de farm e te entrega o domínio do terreno elevado, com a visão que vem dele. **(correta)**
+- C) Porque o servidor favorece esses lados.
+- D) Porque os heróis do top são mais fortes.
+
+> Origem: L3. Tomar a 1ª torre da trilha vulnerável abre espaço de farm e dá domínio do high ground.
+
+**QL3.2.** Por que dominar o terreno elevado dá vantagem, em termos da mecânica do Dota 2?
+
+- A) Porque heróis no alto recebem mais regeneração.
+- B) Porque a mecânica de fog faz com que quem está embaixo não enxergue quem está em cima — você sempre toma a iniciativa contra um adversário sem visão. **(correta)**
+- C) Porque o alto tem mais creeps neutros.
+- D) Porque o dano é maior atacando de cima.
+
+> Origem: L3. O high ground existe para controle de área por causa do fog; quem está embaixo não vê quem está em cima.
+
+**QL3.3.** Na analogia do primeiro tiro, o que decide a luta entre heróis que são todos fortes e "roubados"?
+
+- A) Quem tiver o maior MMR.
+- B) Quem dá o primeiro tiro — o privilégio do start, concedido na maioria das vezes pela visão do terreno elevado, com harmonia entre os jogadores. **(correta)**
+- C) Quem tiver mais ouro acumulado.
+- D) Quem escolheu o herói mais forte do meta.
+
+> Origem: L3. Todos os heróis são fortes; vence quem dá o primeiro tiro — o privilégio do start vem da visão do alto, com harmonia da equipe.
+
+## Lição L4 — A disputa começa na runa do minuto 00:00
+
+**QL4.1.** No início da partida, com que frequência nascem as runas de ouro, segundo a Fórmula?
+
+- A) De 2 em 2 minutos.
+- B) De 4 em 4 minutos, começando junto com a primeira wave quando a contagem chega a zero. **(correta)**
+- C) De 5 em 5 minutos.
+- D) Só após o minuto 6.
+
+> Origem: L4. As runas de ouro nascem de 4 em 4 minutos; a primeira sai junto com a primeira wave no fim da contagem regressiva.
+
+**QL4.2.** Você está em dúvida se vai disputar a runa do minuto 0 sozinho no lado errado. O que a Fórmula manda?
+
+- A) Ir disputar — runa de ouro vale o risco sempre.
+- B) Não ir: disputar runa no lado errado é erro, quem vai sozinho provavelmente morre; chegue inteiro, com a skill de level 1 upada certo, pronto para a 1ª wave. **(correta)**
+- C) Ir, mas só se um aliado for junto.
+- D) Esperar a segunda runa e ignorar a primeira wave.
+
+> Origem: L4. Disputar runa no lado errado é erro; quem vai sozinho provavelmente morre. Chegue inteiro, com a skill certa.
+
+**QL4.3.** Um jogador fica brigando pela runa do minuto 0, chega atrasado na 1ª wave e perde a XP dos primeiros creeps. Que anti-padrão ele está cometendo?
+
+- A) Desistência Precoce.
+- B) Simulador de Herói (anti-padrão 11) — gastou recurso sem servir a um objetivo do mapa e atrasou a própria progressão. **(correta)**
+- C) Ego Inflado.
+- D) Brigas por Função.
+
+> Origem: L4 ↔ anti-padrão 11. Brigar pela runa errada e atrasar a progressão é simulador de herói em ação.
+
+## Lição L5 — Ganhar a lane e a matemática dos 9 creeps
+
+**QL5.1.** Na Fórmula, o que significa exatamente "ganhar a lane"?
+
+- A) Ter mais last hits que o adversário aos 10 minutos.
+- B) Causar a primeira morte na lane. **(correta)**
+- C) Destruir a primeira torre.
+- D) Ter mais ouro que o adversário direto.
+
+> Origem: L5. Ganhar a lane = causar a primeira morte.
+
+**QL5.2.** Quanto de XP cada wave entrega, e por que esse número é decisivo?
+
+- A) 200 de XP, suficiente para o level 2 sozinho.
+- B) 240 de XP (3 creeps melee de 57 + 1 ranged de 69), que é exatamente o necessário para subir do level 1 para o level 2. **(correta)**
+- C) 180 de XP, metade do necessário para o level 2.
+- D) 300 de XP, o que dá direto o level 3.
+
+> Origem: L5. Cada wave = 3 melee (57 XP) + 1 ranged (69 XP) = 240 XP, exatamente o necessário para o level 2.
+
+**QL5.3.** Dois jogadores dividindo a XP da lane (com 1 deny) pegam o level 2 na morte de qual creep, e por quê?
+
+- A) Do 8º creep, porque 8 creeps somam 240 dividido por dois.
+- B) Do 9º creep — o primeiro creep da terceira wave — porque a XP do creep é ímpar e o "meio" de XP é taxado pela Valve, já que a XP do herói é inteira. **(correta)**
+- C) Do 6º creep, porque a XP dobra na lane dupla.
+- D) Do 12º creep, porque dividir sempre atrasa o level 2.
+
+> Origem: L5. Com 1 deny, level 2 na morte do 9º creep (1º creep da 3ª wave); a XP ímpar tem o "meio" taxado pela Valve.
+
+**QL5.4.** Numa matchup desfavorável, por que ainda vale a pena focar em pegar o level 2 primeiro?
+
+- A) Porque o adversário desiste quando perde a XP.
+- B) Porque a dupla que pega o level 2 primeiro será sempre mais forte que a dupla ainda no level 1, independente da matchup — 4 skills têm um power spike muito maior que 2 skills. **(correta)**
+- C) Porque o level 2 garante a primeira torre.
+- D) Porque a matchup não influencia em nada o early.
+
+> Origem: L5. Quem pega o level 2 primeiro é sempre mais forte que quem está no level 1; 4 skills > 2 skills em power spike.
+
+**QL5.5.** Você está nas 3 primeiras waves de uma lane normal. O que a Fórmula manda fazer com a wave?
+
+- A) Cortar a wave para pressionar a torre cedo.
+- B) Fazer pull imediatamente para acelerar o farm.
+- C) Apenas jogar a lane — sem pull e sem cortar wave; focar atenta e intencionalmente nos primeiros 9 creeps e nada mais. Pull só depois de ganhar a lane. **(correta)**
+- D) Rotacionar para ajudar outra lane.
+
+> Origem: L5. Foco nos primeiros 9 creeps; sem pull e sem cortar wave. Pull só depois de ganhar a lane.
+
+## Lição L6 — O efeito borboleta
+
+**QL6.1.** Por que a Fórmula trata as 3 primeiras waves como o investimento de maior retorno da partida?
+
+- A) Porque é quando dá mais ouro por creep.
+- B) Porque o Dota 2 aplica o efeito borboleta de forma muito agressiva: um começo bom (as 3 primeiras waves) faz o meio e o final tenderem a ser bons também. **(correta)**
+- C) Porque depois das 3 waves a lane acaba.
+- D) Porque é o único momento em que se pode farmar.
+
+> Origem: L6. O efeito borboleta é agressivo no Dota 2; um bom começo amplifica e torna o resto consistente.
+
+**QL6.2.** Um jogador erra muito o começo de jogo e acha que "ainda dá pra recuperar tranquilo no late". Por que isso contraria a doutrina?
+
+- A) Porque o late não existe na Fórmula.
+- B) Porque erros no começo se propagam pelo efeito borboleta — por isso L4 e L5 são tão decisivos: são o input que amplifica para o resto da partida. **(correta)**
+- C) Porque recuperar no late é proibido.
+- D) Porque o adversário sempre vence o late.
+
+> Origem: L6. Erros no começo se propagam; L4 e L5 são o input do efeito borboleta.
+
+---
+
 # RESUMO E NOTAS PRA PEDRO
 
 ## Contagem por seção
@@ -1154,11 +1347,17 @@ Qual rota a Fórmula recomenda e até quando?
 | Conduta — Princípios (1–14) | 14 princípios | **36** |
 | Conduta — Anti-padrões (1–15) | 15 anti-padrões | **41** |
 | Metodologia — Conceitos (M1–M14) | 14 conceitos | **40** |
-| **TOTAL** | | **117** |
+| Metodologia — Fundamentos Táticos (L1–L6) | 6 lições | **19** |
+| **TOTAL** | | **136** |
 
 Distribuição: princípios e anti-padrões receberam 2–3 questões cada (os de maior peso
 cultural — culpa, expectativas, feeding, racismo, auditoria — receberam 3). Conceitos
 de metodologia também 2–3 cada.
+
+Fundamentos Táticos (adicionado 2026-06-02): L1=3, L2=3, L3=3, L4=3, L5=5, L6=2 = **19**.
+L5 recebeu 5 questões por concentrar a matemática-chave (240 XP, 57/69, level 2 no 9º
+creep, power spike de 4 skills, regra de pull/cortar wave). L6 recebeu 2 por ser conceito
+único (efeito borboleta) que se apoia em L4/L5.
 
 ## Lacunas no canon que precisam de Pedro
 
@@ -1182,7 +1381,7 @@ de metodologia também 2–3 cada.
    depende da calibração de XP ainda não fechada (§3 do spec). Confirmar se quer
    questões testando a matriz de severidade em si.
 
-5. **Total de questões × XP.** 117 é o número deste rascunho. O XP por questão só
+5. **Total de questões × XP.** 136 é o número deste rascunho. O XP por questão só
    fecha quando Pedro aprovar o total final e a curva de `level_thresholds`
    (migration 021) for cruzada — então `XP_por_questão = XP_nível_6 ÷ total`. Se o
    total mudar (cortar/adicionar questões), recalcular.
