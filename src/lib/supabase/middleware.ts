@@ -214,7 +214,7 @@ export async function updateSession(request: NextRequest) {
   // Já aceitou + status ok/warned: sem restrição.
   // Mas se estiver navegando em /onboarding ou /suspended/banned indevidamente, manda pra perfil.
   if (
-    isPathInList(pathname, ONBOARDING_PATHS) ||
+    pathname === "/doutrina" ||
     isPathInList(pathname, BLOCKED_STATUS_PATHS)
   ) {
     return NextResponse.redirect(new URL("/perfil", request.url));
