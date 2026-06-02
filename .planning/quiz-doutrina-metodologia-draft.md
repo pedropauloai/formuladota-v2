@@ -22,11 +22,11 @@
 
 ## Contagem e XP por questão
 
-- **Total de questões neste rascunho: 136** (ver resumo por seção no rodapé).
-  - Conduta — Princípios: 36 (14 princípios × 2–3)
-  - Conduta — Anti-padrões: 41 (15 anti-padrões × 2–3)
-  - Metodologia — Conceitos: 40 (14 conceitos × 2–3)
-  - Metodologia — Fundamentos Táticos (L1–L6): 19 (6 lições × 2–3) — adicionado 2026-06-02
+- **Total de questões no corpo deste rascunho: 130** (contagem verificada na conversão pra `src/lib/quiz/questions.ts` — os cabeçalhos antigos de 117/136 vinham de relatos de agentes, não da contagem real).
+  - Conduta — Princípios: 39
+  - Conduta — Anti-padrões: 40
+  - Metodologia — Conceitos: 32
+  - Metodologia — Fundamentos Táticos (L1–L6): 19 — adicionado 2026-06-02
 - **Regra de XP** (conforme `.planning/PROGRESSION_REDESIGN_SPEC.md` §3):
   `XP_por_questão = (XP cumulativo necessário pra atingir o nível 6) ÷ (total de questões de conduta + metodologia)`.
   Completar **100% do quiz = chegar exatamente ao nível 6 = Aprendiz = doutrinado** =
@@ -1344,11 +1344,11 @@ Qual rota a Fórmula recomenda e até quando?
 
 | Seção | Itens cobertos | Questões |
 |---|---|---|
-| Conduta — Princípios (1–14) | 14 princípios | **36** |
-| Conduta — Anti-padrões (1–15) | 15 anti-padrões | **41** |
-| Metodologia — Conceitos (M1–M14) | 14 conceitos | **40** |
+| Conduta — Princípios (1–14) | 14 princípios | **39** |
+| Conduta — Anti-padrões (1–15) | 15 anti-padrões | **40** |
+| Metodologia — Conceitos (M1–M14) | 14 conceitos | **32** |
 | Metodologia — Fundamentos Táticos (L1–L6) | 6 lições | **19** |
-| **TOTAL** | | **136** |
+| **TOTAL (corpo verificado)** | | **130** |
 
 Distribuição: princípios e anti-padrões receberam 2–3 questões cada (os de maior peso
 cultural — culpa, expectativas, feeding, racismo, auditoria — receberam 3). Conceitos
