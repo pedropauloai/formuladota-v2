@@ -42,16 +42,12 @@ export default async function CodigoDeCondutaPage() {
       </a>
 
       <div className="relative w-full bg-bg-deep">
-        {/* Background oficial Dota 2 fixo (roxo) + overlay pra legibilidade */}
+        {/* UM ÚNICO background teal oficial Dota 2 fixo, opacidade total. A
+            imagem já é naturalmente escura — texto branco fica legível sem
+            overlay. Seções/statements NÃO repetem o background (evita duplicação). */}
         <div
-          className="pointer-events-none fixed inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-60"
+          className="pointer-events-none fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: `url(${DOTA_BACKGROUNDS.featuredTeal})` }}
-          aria-hidden="true"
-        />
-        {/* Overlay só o suficiente pra legibilidade do texto — deixa a key-art
-            teal aparecer com força (como na New Frontiers oficial). */}
-        <div
-          className="pointer-events-none fixed inset-0 z-0 bg-gradient-to-b from-bg-deep/55 via-bg-deep/45 to-bg-deep/70"
           aria-hidden="true"
         />
 
@@ -71,7 +67,6 @@ export default async function CodigoDeCondutaPage() {
 
           {/* STATEMENT — a primeira regra */}
           <FrontierStatement
-            backgroundImage={DOTA_BACKGROUNDS.featuredTeal}
             attribution="A responsabilidade é sempre sua, 100% das vezes"
           >
             <span className="text-brand-primary">{CANONICAL_QUOTES.firstRule}</span>
@@ -118,8 +113,6 @@ export default async function CodigoDeCondutaPage() {
             index="02"
             title="Os 15 Padrões Tóxicos"
             intro="Comportamentos incompatíveis com a cultura da FORMULADOTA. Geram advertência, suspensão ou banimento conforme as regras abaixo."
-            background="image"
-            backgroundImage={DOTA_BACKGROUNDS.featuredTeal}
             width="wide"
           >
             <div className="grid gap-4 md:grid-cols-2">

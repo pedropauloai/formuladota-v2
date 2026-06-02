@@ -49,18 +49,14 @@ export default async function MetodologiaPage() {
 
       {/* Scroll é dono do <main> do ClientShell (overflow-y-auto). Aqui só
           empilhamos as seções full-width da coluna; sem altura/scroll próprios.
-          Background teal oficial Dota 2 (escolha do Pedro) fixo atrás de tudo,
-          com overlay escuro pra legibilidade. */}
+          UM ÚNICO background teal oficial Dota 2 fixo atrás de tudo, em opacidade
+          total (a imagem já é naturalmente escura — texto branco fica legível
+          sem overlay). As seções/statements NÃO repetem o background pra evitar
+          camadas duplicadas/sobrepostas. */}
       <div className="relative w-full bg-bg-deep">
         <div
-          className="pointer-events-none fixed inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-60"
+          className="pointer-events-none fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: `url(${DOTA_BACKGROUNDS.featuredTeal})` }}
-          aria-hidden="true"
-        />
-        {/* Overlay só o suficiente pra legibilidade — deixa a key-art teal
-            aparecer com força (como na New Frontiers oficial). */}
-        <div
-          className="pointer-events-none fixed inset-0 z-0 bg-gradient-to-b from-bg-deep/55 via-bg-deep/45 to-bg-deep/70"
           aria-hidden="true"
         />
         <div className="relative z-10">
@@ -82,7 +78,7 @@ export default async function MetodologiaPage() {
         {/* ============================================================
             STATEMENT — Tese central (frase-manifesto que para o scroll)
             ============================================================ */}
-        <FrontierStatement backgroundImage={FRONTIER_ASSETS.featuredTeal}>
+        <FrontierStatement>
           “Dota 2 não é sobre matar heróis. É sobre{" "}
           <span className="text-brand-primary">progredir o seu herói</span> de
           forma consistente e impedir a progressão consistente do adversário.”
@@ -119,8 +115,6 @@ export default async function MetodologiaPage() {
           index="02"
           title="O Jogo de Corrida"
           intro="O que define o resultado de uma partida não é talento individual, herói escolhido ou número de kills — é velocidade de acúmulo de patrimônio em relação ao tempo."
-          background="image"
-          backgroundImage={FRONTIER_ASSETS.featuredTeal}
           width="prose"
         >
           <Prose>
@@ -189,8 +183,6 @@ export default async function MetodologiaPage() {
           index="04"
           title="O Xadrez do Futuro"
           intro="Dota é o jogo mais complexo cognitivamente que a humanidade já desenhou — o último a cair pra inteligência artificial."
-          background="image"
-          backgroundImage={FRONTIER_ASSETS.featuredTeal}
           width="prose"
         >
           <Prose>
@@ -221,7 +213,7 @@ export default async function MetodologiaPage() {
             Inspiração: New Frontiers ("há mais de oito bilhões de pessoas
             no planeta, e 99,99% delas são terríveis no Dota").
             ============================================================ */}
-        <FrontierStatement backgroundImage={FRONTIER_ASSETS.featuredTeal}>
+        <FrontierStatement>
           Há mais de <span className="text-brand-primary">8 bilhões</span> de
           pessoas no planeta, e <span className="text-brand-primary">99,99%</span>{" "}
           são terríveis em Dota 2. A diferença entre elas e o topo nunca foi
