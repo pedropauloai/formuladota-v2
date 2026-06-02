@@ -30,7 +30,8 @@ const LOGIN_PATHS = ["/login"];
 
 const AUTH_FLOW_PATHS = ["/auth", "/api/auth", "/api/webhooks"];
 
-const ONBOARDING_PATHS = ["/onboarding/doutrina"];
+// Onboarding doutrinario = o Ritual gamificado em /doutrina (substitui o aceite de 5 slides).
+const ONBOARDING_PATHS = ["/doutrina"];
 const BLOCKED_STATUS_PATHS = ["/suspended", "/banned"];
 
 // Rotas que exigem Steam vinculado (Phase 3 — H1.1).
@@ -171,7 +172,7 @@ export async function updateSession(request: NextRequest) {
     ) {
       return response;
     }
-    return NextResponse.redirect(new URL("/onboarding/doutrina", request.url));
+    return NextResponse.redirect(new URL("/doutrina", request.url));
   }
 
   // Camada Steam (Phase 3 — H1.1): aplicada APÓS doutrina aceita.
