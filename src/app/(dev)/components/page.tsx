@@ -77,6 +77,10 @@ import { TypographySection } from "./typography-section";
 // Section 0.5 — Page Templates (Sistema A canônico)
 import { PageTemplatesSection } from "./page-templates-section";
 
+// Sessão 2026-06-02 — ladder de progressão renomeado (Novato → Místico) + ritual
+import { cn } from "@/lib/utils";
+import { TIER_CONFIG, type Tier as LevelTier } from "@/lib/levels";
+
 // ---------------------------------------------------------------------------
 // Helpers de tipo para iterar TIER_NAMES de forma type-safe
 // ---------------------------------------------------------------------------
@@ -368,6 +372,84 @@ export default function ComponentsPage() {
               </div>
             </div>
           </div>
+        </div>
+      </Section>
+
+      {/* ================================================================== */}
+      {/* SECTION 1.8 — Progressão: Ladder 0–30 (NOVO 2026-06-02)            */}
+      {/* ================================================================== */}
+      <Section title="Progressão — Ladder 0–30 HONOR (Novato → Místico)">
+        <div className="space-y-6">
+          <p className="text-sm text-text-muted">
+            Redesign 2026-06-02: o <strong className="text-text-body">nível da conta É o HONOR</strong> (fusão HONOR + XP).
+            5 medalhas nos marcos 6/12/18/25/30 (Novato = pré-medalha). Conhecimento leva 0→6 (quiz da
+            doutrina); conduta vivida leva 6→30 (strikes regridem). O topo exige convergência dos dois
+            eixos: <strong className="text-text-body">Lendário exige Divine, Místico exige Imortal</strong>.
+            Fonte: <code className="font-mono text-brand-primary text-sm">src/lib/levels.ts</code>.
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {(Object.keys(TIER_CONFIG) as LevelTier[]).map((key) => {
+              const cfg = TIER_CONFIG[key];
+              const Icon = cfg.icon;
+              const [lo, hi] = cfg.levels;
+              const skillReq =
+                key === "lendario"
+                  ? "requer Divine"
+                  : key === "mistico"
+                    ? "requer Imortal"
+                    : null;
+              return (
+                <div
+                  key={key}
+                  className={cn(
+                    "flex flex-col items-center gap-2 rounded-md border bg-bg-elevated p-4 text-center",
+                    cfg.borderColor,
+                  )}
+                >
+                  <Icon className={cn("size-8", cfg.color)} />
+                  <span
+                    className={cn(
+                      "font-display text-sm font-bold uppercase tracking-widest",
+                      cfg.color,
+                    )}
+                  >
+                    {cfg.label}
+                  </span>
+                  <span className="font-mono text-sm text-text-faded">
+                    {lo === hi ? `Nível ${lo}` : `Nível ${lo}–${hi}`}
+                  </span>
+                  {skillReq && (
+                    <span className="font-display text-sm font-semibold text-text-muted">
+                      {skillReq}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          <p className="text-sm text-text-faded">
+            Nota: o componente <code className="font-mono text-brand-primary text-sm">HonorRankMedal</code> (seção 1.7)
+            ainda usa os 8 tiers antigos — a migração da medalha pras 6 bandas novas é tarefa pendente.
+          </p>
+        </div>
+      </Section>
+
+      {/* ================================================================== */}
+      {/* SECTION 1.9 — Ritual de Doutrinação (NOVO 2026-06-02)              */}
+      {/* ================================================================== */}
+      <Section title="Ritual de Doutrinação — /doutrina (onboarding gamificado 0→6)">
+        <div className="space-y-4">
+          <p className="text-sm text-text-muted">
+            Não é prova — é iniciação. 4 capítulos (Conduta / Anti-padrões / Teoria / Fundamentos),
+            130 questões, feedback-ensino do Mestre, errar re-enfileira (não reprova), barra de XP rumo
+            ao nível 6 e reveal da medalha Aprendiz. Persistência localStorage (MVP); DB/XP e integração
+            ao gate de onboarding ficam pós-aprovação. Página inteira — abra pra ver.
+          </p>
+          <a href="/doutrina" target="_blank" rel="noreferrer" className="inline-flex">
+            <Button variant="primary" size="md">
+              Abrir /doutrina
+            </Button>
+          </a>
         </div>
       </Section>
 
