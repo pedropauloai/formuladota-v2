@@ -166,9 +166,10 @@ Existem **duas faixas de lobby**, com gates distintos:
 | **Elite** | Nivel 6 (doutrinado) **+** medalha Imortal da Valve | So Imortal Valve | Premium (monetizacao a definir). |
 
 **O nivel 6 vale para TODOS — ele e a porta gratuita do ambiente.** O ladder 0-30 vale para a
-massa inteira (Cruzado, Arconte, Lenda, Ancestral). Um jogador pode alcancar o topo do ladder
-por conduta sem nunca entrar no lobby elite — porque o elite exige, alem da doutrina, a medalha
-Imortal oficial da Valve. Sao dois gates separados; nao confundir nivel com acesso ao elite.
+massa inteira (Cruzado, Arconte, Lenda, Ancestral) ate a banda As (nivel 24), que sobe so por
+conduta. Os dois ultimos degraus exigem skill: Lendario (25) pede medalha Divine+, Mistico (30)
+pede Imortal. E o lobby elite e outro gate ainda: exige a medalha Imortal mais a doutrina (nivel 6).
+Nao confundir nivel com medalha.
 
 **Por que o elite nao e "lobby de ego".** A medalha Imortal da Valve e necessaria mas **nao
 suficiente** — mesmo o Imortal precisa se doutrinar (nivel 6) para entrar. A skill alta nao

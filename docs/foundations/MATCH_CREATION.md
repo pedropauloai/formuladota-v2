@@ -101,8 +101,8 @@ disso com o ego esta em §5.
 O **nivel 0-30 (HONOR)** mede conduta e conhecimento e vale para TODOS. O **gate do lobby elite**
 e a medalha Valve **mais** nivel 6. Sao coisas separadas:
 
-- Um **Mistico Arconte** alcanca o topo do ladder por conduta vivida — mas **nao** entra no
-  lobby elite, porque nao tem a medalha Imortal Valve.
+- Um **As (nivel 24) Arconte** alcanca o topo das bandas de conduta — mas **nao** entra no
+  lobby elite (falta a medalha Imortal), e nem vira Lendario/Mistico sem Divine/Imortal.
 - Um **Aprendiz Imortal Valve** (nivel 6, recem-doutrinado) **entra** no lobby elite, mesmo
   nao sendo Mistico no ladder.
 
@@ -196,7 +196,7 @@ HONOR; o MMR continua sendo da Valve.
 | Lobby elite acessivel so com medalha Valve | Medalha e necessaria mas nao suficiente — exige tambem nivel 6 (doutrinado). |
 | Acoplar criacao de partida ao saldo de fichas / PT-com-PRO | Servicos independentes. Lobby nao consome ficha; ficha nao da lobby. |
 | Tratar gate do elite (medalha + nivel 6) como gate da Liga (Mistico) | Sao gates distintos. Lobby elite != Liga Imortal. |
-| Usar nivel alto no ladder como acesso ao lobby elite | Ladder e conduta universal; elite exige medalha Valve. Mistico Arconte nao entra no elite. |
+| Usar nivel alto no ladder como acesso ao lobby elite | Bandas 0–24 sao conduta universal; Lendario/Mistico e o elite exigem medalha Valve (Divine/Imortal). Um As Arconte nao entra no elite. |
 | Calcular skill interno a partir das partidas in-house | SKILL = MMR Valve externo. Decisao lockada. Partida move HONOR, nao MMR. |
 | Mensagem de falha de criacao generica ("Algo deu errado") | Voz do Mestre: copy especifica, sistema em primeira pessoa, sem acusar o jogador. |
 

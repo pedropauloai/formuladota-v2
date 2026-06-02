@@ -97,10 +97,12 @@ destrutivo e um valor real para comportamento exemplar. Quando voce mantém cond
 ao longo de uma temporada, seu nivel sobe e isso e visivel no seu perfil. Quando voce acumula
 strikes, seu XP cai e o nivel pode regredir — e isso tambem e visivel.
 
-HONOR nao substitui skill. Nao e possivel chegar a Mistico apenas por skill tecnico — o nivel
-mede conhecimento vivido e conduta sustentada, nao MMR. O sistema e explicitamente dual: os dois
-eixos coexistem e se completam. O objetivo e formar jogadores que sao simultaneamente competentes
-e bons de conviver — porque no FormulaDota, o segundo criterio importa tanto quanto o primeiro.
+HONOR nao substitui skill, e skill nao substitui HONOR. Nao se chega a Mistico so por skill (o
+nivel mede conhecimento e conduta, nao MMR) — mas tambem nao so por conduta: o **topo do ladder
+exige convergencia dos dois eixos**. As bandas 0–24 (Novato→As) sobem so por HONOR; **Lendario (25)
+exige tambem medalha Valve Divine+ e Mistico (30) exige Imortal**. O sistema e explicitamente dual:
+os dois eixos coexistem, e o apice so vem pra quem e simultaneamente competente e bom de conviver —
+porque no FormulaDota, o segundo criterio importa tanto quanto o primeiro.
 
 ---
 
@@ -125,8 +127,8 @@ partidas — a qualidade de cada participacao e o criterio.
 
 **Conhecer nao e viver.** Um jogador toxico pode gabaritar o quiz de doutrina e chegar ao
 nivel 6 numa tarde — mas **trava ali**. De 6 para cima so sobe quem vive a doutrina. O quiz
-deixa voce entrar; so a conduta faz voce Mistico. Esta e a salvaguarda de integridade central
-do redesign.
+deixa voce entrar; a conduta te leva ao topo do nivel — e o topo (Lendario/Mistico) exige ainda
+a medalha Valve (Divine/Imortal). Esta e a salvaguarda de integridade central do redesign.
 
 ---
 
@@ -143,8 +145,8 @@ nao e copia do badge de SKILL.
 | **6** | 6–11 | **Aprendiz** | Completou a verificacao de doutrina + metodologia. **Doutrinado.** Gate do servico freemium (lobby livre). |
 | **12** | 12–17 | **Piloto** | Esta aplicando o metodo nas partidas (metafora "Formula do Dota de Corrida"). |
 | **18** | 18–24 | **As** | Dominio da pista — o piloto virou as. |
-| **25** | 25–29 | **Lendario** | Referencia cultural consolidada. Guardiao da cultura. |
-| **30** | 30 | **Mistico** | Topo do ladder. Percepcao expandida — compreende o jogo alem do jogo. |
+| **25** | 25–29 | **Lendario** | Referencia cultural consolidada. Guardiao da cultura. **Exige tambem medalha Valve Divine+.** |
+| **30** | 30 | **Mistico** | Topo do ladder. Percepcao expandida — compreende o jogo alem do jogo. **Exige tambem medalha Valve Imortal.** |
 
 **Regras de nomenclatura:**
 
@@ -152,6 +154,11 @@ nao e copia do badge de SKILL.
 - **PRO e um PAPEL, nao um nivel.** Chegar a Mistico (30) torna o jogador *elegivel* a PRO — a
   promocao em si exige o processo de `PRO_PROMOTION.md` (entrevista cultural, endosso, contrato).
   NAO ha promocao automatica por nivel.
+- **Co-requisito de SKILL no topo (decisao Pedro 2026-06-02).** Bandas 0–24 (Novato→As) sobem so
+  por HONOR. **Lendario (25) exige tambem medalha Valve Divine+; Mistico (30) exige Imortal.** A
+  medalha Valve e dinamica (cai com derrotas) — o sistema le a medalha atual via **OpenDota
+  continuamente**; se ela cair abaixo do requisito, o rank **regride** pro maior que o jogador
+  ainda cumpre (XP **e** medalha). O apice exige convergencia dos dois eixos.
 - A "Liga Imortal" mantem o nome como marca, mas seu gate de elegibilidade re-aponta do antigo
   "tier 8 Imortal da Formula" para **Mistico (nivel 30) sustentado** (ver
   [Criterio do topo](#criterio-do-topo--mistico-nivel-30)).
@@ -220,8 +227,9 @@ A medalha e necessaria mas nao suficiente — "99,9% dos Imortais nao vivem o me
 mesmo eles precisam se doutrinar. A medalha sozinha nunca da acesso (reconcilia Pilar 14 / LIGA_IMORTAL).
 
 **Nivel ≠ acesso ao lobby elite.** O ladder 0–30 vale para TODOS (massa Cruzado-Arconte-Lenda
-inclusa). Um Mistico Arconte alcanca o topo do ladder por conduta, mas **nao** entra no lobby
-elite (falta a medalha Valve). Sao dois gates distintos. Nao confundir.
+inclusa) ate a banda As (nivel 24), que sobe so por conduta. Um **As Arconte** alcanca o topo das
+bandas de conduta, mas **nao** entra no lobby elite (falta Imortal) — e nem vira Lendario/Mistico
+sem Divine/Imortal. Sao gates distintos. Nao confundir nivel com medalha.
 
 Ver `docs/foundations/MATCH_CREATION.md` para o sistema de criacao automatizada de lobbies.
 
@@ -490,10 +498,12 @@ temporadas consecutivas, exibido no perfil como historico de excelencia sustenta
 
 **Sobre a relacao com o Imortal da Valve:**
 
-Um jogador pode ser Imortal da Valve (top 0.5% de MMR) sem ser Mistico. Um jogador pode ser
-Mistico sem ser Imortal da Valve (ex.: um Arconte que vive a doutrina impecavelmente).
+Um jogador pode ser Imortal da Valve (top 0.5% de MMR) sem ser Mistico — ser Imortal nao basta;
+falta o nivel 30 de HONOR (conhecimento + conduta). Mas **nao se pode ser Mistico sem ser Imortal
+da Valve**: o topo do ladder exige convergencia dos dois eixos (nivel 30 **e** medalha Imortal).
+Da mesma forma, Lendario (25) exige medalha Divine+.
 
-Imortal da Valve mede skill tecnico puro. Mistico mede o jogador completo no eixo HONOR. Sao
+Imortal da Valve mede skill tecnico puro. Mistico mede o jogador completo — alto nos dois eixos. Sao
 titulos distintos que medem coisas distintas. O FormulaDota nunca vai comunicar que Mistico e
 superior ao Imortal da Valve como ranking tecnico — ele e diferente, nao superior. Mas no contexto
 do FormulaDota, Mistico e o titulo maximo possivel.

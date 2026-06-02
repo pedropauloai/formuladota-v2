@@ -29,13 +29,14 @@ Os **dois eixos** da filosofia (Pilar 3) permanecem:
 | **6** | 6–11 | **Aprendiz** | Completou a verificação de doutrina+metodologia. **Doutrinado.** Gate do serviço freemium. |
 | **12** | 12–17 | **Piloto** | Está aplicando o método nas partidas (metáfora "Fórmula do Dota de Corrida"). |
 | **18** | 18–24 | **Ás** | Domínio da pista — piloto virou ás. |
-| **25** | 25–29 | **Lendário** | Referência cultural consolidada (guardião da cultura). |
-| **30** | 30 | **Místico** | Topo do ladder. Percepção expandida, compreende o jogo além do jogo. |
+| **25** | 25–29 | **Lendário** | Referência cultural consolidada (guardião da cultura). **Exige também medalha Valve Divine+.** |
+| **30** | 30 | **Místico** | Topo do ladder. Percepção expandida, compreende o jogo além do jogo. **Exige também medalha Valve Imortal.** |
 
 **Regras de nomenclatura:**
 - O **antigo tier 8 "Imortal da Fórmula" é APOSENTADO como tier**. O topo do ladder é **Místico (nível 30)**.
 - **PRO é um PAPEL, não um nível.** Chegar a Místico (30) torna o jogador *elegível* a PRO — a promoção em si exige o processo de `PRO_PROMOTION.md` (entrevista cultural, endosso, contrato). NÃO promover automaticamente por nível.
 - A "Liga Imortal" mantém o nome como marca, mas seu **gate de elegibilidade re-aponta** do antigo "tier 8 Imortal da Fórmula" para **Místico (nível 30) sustentado** (ver §6).
+- **Co-requisito de SKILL no topo (decisão Pedro 2026-06-02):** as bandas 0–24 (Novato→Ás) sobem só por HONOR (conhecimento + conduta). **Lendário (25) exige também medalha Valve Divine+; Místico (30) exige Imortal.** A medalha Valve é dinâmica (cai com derrotas) → o sistema lê a medalha atual via **OpenDota continuamente**; se cair abaixo do requisito, o rank **regride** pro maior que o jogador ainda cumpre (XP **e** medalha). O ápice exige convergência dos dois eixos; o meio do ladder é conduta.
 
 ---
 
@@ -71,7 +72,7 @@ Os **dois eixos** da filosofia (Pilar 3) permanecem:
 
 **Reconciliação com o ego (Pilar 14 / LIGA_IMORTAL):** o lobby elite exige medalha Imortal Valve **E** doutrina (nível 6). A medalha é **necessária mas não suficiente** — "99,9% dos Imortais não vivem o método ainda", então mesmo eles precisam se doutrinar (nível 6). A medalha sozinha nunca dá acesso. Isso dissolve a crítica de "lobby de ego".
 
-**Nível ≠ acesso ao lobby elite.** O ladder 0–30 vale pra TODOS (massa Cruzado-Arconte-Lenda inclusa). Um Místico Arconte alcança o topo do ladder por conduta, mas **não** entra no lobby elite (falta a medalha Valve). São dois gates distintos. Não confundir.
+**Nível ≠ acesso ao lobby elite.** O ladder 0–30 vale pra TODOS (massa Cruzado-Arconte-Lenda inclusa) até a banda **Ás (nível 24)**, que sobe só por conduta. Um **Ás Arconte** alcança o topo das bandas de conduta, mas **não** entra no lobby elite (falta Imortal) — e nem vira Lendário/Místico sem Divine/Imortal. São gates distintos. Não confundir nível com medalha.
 
 ---
 

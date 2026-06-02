@@ -104,9 +104,10 @@ FormulaDota — e um tecnicamente talentoso com muito a aprender sobre conviver.
 com HONOR Lendario e SKILL intermediario e valioso para a comunidade, mas precisa de evolucao
 tecnica para chegar onde quer.
 
-O topo do ladder — **Mistico (nivel 30)** — exige excelencia no eixo HONOR (conhecimento
-verificado + conduta vivida sustentada). SKILL alto NAO e requisito: um Arconte que vive a
-doutrina pode chegar a Mistico. SKILL e o eixo paralelo, nunca um portao do ladder.
+O topo do ladder exige **convergencia dos dois eixos**. As bandas Novato→As (0–24) sobem so por
+HONOR (conhecimento + conduta). Mas **Lendario (25) exige tambem medalha Valve Divine+, e Mistico
+(30) exige Imortal** — o apice nao vem so por conduta nem so por skill, e sim pelos dois juntos. A
+medalha Valve e dinamica (cai com derrotas); o sistema le a medalha atual continuamente pra validar.
 
 **Implicacao de produto:** toda tela de perfil, ranking, card de jogador e achievement deve
 exibir ambos os eixos. Jamais exibir apenas SKILL.

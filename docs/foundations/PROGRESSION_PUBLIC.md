@@ -41,8 +41,10 @@ Comunicacao. Maturidade. Mentoria.
 A Valve premia quem joga bem. Ela nao cobra nada de quem joga bem e e toxico. Aqui
 cobra. O eixo NIVEL e onde isso vira numero.
 
-Os dois eixos andam juntos no seu perfil. Um Imortal da Valve pode ser Novato aqui.
-Um Arconte pode chegar ao topo do nosso ladder. Isso nao e contradicao — e o ponto.
+Os dois eixos andam juntos no seu perfil. Um Imortal da Valve pode ser Novato aqui (medalha
+alta, conduta por provar). Um Arconte pode subir pela conduta ate As (nivel 24). Mas o topo —
+Lendario e Mistico — exige tambem skill: Divine pra Lendario, Imortal pra Mistico. Os dois eixos
+se encontram no apice.
 
 ---
 
@@ -166,12 +168,12 @@ deixa entrar. Os dois eixos, de novo — e dessa vez no mesmo lugar.
 
 **Nivel alto nao e a mesma coisa que entrar no lobby elite.**
 
-O ladder 0–30 vale pra **todo mundo** — Cruzado, Arconte, Lenda, qualquer skill. Um
-Arconte dedicado pode virar Mistico (nivel 30) so na base da conduta. E lindo, e
-real, e o ladder e dele.
+O ladder comeca aberto a **todo mundo** — Cruzado, Arconte, Lenda, qualquer skill — e a
+conduta te leva ate a banda As (nivel 24). Os dois ultimos degraus exigem skill: **Lendario
+(25) pede Divine, Mistico (30) pede Imortal.** O topo e dos dois eixos juntos.
 
-Mas esse Mistico Arconte **nao** entra no lobby elite, porque falta a medalha Imortal
-da Valve. Sao dois gates diferentes pra duas coisas diferentes:
+E o lobby elite e outra coisa ainda: exige a medalha Imortal mais a doutrina (nivel 6). Sao
+gates diferentes pra coisas diferentes:
 
 - **Ladder (0–30)** mede sua conduta e seu conhecimento. Aberto a todos.
 - **Lobby elite** exige skill Imortal **mais** doutrina. Restrito.
