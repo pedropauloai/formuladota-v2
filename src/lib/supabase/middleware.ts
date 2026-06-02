@@ -30,8 +30,11 @@ const LOGIN_PATHS = ["/login"];
 
 const AUTH_FLOW_PATHS = ["/auth", "/api/auth", "/api/webhooks"];
 
-// Onboarding doutrinario = o Ritual gamificado em /doutrina (substitui o aceite de 5 slides).
-const ONBOARDING_PATHS = ["/doutrina"];
+// Opcao C (Pedro 2026-06-02): a doutrina NAO gateia navegacao. So as rotas de "jogar"
+// (lobby/partida in-house) exigem o Ritual completo (nivel 6 / doctrine_accepted). O ritual
+// fica em /doutrina (acessivel a todos os logados; nudge via UI). "Experiencia primeiro,
+// doutrina pra agir" — alinha com o modelo freemium e o POSITIONING.
+const DOCTRINE_REQUIRED_PATHS = ["/lobbies", "/criar-lobby", "/partidas"];
 const BLOCKED_STATUS_PATHS = ["/suspended", "/banned"];
 
 // Rotas que exigem Steam vinculado (Phase 3 — H1.1).
@@ -165,14 +168,11 @@ export async function updateSession(request: NextRequest) {
     profile.doctrine_version === DOCTRINE_VERSION;
 
   if (!accepted) {
-    // Permite páginas públicas + onboarding em si.
-    if (
-      isPathInList(pathname, PUBLIC_PATHS) ||
-      isPathInList(pathname, ONBOARDING_PATHS)
-    ) {
-      return response;
+    // Opcao C: navegar livre sem doutrina. So as rotas de "jogar/agir" exigem o ritual.
+    if (isPathInList(pathname, DOCTRINE_REQUIRED_PATHS)) {
+      return NextResponse.redirect(new URL("/doutrina", request.url));
     }
-    return NextResponse.redirect(new URL("/doutrina", request.url));
+    return response;
   }
 
   // Camada Steam (Phase 3 — H1.1): aplicada APÓS doutrina aceita.

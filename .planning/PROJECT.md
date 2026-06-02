@@ -63,6 +63,7 @@ Cada usuário no formuladota tem múltiplas identidades vinculadas:
 - shadcn/ui base
 - ~~Cyberpunk theme cyan/purple~~ → **Brand vermelho/preto/branco** (rebrand 2026-05-02 pós-receber logos oficiais Pedro). Cor vermelha exata derivada via color picker do `LOGO HORIZONTAL PRINCIPAL PRETO.png`. Phase 3.5 implementa.
 - **Brand string:** **FORMULADOTA** (maiúsculo, sem acento) em toda UI/email — nunca "Fórmula Dota"
+- **Tagline (decidida 2026-06-02):** lockup de duas linhas — identidade **"Pra quem leva o Dota a sério."** (sob o logo) + promessa **"Ganhe ou perca, a partida vale a pena."** (no hero). Linha de manifesto interna: **"A culpa nunca é do outro."** Variação de campanha: **"O Dota como ele deveria ser jogado."**
 - **Sem menção "Pedro Paulo" em UI** — admin implícito, não pessoa pública. Bio coach fica genérica ("Coach Immortal Top 0.5%")
 
 ## Stack a adicionar

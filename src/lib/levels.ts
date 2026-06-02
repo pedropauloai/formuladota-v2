@@ -113,6 +113,32 @@ export function getTierForLevel(level: number): Tier {
   return "mistico";
 }
 
+// MMR Valve minimo por medalha (escala oficial, mesma de mmrToDotaRank).
+const DIVINE_MMR = 5000;
+const IMMORTAL_MMR = 6000;
+
+/**
+ * Banda HONOR com CO-REQUISITO DE SKILL no topo (decisão Pedro 2026-06-02):
+ * Lendário (25) exige medalha Valve Divine+; Místico (30) exige Imortal. Bandas 0–24 = só nível.
+ * Se o nível habilita Lendário/Místico mas a medalha (derivada do MMR Valve atual) não alcança,
+ * rebaixa pro maior tier permitido. A medalha é dinâmica — passar o MMR atual valida na hora.
+ * mmr null/baixo => sem acesso ao topo.
+ */
+export function getGatedTierForLevel(
+  level: number,
+  mmr: number | null | undefined,
+): Tier {
+  const band = getTierForLevel(level);
+  const m = mmr ?? 0;
+  if (band === "mistico" && m < IMMORTAL_MMR) {
+    return m >= DIVINE_MMR ? "lendario" : "as";
+  }
+  if (band === "lendario" && m < DIVINE_MMR) {
+    return "as";
+  }
+  return band;
+}
+
 export const XP_SOURCE_LABELS: Record<string, string> = {
   match_completed: "Partida concluída",
   doctrine_accepted: "Doutrina aceita",
