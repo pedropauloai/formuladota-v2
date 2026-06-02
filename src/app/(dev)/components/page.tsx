@@ -313,7 +313,7 @@ export default function ComponentsPage() {
       {/* ================================================================== */}
       {/* SECTION 1.7 — HonorRankMedal (PHILOSOPHY.md 2026-05-23)           */}
       {/* ================================================================== */}
-      <Section title="HonorRankMedal — 8 tiers HONOR (eixo paralelo a SKILL)">
+      <Section title="HonorRankMedal — 6 bandas HONOR (Novato → Místico)">
         <div className="space-y-6">
           <p className="text-sm text-text-muted">
             Sistema 2-eixos PHILOSOPHY.md. HONOR mede CONDUTA. SKILL mede CAPACIDADE.
@@ -328,7 +328,7 @@ export default function ComponentsPage() {
                   rank={rank}
                   size="md"
                   showLabel
-                  glow={rank === "imortal-da-formula"}
+                  glow={rank === "mistico"}
                 />
               </div>
             ))}
@@ -342,7 +342,7 @@ export default function ComponentsPage() {
             <div className="flex items-end gap-6">
               {(["sm", "md", "lg", "xl"] as const).map((s) => (
                 <div key={s} className="flex flex-col items-center gap-2">
-                  <HonorRankMedal rank="imortal-da-formula" size={s} glow />
+                  <HonorRankMedal rank="mistico" size={s} glow />
                   <span className="font-display text-sm font-semibold text-text-body uppercase tracking-widest">
                     {s}
                   </span>
@@ -365,7 +365,7 @@ export default function ComponentsPage() {
               </div>
               <span className="font-display text-2xl text-text-faded">+</span>
               <div className="flex flex-col items-center gap-2">
-                <HonorRankMedal rank="imortal-da-formula" size="lg" glow showLabel />
+                <HonorRankMedal rank="mistico" size="lg" glow showLabel />
                 <span className="text-sm text-text-muted uppercase tracking-widest">
                   HONOR
                 </span>
@@ -428,8 +428,8 @@ export default function ComponentsPage() {
             })}
           </div>
           <p className="text-sm text-text-faded">
-            Nota: o componente <code className="font-mono text-brand-primary text-sm">HonorRankMedal</code> (seção 1.7)
-            ainda usa os 8 tiers antigos — a migração da medalha pras 6 bandas novas é tarefa pendente.
+            Nota: o <code className="font-mono text-brand-primary text-sm">HonorRankMedal</code> (seção 1.7) já foi
+            migrado pras 6 bandas (2026-06-02). Callers que ainda derivam do honor-score antigo passam por <code className="font-mono text-brand-primary text-sm">legacyHonorToBand</code>.
           </p>
         </div>
       </Section>
@@ -952,7 +952,7 @@ export default function ComponentsPage() {
               proName="PETERPRA"
               mmr={7200}
               rank="immortal"
-              honorRank="mestre"
+              honorRank="as"
               headline="Criador da FormulaDota — Imortal Top 0.5%"
               membershipTier="consagrado"
               ringColor="play"
@@ -1044,7 +1044,7 @@ export default function ComponentsPage() {
                     HonorRankMedal
                   </p>
                   <HonorRankMedal
-                    rank="mestre"
+                    rank="as"
                     size="lg"
                     showLabel
                     calibrationStatus={

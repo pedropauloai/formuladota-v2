@@ -19,9 +19,8 @@ export function mmrToDotaRank(mmr: number | null | undefined): DotaRank {
   return "herald";
 }
 
-// TODO(schema): integrar tier real do coach quando ProLiveStatus expor
-// honor_tier (hoje schema BoardCoach não traz). Todos PROs são Mestre+ por
-// modelo de admissão — fallback seguro pra "mestre".
+// TODO(schema): integrar nível real do coach quando ProLiveStatus expor o nível
+// HONOR (hoje BoardCoach não traz). PROs são jogadores avançados — fallback "as".
 export function coachHonorRank(_coach: BoardCoach): HonorRank {
-  return "mestre";
+  return "as";
 }

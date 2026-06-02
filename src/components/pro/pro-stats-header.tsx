@@ -8,7 +8,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { UserAvatar } from "@/components/ui/avatar";
 import { DotaRankMedal, type DotaRank } from "@/components/ui/dota-rank-medal";
-import { HonorRankMedal, type HonorRank } from "@/components/ui/honor-rank-medal";
+import { HonorRankMedal, legacyHonorToBand, type HonorRank } from "@/components/ui/honor-rank-medal";
 import { cn } from "@/lib/utils";
 
 // ---------------------------------------------------------------------------
@@ -17,17 +17,8 @@ import { cn } from "@/lib/utils";
 
 /** Mapeia resultado do RPC get_honor_tier para HonorRank do componente */
 function toHonorRank(tierStr: string | null): HonorRank {
-  const map: Record<string, HonorRank> = {
-    aprendiz: "aprendiz",
-    disciplinado: "disciplinado",
-    confiavel: "confiavel",
-    respeitado: "respeitado",
-    honrado: "honrado",
-    mestre: "mestre",
-    lendario: "lendario",
-    "imortal-da-formula": "imortal-da-formula",
-  };
-  return map[tierStr ?? "aprendiz"] ?? "aprendiz";
+  // RPC get_honor_tier ainda retorna o modelo antigo (8 tiers) — mapeia pras 6 bandas.
+  return legacyHonorToBand(tierStr ?? "aprendiz");
 }
 
 /** Converte MMR numérico para DotaRank simplificado (sem stars) */
