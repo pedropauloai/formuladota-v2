@@ -9,7 +9,7 @@
 // Persistencia: localStorage via useSyncExternalStore (MVP pra Pedro revisar). A
 // versao final liga no sistema de XP/niveis no banco (migration — pendente aprovacao).
 
-import { useMemo, useState, useSyncExternalStore } from "react";
+import { useMemo, useState } from "react";
 import { m } from "motion/react";
 import { Check, X, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,7 @@ import {
   type QuizQuestion,
   type QuizSection,
 } from "@/lib/quiz/types";
+import { recordDoctrineAnswer } from "./actions";
 
 const TOTAL = QUIZ_QUESTIONS.length;
 
@@ -35,56 +36,23 @@ function questionsOf(section: QuizSection): QuizQuestion[] {
   return QUIZ_QUESTIONS.filter((q) => q.section === section);
 }
 
-/* ------------------------------------------------------------------ */
-/* Store de progresso — localStorage como fonte externa (sem setState  */
-/* em effect; segue o padrao useSyncExternalStore do onboarding).      */
-/* ------------------------------------------------------------------ */
-
-const STORAGE_KEY = "fd-doutrina-progress-v1";
-let cachedSnapshot: string | null = null;
-const listeners = new Set<() => void>();
-
-function readSnapshot(): string {
-  if (cachedSnapshot === null) {
-    try {
-      cachedSnapshot = window.localStorage.getItem(STORAGE_KEY) ?? "[]";
-    } catch {
-      cachedSnapshot = "[]";
-    }
-  }
-  return cachedSnapshot;
-}
-
-function serverSnapshot(): string {
-  return "[]";
-}
-
-function subscribe(cb: () => void): () => void {
-  listeners.add(cb);
-  return () => {
-    listeners.delete(cb);
-  };
-}
-
-function markCorrect(id: string): void {
-  const arr = JSON.parse(readSnapshot()) as string[];
-  if (!arr.includes(id)) arr.push(id);
-  cachedSnapshot = JSON.stringify(arr);
-  try {
-    window.localStorage.setItem(STORAGE_KEY, cachedSnapshot);
-  } catch {
-    // ignore
-  }
-  listeners.forEach((l) => l());
-}
-
 type View = "intro" | "question" | "chapterDone" | "complete";
 
-export function RitualDoutrina() {
-  const snapshot = useSyncExternalStore(subscribe, readSnapshot, serverSnapshot);
-  const correctIds = useMemo(
-    () => new Set<string>(JSON.parse(snapshot) as string[]),
-    [snapshot],
+interface RitualDoutrinaProps {
+  /** IDs ja respondidos corretamente (vindos do servidor — resume cross-device). */
+  initialAnsweredIds: string[];
+  /** Se o usuario ja completou a doutrina (nivel 6). */
+  initialDoctrinated: boolean;
+}
+
+export function RitualDoutrina({
+  initialAnsweredIds,
+  initialDoctrinated,
+}: RitualDoutrinaProps) {
+  // Progresso vem do servidor (props) — sem localStorage. Cada acerto persiste
+  // via recordDoctrineAnswer (otimista; o servidor e a fonte de verdade no reload).
+  const [correctIds, setCorrectIds] = useState<Set<string>>(
+    () => new Set(initialAnsweredIds),
   );
 
   const [view, setView] = useState<View>("intro");
@@ -145,7 +113,14 @@ export function RitualDoutrina() {
     const nextQueue = queue.slice();
     nextQueue.shift();
     if (gotIt) {
-      markCorrect(current.id); // dominou — store persiste e notifica
+      // Otimista: marca local na hora + persiste no servidor (fonte de verdade no reload).
+      const id = current.id;
+      setCorrectIds((prev) => {
+        const next = new Set(prev);
+        next.add(id);
+        return next;
+      });
+      void recordDoctrineAnswer(id, chosen).catch(() => {});
     } else {
       nextQueue.push(current.id); // errou — re-encontro no fim do capitulo
     }
@@ -185,8 +160,8 @@ export function RitualDoutrina() {
       <div className="flex flex-1 flex-col justify-center py-10">
         {view === "intro" && (
           <IntroView
-            resuming={done > 0 && done < TOTAL}
-            completed={done >= TOTAL}
+            resuming={done > 0 && done < TOTAL && !initialDoctrinated}
+            completed={done >= TOTAL || initialDoctrinated}
             onStart={start}
             onSeeMedal={() => setView("complete")}
           />

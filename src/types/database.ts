@@ -1225,6 +1225,7 @@ export type Database = {
           dashboard_layout: Json | null
           discord_id: string | null
           doctrine_accepted_at: string | null
+          doctrine_quiz_progress: Json
           doctrine_version: number
           email: string | null
           favorite_heroes: Json
@@ -1255,6 +1256,7 @@ export type Database = {
           dashboard_layout?: Json | null
           discord_id?: string | null
           doctrine_accepted_at?: string | null
+          doctrine_quiz_progress?: Json
           doctrine_version?: number
           email?: string | null
           favorite_heroes?: Json
@@ -1285,6 +1287,7 @@ export type Database = {
           dashboard_layout?: Json | null
           discord_id?: string | null
           doctrine_accepted_at?: string | null
+          doctrine_quiz_progress?: Json
           doctrine_version?: number
           email?: string | null
           favorite_heroes?: Json
