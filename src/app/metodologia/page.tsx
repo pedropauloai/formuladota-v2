@@ -245,11 +245,14 @@ export default async function MetodologiaPage() {
           </Prose>
 
           {/* Showcase: UI oficial de matchmaking Immortal — o topo que a Fórmula
-              busca. (Reutilizável no futuro sistema de lobby/fila.) */}
+              busca. PNG transparente (sem moldura). Reutilizável no lobby futuro. */}
           <div className="mt-12">
             <FrontierShowcase
               src={DOTA_UI_ART.immortalMatchmaking}
               alt="Tela de matchmaking Immortal do Dota 2"
+              width={1600}
+              height={1000}
+              transparent
               caption="O topo do ranking — onde a Fórmula quer te levar."
             />
           </div>
@@ -339,11 +342,14 @@ export default async function MetodologiaPage() {
           </Prose>
 
           {/* Showcase: tela oficial de matchmaking — a corrida de partidas.
-              (Será reaproveitada no futuro sistema de lobby/fila da plataforma.) */}
+              PNG transparente (sem moldura). Reaproveitável no lobby futuro. */}
           <div className="mt-12">
             <FrontierShowcase
               src={DOTA_UI_ART.matchmaking}
               alt="Tela de criação de partidas (matchmaking) do Dota 2"
+              width={1864}
+              height={956}
+              transparent
               caption="Partida após partida — é assim que a constância vira MMR."
             />
           </div>
