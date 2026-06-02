@@ -543,7 +543,6 @@ export type Database = {
           is_free_tier: boolean
           level: number
           shards_reward: number
-          tier: string
           total_xp: number
           xp_required: number
         }
@@ -551,7 +550,6 @@ export type Database = {
           is_free_tier?: boolean
           level: number
           shards_reward: number
-          tier: string
           total_xp: number
           xp_required: number
         }
@@ -559,7 +557,6 @@ export type Database = {
           is_free_tier?: boolean
           level?: number
           shards_reward?: number
-          tier?: string
           total_xp?: number
           xp_required?: number
         }

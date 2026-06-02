@@ -50,7 +50,7 @@ export default async function ProgressoPage() {
       .single(),
     supabase
       .from("level_thresholds")
-      .select("level, xp_required, total_xp, shards_reward, tier, is_free_tier")
+      .select("level, xp_required, total_xp, shards_reward, is_free_tier")
       .order("level"),
     supabase
       .from("xp_events")
