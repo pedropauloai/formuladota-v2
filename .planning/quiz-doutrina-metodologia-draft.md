@@ -688,11 +688,11 @@ Qual rota a Fórmula recomenda e até quando?
 **Q25.2.** Quais objetivos do jogo o Simulador de Herói ignora?
 
 - A) Kills e assistências.
-- B) Relógio, patrimônio, runas e altar. **(correta)**
+- B) Relógio, patrimônio, runas e altar da experiência. **(correta)**
 - C) Comunicação por voz.
 - D) Report de tóxicos.
 
-> Origem: Anti-padrão 11. Joga sem objetivos do jogo — relógio, patrimônio, runas, altar.
+> Origem: Anti-padrão 11. Joga sem objetivos do jogo — relógio, patrimônio, runas, altar da experiência.
 
 **Q25.3.** Que dado a Valve reconheceu publicamente, relacionado ao Simulador de Herói?
 
@@ -1168,9 +1168,10 @@ de metodologia também 2–3 cada.
    metas de patrimônio. Se Pedro quiser questões de jogo mais técnicas, precisa de
    fonte nova (aulas 2+). Não inventei nada disso.
 
-2. **"Altar" no Anti-padrão 11.** O doctrine.ts cita "altar" como objetivo do jogo
-   (runas, altar). O `.txt` não define o que é "altar" no contexto. Mantive o termo
-   literal; confirmar se é um conceito a explicar no quiz.
+2. **"Altar" no Anti-padrão 11 — RESOLVIDO (Pedro 2026-06-02).** "altar" = **altar da
+   experiência**: objetivo do Dota que surge a cada 7 minutos; o jogador precisa estar
+   presente nele pra adquirir o XP. NÃO é o trono. Canon desambiguado em doctrine.ts e
+   HONOR_SYSTEM.md ("altar da experiência"). Consistente com METHODOLOGY.md.
 
 3. **Calibração 0,5% vs. número exato.** O doc usa "99,5% não sabem jogar" e "0,5%".
    Mantive ambos literais. Confirmar se quer padronizar a citação.

@@ -246,7 +246,7 @@ Lista completa (referencia canonica: `A FÓRMULA DO DOTA DE CORRIDA.txt`):
 8. **Brigas por Funcao e Rota** — disputar lane/role ja definido (2 mids, 3 carries)
 9. **Desrespeito a Lideranca (Anti-time)** — recusar-se a ouvir calls, jogar de forma egoista
 10. **Preconceito, Xenofobia, Racismo** — comentarios ofensivos sobre nacionalidades/sotaques
-11. **Simulador de Heroi** — usa as habilidades sem jogar com base nos objetivos do mapa (relogio, patrimonio liquido, runas, altar)
+11. **Simulador de Heroi** — usa as habilidades sem jogar com base nos objetivos do mapa (relogio, patrimonio liquido, runas, altar da experiencia)
 12. **Criar Expectativas em Terceiros** — projetar resultados em aliados de forma ativa (esperar pull, gank, ajuda especifica). Distinto do principio mental "frustracao nasce de expectativas" — aqui e o comportamento, nao a reacao
 13. **Vitimizacao Sistemica** — construir identidade cronica de vitima ("matchmake me persegue", "tenho azar"). Distinto da Cultura da Culpa (#1) por ser padrao recorrente, nao reacao pontual
 14. **Recusa de Auditoria Pos-Derrota** — anti-padrao por omissao: nao fazer a pergunta-pivo *"o que eu poderia ter feito diferente para ter ganho essa partida, mesmo com o time jogando mal?"*
