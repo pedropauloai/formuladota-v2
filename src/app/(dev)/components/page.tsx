@@ -80,6 +80,8 @@ import { PageTemplatesSection } from "./page-templates-section";
 // Sessão 2026-06-02 — ladder de progressão renomeado (Novato → Místico) + ritual
 import { cn } from "@/lib/utils";
 import { TIER_CONFIG, type Tier as LevelTier } from "@/lib/levels";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/components/ui/toast";
 
 // ---------------------------------------------------------------------------
 // Helpers de tipo para iterar TIER_NAMES de forma type-safe
@@ -194,6 +196,7 @@ export default function ComponentsPage() {
   const [confirmResult, setConfirmResult] = useState<string | null>(null);
   const confirmDialog = useConfirm();
   const promptDialog = usePrompt();
+  const { toast } = useToast();
   // Snapshot do horário de fim da season ao montar — evita Date.now() impure em render
   const [seasonEndsAt] = useState(
     () => new Date(Date.now() + 47 * 24 * 60 * 60 * 1000 + 12 * 60 * 60 * 1000)
@@ -1082,6 +1085,48 @@ export default function ComponentsPage() {
         >
           Mostrar cerimonia
         </button>
+      </Section>
+
+      {/* ================================================================== */}
+      {/* SECTION 13.5 — Toast custom (NOVO 2026-06-02) + Skeleton           */}
+      {/* ================================================================== */}
+      <Section title="Toast — feedback custom (canônico PRODUCT_CORE F-1, não sonner)">
+        <div className="space-y-3">
+          <p className="text-sm text-text-muted">
+            Toast canônico do PRODUCT_CORE (F-1): <code className="font-mono text-brand-primary text-sm">useToast()</code> →{" "}
+            <code className="font-mono text-brand-primary text-sm">toast(&#123; type, title, description &#125;)</code>. Substitui o
+            sonner legado (ainda usado em páginas V2 — migração pendente).
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <Button variant="secondary" size="sm" onClick={() => toast({ type: "success", title: "Pagamento confirmado." })}>
+              success
+            </Button>
+            <Button variant="secondary" size="sm" onClick={() => toast({ type: "error", title: "Não conseguimos criar a partida.", description: "Tente novamente." })}>
+              error
+            </Button>
+            <Button variant="secondary" size="sm" onClick={() => toast({ type: "warning", title: "O PRO fechou a fila." })}>
+              warning
+            </Button>
+            <Button variant="secondary" size="sm" onClick={() => toast({ type: "info", title: "Você subiu de nível." })}>
+              info
+            </Button>
+          </div>
+        </div>
+      </Section>
+
+      <Section title="Skeleton — placeholder de loading">
+        <div className="max-w-md space-y-3">
+          <Skeleton className="h-8 w-2/3" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-5/6" />
+          <div className="flex gap-3 pt-2">
+            <Skeleton className="size-12 rounded-full" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-4 w-1/2" />
+              <Skeleton className="h-4 w-1/3" />
+            </div>
+          </div>
+        </div>
       </Section>
 
       {/* ================================================================== */}
