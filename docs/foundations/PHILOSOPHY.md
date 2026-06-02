@@ -90,8 +90,9 @@ sabe jogar Dota.
 
 O FormulaDota avalia em dois eixos simultaneos e paralelos:
 
-**SKILL** — capacidade tecnica competitiva. Medida por performance em partidas: MMR interno,
-winrate, contribuicao de laning, impact de teamfight. E o eixo que todos os sistemas medem.
+**SKILL** — capacidade tecnica competitiva. Medida pelo MMR Valve oficial (externo,
+sincronizado via OpenDota), winrate, contribuicao de laning, impact de teamfight. E o eixo
+externo — o FormulaDota le, nunca calcula internamente.
 
 **HONOR** — qualidade de participacao comunitaria. Medida por conduta: presenca (comparecimento
 sem abandono), elogios de companheiros, reconhecimento como mentor, historico de "derrota com
@@ -103,7 +104,9 @@ FormulaDota — e um tecnicamente talentoso com muito a aprender sobre conviver.
 com HONOR Lendario e SKILL intermediario e valioso para a comunidade, mas precisa de evolucao
 tecnica para chegar onde quer.
 
-O titulo maximo — **Imortal da Formula** — exige excelencia em ambos os eixos.
+O topo do ladder — **Mistico (nivel 30)** — exige excelencia no eixo HONOR (conhecimento
+verificado + conduta vivida sustentada). SKILL alto NAO e requisito: um Arconte que vive a
+doutrina pode chegar a Mistico. SKILL e o eixo paralelo, nunca um portao do ladder.
 
 **Implicacao de produto:** toda tela de perfil, ranking, card de jogador e achievement deve
 exibir ambos os eixos. Jamais exibir apenas SKILL.
@@ -192,15 +195,15 @@ tera: doutrina viva, HONOR persistente, comunidade doutrinada, historico de evol
 
 Temporadas competitivas nao sao apenas um mecanismo de reset de ranking. Sao renovacao
 narrativa. Cada temporada e um novo capitulo para a comunidade: novas partidas, novos rankings,
-novos Immortais da Formula, novo historico de evolucao.
+novos Misticos (nivel 30), novo historico de evolucao.
 
 O reset parcial de HONOR entre temporadas (nao total — a memoria historica permanece) preserva
 a identidade de longo prazo do jogador enquanto cria espaco para novos protagonistas surgirem.
-O jogador que era Lendario na Temporada 1 pode subir a Imortal na Temporada 2, ou pode perder
+O jogador que era Lendario na Temporada 1 pode subir a Mistico na Temporada 2, ou pode perder
 posicao se nao mantiver presenca e conduta.
 
 Temporadas tambem criam momentos de celebracao coletiva: o encerramento de uma temporada e
-o anuncio dos Immortais da Formula daquela temporada sao eventos da comunidade, nao apenas
+o anuncio dos Misticos daquela temporada sao eventos da comunidade, nao apenas
 atualizacoes de banco de dados.
 
 **Implicacao de produto:** o sistema de temporadas tem UI propria — abertura, rankings finais,
@@ -208,25 +211,29 @@ celebracao de encerramento. Nao e apenas `season_id` no banco.
 
 ---
 
-### Pilar 9 — Imortal da Formula e diferente de Imortal da Valve
+### Pilar 9 — O topo do ladder Formula e diferente de Imortal da Valve
 
 A Valve define Imortal como o top 0.5% de MMR de uma regiao. E uma medalha de skill tecnico
 puro, sem nenhum componente de conduta, presenca ou contribuicao comunitaria.
 
-Imortal da Formula e definido pelo FormulaDota como o topo de ambos os eixos simultaneamente:
+O topo do ladder do FormulaDota — **Mistico (nivel 30)** — e definido pelo FormulaDota como o
+topo do eixo HONOR/Nivel, alcancado por conhecimento da doutrina (entrada) sustentado por
+conduta vivida ao longo das temporadas:
 
-- Top 1% de HONOR na temporada atual
-- Minimo Tier 6 de SKILL interno (equivalente a Anciao Dota ou acima)
-- Minimo 90% de presenca na temporada
-- Minimo 3 reconhecimentos "mentor" recebidos de companheiros
+- Nivel 30 (Mistico) alcancado e sustentado
+- Conduta exemplar continua (nivel pode regredir com strikes)
+- Presenca consistente na temporada
+- Reconhecimentos "mentor" recebidos de companheiros
 - Historico de "derrotas com honra" registradas
 
-Um jogador pode ser Imortal da Valve — top 0.5% de MMR — sem ter direito ao titulo Imortal
-da Formula. A conquista da Valve mede o que ela sempre mediu: skill. A conquista do FormulaDota
-mede o que construimos para medir: o jogador completo.
+Um jogador pode ser Imortal da Valve — top 0.5% de MMR — sem chegar a Mistico no ladder do
+FormulaDota. A conquista da Valve mede o que ela sempre mediu: skill. O ladder do FormulaDota
+mede o que construimos para medir: o jogador completo. (Mistico = topo do ladder por conduta;
+NAO confundir com elegibilidade ao lobby elite, que exige a medalha Imortal Valve — ver
+HONOR_SYSTEM.md e MATCH_CREATION.md.)
 
-**Implicacao de produto:** o badge Imortal da Formula tem visual DISTINTO da medalha Imortal
-da Valve. Nao e copia. E identidade propria: selo cerimonial, nao brasao militar.
+**Implicacao de produto:** a medalha Mistico tem visual DISTINTO da medalha Imortal da Valve.
+Nao e copia. E identidade propria: selo cerimonial, nao brasao militar.
 
 ---
 
@@ -296,12 +303,13 @@ ferramenta?". Se comunica ferramenta, revisar. Ver UX_PRINCIPLES.md.
 A plataforma NAO escala com Pedro jogando com 1000 alunos. Pedro e o **primeiro exemplo** —
 nao o unico.
 
-Cada **Imortal da Formula** representa alguem pronto para carregar a doutrina adiante. A
+Cada **Mistico (nivel 30)** representa alguem pronto para carregar a doutrina adiante. A
 elegibilidade para ser PRO nao e dada por skill puro — e dada por um conjunto de dimensoes
-simultaneas:
+simultaneas (PRO e papel conquistado por processo, nao promocao automatica por nivel —
+ver PRO_PROMOTION.md):
 
 - Skill minima (Mestre Dota ou superior no sistema interno)
-- HONOR consistente (tier Honrado+ por temporadas consecutivas)
+- HONOR consistente (nivel/banda Lendario+ por temporadas consecutivas)
 - Achievements de mentoria (recebeu elogios "mentor" de novatos)
 - Zero strikes graves no historico
 - Endosso de Pedro (founder authority) ou Conselho de PROs (futuro)
@@ -320,7 +328,7 @@ perpetuam.
 
 **Distincao critica:**
 
-**Bom jogador nao e igual a bom PRO.** Imortal Dota toxico nao e PRO. Imortal da Formula
+**Bom jogador nao e igual a bom PRO.** Imortal Dota toxico nao e PRO. Mistico (nivel 30)
 sem capacidade pedagogica nao e PRO.
 
 Ser PRO exige tres dimensoes simultaneas:
@@ -346,8 +354,8 @@ Ver PRO_PROMOTION.md e MULTIPLICATION_MODEL.md para especificacao completa.
 
 ### Pilar 14 — Competicao entre Iguais
 
-A Liga FormulaDota so admite Imortais da Formula (tier 8 HONOR mantido por 2+ seasons
-consecutivas). Vitorias contam DENTRO da Liga porque ego foi filtrado antes do gate.
+A Liga FormulaDota so admite quem alcancou Mistico (nivel 30) sustentado por 2+ seasons
+consecutivas. Vitorias contam DENTRO da Liga porque ego foi filtrado antes do gate.
 
 #### O que isso resolve
 
@@ -359,7 +367,7 @@ A solucao e arquitetonica: **separar contextos por gate de elegibilidade.**
 
 - Fora da Liga: HONOR e a metrica unica que importa (conduta cultural)
 - Dentro da Liga: vitorias contam (competicao pura)
-- Gate Liga: so Imortal da Formula entra (carater ja provado)
+- Gate Liga: so Mistico (nivel 30) sustentado entra (carater ja provado)
 
 Quem entra na Liga ja provou que NAO se corrompe por ego. Competir contra quem te respeita
 e diferente de competir contra quem te tolera.
@@ -371,8 +379,8 @@ e diferente de competir contra quem te tolera.
 - **Liga Imortal** = competicao win-rate dentro do pool de doutrinados (ver LIGA_IMORTAL.md)
 - **3 ligas paralelas** atendem perfis diferentes: PROs, Nao-PROs (alunos Imortais), Combinada
   (eventos especiais)
-- Imortal Valve != Imortal da Formula — Liga FormulaDota nao admite Imortal Valve sem ser
-  Imortal da Formula
+- Imortal Valve != topo do ladder Formula — Liga FormulaDota nao admite Imortal Valve sem
+  ter alcancado Mistico (nivel 30) sustentado
 
 #### Anti-padroes proibidos
 
@@ -490,8 +498,9 @@ O sistema de progressao do FormulaDota e sempre dual. Nao existe progressao em u
 exibicao paralela do outro.
 
 **Dois eixos sempre visiveis:**
-- SKILL/PERFORMANCE: Tier baseado em performance competitiva (Herald → Imortal interno)
-- HONOR/CONDUTA: Tier baseado em conduta, presenca e contribuicao (Aprendiz → Imortal da Formula)
+- SKILL/PERFORMANCE: medalha de rank da Valve oficial, sincronizada (Herald → Imortal)
+- HONOR/NIVEL: ladder de conta 0-30 baseado em conhecimento (entrada) + conduta vivida, com
+  5 medalhas alem de Novato (Novato → Aprendiz → Piloto → As → Lendario → Mistico)
 
 Os dois tiers sao exibidos lado a lado em toda superfície do produto onde o jogador aparece:
 perfil, card de jogador, leaderboard, tela pos-partida.
@@ -500,8 +509,9 @@ perfil, card de jogador, leaderboard, tela pos-partida.
 na identidade do jogador. A UI deve comunicar isso. Se o SKILL ocupa mais espaco visual que
 o HONOR, a hierarquia esta errada.
 
-**Titulo maximo exige ambos:** Imortal da Formula nao e atingivel apenas por SKILL alto. Exige
-excelencia em ambos os eixos simultaneamente. Ver HONOR_SYSTEM.md para criterios completos.
+**Topo do ladder exige conduta vivida:** Mistico (nivel 30) nao e atingivel apenas por skill
+alto. Do nivel 6 ao 30 so sobe quem vive a doutrina nas partidas — conhecer nao basta.
+Ver HONOR_SYSTEM.md para criterios completos.
 
 ---
 
@@ -516,7 +526,7 @@ Para cada categoria de achievement de skill, existe categoria equivalente de con
 | "Vitorias consecutivas" — X partidas ganhas em sequencia | "Presenca consistente" — X partidas jogadas sem abandono |
 | "Performance tecnica" — media de contribuicao acima de threshold | "Derrota com honra" — perdeu mas manteve HONOR score |
 | "Carry da equipe" — contribuicao de damage/utility acima da media | "Elevou o time" — recebeu elogios "mentor" ou "comunicacao" |
-| "Sub-sobe" — avancou de tier SKILL | "Evolucao de conduta" — avancou de tier HONOR |
+| "Sub-sobe" — avancou de rank SKILL | "Evolucao de conduta" — subiu de nivel HONOR |
 
 Nenhum achievement existe isoladamente no eixo de skill sem equivalente no eixo de conduta.
 
@@ -528,8 +538,8 @@ Nenhum achievement existe isoladamente no eixo de skill sem equivalente no eixo 
 
 **Champions existem nos dois eixos:**
 - Lider de MMR/winrate da temporada: SKILL Champion
-- Lider de HONOR score da temporada: HONOR Champion
-- Imortal da Formula: ambos os eixos simultaneamente
+- Lider de HONOR/nivel da temporada: HONOR Champion
+- Mistico (nivel 30): topo do ladder HONOR, alcancado por conduta vivida
 
 ---
 
@@ -546,9 +556,9 @@ artificialmente sua posicao no ranking.
 
 **Tier visual nao e status de pagamento**
 
-HONOR tier e SKILL tier sao conquistados por performance e conduta. Nao sao comprados. Nao
-existe tier "Diamante" que voce obtem assinando um plano Premium — existe tier Honrado que
-voce conquista mantendo conduta exemplar ao longo de 30+ partidas.
+O nivel HONOR e o rank SKILL sao conquistados por performance e conduta. Nao sao comprados. Nao
+existe tier "Diamante" que voce obtem assinando um plano Premium — existe nivel HONOR que
+voce conquista mantendo conduta exemplar ao longo das partidas.
 
 Se o produto introduzir tiers de assinatura (basico/pro/etc), as diferencas sao de acesso
 funcional (historico estendido, estatisticas avancadas, acesso antecipado a novas features),
@@ -648,8 +658,8 @@ Identidade de marca, arquetipo do Mestre, voz, sistema de feedback, botao primar
 PHILOSOPHY e o fundamento. PRODUCT_CORE e a expressao.
 
 **HONOR_SYSTEM.md** — "O segundo eixo em detalhe"
-Sistema de tiers, algoritmo de pontuacao, criterios do Imortal da Formula, componente visual.
-PHILOSOPHY define por que HONOR existe. HONOR_SYSTEM define como funciona.
+Ladder de nivel 0-30 (5 medalhas + Novato), algoritmo de XP, criterios do Mistico (nivel 30),
+componente visual. PHILOSOPHY define por que HONOR existe. HONOR_SYSTEM define como funciona.
 
 **UX_PRINCIPLES.md** — "Como a interface comunica a filosofia"
 Os 11 mandamentos AAA + 2 mandamentos filosoficos (M12 e M13). Regua de validacao de UX.

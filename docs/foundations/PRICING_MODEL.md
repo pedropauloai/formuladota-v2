@@ -11,7 +11,7 @@
 - `PHILOSOPHY.md` princípio 10: NÃO cassino competitivo
 - `PHILOSOPHY.md` princípio 11: NÃO ganhar dinheiro jogando — mentoria é o produto
 - `PHILOSOPHY.md` princípio 13: Multiplicação por exemplo
-- `HONOR_SYSTEM.md`: tier HONOR define autoridade para cobrar mais
+- `HONOR_SYSTEM.md`: nivel HONOR (ladder 0-30) define autoridade para cobrar mais
 - Visitante dignificado: floor R$ 10 nunca quebra acessibilidade
 
 ---
@@ -24,15 +24,15 @@ Ninguém pode cobrar menos. Protege o mercado contra corrida para o fundo.
 Alinha com o preço histórico de Pedro e com o ticket de "hobby, não trabalho".
 O PRO que cobra R$ 10 já está comprometido com entrega de valor, não com preço.
 
-### Ceiling escalonado por tier HONOR
+### Ceiling escalonado por nível HONOR (ladder 0-30)
 
-| Tier HONOR | Score mínimo | Preço máximo | Filosofia |
+| Banda (medalha) | Nível | Preço máximo | Filosofia |
 |---|---|---|---|
-| Tiers 1-5 (Aprendiz → Honrado) | < 1700 | R$ 25 | Baseline — PRO ainda constrói reputação |
-| Tier 6 (Mestre) | 1700 | R$ 35 | Capacidade demonstrada — valoriza expertise |
-| Tier 7 (Lendário) | 1900 | R$ 45 | Referência cultural — preço premium orgânico |
-| Tier 8 (Imortal da Fórmula) | 2100 | R$ 50 | Máximo PRO regular — ainda acessível |
-| Pedro Founder (exception) | — | R$ 100 | Founder authority — sem dependência de tier |
+| Aprendiz → Piloto | 6–17 | R$ 25 | Baseline — PRO ainda constrói reputação |
+| Ás | 18–24 | R$ 35 | Capacidade demonstrada — valoriza expertise |
+| Lendário | 25–29 | R$ 45 | Referência cultural — preço premium orgânico |
+| Místico | 30 | R$ 50 | Topo do ladder — ainda acessível |
+| Pedro Founder (exception) | — | R$ 100 | Founder authority — sem dependência de nível |
 
 **Pedro Founder exception:** Pedro é admin (`profiles.is_admin = true`). A função `get_max_price_for_pro` retorna R$ 100 para qualquer usuário com `is_admin = true`. Sem lógica especial de sponsor — fundador não precisa justificar para o sistema.
 
@@ -74,13 +74,13 @@ Transparência sagrada: qualquer visitante pode ver a evolução de preços na p
 - **Dumping R$ 1 pra atrair:** floor R$ 10 previne
 - **Mudança retroativa em alunos:** purchase armazena preço da época
 - **Promoção temporária / desconto:** sem mecanismo — seria marketing manipulativo
-- **PRO copiando ceiling de outro:** cada um tem ceiling baseado em **seu** score HONOR
+- **PRO copiando ceiling de outro:** cada um tem ceiling baseado em **seu** nível HONOR
 
 ---
 
 ## Evolução futura (backlog, não V1)
 
-- Ceiling Tier 8 (Imortal) poderia subir para R$ 60 com volume mínimo de alunos
+- Ceiling Místico (nível 30) poderia subir para R$ 60 com volume mínimo de alunos
 - Pacotes mensais poderiam ter modelo de precificação separado
 - Cooldown poderia ser reduzido para 15 dias após 12 meses como PRO ativo
 - Desconto de fidelidade (não promoção): aluno recorrente paga menos — explorar em V3

@@ -1,33 +1,60 @@
-# Sistema HONOR — Eixo Paralelo ao SKILL
+# Sistema HONOR — O Nivel da Conta (Ladder 0–30)
 
 > **Filosofia de origem:** PHILOSOPHY.md — Pilar 3: Dois eixos separados.
 > **Status:** Documento fundacional. Implementacao programada para Phase 6+.
-> **Versao:** 1.0 — 2026-05-23
+> **Versao:** 2.0 — 2026-06-02 (redesign de progressao — Pedro Paulo)
 > **Relacao:** PHILOSOPHY define por que HONOR existe. Este documento define como HONOR funciona.
+> **Fonte da verdade deste redesign:** `.planning/PROGRESSION_REDESIGN_SPEC.md`.
+
+---
+
+## A grande mudanca: HONOR = nivel da conta (0–30), fundido com XP
+
+**Decisao de Pedro Paulo, 2026-06-02 (revisao consciente de canone):**
+
+> O nivel da conta (0–30) E o HONOR. XP e o combustivel que sobe o nivel.
+
+Antes, HONOR era uma pontuacao de conduta separada (0–2100+) com 8 tiers, e XP/niveis era um
+sistema gamificado paralelo. **Agora os dois sistemas fundem-se num so eixo.** O nivel da
+conta vai de 0 a 30 e **e** o HONOR do jogador. As medalhas deixam de ser 8 tiers e passam a
+ser **5 medalhas + estado base (Novato)**, ancoradas nos marcos de nivel 6, 12, 18, 25 e 30.
+A escolha dos marcos espelha o ritmo de "ultimate do heroi" / DotaPlus, nao as 8 medalhas da Valve.
+
+Esta e uma revisao consciente do principio antigo "HONOR e so conduta". Agora o eixo
+HONOR/Nivel combina **conhecimento (entrada)** + **conduta (sustentacao)** — ver
+[Como se sobe de nivel](#como-se-sobe-de-nivel-a-salvaguarda-de-integridade).
+
+Os **dois eixos** da filosofia (Pilar 3) permanecem intactos:
+
+- **SKILL** — externo, MMR Valve oficial (sincronizado via OpenDota), **NAO calculado internamente**.
+- **HONOR / NIVEL (0–30)** — interno, este sistema. E o que muda aqui.
 
 ---
 
 ## HONOR e o Sistema de Merito Interno Operacional
 
-**Decisao arquitetural lockada 2026-05-24 (Pedro Paulo):**
+**Decisao arquitetural lockada 2026-05-24 (Pedro Paulo) — permanece valida:**
 
 > "O MMR interno JA E o nosso sistema de honor e conduta."
 
 HONOR substitui completamente a necessidade de um MMR interno paralelo (Glicko-2, Elo
 tradicional, etc.). Nao ha "skill rating" interno separado — o que importa internamente
-e HONOR. O eixo SKILL e mensurado via MMR Valve oficial, sincronizado por API (OpenDota).
+e o nivel HONOR (0–30). O eixo SKILL e mensurado via MMR Valve oficial, sincronizado por
+API (OpenDota).
 
 ### Razoes arquiteturais
 
 1. **Skill ja e mensurado via MMR Valve oficial** (sincronizado via Steam/OpenDota API).
    Reimplementar internamente seria redundancia sem valor adicional.
-2. **HONOR mede o que a Valve NAO mede**: conduta, presenca, mentoria, maturidade emocional.
-3. **Simplicidade operacional**: 1 sistema interno (HONOR) e mais coeso que 2 (MMR interno
-   + HONOR). Menos superficie de bug, menos sincronizacao, menos custo de manutencao.
-4. **Filosofia 2-eixos preservada**: SKILL (Valve oficial) + HONOR (interno) = os 2 eixos
-   que importam. A distincao e externa vs interno, nao ambos internos.
-5. **Liga Imortal V3+** usa HONOR como gate de elegibilidade + win-rate dentro da Liga
-   (ver `docs/foundations/LIGA_IMORTAL.md`).
+2. **HONOR mede o que a Valve NAO mede**: conhecimento da doutrina, conduta, presenca,
+   mentoria, maturidade emocional.
+3. **Simplicidade operacional**: 1 sistema interno (HONOR = nivel) e mais coeso que 2
+   (MMR interno + HONOR + XP separados). Menos superficie de bug, menos sincronizacao,
+   menos custo de manutencao. A fusao XP+HONOR reforca essa coesao.
+4. **Filosofia 2-eixos preservada**: SKILL (Valve oficial) + HONOR/Nivel (interno) = os 2
+   eixos que importam. A distincao e externo vs interno, nao ambos internos.
+5. **Liga Imortal V3+** usa o nivel HONOR como gate de elegibilidade + win-rate dentro da
+   Liga (ver `docs/foundations/LIGA_IMORTAL.md`).
 
 ### O que isso descarta
 
@@ -35,19 +62,21 @@ e HONOR. O eixo SKILL e mensurado via MMR Valve oficial, sincronizado por API (O
 - Elo tradicional interno
 - "Calibracao de skill interno" via partidas in-house
 - MMR interno paralelo ao Valve
+- XP/niveis como sistema gamificado SEPARADO do HONOR (agora fundidos)
 
 ### O que isso mantém
 
-- Sistema HONOR 8 tiers (Aprendiz → Imortal da Formula)
-- MMR Valve oficial como eixo SKILL externo (sincronizado, nao calculado)
-- Calibracao 3 estagios (visitante → calibrando → ranqueado) — focada em HONOR
-- Liga Imortal V3+ usa HONOR como gate + win-rate como metrica interna da Liga
+- Sistema HONOR como **ladder unico de nivel 0–30** (Novato → Mistico)
+- MMR Valve oficial como eixo SKILL externo (sincronizado, nao calculado) — **decisao lockada**
+- Calibracao 3 estagios (visitante → calibrando → ranqueado) — mapeada nos niveis iniciais 0–6
+- Liga Imortal V3+ usa o nivel HONOR (Mistico sustentado) como gate + win-rate como metrica interna
 
-### Imortal da Formula = portal para a Liga
+### Mistico (nivel 30) = portal para a Liga e para PRO
 
-Tier 8 HONOR (Imortal da Formula) nao e apenas status visual. E o **gate de elegibilidade
-para a Liga competitiva** (ver `docs/foundations/LIGA_IMORTAL.md`). Somente quem manteve
-Imortal por 2+ seasons consecutivas pode participar da Liga Imortal FormulaDota.
+O topo do ladder (Mistico, nivel 30 sustentado) nao e apenas status visual. E o **gate de
+elegibilidade para a Liga competitiva** (ver `docs/foundations/LIGA_IMORTAL.md`) e a
+**condicao necessaria para elegibilidade PRO** (ver `docs/foundations/PRO_PROMOTION.md`).
+O antigo tier 8 "Imortal da Formula" foi **aposentado como tier** — o topo agora e Mistico.
 
 ---
 
@@ -65,71 +94,145 @@ O FormulaDota tem.
 
 O sistema HONOR cria o que o matchmaking oficial nao cria: um custo real para comportamento
 destrutivo e um valor real para comportamento exemplar. Quando voce mantém conduta impecavel
-ao longo de uma temporada, isso e visivel no seu perfil. Quando voce acumula strikes, isso
-tambem e visivel — e afeta diretamente sua posicao no eixo de HONOR.
+ao longo de uma temporada, seu nivel sobe e isso e visivel no seu perfil. Quando voce acumula
+strikes, seu XP cai e o nivel pode regredir — e isso tambem e visivel.
 
-HONOR nao substitui skill. Nao e possivel ser Imortal da Formula apenas por HONOR alto com
-skill mediocre. O sistema e explicitamente dual: os dois eixos coexistem e se completam.
-O objetivo e formar jogadores que sao simultaneamente competentes e bons de conviver — porque
-no FormulaDota, o segundo criterio importa tanto quanto o primeiro.
+HONOR nao substitui skill. Nao e possivel chegar a Mistico apenas por skill tecnico — o nivel
+mede conhecimento vivido e conduta sustentada, nao MMR. O sistema e explicitamente dual: os dois
+eixos coexistem e se completam. O objetivo e formar jogadores que sao simultaneamente competentes
+e bons de conviver — porque no FormulaDota, o segundo criterio importa tanto quanto o primeiro.
 
 ---
 
 ## Principios de Design do Sistema HONOR
 
-**HONOR e conquistado, nao comprado.** Nao existe forma de pagar para subir de tier HONOR.
-Nao existe vantagem de HONOR atrelada a plano de assinatura. A unica forma de subir e
-comportar-se bem ao longo de tempo suficiente.
+**HONOR e conquistado, nao comprado.** Nao existe forma de pagar para subir de nivel. Nao
+existe vantagem de nivel atrelada a plano de assinatura. As unicas formas de subir sao
+**provar conhecimento da doutrina** (niveis 0→6) e **viver a conduta ao longo do tempo**
+(niveis 6→30).
 
 **HONOR e persistente mas nao imune ao tempo.** Reset parcial entre temporadas mantem
 memoria historica enquanto cria espaco para evolucao (ou regressao). Quem se comportou
-bem na Temporada 1 e se deteriorou na Temporada 2 verá isso refletido.
+bem na Temporada 1 e se deteriorou na Temporada 2 verá o nivel cair.
 
 **HONOR e sempre visivel.** Em qualquer tela onde o jogador aparece — perfil, card em lobby,
-leaderboard, tela pos-partida — o tier HONOR e exibido lado a lado com o tier SKILL. Sem
+leaderboard, tela pos-partida — o nivel HONOR e exibido lado a lado com o tier SKILL. Sem
 excecao. Esconder HONOR de qualquer superfície e uma violacao do Pilar 3 da filosofia.
 
-**HONOR mede qualidade de participacao, nao quantidade.** Um jogador com 10 partidas e HONOR
-Disciplinado tem mais valor de conduta do que um jogador com 100 partidas e HONOR Aprendiz.
-O sistema nao pode ser acumulado por volume — a qualidade de cada participacao e o criterio.
+**HONOR mede qualidade de participacao, nao quantidade.** Subir de nivel 6 para cima depende
+de conduta vivida, nao de volume de partidas. O sistema nao pode ser acumulado por farm de
+partidas — a qualidade de cada participacao e o criterio.
+
+**Conhecer nao e viver.** Um jogador toxico pode gabaritar o quiz de doutrina e chegar ao
+nivel 6 numa tarde — mas **trava ali**. De 6 para cima so sobe quem vive a doutrina. O quiz
+deixa voce entrar; so a conduta faz voce Mistico. Esta e a salvaguarda de integridade central
+do redesign.
 
 ---
 
-## Os 8 Tiers HONOR
+## As 6 bandas e o ladder 0–30
 
-Os tiers de HONOR sao paralelos aos tiers internos de SKILL, mas com nomenclatura e simbologia
-propria. O objetivo e que os dois sistemas coexistam como identidades distintas — o badge
-de HONOR nao e copia do badge de SKILL.
+O nivel HONOR vai de 0 a 30. As **5 medalhas** ficam ancoradas nos marcos de nivel; abaixo do
+primeiro marco, o jogador esta no estado base **Novato** (sem medalha). Os tiers HONOR sao
+paralelos ao tier SKILL externo, mas com nomenclatura e simbologia propria — o badge de HONOR
+nao e copia do badge de SKILL.
 
-| Tier | Nome | HONOR Score | Criterio de ingresso | Descricao |
-|------|------|-------------|---------------------|-----------|
-| 1 | Aprendiz | < 800 ou em calibracao | Aceitou a Doutrina. Status de exibicao em calibracao (5-9 partidas): sempre Aprendiz. Pos-calibracao: score < 800. | Novo membro. Recebeu o codigo de conduta. Ainda sem historico suficiente para classificacao. |
-| 2 | Disciplinado | 800 – 1099 | Baseline. Score inicial = 1000. Player que joga regularmente sem strikes fica aqui. | Demonstrou regularidade basica. Comparece, joga ate o fim, sem comportamento destrutivo. |
-| 3 | Confiavel | 1100 – 1299 | +100 acima do inicio. Presenca >= 80%, no maximo 1 strike leve acumulado. | Pode ser contado. Outros jogadores sabem que ele vai comparecer e vai jogar inteiro. |
-| 4 | Respeitado | 1300 – 1499 | +300 acima do inicio. Elogios peer consistentes. Contribui ativamente com novatos. | Reconhecido pelos pares. Sua presenca melhora o ambiente da partida perceptivelmente. |
-| 5 | Honrado | 1500 – 1699 | +500 acima do inicio. Top ~20% de HONOR score da temporada. Conduta exemplar sustentada. | Referencia de conduta na temporada atual. |
-| 6 | Mestre | 1700 – 1899 | +700 acima do inicio. Top ~10% de HONOR score. Mentoria ativa reconhecida por pares. | Jogadores aprendem com ele apenas por jogar ao lado. Comunicacao construtiva e padrao. |
-| 7 | Lendario | 1900 – 2099 | +900 acima do inicio. Top ~5% de HONOR score. Referencia cultural consolidada. | Reconhecido pela comunidade como guardiao da cultura do FormulaDota, nao apenas como jogador. |
-| 8 | Imortal da Formula | 2100+ (+ criterios extras) | Top ~1% de HONOR score + requisitos multi-dimensionais. Ver criterio especial abaixo. | Atingiu o topo de ambos os eixos simultaneamente. O titulo mais alto do FormulaDota. |
+| Marco (nivel) | Banda | Medalha / Titulo | Significado |
+|---|---|---|---|
+| 0–5 | base | **Novato** (sem medalha) | Ainda nao provou conhecimento. Calibrando a doutrina. |
+| **6** | 6–11 | **Aprendiz** | Completou a verificacao de doutrina + metodologia. **Doutrinado.** Gate do servico freemium (lobby livre). |
+| **12** | 12–17 | **Piloto** | Esta aplicando o metodo nas partidas (metafora "Formula do Dota de Corrida"). |
+| **18** | 18–24 | **As** | Dominio da pista — o piloto virou as. |
+| **25** | 25–29 | **Lendario** | Referencia cultural consolidada. Guardiao da cultura. |
+| **30** | 30 | **Mistico** | Topo do ladder. Percepcao expandida — compreende o jogo alem do jogo. |
 
-**Nota sobre calibracao:** Os thresholds acima se aplicam a players com `calibration_status = 'ranqueado'`
-(10+ partidas confirmadas). Durante calibracao ativa (5-9 partidas), o tier exibido e sempre **Aprendiz**,
-independente do score acumulado. Players com menos de 5 partidas (visitantes) exibem "Nao calibrado".
+**Regras de nomenclatura:**
 
-**Referencia cruzada:** `.planning/research/phase-6-mmr-seasons-2-axis.md` secao 5.3 detalha como
-esses thresholds interagem com o sistema de seasons e o reset parcial entre temporadas.
+- O antigo tier 8 "Imortal da Formula" e **aposentado como tier**. O topo do ladder e **Mistico (nivel 30)**.
+- **PRO e um PAPEL, nao um nivel.** Chegar a Mistico (30) torna o jogador *elegivel* a PRO — a
+  promocao em si exige o processo de `PRO_PROMOTION.md` (entrevista cultural, endosso, contrato).
+  NAO ha promocao automatica por nivel.
+- A "Liga Imortal" mantem o nome como marca, mas seu gate de elegibilidade re-aponta do antigo
+  "tier 8 Imortal da Formula" para **Mistico (nivel 30) sustentado** (ver
+  [Criterio do topo](#criterio-do-topo--mistico-nivel-30)).
 
-**Nota sobre mobilidade:** Tiers de HONOR podem subir e descer. Um jogador Honrado que acumula
-strikes em uma temporada pode regredir para Confiavel ou Respeitado. O sistema nao e uma
-conquista permanente — e uma avaliacao continua de participacao.
+**Nota sobre calibracao:** Niveis 0–5 (Novato) correspondem a fase de calibracao da doutrina —
+o jogador esta provando conhecimento. Atingir o nivel 6 (Aprendiz) e o momento em que se torna
+**doutrinado** e calibrado. Players sem nenhum progresso de verificacao exibem "Nao calibrado".
+Ver `docs/foundations/CALIBRATION.md` para o mapeamento visitante → calibrando → ranqueado nos
+niveis iniciais.
+
+**Nota sobre mobilidade:** O nivel pode subir e descer. Um jogador Lendario (nivel 25+) que
+acumula strikes perde XP e pode regredir para Piloto. O sistema nao e uma conquista permanente —
+e uma avaliacao continua de participacao.
+
+**Referencia cruzada:** `.planning/research/phase-6-mmr-seasons-2-axis.md` secao 5.3 e a curva
+de `level_thresholds` (migration 021) detalham como o XP cumulativo se traduz em niveis e como
+o reset parcial entre temporadas funciona.
+
+---
+
+## Como se sobe de nivel (a salvaguarda de integridade)
+
+O ladder 0–30 tem **duas metades com combustiveis diferentes**. Essa divisao e o coracao do
+redesign: ela impede que conhecimento sem conduta (ou conduta sem conhecimento) chegue ao topo.
+
+### Niveis 0 → 6 = CONHECIMENTO (verificacao gamificada da doutrina + metodologia)
+
+- O usuario ganha XP a cada **informacao verificada** — questoes e checkpoints de conduta e
+  de metodologia, durante o onboarding/doutrina.
+- **Math do balanceamento:**
+  `XP_por_questao = (XP cumulativo necessario para atingir o nivel 6) ÷ (total de questoes de conduta + metodologia)`.
+  Ou seja: **completar 100% da verificacao = chegar exatamente ao nivel 6.** Os valores numericos
+  exatos dependem da curva de `level_thresholds` (migration 021) + a contagem final de questoes,
+  e serao calibrados.
+- Atingir o nivel 6 = **Aprendiz = doutrinado** = libera o servico freemium (lobby livre).
+
+### Niveis 6 → 30 = CONDUTA VIVIDA + JOGO (nao mais quiz)
+
+- Daqui para cima, XP vem de **comportamento real nas partidas**. Os eventos que antes somavam
+  HONOR score viram **eventos de XP**: partida completada sem abandono, commendations de
+  companheiros (comunicacao / atitude / mentor), "derrota com honra", presenca de temporada,
+  temporada sem strikes, etc. (ver [Algoritmo](#algoritmo-de-xp-do-nivel-honor-draft)).
+- **Strikes SUBTRAEM XP e podem REGREDIR o nivel.** Um Lendario toxico pode cair para Piloto.
+  Conduta nunca para de importar — o nivel e avaliacao continua, nao trofeu permanente.
+- **Por que essa divisao protege a integridade:** um jogador toxico pode gabaritar o quiz e
+  chegar ao nivel 6 numa tarde — mas trava ali, porque de 6 para cima so sobe quem vive a
+  doutrina. Conhecer nao e viver. O quiz deixa voce entrar; so a conduta faz voce Mistico.
+
+---
+
+## As duas faixas de lobby + o modelo freemium
+
+O nivel HONOR e a base do modelo de acesso aos lobbies in-house. Existem duas faixas:
+
+| Lobby | Gate | Medalhas Valve aceitas | Modelo |
+|---|---|---|---|
+| **Livre** | **Nivel 6** (Aprendiz / doutrinado) | Todas | **FREEMIUM** — gratuito. Prova de doutrina e a unica exigencia. |
+| **Elite** | **Nivel 6 (doutrinado) + medalha Imortal Valve** | So Imortal Valve | Premium (monetizacao TBD — fora do escopo deste doc). |
+
+**A restricao continua sendo o produto.** O lobby livre NAO e "aberto a qualquer um" — ele exige
+nivel 6 (doutrina verificada). A restricao deixou de ser pagamento/medalha e virou **prova de
+conhecimento da cultura**. O lobby e gratuito, nao irrestrito (reconcilia PRODUCT_CORE §2).
+
+**O lobby elite nao e lobby de ego.** Ele exige medalha Imortal Valve **E** doutrina (nivel 6).
+A medalha e necessaria mas nao suficiente — "99,9% dos Imortais nao vivem o metodo ainda", entao
+mesmo eles precisam se doutrinar. A medalha sozinha nunca da acesso (reconcilia Pilar 14 / LIGA_IMORTAL).
+
+**Nivel ≠ acesso ao lobby elite.** O ladder 0–30 vale para TODOS (massa Cruzado-Arconte-Lenda
+inclusa). Um Mistico Arconte alcanca o topo do ladder por conduta, mas **nao** entra no lobby
+elite (falta a medalha Valve). Sao dois gates distintos. Nao confundir.
+
+Ver `docs/foundations/MATCH_CREATION.md` para o sistema de criacao automatizada de lobbies.
 
 ---
 
 ## Criterios de Strike — Os 15 Anti-Padroes da Doutrina
 
-Strike e o mecanismo formal de penalizacao no eixo HONOR. Cada strike e um evento auditavel
-que cita literalmente qual dos 15 anti-padroes da Doutrina foi violado. A mensagem ao usuario
-nunca e "voce foi punido" — sempre e "voce violou o principio X que voce aceitou no onboarding".
+Strike e o mecanismo formal de penalizacao no eixo HONOR. No modelo de nivel, **strike
+subtrai XP** e pode regredir o nivel da conta. Cada strike e um evento auditavel que cita
+literalmente qual dos 15 anti-padroes da Doutrina foi violado. A mensagem ao usuario nunca e
+"voce foi punido" — sempre e "voce violou o principio X que voce aceitou no onboarding".
 
 Lista completa (referencia canonica: `A FÓRMULA DO DOTA DE CORRIDA.txt`):
 
@@ -151,23 +254,31 @@ Lista completa (referencia canonica: `A FÓRMULA DO DOTA DE CORRIDA.txt`):
 
 ### Severidade e Acoes
 
+A severidade de cada anti-padrao define quanto XP e subtraido (regressao de nivel) e qual a
+acao disciplinar associada. A tabela de severidade abaixo e preservada do canone original — so
+muda a forma: a antiga "perda de HONOR score" e agora **perda de XP do nivel**.
+
 | Anti-padrao | Severidade default | Acao default |
 |------------|-------------------|--------------|
-| 1, 4, 5, 7, 13 | Leve | Advertencia + perda de HONOR score |
-| 2, 3, 8, 12, 14, 15 | Media | Strike formal + perda significativa de HONOR |
+| 1, 4, 5, 7, 13 | Leve | Advertencia + perda leve de XP |
+| 2, 3, 8, 12, 14, 15 | Media | Strike formal + perda significativa de XP |
 | 11 | Leve (educativo) | Advertencia + obrigatoriedade de assistir conteudo da Fórmula do MMR sobre objetivos |
-| 6, 9 | Grave | Suspensao 7-14 dias + perda alta de HONOR |
+| 6, 9 | Grave | Suspensao 7-14 dias + perda alta de XP |
 | 10 | Critica | Ban imediato (sem direito a reentrada) |
 
 **Auditoria publica de override:** qualquer aplicacao de severidade fora do default e logada
 publicamente em `audit_log` com justificativa do moderador. Founder authority (Pedro) pode
 override mas o registro permanece.
 
+**Regressao de nivel:** quando a perda de XP cruza um limiar de nivel para baixo, o nivel da
+conta regride e a medalha correspondente e revogada ate que o jogador recupere o XP. Cair de
+banda (ex.: Lendario → Piloto) e visivel no perfil — a queda faz parte da narrativa de conduta.
+
 ---
 
 ## Componente Visual: HonorRankMedal
 
-O componente `<HonorRankMedal>` e a representacao visual do tier HONOR de um jogador.
+O componente `<HonorRankMedal>` e a representacao visual do nivel HONOR de um jogador.
 Deve ser visualmente DISTINTO do `<DotaRankMedal>` que representa o tier SKILL.
 
 ### Diferenciacao visual intencional
@@ -177,60 +288,66 @@ paleta metalica (bronze, prata, ouro, azul Imortal). E familiar para qualquer jo
 
 O `<HonorRankMedal>` usa estetica cerimonial propria: selos, laureis, escudos com simbolismo
 ritual, elementos de progressao cultural — nao militar. A paleta de HONOR usa tons distintos
-dos tiers de SKILL para evitar confusao visual.
+dos tiers de SKILL para evitar confusao visual. O badge tambem comunica o **nivel numerico (0–30)**
+junto a medalha, ja que nivel e medalha sao o mesmo eixo.
 
 ### Especificacao de componente (draft)
 
 ```tsx
 interface HonorRankMedalProps {
-  // Tier HONOR do jogador
-  rank:
-    | 'aprendiz'
-    | 'disciplinado'
-    | 'confiavel'
-    | 'respeitado'
-    | 'honrado'
-    | 'mestre'
-    | 'lendario'
-    | 'imortal-da-formula';
+  // Nivel HONOR do jogador (0–30). A medalha exibida deriva do nivel.
+  level: number; // 0–30
+
+  // Banda/medalha derivada do nivel (computada, mas pode ser passada explicitamente)
+  band?:
+    | 'novato'    // 0–5  (sem medalha)
+    | 'aprendiz'  // 6–11
+    | 'piloto'    // 12–17
+    | 'as'        // 18–24
+    | 'lendario'  // 25–29
+    | 'mistico';  // 30
 
   // Tamanho do badge (sm = cards compactos, md = perfil, lg = showcase)
   size?: 'sm' | 'md' | 'lg';
 
-  // Exibir label de texto abaixo do badge
+  // Exibir o nivel numerico (0–30) junto a medalha
+  showLevel?: boolean;
+
+  // Exibir label de texto (nome da banda) abaixo do badge
   showLabel?: boolean;
 
   // Glow animado (ativo por padrao em telas de perfil e showcase)
   glow?: boolean;
 
-  // Tooltip com descricao do tier ao hover
+  // Tooltip com descricao da banda ao hover
   tooltip?: boolean;
 }
 ```
 
-### Paleta de cores por tier
+### Paleta de cores por banda
 
-| Tier | Cor primaria | Cor de glow | Logica |
-|------|-------------|------------|--------|
-| Aprendiz | `#6b7280` (cinza) | Sem glow | Sem historico, sem destaque |
-| Disciplinado | `#78716c` (stone) | Glow leve pedra | Solidez basica |
-| Confiavel | `#0ea5e9` (azul) | Glow azul suave | Confiabilidade, agua |
-| Respeitado | `#22c55e` (verde) | Glow verde moderado | Reconhecimento, crescimento |
-| Honrado | `#eab308` (amarelo ouro) | Glow ouro | Honorabilidade, valor |
-| Mestre | `#a855f7` (roxo) | Glow roxo intenso | Sabedoria, profundidade |
-| Lendario | `#f97316` (laranja) | Glow laranja ardente | Legado, permanencia |
-| Imortal da Formula | `#ef4444` (vermelho brand) + efeito multicolor rotativo | Glow critico pulsante | Supremacia dual |
+As 6 bandas tem cores proprias. Novato (0–5) e o estado base sem medalha; as 5 medalhas seguem
+uma progressao de calor/intensidade ate o topo (Mistico).
 
-O Imortal da Formula usa o vermelho brand do FormulaDota como cor primaria — sinalizando
-que o titulo mais alto da plataforma e expressao maxima da identidade do FormulaDota,
-nao uma copia de nenhum tier externo.
+| Banda | Niveis | Cor primaria | Cor de glow | Logica |
+|------|--------|-------------|------------|--------|
+| Novato | 0–5 | `#6b7280` (cinza) | Sem glow | Sem medalha, calibrando a doutrina |
+| Aprendiz | 6–11 | `#0ea5e9` (azul) | Glow azul suave | Doutrinado, fundacao limpa, agua |
+| Piloto | 12–17 | `#22c55e` (verde) | Glow verde moderado | Aplicando o metodo, crescimento na pista |
+| As | 18–24 | `#eab308` (amarelo ouro) | Glow ouro | Dominio da pista, valor reconhecido |
+| Lendario | 25–29 | `#f97316` (laranja) | Glow laranja ardente | Legado, guardiao da cultura |
+| Mistico | 30 | `#a855f7` (roxo) + efeito multicolor rotativo | Glow critico pulsante | Topo do ladder, percepcao expandida |
+
+O Mistico (nivel 30) usa o roxo de profundidade/sabedoria como cor primaria com efeito
+multicolor rotativo e glow critico pulsante — sinalizando que o topo do ladder e a expressao
+maxima da maturidade no FormulaDota, nao uma copia de nenhum tier externo da Valve.
 
 ### Posicionamento em telas
 
 **Card de jogador (lobby, leaderboard):**
 ```
 [DotaRankMedal - sm] [Username]
-[HonorRankMedal - sm] [Honor tier label]
+[HonorRankMedal - sm] [Nivel + nome da banda]
 ```
 Os dois badges ficam alinhados verticalmente, com mesmo tamanho, comunicando paridade de eixos.
 
@@ -238,26 +355,38 @@ Os dois badges ficam alinhados verticalmente, com mesmo tamanho, comunicando par
 ```
 [Hero portrait full-width]
 [Username em Cinzel 32px]
-[DotaRankMedal - md] ←→ [HonorRankMedal - md] [com glow=true]
+[DotaRankMedal - md] ←→ [HonorRankMedal - md] [com glow=true, showLevel=true]
 ```
 Os dois badges ficam alinhados horizontalmente, centralizados, com mesmo peso visual.
 
 **Leaderboard:**
-Duas colunas separadas — uma para SKILL ranking, uma para HONOR ranking. O jogador aparece
-em posicoes potencialmente diferentes nos dois rankings. Isso e intencional e comunica que
-os eixos sao genuinamente separados.
+Duas colunas separadas — uma para SKILL ranking (MMR Valve), uma para HONOR ranking (nivel 0–30).
+O jogador aparece em posicoes potencialmente diferentes nos dois rankings. Isso e intencional e
+comunica que os eixos sao genuinamente separados.
 
 ---
 
-## Algoritmo de Pontuacao HONOR (draft)
+## Algoritmo de XP do Nivel HONOR (draft)
 
-Esta e a especificacao de referencia para implementacao futura. Os valores numericos sao
-pontos de partida — calibragem real acontece apos dados das primeiras temporadas.
+Esta e a especificacao de referencia para implementacao futura. No modelo fundido, todos os
+eventos abaixo somam ou subtraem **XP**, e o XP cumulativo determina o **nivel (0–30)** via a
+curva de `level_thresholds` (migration 021). Os valores numericos sao pontos de partida —
+calibragem real acontece apos dados das primeiras temporadas.
 
-### Eventos que somam HONOR score
+### XP da metade do conhecimento (niveis 0 → 6)
 
-| Evento | Pontos | Criterio de validacao |
-|--------|--------|-----------------------|
+| Evento | XP | Criterio de validacao |
+|--------|----|-----------------------|
+| Questao/checkpoint de doutrina verificado | `XP_por_questao` (ver math abaixo) | Resposta correta no fluxo de verificacao |
+| Questao/checkpoint de metodologia verificado | `XP_por_questao` | Resposta correta no fluxo de verificacao |
+
+**Math de balanceamento:** `XP_por_questao = (XP cumulativo para nivel 6) ÷ (total de questoes de conduta + metodologia)`.
+Completar 100% da verificacao chega exatamente ao nivel 6 (Aprendiz / doutrinado).
+
+### XP da metade da conduta (niveis 6 → 30) — eventos que SOMAM
+
+| Evento | XP | Criterio de validacao |
+|--------|----|-----------------------|
 | Partida completada sem abandono | +5 | Bot Steam confirma que o jogador permaneceu ate o final |
 | Elogio recebido — "comunicacao" | +8 | Commendation peer enviada por companheiro de equipe |
 | Elogio recebido — "atitude" | +10 | Commendation peer — comportamento positivo sob pressao |
@@ -267,104 +396,117 @@ pontos de partida — calibragem real acontece apos dados das primeiras temporad
 | Novato menciona jogador como referencia | +25 | Evento especial, validado por admin |
 | Temporada sem strikes | +30 por mes completo | Calculado mensalmente |
 
-### Eventos que descontam HONOR score
+### XP da metade da conduta — eventos que SUBTRAEM (regredem nivel)
 
-| Evento | Pontos | Criterio de aplicacao |
-|--------|--------|-----------------------|
+| Evento | XP | Criterio de aplicacao |
+|--------|----|-----------------------|
 | Strike menor (atraso, comunicacao rispida) | -10 | Aplicado por admin apos relato e verificacao |
 | Strike medio (comportamento negativo em partida) | -30 | Aplicado por admin — segunda ocorrencia do mesmo tipo |
 | Strike grave (toxicidade explicita, abuso verbal) | -50 | Aplicado por admin — episodio unico grave |
 | Abandono de partida | -30 | Bot Steam detecta saida antes do final, validado por admin |
 | Banimento temporario | -100 | Aplicado automaticamente junto ao banimento |
 
+Quando a subtracao de XP cruza um limiar de nivel para baixo, o nivel regride e a medalha
+correspondente e revogada (ver [Regressao de nivel](#severidade-e-acoes)).
+
 ### Regras de aplicacao do algoritmo
 
 **Regra H-1:** Commendations sao peer-to-peer mas limitadas. Um jogador pode enviar no maximo
-2 commendations por partida (para evitar inflacao por conluio entre amigos).
+2 commendations por partida (para evitar inflacao de XP por conluio entre amigos).
 
 **Regra H-2:** Auto-commendation e bloqueada tecnicamente — voce nao pode dar elogio para
 si mesmo ou para membros de seu grupo antes da partida (detecao por IP e perfil Discord).
 
-**Regra H-3:** Commendations de jogadores com HONOR tier muito baixo (Aprendiz) tem peso
-reduzido no calculo — a voz de quem ainda nao demonstrou conduta tem credibilidade limitada.
+**Regra H-3:** Commendations de jogadores de nivel muito baixo (Novato, niveis 0–5) tem peso
+reduzido no XP — a voz de quem ainda nao demonstrou conduta tem credibilidade limitada.
 
-**Regra H-4:** "Derrota com honra" e um evento especial que so pode ser aplicado em partidas
-onde o jogador perdeu. Vitorias nao geram "derrota com honra" — e um reconhecimento especifico
-de manutencao de conduta em situacao adversa.
+**Regra H-4:** "Derrota com honra" so pode ser aplicado em partidas onde o jogador perdeu.
+Vitorias nao geram "derrota com honra" — e um reconhecimento especifico de manutencao de conduta
+em situacao adversa.
 
-**Regra H-5:** O decrescimo de HONOR nunca e automatico para strikes — sempre requer acao
-explicita de admin apos verificacao. Isso evita que relatos falsos (por rancor pessoal)
-afetem o HONOR de jogadores indevidamente.
+**Regra H-5:** A subtracao de XP por strike nunca e automatica — sempre requer acao explicita
+de admin apos verificacao (exceto banimento temporario, que e automatico junto ao ban). Isso
+evita que relatos falsos (por rancor pessoal) regridam o nivel de jogadores indevidamente.
+
+**Regra H-6 (divisao das metades):** Nenhum XP de conduta (eventos da segunda tabela) e
+creditado antes de o jogador atingir o nivel 6. Conhecimento e conduta nao se misturam como
+combustivel: 0→6 e so verificacao, 6→30 e so conduta vivida. Um jogador que ainda nao se
+doutrinou nao "adianta" nivel jogando bem.
 
 ---
 
 ## Reset de Temporada
 
-O HONOR score tem reset parcial entre temporadas, nao total. A logica e preservar memoria
+O XP/nivel HONOR tem reset parcial entre temporadas, nao total. A logica e preservar memoria
 historica enquanto cria espaco para reescrita da narrativa.
 
 **Formula de reset:**
-- HONOR score da nova temporada comeca com 30% do score final da temporada anterior
-- O tier inicial da nova temporada e calculado com base nesse score de partida
-- O historico de temporadas anteriores e publico no perfil (badges de tier por temporada)
+- O **progresso de conhecimento (niveis 0–6) NAO reseta.** Uma vez doutrinado, sempre doutrinado —
+  o jogador nunca perde o status de Aprendiz por virada de temporada. A verificacao de doutrina
+  e permanente.
+- O **XP de conduta (acima do nivel 6) reseta parcialmente:** a nova temporada comeca preservando
+  o nivel 6 como piso e carregando 30% do XP de conduta acumulado acima desse piso na temporada
+  anterior.
+- O nivel inicial da nova temporada e recalculado com base nesse XP de partida (nunca abaixo de 6
+  para quem ja era doutrinado).
+- O historico de temporadas anteriores e publico no perfil (medalhas por temporada).
 
 **O que NAO reseta:**
+- Status de doutrinado (nivel 6) — permanente
 - Strikes acumulados com gravidade maxima (banimento anterior permanece registrado)
-- Historico de commendations recebidas (acervo historico visievel no perfil)
-- Tier de temporadas anteriores (exibidos no perfil como historico)
-- Status de Imortal da Formula de temporadas anteriores (emblema permanente no perfil)
+- Historico de commendations recebidas (acervo historico visivel no perfil)
+- Banda/medalha de temporadas anteriores (exibidas no perfil como historico)
+- Status de Mistico (nivel 30) de temporadas anteriores (emblema permanente no perfil)
 
 **O que reseta:**
-- Score numerico de HONOR (parcialmente, conforme formula acima)
-- Tier atual (recalculado com base no score inicial da nova temporada)
-- Ranking de posicao (todos comecam do mesmo ponto na nova temporada)
+- XP de conduta acima do nivel 6 (parcialmente, conforme formula acima)
+- Nivel atual acima de 6 (recalculado com base no XP inicial da nova temporada)
+- Ranking de posicao no leaderboard de HONOR (todos partem do mesmo XP de conduta inicial)
 - Contadores de commendations enviadas/recebidas na temporada
 
 ---
 
-## Criterio Especial — Imortal da Formula
+## Criterio do topo — Mistico (nivel 30)
 
-O titulo Imortal da Formula e o mais alto do FormulaDota. Nao e o top de HONOR isoladamente.
-Nao e o top de SKILL isoladamente. E a convergencia de ambos em nivel de excelencia sustentada.
+Mistico e o nivel mais alto do FormulaDota (substitui o antigo "Imortal da Formula"). Nao e o
+top de skill isoladamente — skill tecnico e medido pelo MMR Valve, num eixo separado. Mistico e
+o topo do **eixo HONOR**: conhecimento verificado + conduta sustentada em nivel de excelencia.
 
-**Criterios simultaneos obrigatorios:**
+**Como se atinge o nivel 30:** acumular XP de conduta suficiente (niveis 6→30) ao longo das
+partidas, mantendo conduta exemplar. O nivel 30 nao e um pacote de criterios destacados — e o
+topo natural do ladder, alcancado por XP. Os marcadores abaixo descrevem o **perfil esperado**
+de quem chega e **sustenta** o nivel 30 (e que alimentam a elegibilidade a Liga e a PRO):
 
-1. **Top 1% de HONOR score** da temporada atual em curso
-2. **Minimo Tier 6 de SKILL interno** (Anciao Dota ou equivalente no sistema interno do FormulaDota)
-3. **Minimo 90% de presenca** na temporada (partidas convocadas vs partidas comparecidas)
-4. **Minimo 3 commendations do tipo "mentor"** recebidas de companheiros distintos na temporada
-5. **Historico de "derrotas com honra"** — pelo menos 3 registros na temporada atual
+1. **Nivel 30 sustentado** — manter o topo do ladder, nao apenas toca-lo uma vez
+2. **Minimo 90% de presenca** na temporada (partidas convocadas vs partidas comparecidas)
+3. **Minimo 3 commendations do tipo "mentor"** recebidas de companheiros distintos
+4. **Historico de "derrotas com honra"** — pelo menos 3 registros
+5. **Zero strikes graves** no historico permanente
 
-**Nota sobre o criterio 2:** O FormulaDota mantem sistema interno de SKILL tier baseado em
-performance nas partidas in-house, nao diretamente atrelado ao MMR da Valve. Um jogador pode
-ser Imortal da Valve e ter tier interno mais baixo se performou abaixo de sua capacidade nas
-partidas in-house. O criterio e baseado no tier interno, nao no badge Valve.
-
-**Representacao visual:**
-
-O badge Imortal da Formula usa design exclusivo — nao derivado de nenhum badge existente da
-Valve. Usa o vermelho brand do FormulaDota com efeito de glow critico pulsante. O badge inclui
-o numero da temporada em que foi conquistado (um jogador pode ser Imortal da Formula em multiplas
-temporadas consecutivas, e isso e exibido no perfil como historico de excelencia sustentada).
+**Representacao visual:** o badge Mistico usa design exclusivo — nao derivado de nenhum badge da
+Valve. Roxo de profundidade com efeito multicolor rotativo e glow critico pulsante. O badge inclui
+o numero da temporada em que o nivel 30 foi alcancado (um jogador pode ser Mistico em multiplas
+temporadas consecutivas, exibido no perfil como historico de excelencia sustentada).
 
 **Sobre a relacao com o Imortal da Valve:**
 
-Um jogador pode ser Imortal da Valve (top 0.5% de MMR) sem ser elegivel ao Imortal da Formula.
-Um jogador pode ser Imortal da Formula sem ser Imortal da Valve.
+Um jogador pode ser Imortal da Valve (top 0.5% de MMR) sem ser Mistico. Um jogador pode ser
+Mistico sem ser Imortal da Valve (ex.: um Arconte que vive a doutrina impecavelmente).
 
-Imortal da Valve mede skill tecnico puro. Imortal da Formula mede o jogador completo. Sao
-titulos distintos que medem coisas distintas. O FormulaDota nunca vai comunicar que Imortal
-da Formula e superior ao Imortal da Valve como ranking tecnico — ele e diferente, nao superior.
-Mas no contexto do FormulaDota, Imortal da Formula e o titulo maximo possivel.
+Imortal da Valve mede skill tecnico puro. Mistico mede o jogador completo no eixo HONOR. Sao
+titulos distintos que medem coisas distintas. O FormulaDota nunca vai comunicar que Mistico e
+superior ao Imortal da Valve como ranking tecnico — ele e diferente, nao superior. Mas no contexto
+do FormulaDota, Mistico e o titulo maximo possivel.
 
 ---
 
-## Imortal da Formula = Gate de Elegibilidade PRO
+## Mistico (nivel 30) = Gate de Elegibilidade PRO
 
-Tier 8 HONOR (Imortal da Formula) nao e apenas status final visual. E o **gate de elegibilidade**
+Mistico (nivel 30 sustentado) nao e apenas status final visual. E o **gate de elegibilidade**
 para promocao a PRO — o nivel mais alto de responsabilidade dentro do FormulaDota.
 
-Atingir o tier nao e suficiente por si so. E a condicao necessaria, nao a condicao suficiente.
+Atingir o nivel nao e suficiente por si so. E a condicao necessaria, nao a condicao suficiente.
+**PRO e um papel conquistado por processo, nunca um nivel automatico.**
 
 ### Criterios cumulativos para elegibilidade PRO
 
@@ -372,12 +514,12 @@ O jogador deve satisfazer TODOS os criterios abaixo simultaneamente:
 
 | Criterio | Descricao | Como e verificado |
 |----------|-----------|-------------------|
-| Tier 8 HONOR ativo | Imortal da Formula na temporada corrente | `honor_scores.tier = 'imortal-da-formula'` |
-| Sustentacao de tier | Manteve tier Honrado+ por 2+ temporadas consecutivas | `honor_tier_history` — ultimas 2 seasons |
+| Nivel 30 ativo | Mistico na temporada corrente | `honor_levels.level = 30` |
+| Sustentacao de nivel | Manteve nivel alto (banda Lendario+ / nivel 25+) por 2+ temporadas consecutivas | `honor_level_history` — ultimas 2 seasons |
 | Achievements mentor | Minimo 3 commendations do tipo "mentor" recebidas na carreira | `peer_commendations` — tipo "mentor", all-time |
-| Skill minima | Tier 6 interno (Mestre) ou equivalente Valve documentado | `skill_tier >= 6` no sistema interno |
+| Skill documentada | MMR Valve documentado (eixo SKILL — externo) | Sincronizado via OpenDota |
 | Historico limpo | Zero strikes graves em todo o historico permanente | `honor_ledger` — nenhum `strike_grave` |
-| Tempo na doutrina | Aceitou a doutrina ha 6+ meses | `profiles.doctrine_accepted_at` |
+| Tempo na doutrina | Doutrinado (nivel 6) ha 6+ meses | `profiles.doctrine_accepted_at` |
 
 ### O que elegibilidade NAO e
 
@@ -403,23 +545,23 @@ authority — a decisao final e qualitativa, nunca apenas algoritmica.
 
 ## Visibilidade Publica do HONOR
 
-O HONOR de cada jogador e visivel para todos os membros do FormulaDota. Nao existe modo
+O nivel HONOR de cada jogador e visivel para todos os membros do FormulaDota. Nao existe modo
 privado de HONOR. Essa e uma decisao filosofica derivada do Pilar 2 (reputacao persistente):
 a visibilidade e o mecanismo que da peso ao sistema.
 
 **O que e visivel:**
-- Tier atual de HONOR
+- Nivel atual de HONOR (0–30) e a banda/medalha correspondente
 - Numero de commendations recebidas na temporada (por tipo)
-- Historico de tier por temporada (na pagina de perfil)
+- Historico de banda por temporada (na pagina de perfil)
 - Posicao no leaderboard de HONOR
 
 **O que NAO e visivel publicamente:**
-- Score numerico bruto (visivel apenas para o proprio jogador)
+- XP numerico bruto (visivel apenas para o proprio jogador)
 - Strikes individuais (visivel apenas para o jogador e para o admin)
 - Detalhes de commendations (quem enviou — protege privacidade do commendador)
-- Razao especifica de cada decrescimo de HONOR
+- Razao especifica de cada subtracao de XP
 
-Essa politica equilibra transparencia (todos sabem o tier de HONOR de todos) com privacidade
+Essa politica equilibra transparencia (todos sabem o nivel de HONOR de todos) com privacidade
 (os detalhes internos de cada avaliacao sao protegidos).
 
 ---
@@ -427,29 +569,33 @@ Essa politica equilibra transparencia (todos sabem o tier de HONOR de todos) com
 ## Implementacao Futura — Estrutura de Banco de Dados (draft)
 
 Esta secao e referencia para quando o sistema HONOR for implementado (Phase 6+). Os nomes
-de tabela e campos sao drafts — podem ser ajustados na implementacao real.
+de tabela e campos sao drafts — podem ser ajustados na implementacao real. No modelo fundido,
+estas tabelas convergem com o sistema de niveis/XP existente (`user_levels`, migration 021).
 
 ### Tabelas necessarias
 
 ```sql
--- Pontuacao acumulada de HONOR por jogador por temporada
-CREATE TABLE honor_scores (
+-- Nivel e XP de HONOR por jogador por temporada (fusao XP + HONOR)
+CREATE TABLE honor_levels (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES auth.users(id),
   season_id UUID REFERENCES seasons(id),
-  score INTEGER NOT NULL DEFAULT 0,
-  tier TEXT NOT NULL DEFAULT 'aprendiz', -- enum dos 8 tiers
+  xp INTEGER NOT NULL DEFAULT 0,          -- XP cumulativo
+  level INTEGER NOT NULL DEFAULT 0,       -- nivel 0–30 derivado do XP via level_thresholds
+  band TEXT NOT NULL DEFAULT 'novato',    -- enum: novato, aprendiz, piloto, as, lendario, mistico
+  doctrine_verified BOOLEAN NOT NULL DEFAULT FALSE, -- atingiu nivel 6 (permanente)
   last_calculated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE(user_id, season_id)
 );
 
--- Ledger de todos os eventos que afetaram HONOR (auditoria completa)
+-- Ledger de todos os eventos que afetaram XP/nivel (auditoria completa)
 CREATE TABLE honor_ledger (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES auth.users(id),
   season_id UUID REFERENCES seasons(id),
-  event_type TEXT NOT NULL, -- 'match_completed', 'commendation', 'defeat_with_honor', 'strike_minor', etc.
-  points_delta INTEGER NOT NULL, -- positivo ou negativo
+  event_type TEXT NOT NULL, -- 'doctrine_check', 'match_completed', 'commendation', 'defeat_with_honor', 'strike_minor', etc.
+  xp_delta INTEGER NOT NULL, -- positivo (conhecimento/conduta) ou negativo (strike)
+  half TEXT NOT NULL,        -- 'knowledge' (0->6) ou 'conduct' (6->30)
   reason TEXT, -- descricao legivel do evento
   match_id UUID REFERENCES matches(id), -- nulo para eventos fora de partida
   source_user_id UUID REFERENCES auth.users(id), -- quem gerou o evento (commendador, admin)
@@ -469,43 +615,63 @@ CREATE TABLE peer_commendations (
   UNIQUE(from_user_id, match_id, commendation_type)
 );
 
--- Historico de tier HONOR por temporada (para exibicao de conquistas historicas)
-CREATE TABLE honor_tier_history (
+-- Historico de nivel/banda HONOR por temporada (para exibicao de conquistas historicas)
+CREATE TABLE honor_level_history (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES auth.users(id),
   season_id UUID REFERENCES seasons(id),
-  final_tier TEXT NOT NULL, -- tier ao final da temporada
-  final_score INTEGER NOT NULL,
-  is_imortal_da_formula BOOLEAN NOT NULL DEFAULT FALSE,
+  final_level INTEGER NOT NULL,  -- nivel ao final da temporada (0–30)
+  final_band TEXT NOT NULL,      -- banda ao final da temporada
+  final_xp INTEGER NOT NULL,
+  reached_mistico BOOLEAN NOT NULL DEFAULT FALSE, -- atingiu nivel 30
   season_ended_at TIMESTAMPTZ NOT NULL
 );
 ```
 
 ### Politicas RLS necessarias
 
-- `honor_scores`: SELECT para membros autenticados (tier e visivel para todos), UPDATE apenas
-  para service role (o algoritmo roda server-side, nunca client-side)
+- `honor_levels`: SELECT para membros autenticados (nivel e banda sao visiveis para todos),
+  UPDATE apenas para service role (o algoritmo roda server-side, nunca client-side)
 - `honor_ledger`: SELECT apenas para o proprio usuario (seu ledger) e para admin
 - `peer_commendations`: SELECT para o destinatario (saber quantas recebeu), INSERT para
   membros autenticados (com validacao de limite por partida)
-- `honor_tier_history`: SELECT para todos os membros autenticados (historico publico)
+- `honor_level_history`: SELECT para todos os membros autenticados (historico publico)
 
 ---
 
 ## Relacao com Outros Documentos
 
+**`.planning/PROGRESSION_REDESIGN_SPEC.md`:** Fonte da verdade deste redesign (Pedro, 2026-06-02).
+Prevalece sobre canone antigo onde houver conflito.
+
 **PHILOSOPHY.md — Pilar 3:** Define a necessidade filosofica de dois eixos. Ler antes de
 qualquer trabalho no sistema HONOR.
 
-**PRODUCT_CORE.md — Secao 6:** Hierarquia de feedback inclui eventos de HONOR como eventos
-de nivel Importante (ganho de tier) e Critico (conquista de Imortal da Formula).
+**PROGRESSION_PUBLIC.md:** Explicacao voltada ao usuario de toda a estrutura (ladder 0–30,
+5 medalhas, as duas metades, freemium, lobby elite) — escrita para ser compreendida durante o
+proprio processo de doutrina.
 
-**UX_PRINCIPLES.md — M12:** Mandamento que exige exibicao dual de SKILL + HONOR em toda
-superfície onde o jogador aparece.
+**MATCH_CREATION.md:** Sistema de criacao automatizada de lobbies e os dois gates (livre / elite)
+que usam o nivel HONOR.
+
+**LIGA_IMORTAL.md:** Gate de elegibilidade re-apontado para Mistico (nivel 30) sustentado.
+
+**PRO_PROMOTION.md:** Elegibilidade PRO re-apontada para Mistico (nivel 30). PRO = papel por processo.
+
+**CALIBRATION.md:** Mapeamento visitante → calibrando → ranqueado nos niveis iniciais (0–6).
+
+**PRODUCT_CORE.md — Secao 6:** Hierarquia de feedback inclui eventos de HONOR como eventos
+de nivel Importante (ganho de nivel / nova medalha) e Critico (atingir Mistico, nivel 30).
+
+**UX_PRINCIPLES.md — M12:** Mandamento que exige exibicao dual de SKILL + HONOR (nivel 0–30) em
+toda superfície onde o jogador aparece.
 
 ---
 
-*Este documento e fundacional e permanente. Valores numericos do algoritmo sao drafts e
-serao calibrados apos dados das primeiras temporadas. Estrutura filosofica e intocavel
-sem decisao explicita do autor original (Pedro Paulo). Versao 1.1 — 2026-05-24 (decisao
-arquitetural lockada: HONOR substitui MMR interno — nao ha Glicko-2 ou Elo interno em V1).*
+*Este documento e fundacional e permanente. Valores numericos do algoritmo (XP por evento,
+curva de thresholds) sao drafts e serao calibrados apos dados das primeiras temporadas. A
+estrutura filosofica (2 eixos, conhecimento→6 / conduta→30, SKILL = MMR Valve externo) e
+intocavel sem decisao explicita do autor original (Pedro Paulo). Versao 2.0 — 2026-06-02
+(redesign de progressao: HONOR fundido com XP no ladder de nivel 0–30; 8 tiers → 6 bandas;
+Imortal da Formula → Mistico). Decisao lockada 2026-05-24 mantida: HONOR substitui MMR interno;
+nao ha Glicko-2 ou Elo interno.*

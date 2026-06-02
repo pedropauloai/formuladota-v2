@@ -274,7 +274,7 @@ export default async function ProgressoPage() {
               </thead>
               <tbody>
                 {(thresholds ?? []).map((t) => {
-                  const tCfg = TIER_CONFIG[t.tier as Tier];
+                  const tCfg = TIER_CONFIG[getTierForLevel(t.level)];
                   const TIcon = tCfg.icon;
                   const isCurrent = t.level === currentLevel;
                   const isUnlocked = currentLevel >= t.level;

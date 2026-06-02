@@ -1,10 +1,11 @@
 # Liga Imortal — FormulaDota
 
-> **Data:** 2026-05-24
-> **Status:** BLUEPRINT — implementar quando 10+ Imortais da Formula existirem.
+> **Data:** 2026-05-24 (revisado 2026-06-02 — gate re-apontado para Mistico nivel 30)
+> **Status:** BLUEPRINT — implementar quando 10+ Misticos sustentados existirem.
 > **Autoria:** Pedro Paulo (decisor) + Agent B (documentacao)
 > **Relacao:** PHILOSOPHY.md Pilar 14 | HONOR_SYSTEM.md secao "HONOR e o MMR Interno" |
-> `.planning/research/ROADMAP_CAMADAS_GAMEPLAY.md` camada V3+
+> `.planning/research/ROADMAP_CAMADAS_GAMEPLAY.md` camada V3+ |
+> `.planning/PROGRESSION_REDESIGN_SPEC.md` (decisao Pedro 2026-06-02 — ladder 0-30)
 
 ---
 
@@ -27,10 +28,10 @@ elegibilidade.**
 ### A solucao arquitetonica
 
 ```
-FORA da Liga: HONOR e a metrica unica que importa
+FORA da Liga: HONOR/NIVEL (0-30) e a metrica unica que importa
               Conduta constroi reputacao, acesso, identidade cultural
 
-GATE da Liga: Imortal da Formula (tier 8 HONOR, 2+ seasons consecutivas)
+GATE da Liga: Mistico (nivel 30 sustentado, 2+ seasons consecutivas)
               So entra quem provou nao se corromper por ego
 
 DENTRO da Liga: Vitorias contam
@@ -53,16 +54,18 @@ simultaneamente:
 
 | Criterio | Descricao | Verificacao tecnica |
 |----------|-----------|---------------------|
-| Imortal da Formula ativo | Tier 8 HONOR na temporada corrente | `honor_scores.tier = 'imortal-da-formula'` |
-| Sustentacao de 2+ seasons | Manteve tier Honrado+ por 2 seasons consecutivas | `honor_tier_history` — ultimas 2 seasons |
+| Mistico ativo | Nivel 30 (topo do ladder 0-30) na temporada corrente | `honor_scores.level = 30` |
+| Sustentacao de 2+ seasons | Manteve nivel 25+ (Lendario+) por 2 seasons consecutivas | `honor_level_history` — ultimas 2 seasons |
 | Historico limpo | Zero strikes graves em todo historico permanente | `honor_ledger` — nenhum `severity = 'grave'` |
 | Presenca minima | Minimo 90% de presenca na last season | `player_season_honor.presence_percent >= 90` |
 | Mentoria comprovada | Minimo 3 commendations do tipo "mentor" recebidas na carreira | `peer_commendations` tipo "mentor", all-time |
 
 **Nota sobre Imortal Valve:** jogador pode ser Imortal da Valve (top 0.5% MMR) sem
-ser elegivel para a Liga FormulaDota. Os criterios da Liga sao internos — Imortal Valve
-e uma conquista da Valve, nao do FormulaDota. O gate e Imortal da Formula (tier 8 HONOR
-do FormulaDota), nao a medalha da Valve.
+ser elegivel para a Liga Imortal. Os criterios da Liga sao internos — Imortal Valve
+e uma conquista da Valve, nao do FormulaDota. O gate e Mistico (nivel 30 do ladder
+HONOR do FormulaDota, sustentado), nao a medalha da Valve. O nivel 30 vem de conduta
+vivida (niveis 6 a 30), entao chegar la prova que o jogador nao se corrompe por ego —
+exatamente o que a medalha Valve sozinha nao garante.
 
 ---
 
@@ -73,19 +76,19 @@ As 3 ligas existem em paralelo — nao sao substitutivas.
 
 ### Liga dos Nao-PROs
 
-**Pool:** alunos que atingiram Imortal da Formula mas ainda nao foram promovidos a PRO.
+**Pool:** alunos que atingiram Mistico (nivel 30) mas ainda nao foram promovidos a PRO.
 
 **Filosofia:** alunos competem entre iguais — provam merito interno antes de elegibilidade
 a PRO. Serve como vitrine de capacidade competitiva para o processo de promocao PRO.
 
-**Objetivo:** identificar quem dentro dos Imortais da Formula demonstra consistencia
+**Objetivo:** identificar quem dentro dos Misticos demonstra consistencia
 competitiva alem da conduta.
 
 **Season:** 3 meses, alinhada com seasons de HONOR.
 
 ### Liga dos PROs
 
-**Pool:** PROs ativos (Pedro + Imortais da Formula promovidos a PRO).
+**Pool:** PROs ativos (Pedro + Misticos promovidos a PRO).
 
 **Filosofia:** mestres competindo entre mestres. A hierarquia interna do corpo PRO
 e definida aqui — nao por antiguidade ou relacionamento, mas por performance entre
@@ -98,7 +101,7 @@ que os PROs sao os melhores do ecossistema FormulaDota.
 
 ### Liga Combinada (eventos especiais)
 
-**Pool:** Imortais da Formula (alunos) + PROs juntos no mesmo torneio.
+**Pool:** Misticos (alunos) + PROs juntos no mesmo torneio.
 
 **Filosofia:** evento de comunidade que une todos os doutrinados. Mostra que PRO
 e Nao-PRO podem competir no mesmo espaco com respeito mutuo — algo impossivel no
@@ -158,13 +161,17 @@ tiebreaker_absoluto = mais partidas jogadas na Liga (maior amostra = mais valida
 
 ## Rebaixamento e Reingresso
 
-Um jogador que perde o tier Imortal da Formula durante uma season da Liga:
+Um jogador que perde o nivel 30 (Mistico) durante uma season da Liga:
 
 - **Completa a season atual** — nao e expulso no meio de uma season ativa
-- **Nao e elegivel para a proxima season** ate voltar a Imortal da Formula por
+- **Nao e elegivel para a proxima season** ate voltar a Mistico (nivel 30) por
   2+ seasons consecutivas
 - **Historico e permanente** — participacoes anteriores na Liga ficam no perfil
   e no Hall of Fame, mesmo que o jogador regrida depois
+
+> Lembrete do modelo (PROGRESSION_REDESIGN_SPEC): de nivel 6 a 30 o XP vem de conduta
+> vivida, e strikes subtraem XP e podem REGREDIR o nivel. Um Mistico toxico pode cair
+> para Lendario ou abaixo — perdendo a elegibilidade. O topo nunca e troféu permanente.
 
 ---
 
@@ -197,7 +204,7 @@ em que foi conquistada.
 ## Implementacao Tecnica (futuro)
 
 Esta secao e referencia para quando a Liga Imortal for implementada.
-Nao implementar antes de 10+ Imortais da Formula existirem — Liga vazia e
+Nao implementar antes de 10+ Misticos (nivel 30) sustentados existirem — Liga vazia e
 contra-producente.
 
 ### Tabelas necessarias
@@ -223,8 +230,8 @@ create table public.liga_participants (
   liga_season_id uuid references liga_seasons(id),
   user_id uuid references profiles(id),
   joined_at timestamptz not null default now(),
-  -- Snapshot do HONOR tier no momento de inscricao (auditoria)
-  honor_tier_at_join text not null,
+  -- Snapshot do HONOR/nivel no momento de inscricao (auditoria)
+  honor_level_at_join int not null, -- ladder 0-30; gate exige 30 (Mistico)
   honor_score_at_join int not null,
   -- Metricas durante a Liga
   total_matches int not null default 0,
@@ -290,9 +297,9 @@ async function validateLigaEligibility(userId: string): Promise<{
   eligible: boolean;
   reasons: string[];
 }> {
-  const [honorCurrent, tierHistory, strikes, presence, mentorComm] = await Promise.all([
+  const [honorCurrent, levelHistory, strikes, presence, mentorComm] = await Promise.all([
     getHonorScore(userId, currentSeasonId),
-    getHonorTierHistory(userId, 2), // ultimas 2 seasons
+    getHonorLevelHistory(userId, 2), // ultimas 2 seasons
     getGraveStrikes(userId),
     getPresenceLastSeason(userId),
     getMentorCommendations(userId),
@@ -300,11 +307,11 @@ async function validateLigaEligibility(userId: string): Promise<{
 
   const reasons: string[] = [];
 
-  if (honorCurrent.tier !== 'imortal-da-formula')
-    reasons.push('HONOR tier atual nao e Imortal da Formula');
+  if (honorCurrent.level < 30)
+    reasons.push('Nivel HONOR atual nao e Mistico (30)');
 
-  if (!tierHistory.every(t => t.tier >= 'honrado'))
-    reasons.push('Nao manteve tier Honrado+ por 2+ seasons consecutivas');
+  if (!levelHistory.every(s => s.level >= 25))
+    reasons.push('Nao manteve nivel 25+ (Lendario+) por 2+ seasons consecutivas');
 
   if (strikes.length > 0)
     reasons.push('Historico contem strike(s) grave(s)');
@@ -332,14 +339,14 @@ async function validateLigaEligibility(userId: string): Promise<{
 
 ## Quando Implementar
 
-**Criterio objetivo:** 10+ Imortais da Formula ativos simultaneamente.
+**Criterio objetivo:** 10+ Misticos (nivel 30) ativos simultaneamente.
 
 **Justificativa:** com menos de 10, a Liga vira um torneio de 2-3 pessoas — sem
 narrativa, sem competitividade real, sem incentivo de participacao. Documentar agora
 como blueprint canonico. Implementar quando a massa critica existir.
 
-**Rastreamento:** `honor_tier_history` ja guarda o historico de tiers por season.
-Quando Pedro notar que 10+ jogadores tem status `imortal-da-formula`, e o momento
+**Rastreamento:** `honor_level_history` ja guarda o historico de niveis por season.
+Quando Pedro notar que 10+ jogadores estao em nivel 30 (Mistico), e o momento
 de ativar a Liga.
 
 ---
@@ -348,13 +355,13 @@ de ativar a Liga.
 
 | Anti-padrao | Por que e proibido |
 |-------------|-------------------|
-| Liga aberta sem gate HONOR | Quebra Pilar 14 — competicao entre iguais exige gate |
+| Liga aberta sem gate de nivel | Quebra Pilar 14 — competicao entre iguais exige gate |
 | Pontuacao apenas por skill sem tiebreaker HONOR | Perde conexao filosofica com os 2 eixos |
-| Rebaixamento por criterio subjetivo | Deve ser criterio objetivo (tier HONOR) |
+| Rebaixamento por criterio subjetivo | Deve ser criterio objetivo (nivel HONOR < 30) |
 | Hall of Fame "soft" que apaga conquistas | Deve ser permanente — conquista historica e real |
 | Importar mecanicas Valve (Glicko-2, Elo) para a Liga | Liga FormulaDota e diferente — HONOR delta e o diferencial |
-| Admitir Imortal Valve sem ser Imortal da Formula | Gate e interno do FormulaDota, nao da Valve |
-| Liga de 1 pessoa (sem massa critica) | Aguardar 10+ Imortais antes de ativar |
+| Admitir Imortal Valve sem ser Mistico (nivel 30) | Gate e interno do FormulaDota (conduta vivida ate o topo), nao a medalha da Valve |
+| Liga de 1 pessoa (sem massa critica) | Aguardar 10+ Misticos antes de ativar |
 
 ---
 
@@ -363,14 +370,18 @@ de ativar a Liga.
 **PHILOSOPHY.md — Pilar 14:** Fundamento filosofico — "Competicao entre Iguais".
 Ler antes de qualquer trabalho na Liga.
 
-**HONOR_SYSTEM.md:** Define os 8 tiers e o algoritmo de HONOR. Liga usa tier 8 como
-gate e HONOR delta como tiebreaker.
+**HONOR_SYSTEM.md:** Define o ladder 0-30 (5 medalhas + Novato) e o algoritmo de HONOR.
+Liga usa nivel 30 (Mistico) como gate e HONOR delta como tiebreaker.
+
+**PROGRESSION_REDESIGN_SPEC.md:** Spec autoritativo (Pedro, 2026-06-02) que funde
+HONOR e nivel num eixo unico (0-30) e aposenta o antigo tier 8. Fonte da verdade
+deste re-apontamento de gate.
 
 **MULTIPLICATION_MODEL.md:** A Liga dos PROs e onde o corpo PRO demonstra hierarquia
 interna. Conecta com o modelo de multiplicacao por PROs.
 
-**PRO_PROMOTION.md:** Elegibilidade PRO requer, entre outros criterios, Imortal da
-Formula sustentado. Liga Nao-PROs e o espaco onde futuros PROs provam capacidade
+**PRO_PROMOTION.md:** Elegibilidade PRO requer, entre outros criterios, Mistico
+(nivel 30) sustentado. Liga Nao-PROs e o espaco onde futuros PROs provam capacidade
 competitiva antes da promocao.
 
 **`.planning/research/ROADMAP_CAMADAS_GAMEPLAY.md`:** Liga Imortal e a camada V3+
@@ -379,5 +390,5 @@ do roadmap de gameplay. Ler para contexto completo de evolucao do produto.
 ---
 
 *Blueprint criado em 2026-05-24 como documento fundacional canonico.*
-*Nao implementar antes da massa critica de 10+ Imortais da Formula.*
-*Versao 1.0 — 2026-05-24.*
+*Nao implementar antes da massa critica de 10+ Misticos (nivel 30) sustentados.*
+*Versao 1.1 — 2026-06-02 (gate re-apontado de tier 8 Imortal da Formula para Mistico nivel 30).*
