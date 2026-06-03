@@ -40,9 +40,9 @@ const SUBIR_MMR_TAB: TopBarTabDef = {
   label: "Subir MMR",
 };
 
-// Tabs em desenvolvimento — só admin testa enquanto features não estão prontas
+// Tabs em desenvolvimento — só admin testa enquanto features não estão prontas.
+// Progresso saiu daqui: agora é tab pública do perfil (/me?tab=progresso).
 const ADMIN_ONLY_TABS: TopBarTabDef[] = [
-  { href: "/progresso", label: "Progresso" },
   { href: "/ranking", label: "Ranking" },
   { href: "/times", label: "Times" },
   { href: "/torneios", label: "Torneios" },
