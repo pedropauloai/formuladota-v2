@@ -1,21 +1,17 @@
 "use client";
 
-// PlayMenu — botão "Jogar Dota" + painel de modalidades que CRESCE A PARTIR do botão
-// (canto inferior-direito), com a MESMA largura do botão, espelhando o cliente do Dota 2.
-// NÃO ofusca o background (sem backdrop) — o painel é um cartão sólido ancorado no botão.
-// Refs: "menu lateral - competitiva.png", "find por role.png", "salas personalizadas.png".
+// PlayMenu — "Jogar Dota": drawer lateral direito que abre POR COMPLETO (full-height),
+// sem ofuscar o background, espelhando o cliente do Dota 2. Navegação INTERNA ao painel:
+//   menu (modalidades) → Salas: Navegar (lista) → clicar sala (LobbyRoom embedded).
+// Criar sala abre um POPUP GRANDE CENTRALIZADO (configurações da sala).
 //
-// Modalidades (Pedro 2026-06-03):
-//   - Competitiva / Busca por função → grupo que o bot convida pro lobby in-house.
-//   - Salas Personalizadas → Criar / Navegar lobby.
-//   - Ranked com PRO → organiza grupo pra buscar no ranking OFICIAL do Dota.
-//
-// Visitante vê o painel (vitrine); ações disparam login. Sem permissão → pop-up de quiz.
+// Pedro 2026-06-03: o menu NÃO cresce a partir do botão (≠ miniprofile) — abre completo.
+// Lista e sala vivem DENTRO do painel (não no centro da tela). Criar = modal central.
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import {
+  X,
   ChevronDown,
   Swords,
   Users,
@@ -24,13 +20,23 @@ import {
   Compass,
   Loader2,
   Search,
-  Play,
+  RefreshCw,
+  ArrowLeft,
 } from "lucide-react";
 import { signInWithDiscord } from "@/app/login/actions";
 import { enterQueue, type QueueRole, type QueueGameMode } from "@/app/queue/actions";
 import { PermissionQuizModal } from "@/components/quiz/permission-quiz-modal";
+import {
+  fetchOpenLobbies,
+  fetchLobbyRoom,
+  type LobbyListItem,
+  type LobbyRoomData,
+} from "@/app/lobbies/fetch-actions";
+import { LobbyRoom } from "@/app/lobbies/[id]/lobby-room";
+import { CriarLobbyForm } from "@/app/criar-lobby/criar-lobby-form";
 
 type Modalidade = "competitiva" | "salas" | "pro";
+type View = "menu" | "lista" | "sala";
 
 const ROLES: { id: QueueRole; pos: string; label: string }[] = [
   { id: "safelane", pos: "1", label: "Segura (Carry)" },
@@ -47,19 +53,36 @@ const GAME_MODES: { id: QueueGameMode; label: string }[] = [
   { id: "single_draft", label: "Escolha única" },
 ];
 
-interface Props {
-  isVisitor: boolean;
-}
+const GAME_MODE_LABELS: Record<string, string> = {
+  all_pick: "Escolha livre",
+  captains_mode: "Modo Capitães",
+  random_draft: "Seleção aleatória",
+  single_draft: "Escolha única",
+};
 
-export function PlayMenu({ isVisitor }: Props) {
+export function PlayMenu({ isVisitor }: { isVisitor: boolean }) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [view, setView] = useState<View>("menu");
+
+  // Competitiva
   const [active, setActive] = useState<Modalidade>("competitiva");
   const [roles, setRoles] = useState<Set<QueueRole>>(new Set());
   const [gameMode, setGameMode] = useState<QueueGameMode>("all_pick");
   const [error, setError] = useState<string | null>(null);
   const [showQuiz, setShowQuiz] = useState(false);
   const [pending, startTransition] = useTransition();
-  const router = useRouter();
+
+  // Salas
+  const [lobbies, setLobbies] = useState<LobbyListItem[]>([]);
+  const [lobbyData, setLobbyData] = useState<LobbyRoomData | null>(null);
+  const [loadingSalas, startSalas] = useTransition();
+  const [showCreate, setShowCreate] = useState(false);
+
+  function close() {
+    setOpen(false);
+    setView("menu");
+  }
 
   function toggleRole(r: QueueRole) {
     setRoles((prev) => {
@@ -82,149 +105,163 @@ export function PlayMenu({ isVisitor }: Props) {
         gameMode,
       });
       if (!res.success) {
-        if (res.code === "need_permission") {
-          setShowQuiz(true);
-          return;
-        }
-        setError(res.error);
+        if (res.code === "need_permission") setShowQuiz(true);
+        else setError(res.error);
         return;
       }
-      setOpen(false);
+      close();
       router.refresh();
     });
   }
 
+  function openLista() {
+    if (isVisitor) {
+      void signInWithDiscord();
+      return;
+    }
+    startSalas(async () => {
+      setLobbies(await fetchOpenLobbies());
+      setView("lista");
+    });
+  }
+
+  function openSala(id: string) {
+    startSalas(async () => {
+      const d = await fetchLobbyRoom(id);
+      if (d) {
+        setLobbyData(d);
+        setView("sala");
+      }
+    });
+  }
+
+  function refetchSala() {
+    if (!lobbyData) return;
+    void fetchLobbyRoom(lobbyData.lobby.id).then((d) => d && setLobbyData(d));
+  }
+
   return (
-    <div className="pointer-events-auto relative w-[300px] xl:w-[340px]">
-      {/* Painel — cresce ACIMA do botão, mesma largura, sem ofuscar o fundo */}
-      {open && (
-        <div className="absolute bottom-full right-0 mb-2 flex max-h-[68vh] w-full flex-col overflow-hidden rounded-md border border-brand-primary/40 bg-bg-deep/97 shadow-2xl shadow-black/80 animate-in slide-in-from-bottom-2 fade-in duration-150">
-          <div className="flex-1 overflow-y-auto p-2 space-y-1.5">
-            <Section
-              icon={Swords}
-              title="Competitiva"
-              subtitle="Busca por função"
-              active={active === "competitiva"}
-              onToggle={() => setActive("competitiva")}
-            >
-              <p className="mb-2.5 font-body text-sm leading-relaxed text-text-muted">
-                Escolha as funções que topa jogar. Formamos o grupo e o bot convida
-                todo mundo.
-              </p>
-              <ul className="space-y-1">
-                {ROLES.map((r) => {
-                  const on = roles.has(r.id);
-                  return (
-                    <li key={r.id}>
-                      <button
-                        type="button"
-                        onClick={() => toggleRole(r.id)}
-                        className={`flex w-full items-center gap-2.5 rounded-[var(--radius-md)] border px-2.5 py-1.5 text-left transition-colors ${
-                          on
-                            ? "border-brand-primary bg-brand-primary/10"
-                            : "border-border-subtle bg-bg-elevated hover:border-brand-primary/50"
-                        }`}
-                      >
-                        <span
-                          className={`flex size-5 shrink-0 items-center justify-center rounded-sm font-display text-sm font-bold ${
-                            on ? "bg-brand-primary text-bg-deep" : "bg-bg-surface text-text-muted"
-                          }`}
-                        >
-                          {r.pos}
-                        </span>
-                        <span className="font-body text-sm text-text-body">{r.label}</span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-              <select
-                value={gameMode}
-                onChange={(e) => setGameMode(e.target.value as QueueGameMode)}
-                className="mt-2.5 w-full rounded-[var(--radius-md)] border border-border-subtle bg-bg-elevated px-2.5 py-1.5 font-body text-sm text-text-body"
-                aria-label="Modo de jogo"
-              >
-                {GAME_MODES.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.label}
-                  </option>
-                ))}
-              </select>
-            </Section>
-
-            <Section
-              icon={Users}
-              title="Salas Personalizadas"
-              subtitle="Crie ou entre num lobby"
-              active={active === "salas"}
-              onToggle={() => setActive("salas")}
-            >
-              <p className="mb-2.5 font-body text-sm leading-relaxed text-text-muted">
-                Monte uma sala com suas regras (o bot cria e convida) ou navegue pelas
-                salas abertas.
-              </p>
-              <div className="grid grid-cols-2 gap-2">
-                <LinkOrLogin isVisitor={isVisitor} href="/criar-lobby" icon={Plus} label="Criar" variant="primary" />
-                <LinkOrLogin isVisitor={isVisitor} href="/lobbies" icon={Compass} label="Navegar" variant="secondary" />
-              </div>
-            </Section>
-
-            <Section
-              icon={Crown}
-              title="Ranked com PRO"
-              subtitle="Ranking oficial do Dota"
-              active={active === "pro"}
-              onToggle={() => setActive("pro")}
-            >
-              <p className="mb-2.5 font-body text-sm leading-relaxed text-text-muted">
-                Entre na fila de um PRO. Ele organiza o grupo e vocês sobem MMR juntos no
-                ranking oficial. Exige 1 ficha + 1 permissão.
-              </p>
-              <LinkOrLogin isVisitor={isVisitor} href="/ranked-com-pro" icon={Crown} label="Ver PROs na fila" variant="primary" full />
-            </Section>
-          </div>
-
-          {/* Buscar Partida — só na competitiva (rodapé do painel, acima do botão base) */}
-          {active === "competitiva" && (
-            <div className="border-t border-border-subtle p-2 space-y-1.5">
-              {error && (
-                <p className="rounded border border-error/30 bg-error/5 px-2.5 py-1.5 font-mono text-sm text-error">
-                  {error}
-                </p>
-              )}
-              <button
-                type="button"
-                onClick={handleBuscar}
-                disabled={pending}
-                className="flex w-full items-center justify-center gap-2 rounded-md border border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover px-4 py-2.5 font-display text-base font-bold uppercase tracking-[0.15em] text-text-display transition-all hover:brightness-110 disabled:opacity-60"
-              >
-                {pending ? <Loader2 size={18} className="animate-spin" /> : <Search size={18} aria-hidden="true" />}
-                Buscar Partida
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Botão base "Jogar Dota" — sempre visível, define a largura do menu */}
+    <>
+      {/* Botão base "Jogar Dota" (na bottom-bar) */}
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
-        aria-expanded={open}
-        className="group relative flex h-14 w-full items-center justify-center gap-3 overflow-hidden rounded-md border-2 border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover px-6 font-display text-lg font-bold uppercase tracking-[0.25em] text-text-display shadow-lg shadow-[var(--color-play-primary-glow)] transition-all hover:scale-[1.02] xl:h-16 xl:text-xl"
+        onClick={() => setOpen(true)}
+        className="pointer-events-auto group relative flex h-14 items-center gap-3 overflow-hidden rounded-md border-2 border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover px-8 font-display text-lg font-bold uppercase tracking-[0.25em] text-text-display shadow-lg shadow-[var(--color-play-primary-glow)] transition-all hover:scale-[1.02] xl:h-16 xl:px-12 xl:text-xl 2xl:h-20 2xl:px-16 2xl:text-2xl"
       >
-        <Play size={22} fill="currentColor" aria-hidden="true" />
+        <Search size={22} aria-hidden="true" />
         <span>Jogar Dota</span>
-        <ChevronDown
-          size={18}
-          className={`transition-transform ${open ? "rotate-180" : ""}`}
-          aria-hidden="true"
-        />
         <span
           className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform [transition-duration:var(--motion-duration-hero)] group-hover:translate-x-full"
           aria-hidden="true"
         />
       </button>
+
+      {/* Drawer completo (full-height), SEM ofuscar o fundo */}
+      {open && (
+        <aside
+          role="dialog"
+          aria-label="Jogar Dota"
+          className="pointer-events-auto fixed right-0 top-0 bottom-0 z-[100] flex w-[400px] xl:w-[460px] flex-col border-l border-brand-primary/40 bg-bg-deep/97 shadow-2xl shadow-black/80 animate-in slide-in-from-right duration-200"
+        >
+          {/* Header do painel */}
+          <header className="flex items-center justify-between gap-2 border-b border-border-subtle px-4 py-3">
+            {view === "menu" ? (
+              <span className="flex items-center gap-2 font-display text-lg font-bold uppercase tracking-wide text-text-display">
+                <Swords size={18} className="text-play-primary" aria-hidden="true" />
+                Jogar Dota
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setView(view === "sala" ? "lista" : "menu")}
+                className="flex items-center gap-1.5 font-display text-sm font-semibold uppercase tracking-wide text-text-faded hover:text-text-body transition-colors"
+              >
+                <ArrowLeft size={15} /> Voltar
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={close}
+              aria-label="Fechar"
+              className="rounded-sm p-1 text-text-faded hover:bg-bg-elevated hover:text-text-body transition-colors"
+            >
+              <X size={18} aria-hidden="true" />
+            </button>
+          </header>
+
+          {/* Corpo por view */}
+          {view === "menu" && (
+            <MenuView
+              active={active}
+              setActive={setActive}
+              roles={roles}
+              toggleRole={toggleRole}
+              gameMode={gameMode}
+              setGameMode={setGameMode}
+              isVisitor={isVisitor}
+              error={error}
+              pending={pending}
+              onBuscar={handleBuscar}
+              onCriar={() => setShowCreate(true)}
+              onNavegar={openLista}
+              onPro={() => router.push("/ranked-com-pro")}
+              loadingSalas={loadingSalas}
+            />
+          )}
+
+          {view === "lista" && (
+            <ListaView
+              lobbies={lobbies}
+              loading={loadingSalas}
+              onSelect={openSala}
+              onCreate={() => setShowCreate(true)}
+              onRefresh={openLista}
+            />
+          )}
+
+          {view === "sala" && lobbyData && (
+            <div className="flex-1 overflow-y-auto">
+              <LobbyRoom
+                lobby={lobbyData.lobby}
+                players={lobbyData.players}
+                currentUserId={lobbyData.currentUserId}
+                isLeader={lobbyData.isLeader}
+                leaderUsername={lobbyData.leaderUsername}
+                onMutate={refetchSala}
+              />
+            </div>
+          )}
+        </aside>
+      )}
+
+      {/* Popup CENTRAL grande — Configurações da Sala (criar) */}
+      {showCreate && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="w-full max-w-4xl max-h-[92vh] overflow-y-auto rounded-md border border-brand-primary/40 bg-bg-deep p-6 shadow-2xl shadow-black/80 animate-in zoom-in-95 duration-150">
+            <div className="mb-5 flex items-center justify-between">
+              <h2 className="font-display text-xl font-bold uppercase tracking-[0.2em] text-text-display">
+                Configurações da sala
+              </h2>
+              <button
+                type="button"
+                onClick={() => setShowCreate(false)}
+                aria-label="Fechar"
+                className="rounded-sm p-1 text-text-faded hover:bg-bg-elevated hover:text-text-body transition-colors"
+              >
+                <X size={20} aria-hidden="true" />
+              </button>
+            </div>
+            <CriarLobbyForm
+              onClose={() => setShowCreate(false)}
+              onCreated={(id) => {
+                setShowCreate(false);
+                if (!open) setOpen(true);
+                openSala(id);
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       <PermissionQuizModal
         open={showQuiz}
@@ -235,9 +272,200 @@ export function PlayMenu({ isVisitor }: Props) {
           handleBuscar();
         }}
       />
-    </div>
+    </>
   );
 }
+
+/* ---------------- Menu (modalidades) ---------------- */
+
+function MenuView({
+  active,
+  setActive,
+  roles,
+  toggleRole,
+  gameMode,
+  setGameMode,
+  isVisitor,
+  error,
+  pending,
+  onBuscar,
+  onCriar,
+  onNavegar,
+  onPro,
+  loadingSalas,
+}: {
+  active: Modalidade;
+  setActive: (m: Modalidade) => void;
+  roles: Set<QueueRole>;
+  toggleRole: (r: QueueRole) => void;
+  gameMode: QueueGameMode;
+  setGameMode: (m: QueueGameMode) => void;
+  isVisitor: boolean;
+  error: string | null;
+  pending: boolean;
+  onBuscar: () => void;
+  onCriar: () => void;
+  onNavegar: () => void;
+  onPro: () => void;
+  loadingSalas: boolean;
+}) {
+  return (
+    <>
+      <div className="flex-1 overflow-y-auto p-3 space-y-2">
+        <Section icon={Swords} title="Competitiva" subtitle="Busca por função" active={active === "competitiva"} onToggle={() => setActive("competitiva")}>
+          <p className="mb-2.5 font-body text-sm leading-relaxed text-text-muted">
+            Escolha as funções que topa jogar. Formamos o grupo e o bot convida todo mundo.
+          </p>
+          <ul className="space-y-1">
+            {ROLES.map((r) => {
+              const on = roles.has(r.id);
+              return (
+                <li key={r.id}>
+                  <button
+                    type="button"
+                    onClick={() => toggleRole(r.id)}
+                    className={`flex w-full items-center gap-2.5 rounded-[var(--radius-md)] border px-2.5 py-1.5 text-left transition-colors ${
+                      on ? "border-brand-primary bg-brand-primary/10" : "border-border-subtle bg-bg-elevated hover:border-brand-primary/50"
+                    }`}
+                  >
+                    <span className={`flex size-5 shrink-0 items-center justify-center rounded-sm font-display text-sm font-bold ${on ? "bg-brand-primary text-bg-deep" : "bg-bg-surface text-text-muted"}`}>
+                      {r.pos}
+                    </span>
+                    <span className="font-body text-sm text-text-body">{r.label}</span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+          <select
+            value={gameMode}
+            onChange={(e) => setGameMode(e.target.value as QueueGameMode)}
+            className="mt-2.5 w-full rounded-[var(--radius-md)] border border-border-subtle bg-bg-elevated px-2.5 py-1.5 font-body text-sm text-text-body"
+            aria-label="Modo de jogo"
+          >
+            {GAME_MODES.map((m) => (
+              <option key={m.id} value={m.id}>{m.label}</option>
+            ))}
+          </select>
+        </Section>
+
+        <Section icon={Users} title="Salas Personalizadas" subtitle="Crie ou entre num lobby" active={active === "salas"} onToggle={() => setActive("salas")}>
+          <p className="mb-2.5 font-body text-sm leading-relaxed text-text-muted">
+            Monte uma sala com suas regras (o bot cria e convida) ou navegue pelas salas abertas.
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            <ActionBtn icon={Plus} label="Criar" variant="primary" onClick={() => (isVisitor ? void signInWithDiscord() : onCriar())} />
+            <ActionBtn icon={Compass} label="Navegar" variant="secondary" loading={loadingSalas} onClick={onNavegar} />
+          </div>
+        </Section>
+
+        <Section icon={Crown} title="Ranked com PRO" subtitle="Ranking oficial do Dota" active={active === "pro"} onToggle={() => setActive("pro")}>
+          <p className="mb-2.5 font-body text-sm leading-relaxed text-text-muted">
+            Entre na fila de um PRO. Ele organiza o grupo e vocês sobem MMR juntos no ranking oficial. Exige 1 ficha + 1 permissão.
+          </p>
+          <ActionBtn icon={Crown} label="Ver PROs na fila" variant="primary" full onClick={() => (isVisitor ? void signInWithDiscord() : onPro())} />
+        </Section>
+      </div>
+
+      {active === "competitiva" && (
+        <div className="border-t border-border-subtle p-3 space-y-1.5">
+          {error && (
+            <p className="rounded border border-error/30 bg-error/5 px-2.5 py-1.5 font-mono text-sm text-error">{error}</p>
+          )}
+          <button
+            type="button"
+            onClick={onBuscar}
+            disabled={pending}
+            className="flex w-full items-center justify-center gap-2 rounded-md border border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover px-4 py-2.5 font-display text-base font-bold uppercase tracking-[0.15em] text-text-display transition-all hover:brightness-110 disabled:opacity-60"
+          >
+            {pending ? <Loader2 size={18} className="animate-spin" /> : <Search size={18} aria-hidden="true" />}
+            Buscar Partida
+          </button>
+        </div>
+      )}
+    </>
+  );
+}
+
+/* ---------------- Lista de salas (dentro do painel) ---------------- */
+
+function ListaView({
+  lobbies,
+  loading,
+  onSelect,
+  onCreate,
+  onRefresh,
+}: {
+  lobbies: LobbyListItem[];
+  loading: boolean;
+  onSelect: (id: string) => void;
+  onCreate: () => void;
+  onRefresh: () => void;
+}) {
+  return (
+    <>
+      <div className="flex items-center justify-between gap-2 border-b border-border-subtle px-3 py-2">
+        <span className="font-display text-sm font-bold uppercase tracking-[0.2em] text-text-display">
+          Salas de Dota
+        </span>
+        <button
+          type="button"
+          onClick={onRefresh}
+          disabled={loading}
+          className="flex items-center gap-1.5 font-display text-sm font-semibold uppercase tracking-wide text-text-faded hover:text-text-body transition-colors"
+        >
+          <RefreshCw size={12} className={loading ? "animate-spin" : ""} aria-hidden="true" />
+          Atualizar
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-2 space-y-1.5">
+        {lobbies.length === 0 ? (
+          <div className="px-3 py-10 text-center">
+            <Compass size={28} className="mx-auto mb-2 text-text-faded" aria-hidden="true" />
+            <p className="font-display text-sm uppercase tracking-wide text-text-faded">Nenhuma sala aberta</p>
+          </div>
+        ) : (
+          lobbies.map((l) => {
+            const full = l.player_count >= l.max_players;
+            return (
+              <button
+                key={l.id}
+                type="button"
+                onClick={() => onSelect(l.id)}
+                disabled={loading}
+                className="flex w-full items-center gap-3 rounded-[var(--radius-md)] border border-border-subtle bg-bg-elevated/60 px-3 py-2.5 text-left transition-colors hover:border-brand-primary/50 hover:bg-bg-elevated"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="font-display text-sm font-bold text-text-display truncate">{l.name}</p>
+                  <p className="font-body text-sm text-text-faded">
+                    {GAME_MODE_LABELS[l.game_mode] ?? l.game_mode} · Brasil
+                  </p>
+                </div>
+                <span className={`shrink-0 font-mono text-sm ${full ? "text-error" : "text-text-body"}`}>
+                  {l.player_count}/{l.max_players}
+                </span>
+              </button>
+            );
+          })
+        )}
+      </div>
+
+      <div className="border-t border-border-subtle p-3">
+        <button
+          type="button"
+          onClick={onCreate}
+          className="flex w-full items-center justify-center gap-2 rounded-md border border-brand-primary/60 bg-brand-primary/15 px-4 py-2.5 font-display text-sm font-bold uppercase tracking-wide text-brand-primary hover:bg-brand-primary/25 transition-colors"
+        >
+          <Plus size={15} aria-hidden="true" />
+          Criar sala
+        </button>
+      </div>
+    </>
+  );
+}
+
+/* ---------------- helpers ---------------- */
 
 function Section({
   icon: Icon,
@@ -255,68 +483,44 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section
-      className={`overflow-hidden rounded-[var(--radius-md)] border ${
-        active ? "border-brand-primary/40 bg-bg-elevated/60" : "border-border-subtle bg-bg-elevated/30"
-      }`}
-    >
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-expanded={active}
-        className="flex w-full items-center gap-2.5 px-2.5 py-2.5 text-left transition-colors hover:bg-bg-elevated/80"
-      >
+    <section className={`overflow-hidden rounded-[var(--radius-md)] border ${active ? "border-brand-primary/40 bg-bg-elevated/60" : "border-border-subtle bg-bg-elevated/30"}`}>
+      <button type="button" onClick={onToggle} aria-expanded={active} className="flex w-full items-center gap-2.5 px-2.5 py-2.5 text-left transition-colors hover:bg-bg-elevated/80">
         <Icon size={16} className={active ? "text-brand-primary" : "text-text-muted"} aria-hidden="true" />
         <span className="flex-1 min-w-0">
-          <span className="block font-display text-sm font-bold uppercase tracking-wide text-text-display">
-            {title}
-          </span>
+          <span className="block font-display text-sm font-bold uppercase tracking-wide text-text-display">{title}</span>
           <span className="block font-body text-sm text-text-faded">{subtitle}</span>
         </span>
-        <ChevronDown
-          size={15}
-          className={`shrink-0 text-text-faded transition-transform ${active ? "rotate-180" : ""}`}
-          aria-hidden="true"
-        />
+        <ChevronDown size={15} className={`shrink-0 text-text-faded transition-transform ${active ? "rotate-180" : ""}`} aria-hidden="true" />
       </button>
       {active && <div className="px-2.5 pb-2.5">{children}</div>}
     </section>
   );
 }
 
-function LinkOrLogin({
-  isVisitor,
-  href,
+function ActionBtn({
   icon: Icon,
   label,
   variant,
   full,
+  loading,
+  onClick,
 }: {
-  isVisitor: boolean;
-  href: string;
   icon: typeof Plus;
   label: string;
   variant: "primary" | "secondary";
   full?: boolean;
+  loading?: boolean;
+  onClick: () => void;
 }) {
   const cls = `flex ${full ? "w-full" : ""} items-center justify-center gap-2 rounded-[var(--radius-md)] border px-2.5 py-2 font-display text-sm font-bold uppercase tracking-wide transition-colors ${
     variant === "primary"
       ? "border-brand-primary/60 bg-brand-primary/15 text-brand-primary hover:bg-brand-primary/25"
       : "border-border-subtle bg-bg-surface text-text-body hover:border-brand-primary/50"
   }`;
-
-  if (isVisitor) {
-    return (
-      <button type="button" onClick={() => void signInWithDiscord()} className={cls}>
-        <Icon size={14} aria-hidden="true" />
-        {label}
-      </button>
-    );
-  }
   return (
-    <Link href={href} className={cls}>
-      <Icon size={14} aria-hidden="true" />
+    <button type="button" onClick={onClick} disabled={loading} className={cls}>
+      {loading ? <Loader2 size={14} className="animate-spin" /> : <Icon size={14} aria-hidden="true" />}
       {label}
-    </Link>
+    </button>
   );
 }

@@ -12,7 +12,14 @@ import { useToast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
 import { createLobby, type CreateLobbyResult } from "./actions";
 
-export function CriarLobbyForm() {
+interface FormProps {
+  /** Quando embedded num modal/painel: ao criar, dispara onCreated em vez de mostrar
+   *  a tela de senha com navegação. Cancelar dispara onClose. */
+  onCreated?: (lobbyId: string) => void;
+  onClose?: () => void;
+}
+
+export function CriarLobbyForm({ onCreated, onClose }: FormProps = {}) {
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
   const [created, setCreated] = useState<{ lobbyId: string; password: string } | null>(null);
@@ -28,8 +35,13 @@ export function CriarLobbyForm() {
         toast({ type: "error", title: result.error });
         return;
       }
-      setCreated({ lobbyId: result.lobbyId, password: result.password });
       toast({ type: "success", title: "Sala criada!" });
+      // Embedded (modal): fecha e abre a sala no painel. Standalone: tela de senha.
+      if (onCreated) {
+        onCreated(result.lobbyId);
+        return;
+      }
+      setCreated({ lobbyId: result.lobbyId, password: result.password });
     });
   }
 
@@ -187,7 +199,12 @@ export function CriarLobbyForm() {
       </div>
 
       <div className="flex items-center justify-end gap-3">
-        <Button type="button" variant="secondary" size="lg" onClick={() => router.push("/lobbies")}>
+        <Button
+          type="button"
+          variant="secondary"
+          size="lg"
+          onClick={() => (onClose ? onClose() : router.push("/lobbies"))}
+        >
           Cancelar
         </Button>
         <Button type="submit" variant="primary" size="lg" loading={isPending} disabled={isPending}>
