@@ -60,6 +60,8 @@ interface Props {
    * pq router.refresh sozinho não re-roda useEffect+SA.
    */
   onMutate?: () => void;
+  /** Abre o popup de Configurações da Sala (editar). Só faz sentido pro líder. */
+  onEdit?: () => void;
 }
 
 const GAME_MODE_LABELS: Record<string, string> = {
@@ -77,6 +79,7 @@ export function LobbyRoom({
   leaderUsername,
   onBack,
   onMutate,
+  onEdit,
 }: Props) {
   const teamSize = Math.floor(lobby.maxPlayers / 2);
   const team1 = players.filter((p) => p.team === "radiant");
@@ -165,8 +168,8 @@ export function LobbyRoom({
         onMutate={onMutate}
       />
 
-      {/* Configurações da sala (read-only) */}
-      <SettingsPanel lobby={lobby} isLeader={isLeader} />
+      {/* Configurações da sala (líder pode editar via popup) */}
+      <SettingsPanel lobby={lobby} isLeader={isLeader} onEdit={onEdit} />
 
       {/* Ações finais.
           Leader: "Sair da sala" (transfere capitania se houver outros) +
@@ -517,9 +520,11 @@ function SpectatorRow({
 function SettingsPanel({
   lobby,
   isLeader,
+  onEdit,
 }: {
   lobby: LobbyData;
   isLeader: boolean;
+  onEdit?: () => void;
 }) {
   return (
     <section className="border-b border-border-subtle bg-black/30 px-3 py-3">
@@ -527,12 +532,11 @@ function SettingsPanel({
         <p className="font-sans text-sm font-semibold uppercase tracking-[0.25em] text-white/60">
           Configurações da sala
         </p>
-        {isLeader && (
+        {isLeader && onEdit && (
           <button
             type="button"
-            disabled
-            className="font-sans text-sm uppercase tracking-widest text-white/40 hover:text-white transition-colors disabled:cursor-not-allowed"
-            title="Editar (V2)"
+            onClick={onEdit}
+            className="font-sans text-sm uppercase tracking-widest text-brand-primary hover:text-white transition-colors"
           >
             Editar
           </button>

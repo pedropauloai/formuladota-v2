@@ -10,16 +10,19 @@ import { useRouter } from "next/navigation";
 import { Copy, Check, ChevronDown, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
-import { createLobby, type CreateLobbyResult } from "./actions";
+import { createLobby, updateLobbySettings, type CreateLobbyResult } from "./actions";
 
 interface FormProps {
   /** Quando embedded num modal/painel: ao criar, dispara onCreated em vez de mostrar
    *  a tela de senha com navegação. Cancelar dispara onClose. */
   onCreated?: (lobbyId: string) => void;
   onClose?: () => void;
+  /** Quando setado, o form EDITA a sala existente em vez de criar uma nova. */
+  editLobbyId?: string;
+  defaults?: { name?: string; gameMode?: string };
 }
 
-export function CriarLobbyForm({ onCreated, onClose }: FormProps = {}) {
+export function CriarLobbyForm({ onCreated, onClose, editLobbyId, defaults }: FormProps = {}) {
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
   const [created, setCreated] = useState<{ lobbyId: string; password: string } | null>(null);
@@ -30,12 +33,14 @@ export function CriarLobbyForm({ onCreated, onClose }: FormProps = {}) {
 
   function handleSubmit(formData: FormData) {
     startTransition(async () => {
-      const result: CreateLobbyResult = await createLobby(formData);
+      const result: CreateLobbyResult = editLobbyId
+        ? await updateLobbySettings(formData)
+        : await createLobby(formData);
       if (!result.success) {
         toast({ type: "error", title: result.error });
         return;
       }
-      toast({ type: "success", title: "Sala criada!" });
+      toast({ type: "success", title: editLobbyId ? "Configurações salvas!" : "Sala criada!" });
       // Embedded (modal): fecha e abre a sala no painel. Standalone: tela de senha.
       if (onCreated) {
         onCreated(result.lobbyId);
@@ -92,6 +97,7 @@ export function CriarLobbyForm({ onCreated, onClose }: FormProps = {}) {
 
   return (
     <form action={handleSubmit} className="space-y-6">
+      {editLobbyId && <input type="hidden" name="lobbyId" value={editLobbyId} />}
       {/* Bloco principal */}
       <div className="rounded-md border border-border-subtle bg-bg-elevated/40 p-5 space-y-5">
         <div className="grid gap-4 sm:grid-cols-3">
@@ -102,12 +108,13 @@ export function CriarLobbyForm({ onCreated, onClose }: FormProps = {}) {
               required
               minLength={3}
               maxLength={60}
+              defaultValue={defaults?.name}
               placeholder="FORMULADOTA #42"
               className={INPUT}
             />
           </Field>
           <Field label="Modo">
-            <select name="gameMode" defaultValue="all_pick" className={INPUT}>
+            <select name="gameMode" defaultValue={defaults?.gameMode ?? "all_pick"} className={INPUT}>
               <option value="all_pick">Escolha livre competitivo</option>
               <option value="captains_mode">Modo Capitães</option>
               <option value="random_draft">Seleção aleatória</option>
@@ -208,7 +215,13 @@ export function CriarLobbyForm({ onCreated, onClose }: FormProps = {}) {
           Cancelar
         </Button>
         <Button type="submit" variant="primary" size="lg" loading={isPending} disabled={isPending}>
-          {isPending ? "Criando sala..." : "Criar sala"}
+          {isPending
+            ? editLobbyId
+              ? "Salvando..."
+              : "Criando sala..."
+            : editLobbyId
+              ? "Salvar configurações"
+              : "Criar sala"}
         </Button>
       </div>
     </form>

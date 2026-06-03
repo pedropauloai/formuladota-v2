@@ -110,6 +110,51 @@ export async function createLobby(formData: FormData): Promise<CreateLobbyResult
   return { success: true, lobbyId: lobby.id, password };
 }
 
+const updateSchema = z.object({
+  lobbyId: z.string().uuid(),
+  name: z.string().min(3).max(60),
+  gameMode: z.enum(["all_pick", "captains_mode", "random_draft", "single_draft"]),
+  password: z.string().max(20).optional(),
+});
+
+// Editar configurações de uma sala existente (só o líder, garantido por created_by + RLS).
+export async function updateLobbySettings(
+  formData: FormData
+): Promise<CreateLobbyResult> {
+  const parsed = updateSchema.safeParse({
+    lobbyId: formData.get("lobbyId"),
+    name: formData.get("name"),
+    gameMode: formData.get("gameMode"),
+    password: formData.get("password") ?? undefined,
+  });
+  if (!parsed.success) return { success: false, error: "Dados inválidos." };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Não autenticado." };
+
+  const update: { name: string; game_mode: string; password?: string } = {
+    name: parsed.data.name,
+    game_mode: parsed.data.gameMode,
+  };
+  const custom = parsed.data.password?.trim();
+  if (custom && custom.length >= 4) update.password = custom;
+
+  const { error } = await supabase
+    .from("lobbies")
+    .update(update)
+    .eq("id", parsed.data.lobbyId)
+    .eq("created_by", user.id);
+
+  if (error) {
+    console.error("[updateLobbySettings] update falhou:", error.message);
+    return { success: false, error: "Erro ao salvar as configurações." };
+  }
+  return { success: true, lobbyId: parsed.data.lobbyId, password: custom ?? "" };
+}
+
 export async function cancelLobby(formData: FormData): Promise<void> {
   const lobbyId = formData.get("lobbyId");
   if (typeof lobbyId !== "string") return;

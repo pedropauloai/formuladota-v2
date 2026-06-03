@@ -14,7 +14,6 @@ import { useRouter } from "next/navigation";
 import {
   X,
   ChevronDown,
-  ChevronLeft,
   Swords,
   Users,
   Crown,
@@ -89,37 +88,41 @@ export function PlayMenu({ isVisitor, initial }: Props) {
   const [lobbyData, setLobbyData] = useState<LobbyRoomData | null>(null);
   const [loadingSalas, startSalas] = useTransition();
   const [showCreate, setShowCreate] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   // Persiste o estado no cookie sempre que muda (sobrevive à navegação entre rotas).
   useEffect(() => {
     void setPlayMenuState({ s: phase, v: view, l: lobbyId, a: active });
   }, [phase, view, lobbyId, active]);
 
-  // Ao montar: normaliza estado restaurado do cookie + re-busca a sala aberta.
+  // Ao montar: normaliza estado legado do cookie + re-busca a sala aberta.
   useEffect(() => {
-    // A aba (collapsed) só existe DENTRO de um lobby. Cookie inconsistente → botão.
-    if (phase === "collapsed" && view !== "sala") {
-      setPhase("button");
-      return;
-    }
+    if (phase === "collapsed") setPhase("button"); // estado de aba foi descontinuado
     if (view === "sala" && lobbyId) {
-      void fetchLobbyRoom(lobbyId).then((d) => d && setLobbyData(d));
+      void fetchLobbyRoom(lobbyId).then((d) => {
+        if (d) setLobbyData(d);
+        else {
+          // Sala sumiu (usuário saiu / foi encerrada) → volta pro menu.
+          setView("menu");
+          setLobbyId(null);
+        }
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Click FORA do drawer (quando expandido). Pedro 2026-06-03: só RETRAI pra aba quando
-  // o usuário está DENTRO de um lobby (view sala); fora disso, fecha pro botão.
+  // Click FORA do drawer (quando expandido) → fecha pro botão. Se houver lobby ativo,
+  // o botão vira "Voltar à sala" (Pedro 2026-06-03 — sem aba retraída).
   useEffect(() => {
     if (phase !== "expanded") return;
     function onDown(e: MouseEvent) {
       if (drawerRef.current && !drawerRef.current.contains(e.target as Node)) {
-        setPhase(view === "sala" ? "collapsed" : "button");
+        setPhase("button");
       }
     }
     document.addEventListener("mousedown", onDown);
     return () => document.removeEventListener("mousedown", onDown);
-  }, [phase, view]);
+  }, [phase]);
 
   function toggleRole(r: QueueRole) {
     setRoles((prev) => {
@@ -179,40 +182,26 @@ export function PlayMenu({ isVisitor, initial }: Props) {
   }
 
   const inSala = view === "sala" && !!lobbyData;
+  // Há um lobby ativo? (mesmo com o menu fechado → botão vira "Voltar à sala").
+  const hasSala = view === "sala" && !!lobbyId;
   // Sala usa um drawer MAIS LARGO (Pedro: visualização maior que o normal).
   const widthCls = inSala ? "w-[600px] xl:w-[720px]" : "w-[400px] xl:w-[460px]";
 
   return (
     <>
-      {/* Estado BUTTON — botão "Jogar Dota" na bottom-bar */}
+      {/* Estado BUTTON — "Jogar Dota", ou "Voltar à sala" se houver lobby ativo */}
       {phase === "button" && (
         <button
           type="button"
           onClick={() => setPhase("expanded")}
           className="pointer-events-auto group relative flex h-14 items-center gap-3 overflow-hidden rounded-md border-2 border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover px-8 font-display text-lg font-bold uppercase tracking-[0.25em] text-text-display shadow-lg shadow-[var(--color-play-primary-glow)] transition-all hover:scale-[1.02] xl:h-16 xl:px-12 xl:text-xl 2xl:h-20 2xl:px-16 2xl:text-2xl"
         >
-          <Search size={22} aria-hidden="true" />
-          <span>Jogar Dota</span>
+          {hasSala ? <ArrowLeft size={22} aria-hidden="true" /> : <Search size={22} aria-hidden="true" />}
+          <span>{hasSala ? "Voltar à sala" : "Jogar Dota"}</span>
           <span
             className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform [transition-duration:var(--motion-duration-hero)] group-hover:translate-x-full"
             aria-hidden="true"
           />
-        </button>
-      )}
-
-      {/* Estado COLLAPSED — aba de CIMA A BAIXO na borda direita (full-height) */}
-      {phase === "collapsed" && (
-        <button
-          type="button"
-          onClick={() => setPhase("expanded")}
-          aria-label="Abrir Jogar Dota"
-          className="pointer-events-auto fixed right-0 top-0 bottom-0 z-[100] flex w-9 flex-col items-center justify-center gap-3 border-l-2 border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover text-text-display shadow-lg shadow-[var(--color-play-primary-glow)] transition-all hover:w-11 xl:w-11 xl:hover:w-12"
-        >
-          <ChevronLeft size={18} aria-hidden="true" />
-          <span className="font-display text-base font-bold uppercase tracking-[0.3em] [writing-mode:vertical-rl]">
-            Jogar Dota
-          </span>
-          <ChevronLeft size={18} aria-hidden="true" />
         </button>
       )}
 
@@ -241,8 +230,8 @@ export function PlayMenu({ isVisitor, initial }: Props) {
             )}
             <button
               type="button"
-              onClick={() => setPhase(view === "sala" ? "collapsed" : "button")}
-              aria-label={view === "sala" ? "Minimizar" : "Fechar"}
+              onClick={() => setPhase("button")}
+              aria-label="Fechar"
               className="rounded-sm p-1 text-text-faded hover:bg-bg-elevated hover:text-text-body transition-colors"
             >
               <X size={18} aria-hidden="true" />
@@ -287,6 +276,10 @@ export function PlayMenu({ isVisitor, initial }: Props) {
                 isLeader={lobbyData.isLeader}
                 leaderUsername={lobbyData.leaderUsername}
                 onMutate={refetchSala}
+                onEdit={() => {
+                  setEditing(true);
+                  setShowCreate(true);
+                }}
               />
             </div>
           )}
@@ -311,11 +304,25 @@ export function PlayMenu({ isVisitor, initial }: Props) {
               </button>
             </div>
             <CriarLobbyForm
-              onClose={() => setShowCreate(false)}
+              editLobbyId={editing && lobbyData ? lobbyData.lobby.id : undefined}
+              defaults={
+                editing && lobbyData
+                  ? { name: lobbyData.lobby.name, gameMode: lobbyData.lobby.gameMode }
+                  : undefined
+              }
+              onClose={() => {
+                setShowCreate(false);
+                setEditing(false);
+              }}
               onCreated={(id) => {
                 setShowCreate(false);
-                setPhase("expanded");
-                openSala(id);
+                if (editing) {
+                  setEditing(false);
+                  refetchSala();
+                } else {
+                  setPhase("expanded");
+                  openSala(id);
+                }
               }}
             />
           </div>
