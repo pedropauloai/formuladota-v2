@@ -1095,7 +1095,7 @@ export default function ComponentsPage() {
           <p className="text-sm text-text-muted">
             Toast canônico do PRODUCT_CORE (F-1): <code className="font-mono text-brand-primary text-sm">useToast()</code> →{" "}
             <code className="font-mono text-brand-primary text-sm">toast(&#123; type, title, description &#125;)</code>. Substitui o
-            sonner legado (ainda usado em páginas V2 — migração pendente).
+            sonner legado — já 100% migrado e removido do projeto (2026-06-02).
           </p>
           <div className="flex flex-wrap gap-3">
             <Button variant="secondary" size="sm" onClick={() => toast({ type: "success", title: "Pagamento confirmado." })}>

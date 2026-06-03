@@ -5,7 +5,7 @@
 
 import { Copy, Check } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
+import { useToast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
 
 interface QRCodeDisplayProps {
@@ -15,6 +15,7 @@ interface QRCodeDisplayProps {
 }
 
 export function QRCodeDisplay({ brCode, brCodeBase64, expiresAt }: QRCodeDisplayProps) {
+  const { toast } = useToast();
   const [copied, setCopied] = useState(false);
   const expiresFormatted = formatExpiresAt(expiresAt);
 
@@ -22,10 +23,10 @@ export function QRCodeDisplay({ brCode, brCodeBase64, expiresAt }: QRCodeDisplay
     try {
       await navigator.clipboard.writeText(brCode);
       setCopied(true);
-      toast.success("Código PIX copiado!", { description: "Cole no app do seu banco." });
+      toast({ type: "success", title: "Código PIX copiado!", description: "Cole no app do seu banco." });
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      toast.error("Não consegui copiar. Selecione o código manualmente.");
+      toast({ type: "error", title: "Não consegui copiar. Selecione o código manualmente." });
       console.error("[QRCodeDisplay] clipboard falhou:", err);
     }
   }

@@ -7,7 +7,7 @@
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, LogOut, Trash2, X } from "lucide-react";
-import { toast } from "sonner";
+import { useToast } from "@/components/ui/toast";
 import { leaveTeam, kickMember, deleteTeam } from "../actions";
 import { Button } from "@/components/ui/button";
 
@@ -32,6 +32,7 @@ export function TeamDetailActions({
   members: Member[];
   currentUserId: string;
 }) {
+  const { toast } = useToast();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -40,10 +41,10 @@ export function TeamDetailActions({
     startTransition(async () => {
       const r = await leaveTeam(teamId);
       if (!r.success) {
-        toast.error(r.error);
+        toast({ type: "error", title: r.error });
         return;
       }
-      toast.success("Você saiu do time.");
+      toast({ type: "success", title: "Você saiu do time." });
       router.push("/times");
     });
   };
@@ -53,10 +54,10 @@ export function TeamDetailActions({
     startTransition(async () => {
       const r = await deleteTeam(teamId);
       if (!r.success) {
-        toast.error(r.error);
+        toast({ type: "error", title: r.error });
         return;
       }
-      toast.success("Time deletado.");
+      toast({ type: "success", title: "Time deletado." });
       router.push("/times");
     });
   };
@@ -66,10 +67,10 @@ export function TeamDetailActions({
     startTransition(async () => {
       const r = await kickMember({ teamId, userId });
       if (!r.success) {
-        toast.error(r.error);
+        toast({ type: "error", title: r.error });
         return;
       }
-      toast.success("Membro removido.");
+      toast({ type: "success", title: "Membro removido." });
       router.refresh();
     });
   };

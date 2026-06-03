@@ -5,7 +5,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Copy, Check } from "lucide-react";
-import { toast } from "sonner";
+import { useToast } from "@/components/ui/toast";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -24,6 +24,7 @@ const FIELD_INPUT = cn(
 );
 
 export function CriarLobbyForm() {
+  const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
   const [created, setCreated] = useState<{ lobbyId: string; password: string } | null>(null);
   const [copied, setCopied] = useState(false);
@@ -33,11 +34,11 @@ export function CriarLobbyForm() {
     startTransition(async () => {
       const result: CreateLobbyResult = await createLobby(formData);
       if (!result.success) {
-        toast.error(result.error);
+        toast({ type: "error", title: result.error });
         return;
       }
       setCreated({ lobbyId: result.lobbyId, password: result.password });
-      toast.success("Lobby criado!");
+      toast({ type: "success", title: "Lobby criado!" });
     });
   };
 

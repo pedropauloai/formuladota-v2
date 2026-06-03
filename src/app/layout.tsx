@@ -15,15 +15,13 @@ import "@fontsource/ubuntu/500.css";
 import "@fontsource/ubuntu/700.css";
 import "@fontsource-variable/teko";
 import "@/styles/globals.css";
-import { Toaster } from "@/components/ui/sonner";
 // V2.5-F5: Sound infrastructure — singleton Howler + mobile autoplay gate (DF5.1, DF5.4, DF5.6)
 import { SoundProvider } from "@/components/layout/sound-provider";
 // StickyQueueBanner REMOVIDO (Pedro 2026-05-26) — substituído por QueueStatusPill
 // que vive dentro da topbar (sem forçar scroll de página).
 import { QueueRealtimeListener } from "@/components/queue/realtime-listener";
 // V2.5-F6: ToastProvider — sistema de toasts bottom-center custom (DF6.4)
-// Substitui Sonner como novo padrão para features V2.5+.
-// sonner.tsx mantido como compat layer para código legado.
+// Único sistema de toast do app (sonner removido 2026-06-02 — migração completa).
 import { ToastProvider } from "@/components/ui/toast";
 // ConfirmProvider — substitui window.confirm/alert/prompt nativos do browser
 // por modais customizados FORMULADOTA (Pedro 2026-05-26). API Promise-based
@@ -119,8 +117,6 @@ export default function RootLayout({
             /vincular/steam). Layout root não impõe mais chrome — cada rota é
             responsável pelo próprio. */}
         <div className="flex-1">{children}</div>
-        {/* Toaster global (Sonner compat) — mantido para código legado */}
-        <Toaster />
         </ConfirmProvider>
         </ToastProvider>
         </SoundProvider>

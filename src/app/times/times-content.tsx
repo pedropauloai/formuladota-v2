@@ -6,7 +6,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Crown, Plus, Users, X, Loader2, Mail, Check } from "lucide-react";
-import { toast } from "sonner";
+import { useToast } from "@/components/ui/toast";
 import {
   createTeam,
   acceptInvite,
@@ -105,6 +105,7 @@ export function TimesContent({
 // ============== Invite Card ==============
 
 function InviteCard({ invite }: { invite: Invite }) {
+  const { toast } = useToast();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -112,10 +113,10 @@ function InviteCard({ invite }: { invite: Invite }) {
     startTransition(async () => {
       const r = await acceptInvite(invite.id);
       if (!r.success) {
-        toast.error(r.error);
+        toast({ type: "error", title: r.error });
         return;
       }
-      toast.success(`Você entrou no ${invite.team?.name ?? "time"}!`);
+      toast({ type: "success", title: `Você entrou no ${invite.team?.name ?? "time"}!` });
       router.refresh();
     });
   };
@@ -124,7 +125,7 @@ function InviteCard({ invite }: { invite: Invite }) {
     startTransition(async () => {
       const r = await declineInvite(invite.id);
       if (!r.success) {
-        toast.error(r.error);
+        toast({ type: "error", title: r.error });
         return;
       }
       router.refresh();
@@ -187,6 +188,7 @@ function InviteCard({ invite }: { invite: Invite }) {
 // ============== Team Card ==============
 
 function TeamCard({ team }: { team: UserTeam }) {
+  const { toast } = useToast();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -195,10 +197,10 @@ function TeamCard({ team }: { team: UserTeam }) {
     startTransition(async () => {
       const r = await leaveTeam(team.id);
       if (!r.success) {
-        toast.error(r.error);
+        toast({ type: "error", title: r.error });
         return;
       }
-      toast.success("Você saiu do time.");
+      toast({ type: "success", title: "Você saiu do time." });
       router.refresh();
     });
   };
@@ -276,6 +278,7 @@ function TeamCard({ team }: { team: UserTeam }) {
 // ============== Create Team Modal ==============
 
 function CreateTeamModal({ onClose }: { onClose: () => void }) {
+  const { toast } = useToast();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [name, setName] = useState("");
@@ -301,10 +304,10 @@ function CreateTeamModal({ onClose }: { onClose: () => void }) {
         description: description || undefined,
       });
       if (!r.success) {
-        toast.error(r.error);
+        toast({ type: "error", title: r.error });
         return;
       }
-      toast.success("Time criado!");
+      toast({ type: "success", title: "Time criado!" });
       router.refresh();
       if (r.teamSlug) {
         router.push(`/times/${r.teamSlug}`);
