@@ -1,8 +1,10 @@
 # Pricing Model — FormulaDota
 
-**Data:** 2026-05-23
-**Status:** Locked V1 (Pedro aprovou modelo descentralizado com guardrails)
+**Data:** 2026-05-23 · **REVERTIDO 2026-06-02**
+**Status:** DEPRECADO — modelo descentralizado descartado (ver banner abaixo).
 **Decisor:** Pedro Paulo (Founder)
+
+> **REVERSÃO 2026-06-02 (Pedro):** o pricing descentralizado (PRO edita preço, teto por tier HONOR, cooldown 30d, histórico imutável) foi **DESCARTADO**. Agora é **preço FIXO de R$ 10,00 por ficha**, definido pela plataforma — PRO NÃO edita preço. Código removido (`src/app/pro/pricing-actions.ts`, `src/components/pro/price-editor-card.tsx`); `packages.preco_brl = 10,00` em todos os avulsos. O conteúdo abaixo permanece como registro histórico do modelo abandonado. O split de receita (`REVENUE_MODEL.md`) continua válido, aplicado sobre os R$ 10.
 
 ---
 

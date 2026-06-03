@@ -71,10 +71,12 @@ promove ninguem por nivel; a promocao so existe apos o processo da Parte II.
 | Q1 | Nivel da conta (HONOR) atual | Mistico (nivel 30) | `honor_scores.level = 30` |
 | Q2 | Sustentacao de nivel | Mistico (nivel 30) sustentado por 2+ temporadas consecutivas | `honor_level_history` ultimas 2 seasons = nivel 30 |
 | Q3 | Commendations mentor | 3+ commendations tipo "mentor" na carreira | `peer_commendations` all-time tipo "mentor" |
-| Q4 | Skill documentada | MMR Valve documentado (eixo SKILL externo) | Sincronizado via OpenDota |
+| Q4 | Medalha Valve | **Imortal na Valve** (top ~0.5% MMR) — requisito DURO (Pedro 2026-06-02) | `profiles.mmr_atual` na faixa Imortal (sincronizado via OpenDota) |
 | Q5 | Historico de strikes | Zero strikes graves em todo o historico | `honor_ledger` sem nenhum `strike_grave` |
 | Q6 | Tempo de doutrina | Aceitou doutrina ha 6+ meses | `profiles.doctrine_accepted_at <= NOW() - INTERVAL '6 months'` |
 | Q7 | Presenca minima | 80%+ de presenca na ultima temporada completa | `match_attendance.rate >= 0.80` ultima season |
+
+**Regra dura (Pedro 2026-06-02):** PRO exige, simultaneamente, **Místico (nível 30, Q1)** + **Imortal na Valve (Q4)** + **avaliação e aprovação individual de Pedro** (Parte II). Os três são obrigatórios — nenhum sozinho promove.
 
 **Nota sobre Q5:** Strikes graves incluem: toxicidade explicita com abuso verbal documentado,
 banimento temporario anterior, manipulacao de partida, comportamento antidesportivo reincidente.
