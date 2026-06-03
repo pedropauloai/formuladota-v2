@@ -139,6 +139,33 @@ export function getGatedTierForLevel(
   return band;
 }
 
+// Espelho da curva de level_thresholds (migration 021): XP cumulativo pra ATINGIR cada
+// nível (índice 0 = nível 1, piso 0). Permite calcular a barra de XP no client sem query.
+// Nível N ocupa [CUMULATIVE[N-1], CUMULATIVE[N]). Mantém alinhado com o banco.
+const LEVEL_CUMULATIVE_XP: number[] = [
+  0, 350, 750, 1250, 1850, 2750, 3750, 4850, 6050, 7350, 8750, // 1–11
+  10450, 12250, 14150, 16150, 18250, 20450, // 12–17
+  22950, 25550, 28250, 31050, 33950, 36950, 40050, // 18–24
+  46850, 50850, 55050, 59450, 64050, 72050, // 25–30
+];
+
+/**
+ * Dado o XP total acumulado, retorna o nível (1-30) e a fração de progresso (0-1)
+ * dentro do nível atual rumo ao próximo. Nível 30 = barra cheia.
+ */
+export function xpProgress(totalXp: number): { level: number; pct: number } {
+  let level = 1;
+  for (let i = 0; i < LEVEL_CUMULATIVE_XP.length; i++) {
+    if (totalXp >= LEVEL_CUMULATIVE_XP[i]!) level = i + 1;
+    else break;
+  }
+  if (level >= 30) return { level: 30, pct: 1 };
+  const floor = LEVEL_CUMULATIVE_XP[level - 1]!;
+  const ceil = LEVEL_CUMULATIVE_XP[level]!;
+  const pct = ceil > floor ? (totalXp - floor) / (ceil - floor) : 0;
+  return { level, pct: Math.max(0, Math.min(1, pct)) };
+}
+
 export const XP_SOURCE_LABELS: Record<string, string> = {
   match_completed: "Partida concluída",
   doctrine_accepted: "Doutrina aceita",

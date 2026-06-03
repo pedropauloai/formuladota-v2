@@ -35,6 +35,7 @@ import { getMyQueueStatus, getSearchingCount } from "@/lib/queries/queue";
 import { getPreviewModeActive } from "@/lib/auth/preview-mode";
 import { getSidebarExpanded } from "@/lib/auth/sidebar-preference";
 import { getAcceptedFriends } from "@/lib/queries/friends";
+import { xpProgress } from "@/lib/levels";
 import { DashboardTopBar } from "./top-bar";
 import { MiniProfilePanel } from "./mini-profile-panel";
 import { DashboardRightSidebar } from "./right-sidebar";
@@ -117,6 +118,10 @@ export async function ClientShell({
   const proPromotion = privateData?.proPromotion ?? null;
   const fichaBalance = privateData?.fichaBalance ?? 0;
   const myQueues = privateData?.myQueues ?? [];
+  // Nível + barra de XP + saldo de permissões (pro mini-profile / avatar-ring).
+  const userLevel = privateData?.level ?? 1;
+  const userXpPct = privateData?.xpPct ?? 0;
+  const matchPermissions = privateData?.permissions ?? 0;
 
   const prosOnline = prosWithQueues.map((p) => p.coach);
   // Pedro 2026-05-26: StickyQueueBanner antigo foi REMOVIDO. Status "Na fila"
@@ -219,6 +224,9 @@ export async function ClientShell({
             tag={userTag}
             isAdmin={adminFlag}
             fichaBalance={fichaBalance}
+            level={userLevel}
+            xpPct={userXpPct}
+            permissions={matchPermissions}
             initialExpanded={sidebarExpanded}
             currentUserId={user?.id ?? null}
             initialFriends={acceptedFriends}
@@ -316,6 +324,9 @@ export async function ClientShell({
           tag={userTag}
           isAdmin={adminFlag}
           fichaBalance={fichaBalance}
+          level={userLevel}
+          xpPct={userXpPct}
+          permissions={matchPermissions}
           initialExpanded={sidebarExpanded}
           currentUserId={user?.id ?? null}
           initialFriends={acceptedFriends}
@@ -350,10 +361,13 @@ async function fetchPrivateData(
     { data: proPromotion },
     fichaBalance,
     myQueues,
+    { data: levelRow },
   ] = await Promise.all([
     supabase
       .from("profiles")
-      .select("username, avatar_url, role, is_admin")
+      .select(
+        "username, avatar_url, role, is_admin, doctrine_quiz_progress, match_permissions_consumed"
+      )
       .eq("id", userId)
       .single(),
     supabase
@@ -370,7 +384,32 @@ async function fetchPrivateData(
       .maybeSingle(),
     getMyFichaBalance(userId),
     getMyQueueStatus(userId),
+    supabase
+      .from("user_levels")
+      .select("total_xp_earned")
+      .eq("user_id", userId)
+      .maybeSingle(),
   ]);
 
-  return { profile, steamLink, proPromotion, fichaBalance, myQueues };
+  // Nível + barra de XP derivados do XP total (espelho da curva no client).
+  const { level, pct: xpPct } = xpProgress(levelRow?.total_xp_earned ?? 0);
+  // Saldo de permissões = floor(acertos / 5) - consumidas.
+  const answered = Array.isArray(profile?.doctrine_quiz_progress)
+    ? profile.doctrine_quiz_progress.length
+    : 0;
+  const permissions = Math.max(
+    0,
+    Math.floor(answered / 5) - (profile?.match_permissions_consumed ?? 0)
+  );
+
+  return {
+    profile,
+    steamLink,
+    proPromotion,
+    fichaBalance,
+    myQueues,
+    level,
+    xpPct,
+    permissions,
+  };
 }

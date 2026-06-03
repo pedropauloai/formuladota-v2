@@ -13,12 +13,10 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { DOCTRINE_VERSION } from "@/lib/doctrine";
 import { QUIZ_QUESTIONS } from "@/lib/quiz/questions";
+import { QUESTIONS_PER_PERMISSION } from "@/lib/quiz/permissions";
 
 const TOTAL = QUIZ_QUESTIONS.length;
 const QUESTION_MAP = new Map(QUIZ_QUESTIONS.map((q) => [q.id, q]));
-
-// Quantos acertos geram 1 permissao de partida.
-export const QUESTIONS_PER_PERMISSION = 5;
 
 function readProgress(raw: unknown): string[] {
   return Array.isArray(raw)

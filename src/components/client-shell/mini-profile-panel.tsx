@@ -33,11 +33,12 @@ import {
   BookOpen,
   LogIn,
   Users,
+  ShieldCheck,
 } from "lucide-react";
 import { signInWithDiscord } from "@/app/login/actions";
 import { toggleSidebar } from "@/lib/auth/sidebar-preference";
 import { FriendsList } from "@/components/profile/friends-list";
-import { UserAvatar } from "@/components/ui/avatar";
+import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import type { FriendListEntry } from "@/lib/queries/friends";
 
 interface Props {
@@ -47,6 +48,12 @@ interface Props {
   tag: string;
   isAdmin: boolean;
   fichaBalance: number;
+  /** Nível da conta (0-30) pro avatar-ring. */
+  level: number;
+  /** Progresso de XP dentro do nível (0-1) — barra na borda do avatar. */
+  xpPct: number;
+  /** Saldo de permissões de partida (5 acertos = 1). */
+  permissions: number;
   /** Estado inicial do cookie sidebar_expanded — passado do shell SSR. */
   initialExpanded: boolean;
   /** UUID do user logado — pra usePresenceChannel. Null se visitante. */
@@ -62,6 +69,9 @@ export function MiniProfilePanel({
   tag,
   isAdmin,
   fichaBalance,
+  level,
+  xpPct,
+  permissions,
   initialExpanded,
   currentUserId,
   initialFriends,
@@ -98,6 +108,8 @@ export function MiniProfilePanel({
           tag={tag}
           isAdmin={isAdmin}
           fichaBalance={fichaBalance}
+          level={level}
+          xpPct={xpPct}
           currentUserId={currentUserId}
           initialFriends={initialFriends}
         />
@@ -112,6 +124,9 @@ export function MiniProfilePanel({
           avatar={avatar}
           tag={tag}
           isAdmin={isAdmin}
+          level={level}
+          xpPct={xpPct}
+          permissions={permissions}
           connectedTop={expanded}
         />
         <ToggleIcon expanded={expanded} onToggle={handleToggle} />
@@ -129,12 +144,18 @@ function CollapsedCard({
   avatar,
   tag,
   isAdmin,
+  level,
+  xpPct,
+  permissions,
   connectedTop = false,
 }: {
   persona: string | null;
   avatar: string | null;
   tag: string;
   isAdmin: boolean;
+  level: number;
+  xpPct: number;
+  permissions: number;
   /** Quando true (painel expandido aberto), borda superior + canto superior
       ficam planos pra conectar visualmente ao ExpandedPanel acima. */
   connectedTop?: boolean;
@@ -149,12 +170,13 @@ function CollapsedCard({
           : "rounded-md"
       }`}
     >
-      <UserAvatar
-        src={avatar ?? undefined}
+      <XpAvatarRing
+        src={avatar}
         alt={`Avatar de ${persona ?? "Anônimo"}`}
         fallback={(persona ?? "??").slice(0, 2)}
-        size="md"
-        ringColor="brand"
+        level={level}
+        pct={xpPct}
+        size={36}
       />
       <div className="flex-1 min-w-0 text-left">
         <p className="font-display text-sm font-semibold text-text-display truncate">
@@ -165,7 +187,21 @@ function CollapsedCard({
           {isAdmin && <span className="ml-1 text-yellow-500">★</span>}
         </p>
       </div>
+      <PermissionsBadge permissions={permissions} />
     </Link>
+  );
+}
+
+// Indicador de permissões de partida (5 acertos = 1). Tooltip no hover explica.
+function PermissionsBadge({ permissions }: { permissions: number }) {
+  return (
+    <span
+      className="flex shrink-0 items-center gap-1 rounded-sm border border-brand-primary/30 bg-brand-primary/10 px-1.5 py-1 font-display text-sm font-bold text-brand-primary"
+      title="Permissões de partida — acerte 5 perguntas pra ganhar +1 e liberar 1 partida de qualquer modalidade."
+    >
+      <ShieldCheck size={13} aria-hidden="true" />
+      <span className="tabular-nums">{permissions}</span>
+    </span>
   );
 }
 
@@ -209,6 +245,8 @@ function ExpandedPanel({
   tag,
   isAdmin,
   fichaBalance,
+  level,
+  xpPct,
   currentUserId,
   initialFriends,
 }: {
@@ -217,6 +255,8 @@ function ExpandedPanel({
   tag: string;
   isAdmin: boolean;
   fichaBalance: number;
+  level: number;
+  xpPct: number;
   currentUserId: string | null;
   initialFriends: FriendListEntry[];
 }) {
@@ -232,12 +272,13 @@ function ExpandedPanel({
           aria-label="Ver meu perfil"
           className="flex items-start gap-3 rounded hover:bg-bg-elevated/40 transition-colors p-1 -m-1"
         >
-          <UserAvatar
-            src={avatar ?? undefined}
+          <XpAvatarRing
+            src={avatar}
             alt={`Avatar de ${persona ?? "Anônimo"}`}
             fallback={(persona ?? "??").slice(0, 2)}
-            size="lg"
-            ringColor="brand"
+            level={level}
+            pct={xpPct}
+            size={52}
           />
           <div className="flex-1 min-w-0">
             <p className="font-display text-lg font-semibold text-text-display truncate">

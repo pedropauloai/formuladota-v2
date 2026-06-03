@@ -19,7 +19,18 @@ export default async function DoutrinaPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/");
 
-  const progress = await getDoctrineProgress();
+  const [progress, { data: profile }, { data: steamLink }] = await Promise.all([
+    getDoctrineProgress(),
+    supabase.from("profiles").select("username, avatar_url").eq("id", user.id).single(),
+    supabase
+      .from("steam_links")
+      .select("persona, avatar_url")
+      .eq("user_id", user.id)
+      .maybeSingle(),
+  ]);
+
+  const persona = steamLink?.persona ?? profile?.username ?? "Você";
+  const avatar = steamLink?.avatar_url ?? profile?.avatar_url ?? null;
 
   return (
     <main className="relative min-h-screen">
@@ -28,7 +39,8 @@ export default async function DoutrinaPage() {
         <RitualDoutrina
           initialAnsweredIds={progress.answeredIds}
           initialDoctrinated={progress.doctrinated}
-          initialLevel={progress.level}
+          persona={persona}
+          avatar={avatar}
         />
       </div>
     </main>

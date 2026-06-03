@@ -13,6 +13,8 @@ import { Check, X, ArrowRight, Lock, CheckCircle2, ArrowLeft } from "lucide-reac
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { HonorRankMedal } from "@/components/ui/honor-rank-medal";
+import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
+import { xpProgress } from "@/lib/levels";
 import { DURATIONS, EASINGS } from "@/lib/motion/presets";
 import { cn } from "@/lib/utils";
 import { QUIZ_QUESTIONS } from "@/lib/quiz/questions";
@@ -30,25 +32,28 @@ import { recordDoctrineAnswer } from "./actions";
 
 const TOTAL = QUIZ_QUESTIONS.length;
 const QUESTION_BY_ID = new Map(QUIZ_QUESTIONS.map((q) => [q.id, q]));
+// XP por acerto (migration 043). Durante a doutrina é a única fonte de XP, então
+// estimar totalXp = acertos * 22 dá uma barra de XP precisa que sobe em tempo real.
+const XP_PER_QUESTION = 22;
 
 type View = "intro" | "trail" | "lesson" | "complete";
 
 interface RitualDoutrinaProps {
   initialAnsweredIds: string[];
   initialDoctrinated: boolean;
-  /** Nível atual da conta (0-30), do servidor. */
-  initialLevel: number;
+  persona: string;
+  avatar: string | null;
 }
 
 export function RitualDoutrina({
   initialAnsweredIds,
   initialDoctrinated,
-  initialLevel,
+  persona,
+  avatar,
 }: RitualDoutrinaProps) {
   const [correctIds, setCorrectIds] = useState<Set<string>>(
     () => new Set(initialAnsweredIds)
   );
-  const [level, setLevel] = useState(initialLevel);
   const [view, setView] = useState<View>("intro");
   const [activeLessonIdx, setActiveLessonIdx] = useState<number>(-1);
   // Fila de ids da licao atual ainda nao dominados (re-enfileira ao errar).
@@ -106,10 +111,8 @@ export function RitualDoutrina({
     if (gotIt) {
       const id = current.id;
       setCorrectIds((prev) => new Set(prev).add(id));
-      // Persiste + credita XP. Atualiza o nivel exibido em tempo real.
-      void recordDoctrineAnswer(id, chosen).then((res) => {
-        if (res.ok) setLevel(res.level);
-      });
+      // Persiste + credita XP no servidor (a barra do header sobe via `done`, otimista).
+      void recordDoctrineAnswer(id, chosen);
     } else {
       nextQueue.push(current.id); // errou — volta no fim da licao
     }
@@ -133,7 +136,7 @@ export function RitualDoutrina({
 
   return (
     <div className="mx-auto flex min-h-screen max-w-2xl flex-col px-6 py-12">
-      <RitualHeader done={done} pct={pct} level={level} />
+      <RitualHeader done={done} pct={pct} persona={persona} avatar={avatar} />
 
       <div className="flex flex-1 flex-col justify-center py-10">
         {view === "intro" && (
@@ -185,37 +188,52 @@ export function RitualDoutrina({
 function RitualHeader({
   done,
   pct,
-  level,
+  persona,
+  avatar,
 }: {
   done: number;
   pct: number;
-  level: number;
+  persona: string;
+  avatar: string | null;
 }) {
+  // Durante a doutrina o XP vem só do quiz, então acertos*22 é uma estimativa fiel
+  // que sobe em tempo real a cada acerto (mesma math do servidor — migration 043).
+  const { level, pct: xpPct } = xpProgress(done * XP_PER_QUESTION);
   return (
-    <div className="space-y-2">
-      <div className="flex items-baseline justify-between">
-        <span className="font-display text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
-          Ritual de Doutrinação
-        </span>
-        <span className="font-display text-sm font-semibold text-text-body">
-          Nível {level} · {done}/{TOTAL}
-        </span>
-      </div>
-      <div
-        role="progressbar"
-        aria-label="Progresso rumo ao nível 6 (Aprendiz)"
-        aria-valuenow={pct}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        className="h-1.5 w-full overflow-hidden rounded-full bg-bg-elevated"
-      >
+    <div className="flex items-center gap-3">
+      <XpAvatarRing
+        src={avatar}
+        alt={`Avatar de ${persona}`}
+        fallback={persona.slice(0, 2)}
+        level={level}
+        pct={xpPct}
+        size={40}
+      />
+      <div className="flex-1 space-y-1.5">
+        <div className="flex items-baseline justify-between">
+          <span className="font-display text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
+            Ritual de Doutrinação
+          </span>
+          <span className="font-display text-sm font-semibold text-text-body">
+            {done}/{TOTAL}
+          </span>
+        </div>
         <div
-          className="h-full bg-brand-primary transition-all duration-500"
-          style={{
-            width: `${pct}%`,
-            boxShadow: "0 0 12px var(--color-brand-primary-glow)",
-          }}
-        />
+          role="progressbar"
+          aria-label="Progresso rumo ao nível 6 (Aprendiz)"
+          aria-valuenow={pct}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          className="h-1.5 w-full overflow-hidden rounded-full bg-bg-elevated"
+        >
+          <div
+            className="h-full bg-brand-primary transition-all duration-500"
+            style={{
+              width: `${pct}%`,
+              boxShadow: "0 0 12px var(--color-brand-primary-glow)",
+            }}
+          />
+        </div>
       </div>
     </div>
   );

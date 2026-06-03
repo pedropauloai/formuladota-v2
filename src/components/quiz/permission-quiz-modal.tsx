@@ -14,11 +14,8 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { QUIZ_QUESTIONS } from "@/lib/quiz/questions";
 import type { QuizQuestion } from "@/lib/quiz/types";
-import {
-  recordDoctrineAnswer,
-  getDoctrineProgress,
-  QUESTIONS_PER_PERMISSION,
-} from "@/app/doutrina/actions";
+import { recordDoctrineAnswer, getDoctrineProgress } from "@/app/doutrina/actions";
+import { QUESTIONS_PER_PERMISSION } from "@/lib/quiz/permissions";
 
 interface Props {
   open: boolean;
