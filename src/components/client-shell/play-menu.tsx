@@ -113,8 +113,11 @@ export function PlayMenu({ isVisitor, initial }: Props) {
 
   // Click FORA do drawer (quando expandido) → fecha pro botão. Se houver lobby ativo,
   // o botão vira "Voltar à sala" (Pedro 2026-06-03 — sem aba retraída).
+  // IMPORTANTE: pausado enquanto o popup de Configurações da Sala está aberto — senão
+  // cliques nos selects/checkboxes do popup (que ficam fora do drawer) fechariam o menu
+  // e travariam a interação com as opções.
   useEffect(() => {
-    if (phase !== "expanded") return;
+    if (phase !== "expanded" || showCreate || showQuiz) return;
     function onDown(e: MouseEvent) {
       if (drawerRef.current && !drawerRef.current.contains(e.target as Node)) {
         setPhase("button");
@@ -122,7 +125,7 @@ export function PlayMenu({ isVisitor, initial }: Props) {
     }
     document.addEventListener("mousedown", onDown);
     return () => document.removeEventListener("mousedown", onDown);
-  }, [phase]);
+  }, [phase, showCreate, showQuiz]);
 
   function toggleRole(r: QueueRole) {
     setRoles((prev) => {
