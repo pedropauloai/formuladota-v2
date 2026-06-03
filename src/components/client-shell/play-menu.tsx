@@ -291,7 +291,7 @@ export function PlayMenu({ isVisitor, initial }: Props) {
 
       {/* Popup CENTRAL grande — Configurações da Sala (criar) */}
       {showCreate && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm animate-in fade-in duration-150">
+        <div className="pointer-events-auto fixed inset-0 z-[110] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm animate-in fade-in duration-150">
           <div className="w-full max-w-4xl max-h-[92vh] overflow-y-auto rounded-md border border-brand-primary/40 bg-bg-deep p-6 shadow-2xl shadow-black/80 animate-in zoom-in-95 duration-150">
             <div className="mb-5 flex items-center justify-between">
               <h2 className="font-display text-xl font-bold uppercase tracking-[0.2em] text-text-display">

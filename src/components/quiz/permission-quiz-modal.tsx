@@ -92,7 +92,7 @@ export function PermissionQuizModal({ open, modalidade, onClose, onGranted }: Pr
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm animate-in fade-in duration-200"
+      className="pointer-events-auto fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm animate-in fade-in duration-200"
       role="dialog"
       aria-modal="true"
       aria-label="Responda pra liberar a partida"
