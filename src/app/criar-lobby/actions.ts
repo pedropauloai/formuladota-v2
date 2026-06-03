@@ -59,7 +59,7 @@ export async function createLobby(formData: FormData): Promise<CreateLobbyResult
     if (insertErr?.code === "42501") {
       return {
         success: false,
-        error: "Responda 5 perguntas (na fila/menu) pra liberar a criação de salas.",
+        error: "Criar salas exige assinatura ativa. Ative sua mensalidade pra hospedar.",
       };
     }
     console.error("[createLobby] insert falhou:", insertErr?.message);
