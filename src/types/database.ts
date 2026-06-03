@@ -580,6 +580,7 @@ export type Database = {
           started_at: string | null
           status: string
           steam_lobby_id: string | null
+          tier: string
         }
         Insert: {
           bot_account_name?: string | null
@@ -598,6 +599,7 @@ export type Database = {
           started_at?: string | null
           status?: string
           steam_lobby_id?: string | null
+          tier?: string
         }
         Update: {
           bot_account_name?: string | null
@@ -616,6 +618,7 @@ export type Database = {
           started_at?: string | null
           status?: string
           steam_lobby_id?: string | null
+          tier?: string
         }
         Relationships: [
           {
@@ -2295,6 +2298,7 @@ export type Database = {
     }
     Functions: {
       accept_team_invite: { Args: { p_invite_id: string }; Returns: undefined }
+      available_match_permissions: { Args: { p_uid: string }; Returns: number }
       award_xp: {
         Args: {
           p_amount: number
@@ -2312,10 +2316,12 @@ export type Database = {
           next_change_allowed_at: string
         }[]
       }
+      can_join_elite: { Args: { p_uid: string }; Returns: boolean }
       cancel_pro_waiting_entries: {
         Args: { p_coach_id: string; p_reason: string }
         Returns: number
       }
+      consume_match_permission: { Args: never; Returns: undefined }
       consume_pt_fichas: { Args: { p_match_id: string }; Returns: undefined }
       ensure_player_season_mmr: {
         Args: { p_user_id: string }

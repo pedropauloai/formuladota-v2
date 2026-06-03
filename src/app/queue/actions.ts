@@ -23,7 +23,7 @@ export type QueueGameMode =
 
 export type QueueResult =
   | { success: true; queueId: string }
-  | { success: false; error: string };
+  | { success: false; error: string; code?: "need_permission" };
 
 export interface QueueStatus {
   inQueue: boolean;
@@ -49,6 +49,14 @@ export async function enterQueue(input: {
     return { success: false, error: "Selecione pelo menos 1 função." };
   }
 
+  // Já estava na fila? (re-entrada/troca de função NÃO cobra outra permissão)
+  const { data: prevWaiting } = await supabase
+    .from("match_queue")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("status", "waiting")
+    .maybeSingle();
+
   // Cancela entries waiting anteriores antes de criar nova (idempotência)
   await supabase
     .from("match_queue")
@@ -69,14 +77,22 @@ export async function enterQueue(input: {
     .single();
 
   if (error) {
+    // RLS barra quem não tem permissão nem doutrina → dispara o pop-up de perguntas.
     if (error.code === "42501") {
       return {
         success: false,
-        error: "Mensalidade ativa exigida pra entrar na fila.",
+        error: "Responda 5 perguntas pra liberar 1 partida.",
+        code: "need_permission",
       };
     }
     console.error("[enterQueue] insert falhou:", error.message);
     return { success: false, error: "Erro ao entrar na fila." };
+  }
+
+  // Consome 1 permissão só em entrada NOVA (não em troca de função). Doutrinado = ilimitado
+  // (a função consume_match_permission ignora doutrinado).
+  if (!prevWaiting) {
+    await supabase.rpc("consume_match_permission");
   }
 
   // Revalida tanto a rota dedicada (feed PROs) quanto o HUB (badges/contadores).

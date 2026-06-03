@@ -25,6 +25,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm";
 import { joinCoachQueue, leaveCoachQueue } from "@/components/landing/actions";
+import { PermissionQuizModal } from "@/components/quiz/permission-quiz-modal";
 
 interface Props {
   coachId: string;
@@ -55,6 +56,8 @@ export function QueueActionButton({
 }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  // Quando o join falha por falta de permissão, abrimos o pop-up de perguntas.
+  const [showQuiz, setShowQuiz] = useState(false);
   const router = useRouter();
   const confirm = useConfirm();
 
@@ -74,6 +77,11 @@ export function QueueActionButton({
       const res = await joinCoachQueue(coachId);
       if (!res.success) {
         setOptimisticInQueue(false);
+        // Sem permissão → abre o pop-up de perguntas em vez de mostrar erro seco.
+        if (res.code === "need_permission") {
+          setShowQuiz(true);
+          return;
+        }
         setError(res.error);
         return;
       }
@@ -122,6 +130,15 @@ export function QueueActionButton({
           {error}
         </p>
       )}
+      <PermissionQuizModal
+        open={showQuiz}
+        modalidade="entrar na fila do PRO"
+        onClose={() => setShowQuiz(false)}
+        onGranted={() => {
+          setShowQuiz(false);
+          handleJoin();
+        }}
+      />
     </div>
   );
 }
