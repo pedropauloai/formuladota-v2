@@ -30,17 +30,20 @@ const LOGIN_PATHS = ["/login"];
 
 const AUTH_FLOW_PATHS = ["/auth", "/api/auth", "/api/webhooks"];
 
-// Opcao C (Pedro 2026-06-02): a doutrina NAO gateia navegacao. So as rotas de "jogar"
-// (lobby/partida in-house) exigem o Ritual completo (nivel 6 / doctrine_accepted). O ritual
-// fica em /doutrina (acessivel a todos os logados; nudge via UI). "Experiencia primeiro,
-// doutrina pra agir" — alinha com o modelo freemium e o POSITIONING.
-const DOCTRINE_REQUIRED_PATHS = ["/lobbies", "/criar-lobby", "/partidas"];
+// Pedro 2026-06-03: o gate de "jogar" deixou de ser "doutrina 100% completa" e virou
+// PERMISSAO (5 acertos = 1 permissao), aplicada na RLS + pop-up de perguntas no fluxo de
+// jogar (ver memory/project_match_permissions). Por isso NENHUMA rota e mais redirecionada
+// pra /doutrina — navegar (lobbies, partidas) e livre pra logado; agir pede permissao.
+// O ritual /doutrina segue acessivel a todos (entrada pela UI / pop-up).
+const DOCTRINE_REQUIRED_PATHS: string[] = [];
 const BLOCKED_STATUS_PATHS = ["/suspended", "/banned"];
 
 // Rotas que exigem Steam vinculado (Phase 3 — H1.1).
 // User logado, com doutrina aceita, mas sem registro em steam_links → redirect /vincular/steam.
 // O próprio /vincular/steam NÃO está na lista (senão loop infinito); a checagem
 // "user já vinculado em /vincular/steam → /perfil" é feita separadamente.
+// Nota (Pedro 2026-06-03): "/lobbies" saiu daqui — NAVEGAR salas é livre pra logado
+// (vitrine). Criar lobby (/criar-lobby) ainda exige Steam (o bot precisa convidar).
 const STEAM_REQUIRED_PATHS = [
   "/pacotes",
   "/checkout",
@@ -50,7 +53,6 @@ const STEAM_REQUIRED_PATHS = [
   "/dashboard",
   "/assinatura",
   "/criar-lobby",
-  "/lobbies",
   "/ranking",
   "/admin",
 ];

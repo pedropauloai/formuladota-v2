@@ -1,30 +1,28 @@
 "use client";
 
-// Bottom bar client — botão grande flutuante. Comportamento condicional:
+// Bottom bar — botão grande flutuante "Jogar Dota" que abre o PlayMenu (menu lateral
+// de modalidades, estilo Dota 2: Competitiva / Salas Personalizadas / Ranked com PRO).
 //
-//   Visitante deslogado          -> form "ENTRAR pra subir de MMR" (verde)
-//   Admin (real)                 -> link "Painel PROs" -> /admin/pros (verde)
-//   Sem ficha                    -> link "Comprar Ficha" -> /checkout/[id] (amber)
-//   Com ficha + na fila          -> botão "Na fila" -> abre QueueStatusModal (blue)
-//   Com ficha + fora da fila     -> botão "Jogar Dota" -> abre JoinQueueModal (verde)
+// Estados:
+//   Visitante       -> "Jogar Dota" abre o menu (vitrine); as ações pedem login.
+//   Admin (real)    -> "Painel PROs" (atalho pro painel).
+//   Em fila (PRO)   -> "Na fila" abre QueueStatusModal.
+//   Default         -> "Jogar Dota" abre o PlayMenu.
 //
-// VISITANTE DESLOGADO (task #63 — 2026-05-24): bottom-bar mantém presença
-// cinematic com CTA "ENTRAR pra subir de MMR" (Server Action OAuth Discord).
-// Não esconde a barra inteira — visitante precisa do peso visual do header +
-// bottom-bar pra perceber a plataforma como "client" jogável, não como
-// landing institucional.
+// Pedro 2026-06-03: deixou de ser "Entrar pra subir de MMR" / acoplado a ficha —
+// agora é "Jogar Dota" abrindo o menu, igual ao cliente do Dota 2. Ficha/permissão
+// são tratadas DENTRO de cada modalidade no PlayMenu.
 
 import { useState } from "react";
 import Link from "next/link";
-import { Play, Coins, Radio, Hourglass, LogIn } from "lucide-react";
+import { Play, Radio, Hourglass } from "lucide-react";
 import type { ProLiveStatus } from "@/lib/queries/pros";
 import type { MyQueueEntry } from "@/lib/queries/queue";
-import { JoinQueueModal } from "@/components/landing/join-queue-modal";
 import { QueueStatusModal } from "@/components/landing/queue-status-modal";
-import { signInWithDiscord } from "@/app/login/actions";
+import { PlayMenu } from "./play-menu";
 
 interface Props {
-  /** Visitante deslogado: troca CTA de jogo por CTA "Entrar pra subir de MMR". */
+  /** Visitante deslogado: o menu abre como vitrine, ações disparam login. */
   isVisitor: boolean;
   isAdmin: boolean;
   fichaBalance: number;
@@ -33,19 +31,11 @@ interface Props {
   myQueues: MyQueueEntry[];
 }
 
-export function DashboardBottomBar({
-  isVisitor,
-  isAdmin,
-  fichaBalance,
-  fichaPackageId,
-  prosOnline,
-  myQueues,
-}: Props) {
-  const [joinModalOpen, setJoinModalOpen] = useState(false);
+export function DashboardBottomBar({ isVisitor, isAdmin, myQueues }: Props) {
+  const [playOpen, setPlayOpen] = useState(false);
   const [statusModalOpen, setStatusModalOpen] = useState(false);
 
   const inQueue = myQueues.length > 0;
-  const onlineProsCount = prosOnline.filter((p) => p.filaAberta).length;
 
   return (
     <>
@@ -53,24 +43,13 @@ export function DashboardBottomBar({
         <Cta
           isVisitor={isVisitor}
           isAdmin={isAdmin}
-          fichaBalance={fichaBalance}
-          fichaPackageId={fichaPackageId}
           inQueue={inQueue}
-          onlineProsCount={onlineProsCount}
-          onJoinClick={() => setJoinModalOpen(true)}
+          onPlayClick={() => setPlayOpen(true)}
           onStatusClick={() => setStatusModalOpen(true)}
         />
       </div>
 
-      {/* Modais só fazem sentido pra logado — visitante nunca chega aqui pq Cta
-          retorna form OAuth antes. Renderizar do mesmo jeito mantém hooks
-          consistentes no client. */}
-      <JoinQueueModal
-        open={joinModalOpen}
-        onClose={() => setJoinModalOpen(false)}
-        prosOnline={prosOnline}
-        fichaBalance={fichaBalance}
-      />
+      <PlayMenu open={playOpen} onClose={() => setPlayOpen(false)} isVisitor={isVisitor} />
       <QueueStatusModal
         open={statusModalOpen}
         onClose={() => setStatusModalOpen(false)}
@@ -83,50 +62,22 @@ export function DashboardBottomBar({
 interface CtaProps {
   isVisitor: boolean;
   isAdmin: boolean;
-  fichaBalance: number;
-  fichaPackageId: string | null;
   inQueue: boolean;
-  onlineProsCount: number;
-  onJoinClick: () => void;
+  onPlayClick: () => void;
   onStatusClick: () => void;
 }
 
-function Cta({
-  isVisitor,
-  isAdmin,
-  fichaBalance,
-  fichaPackageId,
-  inQueue,
-  onlineProsCount,
-  onJoinClick,
-  onStatusClick,
-}: CtaProps) {
+function Cta({ isVisitor, isAdmin, inQueue, onPlayClick, onStatusClick }: CtaProps) {
   const base =
     "pointer-events-auto group relative flex h-14 items-center gap-3 overflow-hidden rounded-md border-2 px-8 font-display text-lg font-bold uppercase tracking-[0.25em] shadow-lg transition-all hover:scale-[1.02] xl:h-16 xl:px-12 xl:text-xl 2xl:h-20 2xl:px-16 2xl:text-2xl 2xl:tracking-[0.3em]";
-  const shine =
+  const shine = (
     <span
       className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform [transition-duration:var(--motion-duration-hero)] group-hover:translate-x-full"
       aria-hidden="true"
-    />;
+    />
+  );
 
-  // Visitante deslogado — CTA OAuth Discord. Vem ANTES do admin/fila pq nenhum
-  // desses estados é alcançável sem sessão.
-  if (isVisitor) {
-    return (
-      <form action={signInWithDiscord}>
-        <button
-          type="submit"
-          className={`${base} border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover text-text-display shadow-[var(--color-play-primary-glow)] hover:shadow-[var(--color-play-primary-glow)]`}
-        >
-          <LogIn size={22} aria-hidden="true" />
-          <span>Entrar pra subir de MMR</span>
-          {shine}
-        </button>
-      </form>
-    );
-  }
-
-  // Admin (real) — atalho pro painel
+  // Admin (real) — atalho pro painel (não para visitante).
   if (isAdmin) {
     return (
       <Link
@@ -140,7 +91,7 @@ function Cta({
     );
   }
 
-  // Cliente em fila — abre QueueStatusModal
+  // Em fila do PRO — abre o status da fila.
   if (inQueue) {
     return (
       <button
@@ -155,35 +106,16 @@ function Cta({
     );
   }
 
-  // Cliente com ficha — abre JoinQueueModal
-  if (fichaBalance > 0) {
-    return (
-      <button
-        type="button"
-        onClick={onJoinClick}
-        className={`${base} border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover text-text-display shadow-[var(--color-play-primary-glow)] hover:shadow-[var(--color-play-primary-glow)]`}
-      >
-        <Play size={22} fill="currentColor" aria-hidden="true" />
-        <span>Jogar Dota</span>
-        {onlineProsCount === 0 && (
-          <span className="ml-2 rounded-md bg-black/30 px-2 py-0.5 font-mono text-sm tracking-widest">
-            sem PRO
-          </span>
-        )}
-        {shine}
-      </button>
-    );
-  }
-
-  // Cliente sem ficha — link pro checkout
+  // Visitante e usuário comum — "Jogar Dota" abre o menu de modalidades.
   return (
-    <Link
-      href={fichaPackageId ? `/checkout/${fichaPackageId}` : "/codigo-de-conduta"}
-      className={`${base} border-amber-400 bg-gradient-to-b from-amber-300 to-amber-500 text-black shadow-amber-500/40 hover:shadow-amber-400/60`}
+    <button
+      type="button"
+      onClick={onPlayClick}
+      className={`${base} border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover text-text-display shadow-[var(--color-play-primary-glow)] hover:shadow-[var(--color-play-primary-glow)]`}
     >
-      <Coins size={22} aria-hidden="true" />
-      <span>Comprar Ficha</span>
+      <Play size={22} fill="currentColor" aria-hidden="true" />
+      <span>Jogar Dota</span>
       {shine}
-    </Link>
+    </button>
   );
 }
