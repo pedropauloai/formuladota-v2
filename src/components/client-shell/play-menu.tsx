@@ -95,25 +95,31 @@ export function PlayMenu({ isVisitor, initial }: Props) {
     void setPlayMenuState({ s: phase, v: view, l: lobbyId, a: active });
   }, [phase, view, lobbyId, active]);
 
-  // Ao montar com uma sala aberta (restaurado do cookie), re-busca os dados dela.
+  // Ao montar: normaliza estado restaurado do cookie + re-busca a sala aberta.
   useEffect(() => {
+    // A aba (collapsed) só existe DENTRO de um lobby. Cookie inconsistente → botão.
+    if (phase === "collapsed" && view !== "sala") {
+      setPhase("button");
+      return;
+    }
     if (view === "sala" && lobbyId) {
       void fetchLobbyRoom(lobbyId).then((d) => d && setLobbyData(d));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Click FORA do drawer (quando expandido) → retrai pra aba lateral.
+  // Click FORA do drawer (quando expandido). Pedro 2026-06-03: só RETRAI pra aba quando
+  // o usuário está DENTRO de um lobby (view sala); fora disso, fecha pro botão.
   useEffect(() => {
     if (phase !== "expanded") return;
     function onDown(e: MouseEvent) {
       if (drawerRef.current && !drawerRef.current.contains(e.target as Node)) {
-        setPhase("collapsed");
+        setPhase(view === "sala" ? "collapsed" : "button");
       }
     }
     document.addEventListener("mousedown", onDown);
     return () => document.removeEventListener("mousedown", onDown);
-  }, [phase]);
+  }, [phase, view]);
 
   function toggleRole(r: QueueRole) {
     setRoles((prev) => {
@@ -140,7 +146,7 @@ export function PlayMenu({ isVisitor, initial }: Props) {
         else setError(res.error);
         return;
       }
-      setPhase("collapsed");
+      setPhase("button");
       router.refresh();
     });
   }
@@ -235,8 +241,8 @@ export function PlayMenu({ isVisitor, initial }: Props) {
             )}
             <button
               type="button"
-              onClick={() => setPhase("collapsed")}
-              aria-label="Recolher"
+              onClick={() => setPhase(view === "sala" ? "collapsed" : "button")}
+              aria-label={view === "sala" ? "Minimizar" : "Fechar"}
               className="rounded-sm p-1 text-text-faded hover:bg-bg-elevated hover:text-text-body transition-colors"
             >
               <X size={18} aria-hidden="true" />
