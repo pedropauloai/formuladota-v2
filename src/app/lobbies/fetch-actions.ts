@@ -48,6 +48,19 @@ export async function fetchOpenLobbies(): Promise<LobbyListItem[]> {
     .order("created_at", { ascending: false })
     .limit(100);
 
+  const ids = (lobbies ?? []).map((l) => l.id);
+  // Contagem real de jogadores por sala (pra coluna "Vagas" X/N).
+  const counts = new Map<string, number>();
+  if (ids.length > 0) {
+    const { data: players } = await supabase
+      .from("lobby_players")
+      .select("lobby_id")
+      .in("lobby_id", ids);
+    for (const p of players ?? []) {
+      counts.set(p.lobby_id, (counts.get(p.lobby_id) ?? 0) + 1);
+    }
+  }
+
   return (lobbies ?? []).map((l) => ({
     id: l.id,
     name: l.name,
@@ -55,7 +68,7 @@ export async function fetchOpenLobbies(): Promise<LobbyListItem[]> {
     status: l.status,
     max_players: l.max_players,
     created_at: l.created_at,
-    player_count: 0, // TODO Phase 6 — JOIN count(lobby_players)
+    player_count: counts.get(l.id) ?? 0,
   }));
 }
 
