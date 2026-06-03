@@ -122,6 +122,13 @@ export async function updateSession(request: NextRequest) {
     if (isPublicPath(pathname)) {
       return response;
     }
+    // Requests RSC (prefetch/navegação client do Next) NÃO podem ser redirecionados
+    // pro fluxo OAuth: o redirect encadeia até discord.com (origem externa) e o browser
+    // bloqueia por CORS ("Request header field rsc is not allowed"). Mandamos o RSC pra
+    // home pública (mesma origem) — a navegação top-level real ainda dispara o OAuth.
+    if (request.headers.get("rsc") === "1") {
+      return NextResponse.redirect(new URL("/", request.url));
+    }
     const loginUrl = new URL("/login", request.url);
     // Preserva path + query da rota pretendida pra retorno pós-login.
     loginUrl.searchParams.set("next", pathname + request.nextUrl.search);
