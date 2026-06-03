@@ -1230,6 +1230,7 @@ export type Database = {
           id: string
           is_admin: boolean
           last_seen_at: string | null
+          match_permissions_consumed: number
           mmr_atual: number | null
           mmr_inicial: number | null
           role: string
@@ -1261,6 +1262,7 @@ export type Database = {
           id: string
           is_admin?: boolean
           last_seen_at?: string | null
+          match_permissions_consumed?: number
           mmr_atual?: number | null
           mmr_inicial?: number | null
           role?: string
@@ -1292,6 +1294,7 @@ export type Database = {
           id?: string
           is_admin?: boolean
           last_seen_at?: string | null
+          match_permissions_consumed?: number
           mmr_atual?: number | null
           mmr_inicial?: number | null
           role?: string
@@ -1714,6 +1717,18 @@ export type Database = {
           slug?: string
           tag?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      temp_uid: {
+        Row: {
+          id: string | null
+        }
+        Insert: {
+          id?: string | null
+        }
+        Update: {
+          id?: string | null
         }
         Relationships: []
       }
@@ -2346,6 +2361,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      grant_doctrine_question_xp: { Args: never; Returns: Json }
       has_accepted_doctrine: { Args: { p_user_id: string }; Returns: boolean }
       has_active_subscription: { Args: never; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
