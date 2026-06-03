@@ -1,18 +1,20 @@
 "use client";
 
-// PlayMenu — "Jogar Dota": drawer lateral direito que abre POR COMPLETO (full-height),
-// sem ofuscar o background, espelhando o cliente do Dota 2. Navegação INTERNA ao painel:
-//   menu (modalidades) → Salas: Navegar (lista) → clicar sala (LobbyRoom embedded).
-// Criar sala abre um POPUP GRANDE CENTRALIZADO (configurações da sala).
+// PlayMenu — "Jogar Dota". 3 estados (persistidos em cookie, sobrevivem à navegação):
+//   button    → só o botão "Jogar Dota" na bottom-bar.
+//   expanded  → drawer lateral full-height (abre por completo, sem ofuscar o fundo).
+//   collapsed → aba fina na borda direita (click reabre). Click FORA do drawer retrai.
 //
-// Pedro 2026-06-03: o menu NÃO cresce a partir do botão (≠ miniprofile) — abre completo.
-// Lista e sala vivem DENTRO do painel (não no centro da tela). Criar = modal central.
+// Navegação interna: menu (modalidades) → Salas Navegar (lista) → sala (LobbyRoom embedded).
+// Criar sala = popup grande centralizado. A view da sala usa um drawer MAIS LARGO.
+// Pedro 2026-06-03.
 
-import { useState, useTransition } from "react";
+import { useState, useEffect, useRef, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   X,
   ChevronDown,
+  ChevronLeft,
   Swords,
   Users,
   Crown,
@@ -26,6 +28,7 @@ import {
 import { signInWithDiscord } from "@/app/login/actions";
 import { enterQueue, type QueueRole, type QueueGameMode } from "@/app/queue/actions";
 import { PermissionQuizModal } from "@/components/quiz/permission-quiz-modal";
+import { setPlayMenuState, type PlayMenuState } from "@/lib/play-menu-preference";
 import {
   fetchOpenLobbies,
   fetchLobbyRoom,
@@ -60,13 +63,21 @@ const GAME_MODE_LABELS: Record<string, string> = {
   single_draft: "Escolha única",
 };
 
-export function PlayMenu({ isVisitor }: { isVisitor: boolean }) {
+interface Props {
+  isVisitor: boolean;
+  initial: PlayMenuState;
+}
+
+export function PlayMenu({ isVisitor, initial }: Props) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
-  const [view, setView] = useState<View>("menu");
+  const drawerRef = useRef<HTMLElement>(null);
+
+  const [phase, setPhase] = useState<PlayMenuState["s"]>(initial.s);
+  const [view, setView] = useState<View>(initial.v);
+  const [active, setActive] = useState<Modalidade>(initial.a);
+  const [lobbyId, setLobbyId] = useState<string | null>(initial.l);
 
   // Competitiva
-  const [active, setActive] = useState<Modalidade>("competitiva");
   const [roles, setRoles] = useState<Set<QueueRole>>(new Set());
   const [gameMode, setGameMode] = useState<QueueGameMode>("all_pick");
   const [error, setError] = useState<string | null>(null);
@@ -79,10 +90,30 @@ export function PlayMenu({ isVisitor }: { isVisitor: boolean }) {
   const [loadingSalas, startSalas] = useTransition();
   const [showCreate, setShowCreate] = useState(false);
 
-  function close() {
-    setOpen(false);
-    setView("menu");
-  }
+  // Persiste o estado no cookie sempre que muda (sobrevive à navegação entre rotas).
+  useEffect(() => {
+    void setPlayMenuState({ s: phase, v: view, l: lobbyId, a: active });
+  }, [phase, view, lobbyId, active]);
+
+  // Ao montar com uma sala aberta (restaurado do cookie), re-busca os dados dela.
+  useEffect(() => {
+    if (view === "sala" && lobbyId) {
+      void fetchLobbyRoom(lobbyId).then((d) => d && setLobbyData(d));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Click FORA do drawer (quando expandido) → retrai pra aba lateral.
+  useEffect(() => {
+    if (phase !== "expanded") return;
+    function onDown(e: MouseEvent) {
+      if (drawerRef.current && !drawerRef.current.contains(e.target as Node)) {
+        setPhase("collapsed");
+      }
+    }
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [phase]);
 
   function toggleRole(r: QueueRole) {
     setRoles((prev) => {
@@ -109,7 +140,7 @@ export function PlayMenu({ isVisitor }: { isVisitor: boolean }) {
         else setError(res.error);
         return;
       }
-      close();
+      setPhase("collapsed");
       router.refresh();
     });
   }
@@ -130,40 +161,62 @@ export function PlayMenu({ isVisitor }: { isVisitor: boolean }) {
       const d = await fetchLobbyRoom(id);
       if (d) {
         setLobbyData(d);
+        setLobbyId(id);
         setView("sala");
       }
     });
   }
 
   function refetchSala() {
-    if (!lobbyData) return;
-    void fetchLobbyRoom(lobbyData.lobby.id).then((d) => d && setLobbyData(d));
+    if (!lobbyId) return;
+    void fetchLobbyRoom(lobbyId).then((d) => d && setLobbyData(d));
   }
+
+  const inSala = view === "sala" && !!lobbyData;
+  // Sala usa um drawer MAIS LARGO (Pedro: visualização maior que o normal).
+  const widthCls = inSala ? "w-[600px] xl:w-[720px]" : "w-[400px] xl:w-[460px]";
 
   return (
     <>
-      {/* Botão base "Jogar Dota" (na bottom-bar) */}
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="pointer-events-auto group relative flex h-14 items-center gap-3 overflow-hidden rounded-md border-2 border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover px-8 font-display text-lg font-bold uppercase tracking-[0.25em] text-text-display shadow-lg shadow-[var(--color-play-primary-glow)] transition-all hover:scale-[1.02] xl:h-16 xl:px-12 xl:text-xl 2xl:h-20 2xl:px-16 2xl:text-2xl"
-      >
-        <Search size={22} aria-hidden="true" />
-        <span>Jogar Dota</span>
-        <span
-          className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform [transition-duration:var(--motion-duration-hero)] group-hover:translate-x-full"
-          aria-hidden="true"
-        />
-      </button>
+      {/* Estado BUTTON — botão "Jogar Dota" na bottom-bar */}
+      {phase === "button" && (
+        <button
+          type="button"
+          onClick={() => setPhase("expanded")}
+          className="pointer-events-auto group relative flex h-14 items-center gap-3 overflow-hidden rounded-md border-2 border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover px-8 font-display text-lg font-bold uppercase tracking-[0.25em] text-text-display shadow-lg shadow-[var(--color-play-primary-glow)] transition-all hover:scale-[1.02] xl:h-16 xl:px-12 xl:text-xl 2xl:h-20 2xl:px-16 2xl:text-2xl"
+        >
+          <Search size={22} aria-hidden="true" />
+          <span>Jogar Dota</span>
+          <span
+            className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform [transition-duration:var(--motion-duration-hero)] group-hover:translate-x-full"
+            aria-hidden="true"
+          />
+        </button>
+      )}
 
-      {/* Drawer completo (full-height), SEM ofuscar o fundo */}
-      {open && (
+      {/* Estado COLLAPSED — aba fina na borda direita */}
+      {phase === "collapsed" && (
+        <button
+          type="button"
+          onClick={() => setPhase("expanded")}
+          aria-label="Abrir Jogar Dota"
+          className="pointer-events-auto fixed right-0 top-1/2 z-[100] flex -translate-y-1/2 flex-col items-center gap-2 rounded-l-md border-2 border-r-0 border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover px-2 py-4 text-text-display shadow-lg shadow-[var(--color-play-primary-glow)] transition-all hover:px-2.5"
+        >
+          <ChevronLeft size={18} aria-hidden="true" />
+          <span className="font-display text-sm font-bold uppercase tracking-[0.2em] [writing-mode:vertical-rl]">
+            Jogar Dota
+          </span>
+        </button>
+      )}
+
+      {/* Estado EXPANDED — drawer full-height (sem ofuscar o fundo) */}
+      {phase === "expanded" && (
         <aside
+          ref={drawerRef}
           role="dialog"
           aria-label="Jogar Dota"
-          className="pointer-events-auto fixed right-0 top-0 bottom-0 z-[100] flex w-[400px] xl:w-[460px] flex-col border-l border-brand-primary/40 bg-bg-deep/97 shadow-2xl shadow-black/80 animate-in slide-in-from-right duration-200"
+          className={`pointer-events-auto fixed right-0 top-0 bottom-0 z-[100] flex ${widthCls} flex-col border-l border-brand-primary/40 bg-bg-deep/97 shadow-2xl shadow-black/80 animate-in slide-in-from-right duration-200`}
         >
-          {/* Header do painel */}
           <header className="flex items-center justify-between gap-2 border-b border-border-subtle px-4 py-3">
             {view === "menu" ? (
               <span className="flex items-center gap-2 font-display text-lg font-bold uppercase tracking-wide text-text-display">
@@ -181,15 +234,14 @@ export function PlayMenu({ isVisitor }: { isVisitor: boolean }) {
             )}
             <button
               type="button"
-              onClick={close}
-              aria-label="Fechar"
+              onClick={() => setPhase("collapsed")}
+              aria-label="Recolher"
               className="rounded-sm p-1 text-text-faded hover:bg-bg-elevated hover:text-text-body transition-colors"
             >
               <X size={18} aria-hidden="true" />
             </button>
           </header>
 
-          {/* Corpo por view */}
           {view === "menu" && (
             <MenuView
               active={active}
@@ -255,7 +307,7 @@ export function PlayMenu({ isVisitor }: { isVisitor: boolean }) {
               onClose={() => setShowCreate(false)}
               onCreated={(id) => {
                 setShowCreate(false);
-                if (!open) setOpen(true);
+                setPhase("expanded");
                 openSala(id);
               }}
             />

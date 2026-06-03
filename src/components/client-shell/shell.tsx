@@ -36,6 +36,7 @@ import { getPreviewModeActive } from "@/lib/auth/preview-mode";
 import { getSidebarExpanded } from "@/lib/auth/sidebar-preference";
 import { getAcceptedFriends } from "@/lib/queries/friends";
 import { xpProgress } from "@/lib/levels";
+import { getPlayMenuState } from "@/lib/play-menu-preference";
 import { DashboardTopBar } from "./top-bar";
 import { MiniProfilePanel } from "./mini-profile-panel";
 import { DashboardRightSidebar } from "./right-sidebar";
@@ -100,6 +101,7 @@ export async function ClientShell({
     sidebarExpanded,
     acceptedFriends,
     searchingCount,
+    playMenuState,
   ] = await Promise.all([
     isVisitor ? Promise.resolve(null) : fetchPrivateData(supabase, user.id),
     getProsWithQueues(),
@@ -111,6 +113,8 @@ export async function ClientShell({
     // Amigos aceitos — visitante não tem amigos.
     isVisitor ? Promise.resolve([]) : getAcceptedFriends(),
     getSearchingCount(),
+    // Estado do menu Jogar Dota (cookie) — persiste expand/collapse + sala entre rotas.
+    getPlayMenuState(),
   ]);
 
   const profile = privateData?.profile ?? null;
@@ -244,6 +248,7 @@ export async function ClientShell({
               fichaPackageId={fichaPackage?.id ?? null}
               prosOnline={prosOnline}
               myQueues={myQueues}
+              initialPlayMenu={playMenuState}
             />
           </div>
         )}
@@ -342,6 +347,7 @@ export async function ClientShell({
             fichaPackageId={fichaPackage?.id ?? null}
             prosOnline={prosOnline}
             myQueues={myQueues}
+            initialPlayMenu={playMenuState}
           />
         </div>
       )}
