@@ -194,18 +194,19 @@ export function PlayMenu({ isVisitor, initial }: Props) {
         </button>
       )}
 
-      {/* Estado COLLAPSED — aba fina na borda direita */}
+      {/* Estado COLLAPSED — aba de CIMA A BAIXO na borda direita (full-height) */}
       {phase === "collapsed" && (
         <button
           type="button"
           onClick={() => setPhase("expanded")}
           aria-label="Abrir Jogar Dota"
-          className="pointer-events-auto fixed right-0 top-1/2 z-[100] flex -translate-y-1/2 flex-col items-center gap-2 rounded-l-md border-2 border-r-0 border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover px-2 py-4 text-text-display shadow-lg shadow-[var(--color-play-primary-glow)] transition-all hover:px-2.5"
+          className="pointer-events-auto fixed right-0 top-0 bottom-0 z-[100] flex w-9 flex-col items-center justify-center gap-3 border-l-2 border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover text-text-display shadow-lg shadow-[var(--color-play-primary-glow)] transition-all hover:w-11 xl:w-11 xl:hover:w-12"
         >
           <ChevronLeft size={18} aria-hidden="true" />
-          <span className="font-display text-sm font-bold uppercase tracking-[0.2em] [writing-mode:vertical-rl]">
+          <span className="font-display text-base font-bold uppercase tracking-[0.3em] [writing-mode:vertical-rl]">
             Jogar Dota
           </span>
+          <ChevronLeft size={18} aria-hidden="true" />
         </button>
       )}
 
@@ -215,7 +216,7 @@ export function PlayMenu({ isVisitor, initial }: Props) {
           ref={drawerRef}
           role="dialog"
           aria-label="Jogar Dota"
-          className={`pointer-events-auto fixed right-0 top-0 bottom-0 z-[100] flex ${widthCls} flex-col border-l border-brand-primary/40 bg-bg-deep/97 shadow-2xl shadow-black/80 animate-in slide-in-from-right duration-200`}
+          className={`pointer-events-auto fixed right-0 top-0 bottom-0 z-[100] flex ${widthCls} flex-col border-l border-brand-primary/40 bg-bg-deep shadow-2xl shadow-black/80 animate-in slide-in-from-right duration-200`}
         >
           <header className="flex items-center justify-between gap-2 border-b border-border-subtle px-4 py-3">
             {view === "menu" ? (
