@@ -122,17 +122,13 @@ export async function updateSession(request: NextRequest) {
     if (isPublicPath(pathname)) {
       return response;
     }
-    // Requests RSC (prefetch/navegação client do Next) NÃO podem ser redirecionados
-    // pro fluxo OAuth: o redirect encadeia até discord.com (origem externa) e o browser
-    // bloqueia por CORS ("Request header field rsc is not allowed"). Mandamos o RSC pra
-    // home pública (mesma origem) — a navegação top-level real ainda dispara o OAuth.
-    if (request.headers.get("rsc") === "1") {
-      return NextResponse.redirect(new URL("/", request.url));
-    }
-    const loginUrl = new URL("/login", request.url);
-    // Preserva path + query da rota pretendida pra retorno pós-login.
-    loginUrl.searchParams.set("next", pathname + request.nextUrl.search);
-    return NextResponse.redirect(loginUrl);
+    // Deslogado em rota protegida → manda pra HOME pública (HUB visitante, com CTA Entrar).
+    // CRÍTICO (raiz do exchange_failed): o gate NÃO dispara OAuth automaticamente. Cada
+    // chamada de signInWithOAuth regenera o code_verifier do PKCE; quando o gate mandava
+    // prefetches/navegações pro /login (que dispara OAuth), o verifier do login REAL era
+    // sobrescrito → no callback o /token retornava 400. Agora o OAuth só acontece no clique
+    // explícito no "Entrar" (form action signInWithDiscord). Redirect same-origin → sem CORS.
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
   // Usuário logado. Enforcement em camadas:
