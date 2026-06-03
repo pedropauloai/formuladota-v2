@@ -42,9 +42,29 @@ export function XpAvatarRing({
   const stroke = 3;
   const pad = stroke + 3; // folga entre avatar e borda
   const box = size + pad * 2;
-  const rectSize = box - stroke;
   const rx = 6; // canto arredondado do quadrado (rounded-sm vibe)
   const clamped = Math.max(0, Math.min(1, pct));
+
+  // Caminho do anel: começa no CENTRO-INFERIOR (onde fica o badge de level) e dá a
+  // volta no sentido horário (baixo → esquerda → topo → direita → volta ao centro),
+  // pra a barra de XP nascer do número do level. Pedro 2026-06-03.
+  const L = stroke / 2;
+  const T = stroke / 2;
+  const R = box - stroke / 2;
+  const B = box - stroke / 2;
+  const cx = box / 2;
+  const ringPath = [
+    `M ${cx} ${B}`,
+    `L ${L + rx} ${B}`,
+    `A ${rx} ${rx} 0 0 1 ${L} ${B - rx}`,
+    `L ${L} ${T + rx}`,
+    `A ${rx} ${rx} 0 0 1 ${L + rx} ${T}`,
+    `L ${R - rx} ${T}`,
+    `A ${rx} ${rx} 0 0 1 ${R} ${T + rx}`,
+    `L ${R} ${B - rx}`,
+    `A ${rx} ${rx} 0 0 1 ${R - rx} ${B}`,
+    `L ${cx} ${B}`,
+  ].join(" ");
 
   return (
     <div
@@ -62,23 +82,17 @@ export function XpAvatarRing({
         aria-hidden="true"
       >
         {/* Track neutro */}
-        <rect
-          x={stroke / 2}
-          y={stroke / 2}
-          width={rectSize}
-          height={rectSize}
-          rx={rx}
+        <path
+          d={ringPath}
+          fill="none"
           stroke="currentColor"
           strokeWidth={stroke}
           className="opacity-15"
         />
-        {/* Progresso (cor do tier via currentColor) */}
-        <rect
-          x={stroke / 2}
-          y={stroke / 2}
-          width={rectSize}
-          height={rectSize}
-          rx={rx}
+        {/* Progresso (cor do tier via currentColor) — nasce no centro-inferior, horário */}
+        <path
+          d={ringPath}
+          fill="none"
           stroke="currentColor"
           strokeWidth={stroke}
           strokeLinecap="round"

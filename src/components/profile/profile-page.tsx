@@ -37,6 +37,7 @@ import { DashboardGrid } from "./dashboard-grid";
 import { TabHistorico } from "./tab-historico";
 import { TabConquistas } from "./tab-conquistas";
 import { TabConduta } from "./tab-conduta";
+import { TabProgresso } from "./tab-progresso";
 import {
   PortraitEditor,
   AvatarEditor,
@@ -163,6 +164,12 @@ export function ProfilePage({ profile, activeTab, dotaRank, honorRank, editing }
             commends={null /* V2: RPC get_user_commends */}
             strikes={null /* V2: RPC get_user_strikes */}
           />
+        </div>
+      )}
+
+      {activeTab === "progresso" && (
+        <div className="flex-1 min-h-0 p-6">
+          <TabProgresso />
         </div>
       )}
     </div>

@@ -11,13 +11,19 @@
 import Link from "next/link";
 import Image from "next/image";
 
-export type ProfileTab = "perfil" | "historico" | "conquistas" | "conduta";
+export type ProfileTab =
+  | "perfil"
+  | "historico"
+  | "conquistas"
+  | "conduta"
+  | "progresso";
 
 export const VALID_TABS: ProfileTab[] = [
   "perfil",
   "historico",
   "conquistas",
   "conduta",
+  "progresso",
 ];
 
 // Labels PT-BR exatos da UI-SPEC — Dota 2 client style uppercase
@@ -26,6 +32,7 @@ const TAB_LABELS: Record<ProfileTab, string> = {
   historico: "Histórico",
   conquistas: "Conquistas",
   conduta: "Conduta",
+  progresso: "Progresso",
 };
 
 interface Props {
