@@ -15,6 +15,9 @@ import { botCreateLobby } from "@/lib/bot";
 const inputSchema = z.object({
   name: z.string().min(3).max(60),
   gameMode: z.enum(["all_pick", "captains_mode", "random_draft", "single_draft"]),
+  // Senha opcional — se vazia, geramos uma. Demais configs (servidor, visibilidade,
+  // regras avançadas) são visuais por ora; o bot Steam vai consumi-las quando deployado.
+  password: z.string().max(20).optional(),
 });
 
 export type CreateLobbyResult =
@@ -25,6 +28,7 @@ export async function createLobby(formData: FormData): Promise<CreateLobbyResult
   const parsed = inputSchema.safeParse({
     name: formData.get("name"),
     gameMode: formData.get("gameMode"),
+    password: formData.get("password") ?? undefined,
   });
   if (!parsed.success) return { success: false, error: "Dados inválidos." };
 
@@ -34,8 +38,9 @@ export async function createLobby(formData: FormData): Promise<CreateLobbyResult
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Não autenticado." };
 
-  // Senha do lobby (8 chars hex, mostrada uma vez ao criador)
-  const password = crypto.randomBytes(4).toString("hex");
+  // Senha do lobby: usa a digitada (se válida) ou gera 8 chars hex.
+  const custom = parsed.data.password?.trim();
+  const password = custom && custom.length >= 4 ? custom : crypto.randomBytes(4).toString("hex");
 
   // INSERT lobby — RLS gate verifica subscription/doutrina
   const { data: lobby, error: insertErr } = await supabase
@@ -54,7 +59,7 @@ export async function createLobby(formData: FormData): Promise<CreateLobbyResult
     if (insertErr?.code === "42501") {
       return {
         success: false,
-        error: "Mensalidade ativa exigida pra criar lobby. Verifique /assinatura.",
+        error: "Responda 5 perguntas (na fila/menu) pra liberar a criação de salas.",
       };
     }
     console.error("[createLobby] insert falhou:", insertErr?.message);
