@@ -15,8 +15,10 @@ function safeNext(next: string | null | undefined): string {
 }
 
 // Núcleo do fluxo Discord OAuth. `next` = rota pra voltar pós-login (?next=).
+// `retry` propaga o flag de auto-recuperação até o callback (guard anti-loop do
+// exchange_failed — ver src/app/auth/callback/route.ts).
 // Sempre redireciona (pro Discord em sucesso, ou pra "/" em erro).
-async function startDiscordOAuth(next?: string): Promise<never> {
+async function startDiscordOAuth(next?: string, retry?: boolean): Promise<never> {
   const supabase = await createClient();
 
   // Base do redirect: em produção, SEMPRE usar NEXT_PUBLIC_SITE_URL (domínio
@@ -32,10 +34,12 @@ async function startDiscordOAuth(next?: string): Promise<never> {
       : headerStore.get("origin") ?? configured;
 
   // Pós-login, o callback OAuth lê `redirect_to` e leva o user de volta à rota
-  // que ele tentava acessar (?next=). Default: /dashboard.
-  const redirectTo = `${origin}/auth/callback?redirect_to=${encodeURIComponent(
-    safeNext(next)
-  )}`;
+  // que ele tentava acessar (?next=). Default: /dashboard. Se for um retry de
+  // auto-recuperação, carrega `retry=1` pro callback não reiniciar em loop.
+  const callbackUrl = new URL(`${origin}/auth/callback`);
+  callbackUrl.searchParams.set("redirect_to", safeNext(next));
+  if (retry) callbackUrl.searchParams.set("retry", "1");
+  const redirectTo = callbackUrl.toString();
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "discord",
@@ -65,8 +69,8 @@ export async function signInWithDiscord(_formData?: FormData) {
 
 // Variante chamável com a rota de retorno. Usada pela rota /login (route handler),
 // que recebe ?next=<rota> do middleware e devolve o user pra lá após o login.
-export async function signInWithDiscordTo(next?: string) {
-  await startDiscordOAuth(next);
+export async function signInWithDiscordTo(next?: string, retry?: boolean) {
+  await startDiscordOAuth(next, retry);
 }
 
 export async function signOut() {

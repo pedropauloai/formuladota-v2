@@ -10,7 +10,10 @@ import { signInWithDiscordTo } from "@/app/login/actions";
 // NÃO envolvemos em try/catch — a exceção de redirect deve propagar pro Next.
 export async function GET(request: NextRequest) {
   const next = request.nextUrl.searchParams.get("next");
-  await signInWithDiscordTo(next ?? undefined);
+  // retry=1 vem do callback quando o exchange falhou e ele reiniciou o OAuth
+  // (auto-recuperação de cookie PKCE stale). Propaga até o callback pra fechar o guard.
+  const retry = request.nextUrl.searchParams.get("retry") === "1";
+  await signInWithDiscordTo(next ?? undefined, retry);
   // Inalcançável: signInWithDiscordTo sempre redireciona (OAuth ou erro → "/").
   // O return existe só pra satisfazer o type do route handler.
   return new Response(null, { status: 302, headers: { Location: "/" } });
