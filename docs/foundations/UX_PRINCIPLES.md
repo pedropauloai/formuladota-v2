@@ -930,7 +930,7 @@ export function PlayerCard({ player }: { player: Player }) {
       <span className="font-display text-sm font-bold">{player.username}</span>
       <div className="flex items-center gap-3">
         <DotaRankMedal rank={player.skillTier} size="sm" showLabel />
-        <HonorRankMedal rank={player.honorTier} size="sm" showLabel />
+        <HonorRankMedal level={player.honorLevel} size="sm" showLabel />
       </div>
     </div>
   );
@@ -1012,7 +1012,7 @@ Pedro te elogiou por "comunicacao" — +8 HONOR
 
 [Estatisticas tecnicas]
 KDA: 3/7/11 | GPM: 432 | XPM: 524 | Resultado: Derrota
-[Delta MMR interno]
+[Delta MMR Valve]
 
 [Acao sugerida]
 [VER REPLAY]   [ENTRAR NA FILA]
@@ -1079,7 +1079,7 @@ Esta pergunta:
 
 [Estatisticas tecnicas — desbloqueia apos resposta submetida]
 KDA: 3/7/11 | GPM: 432 | XPM: 524
-[Delta MMR interno]
+[Delta MMR Valve]
 
 [Acao sugerida]
 [VER REPLAY]   [ENTRAR NA FILA]

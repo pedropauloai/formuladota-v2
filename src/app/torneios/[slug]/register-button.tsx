@@ -6,7 +6,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Trophy, ChevronDown } from "lucide-react";
-import { toast } from "sonner";
+import { useToast } from "@/components/ui/toast";
 import { registerTeamForTournament } from "@/app/times/actions";
 import { Button } from "@/components/ui/button";
 
@@ -23,6 +23,7 @@ export function TournamentRegisterButton({
   tournamentId: string;
   availableTeams: AvailableTeam[];
 }) {
+  const { toast } = useToast();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [showDropdown, setShowDropdown] = useState(false);
@@ -31,10 +32,10 @@ export function TournamentRegisterButton({
     startTransition(async () => {
       const r = await registerTeamForTournament({ tournamentId, teamId });
       if (!r.success) {
-        toast.error(r.error);
+        toast({ type: "error", title: r.error });
         return;
       }
-      toast.success("Time inscrito no torneio!");
+      toast({ type: "success", title: "Time inscrito no torneio!" });
       setShowDropdown(false);
       router.refresh();
     });

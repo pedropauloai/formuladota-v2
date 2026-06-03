@@ -186,6 +186,62 @@ function BulletSep() {
 }
 
 // ---------------------------------------------------------------------------
+// VisitorBeliefHero — crença ANTES de sistema (POSITIONING 2026-06-02).
+// O visitante não entra pelo nível 30 nem pelos PROs online — entra porque se
+// identifica com a visão de mundo. Lidera com tagline + promessa + manifesto,
+// e só depois mostra os sistemas (pulso da comunidade, Subir de MMR, season).
+// ---------------------------------------------------------------------------
+
+function VisitorBeliefHero() {
+  return (
+    <header className="space-y-5 pt-2">
+      <p className="font-display text-sm font-semibold uppercase tracking-[0.35em] text-brand-primary">
+        FORMULADOTA
+      </p>
+      <h1 className="font-display text-4xl font-bold leading-tight tracking-wide text-text-display xl:text-6xl">
+        Pra quem leva o Dota{" "}
+        <span
+          className="text-brand-primary"
+          style={{ textShadow: "0 0 24px var(--color-brand-primary-glow)" }}
+        >
+          a sério
+        </span>
+        .
+      </h1>
+      <p className="font-display text-lg font-semibold text-text-body xl:text-xl">
+        Ganhe ou perca, a partida vale a pena.
+      </p>
+      <p className="max-w-2xl font-body text-base leading-relaxed text-text-muted">
+        Aqui o Dota não é sobre o placar — é sobre como você joga e com quem joga. A
+        culpa nunca é do outro. Reunimos quem ainda se importa de verdade com o jogo, sob
+        a mesma doutrina, num ambiente onde a experiência vale a pena — vitória ou
+        derrota. Não estamos tentando mudar a comunidade inteira. Estamos achando quem já
+        joga assim.
+      </p>
+      <div className="flex flex-wrap items-center gap-4 pt-1">
+        <form action={signInWithDiscord}>
+          <Button
+            type="submit"
+            variant="cinematic"
+            size="lg"
+            aria-label="Entrar com Discord"
+          >
+            <Swords size={22} aria-hidden="true" />
+            Entrar com Discord
+          </Button>
+        </form>
+        <Link
+          href="/codigo-de-conduta"
+          className="font-display text-sm font-semibold text-brand-primary transition-colors hover:text-text-display"
+        >
+          Conhecer a doutrina →
+        </Link>
+      </div>
+    </header>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Componente principal
 // ---------------------------------------------------------------------------
 
@@ -228,26 +284,30 @@ export function HubCenter({
           Pedro 2026-05-25: eyebrow saiu de uppercase tracking-[0.4em] (ruído
           visual em panfleto) pra case natural discreto. H1 mantém uppercase
           pq FORMULADOTA é marca (regra B1) e é o único título dominante. */}
-      <header className="space-y-3">
-        <p className="font-display text-sm font-semibold text-text-body">{eyebrowText}</p>
-        <h1 className="font-display text-5xl uppercase tracking-wide text-text-display xl:text-6xl">
-          FORMULADOTA <span className="text-brand-primary">HUB</span>
-        </h1>
-        {isVisitor ? (
+      {isVisitor ? (
+        // Crença ANTES de sistema: tagline + manifesto primeiro; pulso depois.
+        <>
+          <VisitorBeliefHero />
           <VisitorStatusLine
             prosOnlineCount={prosOnlineCount}
             partidasHoje={partidasHoje}
             membrosAtivos={membrosAtivos}
           />
-        ) : (
+        </>
+      ) : (
+        <header className="space-y-3">
+          <p className="font-display text-sm font-semibold text-text-body">{eyebrowText}</p>
+          <h1 className="font-display text-5xl uppercase tracking-wide text-text-display xl:text-6xl">
+            FORMULADOTA <span className="text-brand-primary">HUB</span>
+          </h1>
           <StatusLine
             fichaBalance={fichaBalance}
             prosOnlineCount={prosOnlineCount}
             myQueueCount={myQueueCount}
             rankingPosition={rankingPosition}
           />
-        )}
-      </header>
+        </header>
+      )}
 
       {/* (2) HERO CTA — SUBIR DE MMR (M3 weight massivo).
           Pedro 2026-05-25: eyebrow "Ação primária do client" removido (texto

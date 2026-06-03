@@ -31,7 +31,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getMyFichaBalance } from "@/lib/queries/fichas";
 import { getProsWithQueues } from "@/lib/queries/pros";
 import { getFichaPackage } from "@/lib/queries/packages";
-import { getMyQueueStatus } from "@/lib/queries/queue";
+import { getMyQueueStatus, getSearchingCount } from "@/lib/queries/queue";
 import { getPreviewModeActive } from "@/lib/auth/preview-mode";
 import { getSidebarExpanded } from "@/lib/auth/sidebar-preference";
 import { getAcceptedFriends } from "@/lib/queries/friends";
@@ -98,6 +98,7 @@ export async function ClientShell({
     previewActive,
     sidebarExpanded,
     acceptedFriends,
+    searchingCount,
   ] = await Promise.all([
     isVisitor ? Promise.resolve(null) : fetchPrivateData(supabase, user.id),
     getProsWithQueues(),
@@ -108,6 +109,7 @@ export async function ClientShell({
     getSidebarExpanded(),
     // Amigos aceitos — visitante não tem amigos.
     isVisitor ? Promise.resolve([]) : getAcceptedFriends(),
+    getSearchingCount(),
   ]);
 
   const profile = privateData?.profile ?? null;
@@ -171,6 +173,7 @@ export async function ClientShell({
             previewActive={previewActive}
             isPro={isPro}
             prosOnlineCount={prosOnlineCount}
+            searchingCount={searchingCount}
             myQueues={myQueues}
           />
         </div>
@@ -263,6 +266,7 @@ export async function ClientShell({
         previewActive={previewActive}
         isPro={isPro}
         prosOnlineCount={prosOnlineCount}
+        searchingCount={searchingCount}
         myQueues={myQueues}
       />
 

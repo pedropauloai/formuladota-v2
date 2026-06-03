@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/dota-rank-medal";
 import {
   HonorRankMedal,
+  legacyHonorToBand,
   type HonorRank,
 } from "@/components/ui/honor-rank-medal";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -62,18 +63,8 @@ function mmrToDotaRank(mmr: number | null | undefined): DotaRank {
 
 // Helper — string do RPC get_honor_tier → HonorRank tipado
 function toHonorRank(tierStr: string | null | undefined): HonorRank {
-  const allowed: HonorRank[] = [
-    "aprendiz",
-    "disciplinado",
-    "confiavel",
-    "respeitado",
-    "honrado",
-    "mestre",
-    "lendario",
-    "imortal-da-formula",
-  ];
-  const found = allowed.find((t) => t === tierStr);
-  return found ?? "aprendiz";
+  // RPC get_honor_tier ainda retorna o modelo antigo (8 tiers) — mapeia pras 6 bandas.
+  return legacyHonorToBand(tierStr ?? "aprendiz");
 }
 
 export default async function PerfilPublicoPage(props: PageProps) {

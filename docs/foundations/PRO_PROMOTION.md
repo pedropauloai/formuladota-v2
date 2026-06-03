@@ -22,6 +22,13 @@ Por isso este documento existe: para que a decisao de promover nao seja intuitiv
 rapida, e nao seja silenciosa. Cada promocao segue um processo. Cada etapa e documentada.
 Cada promocao tem audit log publico.
 
+E por isso, tambem, PRO nunca foi e nunca sera um nivel do ladder. O topo do ladder —
+Mistico (nivel 30) — mede dominio e conduta vivida; chegar la prova que o jogador esta
+pronto para ser convidado ao processo, nada alem disso. PRO e um papel conquistado pelo
+processo (entrevista cultural, endosso, contrato), conferido por gente, com responsabilidade
+formal. Subir de nivel abre a porta; quem decide quem atravessa e o processo, jamais o
+sistema sozinho.
+
 ---
 
 ## Glossario
@@ -30,9 +37,12 @@ Cada promocao tem audit log publico.
 fichas de partida, e responsabilidade de carregar a doutrina para seus alunos.
 
 **Elegibilidade PRO:** Conjunto de criterios quantitativos que habilitam o membro a entrar
-no processo de promocao. Elegivel nao e PRO — e candidato ao processo.
+no processo de promocao. Elegivel nao e PRO — e candidato ao processo. Atingir o topo do
+ladder (Mistico, nivel 30) torna o jogador elegivel; nunca o promove automaticamente.
 
-**Promocao:** O ato formal de conferir o status PRO apos o processo completo.
+**Promocao:** O ato formal de conferir o status PRO apos o processo completo. PRO e um PAPEL
+conquistado pelo processo — entrevista cultural, endosso e contrato — nao um nivel que se
+desbloqueia ao subir no ladder.
 
 **Founder Authority:** Poder de veto e decisao final de Pedro como fundador. Existe em V1
 e persiste mesmo em V2/V3 para casos excepcionais.
@@ -52,24 +62,31 @@ Pedro. G2 = promovido por PRO G1 com endosso do Conselho. Ver MULTIPLICATION_MOD
 Os criterios abaixo sao verificados pelo sistema. Nao dependem de julgamento humano.
 Um membro que satisfaz todos eles aparece como "elegivel" no sistema de admin do Pedro.
 
+**Aviso central:** satisfazer estes criterios — inclusive chegar a Mistico (nivel 30) —
+torna o membro ELEGIVEL, isto e, candidato ao processo. Nao o torna PRO. O sistema jamais
+promove ninguem por nivel; a promocao so existe apos o processo da Parte II.
+
 | # | Criterio | Threshold | Campo no banco |
 |---|----------|-----------|---------------|
-| Q1 | Tier HONOR atual | Imortal da Formula (tier 8) | `honor_scores.tier = 'imortal-da-formula'` |
-| Q2 | Sustentacao de tier | Honrado+ por 2+ temporadas consecutivas | `honor_tier_history` ultimas 2 seasons >= tier 5 |
+| Q1 | Nivel da conta (HONOR) atual | Mistico (nivel 30) | `honor_scores.level = 30` |
+| Q2 | Sustentacao de nivel | Mistico (nivel 30) sustentado por 2+ temporadas consecutivas | `honor_level_history` ultimas 2 seasons = nivel 30 |
 | Q3 | Commendations mentor | 3+ commendations tipo "mentor" na carreira | `peer_commendations` all-time tipo "mentor" |
-| Q4 | Skill minima | Tier 6 interno (Mestre) | `skill_scores.tier >= 6` |
+| Q4 | Medalha Valve | **Imortal na Valve** (top ~0.5% MMR) — requisito DURO (Pedro 2026-06-02) | `profiles.mmr_atual` na faixa Imortal (sincronizado via OpenDota) |
 | Q5 | Historico de strikes | Zero strikes graves em todo o historico | `honor_ledger` sem nenhum `strike_grave` |
 | Q6 | Tempo de doutrina | Aceitou doutrina ha 6+ meses | `profiles.doctrine_accepted_at <= NOW() - INTERVAL '6 months'` |
 | Q7 | Presenca minima | 80%+ de presenca na ultima temporada completa | `match_attendance.rate >= 0.80` ultima season |
+
+**Regra dura (Pedro 2026-06-02):** PRO exige, simultaneamente, **Místico (nível 30, Q1)** + **Imortal na Valve (Q4)** + **avaliação e aprovação individual de Pedro** (Parte II). Os três são obrigatórios — nenhum sozinho promove.
 
 **Nota sobre Q5:** Strikes graves incluem: toxicidade explicita com abuso verbal documentado,
 banimento temporario anterior, manipulacao de partida, comportamento antidesportivo reincidente.
 Strikes menores e medios nao bloqueam elegibilidade — apenas graves.
 
-**Nota sobre Q1 + Q2:** Um membro pode atingir Q1 (Imortal da Formula) em uma temporada e
+**Nota sobre Q1 + Q2:** Um membro pode atingir Q1 (Mistico, nivel 30) em uma temporada e
 ainda nao satisfazer Q2 (sustentacao de 2 temporadas). Nesse caso, aguarda a proxima temporada
 para ter o historico necessario. O sistema exibe isso claramente no perfil: "Elegibilidade PRO:
-1 de 2 temporadas concluidas".
+1 de 2 temporadas concluidas". Lembrar: mesmo com Q1 e Q2 satisfeitos, o membro continua
+apenas elegivel — chegar e sustentar Mistico nunca dispara promocao automatica.
 
 ### 1.2 Criterios Qualitativos (avaliados na entrevista)
 
@@ -245,7 +262,7 @@ pessoal), o processo trava. Aceito como risco V1 — em troca de simplicidade op
 **Quando:** FormulaDota atingir 5+ PROs ativos simultaneamente por pelo menos 1 temporada.
 
 **Composicao do Conselho V2:**
-- 3 membros: os 3 PROs mais antigos com status ativo e tier HONOR Lendario+ na temporada corrente
+- 3 membros: os 3 PROs mais antigos com status ativo e nivel HONOR Lendario+ (nivel 25+) na temporada corrente
 - Mandato: 1 temporada (renovavel por continuidade automatica se mantiver criterios)
 - Pedro permanece com founder authority (veto)
 
@@ -292,7 +309,7 @@ especifico para violacoes que comprometem a funcao de PRO.
 - Comportamento que cause dano reputacional ao FormulaDota externamente
 
 **Causas de revogacao com processo (PRO pode contestar):**
-- HONOR tier caiu abaixo de Respeitado (tier 4) por 2 temporadas consecutivas
+- Nivel HONOR regrediu abaixo de Piloto (nivel 12) por 2 temporadas consecutivas
 - Inatividade prolongada sem comunicacao (2+ temporadas sem jogar + sem justificativa)
 - Reclamacoes documentadas de alunos sobre comportamento do PRO fora de partida
 

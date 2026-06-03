@@ -89,7 +89,7 @@ O fee ser one-time e o que separa este modelo de uma estrutura MLM.
 
 #### PRO G1+ — Promovido
 
-PRO e qualquer Imortal da Formula promovido formalmente (ver PRO_PROMOTION.md).
+PRO e qualquer jogador que alcancou Mistico (nivel 30) e foi promovido formalmente (ver PRO_PROMOTION.md).
 G1 significa promovido diretamente por Pedro. G2 seria promovido por um PRO G1, se o
 Conselho de PROs habilitar esse mecanismo no futuro (ver MULTIPLICATION_MODEL.md).
 
@@ -152,7 +152,7 @@ Ficha = R$ 10.00
 Maria fica com 95% a partir da segunda ficha. Isso e melhor do que a maioria das plataformas
 de marketplace (que ficam com 20-30%). Maria tem incentivo estrutural enorme para: (a) manter
 qualidade para reter alunos, (b) permanecer na plataforma em vez de criar estrutura propria,
-(c) recomendar a plataforma para outros Immortais da Formula.
+(c) recomendar a plataforma para outros Misticos (nivel 30) e PROs.
 
 ---
 

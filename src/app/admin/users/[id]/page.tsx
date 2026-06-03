@@ -45,14 +45,12 @@ function mmrToRank(mmr: number | null | undefined): DotaRank {
 
 function honorScoreToRank(score: number | null | undefined): HonorRank {
   const s = score ?? 0;
-  if (s >= 800) return "imortal-da-formula";
+  if (s >= 800) return "mistico";
   if (s >= 600) return "lendario";
-  if (s >= 450) return "mestre";
-  if (s >= 300) return "honrado";
-  if (s >= 200) return "respeitado";
-  if (s >= 100) return "confiavel";
-  if (s >= 50) return "disciplinado";
-  return "aprendiz";
+  if (s >= 300) return "as";
+  if (s >= 150) return "piloto";
+  if (s >= 50) return "aprendiz";
+  return "novato";
 }
 
 function behaviorLabel(status: string | null): { label: string; cls: string } {
@@ -486,7 +484,7 @@ export default async function AdminUserDetailPage({
               rank={honorRank}
               size="lg"
               showLabel
-              glow={honorRank === "imortal-da-formula"}
+              glow={honorRank === "mistico"}
               calibrationStatus={calibrationStatus === "visitante" ? "visitante" : undefined}
             />
             <p className="font-display text-2xl text-text-display">

@@ -267,7 +267,7 @@ export const ANTIPATTERNS: Antipattern[] = [
     severity: "leve",
     title: "Simulador de Herói",
     examples: [
-      "Sabe usar as habilidades do herói mas joga sem objetivos do jogo (relógio, patrimônio, runas, altar).",
+      "Sabe usar as habilidades do herói mas joga sem objetivos do jogo (relógio, patrimônio, runas, altar da experiência).",
       "Reage às jogadas adversárias em vez de extrair patrimônio no menor tempo possível.",
       "A própria Valve já reconheceu: 99,5% dos jogadores não sabem jogar Dota 2 — jogam no automático.",
     ],

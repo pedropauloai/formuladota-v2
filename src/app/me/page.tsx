@@ -12,7 +12,7 @@ import { ProfilePage } from "@/components/profile/profile-page";
 import { VALID_TABS, type ProfileTab } from "@/components/profile/profile-tabs";
 import { getProfileForMe } from "@/lib/queries/profile";
 import type { DotaRank } from "@/components/ui/dota-rank-medal";
-import type { HonorRank } from "@/components/ui/honor-rank-medal";
+import { legacyHonorToBand, type HonorRank } from "@/components/ui/honor-rank-medal";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Meu perfil — FORMULADOTA" };
@@ -33,17 +33,8 @@ function mmrToDotaRank(mmr: number | null | undefined): DotaRank {
 
 // Helper — converte string do RPC get_honor_tier para HonorRank tipado
 function toHonorRank(tierStr: string | null | undefined): HonorRank {
-  const allowed: HonorRank[] = [
-    "aprendiz",
-    "disciplinado",
-    "confiavel",
-    "respeitado",
-    "honrado",
-    "mestre",
-    "lendario",
-    "imortal-da-formula",
-  ];
-  return allowed.find((t) => t === tierStr) ?? "aprendiz";
+  // RPC get_honor_tier ainda retorna o modelo antigo (8 tiers) — mapeia pras 6 bandas.
+  return legacyHonorToBand(tierStr ?? "aprendiz");
 }
 
 // Next.js 15+: searchParams é uma Promise que precisa de await (pitfall 5)

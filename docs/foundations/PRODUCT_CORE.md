@@ -4,7 +4,7 @@
 > texto antes de ser implementada. Se há conflito entre este documento e um requisito pontual,
 > este documento prevalece — o requisito é revisado, não o contrário.
 >
-> Versao: 1.1 | Data original: 2026-05-23 | Atualizado: 2026-05-23 | Milestone: V2.5 Design Foundations
+> Versao: 1.2 | Data original: 2026-05-23 | Atualizado: 2026-06-02 | Milestone: V2.5 Design Foundations
 
 ---
 
@@ -32,24 +32,33 @@ O ponto central que impacta este documento e o seguinte:
 **O FormulaDota avalia jogadores em dois eixos simultaneos e paralelos:**
 
 **Eixo SKILL/PERFORMANCE** — o que ja existia implicitamente
-Capacidade tecnica competitiva: MMR interno, winrate, contribuicao em partidas.
+Capacidade tecnica competitiva: MMR Valve oficial (externo, sincronizado via OpenDota), winrate, contribuicao em partidas.
 A hierarquia de feedback deste documento (Secao 6) se aplica a eventos de SKILL.
 
 **Eixo HONOR/CONDUTA** — formalizado em 2026-05-23
 Qualidade de participacao comunitaria: presenca, elogios peer, mentoria reconhecida,
 historico de conduta sob pressao.
 
-**A hierarquia de feedback da Secao 6 se estende ao eixo HONOR:**
+**A hierarquia de feedback da Secao 6 se estende ao eixo HONOR/NIVEL:**
 
-| Nivel | Evento de HONOR | Exemplo |
+> **Atualizacao 2026-06-02 — ladder 0-30.** O eixo HONOR deixou de ser uma pontuacao de
+> conduta separada com 8 tiers. Agora HONOR **e o nivel da conta (0-30), fundido com XP**:
+> niveis 0-6 sobem por conhecimento verificado da doutrina + metodologia; niveis 6-30 sobem
+> por conduta vivida nas partidas (e podem regredir com strikes). Os marcos de nivel
+> **6, 12, 18, 25, 30** entregam as 5 medalhas — **Aprendiz, Piloto, As, Lendario, Mistico**
+> (abaixo do 6 o jogador e Novato, sem medalha). O antigo tier 8 "Imortal da Formula" foi
+> **aposentado**; o topo do ladder e **Mistico (nivel 30)**. Ver HONOR_SYSTEM.md para o
+> modelo completo.
+
+| Nivel | Evento de HONOR/NIVEL | Exemplo |
 |-------|----------------|---------|
-| Critico | Conquista de Imortal da Formula | Full-screen takeover, stinger dedicado, badge reveal animado |
-| Importante | Avanco de tier HONOR | Toast customizado bottom-center, som confirm, badge atualizado |
-| Informativo | Commendation recebida | Pill no perfil atualiza, notificacao inline sem interrupcao |
-| Erro | Strike aplicado — nivel importante | Toast de erro especifico citando o principio violado |
-| Critico (negativo) | Strike grave ou banimento | Full-screen critico, principio violado em Cinzel, sem dismiss automatico |
+| Critico | Conquista do nivel 30 (Mistico) — topo do ladder | Full-screen takeover, stinger dedicado, badge reveal animado |
+| Importante | Avanco de marco de medalha (6/12/18/25) | Toast customizado bottom-center, som confirm, badge atualizado |
+| Informativo | Commendation recebida / XP ganho | Pill no perfil atualiza, notificacao inline sem interrupcao |
+| Erro | Strike aplicado (perda de XP) — nivel importante | Toast de erro especifico citando o principio violado |
+| Critico (negativo) | Strike grave, regressao de nivel ou banimento | Full-screen critico, principio violado em Cinzel, sem dismiss automatico |
 
-Eventos de HONOR Critico (Imortal da Formula) e Critico negativo (banimento) compartilham
+Eventos de HONOR/NIVEL Critico (alcancar Mistico) e Critico negativo (banimento) compartilham
 o nivel Critico da hierarquia mas com visual oposto: o positivo usa elementos de celebracao;
 o negativo usa os elementos de bloqueio documentados na Secao 9 (Banimento Triggered).
 
@@ -97,16 +106,25 @@ O arquetipo combinado nao e mais severo — e mais completo. O Mestre ensina; o 
 
 ## 1. Quem Somos
 
-O FORMULADOTA e um hub de comunidade Dota 2 brasileiro doutrinado. Nao somos uma escola de
+O FORMULADOTA e um app de comunidade Dota 2 brasileiro doutrinado. Nao somos uma escola de
 Dota, nao somos um marketplace de coaching, nao somos uma plataforma neutra de matchmaking.
-Somos o espaco onde jogadores pagam mensalidade para entrar em partidas ranked in-house criadas
-por bot Steam, jogar ao lado de outros jogadores que leram, compreenderam e aceitaram as mesmas
-14 leis de conduta — e aprender por osmose ao competir em ambiente de alta exigencia comportamental
-e tecnica. O diferencial nao e o coach. O diferencial e a cultura: a doutrina e aceite obrigatorio
-que bloqueia acesso as rotas privadas, o sistema progressivo de 3 strikes (advertencia, suspensao,
-banimento), e os 14 principios que governam comportamento dentro e fora das partidas. A missao
-declarada e formar 200 jogadores na medalha Imortal de forma 100% legitima. Qualquer feature,
-qualquer copy, qualquer decisao de design que nao reforce esse eixo e candidata a remocao.
+Somos o espaco onde jogadores entram em partidas ranked in-house criadas automaticamente por
+bot Steam — sem depender de ninguem estar online — e jogam ao lado de outros jogadores que
+leram, compreenderam e aceitaram as mesmas 14 leis de conduta, aprendendo por osmose ao competir
+em ambiente de alta exigencia comportamental e tecnica. O diferencial nao e o coach. O diferencial
+e a cultura: a doutrina e aceite obrigatorio que bloqueia acesso as rotas privadas, o sistema
+progressivo de 3 strikes (advertencia, suspensao, banimento), e os 14 principios que governam
+comportamento dentro e fora das partidas.
+
+O acesso ao lobby livre e **gratuito** — o que se exige nao e pagamento, e **prova de doutrina**:
+chegar ao nivel 6 (Aprendiz / doutrinado) no ladder de progressao. Ver Secao 2 (o modelo freemium)
+e HONOR_SYSTEM.md. A missao declarada e formar 200 jogadores na medalha Imortal de forma 100%
+legitima. Qualquer feature, qualquer copy, qualquer decisao de design que nao reforce esse eixo
+e candidata a remocao.
+
+> **Nota de terminologia (2026-06-02).** Onde docs antigos diziam "hub", o formato canonico
+> agora e **app** (a visao long-term inclui launcher desktop nativo). "Hub" esta aposentado
+> como termo de produto.
 
 ---
 
@@ -118,17 +136,45 @@ proximos o suficiente para causar confusao. Esta secao elimina a ambiguidade.
 ### NAO somos coaching marketplace
 
 Nao vendemos "1 hora de aula". Nao temos lista de coaches disponiveis por preco/hora. Nao
-comparamos metodologias. O modelo e comunidade com mensalidade — acesso a partidas in-house
-em ambiente doutrinado. O coach (admin) e implicito, nao e um produto adquirivel por unidade
-de tempo. Coaches credenciados sao escopo V2 e serao tratados como feature de comunidade,
-nao como vitrine de profissionais.
+comparamos metodologias. O modelo e comunidade doutrinada — acesso a partidas in-house em
+ambiente protegido por principios. O lobby livre e gratuito; o que se exige e prova de doutrina
+(nivel 6 — ver Secao 2, modelo freemium). O coach (admin) e implicito, nao e um produto
+adquirivel por unidade de tempo. Coaches credenciados sao escopo V2 e serao tratados como
+feature de comunidade, nao como vitrine de profissionais.
 
 ### NAO somos lobby creator generico
 
 Nao competimos com FACEIT em volume de features de fila. Nao replicamos sistema de elo
 1-10, ranking de liga europeu, hubs anonimos de qualquer jogador. Nosso lobby e in-house —
-restrito a membros ativos com doutrina aceita. A restricao e o produto. Retirar a restricao
-para crescer seria destruir o diferencial.
+restrito a quem provou doutrina. **A restricao e o produto. Retirar a restricao para crescer
+seria destruir o diferencial.**
+
+**Atualizacao 2026-06-02 — o que e a restricao.** A restricao deixou de ser pagamento ou posse
+de medalha. A restricao agora e **prova de doutrina: alcancar o nivel 6 (Aprendiz / doutrinado)**
+no ladder de progressao. O lobby livre e **gratuito, nao irrestrito** — todo mundo pode entrar,
+desde que prove que conhece a cultura. O gate continua existindo; ele so trocou de natureza:
+de "quem paga / quem tem medalha" para "quem viveu a doutrina". Isso e fiel ao Guardiao: o
+ambiente nao se abre por dinheiro nem por ego, abre-se por conhecimento da cultura.
+
+### Modelo Freemium de Lobby
+
+Existem **duas faixas de lobby**, com gates distintos:
+
+| Lobby | Gate de acesso | Medalhas admitidas | Modelo |
+|-------|----------------|--------------------|--------|
+| **Livre** | Nivel 6 (Aprendiz / doutrinado) | Todas | **FREEMIUM — gratuito.** Prova de doutrina e a unica exigencia. |
+| **Elite** | Nivel 6 (doutrinado) **+** medalha Imortal da Valve | So Imortal Valve | Premium (monetizacao a definir). |
+
+**O nivel 6 vale para TODOS — ele e a porta gratuita do ambiente.** O ladder 0-30 vale para a
+massa inteira (Cruzado, Arconte, Lenda, Ancestral) ate a banda As (nivel 24), que sobe so por
+conduta. Os dois ultimos degraus exigem skill: Lendario (25) pede medalha Divine+, Mistico (30)
+pede Imortal. E o lobby elite e outro gate ainda: exige a medalha Imortal mais a doutrina (nivel 6).
+Nao confundir nivel com medalha.
+
+**Por que o elite nao e "lobby de ego".** A medalha Imortal da Valve e necessaria mas **nao
+suficiente** — mesmo o Imortal precisa se doutrinar (nivel 6) para entrar. A skill alta nao
+compra entrada: ela apenas qualifica quem ja provou que vive a cultura. Isso e o Guardiao em
+acao — nenhum gate se abre por status tecnico isolado.
 
 ### NAO somos plataforma educativa
 
@@ -167,11 +213,14 @@ camadas mas sofreu 3 falhas estruturais que NAO podem se repetir em V2:
 
 1. **Etapa manual de admissao** — Google Forms + DM no Discord como ultimo passo de gating. Quebra brutal de fluxo. **V2 deve eliminar 100%.**
 2. **Ranking decorativo** — vitorias/derrotas nao eram computadas, ranking existia mas sem calculo real. **V2: scoring real desde dia 1 OU nao mostrar ranking.**
-3. **Single Point of Failure: Pedro** — lobbies dependiam dele estar online. Quando burnou, a Liga parou. **V2: feature "Jogar Agora" funcional sem Pedro estar conectado.** Pedro entra como Mestre/Guardiao em sessoes cerimoniais, nao como dependencia operacional.
+3. **Single Point of Failure: Pedro** — lobbies dependiam dele estar online. Quando burnou, a Liga parou. **V2: criacao de lobby e AUTOMATIZADA — o bot Steam monta a partida sozinho, sem ninguem estar conectado.** Pedro entra como Mestre/Guardiao em sessoes cerimoniais, nao como dependencia operacional.
 
-**Implicacao de produto:** a arquitetura de matchmaking V2 deve ter modos auto-organizaveis
-pela comunidade (lobby creator via PROs ou alunos avancados), com Pedro presente nos modos
-de maior cerimonia (ex: lobby supervisionado semanal, season finale, calibracao de novo PRO).
+**Implicacao de produto:** a arquitetura de matchmaking V2 e **automatizada na criacao de
+partidas** — o bot Steam organiza o lobby in-house sem exigir Pedro nem qualquer humano online.
+Isso elimina de raiz o Single Point of Failure que parou a Liga V1. Pedro permanece presente
+nos modos de maior cerimonia (ex: lobby supervisionado semanal, season finale, calibracao de
+novo PRO), mas o "Jogar Agora" funciona 24/7 por conta propria. Ver MATCH_CREATION.md para o
+sistema completo de criacao de partidas e as duas faixas de lobby.
 
 ### Os 14 Principios como Lei de Conduta
 

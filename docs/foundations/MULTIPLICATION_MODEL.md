@@ -66,8 +66,9 @@ ou algo foi corrompido no caminho.
 
 **Responsabilidade de transmissao por geracao:**
 
-G1 transmite ao aluno: os 14 principios da Doutrina, o funcionamento do sistema HONOR,
-o significado de "Imortal da Formula", a distinção entre skill e conduta.
+G1 transmite ao aluno: os 14 principios da Doutrina, o funcionamento do sistema HONOR
+(ladder de nivel 0-30), o significado de "Mistico" (topo do ladder), a distinção entre
+skill e conduta.
 
 G2 transmite o mesmo — e adicionalmente a historia da geracao que o precedeu. O G2 carrega
 tanto a doutrina de Pedro quanto o exemplo de quem o ensinou.
@@ -264,15 +265,15 @@ Se os alunos de um PRO especifico tem HONOR sistematicamente mais baixo do que a
 plataforma, algo esta errado. Ou o PRO nao esta transmitindo a doutrina efetivamente, ou
 esta aceitando alunos abaixo do padrao cultural minimo, ou esta sendo um exemplo negativo.
 
-Threshold de alerta: HONOR medio dos alunos 2+ tiers abaixo da media da plataforma por 2
+Threshold de alerta: nivel HONOR medio dos alunos 2+ bandas abaixo da media da plataforma por 2
 temporadas consecutivas.
 
 **M3 — Porcentagem de PROs com status clean:**
-Dos PROs ativos, quantos tem historico limpo (zero strikes graves, tier HONOR Lendario+)?
+Dos PROs ativos, quantos tem historico limpo (zero strikes graves, nivel HONOR Lendario+)?
 Se mais de 20% dos PROs ativos tem algum sinal de degradacao de conduta, o processo de
 selecao precisa ser revisado.
 
-Threshold de alerta: mais de 20% de PROs com HONOR abaixo de Honrado OU com strike medio
+Threshold de alerta: mais de 20% de PROs com nivel HONOR abaixo de Aprendiz (nivel 6) OU com strike medio
 na temporada corrente.
 
 **M4 — Strikes graves da temporada:**
@@ -376,9 +377,9 @@ Um Conselho de PROs funcional que toma decisoes de qualidade sem Pedro precisar 
 presente em cada deliberacao. Pedro e um advogado de ultima instancia, nao um gerente cotidiano.
 
 **Meta cultural:**
-"Imortal da Formula" ser um titulo que qualquer jogador brasileiro de Dota 2 reconhece como
-significando algo. Nao por marketing — por reputacao construida partida a partida, temporada
-a temporada, PRO a PRO.
+"Mistico" (topo do ladder FormulaDota) ser um titulo que qualquer jogador brasileiro de Dota 2
+reconhece como significando algo. Nao por marketing — por reputacao construida partida a partida,
+temporada a temporada, PRO a PRO.
 
 ### 7.2 O que o modelo NAO quer produzir
 

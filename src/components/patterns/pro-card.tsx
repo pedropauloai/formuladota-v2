@@ -288,7 +288,7 @@ export function ProCard({
                   <HonorRankMedal
                     rank={honorRank}
                     size="md"
-                    glow={honorRank === "imortal-da-formula"}
+                    glow={honorRank === "mistico"}
                   />
                 )}
               </div>

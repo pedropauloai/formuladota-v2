@@ -19,12 +19,10 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ProStatsHeader } from "@/components/pro/pro-stats-header";
 import { RevenueSummaryCard } from "@/components/pro/revenue-summary-card";
-import { PriceEditorCard } from "@/components/pro/price-editor-card";
 import { StudentListClient } from "./student-list-client";
 import { ProStatusActions } from "./pro-status-actions";
 import { getMyProRevenue } from "@/app/actions/pro-management";
 import { getMyStudents } from "@/app/pro/actions";
-import { getMyPricingInfo } from "@/app/pro/pricing-actions";
 import { getActiveMatchSession } from "@/app/actions/match-coordination";
 import { MatchCoordinationClient } from "@/app/pro/match-coordination-client";
 
@@ -64,30 +62,13 @@ export default async function ProPage() {
     year: "numeric",
   });
 
-  // Busca package do PRO pra pricing (precisa do coach_id)
+  // Preço fixo R$ 10 por ficha (Pedro 2026-06-02: pricing descentralizado revertido).
+  // Coach do PRO logado (usado no painel de fila abaixo).
   const { data: coach } = await supabase
     .from("coaches")
     .select("id")
     .eq("profile_id", user.id)
     .maybeSingle();
-
-  // Busca package avulso do PRO (primeiro ativo, tipo avulso)
-  const { data: proPackage } = coach
-    ? await supabase
-        .from("packages")
-        .select("id, nome")
-        .eq("coach_id", coach.id)
-        .eq("tipo", "avulso")
-        .eq("ativo", true)
-        .order("display_order", { ascending: true })
-        .limit(1)
-        .maybeSingle()
-    : { data: null };
-
-  // Busca pricing info do package (se existir)
-  const pricingInfo = proPackage
-    ? await getMyPricingInfo(proPackage.id)
-    : null;
 
   // Busca revenue, alunos e sessao ativa em paralelo
   const [revenueResult, studentsResult, activeSessionResult] = await Promise.all([
@@ -202,31 +183,19 @@ export default async function ProPage() {
             id="heading-pricing"
             className="font-display text-base uppercase tracking-widest text-text-display"
           >
-            Meu Pricing
+            Preço
           </h2>
         </div>
 
-        {proPackage && pricingInfo?.success && pricingInfo.data ? (
-          <PriceEditorCard
-            packageId={proPackage.id}
-            packageName={proPackage.nome}
-            currentPrice={pricingInfo.data.currentPrice}
-            maxAllowed={pricingInfo.data.maxAllowed}
-            honorTier={pricingInfo.data.honorTier}
-            honorScore={pricingInfo.data.honorScore}
-            canChangeNow={pricingInfo.data.canChangeNow}
-            nextChangeAt={pricingInfo.data.nextChangeAt}
-            daysRemaining={pricingInfo.data.daysRemaining}
-            history={pricingInfo.data.history}
-          />
-        ) : (
-          <div className="rounded-xl border border-border-subtle bg-bg-elevated p-8 text-center">
-            <p className="text-text-muted text-sm">
-              Nenhum package avulso ativo encontrado. O admin cria packages para PROs — entre em
-              contato com Pedro para configurar seu pricing.
-            </p>
-          </div>
-        )}
+        <div className="rounded-xl border border-border-subtle bg-bg-elevated p-8 text-center">
+          <p className="font-display text-3xl font-bold text-text-display">R$ 10,00</p>
+          <p className="mt-2 font-display text-sm font-semibold text-text-body">
+            por ficha — preço fixo definido pela plataforma
+          </p>
+          <p className="mt-3 font-body text-sm text-text-muted">
+            O FormulaDota cobra um valor único e justo por vaga. Não há edição de preço por PRO.
+          </p>
+        </div>
       </section>
 
       {/* ----------------------------------------------------------------

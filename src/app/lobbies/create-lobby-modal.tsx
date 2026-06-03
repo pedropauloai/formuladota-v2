@@ -7,7 +7,7 @@
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { X, Loader2, ChevronDown, Eye, EyeOff } from "lucide-react";
-import { toast } from "sonner";
+import { useToast } from "@/components/ui/toast";
 import { createLobby } from "@/app/criar-lobby/actions";
 import { Button } from "@/components/ui/button";
 
@@ -17,6 +17,7 @@ interface Props {
 }
 
 export function CreateLobbyModal({ open, onClose }: Props) {
+  const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
   const [showAdvanced, setShowAdvanced] = useState(false);
   const router = useRouter();
@@ -37,10 +38,10 @@ export function CreateLobbyModal({ open, onClose }: Props) {
     startTransition(async () => {
       const result = await createLobby(formData);
       if (!result.success) {
-        toast.error(result.error);
+        toast({ type: "error", title: result.error });
         return;
       }
-      toast.success(`Lobby criado! Senha: ${result.password}`);
+      toast({ type: "success", title: `Lobby criado! Senha: ${result.password}` });
       router.push(`/lobbies/${result.lobbyId}`);
     });
   };

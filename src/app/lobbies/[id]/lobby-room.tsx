@@ -22,7 +22,7 @@ import {
   X,
   ArrowLeft,
 } from "lucide-react";
-import { toast } from "sonner";
+import { useToast } from "@/components/ui/toast";
 import { joinTeam, leaveLobby, startMatch, cancelLobby } from "./actions";
 import { Button } from "@/components/ui/button";
 
@@ -300,6 +300,7 @@ function PlayerSlotRow({
   disabled: boolean;
   onMutate?: () => void;
 }) {
+  const { toast } = useToast();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const a = TEAM_ACCENTS[accent];
@@ -308,7 +309,7 @@ function PlayerSlotRow({
     startTransition(async () => {
       const result = await joinTeam({ lobbyId, team });
       if (!result.success) {
-        toast.error(result.error);
+        toast({ type: "error", title: result.error });
         return;
       }
       router.refresh();
@@ -320,7 +321,7 @@ function PlayerSlotRow({
     startTransition(async () => {
       const result = await joinTeam({ lobbyId, team: "spectator" });
       if (!result.success) {
-        toast.error(result.error);
+        toast({ type: "error", title: result.error });
         return;
       }
       router.refresh();
@@ -421,6 +422,7 @@ function SpectatorRow({
   disabled: boolean;
   onMutate?: () => void;
 }) {
+  const { toast } = useToast();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -428,7 +430,7 @@ function SpectatorRow({
     startTransition(async () => {
       const r = await joinTeam({ lobbyId, team: "spectator" });
       if (!r.success) {
-        toast.error(r.error);
+        toast({ type: "error", title: r.error });
         return;
       }
       router.refresh();
@@ -692,6 +694,7 @@ function StartMatchButton({
   lobbyId: string;
   disabled: boolean;
 }) {
+  const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
@@ -699,10 +702,10 @@ function StartMatchButton({
     startTransition(async () => {
       const r = await startMatch({ lobbyId });
       if (!r.success) {
-        toast.error(r.error);
+        toast({ type: "error", title: r.error });
         return;
       }
-      toast.success("Partida iniciada!");
+      toast({ type: "success", title: "Partida iniciada!" });
       router.refresh();
     });
   };

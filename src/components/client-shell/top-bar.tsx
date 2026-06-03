@@ -20,7 +20,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Settings, LogOut, LogIn, Shield, Eye, EyeOff, Radio } from "lucide-react";
+import { Settings, LogOut, LogIn, Shield, Eye, EyeOff, Radio, Swords } from "lucide-react";
 import { signOut, signInWithDiscord } from "@/app/login/actions";
 import { togglePreviewMode } from "@/lib/auth/preview-mode";
 import { cn } from "@/lib/utils";
@@ -61,6 +61,8 @@ interface Props {
   /** User tem pro_promotion ativa/pausada — exibe tab contextual PRO. */
   isPro: boolean;
   prosOnlineCount: number;
+  /** Jogadores buscando partida agora (entries waiting na fila). */
+  searchingCount: number;
   /** Filas do user — quando >0, substitui a pílula "PROs online" por "Na fila".
    *  Pedro 2026-05-26: solução pro StickyBanner que forçava scroll. */
   myQueues: MyQueueEntry[];
@@ -74,6 +76,7 @@ export function DashboardTopBar({
   previewActive,
   isPro,
   prosOnlineCount,
+  searchingCount,
   myQueues,
 }: Props) {
   const inQueue = myQueues.length > 0;
@@ -184,19 +187,32 @@ export function DashboardTopBar({
           momento é o estado atual do user, não a quantidade de PROs disponíveis. */}
       {inQueue ? (
         <QueueStatusPill queues={myQueues} />
-      ) : prosOnlineCount > 0 ? (
-        <div className="hidden xl:flex items-center gap-2 rounded-md border border-emerald-500/30 bg-emerald-500/5 px-3 py-1">
-          <span className="relative flex size-2" aria-hidden="true">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
-          </span>
-          <span className="font-display text-sm font-semibold text-emerald-300/90">
-            {prosOnlineCount}{" "}
-            {prosOnlineCount === 1 ? "PRO online" : "PROs online"}
-          </span>
-          <Radio size={12} className="text-emerald-400/80" aria-hidden="true" />
+      ) : (
+        <div className="hidden xl:flex items-center gap-2">
+          {prosOnlineCount > 0 && (
+            <div className="flex items-center gap-2 rounded-md border border-emerald-500/30 bg-emerald-500/5 px-3 py-1">
+              <span className="relative flex size-2" aria-hidden="true">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
+              </span>
+              <span className="font-display text-sm font-semibold text-emerald-300/90">
+                {prosOnlineCount}{" "}
+                {prosOnlineCount === 1 ? "PRO online" : "PROs online"}
+              </span>
+              <Radio size={12} className="text-emerald-400/80" aria-hidden="true" />
+            </div>
+          )}
+          {searchingCount > 0 && (
+            <div className="flex items-center gap-2 rounded-md border border-sky-500/30 bg-sky-500/5 px-3 py-1">
+              <Swords size={12} className="text-sky-400/80" aria-hidden="true" />
+              <span className="font-display text-sm font-semibold text-sky-300/90">
+                {searchingCount}{" "}
+                {searchingCount === 1 ? "jogador buscando" : "jogadores buscando"}
+              </span>
+            </div>
+          )}
         </div>
-      ) : null}
+      )}
 
       {/* Direita — CONDUTA cinematic (todos) + (Entrar/Logout) + PreviewToggle (admin real) */}
       <div className="flex items-center gap-1.5 xl:gap-2">

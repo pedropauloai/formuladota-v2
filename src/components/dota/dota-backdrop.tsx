@@ -1,31 +1,27 @@
-// DotaBackdrop — background estático full-bleed igual ao site oficial Dota 2.
+// DotaBackdrop — background atmosferico full-bleed (arte OFICIAL do Dota 2).
 //
-// O site dota2.com usa a imagem `greyfade.jpg` (Steam CDN) como textura atmospheric em
-// TODAS as pages internas (/heroes, /news, /esports). Esse componente replica esse pattern
-// pra dar identidade visual consistente e legibilidade boa pra texto sobreposto.
-//
-// V1: 1 imagem default. V2: pode aceitar override por page se Pedro pedir variação visual
-// (ex: /perfil/[steamid] com art keyart de hero específico — sempre estático, nunca video).
+// Regra do projeto (Pedro): SEMPRE arte oficial do Dota 2 (Steam CDN). Default:
+// `featuredTeal` (New Frontiers) — favorito do Pedro pra background principal, alta
+// resolucao (segura bem em ultrawide). Pra outra arte oficial, passe `src`. Nunca video.
 
-const DOTA_BACKGROUND_GREYFADE =
-  "https://cdn.steamstatic.com/apps/dota2/images/dota_react/backgrounds/greyfade.jpg";
+import { DOTA_BACKGROUNDS } from "@/components/frontier/assets";
 
 interface DotaBackdropProps {
   /**
-   * URL custom de imagem estática. Se não passado, usa o `greyfade.jpg` oficial Dota 2.
-   * Aceitável: outras imagens estáticas Steam CDN ou self-hosted em public/.
-   * IMPORTANTE: NÃO passar URL de video — esse componente é só pra background estático.
+   * URL de imagem estatica (keyart oficial). Se omitido, usa `featuredTeal` (New Frontiers).
+   * Outras opcoes em DOTA_BACKGROUNDS (featuredPurple, mapDark, mapBanner, greyfade).
+   * IMPORTANTE: NAO passar URL de video.
    */
   src?: string;
   /**
-   * Intensidade do overlay escuro. "subtle" (mais imagem visível) | "strong" (mais escuro).
-   * Default: "strong" — alinha com pages internas Dota oficial onde texto domina.
+   * Intensidade do overlay escuro sobre a imagem.
+   * "subtle" (mais imagem visivel) | "strong" (mais escuro). Default: "strong".
    */
   overlay?: "subtle" | "strong";
 }
 
 export function DotaBackdrop({ src, overlay = "strong" }: DotaBackdropProps) {
-  const imageUrl = src ?? DOTA_BACKGROUND_GREYFADE;
+  const imageUrl = src ?? DOTA_BACKGROUNDS.featuredTeal;
   const overlayClass =
     overlay === "subtle"
       ? "bg-gradient-to-b from-black/30 via-black/40 to-black/70"

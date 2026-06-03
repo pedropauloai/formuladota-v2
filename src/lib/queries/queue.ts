@@ -130,3 +130,17 @@ export async function getMyQueueStatus(userId: string): Promise<MyQueueEntry[]> 
   // Ordena resultado por urgência (menor posição primeiro)
   return result.sort((a, b) => a.position - b.position);
 }
+
+/**
+ * Quantos jogadores estão buscando partida agora — entries `waiting` em qualquer PRO.
+ * Indicador "buscando partida" do header. Atualiza via Realtime (QueueRealtimeListener
+ * dispara router.refresh em mudanças de coach_queue_entries).
+ */
+export async function getSearchingCount(): Promise<number> {
+  const supabase = await createClient();
+  const { count } = await supabase
+    .from("coach_queue_entries")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "waiting");
+  return count ?? 0;
+}

@@ -77,6 +77,12 @@ import { TypographySection } from "./typography-section";
 // Section 0.5 — Page Templates (Sistema A canônico)
 import { PageTemplatesSection } from "./page-templates-section";
 
+// Sessão 2026-06-02 — ladder de progressão renomeado (Novato → Místico) + ritual
+import { cn } from "@/lib/utils";
+import { TIER_CONFIG, type Tier as LevelTier } from "@/lib/levels";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/components/ui/toast";
+
 // ---------------------------------------------------------------------------
 // Helpers de tipo para iterar TIER_NAMES de forma type-safe
 // ---------------------------------------------------------------------------
@@ -190,6 +196,7 @@ export default function ComponentsPage() {
   const [confirmResult, setConfirmResult] = useState<string | null>(null);
   const confirmDialog = useConfirm();
   const promptDialog = usePrompt();
+  const { toast } = useToast();
   // Snapshot do horário de fim da season ao montar — evita Date.now() impure em render
   const [seasonEndsAt] = useState(
     () => new Date(Date.now() + 47 * 24 * 60 * 60 * 1000 + 12 * 60 * 60 * 1000)
@@ -309,7 +316,7 @@ export default function ComponentsPage() {
       {/* ================================================================== */}
       {/* SECTION 1.7 — HonorRankMedal (PHILOSOPHY.md 2026-05-23)           */}
       {/* ================================================================== */}
-      <Section title="HonorRankMedal — 8 tiers HONOR (eixo paralelo a SKILL)">
+      <Section title="HonorRankMedal — 6 bandas HONOR (Novato → Místico)">
         <div className="space-y-6">
           <p className="text-sm text-text-muted">
             Sistema 2-eixos PHILOSOPHY.md. HONOR mede CONDUTA. SKILL mede CAPACIDADE.
@@ -324,7 +331,7 @@ export default function ComponentsPage() {
                   rank={rank}
                   size="md"
                   showLabel
-                  glow={rank === "imortal-da-formula"}
+                  glow={rank === "mistico"}
                 />
               </div>
             ))}
@@ -338,7 +345,7 @@ export default function ComponentsPage() {
             <div className="flex items-end gap-6">
               {(["sm", "md", "lg", "xl"] as const).map((s) => (
                 <div key={s} className="flex flex-col items-center gap-2">
-                  <HonorRankMedal rank="imortal-da-formula" size={s} glow />
+                  <HonorRankMedal rank="mistico" size={s} glow />
                   <span className="font-display text-sm font-semibold text-text-body uppercase tracking-widest">
                     {s}
                   </span>
@@ -361,13 +368,91 @@ export default function ComponentsPage() {
               </div>
               <span className="font-display text-2xl text-text-faded">+</span>
               <div className="flex flex-col items-center gap-2">
-                <HonorRankMedal rank="imortal-da-formula" size="lg" glow showLabel />
+                <HonorRankMedal rank="mistico" size="lg" glow showLabel />
                 <span className="text-sm text-text-muted uppercase tracking-widest">
                   HONOR
                 </span>
               </div>
             </div>
           </div>
+        </div>
+      </Section>
+
+      {/* ================================================================== */}
+      {/* SECTION 1.8 — Progressão: Ladder 0–30 (NOVO 2026-06-02)            */}
+      {/* ================================================================== */}
+      <Section title="Progressão — Ladder 0–30 HONOR (Novato → Místico)">
+        <div className="space-y-6">
+          <p className="text-sm text-text-muted">
+            Redesign 2026-06-02: o <strong className="text-text-body">nível da conta É o HONOR</strong> (fusão HONOR + XP).
+            5 medalhas nos marcos 6/12/18/25/30 (Novato = pré-medalha). Conhecimento leva 0→6 (quiz da
+            doutrina); conduta vivida leva 6→30 (strikes regridem). O topo exige convergência dos dois
+            eixos: <strong className="text-text-body">Lendário exige Divine, Místico exige Imortal</strong>.
+            Fonte: <code className="font-mono text-brand-primary text-sm">src/lib/levels.ts</code>.
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {(Object.keys(TIER_CONFIG) as LevelTier[]).map((key) => {
+              const cfg = TIER_CONFIG[key];
+              const Icon = cfg.icon;
+              const [lo, hi] = cfg.levels;
+              const skillReq =
+                key === "lendario"
+                  ? "requer Divine"
+                  : key === "mistico"
+                    ? "requer Imortal"
+                    : null;
+              return (
+                <div
+                  key={key}
+                  className={cn(
+                    "flex flex-col items-center gap-2 rounded-md border bg-bg-elevated p-4 text-center",
+                    cfg.borderColor,
+                  )}
+                >
+                  <Icon className={cn("size-8", cfg.color)} />
+                  <span
+                    className={cn(
+                      "font-display text-sm font-bold uppercase tracking-widest",
+                      cfg.color,
+                    )}
+                  >
+                    {cfg.label}
+                  </span>
+                  <span className="font-mono text-sm text-text-faded">
+                    {lo === hi ? `Nível ${lo}` : `Nível ${lo}–${hi}`}
+                  </span>
+                  {skillReq && (
+                    <span className="font-display text-sm font-semibold text-text-muted">
+                      {skillReq}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          <p className="text-sm text-text-faded">
+            Nota: o <code className="font-mono text-brand-primary text-sm">HonorRankMedal</code> (seção 1.7) já foi
+            migrado pras 6 bandas (2026-06-02). Callers que ainda derivam do honor-score antigo passam por <code className="font-mono text-brand-primary text-sm">legacyHonorToBand</code>.
+          </p>
+        </div>
+      </Section>
+
+      {/* ================================================================== */}
+      {/* SECTION 1.9 — Ritual de Doutrinação (NOVO 2026-06-02)              */}
+      {/* ================================================================== */}
+      <Section title="Ritual de Doutrinação — /doutrina (onboarding gamificado 0→6)">
+        <div className="space-y-4">
+          <p className="text-sm text-text-muted">
+            Não é prova — é iniciação. 4 capítulos (Conduta / Anti-padrões / Teoria / Fundamentos),
+            130 questões, feedback-ensino do Mestre, errar re-enfileira (não reprova), barra de XP rumo
+            ao nível 6 e reveal da medalha Aprendiz. Persistência localStorage (MVP); DB/XP e integração
+            ao gate de onboarding ficam pós-aprovação. Página inteira — abra pra ver.
+          </p>
+          <a href="/doutrina" target="_blank" rel="noreferrer" className="inline-flex">
+            <Button variant="primary" size="md">
+              Abrir /doutrina
+            </Button>
+          </a>
         </div>
       </Section>
 
@@ -870,7 +955,7 @@ export default function ComponentsPage() {
               proName="PETERPRA"
               mmr={7200}
               rank="immortal"
-              honorRank="mestre"
+              honorRank="as"
               headline="Criador da FormulaDota — Imortal Top 0.5%"
               membershipTier="consagrado"
               ringColor="play"
@@ -962,7 +1047,7 @@ export default function ComponentsPage() {
                     HonorRankMedal
                   </p>
                   <HonorRankMedal
-                    rank="mestre"
+                    rank="as"
                     size="lg"
                     showLabel
                     calibrationStatus={
@@ -1000,6 +1085,48 @@ export default function ComponentsPage() {
         >
           Mostrar cerimonia
         </button>
+      </Section>
+
+      {/* ================================================================== */}
+      {/* SECTION 13.5 — Toast custom (NOVO 2026-06-02) + Skeleton           */}
+      {/* ================================================================== */}
+      <Section title="Toast — feedback custom (canônico PRODUCT_CORE F-1, não sonner)">
+        <div className="space-y-3">
+          <p className="text-sm text-text-muted">
+            Toast canônico do PRODUCT_CORE (F-1): <code className="font-mono text-brand-primary text-sm">useToast()</code> →{" "}
+            <code className="font-mono text-brand-primary text-sm">toast(&#123; type, title, description &#125;)</code>. Substitui o
+            sonner legado — já 100% migrado e removido do projeto (2026-06-02).
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <Button variant="secondary" size="sm" onClick={() => toast({ type: "success", title: "Pagamento confirmado." })}>
+              success
+            </Button>
+            <Button variant="secondary" size="sm" onClick={() => toast({ type: "error", title: "Não conseguimos criar a partida.", description: "Tente novamente." })}>
+              error
+            </Button>
+            <Button variant="secondary" size="sm" onClick={() => toast({ type: "warning", title: "O PRO fechou a fila." })}>
+              warning
+            </Button>
+            <Button variant="secondary" size="sm" onClick={() => toast({ type: "info", title: "Você subiu de nível." })}>
+              info
+            </Button>
+          </div>
+        </div>
+      </Section>
+
+      <Section title="Skeleton — placeholder de loading">
+        <div className="max-w-md space-y-3">
+          <Skeleton className="h-8 w-2/3" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-5/6" />
+          <div className="flex gap-3 pt-2">
+            <Skeleton className="size-12 rounded-full" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-4 w-1/2" />
+              <Skeleton className="h-4 w-1/3" />
+            </div>
+          </div>
+        </div>
       </Section>
 
       {/* ================================================================== */}

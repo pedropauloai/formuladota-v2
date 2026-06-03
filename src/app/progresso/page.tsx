@@ -11,6 +11,7 @@ import { ClientShell } from "@/components/client-shell/shell";
 import {
   TIER_CONFIG,
   getTierForLevel,
+  getGatedTierForLevel,
   XP_SOURCE_LABELS,
   type Tier,
 } from "@/lib/levels";
@@ -50,7 +51,7 @@ export default async function ProgressoPage() {
       .single(),
     supabase
       .from("level_thresholds")
-      .select("level, xp_required, total_xp, shards_reward, tier, is_free_tier")
+      .select("level, xp_required, total_xp, shards_reward, is_free_tier")
       .order("level"),
     supabase
       .from("xp_events")
@@ -67,7 +68,7 @@ export default async function ProgressoPage() {
       .single(),
     supabase
       .from("profiles")
-      .select("username, avatar_url, is_admin")
+      .select("username, avatar_url, is_admin, mmr_atual")
       .eq("id", user.id)
       .single(),
     supabase
@@ -84,7 +85,8 @@ export default async function ProgressoPage() {
   const subActive = isAdmin || subscription?.status === "authorized";
   const persona = steamLink?.persona ?? profile?.username ?? "Anônimo";
   const avatar = steamLink?.avatar_url ?? profile?.avatar_url ?? null;
-  const tier = getTierForLevel(currentLevel);
+  // Topo do ladder tem co-requisito de SKILL: Lendário exige Divine, Místico exige Imortal.
+  const tier = getGatedTierForLevel(currentLevel, profile?.mmr_atual ?? null);
   const tierConfig = TIER_CONFIG[tier];
   const TierIcon = tierConfig.icon;
 
@@ -274,7 +276,7 @@ export default async function ProgressoPage() {
               </thead>
               <tbody>
                 {(thresholds ?? []).map((t) => {
-                  const tCfg = TIER_CONFIG[t.tier as Tier];
+                  const tCfg = TIER_CONFIG[getTierForLevel(t.level)];
                   const TIcon = tCfg.icon;
                   const isCurrent = t.level === currentLevel;
                   const isUnlocked = currentLevel >= t.level;

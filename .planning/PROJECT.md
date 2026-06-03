@@ -3,9 +3,23 @@
 > Vision canônica pós-pivô estratégico (2026-05-01).
 > Substitui o framing original do PRD ("plataforma de mentoria 1-1 com Pedro").
 
+## Decisão de nomenclatura & alvo de plataforma (2026-06-02)
+
+> **"HUB" foi aposentado como termo.** Em docs, código e comunicação, a palavra oficial pro formato do produto é **"app" / "aplicativo"** — o termo do dia a dia que o público de Dota 2 brasileiro usa hoje. "Client/launcher" foi descartado: o vocabulário morreu na transição Garena → Steam e soa técnico/datado pra comunidade atual.
+
+**Hierarquia de identidade:**
+> **FormulaDota** (marca) → é um **app** (formato) → com uma **comunidade** dentro (times, torneios, amigos, etc.) → e a *alma* vive numa **tagline** (memória afetiva do Garena: *"o lugar onde a galera do Dota 2 brasileiro se reencontra"*). O Garena é gancho de marketing, **não** nome da categoria.
+
+**Alvo de plataforma — multiplataforma:**
+- **Web** (atual) — Next.js, ponto de entrada hoje.
+- **App nativo desktop** (visão V3) — launcher estilo Steam/Discord via Tauri.
+- **App mobile** (desejado por Pedro, 2026-06-02) — versão para celular. Forma/escopo a definir (PWA, React Native, ou Tauri mobile). Toda decisão de produto/UX daqui pra frente considera viabilidade mobile.
+
+**Foco estratégico atual:** MVP fichas **praticamente finalizado** (só faltam ajustes que virão de testes/uso real). Próxima frente = **features de comunidade**: torneios, times, lobbies in-house, sistema de busca/matchmaking. Isso encerra a oscilação "MVP fichas vs HUB" — as duas convivem; fichas entregue, comunidade é o próximo norte.
+
 ## Core value
 
-**Hub de comunidade Dota 2 brasileira** estilo GamersClub do CS — onde jogadores pagam mensalidade pra acessar partidas in-house criadas por bot Steam, jogam com pessoas alinhadas culturalmente (doutrina aceita obrigatoriamente), competem em temporadas com ranking + premiação, e podem opcionalmente comprar serviços de coaching de profissionais credenciados.
+**App de comunidade Dota 2 brasileira** estilo GamersClub do CS — onde jogadores pagam mensalidade pra acessar partidas in-house criadas por bot Steam, jogam com pessoas alinhadas culturalmente (doutrina aceita obrigatoriamente), competem em temporadas com ranking + premiação, e podem opcionalmente comprar serviços de coaching de profissionais credenciados.
 
 ## Diferencial
 
@@ -49,6 +63,7 @@ Cada usuário no formuladota tem múltiplas identidades vinculadas:
 - shadcn/ui base
 - ~~Cyberpunk theme cyan/purple~~ → **Brand vermelho/preto/branco** (rebrand 2026-05-02 pós-receber logos oficiais Pedro). Cor vermelha exata derivada via color picker do `LOGO HORIZONTAL PRINCIPAL PRETO.png`. Phase 3.5 implementa.
 - **Brand string:** **FORMULADOTA** (maiúsculo, sem acento) em toda UI/email — nunca "Fórmula Dota"
+- **Tagline (decidida 2026-06-02):** lockup de duas linhas — identidade **"Pra quem leva o Dota a sério."** (sob o logo) + promessa **"Ganhe ou perca, a partida vale a pena."** (no hero). Linha de manifesto interna: **"A culpa nunca é do outro."** Variação de campanha: **"O Dota como ele deveria ser jogado."**
 - **Sem menção "Pedro Paulo" em UI** — admin implícito, não pessoa pública. Bio coach fica genérica ("Coach Immortal Top 0.5%")
 
 ## Stack a adicionar
@@ -108,12 +123,14 @@ Definidos em `.planning/REQUIREMENTS.md` e referenciados em `.planning/ROADMAP.m
 - Docs vivem em `docs/foundations/` (raiz do repo, máxima visibilidade).
 - Estimativa: 7-10 dias.
 
-## Current State
+## Current State (atualizado 2026-06-02)
 
 - **Milestone V1 — concluído** (Phase 1, 1.5, 2): auth Discord, doutrina, checkout PIX avulso.
-- **Milestone V2 — HUB em pausa parcial**: Phase 3 (Steam OAuth + multi-coach) concluída; Phase 3.5 (Rebrand) deprecada e absorvida pelo V2.5; Phase 4 (MP) pausada; Phases 5-8 pendentes pós-V2.5.
-- **Milestone V2.5 — Design Foundations ◆ ATIVO** (este milestone).
-- Branch corrente `feat/hero-state-refactor` com trabalho recente em queue/dashboard relacionado ao MVP fichas (pausado até V2.5 entregar).
+- **Milestone V2.5 — Design Foundations — CONCLUÍDO** (8 phases, design system AAA, Sistema A canônico).
+- **Milestone V2.6 — Player Identity + Social (Phase 9) — CONCLUÍDO**: perfil estilo client Dota 2, amigos + presence realtime, dashboard customizável, catálogo 127 heróis.
+- **MVP fichas — praticamente finalizado**: pricing descentralizado por PRO (floor R$10, teto por tier HONOR), split de receita PRO 85% / sponsor 10% / plataforma 5%. Ajustes finais virão de testes/uso real.
+- **Próximo norte — features de comunidade**: torneios, times, lobbies in-house, sistema de busca/matchmaking. (Schemas V2 já preservados no DB desde o pivô.)
+- **Phase 4 (Mercado Pago mensalidade)** segue pausada — reavaliar se mensalidade entra junto das features de comunidade ou depois.
 
 ## Evolution
 
@@ -132,4 +149,4 @@ This document evolves at phase transitions and milestone boundaries.
 3. Audit Out of Scope — reasons still valid?
 4. Update Context with current state
 
-Last updated: 2026-05-23 — milestone v2.5 Design Foundations started (pivô estratégico AAA game client experience)
+Last updated: 2026-06-02 — terminologia "app" travada (HUB aposentado), versão mobile adicionada ao alvo de plataforma, MVP fichas concluído, próximo norte = features de comunidade (torneios/times/lobbies/busca)

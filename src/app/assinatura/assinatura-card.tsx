@@ -7,7 +7,7 @@
 
 import { useState, useTransition } from "react";
 import { CheckCircle2, XCircle, Clock, AlertCircle, ArrowRight } from "lucide-react";
-import { toast } from "sonner";
+import { useToast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -36,6 +36,7 @@ function formatBRDate(iso: string | null): string {
 }
 
 export function AssinaturaCard({ subscription }: AssinaturaCardProps) {
+  const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
   const [isCancelling, setIsCancelling] = useState(false);
 
@@ -43,7 +44,7 @@ export function AssinaturaCard({ subscription }: AssinaturaCardProps) {
     startTransition(async () => {
       const result = await createSubscription();
       if (!result.success) {
-        toast.error(result.error);
+        toast({ type: "error", title: result.error });
         return;
       }
       // Redirect pra Mercado Pago (Pix Automático authorization)
@@ -56,11 +57,11 @@ export function AssinaturaCard({ subscription }: AssinaturaCardProps) {
     startTransition(async () => {
       const result = await cancelSubscription();
       if (!result.success) {
-        toast.error(result.error);
+        toast({ type: "error", title: result.error });
         setIsCancelling(false);
         return;
       }
-      toast.success("Assinatura cancelada. Acesso mantido até fim do período pago.");
+      toast({ type: "success", title: "Assinatura cancelada. Acesso mantido até fim do período pago." });
       // Reload pra atualizar UI
       window.location.reload();
     });
@@ -70,7 +71,7 @@ export function AssinaturaCard({ subscription }: AssinaturaCardProps) {
     startTransition(async () => {
       const result = await reactivateSubscription();
       if (!result.success) {
-        toast.error(result.error);
+        toast({ type: "error", title: result.error });
         return;
       }
       window.location.href = result.initPoint;
