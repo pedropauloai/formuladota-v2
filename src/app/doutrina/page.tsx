@@ -28,6 +28,7 @@ export default async function DoutrinaPage() {
         <RitualDoutrina
           initialAnsweredIds={progress.answeredIds}
           initialDoctrinated={progress.doctrinated}
+          initialLevel={progress.level}
         />
       </div>
     </main>

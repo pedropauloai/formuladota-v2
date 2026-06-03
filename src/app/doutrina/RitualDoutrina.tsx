@@ -1,173 +1,159 @@
 "use client";
 
-// Ritual de Doutrinacao (niveis 0->6). NAO e uma prova — e uma iniciacao.
-// O Mestre apresenta situacoes; cada resposta ENSINA (a justificativa e o ensino,
-// nao a nota). Errar nao reprova: a questao volta no fim do capitulo ate ser
-// compreendida. Ao completar, o aluno alcanca o nivel 6 = Aprendiz = doutrinado.
-// Ver docs/foundations/PROGRESSION_PUBLIC.md e PRODUCT_CORE.md (voz Mestre + Guardiao).
-//
-// Persistencia: localStorage via useSyncExternalStore (MVP pra Pedro revisar). A
-// versao final liga no sistema de XP/niveis no banco (migration — pendente aprovacao).
+// Ritual de Doutrinacao (niveis 0->6). NAO e prova — e iniciacao. Estrutura em
+// Pilar -> Licao -> Questao (Pedro 2026-06-03, ver memory/project_quiz_4_pilares):
+// as 130 questoes viram 4 Pilares; dentro de cada um, licoes curtas (2-3q por
+// principio/anti-padrao/conceito). Sequencial: a proxima licao so abre quando a
+// anterior e dominada. Errar nao reprova — a questao volta ate ser compreendida.
+// Cada acerto credita XP real (sobe o nivel) via recordDoctrineAnswer.
 
 import { useMemo, useState } from "react";
 import { m } from "motion/react";
-import { Check, X, ArrowRight } from "lucide-react";
+import { Check, X, ArrowRight, Lock, CheckCircle2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { HonorRankMedal } from "@/components/ui/honor-rank-medal";
 import { DURATIONS, EASINGS } from "@/lib/motion/presets";
 import { cn } from "@/lib/utils";
 import { QUIZ_QUESTIONS } from "@/lib/quiz/questions";
+import type { QuizQuestion } from "@/lib/quiz/types";
 import {
-  QUIZ_CHAPTERS,
-  type QuizChapter,
-  type QuizQuestion,
-  type QuizSection,
-} from "@/lib/quiz/types";
+  PILARES,
+  ALL_LESSONS,
+  isLessonComplete,
+  isPilarComplete,
+  nextLessonIndex,
+  type QuizLesson,
+  type QuizPilar,
+} from "@/lib/quiz/lessons";
 import { recordDoctrineAnswer } from "./actions";
 
 const TOTAL = QUIZ_QUESTIONS.length;
+const QUESTION_BY_ID = new Map(QUIZ_QUESTIONS.map((q) => [q.id, q]));
 
-const ORDERED_CHAPTERS: QuizChapter[] = [...QUIZ_CHAPTERS].sort(
-  (a, b) => a.order - b.order,
-);
-
-function questionsOf(section: QuizSection): QuizQuestion[] {
-  return QUIZ_QUESTIONS.filter((q) => q.section === section);
-}
-
-type View = "intro" | "question" | "chapterDone" | "complete";
+type View = "intro" | "trail" | "lesson" | "complete";
 
 interface RitualDoutrinaProps {
-  /** IDs ja respondidos corretamente (vindos do servidor — resume cross-device). */
   initialAnsweredIds: string[];
-  /** Se o usuario ja completou a doutrina (nivel 6). */
   initialDoctrinated: boolean;
+  /** Nível atual da conta (0-30), do servidor. */
+  initialLevel: number;
 }
 
 export function RitualDoutrina({
   initialAnsweredIds,
   initialDoctrinated,
+  initialLevel,
 }: RitualDoutrinaProps) {
-  // Progresso vem do servidor (props) — sem localStorage. Cada acerto persiste
-  // via recordDoctrineAnswer (otimista; o servidor e a fonte de verdade no reload).
   const [correctIds, setCorrectIds] = useState<Set<string>>(
-    () => new Set(initialAnsweredIds),
+    () => new Set(initialAnsweredIds)
   );
-
+  const [level, setLevel] = useState(initialLevel);
   const [view, setView] = useState<View>("intro");
-  const [chapterPos, setChapterPos] = useState(0);
-  // Fila de ids do capitulo atual ainda nao dominados (re-enfileira ao errar).
+  const [activeLessonIdx, setActiveLessonIdx] = useState<number>(-1);
+  // Fila de ids da licao atual ainda nao dominados (re-enfileira ao errar).
   const [queue, setQueue] = useState<string[]>([]);
-  // Opcao escolhida na questao atual — null = ainda respondendo; set = modo feedback.
   const [chosen, setChosen] = useState<string | null>(null);
 
   const done = correctIds.size;
   const pct = Math.round((done / TOTAL) * 100);
+  const allComplete = done >= TOTAL || initialDoctrinated;
 
-  // Proximo capitulo (a partir de `pos`) com questoes pendentes. pos = -1 se acabou.
-  function buildFrom(
-    pos: number,
-    solved: Set<string>,
-  ): { pos: number; queue: string[] } {
-    for (let i = pos; i < ORDERED_CHAPTERS.length; i++) {
-      const ch = ORDERED_CHAPTERS[i];
-      if (!ch) continue;
-      const pending = questionsOf(ch.section)
-        .filter((q) => !solved.has(q.id))
-        .map((q) => q.id);
-      if (pending.length > 0) return { pos: i, queue: pending };
-    }
-    return { pos: -1, queue: [] };
+  function openLesson(idx: number) {
+    const lesson = ALL_LESSONS[idx];
+    if (!lesson) return;
+    const pending = lesson.questionIds.filter((id) => !correctIds.has(id));
+    if (pending.length === 0) return; // ja completa
+    setActiveLessonIdx(idx);
+    setQueue(pending);
+    setChosen(null);
+    setView("lesson");
   }
 
-  function start() {
-    const { pos, queue: q } = buildFrom(0, correctIds);
-    if (pos === -1) {
+  function startOrContinue() {
+    if (allComplete) {
       setView("complete");
       return;
     }
-    setChapterPos(pos);
-    setQueue(q);
-    setChosen(null);
-    setView("question");
+    const idx = nextLessonIndex(correctIds);
+    if (idx === -1) {
+      setView("complete");
+      return;
+    }
+    setView("trail");
   }
 
-  const currentChapter = ORDERED_CHAPTERS[chapterPos];
+  const activeLesson = ALL_LESSONS[activeLessonIdx];
   const currentId = queue[0];
   const current = useMemo(
-    () => QUIZ_QUESTIONS.find((q) => q.id === currentId),
-    [currentId],
+    () => (currentId ? QUESTION_BY_ID.get(currentId) : undefined),
+    [currentId]
   );
 
   function answer(optionId: string) {
-    if (chosen) return; // ja respondeu; aguardando "continuar"
+    if (chosen) return;
     setChosen(optionId);
   }
 
-  function advance() {
+  async function advance() {
     if (!current || !chosen) return;
     const correctOption = current.options.find((o) => o.correct);
     const gotIt = correctOption?.id === chosen;
 
     const nextQueue = queue.slice();
     nextQueue.shift();
+
     if (gotIt) {
-      // Otimista: marca local na hora + persiste no servidor (fonte de verdade no reload).
       const id = current.id;
-      setCorrectIds((prev) => {
-        const next = new Set(prev);
-        next.add(id);
-        return next;
+      setCorrectIds((prev) => new Set(prev).add(id));
+      // Persiste + credita XP. Atualiza o nivel exibido em tempo real.
+      void recordDoctrineAnswer(id, chosen).then((res) => {
+        if (res.ok) setLevel(res.level);
       });
-      void recordDoctrineAnswer(id, chosen).catch(() => {});
     } else {
-      nextQueue.push(current.id); // errou — re-encontro no fim do capitulo
+      nextQueue.push(current.id); // errou — volta no fim da licao
     }
 
     setChosen(null);
 
     if (nextQueue.length === 0) {
-      const nextPos = chapterPos + 1;
-      setQueue([]);
-      if (nextPos >= ORDERED_CHAPTERS.length) {
+      // Licao concluida. Tudo terminado? senao volta pro trail.
+      const newCorrect = gotIt
+        ? new Set(correctIds).add(current.id)
+        : correctIds;
+      if (newCorrect.size >= TOTAL) {
         setView("complete");
       } else {
-        setChapterPos(nextPos);
-        setView("chapterDone");
+        setView("trail");
       }
     } else {
       setQueue(nextQueue);
     }
   }
 
-  function continueToNextChapter() {
-    const { pos, queue: q } = buildFrom(chapterPos, correctIds);
-    if (pos === -1) {
-      setView("complete");
-      return;
-    }
-    setChapterPos(pos);
-    setQueue(q);
-    setChosen(null);
-    setView("question");
-  }
-
   return (
     <div className="mx-auto flex min-h-screen max-w-2xl flex-col px-6 py-12">
-      <RitualHeader done={done} pct={pct} />
+      <RitualHeader done={done} pct={pct} level={level} />
 
       <div className="flex flex-1 flex-col justify-center py-10">
         {view === "intro" && (
           <IntroView
-            resuming={done > 0 && done < TOTAL && !initialDoctrinated}
-            completed={done >= TOTAL || initialDoctrinated}
-            onStart={start}
+            resuming={done > 0 && !allComplete}
+            completed={allComplete}
+            onStart={startOrContinue}
             onSeeMedal={() => setView("complete")}
           />
         )}
 
-        {view === "question" && current && currentChapter && (
+        {view === "trail" && (
+          <TrailView
+            correctIds={correctIds}
+            onOpenLesson={openLesson}
+            onComplete={() => setView("complete")}
+          />
+        )}
+
+        {view === "lesson" && current && activeLesson && (
           <m.div
             key={current.id}
             initial={{ opacity: 0, y: 12 }}
@@ -175,22 +161,15 @@ export function RitualDoutrina({
             transition={{ duration: DURATIONS.hero, ease: EASINGS.softLanding }}
           >
             <QuestionView
-              chapter={currentChapter}
-              chapterNumber={chapterPos + 1}
-              chapterTotal={ORDERED_CHAPTERS.length}
+              lesson={activeLesson}
+              remaining={queue.length}
               question={current}
               chosen={chosen}
               onAnswer={answer}
               onContinue={advance}
+              onBack={() => setView("trail")}
             />
           </m.div>
-        )}
-
-        {view === "chapterDone" && (
-          <ChapterDoneView
-            justFinished={ORDERED_CHAPTERS[chapterPos - 1]}
-            onContinue={continueToNextChapter}
-          />
         )}
 
         {view === "complete" && <CompleteView />}
@@ -200,10 +179,18 @@ export function RitualDoutrina({
 }
 
 /* ------------------------------------------------------------------ */
-/* Header + barra de XP rumo ao nivel 6                                */
+/* Header — barra geral + nivel                                        */
 /* ------------------------------------------------------------------ */
 
-function RitualHeader({ done, pct }: { done: number; pct: number }) {
+function RitualHeader({
+  done,
+  pct,
+  level,
+}: {
+  done: number;
+  pct: number;
+  level: number;
+}) {
   return (
     <div className="space-y-2">
       <div className="flex items-baseline justify-between">
@@ -211,7 +198,7 @@ function RitualHeader({ done, pct }: { done: number; pct: number }) {
           Ritual de Doutrinação
         </span>
         <span className="font-display text-sm font-semibold text-text-body">
-          {done} / {TOTAL} · rumo ao nível 6
+          Nível {level} · {done}/{TOTAL}
         </span>
       </div>
       <div
@@ -265,11 +252,11 @@ function IntroView({
         .
       </h1>
       <p className="mx-auto max-w-xl font-body text-lg leading-relaxed text-text-muted">
-        Não é uma prova — é uma iniciação. A cada situação, você decide. A cada
-        resposta, o Mestre te ensina. Errar não reprova; faz a questão voltar até
-        você compreender. Ao final, você alcança o{" "}
-        <strong className="text-text-body">nível 6 — Aprendiz</strong>, e o
-        ambiente se abre.
+        Não é uma prova — é uma iniciação, dividida em{" "}
+        <strong className="text-text-body">4 Pilares</strong>. Você avança uma
+        lição curta por vez; cada resposta te ensina. Errar não reprova; faz a
+        questão voltar até você compreender. Ao final, você alcança o{" "}
+        <strong className="text-text-body">nível 6 — Aprendiz</strong>.
       </p>
 
       <div className="flex flex-col items-center gap-3 pt-4">
@@ -294,35 +281,192 @@ function IntroView({
 }
 
 /* ------------------------------------------------------------------ */
+/* Trail — mapa dos 4 Pilares + licoes (sequencial)                    */
+/* ------------------------------------------------------------------ */
+
+const PILAR_NUMERAL = ["I", "II", "III", "IV", "V"];
+
+function TrailView({
+  correctIds,
+  onOpenLesson,
+  onComplete,
+}: {
+  correctIds: Set<string>;
+  onOpenLesson: (idx: number) => void;
+  onComplete: () => void;
+}) {
+  const nextIdx = nextLessonIndex(correctIds);
+
+  if (nextIdx === -1) {
+    return (
+      <div className="space-y-6 text-center">
+        <p className="font-display text-lg text-text-body">
+          Você dominou todos os Pilares.
+        </p>
+        <div className="flex justify-center">
+          <Button variant="cinematic" size="lg" onClick={onComplete}>
+            Ver minha medalha <ArrowRight size={18} />
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Índice global de cada lição, pra saber liberada/trancada/concluída.
+  let globalIdx = -1;
+
+  return (
+    <div className="space-y-8">
+      {PILARES.map((pilar, pIdx) => {
+        const pilarDone = isPilarComplete(pilar, correctIds);
+        const lessonsWithIdx = pilar.lessons.map((lesson) => {
+          globalIdx += 1;
+          return { lesson, idx: globalIdx };
+        });
+        // Pilar "ativo" = contém a próxima lição.
+        const pilarActive = lessonsWithIdx.some((l) => l.idx === nextIdx);
+        const pilarLocked = !pilarDone && !pilarActive && nextIdx < lessonsWithIdx[0]!.idx;
+
+        return (
+          <section key={pilar.section} className="space-y-3">
+            <header className="flex items-center gap-3">
+              <span
+                className={cn(
+                  "flex size-9 shrink-0 items-center justify-center rounded-sm border-2 font-display text-sm font-bold",
+                  pilarDone
+                    ? "border-play-primary bg-play-primary/15 text-play-primary"
+                    : pilarActive
+                      ? "border-brand-primary bg-brand-primary/15 text-brand-primary"
+                      : "border-border-subtle bg-bg-elevated text-text-faded"
+                )}
+              >
+                {pilarDone ? <Check size={16} /> : PILAR_NUMERAL[pIdx]}
+              </span>
+              <div className="min-w-0">
+                <h2
+                  className={cn(
+                    "font-display text-lg font-bold tracking-wide",
+                    pilarLocked ? "text-text-faded" : "text-text-display"
+                  )}
+                >
+                  {pilar.title}
+                </h2>
+                <p className="font-body text-sm text-text-muted">
+                  {pilar.subtitle}
+                </p>
+              </div>
+            </header>
+
+            <ul className="space-y-1.5 pl-12">
+              {lessonsWithIdx.map(({ lesson, idx }) => (
+                <LessonRow
+                  key={lesson.id}
+                  lesson={lesson}
+                  state={
+                    isLessonComplete(lesson, correctIds)
+                      ? "done"
+                      : idx === nextIdx
+                        ? "active"
+                        : "locked"
+                  }
+                  onOpen={() => onOpenLesson(idx)}
+                />
+              ))}
+            </ul>
+          </section>
+        );
+      })}
+    </div>
+  );
+}
+
+function LessonRow({
+  lesson,
+  state,
+  onOpen,
+}: {
+  lesson: QuizLesson;
+  state: "done" | "active" | "locked";
+  onOpen: () => void;
+}) {
+  const count = lesson.questionIds.length;
+  return (
+    <li>
+      <button
+        type="button"
+        disabled={state !== "active"}
+        onClick={onOpen}
+        className={cn(
+          "flex w-full items-center gap-3 rounded-[var(--radius-md)] border px-3 py-2.5 text-left transition-colors",
+          state === "active"
+            ? "border-brand-primary/50 bg-bg-elevated hover:border-brand-primary hover:bg-bg-surface cursor-pointer"
+            : state === "done"
+              ? "border-border-subtle bg-transparent"
+              : "border-border-subtle bg-transparent opacity-50 cursor-default"
+        )}
+      >
+        <span className="shrink-0">
+          {state === "done" ? (
+            <CheckCircle2 size={18} className="text-play-primary" />
+          ) : state === "locked" ? (
+            <Lock size={16} className="text-text-faded" />
+          ) : (
+            <span className="flex size-[18px] items-center justify-center rounded-full border-2 border-brand-primary" />
+          )}
+        </span>
+        <span
+          className={cn(
+            "flex-1 font-body text-sm",
+            state === "locked" ? "text-text-faded" : "text-text-body"
+          )}
+        >
+          {lesson.title}
+        </span>
+        <span className="shrink-0 font-mono text-xs text-text-faded">
+          {count}
+        </span>
+      </button>
+    </li>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /* Questao + feedback-ensino                                           */
 /* ------------------------------------------------------------------ */
 
 function QuestionView({
-  chapter,
-  chapterNumber,
-  chapterTotal,
+  lesson,
+  remaining,
   question,
   chosen,
   onAnswer,
   onContinue,
+  onBack,
 }: {
-  chapter: QuizChapter;
-  chapterNumber: number;
-  chapterTotal: number;
+  lesson: QuizLesson;
+  remaining: number;
   question: QuizQuestion;
   chosen: string | null;
   onAnswer: (optionId: string) => void;
   onContinue: () => void;
+  onBack: () => void;
 }) {
   const correctId = question.options.find((o) => o.correct)?.id;
   const gotIt = chosen != null && chosen === correctId;
   const answered = chosen != null;
 
   return (
-    <article className="space-y-8">
+    <article className="space-y-6">
       <header className="space-y-2">
-        <p className="font-display text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
-          Capítulo {chapterNumber}/{chapterTotal} · {chapter.title}
+        <button
+          type="button"
+          onClick={onBack}
+          className="flex items-center gap-1.5 font-display text-sm text-text-faded hover:text-text-body transition-colors"
+        >
+          <ArrowLeft size={14} /> Pilares
+        </button>
+        <p className="font-display text-sm font-semibold uppercase tracking-[0.25em] text-brand-primary">
+          {lesson.title} · {remaining} restante{remaining === 1 ? "" : "s"}
         </p>
         <h2 className="font-display text-xl font-bold leading-snug tracking-wide text-text-display md:text-2xl">
           {question.prompt}
@@ -333,7 +477,6 @@ function QuestionView({
         {question.options.map((opt) => {
           const isCorrect = opt.id === correctId;
           const isChosen = opt.id === chosen;
-
           const stateClass = !answered
             ? "border-border-subtle bg-bg-elevated hover:border-brand-primary"
             : isCorrect
@@ -341,7 +484,6 @@ function QuestionView({
               : isChosen
                 ? "border-error bg-error/10"
                 : "border-border-subtle bg-bg-elevated opacity-60";
-
           return (
             <li key={opt.id}>
               <button
@@ -349,9 +491,8 @@ function QuestionView({
                 disabled={answered}
                 onClick={() => onAnswer(opt.id)}
                 className={cn(
-                  "flex w-full items-start gap-3 rounded-[var(--radius-lg)] border-2 p-4 text-left transition-colors",
-                  "disabled:cursor-default",
-                  stateClass,
+                  "flex w-full items-start gap-3 rounded-[var(--radius-lg)] border-2 p-4 text-left transition-colors disabled:cursor-default",
+                  stateClass
                 )}
               >
                 <span
@@ -361,7 +502,7 @@ function QuestionView({
                       ? "bg-play-primary text-text-display"
                       : answered && isChosen
                         ? "bg-error text-text-display"
-                        : "bg-bg-surface text-text-muted",
+                        : "bg-bg-surface text-text-muted"
                   )}
                 >
                   {answered && isCorrect ? (
@@ -392,7 +533,7 @@ function QuestionView({
               <p
                 className={cn(
                   "font-display text-sm font-bold uppercase tracking-widest",
-                  gotIt ? "text-play-primary" : "text-error",
+                  gotIt ? "text-play-primary" : "text-error"
                 )}
               >
                 {gotIt ? "Certo." : "O Mestre corrige."}
@@ -402,55 +543,19 @@ function QuestionView({
               </p>
               <p className="font-display text-sm font-semibold text-text-faded">
                 {question.origin}
-                {!gotIt && " · esta questão volta mais tarde."}
+                {!gotIt && " · esta questão volta até você dominar."}
               </p>
             </CardContent>
           </Card>
 
           <div className="flex justify-end pt-5">
             <Button variant="primary" size="md" onClick={onContinue}>
-              Continuar <ArrowRight size={18} />
+              {gotIt ? "Continuar" : "Tentar de novo"} <ArrowRight size={18} />
             </Button>
           </div>
         </m.div>
       )}
     </article>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/* Capitulo concluido                                                  */
-/* ------------------------------------------------------------------ */
-
-function ChapterDoneView({
-  justFinished,
-  onContinue,
-}: {
-  justFinished?: QuizChapter;
-  onContinue: () => void;
-}) {
-  return (
-    <m.article
-      initial={{ opacity: 0, scale: 0.96 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: DURATIONS.hero, ease: EASINGS.softLanding }}
-      className="space-y-6 text-center"
-    >
-      <p className="font-display text-sm font-semibold uppercase tracking-[0.35em] text-play-primary">
-        Capítulo dominado
-      </p>
-      <h2 className="font-display text-3xl font-bold tracking-wide text-text-display">
-        {justFinished?.title ?? "Capítulo concluído"}
-      </h2>
-      <p className="mx-auto max-w-md font-body text-base leading-relaxed text-text-muted">
-        Você compreendeu este trecho da Fórmula. O próximo te espera.
-      </p>
-      <div className="flex justify-center pt-2">
-        <Button variant="primary" size="lg" onClick={onContinue}>
-          Próximo capítulo <ArrowRight size={18} />
-        </Button>
-      </div>
-    </m.article>
   );
 }
 
