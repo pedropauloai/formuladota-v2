@@ -214,7 +214,7 @@ export function PlayMenu({ isVisitor, initial }: Props) {
           ref={drawerRef}
           role="dialog"
           aria-label="Jogar Dota"
-          className={`pointer-events-auto fixed right-0 top-[64px] bottom-0 z-[100] flex ${widthCls} flex-col border-l border-t border-brand-primary/40 bg-bg-deep shadow-2xl shadow-black/80 animate-in slide-in-from-right duration-200 xl:top-[72px]`}
+          className={`pointer-events-auto fixed right-0 top-12 bottom-0 z-[100] flex ${widthCls} flex-col border-l border-t border-brand-primary/40 bg-bg-deep shadow-2xl shadow-black/80 animate-in slide-in-from-right duration-200 xl:top-14`}
         >
           <header className="flex items-center justify-between gap-2 border-b border-border-subtle px-4 py-3">
             {view === "menu" ? (
