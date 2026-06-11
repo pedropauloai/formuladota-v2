@@ -329,9 +329,6 @@ export async function removeFromQueue(
     return { success: false, error: "Erro ao remover: " + error.message };
   }
 
-  // Log opcional pra auditoria (notas_pedro do entry seria ideal mas não há campo)
-  console.log(`[removeFromQueue] PRO ${coach.id} removeu entry ${entryId}: ${reason}`);
-
   revalidatePath("/");
   revalidatePath("/ranked-com-pro");
   revalidatePath("/dashboard");

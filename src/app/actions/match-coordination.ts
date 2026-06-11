@@ -15,7 +15,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { requireServerEnv } from "@/lib/env";
-import { validateOpendotaMatch } from "@/lib/opendota";
+import { validateOpendotaMatch } from "@/lib/dota/opendota";
 
 // -------------------------------------------------------------------
 // Helpers
