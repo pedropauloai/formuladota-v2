@@ -22,6 +22,7 @@ import {
   type MpPaymentDetail,
   type MpPreapprovalDetail,
   type MpAuthorizedPaymentDetail,
+  createPixPaymentInputSchema,
   mpPaymentApiResponseSchema,
   mpPreapprovalApiResponseSchema,
   mpPaymentDetailSchema,
@@ -59,30 +60,55 @@ function buildHeaders(idempotencyKey?: string): Record<string, string> {
  * Retorna QR Code para exibir ao usuário.
  *
  * Usado no checkout de pacotes avulsos (fichas).
- * DIFERENÇA vs AbacatePay: `amount` em reais (47.00), não centavos (4700).
+ * Implementação canônica desde 2026-06-11 — fundida do src/lib/mercadopago.ts legado
+ * (que rodava em produção no checkout), preservando comportamento:
+ *   - valida input com Zod
+ *   - envia statement_descriptor + additional_info.items (quality_checklist MP [REQUIRED])
+ *   - X-Idempotency-Key = idempotencyKey ?? externalReference (retry não duplica payment)
+ *   - retorna qrCodeBase64 CRU (caller concatena o prefixo data URI ao renderizar)
+ * DIFERENÇA vs AbacatePay: `amount` em reais (10.00), não centavos (1000).
  */
 export async function createPixPayment(
   input: CreatePixPaymentInput
 ): Promise<MpResult<MpPixPaymentData>> {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://formuladota.com";
-  const notificationUrl = `${siteUrl}/api/webhooks/mercadopago`;
+  const parsed = createPixPaymentInputSchema.safeParse(input);
+  if (!parsed.success) {
+    return { success: false, error: "Input inválido para criar PIX." };
+  }
+
+  const payerObj: Record<string, string> = { email: parsed.data.payerEmail };
+  if (parsed.data.payerFirstName) payerObj.first_name = parsed.data.payerFirstName;
+  if (parsed.data.payerLastName) payerObj.last_name = parsed.data.payerLastName;
 
   const body = {
-    transaction_amount: input.amount, // reais float — NÃO multiplicar por 100
-    description: input.description,
+    transaction_amount: parsed.data.amount, // reais float — NÃO multiplicar por 100
+    description: parsed.data.description,
     payment_method_id: "pix",
-    payer: { email: input.payerEmail },
-    external_reference: input.externalReference,
-    notification_url: notificationUrl,
-    // Expiração: 24h (range MP: 30min → 30 dias)
+    payer: payerObj,
+    external_reference: parsed.data.externalReference,
+    notification_url: parsed.data.notificationUrl,
+    statement_descriptor: parsed.data.statementDescriptor,
+    // Expiração explícita: 24h (igual ao default MP pra PIX; range: 30min → 30 dias)
     date_of_expiration: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    additional_info: {
+      items: [
+        {
+          id: parsed.data.itemId,
+          title: parsed.data.itemTitle,
+          description: parsed.data.description,
+          category_id: parsed.data.itemCategoryId,
+          quantity: 1,
+          unit_price: parsed.data.amount,
+        },
+      ],
+    },
   };
 
   let response: Response;
   try {
     response = await fetch(`${MP_BASE_URL}/v1/payments`, {
       method: "POST",
-      headers: buildHeaders(input.idempotencyKey),
+      headers: buildHeaders(parsed.data.idempotencyKey ?? parsed.data.externalReference),
       body: JSON.stringify(body),
       cache: "no-store",
     });
@@ -110,14 +136,19 @@ export async function createPixPayment(
     return { success: false, error: "Resposta inesperada do Mercado Pago." };
   }
 
-  const txData = validated.data.point_of_interaction.transaction_data;
+  const txData = validated.data.point_of_interaction?.transaction_data;
+  if (!txData) {
+    return { success: false, error: "Mercado Pago não retornou QR Code PIX." };
+  }
+
   return {
     success: true,
     data: {
       id: String(validated.data.id),
+      status: validated.data.status,
       qrCode: txData.qr_code,
-      // MP não inclui prefixo — concatenar aqui (AbacatePay incluía; MP não inclui)
-      qrCodeBase64: `data:image/png;base64,${txData.qr_code_base64}`,
+      // CRU de propósito — checkout adiciona "data:image/png;base64," ao renderizar
+      qrCodeBase64: txData.qr_code_base64,
       ticketUrl: txData.ticket_url,
       expiresAt: validated.data.date_of_expiration,
     },

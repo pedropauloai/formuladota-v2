@@ -13,37 +13,53 @@ import { z } from "zod";
 // PIX AVULSO — POST /v1/payments
 // ====================================================
 
+// Input unificado em 2026-06-11 (consolidação do src/lib/mercadopago.ts legado):
+// inclui os campos do quality_checklist MP [REQUIRED] — statement_descriptor,
+// additional_info.items e payer first/last name — que o checkout de fichas já envia.
 export const createPixPaymentInputSchema = z.object({
-  amount: z.number().positive(),             // reais float (ex: 47.00)
+  amount: z.number().positive(),             // reais float (ex: 10.00) — NÃO centavos
   description: z.string().min(1).max(200),
   payerEmail: z.string().email(),
+  payerFirstName: z.string().optional(),
+  payerLastName: z.string().optional(),
   externalReference: z.string(),             // nosso purchase.id
   notificationUrl: z.string().url(),
-  idempotencyKey: z.string(),                // purchase.id (evita duplicatas)
+  statementDescriptor: z.string().max(22),   // nome na fatura (ex: "FORMULADOTA")
+  itemId: z.string(),
+  itemTitle: z.string(),
+  itemCategoryId: z.string(),                // ex: "services"
+  // Opcional: default = externalReference (purchase.id evita duplicatas em retry)
+  idempotencyKey: z.string().optional(),
 });
 export type CreatePixPaymentInput = z.infer<typeof createPixPaymentInputSchema>;
 
 // Shape interno processado (campos da API MP → camelCase para o app)
 export interface MpPixPaymentData {
   id: string;             // int do MP convertido para string
+  status: string;         // 'pending' tipicamente
   qrCode: string;         // brCode texto copiar-e-colar
-  qrCodeBase64: string;   // "data:image/png;base64,..." (prefixo já concatenado)
-  ticketUrl: string;      // URL alternativa MP
-  expiresAt: string;      // ISO 8601
+  qrCodeBase64: string;   // base64 CRU, SEM prefixo data URI — caller concatena ao renderizar
+  ticketUrl?: string;     // URL alternativa MP
+  expiresAt?: string;     // ISO 8601 (quando MP retorna date_of_expiration)
 }
 
 // Schema Zod para a resposta bruta da API MP /v1/payments
+// (campos opcionais espelham o comportamento defensivo da implementação legada)
 export const mpPaymentApiResponseSchema = z.object({
-  id: z.number(),
+  id: z.union([z.number(), z.string()]),
   status: z.string(),
-  point_of_interaction: z.object({
-    transaction_data: z.object({
-      qr_code: z.string(),
-      qr_code_base64: z.string(),
-      ticket_url: z.string(),
-    }),
-  }),
-  date_of_expiration: z.string(),
+  point_of_interaction: z
+    .object({
+      transaction_data: z
+        .object({
+          qr_code: z.string(),
+          qr_code_base64: z.string(),
+          ticket_url: z.string().optional(),
+        })
+        .optional(),
+    })
+    .optional(),
+  date_of_expiration: z.string().optional(),
 });
 
 // ====================================================
