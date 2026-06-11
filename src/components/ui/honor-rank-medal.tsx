@@ -5,13 +5,18 @@
  *   Novato (0–5) · Aprendiz (6) · Piloto (12) · Ás (18) · Lendário (25) · Místico (30).
  * Ver docs/foundations/HONOR_SYSTEM.md, PROGRESSION_PUBLIC.md, src/lib/levels.ts.
  *
- * Distinto do DotaRankMedal (SKILL / medalha Valve): este usa SVG cerimonial.
- * Progressão de forma: Laurel (Novato/Aprendiz) → Escudo (Piloto/Ás) → Estrela (Lendário)
- * → Símbolo Fórmula (Místico, topo com glow brand).
+ * Arte 2026-06-11 (decisão Pedro): PNGs do pack "Gold Rank Badges" (LadyLuck,
+ * itch.io — licença comercial declarada na página do pack, feito sem IA), arte
+ * ORIGINAL dourada do artista, sem recolorização. A progressão é comunicada
+ * pelo nível de ORNAMENTO: círculo simples → asas → coroa.
+ * Assets em public/medals/honor/{banda}.png — fonte free 128px; ao comprar o
+ * HD, basta rodar scripts/process-honor-medals.py no spritesheet novo.
  *
+ * Distinto do DotaRankMedal (SKILL / medalha Valve oficial).
  * Server Component: sem interatividade, sem motion, sem sound.
  */
 
+import Image from "next/image"
 import { Lock } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -65,48 +70,6 @@ const LEGACY_TO_BAND: Record<LegacyHonorTier, HonorRank> = {
 
 export function legacyHonorToBand(tier: string): HonorRank {
   return LEGACY_TO_BAND[tier as LegacyHonorTier] ?? "novato"
-}
-
-/* ------------------------------------------------------------------
- * Tokens de cor por banda (CSS var com fallback hex — segue padrão antigo)
- * ------------------------------------------------------------------ */
-
-/* Progressão por MATERIAL (decisão Pedro 2026-06-11) — ferro → bronze → prata →
- * ouro → ouro ornamentado → brand. Substitui o arco-íris antigo (sky/emerald/
- * violet, cores cruas Tailwind proibidas). Medalha comunica valor por metal,
- * como o client Dota — todo gamer lê "ouro > prata > bronze" sem legenda.
- * Interim: SVG recolorido; end-state = arte PNG gerada (scripts/generate-honor-medals.py). */
-const TIER_COLORS: Record<HonorRank, { primary: string; secondary: string }> = {
-  novato: {
-    // Ferro escovado — humilde, sem brilho
-    primary: "var(--fd-raw-metal-iron, #8a8d93)",
-    secondary: "#55585e",
-  },
-  aprendiz: {
-    // Bronze polido
-    primary: "var(--fd-raw-metal-bronze, #b0793f)",
-    secondary: "#7a5128",
-  },
-  piloto: {
-    // Prata polida
-    primary: "var(--fd-raw-metal-silver, #c9cdd4)",
-    secondary: "#8d929b",
-  },
-  as: {
-    // Ouro rico (gold base Valve)
-    primary: "var(--fd-raw-gold-500, #c8aa6e)",
-    secondary: "var(--fd-raw-gold-700, #846d3f)",
-  },
-  lendario: {
-    // Ouro ornamentado — mais claro/brilhante que Ás
-    primary: "var(--fd-raw-gold-300, #e3cf9e)",
-    secondary: "var(--fd-raw-gold-600, #a98d54)",
-  },
-  mistico: {
-    // Topo = cor da marca, com glow (único que mantém matiz não-metálico)
-    primary: "var(--color-brand-primary)",
-    secondary: "var(--color-brand-primary-deep, #7f1d1d)",
-  },
 }
 
 /* ------------------------------------------------------------------
@@ -165,73 +128,20 @@ export interface HonorRankMedalProps {
 }
 
 /* ------------------------------------------------------------------
- * SVG Helpers — formas cerimoniais por grupo de banda
+ * Imagem da medalha (asset PNG do pack LadyLuck)
  * ------------------------------------------------------------------ */
 
-function LaurelSVG({ primary, secondary, px }: { primary: string; secondary: string; px: number }) {
+function MedalImage({ rank, px }: { rank: HonorRank; px: number }) {
   return (
-    <svg width={px} height={px} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <ellipse cx="10" cy="20" rx="5" ry="9" fill={secondary} opacity="0.85" transform="rotate(-30 10 20)" />
-      <ellipse cx="8" cy="20" rx="3.5" ry="7" fill={primary} opacity="0.9" transform="rotate(-30 8 20)" />
-      <ellipse cx="30" cy="20" rx="5" ry="9" fill={secondary} opacity="0.85" transform="rotate(30 30 20)" />
-      <ellipse cx="32" cy="20" rx="3.5" ry="7" fill={primary} opacity="0.9" transform="rotate(30 32 20)" />
-      <ellipse cx="13" cy="10" rx="4" ry="8" fill={secondary} opacity="0.75" transform="rotate(-55 13 10)" />
-      <ellipse cx="12" cy="10" rx="2.8" ry="6" fill={primary} opacity="0.85" transform="rotate(-55 12 10)" />
-      <ellipse cx="27" cy="10" rx="4" ry="8" fill={secondary} opacity="0.75" transform="rotate(55 27 10)" />
-      <ellipse cx="28" cy="10" rx="2.8" ry="6" fill={primary} opacity="0.85" transform="rotate(55 28 10)" />
-      <circle cx="20" cy="20" r="7" fill={secondary} />
-      <circle cx="20" cy="20" r="5.5" fill={primary} />
-      <circle cx="20" cy="20" r="3" fill={secondary} opacity="0.6" />
-    </svg>
+    <Image
+      src={`/medals/honor/${rank}.png`}
+      alt=""
+      width={px}
+      height={px}
+      className="object-contain"
+      aria-hidden="true"
+    />
   )
-}
-
-function ShieldSVG({ primary, secondary, px }: { primary: string; secondary: string; px: number }) {
-  return (
-    <svg width={px} height={px} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <path d="M20 4L6 10v10c0 9 6.5 15.5 14 17 7.5-1.5 14-8 14-17V10L20 4z" fill={secondary} />
-      <path d="M20 7L9 12v8c0 7.5 5.5 13 11 14.5 5.5-1.5 11-7 11-14.5v-8L20 7z" fill={primary} />
-      <line x1="9" y1="20" x2="31" y2="20" stroke={secondary} strokeWidth="1.5" opacity="0.7" />
-      <line x1="20" y1="7" x2="20" y2="34" stroke={secondary} strokeWidth="1.5" opacity="0.7" />
-      <circle cx="20" cy="20" r="3" fill={secondary} />
-      <circle cx="20" cy="20" r="1.8" fill={primary} opacity="0.5" />
-    </svg>
-  )
-}
-
-function StarSVG({ primary, secondary, px }: { primary: string; secondary: string; px: number }) {
-  return (
-    <svg width={px} height={px} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <polygon points="20,2 24.5,14 37,14 27,22 31,34 20,26 9,34 13,22 3,14 15.5,14" fill={secondary} opacity="0.7" />
-      <polygon points="20,4 24,13 34,13 26,20 29,30 20,24 11,30 14,20 6,13 16,13" fill={primary} />
-      <circle cx="20" cy="19" r="5" fill={secondary} opacity="0.8" />
-      <circle cx="20" cy="19" r="3.5" fill={primary} />
-      <circle cx="20" cy="19" r="2" fill={secondary} opacity="0.6" />
-    </svg>
-  )
-}
-
-function MisticoSVG({ primary, secondary, px }: { primary: string; secondary: string; px: number }) {
-  return (
-    <svg width={px} height={px} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <circle cx="20" cy="20" r="18" fill={secondary} opacity="0.2" />
-      <circle cx="20" cy="20" r="17" fill="none" stroke={primary} strokeWidth="1.5" opacity="0.6" />
-      <rect x="9" y="9" width="22" height="22" rx="2" fill={secondary} opacity="0.7" />
-      <rect x="9" y="9" width="22" height="22" rx="2" fill={primary} opacity="0.85" transform="rotate(45 20 20)" />
-      <rect x="11" y="11" width="18" height="18" rx="2" fill={secondary} opacity="0.5" />
-      <circle cx="20" cy="20" r="8" fill={secondary} />
-      <circle cx="20" cy="20" r="6.5" fill={primary} />
-      <path d="M17 15h6M17 15v10M17 19h5" stroke={secondary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
-}
-
-function HonorSVG({ rank, px }: { rank: HonorRank; px: number }) {
-  const colors = TIER_COLORS[rank]
-  if (rank === "mistico") return <MisticoSVG primary={colors.primary} secondary={colors.secondary} px={px} />
-  if (rank === "lendario") return <StarSVG primary={colors.primary} secondary={colors.secondary} px={px} />
-  if (rank === "piloto" || rank === "as") return <ShieldSVG primary={colors.primary} secondary={colors.secondary} px={px} />
-  return <LaurelSVG primary={colors.primary} secondary={colors.secondary} px={px} />
 }
 
 /* ------------------------------------------------------------------
@@ -274,13 +184,12 @@ export function HonorRankMedal({
     )
   }
 
-  /* calibrando — Novato com badge overlay */
+  /* calibrando — Novato esmaecido com badge overlay */
   if (calibrationStatus === "calibrando") {
-    const c = TIER_COLORS["novato"]
     return (
       <div className={cn("inline-flex flex-col items-center gap-1", className)}>
         <div className={cn(sizeClass, "relative flex items-center justify-center isolate opacity-60")}>
-          <LaurelSVG primary={c.primary} secondary={c.secondary} px={px} />
+          <MedalImage rank="novato" px={px} />
           <span
             className={cn(
               "absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-sm px-1 py-px",
@@ -316,7 +225,7 @@ export function HonorRankMedal({
             : undefined
         }
       >
-        <HonorSVG rank={rank} px={px} />
+        <MedalImage rank={rank} px={px} />
       </div>
 
       {showLabel && (

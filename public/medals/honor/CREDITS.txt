@@ -1,0 +1,13 @@
+Medalhas HONOR — créditos e licença
+
+Arte: "Gold Rank Badges and Icons" por LadyLuck
+Fonte: https://ladyluck.itch.io/gold-rank-badges-and-icons
+Licença: declarada na página do pack — uso pessoal e comercial permitido.
+Sem IA generativa ("No generative AI was used", selo do autor).
+
+Mapeamento (coluna do spritesheet original → banda FormulaDota):
+  col 10 → novato.png  | col 8 → aprendiz.png | col 6 → piloto.png
+  col 4  → as.png      | col 2 → lendario.png | col 0 → mistico.png
+
+Regenerar: python scripts/process-honor-medals.py <spritesheet.png>
+(versão atual = free 128px; ao comprar o HD, rodar o script no arquivo novo)
