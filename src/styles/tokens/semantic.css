@@ -35,11 +35,11 @@ html[data-theme="fd-dark"] {
    * ------------------------------------------------------- */
 
   /* Botão principal de ação do game: "Entrar na Fila" */
-  --color-play-primary:      var(--fd-raw-green-500);    /* #5b8e3a */
+  --color-play-primary:      var(--fd-raw-green-500);    /* #00C466 GamersClub (2026-05-23) */
   /* Hover do botão play */
-  --color-play-primary-hover: var(--fd-raw-green-600);  /* #4a7230 */
+  --color-play-primary-hover: var(--fd-raw-green-600);  /* #009E52 */
   /* Glow verde para animações de disponibilidade */
-  --color-play-primary-glow:  var(--fd-raw-green-glow); /* #5b8e3a33 */
+  --color-play-primary-glow:  var(--fd-raw-green-glow); /* rgba(0,196,102,0.20) */
 
   /* -------------------------------------------------------
    * GRUPO 3 — CORES DE BACKGROUND

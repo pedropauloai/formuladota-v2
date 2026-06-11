@@ -2,17 +2,17 @@
 
 ## Project
 
-**formuladota v2** é uma plataforma web de mentoria Dota 2 em tempo real onde Pedro Paulo (Immortal/Top 0.5%) joga ranked com clientes pagantes. Sistema com perfil de progressão, agendamento, pagamento PIX e bot Discord integrado.
+**formuladota v2** é o **app da comunidade FormulaDota** — uma cultura competitiva de Dota 2 liderada por Pedro Paulo (Immortal/Top 0.5%). A plataforma é uma máquina de doutrinação e conversão de mentalidade: quiz de doutrina em 4 Pilares, sistema de progressão por níveis, lobbies (livre + elite Imortal), partidas "ranked com PRO" via fichas PIX, e identidade pública anti-anonimato. **A cultura é o produto; o Dota é o terreno.**
 
-📋 **PRD completo: ler `PRD.md` na raiz antes de qualquer trabalho.**
+📋 **Fontes da verdade, em ordem:** `docs/foundations/` (20 docs fundacionais — começar por `POSITIONING.md` e `PRODUCT_CORE.md`) → `.planning/ROADMAP.md` + `STATE.md` → migrations em `supabase/migrations/`. O `PRD.md` na raiz é o documento ORIGINAL (loja de mentoria 1-1) e foi **sobrescrito em escopo** pelos pivôs de maio/2026 — usar só como contexto histórico.
 
 ### Constraints
-- **Tech Stack**: Next.js 15 (App Router) + React 19 + TypeScript + Tailwind v4 + Supabase + Discord OAuth + AbacatePay + Discord.js bot
-- **Domain**: formuladota.com (verificar) ou subdomínio Vercel
-- **Persona**: jogador Dota 2 brasileiro, hobby, ticket baixo (R$ 10/partida)
-- **Pricing**: começa de mercado (R$ 10/partida), sobe com demanda — NÃO tentar premium prematuramente
+- **Tech Stack**: Next.js 16 (App Router) + React 19 + TypeScript + Tailwind v4 + Supabase + Discord OAuth + Mercado Pago (PIX) + Discord.js bot
+- **Deploy**: produção em formuladota-v2.vercel.app (git-connected)
+- **Persona**: jogador Dota 2 brasileiro comprometido, de qualquer bracket
+- **Pricing**: ficha de vaga = **R$ 10 fixo** (pricing descentralizado por PRO foi REVERTIDO em 2026-06-02, migration 041). Split 85/10/5. Mudança de preço = aprovação Pedro.
+- **Gates de acesso**: criar sala = assinatura ativa; entrar em lobby = nível 6 (doutrinado) OU ≥1 permissão de partida; lobby elite = assinatura + Imortal Valve + Místico nv30. Lógica centralizada em `src/lib/` e enforced por RLS/funções SQL.
 - **Maintainability**: Pedro é não-dev. Código deve ser legível, comentários em português onde não-óbvio
-- **Limite hardcoded**: máximo 3 partidas/dia agendáveis (proteção saúde mental)
 
 ## Workflow Recomendado
 
@@ -22,13 +22,7 @@ Este projeto usa **GSD plugin (Get Shit Done)**. Para qualquer trabalho:
 /gsd-execute-phase
 ```
 
-E seguir as **6 fases** do PRD em sequência:
-1. Foundation (auth + DB)
-2. Catalog & Checkout (pacotes + PIX)
-3. Profile & Scheduling (perfil + calendário)
-4. Discord Bot (comandos + notificações)
-5. Admin Panel (Pedro gerencia tudo)
-6. Polish & Deploy
+Fases e status atuais: ver `.planning/ROADMAP.md` (as "6 fases do PRD" original foram superadas pelos pivôs — não seguir aquela sequência).
 
 Para fixes pequenos: `/gsd-quick`. Para debug: `/gsd-debug`.
 
@@ -49,14 +43,19 @@ Para fixes pequenos: `/gsd-quick`. Para debug: `/gsd-debug`.
 - RLS policies obrigatórias em todas as tables Supabase
 - Validar webhooks (assinatura HMAC)
 
-### UI
-- Cyberpunk vibe alinhado com [pedropauloai.vercel.app](https://pedropauloai.vercel.app):
-  - Background dark `bg-[#050505]`
-  - Cyan primary `text-[#00F0FF]`
-  - Purple accent `text-[#A855F7]`
-  - Cards `bg-[#0A0A1A]`
-  - Font display: Space Grotesk (`font-display`)
-  - Font mono: JetBrains Mono (`font-mono-ui`)
+### UI — Hierarquia de design (LEI, decidida por Pedro 2026-06-11)
+
+A identidade visual tem DUAS leis complementares — não confundir:
+
+1. **ESTRUTURA, LAYOUT e DENSIDADE = cliente Dota 2 real.** Sistema A: coluna esquerda de identidade+amigos, top tabs, sidebar direita contextual, bottom-bar com [JOGAR DOTA] verde. Denso e compacto, NÃO arejado estilo SaaS. Referência canônica: `docs/foundations/DOTA2_CLIENT_REFERENCE.md` (catálogo das 9 imagens na raiz). NÃO é Riot/Valorant minimalista.
+2. **PELE (cores, materiais, tipografia) = brand FormulaDota**, definida EXCLUSIVAMENTE pelos tokens em `src/styles/tokens/raw.css` + `semantic.css`: vermelho `#C42121` (ExitLag), verde play/success `#00C466` (GamersClub), neutros escuros ExitLag (`#0B0C0F`/`#111317`), dourado pra números/destaques (família gold), Ubuntu (body) + Teko condensed (nav, títulos, números). Radius 2px (quase reto). Essas referências (ExitLag/GamersClub) foram escolha INTENCIONAL do Pedro — não "corrigir" pra outra paleta.
+
+PROIBIDO (causam regressão visual):
+- Paleta cyberpunk cyan `#00F0FF` / roxo `#A855F7` — era do portfólio pedropauloai, NÃO pertence a este projeto. Se encontrar, migrar pra tokens.
+- Cores/durations/z-index hardcoded em componentes — sempre via tokens semânticos (regras C14-C20 em `docs/foundations/DESIGN_LANGUAGE.md`).
+- Avatares `rounded-full` — avatar de usuário é SEMPRE quadrado `rounded-sm` (padrão Steam/Dota). Dots de presença podem ser redondos.
+
+Demais regras:
 - Lucide icons (`lucide-react`) — NUNCA emojis em UI
 - shadcn/ui components base
 - Acessibilidade WCAG 2.1 AA
@@ -69,10 +68,11 @@ Para fixes pequenos: `/gsd-quick`. Para debug: `/gsd-debug`.
 - Imagens via Next/Image + Supabase Storage CDN
 
 ### Pagamentos
-- AbacatePay PIX como provedor V1
-- Validar webhook com `ABACATEPAY_WEBHOOK_SECRET` (HMAC)
+- **Mercado Pago PIX** como provedor (AbacatePay foi substituído — referências legadas podem existir em docs antigos)
+- Validar webhook com `MP_WEBHOOK_SECRET` (HMAC via `verifyMpWebhookSignature`)
 - Status flow: `pendente` → `pago` (libera saldo) ou `expirado` / `cancelado`
 - Idempotência: webhook duplicado não duplica saldo
+- Lib canônica: `src/lib/mercadopago/` (a pasta — o arquivo `src/lib/mercadopago.ts` é legado em consolidação)
 
 ### Discord
 - OAuth via Supabase (não implementar do zero)
@@ -88,34 +88,7 @@ Para fixes pequenos: `/gsd-quick`. Para debug: `/gsd-debug`.
 
 ## Variáveis de Ambiente
 
-Ver `.env.example` (criar baseado nesse template):
-
-```
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
-
-# Discord
-DISCORD_CLIENT_ID=
-DISCORD_CLIENT_SECRET=
-DISCORD_BOT_TOKEN=
-DISCORD_GUILD_ID=
-
-# AbacatePay
-ABACATEPAY_API_KEY=
-ABACATEPAY_WEBHOOK_SECRET=
-
-# OpenDota (opcional, free)
-OPENDOTA_API_KEY=
-
-# Resend
-RESEND_API_KEY=
-EMAIL_FROM=
-
-# App
-NEXT_PUBLIC_SITE_URL=
-```
+Ver `.env.example` na raiz — é a fonte da verdade das variáveis (Supabase, Discord, Mercado Pago `MP_*`, OpenDota, app). Não duplicar a lista aqui.
 
 ## Comandos
 
@@ -132,16 +105,15 @@ cd bot && pnpm dev  # bot Discord local
 ## Testing
 
 - Validar manualmente fluxo end-to-end antes de deploy
-- Testar webhook AbacatePay com sandbox antes de produção
+- Testar webhook Mercado Pago com sandbox (`TEST-` token) antes de produção
 - Bot Discord testado em servidor de teste antes de mover pro oficial
 
 ## References
 
-- `PRD.md` — requisitos completos
-- `ARCHITECTURE.md` — decisões técnicas (criar conforme avança)
-- `TASKS.md` — backlog
+- `docs/foundations/` — 20 docs fundacionais (fonte da verdade de produto e design)
+- `PRD.md` — requisitos ORIGINAIS (histórico, sobrescrito pelos pivôs)
 - [OpenDota API](https://docs.opendota.com/)
-- [AbacatePay docs](https://docs.abacatepay.com)
+- [Mercado Pago docs](https://www.mercadopago.com.br/developers)
 - [Discord.js v14](https://discordjs.guide)
 - [Supabase Auth Discord](https://supabase.com/docs/guides/auth/social-login/auth-discord)
 

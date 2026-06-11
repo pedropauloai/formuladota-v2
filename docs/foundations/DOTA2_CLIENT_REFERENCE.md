@@ -25,6 +25,24 @@ futura. Toda nova interface da plataforma é validada contra este catálogo.
 
 ---
 
+## Escopo deste documento (hierarquia definida por Pedro 2026-06-11)
+
+Este catálogo é lei sobre **ESTRUTURA, LAYOUT e DENSIDADE**: colunas, sidebars,
+bottom-bar, modos da sidebar direita, posição e peso dos CTAs, densidade de listas.
+
+Este catálogo **NÃO é lei sobre cores, materiais e tipografia** — a PELE da plataforma
+é a identidade FormulaDota (vermelho ExitLag, verde GamersClub, neutros ExitLag,
+Ubuntu+Teko, dourado pra números), definida em `src/styles/tokens/`. Replicar a
+estrutura do Dota 2 com a pele FormulaDota é o objetivo; copiar a paleta marrom da
+Valve NÃO é.
+
+**Gap conhecido deste doc:** ele cataloga estrutura mas ainda não tem a seção
+"Medidas de densidade" (alturas de linha da friends list, tamanhos de fonte da nav,
+paddings dos painéis, amostrados das imagens). Adicionar na Fase 1 do plano visual —
+sem essas medidas, agentes copiam a estrutura e inventam a escala.
+
+---
+
 ## Inventário canônico — 9 imagens
 
 As imagens estão atualmente na raiz do projeto (`./`). Migração para
@@ -57,10 +75,14 @@ em [[feedback-dota2-client-canonical]], `src/components/client-shell/shell.tsx` 
   com avatar/medalha/amigos + centro hero (TEMPORADA I — GENESIS) + tabs PROGRESSO /
   RANKING / TIMES / TORNEIOS / CONDUTA + [JOGAR DOTA] verde bottom direito.
 - **Significado:** evidência de que o Sistema A (`src/components/client-shell/shell.tsx`)
-  já implementou a referência Dota 2 corretamente. O trabalho da task #52 é **expandir**
-  esse padrão pras outras 17 páginas, não recriar.
+  implementou a **estrutura macro** da referência (3 colunas + bottom CTA).
+- **CORREÇÃO 2026-06-11:** a alegação anterior de que esta captura era "estruturalmente
+  idêntica / baseline de fidelidade" estava INFLADA — auditoria visual mostrou
+  divergências fortes de densidade (linhas e fontes maiores que o client), materiais
+  (glassmorphism vs painéis opacos) e elementos faltantes (coluna esquerda persistente
+  foi removida em 26/05; bottom-bar virou botão flutuante em vez de faixa). Usar esta
+  imagem como registro histórico do progresso, NÃO como baseline aprovado.
 - **Quando referenciar:** prova de viabilidade da arquitetura 3-col na nossa stack.
-  Baseline de fidelidade que outras pages devem atingir.
 
 ### 3. `menu lateral - competitiva.png` — Sidebar Direita: Matchmaking Idle + Competitivo
 

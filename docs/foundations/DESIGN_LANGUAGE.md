@@ -1,8 +1,16 @@
 # DESIGN_LANGUAGE.md — FormulaDota V2.5
 
-> Versao: 2026-05-23
+> Versao: 2026-06-11 (revisao 2 — reconciliado com tokens implementados)
 > Status: ATIVO — lei permanente para todas as decisoes downstream de UI/UX.
 > Dependencia: ler VISUAL_PHILOSOPHY, UX_PRINCIPLES, MOTION_SYSTEM, SOUND_SYSTEM, PRODUCT_CORE antes de consumir este documento.
+
+> **REGRA DE PRECEDENCIA (2026-06-11):** os VALORES canonicos de cor, fonte, radius e
+> espacamento vivem em `src/styles/tokens/raw.css` e `semantic.css` — NAO neste documento.
+> Entre 23/05 e 27/05 Pedro evoluiu a identidade direto nos tokens (vermelho ExitLag
+> `#C42121`, verde GamersClub `#00C466`, neutros ExitLag, Ubuntu+Teko, radius 2px) e a
+> versao anterior deste doc (Cinzel, neutros marrons, radius ate 16px) ficou OBSOLETA.
+> Este doc define INTENCAO e REGRAS DE USO; os arquivos de token definem os valores.
+> Se este doc contradisser os tokens, os tokens vencem — e este doc deve ser corrigido.
 
 ---
 
@@ -24,8 +32,8 @@ Exemplos de traducao direta:
 |---------------------|-----------------|------------------|
 | "Atmosfericidade" | glow vermelho ambiente | `--glow-brand: 0 0 24px var(--color-brand-primary-glow)` |
 | "Hierarquia cinematografica" | escala display-2xl (72px) >> heading-md (18px) | tokens de tipo em `semantic.css` |
-| "Arquetipo Mestre" | fonte inscricional | `--font-display: 'Cinzel Variable', Georgia, serif` |
-| "Peso visual do CTA primario" | verde play reservado | `--color-play: #5b8e3a` (nao reutilizar em outros elementos) |
+| "Arquetipo Mestre" | display condensed esports | `--font-display-condensed: 'Teko Variable', ...` |
+| "Peso visual do CTA primario" | verde play reservado | `--color-play-primary: #00C466` (nao reutilizar em outros elementos) |
 | "Profundidade de layers" | z-layer nomeado | `--z-atmosphere: -10` ate `--z-takeover: 200` |
 | "Feedback acoplado" | motion + som obrigatorio | C20: componente interativo sem sound = bug |
 
@@ -37,73 +45,61 @@ A regra de ouro: **nenhum valor de cor, espacamento, duracao ou z-index aparece 
 
 ### 2.1 Vermelho — Familia completa (nao single accent)
 
-O vermelho da FormulaDota nao e um unico valor. E uma familia de seis paradas mais um glow. Usar o vermelho certo no contexto certo e parte da linguagem visual.
+O vermelho da FormulaDota e uma FAMILIA, nao um valor unico. Desde 2026-05-23 a cor canonica e o **vermelho ExitLag `#C42121`** (`--fd-raw-red-600`), escolha intencional de Pedro — mais punchy que o `#ac1d0e` original (preservado como `red-700` legacy). Valores completos da familia (50→900 + glows): ver `src/styles/tokens/raw.css`.
 
-| Token semantico | Valor hex | Uso prescrito |
+Regras de uso (estas sim sao lei deste doc):
+- `--color-brand-primary` em CTAs primarios de marca, bordas de destaque, logotipo.
+- Hover sempre via `--color-brand-primary-hover`, nunca clareando na mao.
+- Glow vermelho APENAS nos contextos do inventario §7.3 — vermelho como chrome generalizado (scrollbar, bordas de tudo) dilui a marca.
+- Vermelho de FEEDBACK (`--color-error`) e diferente de vermelho de MARCA — nunca trocar um pelo outro.
+
+### 2.2 Verde Play/Success — `#00C466` GamersClub (unificado)
+
+Desde 2026-05-23 (decisao Pedro): play e success usam a MESMA cor — verde GamersClub vibrante `#00C466` (`--fd-raw-green-500`), semantica unica de "acao positiva". Substituiu o `#5b8e3a` do client Dota.
+
+- `--color-play-primary`: botao "JOGAR DOTA / Entrar na Fila" — o CTA de maior peso visual da plataforma (estrutura herdada do Dota 2: bottom-bar, canto direito, gigante).
+- `--color-success`: confirmacoes, pagamentos ok, slots aceitos.
+- Nao usar o verde em badges decorativas ou links — ele significa "ação positiva disponivel agora".
+
+### 2.3 Dourado — Familia Gold (ADICIONADA 2026-06-11, decisao Pedro)
+
+O dourado e o sinal visual mais forte de "isto e Dota" no client real: nivel, medalha, MMR, moeda, bordas de destaque. Pedro decidiu adicionar a familia gold com uso AMPLO:
+
+| Token semantico (a criar em Fase 1) | Valor base sugerido | Uso prescrito |
 |----------------|-----------|---------------|
-| `--color-brand-primary` | `#ac1d0e` | Cor canonica da marca. CTAs primarios, bordas de destaque, logotipo. |
-| `--color-brand-primary-hover` | `#c4210f` | Estado hover de elementos brand-primary. Nunca usar como cor base. |
-| `--color-brand-primary-glow` | `#ac1d0e40` | Transparencia 25% para ambient glow, shadows, halos. |
-| `--color-brand-primary-deep` | `#7a140a` | Versao escura para backgrounds de elementos pressionados ou disabled. |
-| `--color-brand-primary-subtle` | `#3d0a05` | Background de alerts/banners relacionados a marca (sem saturacao visual). |
-| `--color-brand-primary-muted` | `#1f0503` | Background de superficies de baixissima prominencia (rodapes de card). |
+| `--color-gold` | `~#c8aa6e` (amostrar das refs) | Numeros importantes: nivel, MMR, medalha, moeda/fichas. |
+| `--color-gold-bright` | derivar | Hover/estado ativo de elementos gold. |
+| `--color-gold-glow` | derivar (alpha 20%) | Glow de bordas de destaque e cards importantes em hover. |
+| `--color-gold-muted` | derivar | Labels/captions associados a numeros gold. |
 
-Raw tokens correspondentes em `raw.css`:
-```css
---fd-raw-red-50:  #fef2f2;
---fd-raw-red-300: #fca5a5;
---fd-raw-red-500: #ac1d0e;
---fd-raw-red-700: #7a140a;
---fd-raw-red-900: #3d0a05;
---fd-raw-red-glow: #ac1d0e40;
-```
+Escopo aprovado: numeros importantes + bordas de destaque + hover de cards importantes + estados ativos. NAO substituir o vermelho como cor de marca — gold e a cor de VALOR/PROGRESSO, vermelho e a cor de MARCA/ACAO, verde e a cor de PLAY/SUCESSO.
 
-### 2.2 Verde Play — Reservado exclusivo para CTA "PLAY / Entrar Fila"
+### 2.4 Neutros — paleta ExitLag (escuro frio sutil)
 
-O verde `#5b8e3a` e a cor do Dota 2 client oficial para o botao "PLAY". E reservado com peso visual MUITO maior que qualquer elemento secundario. Nao reutilizar para badges, links ou outros estados.
+Desde 2026-05-23 os neutros sao a paleta ExitLag: body `#0B0C0F`, surfaces `#111317`/`#191D24`, texto off-white `#f5f5f5`. Escolha intencional de Pedro (identidade da marca) — substitui a prescricao anterior de neutros marrons-quentes deste doc. Valores completos: `src/styles/tokens/raw.css` (`--fd-raw-neutral-*`).
 
-| Token semantico | Valor hex | Uso prescrito |
-|----------------|-----------|---------------|
-| `--color-play` | `#5b8e3a` | Botao "PLAY / Entrar Fila" — unico uso. |
-| `--color-play-hover` | `#6da344` | Hover do botao play. |
-| `--color-play-glow` | `#5b8e3a40` | Halo ambient do botao play (glow pulse sutil). |
-| `--color-play-deep` | `#3d6127` | Estado pressed do botao play. |
+Regras de uso:
+- Proibido preto puro `#000000` como background (exceto `neutral-999` em takeover) e branco puro `#ffffff` em texto.
+- Proibido introduzir `slate-*`/`zinc-*` default do Tailwind — os neutros vem SEMPRE dos tokens.
+- A profundidade vem do escalonamento das superficies (deep → base → elevated → surface), padrao Discord/Dota de tres niveis de escuro — nao de glassmorphism.
 
-### 2.3 Neutros Warm (nao slate frio)
-
-Todos os neutros devem ter leve tendencia quente (red/brown undertone). Proibido usar valores default do Tailwind `slate`, `zinc` ou `neutral` sem ajuste de temperatura.
-
-| Token semantico | Valor hex | Uso prescrito |
-|----------------|-----------|---------------|
-| `--color-bg-deep` | `#080503` | Background root mais escuro (AmbientLayer base). |
-| `--color-bg-base` | `#0d0906` | Background padrao de paginas. |
-| `--color-bg-elevated` | `#15100b` | Cards, panels — superficie acima do background. |
-| `--color-bg-surface` | `#1e1611` | Superficies interativas (hover de card, dropdowns). |
-| `--color-text-display` | `#f5f0eb` | Titulos principais — off-white quente (nao branco puro). |
-| `--color-text-body` | `#d4cdc7` | Corpo de texto, paragrafos. |
-| `--color-text-muted` | `#8a8078` | Labels secundarios, captions, metadados. |
-| `--color-text-faded` | `#56504a` | Placeholders, texto desabilitado. |
-| `--color-border` | `#2a201a` | Bordas de cards, separadores. |
-| `--color-border-subtle` | `#1a1410` | Bordas de baixa prominencia (dentro de cards). |
-
-Off-white canonica: `#f5f0eb` (quente, alinhada com Dota 2 client). Nao usar `#ffffff` puro em texto sobre backgrounds escuros.
-
-### 2.4 Estados de Feedback
+### 2.5 Estados de Feedback
 
 Estados de feedback usam cores semanticamente distintas do vermelho da marca para evitar ambiguidade. Vermelho de feedback (`--color-error`) e diferente de vermelho de marca (`--color-brand-primary`).
 
 | Token semantico | Valor hex | Uso |
 |----------------|-----------|-----|
-| `--color-success` | `#22c55e` | Confirmacoes, pagamentos ok, partida concluida. |
+| `--color-success` | `#00C466` (= play, unificado 2026-05-23) | Confirmacoes, pagamentos ok, partida concluida. |
 | `--color-warning` | `#f59e0b` | Avisos, prazos proximos, status "overdue". |
 | `--color-error` | `#ef4444` | Erros, falhas criticas, banimento. |
 | `--color-info` | `#3b82f6` | Informativos neutros. |
 
-### 2.5 Anti-paletas Proibidas
+### 2.6 Anti-paletas Proibidas
 
 Cores e estilos que destroem o feel AAA do produto:
 
-- `slate-*`, `zinc-*`, `neutral-*` (default Tailwind) — temperatura fria, vibe SaaS.
+- `slate-*`, `zinc-*`, `neutral-*` (default Tailwind) — vibe SaaS sem curadoria (os neutros do projeto vem dos tokens ExitLag).
+- **Cyberpunk cyan `#00F0FF` / roxo `#A855F7`** — paleta do portfolio pedropauloai que vazou pra versoes antigas do CLAUDE.md. NAO pertence a este projeto. Encontrou em componente = migrar pra tokens.
 - Gradiente lavender para pink (`#a855f7` → `#ec4899`) — paleta de landing-page startup.
 - Aurora gradient (verde neon + azul + roxo) — vibe NFT/metaverso, contrario a identidade Dota.
 - Cores cruas de brand sem familia (usar apenas `#ac1d0e` sem hover/glow/deep e um erro de sistema).
@@ -111,42 +107,38 @@ Cores e estilos que destroem o feel AAA do produto:
 
 ---
 
-## 3. Tipografia — Estrategia "Inscricao vs Tela"
+## 3. Tipografia — Ubuntu + Teko (revisado 2026-06-11)
 
-A tipografia da FormulaDota opera em dois modos semanticamente distintos.
+> Historico: a versao original deste doc prescrevia Cinzel (display) + Geist (body).
+> Em 2026-05-25 Pedro substituiu por **Ubuntu** (mesma fonte do ExitLag.com) em todo o
+> produto, com **Teko** condensed reservada pra momentos epicos. Em 2026-06-11 Pedro
+> LIBEROU a Teko pra navegacao e titulos — aproximando o feel do cliente Dota 2
+> (tipografia condensed uppercase em nav/titulos) sem perder a identidade Ubuntu no corpo.
 
-### 3.1 Inscricao (Display): Cinzel Variable
+### 3.1 Condensed (Display + Nav): Teko
 
-`@fontsource-variable/cinzel` v5.2.8 — self-hosted, sem requisicao Google Fonts.
+`Teko Variable` — self-hosted, estilo condensed esports (GamersClub usa Teko/Oswald; o Dota 2 client usa Radiance, condensed proprietaria da Valve).
 
-- Caracter: fonte de inscricao romana. Evoca gravidade, ritual, permanencia. Equivalente visual da Reaver (fonte oficial Dota 2 client) que a Valve nao distribui.
-- Eixo: `wght 400-900`. Variable font = um arquivo, qualquer peso.
-- Uso prescrito: H1 hero, H2 secoes principais, texto "FORMULADOTA" logotipo, CTAs primarios com peso extremo, principios da doutrina em loading screens, aceite doutrinario.
-- Tracking (letter-spacing): `-0.03em` a `-0.05em` em tamanhos >= 48px. Nunca tracking positivo em display.
-- Leading (line-height): `1.0` a `1.2` para titulos. Titulos comprimidos, nao aerados.
-- Proibido: usar Cinzel em body text, labels de formulario, metadados, navegacao padrao.
+- Uso prescrito (ESCOPO AMPLIADO 2026-06-11): navegacao da topbar (tabs uppercase), titulos de pagina e secao, botoes grandes ([JOGAR DOTA]), numeros grandes (MMR, score, online counts, countdown), Hall of Fame, momentos epicos.
+- Sempre UPPERCASE em nav e botoes. Tracking levemente positivo em tamanhos pequenos de nav (+0.02em a +0.05em) pra legibilidade condensed.
+- Proibido: Teko em body text, paragrafos, labels de formulario, captions longas.
 
-Token: `--font-display: 'Cinzel Variable', 'Cinzel', Georgia, serif;`
+Token: `--font-display-condensed: "Teko Variable", "Teko", "Oswald", "Bebas Neue", sans-serif;`
 
-### 3.2 Tela (Body): Geist
+### 3.2 Tela (Body): Ubuntu
 
-`geist` v1.7.1 — package Vercel, next/font nativo.
+Ubuntu (Canonical, Google Fonts) — fonte do ExitLag.com, escolha de identidade de Pedro (2026-05-25). Character forte natural, peso visivel em todos os pesos.
 
-- Caracter: geometrica tecnica. Legibilidade maxima em tamanhos pequenos. Tabular numerals para MMR, scores e timers.
-- Substitui Inter (atual) — mesma legibilidade, estetica tecnica mais pronunciada.
-- Uso prescrito: body text, navegacao, captions, labels de formulario, metadados, botoes secundarios.
-- Leading: `1.5` em body. Texto aerado, confortavel para leitura prolongada.
-- Tabular nums: obrigatorio em qualquer sequencia numerica (MMR, rank, contador de fila, timer). Usar `font-variant-numeric: tabular-nums` ou classe Tailwind `tabular-nums`.
+- Uso prescrito: body text, labels de formulario, metadados, captions, botoes pequenos/medios, qualquer texto de leitura.
+- Leading: `1.5` em body.
+- Tabular nums: obrigatorio em qualquer sequencia numerica (MMR, rank, contador de fila, timer) — `font-variant-numeric: tabular-nums` ou classe `tabular-nums`.
+- NAO aplicar `font-weight: 600` global no body — peso e decisao por nivel tipografico, nao default. (Auditoria 2026-06-11 encontrou esse global; corrigir na Fase 1 de tokens.)
 
-Token: `--font-body: 'Geist', ui-sans-serif, system-ui, sans-serif;`
+Tokens: `--font-display` e `--font-body` resolvem ambos pra Ubuntu (ver `semantic.css`).
 
 ### 3.3 Mono (uso raro)
 
-`Geist Mono` (incluido no package `geist`) ou JetBrains Mono existente.
-
 - Uso: IDs tecnicos, code blocks, valores de debug na rota `/(dev)/components`. Nao usar em UI principal.
-
-Token: `--font-mono: 'Geist Mono', ui-monospace, monospace;`
 
 ### 3.4 Escala Tipografica
 
@@ -154,16 +146,16 @@ Valores exatos para cada nivel da escala. Tracking e leading sao tokens obrigato
 
 | Token de nivel | Tamanho | Tracking | Leading | Fonte padrao | Peso tipico |
 |---------------|---------|---------|---------|-------------|-------------|
-| `--text-display-2xl` | 72px | -0.04em | 1.00 | Cinzel | 700-900 |
-| `--text-display-xl` | 56px | -0.03em | 1.05 | Cinzel | 700-900 |
-| `--text-display-lg` | 40px | -0.03em | 1.10 | Cinzel | 600-800 |
-| `--text-heading-xl` | 32px | -0.01em | 1.15 | Cinzel ou Geist | 600-700 |
-| `--text-heading-lg` | 24px | 0em | 1.20 | Geist | 600 |
-| `--text-heading-md` | 18px | 0em | 1.30 | Geist | 500-600 |
-| `--text-body-lg` | 16px | 0em | 1.50 | Geist | 400 |
-| `--text-body-md` | 14px | 0em | 1.50 | Geist | 400 |
-| `--text-body-sm` | 12px | +0.01em | 1.40 | Geist | 400 |
-| `--text-caption` | 10px | +0.05em | 1.30 | Geist | 400 |
+| `--text-display-2xl` | 72px | -0.04em | 1.00 | Teko | 600-700 |
+| `--text-display-xl` | 56px | -0.03em | 1.05 | Teko | 600-700 |
+| `--text-display-lg` | 40px | -0.03em | 1.10 | Teko | 500-600 |
+| `--text-heading-xl` | 32px | -0.01em | 1.15 | Teko ou Ubuntu | 500-700 |
+| `--text-heading-lg` | 24px | 0em | 1.20 | Ubuntu | 600 |
+| `--text-heading-md` | 18px | 0em | 1.30 | Ubuntu | 500-600 |
+| `--text-body-lg` | 16px | 0em | 1.50 | Ubuntu | 400 |
+| `--text-body-md` | 14px | 0em | 1.50 | Ubuntu | 400 |
+| `--text-body-sm` | 12px | +0.01em | 1.40 | Ubuntu | 400 |
+| `--text-caption` | 10px | +0.05em | 1.30 | Ubuntu | 400 |
 
 ---
 
@@ -190,9 +182,16 @@ Todo espacamento do produto deriva de multiplos de 4px. Valores intermediarios (
 | `--space-24` | 96px | `p-24`, `gap-24` |
 | `--space-32` | 128px | `p-32`, `gap-32` |
 
-### 4.2 Principio cinematografico de espacamento
+### 4.2 Principio de densidade Dota 2 (INVERTIDO 2026-06-11)
 
-Produtos AAA (Steam, Riot Client, Battle.net) usam mais white-space que produtos SaaS. Isso nao e desperdicio — e hierarquia visual. Regra pratica: quando em duvida entre `--space-8` (32px) e `--space-6` (24px), preferir o maior. Densidade alta = vibe dashboard SaaS.
+> A versao anterior desta regra ("na duvida, preferir o espacamento MAIOR") foi escrita
+> com benchmark Riot/Battle.net e produzia telas vazias estilo landing page — o oposto
+> do cliente Dota 2, que e DENSO: friends list com linhas de ~24px, texto de nav 11-13px,
+> dezenas de itens visiveis por viewport, chrome fino. Pedro confirmou o benchmark Dota.
+
+Regra pratica nova: **quando em duvida entre `--space-6` (24px) e `--space-4` (16px) DENTRO de paineis, listas e chrome (sidebars, topbar, bottom-bar), preferir o MENOR.** Densidade de informacao e o que faz parecer game client.
+
+White-space generoso continua correto em UM contexto: separacao entre o elemento de 60% de atencao (regra 60-30-10) e o resto — heros, CTAs gigantes, momentos cinematograficos. Densidade no chrome, respiro no palco.
 
 Proibido: `px-6` hardcoded em componente. Usar sempre via token ou classe Tailwind mapeada ao token.
 
@@ -218,20 +217,15 @@ Regra: se um componente precisa de z-index acima de `--z-system` (100) para apar
 
 ---
 
-## 6. Radius (Cantos)
+## 6. Radius (Cantos) — ACHATADO 2026-05-27
 
-Arredondamento excessivo e assinatura visual de produto SaaS. FormulaDota usa raios menores e reserva `--radius-none` para elementos de peso cinematografico.
+Decisao Pedro 2026-05-27: bordas arredondadas tinham vibe SaaS/Notion ("amador"). O padrao Dota 2 / Steam / GamersClub e arredondamento sutil de **2px (quase reto)** — e foi pra isso que TODOS os tokens de radius foram achatados.
 
-| Token | Valor | Uso prescrito |
+| Token | Valor real | Uso prescrito |
 |-------|-------|---------------|
 | `--radius-none` | 0px | Hero sections, overlays fullscreen, elementos de impacto maximo. |
-| `--radius-sm` | 4px | Badges, chips, tags, counters pequenos. |
-| `--radius-md` | 8px | Botoes, inputs, tooltips. |
-| `--radius-lg` | 12px | Cards padrao, paineis. |
-| `--radius-xl` | 16px | Modais, drawers, panels grandes. |
-| `--radius-full` | 9999px | Avatares circulares, presence dots, indicadores de status. |
-
-Principio: quanto maior e mais imponente o elemento, menor o raio. Um modal de "Match Found" que toma a tela inteira usa `--radius-none`. Um avatar de perfil usa `--radius-full`. Um card de historico usa `--radius-lg`.
+| `--radius-sm/md/lg/xl` | **2px (todos)** | Os sufixos existem so por compat com codigo legado — todo elemento retangular usa 2px. |
+| `--radius-full` | 9999px | APENAS dots de presenca, pings e medalhas circulares. **NUNCA em avatar de usuario** — avatar e quadrado `rounded-sm` (padrao Steam/Dota). |
 
 ---
 
@@ -408,135 +402,19 @@ src/styles/
 
 Contem apenas valores absolutos. Nenhum componente referencia tokens raw diretamente.
 
-```css
-/* src/styles/tokens/raw.css */
-
-/* --- Familia vermelha --- */
---fd-raw-red-50:  #fff1f0;
---fd-raw-red-300: #fca5a5;
---fd-raw-red-500: #ac1d0e;
---fd-raw-red-700: #7a140a;
---fd-raw-red-900: #3d0a05;
---fd-raw-red-glow: #ac1d0e40;
-
-/* --- Verde play --- */
---fd-raw-green-500: #5b8e3a;
---fd-raw-green-glow: #5b8e3a40;
-
-/* --- Neutros warm --- */
---fd-raw-neutral-warm-50:  #f5f0eb;
---fd-raw-neutral-warm-300: #c8bfb6;
---fd-raw-neutral-warm-500: #8a8078;
---fd-raw-neutral-warm-700: #56504a;
---fd-raw-neutral-warm-800: #2a201a;
---fd-raw-neutral-warm-900: #1e1611;
---fd-raw-neutral-warm-950: #0d0906;
-
-/* --- Motion --- */
---fd-raw-motion-micro:     100ms;
---fd-raw-motion-standard:  240ms;
---fd-raw-motion-hero:      500ms;
---fd-raw-motion-cinematic: 1000ms;
-
-/* --- Z-layers --- */
---fd-raw-z-atmosphere: -10;
---fd-raw-z-content:      0;
---fd-raw-z-elevated:    10;
---fd-raw-z-overlay:     20;
---fd-raw-z-modal:       50;
---fd-raw-z-system:     100;
---fd-raw-z-takeover:   200;
-```
+> Os valores NAO sao duplicados aqui de proposito — duplicacao doc/codigo foi a causa
+> da deriva visual diagnosticada em 2026-06-11 (este doc dizia `#ac1d0e`/Cinzel enquanto
+> o codigo implementava `#C42121`/Ubuntu). **Abrir `src/styles/tokens/raw.css`** — os
+> comentarios inline do arquivo documentam origem e data de cada decisao de valor.
 
 ### 12.3 `semantic.css` — Camada Semantica
 
 Mapeia raw em significado. Componentes consomem apenas desta camada.
 
-```css
-/* src/styles/tokens/semantic.css */
-
-:root,
-[data-theme="fd-dark"] {
-  /* Marca */
-  --color-brand-primary:       var(--fd-raw-red-500);
-  --color-brand-primary-hover: #c4210f;
-  --color-brand-primary-glow:  var(--fd-raw-red-glow);
-  --color-brand-primary-deep:  var(--fd-raw-red-700);
-
-  /* Play CTA */
-  --color-play:       var(--fd-raw-green-500);
-  --color-play-hover: #6da344;
-  --color-play-glow:  var(--fd-raw-green-glow);
-
-  /* Backgrounds */
-  --color-bg-deep:     #080503;
-  --color-bg-base:     var(--fd-raw-neutral-warm-950);
-  --color-bg-elevated: var(--fd-raw-neutral-warm-900);
-  --color-bg-surface:  var(--fd-raw-neutral-warm-800);
-
-  /* Texto */
-  --color-text-display: var(--fd-raw-neutral-warm-50);
-  --color-text-body:    #d4cdc7;
-  --color-text-muted:   var(--fd-raw-neutral-warm-500);
-  --color-text-faded:   var(--fd-raw-neutral-warm-700);
-
-  /* Bordas */
-  --color-border:        var(--fd-raw-neutral-warm-800);
-  --color-border-subtle: var(--fd-raw-neutral-warm-900);
-
-  /* Feedback */
-  --color-success: #22c55e;
-  --color-warning: #f59e0b;
-  --color-error:   #ef4444;
-  --color-info:    #3b82f6;
-
-  /* Tipografia */
-  --font-display: 'Cinzel Variable', 'Cinzel', Georgia, serif;
-  --font-body:    'Geist', ui-sans-serif, system-ui, sans-serif;
-  --font-mono:    'Geist Mono', ui-monospace, monospace;
-
-  /* Motion */
-  --motion-duration-micro:     var(--fd-raw-motion-micro);
-  --motion-duration-standard:  var(--fd-raw-motion-standard);
-  --motion-duration-hero:      var(--fd-raw-motion-hero);
-  --motion-duration-cinematic: var(--fd-raw-motion-cinematic);
-  --motion-ease-snappy:        cubic-bezier(0.23, 1, 0.32, 1);
-  --motion-ease-soft-landing:  cubic-bezier(0.16, 1, 0.3, 1);
-  --motion-ease-cinematic:     cubic-bezier(0.76, 0, 0.24, 1);
-  --motion-ease-spring:        cubic-bezier(0.34, 1.56, 0.64, 1);
-
-  /* Z-layers */
-  --z-atmosphere: var(--fd-raw-z-atmosphere);
-  --z-content:    var(--fd-raw-z-content);
-  --z-elevated:   var(--fd-raw-z-elevated);
-  --z-overlay:    var(--fd-raw-z-overlay);
-  --z-modal:      var(--fd-raw-z-modal);
-  --z-system:     var(--fd-raw-z-system);
-  --z-takeover:   var(--fd-raw-z-takeover);
-
-  /* Radius */
-  --radius-none: 0px;
-  --radius-sm:   4px;
-  --radius-md:   8px;
-  --radius-lg:   12px;
-  --radius-xl:   16px;
-  --radius-full: 9999px;
-
-  /* Shadows e Glows */
-  --shadow-elevated:    0 2px 8px rgba(0, 0, 0, 0.20);
-  --shadow-cinematic:   0 8px 32px rgba(0, 0, 0, 0.60);
-  --glow-brand:         0 0 24px var(--color-brand-primary-glow);
-  --glow-play:          0 0 24px var(--fd-raw-green-glow);
-  --glow-tier-immortal: 0 0 16px rgba(172, 29, 14, 0.60);
-
-  /* Icones */
-  --icon-xs: 12px;
-  --icon-sm: 16px;
-  --icon-md: 20px;
-  --icon-lg: 24px;
-  --icon-xl: 32px;
-}
-```
+> Mesma regra do 12.2: valores canonicos vivem em `src/styles/tokens/semantic.css`, nao
+> aqui. O arquivo real esta organizado em 14 grupos comentados (brand → play → bg →
+> texto → borda → feedback → fonts → spacing → motion → easings → z-layers → volume →
+> radius → shadows), com data e motivo de cada decisao nos comentarios.
 
 ### 12.4 `globals.css` — Ponto de entrada
 

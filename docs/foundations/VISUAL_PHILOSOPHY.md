@@ -13,17 +13,19 @@ FormulaDota nao e um SaaS. Nao e uma landing page de startup. Nao e um painel de
 
 ---
 
-## 2. A Regua AAA: "Isso Existe no Riot Client?"
+## 2. A Regua AAA: "Isso Existe no Cliente Dota 2?"
 
-Toda decisao visual — cada componente, cada animacao, cada cor escolhida, cada estado de loading — passa por uma unica pergunta:
+> **Reformulado 2026-06-11 (decisao Pedro):** a regua original perguntava "Isso existe no Riot Client?" — e isso induzia a estetica errada (Riot = minimalista/arejado; Dota 2 = denso/compacto). O benchmark PRIMARIO e o **cliente Dota 2 real** (catalogo em `DOTA2_CLIENT_REFERENCE.md`). Os demais clients AAA (Riot, Blizzard, FACEIT) seguem validos como benchmark SECUNDARIO de qualidade de craft — nunca de estetica.
 
-**"Isso existe no Riot Client?"**
+Toda decisao visual — cada componente, cada animacao, cada estado de loading — passa por uma unica pergunta:
 
-Nao no sentido de copiar o Riot Client. No sentido de que o Riot Client e o benchmark de qualidade de game UX em plataforma web em 2026. Se uma decisao e padrao de SaaS e nao existe em nenhum game client AAA (Riot, Valve, Blizzard, FACEIT), ela e proibida por definicao.
+**"Isso existe no cliente Dota 2?"** (e, se nao, existe em algum game client AAA e ha justificativa explicita?)
+
+Se uma decisao e padrao de SaaS e nao existe em nenhum game client AAA, ela e proibida por definicao. Se existe em outro AAA mas NAO no Dota 2, ela exige justificativa documentada — o default e o que o Dota 2 faz.
 
 Esta regua e aplicada assim:
 
-| Decisao em questao | Existe no Riot Client? | Conclusao |
+| Decisao em questao | Existe no cliente Dota 2 (ou AAA com justificativa)? | Conclusao |
 |---|---|---|
 | Container `max-w-7xl mx-auto px-6` | Nao | Proibido |
 | Spinner `animate-spin` como loading | Nao | Proibido |
@@ -38,7 +40,7 @@ Esta regua e aplicada assim:
 | Background vivo (video, particles, ambient) | Sim | Obrigatorio |
 | Empty states com narrativa e CTA | Sim | Obrigatorio |
 
-A pergunta nao precisa de contexto adicional. "Isso existe no Riot Client?" e suficiente para encerrar qualquer debate sobre se um padrao e aceitavel ou nao.
+A pergunta nao precisa de contexto adicional. "Isso existe no cliente Dota 2?" e suficiente para encerrar qualquer debate sobre se um padrao e aceitavel ou nao. Em caso de conflito entre este documento e `DOTA2_CLIENT_REFERENCE.md` em questoes de ESTRUTURA/LAYOUT/DENSIDADE, o catalogo Dota 2 vence. Em questoes de COR/MATERIAL/TIPOGRAFIA, os tokens de `src/styles/tokens/` vencem (identidade FormulaDota, escolhida por Pedro).
 
 ---
 
