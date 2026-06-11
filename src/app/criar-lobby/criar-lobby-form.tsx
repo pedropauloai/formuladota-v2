@@ -4,6 +4,9 @@
 // (ref: configuração lobby.png). Persiste o que o schema suporta (nome, modo, senha);
 // as configs avançadas (servidor, visibilidade, regras, bots) são VISUAIS por ora — o
 // bot Steam vai consumi-las quando deployado.
+//
+// [CRIAR SALA] = verde play (compromisso positivo), desabilitado até nome válido.
+// [CANCELAR] = ghost. Seções em Teko condensed (font-display-condensed).
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -29,7 +32,11 @@ export function CriarLobbyForm({ onCreated, onClose, editLobbyId, defaults }: Fo
   const [copied, setCopied] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
   const [advanced, setAdvanced] = useState(false);
+  // Nome controlado só pra habilitar o CTA (validação visual; Zod valida no server).
+  const [name, setName] = useState(defaults?.name ?? "");
   const router = useRouter();
+
+  const nameValid = name.trim().length >= 3;
 
   function handleSubmit(formData: FormData) {
     startTransition(async () => {
@@ -58,23 +65,20 @@ export function CriarLobbyForm({ onCreated, onClose, editLobbyId, defaults }: Fo
 
   if (created) {
     return (
-      <div className="rounded-md border border-success/40 bg-bg-elevated/60 p-8 space-y-6">
-        <h2 className="font-display text-2xl font-bold uppercase tracking-wide text-text-display">
+      <div className="rounded-sm border border-success/40 bg-bg-elevated/60 p-6 space-y-5">
+        <h2 className="font-display-condensed text-3xl uppercase leading-none text-text-display">
           Sala criada
         </h2>
-        <p className="font-body text-text-muted">
+        <p className="font-body text-sm text-text-muted">
           Compartilhe a senha com os outros jogadores. Quando o bot Steam estiver no ar,
           ele cria a sala no Dota e convida automaticamente.
         </p>
-        <div className="rounded-md border border-border-subtle bg-bg-deep p-4">
+        <div className="rounded-sm border border-border-subtle bg-bg-deep p-4">
           <p className="font-display text-sm font-semibold uppercase tracking-wide text-text-faded">
             Senha da sala
           </p>
           <div className="mt-2 flex items-center justify-between gap-4">
-            <code
-              className="font-mono text-2xl text-brand-primary"
-              style={{ textShadow: "0 0 16px var(--color-brand-primary-glow)" }}
-            >
+            <code className="font-mono text-2xl tabular-nums text-gold">
               {created.password}
             </code>
             <Button type="button" variant="secondary" size="sm" onClick={() => copyPassword(created.password)}>
@@ -84,10 +88,10 @@ export function CriarLobbyForm({ onCreated, onClose, editLobbyId, defaults }: Fo
           </div>
         </div>
         <div className="flex gap-3">
-          <Button type="button" variant="primary" size="lg" className="flex-1" onClick={() => router.push(`/lobbies/${created.lobbyId}`)}>
+          <Button type="button" variant="cinematic" size="md" className="flex-1" onClick={() => router.push(`/lobbies/${created.lobbyId}`)}>
             Entrar na sala
           </Button>
-          <Button type="button" variant="secondary" size="lg" onClick={() => router.push("/lobbies")}>
+          <Button type="button" variant="ghost" size="md" onClick={() => router.push("/lobbies")}>
             Ver salas
           </Button>
         </div>
@@ -96,11 +100,11 @@ export function CriarLobbyForm({ onCreated, onClose, editLobbyId, defaults }: Fo
   }
 
   return (
-    <form action={handleSubmit} className="space-y-6">
+    <form action={handleSubmit} className="space-y-4">
       {editLobbyId && <input type="hidden" name="lobbyId" value={editLobbyId} />}
-      {/* Bloco principal */}
-      <div className="rounded-md border border-border-subtle bg-bg-elevated/40 p-5 space-y-5">
-        <div className="grid gap-4 sm:grid-cols-3">
+      {/* Bloco principal — grid denso */}
+      <div className="rounded-sm border border-border-subtle bg-bg-elevated/40 p-4 space-y-4">
+        <div className="grid gap-3 sm:grid-cols-3">
           <Field label="Nome da partida">
             <input
               name="name"
@@ -108,7 +112,8 @@ export function CriarLobbyForm({ onCreated, onClose, editLobbyId, defaults }: Fo
               required
               minLength={3}
               maxLength={60}
-              defaultValue={defaults?.name}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               placeholder="FORMULADOTA #42"
               className={INPUT}
             />
@@ -142,7 +147,7 @@ export function CriarLobbyForm({ onCreated, onClose, editLobbyId, defaults }: Fo
           </Field>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-3">
           <Field label="Localização do servidor">
             <select className={INPUT} defaultValue="sa">
               <option value="sa">América do Sul</option>
@@ -156,37 +161,42 @@ export function CriarLobbyForm({ onCreated, onClose, editLobbyId, defaults }: Fo
               <option value="privada">Privada</option>
             </select>
           </Field>
-          <div className="flex flex-col justify-end gap-2 pb-1">
+          <div className="flex flex-col justify-end gap-1.5 pb-1">
             <Checkbox label="Ativar trapaças" />
             <Checkbox label="Seleção imortal" />
           </div>
         </div>
       </div>
 
-      {/* Configurações avançadas */}
-      <div className="rounded-md border border-border-subtle bg-bg-elevated/40">
+      {/* CONFIGURAÇÕES AVANÇADAS — expansível */}
+      <div className="rounded-sm border border-border-subtle bg-bg-elevated/40">
         <button
           type="button"
           onClick={() => setAdvanced((v) => !v)}
-          className="flex w-full items-center gap-2 px-5 py-3 text-left"
+          aria-expanded={advanced}
+          className="flex w-full items-center gap-2 px-4 py-2.5 text-left"
         >
-          <ChevronDown size={16} className={`text-brand-primary transition-transform ${advanced ? "rotate-180" : ""}`} />
-          <span className="font-display text-sm font-bold uppercase tracking-[0.2em] text-text-display">
+          <ChevronDown
+            size={16}
+            className={`text-gold transition-transform ${advanced ? "rotate-180" : ""}`}
+            aria-hidden="true"
+          />
+          <span className="font-display-condensed text-lg uppercase tracking-wide text-text-display">
             Configurações avançadas
           </span>
         </button>
         {advanced && (
-          <div className="grid gap-6 border-t border-border-subtle p-5 md:grid-cols-3">
-            <fieldset className="space-y-3">
-              <legend className="mb-1 font-display text-sm font-semibold uppercase tracking-wide text-brand-primary">
+          <div className="grid gap-5 border-t border-border-subtle p-4 md:grid-cols-3">
+            <fieldset className="space-y-2.5">
+              <legend className="mb-1 font-display-condensed text-lg uppercase tracking-wide text-gold">
                 Competitivo
               </legend>
               <SelectField label="Prioridade de seleção" options={["Manual", "Aleatória"]} />
               <SelectField label="Equipe inicial" options={["Aleatória", "Os Iluminados", "Os Temidos"]} />
               <SelectField label="Penalidades" options={["Nenhuma", "Padrão"]} />
             </fieldset>
-            <fieldset className="space-y-3">
-              <legend className="mb-1 font-display text-sm font-semibold uppercase tracking-wide text-brand-primary">
+            <fieldset className="space-y-2.5">
+              <legend className="mb-1 font-display-condensed text-lg uppercase tracking-wide text-gold">
                 Regras de jogo
               </legend>
               <SelectField label="Espectadores" options={["Permitido", "Não permitido"]} />
@@ -194,8 +204,8 @@ export function CriarLobbyForm({ onCreated, onClose, editLobbyId, defaults }: Fo
               <SelectField label="Pausas" options={["Ilimitadas", "Limitadas"]} />
               <SelectField label="Formato" options={["Partida única", "Melhor de 3"]} />
             </fieldset>
-            <fieldset className="space-y-3">
-              <legend className="mb-1 font-display text-sm font-semibold uppercase tracking-wide text-brand-primary">
+            <fieldset className="space-y-2.5">
+              <legend className="mb-1 font-display-condensed text-lg uppercase tracking-wide text-gold">
                 Config. de bots
               </legend>
               <Checkbox label="Preencher vagas com bots" />
@@ -205,16 +215,25 @@ export function CriarLobbyForm({ onCreated, onClose, editLobbyId, defaults }: Fo
         )}
       </div>
 
-      <div className="flex items-center justify-end gap-3">
+      {/* Rodapé — [CRIAR SALA] verde play (desabilitado até nome válido) + [CANCELAR] ghost */}
+      <div className="flex items-center justify-end gap-3 border-t border-border-subtle pt-4">
         <Button
           type="button"
-          variant="secondary"
-          size="lg"
+          variant="ghost"
+          size="md"
           onClick={() => (onClose ? onClose() : router.push("/lobbies"))}
+          disabled={isPending}
         >
           Cancelar
         </Button>
-        <Button type="submit" variant="primary" size="lg" loading={isPending} disabled={isPending}>
+        <Button
+          type="submit"
+          variant="cinematic"
+          size="md"
+          loading={isPending}
+          disabled={isPending || !nameValid}
+          title={nameValid ? undefined : "Dê um nome à sala (mínimo 3 caracteres)"}
+        >
           {isPending
             ? editLobbyId
               ? "Salvando..."
@@ -229,11 +248,11 @@ export function CriarLobbyForm({ onCreated, onClose, editLobbyId, defaults }: Fo
 }
 
 const INPUT =
-  "w-full rounded-[var(--radius-sm)] border border-border-subtle bg-bg-elevated px-3 py-2.5 font-body text-sm text-text-display placeholder:text-text-faded transition-colors focus:border-brand-primary focus:outline-none";
+  "w-full rounded-[var(--radius-sm)] border border-border-subtle bg-bg-elevated px-3 py-2 font-body text-sm text-text-display placeholder:text-text-faded transition-colors focus:border-brand-primary focus:outline-none";
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label className="block space-y-1.5">
+    <label className="block space-y-1">
       <span className="font-display text-sm font-semibold uppercase tracking-wide text-text-faded">
         {label}
       </span>

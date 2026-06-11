@@ -4,6 +4,8 @@
 // lista de salas e detalhes de uma sala específica sem ter rota /lobbies separada.
 
 import { createClient } from "@/lib/supabase/server";
+import { xpProgress, getGatedTierForLevel } from "@/lib/levels";
+import type { LobbyData, PlayerSlot } from "./[id]/lobby-types";
 
 export interface LobbyListItem {
   id: string;
@@ -16,24 +18,8 @@ export interface LobbyListItem {
 }
 
 export interface LobbyRoomData {
-  lobby: {
-    id: string;
-    name: string;
-    password: string;
-    gameMode: string;
-    status: string;
-    maxPlayers: number;
-    steamLobbyId: string | null;
-    createdBy: string;
-    startedAt: string | null;
-  };
-  players: {
-    userId: string;
-    team: "radiant" | "dire" | "spectator";
-    joinedAt: string;
-    username: string;
-    avatarUrl: string | null;
-  }[];
+  lobby: LobbyData;
+  players: PlayerSlot[];
   currentUserId: string;
   isLeader: boolean;
   leaderUsername: string;
@@ -94,22 +80,36 @@ export async function fetchLobbyRoom(lobbyId: string): Promise<LobbyRoomData | n
     .eq("lobby_id", lobbyId);
 
   const playerIds = (playersData ?? []).map((p) => p.user_id);
-  const { data: profiles } = playerIds.length > 0
-    ? await supabase
-        .from("profiles")
-        .select("id, username, avatar_url")
-        .in("id", playerIds)
-    : { data: [] };
+  // Leitura extra (read-model, zero lógica de domínio): MMR + XP total pra
+  // renderizar medalha HONOR e MMR em gold nos slots da sala (ref do client Dota).
+  const [{ data: profiles }, { data: levels }] = playerIds.length > 0
+    ? await Promise.all([
+        supabase
+          .from("profiles")
+          .select("id, username, avatar_url, mmr_atual")
+          .in("id", playerIds),
+        supabase
+          .from("user_levels")
+          .select("user_id, total_xp_earned")
+          .in("user_id", playerIds),
+      ])
+    : [{ data: [] }, { data: [] }];
 
   const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
-  const players = (playersData ?? []).map((p) => {
+  const levelMap = new Map(
+    (levels ?? []).map((l) => [l.user_id, l.total_xp_earned])
+  );
+  const players: PlayerSlot[] = (playersData ?? []).map((p) => {
     const prof = profileMap.get(p.user_id);
+    const { level } = xpProgress(levelMap.get(p.user_id) ?? 0);
     return {
       userId: p.user_id,
       team: p.team as "radiant" | "dire" | "spectator",
       joinedAt: p.joined_at,
       username: prof?.username ?? "Anônimo",
       avatarUrl: prof?.avatar_url ?? null,
+      mmr: prof?.mmr_atual ?? null,
+      honorRank: getGatedTierForLevel(level, prof?.mmr_atual ?? null),
     };
   });
 

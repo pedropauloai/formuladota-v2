@@ -21,7 +21,6 @@ import {
   Compass,
   Loader2,
   Search,
-  RefreshCw,
   ArrowLeft,
 } from "lucide-react";
 import { signInWithDiscord } from "@/app/login/actions";
@@ -35,6 +34,7 @@ import {
   type LobbyRoomData,
 } from "@/app/lobbies/fetch-actions";
 import { LobbyRoom } from "@/app/lobbies/[id]/lobby-room";
+import { LobbiesContent } from "@/app/lobbies/lobbies-content";
 import { CriarLobbyForm } from "@/app/criar-lobby/criar-lobby-form";
 
 type Modalidade = "competitiva" | "salas" | "pro";
@@ -54,13 +54,6 @@ const GAME_MODES: { id: QueueGameMode; label: string }[] = [
   { id: "random_draft", label: "Seleção aleatória" },
   { id: "single_draft", label: "Escolha única" },
 ];
-
-const GAME_MODE_LABELS: Record<string, string> = {
-  all_pick: "Escolha livre",
-  captains_mode: "Modo Capitães",
-  random_draft: "Seleção aleatória",
-  single_draft: "Escolha única",
-};
 
 interface Props {
   isVisitor: boolean;
@@ -214,7 +207,7 @@ export function PlayMenu({ isVisitor, initial }: Props) {
           ref={drawerRef}
           role="dialog"
           aria-label="Jogar Dota"
-          className={`pointer-events-auto fixed right-0 top-12 bottom-0 z-[100] flex ${widthCls} flex-col border-l border-t border-brand-primary/40 bg-bg-deep shadow-2xl shadow-black/80 animate-in slide-in-from-right duration-200 xl:top-14`}
+          className={`pointer-events-auto fixed right-0 top-12 bottom-0 z-[var(--z-system)] flex ${widthCls} flex-col border-l border-t border-brand-primary/40 bg-bg-deep shadow-2xl shadow-black/80 animate-in slide-in-from-right duration-200 xl:top-14`}
         >
           <header className="flex items-center justify-between gap-2 border-b border-border-subtle px-4 py-3">
             {view === "menu" ? (
@@ -261,13 +254,17 @@ export function PlayMenu({ isVisitor, initial }: Props) {
           )}
 
           {view === "lista" && (
-            <ListaView
-              lobbies={lobbies}
-              loading={loadingSalas}
-              onSelect={openSala}
-              onCreate={() => setShowCreate(true)}
-              onRefresh={openLista}
-            />
+            // Browser de salas unificado (estilo client Dota) — mesma UI da
+            // página /lobbies. min-h-0 pro scroll interno da tabela funcionar.
+            <div className="min-h-0 flex-1">
+              <LobbiesContent
+                lobbies={lobbies}
+                loading={loadingSalas}
+                onSelectLobby={openSala}
+                onCreate={() => setShowCreate(true)}
+                onRefresh={openLista}
+              />
+            </div>
           )}
 
           {view === "sala" && lobbyData && (
@@ -289,12 +286,13 @@ export function PlayMenu({ isVisitor, initial }: Props) {
         </aside>
       )}
 
-      {/* Popup CENTRAL grande — Configurações da Sala (criar) */}
+      {/* Popup CENTRAL — "CONFIGURAÇÕES DA SALA" (ref: configuração lobby.png):
+          toma quase todo o viewport, dimmer deixa o chrome visível atrás. */}
       {showCreate && (
-        <div className="pointer-events-auto fixed inset-0 z-[110] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="w-full max-w-4xl max-h-[92vh] overflow-y-auto rounded-md border border-brand-primary/40 bg-bg-deep p-6 shadow-2xl shadow-black/80 animate-in zoom-in-95 duration-150">
-            <div className="mb-5 flex items-center justify-between">
-              <h2 className="font-display text-xl font-bold uppercase tracking-[0.2em] text-text-display">
+        <div className="pointer-events-auto fixed inset-0 z-[var(--z-takeover)] flex items-center justify-center bg-bg-deep/80 p-4 backdrop-blur-sm animate-in fade-in duration-150 sm:p-8">
+          <div className="max-h-full w-full max-w-5xl overflow-y-auto rounded-sm border border-border-strong bg-bg-base p-5 shadow-[var(--shadow-cinematic)] animate-in zoom-in-95 duration-150">
+            <div className="mb-4 flex items-center justify-between border-b border-border-subtle pb-3">
+              <h2 className="font-display-condensed text-2xl uppercase leading-none text-text-display">
                 Configurações da sala
               </h2>
               <button
@@ -452,84 +450,6 @@ function MenuView({
           </button>
         </div>
       )}
-    </>
-  );
-}
-
-/* ---------------- Lista de salas (dentro do painel) ---------------- */
-
-function ListaView({
-  lobbies,
-  loading,
-  onSelect,
-  onCreate,
-  onRefresh,
-}: {
-  lobbies: LobbyListItem[];
-  loading: boolean;
-  onSelect: (id: string) => void;
-  onCreate: () => void;
-  onRefresh: () => void;
-}) {
-  return (
-    <>
-      <div className="flex items-center justify-between gap-2 border-b border-border-subtle px-3 py-2">
-        <span className="font-display text-sm font-bold uppercase tracking-[0.2em] text-text-display">
-          Salas de Dota
-        </span>
-        <button
-          type="button"
-          onClick={onRefresh}
-          disabled={loading}
-          className="flex items-center gap-1.5 font-display text-sm font-semibold uppercase tracking-wide text-text-faded hover:text-text-body transition-colors"
-        >
-          <RefreshCw size={12} className={loading ? "animate-spin" : ""} aria-hidden="true" />
-          Atualizar
-        </button>
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-2 space-y-1.5">
-        {lobbies.length === 0 ? (
-          <div className="px-3 py-10 text-center">
-            <Compass size={28} className="mx-auto mb-2 text-text-faded" aria-hidden="true" />
-            <p className="font-display text-sm uppercase tracking-wide text-text-faded">Nenhuma sala aberta</p>
-          </div>
-        ) : (
-          lobbies.map((l) => {
-            const full = l.player_count >= l.max_players;
-            return (
-              <button
-                key={l.id}
-                type="button"
-                onClick={() => onSelect(l.id)}
-                disabled={loading}
-                className="flex w-full items-center gap-3 rounded-[var(--radius-md)] border border-border-subtle bg-bg-elevated/60 px-3 py-2.5 text-left transition-colors hover:border-brand-primary/50 hover:bg-bg-elevated"
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="font-display text-sm font-bold text-text-display truncate">{l.name}</p>
-                  <p className="font-body text-sm text-text-faded">
-                    {GAME_MODE_LABELS[l.game_mode] ?? l.game_mode} · Brasil
-                  </p>
-                </div>
-                <span className={`shrink-0 font-mono text-sm ${full ? "text-error" : "text-text-body"}`}>
-                  {l.player_count}/{l.max_players}
-                </span>
-              </button>
-            );
-          })
-        )}
-      </div>
-
-      <div className="border-t border-border-subtle p-3">
-        <button
-          type="button"
-          onClick={onCreate}
-          className="flex w-full items-center justify-center gap-2 rounded-md border border-brand-primary/60 bg-brand-primary/15 px-4 py-2.5 font-display text-sm font-bold uppercase tracking-wide text-brand-primary hover:bg-brand-primary/25 transition-colors"
-        >
-          <Plus size={15} aria-hidden="true" />
-          Criar sala
-        </button>
-      </div>
     </>
   );
 }
