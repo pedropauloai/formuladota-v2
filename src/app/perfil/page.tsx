@@ -9,6 +9,11 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import {
+  displayName as identityDisplayName,
+  displayAvatar as identityDisplayAvatar,
+  displayInitials as identityDisplayInitials,
+} from "@/lib/identity";
 import { signOut } from "../login/actions";
 import { getPreviewModeActive } from "@/lib/auth/preview-mode";
 import { getMyFichaBalance } from "@/lib/queries/fichas";
@@ -28,17 +33,31 @@ export default async function PerfilPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [{ data: profile }, previewActive, fichaBalance] = await Promise.all([
-    supabase
-      .from("profiles")
-      .select("id, discord_id, username, avatar_url, email, is_admin, mmr_atual, role_preferida")
-      .eq("id", user.id)
-      .single(),
-    getPreviewModeActive(),
-    getMyFichaBalance(user.id),
-  ]);
+  const [{ data: profile }, { data: steamLink }, previewActive, fichaBalance] =
+    await Promise.all([
+      supabase
+        .from("profiles")
+        .select("id, discord_id, username, avatar_url, email, is_admin, mmr_atual, role_preferida")
+        .eq("id", user.id)
+        .single(),
+      supabase
+        .from("steam_links")
+        .select("persona, avatar_url")
+        .eq("user_id", user.id)
+        .maybeSingle(),
+      getPreviewModeActive(),
+      getMyFichaBalance(user.id),
+    ]);
   const showAsAdmin = profile?.is_admin === true && !previewActive;
-  const displayName = profile?.username ?? "imortal";
+  // Identidade canônica via lib/identity — antes este header ignorava a persona Steam
+  // e tinha fallback divergente ("imortal" em vez do canônico).
+  const identitySrc = {
+    steamPersona: steamLink?.persona,
+    steamAvatar: steamLink?.avatar_url,
+    discordUsername: profile?.username,
+    discordAvatar: profile?.avatar_url,
+  };
+  const displayName = identityDisplayName(identitySrc);
 
   return (
     <ClientShell currentRoute="/perfil">
@@ -49,9 +68,9 @@ export default async function PerfilPage() {
               ------------------------------------------------------------ */}
           <header className="flex items-center gap-4">
             <UserAvatar
-              src={profile?.avatar_url ?? undefined}
+              src={identityDisplayAvatar(identitySrc) ?? undefined}
               alt={`Avatar de ${displayName}`}
-              fallback={displayName.slice(0, 2).toUpperCase()}
+              fallback={identityDisplayInitials(identitySrc)}
               size="lg"
             />
             <div className="space-y-2">

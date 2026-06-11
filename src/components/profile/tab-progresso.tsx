@@ -8,6 +8,7 @@
 
 import * as Icons from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { displayName, displayAvatar } from "@/lib/identity";
 import {
   TIER_CONFIG,
   getTierForLevel,
@@ -62,8 +63,15 @@ export async function TabProgresso() {
   const currentLevel = userLevel?.current_level ?? 1;
   const currentXp = userLevel?.current_xp ?? 0;
   const shards = userLevel?.current_shards ?? 0;
-  const persona = steamLink?.persona ?? profile?.username ?? "Anônimo";
-  const avatar = steamLink?.avatar_url ?? profile?.avatar_url ?? null;
+  // Identidade canônica via lib/identity (anti-anonimato: Steam > Discord).
+  const identitySrc = {
+    steamPersona: steamLink?.persona,
+    steamAvatar: steamLink?.avatar_url,
+    discordUsername: profile?.username,
+    discordAvatar: profile?.avatar_url,
+  };
+  const persona = displayName(identitySrc);
+  const avatar = displayAvatar(identitySrc);
   // Topo do ladder tem co-requisito de SKILL: Lendário exige Divine, Místico exige Imortal.
   const tier = getGatedTierForLevel(currentLevel, profile?.mmr_atual ?? null);
   const tierConfig = TIER_CONFIG[tier];

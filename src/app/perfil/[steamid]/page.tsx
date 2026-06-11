@@ -16,6 +16,10 @@ import Link from "next/link";
 import * as Icons from "lucide-react";
 import { ArrowLeft, FileQuestion, Trophy } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import {
+  displayName as identityDisplayName,
+  displayAvatar as identityDisplayAvatar,
+} from "@/lib/identity";
 import { ClientShell } from "@/components/client-shell/shell";
 import { syncPlayerStats } from "@/app/perfil/actions";
 import {
@@ -163,8 +167,15 @@ export default async function PerfilPublicoPage(props: PageProps) {
       ? Math.round((mmrRow.vitorias / mmrRow.partidas_total) * 100)
       : null;
 
-  const displayName = steamLink.persona ?? profile?.username ?? "Anônimo";
-  const avatarSrc = steamLink.avatar_url ?? profile?.avatar_url ?? undefined;
+  // Identidade canônica via lib/identity (anti-anonimato: Steam > Discord).
+  const identitySrc = {
+    steamPersona: steamLink.persona,
+    steamAvatar: steamLink.avatar_url,
+    discordUsername: profile?.username,
+    discordAvatar: profile?.avatar_url,
+  };
+  const displayName = identityDisplayName(identitySrc);
+  const avatarSrc = identityDisplayAvatar(identitySrc) ?? undefined;
   const dotaRank = mmrToDotaRank(mmrRow?.mmr);
   const calibrationStatus = mmrRow ? "ranqueado" : "visitante";
 

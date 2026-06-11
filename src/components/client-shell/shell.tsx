@@ -38,6 +38,7 @@ import { getAcceptedFriends } from "@/lib/queries/friends";
 import { xpProgress } from "@/lib/levels";
 import { getPlayMenuState } from "@/lib/play-menu-preference";
 import { DashboardTopBar } from "./top-bar";
+import { displayName, displayAvatar } from "@/lib/identity";
 import { MiniProfilePanel } from "./mini-profile-panel";
 import { DashboardRightSidebar } from "./right-sidebar";
 import { DashboardBottomBar } from "./bottom-bar";
@@ -144,12 +145,15 @@ export async function ClientShell({
   // Preview mode também oculta tab PRO contextual (admin vendo como user comum).
   const isPro = !isVisitor && proPromotion != null && !previewActive;
   // Persona/avatar: null pra visitante (LeftSidebar mostra VisitorCard).
-  const persona = isVisitor
-    ? null
-    : (steamLink?.persona ?? profile?.username ?? "Anônimo");
-  const avatar = isVisitor
-    ? null
-    : (steamLink?.avatar_url ?? profile?.avatar_url ?? null);
+  // Identidade canônica via lib/identity (anti-anonimato: Steam > Discord, nunca vazio).
+  const identitySrc = {
+    steamPersona: steamLink?.persona,
+    steamAvatar: steamLink?.avatar_url,
+    discordUsername: profile?.username,
+    discordAvatar: profile?.avatar_url,
+  };
+  const persona = isVisitor ? null : displayName(identitySrc);
+  const avatar = isVisitor ? null : displayAvatar(identitySrc);
   const userTag = adminFlag ? "ADMIN" : "MEMBER";
 
   const prosOnlineCount = prosOnline.filter((p) => p.filaAberta).length;
