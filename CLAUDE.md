@@ -4,7 +4,7 @@
 
 **formuladota v2** é o **app da comunidade FormulaDota** — uma cultura competitiva de Dota 2 liderada por Pedro Paulo (Immortal/Top 0.5%). A plataforma é uma máquina de doutrinação e conversão de mentalidade: quiz de doutrina em 4 Pilares, sistema de progressão por níveis, lobbies (livre + elite Imortal), partidas "ranked com PRO" via fichas PIX, e identidade pública anti-anonimato. **A cultura é o produto; o Dota é o terreno.**
 
-📋 **Fontes da verdade, em ordem:** `docs/foundations/` (20 docs fundacionais — começar por `POSITIONING.md` e `PRODUCT_CORE.md`) → `.planning/ROADMAP.md` + `STATE.md` → migrations em `supabase/migrations/`. O `PRD.md` na raiz é o documento ORIGINAL (loja de mentoria 1-1) e foi **sobrescrito em escopo** pelos pivôs de maio/2026 — usar só como contexto histórico.
+📋 **Fontes da verdade, em ordem:** ler **`docs/foundations/index.md`** primeiro (índice de 1 linha por doc — padrão LLM Wiki: seguir só os links relevantes pra tarefa, não varrer a pasta) → `.planning/ROADMAP.md` + `STATE.md` → migrations em `supabase/migrations/`. O `PRD.md` na raiz é o documento ORIGINAL (loja de mentoria 1-1) e foi **sobrescrito em escopo** pelos pivôs de maio/2026 — usar só como contexto histórico.
 
 ### Constraints
 - **Tech Stack**: Next.js 16 (App Router) + React 19 + TypeScript + Tailwind v4 + Supabase + Discord OAuth + Mercado Pago (PIX) + Discord.js bot
