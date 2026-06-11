@@ -71,28 +71,39 @@ export function legacyHonorToBand(tier: string): HonorRank {
  * Tokens de cor por banda (CSS var com fallback hex — segue padrão antigo)
  * ------------------------------------------------------------------ */
 
+/* Progressão por MATERIAL (decisão Pedro 2026-06-11) — ferro → bronze → prata →
+ * ouro → ouro ornamentado → brand. Substitui o arco-íris antigo (sky/emerald/
+ * violet, cores cruas Tailwind proibidas). Medalha comunica valor por metal,
+ * como o client Dota — todo gamer lê "ouro > prata > bronze" sem legenda.
+ * Interim: SVG recolorido; end-state = arte PNG gerada (scripts/generate-honor-medals.py). */
 const TIER_COLORS: Record<HonorRank, { primary: string; secondary: string }> = {
   novato: {
-    primary: "var(--fd-raw-zinc-400, #a1a1aa)",
-    secondary: "var(--fd-raw-zinc-600, #52525b)",
+    // Ferro escovado — humilde, sem brilho
+    primary: "var(--fd-raw-metal-iron, #8a8d93)",
+    secondary: "#55585e",
   },
   aprendiz: {
-    primary: "var(--fd-raw-sky-400, #38bdf8)",
-    secondary: "var(--fd-raw-sky-600, #0284c7)",
+    // Bronze polido
+    primary: "var(--fd-raw-metal-bronze, #b0793f)",
+    secondary: "#7a5128",
   },
   piloto: {
-    primary: "var(--fd-raw-emerald-400, #34d399)",
-    secondary: "var(--fd-raw-emerald-600, #059669)",
+    // Prata polida
+    primary: "var(--fd-raw-metal-silver, #c9cdd4)",
+    secondary: "#8d929b",
   },
   as: {
-    primary: "var(--fd-raw-violet-400, #a78bfa)",
-    secondary: "var(--fd-raw-violet-600, #7c3aed)",
+    // Ouro rico (gold base Valve)
+    primary: "var(--fd-raw-gold-500, #c8aa6e)",
+    secondary: "var(--fd-raw-gold-700, #846d3f)",
   },
   lendario: {
-    primary: "var(--fd-raw-orange-400, #fb923c)",
-    secondary: "var(--fd-raw-orange-600, #ea580c)",
+    // Ouro ornamentado — mais claro/brilhante que Ás
+    primary: "var(--fd-raw-gold-300, #e3cf9e)",
+    secondary: "var(--fd-raw-gold-600, #a98d54)",
   },
   mistico: {
+    // Topo = cor da marca, com glow (único que mantém matiz não-metálico)
     primary: "var(--color-brand-primary)",
     secondary: "var(--color-brand-primary-deep, #7f1d1d)",
   },
@@ -300,7 +311,7 @@ export function HonorRankMedal({
                 filter:
                   rank === "mistico"
                     ? "drop-shadow(0 0 8px var(--color-brand-primary-glow)) drop-shadow(0 0 20px var(--color-brand-primary-glow))"
-                    : "drop-shadow(0 0 6px var(--color-warning))",
+                    : "drop-shadow(0 0 6px var(--fd-raw-gold-glow, rgba(200,170,110,0.25)))",
               }
             : undefined
         }
