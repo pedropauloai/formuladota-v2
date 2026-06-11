@@ -20,21 +20,39 @@ export function ProfileStats({ partidas, vitorias, derrotas, mmr }: Props) {
       <StatItem label="Partidas" value={partidas} />
       <StatItem label="Vitórias" value={vitorias} />
       <StatItem label="Derrotas" value={derrotas} />
-      <StatItem label="MMR" value={mmr} />
+      {/* MMR = número de valor/progresso → família GOLD (Pedro 2026-06-11) */}
+      <StatItem label="MMR" value={mmr} gold />
     </section>
   );
 }
 
-// Subcomponente local — stat individual com label e valor numérico impactante
-function StatItem({ label, value }: { label: string; value: number | null }) {
+// Subcomponente local — stat individual com label e valor numérico impactante.
+// `gold` pinta o valor com o token de valor/progresso (nível, MMR, fichas).
+function StatItem({
+  label,
+  value,
+  gold,
+}: {
+  label: string;
+  value: number | null;
+  gold?: boolean;
+}) {
   return (
     <div>
       {/* Label uppercase 13px (Label/Caption tier — UI-SPEC) */}
-      <p className="font-display text-[13px] font-semibold uppercase tracking-wide text-text-faded">
+      <p
+        className={`font-display text-[13px] font-semibold uppercase tracking-wide ${
+          gold ? "text-gold-muted" : "text-text-faded"
+        }`}
+      >
         {label}
       </p>
       {/* Valor: Teko condensado 32px bold — exceção tipográfica UI-SPEC pra stats numéricos */}
-      <p className="font-display-condensed text-[32px] font-bold text-text-display tabular-nums leading-none mt-1">
+      <p
+        className={`font-display-condensed text-[32px] font-bold tabular-nums leading-none mt-1 ${
+          gold ? "text-gold" : "text-text-display"
+        }`}
+      >
         {value ?? "—"}
       </p>
     </div>

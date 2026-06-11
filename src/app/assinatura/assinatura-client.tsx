@@ -70,7 +70,7 @@ export function AssinaturaClient({
   };
 
   return (
-    <main className="min-h-screen bg-[#050505] px-4 py-12">
+    <main className="min-h-screen bg-bg-deep px-4 py-12">
       <div className="mx-auto max-w-2xl space-y-6">
         {/* Cabeçalho */}
         <div className="space-y-1">
@@ -145,7 +145,7 @@ function SubscriptionStateCard({
 }: StateCardProps) {
   if (state === "none" || state === "expired") {
     return (
-      <Card className="border-zinc-800 bg-[#0A0A1A]">
+      <Card className="border-zinc-800 bg-bg-base">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-white">
@@ -179,7 +179,7 @@ function SubscriptionStateCard({
 
   if (state === "pending") {
     return (
-      <Card className="border-zinc-800 bg-[#0A0A1A]">
+      <Card className="border-zinc-800 bg-bg-base">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-white">
@@ -211,7 +211,7 @@ function SubscriptionStateCard({
 
   if (state === "authorized") {
     return (
-      <Card className="border-red-900/30 bg-[#0A0A1A]">
+      <Card className="border-red-900/30 bg-bg-base">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-white">
@@ -275,7 +275,7 @@ function SubscriptionStateCard({
 
   // cancelled_active — adesão encerrada mas acesso ainda válido até next_payment_date
   return (
-    <Card className="border-zinc-800 bg-[#0A0A1A]">
+    <Card className="border-zinc-800 bg-bg-base">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-white">
@@ -321,7 +321,7 @@ function SubscriptionStateCard({
 
 function PlanInfoCard() {
   return (
-    <Card className="border-zinc-800 bg-[#0A0A1A]">
+    <Card className="border-zinc-800 bg-bg-base">
       <CardHeader>
         <CardTitle className="text-sm text-zinc-400">Compromisso compartilhado — o que você acessa</CardTitle>
       </CardHeader>

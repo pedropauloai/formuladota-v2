@@ -110,7 +110,8 @@ export async function TabProgresso() {
             <div className="flex items-center gap-2 mt-1">
               <TierIcon size={20} className={tierConfig.color} aria-hidden="true" />
               <h2 className="font-display text-2xl 2xl:text-3xl uppercase tracking-wide text-white">
-                Nível {currentLevel}
+                {/* Número de nível = valor/progresso → GOLD (Pedro 2026-06-11) */}
+                Nível <span className="tabular-nums text-gold">{currentLevel}</span>
               </h2>
               <span className={`font-display text-sm font-semibold ${tierConfig.color}`}>
                 · {tierConfig.label}
@@ -120,8 +121,11 @@ export async function TabProgresso() {
               <div className="mt-3 max-w-md">
                 <div className="flex items-baseline justify-between mb-1">
                   <span className="font-display font-semibold text-sm uppercase tracking-wide text-white/50">
-                    {currentXp.toLocaleString("pt-BR")} /{" "}
-                    {xpRequiredForNext.toLocaleString("pt-BR")} XP
+                    <span className="tabular-nums text-gold">
+                      {currentXp.toLocaleString("pt-BR")} /{" "}
+                      {xpRequiredForNext.toLocaleString("pt-BR")}
+                    </span>{" "}
+                    XP
                   </span>
                   <span className="font-mono text-sm text-white/40">{progressPct}%</span>
                 </div>
@@ -143,13 +147,13 @@ export async function TabProgresso() {
             )}
           </div>
           <div className="flex flex-col items-end gap-1">
-            <p className="font-display font-semibold text-sm uppercase tracking-wide text-white/50">
+            <p className="font-display font-semibold text-sm uppercase tracking-wide text-gold-muted">
               Shards
             </p>
-            <p className="font-display text-3xl 2xl:text-4xl text-white">
+            <p className="font-display text-3xl 2xl:text-4xl tabular-nums text-gold">
               {shards.toLocaleString("pt-BR")}
             </p>
-            <p className="font-display font-semibold text-sm uppercase tracking-wide text-white/40">
+            <p className="font-display font-semibold text-sm uppercase tracking-wide tabular-nums text-white/40">
               Total: {(userLevel?.total_shards_earned ?? 0).toLocaleString("pt-BR")}
             </p>
           </div>
@@ -245,7 +249,7 @@ export async function TabProgresso() {
                       </span>
                     </Td>
                     <Td align="right">
-                      <span className="font-mono text-sm text-amber-400">
+                      <span className="font-mono text-sm tabular-nums text-gold">
                         {t.shards_reward.toLocaleString("pt-BR")}
                       </span>
                     </Td>
@@ -300,7 +304,7 @@ export async function TabProgresso() {
                   <div className="flex items-center gap-3 shrink-0">
                     <span className="font-display text-sm text-emerald-400">+{e.xp_amount} XP</span>
                     {(e.shards_awarded ?? 0) > 0 && (
-                      <span className="font-display text-sm text-amber-400">
+                      <span className="font-display text-sm tabular-nums text-gold">
                         +{e.shards_awarded} shards
                       </span>
                     )}

@@ -346,16 +346,18 @@ function VisitorCardCompact() {
   );
 }
 
+// Moeda = dourado (família GOLD, Pedro 2026-06-11): número em text-gold,
+// label associado em text-gold-muted, chrome do card em border-gold.
 function FichasCard({ balance, isAdmin }: { balance: number; isAdmin: boolean }) {
   return (
-    <div className="rounded border border-brand-primary/30 bg-gradient-to-br from-brand-primary/10 to-transparent px-3 py-2">
+    <div className="rounded border border-border-gold/40 bg-gradient-to-br from-gold/10 to-transparent px-3 py-2">
       <div className="flex items-center gap-2">
-        <Coins size={12} className="text-brand-primary" aria-hidden="true" />
-        <p className="font-display text-sm font-semibold text-text-body">Saldo de fichas</p>
+        <Coins size={12} className="text-gold" aria-hidden="true" />
+        <p className="font-display text-sm font-semibold text-gold-muted">Saldo de fichas</p>
       </div>
-      <p className="mt-1 font-display text-xl font-bold text-text-display">
+      <p className="mt-1 font-display text-xl font-bold tabular-nums text-gold">
         {isAdmin ? "∞" : balance}
-        <span className="ml-2 font-display text-sm font-semibold text-text-body">
+        <span className="ml-2 font-display text-sm font-semibold text-gold-muted">
           {isAdmin ? "admin" : balance === 1 ? "ficha" : "fichas"}
         </span>
       </p>

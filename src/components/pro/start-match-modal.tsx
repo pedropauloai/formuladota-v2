@@ -106,21 +106,21 @@ export function StartMatchModal({
       />
 
       {/* Panel */}
-      <div className="relative z-10 w-full max-w-md rounded-xl border border-[#00F0FF]/30 bg-[#0A0A1A] shadow-2xl">
+      <div className="relative z-10 w-full max-w-md rounded-xl border border-border-strong bg-bg-base shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#0D0D2A] p-5">
+        <div className="flex items-center justify-between border-b border-border-subtle p-5">
           <div className="flex items-center gap-3">
-            <Users className="h-5 w-5 text-[#00F0FF]" aria-hidden="true" />
+            <Users className="h-5 w-5 text-brand-primary" aria-hidden="true" />
             <h2
               id="start-match-title"
-              className="font-display text-sm uppercase tracking-widest text-[#00F0FF]"
+              className="font-display text-sm uppercase tracking-widest text-brand-primary"
             >
               Iniciar Partida
             </h2>
           </div>
           <button
             onClick={onClose}
-            className="rounded p-1 text-[#556070] transition-colors hover:text-white"
+            className="rounded p-1 text-text-muted transition-colors hover:text-white"
             aria-label="Fechar"
           >
             <X className="h-4 w-4" />
@@ -131,14 +131,14 @@ export function StartMatchModal({
         <div className="flex flex-col gap-5 p-5">
           {/* Selecao de alunos */}
           <div>
-            <p className="mb-3 text-sm text-[#556070] uppercase tracking-wider font-display font-semibold">
+            <p className="mb-3 text-sm text-text-muted uppercase tracking-wider font-display font-semibold">
               Selecione 4 alunos{" "}
               <span
                 className={cn(
                   "font-bold",
                   selectedIds.length === 4
-                    ? "text-[#00F0FF]"
-                    : "text-[#A855F7]"
+                    ? "text-gold"
+                    : "text-text-muted"
                 )}
               >
                 ({selectedIds.length}/4)
@@ -146,7 +146,7 @@ export function StartMatchModal({
             </p>
 
             {queueParticipants.length === 0 ? (
-              <p className="rounded-lg border border-[#0D0D2A] bg-[#050510] p-4 text-sm text-[#556070]">
+              <p className="rounded-lg border border-border-subtle bg-bg-elevated p-4 text-sm text-text-muted">
                 Nenhum aluno na fila no momento.
               </p>
             ) : (
@@ -163,10 +163,10 @@ export function StartMatchModal({
                         className={cn(
                           "w-full flex items-center gap-3 rounded-lg border px-4 py-3 text-left transition-colors",
                           isSelected
-                            ? "border-[#00F0FF]/50 bg-[#00F0FF]/5 text-white"
+                            ? "border-brand-primary/50 bg-brand-primary/5 text-white"
                             : isDisabled
-                            ? "border-[#0D0D2A] bg-[#050510] text-[#556070] cursor-not-allowed"
-                            : "border-[#0D0D2A] bg-[#050510] text-[#8899AA] hover:border-[#00F0FF]/20 hover:text-white"
+                            ? "border-border-subtle bg-bg-elevated text-text-faded cursor-not-allowed"
+                            : "border-border-subtle bg-bg-elevated text-text-muted hover:border-brand-primary/20 hover:text-white"
                         )}
                         aria-pressed={isSelected}
                       >
@@ -175,13 +175,13 @@ export function StartMatchModal({
                           className={cn(
                             "flex h-4 w-4 shrink-0 items-center justify-center rounded border",
                             isSelected
-                              ? "border-[#00F0FF] bg-[#00F0FF]/20"
-                              : "border-[#334455]"
+                              ? "border-brand-primary bg-brand-primary/20"
+                              : "border-border-strong"
                           )}
                           aria-hidden="true"
                         >
                           {isSelected && (
-                            <span className="h-2 w-2 rounded-sm bg-[#00F0FF]" />
+                            <span className="h-2 w-2 rounded-sm bg-brand-primary" />
                           )}
                         </span>
 
@@ -189,7 +189,7 @@ export function StartMatchModal({
                           {participant.username ?? "Jogador"}
                         </span>
 
-                        <span className="font-mono text-sm text-[#556070]">
+                        <span className="font-mono text-sm text-text-muted">
                           {participant.honorTier}
                         </span>
                       </button>
@@ -204,7 +204,7 @@ export function StartMatchModal({
           <div>
             <label
               htmlFor="room-name"
-              className="mb-2 block text-sm text-[#556070] uppercase tracking-wider font-display font-semibold"
+              className="mb-2 block text-sm text-text-muted uppercase tracking-wider font-display font-semibold"
             >
               <Mic className="inline h-3 w-3 mr-1" aria-hidden="true" />
               Nome da sala de voz
@@ -216,9 +216,9 @@ export function StartMatchModal({
               onChange={(e) => setRoomName(e.target.value)}
               maxLength={50}
               placeholder="Ex: Sessao Sabado 19h"
-              className="w-full rounded-lg border border-[#0D0D2A] bg-[#050510] px-4 py-2.5 text-sm text-white placeholder-[#334455] focus:border-[#00F0FF]/40 focus:outline-none focus:ring-1 focus:ring-[#00F0FF]/20"
+              className="w-full rounded-lg border border-border-subtle bg-bg-elevated px-4 py-2.5 text-sm text-white placeholder:text-text-faded focus:border-brand-primary/40 focus:outline-none focus:ring-1 focus:ring-brand-primary/20"
             />
-            <p className="mt-1 text-sm text-[#334455]">
+            <p className="mt-1 text-sm text-text-faded">
               {roomName.length}/50 caracteres
             </p>
           </div>
@@ -229,7 +229,7 @@ export function StartMatchModal({
               className={cn(
                 "flex items-start gap-3 rounded-lg border p-3 text-sm",
                 result.success
-                  ? "border-[#00F0FF]/20 bg-[#00F0FF]/5 text-[#00F0FF]"
+                  ? "border-success/20 bg-success/5 text-success"
                   : "border-red-500/20 bg-red-500/5 text-red-400"
               )}
               role="alert"
@@ -253,14 +253,14 @@ export function StartMatchModal({
               variant="ghost"
               onClick={onClose}
               disabled={isPending}
-              className="flex-1 text-[#556070] hover:text-white"
+              className="flex-1 text-text-muted hover:text-white"
             >
               Cancelar
             </Button>
             <Button
               onClick={handleConfirm}
               disabled={!isReady || isPending || !!result?.success}
-              className="flex-1 bg-[#00F0FF] text-black hover:bg-[#00D4E0] disabled:opacity-50"
+              className="flex-1 bg-play-primary text-text-inverse hover:bg-play-primary-hover disabled:opacity-50"
             >
               {isPending ? "Iniciando..." : "Confirmar e Iniciar"}
             </Button>

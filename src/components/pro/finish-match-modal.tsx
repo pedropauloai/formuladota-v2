@@ -114,14 +114,14 @@ export function FinishMatchModal({
       />
 
       {/* Panel */}
-      <div className="relative z-10 w-full max-w-md rounded-xl border border-[#A855F7]/30 bg-[#0A0A1A] shadow-2xl">
+      <div className="relative z-10 w-full max-w-md rounded-xl border border-border-strong bg-bg-base shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#0D0D2A] p-5">
+        <div className="flex items-center justify-between border-b border-border-subtle p-5">
           <div className="flex items-center gap-3">
-            <Hash className="h-5 w-5 text-[#A855F7]" aria-hidden="true" />
+            <Hash className="h-5 w-5 text-brand-primary" aria-hidden="true" />
             <h2
               id="finish-match-title"
-              className="font-display text-sm uppercase tracking-widest text-[#A855F7]"
+              className="font-display text-sm uppercase tracking-widest text-brand-primary"
             >
               Finalizar Partida
             </h2>
@@ -129,7 +129,7 @@ export function FinishMatchModal({
           <button
             onClick={onClose}
             disabled={isAnyPending}
-            className="rounded p-1 text-[#556070] transition-colors hover:text-white disabled:opacity-40"
+            className="rounded p-1 text-text-muted transition-colors hover:text-white disabled:opacity-40"
             aria-label="Fechar"
           >
             <X className="h-4 w-4" />
@@ -139,25 +139,25 @@ export function FinishMatchModal({
         {/* Body */}
         <div className="flex flex-col gap-5 p-5">
           {/* Info da sessao */}
-          <div className="flex items-center gap-2 rounded-lg border border-[#0D0D2A] bg-[#050510] px-4 py-3">
-            <Clock className="h-4 w-4 text-[#556070]" aria-hidden="true" />
-            <span className="text-sm text-[#8899AA]">
+          <div className="flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-elevated px-4 py-3">
+            <Clock className="h-4 w-4 text-text-muted" aria-hidden="true" />
+            <span className="text-sm text-text-muted">
               {voiceChannelName ?? "Sessao sem nome"} —{" "}
-              <span className="text-[#556070]">{formatDuration(startedAt)} em curso</span>
+              <span className="text-text-faded">{formatDuration(startedAt)} em curso</span>
             </span>
           </div>
 
           {/* Alunos da sessao */}
           {students.length > 0 && (
             <div>
-              <p className="mb-2 text-sm text-[#556070] uppercase tracking-wider font-display font-semibold">
+              <p className="mb-2 text-sm text-text-muted uppercase tracking-wider font-display font-semibold">
                 Participantes
               </p>
               <ul className="flex flex-wrap gap-2" role="list">
                 {students.map((student) => (
                   <li
                     key={student.userId}
-                    className="rounded border border-[#0D0D2A] bg-[#050510] px-3 py-1 text-sm text-[#8899AA]"
+                    className="rounded border border-border-subtle bg-bg-elevated px-3 py-1 text-sm text-text-muted"
                   >
                     {student.username ?? "Jogador"}
                   </li>
@@ -170,7 +170,7 @@ export function FinishMatchModal({
           <div>
             <label
               htmlFor="dota-match-id"
-              className="mb-2 block text-sm text-[#556070] uppercase tracking-wider font-display font-semibold"
+              className="mb-2 block text-sm text-text-muted uppercase tracking-wider font-display font-semibold"
             >
               Match ID Dota 2
             </label>
@@ -188,14 +188,14 @@ export function FinishMatchModal({
                 placeholder="Ex: 8123456789"
                 maxLength={12}
                 disabled={isAnyPending || !!finalResult?.success}
-                className="flex-1 rounded-lg border border-[#0D0D2A] bg-[#050510] px-4 py-2.5 text-sm text-white placeholder-[#334455] font-mono focus:border-[#A855F7]/40 focus:outline-none focus:ring-1 focus:ring-[#A855F7]/20 disabled:opacity-50"
+                className="flex-1 rounded-lg border border-border-subtle bg-bg-elevated px-4 py-2.5 text-sm text-white placeholder:text-text-faded font-mono focus:border-brand-primary/40 focus:outline-none focus:ring-1 focus:ring-brand-primary/20 disabled:opacity-50"
                 aria-describedby="match-id-hint"
               />
               <Button
                 onClick={handlePreview}
                 disabled={!isValidFormat || isAnyPending || !!finalResult?.success}
                 variant="ghost"
-                className="shrink-0 text-[#A855F7] hover:bg-[#A855F7]/10 hover:text-[#A855F7] disabled:opacity-40"
+                className="shrink-0 text-info hover:bg-info/10 hover:text-info disabled:opacity-40"
               >
                 {isPreviewing ? (
                   <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
@@ -206,7 +206,7 @@ export function FinishMatchModal({
             </div>
             <p
               id="match-id-hint"
-              className="mt-1 text-sm text-[#334455]"
+              className="mt-1 text-sm text-text-faded"
             >
               8 a 12 digitos. Disponivel na aba Recentes do Dota 2 apos a partida.
             </p>
@@ -218,7 +218,7 @@ export function FinishMatchModal({
               className={cn(
                 "flex items-start gap-3 rounded-lg border p-3 text-sm",
                 preview.valid
-                  ? "border-[#00F0FF]/20 bg-[#00F0FF]/5 text-[#00F0FF]"
+                  ? "border-success/20 bg-success/5 text-success"
                   : "border-amber-500/20 bg-amber-500/5 text-amber-400"
               )}
               role="status"
@@ -234,7 +234,7 @@ export function FinishMatchModal({
                     <span className="font-medium">
                       {preview.participantsFound}/{preview.participantsExpected} participantes confirmados na partida.
                     </span>
-                    <span className="text-sm text-[#00F0FF]/70">
+                    <span className="text-sm text-success/70">
                       Partida valida. Confirme para finalizar e consumir as fichas.
                     </span>
                   </>
@@ -259,7 +259,7 @@ export function FinishMatchModal({
               className={cn(
                 "flex items-start gap-3 rounded-lg border p-3 text-sm",
                 finalResult.success
-                  ? "border-[#00F0FF]/20 bg-[#00F0FF]/5 text-[#00F0FF]"
+                  ? "border-success/20 bg-success/5 text-success"
                   : "border-red-500/20 bg-red-500/5 text-red-400"
               )}
               role="alert"
@@ -273,7 +273,7 @@ export function FinishMatchModal({
                 {finalResult.success ? (
                   <>
                     <span className="font-medium">Partida finalizada.</span>
-                    <span className="text-sm text-[#00F0FF]/70">
+                    <span className="text-sm text-success/70">
                       {finalResult.validated
                         ? "Fichas consumidas e match validado via OpenDota."
                         : "Fichas consumidas. Match registrado como nao verificado (OpenDota pode demorar)."}
@@ -292,14 +292,14 @@ export function FinishMatchModal({
               variant="ghost"
               onClick={onClose}
               disabled={isAnyPending}
-              className="flex-1 text-[#556070] hover:text-white"
+              className="flex-1 text-text-muted hover:text-white"
             >
               Cancelar
             </Button>
             <Button
               onClick={handleFinish}
               disabled={!isValidFormat || isAnyPending || !!finalResult?.success}
-              className="flex-1 bg-[#A855F7] text-white hover:bg-[#9333EA] disabled:opacity-50"
+              className="flex-1 bg-brand-primary text-text-inverse hover:bg-brand-primary-hover disabled:opacity-50"
             >
               {isFinishing ? (
                 <>

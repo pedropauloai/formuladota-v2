@@ -90,12 +90,17 @@ export default async function PerfilPage() {
             <CardContent className="space-y-3">
               <Row label="Discord ID" value={profile?.discord_id ?? "—"} mono />
               <Row label="Email" value={profile?.email ?? "—"} />
+              {/* Saldo de fichas + MMR = números de valor/progresso → GOLD (Pedro 2026-06-11) */}
               <Row
                 label="Saldo de fichas"
                 value={showAsAdmin ? "∞ admin" : `${fichaBalance}`}
-                highlight
+                gold
               />
-              <Row label="MMR atual" value={profile?.mmr_atual?.toString() ?? "não informado"} />
+              <Row
+                label="MMR atual"
+                value={profile?.mmr_atual?.toString() ?? "não informado"}
+                gold={profile?.mmr_atual != null}
+              />
               <Row label="Role preferida" value={profile?.role_preferida ?? "não informado"} />
               {showAsAdmin && <Row label="Acesso" value="Administrador" highlight />}
             </CardContent>
@@ -124,11 +129,13 @@ function Row({
   value,
   mono,
   highlight,
+  gold,
 }: {
   label: string;
   value: string;
   mono?: boolean;
   highlight?: boolean;
+  gold?: boolean;
 }) {
   return (
     <div className="flex items-center justify-between gap-4 text-sm">
@@ -138,8 +145,13 @@ function Row({
       <span
         className={[
           mono ? "font-mono text-sm" : "font-sans text-sm",
-          // Highlight usa success (verde) para destacar saldo/acesso — semântico V2.5
-          highlight ? "text-success" : "text-text-display",
+          // Gold = números de valor/progresso (fichas, MMR) — família GOLD 2026-06-11.
+          // Highlight usa success (verde) para destacar acesso — semântico V2.5
+          gold
+            ? "tabular-nums text-gold"
+            : highlight
+              ? "text-success"
+              : "text-text-display",
         ].join(" ")}
       >
         {value}

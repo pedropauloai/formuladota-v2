@@ -119,7 +119,8 @@ function StatusLine({
       role="status"
       aria-label="Resumo do estado da conta"
     >
-      <span className="text-text-display">{fichaToken}</span>
+      {/* Saldo de fichas = valor → família GOLD (Pedro 2026-06-11) */}
+      <span className="tabular-nums text-gold">{fichaToken}</span>
       <BulletSep />
       {prosToken}
       <BulletSep />

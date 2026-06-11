@@ -52,7 +52,8 @@ export function UserStatusBar({
         <Radio size={16} aria-hidden="true" />
         Você está em {myQueueCount}{" "}
         {myQueueCount === 1 ? "fila ativa" : "filas ativas"} ·{" "}
-        <span className="text-text-display">{fichaBalance}</span>{" "}
+        {/* Saldo de fichas = valor → GOLD (Pedro 2026-06-11) */}
+        <span className="tabular-nums text-gold">{fichaBalance}</span>{" "}
         {fichaBalance === 1 ? "ficha disponível" : "fichas disponíveis"}
       </div>
     );
@@ -62,7 +63,7 @@ export function UserStatusBar({
     return (
       <div className="flex items-center gap-3 rounded-md border border-success/30 bg-success/5 px-4 py-3 font-mono text-sm text-text-body">
         <Coins size={16} className="text-success" aria-hidden="true" />
-        Você tem <span className="text-text-display font-bold">{fichaBalance}</span>{" "}
+        Você tem <span className="font-bold tabular-nums text-gold">{fichaBalance}</span>{" "}
         {fichaBalance === 1 ? "ficha" : "fichas"} ·{" "}
         {prosOnlineCount > 0
           ? `escolha um PRO abaixo pra entrar`

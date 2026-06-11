@@ -121,13 +121,14 @@ export function XpAvatarRing({
         )}
       </div>
 
-      {/* Level badge — centro-inferior da borda */}
+      {/* Level badge — centro-inferior da borda. Número do nível = valor/progresso
+          → GOLD (Pedro 2026-06-11); a borda mantém a cor do tier (sinal de tier). */}
       <span
         className={cn(
           "absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-1/3",
           "flex min-w-5 items-center justify-center rounded-sm border px-1 py-px",
           "bg-bg-deep font-display text-[10px] font-bold leading-none tabular-nums",
-          cfg.color,
+          "text-gold",
           cfg.borderColor
         )}
         title={`${cfg.label} · Nível ${level}`}

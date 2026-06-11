@@ -54,18 +54,18 @@ export function MatchCoordinationClient({
     <>
       {/* Sessao ativa */}
       {activeSession && (
-        <div className="rounded-xl border border-[#A855F7]/30 bg-[#0A0A1A] p-5">
+        <div className="rounded-xl border border-brand-primary/30 bg-bg-base p-5">
           <div className="flex items-center justify-between">
             <div className="flex flex-col gap-1">
-              <p className="font-display text-sm uppercase tracking-widest text-[#A855F7]">
+              <p className="font-display text-sm uppercase tracking-widest text-brand-primary">
                 Partida em Curso
               </p>
               {activeSession.voiceChannelName && (
-                <p className="text-sm text-[#556070] font-mono">
+                <p className="text-sm text-text-muted font-mono">
                   {activeSession.voiceChannelName}
                 </p>
               )}
-              <p className="text-sm text-[#334455] font-mono">
+              <p className="text-sm text-text-faded font-mono">
                 {activeSession.students.length} aluno{activeSession.students.length !== 1 ? "s" : ""}:{" "}
                 {activeSession.students
                   .map((s) => s.username ?? "Jogador")
@@ -75,7 +75,7 @@ export function MatchCoordinationClient({
 
             <Button
               onClick={() => setShowFinishModal(true)}
-              className="flex items-center gap-2 bg-[#A855F7] text-white hover:bg-[#9333EA]"
+              className="flex items-center gap-2 bg-brand-primary text-text-inverse hover:bg-brand-primary-hover"
             >
               <StopCircle className="h-4 w-4" aria-hidden="true" />
               Finalizar Partida
@@ -86,16 +86,16 @@ export function MatchCoordinationClient({
 
       {/* Fila sem sessao ativa */}
       {!activeSession && hasQueue && (
-        <div className="rounded-xl border border-[#0D0D2A] bg-[#0A0A1A] p-5">
+        <div className="rounded-xl border border-border-subtle bg-bg-base p-5">
           <div className="flex items-center justify-between">
             <div className="flex flex-col gap-1">
               <p className="font-display text-sm uppercase tracking-widest text-text-display">
                 Fila
               </p>
-              <p className="text-sm text-[#556070]">
+              <p className="text-sm text-text-muted">
                 {queueParticipants.length} aluno{queueParticipants.length !== 1 ? "s" : ""} aguardando
                 {queueParticipants.length < 4 && (
-                  <span className="text-[#334455]">
+                  <span className="text-text-faded">
                     {" "}— minimo 4 para iniciar
                   </span>
                 )}
@@ -105,7 +105,7 @@ export function MatchCoordinationClient({
             <Button
               onClick={() => setShowStartModal(true)}
               disabled={!canStartMatch}
-              className="flex items-center gap-2 bg-[#00F0FF] text-black hover:bg-[#00D4E0] disabled:opacity-40 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 bg-play-primary text-text-inverse hover:bg-play-primary-hover disabled:opacity-40 disabled:cursor-not-allowed"
               title={
                 !canStartMatch
                   ? `Aguardando ${4 - queueParticipants.length} aluno(s) para completar a fila`
@@ -123,9 +123,9 @@ export function MatchCoordinationClient({
               {queueParticipants.map((p) => (
                 <span
                   key={p.userId}
-                  className="flex items-center gap-1 rounded border border-[#0D0D2A] bg-[#050510] px-2 py-1 text-sm text-[#8899AA]"
+                  className="flex items-center gap-1 rounded border border-border-subtle bg-bg-elevated px-2 py-1 text-sm text-text-muted"
                 >
-                  <Users className="h-3 w-3 text-[#334455]" aria-hidden="true" />
+                  <Users className="h-3 w-3 text-text-faded" aria-hidden="true" />
                   {p.username ?? "Jogador"}
                 </span>
               ))}

@@ -21,7 +21,8 @@ export function SaldoCard({ partidasDisponiveis, sessoesDisponiveis }: SaldoCard
           <div className="flex items-center gap-4">
             <Trophy className="h-10 w-10 text-[var(--color-brand-red)] shrink-0" aria-hidden="true" />
             <div>
-              <p className="text-4xl font-display text-[var(--color-brand-red)] text-glow-red">
+              {/* Saldo = número de valor → família GOLD (Pedro 2026-06-11) */}
+              <p className="text-4xl font-display tabular-nums text-gold">
                 {partidasDisponiveis}
               </p>
               <p className="text-sm text-[var(--color-muted-foreground)]">
@@ -34,7 +35,7 @@ export function SaldoCard({ partidasDisponiveis, sessoesDisponiveis }: SaldoCard
           <div className="flex items-center gap-4">
             <Sparkles className="h-10 w-10 text-[var(--color-brand-red)] shrink-0" aria-hidden="true" />
             <div>
-              <p className="text-4xl font-display text-[var(--color-brand-red)] text-glow-red">
+              <p className="text-4xl font-display tabular-nums text-gold">
                 {sessoesDisponiveis}
               </p>
               <p className="text-sm text-[var(--color-muted-foreground)]">
