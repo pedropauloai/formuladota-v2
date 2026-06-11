@@ -1,5 +1,7 @@
-// /ranked-com-pro — feed vertical de PROs com fila aberta pra jogar ranked
-// oficial Dota 2 em grupo. Esta é a ÚNICA via de subir MMR oficial Valve no
+// /ranked-com-pro — MASTER-DETAIL estilo cliente Dota 2: lista densa de PROs
+// na coluna direita + PRO selecionado em destaque no centro (sem rolagem de
+// página). Aqui se joga ranked oficial Dota 2 em grupo com PRO — a ÚNICA via
+// de subir MMR oficial Valve no
 // FormulaDota (lobbies, busca terceirizada, ligas — outros sistemas futuros).
 // O /dashboard virou HUB central; aqui mora o sistema "Ranked com PRO".
 
@@ -74,8 +76,13 @@ export default async function RankedComProPage() {
   return (
     <ClientShell
       currentRoute="/ranked-com-pro"
-      immersive
-      /* hideBottomBar removido 2026-05-26 — Pedro quer bottom-bar GLOBAL
+      hideRightSidebar
+      /* immersive removido 2026-06-11 (reforma master-detail): o modo immersive
+         padava o main simetricamente (~320-380px por lado) e sobrepunha a
+         right-sidebar genérica — espremeria o detalhe do PRO. O master-detail
+         traz a PRÓPRIA coluna direita (lista densa de PROs), então o main
+         ocupa a largura toda sem sidebar do shell.
+         hideBottomBar removido 2026-05-26 — Pedro quer bottom-bar GLOBAL
          (igual mini-perfil): JOGAR DOTA aparece em todas as rotas. */
     >
       <DashboardCenter
