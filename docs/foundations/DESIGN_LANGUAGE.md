@@ -132,7 +132,7 @@ Ubuntu (Canonical, Google Fonts) — fonte do ExitLag.com, escolha de identidade
 - Uso prescrito: body text, labels de formulario, metadados, captions, botoes pequenos/medios, qualquer texto de leitura.
 - Leading: `1.5` em body.
 - Tabular nums: obrigatorio em qualquer sequencia numerica (MMR, rank, contador de fila, timer) — `font-variant-numeric: tabular-nums` ou classe `tabular-nums`.
-- NAO aplicar `font-weight: 600` global no body — peso e decisao por nivel tipografico, nao default. (Auditoria 2026-06-11 encontrou esse global; corrigir na Fase 1 de tokens.)
+- O body tem `font-weight: 600` GLOBAL por decisao explicita de Pedro (2026-05-25, "remova todas fonte anemica") — e intencional, NAO "corrigir". A densidade Dota vem de tamanho/leading/espacamento, nao de afinar o peso.
 
 Tokens: `--font-display` e `--font-body` resolvem ambos pra Ubuntu (ver `semantic.css`).
 

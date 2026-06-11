@@ -72,6 +72,28 @@
   --fd-raw-neutral-999: #010206;  /* preto absoluto (raríssimo, takeover) */
 
   /* =========================================================
+   * FAMÍLIA GOLD — valor/progresso (decisão Pedro 2026-06-11)
+   * Sinal Dota canônico: nível, MMR, medalha, moeda/fichas, bordas
+   * de destaque, hover de cards importantes, estados ativos.
+   * Base ~#c8aa6e (dourado Valve, amostrado das refs do client).
+   * NÃO substitui o vermelho (marca/ação) nem o verde (play/sucesso).
+   * ========================================================= */
+
+  --fd-raw-gold-100: #f0e6cf;  /* dourado quase branco — texto sobre dark */
+  --fd-raw-gold-300: #e3cf9e;  /* dourado claro — hover/bright */
+  --fd-raw-gold-500: #c8aa6e;  /* GOLD BASE — números importantes (nível, MMR, fichas) */
+  --fd-raw-gold-600: #a98d54;  /* dourado médio — bordas de destaque */
+  --fd-raw-gold-700: #846d3f;  /* dourado escuro — detalhes, muted */
+  --fd-raw-gold-900: #4a3d24;  /* dourado profundo — backgrounds sutis */
+  --fd-raw-gold-glow: rgba(200, 170, 110, 0.25); /* glow dourado — destaque ativo */
+  --fd-raw-gold-glow-soft: rgba(200, 170, 110, 0.10); /* ambient sutil */
+
+  /* Metais das medalhas HONOR (progressão por material, não por matiz) */
+  --fd-raw-metal-iron:   #8a8d93;  /* ferro — Novato */
+  --fd-raw-metal-bronze: #b0793f;  /* bronze — Aprendiz */
+  --fd-raw-metal-silver: #c9cdd4;  /* prata — Piloto */
+
+  /* =========================================================
    * CORES DE ESTADO — feedback semântico universal
    * ========================================================= */
 

@@ -81,6 +81,24 @@ html[data-theme="fd-dark"] {
   --color-border-brand:      var(--fd-raw-red-600);      /* #C42121 */
 
   /* -------------------------------------------------------
+   * GRUPO 5.5 — GOLD (valor/progresso — decisão Pedro 2026-06-11)
+   * Uso amplo aprovado: números importantes (nível, MMR, moeda/fichas),
+   * bordas de destaque, hover de cards importantes, estados ativos.
+   * ------------------------------------------------------- */
+
+  /* Números de valor: nível, MMR, saldo de fichas, score */
+  --color-gold:        var(--fd-raw-gold-500);   /* #c8aa6e */
+  /* Hover / estado ativo de elementos gold */
+  --color-gold-bright: var(--fd-raw-gold-300);   /* #e3cf9e */
+  /* Labels/captions associados a números gold */
+  --color-gold-muted:  var(--fd-raw-gold-700);   /* #846d3f */
+  /* Bordas de destaque (cards importantes, seleção) */
+  --color-border-gold: var(--fd-raw-gold-600);   /* #a98d54 */
+  /* Glow de destaque ativo */
+  --glow-gold: 0 0 12px var(--fd-raw-gold-glow),
+               0 0 32px var(--fd-raw-gold-glow-soft);
+
+  /* -------------------------------------------------------
    * GRUPO 6 — CORES DE ESTADO (feedback)
    * ------------------------------------------------------- */
 
@@ -105,8 +123,10 @@ html[data-theme="fd-dark"] {
   --font-body:    "Ubuntu", ui-sans-serif, system-ui, sans-serif;
   --font-mono:    "Ubuntu", ui-monospace, "Courier New", monospace;
   /* Condensed display — Teko Variable (estilo Teko/Oswald GamersClub esports) */
-  /* RESERVADO pra moments épicos: season countdown, "ON FIRE!", números grandes (MMR, score, online counts), Hall of Fame */
-  /* NÃO usar em UI body — apenas display impactante */
+  /* LIBERADA 2026-06-11 (decisão Pedro): nav da topbar (tabs uppercase), títulos
+     de página/seção, botões grandes, números grandes (MMR, score, counts),
+     momentos épicos. Aproxima do feel Dota 2 (Radiance condensed).
+     Segue PROIBIDA em body text, parágrafos, labels de formulário. */
   --font-display-condensed: "Teko Variable", "Teko", "Oswald", "Bebas Neue", sans-serif;
 
   /* -------------------------------------------------------

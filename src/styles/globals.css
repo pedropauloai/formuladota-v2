@@ -62,6 +62,15 @@
   --color-border-brand:        var(--color-border-brand);
 
   /* -------------------------------------------------------
+   * GRUPO 5.5 — GOLD (valor/progresso, decisão Pedro 2026-06-11)
+   * Ex: text-gold (nível/MMR/fichas), border-border-gold, text-gold-bright
+   * ------------------------------------------------------- */
+  --color-gold:                var(--color-gold);
+  --color-gold-bright:         var(--color-gold-bright);
+  --color-gold-muted:          var(--color-gold-muted);
+  --color-border-gold:         var(--color-border-gold);
+
+  /* -------------------------------------------------------
    * GRUPO 6 — ESTADO (feedback)
    * Ex: text-success, bg-error, border-warning
    * ------------------------------------------------------- */

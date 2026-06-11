@@ -190,22 +190,22 @@ export function DashboardTopBar({
       ) : (
         <div className="hidden xl:flex items-center gap-2">
           {prosOnlineCount > 0 && (
-            <div className="flex items-center gap-2 rounded-md border border-emerald-500/30 bg-emerald-500/5 px-3 py-1">
+            <div className="flex items-center gap-2 rounded-md border border-success/30 bg-success/5 px-3 py-1">
               <span className="relative flex size-2" aria-hidden="true">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75" />
+                <span className="relative inline-flex size-2 rounded-full bg-success" />
               </span>
-              <span className="font-display text-sm font-semibold text-emerald-300/90">
+              <span className="font-display text-sm font-semibold text-success/90">
                 {prosOnlineCount}{" "}
                 {prosOnlineCount === 1 ? "PRO online" : "PROs online"}
               </span>
-              <Radio size={12} className="text-emerald-400/80" aria-hidden="true" />
+              <Radio size={12} className="text-success/80" aria-hidden="true" />
             </div>
           )}
           {searchingCount > 0 && (
-            <div className="flex items-center gap-2 rounded-md border border-sky-500/30 bg-sky-500/5 px-3 py-1">
-              <Swords size={12} className="text-sky-400/80" aria-hidden="true" />
-              <span className="font-display text-sm font-semibold text-sky-300/90">
+            <div className="flex items-center gap-2 rounded-md border border-info/30 bg-info/5 px-3 py-1">
+              <Swords size={12} className="text-info/80" aria-hidden="true" />
+              <span className="font-display text-sm font-semibold text-info/90">
                 {searchingCount}{" "}
                 {searchingCount === 1 ? "jogador buscando" : "jogadores buscando"}
               </span>
@@ -332,7 +332,9 @@ function TopBarTab({
     <Link
       href={href}
       aria-current={active ? "page" : undefined}
-      className={`rounded-md px-2.5 py-1 font-sans text-sm font-semibold uppercase tracking-[0.15em] transition-colors xl:px-3 xl:tracking-[0.2em] ${
+      /* Teko condensed na nav (liberada 2026-06-11) — feel Dota 2/GamersClub.
+         text-lg porque condensed tem x-height baixo: 18px Teko ≈ 14px Ubuntu. */
+      className={`rounded-md px-2.5 py-1 font-display-condensed text-lg leading-none font-medium uppercase tracking-[0.08em] transition-colors xl:px-3 xl:tracking-[0.12em] ${
         active
           ? "bg-brand-primary/15 text-text-display border-b-2 border-brand-primary rounded-b-none"
           : "text-text-body hover:bg-bg-elevated hover:text-text-display"
