@@ -36,8 +36,9 @@ import {
   Users,
   ShieldCheck,
 } from "lucide-react";
-import { DotaRankMedal, type DotaRank } from "@/components/ui/dota-rank-medal";
-import { HonorRankMedal, type HonorRank } from "@/components/ui/honor-rank-medal";
+import { type DotaRank } from "@/components/ui/dota-rank-medal";
+import { type HonorRank } from "@/components/ui/honor-rank-medal";
+import { MedalPair } from "@/components/ui/medal-pair";
 import { mmrToDotaRank } from "@/components/queue/queue-helpers";
 import { getGatedTierForLevel } from "@/lib/levels";
 import { signInWithDiscord } from "@/app/login/actions";
@@ -217,11 +218,10 @@ function CollapsedCard({
           )}
         </p>
       </div>
-      {/* Par canônico SKILL + HONOR — identidade visível mesmo retraído */}
-      <span className="flex shrink-0 items-center gap-1">
-        <DotaRankMedal rank={dotaRank} size="sm" />
-        <HonorRankMedal rank={honorRank} size="sm" />
-      </span>
+      {/* Par canônico SKILL + HONOR — identidade visível mesmo retraído.
+          Nota: o card é <button>; o hover do MedalPair continua funcionando
+          (portal), e o clique segue expandindo o painel. */}
+      <MedalPair dotaRank={dotaRank} honorRank={honorRank} size="sm" className="shrink-0" />
       <PermissionsBadge permissions={permissions} />
     </button>
   );
@@ -334,11 +334,8 @@ function ExpandedPanel({
               )}
             </p>
           </div>
-          {/* Par canônico SKILL + HONOR (mandamento M12) */}
-          <span className="flex shrink-0 items-center gap-1.5 self-center">
-            <DotaRankMedal rank={dotaRank} size="md" />
-            <HonorRankMedal rank={honorRank} size="md" glow={honorRank === "mistico"} />
-          </span>
+          {/* Par canônico SKILL + HONOR (mandamento M12) — hover combinado */}
+          <MedalPair dotaRank={dotaRank} honorRank={honorRank} size="md" className="shrink-0 self-center" />
         </Link>
       </header>
 

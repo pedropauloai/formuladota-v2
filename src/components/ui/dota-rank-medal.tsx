@@ -72,7 +72,7 @@ const SKILL_ORDER: DotaRank[] = [
   "immortal",
 ]
 
-function SkillShowcase({ current }: { current: DotaRank }) {
+export function SkillShowcase({ current }: { current: DotaRank }) {
   // Top 100 ocupa o mesmo degrau do Imortal na régua
   const rulerCurrent = current === "immortal-top-100" ? "immortal" : current
   const currentIdx = SKILL_ORDER.indexOf(rulerCurrent)
@@ -108,7 +108,7 @@ function SkillShowcase({ current }: { current: DotaRank }) {
               height={36}
               className={cn(
                 "object-contain transition-opacity",
-                i > currentIdx && "opacity-35 grayscale",
+                i > currentIdx && "opacity-40",
                 r === rulerCurrent && "scale-110",
               )}
               aria-hidden="true"
@@ -125,6 +125,25 @@ function SkillShowcase({ current }: { current: DotaRank }) {
         ))}
       </span>
     </span>
+  )
+}
+
+
+/** Wrapper condicional do showcase — <MedalPair> desliga o hover individual. */
+function MaybeTooltip({
+  enabled,
+  rank,
+  children,
+}: {
+  enabled: boolean
+  rank: DotaRank
+  children: React.ReactNode
+}) {
+  if (!enabled) return <>{children}</>
+  return (
+    <Tooltip content={<SkillShowcase current={rank} />} contentClassName="max-w-none p-3">
+      {children}
+    </Tooltip>
   )
 }
 
@@ -209,6 +228,12 @@ export interface DotaRankMedalProps {
 
   /** Classes CSS adicionais para o container externo */
   className?: string
+
+  /**
+   * Mostra o showcase no hover. Desligue quando a medalha está dentro de um
+   * <MedalPair> (hover combinado único). @default true
+   */
+  tooltip?: boolean
 }
 
 /* ------------------------------------------------------------------
@@ -237,6 +262,7 @@ export function DotaRankMedal({
   glow = false,
   calibrationStatus,
   className,
+  tooltip = true,
 }: DotaRankMedalProps) {
   const px = SIZE_PX[size]
   const sizeClass = SIZE_CLASS[size]
@@ -351,7 +377,7 @@ export function DotaRankMedal({
     >
       {/* Medalha — imagem oficial Dota 2 carregada via next/image.
           Hover educacional: SKILL (Valve) é eixo distinto do HONOR (FormulaDota). */}
-      <Tooltip content={<SkillShowcase current={rank} />} contentClassName="max-w-none p-3">
+      <MaybeTooltip enabled={tooltip} rank={rank}>
         <div
           className={cn(
             sizeClass,
@@ -380,7 +406,7 @@ export function DotaRankMedal({
             placeholder="empty"
           />
         </div>
-      </Tooltip>
+      </MaybeTooltip>
 
       {/* Label condicional — font-display-condensed Teko uppercase */}
       {showLabel && (

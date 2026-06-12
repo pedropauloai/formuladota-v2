@@ -145,6 +145,12 @@ export interface HonorRankMedalProps {
 
   /** Classes CSS adicionais para o container externo */
   className?: string
+
+  /**
+   * Mostra o showcase no hover. Desligue quando a medalha está dentro de um
+   * <MedalPair> (que tem hover combinado único). @default true
+   */
+  tooltip?: boolean
 }
 
 /* ------------------------------------------------------------------
@@ -161,7 +167,7 @@ const BAND_ORDER: HonorRank[] = [
   "mistico",
 ]
 
-function HonorShowcase({ current }: { current: HonorRank }) {
+export function HonorShowcase({ current }: { current: HonorRank }) {
   const currentIdx = BAND_ORDER.indexOf(current)
   return (
     <span className="block w-[400px] max-w-[88vw]">
@@ -201,7 +207,7 @@ function HonorShowcase({ current }: { current: HonorRank }) {
               height={36}
               className={cn(
                 "object-contain transition-opacity",
-                i > currentIdx && "opacity-35 grayscale",
+                i > currentIdx && "opacity-40",
                 band === current && "scale-110",
               )}
               aria-hidden="true"
@@ -253,6 +259,7 @@ export function HonorRankMedal({
   glow = false,
   calibrationStatus,
   className,
+  tooltip = true,
 }: HonorRankMedalProps) {
   const px = SIZE_PX[size]
   const sizeClass = SIZE_CLASS[size]
@@ -308,26 +315,34 @@ export function HonorRankMedal({
   }
 
   /* ranqueado (ou undefined) — exibição normal */
+  const medal = (
+    <div
+      className={cn(sizeClass, "relative flex items-center justify-center isolate transition-[filter] duration-300")}
+      style={
+        hasGlow
+          ? {
+              filter:
+                rank === "mistico"
+                  ? "drop-shadow(0 0 8px var(--color-brand-primary-glow)) drop-shadow(0 0 20px var(--color-brand-primary-glow))"
+                  : "drop-shadow(0 0 6px var(--fd-raw-gold-glow, rgba(200,170,110,0.25)))",
+            }
+          : undefined
+      }
+    >
+      <MedalImage rank={rank} px={px} />
+    </div>
+  )
+
   return (
     <div className={cn("inline-flex flex-col items-center gap-1", className)}>
-      {/* Hover educacional: banda + faixa de nível + como se sobe (doutrina) */}
-      <Tooltip content={<HonorShowcase current={rank} />} contentClassName="max-w-none p-3">
-        <div
-          className={cn(sizeClass, "relative flex items-center justify-center isolate transition-[filter] duration-300")}
-          style={
-            hasGlow
-              ? {
-                  filter:
-                    rank === "mistico"
-                      ? "drop-shadow(0 0 8px var(--color-brand-primary-glow)) drop-shadow(0 0 20px var(--color-brand-primary-glow))"
-                      : "drop-shadow(0 0 6px var(--fd-raw-gold-glow, rgba(200,170,110,0.25)))",
-                }
-              : undefined
-          }
-        >
-          <MedalImage rank={rank} px={px} />
-        </div>
-      </Tooltip>
+      {/* Hover showcase (desligável quando dentro de <MedalPair>) */}
+      {tooltip ? (
+        <Tooltip content={<HonorShowcase current={rank} />} contentClassName="max-w-none p-3">
+          {medal}
+        </Tooltip>
+      ) : (
+        medal
+      )}
 
       {showLabel && (
         <span

@@ -17,8 +17,7 @@ import { useState } from "react";
 import { Clock, Radio, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UserAvatar } from "@/components/ui/avatar";
-import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
-import { HonorRankMedal } from "@/components/ui/honor-rank-medal";
+import { MedalPair } from "@/components/ui/medal-pair";
 import {
   HeroVideoBackdrop,
   type SignatureHero,
@@ -120,14 +119,7 @@ export function ProDetail({
             </h1>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
               {/* Par canônico SKILL + HONOR (mandamento M12) */}
-              <div className="flex items-center gap-2">
-                <DotaRankMedal
-                  rank={rank}
-                  size="md"
-                  glow={rank === "immortal" || rank === "immortal-top-100"}
-                />
-                <HonorRankMedal rank={honor} size="md" glow={honor === "mistico"} />
-              </div>
+              <MedalPair dotaRank={rank} honorRank={honor} size="md" />
               <p className="font-display-condensed text-4xl leading-none tabular-nums text-gold">
                 {(coach.mmrAtual ?? 0).toLocaleString("pt-BR")}
                 <span className="ml-1.5 text-xl text-gold-muted">MMR</span>

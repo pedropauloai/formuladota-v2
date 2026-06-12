@@ -116,16 +116,25 @@ export function Tooltip({
     }
   }, [pos, hide])
 
-  // Clamp horizontal pós-render: bolha nunca vaza o viewport.
+  // Clamp pós-render NOS DOIS EIXOS (Pedro 2026-06-12): a bolha se adapta pra
+  // aparecer inteira dentro do viewport, independente de onde o trigger esteja.
   useEffect(() => {
     const el = bubbleRef.current
     if (!el || !pos) return
+    // Reset antes de medir (re-aberturas reaproveitam o nó)
+    el.style.marginLeft = "0px"
+    el.style.marginTop = "0px"
     const r = el.getBoundingClientRect()
     let dx = 0
     if (r.left < VIEWPORT_PAD) dx = VIEWPORT_PAD - r.left
     else if (r.right > window.innerWidth - VIEWPORT_PAD)
       dx = window.innerWidth - VIEWPORT_PAD - r.right
+    let dy = 0
+    if (r.top < VIEWPORT_PAD) dy = VIEWPORT_PAD - r.top
+    else if (r.bottom > window.innerHeight - VIEWPORT_PAD)
+      dy = window.innerHeight - VIEWPORT_PAD - r.bottom
     if (dx !== 0) el.style.marginLeft = `${dx}px`
+    if (dy !== 0) el.style.marginTop = `${dy}px`
   }, [pos])
 
   return (
