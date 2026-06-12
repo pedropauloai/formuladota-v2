@@ -24,6 +24,8 @@ import { QueueActionButton } from "@/components/queue/queue-action-button";
 import { UserStatusBar } from "@/components/queue/user-status-bar";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ProDetail } from "./pro-detail";
+import { ProCockpit } from "@/app/pro/pro-cockpit";
+import type { CockpitData } from "@/app/pro/cockpit-data";
 import { ProChip, ProListRow } from "./pro-list-row";
 
 export interface ProMasterDetailProps {
@@ -37,6 +39,10 @@ export interface ProMasterDetailProps {
   /** Herói de assinatura por coachId (nº 1 da carreira) — backdrop vivo do detalhe. */
   signatureHeroByCoach?: Map<string, SignatureHero>;
   myQueues: MyQueueEntry[];
+  /** coachId do VIEWER quando ele é PRO — habilita o modo gestão no próprio card. */
+  myCoachId?: string | null;
+  /** Snapshot inicial do cockpit (só quando myCoachId presente). */
+  cockpitInitial?: CockpitData | null;
 }
 
 export function ProMasterDetail({
@@ -49,6 +55,8 @@ export function ProMasterDetail({
   statsByCoach,
   signatureHeroByCoach,
   myQueues,
+  myCoachId = null,
+  cockpitInitial = null,
 }: ProMasterDetailProps) {
   const onlinePros = prosWithQueues.filter((p) => p.coach.filaAberta);
   const offlinePros = prosWithQueues.filter((p) => !p.coach.filaAberta);
@@ -56,14 +64,19 @@ export function ProMasterDetail({
   const myEntriesByCoach = new Map(myQueues.map((q) => [q.coachId, q.entryId]));
   const inAnyQueue = myQueues[0] ?? null;
 
-  // Default: PRO em cuja fila o viewer já está; senão o primeiro online.
+  // Default: o PRÓPRIO card se o viewer é PRO (modo gestão); senão o PRO em
+  // cuja fila ele já está; senão o primeiro online.
+  const ownCoachId =
+    myCoachId && prosWithQueues.some((p) => p.coach.coachId === myCoachId)
+      ? myCoachId
+      : null;
   const inQueueCoachId =
     inAnyQueue &&
     prosWithQueues.some((p) => p.coach.coachId === inAnyQueue.coachId)
       ? inAnyQueue.coachId
       : null;
   const defaultCoachId =
-    inQueueCoachId ?? onlinePros[0]?.coach.coachId ?? null;
+    ownCoachId ?? inQueueCoachId ?? onlinePros[0]?.coach.coachId ?? null;
 
   const [selectedId, setSelectedId] = useState<string | null>(defaultCoachId);
 
@@ -73,7 +86,14 @@ export function ProMasterDetail({
     prosWithQueues.find((p) => p.coach.coachId === defaultCoachId) ??
     null;
 
-  const footer = (
+  // Modo GESTÃO (Pedro 2026-06-12): o PRO administra a própria fila AQUI —
+  // selecionou o próprio card → centro vira o cockpit (sem rota /pro separada).
+  const isOwnSelected =
+    myCoachId !== null &&
+    cockpitInitial !== null &&
+    selected?.coach.coachId === myCoachId;
+
+  const footer = isOwnSelected ? null : (
     <QueueCtaFooter
       selected={selected}
       isAdmin={isAdmin}
@@ -116,7 +136,10 @@ export function ProMasterDetail({
         {/* Detalhe: sem rolagem em xl+; em mobile permite scroll vertical
             (viewport baixo não comporta identidade + slots + waiting). */}
         <div className="min-h-0 flex-1 overflow-y-auto xl:overflow-hidden">
-          {selected ? (
+          {isOwnSelected && cockpitInitial ? (
+            /* Cockpit embutido: fila ao vivo + painel de ação do próprio PRO */
+            <ProCockpit initial={cockpitInitial} />
+          ) : selected ? (
             <ProDetail
               pro={selected}
               stats={statsByCoach.get(selected.coach.coachId)}

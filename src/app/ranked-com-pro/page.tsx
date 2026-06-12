@@ -19,6 +19,7 @@ import {
 import { getFichaPackage } from "@/lib/queries/packages";
 import { getMyQueueStatus } from "@/lib/queries/queue";
 import { getPreviewModeActive } from "@/lib/auth/preview-mode";
+import { getProCockpitData } from "@/app/pro/cockpit-data";
 import { getCareerStats } from "@/lib/queries/career";
 import { getHeroById } from "@/lib/queries/heroes";
 import type { SignatureHero } from "@/components/dota/hero-video-backdrop";
@@ -104,6 +105,15 @@ export default async function RankedComProPage() {
     );
   }
 
+  // Modo GESTÃO (Pedro 2026-06-12): se o viewer é PRO/coach, o próprio card
+  // vira cockpit de gestão da fila AQUI — a rota /pro virou redirect pra cá.
+  const { data: myCoach } = await supabase
+    .from("coaches")
+    .select("id, fila_aberta, fila_aberta_em, fila_max_vagas")
+    .eq("profile_id", user.id)
+    .maybeSingle();
+  const cockpitInitial = myCoach ? await getProCockpitData(myCoach) : null;
+
   return (
     <ClientShell
       currentRoute="/ranked-com-pro"
@@ -127,6 +137,8 @@ export default async function RankedComProPage() {
         statsByCoach={statsByCoach}
         signatureHeroByCoach={signatureHeroByCoach}
         myQueues={myQueues}
+        myCoachId={myCoach?.id ?? null}
+        cockpitInitial={cockpitInitial}
       />
     </ClientShell>
   );

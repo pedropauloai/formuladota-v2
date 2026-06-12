@@ -36,19 +36,13 @@ export function UserStatusBar({
           <span className="text-success">{prosOnlineCount}</span>{" "}
           {prosOnlineCount === 1 ? "PRO online" : "PROs online"}
         </div>
-        {/* Cockpit do PRO (gestão da própria fila) — visão admin de TODOS
-            os PROs continua em /admin/pros */}
-        <Link
-          href="/pro"
-          className="font-sans text-sm font-semibold uppercase tracking-widest text-text-muted hover:text-text-display transition-colors"
-        >
-          Meu cockpit →
-        </Link>
+        {/* Gestão da própria fila acontece NESTA página (card do PRO = cockpit).
+            Este link é só a visão ADMIN de todos os PROs (suporte/emergência). */}
         <Link
           href="/admin/pros"
-          className="font-sans text-sm font-semibold uppercase tracking-widest text-text-faded hover:text-text-display transition-colors"
+          className="font-sans text-sm font-semibold uppercase tracking-widest text-text-muted hover:text-text-display transition-colors"
         >
-          Admin →
+          Painel admin →
         </Link>
       </div>
     );

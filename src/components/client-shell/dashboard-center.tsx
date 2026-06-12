@@ -15,6 +15,7 @@ import type { ProWithQueue, ProRecentStats } from "@/lib/queries/pros";
 import type { MyQueueEntry } from "@/lib/queries/queue";
 import type { SignatureHero } from "@/components/dota/hero-video-backdrop";
 import { ProMasterDetail } from "@/components/ranked/pro-master-detail";
+import type { CockpitData } from "@/app/pro/cockpit-data";
 
 interface CenterProps {
   persona: string;
@@ -29,6 +30,10 @@ interface CenterProps {
   /** Herói de assinatura por coachId (nº 1 da carreira) — backdrop vivo do detalhe. */
   signatureHeroByCoach?: Map<string, SignatureHero>;
   myQueues: MyQueueEntry[];
+  /** coachId do viewer quando é PRO — modo gestão no próprio card. */
+  myCoachId?: string | null;
+  /** Snapshot inicial do cockpit (quando myCoachId presente). */
+  cockpitInitial?: CockpitData | null;
 }
 
 export function DashboardCenter({
@@ -41,6 +46,8 @@ export function DashboardCenter({
   statsByCoach,
   signatureHeroByCoach,
   myQueues,
+  myCoachId,
+  cockpitInitial,
 }: CenterProps) {
   return (
     <ProMasterDetail
@@ -53,6 +60,8 @@ export function DashboardCenter({
       statsByCoach={statsByCoach}
       signatureHeroByCoach={signatureHeroByCoach}
       myQueues={myQueues}
+      myCoachId={myCoachId}
+      cockpitInitial={cockpitInitial}
     />
   );
 }
