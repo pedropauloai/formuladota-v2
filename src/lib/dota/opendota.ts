@@ -41,6 +41,17 @@ export interface OpenDotaPlayer {
   backpack_1: number;
   backpack_2: number;
   item_neutral: number;
+  // Campos validados com partida REAL (fixture 8829648086, 2026-06-11):
+  /** Segundo slot neutro (patch novo) — vai em items.neutral2. */
+  item_neutral2?: number;
+  /** Medalha Valve real: dezena = medalha (8=Imortal), unidade = estrelas. 80 = Imortal. */
+  rank_tier?: number | null;
+  /** 0 = jogou até o fim; >0 = saiu/abandonou (relevante pra conduta). */
+  leaver_status?: number;
+  aghanims_scepter?: 0 | 1;
+  aghanims_shard?: 0 | 1;
+  /** Percentis prontos da API (GPM/XPM/kills... vs outros do mesmo herói). */
+  benchmarks?: Record<string, { raw?: number; pct?: number }>;
 }
 
 export interface OpenDotaMatch {
@@ -49,7 +60,19 @@ export interface OpenDotaMatch {
   duration: number; // segundos
   start_time: number; // unix
   players: OpenDotaPlayer[];
+  // Metadados validados com partida real (2026-06-11):
+  /** 7 = ranked matchmaking oficial; 0 = fila normal/casual. */
+  lobby_type?: number;
+  /** 22 = All Pick ranked; 23 = Turbo (NÃO vale pra ranked-com-pro). */
+  game_mode?: number;
+  radiant_score?: number;
+  dire_score?: number;
+  patch?: number;
+  first_blood_time?: number;
 }
+
+/** lobby_type oficial Valve pra partida ranked de matchmaking. */
+export const LOBBY_TYPE_RANKED = 7;
 
 export class OpenDotaError extends Error {
   constructor(message: string, public status?: number) {
@@ -105,7 +128,16 @@ export interface NormalizedPlayer {
     inventory: number[];
     backpack: number[];
     neutral: number;
+    /** Segundo neutro (patch novo) — null se a API não enviar. */
+    neutral2: number | null;
   };
+  // Campos reais validados 2026-06-11 (migration 050):
+  rank_tier: number | null;
+  leaver_status: number | null;
+  personaname: string | null;
+  aghanims_scepter: boolean;
+  aghanims_shard: boolean;
+  benchmarks: Record<string, { raw?: number; pct?: number }> | null;
   raw_opendota: OpenDotaPlayer;
 }
 
@@ -147,6 +179,8 @@ export interface ValidateMatchResult {
  *
  * Regras:
  * - Match deve existir na OpenDota (pode demorar 2-10 min pós-partida pra indexar)
+ * - Match deve ser RANKED oficial (lobby_type 7) — fecha o buraco descoberto em
+ *   2026-06-11 com partida real: antes uma Turbo/casual era aceita como PT ranked
  * - Match deve ter ocorrido nas últimas `maxAgeHours` horas
  * - Pelo menos 4 dos 5 steam_ids esperados devem estar entre os jogadores
  *   (tolerância de 1 para cobrir casos de perfil privado que OpenDota não expõe)
@@ -157,7 +191,8 @@ export interface ValidateMatchResult {
 export async function validateOpendotaMatch(
   matchId: string,
   expectedSteamIds64: string[],
-  maxAgeHours: number = DEFAULT_MAX_AGE_HOURS
+  maxAgeHours: number = DEFAULT_MAX_AGE_HOURS,
+  requireRanked: boolean = true
 ): Promise<ValidateMatchResult> {
   try {
     const res = await fetch(`${OPENDOTA_BASE}/matches/${matchId}`, {
@@ -184,6 +219,16 @@ export async function validateOpendotaMatch(
       return {
         valid: false,
         reason: "Partida encontrada mas sem dados de jogadores — tente novamente em instantes.",
+      };
+    }
+
+    // Anti-Turbo/casual: PT do ranked-com-pro só vale em ranked oficial.
+    // (lobby_type 7 = ranked matchmaking; Turbo = game_mode 23 com lobby_type 0)
+    if (requireRanked && match.lobby_type !== LOBBY_TYPE_RANKED) {
+      return {
+        valid: false,
+        reason:
+          "Esta partida nao e ranked oficial (Turbo/casual/lobby nao contam). Apenas partidas RANKED sao aceitas na PT.",
       };
     }
 
@@ -271,7 +316,14 @@ export function normalizePlayers(match: OpenDotaMatch): NormalizedPlayer[] {
         inventory: [p.item_0, p.item_1, p.item_2, p.item_3, p.item_4, p.item_5],
         backpack: [p.backpack_0, p.backpack_1, p.backpack_2],
         neutral: p.item_neutral,
+        neutral2: p.item_neutral2 ?? null,
       },
+      rank_tier: p.rank_tier ?? null,
+      leaver_status: p.leaver_status ?? null,
+      personaname: p.personaname ?? null,
+      aghanims_scepter: p.aghanims_scepter === 1,
+      aghanims_shard: p.aghanims_shard === 1,
+      benchmarks: p.benchmarks ?? null,
       raw_opendota: p,
     };
   });

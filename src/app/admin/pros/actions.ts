@@ -439,6 +439,13 @@ export async function enrichMatchFromOpenDota(
       hero_healing: p.hero_healing,
       tower_damage: p.tower_damage,
       items: p.items,
+      // Campos reais OpenDota (migration 050 — validados com fixture 2026-06-11)
+      rank_tier: p.rank_tier,
+      leaver_status: p.leaver_status,
+      personaname: p.personaname,
+      aghanims_scepter: p.aghanims_scepter,
+      aghanims_shard: p.aghanims_shard,
+      benchmarks: p.benchmarks,
       raw_opendota: p.raw_opendota as unknown as Record<string, unknown>,
     };
   });
@@ -460,6 +467,13 @@ export async function enrichMatchFromOpenDota(
       match_dataset: "opendota",
       duracao_min: Math.round(opendotaMatch.duration / 60),
       status: "realizada",
+      // Metadados reais da partida (migration 050): placar + modo + contexto
+      radiant_score: opendotaMatch.radiant_score ?? null,
+      dire_score: opendotaMatch.dire_score ?? null,
+      game_mode: opendotaMatch.game_mode ?? null,
+      lobby_type: opendotaMatch.lobby_type ?? null,
+      patch: opendotaMatch.patch ?? null,
+      first_blood_time: opendotaMatch.first_blood_time ?? null,
     })
     .eq("id", matchId);
   if (matchUpdErr) {
