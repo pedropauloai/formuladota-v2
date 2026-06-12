@@ -235,6 +235,7 @@ export async function ClientShell({
             level={userLevel}
             xpPct={userXpPct}
             permissions={matchPermissions}
+            mmr={profile?.mmr_atual ?? null}
             initialExpanded={sidebarExpanded}
             currentUserId={user?.id ?? null}
             initialFriends={acceptedFriends}
@@ -336,6 +337,7 @@ export async function ClientShell({
           level={userLevel}
           xpPct={userXpPct}
           permissions={matchPermissions}
+          mmr={profile?.mmr_atual ?? null}
           initialExpanded={sidebarExpanded}
           currentUserId={user?.id ?? null}
           initialFriends={acceptedFriends}
@@ -376,7 +378,7 @@ async function fetchPrivateData(
     supabase
       .from("profiles")
       .select(
-        "username, avatar_url, role, is_admin, doctrine_quiz_progress, match_permissions_consumed"
+        "username, avatar_url, role, is_admin, doctrine_quiz_progress, match_permissions_consumed, mmr_atual"
       )
       .eq("id", userId)
       .single(),

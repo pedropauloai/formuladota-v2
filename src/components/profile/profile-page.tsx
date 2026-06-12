@@ -32,6 +32,8 @@ import Link from "next/link";
 import { Pencil, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/ui/avatar";
+import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
+import { HonorRankMedal } from "@/components/ui/honor-rank-medal";
 import { ProfileTabs, type ProfileTab } from "./profile-tabs";
 import { DashboardGrid } from "./dashboard-grid";
 import { TabHistorico } from "./tab-historico";
@@ -142,11 +144,23 @@ export function ProfilePage({ profile, activeTab, dotaRank, honorRank, editing, 
                 </p>
               </div>
 
+              {/* Par canônico SKILL + HONOR (mandamento M12) — sempre visível
+                  no header; hover abre o showcase de todas as medalhas. */}
+              <div className="flex shrink-0 items-center gap-2">
+                <DotaRankMedal
+                  rank={dotaRank}
+                  size="md"
+                  glow={dotaRank === "immortal" || dotaRank === "immortal-top-100"}
+                />
+                <HonorRankMedal rank={honorRank} size="md" glow={honorRank === "mistico"} />
+              </div>
+
               {/* Carreira inline — some em telas estreitas pra NUNCA quebrar
                   linha e esticar o header (altura ≤ avatar XL de 96px). */}
               {career ? (
                 <div className="hidden md:flex items-center gap-5 shrink-0">
-                  <CareerIdentityInline career={career} />
+                  {/* showMedal=false: a medalha Valve já está no par canônico ao lado */}
+                  <CareerIdentityInline career={career} showMedal={false} />
                   <SignatureHeroesStrip career={career} className="hidden xl:flex" />
                 </div>
               ) : (

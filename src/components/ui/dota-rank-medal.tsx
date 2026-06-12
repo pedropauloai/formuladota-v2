@@ -58,6 +58,77 @@ export const RANK_LABELS: Record<DotaRank, string> = {
 }
 
 /**
+ * SkillShowcase — hover estilo Dota (ref: hover-medalhas.png): medalha atual
+ * em destaque + régua com TODAS as medalhas Valve (futuras apagadas).
+ */
+const SKILL_ORDER: DotaRank[] = [
+  "herald",
+  "guardian",
+  "crusader",
+  "archon",
+  "legend",
+  "ancient",
+  "divine",
+  "immortal",
+]
+
+function SkillShowcase({ current }: { current: DotaRank }) {
+  // Top 100 ocupa o mesmo degrau do Imortal na régua
+  const rulerCurrent = current === "immortal-top-100" ? "immortal" : current
+  const currentIdx = SKILL_ORDER.indexOf(rulerCurrent)
+  return (
+    <span className="block w-[420px] max-w-[88vw]">
+      <span className="block text-center font-display-condensed text-lg uppercase leading-none tracking-[0.2em] text-text-muted">
+        Medalhas de classificação
+      </span>
+      <span className="mt-2 flex flex-col items-center gap-1">
+        <Image
+          src={`/icons/dota-ranks/${current}.png`}
+          alt=""
+          width={64}
+          height={64}
+          className="object-contain"
+          aria-hidden="true"
+        />
+        <span className="font-display-condensed text-xl uppercase leading-none tracking-widest text-gold">
+          {RANK_LABELS[current]}
+        </span>
+      </span>
+      <span className="mt-1 block text-center text-xs leading-snug text-text-muted">
+        Medalha oficial Valve — mede SKILL (MMR). Distinta do seu nível
+        FormulaDota, que mede HONOR.
+      </span>
+      <span className="mt-2.5 flex items-end justify-between gap-1 border-t border-border-subtle pt-2.5">
+        {SKILL_ORDER.map((r, i) => (
+          <span key={r} className="flex flex-1 flex-col items-center gap-0.5">
+            <Image
+              src={`/icons/dota-ranks/${r}.png`}
+              alt=""
+              width={36}
+              height={36}
+              className={cn(
+                "object-contain transition-opacity",
+                i > currentIdx && "opacity-35 grayscale",
+                r === rulerCurrent && "scale-110",
+              )}
+              aria-hidden="true"
+            />
+            <span
+              className={cn(
+                "font-display-condensed text-[10px] uppercase tracking-wide",
+                r === rulerCurrent ? "text-gold" : "text-text-faded",
+              )}
+            >
+              {RANK_LABELS[r]}
+            </span>
+          </span>
+        ))}
+      </span>
+    </span>
+  )
+}
+
+/**
  * Tamanhos em pixels para cada variant de size.
  * sm=32 md=48 lg=72 xl=128
  */
@@ -280,9 +351,7 @@ export function DotaRankMedal({
     >
       {/* Medalha — imagem oficial Dota 2 carregada via next/image.
           Hover educacional: SKILL (Valve) é eixo distinto do HONOR (FormulaDota). */}
-      <Tooltip
-        content={`${label} — medalha oficial Valve, mede SKILL (MMR). Distinta do seu nível FormulaDota, que mede HONOR.`}
-      >
+      <Tooltip content={<SkillShowcase current={rank} />} contentClassName="max-w-none p-3">
         <div
           className={cn(
             sizeClass,

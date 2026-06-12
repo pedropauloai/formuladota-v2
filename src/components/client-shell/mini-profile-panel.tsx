@@ -28,6 +28,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import {
   Coins,
+  Crown,
   ExternalLink,
   MessageSquare,
   BookOpen,
@@ -35,6 +36,10 @@ import {
   Users,
   ShieldCheck,
 } from "lucide-react";
+import { DotaRankMedal, type DotaRank } from "@/components/ui/dota-rank-medal";
+import { HonorRankMedal, type HonorRank } from "@/components/ui/honor-rank-medal";
+import { mmrToDotaRank } from "@/components/queue/queue-helpers";
+import { getGatedTierForLevel } from "@/lib/levels";
 import { signInWithDiscord } from "@/app/login/actions";
 import { toggleSidebar } from "@/lib/auth/sidebar-preference";
 import { FriendsList } from "@/components/profile/friends-list";
@@ -56,6 +61,8 @@ interface Props {
   xpPct: number;
   /** Saldo de permissões de partida (5 acertos = 1). */
   permissions: number;
+  /** MMR atual (profiles.mmr_atual) — par de medalhas SKILL+HONOR. */
+  mmr: number | null;
   /** Estado inicial do cookie sidebar_expanded — passado do shell SSR. */
   initialExpanded: boolean;
   /** UUID do user logado — pra usePresenceChannel. Null se visitante. */
@@ -74,10 +81,14 @@ export function MiniProfilePanel({
   level,
   xpPct,
   permissions,
+  mmr,
   initialExpanded,
   currentUserId,
   initialFriends,
 }: Props) {
+  // Par canônico de medalhas (mandamento M12): SKILL (Valve/MMR) + HONOR (nível).
+  const dotaRank = mmrToDotaRank(mmr);
+  const honorRank = getGatedTierForLevel(level, mmr);
   // Estado client-side pra UX instant (sem reload). Cookie persiste async.
   const [expanded, setExpanded] = useState(initialExpanded);
   const [, startTransition] = useTransition();
@@ -112,6 +123,8 @@ export function MiniProfilePanel({
           fichaBalance={fichaBalance}
           level={level}
           xpPct={xpPct}
+          dotaRank={dotaRank}
+          honorRank={honorRank}
           currentUserId={currentUserId}
           initialFriends={initialFriends}
         />
@@ -129,7 +142,10 @@ export function MiniProfilePanel({
           level={level}
           xpPct={xpPct}
           permissions={permissions}
+          dotaRank={dotaRank}
+          honorRank={honorRank}
           connectedTop={expanded}
+          onToggle={handleToggle}
         />
         <ToggleIcon expanded={expanded} onToggle={handleToggle} />
       </div>
@@ -138,7 +154,9 @@ export function MiniProfilePanel({
 }
 
 // ===========================================================================
-// CollapsedCard — card avatar+nome (Link pra /me) sempre visível na linha base
+// CollapsedCard — card avatar+nome, sempre visível na linha base.
+// Pedro 2026-06-12: o card retraído EXPANDE o mini-perfil (não navega mais
+// pro perfil — o link pro /me vive no header do painel expandido).
 // ===========================================================================
 
 function CollapsedCard({
@@ -149,7 +167,10 @@ function CollapsedCard({
   level,
   xpPct,
   permissions,
+  dotaRank,
+  honorRank,
   connectedTop = false,
+  onToggle,
 }: {
   persona: string | null;
   avatar: string | null;
@@ -158,14 +179,19 @@ function CollapsedCard({
   level: number;
   xpPct: number;
   permissions: number;
+  dotaRank: DotaRank;
+  honorRank: HonorRank;
   /** Quando true (painel expandido aberto), borda superior + canto superior
       ficam planos pra conectar visualmente ao ExpandedPanel acima. */
   connectedTop?: boolean;
+  onToggle: () => void;
 }) {
   return (
-    <Link
-      href="/me"
-      aria-label="Ver meu perfil"
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-label={connectedTop ? "Retrair mini-perfil" : "Expandir mini-perfil"}
+      aria-expanded={connectedTop}
       className={`flex w-[340px] xl:w-[380px] items-center gap-3 border border-brand-primary/30 bg-bg-deep/90 backdrop-blur-md px-3 py-2 shadow-lg shadow-black/60 hover:border-brand-primary/60 hover:bg-bg-elevated/80 transition-colors ${
         connectedTop
           ? "rounded-b-md rounded-t-none border-t-0"
@@ -186,11 +212,18 @@ function CollapsedCard({
         </p>
         <p className="font-display text-sm font-semibold text-brand-primary/80 leading-tight">
           [{tag}]
-          {isAdmin && <span className="ml-1 text-yellow-500">★</span>}
+          {isAdmin && (
+            <Crown size={11} className="ml-1 inline text-gold" aria-label="Admin" />
+          )}
         </p>
       </div>
+      {/* Par canônico SKILL + HONOR — identidade visível mesmo retraído */}
+      <span className="flex shrink-0 items-center gap-1">
+        <DotaRankMedal rank={dotaRank} size="sm" />
+        <HonorRankMedal rank={honorRank} size="sm" />
+      </span>
       <PermissionsBadge permissions={permissions} />
-    </Link>
+    </button>
   );
 }
 
@@ -253,6 +286,8 @@ function ExpandedPanel({
   fichaBalance,
   level,
   xpPct,
+  dotaRank,
+  honorRank,
   currentUserId,
   initialFriends,
 }: {
@@ -263,6 +298,8 @@ function ExpandedPanel({
   fichaBalance: number;
   level: number;
   xpPct: number;
+  dotaRank: DotaRank;
+  honorRank: HonorRank;
   currentUserId: string | null;
   initialFriends: FriendListEntry[];
 }) {
@@ -292,9 +329,16 @@ function ExpandedPanel({
             </p>
             <p className="font-display text-sm font-semibold text-brand-primary/80 mt-0.5">
               [{tag}]
-              {isAdmin && <span className="ml-1 text-yellow-500">★</span>}
+              {isAdmin && (
+                <Crown size={12} className="ml-1 inline text-gold" aria-label="Admin" />
+              )}
             </p>
           </div>
+          {/* Par canônico SKILL + HONOR (mandamento M12) */}
+          <span className="flex shrink-0 items-center gap-1.5 self-center">
+            <DotaRankMedal rank={dotaRank} size="md" />
+            <HonorRankMedal rank={honorRank} size="md" glow={honorRank === "mistico"} />
+          </span>
         </Link>
       </header>
 

@@ -148,6 +148,84 @@ export interface HonorRankMedalProps {
 }
 
 /* ------------------------------------------------------------------
+ * HonorShowcase — hover estilo Dota (ref: hover-medalhas.png): a atual em
+ * destaque + régua com TODAS as bandas (anteriores acesas, futuras apagadas).
+ * ------------------------------------------------------------------ */
+
+const BAND_ORDER: HonorRank[] = [
+  "novato",
+  "aprendiz",
+  "piloto",
+  "as",
+  "lendario",
+  "mistico",
+]
+
+function HonorShowcase({ current }: { current: HonorRank }) {
+  const currentIdx = BAND_ORDER.indexOf(current)
+  return (
+    <span className="block w-[400px] max-w-[88vw]">
+      <span className="block text-center font-display-condensed text-lg uppercase leading-none tracking-[0.2em] text-text-muted">
+        Medalhas de nível
+      </span>
+      {/* Atual em destaque */}
+      <span className="mt-2 flex flex-col items-center gap-1">
+        <Image
+          src={`/medals/honor/${current}.png`}
+          alt=""
+          width={64}
+          height={64}
+          className="object-contain"
+          aria-hidden="true"
+        />
+        <span
+          className={cn(
+            "font-display-condensed text-xl uppercase leading-none tracking-widest",
+            current === "mistico" ? "text-brand-primary" : "text-gold",
+          )}
+        >
+          {HONOR_RANK_LABELS[current]}
+        </span>
+      </span>
+      <span className="mt-1 block text-center text-xs leading-snug text-text-muted">
+        {HONOR_RANK_TOOLTIPS[current]}
+      </span>
+      {/* Régua com todas as bandas */}
+      <span className="mt-2.5 flex items-end justify-between gap-1 border-t border-border-subtle pt-2.5">
+        {BAND_ORDER.map((band, i) => (
+          <span key={band} className="flex flex-1 flex-col items-center gap-0.5">
+            <Image
+              src={`/medals/honor/${band}.png`}
+              alt=""
+              width={36}
+              height={36}
+              className={cn(
+                "object-contain transition-opacity",
+                i > currentIdx && "opacity-35 grayscale",
+                band === current && "scale-110",
+              )}
+              aria-hidden="true"
+            />
+            <span
+              className={cn(
+                "font-display-condensed text-[10px] uppercase tracking-wide",
+                band === current ? "text-gold" : "text-text-faded",
+              )}
+            >
+              {HONOR_RANK_LABELS[band]}
+            </span>
+          </span>
+        ))}
+      </span>
+      <span className="mt-2 block text-center text-[11px] leading-snug text-text-faded">
+        Suba completando lições da doutrina e jogando PTs. O topo exige também a
+        medalha Valve correspondente.
+      </span>
+    </span>
+  )
+}
+
+/* ------------------------------------------------------------------
  * Imagem da medalha (asset PNG do pack LadyLuck)
  * ------------------------------------------------------------------ */
 
@@ -233,7 +311,7 @@ export function HonorRankMedal({
   return (
     <div className={cn("inline-flex flex-col items-center gap-1", className)}>
       {/* Hover educacional: banda + faixa de nível + como se sobe (doutrina) */}
-      <Tooltip content={HONOR_RANK_TOOLTIPS[rank]}>
+      <Tooltip content={<HonorShowcase current={rank} />} contentClassName="max-w-none p-3">
         <div
           className={cn(sizeClass, "relative flex items-center justify-center isolate transition-[filter] duration-300")}
           style={
