@@ -6,6 +6,12 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { fetchPlayerStats, type PlayerStatsExtended } from "@/lib/stratz";
+import { steam64To32 } from "@/lib/dota/opendota";
+import {
+  fetchCareerStats,
+  parseCareerStats,
+  type CareerStats,
+} from "@/lib/dota/career";
 
 const TTL_MS = 24 * 60 * 60 * 1000; // 24h
 
@@ -78,6 +84,77 @@ export async function syncPlayerStats(input: {
       total_matches: stats.totalMatches,
       total_wins: stats.totalWins,
       source: stats.source,
+      last_synced_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "user_id" }
+  );
+
+  return { success: true, cached: false, data: stats };
+}
+
+export type CareerSyncResult =
+  | { success: true; data: CareerStats; cached: boolean }
+  | { success: false; error: string };
+
+/**
+ * Sincroniza stats de CARREIRA (OpenDota, migration 051) de um user.
+ * Mesmo padrão do syncPlayerStats: TTL 24h, falha silenciosa, cache-first.
+ *
+ * Free tier OpenDota = 60 req/min → o TTL é a única proteção de rate limit.
+ * Por isso o check de cache SEMPRE roda antes de qualquer fetch.
+ */
+export async function syncCareerStats(input: {
+  userId: string;
+  force?: boolean;
+}): Promise<CareerSyncResult> {
+  const supabase = await createClient();
+
+  // Steam link primeiro — OpenDota só conhece account_id (derivado do Steam64)
+  const { data: steamLink } = await supabase
+    .from("steam_links")
+    .select("steam_id_64")
+    .eq("user_id", input.userId)
+    .single();
+
+  if (!steamLink?.steam_id_64) {
+    return { success: false, error: "Steam não vinculado." };
+  }
+
+  // Cache check no jsonb career
+  const { data: row } = await supabase
+    .from("user_stats_extended")
+    .select("career, last_synced_at")
+    .eq("user_id", input.userId)
+    .maybeSingle();
+
+  const cachedCareer = parseCareerStats(row?.career);
+
+  // TTL pelo syncedAt DENTRO do payload — last_synced_at é compartilhado com o
+  // sync Stratz (syncPlayerStats) e usaria o relógio errado pro career.
+  const fresh =
+    cachedCareer !== null &&
+    Date.now() - new Date(cachedCareer.syncedAt).getTime() < TTL_MS;
+
+  if (fresh && !input.force && cachedCareer) {
+    return { success: true, cached: true, data: cachedCareer };
+  }
+
+  // Fetch novo (4 endpoints em paralelo; falha → null)
+  const stats = await fetchCareerStats(steam64To32(steamLink.steam_id_64));
+  if (!stats) {
+    // OpenDota fora do ar — cache vencido ainda é melhor que nada
+    if (cachedCareer) {
+      return { success: true, cached: true, data: cachedCareer };
+    }
+    return { success: false, error: "Sem dados de carreira disponíveis." };
+  }
+
+  // UPSERT só das colunas de career — não toca nas colunas do sync Stratz
+  await supabase.from("user_stats_extended").upsert(
+    {
+      user_id: input.userId,
+      career: stats,
       last_synced_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     },

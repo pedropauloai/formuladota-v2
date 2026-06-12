@@ -19,6 +19,10 @@ import { cn } from "@/lib/utils";
 import { UserAvatar } from "@/components/ui/avatar";
 import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
 import { HonorRankMedal } from "@/components/ui/honor-rank-medal";
+import {
+  HeroVideoBackdrop,
+  type SignatureHero,
+} from "@/components/dota/hero-video-backdrop";
 import { ExpandedWaitingList } from "@/components/queue/expanded-waiting-list";
 import { mmrToDotaRank, coachHonorRank } from "@/components/queue/queue-helpers";
 import type { BoardEntry } from "@/components/queue/queue-board";
@@ -38,6 +42,8 @@ interface ProDetailProps {
   pro: ProWithQueue;
   stats?: ProRecentStats;
   viewerUserId: string;
+  /** Herói de assinatura do PRO (nº 1 da carreira) — backdrop vivo da identidade. */
+  signatureHero?: SignatureHero | null;
   /** Pills V/D — opcional; hoje sem fonte de dados, slot pronto pro futuro. */
   recentMatches?: DetailRecentMatch[];
 }
@@ -65,6 +71,7 @@ export function ProDetail({
   pro,
   stats,
   viewerUserId,
+  signatureHero = null,
   recentMatches = [],
 }: ProDetailProps) {
   const { coach, entries } = pro;
@@ -83,41 +90,58 @@ export function ProDetail({
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-5 px-4 py-4 xl:px-8 xl:py-6">
-      {/* ---- BLOCO 1: Identidade ---- */}
-      <header className="flex shrink-0 items-center gap-5">
-        <UserAvatar
-          size="xl"
-          src={coach.avatarUrl ?? undefined}
-          alt={`Retrato de ${name}`}
-          fallback={name.slice(0, 2)}
-          presence={coach.filaAberta ? "online" : "offline"}
-          ringColor={coach.filaAberta ? "play" : null}
-        />
-        <div className="min-w-0 flex-1 space-y-1.5">
-          {/* Teko (x-height baixo) — text-5xl/6xl pra equivaler a Ubuntu menor */}
-          <h1 className="truncate font-display-condensed text-5xl font-semibold uppercase leading-[0.9] text-text-display xl:text-6xl">
-            {name}
-          </h1>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-            {/* Par canônico SKILL + HONOR (mandamento M12) */}
-            <div className="flex items-center gap-2">
-              <DotaRankMedal
-                rank={rank}
-                size="md"
-                glow={rank === "immortal" || rank === "immortal-top-100"}
-              />
-              <HonorRankMedal rank={honor} size="md" glow={honor === "mistico"} />
-            </div>
-            <p className="font-display-condensed text-4xl leading-none tabular-nums text-gold">
-              {(coach.mmrAtual ?? 0).toLocaleString("pt-BR")}
-              <span className="ml-1.5 text-xl text-gold-muted">MMR</span>
-            </p>
-          </div>
-          {coach.headline && (
-            <p className="truncate border-l-2 border-brand-primary/40 pl-3 font-display text-sm italic text-text-muted">
-              {coach.headline}
-            </p>
+      {/* ---- BLOCO 1: Identidade ----
+          Herói de assinatura do PRO como backdrop VIVO (vídeo Valve sutil) —
+          atmosfera atrás da identidade, gradiente garante a leitura. */}
+      <header className="relative shrink-0 overflow-hidden rounded-sm">
+        {signatureHero && (
+          <HeroVideoBackdrop
+            heroSlug={signatureHero.slug}
+            heroName={signatureHero.name}
+            videoOpacityClass="opacity-15"
+            gradientClass="bg-gradient-to-r from-bg-deep/70 via-bg-deep/25 to-bg-deep/80"
+          />
+        )}
+        <div
+          className={cn(
+            "relative flex items-center gap-5",
+            signatureHero && "p-3"
           )}
+        >
+          <UserAvatar
+            size="xl"
+            src={coach.avatarUrl ?? undefined}
+            alt={`Retrato de ${name}`}
+            fallback={name.slice(0, 2)}
+            presence={coach.filaAberta ? "online" : "offline"}
+            ringColor={coach.filaAberta ? "play" : null}
+          />
+          <div className="min-w-0 flex-1 space-y-1.5">
+            {/* Teko (x-height baixo) — text-5xl/6xl pra equivaler a Ubuntu menor */}
+            <h1 className="truncate font-display-condensed text-5xl font-semibold uppercase leading-[0.9] text-text-display xl:text-6xl">
+              {name}
+            </h1>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+              {/* Par canônico SKILL + HONOR (mandamento M12) */}
+              <div className="flex items-center gap-2">
+                <DotaRankMedal
+                  rank={rank}
+                  size="md"
+                  glow={rank === "immortal" || rank === "immortal-top-100"}
+                />
+                <HonorRankMedal rank={honor} size="md" glow={honor === "mistico"} />
+              </div>
+              <p className="font-display-condensed text-4xl leading-none tabular-nums text-gold">
+                {(coach.mmrAtual ?? 0).toLocaleString("pt-BR")}
+                <span className="ml-1.5 text-xl text-gold-muted">MMR</span>
+              </p>
+            </div>
+            {coach.headline && (
+              <p className="truncate border-l-2 border-brand-primary/40 pl-3 font-display text-sm italic text-text-muted">
+                {coach.headline}
+              </p>
+            )}
+          </div>
         </div>
       </header>
 

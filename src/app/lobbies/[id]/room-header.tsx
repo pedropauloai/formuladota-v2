@@ -2,21 +2,41 @@
 
 // RoomHeader — topo da sala (ref: lobby criado.png): nome em Teko condensed,
 // "Líder: {nome}", badge do modo de jogo e senha (revelar/copiar).
+// Herói de assinatura do líder como backdrop VIVO sutil (vídeo Valve).
 
 import { useState } from "react";
 import { Lock, Eye, EyeOff, Copy, Check, ArrowLeft } from "lucide-react";
+import {
+  HeroVideoBackdrop,
+  type SignatureHero,
+} from "@/components/dota/hero-video-backdrop";
 import { GAME_MODE_LABELS, type LobbyData } from "./lobby-types";
 
 interface RoomHeaderProps {
   lobby: LobbyData;
   leaderUsername: string;
+  /** Herói nº 1 da carreira do líder — backdrop atmosférico atrás do header. */
+  leaderHero?: SignatureHero | null;
   onBack?: () => void;
 }
 
-export function RoomHeader({ lobby, leaderUsername, onBack }: RoomHeaderProps) {
+export function RoomHeader({
+  lobby,
+  leaderUsername,
+  leaderHero = null,
+  onBack,
+}: RoomHeaderProps) {
   return (
-    <header className="border-b border-border-subtle bg-bg-base px-4 py-2.5">
-      <div className="flex items-start justify-between gap-3">
+    <header className="relative overflow-hidden border-b border-border-subtle bg-bg-base px-4 py-2.5">
+      {leaderHero && (
+        <HeroVideoBackdrop
+          heroSlug={leaderHero.slug}
+          heroName={leaderHero.name}
+          videoOpacityClass="opacity-15"
+          gradientClass="bg-gradient-to-r from-bg-base/80 via-bg-base/30 to-bg-base/80"
+        />
+      )}
+      <div className="relative flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-start gap-2">
           {onBack && (
             <button
@@ -46,7 +66,7 @@ export function RoomHeader({ lobby, leaderUsername, onBack }: RoomHeaderProps) {
         <PasswordBadge password={lobby.password} />
       </div>
       {(lobby.status === "in_progress" || lobby.steamLobbyId?.startsWith("DEV-")) && (
-        <p className="mt-1 font-display text-sm font-semibold uppercase tracking-wide">
+        <p className="relative mt-1 font-display text-sm font-semibold uppercase tracking-wide">
           {lobby.status === "in_progress" && (
             <span className="text-warning">Em andamento</span>
           )}

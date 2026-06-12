@@ -43,7 +43,11 @@ import {
   AvatarEditor,
 } from "./inline-edit-controls";
 import { ResetLayoutButton } from "./reset-layout-button";
+import { CareerStatsBlock } from "./career-stats";
+import { HeroVideoBackdrop } from "@/components/dota/hero-video-backdrop";
+import { getHeroById } from "@/lib/queries/heroes";
 import type { ProfileForMe } from "@/lib/queries/profile";
+import type { CareerStats } from "@/lib/dota/career";
 import type { DotaRank } from "@/components/ui/dota-rank-medal";
 import type { HonorRank } from "@/components/ui/honor-rank-medal";
 
@@ -53,10 +57,16 @@ interface Props {
   dotaRank: DotaRank;
   honorRank: HonorRank;
   editing: boolean;
+  /** Stats de carreira OpenDota (cache 24h) — null = sem Steam/sem dados. */
+  career: CareerStats | null;
 }
 
-export function ProfilePage({ profile, activeTab, dotaRank, honorRank, editing }: Props) {
+export function ProfilePage({ profile, activeTab, dotaRank, honorRank, editing, career }: Props) {
   const ranqueado = profile.mmr !== null;
+
+  // Herói nº 1 da carreira → backdrop VIVO do header de identidade
+  const topHeroStat = career?.topHeroes[0] ?? null;
+  const topHero = topHeroStat ? getHeroById(topHeroStat.heroId) : null;
 
   return (
     <div className="relative flex flex-col min-h-full">
@@ -97,22 +107,33 @@ export function ProfilePage({ profile, activeTab, dotaRank, honorRank, editing }
             )}
           </div>
 
-          {/* ─── HEADER ÂNCORA — avatar + nome + tag FORMULADOTA ─── */}
-          <header className="flex items-center gap-5 mb-6">
-            <UserAvatar
-              src={profile.avatarUrl ?? undefined}
-              alt={`Avatar de ${profile.username ?? "Anônimo"}`}
-              fallback={(profile.username ?? "??").slice(0, 2).toUpperCase()}
-              size="xl"
-              ringColor={ranqueado ? "brand" : null}
-            />
-            <div className="flex-1 min-w-0">
-              <h1 className="font-display text-[28px] font-bold text-text-display leading-tight truncate">
-                {profile.username ?? "Anônimo"}
-              </h1>
-              <p className="font-display text-[13px] font-bold text-brand-primary tracking-[0.1em] mt-0.5">
-                FORMULADOTA
-              </p>
+          {/* ─── HEADER ÂNCORA — avatar + nome + tag FORMULADOTA ───
+              Herói nº 1 da carreira como backdrop VIVO (vídeo Valve em
+              opacidade baixa + gradiente — atmosfera, não compete com o nome). */}
+          <header className="relative mb-6 overflow-hidden rounded-sm">
+            {topHero && (
+              <HeroVideoBackdrop
+                heroSlug={topHero.slug}
+                heroName={topHero.name_pt}
+                gradientClass="bg-gradient-to-r from-bg-deep/70 via-bg-deep/20 to-bg-deep/80"
+              />
+            )}
+            <div className={`relative flex items-center gap-5 ${topHero ? "p-4" : ""}`}>
+              <UserAvatar
+                src={profile.avatarUrl ?? undefined}
+                alt={`Avatar de ${profile.username ?? "Anônimo"}`}
+                fallback={(profile.username ?? "??").slice(0, 2).toUpperCase()}
+                size="xl"
+                ringColor={ranqueado ? "brand" : null}
+              />
+              <div className="flex-1 min-w-0">
+                <h1 className="font-display text-[28px] font-bold text-text-display leading-tight truncate">
+                  {profile.username ?? "Anônimo"}
+                </h1>
+                <p className="font-display text-[13px] font-bold text-brand-primary tracking-[0.1em] mt-0.5">
+                  FORMULADOTA
+                </p>
+              </div>
             </div>
           </header>
 
@@ -132,6 +153,11 @@ export function ProfilePage({ profile, activeTab, dotaRank, honorRank, editing }
               favoriteHeroes: profile.favoriteHeroes,
             }}
           />
+
+          {/* ─── CARREIRA — identidade competitiva + heróis vivos + veterania ─── */}
+          <div className="mt-8">
+            <CareerStatsBlock career={career} ownProfile />
+          </div>
 
           {/* ─── Editores adicionais (avatar custom + hero portrait) — só em edit ─── */}
           {editing && (

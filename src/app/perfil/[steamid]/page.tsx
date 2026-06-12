@@ -22,6 +22,10 @@ import {
 } from "@/lib/identity";
 import { ClientShell } from "@/components/client-shell/shell";
 import { syncPlayerStats } from "@/app/perfil/actions";
+import { getCareerStats } from "@/lib/queries/career";
+import { getHeroById } from "@/lib/queries/heroes";
+import { CareerStatsBlock } from "@/components/profile/career-stats";
+import { HeroVideoBackdrop } from "@/components/dota/hero-video-backdrop";
 import {
   Card,
   CardContent,
@@ -162,6 +166,14 @@ export default async function PerfilPublicoPage(props: PageProps) {
   }).catch(() => null);
   const externalStats = syncResult?.success ? syncResult.data : null;
 
+  // Carreira OpenDota (cache 24h, nunca lança) — bloco "Carreira" + backdrop
+  // do herói nº 1 no hero de identidade. userId = dono do perfil público.
+  const career = await getCareerStats(steamLink.user_id);
+  const careerTopHeroStat = career?.topHeroes[0] ?? null;
+  const careerTopHero = careerTopHeroStat
+    ? getHeroById(careerTopHeroStat.heroId)
+    : null;
+
   const winRate =
     mmrRow && mmrRow.partidas_total > 0
       ? Math.round((mmrRow.vitorias / mmrRow.partidas_total) * 100)
@@ -185,6 +197,15 @@ export default async function PerfilPublicoPage(props: PageProps) {
           Hero — Identidade pública do PRO com avatar XL + medalhas duplas
           ---------------------------------------------------------------- */}
       <section className="relative overflow-hidden border-b border-border-subtle bg-bg-deep">
+        {/* Herói nº 1 da carreira como backdrop VIVO — atmosfera, não compete
+            com o nome (opacidade baixa + gradiente pro bg-bg-deep). */}
+        {careerTopHero && (
+          <HeroVideoBackdrop
+            heroSlug={careerTopHero.slug}
+            heroName={careerTopHero.name_pt}
+            gradientClass="bg-gradient-to-b from-bg-deep/50 via-bg-deep/25 to-bg-deep"
+          />
+        )}
         <div className="relative z-10 mx-auto flex max-w-5xl flex-col gap-6 px-6 pt-12 pb-8 sm:flex-row sm:items-end">
           <UserAvatar
             src={avatarSrc}
@@ -231,6 +252,11 @@ export default async function PerfilPublicoPage(props: PageProps) {
           <ArrowLeft size={14} aria-hidden="true" />
           Voltar ao ranking
         </Link>
+
+        {/* ----------------------------------------------------------------
+            Carreira — identidade competitiva + heróis vivos + veterania
+            ---------------------------------------------------------------- */}
+        <CareerStatsBlock career={career} />
 
         {/* ----------------------------------------------------------------
             Stats locais — temporada atual

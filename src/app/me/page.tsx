@@ -11,6 +11,7 @@ import { ClientShell } from "@/components/client-shell/shell";
 import { ProfilePage } from "@/components/profile/profile-page";
 import { VALID_TABS, type ProfileTab } from "@/components/profile/profile-tabs";
 import { getProfileForMe } from "@/lib/queries/profile";
+import { getCareerStats } from "@/lib/queries/career";
 import type { DotaRank } from "@/components/ui/dota-rank-medal";
 import { legacyHonorToBand, type HonorRank } from "@/components/ui/honor-rank-medal";
 import { createClient } from "@/lib/supabase/server";
@@ -58,6 +59,10 @@ export default async function MePage({ searchParams }: PageProps) {
 
   const dotaRank = mmrToDotaRank(profile.mmr);
 
+  // Carreira OpenDota (cache 24h, nunca lança) — bloco "Carreira" + backdrop
+  // do herói nº 1 no header de identidade. null = sem Steam/sem dados.
+  const career = await getCareerStats(profile.userId);
+
   // HONOR tier via RPC — graceful fallback se RPC indisponível
   const supabase = await createClient();
   const { data: honorScore } = await supabase.rpc("get_honor_score", {
@@ -81,6 +86,7 @@ export default async function MePage({ searchParams }: PageProps) {
         dotaRank={dotaRank}
         honorRank={honorRank}
         editing={editing}
+        career={career}
       />
     </ClientShell>
   );

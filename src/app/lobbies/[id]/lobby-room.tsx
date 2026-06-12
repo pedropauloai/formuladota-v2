@@ -19,6 +19,7 @@ import { SpectatorRow } from "./spectator-row";
 import { SettingsPanel } from "./settings-panel";
 import { RoomActions } from "./room-actions";
 import { useLobbyRealtime } from "./use-lobby-realtime";
+import type { SignatureHero } from "@/components/dota/hero-video-backdrop";
 import type { LobbyData, PlayerSlot } from "./lobby-types";
 
 /** Movimento otimista de slot — aplicado na UI ANTES do servidor confirmar. */
@@ -34,6 +35,8 @@ interface Props {
   currentUserId: string;
   isLeader: boolean;
   leaderUsername: string;
+  /** Herói de assinatura do líder — backdrop vivo do room-header (opcional). */
+  leaderHero?: SignatureHero | null;
   /** Quando providenciado, mostra botão voltar no header (uso embedded no PlayPanel). */
   onBack?: () => void;
   /**
@@ -53,6 +56,7 @@ export function LobbyRoom({
   currentUserId,
   isLeader,
   leaderUsername,
+  leaderHero = null,
   onBack,
   onMutate,
   onEdit,
@@ -87,7 +91,12 @@ export function LobbyRoom({
 
   return (
     <div className="flex h-full flex-col">
-      <RoomHeader lobby={lobby} leaderUsername={leaderUsername} onBack={onBack} />
+      <RoomHeader
+        lobby={lobby}
+        leaderUsername={leaderUsername}
+        leaderHero={leaderHero}
+        onBack={onBack}
+      />
 
       {/* Times — 2 colunas lado a lado, 5 slots cada */}
       <section className="grid grid-cols-2 divide-x divide-border-subtle border-b border-border-subtle">

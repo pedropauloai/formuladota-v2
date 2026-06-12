@@ -19,6 +19,7 @@ import { useState } from "react";
 import { Coins, Radio } from "lucide-react";
 import type { ProWithQueue, ProRecentStats } from "@/lib/queries/pros";
 import type { MyQueueEntry } from "@/lib/queries/queue";
+import type { SignatureHero } from "@/components/dota/hero-video-backdrop";
 import { QueueActionButton } from "@/components/queue/queue-action-button";
 import { UserStatusBar } from "@/components/queue/user-status-bar";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -33,6 +34,8 @@ export interface ProMasterDetailProps {
   fichaPreco: number | null;
   prosWithQueues: ProWithQueue[];
   statsByCoach: Map<string, ProRecentStats>;
+  /** Herói de assinatura por coachId (nº 1 da carreira) — backdrop vivo do detalhe. */
+  signatureHeroByCoach?: Map<string, SignatureHero>;
   myQueues: MyQueueEntry[];
 }
 
@@ -44,6 +47,7 @@ export function ProMasterDetail({
   fichaPreco,
   prosWithQueues,
   statsByCoach,
+  signatureHeroByCoach,
   myQueues,
 }: ProMasterDetailProps) {
   const onlinePros = prosWithQueues.filter((p) => p.coach.filaAberta);
@@ -116,6 +120,9 @@ export function ProMasterDetail({
             <ProDetail
               pro={selected}
               stats={statsByCoach.get(selected.coach.coachId)}
+              signatureHero={
+                signatureHeroByCoach?.get(selected.coach.coachId) ?? null
+              }
               viewerUserId={viewerUserId}
             />
           ) : (

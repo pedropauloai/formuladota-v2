@@ -19,6 +19,9 @@ import {
 import { getFichaPackage } from "@/lib/queries/packages";
 import { getMyQueueStatus } from "@/lib/queries/queue";
 import { getPreviewModeActive } from "@/lib/auth/preview-mode";
+import { getCareerStats } from "@/lib/queries/career";
+import { getHeroById } from "@/lib/queries/heroes";
+import type { SignatureHero } from "@/components/dota/hero-video-backdrop";
 
 export const metadata: Metadata = {
   title: "Ranked com PRO — FORMULADOTA",
@@ -73,6 +76,34 @@ export default async function RankedComProPage() {
   );
   const statsByCoach = new Map<string, ProRecentStats>(statsEntries);
 
+  // Herói de assinatura de cada PRO online (nº 1 da carreira OpenDota) —
+  // backdrop VIVO do painel de identidade no master-detail. getCareerStats é
+  // cacheado 24h e os PROs online são poucos — sem risco de rate limit.
+  // coaches.id ≠ profiles.id: resolve o profile_id antes de buscar a carreira.
+  const signatureHeroByCoach = new Map<string, SignatureHero>();
+  if (onlinePros.length > 0) {
+    const { data: coachRows } = await supabase
+      .from("coaches")
+      .select("id, profile_id")
+      .in(
+        "id",
+        onlinePros.map((p) => p.coach.coachId)
+      );
+    await Promise.all(
+      (coachRows ?? []).map(async (row) => {
+        const career = await getCareerStats(row.profile_id);
+        const top = career?.topHeroes[0];
+        const hero = top ? getHeroById(top.heroId) : null;
+        if (hero) {
+          signatureHeroByCoach.set(row.id, {
+            slug: hero.slug,
+            name: hero.name_pt,
+          });
+        }
+      })
+    );
+  }
+
   return (
     <ClientShell
       currentRoute="/ranked-com-pro"
@@ -94,6 +125,7 @@ export default async function RankedComProPage() {
         fichaPreco={fichaPackage?.precoBrl ?? null}
         prosWithQueues={prosWithQueues}
         statsByCoach={statsByCoach}
+        signatureHeroByCoach={signatureHeroByCoach}
         myQueues={myQueues}
       />
     </ClientShell>

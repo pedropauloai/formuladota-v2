@@ -13,6 +13,7 @@
 
 import type { ProWithQueue, ProRecentStats } from "@/lib/queries/pros";
 import type { MyQueueEntry } from "@/lib/queries/queue";
+import type { SignatureHero } from "@/components/dota/hero-video-backdrop";
 import { ProMasterDetail } from "@/components/ranked/pro-master-detail";
 
 interface CenterProps {
@@ -25,6 +26,8 @@ interface CenterProps {
   prosWithQueues: ProWithQueue[];
   /** Stats por coachId — opcional. Hoje carrega só pros online, mas é flexível. */
   statsByCoach: Map<string, ProRecentStats>;
+  /** Herói de assinatura por coachId (nº 1 da carreira) — backdrop vivo do detalhe. */
+  signatureHeroByCoach?: Map<string, SignatureHero>;
   myQueues: MyQueueEntry[];
 }
 
@@ -36,6 +39,7 @@ export function DashboardCenter({
   fichaPreco,
   prosWithQueues,
   statsByCoach,
+  signatureHeroByCoach,
   myQueues,
 }: CenterProps) {
   return (
@@ -47,6 +51,7 @@ export function DashboardCenter({
       fichaPreco={fichaPreco}
       prosWithQueues={prosWithQueues}
       statsByCoach={statsByCoach}
+      signatureHeroByCoach={signatureHeroByCoach}
       myQueues={myQueues}
     />
   );

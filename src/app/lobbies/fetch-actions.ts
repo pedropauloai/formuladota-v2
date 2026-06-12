@@ -5,6 +5,9 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { xpProgress, getGatedTierForLevel } from "@/lib/levels";
+import { parseCareerStats } from "@/lib/dota/career";
+import { getHeroById } from "@/lib/queries/heroes";
+import type { SignatureHero } from "@/components/dota/hero-video-backdrop";
 import type { LobbyData, PlayerSlot } from "./[id]/lobby-types";
 
 export interface LobbyListItem {
@@ -23,6 +26,8 @@ export interface LobbyRoomData {
   currentUserId: string;
   isLeader: boolean;
   leaderUsername: string;
+  /** Herói nº 1 da carreira do líder (OpenDota cacheado) — backdrop do header. */
+  leaderHero: SignatureHero | null;
 }
 
 export async function fetchOpenLobbies(): Promise<LobbyListItem[]> {
@@ -114,11 +119,25 @@ export async function fetchLobbyRoom(lobbyId: string): Promise<LobbyRoomData | n
     };
   });
 
-  const { data: leaderProfile } = await supabase
-    .from("profiles")
-    .select("username")
-    .eq("id", lobby.created_by)
-    .single();
+  // Perfil do líder + carreira cacheada (user_stats_extended.career, read-only)
+  // em paralelo — o herói nº 1 do líder vira backdrop vivo do room-header.
+  const [{ data: leaderProfile }, { data: leaderStatsRow }] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("username")
+      .eq("id", lobby.created_by)
+      .single(),
+    supabase
+      .from("user_stats_extended")
+      .select("career")
+      .eq("user_id", lobby.created_by)
+      .maybeSingle(),
+  ]);
+
+  const leaderCareer = parseCareerStats(leaderStatsRow?.career ?? null);
+  const leaderTopHero = leaderCareer?.topHeroes[0]
+    ? getHeroById(leaderCareer.topHeroes[0].heroId)
+    : null;
 
   return {
     lobby: {
@@ -136,5 +155,8 @@ export async function fetchLobbyRoom(lobbyId: string): Promise<LobbyRoomData | n
     currentUserId: user.id,
     isLeader: lobby.created_by === user.id,
     leaderUsername: leaderProfile?.username ?? "—",
+    leaderHero: leaderTopHero
+      ? { slug: leaderTopHero.slug, name: leaderTopHero.name_pt }
+      : null,
   };
 }

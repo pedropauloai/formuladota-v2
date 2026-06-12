@@ -10,7 +10,7 @@
 //   - player.win: 1 ou 0 (já calculado pela API)
 //   - itens: item_0..item_5 (inventário) + backpack_0..2 + item_neutral
 
-const OPENDOTA_BASE = "https://api.opendota.com/api";
+export const OPENDOTA_BASE = "https://api.opendota.com/api";
 
 export interface OpenDotaPlayer {
   account_id: number | null; // null se anônimo
@@ -155,7 +155,7 @@ const DEFAULT_MAX_AGE_HOURS = 4;
  * OpenDota usa 32-bit; nós armazenamos 64-bit. id32 = id64 - 76561197960265728.
  * BigInt necessário para evitar overflow (Number.MAX_SAFE_INTEGER).
  */
-function steam64To32(steamId64: string): number {
+export function steam64To32(steamId64: string): number {
   return Number(BigInt(steamId64) - 76561197960265728n);
 }
 

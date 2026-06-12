@@ -279,6 +279,7 @@ export function PlayMenu({ isVisitor, initial }: Props) {
                 currentUserId={lobbyData.currentUserId}
                 isLeader={lobbyData.isLeader}
                 leaderUsername={lobbyData.leaderUsername}
+                leaderHero={lobbyData.leaderHero}
                 onMutate={refetchSala}
                 onEdit={() => {
                   setEditing(true);
