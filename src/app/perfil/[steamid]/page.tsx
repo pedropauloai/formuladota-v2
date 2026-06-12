@@ -24,7 +24,11 @@ import { ClientShell } from "@/components/client-shell/shell";
 import { syncPlayerStats } from "@/app/perfil/actions";
 import { getCareerStats } from "@/lib/queries/career";
 import { getHeroById } from "@/lib/queries/heroes";
-import { CareerStatsBlock } from "@/components/profile/career-stats";
+import {
+  rankTierToDotaRank,
+  CareerIdentityInline,
+  SignatureHeroesStrip,
+} from "@/components/profile/career-stats";
 import { HeroVideoBackdrop } from "@/components/dota/hero-video-backdrop";
 import {
   Card,
@@ -188,8 +192,14 @@ export default async function PerfilPublicoPage(props: PageProps) {
   };
   const displayName = identityDisplayName(identitySrc);
   const avatarSrc = identityDisplayAvatar(identitySrc) ?? undefined;
-  const dotaRank = mmrToDotaRank(mmrRow?.mmr);
-  const calibrationStatus = mmrRow ? "ranqueado" : "visitante";
+  // Medalha do hero: a Valve REAL da carreira (STRATZ/OpenDota) quando existe;
+  // fallback pra derivada do MMR local — sem duplicar medalha no header.
+  const careerRank = career
+    ? rankTierToDotaRank(career.rankTier, career.leaderboardRank)
+    : null;
+  const dotaRank = careerRank ?? mmrToDotaRank(mmrRow?.mmr);
+  const calibrationStatus =
+    careerRank !== null || mmrRow ? "ranqueado" : "visitante";
 
   return (
     <ClientShell currentRoute="/perfil">
@@ -223,7 +233,8 @@ export default async function PerfilPublicoPage(props: PageProps) {
               {displayName}
             </h1>
 
-            {/* Par canônico: SKILL + HONOR lado a lado */}
+            {/* Par canônico: SKILL + HONOR lado a lado — CARREIRA ENCAIXADA
+                na MESMA linha (winrate GOLD + badge TOP), sem seção nova */}
             <div className="mt-3 flex flex-wrap items-center gap-6">
               <DotaRankMedal
                 rank={dotaRank}
@@ -238,6 +249,9 @@ export default async function PerfilPublicoPage(props: PageProps) {
                 showLabel
                 calibrationStatus={mmrRow ? "ranqueado" : "visitante"}
               />
+              {career && (
+                <CareerIdentityInline career={career} showMedal={false} />
+              )}
             </div>
           </div>
         </div>
@@ -254,18 +268,24 @@ export default async function PerfilPublicoPage(props: PageProps) {
         </Link>
 
         {/* ----------------------------------------------------------------
-            Carreira — identidade competitiva + heróis vivos + veterania
-            ---------------------------------------------------------------- */}
-        <CareerStatsBlock career={career} />
-
-        {/* ----------------------------------------------------------------
-            Stats locais — temporada atual
+            Stats locais — temporada atual + VETERANIA de carreira encaixada
+            como células extras na MESMA linha (xl = 7 colunas, uma linha só).
+            Carreira NÃO tem mais seção própria empilhada (Pedro 2026-06-11).
             ---------------------------------------------------------------- */}
         <section>
           <h2 className="mb-4 font-sans text-sm font-semibold uppercase tracking-widest text-text-faded">
             Temporada atual
+            {career && (
+              <span className="ml-2 normal-case tracking-normal text-text-faded">
+                · veterania de carreira
+              </span>
+            )}
           </h2>
-          <div className="grid gap-4 md:grid-cols-4">
+          <div
+            className={`grid gap-4 grid-cols-2 md:grid-cols-4 ${
+              career ? "xl:grid-cols-7" : ""
+            }`}
+          >
             <StatCard label="MMR atual" value={mmrRow?.mmr ?? "—"} />
             <StatCard label="Vitórias" value={mmrRow?.vitorias ?? 0} />
             <StatCard label="Derrotas" value={mmrRow?.derrotas ?? 0} />
@@ -273,6 +293,25 @@ export default async function PerfilPublicoPage(props: PageProps) {
               label="Win rate"
               value={winRate !== null ? `${winRate}%` : "—"}
             />
+            {career && (
+              <>
+                <StatCard
+                  label="Abates"
+                  value={career.totals.kills.toLocaleString("pt-BR")}
+                  gold
+                />
+                <StatCard
+                  label="Assistências"
+                  value={career.totals.assists.toLocaleString("pt-BR")}
+                  gold
+                />
+                <StatCard
+                  label="Last hits"
+                  value={career.totals.lastHits.toLocaleString("pt-BR")}
+                  gold
+                />
+              </>
+            )}
           </div>
         </section>
 
@@ -310,9 +349,22 @@ export default async function PerfilPublicoPage(props: PageProps) {
         </section>
 
         {/* ----------------------------------------------------------------
-            Top heróis — links externos OpenDota
+            Top heróis — área ÚNICA (sem duplicar com "Carreira"):
+            com carreira → heróis de assinatura VIVOS (HeroVideo, top 3);
+            sem carreira → fallback antigo com cards OpenDota.
             ---------------------------------------------------------------- */}
-        {externalStats && externalStats.topHeroes.length > 0 && (
+        {career && career.topHeroes.length > 0 ? (
+          <section>
+            <h2 className="mb-4 font-sans text-sm font-semibold uppercase tracking-widest text-text-faded">
+              Heróis de assinatura
+              <span className="ml-2 normal-case tracking-normal">
+                · fonte: STRATZ/OpenDota · sincronizado{" "}
+                {new Date(career.syncedAt).toLocaleDateString("pt-BR")}
+              </span>
+            </h2>
+            <SignatureHeroesStrip career={career} className="flex-wrap" />
+          </section>
+        ) : externalStats && externalStats.topHeroes.length > 0 ? (
           <section>
             <h2 className="mb-4 font-sans text-sm font-semibold uppercase tracking-widest text-text-faded">
               Heróis mais jogados
@@ -343,7 +395,7 @@ export default async function PerfilPublicoPage(props: PageProps) {
               ))}
             </div>
           </section>
-        )}
+        ) : null}
 
         {/* ----------------------------------------------------------------
             Badges conquistadas
@@ -397,16 +449,35 @@ export default async function PerfilPublicoPage(props: PageProps) {
 // Subcomponentes locais — usam primitives V2.5
 // ---------------------------------------------------------------------------
 
-function StatCard({ label, value }: { label: string; value: string | number }) {
+// `gold` pinta o valor com o token de valor/progresso (números de carreira).
+function StatCard({
+  label,
+  value,
+  gold,
+}: {
+  label: string;
+  value: string | number;
+  gold?: boolean;
+}) {
   return (
     <Card variant="flat">
       <CardHeader>
-        <CardTitle className="font-sans text-sm uppercase tracking-widest text-text-faded font-normal">
+        <CardTitle
+          className={`font-sans text-sm uppercase tracking-widest font-normal ${
+            gold ? "text-gold-muted" : "text-text-faded"
+          }`}
+        >
           {label}
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="font-display text-3xl text-text-display">{value}</p>
+        <p
+          className={`font-display-condensed text-3xl tabular-nums ${
+            gold ? "text-gold" : "text-text-display"
+          }`}
+        >
+          {value}
+        </p>
       </CardContent>
     </Card>
   );

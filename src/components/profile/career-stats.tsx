@@ -1,21 +1,25 @@
-// CareerStatsBlock — bloco "Carreira" do perfil (dados OpenDota via getCareerStats).
+// Sub-peças ENCAIXÁVEIS de carreira (dados híbridos STRATZ + OpenDota via
+// getCareerStats). REFATOR 2026-06-11 (feedback Pedro): o antigo
+// CareerStatsBlock era uma seção full-width APENSADA ao perfil e criava
+// rolagem extra. Agora a carreira se distribui nos espaços que JÁ existem:
 //
-// 3 andares:
-//   1. Identidade competitiva — medalha Valve (rank_tier) + winrate de carreira
-//      (W-L e % em GOLD) + badge "TOP {n}" (leaderboard regional — raríssimo,
-//      é o status máximo do Dota)
-//   2. Heróis de assinatura — top 3 da carreira com HeroVideo (o herói VIVO);
-//      o nº 1 maior que os outros (hierarquia 60-30-10)
-//   3. Veterania — abates/assistências/last hits acumulados como troféus dourados
+//   <CareerIdentityInline>   medalha Valve + winrate (GOLD) + badge TOP {n}
+//                            → dentro do header/identidade existente
+//   <SignatureHeroesStrip>   top 3 heróis com HeroVideo (o herói VIVO),
+//                            horizontal compacto → encaixa em header ou em
+//                            área de heróis já existente
+//   veterania (kills/assists/last hits) → células nas linhas de stats
+//                            numéricos existentes (WidgetStats no /me,
+//                            "Temporada atual" no público) — sem bloco novo
+//   <CareerLinkSteamCta>     CTA compacto "Vincular Steam" pro /me sem carreira
 //
-// Estado null (sem Steam / OpenDota mudo) → EmptyState na voz da marca.
-// Server Component — HeroVideo/EmptyState (client) são compostos normalmente.
+// Nenhuma peça cria seção empilhada — todas são inline/flex pra caber na
+// altura que a página já tinha. Server Components — HeroVideo (client) é
+// composto normalmente.
 
 import Link from "next/link";
-import { Link2, ShieldQuestion } from "lucide-react";
 import { DotaRankMedal, type DotaRank } from "@/components/ui/dota-rank-medal";
-import { HeroVideo } from "@/components/dota/hero-video";
-import { EmptyState } from "@/components/ui/empty-state";
+import { HeroFace } from "@/components/dota/hero-face";
 import { getHeroById } from "@/lib/queries/heroes";
 import type { CareerStats, CareerHeroStat } from "@/lib/dota/career";
 import { cn } from "@/lib/utils";
@@ -24,7 +28,7 @@ import { cn } from "@/lib/utils";
 // rank_tier Valve → DotaRank
 // ---------------------------------------------------------------------------
 
-// rank_tier da OpenDota: dezena = medalha (1..8), unidade = estrelas.
+// rank_tier (STRATZ seasonRank / OpenDota): dezena = medalha (1..8), unidade = estrelas.
 const TIER_TO_RANK: Record<number, DotaRank> = {
   1: "herald",
   2: "guardian",
@@ -37,7 +41,7 @@ const TIER_TO_RANK: Record<number, DotaRank> = {
 };
 
 /**
- * Converte rank_tier (OpenDota) → DotaRank do design system.
+ * Converte rank_tier (STRATZ/OpenDota) → DotaRank do design system.
  * Retorna null quando o jogador não expõe rank público.
  * Imortal com leaderboard ≤ 100 ganha a medalha vermelha exclusiva.
  */
@@ -74,159 +78,102 @@ function resolveTopHeroes(stats: CareerHeroStat[], limit = 3): ResolvedHero[] {
 }
 
 // ---------------------------------------------------------------------------
-// Componente principal
+// CareerIdentityInline — medalha + winrate + TOP {n} na MESMA linha do header
 // ---------------------------------------------------------------------------
 
-interface CareerStatsBlockProps {
-  career: CareerStats | null;
-  /** true no /me (CTA "Vincular Steam"); false em perfil público (mensagem neutra). */
-  ownProfile?: boolean;
+interface CareerIdentityInlineProps {
+  career: CareerStats;
+  /**
+   * false quando o header já exibe uma DotaRankMedal própria (perfil público)
+   * — aí esta peça contribui só com winrate + badge TOP, sem duplicar medalha.
+   */
+  showMedal?: boolean;
+  className?: string;
 }
 
-export function CareerStatsBlock({
+export function CareerIdentityInline({
   career,
-  ownProfile = false,
-}: CareerStatsBlockProps) {
-  return (
-    <section className="space-y-5">
-      <h2 className="font-display-condensed text-2xl uppercase leading-none tracking-wider text-text-muted">
-        Carreira
-      </h2>
-      {career ? (
-        <CareerContent career={career} />
-      ) : (
-        <CareerEmpty ownProfile={ownProfile} />
-      )}
-    </section>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Estado null — voz da marca (anti-anonimato: Steam = identidade)
-// ---------------------------------------------------------------------------
-
-function CareerEmpty({ ownProfile }: { ownProfile: boolean }) {
-  if (!ownProfile) {
-    return (
-      <EmptyState
-        icon={<ShieldQuestion />}
-        title="Carreira ainda sem registro"
-        description="Os números de carreira chegam quando a conta Steam deste jogador conversa com o OpenDota. Volte em breve."
-      />
-    );
-  }
-  return (
-    <EmptyState
-      icon={<Link2 />}
-      title="Sua carreira merece aparecer aqui"
-      description="Vincule sua Steam e a plataforma puxa sua história inteira do Dota: medalha, winrate de carreira e os heróis que te definem. Sem história não há reputação — e reputação é o que vale aqui dentro."
-      action={
-        <Link
-          href="/vincular/steam"
-          className="inline-flex items-center gap-2 font-display text-sm font-semibold uppercase tracking-wide text-brand-primary transition-colors hover:text-text-display"
-        >
-          Vincular Steam →
-        </Link>
-      }
-    />
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Conteúdo com dados
-// ---------------------------------------------------------------------------
-
-function CareerContent({ career }: { career: CareerStats }) {
+  showMedal = true,
+  className,
+}: CareerIdentityInlineProps) {
   const rank = rankTierToDotaRank(career.rankTier, career.leaderboardRank);
   const totalGames = career.wins + career.losses;
   const winratePct =
     totalGames > 0 ? Math.round((career.wins / totalGames) * 100) : null;
-  const heroes = resolveTopHeroes(career.topHeroes);
 
   return (
-    <div className="space-y-6">
-      {/* ---- 1. Identidade competitiva ---- */}
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-        {rank ? (
-          <DotaRankMedal
-            rank={rank}
-            size="lg"
-            showLabel
-            glow={rank === "immortal" || rank === "immortal-top-100"}
-          />
-        ) : (
-          // Sem rank público na OpenDota — placeholder de não-calibrado
-          <DotaRankMedal rank="herald" size="lg" showLabel calibrationStatus="visitante" />
-        )}
-
-        <div>
-          <p className="font-display-condensed text-5xl leading-none tabular-nums text-gold">
-            {winratePct !== null ? `${winratePct}%` : "—"}
-            <span className="ml-2 text-xl uppercase tracking-wide text-gold-muted">
-              winrate
-            </span>
-          </p>
-          <p className="mt-1.5 font-mono text-sm tabular-nums text-gold">
-            {career.wins.toLocaleString("pt-BR")}V
-            <span className="text-gold-muted"> · </span>
-            {career.losses.toLocaleString("pt-BR")}D
-          </p>
-        </div>
-
-        {/* TOP {n} — só Imortais ranqueados no leaderboard. Status máximo. */}
-        {career.leaderboardRank != null && (
-          <span
-            className="inline-flex items-center rounded-sm border border-border-gold bg-gold/10 px-3 py-1.5 font-display-condensed text-3xl uppercase leading-none tracking-wider text-gold-bright"
-            title="Posição no leaderboard regional Valve — só Imortais ranqueados"
-          >
-            TOP {career.leaderboardRank.toLocaleString("pt-BR")}
-          </span>
-        )}
-      </div>
-
-      {/* ---- 2. Heróis de assinatura (top 3 — herói VIVO) ---- */}
-      {heroes.length > 0 && (
-        <div className="space-y-2.5">
-          <h3 className="font-display-condensed text-lg uppercase leading-none tracking-wider text-text-faded">
-            Heróis de assinatura
-          </h3>
-          <div className="flex flex-wrap items-stretch gap-3">
-            {heroes.map((hero, index) => (
-              <SignatureHeroCard
-                key={hero.stat.heroId}
-                hero={hero}
-                primary={index === 0}
-              />
-            ))}
-          </div>
-        </div>
+    <div className={cn("flex items-center gap-4", className)}>
+      {showMedal && rank && (
+        <DotaRankMedal
+          rank={rank}
+          size="md"
+          glow={rank === "immortal" || rank === "immortal-top-100"}
+        />
       )}
 
-      {/* ---- 3. Veterania — acumulados de carreira como troféus ---- */}
-      <div className="space-y-2.5">
-        <h3 className="font-display-condensed text-lg uppercase leading-none tracking-wider text-text-faded">
-          Veterania
-        </h3>
-        <div className="grid max-w-xl grid-cols-3 gap-3">
-          <TrophyStat label="Abates" value={career.totals.kills} />
-          <TrophyStat label="Assistências" value={career.totals.assists} />
-          <TrophyStat label="Last hits" value={career.totals.lastHits} />
-        </div>
+      {/* Winrate de carreira — número em GOLD, compacto pra caber no header */}
+      <div title="Carreira completa (inclui Turbo) — fonte STRATZ/OpenDota">
+        <p className="font-display-condensed text-3xl leading-none tabular-nums text-gold">
+          {winratePct !== null ? `${winratePct}%` : "—"}
+          <span className="ml-1.5 text-sm uppercase tracking-wide text-gold-muted">
+            winrate
+          </span>
+        </p>
+        <p className="mt-1 font-mono text-xs tabular-nums text-gold">
+          {career.wins.toLocaleString("pt-BR")}V
+          <span className="text-gold-muted"> · </span>
+          {career.losses.toLocaleString("pt-BR")}D
+        </p>
       </div>
 
-      <p className="font-display text-sm font-semibold uppercase tracking-wide text-text-faded">
-        Fonte: OpenDota · sincronizado{" "}
-        {new Date(career.syncedAt).toLocaleDateString("pt-BR")}
-      </p>
+      {/* TOP {n} — só Imortais ranqueados no leaderboard. Status máximo. */}
+      {career.leaderboardRank != null && (
+        <span
+          className="inline-flex items-center rounded-sm border border-border-gold bg-gold/10 px-2 py-1 font-display-condensed text-xl uppercase leading-none tracking-wider text-gold-bright"
+          title="Posição no leaderboard regional Valve — só Imortais ranqueados"
+        >
+          TOP {career.leaderboardRank.toLocaleString("pt-BR")}
+        </span>
+      )}
     </div>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Card de herói de assinatura — nº 1 maior (hierarquia 60-30-10)
+// SignatureHeroesStrip — top 3 heróis VIVOS em linha horizontal compacta
 // ---------------------------------------------------------------------------
 
-function SignatureHeroCard({
+interface SignatureHeroesStripProps {
+  career: CareerStats;
+  limit?: number;
+  className?: string;
+}
+
+export function SignatureHeroesStrip({
+  career,
+  limit = 3,
+  className,
+}: SignatureHeroesStripProps) {
+  const heroes = resolveTopHeroes(career.topHeroes, limit);
+  if (heroes.length === 0) return null;
+
+  return (
+    <div className={cn("flex items-center gap-3", className)}>
+      {heroes.map((hero, index) => (
+        <SignatureHeroMini
+          key={hero.stat.heroId}
+          hero={hero}
+          primary={index === 0}
+        />
+      ))}
+    </div>
+  );
+}
+
+// Mini-card horizontal: ROSTO do herói 64px (HeroFace) + nome/jogos/winrate.
+// Pedro 2026-06-11: em local pequeno, só o rosto dá destaque — corpo inteiro
+// (vídeo) fica pros backdrops grandes. Altura ≈ 64px, cabe ao lado do avatar XL.
+function SignatureHeroMini({
   hero,
   primary,
 }: {
@@ -239,38 +186,23 @@ function SignatureHeroCard({
   return (
     <div
       className={cn(
-        "flex flex-col gap-2.5 rounded-sm border bg-bg-elevated/60 p-3",
-        // Nº 1 maior que os demais — hierarquia 60-30-10
-        primary ? "w-64 border-border-gold/60" : "w-44 border-border-subtle"
+        "flex items-center gap-2 rounded-sm border bg-bg-elevated/60 p-1.5 pr-2.5",
+        // Nº 1 com borda dourada — hierarquia sem mudar a altura
+        primary ? "border-border-gold/60" : "border-border-subtle"
       )}
     >
-      <HeroVideo
-        heroSlug={hero.slug}
-        heroName={hero.name}
-        size={primary ? "lg" : "md"}
-        className="w-full"
-      />
-      <div className="space-y-1">
-        <p
-          className={cn(
-            "font-display-condensed uppercase leading-none text-text-display",
-            primary ? "text-2xl" : "text-lg"
-          )}
-        >
+      <HeroFace heroSlug={hero.slug} heroName={hero.name} size="sm" />
+      <div className="min-w-0">
+        <p className="font-display-condensed text-base uppercase leading-none text-text-display truncate max-w-[7rem]">
           {hero.name}
         </p>
-        <p className="font-display text-sm font-semibold text-text-muted">
+        <p className="mt-0.5 font-display text-[11px] font-semibold text-text-muted">
           {stat.games.toLocaleString("pt-BR")} jogos
         </p>
-        <p
-          className={cn(
-            "font-display-condensed leading-none tabular-nums text-gold",
-            primary ? "text-3xl" : "text-xl"
-          )}
-        >
+        <p className="mt-0.5 font-display-condensed text-lg leading-none tabular-nums text-gold">
           {winrate}%
-          <span className="ml-1 text-sm uppercase tracking-wide text-gold-muted">
-            winrate
+          <span className="ml-1 text-[10px] uppercase tracking-wide text-gold-muted">
+            wr
           </span>
         </p>
       </div>
@@ -279,18 +211,20 @@ function SignatureHeroCard({
 }
 
 // ---------------------------------------------------------------------------
-// TrophyStat — número grande dourado + label uppercase muted
+// CareerLinkSteamCta — CTA compacto pro /me sem carreira (sem EmptyState gigante)
 // ---------------------------------------------------------------------------
 
-function TrophyStat({ label, value }: { label: string; value: number }) {
+export function CareerLinkSteamCta({ className }: { className?: string }) {
   return (
-    <div className="rounded-sm border border-border-subtle bg-bg-elevated/60 px-4 py-3">
-      <p className="font-display-condensed text-4xl leading-none tabular-nums text-gold">
-        {value.toLocaleString("pt-BR")}
-      </p>
-      <p className="mt-1.5 font-display text-sm font-semibold uppercase tracking-widest text-text-muted">
-        {label}
-      </p>
-    </div>
+    <Link
+      href="/vincular/steam"
+      className={cn(
+        "inline-flex items-center gap-2 font-display text-sm font-semibold uppercase tracking-wide text-brand-primary transition-colors hover:text-text-display",
+        className
+      )}
+      title="Vincule sua Steam e a plataforma puxa sua história inteira do Dota: medalha, winrate de carreira e os heróis que te definem."
+    >
+      Vincular Steam →
+    </Link>
   );
 }

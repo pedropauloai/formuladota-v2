@@ -1,4 +1,4 @@
-// Leitura dos stats de carreira (OpenDota) pra UI de perfil.
+// Leitura dos stats de carreira (híbrido STRATZ + OpenDota) pra UI de perfil.
 //
 // Contrato pro agente de UI:
 //   getCareerStats(userId) → CareerStats | null

@@ -43,7 +43,11 @@ import {
   AvatarEditor,
 } from "./inline-edit-controls";
 import { ResetLayoutButton } from "./reset-layout-button";
-import { CareerStatsBlock } from "./career-stats";
+import {
+  CareerIdentityInline,
+  SignatureHeroesStrip,
+  CareerLinkSteamCta,
+} from "./career-stats";
 import { HeroVideoBackdrop } from "@/components/dota/hero-video-backdrop";
 import { getHeroById } from "@/lib/queries/heroes";
 import type { ProfileForMe } from "@/lib/queries/profile";
@@ -109,7 +113,10 @@ export function ProfilePage({ profile, activeTab, dotaRank, honorRank, editing, 
 
           {/* ─── HEADER ÂNCORA — avatar + nome + tag FORMULADOTA ───
               Herói nº 1 da carreira como backdrop VIVO (vídeo Valve em
-              opacidade baixa + gradiente — atmosfera, não compete com o nome). */}
+              opacidade baixa + gradiente — atmosfera, não compete com o nome).
+              CARREIRA ENCAIXADA AQUI (2026-06-11): medalha Valve + winrate +
+              TOP {n} + top 3 heróis vivos na MESMA linha do header — nada de
+              seção nova empilhada (feedback Pedro: zero rolagem extra). */}
           <header className="relative mb-6 overflow-hidden rounded-sm">
             {topHero && (
               <HeroVideoBackdrop
@@ -134,6 +141,17 @@ export function ProfilePage({ profile, activeTab, dotaRank, honorRank, editing, 
                   FORMULADOTA
                 </p>
               </div>
+
+              {/* Carreira inline — some em telas estreitas pra NUNCA quebrar
+                  linha e esticar o header (altura ≤ avatar XL de 96px). */}
+              {career ? (
+                <div className="hidden md:flex items-center gap-5 shrink-0">
+                  <CareerIdentityInline career={career} />
+                  <SignatureHeroesStrip career={career} className="hidden xl:flex" />
+                </div>
+              ) : (
+                <CareerLinkSteamCta className="hidden md:inline-flex shrink-0" />
+              )}
             </div>
           </header>
 
@@ -151,13 +169,11 @@ export function ProfilePage({ profile, activeTab, dotaRank, honorRank, editing, 
               mmr: profile.mmr,
               statusMessage: profile.statusMessage,
               favoriteHeroes: profile.favoriteHeroes,
+              // Veterania de carreira → células extras DENTRO do widget Stats
+              // (altura do widget é fixa pelo grid — página não cresce)
+              careerTotals: career?.totals ?? null,
             }}
           />
-
-          {/* ─── CARREIRA — identidade competitiva + heróis vivos + veterania ─── */}
-          <div className="mt-8">
-            <CareerStatsBlock career={career} ownProfile />
-          </div>
 
           {/* ─── Editores adicionais (avatar custom + hero portrait) — só em edit ─── */}
           {editing && (

@@ -42,6 +42,7 @@ import {
   type WidgetId,
 } from "@/lib/queries/dashboard-layout";
 import type { HeroData } from "@/lib/queries/heroes";
+import type { CareerTotals } from "@/lib/dota/career";
 import type { DotaRank } from "@/components/ui/dota-rank-medal";
 import type { HonorRank } from "@/components/ui/honor-rank-medal";
 
@@ -68,6 +69,8 @@ interface WidgetData {
   mmr: number | null;
   statusMessage: string | null;
   favoriteHeroes: HeroData[];
+  /** Acumulados de carreira (OpenDota) — células extras no widget Stats. */
+  careerTotals: CareerTotals | null;
 }
 
 interface Props {
@@ -176,6 +179,7 @@ export function DashboardGrid({ initialLayout, editing, data }: Props) {
           vitorias={data.vitorias}
           derrotas={data.derrotas}
           mmr={data.mmr}
+          careerTotals={data.careerTotals}
           editing={editing}
         />
       ),

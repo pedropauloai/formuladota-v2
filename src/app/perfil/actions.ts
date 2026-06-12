@@ -98,7 +98,9 @@ export type CareerSyncResult =
   | { success: false; error: string };
 
 /**
- * Sincroniza stats de CARREIRA (OpenDota, migration 051) de um user.
+ * Sincroniza stats de CARREIRA (híbrido STRATZ + OpenDota, migration 051).
+ * STRATZ = W/L total (inclui Turbo) + medalha season; OpenDota = heróis e
+ * acumulados all-time. STRATZ fora do ar → valores OpenDota (ver fetchCareerStats).
  * Mesmo padrão do syncPlayerStats: TTL 24h, falha silenciosa, cache-first.
  *
  * Free tier OpenDota = 60 req/min → o TTL é a única proteção de rate limit.
