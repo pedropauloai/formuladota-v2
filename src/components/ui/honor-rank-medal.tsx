@@ -96,18 +96,20 @@ export function legacyHonorToBand(tier: string): HonorRank {
  * Tamanhos
  * ------------------------------------------------------------------ */
 
+/* Escala IGUAL à da DotaRankMedal (Pedro 2026-06-12: o par precisa ter o
+ * mesmo peso visual — antes a HONOR era ~20% menor em todos os tamanhos). */
 const SIZE_PX: Record<NonNullable<HonorRankMedalProps["size"]>, number> = {
-  sm: 24,
-  md: 40,
-  lg: 64,
-  xl: 96,
+  sm: 32,
+  md: 48,
+  lg: 72,
+  xl: 128,
 }
 
 const SIZE_CLASS: Record<NonNullable<HonorRankMedalProps["size"]>, string> = {
-  sm: "size-6",
-  md: "size-10",
-  lg: "size-16",
-  xl: "size-24",
+  sm: "size-8",
+  md: "size-12",
+  lg: "size-[4.5rem]",
+  xl: "size-32",
 }
 
 /* ------------------------------------------------------------------
