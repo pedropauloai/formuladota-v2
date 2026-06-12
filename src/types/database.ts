@@ -572,6 +572,7 @@ export type Database = {
           ended_at: string | null
           game_mode: string
           id: string
+          league_id: number | null
           max_players: number
           mmr_target_max: number | null
           mmr_target_min: number | null
@@ -591,6 +592,7 @@ export type Database = {
           ended_at?: string | null
           game_mode?: string
           id?: string
+          league_id?: number | null
           max_players?: number
           mmr_target_max?: number | null
           mmr_target_min?: number | null
@@ -610,6 +612,7 @@ export type Database = {
           ended_at?: string | null
           game_mode?: string
           id?: string
+          league_id?: number | null
           max_players?: number
           mmr_target_max?: number | null
           mmr_target_min?: number | null
@@ -641,18 +644,21 @@ export type Database = {
         Row: {
           joined_at: string
           lobby_id: string
+          slot: number | null
           team: string
           user_id: string
         }
         Insert: {
           joined_at?: string
           lobby_id: string
+          slot?: number | null
           team: string
           user_id: string
         }
         Update: {
           joined_at?: string
           lobby_id?: string
+          slot?: number | null
           team?: string
           user_id?: string
         }
@@ -838,6 +844,7 @@ export type Database = {
           heroi_jogado: string | null
           id: string
           kda: string | null
+          league_id: number | null
           match_dataset: string | null
           mmr_change: number | null
           notas_pedro: string | null
@@ -862,6 +869,7 @@ export type Database = {
           heroi_jogado?: string | null
           id?: string
           kda?: string | null
+          league_id?: number | null
           match_dataset?: string | null
           mmr_change?: number | null
           notas_pedro?: string | null
@@ -886,6 +894,7 @@ export type Database = {
           heroi_jogado?: string | null
           id?: string
           kda?: string | null
+          league_id?: number | null
           match_dataset?: string | null
           mmr_change?: number | null
           notas_pedro?: string | null

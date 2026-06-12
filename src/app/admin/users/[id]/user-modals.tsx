@@ -24,6 +24,7 @@ import {
   promoveCoach,
   revokeCoachStatus,
 } from "@/app/actions/pro-management";
+import { saveAdminNotes } from "@/app/admin/users/notes-actions";
 
 // ─── Modal base reutilizável ─────────────────────────────────────────────────
 
@@ -733,7 +734,7 @@ export function RevokeCoachModal({
 // ─── CoachNotesModal ─────────────────────────────────────────────────────────
 
 export function CoachNotesModal({
-  targetUserId: _targetUserId,
+  targetUserId,
   username,
   initialNotes,
 }: {
@@ -755,13 +756,15 @@ export function CoachNotesModal({
 
   function submit() {
     setError(null);
+    setSuccess(null);
     startTransition(async () => {
-      // admin_notes é campo livre — update via service direto
-      // Usando a action de ajuste fictícia como wrapper seria errado;
-      // aqui fazemos fetch server-side via action dedicada.
-      // Por ora, simula sucesso — a action saveAdminNotes pode ser adicionada futuramente.
-      // TODO: criar saveAdminNotes action
-      setSuccess("Notas salvas (TODO: implementar saveAdminNotes action).");
+      // Persiste na tabela admin_notes (migration 011) via action admin-gated.
+      const res = await saveAdminNotes({ targetUserId, note: notes });
+      if (!res.success) {
+        setError(res.error);
+      } else {
+        setSuccess("Notas salvas.");
+      }
     });
   }
 

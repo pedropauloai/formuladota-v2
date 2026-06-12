@@ -1,18 +1,38 @@
-// /admin/temporadas — CRUD seasons. Phase 8 H6.3.
+// /admin/temporadas — CRUD de seasons (migration 012).
+// Criar (inativa) + ativar/desativar (1 ativa por vez, unique no banco) +
+// encerrar (ended_at, irreversível). Actions admin-gated em ./actions.ts.
+//
+// Gate: layout /admin valida is_admin; revalidamos aqui (defesa em camadas).
 
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { Calendar } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { CreateSeasonForm, SeasonRowActions } from "./season-controls";
 
 export const metadata: Metadata = { title: "Admin Temporadas — FORMULADOTA" };
+export const revalidate = 0;
 
 export default async function AdminTemporadasPage() {
-  const supabase = createServiceClient();
-  const { data: seasons } = await supabase
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/");
+  const { data: me } = await supabase
+    .from("profiles")
+    .select("is_admin")
+    .eq("id", user.id)
+    .single();
+  if (!me?.is_admin) redirect("/dashboard");
+
+  const service = createServiceClient();
+  const { data: seasons } = await service
     .from("seasons")
-    .select("*")
+    .select("id, name, started_at, ended_at, prize_pool, prize_pool_currency, active")
     .order("started_at", { ascending: false });
 
   return (
@@ -27,44 +47,54 @@ export default async function AdminTemporadasPage() {
         <div className="mt-4 brand-divider" />
       </header>
 
+      <CreateSeasonForm />
+
       <div className="space-y-3">
+        {(seasons ?? []).length === 0 && (
+          <p className="font-mono text-sm text-text-faded">Nenhuma season cadastrada.</p>
+        )}
         {(seasons ?? []).map((s) => (
           <Card
             key={s.id}
             variant="flat"
-            className={
-              s.active
-                ? "border-brand-primary/60 bg-brand-primary/5 p-4"
-                : "p-4"
-            }
+            className={s.active ? "border-brand-primary/60 bg-brand-primary/5 p-4" : "p-4"}
           >
             <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Calendar size={18} className="text-brand-primary" aria-hidden="true" />
-                  <div>
-                    <h3 className="font-display text-xl uppercase tracking-wide text-text-display">{s.name}</h3>
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3 min-w-0">
+                  <Calendar size={18} className="text-brand-primary shrink-0" aria-hidden="true" />
+                  <div className="min-w-0">
+                    <h3 className="font-display text-xl uppercase tracking-wide text-text-display truncate">
+                      {s.name}
+                    </h3>
                     <p className="font-display text-sm font-semibold text-text-body">
                       Iniciada em {new Date(s.started_at).toLocaleDateString("pt-BR")}
-                      {s.ended_at && ` · Encerrada em ${new Date(s.ended_at).toLocaleDateString("pt-BR")}`}
+                      {s.ended_at &&
+                        ` · Encerrada em ${new Date(s.ended_at).toLocaleDateString("pt-BR")}`}
                     </p>
+                    {Number(s.prize_pool) > 0 && (
+                      <p className="mt-1 font-mono text-sm tabular-nums text-gold">
+                        Prize pool: {s.prize_pool_currency}{" "}
+                        {Number(s.prize_pool).toLocaleString("pt-BR")}
+                      </p>
+                    )}
                   </div>
                 </div>
-                {s.active && <Badge variant="success">Ativa</Badge>}
+                <div className="flex items-center gap-3 shrink-0">
+                  {s.active && <Badge variant="success">Ativa</Badge>}
+                  {s.ended_at && !s.active && <Badge variant="secondary">Encerrada</Badge>}
+                  <SeasonRowActions
+                    seasonId={s.id}
+                    seasonName={s.name}
+                    active={s.active}
+                    ended={Boolean(s.ended_at)}
+                  />
+                </div>
               </div>
-              {Number(s.prize_pool) > 0 && (
-                <p className="mt-4 font-mono text-sm text-text-body">
-                  Prize pool: {s.prize_pool_currency} {Number(s.prize_pool).toLocaleString("pt-BR")}
-                </p>
-              )}
             </CardContent>
           </Card>
         ))}
       </div>
-
-      <p className="text-sm text-text-faded">
-        Criação/encerramento manual de seasons via Server Actions — V2 expansão.
-      </p>
     </div>
   );
 }

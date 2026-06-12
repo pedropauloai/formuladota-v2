@@ -18,8 +18,9 @@ import {
 } from "./user-modals";
 import {
   ChevronLeft, CheckCircle, XCircle, Shield,
-  AlertTriangle,
+  AlertTriangle, HelpCircle,
 } from "lucide-react";
+import { PermissionsSection } from "./permissions-section";
 import { getProRevenue } from "@/app/actions/pro-management";
 
 export const revalidate = 0;
@@ -138,12 +139,27 @@ export default async function AdminUserDetailPage({
       id, username, email, role, is_admin,
       behavior_status, calibration_status, created_at,
       mmr_atual, doctrine_version, doctrine_accepted_at,
-      banned_at, banned_reason
+      banned_at, banned_reason,
+      match_permissions_consumed, doctrine_quiz_progress
     `)
     .eq("id", id)
     .single();
 
   if (!profile) notFound();
+
+  // ── Honor real (RPC migration 053 — soma do honor_ledger) + permissões (RPC 044)
+  //    + nota privada mais recente (admin_notes, migration 011)
+  const [honorRes, permissionsRes, adminNoteRes] = await Promise.all([
+    service.rpc("get_honor_score", { p_user_id: id }),
+    service.rpc("available_match_permissions", { p_uid: id }),
+    service
+      .from("admin_notes")
+      .select("note")
+      .eq("target_user_id", id)
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ]);
 
   // ── Fichas
   const { data: fichasRow } = await service
@@ -199,10 +215,13 @@ export default async function AdminUserDetailPage({
     if (revResult.success) proRevenue = revResult.data;
   }
 
-  // ── Dados derivados (campos reais do schema — migration 011)
-  // honor_score não existe no schema atual; derivado via contador de ledger (aproximação)
-  const honorScore = 0; // TODO: implementar helper get_honor_score via RPC quando disponível
+  // ── Dados derivados (campos reais do schema — migrations 011/043/044/053)
+  const honorScore = honorRes.data ?? 0;
   const honorRank = honorScoreToRank(honorScore);
+  const availablePermissions = permissionsRes.data ?? 0;
+  const quizCorrect = Array.isArray(profile.doctrine_quiz_progress)
+    ? profile.doctrine_quiz_progress.length
+    : 0;
   const dotaRank = mmrToRank(profile.mmr_atual);
   const isBanned = Boolean(profile.banned_at);
   const calibrationStatus = (profile.calibration_status ?? "visitante") as
@@ -221,14 +240,11 @@ export default async function AdminUserDetailPage({
     ? (nowMs - new Date(profile.doctrine_accepted_at).getTime()) / (1000 * 60 * 60 * 24)
     : 0;
 
-  const mentorAchievements = (achievements as Array<{ variant: string }> | null ?? []).filter(
-    (a) => a.variant.includes("mentor")
-  ).length;
-
+  // Critério "achievements de mentor" segue A DEFINIR (sem regra fechada no
+  // schema) — exibido como pendente de definição, fora do cálculo de elegibilidade.
   const eligCriteria = {
     honor8: honorScore >= 800,
     seasons2: accountAgeDays >= 120, // ~2 seasons de 60 dias
-    mentorAchs: mentorAchievements >= 3,
     skillTier6: (profile.mmr_atual ?? 0) >= 4600,
     noGraveStrikes: strictStrikes === 0,
     doctrineOk: doctrineSince >= 180,
@@ -237,14 +253,13 @@ export default async function AdminUserDetailPage({
   const criteriosAtendidosLabels = [
     ...(eligCriteria.honor8 ? ["HONOR tier 8 — Imortal da Fórmula"] : []),
     ...(eligCriteria.seasons2 ? ["Pelo menos 2 seasons no sistema"] : []),
-    ...(eligCriteria.mentorAchs ? ["3 ou mais achievements de mentor"] : []),
     ...(eligCriteria.skillTier6 ? ["Skill mínima tier 6 Dota"] : []),
     ...(eligCriteria.noGraveStrikes ? ["Sem strikes graves no histórico"] : []),
     ...(eligCriteria.doctrineOk ? ["Doutrina aceita há 6+ meses"] : []),
   ];
 
   const totalEligCriteria = Object.values(eligCriteria).filter(Boolean).length;
-  const isEligible = totalEligCriteria === 6;
+  const isEligible = totalEligCriteria === 5;
 
   // ── Conduta label
   const conductInfo = behaviorLabel(profile.behavior_status);
@@ -337,7 +352,7 @@ export default async function AdminUserDetailPage({
           <CoachNotesModal
             targetUserId={id}
             username={profile.username ?? "(sem nome)"}
-            initialNotes=""
+            initialNotes={adminNoteRes.data?.note ?? ""}
           />
         </div>
       </SectionCard>
@@ -403,9 +418,21 @@ export default async function AdminUserDetailPage({
       </SectionCard>
 
       {/* ================================================================== */}
-      {/* SUB-PAINEL 3 — Conduta                                             */}
+      {/* SUB-PAINEL 3 — Permissões de partida                               */}
       {/* ================================================================== */}
-      <SectionCard title="3. Conduta">
+      <PermissionsSection
+        userId={id}
+        username={profile.username ?? "(sem nome)"}
+        available={availablePermissions}
+        consumed={profile.match_permissions_consumed}
+        quizCorrect={quizCorrect}
+        isDoctrinated={Boolean(profile.doctrine_accepted_at)}
+      />
+
+      {/* ================================================================== */}
+      {/* SUB-PAINEL 4 — Conduta                                             */}
+      {/* ================================================================== */}
+      <SectionCard title="4. Conduta">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <Shield size={20} className="text-text-faded" />
@@ -471,9 +498,9 @@ export default async function AdminUserDetailPage({
       </SectionCard>
 
       {/* ================================================================== */}
-      {/* SUB-PAINEL 4 — Honor + Skill                                        */}
+      {/* SUB-PAINEL 5 — Honor + Skill                                        */}
       {/* ================================================================== */}
-      <SectionCard title="4. Honor e Skill">
+      <SectionCard title="5. Honor e Skill">
         <div className="grid grid-cols-2 gap-6 mb-6">
           {/* HONOR */}
           <div className="flex flex-col items-center gap-3 p-4 rounded-md border border-border-subtle/50 bg-bg-elevated/20">
@@ -562,9 +589,9 @@ export default async function AdminUserDetailPage({
       </SectionCard>
 
       {/* ================================================================== */}
-      {/* SUB-PAINEL 5 — Elegibilidade PRO                                   */}
+      {/* SUB-PAINEL 6 — Elegibilidade PRO                                   */}
       {/* ================================================================== */}
-      <SectionCard title="5. Elegibilidade PRO">
+      <SectionCard title="6. Elegibilidade PRO">
         {/* Status geral */}
         <div className="flex items-center gap-3 mb-5">
           <div
@@ -581,7 +608,7 @@ export default async function AdminUserDetailPage({
               ? "PRO Ativo"
               : isEligible
                 ? "Elegivel — pronto para promocao"
-                : `${totalEligCriteria}/6 criterios atendidos`}
+                : `${totalEligCriteria}/5 criterios atendidos`}
           </p>
         </div>
 
@@ -595,10 +622,12 @@ export default async function AdminUserDetailPage({
             ok={eligCriteria.seasons2}
             label="Permaneceu no sistema por 2+ seasons consecutivas"
           />
-          <CriterioRow
-            ok={eligCriteria.mentorAchs}
-            label="Pelo menos 3 achievements de mentor"
-          />
+          <div className="flex items-center gap-3 py-2 border-b border-border-subtle/40 last:border-0">
+            <HelpCircle size={14} className="text-text-faded shrink-0" />
+            <span className="font-sans text-sm text-text-faded">
+              Achievements de mentor — critério a definir (fora do cálculo)
+            </span>
+          </div>
           <CriterioRow
             ok={eligCriteria.skillTier6}
             label="Skill minima tier 6 Dota (Arconte+) ou equivalente"
