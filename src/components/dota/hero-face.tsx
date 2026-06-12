@@ -39,6 +39,10 @@ export function HeroFace({
 }: HeroFaceProps) {
   const px = SIZE_PX[size];
   const [videoFailed, setVideoFailed] = useState(false);
+  // O webm da Valve tem fundo TRANSPARENTE — a foto base não pode ficar
+  // permanente embaixo (vazava atrás do herói animado = "duplicado").
+  // Ela só aparece enquanto o vídeo não está de fato rodando.
+  const [playing, setPlaying] = useState(false);
   const crop = `${CROP_CDN_BASE}/${heroSlug}.png`;
 
   return (
@@ -51,22 +55,27 @@ export function HeroFace({
       )}
       style={{ width: px, height: px }}
     >
-      {/* Camada base SEMPRE presente: crop oficial de rosto (carregamento,
-          falha de vídeo e prefers-reduced-motion caem aqui). */}
+      {/* Foto base: visível só no carregamento, falha de vídeo ou
+          prefers-reduced-motion — o webm é transparente, não pode haver
+          camada permanente embaixo (duplicaria o herói). */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={crop}
         alt=""
-        className="absolute inset-0 h-full w-full object-cover object-top"
+        className={cn(
+          "absolute inset-0 h-full w-full object-cover object-top",
+          playing && !videoFailed && "opacity-0 motion-reduce:opacity-100"
+        )}
       />
-      {/* Vídeo idle por cima, recortado no BUSTO: zoom 2.1x com origem no
-          alto-centro (onde fica a cabeça nos renders da Valve). */}
+      {/* Vídeo idle recortado no BUSTO: zoom 2.1x com origem no alto-centro
+          (onde fica a cabeça nos renders da Valve). */}
       {!videoFailed && (
         <video
           autoPlay
           loop
           muted
           playsInline
+          onPlaying={() => setPlaying(true)}
           onError={() => setVideoFailed(true)}
           className="relative h-full w-full scale-[2.1] object-cover object-top [transform-origin:50%_12%] motion-reduce:hidden"
         >
