@@ -56,12 +56,24 @@ export async function joinTeam(input: {
     .maybeSingle();
 
   if (existing) {
-    const { error } = await supabase
+    // .select() força o retorno das linhas afetadas: UPDATE bloqueado por RLS
+    // não dá erro — afeta 0 linhas em silêncio. Foi exatamente esse bug que
+    // deixou "trocar de time" quebrado até a migration 047 (policy de UPDATE
+    // ausente). Com o check de 0 linhas, regressão futura grita em vez de
+    // reportar sucesso falso.
+    const { data: updated, error } = await supabase
       .from("lobby_players")
       .update({ team: input.team })
       .eq("lobby_id", input.lobbyId)
-      .eq("user_id", user.id);
+      .eq("user_id", user.id)
+      .select("user_id");
     if (error) return { success: false, error: "Erro ao trocar de time." };
+    if (!updated || updated.length === 0) {
+      return {
+        success: false,
+        error: "Troca de time não aplicada (permissão no banco). Avise o admin.",
+      };
+    }
   } else {
     const { error } = await supabase
       .from("lobby_players")
