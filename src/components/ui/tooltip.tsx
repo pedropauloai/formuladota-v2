@@ -1,38 +1,30 @@
-// Tooltip — primitive CSS-only (zero JS de posicionamento, zero dependência).
-//
-// Hovers EDUCACIONAIS (decisão Pedro 2026-06-12): tooltips carregam a voz da
-// doutrina — 1-2 frases que adicionam contexto que não cabe na tela.
-//
-// Acessibilidade:
-//   - Mostra no hover E no focus (group-focus-within cobre filhos interativos
-//     e o próprio wrapper quando `focusable`).
-//   - `focusable` (default true) dá tabIndex=0 ao wrapper — use false quando o
-//     filho JÁ é interativo (Link/button), pra não criar tab stop duplicado.
-//   - aria-describedby liga o conteúdo ao wrapper (React.useId funciona em RSC).
-//
-// Estilo: denso, dark, borda sutil. Delay de 150ms só na ENTRADA (hover) —
-// saída é imediata. C17: z via token (--z-elevated = "tooltips hover").
-// Server Component friendly — sem hooks de estado.
+"use client"
 
-import { useId, type ReactNode } from "react"
+// Tooltip — portal com posição FIXA (fix 2026-06-12, feedback Pedro: a versão
+// CSS-only absoluta era cortada por qualquer ancestral com overflow-hidden —
+// e o layout master-detail usa overflow-hidden em todo lugar).
+//
+// A bolha renderiza em document.body via createPortal com position:fixed —
+// "salta pra fora" e sobrepõe qualquer container, mantendo o design system.
+//
+// Hovers EDUCACIONAIS (decisão Pedro): 1-2 frases com a voz da doutrina.
+// Acessível: hover E focus; `focusable` dá tabIndex=0 ao wrapper (desligue
+// quando o filho já é interativo). Delay 150ms só na entrada; esconde em
+// scroll/resize (posição ficaria defasada). Clamp nas bordas do viewport.
+
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react"
+import { createPortal } from "react-dom"
 import { cn } from "@/lib/utils"
 
 type Side = "top" | "bottom" | "left" | "right"
 type Align = "start" | "center" | "end"
-
-const SIDE_CLASS: Record<Side, string> = {
-  top: "bottom-full mb-1.5",
-  bottom: "top-full mt-1.5",
-  left: "right-full top-1/2 mr-1.5 -translate-y-1/2",
-  right: "left-full top-1/2 ml-1.5 -translate-y-1/2",
-}
-
-// Alinhamento horizontal — só se aplica a side top/bottom.
-const ALIGN_CLASS: Record<Align, string> = {
-  start: "left-0",
-  center: "left-1/2 -translate-x-1/2",
-  end: "right-0",
-}
 
 export interface TooltipProps {
   /** Texto do tooltip — curto (1-2 frases), voz Mestre, PT-BR. */
@@ -40,7 +32,7 @@ export interface TooltipProps {
   children: ReactNode
   /** Lado onde a bolha aparece. @default "top" */
   side?: Side
-  /** Alinhamento horizontal (só top/bottom). @default "center" */
+  /** Alinhamento (eixo transversal). @default "center" */
   align?: Align
   /**
    * Wrapper recebe tabIndex=0 (revela via teclado). Desligue quando o filho
@@ -53,6 +45,33 @@ export interface TooltipProps {
   contentClassName?: string
 }
 
+const GAP = 6
+const VIEWPORT_PAD = 8
+
+interface Pos {
+  x: number
+  y: number
+  transform: string
+}
+
+/** Calcula a posição fixa da bolha a partir do rect do trigger. */
+function computePos(rect: DOMRect, side: Side, align: Align): Pos {
+  if (side === "left" || side === "right") {
+    const x = side === "left" ? rect.left - GAP : rect.right + GAP
+    const tx = side === "left" ? "-100%" : "0%"
+    const y =
+      align === "start" ? rect.top : align === "end" ? rect.bottom : rect.top + rect.height / 2
+    const ty = align === "start" ? "0%" : align === "end" ? "-100%" : "-50%"
+    return { x, y, transform: `translate(${tx}, ${ty})` }
+  }
+  const y = side === "top" ? rect.top - GAP : rect.bottom + GAP
+  const ty = side === "top" ? "-100%" : "0%"
+  const x =
+    align === "start" ? rect.left : align === "end" ? rect.right : rect.left + rect.width / 2
+  const tx = align === "start" ? "0%" : align === "end" ? "-100%" : "-50%"
+  return { x, y, transform: `translate(${tx}, ${ty})` }
+}
+
 export function Tooltip({
   content,
   children,
@@ -63,38 +82,92 @@ export function Tooltip({
   contentClassName,
 }: TooltipProps) {
   const id = useId()
-  const isVertical = side === "top" || side === "bottom"
+  const wrapperRef = useRef<HTMLSpanElement>(null)
+  const bubbleRef = useRef<HTMLSpanElement>(null)
+  const enterTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [pos, setPos] = useState<Pos | null>(null)
+
+  const show = useCallback(
+    (immediate: boolean) => {
+      if (enterTimer.current) clearTimeout(enterTimer.current)
+      const open = () => {
+        const rect = wrapperRef.current?.getBoundingClientRect()
+        if (rect) setPos(computePos(rect, side, align))
+      }
+      if (immediate) open()
+      else enterTimer.current = setTimeout(open, 150)
+    },
+    [side, align]
+  )
+
+  const hide = useCallback(() => {
+    if (enterTimer.current) clearTimeout(enterTimer.current)
+    setPos(null)
+  }, [])
+
+  // Posição fixa fica defasada se a página rolar/redimensionar — esconde.
+  useEffect(() => {
+    if (!pos) return
+    window.addEventListener("scroll", hide, { capture: true, passive: true })
+    window.addEventListener("resize", hide, { passive: true })
+    return () => {
+      window.removeEventListener("scroll", hide, { capture: true })
+      window.removeEventListener("resize", hide)
+    }
+  }, [pos, hide])
+
+  // Clamp horizontal pós-render: bolha nunca vaza o viewport.
+  useEffect(() => {
+    const el = bubbleRef.current
+    if (!el || !pos) return
+    const r = el.getBoundingClientRect()
+    let dx = 0
+    if (r.left < VIEWPORT_PAD) dx = VIEWPORT_PAD - r.left
+    else if (r.right > window.innerWidth - VIEWPORT_PAD)
+      dx = window.innerWidth - VIEWPORT_PAD - r.right
+    if (dx !== 0) el.style.marginLeft = `${dx}px`
+  }, [pos])
 
   return (
     <span
+      ref={wrapperRef}
       className={cn(
-        "group/tt relative inline-flex max-w-full focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-brand-primary/60",
-        className,
+        "inline-flex max-w-full focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-brand-primary/60",
+        className
       )}
       tabIndex={focusable ? 0 : undefined}
-      aria-describedby={id}
+      aria-describedby={pos ? id : undefined}
+      onMouseEnter={() => show(false)}
+      onMouseLeave={hide}
+      onFocus={() => show(true)}
+      onBlur={hide}
     >
       {children}
-      <span
-        id={id}
-        role="tooltip"
-        className={cn(
-          // Posição
-          "pointer-events-none absolute z-[var(--z-elevated)] w-max max-w-[280px]",
-          SIDE_CLASS[side],
-          isVertical && ALIGN_CLASS[align],
-          // Visual — denso, dark, borda sutil
-          "rounded-sm border border-border-strong bg-bg-deep/95 px-2.5 py-1.5 backdrop-blur-md",
-          "font-sans text-xs leading-snug text-text-body shadow-lg shadow-black/70",
-          // Mostrar: hover (com delay de entrada ~150ms) + focus. Sair: imediato.
-          "opacity-0 transition-opacity duration-100",
-          "group-hover/tt:opacity-100 group-hover/tt:delay-150",
-          "group-focus-within/tt:opacity-100",
-          contentClassName,
+      {pos &&
+        createPortal(
+          <span
+            ref={bubbleRef}
+            id={id}
+            role="tooltip"
+            style={{
+              position: "fixed",
+              left: pos.x,
+              top: pos.y,
+              transform: pos.transform,
+            }}
+            className={cn(
+              // Acima de TUDO (drawers, modais) — tooltip é efêmero
+              "pointer-events-none z-[var(--z-takeover)] w-max max-w-[280px]",
+              "rounded-sm border border-border-strong bg-bg-deep/95 px-2.5 py-1.5 backdrop-blur-md",
+              "font-sans text-xs leading-snug text-text-body shadow-lg shadow-black/70",
+              "animate-in fade-in duration-100",
+              contentClassName
+            )}
+          >
+            {content}
+          </span>,
+          document.body
         )}
-      >
-        {content}
-      </span>
     </span>
   )
 }

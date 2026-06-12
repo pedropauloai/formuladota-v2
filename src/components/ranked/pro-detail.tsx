@@ -102,12 +102,9 @@ export function ProDetail({
             gradientClass="bg-gradient-to-r from-bg-deep/70 via-bg-deep/25 to-bg-deep/80"
           />
         )}
-        <div
-          className={cn(
-            "relative flex items-center gap-5",
-            signatureHero && "p-3"
-          )}
-        >
+        {/* p-3 SEMPRE: o header tem overflow-hidden (backdrop) — sem padding,
+            o anel/dot de presença do avatar era cortado na esquerda. */}
+        <div className="relative flex items-center gap-5 p-3">
           <UserAvatar
             size="xl"
             src={coach.avatarUrl ?? undefined}
