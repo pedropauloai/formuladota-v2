@@ -237,6 +237,7 @@ export async function ClientShell({
             permissions={matchPermissions}
             mmr={profile?.mmr_atual ?? null}
             initialExpanded={sidebarExpanded}
+            lockedExpanded={currentRoute === "/"}
             currentUserId={user?.id ?? null}
             initialFriends={acceptedFriends}
           />
@@ -339,6 +340,7 @@ export async function ClientShell({
           permissions={matchPermissions}
           mmr={profile?.mmr_atual ?? null}
           initialExpanded={sidebarExpanded}
+          lockedExpanded={currentRoute === "/"}
           currentUserId={user?.id ?? null}
           initialFriends={acceptedFriends}
         />

@@ -22,6 +22,10 @@ interface MedalPairProps {
   size?: "sm" | "md" | "lg" | "xl"
   /** Glow nas medalhas de topo (Imortal/Místico). @default true */
   glow?: boolean
+  /** Lado onde o showcase abre. @default "top" */
+  side?: "top" | "bottom" | "left" | "right"
+  /** Alinhamento no eixo transversal. @default "center" */
+  align?: "start" | "center" | "end"
   className?: string
 }
 
@@ -30,6 +34,8 @@ export function MedalPair({
   honorRank,
   size = "md",
   glow = true,
+  side = "top",
+  align = "center",
   className,
 }: MedalPairProps) {
   return (
@@ -44,6 +50,8 @@ export function MedalPair({
           </span>
         </span>
       }
+      side={side}
+      align={align}
       contentClassName="max-w-none p-3"
       className={cn("inline-flex items-center gap-1.5", className)}
     >

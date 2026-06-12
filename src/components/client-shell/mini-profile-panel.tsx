@@ -66,6 +66,11 @@ interface Props {
   mmr: number | null;
   /** Estado inicial do cookie sidebar_expanded — passado do shell SSR. */
   initialExpanded: boolean;
+  /**
+   * Página principal (/): mini-perfil SEMPRE expandido — sem botão de
+   * expandir/retrair e sem toggle no card (Pedro 2026-06-12).
+   */
+  lockedExpanded?: boolean;
   /** UUID do user logado — pra usePresenceChannel. Null se visitante. */
   currentUserId: string | null;
   /** Amigos aceitos — fetched no shell.tsx (server-side). */
@@ -84,6 +89,7 @@ export function MiniProfilePanel({
   permissions,
   mmr,
   initialExpanded,
+  lockedExpanded = false,
   currentUserId,
   initialFriends,
 }: Props) {
@@ -91,7 +97,8 @@ export function MiniProfilePanel({
   const dotaRank = mmrToDotaRank(mmr);
   const honorRank = getGatedTierForLevel(level, mmr);
   // Estado client-side pra UX instant (sem reload). Cookie persiste async.
-  const [expanded, setExpanded] = useState(initialExpanded);
+  const [expandedState, setExpanded] = useState(initialExpanded);
+  const expanded = lockedExpanded || expandedState;
   const [, startTransition] = useTransition();
 
   function handleToggle() {
@@ -143,12 +150,13 @@ export function MiniProfilePanel({
           level={level}
           xpPct={xpPct}
           permissions={permissions}
-          dotaRank={dotaRank}
-          honorRank={honorRank}
           connectedTop={expanded}
           onToggle={handleToggle}
+          locked={lockedExpanded}
         />
-        <ToggleIcon expanded={expanded} onToggle={handleToggle} />
+        {!lockedExpanded && (
+          <ToggleIcon expanded={expanded} onToggle={handleToggle} />
+        )}
       </div>
     </div>
   );
@@ -168,10 +176,9 @@ function CollapsedCard({
   level,
   xpPct,
   permissions,
-  dotaRank,
-  honorRank,
   connectedTop = false,
   onToggle,
+  locked = false,
 }: {
   persona: string | null;
   avatar: string | null;
@@ -180,25 +187,18 @@ function CollapsedCard({
   level: number;
   xpPct: number;
   permissions: number;
-  dotaRank: DotaRank;
-  honorRank: HonorRank;
   /** Quando true (painel expandido aberto), borda superior + canto superior
       ficam planos pra conectar visualmente ao ExpandedPanel acima. */
   connectedTop?: boolean;
   onToggle: () => void;
+  /** Página principal: card é base fixa do painel — sem ação de retrair. */
+  locked?: boolean;
 }) {
-  return (
-    <button
-      type="button"
-      onClick={onToggle}
-      aria-label={connectedTop ? "Retrair mini-perfil" : "Expandir mini-perfil"}
-      aria-expanded={connectedTop}
-      className={`flex w-[340px] xl:w-[380px] items-center gap-3 border border-brand-primary/30 bg-bg-deep/90 backdrop-blur-md px-3 py-2 shadow-lg shadow-black/60 hover:border-brand-primary/60 hover:bg-bg-elevated/80 transition-colors ${
-        connectedTop
-          ? "rounded-b-md rounded-t-none border-t-0"
-          : "rounded-md"
-      }`}
-    >
+  const baseCls = `flex w-[340px] xl:w-[380px] items-center gap-3 border border-brand-primary/30 bg-bg-deep/90 backdrop-blur-md px-3 py-2 shadow-lg shadow-black/60 transition-colors ${
+    connectedTop ? "rounded-b-md rounded-t-none border-t-0" : "rounded-md"
+  }`;
+  const inner = (
+    <>
       <XpAvatarRing
         src={avatar}
         alt={`Avatar de ${persona ?? "Anônimo"}`}
@@ -218,11 +218,22 @@ function CollapsedCard({
           )}
         </p>
       </div>
-      {/* Par canônico SKILL + HONOR — identidade visível mesmo retraído.
-          Nota: o card é <button>; o hover do MedalPair continua funcionando
-          (portal), e o clique segue expandindo o painel. */}
-      <MedalPair dotaRank={dotaRank} honorRank={honorRank} size="sm" className="shrink-0" />
       <PermissionsBadge permissions={permissions} />
+    </>
+  );
+
+  // Página principal: sempre expandido — o card é só a base visual do painel.
+  if (locked) return <div className={baseCls}>{inner}</div>;
+
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-label={connectedTop ? "Retrair mini-perfil" : "Expandir mini-perfil"}
+      aria-expanded={connectedTop}
+      className={`${baseCls} hover:border-brand-primary/60 hover:bg-bg-elevated/80`}
+    >
+      {inner}
     </button>
   );
 }
@@ -334,8 +345,16 @@ function ExpandedPanel({
               )}
             </p>
           </div>
-          {/* Par canônico SKILL + HONOR (mandamento M12) — hover combinado */}
-          <MedalPair dotaRank={dotaRank} honorRank={honorRank} size="md" className="shrink-0 self-center" />
+          {/* Par canônico SKILL + HONOR — hover combinado abre SUTILMENTE pra
+              DIREITA do mini-perfil (Pedro 2026-06-12), não pra cima. */}
+          <MedalPair
+            dotaRank={dotaRank}
+            honorRank={honorRank}
+            size="md"
+            side="right"
+            align="start"
+            className="shrink-0 self-center"
+          />
         </Link>
       </header>
 
