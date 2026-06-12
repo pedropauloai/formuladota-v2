@@ -25,16 +25,25 @@ export default async function ProLayout({
     redirect("/");
   }
 
-  // Gate 2: verifica pro_promotion ativa ou pausada (pausa voluntária mantém acesso)
-  const { data: promotion } = await supabase
-    .from("pro_promotions")
-    .select("id, status")
-    .eq("user_id", user.id)
-    .in("status", ["active", "paused"])
-    .maybeSingle();
+  // Gate 2 (corrigido 2026-06-12): o cockpit é gestão de FILA — quem tem
+  // registro de coach entra (Pedro/founder tem coach sem pro_promotion;
+  // o gate antigo por promotion o expulsava do próprio painel).
+  const [{ data: promotion }, { data: coach }] = await Promise.all([
+    supabase
+      .from("pro_promotions")
+      .select("id, status")
+      .eq("user_id", user.id)
+      .in("status", ["active", "paused"])
+      .maybeSingle(),
+    supabase
+      .from("coaches")
+      .select("id")
+      .eq("profile_id", user.id)
+      .maybeSingle(),
+  ]);
 
-  if (!promotion) {
-    // Não é PRO — redireciona para /me com mensagem informando o motivo
+  if (!promotion && !coach) {
+    // Nem PRO promovido nem coach — sem painel
     redirect("/me?msg=not_a_pro");
   }
 

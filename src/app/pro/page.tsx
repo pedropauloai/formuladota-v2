@@ -32,15 +32,15 @@ export default async function ProPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  // Gate PRO (layout já barra; aqui buscamos o status pra UI de pausar/retomar)
+  // Promo é OPCIONAL (2026-06-12): coach sem pro_promotion (Pedro/founder)
+  // usa o cockpit normalmente — só as ações de pausar/retomar dependem dela.
   const { data: promo } = await supabase
     .from("pro_promotions")
     .select("id, status")
     .eq("user_id", user.id)
     .in("status", ["active", "paused"])
     .maybeSingle();
-  if (!promo) redirect("/me?msg=not_a_pro");
-  const isActive = promo.status === "active";
+  const isActive = promo?.status === "active";
 
   const { data: coach } = await supabase
     .from("coaches")
@@ -92,7 +92,7 @@ export default async function ProPage() {
             >
               Meus alunos →
             </Link>
-            <ProStatusActions isActive={isActive} />
+            {promo && <ProStatusActions isActive={isActive} />}
           </div>
         }
       />
