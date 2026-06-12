@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { displayName } from "@/lib/identity";
 import { DotaBackdrop } from "@/components/dota/dota-backdrop";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -35,6 +36,19 @@ export default async function SuspendedPage() {
     redirect("/perfil");
   }
 
+  // Nick canônico (Steam > Discord) — com Steam vinculada, o nome exibido vem
+  // SEMPRE da Steam (lei do pacote de identidade, 2026-06-12).
+  const { data: steamLink } = await supabase
+    .from("steam_links")
+    .select("persona")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  const greetName = displayName({
+    steamPersona: steamLink?.persona,
+    // "Imortal" mantém o tom original da tela quando não há nick algum
+    discordUsername: profile.username ?? "Imortal",
+  });
+
   const { data: lastWarning } = await supabase
     .from("user_warnings")
     .select("severity, principle_violated, antipattern_violated, notes, issued_at, suspension_days")
@@ -64,7 +78,7 @@ export default async function SuspendedPage() {
               conta suspensa
             </p>
             <h1 className="font-display text-3xl uppercase tracking-tight text-text-display">
-              {profile.username ?? "Imortal"}, sua conta está temporariamente suspensa.
+              {greetName}, sua conta está temporariamente suspensa.
             </h1>
           </header>
 

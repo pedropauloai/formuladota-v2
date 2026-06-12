@@ -12,6 +12,7 @@ import { ProfilePage } from "@/components/profile/profile-page";
 import { VALID_TABS, type ProfileTab } from "@/components/profile/profile-tabs";
 import { getProfileForMe } from "@/lib/queries/profile";
 import { getCareerStats } from "@/lib/queries/career";
+import { refreshSteamIdentity } from "@/lib/steam/refresh-identity";
 import type { DotaRank } from "@/components/ui/dota-rank-medal";
 import { legacyHonorToBand, type HonorRank } from "@/components/ui/honor-rank-medal";
 import { createClient } from "@/lib/supabase/server";
@@ -47,6 +48,11 @@ export default async function MePage({ searchParams }: PageProps) {
   // getProfileForMe já checa autenticação e retorna null se não logado
   const profile = await getProfileForMe();
   if (!profile) redirect("/");
+
+  // Refresh do snapshot Steam (nick/foto) — fire-and-forget: NÃO bloqueia o
+  // render e falha em silêncio se a Steam API estiver fora. Visitar o próprio
+  // perfil mantém a identidade fresca pra próxima renderização.
+  void refreshSteamIdentity(profile.userId);
 
   // Resolve tab ativa: default "perfil", fallback pra qualquer tab inválida
   const { tab: rawTab, edit } = await searchParams;

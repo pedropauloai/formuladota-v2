@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { displayName, displayAvatar } from "@/lib/identity";
 import { DotaBackdrop } from "@/components/dota/dota-backdrop";
 import { RitualDoutrina } from "./RitualDoutrina";
 import { getDoctrineProgress } from "./actions";
@@ -29,8 +30,16 @@ export default async function DoutrinaPage() {
       .maybeSingle(),
   ]);
 
-  const persona = steamLink?.persona ?? profile?.username ?? "Você";
-  const avatar = steamLink?.avatar_url ?? profile?.avatar_url ?? null;
+  // Identidade canônica via lib/identity (Steam > Discord) — mesma prioridade
+  // de antes, agora centralizada. "Você" é o fallback quando não há nick algum.
+  const identitySrc = {
+    steamPersona: steamLink?.persona,
+    steamAvatar: steamLink?.avatar_url,
+    discordUsername: profile?.username ?? "Você",
+    discordAvatar: profile?.avatar_url,
+  };
+  const persona = displayName(identitySrc);
+  const avatar = displayAvatar(identitySrc);
 
   return (
     <main className="relative min-h-screen">

@@ -2,6 +2,7 @@
 // Consolida profile + steam_link + season MMR numa única função.
 
 import { createClient } from "@/lib/supabase/server";
+import { displayName, displayAvatar } from "@/lib/identity";
 import { getHeroBySlug, type HeroData } from "@/lib/queries/heroes";
 import {
   parseDashboardLayout,
@@ -10,8 +11,8 @@ import {
 
 export interface ProfileForMe {
   userId: string;
-  username: string | null;
-  avatarUrl: string | null; // resolvido (custom > steam > discord)
+  username: string | null; // nick canônico via lib/identity (Steam > Discord)
+  avatarUrl: string | null; // avatar canônico via lib/identity (Steam > custom > Discord)
   statusMessage: string | null;
   heroPortraitSlug: string | null;
   heroPortraitData: HeroData | null; // hero data resolvido ou null se slug inválido/vazio
@@ -75,9 +76,18 @@ export async function getProfileForMe(): Promise<ProfileForMe | null> {
     mmrRow = data ?? null;
   }
 
-  // Resolve avatar: custom > steam > discord
-  const avatarUrl =
-    profile?.avatar_custom_url ?? steamLink?.avatar_url ?? profile?.avatar_url ?? null;
+  // Identidade canônica (lei do pacote de identidade, Pedro 2026-06-12): com
+  // Steam vinculada, foto e nick vêm SEMPRE da Steam — resolvido via lib/identity.
+  // O avatar custom do app continua valendo como fallback ACIMA do Discord,
+  // mas nunca acima da Steam (por isso entra no slot "discordAvatar").
+  const identitySrc = {
+    steamPersona: steamLink?.persona,
+    steamAvatar: steamLink?.avatar_url,
+    discordUsername: profile?.username,
+    discordAvatar: profile?.avatar_custom_url ?? profile?.avatar_url,
+  };
+  const username = displayName(identitySrc);
+  const avatarUrl = displayAvatar(identitySrc);
 
   // Resolve hero_portrait_slug → HeroData
   const heroPortraitSlug = profile?.hero_portrait_slug ?? null;
@@ -95,7 +105,7 @@ export async function getProfileForMe(): Promise<ProfileForMe | null> {
 
   return {
     userId: user.id,
-    username: profile?.username ?? null,
+    username,
     avatarUrl,
     statusMessage: profile?.status_message ?? null,
     heroPortraitSlug,

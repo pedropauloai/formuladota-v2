@@ -5,7 +5,7 @@
 //   │ [○ PERFIL / HISTÓRICO / CONQUISTAS / CONDUTA]                   │ ← submenu fixed
 //   ├─────────────────────────────────────────────────────────────────┤
 //   │ [Avatar] NOME (28px)                          [EDITAR PERFIL]   │ ← header âncora
-//   │   XL     FORMULADOTA                                            │   (NÃO arrastável)
+//   │   XL     [ícones sociais]                                       │   (NÃO arrastável)
 //   ├─────────────────────────────────────────────────────────────────┤
 //   │                                                                  │
 //   │ ┌─ DashboardGrid (react-grid-layout, 12 cols, drag em edit) ───┐ │
@@ -34,6 +34,9 @@ import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/ui/avatar";
 import { MedalPair } from "@/components/ui/medal-pair";
 import { ProfileTabs, type ProfileTab } from "./profile-tabs";
+import { SocialIconsRow, SteamIcon } from "./social-icons-row";
+import { Tooltip } from "@/components/ui/tooltip";
+import { steam64To32 } from "@/lib/dota/opendota";
 import { DashboardGrid } from "./dashboard-grid";
 import { TabHistorico } from "./tab-historico";
 import { TabConquistas } from "./tab-conquistas";
@@ -135,12 +138,30 @@ export function ProfilePage({ profile, activeTab, dotaRank, honorRank, editing, 
                 ringColor={ranqueado ? "brand" : null}
               />
               <div className="flex-1 min-w-0">
-                <h1 className="font-display text-[28px] font-bold text-text-display leading-tight truncate">
-                  {profile.username ?? "Anônimo"}
-                </h1>
-                <p className="font-display text-[13px] font-bold text-brand-primary tracking-[0.1em] mt-0.5">
-                  FORMULADOTA
-                </p>
+                <div className="flex items-center gap-2.5">
+                  <h1 className="font-display text-[28px] font-bold text-text-display leading-tight truncate">
+                    {profile.username ?? "Anônimo"}
+                  </h1>
+                  {/* Logo Steam ao lado do nick → perfil do usuário no STRATZ
+                      (Pedro 2026-06-12). Identidade = Steam; STRATZ = vitrine. */}
+                  {profile.steamId64 && (
+                    <Tooltip content="Ver perfil no STRATZ" side="bottom" focusable={false}>
+                      <a
+                        href={`https://stratz.com/players/${steam64To32(profile.steamId64)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="Perfil no STRATZ"
+                        className="text-text-muted transition-colors hover:text-text-display"
+                      >
+                        <SteamIcon size={20} />
+                      </a>
+                    </Tooltip>
+                  )}
+                </div>
+                {/* Redes sociais sob o nick (substitui o "FORMULADOTA" fixo,
+                    Pedro 2026-06-12) — Discord aceso (conta do login); demais
+                    acenderão quando o multi-login de validação existir. */}
+                <SocialIconsRow />
               </div>
 
               {/* Par canônico SKILL + HONOR (mandamento M12) — sempre visível
