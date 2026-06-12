@@ -16,12 +16,12 @@
 // C14 — zero hex; C17 — zero z-index numérico; C18 — sem max-w mx-auto.
 
 import { useState } from "react";
+import Link from "next/link";
 import { Coins, Radio } from "lucide-react";
 import type { ProWithQueue, ProRecentStats } from "@/lib/queries/pros";
 import type { MyQueueEntry } from "@/lib/queries/queue";
 import type { SignatureHero } from "@/components/dota/hero-video-backdrop";
 import { QueueActionButton } from "@/components/queue/queue-action-button";
-import { UserStatusBar } from "@/components/queue/user-status-bar";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ProDetail } from "./pro-detail";
 import { ProCockpit } from "@/app/pro/pro-cockpit";
@@ -107,19 +107,11 @@ export function ProMasterDetail({
 
   return (
     <section className="flex h-full min-h-0 flex-col overflow-hidden xl:flex-row">
-      {/* ============ CENTRO — PRO selecionado em destaque ============ */}
+      {/* ============ CENTRO — PRO selecionado em destaque ============
+          UserStatusBar removida (Pedro 2026-06-12): saldo vive no mini-perfil
+          (FichasCard) e no QueueCtaFooter; contagem de PROs online no header
+          da coluna direita + topbar; link admin migrou pro header da coluna. */}
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-        <div className="shrink-0 px-4 pt-3 xl:px-6 xl:pt-4">
-          <UserStatusBar
-            isAdmin={isAdmin}
-            fichaBalance={fichaBalance}
-            fichaPackageId={fichaPackageId}
-            fichaPreco={fichaPreco}
-            myQueueCount={myQueues.length}
-            prosOnlineCount={onlinePros.length}
-          />
-        </div>
-
         {/* Telas < xl: lista vira faixa horizontal de chips (scroll-x) */}
         <div className="flex shrink-0 gap-2 overflow-x-auto px-4 py-2.5 xl:hidden">
           {[...onlinePros, ...offlinePros].map((pro) => (
@@ -160,9 +152,21 @@ export function ProMasterDetail({
       {/* ============ COLUNA DIREITA — lista densa de PROs (xl+) ============ */}
       <aside className="hidden min-h-0 w-[320px] shrink-0 flex-col border-l border-border-subtle bg-bg-base/60 xl:flex">
         <div className="flex shrink-0 items-center justify-between border-b border-border-subtle px-3 py-2.5">
-          <h2 className="font-display-condensed text-xl uppercase leading-none tracking-wider text-text-display">
-            PROs
-          </h2>
+          <div className="flex items-baseline gap-2.5">
+            <h2 className="font-display-condensed text-xl uppercase leading-none tracking-wider text-text-display">
+              PROs
+            </h2>
+            {/* Visão ADMIN de todos os PROs (suporte/emergência) — discreto.
+                Migrou da UserStatusBar (removida 2026-06-12). */}
+            {isAdmin && (
+              <Link
+                href="/admin/pros"
+                className="font-display-condensed text-base uppercase leading-none tracking-wider text-text-faded transition-colors hover:text-text-display"
+              >
+                Painel admin →
+              </Link>
+            )}
+          </div>
           <span className="inline-flex items-center gap-1.5 font-display-condensed text-lg uppercase leading-none tracking-wider text-success">
             <Radio size={12} aria-hidden="true" />
             {onlinePros.length} online
@@ -254,12 +258,19 @@ function QueueCtaFooter({
           <Coins size={14} className="text-gold" aria-hidden="true" />
           1 ficha · <span className="text-gold">{precoTxt}</span>
         </span>
-        {!isAdmin && (
-          <span className="font-display-condensed text-lg uppercase leading-none tracking-wider text-text-faded">
-            saldo{" "}
-            <span className="tabular-nums text-gold">{fichaBalance}</span>
-          </span>
-        )}
+        {!isAdmin &&
+          (fichaBalance === 0 ? (
+            /* Aviso compacto "sem fichas" — herdado da UserStatusBar removida.
+               O CTA abaixo já vira "Comprar ficha pra entrar" (link checkout). */
+            <span className="font-display-condensed text-lg uppercase leading-none tracking-wider text-warning">
+              sem fichas
+            </span>
+          ) : (
+            <span className="font-display-condensed text-lg uppercase leading-none tracking-wider text-text-faded">
+              saldo{" "}
+              <span className="tabular-nums text-gold">{fichaBalance}</span>
+            </span>
+          ))}
       </div>
       {/* key reseta o optimistic state interno ao trocar de PRO selecionado */}
       <QueueActionButton

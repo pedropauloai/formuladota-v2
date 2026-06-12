@@ -21,6 +21,7 @@
 
 import Image from "next/image"
 import { Lock } from "lucide-react"
+import { Tooltip } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 
 /* ------------------------------------------------------------------
@@ -277,35 +278,40 @@ export function DotaRankMedal({
         className
       )}
     >
-      {/* Medalha — imagem oficial Dota 2 carregada via next/image */}
-      <div
-        className={cn(
-          sizeClass,
-          "relative",
-          "flex items-center justify-center",
-          /* Isolamento de contexto para o drop-shadow funcionar corretamente */
-          "isolate",
-        )}
+      {/* Medalha — imagem oficial Dota 2 carregada via next/image.
+          Hover educacional: SKILL (Valve) é eixo distinto do HONOR (FormulaDota). */}
+      <Tooltip
+        content={`${label} — medalha oficial Valve, mede SKILL (MMR). Distinta do seu nível FormulaDota, que mede HONOR.`}
       >
-        <Image
-          src={src}
-          alt={`${label} rank medal`}
-          width={px}
-          height={px}
+        <div
           className={cn(
-            "object-contain",
-            "w-full h-full",
-            /* Glow via CSS filter — aplicado na imagem, não no container */
-            glowClass,
-            /* Transição suave ao aparecer */
-            "transition-[filter] duration-300",
+            sizeClass,
+            "relative",
+            "flex items-center justify-center",
+            /* Isolamento de contexto para o drop-shadow funcionar corretamente */
+            "isolate",
           )}
-          /* Carregamento lazy — medalhas geralmente não estão no above-the-fold */
-          loading="lazy"
-          /* Sem placeholder blur — imagens pequenas não precisam */
-          placeholder="empty"
-        />
-      </div>
+        >
+          <Image
+            src={src}
+            alt={`${label} rank medal`}
+            width={px}
+            height={px}
+            className={cn(
+              "object-contain",
+              "w-full h-full",
+              /* Glow via CSS filter — aplicado na imagem, não no container */
+              glowClass,
+              /* Transição suave ao aparecer */
+              "transition-[filter] duration-300",
+            )}
+            /* Carregamento lazy — medalhas geralmente não estão no above-the-fold */
+            loading="lazy"
+            /* Sem placeholder blur — imagens pequenas não precisam */
+            placeholder="empty"
+          />
+        </div>
+      </Tooltip>
 
       {/* Label condicional — font-display-condensed Teko uppercase */}
       {showLabel && (

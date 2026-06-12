@@ -38,7 +38,9 @@ import {
 import { signInWithDiscord } from "@/app/login/actions";
 import { toggleSidebar } from "@/lib/auth/sidebar-preference";
 import { FriendsList } from "@/components/profile/friends-list";
+import { Tooltip } from "@/components/ui/tooltip";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
+import { QUESTIONS_PER_PERMISSION } from "@/lib/quiz/permissions";
 import type { FriendListEntry } from "@/lib/queries/friends";
 
 interface Props {
@@ -192,16 +194,20 @@ function CollapsedCard({
   );
 }
 
-// Indicador de permissões de partida (5 acertos = 1). Tooltip no hover explica.
+// Indicador de permissões de partida (5 acertos = 1). Hover educacional explica.
 function PermissionsBadge({ permissions }: { permissions: number }) {
   return (
-    <span
-      className="flex shrink-0 items-center gap-1 rounded-sm border border-brand-primary/30 bg-brand-primary/10 px-1.5 py-1 font-display text-sm font-bold text-brand-primary"
-      title="Permissões de partida — acerte 5 perguntas pra ganhar +1 e liberar 1 partida de qualquer modalidade."
+    <Tooltip
+      content={`Permissões de partida: ${QUESTIONS_PER_PERMISSION} acertos no quiz da doutrina = 1 permissão. Acumulam — cada partida de qualquer modalidade gasta 1.`}
+      side="top"
+      align="end"
+      className="shrink-0"
     >
-      <ShieldCheck size={13} aria-hidden="true" />
-      <span className="tabular-nums">{permissions}</span>
-    </span>
+      <span className="flex items-center gap-1 rounded-sm border border-brand-primary/30 bg-brand-primary/10 px-1.5 py-1 font-display text-sm font-bold text-brand-primary">
+        <ShieldCheck size={13} aria-hidden="true" />
+        <span className="tabular-nums">{permissions}</span>
+      </span>
+    </Tooltip>
   );
 }
 
@@ -351,10 +357,19 @@ function VisitorCardCompact() {
 function FichasCard({ balance, isAdmin }: { balance: number; isAdmin: boolean }) {
   return (
     <div className="rounded border border-border-gold/40 bg-gradient-to-br from-gold/10 to-transparent px-3 py-2">
-      <div className="flex items-center gap-2">
-        <Coins size={12} className="text-gold" aria-hidden="true" />
-        <p className="font-display text-sm font-semibold text-gold-muted">Saldo de fichas</p>
-      </div>
+      {/* Hover educacional: o que é 1 ficha e quanto custa */}
+      <Tooltip
+        content="1 ficha = 1 vaga numa PT com PRO · R$ 10. Compra avulsa via PIX."
+        side="top"
+        align="start"
+      >
+        <span className="flex items-center gap-2">
+          <Coins size={12} className="text-gold" aria-hidden="true" />
+          <span className="font-display text-sm font-semibold text-gold-muted">
+            Saldo de fichas
+          </span>
+        </span>
+      </Tooltip>
       <p className="mt-1 font-display text-xl font-bold tabular-nums text-gold">
         {isAdmin ? "∞" : balance}
         <span className="ml-2 font-display text-sm font-semibold text-gold-muted">

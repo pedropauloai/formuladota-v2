@@ -18,6 +18,7 @@
 
 import Image from "next/image"
 import { Lock } from "lucide-react"
+import { Tooltip } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 
 /* ------------------------------------------------------------------
@@ -39,6 +40,25 @@ export const HONOR_RANK_LABELS: Record<HonorRank, string> = {
   as: "Ás",
   lendario: "Lendário",
   mistico: "Místico",
+}
+
+/**
+ * Hover educacional por banda (voz Mestre) — nome + faixa de nível + como sobe.
+ * Faixas espelham src/lib/levels.ts (TIER_CONFIG); co-requisito de SKILL no
+ * topo espelha getGatedTierForLevel (Lendário exige Divine+, Místico exige Imortal).
+ */
+const HONOR_RANK_TOOLTIPS: Record<HonorRank, string> = {
+  novato:
+    "Novato · nível 0–5 (HONOR). Complete as lições da doutrina pra provar conhecimento e conquistar a primeira medalha.",
+  aprendiz:
+    "Aprendiz · nível 6–11 (HONOR). Doutrinado. Suba completando lições da doutrina e jogando PTs.",
+  piloto:
+    "Piloto · nível 12–17 (HONOR). Aplicando o método nas partidas. Suba completando lições da doutrina e jogando PTs.",
+  as: "Ás · nível 18–24 (HONOR). Domínio da pista. Suba completando lições da doutrina e jogando PTs.",
+  lendario:
+    "Lendário · nível 25–29 (HONOR). Guardião da cultura — além do nível, exige medalha Valve Divine ou superior.",
+  mistico:
+    "Místico · nível 30 (HONOR). Topo do ladder — exige medalha Valve Imortal. Compreende o jogo além do jogo.",
 }
 
 /* ------------------------------------------------------------------
@@ -212,21 +232,24 @@ export function HonorRankMedal({
   /* ranqueado (ou undefined) — exibição normal */
   return (
     <div className={cn("inline-flex flex-col items-center gap-1", className)}>
-      <div
-        className={cn(sizeClass, "relative flex items-center justify-center isolate transition-[filter] duration-300")}
-        style={
-          hasGlow
-            ? {
-                filter:
-                  rank === "mistico"
-                    ? "drop-shadow(0 0 8px var(--color-brand-primary-glow)) drop-shadow(0 0 20px var(--color-brand-primary-glow))"
-                    : "drop-shadow(0 0 6px var(--fd-raw-gold-glow, rgba(200,170,110,0.25)))",
-              }
-            : undefined
-        }
-      >
-        <MedalImage rank={rank} px={px} />
-      </div>
+      {/* Hover educacional: banda + faixa de nível + como se sobe (doutrina) */}
+      <Tooltip content={HONOR_RANK_TOOLTIPS[rank]}>
+        <div
+          className={cn(sizeClass, "relative flex items-center justify-center isolate transition-[filter] duration-300")}
+          style={
+            hasGlow
+              ? {
+                  filter:
+                    rank === "mistico"
+                      ? "drop-shadow(0 0 8px var(--color-brand-primary-glow)) drop-shadow(0 0 20px var(--color-brand-primary-glow))"
+                      : "drop-shadow(0 0 6px var(--fd-raw-gold-glow, rgba(200,170,110,0.25)))",
+                }
+              : undefined
+          }
+        >
+          <MedalImage rank={rank} px={px} />
+        </div>
+      </Tooltip>
 
       {showLabel && (
         <span

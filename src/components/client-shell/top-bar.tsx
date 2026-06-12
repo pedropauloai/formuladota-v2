@@ -23,6 +23,7 @@ import Link from "next/link";
 import { Settings, LogOut, LogIn, Shield, Eye, EyeOff, Radio, Swords } from "lucide-react";
 import { signOut, signInWithDiscord } from "@/app/login/actions";
 import { togglePreviewMode } from "@/lib/auth/preview-mode";
+import { Tooltip } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { QueueStatusPill } from "@/components/queue/queue-status-pill";
 import type { MyQueueEntry } from "@/lib/queries/queue";
@@ -270,25 +271,33 @@ function CondutaBadge() {
   // CTA institucional sempre visível — manifesto/filosofia da plataforma.
   // Estética cinematic brand (vermelho + glow) — antes ocupada pelo SUBIR MMR.
   // Conduta é gate cultural: lido por todos antes de jogar a primeira PT.
+  // Hover educacional: accountability é princípio (link já é focável → focusable off).
   return (
-    <Link
-      href="/codigo-de-conduta"
-      aria-label="Código de Conduta — manifesto FORMULADOTA"
-      className={cn(
-        "group inline-flex items-center gap-1.5 rounded-md",
-        "px-2.5 py-1 xl:px-3 xl:py-1.5",
-        "border-2 border-brand-primary",
-        "bg-gradient-to-b from-brand-primary to-brand-primary-hover",
-        "font-display text-sm xl:text-sm font-bold uppercase",
-        "tracking-[0.15em] xl:tracking-[0.2em] text-text-display",
-        "shadow-[0_0_12px_var(--color-brand-primary-glow)]",
-        "hover:shadow-[0_0_24px_var(--color-brand-primary-glow)]",
-        "hover:brightness-110 transition-all",
-      )}
+    <Tooltip
+      content="Conduta é pública na FormulaDota — responsabilidade é princípio, não opção. Leia o Código antes da sua primeira PT."
+      side="bottom"
+      align="end"
+      focusable={false}
     >
-      <Shield size={12} aria-hidden="true" />
-      <span>Conduta</span>
-    </Link>
+      <Link
+        href="/codigo-de-conduta"
+        aria-label="Código de Conduta — manifesto FORMULADOTA"
+        className={cn(
+          "group inline-flex items-center gap-1.5 rounded-md",
+          "px-2.5 py-1 xl:px-3 xl:py-1.5",
+          "border-2 border-brand-primary",
+          "bg-gradient-to-b from-brand-primary to-brand-primary-hover",
+          "font-display text-sm xl:text-sm font-bold uppercase",
+          "tracking-[0.15em] xl:tracking-[0.2em] text-text-display",
+          "shadow-[0_0_12px_var(--color-brand-primary-glow)]",
+          "hover:shadow-[0_0_24px_var(--color-brand-primary-glow)]",
+          "hover:brightness-110 transition-all",
+        )}
+      >
+        <Shield size={12} aria-hidden="true" />
+        <span>Conduta</span>
+      </Link>
+    </Tooltip>
   );
 }
 

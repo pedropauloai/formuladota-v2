@@ -9,8 +9,13 @@ import { useRouter } from "next/navigation";
 import { Crown, Loader2, X } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { HonorRankMedal } from "@/components/ui/honor-rank-medal";
+import { Tooltip } from "@/components/ui/tooltip";
 import { joinTeam } from "./actions";
-import { SLOT_ROLE_LABELS, type PlayerSlot } from "./lobby-types";
+import {
+  SLOT_ROLE_LABELS,
+  SLOT_ROLE_TOOLTIPS,
+  type PlayerSlot,
+} from "./lobby-types";
 import type { SlotMove } from "./lobby-room";
 
 // Acentos por time via tokens semânticos (zero hex/palette ad-hoc):
@@ -133,6 +138,8 @@ function PlayerSlotRow({
   const [isPending, startTransition] = useTransition();
   const a = TEAM_ACCENTS[team];
   const roleLabel = SLOT_ROLE_LABELS[slotIndex] ?? `POS ${slotIndex + 1}`;
+  // Hover educacional — papel da POS na metodologia (fonte: lobby-types.ts).
+  const roleTip = SLOT_ROLE_TOOLTIPS[slotIndex] ?? null;
 
   const mutate = (target: "radiant" | "dire" | "spectator", targetSlot?: number) => {
     startTransition(async () => {
@@ -159,29 +166,41 @@ function PlayerSlotRow({
     if (!showJoin) {
       return (
         <li className="flex h-10 items-center border-b border-border-subtle/60 px-3">
-          <span className="font-display text-sm font-semibold uppercase tracking-[0.2em] text-text-faded/60">
-            {roleLabel}
-          </span>
+          <Tooltip content={roleTip} side="top" align="start">
+            <span className="font-display text-sm font-semibold uppercase tracking-[0.2em] text-text-faded/60">
+              {roleLabel}
+            </span>
+          </Tooltip>
         </li>
       );
     }
     return (
       <li className="border-b border-border-subtle/60">
-        <button
-          type="button"
-          disabled={isPending}
-          onClick={() => mutate(team, slotIndex)}
-          className={`group flex h-10 w-full items-center justify-between px-3 text-left transition-colors ${a.rowHover} disabled:opacity-50`}
+        {/* Tooltip envolve o botão inteiro — hover/focus em qualquer ponto da
+            linha ensina o papel da POS antes do clique em ENTRAR. */}
+        <Tooltip
+          content={roleTip}
+          side="top"
+          align="start"
+          focusable={false}
+          className="w-full"
         >
-          <span className="font-display text-sm font-semibold uppercase tracking-wide text-text-faded/60">
-            {roleLabel}
-          </span>
-          <span
-            className={`font-display text-sm font-bold uppercase tracking-[0.2em] ${a.text} opacity-60 group-hover:opacity-100 transition-opacity`}
+          <button
+            type="button"
+            disabled={isPending}
+            onClick={() => mutate(team, slotIndex)}
+            className={`group flex h-10 w-full items-center justify-between px-3 text-left transition-colors ${a.rowHover} disabled:opacity-50`}
           >
-            {isPending ? "..." : "Entrar"}
-          </span>
-        </button>
+            <span className="font-display text-sm font-semibold uppercase tracking-wide text-text-faded/60">
+              {roleLabel}
+            </span>
+            <span
+              className={`font-display text-sm font-bold uppercase tracking-[0.2em] ${a.text} opacity-60 group-hover:opacity-100 transition-opacity`}
+            >
+              {isPending ? "..." : "Entrar"}
+            </span>
+          </button>
+        </Tooltip>
       </li>
     );
   }
@@ -194,15 +213,17 @@ function PlayerSlotRow({
       className={`flex h-10 items-center gap-2 border-b border-border-subtle/60 px-3 ${
         isCurrent ? "bg-bg-elevated/50" : ""
       }`}
-      title={roleLabel}
     >
-      {/* Número da POS — identifica a posição fixa do slot ocupado */}
-      <span
-        className={`w-4 shrink-0 text-center font-display-condensed text-sm ${a.text} opacity-70`}
-        aria-label={roleLabel}
-      >
-        {slotIndex + 1}
-      </span>
+      {/* Número da POS — identifica a posição fixa do slot ocupado.
+          Hover educacional: papel da POS na metodologia. */}
+      <Tooltip content={roleTip} side="top" align="start" className="shrink-0">
+        <span
+          className={`w-4 text-center font-display-condensed text-sm ${a.text} opacity-70`}
+          aria-label={roleLabel}
+        >
+          {slotIndex + 1}
+        </span>
+      </Tooltip>
       {/* Avatar SEMPRE quadrado (rounded-sm) — padrão Steam/Dota */}
       {slot.avatarUrl ? (
         // eslint-disable-next-line @next/next/no-img-element

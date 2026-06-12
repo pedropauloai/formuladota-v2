@@ -19,6 +19,7 @@
 
 import Link from "next/link";
 import { DotaRankMedal, type DotaRank } from "@/components/ui/dota-rank-medal";
+import { Tooltip } from "@/components/ui/tooltip";
 import { HeroFace } from "@/components/dota/hero-face";
 import { getHeroById } from "@/lib/queries/heroes";
 import type { CareerStats, CareerHeroStat } from "@/lib/dota/career";
@@ -111,29 +112,38 @@ export function CareerIdentityInline({
         />
       )}
 
-      {/* Winrate de carreira — número em GOLD, compacto pra caber no header */}
-      <div title="Carreira completa (inclui Turbo) — fonte STRATZ/OpenDota">
-        <p className="font-display-condensed text-3xl leading-none tabular-nums text-gold">
-          {winratePct !== null ? `${winratePct}%` : "—"}
-          <span className="ml-1.5 text-sm uppercase tracking-wide text-gold-muted">
-            winrate
-          </span>
-        </p>
-        <p className="mt-1 font-mono text-xs tabular-nums text-gold">
-          {career.wins.toLocaleString("pt-BR")}V
-          <span className="text-gold-muted"> · </span>
-          {career.losses.toLocaleString("pt-BR")}D
-        </p>
-      </div>
+      {/* Winrate de carreira — número em GOLD, compacto pra caber no header.
+          Hover educacional: fonte e abrangência do número. */}
+      <Tooltip
+        content="Winrate da carreira completa, todos os modos (inclui Turbo) — fonte STRATZ/OpenDota."
+        side="bottom"
+        align="start"
+      >
+        <div>
+          <p className="font-display-condensed text-3xl leading-none tabular-nums text-gold">
+            {winratePct !== null ? `${winratePct}%` : "—"}
+            <span className="ml-1.5 text-sm uppercase tracking-wide text-gold-muted">
+              winrate
+            </span>
+          </p>
+          <p className="mt-1 font-mono text-xs tabular-nums text-gold">
+            {career.wins.toLocaleString("pt-BR")}V
+            <span className="text-gold-muted"> · </span>
+            {career.losses.toLocaleString("pt-BR")}D
+          </p>
+        </div>
+      </Tooltip>
 
       {/* TOP {n} — só Imortais ranqueados no leaderboard. Status máximo. */}
       {career.leaderboardRank != null && (
-        <span
-          className="inline-flex items-center rounded-sm border border-border-gold bg-gold/10 px-2 py-1 font-display-condensed text-xl uppercase leading-none tracking-wider text-gold-bright"
-          title="Posição no leaderboard regional Valve — só Imortais ranqueados"
+        <Tooltip
+          content="Posição no leaderboard regional Valve — só Imortais ranqueados."
+          side="bottom"
         >
-          TOP {career.leaderboardRank.toLocaleString("pt-BR")}
-        </span>
+          <span className="inline-flex items-center rounded-sm border border-border-gold bg-gold/10 px-2 py-1 font-display-condensed text-xl uppercase leading-none tracking-wider text-gold-bright">
+            TOP {career.leaderboardRank.toLocaleString("pt-BR")}
+          </span>
+        </Tooltip>
       )}
     </div>
   );
