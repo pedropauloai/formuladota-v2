@@ -12,12 +12,21 @@
 // chip espectador sai do lobby. router.refresh() após cada Server Action
 // sucesso pra re-fetch (revalidatePath sozinho não rerender client component).
 
+import { useOptimistic } from "react";
 import { RoomHeader } from "./room-header";
 import { TeamColumn } from "./team-column";
 import { SpectatorRow } from "./spectator-row";
 import { SettingsPanel } from "./settings-panel";
 import { RoomActions } from "./room-actions";
+import { useLobbyRealtime } from "./use-lobby-realtime";
 import type { LobbyData, PlayerSlot } from "./lobby-types";
+
+/** Movimento otimista de slot — aplicado na UI ANTES do servidor confirmar. */
+export interface SlotMove {
+  userId: string;
+  team: "radiant" | "dire" | "spectator";
+  slot: number | null;
+}
 
 interface Props {
   lobby: LobbyData;
@@ -30,9 +39,10 @@ interface Props {
   /**
    * Callback após cada Server Action sucesso (join/leave/start). Usado quando
    * o LobbyRoom é embedded em PlayPanel (Client) — re-fetcha via fetch action
-   * pq router.refresh sozinho não re-roda useEffect+SA.
+   * pq router.refresh sozinho não re-roda useEffect+SA. Pode retornar Promise:
+   * os filhos AGUARDAM dentro da transition pra reconciliar sem flicker.
    */
-  onMutate?: () => void;
+  onMutate?: () => void | Promise<void>;
   /** Abre o popup de Configurações da Sala (editar). Só faz sentido pro líder. */
   onEdit?: () => void;
 }
@@ -47,12 +57,32 @@ export function LobbyRoom({
   onMutate,
   onEdit,
 }: Props) {
+  // OPTIMISTIC (Pedro 2026-06-11): a UI move o jogador NA HORA do clique; o
+  // servidor confirma em paralelo. Se rejeitar (ex: slot tomado na corrida),
+  // o useOptimistic reverte sozinho ao fim da transition — banco segue juiz.
+  // Primeira entrada no lobby fica fora do optimistic (não temos o perfil do
+  // viewer aqui); só MOVIMENTOS de quem já está na sala são antecipados.
+  const [optimisticPlayers, applyMove] = useOptimistic(
+    players,
+    (state: PlayerSlot[], move: SlotMove) => {
+      if (!state.some((p) => p.userId === move.userId)) return state;
+      return state.map((p) =>
+        p.userId === move.userId ? { ...p, team: move.team, slot: move.slot } : p
+      );
+    }
+  );
+
+  // REALTIME: push do banco quando QUALQUER jogador entra/troca/sai ou a sala
+  // muda — todos na sala veem em ~100-300ms, sem polling.
+  useLobbyRealtime(lobby.id, () => void onMutate?.());
+
   const teamSize = Math.floor(lobby.maxPlayers / 2);
-  const team1 = players.filter((p) => p.team === "radiant");
-  const team2 = players.filter((p) => p.team === "dire");
-  const spectators = players.filter((p) => p.team === "spectator");
-  const inLobby = players.some((p) => p.userId === currentUserId);
-  const myTeam = players.find((p) => p.userId === currentUserId)?.team ?? null;
+  const team1 = optimisticPlayers.filter((p) => p.team === "radiant");
+  const team2 = optimisticPlayers.filter((p) => p.team === "dire");
+  const spectators = optimisticPlayers.filter((p) => p.team === "spectator");
+  const inLobby = optimisticPlayers.some((p) => p.userId === currentUserId);
+  const myTeam =
+    optimisticPlayers.find((p) => p.userId === currentUserId)?.team ?? null;
   const canEdit = lobby.status === "open" || lobby.status === "pending";
 
   return (
@@ -72,6 +102,7 @@ export function LobbyRoom({
           currentTeam={myTeam}
           disabled={!canEdit}
           onMutate={onMutate}
+          applyMove={applyMove}
         />
         <TeamColumn
           label="Os Temidos"
@@ -84,6 +115,7 @@ export function LobbyRoom({
           currentTeam={myTeam}
           disabled={!canEdit}
           onMutate={onMutate}
+          applyMove={applyMove}
         />
       </section>
 
@@ -94,6 +126,7 @@ export function LobbyRoom({
         currentTeam={myTeam}
         disabled={!canEdit}
         onMutate={onMutate}
+        applyMove={applyMove}
       />
 
       <SettingsPanel lobby={lobby} isLeader={isLeader} onEdit={onEdit} />

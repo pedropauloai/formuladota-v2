@@ -11,6 +11,7 @@ import { useToast } from "@/components/ui/toast";
 import { HonorRankMedal } from "@/components/ui/honor-rank-medal";
 import { joinTeam } from "./actions";
 import { SLOT_ROLE_LABELS, type PlayerSlot } from "./lobby-types";
+import type { SlotMove } from "./lobby-room";
 
 // Acentos por time via tokens semânticos (zero hex/palette ad-hoc):
 // Iluminados = verde (success/play), Temidos = vermelho de erro (NÃO o brand —
@@ -42,7 +43,9 @@ interface TeamColumnProps {
   leaderId: string;
   currentTeam: string | null;
   disabled: boolean;
-  onMutate?: () => void;
+  onMutate?: () => void | Promise<void>;
+  /** Aplica o movimento na UI ANTES do servidor confirmar (useOptimistic do pai). */
+  applyMove?: (move: SlotMove) => void;
 }
 
 export function TeamColumn({
@@ -56,6 +59,7 @@ export function TeamColumn({
   currentTeam,
   disabled,
   onMutate,
+  applyMove,
 }: TeamColumnProps) {
   const a = TEAM_ACCENTS[team];
   // Slots FIXOS por posição (Pedro 2026-06-11): cada índice é uma POS do Dota —
@@ -92,6 +96,7 @@ export function TeamColumn({
             currentTeam={currentTeam}
             disabled={disabled}
             onMutate={onMutate}
+            applyMove={applyMove}
           />
         ))}
       </ol>
@@ -109,6 +114,7 @@ function PlayerSlotRow({
   currentTeam,
   disabled,
   onMutate,
+  applyMove,
 }: {
   slot: PlayerSlot | null;
   /** Posição fixa desta linha (0-based) — define a POS e o destino do ENTRAR. */
@@ -119,7 +125,8 @@ function PlayerSlotRow({
   leaderId: string;
   currentTeam: string | null;
   disabled: boolean;
-  onMutate?: () => void;
+  onMutate?: () => void | Promise<void>;
+  applyMove?: (move: SlotMove) => void;
 }) {
   const { toast } = useToast();
   const router = useRouter();
@@ -129,13 +136,18 @@ function PlayerSlotRow({
 
   const mutate = (target: "radiant" | "dire" | "spectator", targetSlot?: number) => {
     startTransition(async () => {
+      // 1) UI move NA HORA (0ms percebido). Se o servidor rejeitar, o
+      //    useOptimistic do pai reverte sozinho quando a transition termina.
+      applyMove?.({ userId: currentUserId, team: target, slot: targetSlot ?? null });
       const result = await joinTeam({ lobbyId, team: target, slot: targetSlot });
       if (!result.success) {
         toast({ type: "error", title: result.error });
         return;
       }
+      // 2) Aguarda o refetch DENTRO da transition: o estado novo chega antes
+      //    do optimistic soltar — reconciliação sem flicker.
+      await onMutate?.();
       router.refresh();
-      onMutate?.();
     });
   };
 

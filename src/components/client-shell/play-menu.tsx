@@ -172,9 +172,13 @@ export function PlayMenu({ isVisitor, initial }: Props) {
     });
   }
 
-  function refetchSala() {
+  function refetchSala(): Promise<void> | undefined {
     if (!lobbyId) return;
-    void fetchLobbyRoom(lobbyId).then((d) => d && setLobbyData(d));
+    // Retorna a Promise: o LobbyRoom AGUARDA o estado novo dentro da transition
+    // do optimistic update — reconciliação sem flicker (Pedro 2026-06-11).
+    return fetchLobbyRoom(lobbyId).then((d) => {
+      if (d) setLobbyData(d);
+    });
   }
 
   const inSala = view === "sala" && !!lobbyData;

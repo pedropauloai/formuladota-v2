@@ -9,6 +9,7 @@ import { X } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { joinTeam, leaveLobby } from "./actions";
 import type { PlayerSlot } from "./lobby-types";
+import type { SlotMove } from "./lobby-room";
 
 interface SpectatorRowProps {
   spectators: PlayerSlot[];
@@ -16,7 +17,9 @@ interface SpectatorRowProps {
   currentUserId: string;
   currentTeam: string | null;
   disabled: boolean;
-  onMutate?: () => void;
+  onMutate?: () => void | Promise<void>;
+  /** Aplica o movimento na UI antes do servidor confirmar (useOptimistic do pai). */
+  applyMove?: (move: SlotMove) => void;
 }
 
 export function SpectatorRow({
@@ -26,6 +29,7 @@ export function SpectatorRow({
   currentTeam,
   disabled,
   onMutate,
+  applyMove,
 }: SpectatorRowProps) {
   const { toast } = useToast();
   const router = useRouter();
@@ -33,13 +37,15 @@ export function SpectatorRow({
 
   const handleSpectate = () => {
     startTransition(async () => {
+      // Optimistic: vira espectador na hora; reverte sozinho se o servidor negar.
+      applyMove?.({ userId: currentUserId, team: "spectator", slot: null });
       const r = await joinTeam({ lobbyId, team: "spectator" });
       if (!r.success) {
         toast({ type: "error", title: r.error });
         return;
       }
+      await onMutate?.();
       router.refresh();
-      onMutate?.();
     });
   };
 
@@ -48,8 +54,8 @@ export function SpectatorRow({
       const fd = new FormData();
       fd.set("lobbyId", lobbyId);
       await leaveLobby(fd);
+      await onMutate?.();
       router.refresh();
-      onMutate?.();
     });
   };
 
