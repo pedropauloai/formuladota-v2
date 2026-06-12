@@ -70,6 +70,13 @@
   --color-gold-muted:          var(--color-gold-muted);
   --color-border-gold:         var(--color-border-gold);
 
+  /* Metais da escada de níveis HONOR — ferro/bronze/prata (ouro = grupo acima).
+   * Ex: text-metal-bronze, border-metal-silver/40. Decisão Pedro 2026-06-12:
+   * níveis por MATERIAL (fim do arco-íris do TIER_CONFIG). */
+  --color-metal-iron:          var(--fd-raw-metal-iron);
+  --color-metal-bronze:        var(--fd-raw-metal-bronze);
+  --color-metal-silver:        var(--fd-raw-metal-silver);
+
   /* -------------------------------------------------------
    * GRUPO 6 — ESTADO (feedback)
    * Ex: text-success, bg-error, border-warning

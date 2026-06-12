@@ -35,71 +35,79 @@ export interface TierConfig {
   levels: [number, number];
 }
 
+/**
+ * Cores por banda = escada de MATERIAIS (decisão Pedro 2026-06-12):
+ * ferro → bronze → prata → ouro → ouro brilhante → vermelho brand.
+ * Substitui o arco-íris antigo (sky/emerald/violet/orange/rose — cores cruas
+ * proibidas pelo DESIGN_LANGUAGE). Mesma gramática das medalhas HONOR e do
+ * cliente Dota: todo gamer lê "bronze < prata < ouro" sem legenda.
+ * Tokens: --color-metal-* e família gold em globals.css; brand pro topo.
+ */
 export const TIER_CONFIG: Record<Tier, TierConfig> = {
   novato: {
     // 0–5: ainda não provou conhecimento da doutrina. Sem medalha.
     label: "Novato",
     icon: Sprout,
-    color: "text-zinc-400",
-    bgGradient: "from-zinc-600/20 to-zinc-800/10",
-    progressBar: "from-zinc-500 to-zinc-400",
-    ringColor: "ring-zinc-400/50",
-    borderColor: "border-zinc-500/40",
+    color: "text-metal-iron",
+    bgGradient: "from-metal-iron/15 to-metal-iron/5",
+    progressBar: "from-metal-iron/80 to-metal-iron",
+    ringColor: "ring-metal-iron/50",
+    borderColor: "border-metal-iron/40",
     levels: [1, 5],
   },
   aprendiz: {
     // 6–11: completou a verificação de doutrina+metodologia = doutrinado.
     label: "Aprendiz",
     icon: GraduationCap,
-    color: "text-sky-400",
-    bgGradient: "from-sky-400/20 to-sky-600/10",
-    progressBar: "from-sky-400 to-sky-200",
-    ringColor: "ring-sky-300/60",
-    borderColor: "border-sky-400/40",
+    color: "text-metal-bronze",
+    bgGradient: "from-metal-bronze/15 to-metal-bronze/5",
+    progressBar: "from-metal-bronze/80 to-metal-bronze",
+    ringColor: "ring-metal-bronze/50",
+    borderColor: "border-metal-bronze/40",
     levels: [6, 11],
   },
   piloto: {
     // 12–17: aplicando o método nas partidas (Fórmula do Dota de Corrida).
     label: "Piloto",
     icon: Gauge,
-    color: "text-emerald-400",
-    bgGradient: "from-emerald-400/20 to-emerald-600/10",
-    progressBar: "from-emerald-400 to-emerald-200",
-    ringColor: "ring-emerald-300/60",
-    borderColor: "border-emerald-400/40",
+    color: "text-metal-silver",
+    bgGradient: "from-metal-silver/12 to-metal-silver/5",
+    progressBar: "from-metal-silver/80 to-metal-silver",
+    ringColor: "ring-metal-silver/50",
+    borderColor: "border-metal-silver/40",
     levels: [12, 17],
   },
   as: {
-    // 18–24: domínio da pista — piloto virou ás.
+    // 18–24: domínio da pista — piloto virou ás. Entra no OURO.
     label: "Ás",
     icon: Zap,
-    color: "text-violet-400",
-    bgGradient: "from-violet-500/20 to-violet-700/10",
-    progressBar: "from-violet-500 to-fuchsia-400",
-    ringColor: "ring-violet-400/60",
-    borderColor: "border-violet-400/40",
+    color: "text-gold",
+    bgGradient: "from-gold/15 to-gold/5",
+    progressBar: "from-gold/80 to-gold",
+    ringColor: "ring-gold/50",
+    borderColor: "border-gold/40",
     levels: [18, 24],
   },
   lendario: {
     // 25–29: referência cultural consolidada (guardião da cultura).
     label: "Lendário",
     icon: Flame,
-    color: "text-orange-400",
-    bgGradient: "from-orange-500/25 to-orange-700/10",
-    progressBar: "from-orange-500 to-amber-300",
-    ringColor: "ring-orange-400/60",
-    borderColor: "border-orange-400/40",
+    color: "text-gold-bright",
+    bgGradient: "from-gold-bright/20 to-gold/5",
+    progressBar: "from-gold to-gold-bright",
+    ringColor: "ring-gold-bright/60",
+    borderColor: "border-gold-bright/50",
     levels: [25, 29],
   },
   mistico: {
-    // 30: topo do ladder. Percepção expandida — compreende o jogo além do jogo.
+    // 30: topo do ladder. Único matiz não-metal — o vermelho da marca.
     label: "Místico",
     icon: Sparkles,
-    color: "text-rose-400",
-    bgGradient: "from-rose-500/30 via-fuchsia-500/20 to-rose-700/10",
-    progressBar: "from-rose-500 via-fuchsia-400 to-rose-300",
-    ringColor: "ring-rose-400/70",
-    borderColor: "border-rose-400/50",
+    color: "text-brand-primary",
+    bgGradient: "from-brand-primary/25 to-brand-primary/5",
+    progressBar: "from-brand-primary/80 to-brand-primary",
+    ringColor: "ring-brand-primary/60",
+    borderColor: "border-brand-primary/50",
     levels: [30, 30],
   },
 };

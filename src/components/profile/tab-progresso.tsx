@@ -162,7 +162,7 @@ export async function TabProgresso() {
 
       {/* Tiers grid */}
       <section>
-        <h2 className="mb-4 font-sans text-sm font-semibold uppercase tracking-[0.2em] text-white/70">
+        <h2 className="mb-4 font-display-condensed text-2xl uppercase leading-none tracking-wider text-text-muted">
           Tiers
         </h2>
         <div className="grid gap-3 grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
@@ -203,7 +203,7 @@ export async function TabProgresso() {
 
       {/* Tabela completa 30 níveis */}
       <section>
-        <h2 className="mb-4 font-sans text-sm font-semibold uppercase tracking-[0.2em] text-white/70">
+        <h2 className="mb-4 font-display-condensed text-2xl uppercase leading-none tracking-wider text-text-muted">
           Tabela de níveis
         </h2>
         <div className="rounded-md border border-border-subtle bg-bg-base overflow-hidden">
@@ -271,7 +271,7 @@ export async function TabProgresso() {
 
       {/* Histórico recente */}
       <section>
-        <h2 className="mb-4 font-sans text-sm font-semibold uppercase tracking-[0.2em] text-white/70">
+        <h2 className="mb-4 font-display-condensed text-2xl uppercase leading-none tracking-wider text-text-muted">
           Histórico de XP <span className="text-white/40">(últimos 20)</span>
         </h2>
         {events && events.length > 0 ? (
