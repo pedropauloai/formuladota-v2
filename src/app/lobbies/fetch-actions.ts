@@ -76,7 +76,7 @@ export async function fetchLobbyRoom(lobbyId: string): Promise<LobbyRoomData | n
 
   const { data: playersData } = await supabase
     .from("lobby_players")
-    .select("user_id, team, joined_at")
+    .select("user_id, team, joined_at, slot")
     .eq("lobby_id", lobbyId);
 
   const playerIds = (playersData ?? []).map((p) => p.user_id);
@@ -105,6 +105,7 @@ export async function fetchLobbyRoom(lobbyId: string): Promise<LobbyRoomData | n
     return {
       userId: p.user_id,
       team: p.team as "radiant" | "dire" | "spectator",
+      slot: p.slot ?? null,
       joinedAt: p.joined_at,
       username: prof?.username ?? "Anônimo",
       avatarUrl: prof?.avatar_url ?? null,

@@ -10,7 +10,7 @@ import { Crown, Loader2, X } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { HonorRankMedal } from "@/components/ui/honor-rank-medal";
 import { joinTeam } from "./actions";
-import type { PlayerSlot } from "./lobby-types";
+import { SLOT_ROLE_LABELS, type PlayerSlot } from "./lobby-types";
 
 // Acentos por time via tokens semânticos (zero hex/palette ad-hoc):
 // Iluminados = verde (success/play), Temidos = vermelho de erro (NÃO o brand —
@@ -58,7 +58,12 @@ export function TeamColumn({
   onMutate,
 }: TeamColumnProps) {
   const a = TEAM_ACCENTS[team];
-  const slots = Array.from({ length: size }, (_, i) => players[i] ?? null);
+  // Slots FIXOS por posição (Pedro 2026-06-11): cada índice é uma POS do Dota —
+  // o jogador renderiza NO slot que escolheu, não preenchendo de cima pra baixo.
+  const slots = Array.from(
+    { length: size },
+    (_, i) => players.find((p) => p.slot === i) ?? null
+  );
 
   return (
     <section className={`flex flex-col ${a.bg}`}>
@@ -79,6 +84,7 @@ export function TeamColumn({
           <PlayerSlotRow
             key={i}
             slot={slot}
+            slotIndex={i}
             team={team}
             lobbyId={lobbyId}
             currentUserId={currentUserId}
@@ -95,6 +101,7 @@ export function TeamColumn({
 
 function PlayerSlotRow({
   slot,
+  slotIndex,
   team,
   lobbyId,
   currentUserId,
@@ -104,6 +111,8 @@ function PlayerSlotRow({
   onMutate,
 }: {
   slot: PlayerSlot | null;
+  /** Posição fixa desta linha (0-based) — define a POS e o destino do ENTRAR. */
+  slotIndex: number;
   team: "radiant" | "dire";
   lobbyId: string;
   currentUserId: string;
@@ -116,10 +125,11 @@ function PlayerSlotRow({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const a = TEAM_ACCENTS[team];
+  const roleLabel = SLOT_ROLE_LABELS[slotIndex] ?? `POS ${slotIndex + 1}`;
 
-  const mutate = (target: "radiant" | "dire" | "spectator") => {
+  const mutate = (target: "radiant" | "dire" | "spectator", targetSlot?: number) => {
     startTransition(async () => {
-      const result = await joinTeam({ lobbyId, team: target });
+      const result = await joinTeam({ lobbyId, team: target, slot: targetSlot });
       if (!result.success) {
         toast({ type: "error", title: result.error });
         return;
@@ -129,14 +139,16 @@ function PlayerSlotRow({
     });
   };
 
-  // Slot vazio — [ENTRAR] se pode trocar pra esse time, senão "VAZIO" esmaecido.
+  // Slot vazio — clicável pra entrar NESTA posição específica (pode ser do
+  // próprio time: trocar de POS sem trocar de time).
   if (!slot) {
-    const showJoin = !disabled && currentTeam !== team;
+    const isMySlot = false;
+    const showJoin = !disabled && !isMySlot;
     if (!showJoin) {
       return (
         <li className="flex h-10 items-center border-b border-border-subtle/60 px-3">
           <span className="font-display text-sm font-semibold uppercase tracking-[0.2em] text-text-faded/60">
-            Vazio
+            {roleLabel}
           </span>
         </li>
       );
@@ -146,11 +158,11 @@ function PlayerSlotRow({
         <button
           type="button"
           disabled={isPending}
-          onClick={() => mutate(team)}
+          onClick={() => mutate(team, slotIndex)}
           className={`group flex h-10 w-full items-center justify-between px-3 text-left transition-colors ${a.rowHover} disabled:opacity-50`}
         >
           <span className="font-display text-sm font-semibold uppercase tracking-wide text-text-faded/60">
-            Vazio
+            {roleLabel}
           </span>
           <span
             className={`font-display text-sm font-bold uppercase tracking-[0.2em] ${a.text} opacity-60 group-hover:opacity-100 transition-opacity`}
@@ -170,7 +182,15 @@ function PlayerSlotRow({
       className={`flex h-10 items-center gap-2 border-b border-border-subtle/60 px-3 ${
         isCurrent ? "bg-bg-elevated/50" : ""
       }`}
+      title={roleLabel}
     >
+      {/* Número da POS — identifica a posição fixa do slot ocupado */}
+      <span
+        className={`w-4 shrink-0 text-center font-display-condensed text-sm ${a.text} opacity-70`}
+        aria-label={roleLabel}
+      >
+        {slotIndex + 1}
+      </span>
       {/* Avatar SEMPRE quadrado (rounded-sm) — padrão Steam/Dota */}
       {slot.avatarUrl ? (
         // eslint-disable-next-line @next/next/no-img-element

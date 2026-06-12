@@ -17,6 +17,8 @@ export type ActionResult = { success: true } | { success: false; error: string }
 export async function joinTeam(input: {
   lobbyId: string;
   team: "radiant" | "dire" | "spectator";
+  /** Posição FIXA escolhida (0-based). Obrigatório pra radiant/dire; ignorado pra spectator. */
+  slot?: number;
 }): Promise<ActionResult> {
   const supabase = await createClient();
   const {
@@ -24,7 +26,6 @@ export async function joinTeam(input: {
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Não autenticado." };
 
-  // Verifica se há vaga no time (limite por time = max_players / 2 pra radiant/dire; spectators sem limite)
   const { data: lobby } = await supabase
     .from("lobbies")
     .select("status, max_players")
@@ -35,16 +36,21 @@ export async function joinTeam(input: {
     return { success: false, error: "Lobby não aceita mais jogadores." };
   }
 
+  // Slot fixo por posição (Pedro 2026-06-11): jogador escolhe a POS específica
+  // (pode entrar na POS 4 com a 1-3 vazias). Valida range; a ocupação é
+  // garantida pelo índice único parcial (migration 048) — race-safe.
+  let targetSlot: number | null = null;
   if (input.team !== "spectator") {
     const teamLimit = Math.floor(lobby.max_players / 2);
-    const { count } = await supabase
-      .from("lobby_players")
-      .select("*", { count: "exact", head: true })
-      .eq("lobby_id", input.lobbyId)
-      .eq("team", input.team);
-    if ((count ?? 0) >= teamLimit) {
-      return { success: false, error: "Time cheio." };
+    if (
+      input.slot == null ||
+      !Number.isInteger(input.slot) ||
+      input.slot < 0 ||
+      input.slot >= teamLimit
+    ) {
+      return { success: false, error: "Escolha um slot válido." };
     }
+    targetSlot = input.slot;
   }
 
   // Já está no lobby? Update team. Senão insert.
@@ -63,29 +69,40 @@ export async function joinTeam(input: {
     // reportar sucesso falso.
     const { data: updated, error } = await supabase
       .from("lobby_players")
-      .update({ team: input.team })
+      .update({ team: input.team, slot: targetSlot })
       .eq("lobby_id", input.lobbyId)
       .eq("user_id", user.id)
       .select("user_id");
-    if (error) return { success: false, error: "Erro ao trocar de time." };
+    if (error) {
+      if (error.code === "23505") {
+        return { success: false, error: "Slot já ocupado — escolha outro." };
+      }
+      return { success: false, error: "Erro ao trocar de slot." };
+    }
     if (!updated || updated.length === 0) {
       return {
         success: false,
-        error: "Troca de time não aplicada (permissão no banco). Avise o admin.",
+        error: "Troca de slot não aplicada (permissão no banco). Avise o admin.",
       };
     }
   } else {
-    const { error } = await supabase
-      .from("lobby_players")
-      .insert({ lobby_id: input.lobbyId, user_id: user.id, team: input.team });
+    const { error } = await supabase.from("lobby_players").insert({
+      lobby_id: input.lobbyId,
+      user_id: user.id,
+      team: input.team,
+      slot: targetSlot,
+    });
     if (error) {
+      if (error.code === "23505") {
+        return { success: false, error: "Slot já ocupado — escolha outro." };
+      }
       if (error.code === "42501") {
         return {
           success: false,
           error: "Mensalidade ativa exigida pra entrar em lobby.",
         };
       }
-      return { success: false, error: "Erro ao entrar no time." };
+      return { success: false, error: "Erro ao entrar no slot." };
     }
   }
 

@@ -6,6 +6,8 @@ import type { HonorRank } from "@/components/ui/honor-rank-medal";
 export interface PlayerSlot {
   userId: string;
   team: "radiant" | "dire" | "spectator";
+  /** Posição FIXA na coluna do time (0-based). NULL pra espectador. */
+  slot: number | null;
   joinedAt: string;
   username: string;
   avatarUrl: string | null;
@@ -26,6 +28,19 @@ export interface LobbyData {
   createdBy: string;
   startedAt: string | null;
 }
+
+/**
+ * Papéis por posição de slot (pedido Pedro 2026-06-11): cada slot da coluna
+ * é uma POS fixa do Dota — o jogador escolhe a função ao escolher o slot.
+ * Índice 0-based → label.
+ */
+export const SLOT_ROLE_LABELS: readonly string[] = [
+  "POS 1 — HC",
+  "POS 2 — MID",
+  "POS 3 — OFF",
+  "POS 4 — SUP 4",
+  "POS 5 — SUP 5",
+];
 
 export const GAME_MODE_LABELS: Record<string, string> = {
   all_pick: "Escolha livre",
