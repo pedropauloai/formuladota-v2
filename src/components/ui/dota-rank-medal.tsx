@@ -178,7 +178,8 @@ const SIZE_CLASS: Record<NonNullable<DotaRankMedalProps["size"]>, string> = {
  */
 const GLOW_CLASS: Partial<Record<DotaRank, string>> = {
   divine: "drop-shadow-[0_0_12px_var(--color-purple-500)]",
-  immortal: "drop-shadow-[0_0_16px_var(--color-warning)]",
+  // Reduzido 16→8px (Pedro 2026-06-12: glow do Imortal estava forte demais)
+  immortal: "drop-shadow-[0_0_8px_var(--color-warning)]",
   "immortal-top-100":
     "drop-shadow-[0_0_24px_var(--color-warning)] drop-shadow-[0_0_48px_var(--color-brand-primary-glow)]",
 }

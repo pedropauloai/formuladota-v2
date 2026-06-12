@@ -323,7 +323,7 @@ export function HonorRankMedal({
           ? {
               filter:
                 rank === "mistico"
-                  ? "drop-shadow(0 0 8px var(--color-brand-primary-glow)) drop-shadow(0 0 20px var(--color-brand-primary-glow))"
+                  ? "drop-shadow(0 0 12px var(--color-brand-primary-glow)) drop-shadow(0 0 28px var(--color-brand-primary-glow))"
                   : "drop-shadow(0 0 6px var(--fd-raw-gold-glow, rgba(200,170,110,0.25)))",
             }
           : undefined

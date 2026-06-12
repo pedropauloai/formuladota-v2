@@ -7,6 +7,7 @@
 // de TIER_CONFIG (Místico), não mais "Grão-Mestre".
 
 import * as Icons from "lucide-react";
+import { HonorRankMedal } from "@/components/ui/honor-rank-medal";
 import { createClient } from "@/lib/supabase/server";
 import { displayName, displayAvatar } from "@/lib/identity";
 import {
@@ -75,7 +76,6 @@ export async function TabProgresso() {
   // Topo do ladder tem co-requisito de SKILL: Lendário exige Divine, Místico exige Imortal.
   const tier = getGatedTierForLevel(currentLevel, profile?.mmr_atual ?? null);
   const tierConfig = TIER_CONFIG[tier];
-  const TierIcon = tierConfig.icon;
 
   const nextThreshold = thresholds?.find((t) => t.level === currentLevel + 1);
   const xpRequiredForNext = nextThreshold?.xp_required ?? 0;
@@ -108,7 +108,7 @@ export async function TabProgresso() {
               {persona}
             </p>
             <div className="flex items-center gap-2 mt-1">
-              <TierIcon size={20} className={tierConfig.color} aria-hidden="true" />
+              <HonorRankMedal rank={tier} size="sm" glow={tier === "mistico"} />
               <h2 className="font-display text-2xl 2xl:text-3xl uppercase tracking-wide text-white">
                 {/* Número de nível = valor/progresso → GOLD (Pedro 2026-06-11) */}
                 Nível <span className="tabular-nums text-gold">{currentLevel}</span>
@@ -168,7 +168,6 @@ export async function TabProgresso() {
         <div className="grid gap-3 grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
           {(Object.keys(TIER_CONFIG) as Tier[]).map((t) => {
             const cfg = TIER_CONFIG[t];
-            const Icon = cfg.icon;
             const isCurrent = t === tier;
             const isUnlocked = currentLevel >= cfg.levels[0];
             return (
@@ -182,7 +181,7 @@ export async function TabProgresso() {
                       : "border-white/10 opacity-50"
                 }`}
               >
-                <Icon size={28} className={`mx-auto ${cfg.color}`} aria-hidden="true" />
+                <HonorRankMedal rank={t} size="md" glow={isCurrent} className="mx-auto" />
                 <p className={`font-display text-sm uppercase tracking-widest ${cfg.color}`}>
                   {cfg.label}
                 </p>
