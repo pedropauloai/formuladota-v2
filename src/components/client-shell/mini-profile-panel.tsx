@@ -34,6 +34,7 @@ import {
   BookOpen,
   LogIn,
   Users,
+  UserPlus,
   ShieldCheck,
 } from "lucide-react";
 import { type DotaRank } from "@/components/ui/dota-rank-medal";
@@ -75,6 +76,10 @@ interface Props {
   currentUserId: string | null;
   /** Amigos aceitos — fetched no shell.tsx (server-side). */
   initialFriends: FriendListEntry[];
+  /** Pedidos pendentes (recebidos + enviados) — fetched no shell.tsx. */
+  initialPending?: FriendListEntry[];
+  /** Sala ABERTA em que o user está — habilita "Convidar pra sala". */
+  currentLobbyId?: string | null;
 }
 
 export function MiniProfilePanel({
@@ -92,10 +97,16 @@ export function MiniProfilePanel({
   lockedExpanded = false,
   currentUserId,
   initialFriends,
+  initialPending = [],
+  currentLobbyId = null,
 }: Props) {
   // Par canônico de medalhas (mandamento M12): SKILL (Valve/MMR) + HONOR (nível).
   const dotaRank = mmrToDotaRank(mmr);
   const honorRank = getGatedTierForLevel(level, mmr);
+  // Pedidos RECEBIDOS pedem ação — badge visível mesmo com o painel fechado.
+  const pendingIncomingCount = initialPending.filter(
+    (p) => p.direction === "incoming"
+  ).length;
   // Estado client-side pra UX instant (sem reload). Cookie persiste async.
   const [expandedState, setExpanded] = useState(initialExpanded);
   const expanded = lockedExpanded || expandedState;
@@ -135,6 +146,8 @@ export function MiniProfilePanel({
           honorRank={honorRank}
           currentUserId={currentUserId}
           initialFriends={initialFriends}
+          initialPending={initialPending}
+          currentLobbyId={currentLobbyId}
         />
       )}
 
@@ -150,12 +163,17 @@ export function MiniProfilePanel({
           level={level}
           xpPct={xpPct}
           permissions={permissions}
+          pendingCount={pendingIncomingCount}
           connectedTop={expanded}
           onToggle={handleToggle}
           locked={lockedExpanded}
         />
         {!lockedExpanded && (
-          <ToggleIcon expanded={expanded} onToggle={handleToggle} />
+          <ToggleIcon
+            expanded={expanded}
+            onToggle={handleToggle}
+            pendingCount={pendingIncomingCount}
+          />
         )}
       </div>
     </div>
@@ -176,6 +194,7 @@ function CollapsedCard({
   level,
   xpPct,
   permissions,
+  pendingCount = 0,
   connectedTop = false,
   onToggle,
   locked = false,
@@ -187,6 +206,8 @@ function CollapsedCard({
   level: number;
   xpPct: number;
   permissions: number;
+  /** Pedidos de amizade RECEBIDOS — badge visível sem abrir o painel. */
+  pendingCount?: number;
   /** Quando true (painel expandido aberto), borda superior + canto superior
       ficam planos pra conectar visualmente ao ExpandedPanel acima. */
   connectedTop?: boolean;
@@ -218,6 +239,7 @@ function CollapsedCard({
           )}
         </p>
       </div>
+      {pendingCount > 0 && <PendingRequestsBadge count={pendingCount} />}
       <PermissionsBadge permissions={permissions} />
     </>
   );
@@ -235,6 +257,24 @@ function CollapsedCard({
     >
       {inner}
     </button>
+  );
+}
+
+// Pedidos de amizade recebidos — pedido tem que ser visível SEM abrir o painel
+// (pacote social 2026-06-12). Dot/contador pode ser redondo (não é avatar).
+function PendingRequestsBadge({ count }: { count: number }) {
+  return (
+    <Tooltip
+      content={`${count === 1 ? "1 pedido de amizade recebido" : `${count} pedidos de amizade recebidos`} — abra o painel de amigos pra responder.`}
+      side="top"
+      align="end"
+      className="shrink-0"
+    >
+      <span className="flex items-center gap-1 rounded-sm border border-success/40 bg-success/10 px-1.5 py-1 font-display text-sm font-bold text-success">
+        <UserPlus size={13} aria-hidden="true" />
+        <span className="tabular-nums">{count}</span>
+      </span>
+    </Tooltip>
   );
 }
 
@@ -262,24 +302,42 @@ function PermissionsBadge({ permissions }: { permissions: number }) {
 function ToggleIcon({
   expanded,
   onToggle,
+  pendingCount = 0,
 }: {
   expanded: boolean;
   onToggle: () => void;
+  /** Pedidos de amizade recebidos — bolha numérica sobre o ícone. */
+  pendingCount?: number;
 }) {
+  const pendingLabel =
+    pendingCount > 0
+      ? ` (${pendingCount} ${pendingCount === 1 ? "pedido pendente" : "pedidos pendentes"})`
+      : "";
   return (
     <button
       type="button"
       onClick={onToggle}
-      aria-label={expanded ? "Fechar painel de amigos" : "Abrir painel de amigos"}
+      aria-label={
+        (expanded ? "Fechar painel de amigos" : "Abrir painel de amigos") +
+        pendingLabel
+      }
       aria-expanded={expanded}
       title={expanded ? "Fechar amigos" : "Abrir amigos"}
-      className={`flex w-12 shrink-0 items-center justify-center rounded-md border backdrop-blur-md transition-all shadow-lg shadow-black/60 ${
+      className={`relative flex w-12 shrink-0 items-center justify-center rounded-md border backdrop-blur-md transition-all shadow-lg shadow-black/60 ${
         expanded
           ? "border-brand-primary bg-brand-primary/20 text-text-display shadow-[0_0_16px_var(--color-brand-primary-glow)]"
           : "border-brand-primary/30 bg-bg-deep/90 text-text-muted hover:border-brand-primary/60 hover:text-text-display"
       }`}
     >
       <Users size={20} aria-hidden="true" />
+      {pendingCount > 0 && (
+        <span
+          aria-hidden="true"
+          className="absolute -top-1.5 -right-1.5 flex min-w-5 h-5 items-center justify-center rounded-full border border-bg-deep bg-brand-primary px-1 font-display text-[11px] font-bold tabular-nums text-text-display"
+        >
+          {pendingCount > 9 ? "9+" : pendingCount}
+        </span>
+      )}
     </button>
   );
 }
@@ -301,6 +359,8 @@ function ExpandedPanel({
   honorRank,
   currentUserId,
   initialFriends,
+  initialPending,
+  currentLobbyId,
 }: {
   persona: string | null;
   avatar: string | null;
@@ -313,6 +373,8 @@ function ExpandedPanel({
   honorRank: HonorRank;
   currentUserId: string | null;
   initialFriends: FriendListEntry[];
+  initialPending: FriendListEntry[];
+  currentLobbyId: string | null;
 }) {
   return (
     <aside
@@ -366,6 +428,8 @@ function ExpandedPanel({
         <FriendsList
           currentUserId={currentUserId ?? ""}
           initialFriends={initialFriends}
+          initialPending={initialPending}
+          currentLobbyId={currentLobbyId}
         />
       </div>
 

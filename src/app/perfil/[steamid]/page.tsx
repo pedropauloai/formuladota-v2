@@ -38,6 +38,10 @@ import {
 } from "@/components/ui/card";
 import { UserAvatar } from "@/components/ui/avatar";
 import {
+  AddFriendButton,
+  type FriendButtonState,
+} from "@/components/profile/add-friend-button";
+import {
   DotaRankMedal,
   type DotaRank,
 } from "@/components/ui/dota-rank-medal";
@@ -91,6 +95,28 @@ export default async function PerfilPublicoPage(props: PageProps) {
 
   if (!steamLink) {
     notFound();
+  }
+
+  // Estado do botão [ADICIONAR AMIGO] decidido server-side (pacote social
+  // 2026-06-12 — missão 3): logado + não-próprio + relação atual do par.
+  // RLS de friendships só retorna rows em que o viewer participa.
+  const {
+    data: { user: viewer },
+  } = await supabase.auth.getUser();
+  let friendButtonState: FriendButtonState | null = null;
+  if (viewer && viewer.id !== steamLink.user_id) {
+    const { data: friendship } = await supabase
+      .from("friendships")
+      .select("status")
+      .or(
+        `and(requester_id.eq.${viewer.id},addressee_id.eq.${steamLink.user_id}),` +
+          `and(requester_id.eq.${steamLink.user_id},addressee_id.eq.${viewer.id})`
+      )
+      .maybeSingle();
+    if (!friendship) friendButtonState = "none";
+    else if (friendship.status === "accepted") friendButtonState = "friends";
+    else if (friendship.status === "pending") friendButtonState = "pending";
+    // blocked → null (botão oculto)
   }
 
   // Profile + season + mmr + badges + stats_extended (paralelo)
@@ -254,6 +280,16 @@ export default async function PerfilPublicoPage(props: PageProps) {
               )}
             </div>
           </div>
+
+          {/* Ação social — Adicionar → Pendente → Amigos (server decide o estado) */}
+          {friendButtonState && (
+            <div className="shrink-0 sm:self-end">
+              <AddFriendButton
+                targetUserId={steamLink.user_id}
+                initialState={friendButtonState}
+              />
+            </div>
+          )}
         </div>
       </section>
 

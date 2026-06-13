@@ -1,8 +1,19 @@
-// Queries de friendships pra Server Components.
+// Queries de friendships pra Server Components (pacote social 2026-06-12).
 // RLS já filtra por auth.uid() — sem necessidade de WHERE manual além de status.
+//
+// IMPORTANTE (RLS de profiles é restritiva — só próprio/admin/coaches): o embed
+// `profiles` pode voltar NULL pra viewers comuns. Por isso a identidade do amigo
+// é resolvida via batch em steam_links (SELECT público, migration 054) — o embed
+// de profiles só ENRIQUECE (last_seen, status_message, fallback Discord) quando
+// o viewer tem permissão. Nunca descartamos um amigo por embed nulo.
 
 import { createClient } from "@/lib/supabase/server";
 import { displayAvatar, displayName } from "@/lib/identity";
+import { getSteamIdentityMap } from "@/lib/queries/identities";
+import {
+  getFriendContextMap,
+  type FriendContext,
+} from "@/lib/queries/friends-context";
 
 export interface FriendListEntry {
   friendshipId: string;
@@ -15,155 +26,108 @@ export interface FriendListEntry {
   direction: "outgoing" | "incoming";
   status: "pending" | "accepted" | "rejected" | "blocked";
   createdAt: string;
+  /** Snapshot do que o amigo está fazendo (fila de PRO / sala). Null = nada. */
+  context: FriendContext | null;
+}
+
+/** Dados do painel de amigos do shell — 1 chamada, tudo em batch. */
+export interface FriendsPanelData {
+  /** Amizades aceitas (com contexto ao vivo). */
+  friends: FriendListEntry[];
+  /** Pedidos pendentes — recebidos (incoming) E enviados (outgoing). */
+  pending: FriendListEntry[];
 }
 
 type ProfileFragment = {
-  id: string;
   username: string | null;
   avatar_url: string | null;
   avatar_custom_url: string | null;
   last_seen_at: string | null;
   status_message: string | null;
-  // Embed 1:1 (steam_links.user_id é unique) — identidade Steam canônica.
-  steam_links: { persona: string | null; avatar_url: string | null } | null;
-};
+} | null;
 
-// Campos do embed `friend` — steam_links junto, na MESMA query (zero N+1).
-const FRIEND_PROFILE_FIELDS = `
-  id, username, avatar_url, avatar_custom_url, last_seen_at, status_message,
-  steam_links ( persona, avatar_url )
-`;
-
-// Nick/avatar exibidos seguem lib/identity (Steam > Discord); avatar custom
-// continua como fallback do lado Discord, como era antes da migration 054.
-function friendIdentity(f: ProfileFragment): {
-  username: string;
-  avatarUrl: string | null;
-} {
-  const src = {
-    steamPersona: f.steam_links?.persona,
-    steamAvatar: f.steam_links?.avatar_url,
-    discordUsername: f.username,
-    discordAvatar: f.avatar_custom_url ?? f.avatar_url,
-  };
-  return { username: displayName(src), avatarUrl: displayAvatar(src) };
-}
+const PROFILE_FIELDS =
+  "username, avatar_url, avatar_custom_url, last_seen_at, status_message";
 
 /**
- * Retorna lista de amigos COM STATUS ACCEPTED do user logado.
- * Inclui dados do profile do amigo via JOIN. Ignora status 'blocked'.
+ * Busca TODAS as friendships do user (accepted + pending) numa query só e
+ * resolve identidade canônica (Steam > Discord) em batch. Contexto ao vivo
+ * só pros aceitos.
  */
-export async function getAcceptedFriends(): Promise<FriendListEntry[]> {
+export async function getFriendsPanel(): Promise<FriendsPanelData> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return [];
+  if (!user) return { friends: [], pending: [] };
 
-  // Faz duas queries paralelas (Supabase não tem OR em foreign key embeds)
-  const [outgoing, incoming] = await Promise.all([
-    supabase
-      .from("friendships")
-      .select(
-        `
-        id,
-        status,
-        created_at,
-        friend:profiles!friendships_addressee_id_fkey (${FRIEND_PROFILE_FIELDS})
-      `
-      )
-      .eq("requester_id", user.id)
-      .eq("status", "accepted"),
-    supabase
-      .from("friendships")
-      .select(
-        `
-        id,
-        status,
-        created_at,
-        friend:profiles!friendships_requester_id_fkey (${FRIEND_PROFILE_FIELDS})
-      `
-      )
-      .eq("addressee_id", user.id)
-      .eq("status", "accepted"),
-  ]);
-
-  const merged: FriendListEntry[] = [];
-
-  for (const row of outgoing.data ?? []) {
-    const f = row.friend as unknown as ProfileFragment | null;
-    if (!f) continue;
-    const ident = friendIdentity(f);
-    merged.push({
-      friendshipId: row.id,
-      friendUserId: f.id,
-      friendUsername: ident.username,
-      friendAvatarUrl: ident.avatarUrl,
-      friendLastSeenAt: f.last_seen_at,
-      friendStatusMessage: f.status_message,
-      direction: "outgoing",
-      status: row.status as FriendListEntry["status"],
-      createdAt: row.created_at,
-    });
-  }
-
-  for (const row of incoming.data ?? []) {
-    const f = row.friend as unknown as ProfileFragment | null;
-    if (!f) continue;
-    const ident = friendIdentity(f);
-    merged.push({
-      friendshipId: row.id,
-      friendUserId: f.id,
-      friendUsername: ident.username,
-      friendAvatarUrl: ident.avatarUrl,
-      friendLastSeenAt: f.last_seen_at,
-      friendStatusMessage: f.status_message,
-      direction: "incoming",
-      status: row.status as FriendListEntry["status"],
-      createdAt: row.created_at,
-    });
-  }
-
-  return merged;
-}
-
-/**
- * Retorna pedidos PENDING que esperam ação do user logado (incoming pending).
- */
-export async function getPendingRequests(): Promise<FriendListEntry[]> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return [];
-
-  const { data } = await supabase
+  const { data: rows } = await supabase
     .from("friendships")
     .select(
       `
-      id,
-      status,
-      created_at,
-      friend:profiles!friendships_requester_id_fkey (${FRIEND_PROFILE_FIELDS})
+      id, status, created_at, requester_id, addressee_id,
+      requester:profiles!friendships_requester_id_fkey (${PROFILE_FIELDS}),
+      addressee:profiles!friendships_addressee_id_fkey (${PROFILE_FIELDS})
     `
     )
-    .eq("addressee_id", user.id)
-    .eq("status", "pending")
+    .in("status", ["accepted", "pending"])
     .order("created_at", { ascending: false });
 
-  return (data ?? []).map((row) => {
-    const f = row.friend as unknown as ProfileFragment;
-    const ident = friendIdentity(f);
-    return {
+  const friendships = rows ?? [];
+  const friendIdOf = (r: (typeof friendships)[number]) =>
+    r.requester_id === user.id ? r.addressee_id : r.requester_id;
+
+  const acceptedIds = friendships
+    .filter((r) => r.status === "accepted")
+    .map(friendIdOf);
+
+  // Identidade Steam (batch público) + contexto ao vivo (batch) em paralelo.
+  const [steamMap, contextMap] = await Promise.all([
+    getSteamIdentityMap(supabase, friendships.map(friendIdOf)),
+    getFriendContextMap(supabase, acceptedIds),
+  ]);
+
+  const friends: FriendListEntry[] = [];
+  const pending: FriendListEntry[] = [];
+
+  for (const row of friendships) {
+    const friendId = friendIdOf(row);
+    const direction = row.requester_id === user.id ? "outgoing" : "incoming";
+    // Embed do LADO do amigo (pode ser null se a RLS de profiles bloquear).
+    const prof = (
+      direction === "outgoing" ? row.addressee : row.requester
+    ) as unknown as ProfileFragment;
+    const steam = steamMap.get(friendId);
+
+    const src = {
+      steamPersona: steam?.persona,
+      steamAvatar: steam?.avatarUrl,
+      discordUsername: prof?.username,
+      discordAvatar: prof?.avatar_custom_url ?? prof?.avatar_url,
+    };
+
+    const entry: FriendListEntry = {
       friendshipId: row.id,
-      friendUserId: f.id,
-      friendUsername: ident.username,
-      friendAvatarUrl: ident.avatarUrl,
-      friendLastSeenAt: f.last_seen_at,
-      friendStatusMessage: f.status_message,
-      direction: "incoming" as const,
+      friendUserId: friendId,
+      friendUsername: displayName(src),
+      friendAvatarUrl: displayAvatar(src),
+      friendLastSeenAt: prof?.last_seen_at ?? null,
+      friendStatusMessage: prof?.status_message ?? null,
+      direction,
       status: row.status as FriendListEntry["status"],
       createdAt: row.created_at,
+      context:
+        row.status === "accepted" ? (contextMap.get(friendId) ?? null) : null,
     };
-  });
+
+    if (row.status === "accepted") friends.push(entry);
+    else pending.push(entry);
+  }
+
+  // Aceitos por nome (estável); pendentes já vêm por created_at desc.
+  friends.sort((a, b) =>
+    (a.friendUsername ?? "").localeCompare(b.friendUsername ?? "", "pt-BR")
+  );
+
+  return { friends, pending };
 }

@@ -640,6 +640,52 @@ export type Database = {
           },
         ]
       }
+      lobby_invites: {
+        Row: {
+          created_at: string
+          id: string
+          invitee_id: string
+          inviter_id: string
+          lobby_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invitee_id: string
+          inviter_id: string
+          lobby_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invitee_id?: string
+          inviter_id?: string
+          lobby_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lobby_invites_invitee_id_fkey"
+            columns: ["invitee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lobby_invites_inviter_id_fkey"
+            columns: ["inviter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lobby_invites_lobby_id_fkey"
+            columns: ["lobby_id"]
+            isOneToOne: false
+            referencedRelation: "lobbies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lobby_players: {
         Row: {
           joined_at: string
@@ -681,7 +727,10 @@ export type Database = {
       }
       match_players: {
         Row: {
+          aghanims_scepter: boolean | null
+          aghanims_shard: boolean | null
           assists: number | null
+          benchmarks: Json | null
           deaths: number | null
           denies: number | null
           enriched_at: string
@@ -696,10 +745,13 @@ export type Database = {
           items: Json | null
           kills: number | null
           last_hits: number | null
+          leaver_status: number | null
           level: number | null
           match_id: string
           net_worth: number | null
+          personaname: string | null
           player_slot: number
+          rank_tier: number | null
           raw_opendota: Json | null
           steam_account_id: number
           team: string
@@ -708,7 +760,10 @@ export type Database = {
           xp_per_min: number | null
         }
         Insert: {
+          aghanims_scepter?: boolean | null
+          aghanims_shard?: boolean | null
           assists?: number | null
+          benchmarks?: Json | null
           deaths?: number | null
           denies?: number | null
           enriched_at?: string
@@ -723,10 +778,13 @@ export type Database = {
           items?: Json | null
           kills?: number | null
           last_hits?: number | null
+          leaver_status?: number | null
           level?: number | null
           match_id: string
           net_worth?: number | null
+          personaname?: string | null
           player_slot: number
+          rank_tier?: number | null
           raw_opendota?: Json | null
           steam_account_id: number
           team: string
@@ -735,7 +793,10 @@ export type Database = {
           xp_per_min?: number | null
         }
         Update: {
+          aghanims_scepter?: boolean | null
+          aghanims_shard?: boolean | null
           assists?: number | null
+          benchmarks?: Json | null
           deaths?: number | null
           denies?: number | null
           enriched_at?: string
@@ -750,10 +811,13 @@ export type Database = {
           items?: Json | null
           kills?: number | null
           last_hits?: number | null
+          leaver_status?: number | null
           level?: number | null
           match_id?: string
           net_worth?: number | null
+          personaname?: string | null
           player_slot?: number
+          rank_tier?: number | null
           raw_opendota?: Json | null
           steam_account_id?: number
           team?: string
@@ -837,18 +901,24 @@ export type Database = {
           coach_id: string | null
           created_at: string
           data_agendada: string
+          dire_score: number | null
           dota_match_id: string | null
           dota_match_id_verified: boolean
           duracao_min: number | null
           enriched_at: string | null
+          first_blood_time: number | null
+          game_mode: number | null
           heroi_jogado: string | null
           id: string
           kda: string | null
           league_id: number | null
+          lobby_type: number | null
           match_dataset: string | null
           mmr_change: number | null
           notas_pedro: string | null
+          patch: number | null
           purchase_id: string | null
+          radiant_score: number | null
           radiant_win: boolean | null
           resultado: string | null
           status: string
@@ -862,18 +932,24 @@ export type Database = {
           coach_id?: string | null
           created_at?: string
           data_agendada: string
+          dire_score?: number | null
           dota_match_id?: string | null
           dota_match_id_verified?: boolean
           duracao_min?: number | null
           enriched_at?: string | null
+          first_blood_time?: number | null
+          game_mode?: number | null
           heroi_jogado?: string | null
           id?: string
           kda?: string | null
           league_id?: number | null
+          lobby_type?: number | null
           match_dataset?: string | null
           mmr_change?: number | null
           notas_pedro?: string | null
+          patch?: number | null
           purchase_id?: string | null
+          radiant_score?: number | null
           radiant_win?: boolean | null
           resultado?: string | null
           status?: string
@@ -887,18 +963,24 @@ export type Database = {
           coach_id?: string | null
           created_at?: string
           data_agendada?: string
+          dire_score?: number | null
           dota_match_id?: string | null
           dota_match_id_verified?: boolean
           duracao_min?: number | null
           enriched_at?: string | null
+          first_blood_time?: number | null
+          game_mode?: number | null
           heroi_jogado?: string | null
           id?: string
           kda?: string | null
           league_id?: number | null
+          lobby_type?: number | null
           match_dataset?: string | null
           mmr_change?: number | null
           notas_pedro?: string | null
+          patch?: number | null
           purchase_id?: string | null
+          radiant_score?: number | null
           radiant_win?: boolean | null
           resultado?: string | null
           status?: string
@@ -2102,6 +2184,7 @@ export type Database = {
           avg_gpm: number | null
           avg_kda: number | null
           avg_xpm: number | null
+          career: Json | null
           hero_winrates: Json | null
           last_synced_at: string | null
           source: string | null
@@ -2114,6 +2197,7 @@ export type Database = {
           avg_gpm?: number | null
           avg_kda?: number | null
           avg_xpm?: number | null
+          career?: Json | null
           hero_winrates?: Json | null
           last_synced_at?: string | null
           source?: string | null
@@ -2126,6 +2210,7 @@ export type Database = {
           avg_gpm?: number | null
           avg_kda?: number | null
           avg_xpm?: number | null
+          career?: Json | null
           hero_winrates?: Json | null
           last_synced_at?: string | null
           source?: string | null

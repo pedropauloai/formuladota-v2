@@ -34,12 +34,14 @@ import { getFichaPackage } from "@/lib/queries/packages";
 import { getMyQueueStatus, getSearchingCount } from "@/lib/queries/queue";
 import { getPreviewModeActive } from "@/lib/auth/preview-mode";
 import { getSidebarExpanded } from "@/lib/auth/sidebar-preference";
-import { getAcceptedFriends } from "@/lib/queries/friends";
+import { getFriendsPanel } from "@/lib/queries/friends";
+import { getMyOpenLobby, getMyLobbyInvites } from "@/lib/queries/lobby-social";
 import { xpProgress } from "@/lib/levels";
 import { getPlayMenuState } from "@/lib/play-menu-preference";
 import { DashboardTopBar } from "./top-bar";
 import { displayName, displayAvatar } from "@/lib/identity";
 import { MiniProfilePanel } from "./mini-profile-panel";
+import { LobbyInviteListener } from "./lobby-invite-listener";
 import { DashboardRightSidebar } from "./right-sidebar";
 import { DashboardBottomBar } from "./bottom-bar";
 
@@ -100,9 +102,11 @@ export async function ClientShell({
     fichaPackage,
     previewActive,
     sidebarExpanded,
-    acceptedFriends,
+    friendsPanel,
     searchingCount,
     playMenuState,
+    myOpenLobby,
+    lobbyInvites,
   ] = await Promise.all([
     isVisitor ? Promise.resolve(null) : fetchPrivateData(supabase, user.id),
     getProsWithQueues(),
@@ -111,11 +115,17 @@ export async function ClientShell({
     isVisitor ? Promise.resolve(false) : getPreviewModeActive(),
     // Cookie sidebar_expanded lido no SSR — sem flash no hydration (Pitfall 1 RESEARCH).
     getSidebarExpanded(),
-    // Amigos aceitos — visitante não tem amigos.
-    isVisitor ? Promise.resolve([]) : getAcceptedFriends(),
+    // Amigos aceitos + pedidos pendentes — visitante não tem amigos.
+    isVisitor
+      ? Promise.resolve({ friends: [], pending: [] })
+      : getFriendsPanel(),
     getSearchingCount(),
     // Estado do menu Jogar Dota (cookie) — persiste expand/collapse + sala entre rotas.
     getPlayMenuState(),
+    // Sala ABERTA em que o user está (habilita "Convidar pra sala" nos amigos).
+    isVisitor ? Promise.resolve(null) : getMyOpenLobby(supabase, user.id),
+    // Convites de sala recebidos — banner global (LobbyInviteListener).
+    isVisitor ? Promise.resolve([]) : getMyLobbyInvites(supabase, user.id),
   ]);
 
   const profile = privateData?.profile ?? null;
@@ -239,8 +249,15 @@ export async function ClientShell({
             initialExpanded={sidebarExpanded}
             lockedExpanded={currentRoute === "/"}
             currentUserId={user?.id ?? null}
-            initialFriends={acceptedFriends}
+            initialFriends={friendsPanel.friends}
+            initialPending={friendsPanel.pending}
+            currentLobbyId={myOpenLobby?.id ?? null}
           />
+        )}
+
+        {/* Convites de sala recebidos — banner realtime global */}
+        {!isVisitor && user && (
+          <LobbyInviteListener userId={user.id} initialInvites={lobbyInvites} />
         )}
 
         {!hideBottomBar && (
@@ -342,8 +359,15 @@ export async function ClientShell({
           initialExpanded={sidebarExpanded}
           lockedExpanded={currentRoute === "/"}
           currentUserId={user?.id ?? null}
-          initialFriends={acceptedFriends}
+          initialFriends={friendsPanel.friends}
+          initialPending={friendsPanel.pending}
+          currentLobbyId={myOpenLobby?.id ?? null}
         />
+      )}
+
+      {/* Convites de sala recebidos — banner realtime global */}
+      {!isVisitor && user && (
+        <LobbyInviteListener userId={user.id} initialInvites={lobbyInvites} />
       )}
 
       {!hideBottomBar && (
