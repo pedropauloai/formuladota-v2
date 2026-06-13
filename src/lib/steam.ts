@@ -103,8 +103,11 @@ export async function validateSteamCallback(
 
 // Busca persona/avatar via Steam Web API (server-only).
 // Endpoint: ISteamUser/GetPlayerSummaries/v0002
+// `force` (botão "Sincronizar com a Steam", Pedro 2026-06-12): fura o cache
+// de 1h — o usuário acabou de mudar o nick/foto na Steam e quer ver AGORA.
 export async function fetchSteamPersona(
-  steamId64: string
+  steamId64: string,
+  opts?: { force?: boolean }
 ): Promise<SteamProfile> {
   const apiKey = requireServerEnv("STEAM_WEB_API_KEY");
   const url = new URL(
@@ -113,10 +116,15 @@ export async function fetchSteamPersona(
   url.searchParams.set("key", apiKey);
   url.searchParams.set("steamids", steamId64);
 
-  const response = await fetch(url.toString(), {
-    // Cache curto — persona muda raramente
-    next: { revalidate: 3600 },
-  });
+  const response = await fetch(
+    url.toString(),
+    opts?.force
+      ? { cache: "no-store" }
+      : {
+          // Cache curto — persona muda raramente
+          next: { revalidate: 3600 },
+        }
+  );
 
   if (!response.ok) {
     throw new Error(

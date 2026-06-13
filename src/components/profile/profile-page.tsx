@@ -35,6 +35,7 @@ import { UserAvatar } from "@/components/ui/avatar";
 import { MedalPair } from "@/components/ui/medal-pair";
 import { ProfileTabs, type ProfileTab } from "./profile-tabs";
 import { SocialIconsRow, SteamIcon } from "./social-icons-row";
+import { SyncSteamButton } from "./sync-steam-button";
 import { Tooltip } from "@/components/ui/tooltip";
 import { steam64To32 } from "@/lib/dota/opendota";
 import { DashboardGrid } from "./dashboard-grid";
@@ -157,6 +158,8 @@ export function ProfilePage({ profile, activeTab, dotaRank, honorRank, editing, 
                       </a>
                     </Tooltip>
                   )}
+                  {/* Sincronizar identidade com a Steam AGORA (fura cache 1h) */}
+                  {profile.steamId64 && <SyncSteamButton />}
                 </div>
                 {/* Redes sociais sob o nick (substitui o "FORMULADOTA" fixo,
                     Pedro 2026-06-12) — Discord aceso (conta do login); demais

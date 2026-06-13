@@ -21,8 +21,13 @@ import { fetchSteamPersona } from "@/lib/steam";
 /**
  * Atualiza steam_links.persona e steam_links.avatar_url do user com os dados
  * frescos da Steam. No-op se o user não tem Steam vinculada. Nunca lança.
+ * `force` fura o cache de 1h da API (botão "Sincronizar com a Steam").
+ * Retorna true se algo foi atualizado (feedback do botão).
  */
-export async function refreshSteamIdentity(userId: string): Promise<void> {
+export async function refreshSteamIdentity(
+  userId: string,
+  opts?: { force?: boolean }
+): Promise<boolean> {
   try {
     const supabase = await createClient();
 
@@ -33,20 +38,22 @@ export async function refreshSteamIdentity(userId: string): Promise<void> {
       .maybeSingle();
 
     // Sem Steam vinculada — nada a atualizar
-    if (!link) return;
+    if (!link) return false;
 
-    const fresh = await fetchSteamPersona(link.steam_id_64);
+    const fresh = await fetchSteamPersona(link.steam_id_64, opts);
 
     // Nada mudou → evita um write no banco a cada visita ao /me
     if (fresh.persona === link.persona && fresh.avatarUrl === link.avatar_url) {
-      return;
+      return false;
     }
 
     await supabase
       .from("steam_links")
       .update({ persona: fresh.persona, avatar_url: fresh.avatarUrl })
       .eq("user_id", userId);
+    return true;
   } catch {
     // Silêncio intencional — refresh é best-effort, a página nunca quebra.
+    return false;
   }
 }
