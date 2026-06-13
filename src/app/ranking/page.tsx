@@ -6,6 +6,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Trophy, Search } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { getSteamIdentityMap, resolveIdentity } from "@/lib/queries/identities";
 import { ClientShell } from "@/components/client-shell/shell";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -87,13 +88,27 @@ export default async function RankingPage(props: {
     .range(offset, offset + PAGE_SIZE - 1);
 
   if (search) {
-    // Busca via JOIN profiles.username — 2-query approach (RLS filter)
-    const { data: matchingProfiles } = await supabase
-      .from("profiles")
-      .select("id")
-      .ilike("username", `%${search}%`)
-      .limit(50);
-    const matchIds = (matchingProfiles ?? []).map((p) => p.id);
+    // Busca por nick em profiles.username (Discord) E steam_links.persona
+    // (identidade exibida desde a migration 054) — 2 queries paralelas.
+    const [{ data: matchingProfiles }, { data: matchingSteam }] =
+      await Promise.all([
+        supabase
+          .from("profiles")
+          .select("id")
+          .ilike("username", `%${search}%`)
+          .limit(50),
+        supabase
+          .from("steam_links")
+          .select("user_id")
+          .ilike("persona", `%${search}%`)
+          .limit(50),
+      ]);
+    const matchIds = [
+      ...new Set([
+        ...(matchingProfiles ?? []).map((p) => p.id),
+        ...(matchingSteam ?? []).map((s) => s.user_id),
+      ]),
+    ];
     if (matchIds.length === 0) {
       return (
         <ClientShell currentRoute="/ranking">
@@ -114,22 +129,27 @@ export default async function RankingPage(props: {
     list ?? [];
   const top3List: typeof rows = top3 ?? [];
 
-  // Hidrata profiles em batch (2-query)
+  // Hidrata profiles (Discord) + steam_links (identidade canônica) em batch.
+  // Nick/avatar exibidos seguem a lib/identity: Steam > Discord.
   const allUserIds = Array.from(new Set([...top3List.map((r) => r.user_id), ...rows.map((r) => r.user_id)]));
-  const { data: profiles } = allUserIds.length > 0
-    ? await supabase
-        .from("profiles")
-        .select("id, username, avatar_url")
-        .in("id", allUserIds)
-    : { data: [] };
+  const [{ data: profiles }, steamMap] = await Promise.all([
+    allUserIds.length > 0
+      ? supabase
+          .from("profiles")
+          .select("id, username, avatar_url")
+          .in("id", allUserIds)
+      : Promise.resolve({ data: null }),
+    getSteamIdentityMap(supabase, allUserIds),
+  ]);
 
   const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
   const hydrate = (r: typeof rows[number]): RankRow => {
     const p = profileMap.get(r.user_id);
+    const ident = resolveIdentity(steamMap, r.user_id, p?.username, p?.avatar_url);
     return {
       ...r,
-      username: p?.username ?? null,
-      avatar_url: p?.avatar_url ?? null,
+      username: ident.name,
+      avatar_url: ident.avatarUrl,
     };
   };
 

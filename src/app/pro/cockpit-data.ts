@@ -10,6 +10,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { getPtsTodayMap } from "@/lib/queries/queue";
+import { getSteamIdentityMap, resolveIdentity } from "@/lib/queries/identities";
 import { getProRecentStats } from "@/lib/queries/pros";
 import { xpProgress, getGatedTierForLevel } from "@/lib/levels";
 import type { HonorRank } from "@/components/ui/honor-rank-medal";
@@ -91,18 +92,25 @@ async function fetchActivePT(
     .eq("status", "in_match");
 
   const studentIds = (entries ?? []).map((e) => e.user_id);
-  const { data: profiles } = studentIds.length
-    ? await supabase
-        .from("profiles")
-        .select("id, username, avatar_url")
-        .in("id", studentIds)
-    : { data: [] };
+  // Profiles (Discord) + steam_links em paralelo — identidade Steam > Discord.
+  const [{ data: profiles }, steamMap] = await Promise.all([
+    studentIds.length
+      ? supabase
+          .from("profiles")
+          .select("id, username, avatar_url")
+          .in("id", studentIds)
+      : Promise.resolve({ data: null }),
+    getSteamIdentityMap(supabase, studentIds),
+  ]);
 
-  const students: CockpitStudent[] = (profiles ?? []).map((p) => ({
-    userId: p.id,
-    username: p.username,
-    avatarUrl: p.avatar_url,
-  }));
+  const students: CockpitStudent[] = (profiles ?? []).map((p) => {
+    const ident = resolveIdentity(steamMap, p.id, p.username, p.avatar_url);
+    return {
+      userId: p.id,
+      username: ident.name,
+      avatarUrl: ident.avatarUrl,
+    };
+  });
 
   return { matchId: match.id, startedAt: match.created_at, students };
 }
@@ -131,19 +139,22 @@ export async function getProCockpitData(coach: CoachRow): Promise<CockpitData> {
 
   // Leitura extra (read-model): MMR + XP total pra renderizar medalha HONOR e
   // MMR em gold por linha da fila — mesmo padrão de fetchLobbyRoom.
-  const [{ data: profiles }, { data: levels }] =
+  // steam_links em paralelo: nick/avatar exibidos = identidade Steam > Discord.
+  const [{ data: profiles }, { data: levels }, steamMap] = await Promise.all([
     userIds.length > 0
-      ? await Promise.all([
-          supabase
-            .from("profiles")
-            .select("id, username, avatar_url, mmr_atual")
-            .in("id", userIds),
-          supabase
-            .from("user_levels")
-            .select("user_id, total_xp_earned")
-            .in("user_id", userIds),
-        ])
-      : [{ data: [] }, { data: [] }];
+      ? supabase
+          .from("profiles")
+          .select("id, username, avatar_url, mmr_atual")
+          .in("id", userIds)
+      : Promise.resolve({ data: null }),
+    userIds.length > 0
+      ? supabase
+          .from("user_levels")
+          .select("user_id, total_xp_earned")
+          .in("user_id", userIds)
+      : Promise.resolve({ data: null }),
+    getSteamIdentityMap(supabase, userIds),
+  ]);
 
   const profileById = new Map((profiles ?? []).map((p) => [p.id, p]));
   const xpByUser = new Map(
@@ -162,11 +173,12 @@ export async function getProCockpitData(coach: CoachRow): Promise<CockpitData> {
   const queue: CockpitQueueEntry[] = sorted.map((e) => {
     const prof = profileById.get(e.user_id);
     const { level } = xpProgress(xpByUser.get(e.user_id) ?? 0);
+    const ident = resolveIdentity(steamMap, e.user_id, prof?.username, prof?.avatar_url);
     return {
       entryId: e.id,
       userId: e.user_id,
-      username: prof?.username ?? null,
-      avatarUrl: prof?.avatar_url ?? null,
+      username: ident.name,
+      avatarUrl: ident.avatarUrl,
       mmr: prof?.mmr_atual ?? null,
       honorRank: getGatedTierForLevel(level, prof?.mmr_atual ?? null),
       joinedAt: e.joined_at,

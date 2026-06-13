@@ -1,6 +1,7 @@
 // Status da fila do usuário atual: em qual PRO ele está, posição, tempo.
 
 import { createClient } from "@/lib/supabase/server";
+import { getSteamIdentityMap, resolveIdentity } from "@/lib/queries/identities";
 
 export interface MyQueueEntry {
   entryId: string;
@@ -87,18 +88,24 @@ export async function getMyQueueStatus(userId: string): Promise<MyQueueEntry[]> 
     .from("coaches")
     .select("id, profile_id")
     .in("id", coachIds);
+  // Profiles (Discord) + steam_links (identidade canônica) em paralelo —
+  // nick/avatar exibidos seguem a lib/identity: Steam > Discord.
   const profileIds = (coachRows ?? []).map((c) => c.profile_id);
-  const { data: profiles } = profileIds.length
-    ? await supabase
-        .from("profiles")
-        .select("id, username, avatar_url")
-        .in("id", profileIds)
-    : { data: [] };
+  const [{ data: profiles }, steamMap] = await Promise.all([
+    profileIds.length
+      ? supabase
+          .from("profiles")
+          .select("id, username, avatar_url")
+          .in("id", profileIds)
+      : Promise.resolve({ data: null }),
+    getSteamIdentityMap(supabase, profileIds),
+  ]);
   const profileById = new Map((profiles ?? []).map((p) => [p.id, p]));
   const coachInfoById = new Map(
     (coachRows ?? []).map((c) => {
       const p = profileById.get(c.profile_id);
-      return [c.id, { username: p?.username ?? null, avatar: p?.avatar_url ?? null }];
+      const ident = resolveIdentity(steamMap, c.profile_id, p?.username, p?.avatar_url);
+      return [c.id, { username: ident.name, avatar: ident.avatarUrl }];
     })
   );
 

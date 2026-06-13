@@ -2,6 +2,7 @@
 // Server-only — usa createClient SSR.
 
 import { createClient } from "@/lib/supabase/server";
+import { getSteamIdentityMap, resolveIdentity } from "@/lib/queries/identities";
 
 export type ProLiveStatus = {
   coachId: string;
@@ -94,13 +95,18 @@ export async function getProsWithQueues(): Promise<ProWithQueue[]> {
     ptsTodayMap.set(key, (ptsTodayMap.get(key) ?? 0) + 1);
   }
 
+  // Profiles (Discord) + steam_links em paralelo — nick/avatar das entries
+  // seguem a identidade canônica (Steam > Discord) via lib/identity.
   const userIds = (entries ?? []).map((e) => e.user_id);
-  const { data: profiles } = userIds.length
-    ? await supabase
-        .from("profiles")
-        .select("id, username, avatar_url")
-        .in("id", userIds)
-    : { data: [] };
+  const [{ data: profiles }, steamMap] = await Promise.all([
+    userIds.length
+      ? supabase
+          .from("profiles")
+          .select("id, username, avatar_url")
+          .in("id", userIds)
+      : Promise.resolve({ data: null }),
+    getSteamIdentityMap(supabase, userIds),
+  ]);
   const profileById = new Map((profiles ?? []).map((p) => [p.id, p]));
 
   return pros.map((pro) => {
@@ -116,11 +122,12 @@ export async function getProsWithQueues(): Promise<ProWithQueue[]> {
       coach: pro,
       entries: coachEntries.map((e) => {
         const p = profileById.get(e.user_id);
+        const ident = resolveIdentity(steamMap, e.user_id, p?.username, p?.avatar_url);
         return {
           entryId: e.id,
           userId: e.user_id,
-          username: p?.username ?? null,
-          avatarUrl: p?.avatar_url ?? null,
+          username: ident.name,
+          avatarUrl: ident.avatarUrl,
           joinedAt: e.joined_at,
           ptsToday: ptsTodayMap.get(`${e.user_id}::${e.coach_id}`) ?? 0,
         };
@@ -176,18 +183,43 @@ export async function getProsLiveStatus(): Promise<ProLiveStatus[]> {
     console.error("[getProsLiveStatus]", error.message);
     return [];
   }
-  return ((data ?? []) as RawRow[]).map((r) => ({
-    coachId: r.coach_id,
-    slug: r.slug,
-    headline: r.headline,
-    bio: r.bio,
-    filaAberta: r.fila_aberta,
-    filaAbertaEm: r.fila_aberta_em,
-    filaMaxVagas: r.fila_max_vagas,
-    username: r.username,
-    avatarUrl: r.avatar_url,
-    mmrAtual: r.mmr_atual,
-    waitingCount: r.waiting_count ?? r.vagas_ocupadas,
-    vagasProximaPT: r.vagas_proxima_pt ?? Math.max(0, r.fila_max_vagas - r.vagas_ocupadas),
-  }));
+  const rows = (data ?? []) as RawRow[];
+  if (rows.length === 0) return [];
+
+  // O RPC devolve username/avatar do Discord (profiles) e NÃO expõe profile_id —
+  // mapeia coach_id → profile_id (coaches ativos têm SELECT público) e busca
+  // steam_links em batch. PRO também é identidade Steam (Steam > Discord).
+  const { data: coachRows } = await supabase
+    .from("coaches")
+    .select("id, profile_id")
+    .in("id", rows.map((r) => r.coach_id));
+  const profileIdByCoach = new Map(
+    (coachRows ?? []).map((c) => [c.id, c.profile_id])
+  );
+  const steamMap = await getSteamIdentityMap(
+    supabase,
+    (coachRows ?? []).map((c) => c.profile_id)
+  );
+
+  return rows.map((r) => {
+    // Sem profile_id mapeado (RLS/edge case) → resolveIdentity não acha Steam
+    // e cai no Discord do RPC — exatamente o fallback antigo.
+    const profileId = profileIdByCoach.get(r.coach_id) ?? r.coach_id;
+    const ident = resolveIdentity(steamMap, profileId, r.username, r.avatar_url);
+    return {
+      coachId: r.coach_id,
+      slug: r.slug,
+      headline: r.headline,
+      bio: r.bio,
+      filaAberta: r.fila_aberta,
+      filaAbertaEm: r.fila_aberta_em,
+      filaMaxVagas: r.fila_max_vagas,
+      username: ident.name,
+      avatarUrl: ident.avatarUrl,
+      mmrAtual: r.mmr_atual,
+      waitingCount: r.waiting_count ?? r.vagas_ocupadas,
+      vagasProximaPT:
+        r.vagas_proxima_pt ?? Math.max(0, r.fila_max_vagas - r.vagas_ocupadas),
+    };
+  });
 }

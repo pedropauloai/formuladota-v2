@@ -7,6 +7,7 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Crown, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { getSteamIdentityMap, resolveIdentity } from "@/lib/queries/identities";
 import { ClientShell } from "@/components/client-shell/shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { UserAvatar } from "@/components/ui/avatar";
@@ -43,19 +44,30 @@ export default async function TeamDetailPage(props: PageProps) {
     .eq("team_id", team.id)
     .order("joined_at");
 
+  // Profiles (Discord) + steam_links em paralelo — nick/avatar do roster
+  // seguem a identidade canônica (Steam > Discord) via lib/identity.
   const memberIds = (members ?? []).map((m) => m.user_id);
-  const { data: profiles } = memberIds.length > 0
-    ? await supabase
-        .from("profiles")
-        .select("id, username, avatar_url")
-        .in("id", memberIds)
-    : { data: [] };
+  const [{ data: profiles }, steamMap] = await Promise.all([
+    memberIds.length > 0
+      ? supabase
+          .from("profiles")
+          .select("id, username, avatar_url")
+          .in("id", memberIds)
+      : Promise.resolve({ data: null }),
+    getSteamIdentityMap(supabase, memberIds),
+  ]);
 
   const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
-  const enrichedMembers = (members ?? []).map((m) => ({
-    ...m,
-    profile: profileMap.get(m.user_id) ?? null,
-  }));
+  const enrichedMembers = (members ?? []).map((m) => {
+    const p = profileMap.get(m.user_id);
+    const ident = resolveIdentity(steamMap, m.user_id, p?.username, p?.avatar_url);
+    return {
+      ...m,
+      profile: p
+        ? { ...p, username: ident.name, avatar_url: ident.avatarUrl }
+        : null,
+    };
+  });
 
   const isCaptain = team.captain_id === user.id;
   const isMember = enrichedMembers.some((m) => m.user_id === user.id);

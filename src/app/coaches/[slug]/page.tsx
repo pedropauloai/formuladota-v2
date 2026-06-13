@@ -17,6 +17,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { displayAvatar, displayName } from "@/lib/identity";
 import { ClientShell } from "@/components/client-shell/shell";
 import { UserAvatar } from "@/components/ui/avatar";
 import { DotaRankMedal, type DotaRank } from "@/components/ui/dota-rank-medal";
@@ -100,13 +101,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return { title: "PRO não encontrado — FORMULADOTA" };
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("username")
-    .eq("id", coach.profile_id)
-    .maybeSingle();
+  // Nome canônico no <title>: Steam (persona) > Discord (username) > slug.
+  const [{ data: profile }, { data: steamLink }] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("username")
+      .eq("id", coach.profile_id)
+      .maybeSingle(),
+    supabase
+      .from("steam_links")
+      .select("persona")
+      .eq("user_id", coach.profile_id)
+      .maybeSingle(),
+  ]);
 
-  const name = profile?.username ?? slug;
+  const name = steamLink?.persona?.trim() || profile?.username || slug;
 
   return {
     title: `${name} — PRO FORMULADOTA`,
@@ -149,9 +158,10 @@ export default async function CoachProfilePage({ params }: PageProps) {
     notFound();
   }
 
-  // Busca dados em paralelo: profile, packages, honor, partidas
+  // Busca dados em paralelo: profile, steam (identidade), packages, honor, partidas
   const [
     { data: profile },
+    { data: steamLink },
     { data: packages },
     { data: honorScore },
     { count: totalMatches },
@@ -160,6 +170,11 @@ export default async function CoachProfilePage({ params }: PageProps) {
       .from("profiles")
       .select("username, avatar_url, mmr_atual, is_admin")
       .eq("id", coach.profile_id)
+      .maybeSingle(),
+    supabase
+      .from("steam_links")
+      .select("persona, avatar_url")
+      .eq("user_id", coach.profile_id)
       .maybeSingle(),
     supabase
       .from("packages")
@@ -217,6 +232,16 @@ export default async function CoachProfilePage({ params }: PageProps) {
   const tierLabel = TIER_LABELS[honorTierStr ?? "aprendiz"] ?? "Aprendiz";
   const isFounder = profile.is_admin;
 
+  // Identidade canônica do PRO (lib/identity): Steam (persona) > Discord.
+  const identitySrc = {
+    steamPersona: steamLink?.persona,
+    steamAvatar: steamLink?.avatar_url,
+    discordUsername: profile.username,
+    discordAvatar: profile.avatar_url,
+  };
+  const coachName = displayName(identitySrc);
+  const coachAvatar = displayAvatar(identitySrc);
+
   return (
     <ClientShell currentRoute="/coaches">
       <main className="flex flex-col gap-8 p-6 max-w-3xl mx-auto">
@@ -231,9 +256,9 @@ export default async function CoachProfilePage({ params }: PageProps) {
           {/* Avatar */}
           <div className="flex-shrink-0">
             <UserAvatar
-              src={profile.avatar_url ?? undefined}
-              alt={`Avatar de ${profile.username}`}
-              fallback={profile.username.slice(0, 2).toUpperCase()}
+              src={coachAvatar ?? undefined}
+              alt={`Avatar de ${coachName}`}
+              fallback={coachName.slice(0, 2).toUpperCase()}
               size="xl"
               ringColor="brand"
             />
@@ -244,7 +269,7 @@ export default async function CoachProfilePage({ params }: PageProps) {
             {/* Nome + badge founder */}
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="font-display text-2xl font-bold uppercase tracking-widest text-text-display">
-                {profile.username}
+                {coachName}
               </h1>
               {isFounder && (
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-sm font-medium uppercase tracking-wider bg-brand-purple/15 text-brand-purple border border-brand-purple/30">
@@ -412,7 +437,7 @@ export default async function CoachProfilePage({ params }: PageProps) {
               "focus:outline-none focus:ring-2 focus:ring-brand-cyan/50 focus:ring-offset-2 focus:ring-offset-bg-base"
             )}
           >
-            SUBIR DE MMR com {profile.username} — R$ {Number(mainPackage.preco_brl).toFixed(2)}
+            SUBIR DE MMR com {coachName} — R$ {Number(mainPackage.preco_brl).toFixed(2)}
           </a>
 
           {/* Subtexto honesto: tiers visíveis + sem promessa quantitativa */}

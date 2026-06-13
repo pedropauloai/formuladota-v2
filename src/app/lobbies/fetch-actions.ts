@@ -4,6 +4,7 @@
 // lista de salas e detalhes de uma sala específica sem ter rota /lobbies separada.
 
 import { createClient } from "@/lib/supabase/server";
+import { getSteamIdentityMap, resolveIdentity } from "@/lib/queries/identities";
 import { xpProgress, getGatedTierForLevel } from "@/lib/levels";
 import { parseCareerStats } from "@/lib/dota/career";
 import { getHeroById } from "@/lib/queries/heroes";
@@ -87,18 +88,22 @@ export async function fetchLobbyRoom(lobbyId: string): Promise<LobbyRoomData | n
   const playerIds = (playersData ?? []).map((p) => p.user_id);
   // Leitura extra (read-model, zero lógica de domínio): MMR + XP total pra
   // renderizar medalha HONOR e MMR em gold nos slots da sala (ref do client Dota).
-  const [{ data: profiles }, { data: levels }] = playerIds.length > 0
-    ? await Promise.all([
-        supabase
+  // steam_links em batch (players + líder): nick/avatar = Steam > Discord.
+  const [{ data: profiles }, { data: levels }, steamMap] = await Promise.all([
+    playerIds.length > 0
+      ? supabase
           .from("profiles")
           .select("id, username, avatar_url, mmr_atual")
-          .in("id", playerIds),
-        supabase
+          .in("id", playerIds)
+      : Promise.resolve({ data: null }),
+    playerIds.length > 0
+      ? supabase
           .from("user_levels")
           .select("user_id, total_xp_earned")
-          .in("user_id", playerIds),
-      ])
-    : [{ data: [] }, { data: [] }];
+          .in("user_id", playerIds)
+      : Promise.resolve({ data: null }),
+    getSteamIdentityMap(supabase, [...playerIds, lobby.created_by]),
+  ]);
 
   const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
   const levelMap = new Map(
@@ -107,13 +112,14 @@ export async function fetchLobbyRoom(lobbyId: string): Promise<LobbyRoomData | n
   const players: PlayerSlot[] = (playersData ?? []).map((p) => {
     const prof = profileMap.get(p.user_id);
     const { level } = xpProgress(levelMap.get(p.user_id) ?? 0);
+    const ident = resolveIdentity(steamMap, p.user_id, prof?.username, prof?.avatar_url);
     return {
       userId: p.user_id,
       team: p.team as "radiant" | "dire" | "spectator",
       slot: p.slot ?? null,
       joinedAt: p.joined_at,
-      username: prof?.username ?? "Anônimo",
-      avatarUrl: prof?.avatar_url ?? null,
+      username: ident.name,
+      avatarUrl: ident.avatarUrl,
       mmr: prof?.mmr_atual ?? null,
       honorRank: getGatedTierForLevel(level, prof?.mmr_atual ?? null),
     };
@@ -154,7 +160,11 @@ export async function fetchLobbyRoom(lobbyId: string): Promise<LobbyRoomData | n
     players,
     currentUserId: user.id,
     isLeader: lobby.created_by === user.id,
-    leaderUsername: leaderProfile?.username ?? "—",
+    // Líder também segue Steam > Discord; "—" só quando não há identidade alguma.
+    leaderUsername:
+      steamMap.get(lobby.created_by)?.persona?.trim() ||
+      leaderProfile?.username ||
+      "—",
     leaderHero: leaderTopHero
       ? { slug: leaderTopHero.slug, name: leaderTopHero.name_pt }
       : null,
