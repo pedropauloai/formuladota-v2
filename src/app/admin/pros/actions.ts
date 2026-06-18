@@ -15,6 +15,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { fetchOpenDotaMatch, normalizePlayers } from "@/lib/dota/opendota";
+import { applyMatchMmr } from "@/lib/queries/apply-match-mmr";
 import { sendPTConfirmedEmail } from "@/lib/resend";
 
 const STEAM_64_OFFSET = 76561197960265728n;
@@ -480,8 +481,20 @@ export async function enrichMatchFromOpenDota(
     return { success: false, error: "Players salvos mas erro ao atualizar match." };
   }
 
+  // Aplica MMR ao ranking da temporada (best-effort — falha aqui não quebra a
+  // confirmação da PT; a partida já está 'realizada' e as fichas consumidas).
+  try {
+    await applyMatchMmr(supabase, matchId);
+  } catch (e) {
+    console.error(
+      "[enrichMatch] applyMatchMmr falhou:",
+      e instanceof Error ? e.message : e
+    );
+  }
+
   revalidatePath("/admin/pros");
   revalidatePath("/ranked-com-pro");
   revalidatePath("/dashboard");
+  revalidatePath("/ranking");
   return { success: true, data: { playersInserted: playerRows.length } };
 }

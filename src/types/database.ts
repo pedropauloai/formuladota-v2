@@ -914,6 +914,7 @@ export type Database = {
           league_id: number | null
           lobby_type: number | null
           match_dataset: string | null
+          mmr_applied_at: string | null
           mmr_change: number | null
           notas_pedro: string | null
           patch: number | null
@@ -945,6 +946,7 @@ export type Database = {
           league_id?: number | null
           lobby_type?: number | null
           match_dataset?: string | null
+          mmr_applied_at?: string | null
           mmr_change?: number | null
           notas_pedro?: string | null
           patch?: number | null
@@ -976,6 +978,7 @@ export type Database = {
           league_id?: number | null
           lobby_type?: number | null
           match_dataset?: string | null
+          mmr_applied_at?: string | null
           mmr_change?: number | null
           notas_pedro?: string | null
           patch?: number | null
@@ -2392,6 +2395,10 @@ export type Database = {
     }
     Functions: {
       accept_team_invite: { Args: { p_invite_id: string }; Returns: undefined }
+      apply_match_mmr: {
+        Args: { p_match_id: string; p_results: Json; p_season_id: number }
+        Returns: number
+      }
       available_match_permissions: { Args: { p_uid: string }; Returns: number }
       award_xp: {
         Args: {
