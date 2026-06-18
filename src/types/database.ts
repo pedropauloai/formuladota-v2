@@ -264,6 +264,7 @@ export type Database = {
           id: string
           joined_at: string
           match_id: string | null
+          mode: string
           purchase_id: string | null
           status: string
           user_id: string
@@ -274,6 +275,7 @@ export type Database = {
           id?: string
           joined_at?: string
           match_id?: string | null
+          mode?: string
           purchase_id?: string | null
           status?: string
           user_id: string
@@ -284,6 +286,7 @@ export type Database = {
           id?: string
           joined_at?: string
           match_id?: string | null
+          mode?: string
           purchase_id?: string | null
           status?: string
           user_id?: string
@@ -331,6 +334,7 @@ export type Database = {
           headline: string | null
           id: string
           profile_id: string
+          queue_mode: string
           slug: string
         }
         Insert: {
@@ -344,6 +348,7 @@ export type Database = {
           headline?: string | null
           id?: string
           profile_id: string
+          queue_mode?: string
           slug: string
         }
         Update: {
@@ -357,6 +362,7 @@ export type Database = {
           headline?: string | null
           id?: string
           profile_id?: string
+          queue_mode?: string
           slug?: string
         }
         Relationships: [
@@ -364,6 +370,64 @@ export type Database = {
             foreignKeyName: "coaches_profile_id_fkey"
             columns: ["profile_id"]
             isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coaching_reviews: {
+        Row: {
+          coach_id: string
+          created_at: string
+          id: string
+          improvements: string | null
+          match_id: string | null
+          rating: number | null
+          strengths: string | null
+          student_user_id: string
+          summary: string
+        }
+        Insert: {
+          coach_id: string
+          created_at?: string
+          id?: string
+          improvements?: string | null
+          match_id?: string | null
+          rating?: number | null
+          strengths?: string | null
+          student_user_id: string
+          summary: string
+        }
+        Update: {
+          coach_id?: string
+          created_at?: string
+          id?: string
+          improvements?: string | null
+          match_id?: string | null
+          rating?: number | null
+          strengths?: string | null
+          student_user_id?: string
+          summary?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coaching_reviews_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coaching_reviews_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coaching_reviews_student_user_id_fkey"
+            columns: ["student_user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },

@@ -10,7 +10,10 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { UserAvatar } from "@/components/ui/avatar";
 import { StudentDetailClient } from "./student-detail-client";
+import { CoachingReviewPanel } from "./coaching-review-panel";
 import { getStudentHonorHistory } from "@/app/pro/actions";
+import { getCoachingReviewsForUser } from "@/lib/queries/coaching-reviews";
+import { CoachingReviewsList } from "@/components/profile/coaching-reviews-list";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -112,6 +115,9 @@ export default async function StudentDetailPage({ params }: PageProps) {
   // Strikes = entradas negativas no ledger
   const strikeCount = honorHistory.filter((e) => e.delta < 0).length;
 
+  // Análises de coaching que ESTE PRO escreveu pra esse aluno (RLS limita o escopo).
+  const coachingReviews = await getCoachingReviewsForUser(supabase, studentId);
+
   const username = studentProfile.username ?? "Aluno Anônimo";
   const initials = username.slice(0, 2).toUpperCase();
 
@@ -207,6 +213,25 @@ export default async function StudentDetailPage({ params }: PageProps) {
         </h2>
 
         <StudentDetailClient studentId={studentId} studentName={username} />
+      </section>
+
+      {/* ----------------------------------------------------------------
+          Análises de coaching (sessões coachadas — o PRO observa + analisa)
+          ---------------------------------------------------------------- */}
+      <section aria-labelledby="heading-coaching">
+        <h2
+          id="heading-coaching"
+          className="font-display text-sm uppercase tracking-widest text-text-display mb-3"
+        >
+          Análises de coaching
+        </h2>
+        <div className="space-y-4">
+          <CoachingReviewPanel studentId={studentId} studentName={username} />
+          <CoachingReviewsList
+            reviews={coachingReviews}
+            emptyLabel="Você ainda não escreveu nenhuma análise pra esse aluno."
+          />
+        </div>
       </section>
 
       {/* ----------------------------------------------------------------

@@ -7,6 +7,8 @@ import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import { HonorRankMedal, type HonorRank } from "@/components/ui/honor-rank-medal";
 import { Button } from "@/components/ui/button";
+import { CoachingReviewsList } from "./coaching-reviews-list";
+import type { CoachingReview } from "@/lib/queries/coaching-reviews";
 
 interface Props {
   honorRank: HonorRank;
@@ -14,6 +16,7 @@ interface Props {
   doctrineAcceptedAt: string | null;
   commends: number | null;
   strikes: number | null;
+  coachingReviews: CoachingReview[];
 }
 
 // Mapeia behavior_status do DB para label + tom visual (UI-SPEC Copywriting Contract)
@@ -37,6 +40,7 @@ export function TabConduta({
   doctrineAcceptedAt,
   commends,
   strikes,
+  coachingReviews,
 }: Props) {
   const { label, tone } = behaviorStatusLabel(behaviorStatus);
 
@@ -90,6 +94,17 @@ export function TabConduta({
             <ExternalLink size={12} aria-hidden="true" />
           </Button>
         </Link>
+      </div>
+
+      {/* Análises de coaching recebidas (sessões coachadas — PRO observa + analisa) */}
+      <div className="space-y-3 pt-2">
+        <h3 className="font-display text-[13px] font-semibold uppercase tracking-[0.08em] text-text-faded">
+          Análises de coaching
+        </h3>
+        <CoachingReviewsList
+          reviews={coachingReviews}
+          emptyLabel="Você ainda não recebeu análises. Elas aparecem aqui após uma sessão coachada com um PRO."
+        />
       </div>
     </div>
   );
