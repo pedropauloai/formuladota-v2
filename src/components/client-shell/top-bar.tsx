@@ -5,7 +5,7 @@
 //
 // Tabs principais (visíveis por role):
 //   - SUBIR MMR   → sempre visível (visitante/user/admin) — jornada principal
-//   - Ranking, Times, Torneios → todo usuário logado (ecossistema competitivo)
+//   - Ranking, Times, Torneios → usuário logado NÃO-admin (admin usa /admin)
 //   - PRO (se isPro), ADMIN (se isAdmin) → tabs contextuais
 //
 // JOGAR é implícito — clique no logo FORMULADOTA leva pra /dashboard.
@@ -82,9 +82,10 @@ export function DashboardTopBar({
   myQueues,
 }: Props) {
   const inQueue = myQueues.length > 0;
-  // Compõe nav principal: SUBIR MMR sempre + ecossistema competitivo (logados).
+  // Compõe nav principal: SUBIR MMR sempre + ecossistema competitivo (usuários
+  // logados não-admin). O admin acessa essas áreas pelo painel /admin.
   const principalTabs: TopBarTabDef[] = [SUBIR_MMR_TAB];
-  if (!isVisitor) {
+  if (!isVisitor && !isAdmin) {
     principalTabs.push(...COMPETITIVE_TABS);
   }
 
