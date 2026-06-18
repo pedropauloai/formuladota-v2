@@ -37,18 +37,28 @@ export function PermissionQuizModal({ open, modalidade, onClose, onGranted }: Pr
   // Carrega o progresso atual ao abrir e monta a fila das próximas não-respondidas.
   useEffect(() => {
     if (!open) return;
-    setLoading(true);
-    setGranted(false);
-    setChosen(null);
-    getDoctrineProgress()
-      .then((p) => {
+    let active = true;
+    // setState dentro do async (não no corpo direto do effect) — reseta e carrega o
+    // progresso ao abrir. `active` evita setState após fechar/desmontar.
+    void (async () => {
+      setLoading(true);
+      setGranted(false);
+      setChosen(null);
+      try {
+        const p = await getDoctrineProgress();
+        if (!active) return;
         const answered = new Set(p.answeredIds);
         setAnsweredCount(p.answeredCount);
         setPendingIds(
           QUIZ_QUESTIONS.filter((q) => !answered.has(q.id)).map((q) => q.id)
         );
-      })
-      .finally(() => setLoading(false));
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
   }, [open]);
 
   const current: QuizQuestion | undefined = QUIZ_QUESTIONS.find(

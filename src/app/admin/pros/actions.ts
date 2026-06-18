@@ -302,7 +302,7 @@ export async function cancelPT(
 
 export async function removeFromQueue(
   entryId: string,
-  reason: string
+  _reason: string
 ): Promise<ActionResult<{ entryId: string }>> {
   const supabase = await createClient();
   const { coach, error: authErr } = await requireCoach(supabase);

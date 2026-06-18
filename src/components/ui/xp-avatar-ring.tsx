@@ -6,7 +6,6 @@
 // (ver memory/feedback_avatar_quadrado). A barra anima quando `pct` muda → sobe em
 // tempo real conforme o usuário ganha XP respondendo o quiz.
 
-import { useId } from "react";
 import { TIER_CONFIG, getTierForLevel, type Tier } from "@/lib/levels";
 import { cn } from "@/lib/utils";
 
@@ -36,7 +35,6 @@ export function XpAvatarRing({
 }: Props) {
   const resolvedTier = tier ?? getTierForLevel(level);
   const cfg = TIER_CONFIG[resolvedTier];
-  const gradId = useId();
 
   // Geometria: container = avatar + folga pra borda. SVG cobre o container.
   const stroke = 3;

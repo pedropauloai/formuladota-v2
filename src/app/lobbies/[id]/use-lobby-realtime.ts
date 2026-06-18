@@ -12,9 +12,12 @@ import { useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 export function useLobbyRealtime(lobbyId: string, onChange: () => void) {
-  // ref evita re-assinar o canal quando o caller recria o callback por render
+  // ref evita re-assinar o canal quando o caller recria o callback por render.
+  // Atualiza num effect (não no render) — escrever ref durante render é proibido.
   const onChangeRef = useRef(onChange);
-  onChangeRef.current = onChange;
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
 
   useEffect(() => {
     const supabase = createClient();

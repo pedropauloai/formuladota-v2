@@ -64,7 +64,10 @@ export function PlayMenu({ isVisitor, initial }: Props) {
   const router = useRouter();
   const drawerRef = useRef<HTMLElement>(null);
 
-  const [phase, setPhase] = useState<PlayMenuState["s"]>(initial.s);
+  // "collapsed" (estado de aba) foi descontinuado → normaliza pra "button" no init.
+  const [phase, setPhase] = useState<PlayMenuState["s"]>(
+    initial.s === "collapsed" ? "button" : initial.s
+  );
   const [view, setView] = useState<View>(initial.v);
   const [active, setActive] = useState<Modalidade>(initial.a);
   const [lobbyId, setLobbyId] = useState<string | null>(initial.l);
@@ -88,9 +91,8 @@ export function PlayMenu({ isVisitor, initial }: Props) {
     void setPlayMenuState({ s: phase, v: view, l: lobbyId, a: active });
   }, [phase, view, lobbyId, active]);
 
-  // Ao montar: normaliza estado legado do cookie + re-busca a sala aberta.
+  // Ao montar: re-busca a sala aberta (se o cookie apontava pra uma).
   useEffect(() => {
-    if (phase === "collapsed") setPhase("button"); // estado de aba foi descontinuado
     if (view === "sala" && lobbyId) {
       void fetchLobbyRoom(lobbyId).then((d) => {
         if (d) setLobbyData(d);

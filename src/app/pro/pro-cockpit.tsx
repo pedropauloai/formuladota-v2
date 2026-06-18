@@ -41,6 +41,10 @@ export function ProCockpit({ initial, footerExtras }: Props) {
     () => new Set(initial.queue.slice(0, maxPT).map((e) => e.entryId))
   );
   useEffect(() => {
+    // Reconcilia a seleção local com a fila que muda via realtime: poda quem saiu,
+    // completa do topo até maxPT. Sincronizar dado externo→estado local é o caso
+    // legítimo de setState-em-effect; o updater é idempotente.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSelected((prev) => {
       const valid = new Set(
         data.queue.filter((e) => prev.has(e.entryId)).map((e) => e.entryId)
