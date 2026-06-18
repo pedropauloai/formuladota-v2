@@ -7,6 +7,7 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { displayName, displayAvatar } from "@/lib/identity";
 
 export type TeamResult =
   | { success: true; teamId?: string; teamSlug?: string }
@@ -229,6 +230,90 @@ export async function deleteTeam(teamId: string): Promise<TeamResult> {
 
   revalidatePath("/times");
   return { success: true };
+}
+
+// ============================================================================
+// Busca de jogadores pra CONVIDAR ao time (capitão). Diferente de searchPlayers
+// (amigos): NÃO exclui amizades — você QUER convidar seus amigos. Exclui só
+// você + quem já é membro deste time. Fonte canônica: Steam persona > Discord.
+// ============================================================================
+
+export interface TeamPlayerSearchResult {
+  userId: string;
+  name: string;
+  avatarUrl: string | null;
+}
+
+const teamSearchSchema = z.string().trim().min(3).max(40);
+
+/** Escapa curingas do ILIKE — busca literal, não pattern injection. */
+function escapeLike(s: string): string {
+  return s.replace(/[\\%_]/g, (m) => `\\${m}`);
+}
+
+export async function searchPlayersForTeam(
+  teamId: string,
+  rawQuery: string
+): Promise<TeamPlayerSearchResult[]> {
+  const parsed = teamSearchSchema.safeParse(rawQuery);
+  if (!parsed.success) return [];
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const pattern = `%${escapeLike(parsed.data)}%`;
+  const LIMIT = 8;
+
+  // 3 queries paralelas: personas Steam + usernames Discord + membros atuais.
+  const [steamRes, profileRes, membersRes] = await Promise.all([
+    supabase
+      .from("steam_links")
+      .select("user_id, persona, avatar_url")
+      .ilike("persona", pattern)
+      .limit(LIMIT * 2),
+    supabase
+      .from("profiles")
+      .select("id, username, avatar_url, avatar_custom_url")
+      .ilike("username", pattern)
+      .limit(LIMIT * 2),
+    supabase.from("team_members").select("user_id").eq("team_id", teamId),
+  ]);
+
+  // Eu + quem já é membro saem dos resultados.
+  const excluded = new Set<string>([user.id]);
+  for (const m of membersRes.data ?? []) excluded.add(m.user_id);
+
+  // Merge: Steam primeiro (identidade canônica), Discord complementa.
+  const byId = new Map<
+    string,
+    {
+      steamPersona?: string | null;
+      steamAvatar?: string | null;
+      discordUsername?: string | null;
+      discordAvatar?: string | null;
+    }
+  >();
+  for (const s of steamRes.data ?? []) {
+    if (excluded.has(s.user_id)) continue;
+    byId.set(s.user_id, { steamPersona: s.persona, steamAvatar: s.avatar_url });
+  }
+  for (const p of profileRes.data ?? []) {
+    if (excluded.has(p.id)) continue;
+    byId.set(p.id, {
+      ...(byId.get(p.id) ?? {}),
+      discordUsername: p.username,
+      discordAvatar: p.avatar_custom_url ?? p.avatar_url,
+    });
+  }
+
+  return [...byId.entries()].slice(0, LIMIT).map(([userId, src]) => ({
+    userId,
+    name: displayName(src),
+    avatarUrl: displayAvatar(src),
+  }));
 }
 
 export async function registerTeamForTournament(input: {
