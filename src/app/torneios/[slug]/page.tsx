@@ -11,6 +11,7 @@ import { ClientShell } from "@/components/client-shell/shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { TournamentRegisterButton } from "./register-button";
+import { ReportMatchButton } from "./report-match-button";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -65,6 +66,13 @@ export default async function TournamentDetailPage(props: PageProps) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
+
+  const { data: me } = await supabase
+    .from("profiles")
+    .select("is_admin")
+    .eq("id", user.id)
+    .single();
+  const isAdmin = me?.is_admin ?? false;
 
   const { data: tournament } = await supabase
     .from("tournaments")
@@ -264,7 +272,7 @@ export default async function TournamentDetailPage(props: PageProps) {
                     </h3>
                     <div className="grid gap-2 md:grid-cols-2">
                       {(roundMatches ?? []).map((m) => (
-                        <BracketMatchCard key={m.id} match={m} />
+                        <BracketMatchCard key={m.id} match={m} isAdmin={isAdmin} />
                       ))}
                     </div>
                   </div>
@@ -334,9 +342,14 @@ interface MatchRow {
 
 // Card local pra match do bracket — distinto do <MatchCard> pattern (que é
 // para partidas de mentoria 1-1). Aqui é um placar simples team A vs team B.
-function BracketMatchCard({ match }: { match: MatchRow }) {
+function BracketMatchCard({ match, isAdmin }: { match: MatchRow; isAdmin: boolean }) {
   const winnerA = match.winner_team_id && match.winner_team_id === match.team_a_id;
   const winnerB = match.winner_team_id && match.winner_team_id === match.team_b_id;
+  // Admin pode reportar quando o match está agendado e já tem os dois times.
+  const canReport =
+    isAdmin &&
+    match.status === "scheduled" &&
+    Boolean(match.id && match.team_a_id && match.team_b_id);
 
   return (
     <div className="rounded-md border border-border-subtle bg-bg-base overflow-hidden">
@@ -355,7 +368,7 @@ function BracketMatchCard({ match }: { match: MatchRow }) {
         winner={Boolean(winnerB)}
         showScore={match.status === "completed"}
       />
-      {match.scheduled_at && match.status === "scheduled" && (
+      {match.scheduled_at && match.status === "scheduled" && !canReport && (
         <div className="px-3 py-1.5 bg-bg-deep font-display font-semibold text-sm uppercase tracking-wide text-text-faded text-center">
           {new Date(match.scheduled_at).toLocaleString("pt-BR", {
             day: "2-digit",
@@ -364,6 +377,15 @@ function BracketMatchCard({ match }: { match: MatchRow }) {
             minute: "2-digit",
           })}
         </div>
+      )}
+      {canReport && (
+        <ReportMatchButton
+          matchId={match.id!}
+          teamAId={match.team_a_id!}
+          teamBId={match.team_b_id!}
+          teamAName={match.team_a_name ?? "Time A"}
+          teamBName={match.team_b_name ?? "Time B"}
+        />
       )}
     </div>
   );
