@@ -30,7 +30,7 @@
 // <SeasonBanner> são "use client" e gerenciam seu próprio Date.now() interno.
 
 import Link from "next/link";
-import { Swords, Megaphone, Trophy } from "lucide-react";
+import { Swords, Megaphone } from "lucide-react";
 import {
   Card,
   CardHeader,
@@ -40,21 +40,11 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
-import { SeasonBanner } from "@/components/patterns/season-banner";
 import { signInWithDiscord } from "@/app/login/actions";
 
 // ---------------------------------------------------------------------------
 // Tipos públicos
 // ---------------------------------------------------------------------------
-
-export interface HubSeason {
-  /** Número ordinal da season (1, 2, 3…). */
-  number: number;
-  /** Nome temático (ex: "Genesis"). */
-  name: string;
-  /** Data prevista de encerramento. Pode ser estimativa quando ainda não definida. */
-  endsAt: Date;
-}
 
 export interface HubCenterProps {
   /**
@@ -70,8 +60,6 @@ export interface HubCenterProps {
   prosOnlineCount: number;
   /** Filas em que o user está atualmente. 0 = "SEM FILA". 0 quando visitor. */
   myQueueCount: number;
-  /** Season ativa. null quando não houver season em curso. */
-  season: HubSeason | null;
   /** Posição no ranking da temporada. null quando user ainda não tem partidas ou é visitor. */
   rankingPosition: number | null;
   /** Total de partidas hoje (stat de comunidade, opcional, visitor only). */
@@ -262,7 +250,6 @@ export function HubCenter({
   fichaBalance,
   prosOnlineCount,
   myQueueCount,
-  season,
   rankingPosition,
   partidasHoje,
   membrosAtivos,
@@ -323,81 +310,46 @@ export function HubCenter({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap items-center gap-4 pt-2">
-            {isVisitor ? (
-              // Visitante: form Server Action — Discord OAuth direto.
-              // HTML <form> obrigatório (não onClick) porque é Server Action.
-              <form action={signInWithDiscord}>
-                <Button
-                  type="submit"
-                  variant="cinematic"
-                  size="lg"
-                  aria-label="Entrar com Discord pra subir de MMR"
-                >
-                  <Swords size={22} aria-hidden="true" />
-                  Subir de MMR
-                </Button>
-              </form>
-            ) : (
+          {isVisitor ? (
+            // Landing de visitante: SEM 2º botão de login — o CTA único vive no
+            // hero. Aqui o card só EXPLICA o produto e aponta o próximo passo.
+            <p className="font-display text-sm font-semibold text-text-body">
+              {ctaSubtext}
+            </p>
+          ) : (
+            <div className="flex flex-wrap items-center gap-4 pt-2">
               <Link href="/ranked-com-pro" aria-label="Ir para Ranked com PRO">
                 <Button variant="cinematic" size="lg">
                   <Swords size={22} aria-hidden="true" />
                   Subir de MMR
                 </Button>
               </Link>
-            )}
-            <p className="font-display text-sm font-semibold text-text-body">{ctaSubtext}</p>
-          </div>
+              <p className="font-display text-sm font-semibold text-text-body">
+                {ctaSubtext}
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* (3) BANNER TEMPORADA ATIVA — análogo "Quiosque do Quartero" */}
-      <section className="space-y-3" aria-labelledby="hub-temporada-title">
-        <header className="flex items-end justify-between gap-4">
+      {/* (3) NOVIDADES — widget do HUB logado. NÃO aparece pra visitante (a
+          landing fica focada em converter). A Temporada saiu daqui: vive em
+          /ranking agora (decisão Pedro 2026-06-18 — "subpáginas"). */}
+      {!isVisitor && (
+        <section aria-labelledby="hub-novidades-title">
           <h2
-            id="hub-temporada-title"
-            className="font-display text-xl text-text-display"
+            id="hub-novidades-title"
+            className="mb-3 font-display text-xl text-text-display"
           >
-            Temporada ativa
+            Novidades
           </h2>
-          {season && (
-            <Link
-              href="/ranking"
-              className="font-body text-sm text-brand-primary transition-colors hover:text-text-display"
-            >
-              Ver ranking →
-            </Link>
-          )}
-        </header>
-        {season ? (
-          <SeasonBanner
-            seasonNumber={season.number}
-            seasonName={season.name}
-            endsAt={season.endsAt}
-          />
-        ) : (
           <EmptyState
-            icon={Trophy}
-            title="Sem temporada ativa"
-            description="Aguarde anúncio de abertura da próxima temporada. Acompanhe pelo Discord oficial."
+            icon={Megaphone}
+            title="Novidades em breve"
+            description="Anúncios, novos PROs, abertura de Liga Imortal e atualizações de temporada vão aparecer aqui."
           />
-        )}
-      </section>
-
-      {/* (4) NOVIDADES — placeholder V2 */}
-      <section aria-labelledby="hub-novidades-title">
-        <h2
-          id="hub-novidades-title"
-          className="mb-3 font-display text-xl text-text-display"
-        >
-          Novidades
-        </h2>
-        <EmptyState
-          icon={Megaphone}
-          title="Novidades em breve"
-          description="Anúncios, novos PROs, abertura de Liga Imortal e atualizações de temporada vão aparecer aqui."
-        />
-      </section>
+        </section>
+      )}
     </section>
   );
 }

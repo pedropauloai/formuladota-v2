@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { UserAvatar } from "@/components/ui/avatar";
 import { DotaRankMedal, type DotaRank } from "@/components/ui/dota-rank-medal";
+import { SeasonBanner } from "@/components/patterns/season-banner";
 
 export const metadata: Metadata = {
   title: "Ranking — FORMULADOTA",
@@ -54,10 +55,10 @@ export default async function RankingPage(props: {
 
   const supabase = await createClient();
 
-  // Busca season ativa
+  // Busca season ativa (started_at/ended_at alimentam o countdown do banner)
   const { data: season } = await supabase
     .from("seasons")
-    .select("id, name")
+    .select("id, name, started_at, ended_at")
     .eq("active", true)
     .limit(1)
     .single();
@@ -171,6 +172,23 @@ export default async function RankingPage(props: {
             Classificação dos jogadores pelo MMR da temporada atual. Top 3 destacados, demais paginados.
           </p>
         </header>
+
+        {/* Banner de temporada (countdown) — movido da home pra cá (Pedro
+            2026-06-18 — "subpáginas": a temporada vive junto da classificação). */}
+        <div className="mb-12">
+          <SeasonBanner
+            seasonNumber={season.id}
+            seasonName={season.name}
+            endsAt={
+              season.ended_at
+                ? new Date(season.ended_at)
+                : new Date(
+                    new Date(season.started_at).getTime() +
+                      90 * 24 * 60 * 60 * 1000
+                  )
+            }
+          />
+        </div>
 
         {/* Top 3 cards */}
         {top3Hydrated.length > 0 && !search && (

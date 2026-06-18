@@ -13,7 +13,7 @@
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { ClientShell } from "@/components/client-shell/shell";
-import { HubCenter, type HubSeason } from "@/components/client-shell/hub-center";
+import { HubCenter } from "@/components/client-shell/hub-center";
 import { getMyFichaBalance } from "@/lib/queries/fichas";
 import { getProsWithQueues } from "@/lib/queries/pros";
 import { getMyQueueStatus } from "@/lib/queries/queue";
@@ -26,11 +26,6 @@ export const metadata: Metadata = {
 
 // Revalida a cada 30s — presença de jogadores pode mudar
 export const revalidate = 30;
-
-// Estimativa de duração de season quando o banco ainda não tem `ended_at`
-// definido. Season real do FormulaDota costuma rodar ~3 meses (90 dias).
-// Quando o admin definir `ended_at` no DB, basta substituir essa lógica.
-const SEASON_DEFAULT_DURATION_DAYS = 90;
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -66,41 +61,26 @@ export default async function HomePage() {
   const fichaBalance = privateData?.fichaBalance ?? 0;
   const myQueueCount = privateData?.myQueueCount ?? 0;
 
-  // Constrói HubSeason — endsAt cai pra started_at + 90d quando ended_at é null.
-  let season: HubSeason | null = null;
+  // Posição no ranking da temporada — só pra logado (o banner de season em si
+  // saiu da home e vive em /ranking agora). seasonRow só serve pra resolver a
+  // posição; a temporada NÃO é mais renderizada aqui (decisão Pedro 2026-06-18).
   let rankingPosition: number | null = null;
 
-  if (seasonRow) {
-    const startedAt = new Date(seasonRow.started_at);
-    const endsAt = seasonRow.ended_at
-      ? new Date(seasonRow.ended_at)
-      : new Date(
-          startedAt.getTime() +
-            SEASON_DEFAULT_DURATION_DAYS * 24 * 60 * 60 * 1000
-        );
-    season = {
-      number: seasonRow.id,
-      name: seasonRow.name,
-      endsAt,
-    };
+  if (seasonRow && !isVisitor) {
+    const { data: myMmr } = await supabase
+      .from("player_season_mmr")
+      .select("mmr")
+      .eq("season_id", seasonRow.id)
+      .eq("user_id", user.id)
+      .maybeSingle();
 
-    // Posição no ranking — só faz sentido pra logado.
-    if (!isVisitor) {
-      const { data: myMmr } = await supabase
+    if (myMmr) {
+      const { count } = await supabase
         .from("player_season_mmr")
-        .select("mmr")
+        .select("user_id", { count: "exact", head: true })
         .eq("season_id", seasonRow.id)
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (myMmr) {
-        const { count } = await supabase
-          .from("player_season_mmr")
-          .select("user_id", { count: "exact", head: true })
-          .eq("season_id", seasonRow.id)
-          .gt("mmr", myMmr.mmr);
-        rankingPosition = (count ?? 0) + 1;
-      }
+        .gt("mmr", myMmr.mmr);
+      rankingPosition = (count ?? 0) + 1;
     }
   }
 
@@ -118,7 +98,6 @@ export default async function HomePage() {
         fichaBalance={fichaBalance}
         prosOnlineCount={prosOnlineCount}
         myQueueCount={myQueueCount}
-        season={season}
         rankingPosition={rankingPosition}
       />
     </ClientShell>
