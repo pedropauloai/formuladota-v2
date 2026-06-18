@@ -280,7 +280,7 @@ export function HubCenter({
       : `${prosOnlineCount} ${prosOnlineCount === 1 ? "PRO disponível" : "PROs disponíveis"} aceitando alunos agora`;
 
   return (
-    <section className="relative mx-auto flex h-full w-full max-w-5xl flex-col gap-10 overflow-y-auto px-6 py-8 xl:px-12 xl:py-12">
+    <section className="relative mx-auto flex w-full max-w-5xl flex-col gap-10 px-6 py-8 xl:px-12 xl:py-12">
       {/* (1) HEADER — eyebrow case natural + h1 + status line sintética.
           Pedro 2026-05-25: eyebrow saiu de uppercase tracking-[0.4em] (ruído
           visual em panfleto) pra case natural discreto. H1 mantém uppercase

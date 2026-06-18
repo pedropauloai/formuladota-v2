@@ -228,7 +228,7 @@ export async function ClientShell({
               do mini-profile-panel (fixed left-4 bottom-4) — sem sobreposição
               porque o mini só ocupa o canto INFERIOR. */}
         <main
-          className={`absolute inset-0 top-[64px] xl:top-[72px] ${bottomReserveCls} z-[var(--z-elevated)] overflow-y-auto lg:pl-[320px] lg:pr-[320px] xl:pl-[360px] xl:pr-[360px] 2xl:pl-[380px] 2xl:pr-[380px]`}
+          className={`absolute inset-0 top-[64px] xl:top-[72px] ${bottomReserveCls} z-[var(--z-elevated)] overflow-x-hidden overflow-y-auto lg:pl-[320px] lg:pr-[320px] xl:pl-[360px] xl:pr-[360px] 2xl:pl-[380px] 2xl:pr-[380px]`}
         >
           {children}
         </main>
@@ -318,7 +318,7 @@ export async function ClientShell({
               : "lg:grid-cols-[1fr_320px] xl:grid-cols-[1fr_360px] 2xl:grid-cols-[1fr_380px]"
         }`}
       >
-        <main className={`relative overflow-y-auto ${mainPbCls}`}>
+        <main className={`relative overflow-x-hidden overflow-y-auto ${mainPbCls}`}>
           {centerHero && (
             <div
               className="pointer-events-none absolute inset-0 z-[var(--z-content)]"

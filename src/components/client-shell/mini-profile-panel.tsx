@@ -122,14 +122,14 @@ export function MiniProfilePanel({
   // Visitante: card minimal com CTA entrar (não tem painel de amigos)
   if (isVisitor) {
     return (
-      <div className="pointer-events-auto fixed left-4 bottom-4 z-[var(--z-overlay)] w-[280px]">
+      <div className="pointer-events-auto fixed left-4 bottom-4 z-[var(--z-overlay)] hidden w-[280px] sm:block">
         <VisitorCardCompact />
       </div>
     );
   }
 
   return (
-    <div className="pointer-events-auto fixed left-4 bottom-4 z-[var(--z-overlay)] flex flex-col items-start">
+    <div className="pointer-events-auto fixed left-4 bottom-4 z-[var(--z-overlay)] hidden flex-col items-start sm:flex">
       {/* Painel expandido — cresce A PARTIR do card retraído (conectado, sem gap).
           Quando expanded=true, borda inferior do painel + borda superior do card
           são planas, formando um único componente visual contínuo. */}
