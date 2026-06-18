@@ -10,10 +10,12 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Power, Radio } from "lucide-react";
+import { Power, Radio, Eye } from "lucide-react";
 import { togglePROFila } from "@/app/admin/pros/actions";
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm";
+
+type QueueMode = "play" | "coached";
 
 // Hook local compartilhado entre os dois estados (aberta/fechada)
 function useToggleFila() {
@@ -21,10 +23,10 @@ function useToggleFila() {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  function toggle(open: boolean) {
+  function toggle(open: boolean, mode: QueueMode = "play") {
     setError(null);
     startTransition(async () => {
-      const res = await togglePROFila(open);
+      const res = await togglePROFila(open, mode);
       if (!res.success) setError(res.error);
       else router.refresh();
     });
@@ -117,18 +119,29 @@ export function QueueClosedHero() {
         Fila fechada
       </p>
       <p className="max-w-sm font-body text-sm leading-relaxed text-text-muted">
-        Nenhum aluno consegue entrar enquanto a fila está fechada. Abra quando
-        estiver pronto pra jogar — a fila aparece na hora em /ranked-com-pro.
+        Nenhum aluno consegue entrar enquanto a fila está fechada. Escolha o modo
+        e abra — a fila aparece na hora em /ranked-com-pro.
       </p>
-      <Button
-        variant="cinematic"
-        size="xl"
-        onClick={() => toggle(true)}
-        loading={pending}
-      >
-        <Radio size={24} aria-hidden="true" />
-        Abrir fila
-      </Button>
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <Button
+          variant="cinematic"
+          size="lg"
+          onClick={() => toggle(true, "play")}
+          loading={pending}
+        >
+          <Radio size={20} aria-hidden="true" />
+          Abrir — eu jogo (PT ranked)
+        </Button>
+        <Button
+          variant="secondary"
+          size="lg"
+          onClick={() => toggle(true, "coached")}
+          loading={pending}
+        >
+          <Eye size={20} aria-hidden="true" />
+          Abrir — eu observo + análise
+        </Button>
+      </div>
       {error && <p className="font-mono-ui text-sm text-error">{error}</p>}
     </div>
   );

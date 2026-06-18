@@ -59,6 +59,7 @@ import type { ProfileForMe } from "@/lib/queries/profile";
 import type { CareerStats } from "@/lib/dota/career";
 import type { DotaRank } from "@/components/ui/dota-rank-medal";
 import type { HonorRank } from "@/components/ui/honor-rank-medal";
+import type { CoachingReview } from "@/lib/queries/coaching-reviews";
 
 interface Props {
   profile: ProfileForMe;
@@ -68,9 +69,19 @@ interface Props {
   editing: boolean;
   /** Stats de carreira OpenDota (cache 24h) — null = sem Steam/sem dados. */
   career: CareerStats | null;
+  /** Análises de coaching recebidas (sessões coachadas) — aba Conduta. */
+  coachingReviews: CoachingReview[];
 }
 
-export function ProfilePage({ profile, activeTab, dotaRank, honorRank, editing, career }: Props) {
+export function ProfilePage({
+  profile,
+  activeTab,
+  dotaRank,
+  honorRank,
+  editing,
+  career,
+  coachingReviews,
+}: Props) {
   const ranqueado = profile.mmr !== null;
 
   // Herói nº 1 da carreira → backdrop VIVO do header de identidade
@@ -240,6 +251,7 @@ export function ProfilePage({ profile, activeTab, dotaRank, honorRank, editing, 
             doctrineAcceptedAt={profile.doctrineAcceptedAt}
             commends={null /* V2: RPC get_user_commends */}
             strikes={null /* V2: RPC get_user_strikes */}
+            coachingReviews={coachingReviews}
           />
         </div>
       )}

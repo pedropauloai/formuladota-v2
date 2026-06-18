@@ -26,7 +26,6 @@ import {
   isPilarComplete,
   nextLessonIndex,
   type QuizLesson,
-  type QuizPilar,
 } from "@/lib/quiz/lessons";
 import { recordDoctrineAnswer } from "./actions";
 
@@ -330,17 +329,19 @@ function TrailView({
     );
   }
 
-  // Índice global de cada lição, pra saber liberada/trancada/concluída.
-  let globalIdx = -1;
+  // Offset global (índice da 1ª lição) de cada pilar — puro, sem contador mutável.
+  const pilarOffsets = PILARES.map((_, i) =>
+    PILARES.slice(0, i).reduce((sum, p) => sum + p.lessons.length, 0)
+  );
 
   return (
     <div className="space-y-8">
       {PILARES.map((pilar, pIdx) => {
         const pilarDone = isPilarComplete(pilar, correctIds);
-        const lessonsWithIdx = pilar.lessons.map((lesson) => {
-          globalIdx += 1;
-          return { lesson, idx: globalIdx };
-        });
+        const lessonsWithIdx = pilar.lessons.map((lesson, li) => ({
+          lesson,
+          idx: pilarOffsets[pIdx]! + li,
+        }));
         // Pilar "ativo" = contém a próxima lição.
         const pilarActive = lessonsWithIdx.some((l) => l.idx === nextIdx);
         const pilarLocked = !pilarDone && !pilarActive && nextIdx < lessonsWithIdx[0]!.idx;

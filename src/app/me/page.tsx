@@ -12,6 +12,7 @@ import { ProfilePage } from "@/components/profile/profile-page";
 import { VALID_TABS, type ProfileTab } from "@/components/profile/profile-tabs";
 import { getProfileForMe } from "@/lib/queries/profile";
 import { getCareerStats } from "@/lib/queries/career";
+import { getCoachingReviewsForUser } from "@/lib/queries/coaching-reviews";
 import { refreshSteamIdentity } from "@/lib/steam/refresh-identity";
 import type { DotaRank } from "@/components/ui/dota-rank-medal";
 import { legacyHonorToBand, type HonorRank } from "@/components/ui/honor-rank-medal";
@@ -79,6 +80,9 @@ export default async function MePage({ searchParams }: PageProps) {
   });
   const honorRank = toHonorRank(honorTierStr);
 
+  // Análises de coaching recebidas (aba Conduta) — RLS: o aluno lê as próprias.
+  const coachingReviews = await getCoachingReviewsForUser(supabase, profile.userId);
+
   // BLOCKER #3 fix: ClientShell immersive + centerHero gerencia o hero portrait
   // fullscreen background. Quando profile.heroPortraitData é null (sem herói escolhido),
   // undefined → ClientShell cai pro background atmospheric padrão.
@@ -93,6 +97,7 @@ export default async function MePage({ searchParams }: PageProps) {
         honorRank={honorRank}
         editing={editing}
         career={career}
+        coachingReviews={coachingReviews}
       />
     </ClientShell>
   );

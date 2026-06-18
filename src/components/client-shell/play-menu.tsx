@@ -24,7 +24,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { signInWithDiscord } from "@/app/login/actions";
-import { enterQueue, type QueueRole, type QueueGameMode } from "@/app/queue/actions";
+import { type QueueRole, type QueueGameMode } from "@/app/queue/actions";
 import { PermissionQuizModal } from "@/components/quiz/permission-quiz-modal";
 import { setPlayMenuState, type PlayMenuState } from "@/lib/play-menu-preference";
 import {
@@ -64,7 +64,10 @@ export function PlayMenu({ isVisitor, initial }: Props) {
   const router = useRouter();
   const drawerRef = useRef<HTMLElement>(null);
 
-  const [phase, setPhase] = useState<PlayMenuState["s"]>(initial.s);
+  // "collapsed" (estado de aba) foi descontinuado → normaliza pra "button" no init.
+  const [phase, setPhase] = useState<PlayMenuState["s"]>(
+    initial.s === "collapsed" ? "button" : initial.s
+  );
   const [view, setView] = useState<View>(initial.v);
   const [active, setActive] = useState<Modalidade>(initial.a);
   const [lobbyId, setLobbyId] = useState<string | null>(initial.l);
@@ -88,9 +91,8 @@ export function PlayMenu({ isVisitor, initial }: Props) {
     void setPlayMenuState({ s: phase, v: view, l: lobbyId, a: active });
   }, [phase, view, lobbyId, active]);
 
-  // Ao montar: normaliza estado legado do cookie + re-busca a sala aberta.
+  // Ao montar: re-busca a sala aberta (se o cookie apontava pra uma).
   useEffect(() => {
-    if (phase === "collapsed") setPhase("button"); // estado de aba foi descontinuado
     if (view === "sala" && lobbyId) {
       void fetchLobbyRoom(lobbyId).then((d) => {
         if (d) setLobbyData(d);
@@ -134,19 +136,13 @@ export function PlayMenu({ isVisitor, initial }: Props) {
       void signInWithDiscord();
       return;
     }
-    setError(null);
-    startTransition(async () => {
-      const res = await enterQueue({
-        roles: roles.size > 0 ? [...roles] : ["midlane"],
-        gameMode,
-      });
-      if (!res.success) {
-        if (res.code === "need_permission") setShowQuiz(true);
-        else setError(res.error);
-        return;
-      }
-      setPhase("button");
-      router.refresh();
+    // O matchmaking automático ainda não tem motor de pareamento — entrar na fila
+    // levaria a um "waiting" eterno. Em vez do beco-sem-saída, avisamos: jogue via
+    // Ranked com PRO ou Salas até o matchmaking abrir.
+    startTransition(() => {
+      setError(
+        "Matchmaking automático chega em breve. Por ora, jogue via Ranked com PRO ou Salas."
+      );
     });
   }
 
@@ -384,9 +380,9 @@ function MenuView({
   return (
     <>
       <div className="flex-1 overflow-y-auto p-3 space-y-2">
-        <Section icon={Swords} title="Competitiva" subtitle="Busca por função" active={active === "competitiva"} onToggle={() => setActive("competitiva")}>
+        <Section icon={Swords} title="Competitiva" subtitle="Em breve" active={active === "competitiva"} onToggle={() => setActive("competitiva")}>
           <p className="mb-2.5 font-body text-sm leading-relaxed text-text-muted">
-            Escolha as funções que topa jogar. Formamos o grupo e o bot convida todo mundo.
+            Matchmaking automático por função chega em breve. Por ora, jogue via Ranked com PRO ou Salas.
           </p>
           <ul className="space-y-1">
             {ROLES.map((r) => {

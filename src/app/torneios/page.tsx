@@ -95,6 +95,14 @@ export default async function TorneiosPage() {
           <p className="mt-3 font-display text-sm font-semibold text-text-body max-w-2xl">
             Torneios oficiais com inscrição por times, brackets e premiação.
           </p>
+          {isAdmin && (
+            <Link
+              href="/admin/torneios"
+              className="mt-4 inline-flex items-center gap-2 rounded-md border border-brand-primary bg-brand-primary/15 px-4 py-2 font-display text-sm font-semibold uppercase tracking-wide text-white hover:bg-brand-primary transition-colors"
+            >
+              Gerenciar torneios (admin)
+            </Link>
+          )}
         </header>
 
         {!tournaments || tournaments.length === 0 ? (

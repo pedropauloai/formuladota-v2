@@ -22,6 +22,8 @@ export interface BoardCoach {
   filaAberta: boolean;
   filaAbertaEm: string | null;
   filaMaxVagas: number;
+  /** Modo da fila: 'play' (PRO joga) ou 'coached' (PRO observa + análise). */
+  queueMode?: "play" | "coached";
 }
 
 export interface BoardEntry {
@@ -128,6 +130,19 @@ export function QueueBoard({
             {coach.mmrAtual ? `${coach.mmrAtual.toLocaleString("pt-BR")} MMR` : "—"}
             {coach.filaAberta && minutesOpen > 0 && ` · aberta há ${minutesOpen}m`}
           </p>
+          {coach.filaAberta && coach.queueMode && (
+            <span
+              className={`mt-1 inline-flex items-center gap-1 rounded-sm px-1.5 py-0.5 font-display text-[11px] font-semibold uppercase tracking-wide ${
+                coach.queueMode === "coached"
+                  ? "bg-success/10 text-success"
+                  : "bg-brand-primary/10 text-brand-primary"
+              }`}
+            >
+              {coach.queueMode === "coached"
+                ? "PRO observa + análise"
+                : "PRO joga junto"}
+            </span>
+          )}
         </div>
       </header>
 

@@ -1,8 +1,7 @@
 "use client";
 
-// Client Component pra ações no team detail: leave (member) / delete (captain) /
-// kick member (captain). Invite por username search fica V2 — admin/captain
-// pode usar SQL ou UI futura.
+// Client Component pra ações no team detail: convidar (captain) / leave (member) /
+// delete (captain) / kick member (captain).
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -10,6 +9,9 @@ import { Loader2, LogOut, Trash2, X } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { leaveTeam, kickMember, deleteTeam } from "../actions";
 import { Button } from "@/components/ui/button";
+import { TeamInvitePanel } from "./team-invite-panel";
+
+const MAX_ROSTER = 7;
 
 interface Member {
   user_id: string;
@@ -79,11 +81,21 @@ export function TeamDetailActions({
     return null;
   }
 
+  const rosterFull = members.length >= MAX_ROSTER;
+
   return (
     <section className="mt-10 space-y-4">
       <h2 className="font-sans text-sm 2xl:text-sm font-semibold uppercase tracking-[0.2em] text-white/70">
         Ações
       </h2>
+
+      {/* Captain: convidar jogador (roster ainda não cheio) */}
+      {isCaptain && !rosterFull && <TeamInvitePanel teamId={teamId} />}
+      {isCaptain && rosterFull && (
+        <p className="rounded-md border border-border-subtle bg-bg-base px-4 py-3 font-display font-semibold text-sm uppercase tracking-wide text-text-faded">
+          Roster cheio ({MAX_ROSTER}/{MAX_ROSTER}) — remova alguém pra convidar.
+        </p>
+      )}
 
       {/* Captain: gerenciar membros (kick) */}
       {isCaptain && members.length > 1 && (
@@ -151,10 +163,6 @@ export function TeamDetailActions({
           </Button>
         )}
       </div>
-
-      <p className="font-display font-semibold text-sm uppercase tracking-wide text-white/30">
-        Invite por username · V2
-      </p>
     </section>
   );
 }

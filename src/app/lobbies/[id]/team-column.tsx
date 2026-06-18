@@ -116,7 +116,7 @@ function PlayerSlotRow({
   lobbyId,
   currentUserId,
   leaderId,
-  currentTeam,
+  currentTeam: _currentTeam,
   disabled,
   onMutate,
   applyMove,

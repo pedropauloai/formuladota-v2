@@ -5,7 +5,7 @@
 //
 // Tabs principais (visíveis por role):
 //   - SUBIR MMR   → sempre visível (visitante/user/admin) — jornada principal
-//   - Progresso, Ranking, Times, Torneios → SÓ admin (em desenvolvimento)
+//   - Ranking, Times, Torneios → todo usuário logado (admin incluído)
 //   - PRO (se isPro), ADMIN (se isAdmin) → tabs contextuais
 //
 // JOGAR é implícito — clique no logo FORMULADOTA leva pra /dashboard.
@@ -41,9 +41,10 @@ const SUBIR_MMR_TAB: TopBarTabDef = {
   label: "Subir MMR",
 };
 
-// Tabs em desenvolvimento — só admin testa enquanto features não estão prontas.
+// Ecossistema competitivo — funcional desde 2026-06-18 (ranking via motor de MMR,
+// times com convite, torneios com chave/placar). Visível pra todo usuário logado.
 // Progresso saiu daqui: agora é tab pública do perfil (/me?tab=progresso).
-const ADMIN_ONLY_TABS: TopBarTabDef[] = [
+const COMPETITIVE_TABS: TopBarTabDef[] = [
   { href: "/ranking", label: "Ranking" },
   { href: "/times", label: "Times" },
   { href: "/torneios", label: "Torneios" },
@@ -81,10 +82,11 @@ export function DashboardTopBar({
   myQueues,
 }: Props) {
   const inQueue = myQueues.length > 0;
-  // Compõe nav principal: SUBIR MMR sempre + (Progresso/Ranking/Times/Torneios só admin)
+  // Compõe nav principal: SUBIR MMR sempre + ecossistema competitivo pra todo
+  // usuário logado (admin incluído — vê as abas aqui E o painel /admin).
   const principalTabs: TopBarTabDef[] = [SUBIR_MMR_TAB];
-  if (isAdmin) {
-    principalTabs.push(...ADMIN_ONLY_TABS);
+  if (!isVisitor) {
+    principalTabs.push(...COMPETITIVE_TABS);
   }
 
   const contextualTabs: TopBarTabDef[] = [];
