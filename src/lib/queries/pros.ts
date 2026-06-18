@@ -19,6 +19,8 @@ export type ProLiveStatus = {
   waitingCount: number;
   /** Slots livres pra entrar na PRÓXIMA PT (clamp 0..filaMaxVagas). */
   vagasProximaPT: number;
+  /** Modo da fila: 'play' (PRO joga) ou 'coached' (PRO observa + análise). */
+  queueMode: "play" | "coached";
 };
 
 type RawRow = {
@@ -191,10 +193,13 @@ export async function getProsLiveStatus(): Promise<ProLiveStatus[]> {
   // steam_links em batch. PRO também é identidade Steam (Steam > Discord).
   const { data: coachRows } = await supabase
     .from("coaches")
-    .select("id, profile_id")
+    .select("id, profile_id, queue_mode")
     .in("id", rows.map((r) => r.coach_id));
   const profileIdByCoach = new Map(
     (coachRows ?? []).map((c) => [c.id, c.profile_id])
+  );
+  const queueModeByCoach = new Map(
+    (coachRows ?? []).map((c) => [c.id, c.queue_mode])
   );
   const steamMap = await getSteamIdentityMap(
     supabase,
@@ -220,6 +225,9 @@ export async function getProsLiveStatus(): Promise<ProLiveStatus[]> {
       waitingCount: r.waiting_count ?? r.vagas_ocupadas,
       vagasProximaPT:
         r.vagas_proxima_pt ?? Math.max(0, r.fila_max_vagas - r.vagas_ocupadas),
+      queueMode:
+        (queueModeByCoach.get(r.coach_id) as "play" | "coached" | undefined) ??
+        "play",
     };
   });
 }

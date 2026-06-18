@@ -130,6 +130,20 @@ export function ProDetail({
                 {coach.headline}
               </p>
             )}
+            {coach.filaAberta && coach.queueMode && (
+              <span
+                className={cn(
+                  "inline-flex w-fit items-center gap-1 rounded-sm px-2 py-0.5 font-display text-xs font-semibold uppercase tracking-wide",
+                  coach.queueMode === "coached"
+                    ? "bg-success/10 text-success"
+                    : "bg-brand-primary/10 text-brand-primary"
+                )}
+              >
+                {coach.queueMode === "coached"
+                  ? "PRO observa + análise"
+                  : "PRO joga junto"}
+              </span>
+            )}
           </div>
         </div>
       </header>

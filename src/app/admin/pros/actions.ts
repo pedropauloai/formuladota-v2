@@ -45,7 +45,8 @@ async function requireCoach(supabase: Awaited<ReturnType<typeof createClient>>) 
 // Ao fechar fila, cancela todas entries waiting do coach (cascade).
 
 export async function togglePROFila(
-  open: boolean
+  open: boolean,
+  mode: "play" | "coached" = "play"
 ): Promise<ActionResult<{ filaAberta: boolean; cancelledEntries: number }>> {
   const supabase = await createClient();
   const { coach, error: authErr } = await requireCoach(supabase);
@@ -57,6 +58,8 @@ export async function togglePROFila(
     .update({
       fila_aberta: open,
       fila_aberta_em: open ? new Date().toISOString() : null,
+      // Modo só é (re)definido ao ABRIR — 'play' (PRO joga) ou 'coached' (observa).
+      ...(open ? { queue_mode: mode } : {}),
     })
     .eq("id", coach.id);
   if (error) return { success: false, error: "Erro ao atualizar fila." };
