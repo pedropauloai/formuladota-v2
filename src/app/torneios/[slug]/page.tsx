@@ -11,7 +11,7 @@ import { ClientShell } from "@/components/client-shell/shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { TournamentRegisterButton } from "./register-button";
-import { ReportMatchButton } from "./report-match-button";
+import { BracketView } from "./bracket-view";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -256,28 +256,22 @@ export default async function TournamentDetailPage(props: PageProps) {
           )}
         </section>
 
-        {/* Bracket */}
+        {/* Bracket — chave clássica (rodadas em colunas, final à direita) */}
         {matches && matches.length > 0 && (
           <section className="mt-10">
             <h2 className="mb-4 font-display text-sm 2xl:text-sm font-semibold uppercase tracking-[0.2em] text-text-body">
               Chave
             </h2>
-            <div className="space-y-6">
-              {Array.from(matchesByRound.entries())
+            <BracketView
+              isAdmin={isAdmin}
+              rounds={Array.from(matchesByRound.entries())
                 .sort(([a], [b]) => a - b)
-                .map(([round, roundMatches]) => (
-                  <div key={round}>
-                    <h3 className="mb-3 font-display text-sm 2xl:text-base uppercase tracking-[0.2em] text-brand-primary">
-                      {roundName(round, totalRounds)}
-                    </h3>
-                    <div className="grid gap-2 md:grid-cols-2">
-                      {(roundMatches ?? []).map((m) => (
-                        <BracketMatchCard key={m.id} match={m} isAdmin={isAdmin} />
-                      ))}
-                    </div>
-                  </div>
-                ))}
-            </div>
+                .map(([round, roundMatches]) => ({
+                  round,
+                  name: roundName(round, totalRounds),
+                  matches: roundMatches ?? [],
+                }))}
+            />
           </section>
         )}
 
@@ -325,114 +319,3 @@ function StatBlock({
   );
 }
 
-interface MatchRow {
-  id: string | null;
-  status: string | null;
-  team_a_name: string | null;
-  team_a_tag: string | null;
-  team_b_name: string | null;
-  team_b_tag: string | null;
-  winner_team_id: string | null;
-  team_a_id: string | null;
-  team_b_id: string | null;
-  score_a: number | null;
-  score_b: number | null;
-  scheduled_at: string | null;
-}
-
-// Card local pra match do bracket — distinto do <MatchCard> pattern (que é
-// para partidas de mentoria 1-1). Aqui é um placar simples team A vs team B.
-function BracketMatchCard({ match, isAdmin }: { match: MatchRow; isAdmin: boolean }) {
-  const winnerA = match.winner_team_id && match.winner_team_id === match.team_a_id;
-  const winnerB = match.winner_team_id && match.winner_team_id === match.team_b_id;
-  // Admin pode reportar quando o match está agendado e já tem os dois times.
-  const canReport =
-    isAdmin &&
-    match.status === "scheduled" &&
-    Boolean(match.id && match.team_a_id && match.team_b_id);
-
-  return (
-    <div className="rounded-md border border-border-subtle bg-bg-base overflow-hidden">
-      <TeamLine
-        name={match.team_a_name}
-        tag={match.team_a_tag}
-        score={match.score_a ?? 0}
-        winner={Boolean(winnerA)}
-        showScore={match.status === "completed"}
-      />
-      <div className="border-t border-border-subtle" />
-      <TeamLine
-        name={match.team_b_name}
-        tag={match.team_b_tag}
-        score={match.score_b ?? 0}
-        winner={Boolean(winnerB)}
-        showScore={match.status === "completed"}
-      />
-      {match.scheduled_at && match.status === "scheduled" && !canReport && (
-        <div className="px-3 py-1.5 bg-bg-deep font-display font-semibold text-sm uppercase tracking-wide text-text-faded text-center">
-          {new Date(match.scheduled_at).toLocaleString("pt-BR", {
-            day: "2-digit",
-            month: "2-digit",
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
-        </div>
-      )}
-      {canReport && (
-        <ReportMatchButton
-          matchId={match.id!}
-          teamAId={match.team_a_id!}
-          teamBId={match.team_b_id!}
-          teamAName={match.team_a_name ?? "Time A"}
-          teamBName={match.team_b_name ?? "Time B"}
-        />
-      )}
-    </div>
-  );
-}
-
-function TeamLine({
-  name,
-  tag,
-  score,
-  winner,
-  showScore,
-}: {
-  name: string | null;
-  tag: string | null;
-  score: number;
-  winner: boolean;
-  showScore: boolean;
-}) {
-  return (
-    <div
-      className={`flex items-center justify-between px-3 py-2.5 ${
-        winner ? "bg-brand-primary/10" : ""
-      }`}
-    >
-      <div className="flex items-center gap-2 min-w-0">
-        {tag && (
-          <span className="font-display font-semibold text-sm uppercase tracking-wide text-text-faded shrink-0">
-            [{tag}]
-          </span>
-        )}
-        <span
-          className={`font-body text-sm truncate ${
-            winner ? "text-text-display font-semibold" : "text-text-muted"
-          }`}
-        >
-          {name ?? "TBD"}
-        </span>
-      </div>
-      {showScore && (
-        <span
-          className={`font-display text-base shrink-0 ${
-            winner ? "text-brand-primary" : "text-text-faded"
-          }`}
-        >
-          {score}
-        </span>
-      )}
-    </div>
-  );
-}
