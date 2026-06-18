@@ -220,8 +220,14 @@ function VisitorBeliefHero() {
           </Button>
         </form>
         <Link
-          href="/codigo-de-conduta"
+          href="/por-que"
           className="font-display text-sm font-semibold text-brand-primary transition-colors hover:text-text-display"
+        >
+          Por que FormulaDota →
+        </Link>
+        <Link
+          href="/codigo-de-conduta"
+          className="font-display text-sm font-semibold text-text-muted transition-colors hover:text-text-display"
         >
           Conhecer a doutrina →
         </Link>
