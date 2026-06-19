@@ -4,7 +4,7 @@
 
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { Trophy, Users, ExternalLink } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";

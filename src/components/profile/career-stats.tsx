@@ -17,7 +17,7 @@
 // altura que a página já tinha. Server Components — HeroVideo (client) é
 // composto normalmente.
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { DotaRankMedal, type DotaRank } from "@/components/ui/dota-rank-medal";
 import { Tooltip } from "@/components/ui/tooltip";
 import { HeroFace } from "@/components/dota/hero-face";

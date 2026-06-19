@@ -2,7 +2,7 @@
 // Server Component — dados buscados no servidor via service client.
 
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { createServiceClient } from "@/lib/supabase/service";
 import { Eye, ChevronRight } from "lucide-react";
 

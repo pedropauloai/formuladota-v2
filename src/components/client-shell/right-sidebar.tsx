@@ -5,7 +5,7 @@
 // Conteúdo (news/comunidade/primeira regra) é 100% público — visitante vê
 // igual a usuário logado. Discord oficial é convite aberto.
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { MessageSquare, BookOpen } from "lucide-react";
 import { useTranslations } from "next-intl";
 

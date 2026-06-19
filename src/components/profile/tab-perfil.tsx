@@ -3,7 +3,7 @@
 // V1 stub: sem query real de achievements — mostra link navegacional pro Tab Conquistas.
 // Server Component — sem interatividade, sem "use client".
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 
 export function TabPerfil() {
   return (

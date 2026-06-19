@@ -3,7 +3,7 @@
 //
 // Server Component que busca status; renderiza wrapper client (LeaveButton + Tab updater).
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { Hourglass } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getMyQueueStatus } from "@/lib/queries/queue";

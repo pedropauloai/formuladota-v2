@@ -8,7 +8,7 @@
 //   - Separadores "/" entre as tabs
 //   - Miniatura avatar 1:1 ao lado de "Perfil" (primeira tab)
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import Image from "next/image";
 
 export type ProfileTab =

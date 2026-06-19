@@ -10,7 +10,7 @@
 // de MMR" / acoplado a ficha). Ficha/permissão são tratadas dentro de cada modalidade.
 
 import { useState } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { Radio, Hourglass } from "lucide-react";
 import type { ProLiveStatus } from "@/lib/queries/pros";
 import type { MyQueueEntry } from "@/lib/queries/queue";

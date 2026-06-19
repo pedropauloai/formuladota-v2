@@ -28,7 +28,7 @@
 // Server Component — sem "use client". DashboardGrid é Client Component
 // (react-grid-layout precisa de DOM measure).
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { Pencil, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/ui/avatar";

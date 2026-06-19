@@ -3,7 +3,7 @@
 // /times Client Component — modal criar time + cards times + cards invites pending.
 
 import { useState, useTransition } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useRouter } from "next/navigation";
 import { Crown, Plus, Users, X, Loader2, Mail, Check } from "lucide-react";
 import { useToast } from "@/components/ui/toast";

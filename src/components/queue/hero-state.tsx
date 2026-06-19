@@ -19,7 +19,7 @@
 
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { m, AnimatePresence } from "motion/react";
 import {
   Crown,

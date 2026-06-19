@@ -6,7 +6,7 @@
 //
 // Layout cinematográfico "New Frontiers" (igual /metodologia e /codigo-de-conduta).
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { Swords, ShieldOff, Lock, Globe, Fingerprint, RotateCcw, Trophy } from "lucide-react";
 import { ClientShell } from "@/components/client-shell/shell";
 import { Button } from "@/components/ui/button";

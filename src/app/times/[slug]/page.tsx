@@ -4,7 +4,7 @@
 
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { ArrowLeft, Crown, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getSteamIdentityMap, resolveIdentity } from "@/lib/queries/identities";

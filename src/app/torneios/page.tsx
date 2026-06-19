@@ -3,7 +3,7 @@
 // Refatorado para Design System V2.5: primitives + tokens semânticos.
 
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { Trophy, Calendar, Users, Award } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ClientShell } from "@/components/client-shell/shell";

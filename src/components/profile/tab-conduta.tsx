@@ -3,7 +3,7 @@
 // commends/strikes V2 (sem RPC ainda) — exibe "—" como placeholder honesto.
 // Server Component — sem interatividade, sem "use client".
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { ExternalLink } from "lucide-react";
 import { HonorRankMedal, type HonorRank } from "@/components/ui/honor-rank-medal";
 import { Button } from "@/components/ui/button";

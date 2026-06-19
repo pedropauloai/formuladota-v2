@@ -3,7 +3,7 @@
 // pra dar espaço pra sidebar admin (Dashboard, Users, Temporadas, Lobbies).
 
 import { redirect } from "next/navigation";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { LayoutDashboard, Users, Calendar, Gamepad2, Radio, Coins, Trophy } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ClientShell } from "@/components/client-shell/shell";

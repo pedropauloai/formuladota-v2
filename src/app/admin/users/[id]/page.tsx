@@ -2,7 +2,7 @@
 // Server Component. 5 sub-painéis via Tabs inline.
 
 import { notFound } from "next/navigation";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import type { Metadata } from "next";
 import { createServiceClient } from "@/lib/supabase/service";
 import { DotaRankMedal, type DotaRank } from "@/components/ui/dota-rank-medal";

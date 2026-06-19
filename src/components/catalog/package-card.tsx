@@ -4,7 +4,7 @@
 // Phase 3.5: rebrand FORMULADOTA — paleta vermelho/preto, sem menção nome próprio.
 // Header genérico "Coach Immortal" + badge "Top 0.5%".
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { Sparkles, Trophy } from "lucide-react";
 import {
   Card,

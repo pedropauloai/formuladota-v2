@@ -6,7 +6,7 @@
 // - Mostra erro com link para voltar, ou QRCodeDisplay com sucesso
 
 import { useEffect, useState, useTransition } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { AlertCircle } from "lucide-react";
 import { createCheckout, type CheckoutResult } from "@/app/checkout/[packageId]/actions";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";

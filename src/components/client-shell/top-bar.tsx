@@ -19,7 +19,7 @@
 // PRO/ADMIN/Progresso/etc são filtrados naturalmente por role.
 
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { Settings, LogOut, LogIn, Shield, Eye, EyeOff, Radio, Swords } from "lucide-react";
 import { signOut, signInWithDiscord } from "@/app/login/actions";
 import { togglePreviewMode } from "@/lib/auth/preview-mode";

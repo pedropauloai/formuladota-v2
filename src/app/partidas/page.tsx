@@ -6,7 +6,7 @@
 // que não é gerado sem a Supabase CLI. A abordagem 2-query é mais segura e igualmente eficiente.
 
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { redirect } from "next/navigation";
 import { ShoppingBag } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";

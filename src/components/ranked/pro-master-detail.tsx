@@ -16,7 +16,7 @@
 // C14 — zero hex; C17 — zero z-index numérico; C18 — sem max-w mx-auto.
 
 import { useState } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { Coins, Radio } from "lucide-react";
 import type { ProWithQueue, ProRecentStats } from "@/lib/queries/pros";
 import type { MyQueueEntry } from "@/lib/queries/queue";

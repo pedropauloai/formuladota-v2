@@ -12,7 +12,7 @@
 //
 // Client Component (passa refs de LucideIcon pros pilares — não serializável).
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import {
   Swords,
   ShieldX,
