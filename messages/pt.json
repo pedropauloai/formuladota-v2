@@ -18,5 +18,28 @@
     "prosOnline": "{count, plural, =1 {# PRO online} other {# PROs online}}",
     "searching": "{count, plural, =1 {# jogador buscando} other {# jogadores buscando}}",
     "condutaTooltip": "Conduta é pública na FormulaDota — responsabilidade é princípio, não opção. Leia o Código antes da sua primeira PT."
+  },
+  "capa": {
+    "eyebrow": "Por que FormulaDota",
+    "headlineLead": "Não é você.",
+    "headlineEmphasis": "É o sistema.",
+    "subtitle": "O Dota é um dos melhores jogos do mundo. O que quebra é o ambiente competitivo da Valve — até as lendas vão embora. Aqui, a cultura tem regras.",
+    "naValve": "Na Valve",
+    "pillarAnonimatoProblem": "Anonimato",
+    "pillarAnonimatoSolution": "Identidade real",
+    "pillarAnonimatoLine": "Nome público, reputação atrelada. Sem máscara, sem smurf, sem fugir das consequências.",
+    "pillarMmrProblem": "Topo fechado · MMR inflado",
+    "pillarMmrSolution": "Temporadas que reiniciam",
+    "pillarMmrLine": "Todo ciclo recomeça do zero. O nº 1 volta a ser alcançável — inclusive pra quem chegou agora.",
+    "pillarRegiaoProblem": "Rankings isolados por região",
+    "pillarRegiaoSolution": "Ranking único global",
+    "pillarRegiaoLine": "Uma corrida só, sem fronteira. O melhor é o melhor do mundo — não “o melhor da sua região”.",
+    "doctrineLead": "E não basta entrar:",
+    "doctrineBody": "aqui todo jogador domina os fundamentos da Fórmula do Dota de Corrida — a mesma doutrina, as mesmas expectativas, todo mundo no mesmo jogo.",
+    "doctrineLink": "Conheça a doutrina →",
+    "ctaLogin": "Entrar com Discord",
+    "ctaPlay": "Subir de MMR",
+    "whyLink": "Entenda o porquê →",
+    "pulso": "{count, plural, =0 {Nenhum PRO em fila agora} =1 {# PRO em fila agora} other {# PROs em fila agora}}"
   }
 }
