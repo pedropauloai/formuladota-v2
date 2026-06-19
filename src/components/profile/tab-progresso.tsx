@@ -113,7 +113,7 @@ export async function TabProgresso() {
                 {/* Número de nível = valor/progresso → GOLD (Pedro 2026-06-11) */}
                 Nível <span className="tabular-nums text-gold">{currentLevel}</span>
               </h2>
-              <span className={`font-display text-sm font-semibold ${tierConfig.color}`}>
+              <span className={`font-display text-sm 2xl:text-base font-semibold ${tierConfig.color}`}>
                 · {tierConfig.label}
               </span>
             </div>
@@ -127,7 +127,7 @@ export async function TabProgresso() {
                     </span>{" "}
                     XP
                   </span>
-                  <span className="font-mono text-sm text-white/40">{progressPct}%</span>
+                  <span className="font-mono text-sm 2xl:text-base text-white/40">{progressPct}%</span>
                 </div>
                 <div className="h-2 rounded-full bg-black/60 overflow-hidden">
                   <div
@@ -230,7 +230,7 @@ export async function TabProgresso() {
                     } ${!isUnlocked ? "opacity-40" : ""}`}
                   >
                     <Td>
-                      <span className="font-display text-sm text-text-display">{t.level}</span>
+                      <span className="font-display text-sm 2xl:text-base text-text-display">{t.level}</span>
                       {isCurrent && (
                         <span className="ml-2 font-display font-semibold text-sm uppercase tracking-wide text-brand-primary">
                           ATUAL
@@ -238,24 +238,24 @@ export async function TabProgresso() {
                       )}
                     </Td>
                     <Td align="right">
-                      <span className="font-mono text-sm text-white/70">
+                      <span className="font-mono text-sm 2xl:text-base text-white/70">
                         {t.xp_required.toLocaleString("pt-BR")}
                       </span>
                     </Td>
                     <Td align="right">
-                      <span className="font-mono text-sm text-white/50">
+                      <span className="font-mono text-sm 2xl:text-base text-white/50">
                         {t.total_xp.toLocaleString("pt-BR")}
                       </span>
                     </Td>
                     <Td align="right">
-                      <span className="font-mono text-sm tabular-nums text-gold">
+                      <span className="font-mono text-sm 2xl:text-base tabular-nums text-gold">
                         {t.shards_reward.toLocaleString("pt-BR")}
                       </span>
                     </Td>
                     <Td>
                       <span className="inline-flex items-center gap-1.5">
                         <TIcon size={12} className={tCfg.color} aria-hidden="true" />
-                        <span className={`font-display text-sm font-semibold ${tCfg.color}`}>
+                        <span className={`font-display text-sm 2xl:text-base font-semibold ${tCfg.color}`}>
                           {tCfg.label}
                         </span>
                       </span>
@@ -285,7 +285,7 @@ export async function TabProgresso() {
                   <div className="flex items-center gap-3 min-w-0">
                     <Icons.Plus size={14} className="text-emerald-400 shrink-0" aria-hidden="true" />
                     <div className="min-w-0">
-                      <p className="font-sans text-sm text-white truncate">
+                      <p className="font-sans text-sm 2xl:text-base text-white truncate">
                         {XP_SOURCE_LABELS[e.source] ?? e.source}
                       </p>
                       <p className="font-display font-semibold text-sm uppercase tracking-wide text-white/40">
@@ -301,9 +301,9 @@ export async function TabProgresso() {
                     </div>
                   </div>
                   <div className="flex items-center gap-3 shrink-0">
-                    <span className="font-display text-sm text-emerald-400">+{e.xp_amount} XP</span>
+                    <span className="font-display text-sm 2xl:text-base text-emerald-400">+{e.xp_amount} XP</span>
                     {(e.shards_awarded ?? 0) > 0 && (
-                      <span className="font-display text-sm tabular-nums text-gold">
+                      <span className="font-display text-sm 2xl:text-base tabular-nums text-gold">
                         +{e.shards_awarded} shards
                       </span>
                     )}
@@ -322,7 +322,7 @@ export async function TabProgresso() {
             <p className="font-display font-semibold text-sm uppercase tracking-wide text-white/40">
               Nenhum evento de XP ainda
             </p>
-            <p className="mt-2 font-sans text-sm text-white/50">
+            <p className="mt-2 font-sans text-sm 2xl:text-base text-white/50">
               Responda a doutrina, jogue partidas ou conquiste badges pra ganhar XP.
             </p>
           </div>

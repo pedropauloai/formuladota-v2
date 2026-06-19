@@ -138,13 +138,13 @@ function Row({
   gold?: boolean;
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 text-sm">
+    <div className="flex items-center justify-between gap-4 text-sm 2xl:text-base">
       <span className="font-sans text-sm uppercase tracking-widest text-text-muted">
         {label}
       </span>
       <span
         className={[
-          mono ? "font-mono text-sm" : "font-sans text-sm",
+          mono ? "font-mono text-sm 2xl:text-base" : "font-sans text-sm 2xl:text-base",
           // Gold = números de valor/progresso (fichas, MMR) — família GOLD 2026-06-11.
           // Highlight usa success (verde) para destacar acesso — semântico V2.5
           gold

@@ -43,7 +43,7 @@ export function ExpandedWaitingList({
               }`}
             >
               <span
-                className={`w-7 font-mono text-sm font-semibold tabular-nums ${
+                className={`w-7 font-mono text-sm 2xl:text-base font-semibold tabular-nums ${
                   isViewer ? "text-warning" : "text-text-muted"
                 }`}
               >
@@ -57,18 +57,18 @@ export function ExpandedWaitingList({
                 ringColor={isViewer ? "tier-immortal" : null}
               />
               <span
-                className={`flex-1 truncate font-sans text-sm ${
+                className={`flex-1 truncate font-sans text-sm 2xl:text-base ${
                   isViewer ? "font-bold text-text-display" : "text-text-body"
                 }`}
               >
                 {isViewer ? "VOCÊ" : e.username ?? "—"}
               </span>
               {e.ptsToday !== undefined && e.ptsToday > 0 && (
-                <span className="rounded-full bg-warning/20 px-2 py-0.5 font-mono text-sm font-semibold text-warning">
+                <span className="rounded-full bg-warning/20 px-2 py-0.5 font-mono text-sm 2xl:text-base font-semibold text-warning">
                   {e.ptsToday}× hoje
                 </span>
               )}
-              <span className="w-10 text-right font-display text-sm font-semibold text-text-body tabular-nums">
+              <span className="w-10 text-right font-display text-sm 2xl:text-base font-semibold text-text-body tabular-nums">
                 {waitingMinutes}m
               </span>
             </li>

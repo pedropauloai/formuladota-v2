@@ -177,7 +177,7 @@ function TeamLine({
         )}
         <span
           className={cn(
-            "truncate font-body text-sm",
+            "truncate font-body text-sm 2xl:text-base",
             winner ? "font-semibold text-text-display" : "text-text-muted"
           )}
         >
@@ -187,7 +187,7 @@ function TeamLine({
       {showScore && (
         <span
           className={cn(
-            "shrink-0 font-display text-base tabular-nums",
+            "shrink-0 font-display text-base 2xl:text-lg tabular-nums",
             winner ? "text-brand-primary" : "text-text-faded"
           )}
         >

@@ -283,12 +283,12 @@ export default async function CoachProfilePage({ params }: PageProps) {
 
             {/* Headline */}
             {coach.headline && (
-              <p className="text-sm text-text-muted">{coach.headline}</p>
+              <p className="text-sm 2xl:text-base text-text-muted">{coach.headline}</p>
             )}
 
             {/* Bio */}
             {coach.bio && (
-              <p className="text-sm text-text-body leading-relaxed">{coach.bio}</p>
+              <p className="text-sm 2xl:text-base text-text-body leading-relaxed">{coach.bio}</p>
             )}
 
             {/* Tiers lado a lado */}
@@ -300,7 +300,7 @@ export default async function CoachProfilePage({ params }: PageProps) {
                   <span className="text-sm uppercase tracking-wider text-text-muted">
                     Rank Dota 2
                   </span>
-                  <span className="text-sm font-mono text-text-body">
+                  <span className="text-sm 2xl:text-base font-mono text-text-body">
                     {profile.mmr_atual ? `${profile.mmr_atual} MMR` : "—"}
                   </span>
                 </div>
@@ -313,7 +313,7 @@ export default async function CoachProfilePage({ params }: PageProps) {
                   <span className="text-sm uppercase tracking-wider text-text-muted">
                     HONOR
                   </span>
-                  <span className="text-sm font-mono text-text-body">
+                  <span className="text-sm 2xl:text-base font-mono text-text-body">
                     {tierLabel} ({honorScore ?? 1000} pts)
                   </span>
                 </div>
@@ -321,7 +321,7 @@ export default async function CoachProfilePage({ params }: PageProps) {
             </div>
 
             {/* Data de promoção */}
-            <p className="text-sm text-text-subtle font-mono">
+            <p className="text-sm 2xl:text-base text-text-subtle font-mono">
               PRO desde{" "}
               {new Date(promo.promoted_at).toLocaleDateString("pt-BR", {
                 month: "long",
@@ -378,13 +378,13 @@ export default async function CoachProfilePage({ params }: PageProps) {
               <h2 className="font-display text-base uppercase tracking-widest text-text-display">
                 {mainPackage.nome}
               </h2>
-              <p className="text-sm text-text-muted mt-0.5">Ficha de vaga em partida PRO</p>
+              <p className="text-sm 2xl:text-base text-text-muted mt-0.5">Ficha de vaga em partida PRO</p>
             </div>
             <div className="text-right">
               <span className="font-display text-3xl font-bold text-brand-cyan">
                 R$ {Number(mainPackage.preco_brl).toFixed(2)}
               </span>
-              <p className="text-sm text-text-muted font-mono">por ficha</p>
+              <p className="text-sm 2xl:text-base text-text-muted font-mono">por ficha</p>
             </div>
           </div>
 
@@ -398,7 +398,7 @@ export default async function CoachProfilePage({ params }: PageProps) {
                 {priceHistory.map((entry, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center gap-2 text-sm font-mono text-text-subtle"
+                    className="flex items-center gap-2 text-sm 2xl:text-base font-mono text-text-subtle"
                   >
                     <span className="line-through">
                       R$ {Number(entry.price_before).toFixed(2)}
@@ -418,7 +418,7 @@ export default async function CoachProfilePage({ params }: PageProps) {
                   </div>
                 ))}
               </div>
-              <p className="text-sm text-text-subtle italic mt-2">
+              <p className="text-sm 2xl:text-base text-text-subtle italic mt-2">
                 Alunos que compraram anteriormente pagaram o preço vigente na época — sem
                 cobrança retroativa.
               </p>
@@ -441,13 +441,13 @@ export default async function CoachProfilePage({ params }: PageProps) {
           </a>
 
           {/* Subtexto honesto: tiers visíveis + sem promessa quantitativa */}
-          <p className="text-sm text-text-subtle text-center">
+          <p className="text-sm 2xl:text-base text-text-subtle text-center">
             {tierLabel} HONOR · {profile.mmr_atual ? `${profile.mmr_atual} MMR` : "Imortal"} · Pagamento via PIX — vaga liberada após confirmação.
           </p>
         </section>
       ) : (
         <section className="rounded-xl border border-border-subtle bg-bg-elevated p-6 text-center">
-          <p className="text-text-muted text-sm">
+          <p className="text-text-muted text-sm 2xl:text-base">
             Nenhum package disponível no momento. Volte em breve.
           </p>
         </section>
@@ -456,7 +456,7 @@ export default async function CoachProfilePage({ params }: PageProps) {
       {/* ----------------------------------------------------------------
           Disclaimer filosófico (texto leve, não intrusivo)
           ---------------------------------------------------------------- */}
-      <p className="text-sm text-text-subtle text-center italic px-4">
+      <p className="text-sm 2xl:text-base text-text-subtle text-center italic px-4">
         Preço definido pelo próprio PRO dentro dos limites do sistema de reputação FormulaDota.
         Subir de tier HONOR é o único caminho para desbloquear ceiling maior — reputação precede
         preço.

@@ -71,7 +71,7 @@ export function ReportMatchButton({
         value={winner}
         onChange={(e) => setWinner(e.target.value)}
         aria-label="Time vencedor"
-        className="w-full rounded-sm border border-border-subtle bg-black/40 px-2 py-1.5 font-sans text-sm text-white focus:border-brand-primary focus:outline-none"
+        className="w-full rounded-sm border border-border-subtle bg-black/40 px-2 py-1.5 font-sans text-sm 2xl:text-base text-white focus:border-brand-primary focus:outline-none"
       >
         <option value="">Vencedor…</option>
         <option value={teamAId}>{teamAName}</option>
@@ -85,7 +85,7 @@ export function ReportMatchButton({
           value={scoreA}
           onChange={(e) => setScoreA(e.target.value)}
           aria-label={`Placar de ${teamAName}`}
-          className="w-14 rounded-sm border border-border-subtle bg-black/40 px-2 py-1 font-mono text-sm text-white text-center focus:border-brand-primary focus:outline-none"
+          className="w-14 rounded-sm border border-border-subtle bg-black/40 px-2 py-1 font-mono text-sm 2xl:text-base text-white text-center focus:border-brand-primary focus:outline-none"
         />
         <span className="font-display text-text-faded">×</span>
         <input
@@ -95,7 +95,7 @@ export function ReportMatchButton({
           value={scoreB}
           onChange={(e) => setScoreB(e.target.value)}
           aria-label={`Placar de ${teamBName}`}
-          className="w-14 rounded-sm border border-border-subtle bg-black/40 px-2 py-1 font-mono text-sm text-white text-center focus:border-brand-primary focus:outline-none"
+          className="w-14 rounded-sm border border-border-subtle bg-black/40 px-2 py-1 font-mono text-sm 2xl:text-base text-white text-center focus:border-brand-primary focus:outline-none"
         />
         <button
           type="button"

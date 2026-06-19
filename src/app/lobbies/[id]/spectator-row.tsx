@@ -99,7 +99,7 @@ export function SpectatorRow({
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={s.avatarUrl} alt="" className="size-3.5 rounded-sm" />
                 ) : null}
-                <span className="font-body text-sm text-text-body">
+                <span className="font-body text-sm 2xl:text-base text-text-body">
                   {s.username}
                 </span>
                 {isCurrent && !disabled && (

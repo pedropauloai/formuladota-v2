@@ -111,7 +111,7 @@ export function TeamDetailActions({
                   key={m.user_id}
                   className="flex items-center justify-between gap-3 rounded-sm bg-bg-elevated px-3 py-2"
                 >
-                  <span className="font-sans text-sm text-text-display">
+                  <span className="font-sans text-sm 2xl:text-base text-text-display">
                     {m.profile?.username ?? "Anônimo"}{" "}
                     <span className="font-display font-semibold text-sm uppercase tracking-wide text-text-faded">
                       · {m.role}

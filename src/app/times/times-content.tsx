@@ -91,7 +91,7 @@ export function TimesContent({
           <p className="font-display text-base 2xl:text-lg uppercase tracking-wide text-white/60">
             Você ainda não está em nenhum time
           </p>
-          <p className="mt-2 font-sans text-sm 2xl:text-sm text-white/40">
+          <p className="mt-2 font-sans text-sm 2xl:text-base text-white/40">
             Crie um time ou aceite um convite pra começar a competir.
           </p>
         </div>
@@ -146,10 +146,10 @@ function InviteCard({ invite }: { invite: Invite }) {
         <p className="font-display text-base uppercase tracking-wide text-white">
           {invite.team.name}
         </p>
-        <p className="font-mono text-sm text-white/50">[{invite.team.tag}]</p>
+        <p className="font-mono text-sm 2xl:text-base text-white/50">[{invite.team.tag}]</p>
       </div>
       {invite.message && (
-        <p className="font-sans text-sm text-white/60 italic">
+        <p className="font-sans text-sm 2xl:text-base text-white/60 italic">
           &ldquo;{invite.message}&rdquo;
         </p>
       )}
@@ -220,7 +220,7 @@ function TeamCard({ team }: { team: UserTeam }) {
           />
         ) : (
           <div className="size-12 rounded-md border border-white/10 bg-brand-primary/15 flex items-center justify-center shrink-0">
-            <span className="font-display text-base text-brand-primary">
+            <span className="font-display text-base 2xl:text-lg text-brand-primary">
               {team.tag}
             </span>
           </div>
@@ -243,7 +243,7 @@ function TeamCard({ team }: { team: UserTeam }) {
       </div>
 
       {team.description && (
-        <p className="mt-3 font-sans text-sm text-white/60 line-clamp-2">
+        <p className="mt-3 font-sans text-sm 2xl:text-base text-white/60 line-clamp-2">
           {team.description}
         </p>
       )}
@@ -352,7 +352,7 @@ function CreateTeamModal({ onClose }: { onClose: () => void }) {
               value={name}
               onChange={(e) => handleNameChange(e.target.value)}
               placeholder="Ex.: Os Imortais BR"
-              className="w-full rounded-md border border-border-subtle bg-black/40 px-3 py-2 font-sans text-sm text-white placeholder:text-white/30 focus:border-brand-primary focus:outline-none"
+              className="w-full rounded-md border border-border-subtle bg-black/40 px-3 py-2 font-sans text-sm 2xl:text-base text-white placeholder:text-white/30 focus:border-brand-primary focus:outline-none"
             />
           </Field>
 
@@ -382,7 +382,7 @@ function CreateTeamModal({ onClose }: { onClose: () => void }) {
                   setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))
                 }
                 placeholder="os-imortais-br"
-                className="w-full rounded-md border border-border-subtle bg-black/40 px-3 py-2 font-mono text-sm text-white placeholder:text-white/30 focus:border-brand-primary focus:outline-none"
+                className="w-full rounded-md border border-border-subtle bg-black/40 px-3 py-2 font-mono text-sm 2xl:text-base text-white placeholder:text-white/30 focus:border-brand-primary focus:outline-none"
               />
             </Field>
           </div>
@@ -394,9 +394,9 @@ function CreateTeamModal({ onClose }: { onClose: () => void }) {
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Time competitivo focado em..."
               rows={3}
-              className="w-full rounded-md border border-border-subtle bg-black/40 px-3 py-2 font-sans text-sm text-white placeholder:text-white/30 focus:border-brand-primary focus:outline-none resize-none"
+              className="w-full rounded-md border border-border-subtle bg-black/40 px-3 py-2 font-sans text-sm 2xl:text-base text-white placeholder:text-white/30 focus:border-brand-primary focus:outline-none resize-none"
             />
-            <p className="mt-1 text-right font-mono text-sm text-white/30">
+            <p className="mt-1 text-right font-mono text-sm 2xl:text-base text-white/30">
               {description.length}/280
             </p>
           </Field>

@@ -79,9 +79,9 @@ export function StatusEditor({
         maxLength={60}
         rows={2}
         placeholder="Escreva algo sobre você..."
-        className="w-full rounded border border-brand-primary/40 bg-bg-deep/80 px-3 py-2 font-display text-base text-text-body placeholder:text-text-faded focus:outline-none focus:border-brand-primary disabled:opacity-50"
+        className="w-full rounded border border-brand-primary/40 bg-bg-deep/80 px-3 py-2 font-display text-base 2xl:text-lg text-text-body placeholder:text-text-faded focus:outline-none focus:border-brand-primary disabled:opacity-50"
       />
-      <p className="text-right font-mono text-sm text-text-faded">
+      <p className="text-right font-mono text-sm 2xl:text-base text-text-faded">
         {status.length}/60 · auto-salva ao sair
       </p>
     </div>

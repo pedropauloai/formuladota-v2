@@ -33,7 +33,7 @@ export default async function TimesPage() {
             <h1 className="mt-2 font-display text-3xl uppercase tracking-tight text-text-display 2xl:text-5xl">
               Times
             </h1>
-            <p className="mt-3 max-w-2xl font-display text-sm font-semibold text-text-body">
+            <p className="mt-3 max-w-2xl font-display text-sm 2xl:text-base font-semibold text-text-body">
               Monte um time, convide jogadores e dispute os torneios oficiais.
               Entre com Discord pra criar e gerenciar seus times.
             </p>
@@ -118,7 +118,7 @@ export default async function TimesPage() {
           <h1 className="mt-2 font-display text-3xl 2xl:text-5xl uppercase tracking-tight text-text-display">
             Times
           </h1>
-          <p className="mt-3 font-display text-sm font-semibold text-text-body max-w-2xl">
+          <p className="mt-3 font-display text-sm 2xl:text-base font-semibold text-text-body max-w-2xl">
             Seus times competitivos, convites pendentes e ações de capitão.
           </p>
         </header>

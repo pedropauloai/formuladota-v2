@@ -89,7 +89,7 @@ export default async function TorneiosPage() {
           <h1 className="mt-2 font-display text-3xl 2xl:text-5xl uppercase tracking-tight text-text-display">
             Torneios
           </h1>
-          <p className="mt-3 font-display text-sm font-semibold text-text-body max-w-2xl">
+          <p className="mt-3 font-display text-sm font-semibold text-text-body max-w-2xl 2xl:text-base">
             Torneios oficiais com inscrição por times, brackets e premiação.
           </p>
           {isAdmin && (
@@ -150,7 +150,7 @@ export default async function TorneiosPage() {
                         </Badge>
                       </div>
                       {t.description && (
-                        <p className="font-body text-sm 2xl:text-sm text-text-muted line-clamp-2">
+                        <p className="font-body text-sm text-text-muted line-clamp-2 2xl:text-base">
                           {t.description}
                         </p>
                       )}
@@ -208,10 +208,10 @@ function Stat({
   value: string;
 }) {
   return (
-    <div className="flex items-center gap-2 text-sm 2xl:text-sm">
+    <div className="flex items-center gap-2 text-sm 2xl:text-base">
       <Icon
         size={11}
-        className="text-text-faded shrink-0"
+        className="shrink-0 text-text-faded 2xl:size-3.5"
         aria-hidden="true"
       />
       <span className="font-display font-semibold uppercase tracking-wide text-text-faded">

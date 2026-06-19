@@ -124,7 +124,7 @@ export function QueueBoard({
           </div>
           <p
             className={`font-mono text-white/60 mt-0.5 ${
-              isCompact ? "text-sm" : "text-sm"
+              isCompact ? "text-sm 2xl:text-base" : "text-sm 2xl:text-base"
             }`}
           >
             {coach.mmrAtual ? `${coach.mmrAtual.toLocaleString("pt-BR")} MMR` : "—"}
@@ -148,7 +148,7 @@ export function QueueBoard({
 
       {/* Headline (só em presentation/admin grandes) */}
       {!isCompact && showHeadline && coach.headline && (
-        <p className="mb-4 font-serif text-sm italic text-white/60 border-l-2 border-emerald-500/30 pl-3">
+        <p className="mb-4 font-serif text-sm 2xl:text-base italic text-white/60 border-l-2 border-emerald-500/30 pl-3">
           {coach.headline}
         </p>
       )}
@@ -287,7 +287,7 @@ function WaitingList({
               }`}
             >
               <span
-                className={`font-mono text-sm font-semibold tabular-nums w-7 ${
+                className={`font-mono text-sm 2xl:text-base font-semibold tabular-nums w-7 ${
                   isViewer ? "font-bold text-amber-300" : "text-white/60"
                 }`}
               >
@@ -306,18 +306,18 @@ function WaitingList({
                 <div className="size-7 rounded-sm bg-white/10" />
               )}
               <span
-                className={`flex-1 truncate font-sans text-sm ${
+                className={`flex-1 truncate font-sans text-sm 2xl:text-base ${
                   isViewer ? "font-bold text-white" : "text-white/90"
                 }`}
               >
                 {isViewer ? "VOCÊ" : e.username ?? "—"}
               </span>
               {e.ptsToday !== undefined && e.ptsToday > 0 && (
-                <span className="rounded-full bg-amber-500/20 px-2 py-0.5 font-mono text-sm font-semibold text-amber-200">
+                <span className="rounded-full bg-amber-500/20 px-2 py-0.5 font-mono text-sm 2xl:text-base font-semibold text-amber-200">
                   {e.ptsToday}× hoje
                 </span>
               )}
-              <span className="font-mono text-sm text-white/55 tabular-nums w-10 text-right">
+              <span className="font-mono text-sm 2xl:text-base text-white/55 tabular-nums w-10 text-right">
                 {waitingMinutes}m
               </span>
               {isAdmin && onRemoveEntry && (
@@ -375,7 +375,7 @@ function Slot({
         }`}
       >
         <span
-          className={`font-mono text-white/30 ${isCompact ? "text-sm" : "text-sm"}`}
+          className={`font-mono text-white/30 ${isCompact ? "text-sm 2xl:text-base" : "text-sm 2xl:text-base"}`}
         >
           slot {index + 1}
         </span>
@@ -442,14 +442,14 @@ function Slot({
       )}
       <p
         className={`mt-1.5 font-sans text-white truncate max-w-full text-center font-medium ${
-          isCompact ? "text-sm" : "text-sm"
+          isCompact ? "text-sm 2xl:text-base" : "text-sm 2xl:text-base"
         } ${isViewer ? "font-bold" : ""}`}
       >
         {isViewer ? "VOCÊ" : slot.username ?? "—"}
       </p>
       <p
         className={`mt-0.5 font-mono text-white/55 ${
-          isCompact ? "text-sm" : "text-sm"
+          isCompact ? "text-sm 2xl:text-base" : "text-sm 2xl:text-base"
         } flex items-center gap-1`}
       >
         <Clock size={isCompact ? 9 : 11} aria-hidden="true" />
@@ -458,7 +458,7 @@ function Slot({
       {slot.ptsToday !== undefined && slot.ptsToday > 0 && (
         <span
           className={`mt-1 inline-flex items-center rounded-full bg-amber-500/20 px-2 py-0.5 font-mono font-semibold text-amber-200 ${
-            isCompact ? "text-sm" : "text-sm"
+            isCompact ? "text-sm 2xl:text-base" : "text-sm 2xl:text-base"
           }`}
           title={`Já jogou ${slot.ptsToday} PT${slot.ptsToday > 1 ? "s" : ""} com este PRO nas últimas 24h — cede vaga pra quem jogou menos`}
         >
@@ -478,7 +478,7 @@ function Slot({
         </button>
       )}
       {error && (
-        <p className="absolute -bottom-5 left-0 right-0 text-center font-mono text-sm text-red-400">
+        <p className="absolute -bottom-5 left-0 right-0 text-center font-mono text-sm 2xl:text-base text-red-400">
           {error}
         </p>
       )}

@@ -468,10 +468,10 @@ export default async function PerfilPublicoPage(props: PageProps) {
             Identidades vinculadas
           </h2>
           <div className="flex flex-wrap gap-3">
-            <span className="inline-flex items-center rounded-md border border-border-brand bg-bg-elevated px-4 py-2 font-mono text-sm text-text-display">
+            <span className="inline-flex items-center rounded-md border border-border-brand bg-bg-elevated px-4 py-2 font-mono text-sm 2xl:text-base text-text-display">
               Steam: {params.steamid}
             </span>
-            <span className="inline-flex items-center rounded-md border border-border-subtle bg-bg-elevated px-4 py-2 font-display text-sm font-semibold text-text-body">
+            <span className="inline-flex items-center rounded-md border border-border-subtle bg-bg-elevated px-4 py-2 font-display text-sm 2xl:text-base font-semibold text-text-body">
               Discord: {profile?.username ?? "—"}
             </span>
           </div>
@@ -563,7 +563,7 @@ function BadgeCard({
         <p className="font-display text-sm uppercase tracking-wide text-text-display">
           {badge.name}
         </p>
-        <p className="font-display text-sm font-semibold text-text-body leading-relaxed">
+        <p className="font-display text-sm 2xl:text-base font-semibold text-text-body leading-relaxed">
           {badge.description}
         </p>
         {badge.earned_at && (

@@ -408,7 +408,7 @@ function HeroTitle({ children }: { children: React.ReactNode }) {
 
 function HeroSub({ children }: { children: React.ReactNode }) {
   return (
-    <p className="mt-[var(--space-3)] max-w-xl font-[family-name:var(--font-mono)] text-sm text-[var(--color-text-muted)] xl:text-sm">
+    <p className="mt-[var(--space-3)] max-w-xl font-[family-name:var(--font-mono)] text-sm 2xl:text-base text-[var(--color-text-muted)] xl:text-sm">
       {children}
     </p>
   );

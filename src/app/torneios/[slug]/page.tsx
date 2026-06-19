@@ -244,7 +244,7 @@ export default async function TournamentDetailPage(props: PageProps) {
               Times registrados
             </h2>
             {registeredTeams.length === 0 ? (
-              <p className="font-display text-sm font-medium text-text-muted">
+              <p className="font-display text-sm 2xl:text-base font-medium text-text-muted">
                 Nenhum time inscrito ainda.
               </p>
             ) : (
@@ -330,13 +330,13 @@ function RegisteredTeamCard({ rt }: { rt: RegisteredTeamEntry }) {
         />
       ) : (
         <div className="flex size-10 items-center justify-center rounded-sm border border-border-subtle bg-brand-primary/15">
-          <span className="font-display text-sm text-brand-primary">
+          <span className="font-display text-sm 2xl:text-base text-brand-primary">
             {rt.team.tag}
           </span>
         </div>
       )}
       <div className="min-w-0 flex-1">
-        <p className="truncate font-body text-sm text-text-display">
+        <p className="truncate font-body text-sm 2xl:text-base text-text-display">
           {rt.team.name}
         </p>
         <p className="font-display text-sm font-semibold uppercase tracking-wide text-text-faded">

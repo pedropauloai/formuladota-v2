@@ -64,7 +64,7 @@ function SettingRow({
         {label}
       </span>
       <span
-        className={`truncate font-body text-sm font-medium ${valueClass ?? "text-text-body"}`}
+        className={`truncate font-body text-sm 2xl:text-base font-medium ${valueClass ?? "text-text-body"}`}
       >
         {value}
       </span>

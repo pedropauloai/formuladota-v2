@@ -65,7 +65,7 @@ export function AddFriendButton({ targetUserId, initialState }: Props) {
         Adicionar amigo
       </button>
       {error && (
-        <p className="font-display text-sm font-semibold text-error">{error}</p>
+        <p className="font-display text-sm 2xl:text-base font-semibold text-error">{error}</p>
       )}
     </div>
   );

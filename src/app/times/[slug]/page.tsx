@@ -121,7 +121,7 @@ export default async function TeamDetailPage(props: PageProps) {
             <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-[0.2em]">
               <Users size={14} className="text-text-muted" aria-hidden="true" />
               Roster
-              <span className="font-mono text-sm text-text-faded normal-case tracking-normal">
+              <span className="font-mono text-sm 2xl:text-base text-text-faded normal-case tracking-normal">
                 ({enrichedMembers.length}/7)
               </span>
             </CardTitle>
@@ -140,7 +140,7 @@ export default async function TeamDetailPage(props: PageProps) {
                     size="md"
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="font-body text-sm text-text-display truncate flex items-center gap-1.5">
+                    <p className="font-body text-sm 2xl:text-base text-text-display truncate flex items-center gap-1.5">
                       {m.profile?.username ?? "Anônimo"}
                       {m.role === "captain" && (
                         <Crown

@@ -15,7 +15,7 @@ export function WidgetStatus({ statusMessage, editing }: Props) {
         <StatusEditor initialStatus={statusMessage} />
       ) : (
         <p
-          className={`font-display text-base font-semibold leading-relaxed ${
+          className={`font-display text-base 2xl:text-lg font-semibold leading-relaxed ${
             statusMessage ? "text-text-body italic" : "text-text-faded italic"
           }`}
         >

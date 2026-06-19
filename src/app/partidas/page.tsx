@@ -142,7 +142,7 @@ export default async function PartidasPage() {
                           <p className="text-text-display font-medium">
                             {packageNome}
                           </p>
-                          <p className="text-sm text-text-muted">
+                          <p className="text-sm 2xl:text-base text-text-muted">
                             #{p.id.slice(0, 8)} &bull; {dataCompra}
                           </p>
                         </div>

@@ -218,7 +218,7 @@ function PlayerSlotRow({
           Hover educacional: papel da POS na metodologia. */}
       <Tooltip content={roleTip} side="top" align="start" className="shrink-0">
         <span
-          className={`w-4 text-center font-display-condensed text-sm ${a.text} opacity-70`}
+          className={`w-4 text-center font-display-condensed text-sm 2xl:text-base ${a.text} opacity-70`}
           aria-label={roleLabel}
         >
           {slotIndex + 1}
@@ -235,7 +235,7 @@ function PlayerSlotRow({
       ) : (
         <div className="size-7 shrink-0 rounded-sm border border-border-strong bg-bg-elevated" />
       )}
-      <p className="flex min-w-0 flex-1 items-center gap-1 font-body text-sm text-text-body">
+      <p className="flex min-w-0 flex-1 items-center gap-1 font-body text-sm 2xl:text-base text-text-body">
         <span className="truncate">{slot.username}</span>
         {slotIsLeader && (
           <Crown size={11} className="shrink-0 text-gold" aria-label="Líder" />
@@ -243,7 +243,7 @@ function PlayerSlotRow({
       </p>
       <HonorRankMedal rank={slot.honorRank} size="sm" className="shrink-0" />
       <span
-        className="w-10 shrink-0 text-right font-display text-sm font-semibold tabular-nums text-gold"
+        className="w-10 shrink-0 text-right font-display text-sm 2xl:text-base font-semibold tabular-nums text-gold"
         title="MMR"
       >
         {slot.mmr ?? "—"}

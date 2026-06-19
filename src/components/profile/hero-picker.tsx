@@ -163,7 +163,7 @@ export function HeroPicker({
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Buscar herói..."
               autoFocus
-              className="w-full rounded border border-brand-primary/40 bg-bg-deep/80 pl-10 pr-3 py-2 font-display text-base text-text-body placeholder:text-text-faded focus:outline-none focus:border-brand-primary"
+              className="w-full rounded border border-brand-primary/40 bg-bg-deep/80 pl-10 pr-3 py-2 font-display text-base 2xl:text-lg text-text-body placeholder:text-text-faded focus:outline-none focus:border-brand-primary"
             />
           </div>
 
@@ -185,7 +185,7 @@ export function HeroPicker({
           {/* Footer — só pra multi, mostra contador + botão Confirmar */}
           {mode === "multi" && (
             <footer className="flex items-center justify-between gap-4 border-t border-border-subtle pt-4 shrink-0">
-              <p className="font-display text-sm font-semibold text-text-body">
+              <p className="font-display text-sm 2xl:text-base font-semibold text-text-body">
                 {selected.length}/{limit} selecionados
               </p>
               <Button
@@ -230,7 +230,7 @@ function AttrColumn({
         <span className="font-display text-sm font-bold uppercase tracking-[0.12em]">
           {ATTR_LABELS[attr]}
         </span>
-        <span className="font-mono text-sm text-text-faded">({heroes.length})</span>
+        <span className="font-mono text-sm 2xl:text-base text-text-faded">({heroes.length})</span>
       </header>
 
       {/* Grid de heróis — auto-fit pra encaixar todos sem scroll */}

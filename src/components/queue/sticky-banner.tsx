@@ -52,7 +52,7 @@ export async function StickyQueueBanner() {
           {" · "}
           <span className="font-mono text-emerald-300/80">{q.waitingMinutes}m aguardando</span>
           {extra > 0 && (
-            <span className="ml-2 rounded-md bg-emerald-500/20 px-1.5 py-0.5 font-mono text-sm">
+            <span className="ml-2 rounded-md bg-emerald-500/20 px-1.5 py-0.5 font-mono text-sm 2xl:text-base">
               +{extra} {extra === 1 ? "outra fila" : "outras filas"}
             </span>
           )}

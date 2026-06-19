@@ -168,7 +168,7 @@ export default async function RankingPage(props: {
           <h1 className="mt-3 font-display text-4xl uppercase tracking-tight text-text-display md:text-5xl">
             {season.name}
           </h1>
-          <p className="mt-3 font-display text-sm font-semibold text-text-body max-w-2xl">
+          <p className="mt-3 font-display text-sm 2xl:text-base font-semibold text-text-body max-w-2xl">
             Classificação dos jogadores pelo MMR da temporada atual. Top 3 destacados, demais paginados.
           </p>
         </header>
@@ -274,14 +274,14 @@ function TopCard({ row, position }: { row: RankRow; position: number }) {
             <p className="font-display text-base uppercase tracking-wide text-text-display truncate">
               {row.username ?? "Anônimo"}
             </p>
-            <p className="font-display text-sm font-semibold tabular-nums text-gold">
+            <p className="font-display text-sm 2xl:text-base font-semibold tabular-nums text-gold">
               {row.mmr} <span className="text-gold-muted">MMR</span>
             </p>
           </div>
         </div>
         <div className="flex items-center justify-between border-t border-border-subtle pt-3">
           <DotaRankMedal rank={dotaRank} size="sm" showLabel />
-          <span className="font-display text-sm font-semibold text-text-body">
+          <span className="font-display text-sm 2xl:text-base font-semibold text-text-body">
             {row.vitorias}V — {row.derrotas}D
           </span>
         </div>
@@ -299,7 +299,7 @@ function RankingRow({ row, position }: { row: RankRow; position: number }) {
   return (
     <li className="flex items-center gap-4 rounded-md border border-border-subtle bg-bg-base p-4 transition-colors hover:border-border-brand">
       {/* Posição no ranking = valor/progresso → GOLD (Pedro 2026-06-11) */}
-      <span className="font-display text-lg w-12 tabular-nums text-gold">#{position}</span>
+      <span className="font-display text-lg 2xl:text-xl w-12 tabular-nums text-gold">#{position}</span>
       <UserAvatar
         src={row.avatar_url ?? undefined}
         alt={row.username ?? "Anônimo"}
@@ -307,15 +307,15 @@ function RankingRow({ row, position }: { row: RankRow; position: number }) {
         size="md"
       />
       <div className="flex-1 min-w-0">
-        <p className="font-body text-sm font-medium text-text-display truncate">
+        <p className="font-body text-sm 2xl:text-base font-medium text-text-display truncate">
           {row.username ?? "Anônimo"}
         </p>
-        <p className="font-display text-sm font-semibold text-text-body">
+        <p className="font-display text-sm 2xl:text-base font-semibold text-text-body">
           {row.partidas_total} partidas — {row.vitorias}V/{row.derrotas}D
         </p>
       </div>
       <DotaRankMedal rank={dotaRank} size="sm" />
-      <span className="font-mono text-sm tabular-nums text-gold w-16 text-right">{row.mmr}</span>
+      <span className="font-mono text-sm 2xl:text-base tabular-nums text-gold w-16 text-right">{row.mmr}</span>
     </li>
   );
 }
@@ -332,7 +332,7 @@ function SearchBar({ initialQuery }: { initialQuery: string }) {
         name="q"
         defaultValue={initialQuery}
         placeholder="Buscar por nickname..."
-        className="flex-1 bg-transparent px-2 py-2 font-body text-sm text-text-display placeholder:text-text-faded focus:outline-none"
+        className="flex-1 bg-transparent px-2 py-2 font-body text-sm 2xl:text-base text-text-display placeholder:text-text-faded focus:outline-none"
       />
       <Button type="submit" variant="secondary" size="sm">
         Buscar
@@ -355,7 +355,7 @@ function Pagination({ currentPage }: { currentPage: number }) {
           ← Anterior
         </Link>
       )}
-      <span className="font-mono text-sm text-text-display">página {currentPage}</span>
+      <span className="font-mono text-sm 2xl:text-base text-text-display">página {currentPage}</span>
       <Link
         href={`/ranking?page=${currentPage + 1}`}
         className="font-display text-sm uppercase tracking-widest text-text-muted hover:text-text-display transition-colors"

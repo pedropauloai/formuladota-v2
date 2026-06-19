@@ -76,7 +76,7 @@ export function LobbiesContent({
             <h1 className="font-display-condensed text-xl uppercase leading-none text-text-display">
               Salas de Dota
             </h1>
-            <span className="font-display text-sm tabular-nums text-text-faded">
+            <span className="font-display text-sm 2xl:text-base tabular-nums text-text-faded">
               {filtered.length} {filtered.length === 1 ? "aberta" : "abertas"}
             </span>
           </div>
@@ -118,7 +118,7 @@ export function LobbiesContent({
                     <p className="font-display-condensed text-lg uppercase tracking-wide text-text-muted">
                       Nenhuma sala aberta
                     </p>
-                    <p className="mt-0.5 font-body text-sm text-text-faded">
+                    <p className="mt-0.5 font-body text-sm 2xl:text-base text-text-faded">
                       Quem espera, assiste. Crie a sua e puxe o ritmo.
                     </p>
                   </td>
@@ -143,7 +143,7 @@ export function LobbiesContent({
                           isSel ? "border-brand-primary" : "border-transparent"
                         }`}
                       >
-                        <span className="block max-w-[170px] truncate font-body text-sm text-text-display">
+                        <span className="block max-w-[170px] truncate font-body text-sm 2xl:text-base text-text-display">
                           {lobby.name}
                         </span>
                         {lobby.status === "in_progress" && (
@@ -154,7 +154,7 @@ export function LobbiesContent({
                       </Td>
                       <Td align="center">
                         <span
-                          className={`font-display text-sm tabular-nums ${
+                          className={`font-display text-sm 2xl:text-base tabular-nums ${
                             hasVaga ? "text-gold" : "text-error"
                           }`}
                         >
@@ -162,12 +162,12 @@ export function LobbiesContent({
                         </span>
                       </Td>
                       <Td>
-                        <span className="block max-w-[110px] truncate font-body text-sm text-text-muted">
+                        <span className="block max-w-[110px] truncate font-body text-sm 2xl:text-base text-text-muted">
                           {GAME_MODE_LABELS[lobby.game_mode] ?? lobby.game_mode}
                         </span>
                       </Td>
                       <Td>
-                        <span className="font-body text-sm text-text-muted">
+                        <span className="font-body text-sm 2xl:text-base text-text-muted">
                           Brasil
                         </span>
                       </Td>

@@ -126,7 +126,7 @@ export function QueueActionButton({
         onLeave={handleLeave}
       />
       {error && (
-        <p className="rounded border border-error/30 bg-error/5 px-3 py-2 font-mono text-sm text-error">
+        <p className="rounded border border-error/30 bg-error/5 px-3 py-2 font-mono text-sm 2xl:text-base text-error">
           {error}
         </p>
       )}
@@ -209,7 +209,7 @@ function CtaButton({
         <Button type="button" variant="secondary" size="md" disabled className="w-full">
           Você está em outra fila
         </Button>
-        <p className="text-center font-mono text-sm text-text-faded">
+        <p className="text-center font-mono text-sm 2xl:text-base text-text-faded">
           Saia da fila de {otherCoachUsername ?? "outro PRO"} pra entrar aqui
         </p>
       </div>

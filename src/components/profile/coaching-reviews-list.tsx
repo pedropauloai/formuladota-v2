@@ -13,7 +13,7 @@ export function CoachingReviewsList({
 }) {
   if (reviews.length === 0) {
     return (
-      <p className="font-body text-sm text-text-muted">
+      <p className="font-body text-sm 2xl:text-base text-text-muted">
         {emptyLabel ?? "Nenhuma análise de coaching ainda."}
       </p>
     );
@@ -30,7 +30,7 @@ export function CoachingReviewsList({
             <span className="font-display text-sm font-semibold uppercase tracking-wide text-brand-primary">
               Análise de {r.coachName}
             </span>
-            <span className="font-mono text-xs text-text-faded">
+            <span className="font-mono text-xs 2xl:text-sm text-text-faded">
               {new Date(r.createdAt).toLocaleDateString("pt-BR")}
             </span>
           </header>
@@ -48,14 +48,14 @@ export function CoachingReviewsList({
             </div>
           )}
 
-          <p className="font-body text-sm text-text-body whitespace-pre-wrap">{r.summary}</p>
+          <p className="font-body text-sm 2xl:text-base text-text-body whitespace-pre-wrap">{r.summary}</p>
 
           {r.strengths && (
             <div>
               <p className="font-display text-xs font-semibold uppercase tracking-wide text-success">
                 Pontos fortes
               </p>
-              <p className="font-body text-sm text-text-muted whitespace-pre-wrap">
+              <p className="font-body text-sm 2xl:text-base text-text-muted whitespace-pre-wrap">
                 {r.strengths}
               </p>
             </div>
@@ -65,7 +65,7 @@ export function CoachingReviewsList({
               <p className="font-display text-xs font-semibold uppercase tracking-wide text-warning">
                 A melhorar
               </p>
-              <p className="font-body text-sm text-text-muted whitespace-pre-wrap">
+              <p className="font-body text-sm 2xl:text-base text-text-muted whitespace-pre-wrap">
                 {r.improvements}
               </p>
             </div>

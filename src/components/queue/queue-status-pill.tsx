@@ -50,7 +50,7 @@ export function QueueStatusPill({ queues }: Props) {
 
         <Link
           href="/dashboard"
-          className="flex items-center gap-1.5 font-display text-sm font-semibold text-emerald-200 hover:text-white transition-colors"
+          className="flex items-center gap-1.5 font-display text-sm 2xl:text-base font-semibold text-emerald-200 hover:text-white transition-colors"
           aria-label={`Na fila de ${q.coachUsername ?? "PRO"}, posição ${q.position} de ${q.total}, ${q.waitingMinutes} minutos aguardando`}
         >
           <Hourglass size={12} className="text-emerald-300" aria-hidden="true" />
@@ -60,12 +60,12 @@ export function QueueStatusPill({ queues }: Props) {
               {q.position}º
             </span>
             {extra > 0 && (
-              <span className="ml-1.5 rounded bg-emerald-500/20 px-1 text-sm">
+              <span className="ml-1.5 rounded bg-emerald-500/20 px-1 text-sm 2xl:text-base">
                 +{extra}
               </span>
             )}
           </span>
-          <span className="font-mono text-sm text-emerald-300/70">
+          <span className="font-mono text-sm 2xl:text-base text-emerald-300/70">
             · {q.waitingMinutes}m
           </span>
         </Link>

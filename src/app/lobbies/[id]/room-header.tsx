@@ -92,7 +92,7 @@ function PasswordBadge({ password }: { password: string }) {
   return (
     <div className="flex shrink-0 items-center gap-1.5 rounded-sm border border-border-subtle bg-bg-deep px-2 py-1">
       <Lock size={10} className="text-text-faded" aria-hidden="true" />
-      <code className="font-mono text-sm tabular-nums text-gold">
+      <code className="font-mono text-sm 2xl:text-base tabular-nums text-gold">
         {reveal ? password : "••••••"}
       </code>
       <button

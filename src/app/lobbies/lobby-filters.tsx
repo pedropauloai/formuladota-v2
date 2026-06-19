@@ -34,7 +34,7 @@ export function LobbyFilters({
           <select
             value={region}
             onChange={(e) => onRegionChange(e.target.value)}
-            className="w-full appearance-none bg-transparent font-body text-sm text-text-body focus:outline-none"
+            className="w-full appearance-none bg-transparent font-body text-sm 2xl:text-base text-text-body focus:outline-none"
           >
             <option value="brasil" className="bg-bg-deep">
               Brasil
@@ -51,7 +51,7 @@ export function LobbyFilters({
           <select
             value={mode}
             onChange={(e) => onModeChange(e.target.value)}
-            className="w-full appearance-none bg-transparent font-body text-sm text-text-body focus:outline-none"
+            className="w-full appearance-none bg-transparent font-body text-sm 2xl:text-base text-text-body focus:outline-none"
           >
             <option value="all" className="bg-bg-deep">
               Todos os modos
@@ -73,7 +73,7 @@ export function LobbyFilters({
               value={search}
               onChange={(e) => onSearchChange(e.target.value)}
               placeholder="Buscar salas"
-              className="w-full bg-transparent font-body text-sm text-text-body placeholder:text-text-faded focus:outline-none"
+              className="w-full bg-transparent font-body text-sm 2xl:text-base text-text-body placeholder:text-text-faded focus:outline-none"
             />
           </div>
         </FilterField>

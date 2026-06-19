@@ -126,7 +126,7 @@ export function CareerIdentityInline({
               winrate
             </span>
           </p>
-          <p className="mt-1 font-mono text-xs tabular-nums text-gold">
+          <p className="mt-1 font-mono text-xs 2xl:text-sm tabular-nums text-gold">
             {career.wins.toLocaleString("pt-BR")}V
             <span className="text-gold-muted"> · </span>
             {career.losses.toLocaleString("pt-BR")}D
@@ -209,7 +209,7 @@ function SignatureHeroMini({
         <p className="mt-0.5 font-display text-[11px] font-semibold text-text-muted">
           {stat.games.toLocaleString("pt-BR")} jogos
         </p>
-        <p className="mt-0.5 font-display-condensed text-lg leading-none tabular-nums text-gold">
+        <p className="mt-0.5 font-display-condensed text-lg 2xl:text-xl leading-none tabular-nums text-gold">
           {winrate}%
           <span className="ml-1 text-[10px] uppercase tracking-wide text-gold-muted">
             wr
