@@ -1,24 +1,25 @@
 "use client";
 
-// Seletor de idioma PT | EN. Grava o cookie via Server Action e dá router.refresh()
-// pra re-renderizar tudo (Server Components leem o novo cookie). Sem mudar a URL.
+// Seletor de idioma PT | EN. Com prefixo de URL (localePrefix "as-needed"), trocar
+// de idioma NAVEGA pra mesma página na outra URL: PT em "/x", EN em "/en/x".
+// O next-intl cuida do prefixo e persiste a escolha no cookie NEXT_LOCALE.
 
 import { useTransition } from "react";
 import { useLocale } from "next-intl";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "@/i18n/navigation";
 import { LOCALES, type Locale } from "@/i18n/config";
-import { setLocale } from "@/i18n/actions";
 
 export function LanguageSwitcher({ className }: { className?: string }) {
   const current = useLocale() as Locale;
+  const pathname = usePathname();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
   function change(next: Locale) {
     if (next === current || pending) return;
-    startTransition(async () => {
-      await setLocale(next);
-      router.refresh();
+    startTransition(() => {
+      // Mesma rota, outro idioma → URL muda (/x ↔ /en/x).
+      router.replace(pathname, { locale: next });
     });
   }
 
