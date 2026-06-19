@@ -143,11 +143,11 @@ export default async function CodigoDeCondutaPage() {
                 label={PROGRESSIVE_MODERATION.step3.label}
                 description={PROGRESSIVE_MODERATION.step3.description}
               />
-              <p className="rounded-md border border-border-subtle bg-bg-base/60 px-4 py-3 font-display text-sm font-semibold text-text-body">
+              <p className="rounded-md border border-border-subtle bg-bg-base/60 px-4 py-3 font-display text-base font-semibold text-text-body 2xl:text-lg">
                 <strong className="text-text-display">Reset automático:</strong>{" "}
                 {PROGRESSIVE_MODERATION.reset}
               </p>
-              <p className="font-body text-sm leading-relaxed text-text-muted">
+              <p className="font-body text-base leading-relaxed text-text-muted 2xl:text-lg">
                 <strong className="text-text-display">
                   Direito ao contraditório:
                 </strong>{" "}
@@ -161,10 +161,10 @@ export default async function CodigoDeCondutaPage() {
           {/* COMPROMISSO FINAL */}
           <FrontierSection index="04" title="Compromisso Final" width="prose">
             <div className="mx-auto max-w-2xl space-y-6">
-              <blockquote className="border-l-2 border-brand-primary pl-6 font-body text-base italic leading-relaxed text-text-body">
+              <blockquote className="border-l-2 border-brand-primary pl-6 font-body text-lg italic leading-relaxed text-text-body 2xl:text-xl">
                 {CANONICAL_QUOTES.responsibility}
               </blockquote>
-              <blockquote className="border-l-2 border-brand-primary pl-6 font-body text-base italic leading-relaxed text-text-body">
+              <blockquote className="border-l-2 border-brand-primary pl-6 font-body text-lg italic leading-relaxed text-text-body 2xl:text-xl">
                 {CANONICAL_QUOTES.competitiveMindset}
               </blockquote>
             </div>
@@ -250,7 +250,7 @@ function PrincipleCard({
           {principle.title}
         </h4>
       </div>
-      <p className="font-body text-sm leading-relaxed text-text-body">
+      <p className="font-body text-base leading-relaxed text-text-body 2xl:text-lg">
         {principle.body}
       </p>
     </div>
@@ -275,7 +275,7 @@ function AntipatternCard({
           {antipattern.title}
         </h4>
       </div>
-      <ul className="space-y-1 font-body text-sm leading-relaxed text-text-body">
+      <ul className="space-y-1 font-body text-base leading-relaxed text-text-body 2xl:text-lg">
         {antipattern.examples.map((ex, i) => (
           <li key={i}>• {ex}</li>
         ))}
@@ -310,7 +310,7 @@ function ModerationStep({
         <h4 className="font-display text-base uppercase tracking-wide text-text-display">
           {label}
         </h4>
-        <p className="font-body text-sm leading-relaxed text-text-body">
+        <p className="font-body text-base leading-relaxed text-text-body 2xl:text-lg">
           {description}
         </p>
       </div>

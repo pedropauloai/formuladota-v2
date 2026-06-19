@@ -108,7 +108,7 @@ export default async function ManifestoPage() {
                 <p className="font-display text-sm font-semibold uppercase tracking-[0.25em] text-text-muted">
                   Manuel “Grubby” Schenkhuizen
                 </p>
-                <p className="max-w-2xl font-body text-base leading-relaxed text-text-muted">
+                <p className="max-w-2xl font-body text-base leading-relaxed text-text-muted 2xl:text-lg">
                   Lenda dos esports — múltiplas vezes campeão mundial de Warcraft III
                   e referência em{" "}
                   <strong className="text-text-body">mentalidade positiva</strong>.
@@ -207,10 +207,10 @@ function ComparisonRow({
         <p className="font-display text-lg font-semibold uppercase tracking-wide text-text-display">
           {item.problemTitle}
         </p>
-        <p className="font-display text-sm font-semibold italic text-text-faded">
+        <p className="font-display text-base font-semibold italic text-text-faded 2xl:text-lg">
           {item.problemLine}
         </p>
-        <p className="font-body text-sm leading-relaxed text-text-muted">
+        <p className="font-body text-base leading-relaxed text-text-muted 2xl:text-lg">
           {item.problemBody}
         </p>
       </div>
@@ -226,7 +226,7 @@ function ComparisonRow({
         <p className="font-display text-lg font-semibold uppercase tracking-wide text-text-display">
           {item.solutionTitle}
         </p>
-        <p className="font-body text-sm leading-relaxed text-text-body">
+        <p className="font-body text-base leading-relaxed text-text-body 2xl:text-lg">
           {item.solutionBody}
         </p>
       </div>

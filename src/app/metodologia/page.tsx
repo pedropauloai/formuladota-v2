@@ -310,7 +310,7 @@ export default async function MetodologiaPage() {
           width="prose"
         >
           <Prose>
-            <ul className="space-y-1 pl-6 text-base">
+            <ul className="space-y-1 pl-6 text-base 2xl:text-lg">
               <li className="list-disc">
                 100 partidas a 70% = 70 vitórias, 30 derrotas
               </li>
@@ -324,7 +324,7 @@ export default async function MetodologiaPage() {
               </li>
             </ul>
             <p>Aplicando ao caminho Guardião → Divine:</p>
-            <ul className="space-y-1 pl-6 text-base">
+            <ul className="space-y-1 pl-6 text-base 2xl:text-lg">
               <li className="list-disc">Guardião: 800-1800 MMR</li>
               <li className="list-disc">Divine começa em 4600 MMR</li>
               <li className="list-disc">
@@ -464,7 +464,7 @@ export default async function MetodologiaPage() {
               “A ideia aqui não é te entreter — é te mudar por dentro, na forma
               de pensar, jogar e reagir ao Dota.”
             </Note>
-            <p className="text-right font-display text-sm font-semibold italic text-text-body">
+            <p className="text-right font-display text-base font-semibold italic text-text-body 2xl:text-lg">
               — Pedro Paulo, autor da metodologia
             </p>
           </Prose>
@@ -500,7 +500,7 @@ export default async function MetodologiaPage() {
 // ---------------------------------------------------------------------------
 function Prose({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mx-auto max-w-2xl space-y-5 text-left font-body text-base leading-relaxed text-text-body">
+    <div className="mx-auto max-w-2xl space-y-5 text-left font-body text-base leading-relaxed text-text-body 2xl:text-lg">
       {children}
     </div>
   );
@@ -522,7 +522,7 @@ function Quote({ children }: { children: React.ReactNode }) {
 // ---------------------------------------------------------------------------
 function Note({ children }: { children: React.ReactNode }) {
   return (
-    <p className="border-l-2 border-brand-primary/40 py-2 pl-6 font-body text-base italic leading-relaxed text-text-body">
+    <p className="border-l-2 border-brand-primary/40 py-2 pl-6 font-body text-lg italic leading-relaxed text-text-body 2xl:text-xl">
       {children}
     </p>
   );
@@ -534,7 +534,7 @@ function Note({ children }: { children: React.ReactNode }) {
 function DataTable({ head, rows }: { head: string[]; rows: string[][] }) {
   return (
     <div className="overflow-hidden rounded-[var(--radius-lg)] border border-border-subtle">
-      <table className="w-full font-body text-sm text-text-body">
+      <table className="w-full font-body text-sm text-text-body 2xl:text-base">
         <thead className="bg-bg-elevated text-left">
           <tr>
             {head.map((h) => (
