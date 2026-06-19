@@ -11,6 +11,12 @@ import { useRouter, usePathname } from "next/navigation";
 import { localizePath, internalizePath } from "@/i18n/pathnames";
 import { LOCALES, LOCALE_COOKIE, type Locale } from "@/i18n/config";
 
+// Persiste a escolha no cookie (fora do componente — o react-compiler não permite
+// efeitos colaterais no corpo). Rotas compartilhadas resolvem o idioma por ele.
+function persistLocaleCookie(locale: Locale) {
+  document.cookie = `${LOCALE_COOKIE}=${locale}; path=/; max-age=31536000; samesite=lax`;
+}
+
 export function LanguageSwitcher({ className }: { className?: string }) {
   const current = useLocale() as Locale;
   const router = useRouter();
@@ -20,7 +26,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
   function change(next: Locale) {
     if (next === current || pending) return;
     // Lembra a escolha — rotas compartilhadas resolvem o idioma pelo cookie.
-    document.cookie = `${LOCALE_COOKIE}=${next}; path=/; max-age=31536000; samesite=lax`;
+    persistLocaleCookie(next);
     const target = localizePath(internalizePath(rawPath), next);
     startTransition(() => {
       router.replace(target);
