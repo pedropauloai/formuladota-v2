@@ -11,6 +11,7 @@
 
 import { useState, useEffect, useRef, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   X,
   ChevronDown,
@@ -40,19 +41,19 @@ import { CriarLobbyForm } from "@/app/criar-lobby/criar-lobby-form";
 type Modalidade = "competitiva" | "salas" | "pro";
 type View = "menu" | "lista" | "sala";
 
-const ROLES: { id: QueueRole; pos: string; label: string }[] = [
-  { id: "safelane", pos: "1", label: "Segura (Carry)" },
-  { id: "midlane", pos: "2", label: "Meio (Mid)" },
-  { id: "offlane", pos: "3", label: "Offlane" },
-  { id: "support", pos: "4", label: "Suporte" },
-  { id: "support_dedicated", pos: "5", label: "Suporte dedicado" },
+const ROLES: { id: QueueRole; pos: string; key: string }[] = [
+  { id: "safelane", pos: "1", key: "roleSafelane" },
+  { id: "midlane", pos: "2", key: "roleMidlane" },
+  { id: "offlane", pos: "3", key: "roleOfflane" },
+  { id: "support", pos: "4", key: "roleSupport" },
+  { id: "support_dedicated", pos: "5", key: "roleSupportDedicated" },
 ];
 
-const GAME_MODES: { id: QueueGameMode; label: string }[] = [
-  { id: "all_pick", label: "Escolha livre" },
-  { id: "captains_mode", label: "Modo Capitães" },
-  { id: "random_draft", label: "Seleção aleatória" },
-  { id: "single_draft", label: "Escolha única" },
+const GAME_MODES: { id: QueueGameMode; key: string }[] = [
+  { id: "all_pick", key: "modeAllPick" },
+  { id: "captains_mode", key: "modeCaptains" },
+  { id: "random_draft", key: "modeRandomDraft" },
+  { id: "single_draft", key: "modeSingleDraft" },
 ];
 
 interface Props {
@@ -62,6 +63,7 @@ interface Props {
 
 export function PlayMenu({ isVisitor, initial }: Props) {
   const router = useRouter();
+  const t = useTranslations("playMenu");
   const drawerRef = useRef<HTMLElement>(null);
 
   // "collapsed" (estado de aba) foi descontinuado → normaliza pra "button" no init.
@@ -140,9 +142,7 @@ export function PlayMenu({ isVisitor, initial }: Props) {
     // levaria a um "waiting" eterno. Em vez do beco-sem-saída, avisamos: jogue via
     // Ranked com PRO ou Salas até o matchmaking abrir.
     startTransition(() => {
-      setError(
-        "Matchmaking automático chega em breve. Por ora, jogue via Ranked com PRO ou Salas."
-      );
+      setError(t("matchmakingSoon"));
     });
   }
 
@@ -193,7 +193,7 @@ export function PlayMenu({ isVisitor, initial }: Props) {
           className="pointer-events-auto group relative flex h-14 items-center gap-3 overflow-hidden rounded-md border-2 border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover px-8 font-display text-lg font-bold uppercase tracking-[0.25em] text-text-display shadow-lg shadow-[var(--color-play-primary-glow)] transition-all hover:scale-[1.02] xl:h-16 xl:px-12 xl:text-xl 2xl:h-20 2xl:px-16 2xl:text-2xl"
         >
           {hasSala ? <ArrowLeft size={22} aria-hidden="true" /> : <Search size={22} aria-hidden="true" />}
-          <span>{hasSala ? "Voltar à sala" : "Jogar Dota"}</span>
+          <span>{hasSala ? t("backToRoom") : t("play")}</span>
           <span
             className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform [transition-duration:var(--motion-duration-hero)] group-hover:translate-x-full"
             aria-hidden="true"
@@ -206,14 +206,14 @@ export function PlayMenu({ isVisitor, initial }: Props) {
         <aside
           ref={drawerRef}
           role="dialog"
-          aria-label="Jogar Dota"
+          aria-label={t("play")}
           className={`pointer-events-auto fixed right-0 top-12 bottom-0 z-[var(--z-system)] flex ${widthCls} flex-col border-l border-t border-brand-primary/40 bg-bg-deep shadow-2xl shadow-black/80 animate-in slide-in-from-right duration-200 xl:top-14`}
         >
           <header className="flex items-center justify-between gap-2 border-b border-border-subtle px-4 py-3">
             {view === "menu" ? (
               <span className="flex items-center gap-2 font-display text-lg font-bold uppercase tracking-wide text-text-display">
                 <Swords size={18} className="text-play-primary" aria-hidden="true" />
-                Jogar Dota
+                {t("play")}
               </span>
             ) : (
               <button
@@ -221,13 +221,13 @@ export function PlayMenu({ isVisitor, initial }: Props) {
                 onClick={() => setView(view === "sala" ? "lista" : "menu")}
                 className="flex items-center gap-1.5 font-display text-sm font-semibold uppercase tracking-wide text-text-faded hover:text-text-body transition-colors"
               >
-                <ArrowLeft size={15} /> Voltar
+                <ArrowLeft size={15} /> {t("back")}
               </button>
             )}
             <button
               type="button"
               onClick={() => setPhase("button")}
-              aria-label="Fechar"
+              aria-label={t("close")}
               className="rounded-sm p-1 text-text-faded hover:bg-bg-elevated hover:text-text-body transition-colors"
             >
               <X size={18} aria-hidden="true" />
@@ -294,12 +294,12 @@ export function PlayMenu({ isVisitor, initial }: Props) {
           <div className="max-h-full w-full max-w-5xl overflow-y-auto rounded-sm border border-border-strong bg-bg-base p-5 shadow-[var(--shadow-cinematic)] animate-in zoom-in-95 duration-150">
             <div className="mb-4 flex items-center justify-between border-b border-border-subtle pb-3">
               <h2 className="font-display-condensed text-2xl uppercase leading-none text-text-display">
-                Configurações da sala
+                {t("roomSettings")}
               </h2>
               <button
                 type="button"
                 onClick={() => setShowCreate(false)}
-                aria-label="Fechar"
+                aria-label={t("close")}
                 className="rounded-sm p-1 text-text-faded hover:bg-bg-elevated hover:text-text-body transition-colors"
               >
                 <X size={20} aria-hidden="true" />
@@ -333,7 +333,7 @@ export function PlayMenu({ isVisitor, initial }: Props) {
 
       <PermissionQuizModal
         open={showQuiz}
-        modalidade="buscar partida"
+        modalidade={t("quizModalidade")}
         onClose={() => setShowQuiz(false)}
         onGranted={() => {
           setShowQuiz(false);
@@ -377,12 +377,13 @@ function MenuView({
   onPro: () => void;
   loadingSalas: boolean;
 }) {
+  const t = useTranslations("playMenu");
   return (
     <>
       <div className="flex-1 overflow-y-auto p-3 space-y-2">
-        <Section icon={Swords} title="Competitiva" subtitle="Em breve" active={active === "competitiva"} onToggle={() => setActive("competitiva")}>
+        <Section icon={Swords} title={t("competitiva")} subtitle={t("competitivaSubtitle")} active={active === "competitiva"} onToggle={() => setActive("competitiva")}>
           <p className="mb-2.5 font-body text-sm leading-relaxed text-text-muted">
-            Matchmaking automático por função chega em breve. Por ora, jogue via Ranked com PRO ou Salas.
+            {t("competitivaDesc")}
           </p>
           <ul className="space-y-1">
             {ROLES.map((r) => {
@@ -399,7 +400,7 @@ function MenuView({
                     <span className={`flex size-5 shrink-0 items-center justify-center rounded-sm font-display text-sm font-bold ${on ? "bg-brand-primary text-bg-deep" : "bg-bg-surface text-text-muted"}`}>
                       {r.pos}
                     </span>
-                    <span className="font-body text-sm text-text-body">{r.label}</span>
+                    <span className="font-body text-sm text-text-body">{t(r.key)}</span>
                   </button>
                 </li>
               );
@@ -409,29 +410,29 @@ function MenuView({
             value={gameMode}
             onChange={(e) => setGameMode(e.target.value as QueueGameMode)}
             className="mt-2.5 w-full rounded-[var(--radius-md)] border border-border-subtle bg-bg-elevated px-2.5 py-1.5 font-body text-sm text-text-body"
-            aria-label="Modo de jogo"
+            aria-label={t("gameModeLabel")}
           >
             {GAME_MODES.map((m) => (
-              <option key={m.id} value={m.id}>{m.label}</option>
+              <option key={m.id} value={m.id}>{t(m.key)}</option>
             ))}
           </select>
         </Section>
 
-        <Section icon={Users} title="Salas Personalizadas" subtitle="Crie ou entre num lobby" active={active === "salas"} onToggle={() => setActive("salas")}>
+        <Section icon={Users} title={t("salas")} subtitle={t("salasSubtitle")} active={active === "salas"} onToggle={() => setActive("salas")}>
           <p className="mb-2.5 font-body text-sm leading-relaxed text-text-muted">
-            Monte uma sala com suas regras (o bot cria e convida) ou navegue pelas salas abertas.
+            {t("salasDesc")}
           </p>
           <div className="grid grid-cols-2 gap-2">
-            <ActionBtn icon={Plus} label="Criar" variant="primary" onClick={() => (isVisitor ? void signInWithDiscord() : onCriar())} />
-            <ActionBtn icon={Compass} label="Navegar" variant="secondary" loading={loadingSalas} onClick={onNavegar} />
+            <ActionBtn icon={Plus} label={t("create")} variant="primary" onClick={() => (isVisitor ? void signInWithDiscord() : onCriar())} />
+            <ActionBtn icon={Compass} label={t("browse")} variant="secondary" loading={loadingSalas} onClick={onNavegar} />
           </div>
         </Section>
 
-        <Section icon={Crown} title="Ranked com PRO" subtitle="Ranking oficial do Dota" active={active === "pro"} onToggle={() => setActive("pro")}>
+        <Section icon={Crown} title={t("pro")} subtitle={t("proSubtitle")} active={active === "pro"} onToggle={() => setActive("pro")}>
           <p className="mb-2.5 font-body text-sm leading-relaxed text-text-muted">
-            Entre na fila de um PRO. Ele organiza o grupo e vocês sobem MMR juntos no ranking oficial. Exige 1 ficha + 1 permissão.
+            {t("proDesc")}
           </p>
-          <ActionBtn icon={Crown} label="Ver PROs na fila" variant="primary" full onClick={() => (isVisitor ? void signInWithDiscord() : onPro())} />
+          <ActionBtn icon={Crown} label={t("viewPros")} variant="primary" full onClick={() => (isVisitor ? void signInWithDiscord() : onPro())} />
         </Section>
       </div>
 
@@ -447,7 +448,7 @@ function MenuView({
             className="flex w-full items-center justify-center gap-2 rounded-md border border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover px-4 py-2.5 font-display text-base font-bold uppercase tracking-[0.15em] text-text-display transition-all hover:brightness-110 disabled:opacity-60"
           >
             {pending ? <Loader2 size={18} className="animate-spin" /> : <Search size={18} aria-hidden="true" />}
-            Buscar Partida
+            {t("searchMatch")}
           </button>
         </div>
       )}
