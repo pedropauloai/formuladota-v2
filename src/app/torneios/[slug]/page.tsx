@@ -208,70 +208,55 @@ export default async function TournamentDetailPage(props: PageProps) {
           />
         )}
 
-        {/* Times registrados */}
-        <section className="mt-8">
-          <h2 className="mb-4 font-display text-sm 2xl:text-sm font-semibold uppercase tracking-[0.2em] text-text-body">
-            Times registrados
-          </h2>
-          {registeredTeams.length === 0 ? (
-            <p className="font-display text-sm font-medium text-text-muted">Nenhum time inscrito ainda.</p>
-          ) : (
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-              {registeredTeams.map((rt) =>
-                rt.team ? (
-                  <Link
-                    key={rt.team_id}
-                    href={`/times/${rt.team.slug}`}
-                    className="rounded-md border border-border-subtle bg-bg-base p-3 flex items-center gap-3 hover:border-border-brand transition-colors"
-                  >
-                    {rt.team.logo_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={rt.team.logo_url}
-                        alt=""
-                        className="size-10 rounded-sm border border-border-subtle"
-                      />
-                    ) : (
-                      <div className="size-10 rounded-sm border border-border-subtle bg-brand-primary/15 flex items-center justify-center">
-                        <span className="font-display text-sm text-brand-primary">
-                          {rt.team.tag}
-                        </span>
-                      </div>
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <p className="font-body text-sm text-text-display truncate">
-                        {rt.team.name}
-                      </p>
-                      <p className="font-display font-semibold text-sm uppercase tracking-wide text-text-faded">
-                        [{rt.team.tag}]
-                        {rt.eliminated_at && (
-                          <span className="ml-2 text-error">eliminado</span>
-                        )}
-                      </p>
-                    </div>
-                  </Link>
-                ) : null
-              )}
-            </div>
-          )}
-        </section>
-
-        {/* Bracket — chave clássica (rodadas em colunas, final à direita) */}
-        {matches && matches.length > 0 && (
-          <section className="mt-10">
+        {/* Chave + Times. Com chave gerada: ela é a ESTRELA (foco principal) e
+            os times viram sidebar de referência. Sem chave (inscrições abertas):
+            nada a priorizar acima, então os times ficam em destaque.
+            Decisão Pedro 2026-06-18. */}
+        {matches && matches.length > 0 ? (
+          <div className="mt-10 flex flex-col gap-6 lg:flex-row">
+            <section className="min-w-0 flex-1">
+              <h2 className="mb-4 font-display text-sm font-semibold uppercase tracking-[0.2em] text-text-body">
+                Chave
+              </h2>
+              <BracketView
+                isAdmin={isAdmin}
+                rounds={Array.from(matchesByRound.entries())
+                  .sort(([a], [b]) => a - b)
+                  .map(([round, roundMatches]) => ({
+                    round,
+                    name: roundName(round, totalRounds),
+                    matches: roundMatches ?? [],
+                  }))}
+              />
+            </section>
+            <aside className="lg:w-64 lg:shrink-0">
+              <h2 className="mb-4 font-display text-sm font-semibold uppercase tracking-[0.2em] text-text-body">
+                Times{" "}
+                <span className="text-text-faded">({registeredTeams.length})</span>
+              </h2>
+              <div className="space-y-2">
+                {registeredTeams.map((rt) => (
+                  <RegisteredTeamCard key={rt.team_id} rt={rt} />
+                ))}
+              </div>
+            </aside>
+          </div>
+        ) : (
+          <section className="mt-8">
             <h2 className="mb-4 font-display text-sm 2xl:text-sm font-semibold uppercase tracking-[0.2em] text-text-body">
-              Chave
+              Times registrados
             </h2>
-            <BracketView
-              isAdmin={isAdmin}
-              rounds={Array.from(matchesByRound.entries())
-                .sort(([a], [b]) => a - b)
-                .map(([round, roundMatches]) => ({
-                  round,
-                  name: roundName(round, totalRounds),
-                  matches: roundMatches ?? [],
-                }))}
-            />
+            {registeredTeams.length === 0 ? (
+              <p className="font-display text-sm font-medium text-text-muted">
+                Nenhum time inscrito ainda.
+              </p>
+            ) : (
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                {registeredTeams.map((rt) => (
+                  <RegisteredTeamCard key={rt.team_id} rt={rt} />
+                ))}
+              </div>
+            )}
           </section>
         )}
 
@@ -316,6 +301,53 @@ function StatBlock({
       </div>
       <p className="font-display text-base 2xl:text-lg text-text-display">{value}</p>
     </div>
+  );
+}
+
+// Card de time inscrito — usado tanto na grade (sem chave) quanto na sidebar
+// (com chave). Linka pro perfil do time; marca "eliminado" quando aplicável.
+interface RegisteredTeamEntry {
+  team_id: string;
+  eliminated_at: string | null;
+  team: {
+    slug: string;
+    name: string;
+    tag: string;
+    logo_url: string | null;
+  } | null;
+}
+
+function RegisteredTeamCard({ rt }: { rt: RegisteredTeamEntry }) {
+  if (!rt.team) return null;
+  return (
+    <Link
+      href={`/times/${rt.team.slug}`}
+      className="flex items-center gap-3 rounded-md border border-border-subtle bg-bg-base p-3 transition-colors hover:border-border-brand"
+    >
+      {rt.team.logo_url ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={rt.team.logo_url}
+          alt=""
+          className="size-10 rounded-sm border border-border-subtle"
+        />
+      ) : (
+        <div className="flex size-10 items-center justify-center rounded-sm border border-border-subtle bg-brand-primary/15">
+          <span className="font-display text-sm text-brand-primary">
+            {rt.team.tag}
+          </span>
+        </div>
+      )}
+      <div className="min-w-0 flex-1">
+        <p className="truncate font-body text-sm text-text-display">
+          {rt.team.name}
+        </p>
+        <p className="font-display text-sm font-semibold uppercase tracking-wide text-text-faded">
+          [{rt.team.tag}]
+          {rt.eliminated_at && <span className="ml-2 text-error">eliminado</span>}
+        </p>
+      </div>
+    </Link>
   );
 }
 

@@ -82,12 +82,10 @@ export function DashboardTopBar({
   myQueues,
 }: Props) {
   const inQueue = myQueues.length > 0;
-  // Compõe nav principal: SUBIR MMR sempre + ecossistema competitivo pra todo
-  // usuário logado (admin incluído — vê as abas aqui E o painel /admin).
-  const principalTabs: TopBarTabDef[] = [SUBIR_MMR_TAB];
-  if (!isVisitor) {
-    principalTabs.push(...COMPETITIVE_TABS);
-  }
+  // Compõe nav principal: SUBIR MMR + ecossistema competitivo, visível pra
+  // TODOS — inclusive visitante (Pedro 2026-06-18): mostra a amplitude do
+  // produto antes do login. (Ranking é público; Times/Torneios pedem login.)
+  const principalTabs: TopBarTabDef[] = [SUBIR_MMR_TAB, ...COMPETITIVE_TABS];
 
   const contextualTabs: TopBarTabDef[] = [];
   if (isPro) {
