@@ -63,9 +63,9 @@ const COMPARISONS = [
   },
 ] as const;
 
-export default async function PorQuePage() {
+export default async function ManifestoPage() {
   return (
-    <ClientShell currentRoute="/por-que" hideRightSidebar>
+    <ClientShell currentRoute="/manifesto" hideRightSidebar>
       <div className="relative w-full bg-bg-deep">
         <ParallaxBackground src={DOTA_BACKGROUNDS.featuredTeal} />
 
@@ -83,15 +83,55 @@ export default async function PorQuePage() {
             backgroundImage={FRONTIER_ASSETS.mapBanner}
           />
 
-          {/* PROVA SOCIAL — Grubby */}
-          <FrontierStatement attribution="Grubby — lenda dos esports, sobre por que parou de jogar Dota 2">
-            <span className="text-brand-primary">
-              “Eu amo Dota 2. Mas isso pode ser o fim.”
-            </span>{" "}
-            Quando o jogador mais equilibrado do cenário — que ensina mentalidade
-            positiva — é expulso pela toxicidade, o problema não é o jogador. É o
-            sistema sem regras.
-          </FrontierStatement>
+          {/* PROVA SOCIAL — Grubby: foto + citação + contexto + o vídeo */}
+          <section className="mx-auto max-w-5xl px-6 py-16 md:py-24">
+            <div className="flex flex-col items-center gap-8 md:flex-row md:items-start">
+              <figure className="shrink-0 text-center">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Manuel_%22Grubby%22_Schenkhuizen.jpg/330px-Manuel_%22Grubby%22_Schenkhuizen.jpg"
+                  alt="Manuel “Grubby” Schenkhuizen"
+                  className="w-40 rounded-md border border-border-subtle object-cover md:w-48"
+                  loading="lazy"
+                />
+                <figcaption className="mt-2 font-display text-[10px] uppercase tracking-wide text-text-faded">
+                  Foto: Wikimedia Commons
+                </figcaption>
+              </figure>
+
+              <div className="space-y-4">
+                <blockquote className="font-display text-2xl font-bold leading-tight text-text-display md:text-3xl">
+                  <span className="text-brand-primary">
+                    “Eu amo Dota 2. Mas isso pode ser o fim.”
+                  </span>
+                </blockquote>
+                <p className="font-display text-sm font-semibold uppercase tracking-[0.25em] text-text-muted">
+                  Manuel “Grubby” Schenkhuizen
+                </p>
+                <p className="max-w-2xl font-body text-base leading-relaxed text-text-muted">
+                  Lenda dos esports — múltiplas vezes campeão mundial de Warcraft III
+                  e referência em{" "}
+                  <strong className="text-text-body">mentalidade positiva</strong>.
+                  Quando o jogador mais equilibrado do cenário — justo o que ensina a
+                  manter a cabeça boa — é expulso pela toxicidade, fica provado: não é
+                  o jogador, é o sistema sem regras.
+                </p>
+              </div>
+            </div>
+
+            {/* O vídeo que originou este manifesto */}
+            <div className="mt-10 overflow-hidden rounded-md border border-border-subtle bg-black">
+              <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
+                <iframe
+                  className="absolute inset-0 h-full w-full"
+                  src="https://www.youtube-nocookie.com/embed/gXBwdg_Fgw8"
+                  title="Grubby — I love DOTA2. But this may be the end. Here's why..."
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+              </div>
+            </div>
+          </section>
 
           {/* O PROBLEMA → A RESPOSTA */}
           <FrontierSection

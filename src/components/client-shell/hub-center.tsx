@@ -6,7 +6,7 @@
 // "é o principal do produto"). Otimizada pra 1920x1080 (preenche o canvas) e
 // responsiva pra baixo. Tese: o ambiente competitivo da Valve é quebrado
 // (anonimato, topo fechado, regiões isoladas) e a FormulaDota é a resposta
-// (identidade, temporadas, ranking único). Aprofundamento em /por-que.
+// (identidade, temporadas, ranking único). Aprofundamento em /manifesto.
 //
 // Client Component (passa refs de LucideIcon pros pilares — não serializável).
 
@@ -29,7 +29,7 @@ export interface HubCenterProps {
   prosOnlineCount: number;
 }
 
-// Os 3 pilares — falha da Valve → resposta da FormulaDota. Aprofundamento /por-que.
+// Os 3 pilares — falha da Valve → resposta da FormulaDota. Aprofundamento /manifesto.
 const PILLARS = [
   {
     problem: "Anonimato",
@@ -158,7 +158,7 @@ export function HubCenter({ isVisitor, prosOnlineCount }: HubCenterProps) {
           </Link>
         )}
         <Link
-          href="/por-que"
+          href="/manifesto"
           className="font-display text-sm font-semibold text-brand-primary transition-colors hover:text-text-display 2xl:text-base"
         >
           Entenda o porquê →

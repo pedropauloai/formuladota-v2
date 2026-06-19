@@ -17,7 +17,7 @@ type CookieToSet = { name: string; value: string; options: CookieOptions };
 // + metodologia ficam abertos como vitrine. Subir MMR, fila, checkout, etc. exigem login.
 const PUBLIC_PATHS = [
   "/",
-  "/por-que", // landing "Por que FormulaDota" — vitrine de conversão
+  "/manifesto", // landing/manifesto "Por que FormulaDota" — vitrine de conversão
   "/codigo-de-conduta",
   "/privacidade",
   "/cookies",
