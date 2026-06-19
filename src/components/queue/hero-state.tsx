@@ -20,6 +20,7 @@
 "use client";
 
 import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { m, AnimatePresence } from "motion/react";
 import {
   Crown,
@@ -100,6 +101,7 @@ export function HeroState({
   myQueue,
 }: Props) {
   const state = resolveState({ isAdmin, fichaBalance, topPro, myQueue });
+  const t = useTranslations("queue");
   const precoTxt =
     fichaPreco !== null ? `R$ ${fichaPreco.toFixed(2).replace(".", ",")}` : "PIX";
 
@@ -134,21 +136,24 @@ export function HeroState({
         return (
           <HeroFrame variant="brand">
             <HeroEyebrow icon={Crown}>
-              <Badge variant="tier-8">Admin</Badge>
-              Acesso administrador + PRO
+              <Badge variant="tier-8">{t("badgeAdmin")}</Badge>
+              {t("adminEyebrow")}
             </HeroEyebrow>
-            <HeroTitle>Painel ao seu comando</HeroTitle>
+            <HeroTitle>{t("adminTitle")}</HeroTitle>
             <HeroSub>
               {topPro
-                ? `${topPro.coach.username ?? "Você"} online · ${topPro.entries.length} ${topPro.entries.length === 1 ? "aluno" : "alunos"} na fila`
-                : "Nenhuma fila aberta no momento — vá ao painel pra abrir a sua"}
+                ? t("adminSubOnline", {
+                    name: topPro.coach.username ?? t("youName"),
+                    count: topPro.entries.length,
+                  })
+                : t("adminSubNoQueue")}
             </HeroSub>
             <CtaLink
               href="/admin/pros"
               onNavigate={() => play("click")}
             >
               <Radio size={20} aria-hidden="true" />
-              Ir pro Painel PROs
+              {t("goToProPanel")}
             </CtaLink>
           </HeroFrame>
         );
@@ -157,18 +162,21 @@ export function HeroState({
         return (
           <HeroFrame variant="play">
             <HeroEyebrow icon={Hourglass}>
-              <Badge variant="success">Na Fila</Badge>
-              Você está na fila
+              <Badge variant="success">{t("badgeInQueue")}</Badge>
+              {t("inQueueEyebrow")}
             </HeroEyebrow>
             <HeroTitle>
-              {myQueue!.position}º de {myQueue!.total} na fila de{" "}
-              <span className="text-[var(--color-play-primary)]">
-                {myQueue!.coachUsername ?? "PRO"}
-              </span>
+              {t.rich("inQueueTitle", {
+                position: myQueue!.position,
+                total: myQueue!.total,
+                name: myQueue!.coachUsername ?? "PRO",
+                pro: (chunks) => (
+                  <span className="text-[var(--color-play-primary)]">{chunks}</span>
+                ),
+              })}
             </HeroTitle>
             <HeroSub>
-              Aguardando há {myQueue!.waitingMinutes} min · você será avisado no
-              Discord quando o PRO te selecionar pra PT
+              {t("inQueueSub", { minutes: myQueue!.waitingMinutes })}
             </HeroSub>
             <HeroStateLeaveCta entryId={myQueue!.entryId} />
           </HeroFrame>
@@ -180,20 +188,22 @@ export function HeroState({
         return (
           <HeroFrame variant="play" pulse>
             <HeroEyebrow icon={Radio} pulse>
-              <Badge variant="success">Online</Badge>
-              {topPro!.coach.username ?? "PRO"} ONLINE · FILA ABERTA
+              <Badge variant="success">{t("badgeOnline")}</Badge>
+              {t("proOnlineQueueOpen", { name: topPro!.coach.username ?? "PRO" })}
             </HeroEyebrow>
             <HeroTitle>
               {vagas > 0
-                ? `${vagas} ${vagas === 1 ? "vaga livre" : "vagas livres"}`
-                : `${waiting} na fila`}
+                ? t("freeSlotsCount", { count: vagas })
+                : t("inQueueCount", { count: waiting })}
             </HeroTitle>
             <HeroSub>
               {topPro!.coach.mmrAtual
                 ? `${topPro!.coach.mmrAtual.toLocaleString("pt-BR")} MMR · `
                 : ""}
-              Você tem {fichaBalance} {fichaBalance === 1 ? "ficha" : "fichas"} ·{" "}
-              {vagas > 0 ? "entre agora pra próxima PT" : "entre na lista de espera"}
+              {t("readyToPlaySub", {
+                balance: fichaBalance,
+                hasSlots: vagas > 0 ? "yes" : "no",
+              })}
             </HeroSub>
             <HeroStateJoinCta
               coachId={topPro!.coach.coachId}
@@ -211,14 +221,14 @@ export function HeroState({
         return (
           <HeroFrame variant="warning" pulse>
             <HeroEyebrow icon={Radio} pulse>
-              <Badge variant="warning">Online</Badge>
-              {topPro!.coach.username ?? "PRO"} ONLINE
+              <Badge variant="warning">{t("badgeOnline")}</Badge>
+              {t("proOnline", { name: topPro!.coach.username ?? "PRO" })}
             </HeroEyebrow>
-            <HeroTitle>Você precisa de ficha pra entrar</HeroTitle>
+            <HeroTitle>{t("needFichaTitle")}</HeroTitle>
             <HeroSub>
               {vagas > 0
-                ? `${vagas} ${vagas === 1 ? "vaga livre" : "vagas livres"} · corra antes de encher`
-                : `${waiting} já na fila · entra na lista de espera`}
+                ? t("needFichaSubSlots", { count: vagas })
+                : t("needFichaSubWaiting", { count: waiting })}
             </HeroSub>
             {fichaPackageId && (
               <CtaLink
@@ -227,7 +237,7 @@ export function HeroState({
                 warning
               >
                 <Coins size={20} aria-hidden="true" />
-                Comprar ficha — {precoTxt}
+                {t("buyFichaPrice", { price: precoTxt })}
               </CtaLink>
             )}
           </HeroFrame>
@@ -238,13 +248,12 @@ export function HeroState({
         return (
           <HeroFrame variant="neutral">
             <HeroEyebrow icon={Hourglass}>
-              <Badge variant="default">Aguardando</Badge>
-              Aguardando PRO
+              <Badge variant="default">{t("badgeWaiting")}</Badge>
+              {t("waitingProEyebrow")}
             </HeroEyebrow>
-            <HeroTitle>Nenhum PRO online agora</HeroTitle>
+            <HeroTitle>{t("waitingProTitle")}</HeroTitle>
             <HeroSub>
-              Você tem {fichaBalance} {fichaBalance === 1 ? "ficha pronta" : "fichas prontas"}.
-              Ative o aviso no Discord pra entrar logo quando algum PRO abrir fila.
+              {t("waitingProSub", { count: fichaBalance })}
             </HeroSub>
             <CtaLink
               href="https://discord.com/invite/v3pSuZhjBE"
@@ -252,7 +261,7 @@ export function HeroState({
               onNavigate={() => play("click")}
             >
               <Bell size={18} aria-hidden="true" />
-              Ativar aviso no Discord
+              {t("enableDiscordAlert")}
             </CtaLink>
           </HeroFrame>
         );
@@ -262,13 +271,12 @@ export function HeroState({
         return (
           <HeroFrame variant="warning">
             <HeroEyebrow icon={Coins}>
-              <Badge variant="warning">Início</Badge>
-              Comece sua jornada
+              <Badge variant="warning">{t("badgeStart")}</Badge>
+              {t("startEyebrow")}
             </HeroEyebrow>
-            <HeroTitle>Compre sua primeira ficha</HeroTitle>
+            <HeroTitle>{t("startTitle")}</HeroTitle>
             <HeroSub>
-              Cada ficha vale 1 vaga em PT ranked oficial com um PRO da FORMULADOTA.
-              Ficha só é cobrada quando o PRO confirmar que a partida ocorreu.
+              {t("startSub")}
             </HeroSub>
             {fichaPackageId && (
               <CtaLink
@@ -277,7 +285,7 @@ export function HeroState({
                 warning
               >
                 <Coins size={20} aria-hidden="true" />
-                Comprar ficha — {precoTxt}
+                {t("buyFichaPrice", { price: precoTxt })}
               </CtaLink>
             )}
           </HeroFrame>

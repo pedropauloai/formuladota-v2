@@ -2,6 +2,7 @@
 // do aluno (aba Conduta) e na página do aluno vista pelo PRO.
 
 import { Star } from "lucide-react";
+import { useTranslations } from "next-intl";
 import type { CoachingReview } from "@/lib/queries/coaching-reviews";
 
 export function CoachingReviewsList({
@@ -11,10 +12,11 @@ export function CoachingReviewsList({
   reviews: CoachingReview[];
   emptyLabel?: string;
 }) {
+  const t = useTranslations("perfil");
   if (reviews.length === 0) {
     return (
       <p className="font-body text-sm 2xl:text-base text-text-muted">
-        {emptyLabel ?? "Nenhuma análise de coaching ainda."}
+        {emptyLabel ?? t("coachingReviewsDefaultEmpty")}
       </p>
     );
   }
@@ -28,7 +30,7 @@ export function CoachingReviewsList({
         >
           <header className="flex items-center justify-between gap-2">
             <span className="font-display text-sm font-semibold uppercase tracking-wide text-brand-primary">
-              Análise de {r.coachName}
+              {t("reviewBy", { coach: r.coachName })}
             </span>
             <span className="font-mono text-xs 2xl:text-sm text-text-faded">
               {new Date(r.createdAt).toLocaleDateString("pt-BR")}
@@ -36,7 +38,7 @@ export function CoachingReviewsList({
           </header>
 
           {r.rating != null && (
-            <div className="flex items-center gap-0.5" aria-label={`Nota ${r.rating} de 5`}>
+            <div className="flex items-center gap-0.5" aria-label={t("ratingAria", { rating: r.rating! })}>
               {Array.from({ length: 5 }, (_, i) => (
                 <Star
                   key={i}
@@ -53,7 +55,7 @@ export function CoachingReviewsList({
           {r.strengths && (
             <div>
               <p className="font-display text-xs font-semibold uppercase tracking-wide text-success">
-                Pontos fortes
+                {t("strengths")}
               </p>
               <p className="font-body text-sm 2xl:text-base text-text-muted whitespace-pre-wrap">
                 {r.strengths}
@@ -63,7 +65,7 @@ export function CoachingReviewsList({
           {r.improvements && (
             <div>
               <p className="font-display text-xs font-semibold uppercase tracking-wide text-warning">
-                A melhorar
+                {t("improvements")}
               </p>
               <p className="font-body text-sm 2xl:text-base text-text-muted whitespace-pre-wrap">
                 {r.improvements}

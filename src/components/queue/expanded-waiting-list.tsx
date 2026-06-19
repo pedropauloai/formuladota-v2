@@ -5,6 +5,7 @@
 // já filtradas (só waiting, não os slots ativos da próxima PT).
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { UserAvatar } from "@/components/ui/avatar";
 import type { BoardEntry } from "./queue-board";
 
@@ -21,10 +22,11 @@ export function ExpandedWaitingList({
 }: Props) {
   // Snapshot do horário atual — evita Date.now() impure em render
   const [now] = useState(() => Date.now());
+  const t = useTranslations("queue");
   return (
     <div className="mt-3 rounded-md border border-border-subtle bg-bg-deep/30 p-3">
       <p className="mb-3 font-display font-semibold text-sm uppercase tracking-wide text-warning/80">
-        Aguardando próxima rodada
+        {t("waitingNextRound")}
       </p>
       <ul className="space-y-1.5">
         {entries.map((e, idx) => {
@@ -61,11 +63,11 @@ export function ExpandedWaitingList({
                   isViewer ? "font-bold text-text-display" : "text-text-body"
                 }`}
               >
-                {isViewer ? "VOCÊ" : e.username ?? "—"}
+                {isViewer ? t("you") : e.username ?? "—"}
               </span>
               {e.ptsToday !== undefined && e.ptsToday > 0 && (
                 <span className="rounded-full bg-warning/20 px-2 py-0.5 font-mono text-sm 2xl:text-base font-semibold text-warning">
-                  {e.ptsToday}× hoje
+                  {t("timesToday", { count: e.ptsToday })}
                 </span>
               )}
               <span className="w-10 text-right font-display text-sm 2xl:text-base font-semibold text-text-body tabular-nums">

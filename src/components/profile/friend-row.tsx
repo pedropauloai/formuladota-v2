@@ -11,6 +11,7 @@
 // no MVP (futura iteração: passar onError prop pro parent dispatch toast).
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { UserMinus, X, Check, Swords, Loader2 } from "lucide-react";
 import { UserAvatar } from "@/components/ui/avatar";
 import { removeFriend, acceptFriendRequest, rejectFriendRequest } from "@/actions/friends";
@@ -28,11 +29,12 @@ interface Props {
 type InviteState = "idle" | "sending" | "sent" | "error";
 
 export function FriendRow({ friend, presenceStatus, currentLobbyId = null }: Props) {
+  const t = useTranslations("perfil");
   const [confirming, setConfirming] = useState(false);
   const [inviteState, setInviteState] = useState<InviteState>("idle");
   const [isPending, startTransition] = useTransition();
   const isOnline = presenceStatus !== "offline";
-  const name = friend.friendUsername ?? "amigo";
+  const name = friend.friendUsername ?? t("friendFallbackName");
 
   const handleRemove = () => {
     startTransition(async () => {
@@ -66,21 +68,21 @@ export function FriendRow({ friend, presenceStatus, currentLobbyId = null }: Pro
     return (
       <div className="flex items-center gap-2 rounded px-2 py-1.5 bg-bg-elevated/80">
         <p className="flex-1 min-w-0 truncate font-display text-[13px] font-semibold text-text-body">
-          Remover {name}?
+          {t("friendRemoveQuestion", { name })}
         </p>
         <button
           type="button"
           onClick={handleRemove}
           disabled={isPending}
-          aria-label={`Confirmar remoção de ${name}`}
+          aria-label={t("friendConfirmRemoveAria", { name })}
           className="rounded px-2 py-1 font-display text-[11px] font-semibold text-error border border-error/60 hover:bg-error/10 transition-colors disabled:opacity-50"
         >
-          REMOVER
+          {t("friendRemoveCta")}
         </button>
         <button
           type="button"
           onClick={() => setConfirming(false)}
-          aria-label="Cancelar remoção"
+          aria-label={t("friendCancelRemoveAria")}
           className="text-text-faded hover:text-text-display p-1"
         >
           <X size={14} aria-hidden="true" />
@@ -100,7 +102,7 @@ export function FriendRow({ friend, presenceStatus, currentLobbyId = null }: Pro
     >
       <UserAvatar
         src={friend.friendAvatarUrl ?? undefined}
-        alt={`Avatar de ${name}`}
+        alt={t("avatarAlt", { name })}
         fallback={name.slice(0, 2).toUpperCase()}
         size="sm"
         presence={isOnline ? (presenceStatus as PresenceStatus) : "offline"}
@@ -121,10 +123,10 @@ export function FriendRow({ friend, presenceStatus, currentLobbyId = null }: Pro
           disabled={inviteState === "sending" || inviteState === "sent"}
           aria-label={
             inviteState === "sent"
-              ? `Convite enviado pra ${name}`
-              : `Convidar ${name} pra sua sala`
+              ? t("inviteSentAria", { name })
+              : t("inviteAria", { name })
           }
-          title={inviteState === "sent" ? "Convite enviado" : "Convidar pra sala"}
+          title={inviteState === "sent" ? t("inviteSentTitle") : t("inviteTitle")}
           className={`p-1 transition-colors ${
             inviteState === "sent"
               ? "text-play-primary"
@@ -147,7 +149,7 @@ export function FriendRow({ friend, presenceStatus, currentLobbyId = null }: Pro
         <button
           type="button"
           onClick={() => setConfirming(true)}
-          aria-label={`Remover ${name} da lista de amigos`}
+          aria-label={t("friendRemoveFromListAria", { name })}
           className="opacity-0 group-hover:opacity-100 transition-opacity text-text-faded hover:text-error p-1"
         >
           <UserMinus size={14} aria-hidden="true" />
@@ -160,7 +162,7 @@ export function FriendRow({ friend, presenceStatus, currentLobbyId = null }: Pro
             type="button"
             onClick={() => startTransition(() => { void acceptFriendRequest(friend.friendshipId); })}
             disabled={isPending}
-            aria-label={`Aceitar pedido de ${name}`}
+            aria-label={t("friendAcceptAria", { name })}
             className="text-text-faded hover:text-success p-1 disabled:opacity-50"
           >
             <Check size={14} aria-hidden="true" />
@@ -169,7 +171,7 @@ export function FriendRow({ friend, presenceStatus, currentLobbyId = null }: Pro
             type="button"
             onClick={() => startTransition(() => { void rejectFriendRequest(friend.friendshipId); })}
             disabled={isPending}
-            aria-label={`Recusar pedido de ${name}`}
+            aria-label={t("friendRejectAria", { name })}
             className="text-text-faded hover:text-error p-1 disabled:opacity-50"
           >
             <X size={14} aria-hidden="true" />
@@ -180,14 +182,14 @@ export function FriendRow({ friend, presenceStatus, currentLobbyId = null }: Pro
       {friend.status === "pending" && friend.direction === "outgoing" && (
         <>
           <span className="font-display text-[11px] font-semibold uppercase text-text-faded">
-            Aguardando
+            {t("friendWaiting")}
           </span>
           <button
             type="button"
             onClick={() => startTransition(() => { void removeFriend(friend.friendshipId); })}
             disabled={isPending}
-            aria-label={`Cancelar pedido pra ${name}`}
-            title="Cancelar pedido"
+            aria-label={t("friendCancelRequestAria", { name })}
+            title={t("friendCancelRequestTitle")}
             className="text-text-faded hover:text-error p-1 disabled:opacity-50"
           >
             <X size={14} aria-hidden="true" />
@@ -209,6 +211,7 @@ function StatusLine({
   presenceStatus: PresenceStatus | "offline";
   isOnline: boolean;
 }) {
+  const t = useTranslations("perfil");
   if (!isOnline) {
     return (
       <p className="font-display text-[13px] font-semibold text-text-faded truncate">
@@ -221,34 +224,34 @@ function StatusLine({
   if (ctx?.kind === "queue") {
     return (
       <p className="font-display text-[13px] font-semibold text-brand-primary truncate">
-        Na fila do {ctx.proName}
+        {t("statusInQueueOf", { pro: ctx.proName })}
       </p>
     );
   }
   if (ctx?.kind === "lobby") {
     return (
       <p className="font-display text-[13px] font-semibold text-play-primary truncate">
-        Em sala: {ctx.lobbyName}
+        {t("statusInLobby", { lobby: ctx.lobbyName })}
       </p>
     );
   }
   if (presenceStatus === "in-match") {
     return (
       <p className="font-display text-[13px] font-semibold text-play-primary truncate">
-        Em partida
+        {t("statusInMatch")}
       </p>
     );
   }
   if (presenceStatus === "in-queue") {
     return (
       <p className="font-display text-[13px] font-semibold text-brand-primary truncate">
-        Na fila
+        {t("statusInQueue")}
       </p>
     );
   }
   return (
     <p className="font-display text-[13px] font-semibold text-success truncate">
-      Online
+      {t("statusOnline")}
     </p>
   );
 }

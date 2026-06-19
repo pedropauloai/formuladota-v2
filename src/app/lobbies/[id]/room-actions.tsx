@@ -10,6 +10,7 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Loader2, Play } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { leaveLobby, startMatch, cancelLobby } from "./actions";
@@ -23,11 +24,12 @@ interface RoomActionsProps {
 }
 
 export function RoomActions({ lobbyId, inLobby, isLeader, status }: RoomActionsProps) {
+  const t = useTranslations("lobbies");
   return (
     <div className="mt-auto border-t border-border-subtle bg-bg-base p-3">
       {!inLobby && (
         <p className="pb-2 text-center font-display text-sm font-semibold uppercase tracking-wide text-text-faded">
-          Você não está na sala
+          {t("notInLobby")}
         </p>
       )}
 
@@ -56,13 +58,9 @@ function LeaveLobbyButton({
   lobbyId: string;
   isLeader: boolean;
 }) {
+  const t = useTranslations("lobbies");
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    if (
-      isLeader &&
-      !confirm(
-        "Você é o líder. Ao sair, a capitania passa pro próximo jogador mais antigo. Se estiver sozinho, a sala é descartada. Confirmar?"
-      )
-    ) {
+    if (isLeader && !confirm(t("confirmLeaveLeader"))) {
       e.preventDefault();
     }
   };
@@ -74,7 +72,7 @@ function LeaveLobbyButton({
         type="submit"
         className="inline-flex h-11 w-full items-center justify-center rounded-sm font-display text-sm font-semibold uppercase tracking-[0.2em] text-text-muted hover:bg-bg-elevated hover:text-text-body transition-colors"
       >
-        Sair da sala
+        {t("leaveLobbyAction")}
       </button>
     </form>
   );
@@ -83,12 +81,9 @@ function LeaveLobbyButton({
 // Encerrar = ação destrutiva secundária do líder — link discreto, não compete
 // com o CTA vermelho de Iniciar Partida.
 function EndLobbyLink({ lobbyId }: { lobbyId: string }) {
+  const t = useTranslations("lobbies");
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    if (
-      !confirm(
-        "Encerrar a sala? Como líder, sua saída descarta a sala e remove todos os jogadores. Não é possível desfazer."
-      )
-    ) {
+    if (!confirm(t("confirmEndLobby"))) {
       e.preventDefault();
     }
   };
@@ -100,7 +95,7 @@ function EndLobbyLink({ lobbyId }: { lobbyId: string }) {
         type="submit"
         className="font-display text-sm font-semibold uppercase tracking-widest text-text-faded underline-offset-2 hover:text-error hover:underline transition-colors"
       >
-        Encerrar sala
+        {t("endLobby")}
       </button>
     </form>
   );
@@ -116,6 +111,7 @@ function StartMatchButton({
   disabled: boolean;
 }) {
   const { toast } = useToast();
+  const t = useTranslations("lobbies");
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
@@ -126,7 +122,7 @@ function StartMatchButton({
         toast({ type: "error", title: r.error });
         return;
       }
-      toast({ type: "success", title: "Partida iniciada!" });
+      toast({ type: "success", title: t("matchStarted") });
       router.refresh();
     });
   };
@@ -138,7 +134,7 @@ function StartMatchButton({
       size="md"
       onClick={handleStart}
       disabled={disabled || isPending}
-      title={isLeader ? undefined : "Só o líder inicia a partida"}
+      title={isLeader ? undefined : t("onlyLeaderStarts")}
       className="flex-1 tracking-[0.25em]"
     >
       {isPending ? (
@@ -146,7 +142,7 @@ function StartMatchButton({
       ) : (
         <Play size={14} fill="currentColor" aria-hidden="true" />
       )}
-      <span>{isPending ? "Iniciando..." : "Iniciar partida"}</span>
+      <span>{isPending ? t("startingMatch") : t("startMatch")}</span>
     </Button>
   );
 }

@@ -1,6 +1,7 @@
 // WidgetHeroes — até 3 heróis favoritos do user. Editável inline em edit mode.
 
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { WidgetShell } from "./widget-shell";
 import { HeroesEditor } from "../inline-edit-controls";
 import type { HeroData } from "@/lib/queries/heroes";
@@ -11,8 +12,9 @@ interface Props {
 }
 
 export function WidgetHeroes({ favoriteHeroes, editing }: Props) {
+  const t = useTranslations("perfil");
   return (
-    <WidgetShell title="Heróis favoritos" editing={editing}>
+    <WidgetShell title={t("widgetHeroesTitle")} editing={editing}>
       {editing ? (
         <HeroesEditor initialFavorites={favoriteHeroes} />
       ) : favoriteHeroes.length > 0 ? (
@@ -37,7 +39,7 @@ export function WidgetHeroes({ favoriteHeroes, editing }: Props) {
         </div>
       ) : (
         <p className="font-display text-[13px] font-semibold text-text-faded italic">
-          Nenhum herói favorito definido.
+          {t("noFavoriteHeroes")}
         </p>
       )}
     </WidgetShell>

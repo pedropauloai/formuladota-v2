@@ -10,6 +10,7 @@
 // ficam no parent — QueueBoard só renderiza estado.
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { Radio, X, Loader2, Clock, Users, Crown } from "lucide-react";
 import { usePrompt } from "@/components/ui/confirm";
 
@@ -68,6 +69,7 @@ export function QueueBoard({
     : 0;
   const isCompact = variant === "compact";
   const isAdmin = variant === "admin";
+  const t = useTranslations("queue");
 
   return (
     <article
@@ -76,7 +78,7 @@ export function QueueBoard({
           ? "border-emerald-500/40 bg-emerald-500/5"
           : "border-border-subtle bg-bg-elevated/50"
       } ${isCompact ? "p-3" : "p-5"}`}
-      aria-label={`Fila do PRO ${coach.username ?? coach.coachId}`}
+      aria-label={t("boardAriaLabel", { name: coach.username ?? coach.coachId })}
     >
       {/* Ring pulsante de status quando aberta */}
       {coach.filaAberta && (
@@ -128,7 +130,7 @@ export function QueueBoard({
             }`}
           >
             {coach.mmrAtual ? `${coach.mmrAtual.toLocaleString("pt-BR")} MMR` : "—"}
-            {coach.filaAberta && minutesOpen > 0 && ` · aberta há ${minutesOpen}m`}
+            {coach.filaAberta && minutesOpen > 0 && ` · ${t("openForMinutes", { minutes: minutesOpen })}`}
           </p>
           {coach.filaAberta && coach.queueMode && (
             <span
@@ -139,8 +141,8 @@ export function QueueBoard({
               }`}
             >
               {coach.queueMode === "coached"
-                ? "PRO observa + análise"
-                : "PRO joga junto"}
+                ? t("modeCoached")
+                : t("modePlay")}
             </span>
           )}
         </div>
@@ -195,10 +197,10 @@ export function QueueBoard({
           {coach.filaAberta ? (
             <>
               <Radio size={isCompact ? 10 : 12} aria-hidden="true" />
-              Fila aberta
+              {t("queueOpen")}
             </>
           ) : (
-            <>Fila fechada</>
+            <>{t("queueClosed")}</>
           )}
         </span>
         <span
@@ -207,10 +209,10 @@ export function QueueBoard({
           }`}
         >
           <Users size={isCompact ? 10 : 12} className="inline mr-1 -mt-0.5" aria-hidden="true" />
-          {entries.length} na fila
+          {t("inQueueCount", { count: entries.length })}
           {waitingList.length > 0 && (
             <span className="ml-1 text-amber-300">
-              · {waitingList.length} aguardando
+              · {t("waitingCount", { count: waitingList.length })}
             </span>
           )}
         </span>
@@ -239,18 +241,19 @@ function WaitingList({
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
   const prompt = usePrompt();
+  const t = useTranslations("queue");
   // Snapshot do horário ao montar — useState lazy init é puro (não invoca em re-renders)
   const [now] = useState(() => Date.now());
 
   async function handleRemove(entryId: string, username: string | null) {
     if (!onRemoveEntry) return;
     const reason = await prompt({
-      title: `Remover ${username ?? "aluno"} da fila?`,
-      message: "Informe o motivo da remoção (mín 3 caracteres):",
-      placeholder: "Ex: não compareceu na PT",
-      defaultValue: "Removido pelo PRO",
+      title: t("removePromptTitle", { name: username ?? t("student") }),
+      message: t("removePromptMessage"),
+      placeholder: t("removePromptPlaceholder"),
+      defaultValue: t("removeDefaultReason"),
       required: true,
-      confirmLabel: "Remover",
+      confirmLabel: t("remove"),
       variant: "destructive",
     });
     if (!reason || reason.trim().length < 3) return;
@@ -267,7 +270,7 @@ function WaitingList({
   return (
     <div className="mt-4 rounded-md border border-white/10 bg-black/30 p-4">
       <p className="mb-3 font-display font-semibold text-sm font-semibold uppercase tracking-wide text-amber-300">
-        Aguardando próxima rodada ({entries.length})
+        {t("waitingNextRoundCount", { count: entries.length })}
       </p>
       <ul className="space-y-2">
         {entries.map((e, idx) => {
@@ -310,11 +313,11 @@ function WaitingList({
                   isViewer ? "font-bold text-white" : "text-white/90"
                 }`}
               >
-                {isViewer ? "VOCÊ" : e.username ?? "—"}
+                {isViewer ? t("you") : e.username ?? "—"}
               </span>
               {e.ptsToday !== undefined && e.ptsToday > 0 && (
                 <span className="rounded-full bg-amber-500/20 px-2 py-0.5 font-mono text-sm 2xl:text-base font-semibold text-amber-200">
-                  {e.ptsToday}× hoje
+                  {t("timesToday", { count: e.ptsToday })}
                 </span>
               )}
               <span className="font-mono text-sm 2xl:text-base text-white/55 tabular-nums w-10 text-right">
@@ -325,7 +328,7 @@ function WaitingList({
                   type="button"
                   onClick={() => handleRemove(e.entryId, e.username)}
                   disabled={isRemoving}
-                  aria-label={`Remover ${e.username ?? "aluno"}`}
+                  aria-label={t("removeAriaLabel", { name: e.username ?? t("student") })}
                   className="flex size-6 items-center justify-center rounded-full text-white/40 hover:bg-red-500/20 hover:text-red-300 transition-colors disabled:opacity-50"
                 >
                   {isRemoving ? (
@@ -363,6 +366,7 @@ function Slot({
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const prompt = usePrompt();
+  const t = useTranslations("queue");
   // Snapshot do horário ao montar — via useState inicial (não muda entre renders)
   const [mountNow] = useState(() => Date.now());
 
@@ -377,14 +381,14 @@ function Slot({
         <span
           className={`font-mono text-white/30 ${isCompact ? "text-sm 2xl:text-base" : "text-sm 2xl:text-base"}`}
         >
-          slot {index + 1}
+          {t("slotN", { n: index + 1 })}
         </span>
         <span
           className={`font-mono text-white/40 mt-1 ${
             isCompact ? "text-sm" : "text-sm"
           } uppercase tracking-widest`}
         >
-          livre
+          {t("free")}
         </span>
       </div>
     );
@@ -393,12 +397,12 @@ function Slot({
   async function handleRemove() {
     if (!onRemoveEntry) return;
     const reason = await prompt({
-      title: `Remover ${slot?.username ?? "aluno"} da fila?`,
-      message: "Informe o motivo da remoção (mín 3 caracteres):",
-      placeholder: "Ex: não compareceu na PT",
-      defaultValue: "Removido pelo PRO",
+      title: t("removePromptTitle", { name: slot?.username ?? t("student") }),
+      message: t("removePromptMessage"),
+      placeholder: t("removePromptPlaceholder"),
+      defaultValue: t("removeDefaultReason"),
       required: true,
-      confirmLabel: "Remover",
+      confirmLabel: t("remove"),
       variant: "destructive",
     });
     if (!reason || reason.trim().length < 3) return;
@@ -407,7 +411,7 @@ function Slot({
       try {
         await onRemoveEntry(slot!.entryId, reason);
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Erro");
+        setError(e instanceof Error ? e.message : t("errorGeneric"));
       }
     });
   }
@@ -445,7 +449,7 @@ function Slot({
           isCompact ? "text-sm 2xl:text-base" : "text-sm 2xl:text-base"
         } ${isViewer ? "font-bold" : ""}`}
       >
-        {isViewer ? "VOCÊ" : slot.username ?? "—"}
+        {isViewer ? t("you") : slot.username ?? "—"}
       </p>
       <p
         className={`mt-0.5 font-mono text-white/55 ${
@@ -460,9 +464,9 @@ function Slot({
           className={`mt-1 inline-flex items-center rounded-full bg-amber-500/20 px-2 py-0.5 font-mono font-semibold text-amber-200 ${
             isCompact ? "text-sm 2xl:text-base" : "text-sm 2xl:text-base"
           }`}
-          title={`Já jogou ${slot.ptsToday} PT${slot.ptsToday > 1 ? "s" : ""} com este PRO nas últimas 24h — cede vaga pra quem jogou menos`}
+          title={t("ptsTodayTooltip", { count: slot.ptsToday })}
         >
-          {slot.ptsToday}× hoje
+          {t("timesToday", { count: slot.ptsToday })}
         </span>
       )}
 
@@ -471,7 +475,7 @@ function Slot({
           type="button"
           onClick={handleRemove}
           disabled={pending}
-          aria-label={`Remover ${slot.username ?? "aluno"}`}
+          aria-label={t("removeAriaLabel", { name: slot.username ?? t("student") })}
           className="absolute -top-1.5 -right-1.5 flex size-5 items-center justify-center rounded-full border border-red-500/50 bg-black text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-colors disabled:opacity-50"
         >
           {pending ? <Loader2 size={9} className="animate-spin" /> : <X size={10} />}

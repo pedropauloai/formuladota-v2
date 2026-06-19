@@ -6,13 +6,15 @@
 // Server Component — sem interatividade, sem "use client".
 
 import { EmptyState } from "@/components/ui/empty-state";
+import { useTranslations } from "next-intl";
 
 export function TabConquistas() {
+  const t = useTranslations("perfil");
   return (
     <div className="pt-6">
       <EmptyState
-        title="Nenhuma conquista desbloqueada."
-        description="Participe de sessões, siga a doutrina e acumule conquistas ao longo das temporadas."
+        title={t("conquistasEmptyTitle")}
+        description={t("conquistasEmptyDesc")}
       />
     </div>
   );

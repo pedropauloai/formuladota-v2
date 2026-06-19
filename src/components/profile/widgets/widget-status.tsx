@@ -1,5 +1,6 @@
 // WidgetStatus — status_message do user. Editável inline em edit mode.
 
+import { useTranslations } from "next-intl";
 import { WidgetShell } from "./widget-shell";
 import { StatusEditor } from "../inline-edit-controls";
 
@@ -9,8 +10,9 @@ interface Props {
 }
 
 export function WidgetStatus({ statusMessage, editing }: Props) {
+  const t = useTranslations("perfil");
   return (
-    <WidgetShell title="Status" editing={editing}>
+    <WidgetShell title={t("widgetStatusTitle")} editing={editing}>
       {editing ? (
         <StatusEditor initialStatus={statusMessage} />
       ) : (
@@ -19,7 +21,7 @@ export function WidgetStatus({ statusMessage, editing }: Props) {
             statusMessage ? "text-text-body italic" : "text-text-faded italic"
           }`}
         >
-          {statusMessage ?? "Nenhum status definido."}
+          {statusMessage ?? t("noStatusSet")}
         </p>
       )}
     </WidgetShell>

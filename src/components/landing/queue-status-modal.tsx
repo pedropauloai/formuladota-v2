@@ -4,6 +4,7 @@
 // e botão sair. Pode estar em N filas simultâneas (lista todas).
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { Loader2, Users, ArrowLeftFromLine } from "lucide-react";
 import type { MyQueueEntry } from "@/lib/queries/queue";
@@ -22,6 +23,7 @@ export function QueueStatusModal({ open, onClose, myQueues }: Props) {
   // Optimistic: registra entries que já saíram (some da lista imediato)
   // Declarado antes do early return — regra dos hooks
   const [optimisticLeftIds, setOptimisticLeftIds] = useState<Set<string>>(new Set());
+  const t = useTranslations("queue");
 
   if (!open) return null;
 
@@ -63,19 +65,19 @@ export function QueueStatusModal({ open, onClose, myQueues }: Props) {
         <header className="mb-5 flex items-center justify-between">
           <div>
             <p className="font-display font-semibold text-sm uppercase tracking-wide text-emerald-400">
-              Aguardando PT
+              {t("waitingPt")}
             </p>
             <h2
               id="queue-status-title"
               className="font-display text-xl uppercase text-white"
             >
-              Sua situação na fila
+              {t("yourQueueStatus")}
             </h2>
           </div>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Fechar"
+            aria-label={t("close")}
             className="size-8 rounded-md text-white/40 hover:bg-white/5 hover:text-white"
           >
             ✕
@@ -103,7 +105,7 @@ export function QueueStatusModal({ open, onClose, myQueues }: Props) {
                   )}
                   <div className="flex-1 min-w-0">
                     <p className="font-display text-base uppercase text-white truncate">
-                      Na fila de {q.coachUsername ?? "PRO"}
+                      {t("inQueueOf", { name: q.coachUsername ?? "PRO" })}
                     </p>
                     <p className="font-mono text-sm text-white/60">
                       <Users
@@ -111,8 +113,11 @@ export function QueueStatusModal({ open, onClose, myQueues }: Props) {
                         className="inline mr-1 -mt-0.5"
                         aria-hidden="true"
                       />
-                      {q.position}º de {q.total} na fila · aguardando{" "}
-                      {q.waitingMinutes} min
+                      {t("positionWaiting", {
+                        position: q.position,
+                        total: q.total,
+                        minutes: q.waitingMinutes,
+                      })}
                     </p>
                   </div>
                 </div>
@@ -125,12 +130,12 @@ export function QueueStatusModal({ open, onClose, myQueues }: Props) {
                   {isBusy ? (
                     <>
                       <Loader2 size={14} className="animate-spin" />
-                      Saindo...
+                      {t("leaving")}
                     </>
                   ) : (
                     <>
                       <ArrowLeftFromLine size={14} />
-                      Sair desta fila
+                      {t("leaveThisQueue")}
                     </>
                   )}
                 </button>
@@ -146,7 +151,7 @@ export function QueueStatusModal({ open, onClose, myQueues }: Props) {
         )}
 
         <p className="mt-5 font-mono text-sm text-white/30 text-center">
-          Quando o PRO iniciar a PT com você, será avisado no Discord oficial.
+          {t("ptStartDiscordNote")}
         </p>
       </div>
     </div>

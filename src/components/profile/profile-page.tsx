@@ -29,6 +29,7 @@
 // (react-grid-layout precisa de DOM measure).
 
 import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { Pencil, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/ui/avatar";
@@ -82,6 +83,7 @@ export function ProfilePage({
   career,
   coachingReviews,
 }: Props) {
+  const t = useTranslations("perfil");
   const ranqueado = profile.mmr !== null;
 
   // Herói nº 1 da carreira → backdrop VIVO do header de identidade
@@ -113,7 +115,7 @@ export function ProfilePage({
                 <Link href="/me">
                   <Button variant="secondary" size="sm">
                     <X size={12} aria-hidden="true" />
-                    Sair da edição
+                    {t("exitEditing")}
                   </Button>
                 </Link>
               </>
@@ -121,7 +123,7 @@ export function ProfilePage({
               <Link href="/me?edit=1">
                 <Button variant="cinematic" size="sm">
                   <Pencil size={12} aria-hidden="true" />
-                  Editar Perfil
+                  {t("editProfile")}
                 </Button>
               </Link>
             )}
@@ -144,7 +146,7 @@ export function ProfilePage({
             <div className={`relative flex items-center gap-5 ${topHero ? "p-4" : ""}`}>
               <UserAvatar
                 src={profile.avatarUrl ?? undefined}
-                alt={`Avatar de ${profile.username ?? "Anônimo"}`}
+                alt={t("avatarAlt", { name: profile.username ?? t("anonymous") })}
                 fallback={(profile.username ?? "??").slice(0, 2).toUpperCase()}
                 size="xl"
                 ringColor={ranqueado ? "brand" : null}
@@ -152,17 +154,17 @@ export function ProfilePage({
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2.5">
                   <h1 className="font-display text-[28px] font-bold text-text-display leading-tight truncate">
-                    {profile.username ?? "Anônimo"}
+                    {profile.username ?? t("anonymous")}
                   </h1>
                   {/* Logo Steam ao lado do nick → perfil do usuário no STRATZ
                       (Pedro 2026-06-12). Identidade = Steam; STRATZ = vitrine. */}
                   {profile.steamId64 && (
-                    <Tooltip content="Ver perfil no STRATZ" side="bottom" focusable={false}>
+                    <Tooltip content={t("viewStratzProfile")} side="bottom" focusable={false}>
                       <a
                         href={`https://stratz.com/players/${steam64To32(profile.steamId64)}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        aria-label="Perfil no STRATZ"
+                        aria-label={t("stratzProfileAria")}
                         className="text-text-muted transition-colors hover:text-text-display"
                       >
                         <SteamIcon size={20} />

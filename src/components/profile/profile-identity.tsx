@@ -20,6 +20,7 @@
 // (StatusEditor, HeroesEditor, PortraitEditor, AvatarEditor).
 
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { UserAvatar } from "@/components/ui/avatar";
 import { DotaRankMedal, type DotaRank } from "@/components/ui/dota-rank-medal";
 import { HonorRankMedal, type HonorRank } from "@/components/ui/honor-rank-medal";
@@ -56,13 +57,14 @@ export function ProfileIdentity({
   heroPortraitSlug,
   editing,
 }: Props) {
+  const t = useTranslations("perfil");
   return (
     <div className="flex flex-col gap-6 p-6">
       {/* ─── LINHA 1: header horizontal — avatar | identidade+medalhas ─── */}
       <header className="flex items-center gap-5">
         <UserAvatar
           src={avatarUrl ?? undefined}
-          alt={`Avatar de ${username ?? "Anônimo"}`}
+          alt={t("avatarAlt", { name: username ?? t("anonymous") })}
           fallback={(username ?? "??").slice(0, 2).toUpperCase()}
           size="xl"
           ringColor={ranqueado ? "brand" : null}
@@ -72,7 +74,7 @@ export function ProfileIdentity({
           {/* Nome + brand tag empilhados */}
           <div>
             <h1 className="font-display text-[28px] font-bold text-text-display leading-tight truncate">
-              {username ?? "Anônimo"}
+              {username ?? t("anonymous")}
             </h1>
             <p className="font-display text-[13px] font-bold text-brand-primary tracking-[0.1em] mt-0.5">
               FORMULADOTA
@@ -107,8 +109,7 @@ export function ProfileIdentity({
             statusMessage ? "text-text-body italic" : "text-text-faded italic"
           }`}
         >
-          {statusMessage ??
-            "Nenhum status definido. Clique em Editar Perfil para adicionar um."}
+          {statusMessage ?? t("noStatusSetHint")}
         </p>
       )}
 
@@ -118,7 +119,7 @@ export function ProfileIdentity({
       ) : favoriteHeroes.length > 0 ? (
         <div>
           <p className="font-display text-[13px] font-bold uppercase tracking-[0.08em] text-text-faded mb-2">
-            Heróis favoritos
+            {t("widgetHeroesTitle")}
           </p>
           <div className="flex items-end gap-3">
             {favoriteHeroes.slice(0, 3).map((hero) => (
@@ -142,7 +143,7 @@ export function ProfileIdentity({
         </div>
       ) : (
         <p className="font-display text-[13px] font-semibold text-text-faded italic">
-          Nenhum herói favorito definido.
+          {t("noFavoriteHeroes")}
         </p>
       )}
 

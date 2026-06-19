@@ -4,6 +4,7 @@
 // compete visualmente com info principal de posição/tempo).
 
 import { useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { ArrowLeftFromLine, Loader2 } from "lucide-react";
 import { leaveCoachQueue } from "@/components/landing/actions";
 import { useConfirm } from "@/components/ui/confirm";
@@ -11,15 +12,16 @@ import { useConfirm } from "@/components/ui/confirm";
 export function HeroStateLeaveCta({ entryId }: { entryId: string }) {
   const [pending, startTransition] = useTransition();
   const confirm = useConfirm();
+  const t = useTranslations("queue");
 
   return (
     <button
       type="button"
       onClick={async () => {
         const ok = await confirm({
-          title: "Sair desta fila?",
-          message: "Você pode entrar de novo a qualquer momento.",
-          confirmLabel: "Sair",
+          title: t("leaveConfirmTitleThisQueue"),
+          message: t("leaveConfirmMessage"),
+          confirmLabel: t("leave"),
           variant: "destructive",
         });
         if (!ok) return;
@@ -35,7 +37,7 @@ export function HeroStateLeaveCta({ entryId }: { entryId: string }) {
       ) : (
         <ArrowLeftFromLine size={14} aria-hidden="true" />
       )}
-      Sair desta fila
+      {t("leaveThisQueue")}
     </button>
   );
 }

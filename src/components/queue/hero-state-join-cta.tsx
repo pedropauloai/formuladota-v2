@@ -4,6 +4,7 @@
 // Mesmo modal usado pela bottom-bar — UX consistente.
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Play, ArrowRight } from "lucide-react";
 import type { ProLiveStatus } from "@/lib/queries/pros";
 import { JoinQueueModal } from "@/components/landing/join-queue-modal";
@@ -17,6 +18,7 @@ interface Props {
 
 export function HeroStateJoinCta({ prosOnline, fichaBalance }: Props) {
   const [open, setOpen] = useState(false);
+  const t = useTranslations("queue");
   return (
     <>
       <button
@@ -25,7 +27,7 @@ export function HeroStateJoinCta({ prosOnline, fichaBalance }: Props) {
         className="mt-6 inline-flex items-center justify-center gap-3 rounded-md border-2 border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover px-8 py-3 font-display text-base font-bold uppercase tracking-[0.2em] text-text-display shadow-lg shadow-[var(--color-play-primary-glow)] transition-all hover:scale-[1.02] hover:shadow-[var(--color-play-primary-glow)] xl:px-12 xl:py-4 xl:text-lg xl:tracking-[0.25em]"
       >
         <Play size={20} fill="currentColor" aria-hidden="true" />
-        Entrar na fila agora
+        {t("joinQueueNow")}
         <ArrowRight size={16} aria-hidden="true" />
       </button>
       <JoinQueueModal

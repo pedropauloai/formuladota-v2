@@ -13,6 +13,7 @@
 //
 // Server Component — Tooltip é client, mas pode ser consumido daqui.
 
+import { useTranslations } from "next-intl";
 import { Tooltip } from "@/components/ui/tooltip";
 
 interface SocialBrand {
@@ -77,9 +78,10 @@ const SOCIAL_BRANDS: SocialBrand[] = [
  * explica o futuro sistema de validação de identidade.
  */
 export function SocialIconsRow() {
+  const t = useTranslations("perfil");
   return (
     <Tooltip
-      content="Em breve: conecte suas contas pra validar sua identidade."
+      content={t("socialTooltip")}
       side="bottom"
       align="start"
     >
@@ -88,7 +90,7 @@ export function SocialIconsRow() {
           <svg
             key={name}
             role="img"
-            aria-label={connected ? `${name} (conectado)` : `${name} (em breve)`}
+            aria-label={connected ? t("socialConnected", { name }) : t("socialComingSoon", { name })}
             viewBox="0 0 24 24"
             width={16}
             height={16}

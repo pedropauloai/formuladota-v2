@@ -19,6 +19,7 @@
 // Controlado: parent passa `open` + `onOpenChange` (estado externo).
 
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { Search, X, Check } from "lucide-react";
 import {
@@ -43,11 +44,12 @@ interface Props {
   onOpenChange: (open: boolean) => void;
 }
 
-const ATTR_LABELS: Record<PrimaryAttr, string> = {
-  str: "Força",
-  agi: "Agilidade",
-  int: "Inteligência",
-  uni: "Universal",
+// chave i18n por atributo — resolvida no render via t()
+const ATTR_LABEL_KEYS: Record<PrimaryAttr, string> = {
+  str: "attrStr",
+  agi: "attrAgi",
+  int: "attrInt",
+  uni: "attrUni",
 };
 
 const ATTR_COLORS: Record<PrimaryAttr, string> = {
@@ -65,6 +67,7 @@ export function HeroPicker({
   open,
   onOpenChange,
 }: Props) {
+  const t = useTranslations("perfil");
   const limit = maxSelections ?? (mode === "multi" ? 3 : 1);
   const [selected, setSelected] = useState<string[]>(initialSelected);
   const [query, setQuery] = useState("");
@@ -140,11 +143,11 @@ export function HeroPicker({
           {/* Header — título + close */}
           <header className="flex items-center justify-between gap-4 shrink-0">
             <DialogTitle className="font-display text-2xl font-bold uppercase tracking-[0.08em] text-text-display">
-              {mode === "single" ? "Escolha um herói" : `Escolha até ${limit} heróis favoritos`}
+              {mode === "single" ? t("pickHeroSingle") : t("pickHeroMulti", { count: limit })}
             </DialogTitle>
             <DialogClose
               className="rounded p-2 text-text-muted hover:bg-bg-elevated hover:text-text-display transition-colors"
-              aria-label="Fechar"
+              aria-label={t("close")}
             >
               <X size={20} aria-hidden="true" />
             </DialogClose>
@@ -161,7 +164,7 @@ export function HeroPicker({
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Buscar herói..."
+              placeholder={t("searchHeroPlaceholder")}
               autoFocus
               className="w-full rounded border border-brand-primary/40 bg-bg-deep/80 pl-10 pr-3 py-2 font-display text-base 2xl:text-lg text-text-body placeholder:text-text-faded focus:outline-none focus:border-brand-primary"
             />
@@ -174,6 +177,7 @@ export function HeroPicker({
               <AttrColumn
                 key={attr}
                 attr={attr}
+                label={t(ATTR_LABEL_KEYS[attr])}
                 heroes={heroesByAttr[attr]}
                 isSelected={isSelected}
                 isDisabled={isDisabled}
@@ -186,7 +190,7 @@ export function HeroPicker({
           {mode === "multi" && (
             <footer className="flex items-center justify-between gap-4 border-t border-border-subtle pt-4 shrink-0">
               <p className="font-display text-sm 2xl:text-base font-semibold text-text-body">
-                {selected.length}/{limit} selecionados
+                {t("selectedCount", { count: selected.length, limit })}
               </p>
               <Button
                 type="button"
@@ -196,7 +200,7 @@ export function HeroPicker({
                 disabled={selected.length === 0}
               >
                 <Check size={14} aria-hidden="true" />
-                Confirmar
+                {t("confirm")}
               </Button>
             </footer>
           )}
@@ -212,12 +216,14 @@ export function HeroPicker({
 
 function AttrColumn({
   attr,
+  label,
   heroes,
   isSelected,
   isDisabled,
   onToggle,
 }: {
   attr: PrimaryAttr;
+  label: string;
   heroes: HeroData[];
   isSelected: (slug: string) => boolean;
   isDisabled: (slug: string) => boolean;
@@ -228,7 +234,7 @@ function AttrColumn({
       {/* Header da coluna — label do atributo com cor temática */}
       <header className={`flex items-center gap-2 border-b pb-2 ${ATTR_COLORS[attr]}`}>
         <span className="font-display text-sm font-bold uppercase tracking-[0.12em]">
-          {ATTR_LABELS[attr]}
+          {label}
         </span>
         <span className="font-mono text-sm 2xl:text-base text-text-faded">({heroes.length})</span>
       </header>

@@ -5,6 +5,7 @@
 // Chama joinCoachQueue do landing/actions.
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { Radio, ArrowRight, Loader2, Coins } from "lucide-react";
 import type { ProLiveStatus } from "@/lib/queries/pros";
 import { joinCoachQueue } from "./actions";
@@ -20,6 +21,7 @@ export function JoinQueueModal({ open, onClose, prosOnline, fichaBalance }: Prop
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [pendingCoachId, setPendingCoachId] = useState<string | null>(null);
+  const t = useTranslations("queue");
 
   if (!open) return null;
 
@@ -52,19 +54,19 @@ export function JoinQueueModal({ open, onClose, prosOnline, fichaBalance }: Prop
         <header className="mb-5 flex items-center justify-between">
           <div>
             <p className="font-display font-semibold text-sm uppercase tracking-wide text-[var(--color-brand-red)]">
-              Jogar Dota
+              {t("playDota")}
             </p>
             <h2
               id="join-queue-title"
               className="font-display text-xl uppercase text-white"
             >
-              Entrar na fila de um PRO
+              {t("joinAProQueue")}
             </h2>
           </div>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Fechar"
+            aria-label={t("close")}
             className="size-8 rounded-md text-white/40 hover:bg-white/5 hover:text-white"
           >
             ✕
@@ -74,8 +76,7 @@ export function JoinQueueModal({ open, onClose, prosOnline, fichaBalance }: Prop
         <div className="mb-4 flex items-center gap-2 rounded-md border border-emerald-500/30 bg-emerald-500/5 px-3 py-2">
           <Coins size={14} className="text-emerald-400" />
           <p className="font-mono text-sm text-emerald-300">
-            Você tem {fichaBalance} {fichaBalance === 1 ? "ficha" : "fichas"} ·
-            cada PT usa 1 quando confirmada pelo PRO
+            {t("fichaBalanceNote", { count: fichaBalance })}
           </p>
         </div>
 
@@ -87,10 +88,10 @@ export function JoinQueueModal({ open, onClose, prosOnline, fichaBalance }: Prop
               aria-hidden="true"
             />
             <p className="font-mono text-sm text-white/50">
-              Nenhum PRO online no momento.
+              {t("noProOnlineNow")}
             </p>
             <p className="mt-1 font-mono text-sm text-white/30">
-              Você será avisado no Discord oficial quando algum abrir fila.
+              {t("discordAlertWhenOpen")}
             </p>
           </div>
         ) : (
@@ -122,8 +123,11 @@ export function JoinQueueModal({ open, onClose, prosOnline, fichaBalance }: Prop
                       <p className="font-mono text-sm text-white/60">
                         {pro.mmrAtual ? `${pro.mmrAtual.toLocaleString("pt-BR")} MMR · ` : ""}
                         {pro.vagasProximaPT > 0
-                          ? `${pro.vagasProximaPT}/${pro.filaMaxVagas} vagas livres`
-                          : `${pro.waitingCount} na fila · você entra na espera`}
+                          ? t("freeSlotsRatio", {
+                              free: pro.vagasProximaPT,
+                              max: pro.filaMaxVagas,
+                            })
+                          : t("inQueueJoinWaiting", { count: pro.waitingCount })}
                       </p>
                     </div>
                   </div>
@@ -141,11 +145,11 @@ export function JoinQueueModal({ open, onClose, prosOnline, fichaBalance }: Prop
                     {isBusy ? (
                       <>
                         <Loader2 size={14} className="animate-spin" />
-                        Entrando...
+                        {t("joining")}
                       </>
                     ) : (
                       <>
-                        Entrar na fila <ArrowRight size={14} />
+                        {t("joinQueue")} <ArrowRight size={14} />
                       </>
                     )}
                   </button>
@@ -162,7 +166,7 @@ export function JoinQueueModal({ open, onClose, prosOnline, fichaBalance }: Prop
         )}
 
         <p className="mt-5 font-mono text-sm text-white/30 text-center">
-          A ficha só é debitada quando o PRO confirmar que a partida ocorreu.
+          {t("fichaChargedOnConfirm")}
         </p>
       </div>
     </div>

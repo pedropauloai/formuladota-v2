@@ -8,6 +8,7 @@
 //   - Tokens semânticos: text-text-display/body/muted/faded, border-border-subtle, bg-bg-elevated
 
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import {
   displayName as identityDisplayName,
@@ -22,11 +23,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/ui/avatar";
 
-export const metadata = {
-  title: "Perfil — FORMULADOTA",
-};
+export async function generateMetadata() {
+  const t = await getTranslations("perfil");
+  return {
+    title: t("metaTitle"),
+  };
+}
 
 export default async function PerfilPage() {
+  const t = await getTranslations("perfil");
   const supabase = await createClient();
   const {
     data: { user },
@@ -69,16 +74,16 @@ export default async function PerfilPage() {
           <header className="flex items-center gap-4">
             <UserAvatar
               src={identityDisplayAvatar(identitySrc) ?? undefined}
-              alt={`Avatar de ${displayName}`}
+              alt={t("avatarAlt", { name: displayName })}
               fallback={identityDisplayInitials(identitySrc)}
               size="lg"
             />
             <div className="space-y-2">
               <p className="font-sans text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
-                Perfil
+                {t("kicker")}
               </p>
               <h1 className="font-display text-3xl uppercase tracking-tight text-text-display">
-                Olá, {displayName}
+                {t("greeting", { name: displayName })}
               </h1>
             </div>
           </header>
@@ -88,21 +93,21 @@ export default async function PerfilPage() {
               ------------------------------------------------------------ */}
           <Card variant="elevated">
             <CardContent className="space-y-3">
-              <Row label="Discord ID" value={profile?.discord_id ?? "—"} mono />
-              <Row label="Email" value={profile?.email ?? "—"} />
+              <Row label={t("fieldDiscordId")} value={profile?.discord_id ?? "—"} mono />
+              <Row label={t("fieldEmail")} value={profile?.email ?? "—"} />
               {/* Saldo de fichas + MMR = números de valor/progresso → GOLD (Pedro 2026-06-11) */}
               <Row
-                label="Saldo de fichas"
-                value={showAsAdmin ? "∞ admin" : `${fichaBalance}`}
+                label={t("fieldFichaBalance")}
+                value={showAsAdmin ? t("fichaBalanceAdmin") : `${fichaBalance}`}
                 gold
               />
               <Row
-                label="MMR atual"
-                value={profile?.mmr_atual?.toString() ?? "não informado"}
+                label={t("fieldMmrAtual")}
+                value={profile?.mmr_atual?.toString() ?? t("notInformed")}
                 gold={profile?.mmr_atual != null}
               />
-              <Row label="Role preferida" value={profile?.role_preferida ?? "não informado"} />
-              {showAsAdmin && <Row label="Acesso" value="Administrador" highlight />}
+              <Row label={t("fieldPreferredRole")} value={profile?.role_preferida ?? t("notInformed")} />
+              {showAsAdmin && <Row label={t("fieldAccess")} value={t("accessAdmin")} highlight />}
             </CardContent>
           </Card>
 
@@ -111,7 +116,7 @@ export default async function PerfilPage() {
               ------------------------------------------------------------ */}
           <form action={signOut}>
             <Button type="submit" variant="ghost" size="sm">
-              Sair da conta
+              {t("signOut")}
             </Button>
           </form>
         </div>

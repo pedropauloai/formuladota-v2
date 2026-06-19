@@ -13,6 +13,7 @@
 //   - Default            → "Entrar na fila" (cinematic)
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import {
@@ -60,6 +61,7 @@ export function QueueActionButton({
   const [showQuiz, setShowQuiz] = useState(false);
   const router = useRouter();
   const confirm = useConfirm();
+  const t = useTranslations("queue");
 
   // Optimistic state — espelha props mas user pode flip imediato pra UI
   // responder em 0ms. Sincroniza com server via realtime ou rollback.
@@ -92,9 +94,9 @@ export function QueueActionButton({
   async function handleLeave() {
     if (!myEntryIdHere) return;
     const ok = await confirm({
-      title: "Sair da fila deste PRO?",
-      message: "Você pode entrar de novo a qualquer momento.",
-      confirmLabel: "Sair",
+      title: t("leaveConfirmTitleThisPro"),
+      message: t("leaveConfirmMessage"),
+      confirmLabel: t("leave"),
       variant: "destructive",
     });
     if (!ok) return;
@@ -132,7 +134,7 @@ export function QueueActionButton({
       )}
       <PermissionQuizModal
         open={showQuiz}
-        modalidade="entrar na fila do PRO"
+        modalidade={t("modalidadeJoinPro")}
         onClose={() => setShowQuiz(false)}
         onGranted={() => {
           setShowQuiz(false);
@@ -172,12 +174,13 @@ function CtaButton({
   onJoin,
   onLeave,
 }: CtaProps) {
+  const t = useTranslations("queue");
   if (isAdmin) {
     return (
       <Link href="/admin/pros" className="w-full">
         <Button variant="cinematic" size="md" className="w-full">
           <Crown size={16} aria-hidden="true" />
-          Painel PROs
+          {t("proPanel")}
         </Button>
       </Link>
     );
@@ -198,7 +201,7 @@ function CtaButton({
         ) : (
           <ArrowLeftFromLine size={14} />
         )}
-        Sair da fila
+        {t("leaveQueue")}
       </Button>
     );
   }
@@ -207,10 +210,10 @@ function CtaButton({
     return (
       <div className="flex w-full flex-col items-stretch gap-1">
         <Button type="button" variant="secondary" size="md" disabled className="w-full">
-          Você está em outra fila
+          {t("inAnotherQueue")}
         </Button>
         <p className="text-center font-mono text-sm 2xl:text-base text-text-faded">
-          Saia da fila de {otherCoachUsername ?? "outro PRO"} pra entrar aqui
+          {t("leaveOtherToJoin", { name: otherCoachUsername ?? t("anotherPro") })}
         </p>
       </div>
     );
@@ -219,7 +222,7 @@ function CtaButton({
   if (!filaAberta) {
     return (
       <Button type="button" variant="secondary" size="md" disabled className="w-full">
-        Fila fechada
+        {t("queueClosed")}
       </Button>
     );
   }
@@ -232,7 +235,7 @@ function CtaButton({
       >
         <Button variant="primary" size="md" className="w-full">
           <Coins size={16} aria-hidden="true" />
-          Comprar ficha pra entrar
+          {t("buyFichaToJoin")}
         </Button>
       </Link>
     );
@@ -252,7 +255,7 @@ function CtaButton({
       ) : (
         <Play size={14} fill="currentColor" aria-hidden="true" />
       )}
-      Entrar na fila
+      {t("joinQueue")}
     </Button>
   );
 }

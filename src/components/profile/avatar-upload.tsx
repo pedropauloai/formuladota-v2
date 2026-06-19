@@ -4,6 +4,7 @@
 // Plan de Supabase: Free (sem Image Transform) → Canvas crop nativo no browser (09-04-SUMMARY).
 
 import { useState, useRef, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -26,18 +27,19 @@ export function AvatarUpload({ userId, currentAvatarUrl, onSaved }: Props) {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
+  const t = useTranslations("perfil");
 
   const handleFile = async (file: File) => {
     setErrorMsg(null);
 
     // Validação de tamanho (C3)
     if (file.size > MAX_BYTES) {
-      setErrorMsg("Arquivo muito grande. Máximo 5MB.");
+      setErrorMsg(t("avatarErrTooLarge"));
       return;
     }
     // Validação de formato MIME
     if (!ACCEPTED_TYPES.includes(file.type)) {
-      setErrorMsg("Formato inválido. Use PNG, JPG ou WebP.");
+      setErrorMsg(t("avatarErrBadFormat"));
       return;
     }
 
@@ -46,11 +48,11 @@ export function AvatarUpload({ userId, currentAvatarUrl, onSaved }: Props) {
     try {
       bitmap = await createImageBitmap(file);
     } catch {
-      setErrorMsg("Não foi possível ler a imagem.");
+      setErrorMsg(t("avatarErrUnreadable"));
       return;
     }
     if (bitmap.width < MIN_DIMENSION || bitmap.height < MIN_DIMENSION) {
-      setErrorMsg("Imagem muito pequena. Mínimo 256×256 pixels.");
+      setErrorMsg(t("avatarErrTooSmall"));
       return;
     }
 
@@ -63,7 +65,7 @@ export function AvatarUpload({ userId, currentAvatarUrl, onSaved }: Props) {
     canvas.height = MIN_DIMENSION;
     const ctx = canvas.getContext("2d");
     if (!ctx) {
-      setErrorMsg("Erro ao processar imagem.");
+      setErrorMsg(t("avatarErrProcessing"));
       return;
     }
     ctx.drawImage(bitmap, sx, sy, size, size, 0, 0, MIN_DIMENSION, MIN_DIMENSION);
@@ -72,7 +74,7 @@ export function AvatarUpload({ userId, currentAvatarUrl, onSaved }: Props) {
       canvas.toBlob(resolve, "image/png", 0.92)
     );
     if (!blob) {
-      setErrorMsg("Erro ao gerar imagem.");
+      setErrorMsg(t("avatarErrGenerating"));
       return;
     }
 
@@ -84,8 +86,8 @@ export function AvatarUpload({ userId, currentAvatarUrl, onSaved }: Props) {
       .upload(filePath, blob, { contentType: "image/png", upsert: true });
 
     if (uploadError) {
-      setErrorMsg("Erro ao enviar imagem.");
-      toast({ type: "error", title: "Não foi possível salvar. Tente novamente.", description: uploadError.message });
+      setErrorMsg(t("avatarErrUploading"));
+      toast({ type: "error", title: t("avatarToastSaveFailed"), description: uploadError.message });
       return;
     }
 
@@ -98,12 +100,12 @@ export function AvatarUpload({ userId, currentAvatarUrl, onSaved }: Props) {
       try {
         await saveCustomAvatarUrl(publicUrl);
         setPreview(publicUrl);
-        toast({ type: "success", title: "Avatar atualizado." });
+        toast({ type: "success", title: t("avatarToastUpdated") });
         onSaved?.();
       } catch (e) {
-        const msg = e instanceof Error ? e.message : "Erro ao salvar avatar.";
+        const msg = e instanceof Error ? e.message : t("avatarErrSaving");
         setErrorMsg(msg);
-        toast({ type: "error", title: "Não foi possível salvar. Tente novamente.", description: msg });
+        toast({ type: "error", title: t("avatarToastSaveFailed"), description: msg });
       }
     });
   };
@@ -114,12 +116,12 @@ export function AvatarUpload({ userId, currentAvatarUrl, onSaved }: Props) {
       try {
         await clearCustomAvatar();
         setPreview(null);
-        toast({ type: "success", title: "Avatar resetado para o padrão." });
+        toast({ type: "success", title: t("avatarToastReset") });
         onSaved?.();
       } catch (e) {
-        const msg = e instanceof Error ? e.message : "Erro ao limpar avatar.";
+        const msg = e instanceof Error ? e.message : t("avatarErrClearing");
         setErrorMsg(msg);
-        toast({ type: "error", title: "Não foi possível resetar.", description: msg });
+        toast({ type: "error", title: t("avatarToastResetFailed"), description: msg });
       }
     });
   };
@@ -127,7 +129,7 @@ export function AvatarUpload({ userId, currentAvatarUrl, onSaved }: Props) {
   return (
     <div className="flex flex-col gap-4">
       <p className="font-display text-[13px] font-semibold text-text-muted">
-        Envie uma imagem personalizada. Será cortada em formato quadrado.
+        {t("avatarUploadIntro")}
       </p>
 
       {/* Preview circular do avatar atual */}
@@ -136,7 +138,7 @@ export function AvatarUpload({ userId, currentAvatarUrl, onSaved }: Props) {
           <div className="relative size-24 rounded-full overflow-hidden border-2 border-brand-primary/60">
             <Image
               src={preview}
-              alt="Avatar atual"
+              alt={t("avatarCurrentAlt")}
               fill
               sizes="96px"
               className="object-cover"
@@ -150,14 +152,14 @@ export function AvatarUpload({ userId, currentAvatarUrl, onSaved }: Props) {
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
-        aria-label="Enviar avatar personalizado"
+        aria-label={t("avatarUploadAria")}
         className="border-2 border-dashed border-border-strong rounded-lg bg-bg-elevated/40 hover:bg-bg-elevated/60 py-6 px-4 text-center transition-colors"
       >
         <p className="font-display text-[13px] font-semibold text-text-body">
-          Arraste ou clique para enviar
+          {t("avatarDropPrompt")}
         </p>
         <p className="font-display text-[13px] font-semibold text-text-faded mt-1">
-          PNG, JPG ou WebP — máx 5MB · mín 256×256px
+          {t("avatarUploadConstraints")}
         </p>
       </button>
 
@@ -185,7 +187,7 @@ export function AvatarUpload({ userId, currentAvatarUrl, onSaved }: Props) {
       {/* Botão para restaurar avatar padrão (Discord/Steam) */}
       {currentAvatarUrl && (
         <Button variant="ghost" size="sm" onClick={handleClear} disabled={isPending}>
-          Usar avatar do Discord
+          {t("useDiscordAvatar")}
         </Button>
       )}
     </div>

@@ -4,6 +4,7 @@
 // Server Component que busca status; renderiza wrapper client (LeaveButton + Tab updater).
 
 import { Link } from "@/i18n/navigation";
+import { getTranslations } from "next-intl/server";
 import { Hourglass } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getMyQueueStatus } from "@/lib/queries/queue";
@@ -24,6 +25,7 @@ export async function StickyQueueBanner() {
   const q = queues[0];
   if (!q) return null;
   const extra = queues.length - 1;
+  const t = await getTranslations("queue");
 
   return (
     <>
@@ -46,14 +48,22 @@ export async function StickyQueueBanner() {
         <Hourglass size={14} className="text-emerald-300" aria-hidden="true" />
 
         <p className="flex-1 font-sans text-sm uppercase tracking-widest text-emerald-200">
-          Na fila de <strong className="font-semibold text-white">{q.coachUsername ?? "PRO"}</strong>
-          {" · "}
-          <span className="font-mono">{q.position}º de {q.total}</span>
-          {" · "}
-          <span className="font-mono text-emerald-300/80">{q.waitingMinutes}m aguardando</span>
+          {t.rich("bannerStatus", {
+            name: q.coachUsername ?? "PRO",
+            position: q.position,
+            total: q.total,
+            minutes: q.waitingMinutes,
+            name_em: (chunks) => (
+              <strong className="font-semibold text-white">{chunks}</strong>
+            ),
+            pos: (chunks) => <span className="font-mono">{chunks}</span>,
+            wait: (chunks) => (
+              <span className="font-mono text-emerald-300/80">{chunks}</span>
+            ),
+          })}
           {extra > 0 && (
             <span className="ml-2 rounded-md bg-emerald-500/20 px-1.5 py-0.5 font-mono text-sm 2xl:text-base">
-              +{extra} {extra === 1 ? "outra fila" : "outras filas"}
+              {t("otherQueuesCount", { count: extra })}
             </span>
           )}
         </p>
@@ -62,7 +72,7 @@ export async function StickyQueueBanner() {
           href="/dashboard"
           className="hidden sm:inline-flex items-center font-display font-semibold text-sm uppercase tracking-wide text-emerald-300/80 hover:text-white transition-colors"
         >
-          Ver dashboard →
+          {t("viewDashboard")} →
         </Link>
 
         <LeaveQueueButton entryId={q.entryId} />

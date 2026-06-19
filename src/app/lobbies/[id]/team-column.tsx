@@ -6,14 +6,15 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Crown, Loader2, X } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { HonorRankMedal } from "@/components/ui/honor-rank-medal";
 import { Tooltip } from "@/components/ui/tooltip";
 import { joinTeam } from "./actions";
 import {
-  SLOT_ROLE_LABELS,
-  SLOT_ROLE_TOOLTIPS,
+  SLOT_ROLE_LABEL_KEYS,
+  SLOT_ROLE_TOOLTIP_KEYS,
   type PlayerSlot,
 } from "./lobby-types";
 import type { SlotMove } from "./lobby-room";
@@ -135,11 +136,16 @@ function PlayerSlotRow({
 }) {
   const { toast } = useToast();
   const router = useRouter();
+  const t = useTranslations("lobbies");
   const [isPending, startTransition] = useTransition();
   const a = TEAM_ACCENTS[team];
-  const roleLabel = SLOT_ROLE_LABELS[slotIndex] ?? `POS ${slotIndex + 1}`;
+  const roleLabelKey = SLOT_ROLE_LABEL_KEYS[slotIndex];
+  const roleLabel = roleLabelKey
+    ? t(roleLabelKey)
+    : t("slotRoleFallback", { pos: slotIndex + 1 });
   // Hover educacional — papel da POS na metodologia (fonte: lobby-types.ts).
-  const roleTip = SLOT_ROLE_TOOLTIPS[slotIndex] ?? null;
+  const roleTipKey = SLOT_ROLE_TOOLTIP_KEYS[slotIndex];
+  const roleTip = roleTipKey ? t(roleTipKey) : null;
 
   const mutate = (target: "radiant" | "dire" | "spectator", targetSlot?: number) => {
     startTransition(async () => {
@@ -197,7 +203,7 @@ function PlayerSlotRow({
             <span
               className={`font-display text-sm font-bold uppercase tracking-[0.2em] ${a.text} opacity-60 group-hover:opacity-100 transition-opacity`}
             >
-              {isPending ? "..." : "Entrar"}
+              {isPending ? "..." : t("join")}
             </span>
           </button>
         </Tooltip>
@@ -238,7 +244,7 @@ function PlayerSlotRow({
       <p className="flex min-w-0 flex-1 items-center gap-1 font-body text-sm 2xl:text-base text-text-body">
         <span className="truncate">{slot.username}</span>
         {slotIsLeader && (
-          <Crown size={11} className="shrink-0 text-gold" aria-label="Líder" />
+          <Crown size={11} className="shrink-0 text-gold" aria-label={t("leader")} />
         )}
       </p>
       <HonorRankMedal rank={slot.honorRank} size="sm" className="shrink-0" />
@@ -253,8 +259,8 @@ function PlayerSlotRow({
           type="button"
           onClick={() => mutate("spectator")}
           disabled={isPending}
-          aria-label="Sair do slot"
-          title="Sair do slot (vira espectador)"
+          aria-label={t("leaveSlot")}
+          title={t("leaveSlotTitle")}
           className="shrink-0 text-text-faded hover:text-text-body transition-colors disabled:opacity-30"
         >
           {isPending ? (

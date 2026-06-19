@@ -3,6 +3,7 @@
 // LobbyFilters — seção "FILTRAR SALAS" do browser (ref: lobbys criados.png):
 // região + modo de jogo + busca por nome, compacto. Controlado pelo pai.
 
+import { useTranslations } from "next-intl";
 import { Search } from "lucide-react";
 
 interface LobbyFiltersProps {
@@ -24,37 +25,38 @@ export function LobbyFilters({
   onSearchChange,
   modeLabels,
 }: LobbyFiltersProps) {
+  const t = useTranslations("lobbies");
   return (
     <section className="border-t border-border-subtle bg-bg-base px-3 py-2.5">
       <p className="mb-1.5 font-display-condensed text-lg uppercase tracking-wide text-text-muted">
-        Filtrar salas
+        {t("filterTitle")}
       </p>
       <div className="grid grid-cols-2 gap-2">
-        <FilterField label="Região">
+        <FilterField label={t("fieldRegion")}>
           <select
             value={region}
             onChange={(e) => onRegionChange(e.target.value)}
             className="w-full appearance-none bg-transparent font-body text-sm 2xl:text-base text-text-body focus:outline-none"
           >
             <option value="brasil" className="bg-bg-deep">
-              Brasil
+              {t("regionBrazil")}
             </option>
             <option value="south_america" className="bg-bg-deep">
-              América do Sul
+              {t("regionSouthAmerica")}
             </option>
             <option value="any" className="bg-bg-deep">
-              Qualquer
+              {t("regionAny")}
             </option>
           </select>
         </FilterField>
-        <FilterField label="Modo de jogo">
+        <FilterField label={t("fieldMode")}>
           <select
             value={mode}
             onChange={(e) => onModeChange(e.target.value)}
             className="w-full appearance-none bg-transparent font-body text-sm 2xl:text-base text-text-body focus:outline-none"
           >
             <option value="all" className="bg-bg-deep">
-              Todos os modos
+              {t("modeAll")}
             </option>
             {Object.entries(modeLabels).map(([k, v]) => (
               <option key={k} value={k} className="bg-bg-deep">
@@ -65,14 +67,14 @@ export function LobbyFilters({
         </FilterField>
       </div>
       <div className="mt-2">
-        <FilterField label="Nome da sala">
+        <FilterField label={t("fieldLobbyName")}>
           <div className="flex items-center gap-1.5">
             <Search size={12} className="shrink-0 text-text-faded" aria-hidden="true" />
             <input
               type="search"
               value={search}
               onChange={(e) => onSearchChange(e.target.value)}
-              placeholder="Buscar salas"
+              placeholder={t("searchPlaceholder")}
               className="w-full bg-transparent font-body text-sm 2xl:text-base text-text-body placeholder:text-text-faded focus:outline-none"
             />
           </div>

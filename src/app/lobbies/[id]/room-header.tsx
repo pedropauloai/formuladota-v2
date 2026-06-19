@@ -5,12 +5,13 @@
 // Herói de assinatura do líder como backdrop VIVO sutil (vídeo Valve).
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Lock, Eye, EyeOff, Copy, Check, ArrowLeft } from "lucide-react";
 import {
   HeroVideoBackdrop,
   type SignatureHero,
 } from "@/components/dota/hero-video-backdrop";
-import { GAME_MODE_LABELS, type LobbyData } from "./lobby-types";
+import { GAME_MODE_TRANS_KEYS, type LobbyData } from "./lobby-types";
 
 interface RoomHeaderProps {
   lobby: LobbyData;
@@ -26,6 +27,8 @@ export function RoomHeader({
   leaderHero = null,
   onBack,
 }: RoomHeaderProps) {
+  const t = useTranslations("lobbies");
+  const modeKey = GAME_MODE_TRANS_KEYS[lobby.gameMode];
   return (
     <header className="relative overflow-hidden border-b border-border-subtle bg-bg-base px-4 py-2.5">
       {leaderHero && (
@@ -42,7 +45,7 @@ export function RoomHeader({
             <button
               type="button"
               onClick={onBack}
-              aria-label="Voltar"
+              aria-label={t("back")}
               className="mt-1 shrink-0 text-text-faded hover:text-text-body transition-colors"
             >
               <ArrowLeft size={16} />
@@ -55,11 +58,12 @@ export function RoomHeader({
                 {lobby.name}
               </h1>
               <span className="shrink-0 rounded-sm border border-border-strong bg-bg-elevated px-1.5 py-0.5 font-display text-sm font-semibold uppercase tracking-wide text-text-muted">
-                {GAME_MODE_LABELS[lobby.gameMode] ?? lobby.gameMode}
+                {modeKey ? t(modeKey) : lobby.gameMode}
               </span>
             </div>
             <p className="mt-0.5 truncate font-display text-sm font-semibold uppercase tracking-wide text-text-faded">
-              Líder: <span className="text-text-muted">{leaderUsername}</span>
+              {t("leaderLabel")}{" "}
+              <span className="text-text-muted">{leaderUsername}</span>
             </p>
           </div>
         </div>
@@ -68,10 +72,10 @@ export function RoomHeader({
       {(lobby.status === "in_progress" || lobby.steamLobbyId?.startsWith("DEV-")) && (
         <p className="relative mt-1 font-display text-sm font-semibold uppercase tracking-wide">
           {lobby.status === "in_progress" && (
-            <span className="text-warning">Em andamento</span>
+            <span className="text-warning">{t("statusInProgress")}</span>
           )}
           {lobby.steamLobbyId?.startsWith("DEV-") && (
-            <span className="ml-2 text-text-faded">Modo dev (bot offline)</span>
+            <span className="ml-2 text-text-faded">{t("devMode")}</span>
           )}
         </p>
       )}
@@ -80,6 +84,7 @@ export function RoomHeader({
 }
 
 function PasswordBadge({ password }: { password: string }) {
+  const t = useTranslations("lobbies");
   const [reveal, setReveal] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -98,7 +103,7 @@ function PasswordBadge({ password }: { password: string }) {
       <button
         type="button"
         onClick={() => setReveal(!reveal)}
-        aria-label={reveal ? "Ocultar senha" : "Revelar senha"}
+        aria-label={reveal ? t("hidePassword") : t("revealPassword")}
         className="text-text-faded hover:text-text-body transition-colors"
       >
         {reveal ? (
@@ -110,7 +115,7 @@ function PasswordBadge({ password }: { password: string }) {
       <button
         type="button"
         onClick={handleCopy}
-        aria-label="Copiar senha"
+        aria-label={t("copyPassword")}
         className="text-text-faded hover:text-text-body transition-colors"
       >
         {copied ? (

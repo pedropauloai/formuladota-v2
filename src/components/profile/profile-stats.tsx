@@ -4,6 +4,8 @@
 // do header canônico como bloco horizontal de 4 stats lado a lado.
 // Server Component — sem interatividade, sem "use client".
 
+import { useTranslations } from "next-intl";
+
 interface Props {
   partidas: number | null;
   vitorias: number | null;
@@ -12,16 +14,17 @@ interface Props {
 }
 
 export function ProfileStats({ partidas, vitorias, derrotas, mmr }: Props) {
+  const t = useTranslations("perfil");
   return (
     <section
-      aria-label="Estatísticas do jogador"
+      aria-label={t("playerStatsAria")}
       className="grid grid-cols-2 lg:grid-cols-4 gap-4 p-6 border-y border-border-subtle"
     >
-      <StatItem label="Partidas" value={partidas} />
-      <StatItem label="Vitórias" value={vitorias} />
-      <StatItem label="Derrotas" value={derrotas} />
+      <StatItem label={t("statPartidas")} value={partidas} />
+      <StatItem label={t("statVitorias")} value={vitorias} />
+      <StatItem label={t("statDerrotas")} value={derrotas} />
       {/* MMR = número de valor/progresso → família GOLD (Pedro 2026-06-11) */}
-      <StatItem label="MMR" value={mmr} gold />
+      <StatItem label={t("statMmr")} value={mmr} gold />
     </section>
   );
 }

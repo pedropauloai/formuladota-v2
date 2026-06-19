@@ -10,6 +10,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Copy, Check, ChevronDown, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ interface FormProps {
 }
 
 export function CriarLobbyForm({ onCreated, onClose, editLobbyId, defaults }: FormProps = {}) {
+  const t = useTranslations("lobbies");
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
   const [created, setCreated] = useState<{ lobbyId: string; password: string } | null>(null);
@@ -47,7 +49,7 @@ export function CriarLobbyForm({ onCreated, onClose, editLobbyId, defaults }: Fo
         toast({ type: "error", title: result.error });
         return;
       }
-      toast({ type: "success", title: editLobbyId ? "Configurações salvas!" : "Sala criada!" });
+      toast({ type: "success", title: editLobbyId ? t("settingsSaved") : t("lobbyCreatedToast") });
       // Embedded (modal): fecha e abre a sala no painel. Standalone: tela de senha.
       if (onCreated) {
         onCreated(result.lobbyId);
@@ -67,15 +69,14 @@ export function CriarLobbyForm({ onCreated, onClose, editLobbyId, defaults }: Fo
     return (
       <div className="rounded-sm border border-success/40 bg-bg-elevated/60 p-6 space-y-5">
         <h2 className="font-display-condensed text-3xl uppercase leading-none text-text-display">
-          Sala criada
+          {t("lobbyCreatedTitle")}
         </h2>
         <p className="font-body text-sm text-text-muted">
-          Compartilhe a senha com os outros jogadores. Quando o bot Steam estiver no ar,
-          ele cria a sala no Dota e convida automaticamente.
+          {t("lobbyCreatedBody")}
         </p>
         <div className="rounded-sm border border-border-subtle bg-bg-deep p-4">
           <p className="font-display text-sm font-semibold uppercase tracking-wide text-text-faded">
-            Senha da sala
+            {t("lobbyPassword")}
           </p>
           <div className="mt-2 flex items-center justify-between gap-4">
             <code className="font-mono text-2xl tabular-nums text-gold">
@@ -83,16 +84,16 @@ export function CriarLobbyForm({ onCreated, onClose, editLobbyId, defaults }: Fo
             </code>
             <Button type="button" variant="secondary" size="sm" onClick={() => copyPassword(created.password)}>
               {copied ? <Check size={14} /> : <Copy size={14} />}
-              {copied ? "Copiado" : "Copiar"}
+              {copied ? t("copied") : t("copy")}
             </Button>
           </div>
         </div>
         <div className="flex gap-3">
           <Button type="button" variant="cinematic" size="md" className="flex-1" onClick={() => router.push(`/lobbies/${created.lobbyId}`)}>
-            Entrar na sala
+            {t("enterLobby")}
           </Button>
           <Button type="button" variant="ghost" size="md" onClick={() => router.push("/lobbies")}>
-            Ver salas
+            {t("viewLobbies")}
           </Button>
         </div>
       </div>
@@ -105,7 +106,7 @@ export function CriarLobbyForm({ onCreated, onClose, editLobbyId, defaults }: Fo
       {/* Bloco principal — grid denso */}
       <div className="rounded-sm border border-border-subtle bg-bg-elevated/40 p-4 space-y-4">
         <div className="grid gap-3 sm:grid-cols-3">
-          <Field label="Nome da partida">
+          <Field label={t("matchName")}>
             <input
               name="name"
               type="text"
@@ -118,28 +119,28 @@ export function CriarLobbyForm({ onCreated, onClose, editLobbyId, defaults }: Fo
               className={INPUT}
             />
           </Field>
-          <Field label="Modo">
+          <Field label={t("fieldMode")}>
             <select name="gameMode" defaultValue={defaults?.gameMode ?? "all_pick"} className={INPUT}>
-              <option value="all_pick">Escolha livre competitivo</option>
-              <option value="captains_mode">Modo Capitães</option>
-              <option value="random_draft">Seleção aleatória</option>
-              <option value="single_draft">Escolha única</option>
+              <option value="all_pick">{t("modeAllPickCompetitive")}</option>
+              <option value="captains_mode">{t("modeCaptainsMode")}</option>
+              <option value="random_draft">{t("modeRandomDraft")}</option>
+              <option value="single_draft">{t("modeSingleDraft")}</option>
             </select>
           </Field>
-          <Field label="Senha da sala">
+          <Field label={t("lobbyPassword")}>
             <div className="relative">
               <input
                 name="password"
                 type={showPwd ? "text" : "password"}
                 maxLength={20}
-                placeholder="(gerada se vazia)"
+                placeholder={t("passwordPlaceholder")}
                 className={INPUT}
               />
               <button
                 type="button"
                 onClick={() => setShowPwd((v) => !v)}
                 className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-faded hover:text-text-body"
-                aria-label={showPwd ? "Ocultar" : "Mostrar"}
+                aria-label={showPwd ? t("hide") : t("show")}
               >
                 {showPwd ? <EyeOff size={15} /> : <Eye size={15} />}
               </button>
@@ -148,22 +149,22 @@ export function CriarLobbyForm({ onCreated, onClose, editLobbyId, defaults }: Fo
         </div>
 
         <div className="grid gap-3 sm:grid-cols-3">
-          <Field label="Localização do servidor">
+          <Field label={t("serverLocation")}>
             <select className={INPUT} defaultValue="sa">
-              <option value="sa">América do Sul</option>
-              <option value="us-e">Leste dos EUA</option>
+              <option value="sa">{t("regionSouthAmerica")}</option>
+              <option value="us-e">{t("regionUsEast")}</option>
             </select>
           </Field>
-          <Field label="Visibilidade da sala">
+          <Field label={t("lobbyVisibility")}>
             <select className={INPUT} defaultValue="publica">
-              <option value="publica">Pública</option>
-              <option value="amigos">Amigos</option>
-              <option value="privada">Privada</option>
+              <option value="publica">{t("visibilityPublic")}</option>
+              <option value="amigos">{t("visibilityFriends")}</option>
+              <option value="privada">{t("visibilityPrivate")}</option>
             </select>
           </Field>
           <div className="flex flex-col justify-end gap-1.5 pb-1">
-            <Checkbox label="Ativar trapaças" />
-            <Checkbox label="Seleção imortal" />
+            <Checkbox label={t("enableCheats")} />
+            <Checkbox label={t("immortalDraft")} />
           </div>
         </div>
       </div>
@@ -182,34 +183,34 @@ export function CriarLobbyForm({ onCreated, onClose, editLobbyId, defaults }: Fo
             aria-hidden="true"
           />
           <span className="font-display-condensed text-lg uppercase tracking-wide text-text-display">
-            Configurações avançadas
+            {t("advancedSettings")}
           </span>
         </button>
         {advanced && (
           <div className="grid gap-5 border-t border-border-subtle p-4 md:grid-cols-3">
             <fieldset className="space-y-2.5">
               <legend className="mb-1 font-display-condensed text-lg uppercase tracking-wide text-gold">
-                Competitivo
+                {t("advCompetitive")}
               </legend>
-              <SelectField label="Prioridade de seleção" options={["Manual", "Aleatória"]} />
-              <SelectField label="Equipe inicial" options={["Aleatória", "Os Iluminados", "Os Temidos"]} />
-              <SelectField label="Penalidades" options={["Nenhuma", "Padrão"]} />
+              <SelectField label={t("advPickPriority")} options={[t("optManual"), t("optRandom")]} />
+              <SelectField label={t("advStartingTeam")} options={[t("optRandom"), t("teamRadiant"), t("teamDire")]} />
+              <SelectField label={t("advPenalties")} options={[t("optNone"), t("optStandard")]} />
             </fieldset>
             <fieldset className="space-y-2.5">
               <legend className="mb-1 font-display-condensed text-lg uppercase tracking-wide text-gold">
-                Regras de jogo
+                {t("advGameRules")}
               </legend>
-              <SelectField label="Espectadores" options={["Permitido", "Não permitido"]} />
-              <SelectField label="Atraso da Dota TV" options={["2 minutos", "5 minutos", "Sem atraso"]} />
-              <SelectField label="Pausas" options={["Ilimitadas", "Limitadas"]} />
-              <SelectField label="Formato" options={["Partida única", "Melhor de 3"]} />
+              <SelectField label={t("advSpectators")} options={[t("optAllowed"), t("optNotAllowed")]} />
+              <SelectField label={t("advDotaTvDelay")} options={[t("opt2min"), t("opt5min"), t("optNoDelay")]} />
+              <SelectField label={t("advPauses")} options={[t("optUnlimited"), t("optLimited")]} />
+              <SelectField label={t("advFormat")} options={[t("optSingleMatch"), t("optBestOf3")]} />
             </fieldset>
             <fieldset className="space-y-2.5">
               <legend className="mb-1 font-display-condensed text-lg uppercase tracking-wide text-gold">
-                Config. de bots
+                {t("advBotConfig")}
               </legend>
-              <Checkbox label="Preencher vagas com bots" />
-              <SelectField label="Dificuldade" options={["Passivos", "Fáceis", "Normais", "Difíceis"]} />
+              <Checkbox label={t("fillWithBots")} />
+              <SelectField label={t("advDifficulty")} options={[t("optPassive"), t("optEasy"), t("optNormal"), t("optHard")]} />
             </fieldset>
           </div>
         )}
@@ -224,7 +225,7 @@ export function CriarLobbyForm({ onCreated, onClose, editLobbyId, defaults }: Fo
           onClick={() => (onClose ? onClose() : router.push("/lobbies"))}
           disabled={isPending}
         >
-          Cancelar
+          {t("cancel")}
         </Button>
         <Button
           type="submit"
@@ -232,15 +233,15 @@ export function CriarLobbyForm({ onCreated, onClose, editLobbyId, defaults }: Fo
           size="md"
           loading={isPending}
           disabled={isPending || !nameValid}
-          title={nameValid ? undefined : "Dê um nome à sala (mínimo 3 caracteres)"}
+          title={nameValid ? undefined : t("nameMinHint")}
         >
           {isPending
             ? editLobbyId
-              ? "Salvando..."
-              : "Criando sala..."
+              ? t("saving")
+              : t("creatingLobby")
             : editLobbyId
-              ? "Salvar configurações"
-              : "Criar sala"}
+              ? t("saveSettings")
+              : t("createLobby")}
         </Button>
       </div>
     </form>

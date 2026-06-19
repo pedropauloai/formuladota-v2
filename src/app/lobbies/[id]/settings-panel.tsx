@@ -3,7 +3,8 @@
 // SettingsPanel — "CONFIGURAÇÕES DA SALA" inline (ref: lobby criado.png):
 // grid denso de pares label/valor + [EDITAR] visível só pro líder.
 
-import { GAME_MODE_LABELS, type LobbyData } from "./lobby-types";
+import { useTranslations } from "next-intl";
+import { GAME_MODE_TRANS_KEYS, type LobbyData } from "./lobby-types";
 
 interface SettingsPanelProps {
   lobby: LobbyData;
@@ -12,11 +13,13 @@ interface SettingsPanelProps {
 }
 
 export function SettingsPanel({ lobby, isLeader, onEdit }: SettingsPanelProps) {
+  const t = useTranslations("lobbies");
+  const modeKey = GAME_MODE_TRANS_KEYS[lobby.gameMode];
   return (
     <section className="border-b border-border-subtle bg-bg-base/60 px-3 py-2.5">
       <div className="mb-1.5 flex items-center justify-between">
         <p className="font-display-condensed text-lg uppercase tracking-wide text-text-muted">
-          Configurações da sala
+          {t("lobbySettings")}
         </p>
         {isLeader && onEdit && (
           <button
@@ -24,25 +27,25 @@ export function SettingsPanel({ lobby, isLeader, onEdit }: SettingsPanelProps) {
             onClick={onEdit}
             className="font-display text-sm font-semibold uppercase tracking-widest text-gold hover:text-gold-bright transition-colors"
           >
-            Editar
+            {t("edit")}
           </button>
         )}
       </div>
       <div className="grid grid-cols-2 gap-x-4 gap-y-1">
         <SettingRow
-          label="Modo"
-          value={GAME_MODE_LABELS[lobby.gameMode] ?? lobby.gameMode}
+          label={t("settingMode")}
+          value={modeKey ? t(modeKey) : lobby.gameMode}
         />
-        <SettingRow label="Servidor" value="Brasil" />
-        <SettingRow label="Trapaças" value="Não" valueClass="text-success" />
-        <SettingRow label="Visibilidade" value="Pública" />
-        <SettingRow label="Liga" value="Nenhuma" />
-        <SettingRow label="Espectadores" value="Permitido" />
-        <SettingRow label="Jogadores" value={`${lobby.maxPlayers}`} />
+        <SettingRow label={t("settingServer")} value={t("regionBrazil")} />
+        <SettingRow label={t("settingCheats")} value={t("no")} valueClass="text-success" />
+        <SettingRow label={t("settingVisibility")} value={t("visibilityPublic")} />
+        <SettingRow label={t("settingLeague")} value={t("none")} />
+        <SettingRow label={t("settingSpectators")} value={t("allowed")} />
+        <SettingRow label={t("settingPlayers")} value={`${lobby.maxPlayers}`} />
       </div>
       {lobby.steamLobbyId && (
         <p className="mt-1.5 truncate font-display text-sm font-semibold uppercase tracking-wide text-text-faded">
-          Steam: {lobby.steamLobbyId}
+          {t("steamLabel")} {lobby.steamLobbyId}
         </p>
       )}
     </section>

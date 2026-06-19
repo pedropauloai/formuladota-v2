@@ -12,6 +12,7 @@
 
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import * as Icons from "lucide-react";
 import { ArrowLeft, FileQuestion, Trophy } from "lucide-react";
@@ -58,8 +59,9 @@ interface PageProps {
 
 export async function generateMetadata(props: PageProps): Promise<Metadata> {
   const params = await props.params;
+  const t = await getTranslations("perfil");
   return {
-    title: `Perfil ${params.steamid} — FORMULADOTA`,
+    title: t("publicMetaTitle", { steamid: params.steamid }),
   };
 }
 
@@ -85,6 +87,7 @@ function toHonorRank(tierStr: string | null | undefined): HonorRank {
 
 export default async function PerfilPublicoPage(props: PageProps) {
   const params = await props.params;
+  const t = await getTranslations("perfil");
   const supabase = await createClient();
 
   const { data: steamLink } = await supabase
@@ -245,7 +248,7 @@ export default async function PerfilPublicoPage(props: PageProps) {
         <div className="relative z-10 mx-auto flex max-w-5xl flex-col gap-6 px-6 pt-12 pb-8 sm:flex-row sm:items-end">
           <UserAvatar
             src={avatarSrc}
-            alt={`Avatar de ${displayName}`}
+            alt={t("avatarAlt", { name: displayName })}
             fallback={displayName.slice(0, 2).toUpperCase()}
             size="xl"
             ringColor={mmrRow ? "brand" : null}
@@ -253,7 +256,7 @@ export default async function PerfilPublicoPage(props: PageProps) {
 
           <div className="flex-1 min-w-0">
             <p className="font-sans text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
-              Perfil público
+              {t("publicKicker")}
             </p>
             <h1 className="mt-1 font-display text-4xl uppercase tracking-tight text-text-display truncate">
               {displayName}
@@ -300,7 +303,7 @@ export default async function PerfilPublicoPage(props: PageProps) {
           className="inline-flex items-center gap-2 font-sans text-sm uppercase tracking-widest text-text-muted hover:text-text-display transition-colors"
         >
           <ArrowLeft size={14} aria-hidden="true" />
-          Voltar ao ranking
+          {t("backToRanking")}
         </Link>
 
         {/* ----------------------------------------------------------------
@@ -310,10 +313,10 @@ export default async function PerfilPublicoPage(props: PageProps) {
             ---------------------------------------------------------------- */}
         <section>
           <h2 className="mb-4 font-sans text-sm font-semibold uppercase tracking-widest text-text-faded">
-            Temporada atual
+            {t("currentSeason")}
             {career && (
               <span className="ml-2 normal-case tracking-normal text-text-faded">
-                · veterania de carreira
+                {t("careerVeterancySuffix")}
               </span>
             )}
           </h2>
@@ -322,27 +325,27 @@ export default async function PerfilPublicoPage(props: PageProps) {
               career ? "xl:grid-cols-7" : ""
             }`}
           >
-            <StatCard label="MMR atual" value={mmrRow?.mmr ?? "—"} />
-            <StatCard label="Vitórias" value={mmrRow?.vitorias ?? 0} />
-            <StatCard label="Derrotas" value={mmrRow?.derrotas ?? 0} />
+            <StatCard label={t("statMmrAtual")} value={mmrRow?.mmr ?? "—"} />
+            <StatCard label={t("statVitorias")} value={mmrRow?.vitorias ?? 0} />
+            <StatCard label={t("statDerrotas")} value={mmrRow?.derrotas ?? 0} />
             <StatCard
-              label="Win rate"
+              label={t("statWinRate")}
               value={winRate !== null ? `${winRate}%` : "—"}
             />
             {career && (
               <>
                 <StatCard
-                  label="Abates"
+                  label={t("statKills")}
                   value={career.totals.kills.toLocaleString("pt-BR")}
                   gold
                 />
                 <StatCard
-                  label="Assistências"
+                  label={t("statAssists")}
                   value={career.totals.assists.toLocaleString("pt-BR")}
                   gold
                 />
                 <StatCard
-                  label="Last hits"
+                  label={t("statLastHits")}
                   value={career.totals.lastHits.toLocaleString("pt-BR")}
                   gold
                 />
@@ -357,26 +360,26 @@ export default async function PerfilPublicoPage(props: PageProps) {
         <section>
           <div className="mb-4 flex items-center justify-between">
             <h2 className="font-sans text-sm font-semibold uppercase tracking-widest text-text-faded">
-              Stats expandidos
+              {t("expandedStats")}
             </h2>
             {externalStats && (
               <span className="font-display font-semibold text-sm uppercase tracking-wide text-text-faded">
-                Fonte: {externalStats.source}
+                {t("sourceLabel", { source: externalStats.source })}
               </span>
             )}
           </div>
           {externalStats ? (
             <div className="grid gap-4 md:grid-cols-3">
-              <StatCard label="KDA médio" value={externalStats.avgKDA.toFixed(2)} />
-              <StatCard label="GPM médio" value={Math.round(externalStats.avgGPM)} />
-              <StatCard label="XPM médio" value={Math.round(externalStats.avgXPM)} />
+              <StatCard label={t("statAvgKda")} value={externalStats.avgKDA.toFixed(2)} />
+              <StatCard label={t("statAvgGpm")} value={Math.round(externalStats.avgGPM)} />
+              <StatCard label={t("statAvgXpm")} value={Math.round(externalStats.avgXPM)} />
             </div>
           ) : (
             <Card variant="flat">
               <CardContent>
                 <EmptyState
-                  title="Sem stats externos disponíveis"
-                  description="Configure STRATZ_API_KEY ou OPENDOTA_API_KEY no .env, ou perfil Steam não tem partidas públicas."
+                  title={t("noExternalStatsTitle")}
+                  description={t("noExternalStatsDesc")}
                   icon={<FileQuestion />}
                 />
               </CardContent>
@@ -392,10 +395,11 @@ export default async function PerfilPublicoPage(props: PageProps) {
         {career && career.topHeroes.length > 0 ? (
           <section>
             <h2 className="mb-4 font-sans text-sm font-semibold uppercase tracking-widest text-text-faded">
-              Heróis de assinatura
+              {t("signatureHeroes")}
               <span className="ml-2 normal-case tracking-normal">
-                · fonte: STRATZ/OpenDota · sincronizado{" "}
-                {new Date(career.syncedAt).toLocaleDateString("pt-BR")}
+                {t("signatureHeroesSource", {
+                  date: new Date(career.syncedAt).toLocaleDateString("pt-BR"),
+                })}
               </span>
             </h2>
             <SignatureHeroesStrip career={career} className="flex-wrap" />
@@ -403,7 +407,7 @@ export default async function PerfilPublicoPage(props: PageProps) {
         ) : externalStats && externalStats.topHeroes.length > 0 ? (
           <section>
             <h2 className="mb-4 font-sans text-sm font-semibold uppercase tracking-widest text-text-faded">
-              Heróis mais jogados
+              {t("mostPlayedHeroes")}
             </h2>
             <div className="grid gap-3 md:grid-cols-5">
               {externalStats.topHeroes.map((h) => (
@@ -417,13 +421,17 @@ export default async function PerfilPublicoPage(props: PageProps) {
                   <Card variant="interactive">
                     <CardContent className="space-y-1">
                       <p className="font-display font-semibold text-sm uppercase tracking-wide text-text-faded">
-                        Herói #{h.heroId}
+                        {t("heroNumber", { id: h.heroId })}
                       </p>
                       <p className="font-display text-2xl text-text-display">
                         {h.winRate}%
                       </p>
                       <p className="font-display font-semibold text-sm uppercase tracking-wide text-text-muted">
-                        {h.wins}V / {h.matches - h.wins}D em {h.matches}
+                        {t("heroRecord", {
+                          wins: h.wins,
+                          losses: h.matches - h.wins,
+                          matches: h.matches,
+                        })}
                       </p>
                     </CardContent>
                   </Card>
@@ -438,7 +446,7 @@ export default async function PerfilPublicoPage(props: PageProps) {
             ---------------------------------------------------------------- */}
         <section>
           <h2 className="mb-4 font-sans text-sm font-semibold uppercase tracking-widest text-text-faded">
-            Badges conquistadas{" "}
+            {t("badgesEarned")}{" "}
             <span className="text-text-faded">({userBadges.length})</span>
           </h2>
           {userBadges.length > 0 ? (
@@ -451,8 +459,8 @@ export default async function PerfilPublicoPage(props: PageProps) {
             <Card variant="flat" className="border-dashed">
               <CardContent>
                 <EmptyState
-                  title="Nenhuma badge ainda"
-                  description="Jogue partidas e demonstre conduta para conquistar badges."
+                  title={t("noBadgesTitle")}
+                  description={t("noBadgesDesc")}
                   icon={<Trophy />}
                 />
               </CardContent>
@@ -465,14 +473,14 @@ export default async function PerfilPublicoPage(props: PageProps) {
             ---------------------------------------------------------------- */}
         <section>
           <h2 className="mb-4 font-sans text-sm font-semibold uppercase tracking-widest text-text-faded">
-            Identidades vinculadas
+            {t("linkedIdentities")}
           </h2>
           <div className="flex flex-wrap gap-3">
             <span className="inline-flex items-center rounded-md border border-border-brand bg-bg-elevated px-4 py-2 font-mono text-sm 2xl:text-base text-text-display">
-              Steam: {params.steamid}
+              {t("steamLabel", { value: params.steamid })}
             </span>
             <span className="inline-flex items-center rounded-md border border-border-subtle bg-bg-elevated px-4 py-2 font-display text-sm 2xl:text-base font-semibold text-text-body">
-              Discord: {profile?.username ?? "—"}
+              {t("discordLabel", { value: profile?.username ?? "—" })}
             </span>
           </div>
         </section>

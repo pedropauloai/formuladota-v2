@@ -9,6 +9,7 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { RefreshCw } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { Tooltip } from "@/components/ui/tooltip";
@@ -18,17 +19,18 @@ export function SyncSteamButton() {
   const router = useRouter();
   const { toast } = useToast();
   const [pending, startTransition] = useTransition();
+  const t = useTranslations("perfil");
 
   function handleSync() {
     startTransition(async () => {
       const changed = await syncSteamIdentityNow();
       if (changed) {
-        toast({ type: "success", title: "Identidade sincronizada com a Steam." });
+        toast({ type: "success", title: t("steamSyncedToast") });
         router.refresh();
       } else {
         toast({
           type: "info",
-          title: "Nada a atualizar — seu perfil já reflete a Steam.",
+          title: t("steamNothingToSyncToast"),
         });
       }
     });
@@ -36,7 +38,7 @@ export function SyncSteamButton() {
 
   return (
     <Tooltip
-      content="Sincronizar nick e foto com a Steam agora"
+      content={t("steamSyncTooltip")}
       side="bottom"
       focusable={false}
     >
@@ -44,7 +46,7 @@ export function SyncSteamButton() {
         type="button"
         onClick={handleSync}
         disabled={pending}
-        aria-label="Sincronizar identidade com a Steam"
+        aria-label={t("steamSyncAria")}
         className="text-text-faded transition-colors hover:text-text-display disabled:opacity-50"
       >
         <RefreshCw
