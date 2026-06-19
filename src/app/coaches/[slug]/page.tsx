@@ -16,6 +16,7 @@
 
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { displayAvatar, displayName } from "@/lib/identity";
 import { ClientShell } from "@/components/client-shell/shell";
@@ -89,6 +90,7 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const supabase = await createClient();
+  const t = await getTranslations("misc");
 
   const { data: coach } = await supabase
     .from("coaches")
@@ -98,7 +100,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     .maybeSingle();
 
   if (!coach) {
-    return { title: "PRO não encontrado — FORMULADOTA" };
+    return { title: t("coachNotFoundTitle") };
   }
 
   // Nome canônico no <title>: Steam (persona) > Discord (username) > slug.
@@ -118,10 +120,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const name = steamLink?.persona?.trim() || profile?.username || slug;
 
   return {
-    title: `${name} — PRO FORMULADOTA`,
-    description:
-      coach.bio ??
-      `Mentoria Dota 2 com ${name}. Veja tier HONOR, preço por ficha e histórico de preços.`,
+    title: t("coachPageTitle", { name }),
+    description: coach.bio ?? t("coachPageDescription", { name }),
   };
 }
 
@@ -132,6 +132,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function CoachProfilePage({ params }: PageProps) {
   const { slug } = await params;
   const supabase = await createClient();
+  const t = await getTranslations("misc");
 
   // Busca coach básico
   const { data: coach } = await supabase
@@ -250,14 +251,14 @@ export default async function CoachProfilePage({ params }: PageProps) {
           ---------------------------------------------------------------- */}
       <section
         className="rounded-xl border border-border-subtle bg-bg-elevated p-6"
-        aria-label="Identidade do PRO"
+        aria-label={t("coachIdentityAria")}
       >
         <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">
           {/* Avatar */}
           <div className="flex-shrink-0">
             <UserAvatar
               src={coachAvatar ?? undefined}
-              alt={`Avatar de ${coachName}`}
+              alt={t("coachAvatarAlt", { name: coachName })}
               fallback={coachName.slice(0, 2).toUpperCase()}
               size="xl"
               ringColor="brand"
@@ -273,11 +274,11 @@ export default async function CoachProfilePage({ params }: PageProps) {
               </h1>
               {isFounder && (
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-sm font-medium uppercase tracking-wider bg-brand-purple/15 text-brand-purple border border-brand-purple/30">
-                  Founder
+                  {t("coachFounderBadge")}
                 </span>
               )}
               <span className="inline-flex items-center px-2 py-0.5 rounded-full text-sm font-medium uppercase tracking-wider bg-success/15 text-success border border-success/30">
-                PRO Ativo
+                {t("coachProActiveBadge")}
               </span>
             </div>
 
@@ -298,7 +299,7 @@ export default async function CoachProfilePage({ params }: PageProps) {
                 <DotaRankMedal rank={dotaRank} size="md" />
                 <div className="flex flex-col">
                   <span className="text-sm uppercase tracking-wider text-text-muted">
-                    Rank Dota 2
+                    {t("coachDotaRankLabel")}
                   </span>
                   <span className="text-sm 2xl:text-base font-mono text-text-body">
                     {profile.mmr_atual ? `${profile.mmr_atual} MMR` : "—"}
@@ -322,10 +323,11 @@ export default async function CoachProfilePage({ params }: PageProps) {
 
             {/* Data de promoção */}
             <p className="text-sm 2xl:text-base text-text-subtle font-mono">
-              PRO desde{" "}
-              {new Date(promo.promoted_at).toLocaleDateString("pt-BR", {
-                month: "long",
-                year: "numeric",
+              {t("coachProSince", {
+                date: new Date(promo.promoted_at).toLocaleDateString("pt-BR", {
+                  month: "long",
+                  year: "numeric",
+                }),
               })}
             </p>
           </div>
@@ -337,14 +339,14 @@ export default async function CoachProfilePage({ params }: PageProps) {
           ---------------------------------------------------------------- */}
       <section
         className="grid grid-cols-2 gap-4 sm:grid-cols-3"
-        aria-label="Estatísticas do PRO"
+        aria-label={t("coachStatsAria")}
       >
         <div className="rounded-xl border border-border-subtle bg-bg-elevated p-4 text-center">
           <span className="text-2xl font-display font-bold text-brand-cyan">
             {totalMatches ?? 0}
           </span>
           <p className="text-sm uppercase tracking-wider text-text-muted mt-1">
-            Partidas como PRO
+            {t("coachMatchesAsPro")}
           </p>
         </div>
         <div className="rounded-xl border border-border-subtle bg-bg-elevated p-4 text-center">
@@ -352,7 +354,7 @@ export default async function CoachProfilePage({ params }: PageProps) {
             {honorScore ?? 1000}
           </span>
           <p className="text-sm uppercase tracking-wider text-text-muted mt-1">
-            Pontos HONOR
+            {t("coachHonorPoints")}
           </p>
         </div>
         <div className="rounded-xl border border-border-subtle bg-bg-elevated p-4 text-center col-span-2 sm:col-span-1">
@@ -360,7 +362,7 @@ export default async function CoachProfilePage({ params }: PageProps) {
             {tierLabel}
           </span>
           <p className="text-sm uppercase tracking-wider text-text-muted mt-1">
-            Tier HONOR
+            {t("coachHonorTier")}
           </p>
         </div>
       </section>
@@ -371,20 +373,20 @@ export default async function CoachProfilePage({ params }: PageProps) {
       {mainPackage ? (
         <section
           className="rounded-xl border border-brand-cyan/30 bg-bg-elevated p-6 flex flex-col gap-4"
-          aria-label="Preço e compra de ficha"
+          aria-label={t("coachPriceBuyAria")}
         >
           <div className="flex items-start justify-between flex-wrap gap-4">
             <div>
               <h2 className="font-display text-base uppercase tracking-widest text-text-display">
                 {mainPackage.nome}
               </h2>
-              <p className="text-sm 2xl:text-base text-text-muted mt-0.5">Ficha de vaga em partida PRO</p>
+              <p className="text-sm 2xl:text-base text-text-muted mt-0.5">{t("coachFichaSubtitle")}</p>
             </div>
             <div className="text-right">
               <span className="font-display text-3xl font-bold text-brand-cyan">
                 R$ {Number(mainPackage.preco_brl).toFixed(2)}
               </span>
-              <p className="text-sm 2xl:text-base text-text-muted font-mono">por ficha</p>
+              <p className="text-sm 2xl:text-base text-text-muted font-mono">{t("coachPerFicha")}</p>
             </div>
           </div>
 
@@ -392,7 +394,7 @@ export default async function CoachProfilePage({ params }: PageProps) {
           {priceHistory.length > 0 && (
             <div className="border-t border-border-subtle pt-4">
               <p className="text-sm uppercase tracking-wider text-text-muted mb-2">
-                Histórico de preços
+                {t("coachPriceHistory")}
               </p>
               <div className="flex flex-col gap-1.5">
                 {priceHistory.map((entry, idx) => (
@@ -419,8 +421,7 @@ export default async function CoachProfilePage({ params }: PageProps) {
                 ))}
               </div>
               <p className="text-sm 2xl:text-base text-text-subtle italic mt-2">
-                Alunos que compraram anteriormente pagaram o preço vigente na época — sem
-                cobrança retroativa.
+                {t("coachNoRetroactive")}
               </p>
             </div>
           )}
@@ -437,18 +438,21 @@ export default async function CoachProfilePage({ params }: PageProps) {
               "focus:outline-none focus:ring-2 focus:ring-brand-cyan/50 focus:ring-offset-2 focus:ring-offset-bg-base"
             )}
           >
-            SUBIR DE MMR com {coachName} — R$ {Number(mainPackage.preco_brl).toFixed(2)}
+            {t("coachCtaRiseMmr", {
+              name: coachName,
+              price: Number(mainPackage.preco_brl).toFixed(2),
+            })}
           </a>
 
           {/* Subtexto honesto: tiers visíveis + sem promessa quantitativa */}
           <p className="text-sm 2xl:text-base text-text-subtle text-center">
-            {tierLabel} HONOR · {profile.mmr_atual ? `${profile.mmr_atual} MMR` : "Imortal"} · Pagamento via PIX — vaga liberada após confirmação.
+            {tierLabel} HONOR · {profile.mmr_atual ? `${profile.mmr_atual} MMR` : t("coachImmortalFallback")} · {t("coachPixNote")}
           </p>
         </section>
       ) : (
         <section className="rounded-xl border border-border-subtle bg-bg-elevated p-6 text-center">
           <p className="text-text-muted text-sm 2xl:text-base">
-            Nenhum package disponível no momento. Volte em breve.
+            {t("coachNoPackage")}
           </p>
         </section>
       )}
@@ -457,9 +461,7 @@ export default async function CoachProfilePage({ params }: PageProps) {
           Disclaimer filosófico (texto leve, não intrusivo)
           ---------------------------------------------------------------- */}
       <p className="text-sm 2xl:text-base text-text-subtle text-center italic px-4">
-        Preço definido pelo próprio PRO dentro dos limites do sistema de reputação FormulaDota.
-        Subir de tier HONOR é o único caminho para desbloquear ceiling maior — reputação precede
-        preço.
+        {t("coachReputationDisclaimer")}
       </p>
       </main>
     </ClientShell>

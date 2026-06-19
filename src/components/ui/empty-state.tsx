@@ -2,17 +2,12 @@
 
 import * as React from "react";
 import { type LucideIcon, FileQuestion } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { FadeIn } from "@/components/ui/motion/fade-in";
 import { cn } from "@/lib/utils";
 import { PRINCIPLES } from "@/lib/doctrine";
 
 // ─── Tipos ───────────────────────────────────────────────────────────────────
-
-interface ResolvedPrinciple {
-  id: number;
-  title: string;
-  body: string;
-}
 
 export interface EmptyStateProps {
   /** Título principal — fonte Cinzel/display, texto curto e direto */
@@ -40,27 +35,25 @@ export interface EmptyStateProps {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function resolvePrinciple(
+// Resolve apenas o ID (1-14) do princípio a exibir. O texto (title/body) é
+// renderizado via t("doctrine.principle.<id>....") no componente, pra i18n.
+function resolvePrincipleId(
   ref: number | "random" | undefined
-): ResolvedPrinciple | null {
+): number | null {
   if (ref === undefined || !PRINCIPLES || PRINCIPLES.length === 0) return null;
 
   if (ref === "random") {
     const idx = Math.floor(Math.random() * PRINCIPLES.length);
-    const p = PRINCIPLES[idx];
-    if (!p) return null;
-    return { id: p.id, title: p.title, body: p.body };
+    return PRINCIPLES[idx]?.id ?? null;
   }
 
   // Busca pelo id declarado (1-14), não pelo índice
   const found = PRINCIPLES.find((p) => p.id === ref);
-  if (found) return { id: found.id, title: found.title, body: found.body };
+  if (found) return found.id;
 
   // Fallback: clamp por índice se id não encontrar
   const idx = Math.max(0, Math.min(PRINCIPLES.length - 1, ref - 1));
-  const p = PRINCIPLES[idx];
-  if (!p) return null;
-  return { id: p.id, title: p.title, body: p.body };
+  return PRINCIPLES[idx]?.id ?? null;
 }
 
 // ─── Componente ──────────────────────────────────────────────────────────────
@@ -98,8 +91,9 @@ export function EmptyState({
   action,
   className,
 }: EmptyStateProps) {
+  const td = useTranslations("doctrine");
   // Princípio resolvido em render (random re-resolve a cada mount — comportamento esperado)
-  const principleRef = resolvePrinciple(principle);
+  const principleId = resolvePrincipleId(principle);
 
   return (
     <FadeIn
@@ -138,16 +132,17 @@ export function EmptyState({
       </div>
 
       {/* Princípio da doutrina — citação destacada */}
-      {principleRef && (
+      {principleId !== null && (
         <blockquote
           className="mt-2 max-w-md border-l-2 border-primary pl-4 py-2 text-left"
-          aria-label={`Princípio ${principleRef.id} da Fórmula do Dota`}
+          aria-label={td("principleAriaLabel", { id: principleId })}
         >
           <p className="text-sm font-display uppercase tracking-widest text-primary mb-1 font-medium">
-            Princípio {principleRef.id} — {principleRef.title}
+            {td("principleLabel", { id: principleId })} —{" "}
+            {td(`principle.${principleId}.title`)}
           </p>
           <p className="text-sm text-muted-foreground italic leading-relaxed">
-            {principleRef.body}
+            {td(`principle.${principleId}.body`)}
           </p>
         </blockquote>
       )}

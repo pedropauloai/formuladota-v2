@@ -6,6 +6,7 @@
 //
 // Layout cinematográfico "New Frontiers" (igual /metodologia e /codigo-de-conduta).
 
+import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Swords, ShieldOff, Lock, Globe, Fingerprint, RotateCcw, Trophy } from "lucide-react";
 import { ClientShell } from "@/components/client-shell/shell";
@@ -20,50 +21,36 @@ import {
 } from "@/components/frontier";
 import { signInWithDiscord } from "@/app/login/actions";
 
-export const metadata = {
-  title: "Por que FormulaDota — não é você, é o sistema",
-  description:
-    "O ambiente competitivo oficial do Dota 2 tem três falhas estruturais: anonimato, topo fechado e ranking fragmentado. A FormulaDota constrói o ambiente que falta — identidade real, temporadas que reiniciam e ranking único.",
-};
+export async function generateMetadata() {
+  const t = await getTranslations("manifesto");
+  return {
+    title: t("metaTitle"),
+    description: t("metaDescription"),
+  };
+}
 
 // Cada par: a falha da Valve (o que ela produz) × a resposta da FormulaDota.
+// Só os ÍCONES e a chave (id) vivem aqui; o TEXTO vem do namespace "manifesto".
 const COMPARISONS = [
   {
+    id: "anonimato",
     problemIcon: ShieldOff,
-    problemTitle: "Anonimato",
-    problemLine: "Ninguém é ninguém.",
-    problemBody:
-      "Sem identidade real, a toxicidade não tem consequência. Flame, smurf, evasão de punição — tudo sem rosto, sem reputação, sem custo. O anônimo não tem nada a perder.",
     solutionIcon: Fingerprint,
-    solutionTitle: "Identidade real",
-    solutionBody:
-      "1 pessoa, 1 identidade — pública, única, com reputação atrelada. O anonimato é proibido. Quem age mal responde, com nome. Quem joga certo, constrói história.",
   },
   {
+    id: "topo",
     problemIcon: Lock,
-    problemTitle: "O topo é fechado",
-    problemLine: "Um novato nunca chega ao nº 1.",
-    problemBody:
-      "Sem reset de verdade, o MMR infla e o topo fica eternamente nas mãos de quem acumulou por anos. Não importa o quanto você evolua — a porta do topo já fechou antes de você chegar.",
     solutionIcon: RotateCcw,
-    solutionTitle: "Temporadas que reiniciam",
-    solutionBody:
-      "Todo ciclo recomeça. O topo é reconquistado a cada temporada, não herdado. Um jogador comprometido — mesmo começando agora — tem um caminho real até o nº 1.",
   },
   {
+    id: "regiao",
     problemIcon: Globe,
-    problemTitle: "Mundos separados",
-    problemLine: "Não existe “o melhor do mundo”.",
-    problemBody:
-      "O ranking é fragmentado por região. Comunidades isoladas, sem um eixo comum, sem uma corrida única que valha pra todos. “Top da América” não conversa com “top da Europa”.",
     solutionIcon: Trophy,
-    solutionTitle: "Ranking único",
-    solutionBody:
-      "Uma corrida só, sem fronteira de região. Um eixo comum pra todo mundo que joga sob a mesma doutrina — onde o nº 1 significa, de verdade, o nº 1.",
   },
 ] as const;
 
 export default async function ManifestoPage() {
+  const t = await getTranslations("manifesto");
   return (
     <ClientShell currentRoute="/manifesto" hideRightSidebar>
       <div className="relative w-full bg-bg-deep">
@@ -72,14 +59,13 @@ export default async function ManifestoPage() {
         <div className="relative z-10">
           {/* HERO */}
           <FrontierHero
-            eyebrow="Por que FormulaDota"
-            title={
-              <>
-                Não é você.{" "}
-                <span className="text-brand-primary">É o sistema.</span>
-              </>
-            }
-            subtitle="O Dota é um dos melhores jogos do mundo. O que está quebrado é o ambiente competitivo da Valve — e até as lendas estão indo embora."
+            eyebrow={t("heroEyebrow")}
+            title={t.rich("heroTitle", {
+              red: (chunks) => (
+                <span className="text-brand-primary">{chunks}</span>
+              ),
+            })}
+            subtitle={t("heroSubtitle")}
             backgroundImage={FRONTIER_ASSETS.mapBanner}
           />
 
@@ -95,26 +81,25 @@ export default async function ManifestoPage() {
                   loading="lazy"
                 />
                 <figcaption className="mt-2 font-display text-[10px] uppercase tracking-wide text-text-faded">
-                  Foto: Wikimedia Commons
+                  {t("photoCredit")}
                 </figcaption>
               </figure>
 
               <div className="space-y-4">
                 <blockquote className="font-display text-2xl font-bold leading-tight text-text-display md:text-3xl">
                   <span className="text-brand-primary">
-                    “Eu amo Dota 2. Mas isso pode ser o fim.”
+                    {t("grubbyQuote")}
                   </span>
                 </blockquote>
                 <p className="font-display text-sm font-semibold uppercase tracking-[0.25em] text-text-muted">
                   Manuel “Grubby” Schenkhuizen
                 </p>
                 <p className="max-w-2xl font-body text-base leading-relaxed text-text-muted 2xl:text-lg">
-                  Lenda dos esports — múltiplas vezes campeão mundial de Warcraft III
-                  e referência em{" "}
-                  <strong className="text-text-body">mentalidade positiva</strong>.
-                  Quando o jogador mais equilibrado do cenário — justo o que ensina a
-                  manter a cabeça boa — é expulso pela toxicidade, fica provado: não é
-                  o jogador, é o sistema sem regras.
+                  {t.rich("grubbyBody", {
+                    em: (chunks) => (
+                      <strong className="text-text-body">{chunks}</strong>
+                    ),
+                  })}
                 </p>
               </div>
             </div>
@@ -137,24 +122,34 @@ export default async function ManifestoPage() {
           <FrontierSection
             id="comparativo"
             index="01"
-            title="Três falhas. Três respostas."
-            intro="O matchmaking oficial da Valve tem três falhas estruturais. Não são bugs — são escolhas de design que produzem o ambiente que afasta quem leva o jogo a sério. A FormulaDota não tenta consertar a Valve: constrói o ambiente que ela deveria ter."
+            title={t("comparisonTitle")}
+            intro={t("comparisonIntro")}
             width="wide"
           >
             <div className="space-y-5">
               {COMPARISONS.map((c) => (
-                <ComparisonRow key={c.problemTitle} item={c} />
+                <ComparisonRow
+                  key={c.id}
+                  item={c}
+                  naValve={t("naValve")}
+                  naFormulaDota={t("naFormulaDota")}
+                  problemTitle={t(`row.${c.id}.problemTitle`)}
+                  problemLine={t(`row.${c.id}.problemLine`)}
+                  problemBody={t(`row.${c.id}.problemBody`)}
+                  solutionTitle={t(`row.${c.id}.solutionTitle`)}
+                  solutionBody={t(`row.${c.id}.solutionBody`)}
+                />
               ))}
             </div>
           </FrontierSection>
 
           {/* FECHAMENTO */}
-          <FrontierStatement attribution="A cultura é o produto. O Dota é o terreno.">
-            Você não está entrando num matchmaking. Está entrando num lugar com{" "}
-            <span className="text-brand-primary">
-              identidade, regras e consequência
-            </span>{" "}
-            — feito pra quem ainda se importa de verdade com o jogo.
+          <FrontierStatement attribution={t("statementAttribution")}>
+            {t.rich("statementBody", {
+              red: (chunks) => (
+                <span className="text-brand-primary">{chunks}</span>
+              ),
+            })}
           </FrontierStatement>
 
           {/* CTA */}
@@ -165,17 +160,17 @@ export default async function ManifestoPage() {
                   type="submit"
                   variant="cinematic"
                   size="lg"
-                  aria-label="Entrar com Discord"
+                  aria-label={t("ctaDiscord")}
                 >
                   <Swords size={22} aria-hidden="true" />
-                  Entrar com Discord
+                  {t("ctaDiscord")}
                 </Button>
               </form>
               <Link
                 href="/codigo-de-conduta"
                 className="font-display text-sm font-semibold text-brand-primary transition-colors hover:text-text-display"
               >
-                Conhecer a doutrina →
+                {t("ctaDoctrine")}
               </Link>
             </div>
           </section>
@@ -189,8 +184,22 @@ export default async function ManifestoPage() {
 // resposta da FormulaDota (tom da marca). No mobile empilha (falha em cima).
 function ComparisonRow({
   item,
+  naValve,
+  naFormulaDota,
+  problemTitle,
+  problemLine,
+  problemBody,
+  solutionTitle,
+  solutionBody,
 }: {
   item: (typeof COMPARISONS)[number];
+  naValve: string;
+  naFormulaDota: string;
+  problemTitle: string;
+  problemLine: string;
+  problemBody: string;
+  solutionTitle: string;
+  solutionBody: string;
 }) {
   const ProblemIcon = item.problemIcon;
   const SolutionIcon = item.solutionIcon;
@@ -201,17 +210,17 @@ function ComparisonRow({
         <div className="flex items-center gap-2 text-error">
           <ProblemIcon size={16} aria-hidden="true" />
           <span className="font-display text-sm font-semibold uppercase tracking-wide">
-            Na Valve
+            {naValve}
           </span>
         </div>
         <p className="font-display text-lg font-semibold uppercase tracking-wide text-text-display">
-          {item.problemTitle}
+          {problemTitle}
         </p>
         <p className="font-display text-base font-semibold italic text-text-faded 2xl:text-lg">
-          {item.problemLine}
+          {problemLine}
         </p>
         <p className="font-body text-base leading-relaxed text-text-muted 2xl:text-lg">
-          {item.problemBody}
+          {problemBody}
         </p>
       </div>
 
@@ -220,14 +229,14 @@ function ComparisonRow({
         <div className="flex items-center gap-2 text-brand-primary">
           <SolutionIcon size={16} aria-hidden="true" />
           <span className="font-display text-sm font-semibold uppercase tracking-wide">
-            Na FormulaDota
+            {naFormulaDota}
           </span>
         </div>
         <p className="font-display text-lg font-semibold uppercase tracking-wide text-text-display">
-          {item.solutionTitle}
+          {solutionTitle}
         </p>
         <p className="font-body text-base leading-relaxed text-text-body 2xl:text-lg">
-          {item.solutionBody}
+          {solutionBody}
         </p>
       </div>
     </div>

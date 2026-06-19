@@ -1363,5 +1363,385 @@
       "notePlaceholder": "Nota opcional (aparece no log)...",
       "strikeLeve": "Strike leve"
     }
+  },
+  "doctrine": {
+    "principleLabel": "Princípio {id}",
+    "principleAriaLabel": "Princípio {id} da Fórmula do Dota",
+    "principle": {
+      "1": {
+        "title": "A culpa NUNCA é do outro",
+        "body": "A responsabilidade é sempre sua, 100% das vezes. Apontar a culpa nos outros é a principal fonte de conflitos dentro de uma partida. Quando você para de olhar para os outros e passa a olhar para si mesmo, você começa a enxergar onde pode melhorar através da autocrítica."
+      },
+      "2": {
+        "title": "Frustração nasce de expectativas não correspondidas",
+        "body": "Esperar que aliados escolham os heróis que você gostaria, querer que eles façam jogadas da maneira que você faria, contar com uma ajuda específica que nunca vem — tudo isso gera frustração porque você projeta um resultado que não depende só de você. Treinar não criar expectativas em terceiros fortalece sua inteligência emocional durante as partidas."
+      },
+      "3": {
+        "title": "Paralaxe cognitiva",
+        "body": "Cada jogador interpreta o jogo de forma diferente, de acordo com sua própria perspectiva. Não existe uma verdade absoluta em cada jogada: o que parece certo para você pode não fazer sentido para o seu aliado naquele momento. Quanto mais você aceitar essa realidade, menos conflitos internos e externos surgirão — e melhor será sua performance."
+      },
+      "4": {
+        "title": "Errar é parte do aprendizado",
+        "body": "Não tenha medo dos erros, pois eles são o primeiro passo para a evolução — desde que você os reconheça e aprenda com eles."
+      },
+      "5": {
+        "title": "Ou você ganha, ou você aprende",
+        "body": "Haverá partidas em que, independentemente do que você faça, a derrota será inevitável. Mas isso não pode — e não deve — afetar sua constância. Cada derrota precisa ser vista como um ponto de evolução. Perder faz parte. Evoluir é uma escolha."
+      },
+      "6": {
+        "title": "Não é arrogância, é responsabilidade",
+        "body": "99,5% dos jogadores não sabem jogar Dota 2. Você se tornou superior aos demais 9 jogadores da sua partida — superior em conhecimento, controle emocional e capacidade de adaptação. Saber mais significa que agora é você quem carrega a vitória."
+      },
+      "7": {
+        "title": "Patrimônio (gold) por tempo é o KPI real",
+        "body": "Frag/KDA não define a sua performance — eles são apenas uma consequência. O verdadeiro indicador de desempenho é a quantidade de patrimônio líquido (gold) acumulado ou extraído do mapa em relação ao tempo. Por isso, o relógio deve ser o seu principal guia para tomar decisões."
+      },
+      "8": {
+        "title": "Metas mensuráveis (500 GPM)",
+        "body": "Como Core: 5.000 de ouro aos 10 minutos, 10.000 aos 20 minutos. Como Suporte: a metade — 2.500 aos 10 minutos e 5.000 aos 20 minutos. Esses números equivalem a 500 OPM (ouro por minuto), o mínimo aceitável para quem busca extrair ao máximo os recursos disponíveis no mapa."
+      },
+      "9": {
+        "title": "Jogar de Core é mais fácil",
+        "body": "Quanto mais patrimônio você acumula em menos tempo, mais simples se tornam suas decisões. Com mais recursos, você terá acesso a melhores itens, maior impacto nas lutas e conseguirá ditar o ritmo da partida."
+      },
+      "10": {
+        "title": "Mid é a melhor rota para evoluir",
+        "body": "Você não divide experiência com ninguém. É possível alcançar 1 nível por minuto — a corrida do nível. Se você ainda não alcançou Imortal, jogue no Mid até, no mínimo, atingir Divine. Esse é o caminho mais rápido e eficiente para desenvolver sua noção geral de Dota 2."
+      },
+      "11": {
+        "title": "Solo Mid OU grupo de 5",
+        "body": "Apenas duas configurações funcionam: 100% solo no Mid (com chat mutado nas configurações sociais) ou grupo de 5 pessoas. Qualquer outra combinação trava sua evolução porque mistura coordenação com isolamento."
+      },
+      "12": {
+        "title": "Smurfs propõem desafio",
+        "body": "A presença de smurfs não altera seu MMR nem seu processo de evolução. O smurf propõe um desafio — afinal, só é possível melhorar enfrentando pessoas melhores do que você. Mesmo que você perca 99% das partidas contra smurfs, sempre veja o lado positivo: ou você ganha, ou você aprende."
+      },
+      "13": {
+        "title": "70% win rate → +1000 MMR em 100 partidas",
+        "body": "Com 70% de win rate, em 100 partidas você terá 70 vitórias e 30 derrotas. Saldo positivo de 40 vitórias × 25 MMR = +1000 MMR. Jogando 5 partidas por dia, em 20 dias você completa as 100 partidas — e sobe 1000 de MMR. O segredo está em manter constância e seguir o método."
+      },
+      "14": {
+        "title": "Guardião → Divine em 2 meses",
+        "body": "Guardião está entre 800 e 1800 de MMR; Divine começa em 4600. Mantendo 70% de win rate, leva cerca de 300 partidas — jogando 5 por dia, aproximadamente 2 meses. Com método e disciplina, meses de frustração viram progresso real e palpável."
+      }
+    },
+    "antipattern": {
+      "1": {
+        "title": "Cultura da Culpa (Blame Culture)",
+        "ex0": "Culpar sempre os outros pelos próprios erros — \"mid diff\", \"pós 5 bot\", \"noob carry\".",
+        "ex1": "Mentalidade do \"eu joguei bem, o time que é ruim\".",
+        "ex2": "Incapacidade de assumir responsabilidade pelas próprias decisões."
+      },
+      "2": {
+        "title": "Desistência Precoce (Give Up Mentality)",
+        "ex0": "Aos 10-15 minutos, já escrevem \"gg go next\" no chat.",
+        "ex1": "Se recusam a lutar ou tentar virar a partida.",
+        "ex2": "Baseiam a derrota em pequenos erros ou desvantagens iniciais."
+      },
+      "3": {
+        "title": "Forçar Estratégias Inadequadas (Stubborn Playstyle)",
+        "ex0": "Insistência em táticas ou heróis fora do meta sem domínio.",
+        "ex1": "Falta de adaptação ao que a partida exige."
+      },
+      "4": {
+        "title": "Falta de Comunicação ou Comunicação Tóxica",
+        "ex0": "Ignoram completamente o chat e pings, ou usam apenas para xingar.",
+        "ex1": "Spammers de chat/voz que ofendem e atrapalham o time."
+      },
+      "5": {
+        "title": "Rage Quit / AFK Disfarçado",
+        "ex0": "Após morrer algumas vezes, vão farmar jungle sem interagir com o time.",
+        "ex1": "Largam o teclado e esperam a partida acabar."
+      },
+      "6": {
+        "title": "Feeding Intencional (Griefing)",
+        "ex0": "Por ego ferido ou birra, passam a morrer de propósito.",
+        "ex1": "Mentalidade: \"se não fizerem o que eu quero, vou feedar até acabar logo\".",
+        "directSeverityNote": "Feeding em partida com coach vai DIRETO para suspensão de 14 dias."
+      },
+      "7": {
+        "title": "Ego Inflado",
+        "ex0": "\"Eu merecia estar no Ancient/Divino, mas meu time me segura aqui.\"",
+        "ex1": "Usam isso como justificativa para atitudes tóxicas."
+      },
+      "8": {
+        "title": "Brigas por Função e Rota",
+        "ex0": "Disputam a mesma lane ou função já escolhida (2 mids, 3 carries).",
+        "ex1": "Mentalidade: \"se não for do meu jeito, não vai ser de ninguém\"."
+      },
+      "9": {
+        "title": "Desrespeito à Liderança (Anti-time)",
+        "ex0": "Recusam-se a ouvir calls ou seguir as jogadas do time.",
+        "ex1": "Jogam de forma egoísta, ignorando a equipe.",
+        "ex2": "Não aceitam sugestões, mesmo que educadas."
+      },
+      "10": {
+        "title": "Preconceito, Xenofobia e Racismo",
+        "ex0": "Comentários ofensivos sobre nacionalidades, sotaques e estilos de jogo.",
+        "ex1": "Exemplos: \"brasileiro só sabe feedar\", \"russo é tudo troll\", \"peruano lagado\".",
+        "ex2": "Contribuem para um ambiente tóxico e desrespeitoso.",
+        "directSeverityNote": "Banimento imediato. Sem advertência, sem segunda chance."
+      },
+      "11": {
+        "title": "Simulador de Herói",
+        "ex0": "Sabe usar as habilidades do herói mas joga sem objetivos do jogo (relógio, patrimônio, runas, altar da experiência).",
+        "ex1": "Reage às jogadas adversárias em vez de extrair patrimônio no menor tempo possível.",
+        "ex2": "A própria Valve já reconheceu: 99,5% dos jogadores não sabem jogar Dota 2 — jogam no automático."
+      },
+      "12": {
+        "title": "Criar Expectativas em Terceiros",
+        "ex0": "Esperar pull do suporte, gank do mid, ajuda específica de aliado que nunca vem.",
+        "ex1": "Distinto de \"frustração nasce de expectativas\" (princípio mental) — aqui é o COMPORTAMENTO ATIVO de projetar resultados em outros.",
+        "ex2": "Você pode (e deve) criar expectativas sobre você mesmo. Sobre outras pessoas, jamais."
+      },
+      "13": {
+        "title": "Vitimização Sistêmica",
+        "ex0": "Construir identidade crônica de vítima: \"o matchmake me persegue\", \"sempre tem azar do meu lado\", \"o Dota é injusto comigo\".",
+        "ex1": "Distinto de Cultura da Culpa (#1) — não é reação pontual a uma partida, é padrão recorrente.",
+        "ex2": "Toda vez que você perde e coloca a culpa nos outros, cria uma blindagem contra o próprio crescimento."
+      },
+      "14": {
+        "title": "Recusa de Auditoria Pós-Derrota",
+        "ex0": "Anti-padrão por OMISSÃO: não fazer a pergunta-pivô após cada derrota.",
+        "ex1": "A pergunta canônica: \"o que eu poderia ter feito diferente para ter ganho essa partida, mesmo com o time jogando mal?\"",
+        "ex2": "Sem auditoria, não há aprendizado — e sem aprendizado, derrota deixa de ser degrau e vira ciclo."
+      },
+      "15": {
+        "title": "Buscar Diversão em Espaço de Competição",
+        "ex0": "Entrar na FORMULADOTA buscando diversão viola o contrato cultural.",
+        "ex1": "Aqui não é ambiente para se divertir — é para aprender, evoluir e competir.",
+        "ex2": "Competição não está coligada com diversão. Quem quer se divertir, joga turbo ou casual."
+      }
+    },
+    "quote": {
+      "opening": "A ideia aqui não é te entreter — é te mudar por dentro, na forma de pensar, jogar e reagir ao Dota.",
+      "firstRule": "❗ A CULPA NUNCA É DO OUTRO ❗",
+      "frustration": "Frustração nasce de expectativas não correspondidas.",
+      "parallax": "Paralaxe cognitiva: cada jogador interpreta o jogo de forma diferente, de acordo com sua própria perspectiva.",
+      "errorIsLearning": "Errar faz parte do aprendizado. Não tenha medo dos erros — eles são o primeiro passo para a evolução, desde que você os reconheça e aprenda com eles.",
+      "winOrLearn": "Ou você ganha, ou você aprende. Perder faz parte. Evoluir é uma escolha.",
+      "responsibility": "Não é arrogância. É responsabilidade. Saber mais significa que agora é você quem carrega a vitória.",
+      "competitiveMindset": "A mentalidade aqui é competitiva. Em alguns momentos, você precisará deixar de lado hábitos ou preferências que não contribuem para sua evolução.",
+      "topPercent": "Você se tornou superior aos demais 9 jogadores da sua partida — superior em conhecimento, superior em controle emocional, superior em capacidade de adaptação.",
+      "mission": "Formar pelo menos 200 jogadores na medalha Imortal de forma 100% legítima."
+    },
+    "moderation": {
+      "step1": {
+        "label": "Advertência",
+        "description": "Primeira violação. Você recebe email + DM no Discord citando o princípio violado. Sua conta segue ativa."
+      },
+      "step2": {
+        "label": "Suspensão",
+        "description": "Segunda violação. Conta suspensa por 7 dias (configurável de 1 a 30 dias). Sem acesso a partidas, sessões ou compras durante o período."
+      },
+      "step3": {
+        "label": "Banimento",
+        "description": "Terceira violação. Banimento permanente. Saldo restante é refundado caso a caso, exceto em casos de fraude ou preconceito (sem refund)."
+      },
+      "reset": "180 dias sem novas violações zera seu contador automaticamente — você volta ao status normal."
+    }
+  },
+  "conduta": {
+    "metaTitle": "Código de Conduta — FORMULADOTA",
+    "metaDescription": "A Fórmula do Dota de Corrida — princípios, anti-padrões e sistema progressivo de moderação.",
+    "skipToContent": "Pular para o conteúdo",
+    "heroEyebrow": "Código de Conduta · v1",
+    "heroTitle": "A Fórmula do <red>Dota</red> de Corrida",
+    "firstRuleAttribution": "A responsabilidade é sempre sua, 100% das vezes",
+    "missionTitle": "A Missão",
+    "principlesTitle": "Os 14 Princípios",
+    "principlesIntro": "A Fórmula do Dota de Corrida — os princípios que regem a cultura. Mentais, técnicos e de progressão.",
+    "groupBehavioral": "Mentais e comportamentais",
+    "groupTechnical": "Técnicos e de execução",
+    "groupProgression": "Progressão",
+    "antipatternsTitle": "Os 15 Padrões Tóxicos",
+    "antipatternsIntro": "Comportamentos incompatíveis com a cultura da FORMULADOTA. Geram advertência, suspensão ou banimento conforme as regras abaixo.",
+    "moderationTitle": "Sistema Progressivo de Moderação",
+    "moderationIntro": "Toda violação registrada cita o princípio ou anti-padrão violado. Não é punição arbitrária — é aplicação da regra que você aceitou ao entrar.",
+    "resetLabel": "Reset automático:",
+    "appealLabel": "Direito ao contraditório:",
+    "appealBody": "você pode contestar qualquer decisão via Discord oficial. A equipe FORMULADOTA revisa caso a caso e reverte manualmente se entender que houve erro.",
+    "commitmentTitle": "Compromisso Final",
+    "ctaReadMethodology": "ler a metodologia →",
+    "ctaBackHome": "← voltar à home"
+  },
+  "manifesto": {
+    "metaTitle": "Por que FormulaDota — não é você, é o sistema",
+    "metaDescription": "O ambiente competitivo oficial do Dota 2 tem três falhas estruturais: anonimato, topo fechado e ranking fragmentado. A FormulaDota constrói o ambiente que falta — identidade real, temporadas que reiniciam e ranking único.",
+    "heroEyebrow": "Por que FormulaDota",
+    "heroTitle": "Não é você. <red>É o sistema.</red>",
+    "heroSubtitle": "O Dota é um dos melhores jogos do mundo. O que está quebrado é o ambiente competitivo da Valve — e até as lendas estão indo embora.",
+    "grubbyQuote": "“Eu amo Dota 2. Mas isso pode ser o fim.”",
+    "grubbyBody": "Lenda dos esports — múltiplas vezes campeão mundial de Warcraft III e referência em <em>mentalidade positiva</em>. Quando o jogador mais equilibrado do cenário — justo o que ensina a manter a cabeça boa — é expulso pela toxicidade, fica provado: não é o jogador, é o sistema sem regras.",
+    "photoCredit": "Foto: Wikimedia Commons",
+    "comparisonTitle": "Três falhas. Três respostas.",
+    "comparisonIntro": "O matchmaking oficial da Valve tem três falhas estruturais. Não são bugs — são escolhas de design que produzem o ambiente que afasta quem leva o jogo a sério. A FormulaDota não tenta consertar a Valve: constrói o ambiente que ela deveria ter.",
+    "naValve": "Na Valve",
+    "naFormulaDota": "Na FormulaDota",
+    "row": {
+      "anonimato": {
+        "problemTitle": "Anonimato",
+        "problemLine": "Ninguém é ninguém.",
+        "problemBody": "Sem identidade real, a toxicidade não tem consequência. Flame, smurf, evasão de punição — tudo sem rosto, sem reputação, sem custo. O anônimo não tem nada a perder.",
+        "solutionTitle": "Identidade real",
+        "solutionBody": "1 pessoa, 1 identidade — pública, única, com reputação atrelada. O anonimato é proibido. Quem age mal responde, com nome. Quem joga certo, constrói história."
+      },
+      "topo": {
+        "problemTitle": "O topo é fechado",
+        "problemLine": "Um novato nunca chega ao nº 1.",
+        "problemBody": "Sem reset de verdade, o MMR infla e o topo fica eternamente nas mãos de quem acumulou por anos. Não importa o quanto você evolua — a porta do topo já fechou antes de você chegar.",
+        "solutionTitle": "Temporadas que reiniciam",
+        "solutionBody": "Todo ciclo recomeça. O topo é reconquistado a cada temporada, não herdado. Um jogador comprometido — mesmo começando agora — tem um caminho real até o nº 1."
+      },
+      "regiao": {
+        "problemTitle": "Mundos separados",
+        "problemLine": "Não existe “o melhor do mundo”.",
+        "problemBody": "O ranking é fragmentado por região. Comunidades isoladas, sem um eixo comum, sem uma corrida única que valha pra todos. “Top da América” não conversa com “top da Europa”.",
+        "solutionTitle": "Ranking único",
+        "solutionBody": "Uma corrida só, sem fronteira de região. Um eixo comum pra todo mundo que joga sob a mesma doutrina — onde o nº 1 significa, de verdade, o nº 1."
+      }
+    },
+    "statementAttribution": "A cultura é o produto. O Dota é o terreno.",
+    "statementBody": "Você não está entrando num matchmaking. Está entrando num lugar com <red>identidade, regras e consequência</red> — feito pra quem ainda se importa de verdade com o jogo.",
+    "ctaDiscord": "Entrar com Discord",
+    "ctaDoctrine": "Conhecer a doutrina →"
+  },
+  "metodologia": {
+    "metaTitle": "Metodologia — A Fórmula do Dota de Corrida",
+    "metaDescription": "A teoria por trás da Fórmula: por que Dota é jogo de corrida, por que patrimônio em relação ao tempo é o KPI universal, e por que a metodologia funciona além do jogo.",
+    "skipToContent": "Pular para o conteúdo",
+    "heroEyebrow": "Metodologia · v1",
+    "heroTitle": "A Teoria por Trás da <red>Fórmula</red>",
+    "heroSubtitle": "Por que Dota é jogo de corrida. Por que patrimônio em relação ao tempo é o KPI universal. Por que a metodologia funciona além do jogo.",
+    "thesisStatement": "“Dota 2 não é sobre matar heróis. É sobre <red>progredir o seu herói</red> de forma consistente e impedir a progressão consistente do adversário.”",
+    "s1Title": "A Tese Central",
+    "s1Intro": "A frase acima é o documento. Tudo o que vem depois é a prova de que ela é verdadeira.",
+    "s1Body": "Não é opinião. Não é estilo de jogo. Não é preferência. É o que o jogo <em>literalmente é</em> — pelo desenho que recebeu de quem o criou, pelas regras matemáticas que governam seu sistema, e pela lógica de tudo que acontece dentro dele. Quem entende isso, manipula resultados. Quem não entende, acha que está sendo perseguido pelo matchmaking.",
+    "s1Note": "“Permita-se questionar. Sobre tudo e qualquer coisa. Isso sim é o que evolui um ser. O FORMULADOTA é um lugar pra quem busca a verdadeira evolução.”",
+    "s2Title": "O Jogo de Corrida",
+    "s2Intro": "O que define o resultado de uma partida não é talento individual, herói escolhido ou número de kills — é velocidade de acúmulo de patrimônio em relação ao tempo.",
+    "s2Quote": "“Dota 2, assim como uma corrida de Fórmula 1, é sobre velocidade e eficiência — mas não essa velocidade que você pensa. Aqui a velocidade é medida pela sua capacidade de acumular patrimônio líquido ao longo do tempo da partida.”",
+    "s2Body": "<strong>O relógio é o juiz da partida.</strong> Não a kill feed, não o chat, não o palpite do seu suporte. O relógio. Cada minuto que passa sem você extrair recurso do mapa é minuto que seu adversário usou para extrair.",
+    "s2TableRole": "Função",
+    "s2TableGoal10": "Meta @ 10min",
+    "s2TableGoal20": "Meta @ 20min",
+    "s2TableGpm": "GPM",
+    "s2RowCore": "Core",
+    "s2RowCore10": "5.000 ouro",
+    "s2RowCore20": "10.000 ouro",
+    "s2RowSupport": "Suporte",
+    "s2RowSupport10": "2.500 ouro",
+    "s2RowSupport20": "5.000 ouro",
+    "s3Title": "Defense of the Ancients",
+    "s3Intro": "O nome do jogo é o argumento: defender o Ancient. Não acumular kills.",
+    "s3Body": "Antes de Dota 2 existir como jogo standalone da Valve, o conceito nasceu em 2003 como mapa customizado do Warcraft III: <strong>DotA — Defense of the Ancients</strong>. Os criadores originais (Eul, depois Guinsoo, depois IceFrog) nomearam o jogo pela alma do jogo: <strong>defender o Ancient</strong>.",
+    "s3Li0": "O objetivo final da partida é destruir o Ancient adversário, não acumular kills",
+    "s3Li1": "Para chegar ao Ancient adversário, você precisa defender o seu durante a partida inteira",
+    "s3Li2": "Quem morre 30 vezes mas mantém o Ancient de pé pode ganhar; quem mata 30 e perde o Ancient sempre perde",
+    "s3Close": "O jogo <strong>nasceu defensivo no DNA</strong>. Foi nomeado defensivo. É premiado defensivamente.",
+    "s4Title": "O Xadrez do Futuro",
+    "s4Intro": "Dota é o jogo mais complexo cognitivamente que a humanidade já desenhou — o último a cair pra inteligência artificial.",
+    "s4Quote": "“Dota 2 ele é um xadrez do futuro. E o xadrez ele foi primordial no desenvolvimento das inteligências artificiais. Cara, xadrez é muito difícil. DOTA 2 é mais difícil do que xadrez porque DOTA 2 é um xadrez do futuro.”",
+    "s4Body": "A prova é prática: a OpenAI gastou anos desenvolvendo redes neurais capazes de bater profissionais de Dota — primeira vitória de IA sobre time profissional em 2019. Xadrez foi resolvido em 1997. Go em 2016. Dota foi o último a cair.",
+    "s4Close": "<strong>Dota tem padrões emergentes.</strong> Por baixo das infinitas variáveis, há padrões que se repetem — runas de água, runas de efeito, altares, tormentor, power spikes. Quem reconhece os padrões, manipula resultados. Quem não reconhece, joga no automático e acha que tem azar.",
+    "billionsStatement": "Há mais de <red>8 bilhões</red> de pessoas no planeta, e <red>99,99%</red> são terríveis em Dota 2. A diferença entre elas e o topo nunca foi talento — é <red>método</red>.",
+    "s5Title": "Patrimônio Por Tempo é o KPI Universal",
+    "s5Intro": "Em maio de 2026, dados públicos da OpenDota registram 8.109.737 jogadores calibrados no mundo. A distribuição prova onde está a oportunidade.",
+    "s5TableMedal": "Medalha",
+    "s5TablePlayers": "Jogadores",
+    "s5TablePct": "% mundial",
+    "s5Body1": "<strong>56% dos jogadores do mundo</strong> estão em Guardian + Crusader + Archon — 4,5 milhões de pessoas presas no mesmo lugar. Esse é o público para quem a Fórmula foi desenhada.",
+    "s5Body2": "A diferença entre Archon e Divine não é talento. Não é ter tempo. É <strong>conhecer e aplicar a metodologia</strong>.",
+    "s5ShowcaseAlt": "Tela de matchmaking Immortal do Dota 2",
+    "s5ShowcaseCaption": "O topo do ranking — onde a Fórmula quer te levar.",
+    "s6Title": "Jogar no Erro do Adversário",
+    "s6Intro": "A maior parte das partidas é decidida por jogadores esperando o erro do adversário, não criando jogadas espetaculares.",
+    "s6Eyebrow": "A emboscada",
+    "s6BlockTitle": "O erro do outro é informação livre.",
+    "s6Quote": "“Vocês têm que aprender muito a arte de jogar no erro do seu adversário. Você não precisa fazer jogadas mirabolantes.”",
+    "s6Body": "Defender custa menos energia do que atacar. Erros do adversário são informação livre — você não paga energia para causá-los. Eles acontecem porque o adversário não tem a metodologia.",
+    "s6LayersLabel": "Manipulação em 3 camadas:",
+    "s6Layer0": "<strong>Mecânica (agro)</strong> — puxar agro de creep para ganhar trade na lane",
+    "s6Layer1": "<strong>Informacional</strong> — forçar o adversário a interpretar a partida de forma errada",
+    "s6Layer2": "<strong>Psicológica</strong> — punir o adversário no psicológico dele para que ele cometa o erro que você precisa",
+    "s6Close": "A Fórmula reconhece também que <strong>first blood importa</strong> — se você elimina um inimigo antes do combate começar, o resto da luta é 5x4. Mas o first blood que vale é o que se concretiza, não o que se tenta.",
+    "s7Title": "A Matemática da Evolução",
+    "s7Intro": "70% de win rate não é motivação — é aritmética que qualquer pessoa pode verificar.",
+    "s7Li0": "100 partidas a 70% = 70 vitórias, 30 derrotas",
+    "s7Li1": "Saldo líquido: 40 vitórias × 25 MMR = <strong>+1.000 MMR</strong>",
+    "s7Li2": "5 partidas/dia × 20 dias = 100 partidas",
+    "s7Li3": "<strong>20 dias para subir 1.000 MMR</strong>",
+    "s7PathLabel": "Aplicando ao caminho Guardião → Divine:",
+    "s7Path0": "Guardião: 800-1800 MMR",
+    "s7Path1": "Divine começa em 4600 MMR",
+    "s7Path2": "300 partidas a 70% wr = <strong>2 meses</strong>",
+    "s7Close": "Esses números são consequência matemática do compromisso. O que falta na maioria dos jogadores não é capacidade — é constância.",
+    "s7ShowcaseAlt": "Tela de criação de partidas (matchmaking) do Dota 2",
+    "s7ShowcaseCaption": "Partida após partida — é assim que a constância vira MMR.",
+    "s8Title": "Simulador de Herói",
+    "s8Intro": "A Valve publicou uma vez: “99,5% dos jogadores de Dota 2 não sabem jogar Dota 2.” A Fórmula chama esses 99,5% de simuladores de herói.",
+    "s8Eyebrow": "O simulador",
+    "s8BlockTitle": "Sabe tudo do herói. Nada do jogo.",
+    "s8Lead": "O simulador de herói é o jogador que:",
+    "s8Li0": "Sabe usar as habilidades do herói",
+    "s8Li1": "Sabe combar",
+    "s8Li2": "Sabe buildar items populares",
+    "s8Li3": "<strong>Mas joga sem objetivos do mapa</strong> — relógio, patrimônio, runas, altares, tormentor, roshan",
+    "s8Close": "99,5% dos jogadores fazem isso. A Fórmula é o salto desse 99,5% para os <strong>0,5% que entendem o jogo</strong>. E uma vez que você vê, você não desvê.",
+    "s9Title": "A Expansão da Percepção da Realidade",
+    "s9Intro": "Tudo o que foi articulado até aqui parece ser sobre Dota. Não é apenas sobre Dota.",
+    "s9Body": "Participar da Fórmula é um convite à expansão da percepção da realidade. O método que torna você melhor jogador é o mesmo método que torna você melhor profissional, melhor parceiro, melhor administrador da própria vida.",
+    "s9Li0": "<strong>Permitir-se questionar</strong> — o ato fundacional. Sem questionamento, não há reconhecimento de padrões, não há refinamento de método, não há autocrítica honesta.",
+    "s9Li1": "<strong>Buscar autoresponsabilidade</strong> — no Dota, “a culpa nunca é do outro”. Na vida, parar de atribuir fracassos à empresa, ao governo, à família, ao acaso.",
+    "s9Li2": "<strong>Praticar a não criação de expectativas em terceiros</strong> — calibrar expectativas apenas sobre si mesmo libera energia mental para construir.",
+    "s9Li3": "<strong>Reconhecer padrões em sistemas complexos</strong> — ver que mercados, relacionamentos e crescimento de carreira também têm padrões reconhecíveis.",
+    "s9Li4": "<strong>Disciplina sobre motivação</strong> — constância e método produzem resultados previsíveis em qualquer área.",
+    "s9Li5": "<strong>Defender mais do que atacar</strong> — princípio de vida sobre paciência estratégica que se aplica em negociações, conflitos, decisões de carreira.",
+    "s9Close": "A pessoa que sai do simulador de herói no Dota é a mesma que sai do <strong>simulador de vida</strong> em outras áreas. A Fórmula é o método. Dota 2 é o laboratório.",
+    "s10Title": "Conclusão",
+    "s10Intro": "Dota 2 não é um jogo de azar disfarçado de habilidade. É um jogo com lógica matemática verificável.",
+    "s10Body1": "Quem reconhece a lógica, manipula resultados. Quem não reconhece, atribui tudo a azar do matchmake.",
+    "s10Body2": "O FORMULADOTA não é um lugar para quem quer subir de medalha. É um lugar para <strong>quem busca a verdadeira evolução</strong> — começando pelo Dota, terminando na vida inteira.",
+    "s10Note": "“A ideia aqui não é te entreter — é te mudar por dentro, na forma de pensar, jogar e reagir ao Dota.”",
+    "s10Attribution": "— Pedro Paulo, autor da metodologia",
+    "ctaReadDoctrine": "ler a doutrina →",
+    "ctaBackHome": "← voltar à home"
+  },
+  "misc": {
+    "coachNotFoundTitle": "PRO não encontrado — FORMULADOTA",
+    "coachPageTitle": "{name} — PRO FORMULADOTA",
+    "coachPageDescription": "Mentoria Dota 2 com {name}. Veja tier HONOR, preço por ficha e histórico de preços.",
+    "coachIdentityAria": "Identidade do PRO",
+    "coachAvatarAlt": "Avatar de {name}",
+    "coachFounderBadge": "Founder",
+    "coachProActiveBadge": "PRO Ativo",
+    "coachDotaRankLabel": "Rank Dota 2",
+    "coachProSince": "PRO desde {date}",
+    "coachStatsAria": "Estatísticas do PRO",
+    "coachMatchesAsPro": "Partidas como PRO",
+    "coachHonorPoints": "Pontos HONOR",
+    "coachHonorTier": "Tier HONOR",
+    "coachPriceBuyAria": "Preço e compra de ficha",
+    "coachFichaSubtitle": "Ficha de vaga em partida PRO",
+    "coachPerFicha": "por ficha",
+    "coachPriceHistory": "Histórico de preços",
+    "coachNoRetroactive": "Alunos que compraram anteriormente pagaram o preço vigente na época — sem cobrança retroativa.",
+    "coachCtaRiseMmr": "SUBIR DE MMR com {name} — R$ {price}",
+    "coachImmortalFallback": "Imortal",
+    "coachPixNote": "Pagamento via PIX — vaga liberada após confirmação.",
+    "coachNoPackage": "Nenhum package disponível no momento. Volte em breve.",
+    "coachReputationDisclaimer": "Preço definido pelo próprio PRO dentro dos limites do sistema de reputação FormulaDota. Subir de tier HONOR é o único caminho para desbloquear ceiling maior — reputação precede preço.",
+    "prosEyebrow": "Quem te leva ao Imortal",
+    "prosHeading": "PROs certificados pela Fórmula",
+    "prosIntro": "PRO = Professor + Profissional + Pro-player. Cada PRO passou pela metodologia da Fórmula do Dota de Corrida e tem autoridade pra te conduzir dentro da PT.",
+    "prosFounder": "Fundador",
+    "prosPedroMeta": "PeterPPA · 29 anos · Imortal",
+    "prosPedroBio": "Criador da Fórmula do Dota de Corrida. Calibrou em 2.300 de MMR, hoje em 7.000. 15 anos jogando, 50.000+ horas, mais de 1.000 lobbies didáticos no YouTube.",
+    "prosPedroMmr": "7.000 MMR atual (Imortal Top 0.5%)",
+    "prosPedroHours": "15 anos · 50.000 horas",
+    "prosPedroCreator": "Criador da metodologia",
+    "prosComingSoon": "Em breve",
+    "prosNextCertified": "Próximo PRO certificado",
+    "prosBecomePro": "Quer ser PRO? Fale com o Pedro no Discord oficial. Network em formação — só jogadores alinhados culturalmente com a metodologia entram."
   }
 }
