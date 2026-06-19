@@ -1,25 +1,30 @@
 "use client";
 
-// Seletor de idioma PT | EN. Com prefixo de URL (localePrefix "as-needed"), trocar
-// de idioma NAVEGA pra mesma página na outra URL: PT em "/x", EN em "/en/x".
-// O next-intl cuida do prefixo e persiste a escolha no cookie NEXT_LOCALE.
+// Seletor de idioma PT | EN. Slugs traduzidos (sem /en):
+//   - Rotas com slug próprio (/torneios ↔ /tournaments): troca = navega pro slug.
+//   - Rotas compartilhadas (/, /dashboard, /ranking): URL não muda → grava o
+//     cookie NEXT_LOCALE e dá refresh (o middleware decide o idioma pelo cookie).
 
 import { useTransition } from "react";
 import { useLocale } from "next-intl";
-import { usePathname, useRouter } from "@/i18n/navigation";
-import { LOCALES, type Locale } from "@/i18n/config";
+import { useRouter, usePathname } from "next/navigation";
+import { localizePath, internalizePath } from "@/i18n/pathnames";
+import { LOCALES, LOCALE_COOKIE, type Locale } from "@/i18n/config";
 
 export function LanguageSwitcher({ className }: { className?: string }) {
   const current = useLocale() as Locale;
-  const pathname = usePathname();
   const router = useRouter();
+  const rawPath = usePathname();
   const [pending, startTransition] = useTransition();
 
   function change(next: Locale) {
     if (next === current || pending) return;
+    // Lembra a escolha — rotas compartilhadas resolvem o idioma pelo cookie.
+    document.cookie = `${LOCALE_COOKIE}=${next}; path=/; max-age=31536000; samesite=lax`;
+    const target = localizePath(internalizePath(rawPath), next);
     startTransition(() => {
-      // Mesma rota, outro idioma → URL muda (/x ↔ /en/x).
-      router.replace(pathname, { locale: next });
+      router.replace(target);
+      router.refresh();
     });
   }
 

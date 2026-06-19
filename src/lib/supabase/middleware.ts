@@ -2,7 +2,8 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { publicEnv } from "@/lib/env";
 import { DOCTRINE_VERSION } from "@/lib/doctrine";
-import { type Locale } from "@/i18n/config";
+import { type Locale, LOCALE_COOKIE, isLocale } from "@/i18n/config";
+import { internalizePath, localizePath, localeFromPath } from "@/i18n/pathnames";
 
 type CookieToSet = { name: string; value: string; options: CookieOptions };
 
@@ -94,28 +95,35 @@ function isPublicPath(pathname: string): boolean {
 // Chamado a partir de src/proxy.ts.
 export async function updateSession(request: NextRequest) {
   const rawPath = request.nextUrl.pathname;
-  // Prefixo /en explícito na URL? (só "en" é prefixado; "pt" é o default sem prefixo)
-  const pathHasEn = rawPath === "/en" || rawPath.startsWith("/en/");
-  const locale: Locale = pathHasEn ? "en" : "pt";
-  // Path "interno" (sem /en) — TODA a lógica de auth opera sobre ele.
-  const pathname = pathHasEn ? rawPath.replace(/^\/en/, "") || "/" : rawPath;
+  // Path "interno" (canônico PT, sem slug traduzido) — TODA a auth opera sobre ele.
+  const pathname = internalizePath(rawPath);
+
+  // Idioma: slug exclusivo de um idioma manda (/tournaments = en, /torneios = pt);
+  // rota compartilhada (/, /dashboard, /ranking) usa o cookie NEXT_LOCALE.
+  const slugLocale = localeFromPath(rawPath);
+  let locale: Locale;
+  if (slugLocale) {
+    locale = slugLocale;
+  } else {
+    const cookie = request.cookies.get(LOCALE_COOKIE)?.value;
+    locale = isLocale(cookie) ? cookie : "pt";
+  }
 
   // Header com o locale resolvido — lido por src/i18n/request.ts (next-intl).
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-fd-locale", locale);
 
-  // Prepende /en aos redirects quando o locale é EN (mantém o usuário no idioma).
-  const localizedUrl = (path: string) => {
-    const prefixed = locale === "en" ? `/en${path === "/" ? "" : path}` : path;
-    return new URL(prefixed, request.url);
-  };
+  // Redirects de auth → no slug do idioma atual (ex.: en → /profile, /code-of-conduct).
+  const localizedUrl = (path: string) =>
+    new URL(localizePath(path, locale), request.url);
 
   let response = NextResponse.next({ request: { headers: requestHeaders } });
 
-  // Resposta final de "permitir": EN reescreve /en/x → /x (serve a rota plana),
-  // carregando os cookies de sessão refrescados pelo Supabase. PT passa direto.
+  // Resposta final de "permitir": se a URL trazia slug traduzido, reescreve pro
+  // path interno (serve a rota plana) carregando os cookies de sessão do Supabase.
+  const needsRewrite = pathname !== rawPath;
   const allow = (): NextResponse => {
-    if (!pathHasEn) return response;
+    if (!needsRewrite) return response;
     const url = request.nextUrl.clone();
     url.pathname = pathname;
     const rewritten = NextResponse.rewrite(url, {
