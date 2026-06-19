@@ -18,6 +18,7 @@ import {
   Fingerprint,
   RotateCcw,
   Trophy,
+  Compass,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { signInWithDiscord } from "@/app/login/actions";
@@ -58,13 +59,13 @@ export function HubCenter({ isVisitor, prosOnlineCount }: HubCenterProps) {
       : `${prosOnlineCount} ${prosOnlineCount === 1 ? "PRO" : "PROs"} em fila agora`;
 
   return (
-    <section className="mx-auto flex min-h-full w-full max-w-6xl flex-col justify-center gap-7 px-6 py-8 2xl:gap-10 2xl:px-10 2xl:py-10">
+    <section className="mx-auto flex min-h-full w-full max-w-6xl flex-col justify-center gap-5 px-6 py-6 2xl:gap-8 2xl:px-10 2xl:py-10">
       {/* TESE — headline gigante + subtítulo + prova social */}
       <header className="space-y-3 2xl:space-y-5">
         <p className="font-display text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary 2xl:text-base">
           Por que FormulaDota
         </p>
-        <h1 className="font-display text-4xl font-bold uppercase leading-[0.92] tracking-tight text-text-display sm:text-5xl xl:text-6xl 2xl:text-8xl">
+        <h1 className="font-display text-4xl font-bold uppercase leading-[0.92] tracking-tight text-text-display sm:text-5xl 2xl:text-8xl">
           Não é você.{" "}
           <span
             className="text-brand-primary"
@@ -77,16 +78,6 @@ export function HubCenter({ isVisitor, prosOnlineCount }: HubCenterProps) {
           O Dota é um dos melhores jogos do mundo. O que quebra é o ambiente
           competitivo da Valve — até as lendas vão embora. Aqui, a cultura tem regras.
         </p>
-
-        {/* Prova social do Grubby — só em telas grandes (onde há espaço). */}
-        <blockquote className="hidden border-l-2 border-brand-primary/50 pl-4 2xl:block">
-          <p className="font-display text-lg italic text-text-muted 2xl:text-xl">
-            “Eu amo Dota 2. Mas isso pode ser o fim.”
-          </p>
-          <p className="mt-1 font-display text-xs font-semibold uppercase tracking-[0.2em] text-text-faded 2xl:text-sm">
-            Grubby — lenda dos esports, ao explicar por que parou de jogar
-          </p>
-        </blockquote>
       </header>
 
       {/* 3 PILARES — falha da Valve → resposta FormulaDota */}
@@ -133,6 +124,29 @@ export function HubCenter({ isVisitor, prosOnlineCount }: HubCenterProps) {
             </div>
           );
         })}
+      </div>
+
+      {/* DOUTRINA — a outra metade da tese: o sistema é justo (os 3 pilares) E
+          os jogadores jogam alinhados pelos fundamentos (Pedro 2026-06-19). */}
+      <div className="flex items-start gap-3 rounded-lg border border-brand-primary/30 bg-brand-primary/[0.06] px-4 py-3 2xl:items-center 2xl:py-4">
+        <Compass
+          size={20}
+          aria-hidden="true"
+          className="mt-0.5 shrink-0 text-brand-primary 2xl:mt-0 2xl:size-6"
+        />
+        <p className="font-display text-sm font-semibold leading-snug text-text-body 2xl:text-base">
+          <span className="font-bold uppercase text-text-display">
+            E não basta entrar:
+          </span>{" "}
+          aqui todo jogador domina os fundamentos da Fórmula do Dota de Corrida — a
+          mesma doutrina, as mesmas expectativas, todo mundo no mesmo jogo.{" "}
+          <Link
+            href="/codigo-de-conduta"
+            className="font-bold text-brand-primary transition-colors hover:text-text-display"
+          >
+            Conheça a doutrina →
+          </Link>
+        </p>
       </div>
 
       {/* CTA + aprofundamento + pulso da comunidade */}
