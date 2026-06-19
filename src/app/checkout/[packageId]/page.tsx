@@ -5,6 +5,7 @@
 
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { CheckoutClient } from "@/components/checkout/checkout-client";
 import { ClientShell } from "@/components/client-shell/shell";
@@ -14,12 +15,16 @@ interface PageProps {
   params: Promise<{ packageId: string }>;
 }
 
-export const metadata: Metadata = {
-  title: "Checkout — FORMULADOTA",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("billing");
+  return {
+    title: t("checkoutMetaTitle"),
+  };
+}
 
 export default async function CheckoutPage({ params }: PageProps) {
   const { packageId } = await params;
+  const t = await getTranslations("billing");
 
   const supabase = await createClient();
   const { data: pkg } = await supabase
@@ -39,13 +44,15 @@ export default async function CheckoutPage({ params }: PageProps) {
       <div className="px-4 py-10 mx-auto max-w-3xl">
         <header className="mb-8 text-center">
           <p className="font-sans text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
-            Checkout
+            {t("checkoutEyebrow")}
           </p>
           <h1 className="mt-2 font-display text-3xl md:text-4xl uppercase tracking-tight text-text-display">
-            Pagamento <span className="text-brand-primary">PIX</span>
+            {t.rich("checkoutTitle", {
+              pix: (chunks) => <span className="text-brand-primary">{chunks}</span>,
+            })}
           </h1>
           <p className="mt-2 text-sm text-text-muted">
-            Escaneie o QR Code ou copie o código no seu banco.
+            {t("checkoutSubtitle")}
           </p>
         </header>
 

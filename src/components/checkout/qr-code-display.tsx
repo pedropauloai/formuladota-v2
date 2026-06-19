@@ -5,6 +5,7 @@
 
 import { Copy, Check } from "lucide-react";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useToast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
 
@@ -15,18 +16,19 @@ interface QRCodeDisplayProps {
 }
 
 export function QRCodeDisplay({ brCode, brCodeBase64, expiresAt }: QRCodeDisplayProps) {
+  const t = useTranslations("billing");
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
-  const expiresFormatted = formatExpiresAt(expiresAt);
+  const expiresFormatted = formatExpiresAt(expiresAt, t("expiresFallback"));
 
   async function handleCopy() {
     try {
       await navigator.clipboard.writeText(brCode);
       setCopied(true);
-      toast({ type: "success", title: "Código PIX copiado!", description: "Cole no app do seu banco." });
+      toast({ type: "success", title: t("toastCopiedTitle"), description: t("toastCopiedDescription") });
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      toast({ type: "error", title: "Não consegui copiar. Selecione o código manualmente." });
+      toast({ type: "error", title: t("toastCopyError") });
       console.error("[QRCodeDisplay] clipboard falhou:", err);
     }
   }
@@ -34,11 +36,11 @@ export function QRCodeDisplay({ brCode, brCodeBase64, expiresAt }: QRCodeDisplay
   return (
     <div className="flex flex-col items-center gap-4">
       {/* QR Code PNG inline — fundo branco necessário para leitura pelo app de banco */}
-      <div className="bg-white p-4 rounded-lg" aria-label="QR Code PIX">
+      <div className="bg-white p-4 rounded-lg" aria-label={t("qrCodeAria")}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={brCodeBase64}
-          alt="QR Code PIX para pagamento"
+          alt={t("qrCodeAlt")}
           width={240}
           height={240}
           className="block"
@@ -46,16 +48,16 @@ export function QRCodeDisplay({ brCode, brCodeBase64, expiresAt }: QRCodeDisplay
       </div>
 
       <p className="text-sm text-[var(--color-muted-foreground)] text-center">
-        Escaneie o QR Code com o app do seu banco
-        <br />
-        ou copie o código abaixo:
+        {t.rich("scanInstruction", {
+          br: () => <br />,
+        })}
       </p>
 
       {/* Código PIX copia-e-cola em tag <code> para acessibilidade e font-mono */}
       <div className="w-full max-w-md">
         <code
           className="block px-3 py-2 bg-[var(--color-muted)] border border-[var(--color-border)] rounded text-sm font-mono break-all text-[var(--color-foreground)]"
-          aria-label="Código PIX copia-e-cola"
+          aria-label={t("pixCodeAria")}
         >
           {brCode}
         </code>
@@ -64,25 +66,25 @@ export function QRCodeDisplay({ brCode, brCodeBase64, expiresAt }: QRCodeDisplay
       <Button
         onClick={handleCopy}
         variant="ghost"
-        aria-label={copied ? "Código PIX copiado" : "Copiar código PIX"}
+        aria-label={copied ? t("copiedAria") : t("copyAria")}
       >
         {copied ? (
           <Check className="h-4 w-4 mr-2" aria-hidden="true" />
         ) : (
           <Copy className="h-4 w-4 mr-2" aria-hidden="true" />
         )}
-        {copied ? "Copiado!" : "Copiar código PIX"}
+        {copied ? t("copiedLabel") : t("copyLabel")}
       </Button>
 
       <p className="text-sm text-[var(--color-muted-foreground)]">
-        Expira em {expiresFormatted}
+        {t("expiresAt", { time: expiresFormatted })}
       </p>
     </div>
   );
 }
 
 // Formata ISO string em "HH:mm - DD/MM" no fuso local
-function formatExpiresAt(iso: string): string {
+function formatExpiresAt(iso: string, fallback: string): string {
   try {
     const d = new Date(iso);
     return new Intl.DateTimeFormat("pt-BR", {
@@ -92,6 +94,6 @@ function formatExpiresAt(iso: string): string {
       month: "2-digit",
     }).format(d);
   } catch {
-    return "1 hora";
+    return fallback;
   }
 }

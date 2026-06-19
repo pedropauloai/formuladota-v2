@@ -14,6 +14,7 @@
 
 import type { Metadata } from "next";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { PackageGrid } from "@/components/catalog/package-grid";
 import type { CoachInfo } from "@/components/catalog/package-card";
@@ -27,11 +28,13 @@ type ProfileRow = Pick<
   "id" | "username" | "avatar_url" | "is_admin"
 >;
 
-export const metadata: Metadata = {
-  title: "Pacotes — FORMULADOTA",
-  description:
-    "Mentoria 1-1 com coach Immortal (Top 0.5% / 7000 MMR). Pacotes avulsos a partir de R$ 10 ou mensal com sessões teóricas.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("billing");
+  return {
+    title: t("packagesMetaTitle"),
+    description: t("packagesMetaDescription"),
+  };
+}
 
 // Tipo composto Package + Coach (consumido pelo PackageGrid).
 // Exportado pra reuso em /admin (futuro) e tests.
@@ -106,20 +109,21 @@ export async function loadPackagesWithCoaches(
 export default async function PacotesPage() {
   const supabase = await createClient();
   const packagesWithCoach = await loadPackagesWithCoaches(supabase);
+  const t = await getTranslations("billing");
 
   return (
     <ClientShell currentRoute="/pacotes">
       <div className="px-4 py-10 md:py-14 mx-auto max-w-7xl">
         <header className="mb-10 md:mb-14 text-center space-y-3">
           <p className="font-display text-sm uppercase tracking-[0.4em] text-brand-primary">
-            Pacotes
+            {t("packagesEyebrow")}
           </p>
           <h1 className="font-display text-4xl uppercase tracking-wide text-text-display md:text-6xl">
-            Escolha seu pacote
+            {t("packagesHeading")}
           </h1>
           <div className="mx-auto mt-6 brand-divider" />
           <p className="mx-auto mt-6 max-w-2xl text-text-muted">
-            Mentoria 1-1 com coaches credenciados pela FORMULADOTA. Pague via PIX, agende e jogue ranked junto.
+            {t("packagesIntro")}
           </p>
         </header>
 

@@ -5,6 +5,7 @@
 // Header genérico "Coach Immortal" + badge "Top 0.5%".
 
 import { Link } from "@/i18n/navigation";
+import { getTranslations } from "next-intl/server";
 import { Sparkles, Trophy } from "lucide-react";
 import {
   Card,
@@ -41,7 +42,8 @@ function formatBRL(value: number): string {
   }).format(value);
 }
 
-export function PackageCard({ pkg, coach }: PackageCardProps) {
+export async function PackageCard({ pkg, coach }: PackageCardProps) {
+  const t = await getTranslations("billing");
   const isMensal = pkg.tipo === "mensal";
   const precoFormatado = formatBRL(pkg.preco_brl);
 
@@ -59,7 +61,7 @@ export function PackageCard({ pkg, coach }: PackageCardProps) {
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={coach.avatarUrl}
-              alt={`Avatar de ${coach.username}`}
+              alt={t("coachAvatarAlt", { name: coach.username })}
               className="h-8 w-8 rounded-sm border border-[var(--color-brand-red)]/30"
             />
           ) : (
@@ -69,7 +71,7 @@ export function PackageCard({ pkg, coach }: PackageCardProps) {
             />
           )}
           <span className="text-[var(--color-muted-foreground)]">
-            Por:{" "}
+            {t("coachByLabel")}{" "}
             <span className="text-[var(--color-foreground)] font-medium">{coach.username}</span>
           </span>
           {coach.badge && (
@@ -90,7 +92,7 @@ export function PackageCard({ pkg, coach }: PackageCardProps) {
             variant="outline"
             className="border-[var(--color-brand-red)] text-[var(--color-brand-red)]"
           >
-            {isMensal ? "Mensal" : "Avulso"}
+            {isMensal ? t("typeMonthly") : t("typeOneOff")}
           </Badge>
         </div>
         {pkg.descricao && (
@@ -103,13 +105,15 @@ export function PackageCard({ pkg, coach }: PackageCardProps) {
       <CardContent className="flex-1">
         <ul
           className="space-y-2 text-sm text-[var(--color-foreground)]"
-          aria-label={`Conteúdo do pacote ${pkg.nome}`}
+          aria-label={t("packageContentAria", { name: pkg.nome })}
         >
           <li className="flex items-center gap-2">
             <Trophy className="h-4 w-4 text-[var(--color-brand-red)]" aria-hidden="true" />
             <span>
-              <strong>{pkg.qtd_partidas}</strong>{" "}
-              partida{pkg.qtd_partidas === 1 ? "" : "s"} com coach
+              {t.rich("matchesWithCoach", {
+                count: pkg.qtd_partidas,
+                strong: (chunks) => <strong>{chunks}</strong>,
+              })}
             </span>
           </li>
           {pkg.qtd_sessoes > 0 && (
@@ -119,8 +123,10 @@ export function PackageCard({ pkg, coach }: PackageCardProps) {
                 aria-hidden="true"
               />
               <span>
-                <strong>{pkg.qtd_sessoes}</strong>{" "}
-                {pkg.qtd_sessoes === 1 ? "sessão teórica" : "sessões teóricas"}
+                {t.rich("theorySessions", {
+                  count: pkg.qtd_sessoes,
+                  strong: (chunks) => <strong>{chunks}</strong>,
+                })}
               </span>
             </li>
           )}
@@ -131,15 +137,15 @@ export function PackageCard({ pkg, coach }: PackageCardProps) {
         <p className="text-3xl font-display text-[var(--color-brand-red)]">
           {precoFormatado}
           <span className="text-sm text-[var(--color-muted-foreground)] ml-1">
-            {isMensal ? "/mês" : ""}
+            {isMensal ? t("perMonthSuffix") : ""}
           </span>
         </p>
         <Link
           href={`/checkout/${pkg.id}`}
-          aria-label={`Comprar pacote ${pkg.nome} por ${precoFormatado}`}
+          aria-label={t("buyPackageAria", { name: pkg.nome, price: precoFormatado })}
           className="inline-flex items-center justify-center rounded-md border border-[var(--color-brand-red)] bg-[var(--color-brand-red)]/10 px-4 py-2 font-sans text-sm font-semibold uppercase tracking-wide text-white transition-colors hover:bg-[var(--color-brand-red)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-red)]/50"
         >
-          Comprar
+          {t("buyCta")}
         </Link>
       </CardFooter>
     </Card>

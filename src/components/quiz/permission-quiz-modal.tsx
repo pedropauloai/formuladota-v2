@@ -9,6 +9,7 @@
 // conta. Ao receber permissions >= 1 do servidor, libera e chama onGranted.
 
 import { useState, useEffect, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { Check, X, ArrowRight, Loader2, ShieldQuestion, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -27,6 +28,7 @@ interface Props {
 }
 
 export function PermissionQuizModal({ open, modalidade, onClose, onGranted }: Props) {
+  const t = useTranslations("doutrina");
   const [loading, setLoading] = useState(true);
   const [pendingIds, setPendingIds] = useState<string[]>([]);
   const [answeredCount, setAnsweredCount] = useState(0);
@@ -105,7 +107,7 @@ export function PermissionQuizModal({ open, modalidade, onClose, onGranted }: Pr
       className="pointer-events-auto fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm animate-in fade-in duration-200"
       role="dialog"
       aria-modal="true"
-      aria-label="Responda pra liberar a partida"
+      aria-label={t("permissionDialogAria")}
     >
       <div className="relative w-full max-w-lg rounded-[var(--radius-lg)] border border-brand-primary/40 bg-bg-deep/95 p-6 shadow-2xl shadow-black/80 animate-in slide-in-from-bottom-4 duration-200">
         {/* Header */}
@@ -113,17 +115,19 @@ export function PermissionQuizModal({ open, modalidade, onClose, onGranted }: Pr
           <div className="space-y-1">
             <p className="flex items-center gap-2 font-display text-sm font-semibold uppercase tracking-[0.25em] text-brand-primary">
               <ShieldQuestion size={16} aria-hidden="true" />
-              Responda pra jogar
+              {t("answerToPlay")}
             </p>
             <p className="font-body text-sm text-text-muted">
-              Acerte {QUESTIONS_PER_PERMISSION} perguntas pra liberar 1 partida
-              e {modalidade}.
+              {t("permissionSubtitle", {
+                count: QUESTIONS_PER_PERMISSION,
+                modalidade,
+              })}
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Fechar"
+            aria-label={t("close")}
             className="shrink-0 rounded-sm p-1 text-text-faded hover:bg-bg-elevated hover:text-text-body transition-colors"
           >
             <X size={18} aria-hidden="true" />
@@ -160,11 +164,11 @@ export function PermissionQuizModal({ open, modalidade, onClose, onGranted }: Pr
         ) : !current ? (
           <div className="py-10 text-center">
             <p className="font-body text-text-muted">
-              Você já respondeu todas as perguntas disponíveis. Acesso liberado.
+              {t("allAnsweredAccessGranted")}
             </p>
             <div className="mt-5 flex justify-end">
               <Button variant="primary" size="md" onClick={onGranted}>
-                Continuar <ArrowRight size={16} />
+                {t("continue")} <ArrowRight size={16} />
               </Button>
             </div>
           </div>
@@ -231,7 +235,7 @@ export function PermissionQuizModal({ open, modalidade, onClose, onGranted }: Pr
                     gotIt ? "text-play-primary" : "text-error"
                   )}
                 >
-                  {gotIt ? "Certo." : "O Mestre corrige."}
+                  {gotIt ? t("feedbackCorrect") : t("feedbackWrong")}
                 </p>
                 <p className="font-body text-sm leading-relaxed text-text-body">
                   {current.rationale}
@@ -251,10 +255,10 @@ export function PermissionQuizModal({ open, modalidade, onClose, onGranted }: Pr
                     <Loader2 size={16} className="animate-spin" />
                   ) : gotIt ? (
                     <>
-                      Continuar <ArrowRight size={16} />
+                      {t("continue")} <ArrowRight size={16} />
                     </>
                   ) : (
-                    "Tentar de novo"
+                    t("tryAgain")
                   )}
                 </Button>
               )}
@@ -273,20 +277,21 @@ function GrantedView({
   modalidade: string;
   onGranted: () => void;
 }) {
+  const t = useTranslations("doutrina");
   return (
     <div className="py-6 text-center animate-in fade-in zoom-in-95 duration-300">
       <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-full border-2 border-play-primary bg-play-primary/10">
         <Sparkles size={26} className="text-play-primary" aria-hidden="true" />
       </div>
       <h2 className="font-display text-2xl font-bold tracking-wide text-text-display">
-        Permissão liberada
+        {t("permissionGranted")}
       </h2>
       <p className="mx-auto mt-2 max-w-sm font-body text-sm leading-relaxed text-text-muted">
-        Você ganhou 1 permissão de partida. Pode {modalidade} agora.
+        {t("permissionGrantedBody", { modalidade })}
       </p>
       <div className="mt-6 flex justify-center">
         <Button variant="cinematic" size="lg" onClick={onGranted}>
-          Jogar agora <ArrowRight size={18} />
+          {t("playNow")} <ArrowRight size={18} />
         </Button>
       </div>
     </div>

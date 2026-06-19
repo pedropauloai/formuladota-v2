@@ -8,6 +8,7 @@
 // Cada acerto credita XP real (sobe o nivel) via recordDoctrineAnswer.
 
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { m } from "motion/react";
 import { Check, X, ArrowRight, Lock, CheckCircle2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -197,12 +198,13 @@ function RitualHeader({
 }) {
   // Durante a doutrina o XP vem só do quiz, então acertos*22 é uma estimativa fiel
   // que sobe em tempo real a cada acerto (mesma math do servidor — migration 043).
+  const t = useTranslations("doutrina");
   const { level, pct: xpPct } = xpProgress(done * XP_PER_QUESTION);
   return (
     <div className="flex items-center gap-3">
       <XpAvatarRing
         src={avatar}
-        alt={`Avatar de ${persona}`}
+        alt={t("avatarAlt", { persona })}
         fallback={persona.slice(0, 2)}
         level={level}
         pct={xpPct}
@@ -211,7 +213,7 @@ function RitualHeader({
       <div className="flex-1 space-y-1.5">
         <div className="flex items-baseline justify-between">
           <span className="font-display text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
-            Ritual de Doutrinação
+            {t("title")}
           </span>
           <span className="font-display text-sm font-semibold text-text-body">
             {done}/{TOTAL}
@@ -219,7 +221,7 @@ function RitualHeader({
         </div>
         <div
           role="progressbar"
-          aria-label="Progresso rumo ao nível 6 (Aprendiz)"
+          aria-label={t("progressAria")}
           aria-valuenow={pct}
           aria-valuemin={0}
           aria-valuemax={100}
@@ -253,43 +255,46 @@ function IntroView({
   onStart: () => void;
   onSeeMedal: () => void;
 }) {
+  const t = useTranslations("doutrina");
   return (
     <article className="space-y-8 text-center">
       <p className="font-display text-sm font-semibold uppercase tracking-[0.35em] text-brand-primary">
-        Antes de jogar, você aprende
+        {t("introEyebrow")}
       </p>
       <h1 className="font-display text-4xl font-bold leading-tight tracking-wide text-text-display md:text-5xl">
-        O Mestre vai te{" "}
-        <span
-          className="text-brand-primary"
-          style={{ textShadow: "0 0 24px var(--color-brand-primary-glow)" }}
-        >
-          questionar
-        </span>
-        .
+        {t.rich("introHeadline", {
+          em: (chunks) => (
+            <span
+              className="text-brand-primary"
+              style={{ textShadow: "0 0 24px var(--color-brand-primary-glow)" }}
+            >
+              {chunks}
+            </span>
+          ),
+        })}
       </h1>
       <p className="mx-auto max-w-xl font-body text-lg leading-relaxed text-text-muted">
-        Não é uma prova — é uma iniciação, dividida em{" "}
-        <strong className="text-text-body">4 Pilares</strong>. Você avança uma
-        lição curta por vez; cada resposta te ensina. Errar não reprova; faz a
-        questão voltar até você compreender. Ao final, você alcança o{" "}
-        <strong className="text-text-body">nível 6 — Aprendiz</strong>.
+        {t.rich("introBody", {
+          strong: (chunks) => (
+            <strong className="text-text-body">{chunks}</strong>
+          ),
+        })}
       </p>
 
       <div className="flex flex-col items-center gap-3 pt-4">
         {completed ? (
           <Button variant="primary" size="lg" onClick={onSeeMedal}>
-            Ver minha medalha <ArrowRight size={18} />
+            {t("seeMedal")} <ArrowRight size={18} />
           </Button>
         ) : (
           <Button variant="primary" size="lg" onClick={onStart}>
-            {resuming ? "Continuar o ritual" : "Começar o ritual"}{" "}
+            {resuming ? t("continueRitual") : t("startRitual")}{" "}
             <ArrowRight size={18} />
           </Button>
         )}
         {resuming && (
           <span className="font-display text-sm text-text-faded">
-            Seu progresso fica salvo — pode sair e voltar quando quiser.
+            {t("progressSaved")}
           </span>
         )}
       </div>
@@ -312,17 +317,18 @@ function TrailView({
   onOpenLesson: (idx: number) => void;
   onComplete: () => void;
 }) {
+  const t = useTranslations("doutrina");
   const nextIdx = nextLessonIndex(correctIds);
 
   if (nextIdx === -1) {
     return (
       <div className="space-y-6 text-center">
         <p className="font-display text-lg text-text-body">
-          Você dominou todos os Pilares.
+          {t("allPilarsMastered")}
         </p>
         <div className="flex justify-center">
           <Button variant="cinematic" size="lg" onClick={onComplete}>
-            Ver minha medalha <ArrowRight size={18} />
+            {t("seeMedal")} <ArrowRight size={18} />
           </Button>
         </div>
       </div>
@@ -470,6 +476,7 @@ function QuestionView({
   onContinue: () => void;
   onBack: () => void;
 }) {
+  const t = useTranslations("doutrina");
   const correctId = question.options.find((o) => o.correct)?.id;
   const gotIt = chosen != null && chosen === correctId;
   const answered = chosen != null;
@@ -482,10 +489,10 @@ function QuestionView({
           onClick={onBack}
           className="flex items-center gap-1.5 font-display text-sm text-text-faded hover:text-text-body transition-colors"
         >
-          <ArrowLeft size={14} /> Pilares
+          <ArrowLeft size={14} /> {t("pilarsBack")}
         </button>
         <p className="font-display text-sm font-semibold uppercase tracking-[0.25em] text-brand-primary">
-          {lesson.title} · {remaining} restante{remaining === 1 ? "" : "s"}
+          {lesson.title} · {t("remaining", { count: remaining })}
         </p>
         <h2 className="font-display text-xl font-bold leading-snug tracking-wide text-text-display md:text-2xl">
           {question.prompt}
@@ -555,21 +562,21 @@ function QuestionView({
                   gotIt ? "text-play-primary" : "text-error"
                 )}
               >
-                {gotIt ? "Certo." : "O Mestre corrige."}
+                {gotIt ? t("feedbackCorrect") : t("feedbackWrong")}
               </p>
               <p className="font-body text-base leading-relaxed text-text-body">
                 {question.rationale}
               </p>
               <p className="font-display text-sm font-semibold text-text-faded">
                 {question.origin}
-                {!gotIt && " · esta questão volta até você dominar."}
+                {!gotIt && t("questionWillReturn")}
               </p>
             </CardContent>
           </Card>
 
           <div className="flex justify-end pt-5">
             <Button variant="primary" size="md" onClick={onContinue}>
-              {gotIt ? "Continuar" : "Tentar de novo"} <ArrowRight size={18} />
+              {gotIt ? t("continue") : t("tryAgain")} <ArrowRight size={18} />
             </Button>
           </div>
         </m.div>
@@ -583,6 +590,7 @@ function QuestionView({
 /* ------------------------------------------------------------------ */
 
 function CompleteView() {
+  const t = useTranslations("doutrina");
   return (
     <m.article
       initial={{ opacity: 0, y: 16 }}
@@ -605,22 +613,22 @@ function CompleteView() {
 
       <div className="space-y-3">
         <p className="font-display text-sm font-semibold uppercase tracking-[0.35em] text-brand-primary">
-          Nível 6 alcançado
+          {t("levelReached")}
         </p>
         <h1 className="font-display text-4xl font-bold tracking-wide text-text-display">
-          Você está{" "}
-          <span
-            className="text-brand-primary"
-            style={{ textShadow: "0 0 24px var(--color-brand-primary-glow)" }}
-          >
-            doutrinado
-          </span>
-          .
+          {t.rich("doctrinatedHeadline", {
+            em: (chunks) => (
+              <span
+                className="text-brand-primary"
+                style={{ textShadow: "0 0 24px var(--color-brand-primary-glow)" }}
+              >
+                {chunks}
+              </span>
+            ),
+          })}
         </h1>
         <p className="mx-auto max-w-xl font-body text-lg leading-relaxed text-text-muted">
-          Você provou que conhece a cultura da Fórmula. O lobby livre está aberto.
-          Daqui pra cima, quem te leva mais alto não é o quiz — é a sua conduta
-          em partida.
+          {t("doctrinatedBody")}
         </p>
       </div>
 
@@ -632,7 +640,7 @@ function CompleteView() {
             window.location.href = "/dashboard";
           }}
         >
-          Entrar no ambiente <ArrowRight size={18} />
+          {t("enterEnvironment")} <ArrowRight size={18} />
         </Button>
       </div>
     </m.article>
