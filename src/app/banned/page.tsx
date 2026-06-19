@@ -1,5 +1,6 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { DotaBackdrop } from "@/components/dota/dota-backdrop";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,7 +10,10 @@ import { Card, CardContent } from "@/components/ui/card";
 // Refatorado V2.5 (DF8.4 cleanup — 2026-05-24):
 //   - <Card variant="elevated"> + tokens V2.5 (text-error, text-text-*, border-border-*)
 //   - Fluxo de gate intacto (redirect /perfil se não-banido)
-export const metadata = { title: "Conta encerrada — FORMULADOTA" };
+export async function generateMetadata() {
+  const t = await getTranslations("account");
+  return { title: t("bannedMetaTitle") };
+}
 
 export default async function BannedPage() {
   const supabase = await createClient();
@@ -31,6 +35,8 @@ export default async function BannedPage() {
     redirect("/perfil");
   }
 
+  const t = await getTranslations("account");
+
   const formattedBannedAt = profile.banned_at
     ? new Date(profile.banned_at).toLocaleString("pt-BR", {
         dateStyle: "long",
@@ -48,17 +54,17 @@ export default async function BannedPage() {
         <CardContent className="space-y-8">
           <header className="space-y-3 text-center">
             <p className="font-display text-sm uppercase tracking-[0.4em] text-error">
-              conta encerrada
+              {t("bannedEyebrow")}
             </p>
             <h1 className="font-display text-3xl uppercase tracking-tight text-text-display">
-              Sua conta foi banida da FORMULADOTA.
+              {t("bannedTitle")}
             </h1>
           </header>
 
           {formattedBannedAt && (
             <div className="rounded-md border border-border-subtle bg-bg-deep p-4 text-center">
               <p className="font-display font-semibold text-sm uppercase tracking-wide text-text-muted">
-                banido em
+                {t("bannedAtLabel")}
               </p>
               <p className="mt-1 text-base font-medium text-text-display">
                 {formattedBannedAt}
@@ -69,34 +75,26 @@ export default async function BannedPage() {
           {profile.banned_reason && (
             <div className="space-y-2 rounded-md border border-border-subtle bg-bg-base p-4">
               <p className="font-display font-semibold text-sm uppercase tracking-wide text-text-muted">
-                motivo
+                {t("bannedReasonLabel")}
               </p>
               <p className="text-sm text-text-body">{profile.banned_reason}</p>
             </div>
           )}
 
           <div className="space-y-3 text-sm leading-relaxed text-text-muted">
+            <p>{t("bannedExplain1")}</p>
+            <p>{t("bannedExplain2")}</p>
             <p>
-              Banimento é a etapa final do sistema progressivo de moderação. Sua
-              conta está congelada — você não pode comprar, jogar ou agendar
-              sessões.
-            </p>
-            <p>
-              Saldo restante (se houver) será refundado caso a caso, exceto em
-              situações de fraude ou preconceito. Vamos entrar em contato para
-              tratar isso individualmente.
-            </p>
-            <p>
-              Para contestar este banimento, escreva via{" "}
+              {t("bannedAppealPrefix")}{" "}
               <a
                 href="https://discord.com/invite/v3pSuZhjBE"
                 target="_blank"
                 rel="noreferrer"
                 className="text-brand-primary underline hover:text-text-display transition-colors"
               >
-                Discord oficial
+                {t("bannedAppealLink")}
               </a>
-              .
+              {t("bannedAppealSuffix")}
             </p>
           </div>
 
@@ -105,7 +103,7 @@ export default async function BannedPage() {
               href="/codigo-de-conduta"
               className="font-display font-semibold text-sm uppercase tracking-wide text-text-muted hover:text-text-display transition-colors"
             >
-              código de conduta · referência
+              {t("conductCodeReference")}
             </Link>
           </div>
         </CardContent>

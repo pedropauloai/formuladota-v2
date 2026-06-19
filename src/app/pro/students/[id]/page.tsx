@@ -7,6 +7,7 @@
 
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { UserAvatar } from "@/components/ui/avatar";
 import { StudentDetailClient } from "./student-detail-client";
@@ -16,9 +17,12 @@ import { getCoachingReviewsForUser } from "@/lib/queries/coaching-reviews";
 import { CoachingReviewsList } from "@/components/profile/coaching-reviews-list";
 import { cn } from "@/lib/utils";
 
-export const metadata: Metadata = {
-  title: "Detalhe do Aluno — Painel PRO",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("proCockpit");
+  return {
+    title: t("studentDetailMetaTitle"),
+  };
+}
 
 // Revalida a cada 30s — histórico de honor pode mudar
 export const revalidate = 30;
@@ -28,16 +32,20 @@ export const revalidate = 30;
 // ---------------------------------------------------------------------------
 
 /** Label legível para source de honor */
-function honorSourceLabel(source: string): string {
-  const map: Record<string, string> = {
-    coach_note_positive: "Nota do Coach (+)",
-    coach_note_negative: "Nota do Coach (-)",
-    match_completed: "Partida concluída",
-    match_bonus: "Bônus de partida",
-    season_reset: "Reset de temporada",
-    manual_admin: "Ajuste admin",
+function honorSourceLabel(
+  source: string,
+  t: (key: string) => string
+): string {
+  const keyMap: Record<string, string> = {
+    coach_note_positive: "honorSourceCoachNotePositive",
+    coach_note_negative: "honorSourceCoachNoteNegative",
+    match_completed: "honorSourceMatchCompleted",
+    match_bonus: "honorSourceMatchBonus",
+    season_reset: "honorSourceSeasonReset",
+    manual_admin: "honorSourceManualAdmin",
   };
-  return map[source] ?? source;
+  const key = keyMap[source];
+  return key ? t(key) : source;
 }
 
 // ---------------------------------------------------------------------------
@@ -51,6 +59,7 @@ interface PageProps {
 export default async function StudentDetailPage({ params }: PageProps) {
   const { id: studentId } = await params;
 
+  const t = await getTranslations("proCockpit");
   const supabase = await createClient();
   const {
     data: { user },
@@ -118,7 +127,7 @@ export default async function StudentDetailPage({ params }: PageProps) {
   // Análises de coaching que ESTE PRO escreveu pra esse aluno (RLS limita o escopo).
   const coachingReviews = await getCoachingReviewsForUser(supabase, studentId);
 
-  const username = studentProfile.username ?? "Aluno Anônimo";
+  const username = studentProfile.username ?? t("anonymousStudent");
   const initials = username.slice(0, 2).toUpperCase();
 
   return (
@@ -126,11 +135,11 @@ export default async function StudentDetailPage({ params }: PageProps) {
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm text-text-muted">
         <a href="/pro" className="hover:text-text-body transition-colors">
-          Painel PRO
+          {t("panelTitle")}
         </a>
         <span>/</span>
         <a href="/pro#alunos" className="hover:text-text-body transition-colors">
-          Meus Alunos
+          {t("navStudents")}
         </a>
         <span>/</span>
         <span className="text-text-body">{username}</span>
@@ -145,13 +154,13 @@ export default async function StudentDetailPage({ params }: PageProps) {
             id="heading-aluno-perfil"
             className="font-display text-sm uppercase tracking-widest text-text-muted"
           >
-            Perfil do Aluno
+            {t("studentProfile")}
           </h2>
 
           <div className="flex items-center gap-4">
             <UserAvatar
               src={studentProfile.avatar_url ?? undefined}
-              alt={`Avatar de ${username}`}
+              alt={t("avatarAlt", { name: username })}
               fallback={initials}
               size="lg"
             />
@@ -163,13 +172,13 @@ export default async function StudentDetailPage({ params }: PageProps) {
 
               <div className="flex items-center gap-4 text-sm text-text-muted">
                 <span>
-                  MMR: {studentProfile.mmr_atual ? `${studentProfile.mmr_atual}` : "—"}
+                  {t("mmrLabel")}: {studentProfile.mmr_atual ? `${studentProfile.mmr_atual}` : "—"}
                 </span>
                 <span>
-                  Honor: {honorScore ?? 0} pts ({honorTierStr ?? "aprendiz"})
+                  {t("honorPts", { score: honorScore ?? 0, tier: honorTierStr ?? "aprendiz" })}
                 </span>
                 <span>
-                  {matchCount} PT{matchCount !== 1 ? "s" : ""} comigo
+                  {t("ptsWithMe", { count: matchCount })}
                 </span>
               </div>
 
@@ -182,7 +191,7 @@ export default async function StudentDetailPage({ params }: PageProps) {
                     : "bg-warning/10 text-warning border-warning/20"
                 )}
               >
-                {studentProfile.behavior_status === "ok" ? "Conduta OK" : studentProfile.behavior_status}
+                {studentProfile.behavior_status === "ok" ? t("conductOk") : studentProfile.behavior_status}
               </span>
             </div>
           </div>
@@ -191,10 +200,10 @@ export default async function StudentDetailPage({ params }: PageProps) {
           {strikeCount > 0 && (
             <div className="flex items-center gap-2 rounded-lg bg-warning/5 border border-warning/15 px-4 py-2">
               <span className="text-sm text-warning font-medium">
-                {strikeCount} strike{strikeCount > 1 ? "s" : ""} registrado{strikeCount > 1 ? "s" : ""}
+                {t("strikesRegistered", { count: strikeCount })}
               </span>
               <span className="text-sm text-text-muted">
-                (notas negativas de coaches)
+                {t("strikesHint")}
               </span>
             </div>
           )}
@@ -209,7 +218,7 @@ export default async function StudentDetailPage({ params }: PageProps) {
           id="heading-acoes"
           className="font-display text-sm uppercase tracking-widest text-text-display mb-3"
         >
-          Ações
+          {t("actions")}
         </h2>
 
         <StudentDetailClient studentId={studentId} studentName={username} />
@@ -223,13 +232,13 @@ export default async function StudentDetailPage({ params }: PageProps) {
           id="heading-coaching"
           className="font-display text-sm uppercase tracking-widest text-text-display mb-3"
         >
-          Análises de coaching
+          {t("coachingReviews")}
         </h2>
         <div className="space-y-4">
           <CoachingReviewPanel studentId={studentId} studentName={username} />
           <CoachingReviewsList
             reviews={coachingReviews}
-            emptyLabel="Você ainda não escreveu nenhuma análise pra esse aluno."
+            emptyLabel={t("coachingReviewsEmpty")}
           />
         </div>
       </section>
@@ -242,12 +251,12 @@ export default async function StudentDetailPage({ params }: PageProps) {
           id="heading-honor-history"
           className="font-display text-sm uppercase tracking-widest text-text-display mb-3"
         >
-          Histórico de Honor
+          {t("honorHistory")}
         </h2>
 
         {honorHistory.length === 0 ? (
           <div className="rounded-xl border border-border-subtle bg-bg-elevated p-6 text-center text-text-muted text-sm">
-            Nenhum evento de honor registrado ainda.
+            {t("honorHistoryEmpty")}
           </div>
         ) : (
           <div className="flex flex-col gap-2">
@@ -263,7 +272,7 @@ export default async function StudentDetailPage({ params }: PageProps) {
               >
                 <div className="flex flex-col gap-0.5">
                   <span className="text-sm font-medium text-text-body">
-                    {honorSourceLabel(entry.source)}
+                    {honorSourceLabel(entry.source, t)}
                   </span>
                   {entry.reason && (
                     <span className="text-sm text-text-muted">

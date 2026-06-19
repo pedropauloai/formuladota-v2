@@ -14,6 +14,7 @@
 // C14 — zero hex hardcoded; apenas tokens semânticos via Tailwind.
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Clock, Radio, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UserAvatar } from "@/components/ui/avatar";
@@ -73,6 +74,7 @@ export function ProDetail({
   signatureHero = null,
   recentMatches = [],
 }: ProDetailProps) {
+  const t = useTranslations("queue");
   const { coach, entries } = pro;
   const name = coach.username ?? coach.slug;
   const maxSlots = coach.filaMaxVagas;
@@ -107,7 +109,7 @@ export function ProDetail({
           <UserAvatar
             size="xl"
             src={coach.avatarUrl ?? undefined}
-            alt={`Retrato de ${name}`}
+            alt={t("portraitOf", { name })}
             fallback={name.slice(0, 2)}
             presence={coach.filaAberta ? "online" : "offline"}
             ringColor={coach.filaAberta ? "play" : null}
@@ -140,8 +142,8 @@ export function ProDetail({
                 )}
               >
                 {coach.queueMode === "coached"
-                  ? "PRO observa + análise"
-                  : "PRO joga junto"}
+                  ? t("modeCoached")
+                  : t("modePlay")}
               </span>
             )}
           </div>
@@ -152,11 +154,11 @@ export function ProDetail({
       <section className="shrink-0 space-y-2.5">
         <div className="flex items-baseline justify-between gap-3">
           <h2 className="font-display-condensed text-xl uppercase leading-none tracking-wider text-text-muted">
-            Próxima PT
+            {t("nextPt")}
           </h2>
           {waitingList.length > 0 && (
             <span className="inline-flex items-center rounded-sm bg-warning/15 px-3 py-0.5 font-display text-sm font-bold uppercase tracking-wide text-warning">
-              +{waitingList.length} aguardando
+              {t("waitingPlusCount", { count: waitingList.length })}
             </span>
           )}
         </div>
@@ -180,24 +182,26 @@ export function ProDetail({
       <div className="flex shrink-0 flex-wrap items-center gap-x-5 gap-y-1.5 font-display text-sm font-semibold text-text-body">
         <span className="inline-flex items-center gap-1.5">
           <Users size={13} aria-hidden="true" />
-          {entries.length} na fila
+          {t("inQueueCount", { count: entries.length })}
         </span>
         {coach.filaAberta ? (
           <span className="inline-flex items-center gap-1.5 text-success">
             <Radio size={13} aria-hidden="true" />
-            Fila aberta{minutesOpen > 0 && ` há ${minutesOpen}m`}
+            {minutesOpen > 0
+              ? t("queueOpenForMinutes", { minutes: minutesOpen })
+              : t("queueOpen")}
           </span>
         ) : (
           <span className="uppercase tracking-wide text-text-faded">
-            Fila fechada
+            {t("queueClosed")}
           </span>
         )}
         {stats && stats.ptsHoje > 0 && (
           <span className="inline-flex items-center gap-1.5">
             <Clock size={13} aria-hidden="true" />
-            {stats.ptsHoje} PT{stats.ptsHoje > 1 ? "s" : ""} hoje
+            {t("ptsToday", { count: stats.ptsHoje })}
             {stats.alunosAtendidosHoje > 0 &&
-              ` · ${stats.alunosAtendidosHoje} alunos`}
+              ` · ${t("studentsCount", { count: stats.alunosAtendidosHoje })}`}
           </span>
         )}
       </div>
@@ -206,7 +210,7 @@ export function ProDetail({
       {recentMatches.length > 0 && (
         <div className="shrink-0 space-y-2">
           <p className="font-display-condensed text-lg uppercase leading-none tracking-wider text-text-faded">
-            Últimas partidas
+            {t("recentMatches")}
           </p>
           <div className="flex flex-wrap items-center gap-2">
             {recentMatches.slice(0, 5).map((match, index) => {
@@ -220,9 +224,9 @@ export function ProDetail({
                       ? "border-success/30 bg-success/10 text-success"
                       : "border-error/30 bg-error/10 text-error"
                   )}
-                  title={`${isWin ? "Vitória" : "Derrota"} — ${formatDelta(match.mmrDelta)} MMR`}
+                  title={`${isWin ? t("win") : t("loss")} — ${formatDelta(match.mmrDelta)} MMR`}
                 >
-                  <span className="font-bold">{isWin ? "V" : "D"}</span>
+                  <span className="font-bold">{isWin ? t("winShort") : t("lossShort")}</span>
                   <span className="opacity-80">{formatDelta(match.mmrDelta)}</span>
                 </div>
               );
@@ -258,17 +262,18 @@ interface QueueSlotProps {
 }
 
 function QueueSlot({ slot, index, isViewer, now }: QueueSlotProps) {
+  const t = useTranslations("queue");
   if (!slot) {
     return (
       <div
         className="flex min-h-[88px] flex-col items-center justify-center gap-1 rounded-sm border border-dashed border-border-subtle bg-bg-deep/30 p-3"
-        title={`Slot ${index + 1} livre`}
+        title={t("slotNFree", { n: index + 1 })}
       >
         <span className="font-display-condensed text-lg uppercase leading-none tracking-widest text-text-faded">
-          livre
+          {t("free")}
         </span>
         <span className="font-mono text-xs text-text-faded">
-          slot {index + 1}
+          {t("slotN", { n: index + 1 })}
         </span>
       </div>
     );
@@ -286,7 +291,7 @@ function QueueSlot({ slot, index, isViewer, now }: QueueSlotProps) {
           ? "border-warning/60 bg-warning/10"
           : "border-success/30 bg-success/5"
       )}
-      title={isViewer ? "VOCÊ" : (slot.username ?? "")}
+      title={isViewer ? t("you") : (slot.username ?? "")}
     >
       <UserAvatar
         size="md"
@@ -301,7 +306,7 @@ function QueueSlot({ slot, index, isViewer, now }: QueueSlotProps) {
           isViewer ? "font-bold text-warning" : "text-text-body"
         )}
       >
-        {isViewer ? "VOCÊ" : (slot.username ?? "—")}
+        {isViewer ? t("you") : (slot.username ?? "—")}
       </span>
       <span className="inline-flex items-center gap-1 font-mono text-xs tabular-nums text-text-muted">
         <Clock size={10} aria-hidden="true" />

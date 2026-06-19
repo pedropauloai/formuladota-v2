@@ -1,4 +1,6 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { displayName, displayAvatar } from "@/lib/identity";
 import { DotaBackdrop } from "@/components/dota/dota-backdrop";
@@ -9,9 +11,12 @@ import { getDoctrineProgress } from "./actions";
 // Progresso persiste em profiles.doctrine_quiz_progress (resume cross-device).
 // Ao cobrir o banco -> doctrine_accepted (trigger concede XP). A integracao ao gate
 // de onboarding (substituir/complementar o aceite passivo) e o passo seguinte.
-export const metadata = {
-  title: "Ritual de Doutrinação — FORMULADOTA",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("doutrina");
+  return {
+    title: t("metaTitle"),
+  };
+}
 
 export default async function DoutrinaPage() {
   const supabase = await createClient();
@@ -32,10 +37,11 @@ export default async function DoutrinaPage() {
 
   // Identidade canônica via lib/identity (Steam > Discord) — mesma prioridade
   // de antes, agora centralizada. "Você" é o fallback quando não há nick algum.
+  const t = await getTranslations("doutrina");
   const identitySrc = {
     steamPersona: steamLink?.persona,
     steamAvatar: steamLink?.avatar_url,
-    discordUsername: profile?.username ?? "Você",
+    discordUsername: profile?.username ?? t("identityFallback"),
     discordAvatar: profile?.avatar_url,
   };
   const persona = displayName(identitySrc);

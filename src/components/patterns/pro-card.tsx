@@ -24,6 +24,7 @@
  */
 
 import { useState, type ReactNode } from "react";
+import { useTranslations } from "next-intl";
 import { ChevronDown, ChevronUp, Radio, Users, Clock } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { UserAvatar, type PresenceStatus, type RingColor } from "@/components/ui/avatar";
@@ -225,6 +226,7 @@ export function ProCard({
   defaultExpanded = false,
   className,
 }: ProCardProps) {
+  const t = useTranslations("ui");
   const visibleMatches = recentMatches.slice(0, 5);
   const fallbackInitials = proName.charAt(0).toUpperCase();
   const hasQueueBlock = queueSlots !== undefined;
@@ -254,7 +256,7 @@ export function ProCard({
         {/* ---- BLOCO 1: Hero Portrait ---- */}
         <UserAvatar
           src={portraitUrl}
-          alt={`Retrato de ${proName}`}
+          alt={t("proPortraitAlt", { name: proName })}
           fallback={fallbackInitials}
           size="xl"
           presence={presence}
@@ -353,7 +355,7 @@ export function ProCard({
         {visibleMatches.length > 0 && (
           <div className="w-full space-y-2">
             <p className="font-display text-sm uppercase tracking-[0.18em] text-text-faded">
-              Últimas partidas
+              {t("recentMatches")}
             </p>
             <div className="flex items-center justify-center gap-2 flex-wrap">
               {visibleMatches.map((match, index) => {
@@ -369,10 +371,10 @@ export function ProCard({
                         ? "bg-success/10 border-success/30 text-success"
                         : "bg-error/10 border-error/30 text-error",
                     )}
-                    title={`${isWin ? "Vitória" : "Derrota"} — ${formatDelta(match.mmrDelta)} MMR`}
-                    aria-label={`${isWin ? "Vitória" : "Derrota"} ${formatDelta(match.mmrDelta)} MMR`}
+                    title={t("matchPillTitle", { result: isWin ? t("win") : t("loss"), mmr: formatDelta(match.mmrDelta) })}
+                    aria-label={t("matchPillAria", { result: isWin ? t("win") : t("loss"), mmr: formatDelta(match.mmrDelta) })}
                   >
-                    <span className="font-bold">{isWin ? "V" : "D"}</span>
+                    <span className="font-bold">{isWin ? t("winShort") : t("lossShort")}</span>
                     <span className="opacity-80">{formatDelta(match.mmrDelta)}</span>
                   </div>
                 );
@@ -417,6 +419,7 @@ function QueueBlock({
   expanded,
   onToggleExpanded,
 }: QueueBlockProps) {
+  const t = useTranslations("ui");
   // Padroniza grid: max=4 → 2x2 (mais legível em card vertical estreito)
   const gridCols = maxQueueSlots === 4 ? "grid-cols-2" : "grid-cols-2";
   const slotsToRender = Array.from({ length: maxQueueSlots }).map(
@@ -426,7 +429,7 @@ function QueueBlock({
   return (
     <div className="w-full space-y-3">
       <p className="font-display text-sm uppercase tracking-[0.18em] text-text-faded">
-        Próxima PT
+        {t("nextPt")}
       </p>
 
       <div className={cn("grid gap-2", gridCols)}>
@@ -436,10 +439,10 @@ function QueueBlock({
               <div
                 key={`empty-${idx}`}
                 className="flex h-12 items-center justify-center rounded border border-dashed border-border-subtle bg-bg-deep/30"
-                title={`Slot ${idx + 1} livre`}
+                title={t("slotFree", { n: idx + 1 })}
               >
                 <span className="font-display font-semibold text-sm uppercase text-text-faded">
-                  livre
+                  {t("free")}
                 </span>
               </div>
             );
@@ -454,7 +457,7 @@ function QueueBlock({
                   ? "bg-warning/15 ring-1 ring-warning/50"
                   : "bg-success/10 ring-1 ring-success/30",
               )}
-              title={isViewer ? "VOCÊ" : slot.username ?? ""}
+              title={isViewer ? t("you") : slot.username ?? ""}
             >
               <UserAvatar
                 src={slot.avatarUrl ?? undefined}
@@ -469,7 +472,7 @@ function QueueBlock({
                   isViewer ? "font-bold text-warning" : "text-text-body",
                 )}
               >
-                {isViewer ? "VOCÊ" : slot.username ?? "—"}
+                {isViewer ? t("you") : slot.username ?? "—"}
               </span>
             </div>
           );
@@ -480,7 +483,7 @@ function QueueBlock({
       {waitingExtra > 0 && (
         <div className="flex justify-center">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-warning/15 px-3 py-1 font-display text-sm font-bold uppercase tracking-wide text-warning">
-            +{waitingExtra} aguardando
+            {t("waitingCount", { count: waitingExtra })}
           </span>
         </div>
       )}
@@ -490,21 +493,21 @@ function QueueBlock({
         <div className="flex flex-wrap items-center justify-center gap-3 font-display text-sm font-semibold text-text-body">
           <span className="inline-flex items-center gap-1">
             <Users size={12} aria-hidden="true" />
-            {queueStats.entriesCount} na fila
+            {t("inQueueCount", { count: queueStats.entriesCount })}
           </span>
           {filaAberta && (
             <span className="inline-flex items-center gap-1 text-success">
               <Radio size={12} aria-hidden="true" />
-              Fila aberta
+              {t("queueOpen")}
             </span>
           )}
           {queueStats.ptsHoje !== undefined && queueStats.ptsHoje > 0 && (
             <span className="inline-flex items-center gap-1">
               <Clock size={12} aria-hidden="true" />
-              {queueStats.ptsHoje} PT{queueStats.ptsHoje > 1 ? "s" : ""} hoje
+              {t("ptsToday", { count: queueStats.ptsHoje })}
               {queueStats.alunosHoje !== undefined &&
                 queueStats.alunosHoje > 0 &&
-                ` · ${queueStats.alunosHoje} alunos`}
+                ` · ${t("studentsCount", { count: queueStats.alunosHoje })}`}
             </span>
           )}
         </div>
@@ -522,12 +525,12 @@ function QueueBlock({
           {expanded ? (
             <>
               <ChevronUp size={14} aria-hidden="true" />
-              Recolher fila
+              {t("collapseQueue")}
             </>
           ) : (
             <>
               <ChevronDown size={14} aria-hidden="true" />
-              Ver fila completa ({waitingExtra} aguardando)
+              {t("viewFullQueue", { count: waitingExtra })}
             </>
           )}
         </Button>

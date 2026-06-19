@@ -18,6 +18,7 @@
 import { forwardRef, type ButtonHTMLAttributes } from "react";
 import { m } from "motion/react";
 import { cva, type VariantProps } from "class-variance-authority";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { useSound } from "@/lib/sound/hooks";
 import { useMotionSafe } from "@/lib/motion/hooks";
@@ -175,6 +176,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     },
     ref
   ) => {
+    const t = useTranslations("ui");
     // Som acoplado — C16: sempre via hook, nunca direto em onClick
     const play = useSound();
 
@@ -227,7 +229,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           // aria-label anuncia estado para leitores de tela.
           <span
             className="inline-flex items-center gap-1 font-display tracking-widest"
-            aria-label="carregando"
+            aria-label={t("loading")}
             role="status"
           >
             <span className="animate-pulse">...</span>

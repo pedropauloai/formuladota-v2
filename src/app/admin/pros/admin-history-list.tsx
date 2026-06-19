@@ -6,6 +6,7 @@
 // já admin-gated — importa KDA/GPM/rank_tier e popula match_players).
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { Database, Loader2 } from "lucide-react";
 import { enrichMatchFromOpenDota } from "./actions";
 import type { AdminHistoryMatch } from "./admin-pros-types";
@@ -17,11 +18,11 @@ interface Props {
 }
 
 export function AdminHistoryList({ history, onChanged }: Props) {
+  const t = useTranslations("misc2");
   if (history.length === 0) {
     return (
       <p className="rounded-sm border border-dashed border-border-subtle bg-bg-elevated/30 p-4 text-center font-display text-sm font-semibold text-text-muted">
-        Nenhuma PT realizada ainda. O histórico nasce quando esse PRO entrar em
-        campo.
+        {t("historyEmpty")}
       </p>
     );
   }
@@ -44,6 +45,7 @@ function HistoryRow({
   match: AdminHistoryMatch;
   onChanged: () => void;
 }) {
+  const t = useTranslations("misc2");
   // Prefill com o match ID já registrado (fluxo bot grava dota_match_id sem enrich)
   const [dotaId, setDotaId] = useState(match.dotaMatchId ?? "");
   const [error, setError] = useState<string | null>(null);
@@ -62,7 +64,7 @@ function HistoryRow({
   function handleEnrich() {
     const id = dotaId.trim();
     if (!/^\d{8,12}$/.test(id)) {
-      setError("Match ID Dota deve ter entre 8 e 12 dígitos numéricos.");
+      setError(t("matchIdInvalid"));
       return;
     }
     setError(null);
@@ -80,12 +82,12 @@ function HistoryRow({
           {formatDateShort(match.createdAt)}
         </span>
         <span className="font-mono text-sm text-text-body">
-          {match.dotaMatchId ? `dota #${match.dotaMatchId}` : "sem match ID"}
+          {match.dotaMatchId ? `dota #${match.dotaMatchId}` : t("noMatchId")}
         </span>
         {hasScore && (
           <span
             className="font-display text-sm font-bold tabular-nums text-gold"
-            title="Placar Radiant : Dire"
+            title={t("scoreRadiantDire")}
           >
             {match.radiantScore} : {match.direScore}
           </span>
@@ -96,7 +98,7 @@ function HistoryRow({
           </span>
         )}
         <span className="font-mono text-sm text-text-muted">
-          {match.alunoCount} aluno{match.alunoCount === 1 ? "" : "s"}
+          {t("studentsCount", { count: match.alunoCount })}
         </span>
         <span
           className={`ml-auto inline-flex items-center gap-1 font-display-condensed text-base uppercase leading-none tracking-wider ${
@@ -111,8 +113,8 @@ function HistoryRow({
           {enrichState === "opendota"
             ? "OpenDota"
             : enrichState === "manual"
-              ? "manual"
-              : "sem dados"}
+              ? t("enrichManual")
+              : t("enrichNoData")}
         </span>
       </div>
 
@@ -124,9 +126,9 @@ function HistoryRow({
             inputMode="numeric"
             value={dotaId}
             onChange={(e) => setDotaId(e.target.value)}
-            placeholder="match ID dota — ex: 7891234567"
+            placeholder={t("enrichMatchIdPlaceholder")}
             className="w-56 rounded-sm border border-border-subtle bg-bg-elevated px-2 py-1.5 font-mono text-sm text-text-body placeholder:text-text-faded"
-            aria-label={`Match ID Dota pra enriquecer PT de ${formatDateShort(match.createdAt)}`}
+            aria-label={t("enrichMatchIdAria", { date: formatDateShort(match.createdAt) })}
           />
           <button
             type="button"
@@ -139,7 +141,7 @@ function HistoryRow({
             ) : (
               <Database size={12} aria-hidden="true" />
             )}
-            Enriquecer
+            {t("enrich")}
           </button>
           {error && <p className="font-mono-ui text-sm text-error">{error}</p>}
         </div>

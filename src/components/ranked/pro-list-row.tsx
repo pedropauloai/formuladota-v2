@@ -12,6 +12,7 @@
 // Componentes puros de seleção — zero lógica de domínio.
 // C14 — zero hex hardcoded; apenas tokens semânticos via Tailwind.
 
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { UserAvatar } from "@/components/ui/avatar";
 import type { ProWithQueue } from "@/lib/queries/pros";
@@ -57,6 +58,7 @@ export function ProListRow({
   viewerInQueue,
   onSelect,
 }: ProSelectItemProps) {
+  const t = useTranslations("queue");
   const { coach } = pro;
   const name = coach.username ?? coach.slug;
   const offline = !coach.filaAberta;
@@ -93,7 +95,7 @@ export function ProListRow({
         {viewerInQueue && (
           /* Teko tem x-height baixo — text-sm aqui equivale a label minúscula */
           <span className="block font-display-condensed text-sm uppercase leading-none tracking-wider text-warning">
-            você está nesta fila
+            {t("youAreInThisQueue")}
           </span>
         )}
       </span>

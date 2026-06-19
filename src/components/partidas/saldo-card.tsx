@@ -2,6 +2,7 @@
 // Server Component — só apresentação, sem interatividade.
 
 import { Trophy, Sparkles } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface SaldoCardProps {
@@ -10,11 +11,12 @@ interface SaldoCardProps {
 }
 
 export function SaldoCard({ partidasDisponiveis, sessoesDisponiveis }: SaldoCardProps) {
+  const t = useTranslations("ui");
   return (
     <Card className="bg-[var(--color-card)] border-[var(--color-border)] ring-1 ring-[var(--color-brand-red)]/20">
       <CardContent className="py-8">
         <p className="text-sm text-[var(--color-muted-foreground)] uppercase tracking-wider mb-4">
-          Seu saldo
+          {t("yourBalance")}
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {/* Partidas disponíveis — destaque cyan */}
@@ -26,7 +28,7 @@ export function SaldoCard({ partidasDisponiveis, sessoesDisponiveis }: SaldoCard
                 {partidasDisponiveis}
               </p>
               <p className="text-sm text-[var(--color-muted-foreground)]">
-                partida{partidasDisponiveis === 1 ? "" : "s"} disponíve{partidasDisponiveis === 1 ? "l" : "is"}
+                {t("matchesAvailable", { count: partidasDisponiveis })}
               </p>
             </div>
           </div>
@@ -39,7 +41,7 @@ export function SaldoCard({ partidasDisponiveis, sessoesDisponiveis }: SaldoCard
                 {sessoesDisponiveis}
               </p>
               <p className="text-sm text-[var(--color-muted-foreground)]">
-                sess{sessoesDisponiveis === 1 ? "ão" : "ões"} teórica{sessoesDisponiveis === 1 ? "" : "s"}
+                {t("sessionsAvailable", { count: sessoesDisponiveis })}
               </p>
             </div>
           </div>

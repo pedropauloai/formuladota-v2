@@ -18,6 +18,7 @@
  */
 
 import { m } from "motion/react";
+import { useTranslations } from "next-intl";
 import { Flame } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMotionSafeBool } from "@/lib/motion/hooks";
@@ -90,6 +91,7 @@ export interface OnFireOverlayProps {
 function getBadgeText(
   variant: OnFireVariant,
   streakCount: number,
+  t: (key: string, values?: Record<string, string | number>) => string,
   mmrLabel?: string
 ): string {
   // mmrLabel sobrescreve sempre — qualquer variante pode ter texto customizado
@@ -97,29 +99,23 @@ function getBadgeText(
 
   switch (variant) {
     case "student":
-      // Ex: "+320 MMR esta semana"
-      return `+${streakCount} MMR esta semana`;
+      return t("onFireStudent", { n: streakCount });
 
     case "disciplina":
-      // Ex: "EM RITMO • 10 partidas disciplinadas"
-      return `EM RITMO • ${streakCount} partidas disciplinadas`;
+      return t("onFireDisciplina", { n: streakCount });
 
     case "mentoria":
-      // Ex: "MENTOR ATIVO • 3 elogios esta semana"
-      return `MENTOR ATIVO • ${streakCount} elogios esta semana`;
+      return t("onFireMentoria", { n: streakCount });
 
     case "aprendizado":
-      // Ex: "EVOLUÇÃO • 5 derrotas com aprendizado"
-      return `EVOLUÇÃO • ${streakCount} derrotas com aprendizado`;
+      return t("onFireAprendizado", { n: streakCount });
 
     case "estabilidade":
-      // Ex: "ESTÁVEL • 20 partidas sem strike"
-      return `ESTÁVEL • ${streakCount} partidas sem strike`;
+      return t("onFireEstabilidade", { n: streakCount });
 
     case "coach":
     default:
-      // "ON FIRE • 5 wins" — número de vitórias em sequência
-      return `ON FIRE • ${streakCount} wins`;
+      return t("onFireCoach", { n: streakCount });
   }
 }
 
@@ -154,10 +150,11 @@ export function OnFireOverlay({
   mmrLabel,
   className,
 }: OnFireOverlayProps) {
+  const t = useTranslations("ui");
   // Respeita prefers-reduced-motion — pulse só quando motion permitido
   const motionSafe = useMotionSafeBool();
 
-  const badgeText = getBadgeText(variant, streakCount, mmrLabel);
+  const badgeText = getBadgeText(variant, streakCount, t, mmrLabel);
 
   return (
     <m.div

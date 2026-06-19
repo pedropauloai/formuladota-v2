@@ -19,7 +19,7 @@
 // PRO/ADMIN/Progresso/etc são filtrados naturalmente por role.
 
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { Settings, LogOut, LogIn, Shield, Eye, EyeOff, Radio, Swords } from "lucide-react";
 import { signOut, signInWithDiscord } from "@/app/login/actions";
 import { togglePreviewMode } from "@/lib/auth/preview-mode";
@@ -27,6 +27,8 @@ import { Tooltip } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { QueueStatusPill } from "@/components/queue/queue-status-pill";
 import type { MyQueueEntry } from "@/lib/queries/queue";
+import { useTranslations } from "next-intl";
+import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 
 type TopBarTabDef = {
   href: string;
@@ -35,20 +37,14 @@ type TopBarTabDef = {
   matchPrefix?: string;
 };
 
-// Tab sempre visível pra todos (visitante/user/admin) — jornada principal
-const SUBIR_MMR_TAB: TopBarTabDef = {
-  href: "/ranked-com-pro",
-  label: "Subir MMR",
-};
-
-// Ecossistema competitivo — funcional desde 2026-06-18 (ranking via motor de MMR,
-// times com convite, torneios com chave/placar). Visível pra todo usuário logado.
-// Progresso saiu daqui: agora é tab pública do perfil (/me?tab=progresso).
-const COMPETITIVE_TABS: TopBarTabDef[] = [
-  { href: "/ranking", label: "Ranking" },
-  { href: "/times", label: "Times" },
-  { href: "/torneios", label: "Torneios" },
-];
+// Defs das tabs principais (label resolvido por i18n no render). SUBIR MMR sempre
+// + ecossistema competitivo (ranking/times/torneios), visível pra todos.
+const PRINCIPAL_TAB_DEFS = [
+  { href: "/ranked-com-pro", key: "subirMmr" },
+  { href: "/ranking", key: "ranking" },
+  { href: "/times", key: "times" },
+  { href: "/torneios", key: "torneios" },
+] as const;
 
 interface Props {
   currentRoute?: string;
@@ -81,11 +77,14 @@ export function DashboardTopBar({
   searchingCount,
   myQueues,
 }: Props) {
+  const t = useTranslations();
   const inQueue = myQueues.length > 0;
-  // Compõe nav principal: SUBIR MMR + ecossistema competitivo, visível pra
-  // TODOS — inclusive visitante (Pedro 2026-06-18): mostra a amplitude do
-  // produto antes do login. (Ranking é público; Times/Torneios pedem login.)
-  const principalTabs: TopBarTabDef[] = [SUBIR_MMR_TAB, ...COMPETITIVE_TABS];
+  // Nav principal visível pra TODOS — inclusive visitante (Pedro 2026-06-18):
+  // mostra a amplitude do produto antes do login. Label traduzido (PT/EN).
+  const principalTabs: TopBarTabDef[] = PRINCIPAL_TAB_DEFS.map((d) => ({
+    href: d.href,
+    label: t(`nav.${d.key}`),
+  }));
 
   const contextualTabs: TopBarTabDef[] = [];
   if (isPro) {
@@ -116,7 +115,7 @@ export function DashboardTopBar({
       <div className="flex items-center gap-2 xl:gap-4">
         {!isVisitor && (
           <>
-            <TopBarIcon icon={Settings} label="Configurações" href="/me" />
+            <TopBarIcon icon={Settings} label={t("topbar.settings")} href="/me" />
             <div
               className="h-5 w-px bg-white/15 xl:h-6 xl:mx-1"
               aria-hidden="true"
@@ -145,7 +144,7 @@ export function DashboardTopBar({
         />
 
         <nav
-          aria-label="Navegação principal"
+          aria-label={t("topbar.mainNavAria")}
           className="hidden lg:flex items-center gap-1"
         >
           {principalTabs.map((t) => (
@@ -165,7 +164,7 @@ export function DashboardTopBar({
               aria-hidden="true"
             />
             <nav
-              aria-label="Navegação contextual"
+              aria-label={t("topbar.contextNavAria")}
               className="hidden lg:flex items-center gap-1"
             >
               {contextualTabs.map((t) => (
@@ -197,8 +196,7 @@ export function DashboardTopBar({
                 <span className="relative inline-flex size-2 rounded-full bg-success" />
               </span>
               <span className="font-display text-sm font-semibold text-success/90">
-                {prosOnlineCount}{" "}
-                {prosOnlineCount === 1 ? "PRO online" : "PROs online"}
+                {t("topbar.prosOnline", { count: prosOnlineCount })}
               </span>
               <Radio size={12} className="text-success/80" aria-hidden="true" />
             </div>
@@ -207,8 +205,7 @@ export function DashboardTopBar({
             <div className="flex items-center gap-2 rounded-md border border-info/30 bg-info/5 px-3 py-1">
               <Swords size={12} className="text-info/80" aria-hidden="true" />
               <span className="font-display text-sm font-semibold text-info/90">
-                {searchingCount}{" "}
-                {searchingCount === 1 ? "jogador buscando" : "jogadores buscando"}
+                {t("topbar.searching", { count: searchingCount })}
               </span>
             </div>
           )}
@@ -218,6 +215,7 @@ export function DashboardTopBar({
       {/* Direita — CONDUTA cinematic (todos) + (Entrar/Logout) + PreviewToggle (admin real) */}
       <div className="flex items-center gap-1.5 xl:gap-2">
         {realIsAdmin && <PreviewModeToggle previewActive={previewActive} />}
+        <LanguageSwitcher className="hidden sm:inline-flex" />
         <CondutaBadge />
         {isVisitor ? (
           <EntrarBadge />
@@ -225,7 +223,7 @@ export function DashboardTopBar({
           <form action={signOut}>
             <button
               type="submit"
-              aria-label="Sair"
+              aria-label={t("topbar.signOut")}
               className="flex size-8 items-center justify-center rounded-md text-white/60 hover:bg-white/5 hover:text-white transition-colors"
             >
               <LogOut size={16} aria-hidden="true" />
@@ -238,11 +236,12 @@ export function DashboardTopBar({
 }
 
 function PreviewModeToggle({ previewActive }: { previewActive: boolean }) {
+  const t = useTranslations("topbar");
   return (
     <form action={togglePreviewMode}>
       <button
         type="submit"
-        aria-label={previewActive ? "Voltar pra modo admin" : "Ver como usuário comum"}
+        aria-label={previewActive ? t("previewBackAria") : t("previewAsUserAria")}
         className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 font-display text-sm font-semibold transition-colors xl:px-3 ${
           previewActive
             ? "border-amber-500/60 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20"
@@ -252,13 +251,13 @@ function PreviewModeToggle({ previewActive }: { previewActive: boolean }) {
         {previewActive ? (
           <>
             <EyeOff size={11} aria-hidden="true" />
-            <span className="hidden xl:inline">Voltar pra admin</span>
+            <span className="hidden xl:inline">{t("previewBack")}</span>
             <span className="xl:hidden">Admin</span>
           </>
         ) : (
           <>
             <Eye size={11} aria-hidden="true" />
-            <span className="hidden xl:inline">Ver como user</span>
+            <span className="hidden xl:inline">{t("previewAsUser")}</span>
             <span className="xl:hidden">User</span>
           </>
         )}
@@ -272,16 +271,17 @@ function CondutaBadge() {
   // Estética cinematic brand (vermelho + glow) — antes ocupada pelo SUBIR MMR.
   // Conduta é gate cultural: lido por todos antes de jogar a primeira PT.
   // Hover educacional: accountability é princípio (link já é focável → focusable off).
+  const t = useTranslations();
   return (
     <Tooltip
-      content="Conduta é pública na FormulaDota — responsabilidade é princípio, não opção. Leia o Código antes da sua primeira PT."
+      content={t("topbar.condutaTooltip")}
       side="bottom"
       align="end"
       focusable={false}
     >
       <Link
         href="/codigo-de-conduta"
-        aria-label="Código de Conduta — manifesto FORMULADOTA"
+        aria-label={t("nav.conduta")}
         className={cn(
           "group inline-flex items-center gap-1.5 rounded-md",
           "px-2.5 py-1 xl:px-3 xl:py-1.5",
@@ -295,7 +295,7 @@ function CondutaBadge() {
         )}
       >
         <Shield size={12} aria-hidden="true" />
-        <span>Conduta</span>
+        <span>{t("nav.conduta")}</span>
       </Link>
     </Tooltip>
   );
@@ -304,6 +304,7 @@ function CondutaBadge() {
 function EntrarBadge() {
   // CTA Discord OAuth pra visitante — estética cinematic igual ao CondutaBadge
   // pra consistência visual; aparece AO LADO da Conduta.
+  const t = useTranslations("nav");
   return (
     <form action={signInWithDiscord}>
       <button
@@ -322,7 +323,7 @@ function EntrarBadge() {
         )}
       >
         <LogIn size={12} aria-hidden="true" />
-        <span>Entrar</span>
+        <span>{t("entrar")}</span>
       </button>
     </form>
   );

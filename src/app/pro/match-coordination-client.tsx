@@ -11,6 +11,7 @@
 //   - Nada (se fila vazia e sem sessão ativa)
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Play, StopCircle, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StartMatchModal, type QueueParticipant } from "@/components/pro/start-match-modal";
@@ -41,6 +42,7 @@ export function MatchCoordinationClient({
   queueParticipants,
   activeSession,
 }: MatchCoordinationClientProps) {
+  const t = useTranslations("proCockpit");
   const [showStartModal, setShowStartModal] = useState(false);
   const [showFinishModal, setShowFinishModal] = useState(false);
 
@@ -58,7 +60,7 @@ export function MatchCoordinationClient({
           <div className="flex items-center justify-between">
             <div className="flex flex-col gap-1">
               <p className="font-display text-sm uppercase tracking-widest text-brand-primary">
-                Partida em Curso
+                {t("matchInProgress")}
               </p>
               {activeSession.voiceChannelName && (
                 <p className="text-sm text-text-muted font-mono">
@@ -66,9 +68,9 @@ export function MatchCoordinationClient({
                 </p>
               )}
               <p className="text-sm text-text-faded font-mono">
-                {activeSession.students.length} aluno{activeSession.students.length !== 1 ? "s" : ""}:{" "}
+                {t("studentsCount", { count: activeSession.students.length })}:{" "}
                 {activeSession.students
-                  .map((s) => s.username ?? "Jogador")
+                  .map((s) => s.username ?? t("player"))
                   .join(", ")}
               </p>
             </div>
@@ -78,7 +80,7 @@ export function MatchCoordinationClient({
               className="flex items-center gap-2 bg-brand-primary text-text-inverse hover:bg-brand-primary-hover"
             >
               <StopCircle className="h-4 w-4" aria-hidden="true" />
-              Finalizar Partida
+              {t("finishMatch")}
             </Button>
           </div>
         </div>
@@ -90,13 +92,13 @@ export function MatchCoordinationClient({
           <div className="flex items-center justify-between">
             <div className="flex flex-col gap-1">
               <p className="font-display text-sm uppercase tracking-widest text-text-display">
-                Fila
+                {t("queue")}
               </p>
               <p className="text-sm text-text-muted">
-                {queueParticipants.length} aluno{queueParticipants.length !== 1 ? "s" : ""} aguardando
+                {t("studentsWaiting", { count: queueParticipants.length })}
                 {queueParticipants.length < 4 && (
                   <span className="text-text-faded">
-                    {" "}— minimo 4 para iniciar
+                    {" "}{t("minToStart")}
                   </span>
                 )}
               </p>
@@ -108,12 +110,12 @@ export function MatchCoordinationClient({
               className="flex items-center gap-2 bg-play-primary text-text-inverse hover:bg-play-primary-hover disabled:opacity-40 disabled:cursor-not-allowed"
               title={
                 !canStartMatch
-                  ? `Aguardando ${4 - queueParticipants.length} aluno(s) para completar a fila`
+                  ? t("waitingForStudents", { count: 4 - queueParticipants.length })
                   : undefined
               }
             >
               <Play className="h-4 w-4" aria-hidden="true" />
-              Iniciar Partida
+              {t("startMatch")}
             </Button>
           </div>
 
@@ -126,7 +128,7 @@ export function MatchCoordinationClient({
                   className="flex items-center gap-1 rounded border border-border-subtle bg-bg-elevated px-2 py-1 text-sm text-text-muted"
                 >
                   <Users className="h-3 w-3 text-text-faded" aria-hidden="true" />
-                  {p.username ?? "Jogador"}
+                  {p.username ?? t("player")}
                 </span>
               ))}
             </div>

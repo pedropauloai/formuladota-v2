@@ -25,6 +25,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Trophy, Users, Clock, Activity } from "lucide-react";
 
 // Primitives F6
@@ -191,6 +192,7 @@ const MOCK_QUEUE_WAITING_LIST = [
 const CALIBRATION_STATES: CalibrationStatus[] = ["visitante", "calibrando", "ranqueado"];
 
 export default function ComponentsPage() {
+  const tr = useTranslations("ranks");
   const [showLoading, setShowLoading] = useState(false);
   const [showGraduation, setShowGraduation] = useState(false);
   const [confirmResult, setConfirmResult] = useState<string | null>(null);
@@ -787,7 +789,7 @@ export default function ComponentsPage() {
                   key={tier}
                   variant={`tier-${tier}` as `tier-${Tier}`}
                 >
-                  {TIER_NAMES[tier]}
+                  {tr(`dotaByNum.${tier}`)}
                 </Badge>
               ))}
             </div>

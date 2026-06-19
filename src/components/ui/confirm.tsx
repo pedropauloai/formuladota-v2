@@ -37,6 +37,7 @@ import {
   type ReactNode,
 } from "react";
 import { AlertTriangle } from "lucide-react";
+import { useTranslations } from "next-intl";
 import {
   DialogRoot,
   DialogContent,
@@ -115,6 +116,7 @@ type DialogState =
     };
 
 export function ConfirmProvider({ children }: { children: ReactNode }) {
+  const t = useTranslations("ui");
   const [state, setState] = useState<DialogState | null>(null);
   const [inputValue, setInputValue] = useState("");
 
@@ -200,7 +202,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
 
             <div className="flex items-center justify-end gap-2 mt-2">
               <Button variant="secondary" size="md" onClick={cancel}>
-                {state.options.cancelLabel ?? "Cancelar"}
+                {state.options.cancelLabel ?? t("cancel")}
               </Button>
               <Button
                 variant={
@@ -212,7 +214,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
                 onClick={commit}
                 disabled={isPromptDisabled}
               >
-                {state.options.confirmLabel ?? "Confirmar"}
+                {state.options.confirmLabel ?? t("confirm")}
               </Button>
             </div>
           </DialogContent>

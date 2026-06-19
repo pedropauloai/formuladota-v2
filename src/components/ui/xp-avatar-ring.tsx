@@ -6,6 +6,7 @@
 // (ver memory/feedback_avatar_quadrado). A barra anima quando `pct` muda → sobe em
 // tempo real conforme o usuário ganha XP respondendo o quiz.
 
+import { useTranslations } from "next-intl";
 import { TIER_CONFIG, getTierForLevel, type Tier } from "@/lib/levels";
 import { cn } from "@/lib/utils";
 
@@ -33,6 +34,7 @@ export function XpAvatarRing({
   tier,
   size = 44,
 }: Props) {
+  const t = useTranslations("ui");
   const resolvedTier = tier ?? getTierForLevel(level);
   const cfg = TIER_CONFIG[resolvedTier];
 
@@ -68,7 +70,7 @@ export function XpAvatarRing({
     <div
       className="relative shrink-0"
       style={{ width: box, height: box }}
-      aria-label={`Nível ${level}, ${Math.round(clamped * 100)}% para o próximo`}
+      aria-label={t("xpRingAria", { level, pct: Math.round(clamped * 100) })}
     >
       {/* Borda-progresso */}
       <svg
@@ -129,7 +131,7 @@ export function XpAvatarRing({
           "text-gold",
           cfg.borderColor
         )}
-        title={`${cfg.label} · Nível ${level}`}
+        title={t("xpRingTitle", { tier: cfg.label, level })}
       >
         {level}
       </span>

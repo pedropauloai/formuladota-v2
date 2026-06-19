@@ -4,6 +4,7 @@
 // Browser mostra mesmo quando aba não está em foco.
 
 import { useEffect } from "react";
+import { useTranslations } from "next-intl";
 
 interface Props {
   inQueue: boolean;
@@ -13,14 +14,19 @@ interface Props {
 }
 
 export function TabTitleUpdater({ inQueue, position, total, coachUsername }: Props) {
+  const t = useTranslations("queue");
   useEffect(() => {
     if (!inQueue) return;
     const original = document.title;
-    document.title = `(${position}º/${total}) Na fila do ${coachUsername ?? "PRO"} · FORMULADOTA`;
+    document.title = t("tabTitle", {
+      position,
+      total,
+      name: coachUsername ?? "PRO",
+    });
     return () => {
       document.title = original;
     };
-  }, [inQueue, position, total, coachUsername]);
+  }, [inQueue, position, total, coachUsername, t]);
 
   return null;
 }

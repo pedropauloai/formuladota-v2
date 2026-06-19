@@ -6,15 +6,17 @@
 // Server Component — sem interatividade, sem "use client".
 
 import { EmptyState } from "@/components/ui/empty-state";
+import { useTranslations } from "next-intl";
 
 export function TabHistorico() {
   // V1: schema de matches por user ainda em flux (post-Phase 8).
   // MatchCard não importado intencionalmente — sem dados reais para alimentar.
+  const t = useTranslations("perfil");
   return (
     <div className="pt-6">
       <EmptyState
-        title="Nenhuma partida ainda."
-        description="Suas partidas com o coach aparecerão aqui após a primeira sessão."
+        title={t("historicoEmptyTitle")}
+        description={t("historicoEmptyDesc")}
       />
     </div>
   );

@@ -29,6 +29,7 @@ import {
   type ReactNode,
 } from "react";
 import { AnimatePresence, m } from "motion/react";
+import { useTranslations } from "next-intl";
 import { CheckCircle, AlertCircle, XCircle, Info, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSound } from "@/lib/sound/hooks";
@@ -157,6 +158,7 @@ interface ToastViewportProps {
 }
 
 function ToastViewport({ toasts, onDismiss }: ToastViewportProps) {
+  const t = useTranslations("ui");
   return (
     /*
      * Posicionamento: fixed bottom-6, centralizado.
@@ -169,15 +171,15 @@ function ToastViewport({ toasts, onDismiss }: ToastViewportProps) {
      */
     <div
       role="region"
-      aria-label="Notificações"
+      aria-label={t("toastRegionLabel")}
       aria-live="polite"
       aria-atomic="false"
       className="fixed bottom-6 left-1/2 -translate-x-1/2 flex flex-col-reverse gap-2 pointer-events-none"
       style={{ zIndex: "var(--z-system)" }}
     >
       <AnimatePresence mode="popLayout">
-        {toasts.map((t) => (
-          <ToastItem key={t.id} toast={t} onDismiss={onDismiss} />
+        {toasts.map((item) => (
+          <ToastItem key={item.id} toast={item} onDismiss={onDismiss} />
         ))}
       </AnimatePresence>
     </div>
@@ -193,8 +195,9 @@ interface ToastItemProps {
   onDismiss: (id: string) => void;
 }
 
-function ToastItem({ toast: t, onDismiss }: ToastItemProps) {
-  const Icon = ICON_BY_TYPE[t.type];
+function ToastItem({ toast: toastData, onDismiss }: ToastItemProps) {
+  const t = useTranslations("ui");
+  const Icon = ICON_BY_TYPE[toastData.type];
 
   return (
     <m.div
@@ -226,7 +229,7 @@ function ToastItem({ toast: t, onDismiss }: ToastItemProps) {
         "rounded-[var(--radius-md)]",
         // Borda lateral colorida por tipo (border-l-2)
         "border-l-2",
-        BORDER_BY_TYPE[t.type],
+        BORDER_BY_TYPE[toastData.type],
         // Sombra cinematográfica
         "shadow-[var(--shadow-cinematic)]"
       )}
@@ -235,7 +238,7 @@ function ToastItem({ toast: t, onDismiss }: ToastItemProps) {
     >
       {/* Ícone colorido por tipo */}
       <Icon
-        className={cn("size-5 mt-0.5 shrink-0", ICON_COLOR_BY_TYPE[t.type])}
+        className={cn("size-5 mt-0.5 shrink-0", ICON_COLOR_BY_TYPE[toastData.type])}
         aria-hidden="true"
       />
 
@@ -245,20 +248,20 @@ function ToastItem({ toast: t, onDismiss }: ToastItemProps) {
           className="font-display text-sm text-[var(--color-text-display)] tracking-wide leading-snug"
           style={{ fontFamily: "var(--font-display)" }}
         >
-          {t.title}
+          {toastData.title}
         </p>
-        {t.description && (
+        {toastData.description && (
           <p className="text-sm text-[var(--color-text-muted)] mt-1 leading-relaxed">
-            {t.description}
+            {toastData.description}
           </p>
         )}
       </div>
 
       {/* Botão de dispensar */}
       <button
-        onClick={() => onDismiss(t.id)}
+        onClick={() => onDismiss(toastData.id)}
         className="shrink-0 text-[var(--color-text-muted)] hover:text-[var(--color-text-display)] transition-colors duration-[var(--motion-duration-micro)]"
-        aria-label="Dispensar notificação"
+        aria-label={t("toastDismiss")}
         type="button"
       >
         <X className="size-4" aria-hidden="true" />

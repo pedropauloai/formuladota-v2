@@ -5,6 +5,7 @@
 // widget é fixa pelo grid, então a página não cresce).
 // Server Component — sem interatividade.
 
+import { useTranslations } from "next-intl";
 import { WidgetShell } from "./widget-shell";
 import type { CareerTotals } from "@/lib/dota/career";
 
@@ -26,21 +27,22 @@ export function WidgetStats({
   careerTotals,
   editing,
 }: Props) {
+  const t = useTranslations("perfil");
   return (
-    <WidgetShell title="Estatísticas" editing={editing}>
+    <WidgetShell title={t("widgetStatsTitle")} editing={editing}>
       <div className="grid grid-cols-2 gap-3">
-        <StatItem label="Partidas" value={partidas} />
-        <StatItem label="Vitórias" value={vitorias} />
-        <StatItem label="Derrotas" value={derrotas} />
-        <StatItem label="MMR" value={mmr} />
+        <StatItem label={t("statPartidas")} value={partidas} />
+        <StatItem label={t("statVitorias")} value={vitorias} />
+        <StatItem label={t("statDerrotas")} value={derrotas} />
+        <StatItem label={t("statMmr")} value={mmr} />
       </div>
 
       {/* Veterania de carreira — números de valor → família GOLD */}
       {careerTotals && (
         <div className="mt-2.5 grid grid-cols-3 gap-2 border-t border-border-subtle pt-2">
-          <VeterancyItem label="Abates" value={careerTotals.kills} />
-          <VeterancyItem label="Assists" value={careerTotals.assists} />
-          <VeterancyItem label="Last hits" value={careerTotals.lastHits} />
+          <VeterancyItem label={t("statKills")} value={careerTotals.kills} />
+          <VeterancyItem label={t("statAssistsShort")} value={careerTotals.assists} />
+          <VeterancyItem label={t("statLastHits")} value={careerTotals.lastHits} />
         </div>
       )}
     </WidgetShell>

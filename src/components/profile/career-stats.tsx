@@ -17,7 +17,8 @@
 // altura que a página já tinha. Server Components — HeroVideo (client) é
 // composto normalmente.
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { DotaRankMedal, type DotaRank } from "@/components/ui/dota-rank-medal";
 import { Tooltip } from "@/components/ui/tooltip";
 import { HeroFace } from "@/components/dota/hero-face";
@@ -97,6 +98,7 @@ export function CareerIdentityInline({
   showMedal = true,
   className,
 }: CareerIdentityInlineProps) {
+  const t = useTranslations("perfil");
   const rank = rankTierToDotaRank(career.rankTier, career.leaderboardRank);
   const totalGames = career.wins + career.losses;
   const winratePct =
@@ -115,7 +117,7 @@ export function CareerIdentityInline({
       {/* Winrate de carreira — número em GOLD, compacto pra caber no header.
           Hover educacional: fonte e abrangência do número. */}
       <Tooltip
-        content="Winrate da carreira completa, todos os modos (inclui Turbo) — fonte STRATZ/OpenDota."
+        content={t("winrateTooltip")}
         side="bottom"
         align="start"
       >
@@ -123,13 +125,13 @@ export function CareerIdentityInline({
           <p className="font-display-condensed text-3xl leading-none tabular-nums text-gold">
             {winratePct !== null ? `${winratePct}%` : "—"}
             <span className="ml-1.5 text-sm uppercase tracking-wide text-gold-muted">
-              winrate
+              {t("winrate")}
             </span>
           </p>
           <p className="mt-1 font-mono text-xs 2xl:text-sm tabular-nums text-gold">
-            {career.wins.toLocaleString("pt-BR")}V
+            {t("winsShort", { wins: career.wins.toLocaleString("pt-BR") })}
             <span className="text-gold-muted"> · </span>
-            {career.losses.toLocaleString("pt-BR")}D
+            {t("lossesShort", { losses: career.losses.toLocaleString("pt-BR") })}
           </p>
         </div>
       </Tooltip>
@@ -137,11 +139,11 @@ export function CareerIdentityInline({
       {/* TOP {n} — só Imortais ranqueados no leaderboard. Status máximo. */}
       {career.leaderboardRank != null && (
         <Tooltip
-          content="Posição no leaderboard regional Valve — só Imortais ranqueados."
+          content={t("leaderboardTooltip")}
           side="bottom"
         >
           <span className="inline-flex items-center rounded-sm border border-border-gold bg-gold/10 px-2 py-1 font-display-condensed text-xl uppercase leading-none tracking-wider text-gold-bright">
-            TOP {career.leaderboardRank.toLocaleString("pt-BR")}
+            {t("topRank", { rank: career.leaderboardRank.toLocaleString("pt-BR") })}
           </span>
         </Tooltip>
       )}
@@ -190,6 +192,7 @@ function SignatureHeroMini({
   hero: ResolvedHero;
   primary: boolean;
 }) {
+  const t = useTranslations("perfil");
   const { stat } = hero;
   const winrate = stat.games > 0 ? Math.round((stat.wins / stat.games) * 100) : 0;
 
@@ -207,12 +210,12 @@ function SignatureHeroMini({
           {hero.name}
         </p>
         <p className="mt-0.5 font-display text-[11px] font-semibold text-text-muted">
-          {stat.games.toLocaleString("pt-BR")} jogos
+          {t("gamesCount", { count: stat.games.toLocaleString("pt-BR") })}
         </p>
         <p className="mt-0.5 font-display-condensed text-lg 2xl:text-xl leading-none tabular-nums text-gold">
           {winrate}%
           <span className="ml-1 text-[10px] uppercase tracking-wide text-gold-muted">
-            wr
+            {t("wr")}
           </span>
         </p>
       </div>
@@ -225,6 +228,7 @@ function SignatureHeroMini({
 // ---------------------------------------------------------------------------
 
 export function CareerLinkSteamCta({ className }: { className?: string }) {
+  const t = useTranslations("perfil");
   return (
     <Link
       href="/vincular/steam"
@@ -232,9 +236,9 @@ export function CareerLinkSteamCta({ className }: { className?: string }) {
         "inline-flex items-center gap-2 font-display text-sm font-semibold uppercase tracking-wide text-brand-primary transition-colors hover:text-text-display",
         className
       )}
-      title="Vincule sua Steam e a plataforma puxa sua história inteira do Dota: medalha, winrate de carreira e os heróis que te definem."
+      title={t("linkSteamCtaTitle")}
     >
-      Vincular Steam →
+      {t("linkSteamCta")}
     </Link>
   );
 }

@@ -6,7 +6,8 @@
 // - Mostra erro com link para voltar, ou QRCodeDisplay com sucesso
 
 import { useEffect, useState, useTransition } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { AlertCircle } from "lucide-react";
 import { createCheckout, type CheckoutResult } from "@/app/checkout/[packageId]/actions";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -20,6 +21,7 @@ interface CheckoutClientProps {
 }
 
 export function CheckoutClient({ packageId, packageName, precoFormatado }: CheckoutClientProps) {
+  const t = useTranslations("billing");
   const [result, setResult] = useState<CheckoutResult | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -43,7 +45,7 @@ export function CheckoutClient({ packageId, packageName, precoFormatado }: Check
       <CardContent>
         {/* Estado de carregamento: Skeleton enquanto aguarda Server Action */}
         {(isPending || !result) && (
-          <div className="flex flex-col items-center gap-4 py-8" aria-busy="true" aria-label="Gerando PIX">
+          <div className="flex flex-col items-center gap-4 py-8" aria-busy="true" aria-label={t("generatingPix")}>
             <Skeleton className="h-60 w-60" />
             <Skeleton className="h-4 w-48" />
             <Skeleton className="h-10 w-40" />
@@ -61,7 +63,7 @@ export function CheckoutClient({ packageId, packageName, precoFormatado }: Check
               href="/pacotes"
               className="inline-flex h-8 items-center justify-center rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] px-2.5 text-sm font-medium text-[var(--color-foreground)] transition-all hover:bg-[var(--color-muted)]"
             >
-              Voltar aos pacotes
+              {t("backToPackages")}
             </Link>
           </div>
         )}

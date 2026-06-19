@@ -5,6 +5,7 @@
 // Debitar = incrementa. Ver permission-actions.ts pro racional do modelo.
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { Ticket, ChevronUp, ChevronDown, Loader2, X, CheckCircle, AlertCircle } from "lucide-react";
 import { adjustMatchPermissions } from "@/app/admin/users/permission-actions";
 
@@ -17,6 +18,7 @@ export function AdjustPermissionsModal({
   username: string;
   available: number;
 }) {
+  const t = useTranslations("misc2");
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<"grant" | "debit">("grant");
   const [amount, setAmount] = useState("1");
@@ -39,7 +41,7 @@ export function AdjustPermissionsModal({
     setSuccess(null);
     const n = parseInt(amount, 10);
     if (!Number.isFinite(n) || n <= 0) {
-      setError("Quantidade precisa ser número positivo.");
+      setError(t("amountMustBePositive"));
       return;
     }
     startTransition(async () => {
@@ -47,7 +49,7 @@ export function AdjustPermissionsModal({
       if (!res.success) {
         setError(res.error);
       } else {
-        setSuccess(`Ajuste salvo. Saldo disponível: ${res.data?.available ?? "?"} permissão(ões).`);
+        setSuccess(t("permsAdjustedSuccess", { available: res.data?.available ?? "?" }));
         setAmount("1");
         setReason("");
       }
@@ -62,7 +64,7 @@ export function AdjustPermissionsModal({
         className="inline-flex items-center gap-1.5 rounded-md border border-brand-primary/40 bg-brand-primary/5 px-2.5 py-1 font-display font-semibold text-sm uppercase tracking-wide text-brand-primary hover:bg-brand-primary/15 transition-colors"
       >
         <Ticket size={11} />
-        Ajustar permissões
+        {t("adjustPermissions")}
       </button>
 
       {open && (
@@ -80,7 +82,7 @@ export function AdjustPermissionsModal({
             <div className="flex items-start justify-between mb-5">
               <div>
                 <p className="font-display font-semibold text-sm uppercase tracking-wide text-brand-primary mb-1">
-                  Permissões de partida
+                  {t("matchPermissions")}
                 </p>
                 <h2 className="font-display text-xl uppercase text-text-display">{username}</h2>
               </div>
@@ -88,14 +90,14 @@ export function AdjustPermissionsModal({
                 type="button"
                 onClick={close}
                 className="text-text-faded hover:text-text-muted transition-colors ml-4 mt-0.5"
-                aria-label="Fechar modal"
+                aria-label={t("closeModal")}
               >
                 <X size={16} />
               </button>
             </div>
 
             <p className="font-display text-sm font-semibold text-text-body mb-4">
-              Saldo disponível: <span className="tabular-nums text-gold">{available}</span>
+              {t("availableBalance")} <span className="tabular-nums text-gold">{available}</span>
             </p>
 
             <div className="grid grid-cols-2 gap-2 mb-4">
@@ -113,7 +115,7 @@ export function AdjustPermissionsModal({
                   }`}
                 >
                   {m === "grant" ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-                  {m === "grant" ? "Conceder" : "Debitar"}
+                  {m === "grant" ? t("grant") : t("debit")}
                 </button>
               ))}
             </div>
@@ -124,7 +126,7 @@ export function AdjustPermissionsModal({
                   htmlFor="perm-amount"
                   className="block font-display font-semibold text-sm uppercase tracking-wide text-text-faded mb-2"
                 >
-                  Quantidade
+                  {t("quantity")}
                 </label>
                 <input
                   id="perm-amount"
@@ -141,14 +143,14 @@ export function AdjustPermissionsModal({
                   htmlFor="perm-reason"
                   className="block font-display font-semibold text-sm uppercase tracking-wide text-text-faded mb-2"
                 >
-                  Motivo (obrigatório)
+                  {t("reasonRequired")}
                 </label>
                 <textarea
                   id="perm-reason"
                   rows={3}
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
-                  placeholder="ex: bônus de evento, compensação por bug no quiz, abuso de permissões"
+                  placeholder={t("permsReasonPlaceholder")}
                   className="w-full resize-none rounded-md border border-border-subtle bg-black/40 px-3 py-2 font-sans text-sm text-text-body placeholder:text-text-faded focus:outline-none focus:border-brand-primary/60"
                 />
               </div>
@@ -174,7 +176,7 @@ export function AdjustPermissionsModal({
                 disabled={pending}
                 className="rounded-md px-4 py-2 font-sans text-sm uppercase tracking-widest text-text-faded hover:text-text-muted transition-colors"
               >
-                Fechar
+                {t("close")}
               </button>
               <button
                 type="button"
@@ -187,7 +189,7 @@ export function AdjustPermissionsModal({
                 }`}
               >
                 {pending && <Loader2 size={12} className="animate-spin" />}
-                {mode === "grant" ? "Conceder" : "Debitar"} {amount || "0"}
+                {mode === "grant" ? t("grant") : t("debit")} {amount || "0"}
               </button>
             </div>
           </div>

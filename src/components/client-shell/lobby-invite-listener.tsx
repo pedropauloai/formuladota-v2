@@ -12,6 +12,7 @@
 // convites pendentes aparecem ao recarregar qualquer página.
 
 import { useEffect, useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { Swords, X, Loader2, LogIn } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { UserAvatar } from "@/components/ui/avatar";
@@ -28,6 +29,7 @@ interface Props {
 }
 
 export function LobbyInviteListener({ userId, initialInvites }: Props) {
+  const t = useTranslations("lobbyInvite");
   const [invites, setInvites] = useState<LobbyInviteView[]>(initialInvites);
   const [error, setError] = useState<string | null>(null);
   const [enteringId, setEnteringId] = useState<string | null>(null);
@@ -105,7 +107,7 @@ export function LobbyInviteListener({ userId, initialInvites }: Props) {
           <button
             type="button"
             onClick={() => setError(null)}
-            aria-label="Fechar aviso"
+            aria-label={t("dismiss")}
             className="text-text-faded hover:text-text-display p-1"
           >
             <X size={14} aria-hidden="true" />
@@ -121,13 +123,13 @@ export function LobbyInviteListener({ userId, initialInvites }: Props) {
           <div className="flex items-center gap-2">
             <UserAvatar
               src={invite.inviterAvatarUrl ?? undefined}
-              alt={`Avatar de ${invite.inviterName}`}
+              alt={t("avatarAlt", { name: invite.inviterName })}
               fallback={invite.inviterName.slice(0, 2).toUpperCase()}
               size="sm"
             />
             <p className="flex-1 min-w-0 font-display text-[13px] font-semibold text-text-body">
-              <span className="text-text-display">{invite.inviterName}</span> te
-              convidou pra sala{" "}
+              <span className="text-text-display">{invite.inviterName}</span>{" "}
+              {t("invitedTo")}{" "}
               <span className="text-play-primary">{invite.lobbyName}</span>
             </p>
             <Swords size={16} className="shrink-0 text-play-primary" aria-hidden="true" />
@@ -144,7 +146,7 @@ export function LobbyInviteListener({ userId, initialInvites }: Props) {
               ) : (
                 <LogIn size={13} aria-hidden="true" />
               )}
-              Entrar
+              {t("enter")}
             </button>
             <button
               type="button"
@@ -153,7 +155,7 @@ export function LobbyInviteListener({ userId, initialInvites }: Props) {
               className="flex flex-1 items-center justify-center gap-1.5 rounded border border-border-subtle bg-bg-elevated px-2 py-1.5 font-display text-[12px] font-bold uppercase tracking-wide text-text-muted hover:text-text-body hover:border-border-strong transition-colors disabled:opacity-60"
             >
               <X size={13} aria-hidden="true" />
-              Recusar
+              {t("decline")}
             </button>
           </div>
         </div>

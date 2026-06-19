@@ -3,8 +3,9 @@
 // Refatorado para Design System V2.5: primitives + tokens semânticos.
 
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { ArrowLeft, Trophy, Calendar, Users, Award } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ClientShell } from "@/components/client-shell/shell";
@@ -19,48 +20,43 @@ interface PageProps {
 
 export async function generateMetadata(props: PageProps): Promise<Metadata> {
   const { slug } = await props.params;
-  return { title: `Torneio ${slug} — FORMULADOTA` };
+  const t = await getTranslations("torneios");
+  return { title: t("detailMetaTitle", { slug }) };
 }
 
-// Status → label + variant Badge V2.5 (semântico)
-const STATUS_LABEL: Record<
-  string,
-  { label: string; variant: NonNullable<BadgeProps["variant"]> }
-> = {
-  open: { label: "Inscrições abertas", variant: "success" },
-  in_progress: { label: "Em andamento", variant: "warning" },
-  completed: { label: "Encerrado", variant: "secondary" },
-  draft: { label: "Rascunho", variant: "outline" },
-  cancelled: { label: "Cancelado", variant: "error" },
+// Status → variant Badge V2.5 (semântico). Label resolvido por chave i18n no render.
+const STATUS_VARIANT: Record<string, NonNullable<BadgeProps["variant"]>> = {
+  open: "success",
+  in_progress: "warning",
+  completed: "secondary",
+  draft: "outline",
+  cancelled: "error",
 };
 
-const FORMAT_LABEL: Record<string, string> = {
-  single_elim: "Eliminação simples",
-  double_elim: "Eliminação dupla",
-  round_robin: "Todos contra todos",
-  swiss: "Sistema suíço",
+const FORMAT_KEYS = ["single_elim", "double_elim", "round_robin", "swiss"];
+
+// Mapa fixo de chaves de round (1=Primeira fase … 5=Final), independente de i18n.
+const ROUND_KEYS: Record<number, string> = {
+  1: "roundFirst",
+  2: "roundRoundOf16",
+  3: "roundQuarters",
+  4: "roundSemis",
+  5: "roundFinal",
 };
 
-const ROUND_NAMES: Record<number, string> = {
-  1: "Primeira fase",
-  2: "Oitavas",
-  3: "Quartas",
-  4: "Semifinal",
-  5: "Final",
-};
-
-function roundName(round: number, totalRounds: number): string {
+function roundNameKey(round: number, totalRounds: number): string {
   // Calcula nome relativo ao total — round final = "Final", penúltimo = "Semifinal"
   const fromEnd = totalRounds - round;
-  if (fromEnd === 0) return "Final";
-  if (fromEnd === 1) return "Semifinal";
-  if (fromEnd === 2) return "Quartas";
-  if (fromEnd === 3) return "Oitavas";
-  return ROUND_NAMES[round] ?? `Round ${round}`;
+  if (fromEnd === 0) return "roundFinal";
+  if (fromEnd === 1) return "roundSemis";
+  if (fromEnd === 2) return "roundQuarters";
+  if (fromEnd === 3) return "roundRoundOf16";
+  return ROUND_KEYS[round] ?? "";
 }
 
 export default async function TournamentDetailPage(props: PageProps) {
   const { slug } = await props.params;
+  const t = await getTranslations("torneios");
   const supabase = await createClient();
   const {
     data: { user },
@@ -128,10 +124,13 @@ export default async function TournamentDetailPage(props: PageProps) {
     (t) => !registeredTeamIds.includes(t.id)
   );
 
-  const status = STATUS_LABEL[tournament.status] ?? {
-    label: tournament.status,
-    variant: "outline" as const,
-  };
+  const statusVariant = STATUS_VARIANT[tournament.status] ?? "outline";
+  const statusLabel = STATUS_VARIANT[tournament.status]
+    ? t(`status.${tournament.status}`)
+    : tournament.status;
+  const formatLabel = FORMAT_KEYS.includes(tournament.format)
+    ? t(`format.${tournament.format}`)
+    : tournament.format;
   const canRegister = tournament.status === "open" && captainTeamsAvailable.length > 0;
 
   return (
@@ -142,7 +141,7 @@ export default async function TournamentDetailPage(props: PageProps) {
           className="inline-flex items-center gap-2 mb-6 font-display text-sm uppercase tracking-widest text-text-muted hover:text-text-display transition-colors"
         >
           <ArrowLeft size={14} />
-          Voltar pra torneios
+          {t("backToTournaments")}
         </Link>
 
         {tournament.banner_url && (
@@ -167,31 +166,31 @@ export default async function TournamentDetailPage(props: PageProps) {
                 </p>
               )}
             </div>
-            <Badge variant={status.variant} className="shrink-0">
-              {status.label}
+            <Badge variant={statusVariant} className="shrink-0">
+              {statusLabel}
             </Badge>
           </div>
         </header>
 
         {/* Stats */}
         <section className="grid gap-3 md:grid-cols-4 mb-8">
-          <StatBlock icon={Award} label="Formato" value={FORMAT_LABEL[tournament.format] ?? tournament.format} />
+          <StatBlock icon={Award} label={t("statFormat")} value={formatLabel} />
           <StatBlock
             icon={Users}
-            label="Times"
+            label={t("statTeams")}
             value={`${registeredTeams.length}/${tournament.max_teams}`}
           />
           {Number(tournament.prize_pool ?? 0) > 0 && (
             <StatBlock
               icon={Trophy}
-              label="Premiação"
+              label={t("statPrize")}
               value={`R$ ${Number(tournament.prize_pool).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
             />
           )}
           {tournament.starts_at && (
             <StatBlock
               icon={Calendar}
-              label="Início"
+              label={t("statStart")}
               value={new Date(tournament.starts_at).toLocaleDateString("pt-BR")}
             />
           )}
@@ -213,27 +212,34 @@ export default async function TournamentDetailPage(props: PageProps) {
           <div className="mt-10 flex flex-col gap-6 lg:flex-row">
             <section className="min-w-0 flex-1">
               <h2 className="mb-4 font-display text-sm font-semibold uppercase tracking-[0.2em] text-text-body">
-                Chave
+                {t("bracketHeading")}
               </h2>
               <BracketView
                 isAdmin={isAdmin}
                 rounds={Array.from(matchesByRound.entries())
                   .sort(([a], [b]) => a - b)
-                  .map(([round, roundMatches]) => ({
-                    round,
-                    name: roundName(round, totalRounds),
-                    matches: roundMatches ?? [],
-                  }))}
+                  .map(([round, roundMatches]) => {
+                    const key = roundNameKey(round, totalRounds);
+                    return {
+                      round,
+                      name: key ? t(key) : t("roundGeneric", { round }),
+                      matches: roundMatches ?? [],
+                    };
+                  })}
               />
             </section>
             <aside className="lg:w-64 lg:shrink-0">
               <h2 className="mb-4 font-display text-sm font-semibold uppercase tracking-[0.2em] text-text-body">
-                Times{" "}
+                {t("teamsHeading")}{" "}
                 <span className="text-text-faded">({registeredTeams.length})</span>
               </h2>
               <div className="space-y-2">
                 {registeredTeams.map((rt) => (
-                  <RegisteredTeamCard key={rt.team_id} rt={rt} />
+                  <RegisteredTeamCard
+                    key={rt.team_id}
+                    rt={rt}
+                    eliminatedLabel={t("eliminated")}
+                  />
                 ))}
               </div>
             </aside>
@@ -241,16 +247,20 @@ export default async function TournamentDetailPage(props: PageProps) {
         ) : (
           <section className="mt-8">
             <h2 className="mb-4 font-display text-sm 2xl:text-sm font-semibold uppercase tracking-[0.2em] text-text-body">
-              Times registrados
+              {t("registeredTeamsHeading")}
             </h2>
             {registeredTeams.length === 0 ? (
               <p className="font-display text-sm 2xl:text-base font-medium text-text-muted">
-                Nenhum time inscrito ainda.
+                {t("noTeamsYet")}
               </p>
             ) : (
               <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                 {registeredTeams.map((rt) => (
-                  <RegisteredTeamCard key={rt.team_id} rt={rt} />
+                  <RegisteredTeamCard
+                    key={rt.team_id}
+                    rt={rt}
+                    eliminatedLabel={t("eliminated")}
+                  />
                 ))}
               </div>
             )}
@@ -263,7 +273,7 @@ export default async function TournamentDetailPage(props: PageProps) {
             <Card variant="elevated">
               <CardHeader>
                 <CardTitle className="text-sm uppercase tracking-[0.2em]">
-                  Regras
+                  {t("rulesHeading")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -314,7 +324,13 @@ interface RegisteredTeamEntry {
   } | null;
 }
 
-function RegisteredTeamCard({ rt }: { rt: RegisteredTeamEntry }) {
+function RegisteredTeamCard({
+  rt,
+  eliminatedLabel,
+}: {
+  rt: RegisteredTeamEntry;
+  eliminatedLabel: string;
+}) {
   if (!rt.team) return null;
   return (
     <Link
@@ -341,7 +357,7 @@ function RegisteredTeamCard({ rt }: { rt: RegisteredTeamEntry }) {
         </p>
         <p className="font-display text-sm font-semibold uppercase tracking-wide text-text-faded">
           [{rt.team.tag}]
-          {rt.eliminated_at && <span className="ml-2 text-error">eliminado</span>}
+          {rt.eliminated_at && <span className="ml-2 text-error">{eliminatedLabel}</span>}
         </p>
       </div>
     </Link>

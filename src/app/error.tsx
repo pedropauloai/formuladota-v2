@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -18,6 +19,8 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const t = useTranslations("account");
+
   useEffect(() => {
     console.error("[error.tsx]", error);
   }, [error]);
@@ -28,33 +31,32 @@ export default function GlobalError({
         <CardContent className="space-y-6">
           <header className="space-y-2 text-center">
             <p className="font-display font-semibold text-sm uppercase tracking-wide text-error">
-              erro inesperado
+              {t("errorEyebrow")}
             </p>
             <h1 className="font-display text-2xl uppercase tracking-tight text-text-display">
-              Algo quebrou.
+              {t("errorTitle")}
             </h1>
           </header>
 
           <p className="text-sm leading-relaxed text-text-muted">
-            Encontramos um erro inesperado ao processar sua requisição. Você pode
-            tentar novamente, ou voltar à home enquanto investigamos.
+            {t("errorBody")}
           </p>
 
           {error.digest && (
             <p className="rounded-md border border-border-subtle bg-bg-base p-3 font-display text-sm font-semibold text-text-body">
-              ID do erro: {error.digest}
+              {t("errorIdLabel")}: {error.digest}
             </p>
           )}
 
           <div className="flex items-center justify-between gap-4 pt-2">
             <Button type="button" variant="primary" size="md" onClick={reset}>
-              Tentar novamente
+              {t("errorRetry")}
             </Button>
             <Link
               href="/"
               className="font-display font-semibold text-sm uppercase tracking-wide text-text-muted hover:text-text-display transition-colors"
             >
-              ← home
+              {t("homeLink")}
             </Link>
           </div>
         </CardContent>

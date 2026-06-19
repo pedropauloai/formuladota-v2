@@ -3,7 +3,8 @@
 // pra dar espaço pra sidebar admin (Dashboard, Users, Temporadas, Lobbies).
 
 import { redirect } from "next/navigation";
-import Link from "next/link";
+import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import { LayoutDashboard, Users, Calendar, Gamepad2, Radio, Coins, Trophy } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ClientShell } from "@/components/client-shell/shell";
@@ -30,21 +31,23 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect("/dashboard");
   }
 
+  const t = await getTranslations("misc2");
+
   return (
     <ClientShell currentRoute="/admin" hideLeftSidebar>
       <div className="flex h-full">
         {/* Admin sidebar interna (substitui left sidebar do user) */}
         <aside className="w-60 border-r border-border-subtle bg-bg-base/60 backdrop-blur-sm p-5 hidden md:block">
           <p className="mb-5 font-sans text-sm font-semibold uppercase tracking-[0.25em] text-brand-primary">
-            Admin
+            {t("navAdmin")}
           </p>
           <nav className="space-y-1">
             <AdminNavLink href="/admin/dashboard" icon={LayoutDashboard} label="Dashboard" />
             <AdminNavLink href="/admin/pros" icon={Radio} label="PROs" />
             <AdminNavLink href="/admin/users" icon={Users} label="Users" />
-            <AdminNavLink href="/admin/fichas" icon={Coins} label="Fichas" />
-            <AdminNavLink href="/admin/temporadas" icon={Calendar} label="Temporadas" />
-            <AdminNavLink href="/admin/torneios" icon={Trophy} label="Torneios" />
+            <AdminNavLink href="/admin/fichas" icon={Coins} label={t("navFichas")} />
+            <AdminNavLink href="/admin/temporadas" icon={Calendar} label={t("navTemporadas")} />
+            <AdminNavLink href="/admin/torneios" icon={Trophy} label={t("navTorneios")} />
             <AdminNavLink href="/admin/lobbies" icon={Gamepad2} label="Lobbies" />
           </nav>
         </aside>

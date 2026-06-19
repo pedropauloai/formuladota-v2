@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { Gamepad2, ShieldCheck, AlertCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { signInWithSteam } from "./actions";
@@ -14,27 +15,23 @@ import { Button } from "@/components/ui/button";
 //   - User COM steam_link aqui → redireciona /perfil (Plan 03-04)
 // Mas exibe os 2 estados pra acessível direto via /vincular/steam.
 
-export const metadata = {
-  title: "Vincular Steam — FORMULADOTA",
-  description:
-    "Vincule sua conta Steam pra liberar pacotes e (em breve) lobbies in-house.",
-};
+export async function generateMetadata() {
+  const t = await getTranslations("account");
+  return {
+    title: t("steamLinkMetaTitle"),
+    description: t("steamLinkMetaDescription"),
+  };
+}
 
-const ERROR_MESSAGES: Record<string, string> = {
-  csrf:
-    "Sua sessão de vinculação expirou ou o link veio adulterado. Tenta de novo — gerar um novo state é instantâneo.",
-  invalid_signature:
-    "A resposta da Steam veio com assinatura inválida. Tenta de novo — se persistir, fala com a gente no Discord.",
-  persona_unavailable:
-    "Conseguimos validar sua Steam, mas o servidor da Steam não devolveu seu nickname. Tenta de novo em alguns minutos.",
-  db_failed:
-    "Falha ao registrar seu vínculo no banco. Tenta de novo — se persistir, fala com a gente no Discord.",
-  login_required_for_steam:
-    "Faça login com Discord primeiro — depois te trazemos de volta.",
-  missing_state:
-    "O retorno da Steam veio sem o parâmetro de segurança. Tenta de novo.",
-  missing_code:
-    "O retorno da Steam veio incompleto. Tenta de novo.",
+// Mapeia o código de erro do retorno da Steam → chave de tradução.
+const ERROR_KEYS: Record<string, string> = {
+  csrf: "steamErrorCsrf",
+  invalid_signature: "steamErrorInvalidSignature",
+  persona_unavailable: "steamErrorPersonaUnavailable",
+  db_failed: "steamErrorDbFailed",
+  login_required_for_steam: "steamErrorLoginRequired",
+  missing_state: "steamErrorMissingState",
+  missing_code: "steamErrorMissingCode",
 };
 
 type SearchParams = Promise<{ error?: string; ok?: string }>;
@@ -75,8 +72,10 @@ export default async function VincularSteamPage({
     .eq("user_id", user.id)
     .maybeSingle();
 
+  const t = await getTranslations("account");
   const params = await searchParams;
-  const errorMessage = params.error ? ERROR_MESSAGES[params.error] : undefined;
+  const errorKey = params.error ? ERROR_KEYS[params.error] : undefined;
+  const errorMessage = errorKey ? t(errorKey) : undefined;
 
   return (
     <main className="relative min-h-screen px-4 py-12 md:py-20">
@@ -84,10 +83,10 @@ export default async function VincularSteamPage({
       <div className="relative z-10 mx-auto max-w-2xl">
         <header className="mb-8 text-center">
           <p className="font-display font-semibold text-sm uppercase tracking-[0.35em] text-brand-primary">
-            identidade gamer
+            {t("steamLinkEyebrow")}
           </p>
           <h1 className="mt-3 font-display text-3xl font-bold tracking-wide text-text-display md:text-4xl">
-            Vincular{" "}
+            {t("steamLinkTitlePrefix")}{" "}
             <span
               className="text-brand-primary"
               style={{ textShadow: "0 0 24px var(--color-brand-primary-glow)" }}
@@ -96,7 +95,7 @@ export default async function VincularSteamPage({
             </span>
           </h1>
           <p className="mt-3 font-body text-text-muted">
-            Identidade gamer obrigatória para acessar pacotes e lobbies.
+            {t("steamLinkSubtitle")}
           </p>
         </header>
 
@@ -117,7 +116,8 @@ export default async function VincularSteamPage({
 }
 
 // Estado: SEM Steam vinculado — Card hero + CTA primary massivo (M3)
-function UnlinkedState() {
+async function UnlinkedState() {
+  const t = await getTranslations("account");
   return (
     <Card
       variant="hero"
@@ -130,18 +130,16 @@ function UnlinkedState() {
           id="unlinked-heading"
           className="font-display text-xl font-semibold tracking-wide text-text-display"
         >
-          Conecte sua conta Steam
+          {t("steamConnectHeading")}
         </h2>
       </div>
       <p className="mb-6 font-body text-sm leading-relaxed text-text-muted">
-        Você vai abrir a página oficial da Steam, autorizar o FORMULADOTA
-        e voltar pra cá automaticamente. Sua senha NUNCA passa pelo nosso
-        servidor — autenticação direto com a Valve.
+        {t("steamConnectBody")}
       </p>
       <form action={signInWithSteam}>
         <Button type="submit" variant="primary" size="lg" className="w-full">
           <Gamepad2 className="h-5 w-5" aria-hidden="true" />
-          Continuar com Steam
+          {t("steamContinue")}
         </Button>
       </form>
     </Card>
@@ -149,7 +147,7 @@ function UnlinkedState() {
 }
 
 // Estado: COM Steam vinculado — Card elevated + revincular ghost
-function LinkedState({
+async function LinkedState({
   persona,
   avatarUrl,
   steamId64,
@@ -158,6 +156,7 @@ function LinkedState({
   avatarUrl: string | null;
   steamId64: string;
 }) {
+  const t = await getTranslations("account");
   return (
     <Card
       variant="elevated"
@@ -170,7 +169,7 @@ function LinkedState({
           id="linked-heading"
           className="font-display text-xl font-semibold tracking-wide text-text-display"
         >
-          Steam vinculado
+          {t("steamLinkedHeading")}
         </h2>
       </div>
 
@@ -179,7 +178,7 @@ function LinkedState({
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={avatarUrl}
-            alt={`Avatar de ${persona ?? "usuário Steam"}`}
+            alt={t("steamAvatarAlt", { persona: persona ?? t("steamUserFallback") })}
             className="h-16 w-16 rounded-sm border-2 border-success/60"
           />
         ) : (
@@ -190,17 +189,17 @@ function LinkedState({
         )}
         <div>
           <p className="font-display text-lg font-semibold tracking-wide text-text-display">
-            {persona ?? "Sem nickname"}
+            {persona ?? t("steamNoNickname")}
           </p>
           <p className="mt-1 font-display text-sm font-semibold text-text-body">
-            SteamID 64: {steamId64}
+            {t("steamIdLabel")}: {steamId64}
           </p>
         </div>
       </div>
 
       <form action={signInWithSteam}>
         <Button type="submit" variant="ghost" size="md" className="w-full">
-          Revincular outra conta Steam
+          {t("steamRelink")}
         </Button>
       </form>
     </Card>

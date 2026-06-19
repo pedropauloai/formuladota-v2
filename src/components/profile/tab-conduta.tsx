@@ -3,7 +3,8 @@
 // commends/strikes V2 (sem RPC ainda) — exibe "—" como placeholder honesto.
 // Server Component — sem interatividade, sem "use client".
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { ExternalLink } from "lucide-react";
 import { HonorRankMedal, type HonorRank } from "@/components/ui/honor-rank-medal";
 import { Button } from "@/components/ui/button";
@@ -19,18 +20,18 @@ interface Props {
   coachingReviews: CoachingReview[];
 }
 
-// Mapeia behavior_status do DB para label + tom visual (UI-SPEC Copywriting Contract)
-function behaviorStatusLabel(
+// Mapeia behavior_status do DB para chave i18n + tom visual (UI-SPEC Copywriting Contract)
+function behaviorStatusMeta(
   status: string | null
-): { label: string; tone: "success" | "warning" | "error" } {
+): { labelKey: string; tone: "success" | "warning" | "error" } {
   switch (status) {
     case "suspended":
-      return { label: "CONDUTA: SUSPENSA", tone: "warning" };
+      return { labelKey: "behaviorSuspended", tone: "warning" };
     case "banned":
-      return { label: "CONDUTA: BANIDA", tone: "error" };
+      return { labelKey: "behaviorBanned", tone: "error" };
     default:
       // null / "active" / qualquer outro string = aprovada
-      return { label: "CONDUTA: APROVADA", tone: "success" };
+      return { labelKey: "behaviorApproved", tone: "success" };
   }
 }
 
@@ -42,7 +43,9 @@ export function TabConduta({
   strikes,
   coachingReviews,
 }: Props) {
-  const { label, tone } = behaviorStatusLabel(behaviorStatus);
+  const t = useTranslations("perfil");
+  const { labelKey, tone } = behaviorStatusMeta(behaviorStatus);
+  const label = t(labelKey);
 
   // Cores semânticas do badge de status — zero hex hardcoded (C14)
   const toneCls =
@@ -66,10 +69,10 @@ export function TabConduta({
 
       {/* Breakdown: commends + strikes + doutrina aceita em (grid 3 colunas) */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <BreakdownCard label="Commends" value={commends ?? "—"} />
-        <BreakdownCard label="Avisos" value={strikes ?? "—"} />
+        <BreakdownCard label={t("commends")} value={commends ?? "—"} />
+        <BreakdownCard label={t("warnings")} value={strikes ?? "—"} />
         <BreakdownCard
-          label="Doutrina aceita em"
+          label={t("doctrineAcceptedOn")}
           value={
             doctrineAcceptedAt
               ? new Date(doctrineAcceptedAt).toLocaleDateString("pt-BR")
@@ -90,7 +93,7 @@ export function TabConduta({
       <div>
         <Link href="/codigo-de-conduta">
           <Button variant="ghost" size="sm">
-            Releia o Código de Conduta
+            {t("rereadCodeOfConduct")}
             <ExternalLink size={12} aria-hidden="true" />
           </Button>
         </Link>
@@ -99,11 +102,11 @@ export function TabConduta({
       {/* Análises de coaching recebidas (sessões coachadas — PRO observa + analisa) */}
       <div className="space-y-3 pt-2">
         <h3 className="font-display text-[13px] font-semibold uppercase tracking-[0.08em] text-text-faded">
-          Análises de coaching
+          {t("coachingReviewsTitle")}
         </h3>
         <CoachingReviewsList
           reviews={coachingReviews}
-          emptyLabel="Você ainda não recebeu análises. Elas aparecem aqui após uma sessão coachada com um PRO."
+          emptyLabel={t("coachingReviewsEmpty")}
         />
       </div>
     </div>

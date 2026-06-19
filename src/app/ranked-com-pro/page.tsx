@@ -6,6 +6,7 @@
 // O /dashboard virou HUB central; aqui mora o sistema "Ranked com PRO".
 
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ClientShell } from "@/components/client-shell/shell";
@@ -24,11 +25,13 @@ import { getCareerStats } from "@/lib/queries/career";
 import { getHeroById } from "@/lib/queries/heroes";
 import type { SignatureHero } from "@/components/dota/hero-video-backdrop";
 
-export const metadata: Metadata = {
-  title: "Ranked com PRO — FORMULADOTA",
-  description:
-    "Vagas em grupo com PRO Imortal pra jogar ranked oficial Dota 2 — a única via de subir MMR oficial Valve.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("queue");
+  return {
+    title: t("rankedPageTitle"),
+    description: t("rankedPageDescription"),
+  };
+}
 
 export const revalidate = 30;
 
@@ -65,8 +68,9 @@ export default async function RankedComProPage() {
     getMyQueueStatus(user.id),
   ]);
 
+  const t = await getTranslations("queue");
   const isAdmin = profile?.is_admin === true && !previewActive;
-  const persona = steamLink?.persona ?? profile?.username ?? "Anônimo";
+  const persona = steamLink?.persona ?? profile?.username ?? t("anonymous");
 
   const onlinePros = prosWithQueues.filter((p) => p.coach.filaAberta);
   const statsEntries = await Promise.all(

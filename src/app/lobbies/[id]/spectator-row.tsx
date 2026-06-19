@@ -5,6 +5,7 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { X } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { joinTeam, leaveLobby } from "./actions";
@@ -33,6 +34,7 @@ export function SpectatorRow({
 }: SpectatorRowProps) {
   const { toast } = useToast();
   const router = useRouter();
+  const t = useTranslations("lobbies");
   const [isPending, startTransition] = useTransition();
 
   const handleSpectate = () => {
@@ -65,7 +67,7 @@ export function SpectatorRow({
     <section className="border-b border-border-subtle bg-bg-base/60">
       <header className="flex items-center justify-between border-b border-border-subtle/60 px-3 py-1.5">
         <h3 className="font-display-condensed text-lg uppercase tracking-wide text-text-muted">
-          Jogadores de fora
+          {t("outsidePlayers")}
         </h3>
         {!disabled && !iAmSpectator && currentTeam !== null && (
           <button
@@ -74,14 +76,14 @@ export function SpectatorRow({
             disabled={isPending}
             className="font-display text-sm font-semibold uppercase tracking-widest text-text-faded hover:text-text-body transition-colors disabled:opacity-50"
           >
-            {isPending ? "..." : "Assistir"}
+            {isPending ? "..." : t("watch")}
           </button>
         )}
       </header>
       <div className="flex min-h-9 flex-wrap items-center gap-1.5 px-3 py-1.5">
         {spectators.length === 0 ? (
           <span className="font-display text-sm font-semibold uppercase tracking-wide text-text-faded/60">
-            Nenhum
+            {t("noneOne")}
           </span>
         ) : (
           spectators.map((s) => {
@@ -107,8 +109,8 @@ export function SpectatorRow({
                     type="button"
                     onClick={handleLeaveLobby}
                     disabled={isPending}
-                    aria-label="Sair do lobby"
-                    title="Sair do lobby"
+                    aria-label={t("leaveLobby")}
+                    title={t("leaveLobby")}
                     className="ml-0.5 text-text-faded hover:text-text-body transition-colors disabled:opacity-30"
                   >
                     <X size={11} />

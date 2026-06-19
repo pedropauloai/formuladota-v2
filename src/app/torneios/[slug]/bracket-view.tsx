@@ -8,6 +8,7 @@
 // desenham as linhas ⌐/L até o ponto médio do par.
 
 import { Fragment } from "react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { ReportMatchButton } from "./report-match-button";
 
@@ -106,6 +107,7 @@ function BracketCard({
   match: BracketMatch;
   isAdmin: boolean;
 }) {
+  const t = useTranslations("torneios");
   const winnerA = match.winner_team_id && match.winner_team_id === match.team_a_id;
   const winnerB = match.winner_team_id && match.winner_team_id === match.team_b_id;
   const completed = match.status === "completed";
@@ -133,7 +135,7 @@ function BracketCard({
       />
       {match.status === "walkover" && (
         <div className="bg-bg-deep px-2 py-1 text-center font-display text-[10px] uppercase tracking-wide text-text-faded">
-          passou direto (bye)
+          {t("walkover")}
         </div>
       )}
       {canReport && (
@@ -141,8 +143,8 @@ function BracketCard({
           matchId={match.id!}
           teamAId={match.team_a_id!}
           teamBId={match.team_b_id!}
-          teamAName={match.team_a_name ?? "Time A"}
-          teamBName={match.team_b_name ?? "Time B"}
+          teamAName={match.team_a_name ?? t("teamADefault")}
+          teamBName={match.team_b_name ?? t("teamBDefault")}
         />
       )}
     </div>
@@ -162,6 +164,7 @@ function TeamLine({
   winner: boolean;
   showScore: boolean;
 }) {
+  const t = useTranslations("torneios");
   return (
     <div
       className={cn(
@@ -181,7 +184,7 @@ function TeamLine({
             winner ? "font-semibold text-text-display" : "text-text-muted"
           )}
         >
-          {name ?? "A definir"}
+          {name ?? t("tbd")}
         </span>
       </div>
       {showScore && (

@@ -11,6 +11,7 @@
 // Voz da copy: Mestre+Guardiao — direto, sem hype, sem emoji.
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { X, Users, Mic, AlertCircle, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -23,13 +24,23 @@ import {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function generateDefaultRoomName(): string {
+function generateDefaultRoomName(
+  t: (key: string, values?: Record<string, string | number>) => string
+): string {
   const now = new Date();
-  const days = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
-  const day = days[now.getDay()];
+  const dayKeys = [
+    "weekdaySun",
+    "weekdayMon",
+    "weekdayTue",
+    "weekdayWed",
+    "weekdayThu",
+    "weekdayFri",
+    "weekdaySat",
+  ];
+  const day = t(dayKeys[now.getDay()]!);
   const hour = now.getHours().toString().padStart(2, "0");
   const minute = now.getMinutes().toString().padStart(2, "0");
-  return `Sessao ${day} ${hour}h${minute}`;
+  return t("defaultRoomName", { day, hour, minute });
 }
 
 // ---------------------------------------------------------------------------
@@ -55,8 +66,9 @@ export function StartMatchModal({
   queueParticipants,
   onClose,
 }: StartMatchModalProps) {
+  const t = useTranslations("proCockpit");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [roomName, setRoomName] = useState(generateDefaultRoomName);
+  const [roomName, setRoomName] = useState(() => generateDefaultRoomName(t));
   const [result, setResult] = useState<StartMatchResult | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -115,13 +127,13 @@ export function StartMatchModal({
               id="start-match-title"
               className="font-display text-sm uppercase tracking-widest text-brand-primary"
             >
-              Iniciar Partida
+              {t("startMatch")}
             </h2>
           </div>
           <button
             onClick={onClose}
             className="rounded p-1 text-text-muted transition-colors hover:text-white"
-            aria-label="Fechar"
+            aria-label={t("closeAria")}
           >
             <X className="h-4 w-4" />
           </button>
@@ -132,7 +144,7 @@ export function StartMatchModal({
           {/* Selecao de alunos */}
           <div>
             <p className="mb-3 text-sm text-text-muted uppercase tracking-wider font-display font-semibold">
-              Selecione 4 alunos{" "}
+              {t("select4Students")}{" "}
               <span
                 className={cn(
                   "font-bold",
@@ -147,7 +159,7 @@ export function StartMatchModal({
 
             {queueParticipants.length === 0 ? (
               <p className="rounded-lg border border-border-subtle bg-bg-elevated p-4 text-sm text-text-muted">
-                Nenhum aluno na fila no momento.
+                {t("noStudentsInQueue")}
               </p>
             ) : (
               <ul className="flex flex-col gap-2" role="list">
@@ -186,7 +198,7 @@ export function StartMatchModal({
                         </span>
 
                         <span className="flex-1 text-sm font-medium">
-                          {participant.username ?? "Jogador"}
+                          {participant.username ?? t("player")}
                         </span>
 
                         <span className="font-mono text-sm text-text-muted">
@@ -207,7 +219,7 @@ export function StartMatchModal({
               className="mb-2 block text-sm text-text-muted uppercase tracking-wider font-display font-semibold"
             >
               <Mic className="inline h-3 w-3 mr-1" aria-hidden="true" />
-              Nome da sala de voz
+              {t("voiceRoomName")}
             </label>
             <input
               id="room-name"
@@ -215,11 +227,11 @@ export function StartMatchModal({
               value={roomName}
               onChange={(e) => setRoomName(e.target.value)}
               maxLength={50}
-              placeholder="Ex: Sessao Sabado 19h"
+              placeholder={t("voiceRoomPlaceholder")}
               className="w-full rounded-lg border border-border-subtle bg-bg-elevated px-4 py-2.5 text-sm text-white placeholder:text-text-faded focus:border-brand-primary/40 focus:outline-none focus:ring-1 focus:ring-brand-primary/20"
             />
             <p className="mt-1 text-sm text-text-faded">
-              {roomName.length}/50 caracteres
+              {t("charsCount", { count: roomName.length, max: 50 })}
             </p>
           </div>
 
@@ -241,8 +253,8 @@ export function StartMatchModal({
               )}
               <span>
                 {result.success
-                  ? `Partida iniciada. Sala "${result.voiceChannelName}" criada no Discord.`
-                  : result.error ?? "Erro desconhecido."}
+                  ? t("matchStartedSuccess", { room: result.voiceChannelName ?? "" })
+                  : result.error ?? t("unknownError")}
               </span>
             </div>
           )}
@@ -255,14 +267,14 @@ export function StartMatchModal({
               disabled={isPending}
               className="flex-1 text-text-muted hover:text-white"
             >
-              Cancelar
+              {t("cancel")}
             </Button>
             <Button
               onClick={handleConfirm}
               disabled={!isReady || isPending || !!result?.success}
               className="flex-1 bg-play-primary text-text-inverse hover:bg-play-primary-hover disabled:opacity-50"
             >
-              {isPending ? "Iniciando..." : "Confirmar e Iniciar"}
+              {isPending ? t("starting") : t("confirmAndStart")}
             </Button>
           </div>
         </div>

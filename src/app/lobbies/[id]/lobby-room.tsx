@@ -13,6 +13,7 @@
 // sucesso pra re-fetch (revalidatePath sozinho não rerender client component).
 
 import { useOptimistic } from "react";
+import { useTranslations } from "next-intl";
 import { RoomHeader } from "./room-header";
 import { TeamColumn } from "./team-column";
 import { SpectatorRow } from "./spectator-row";
@@ -61,6 +62,7 @@ export function LobbyRoom({
   onMutate,
   onEdit,
 }: Props) {
+  const t = useTranslations("lobbies");
   // OPTIMISTIC (Pedro 2026-06-11): a UI move o jogador NA HORA do clique; o
   // servidor confirma em paralelo. Se rejeitar (ex: slot tomado na corrida),
   // o useOptimistic reverte sozinho ao fim da transition — banco segue juiz.
@@ -101,7 +103,7 @@ export function LobbyRoom({
       {/* Times — 2 colunas lado a lado, 5 slots cada */}
       <section className="grid grid-cols-2 divide-x divide-border-subtle border-b border-border-subtle">
         <TeamColumn
-          label="Os Iluminados"
+          label={t("teamRadiant")}
           team="radiant"
           players={team1}
           size={teamSize}
@@ -114,7 +116,7 @@ export function LobbyRoom({
           applyMove={applyMove}
         />
         <TeamColumn
-          label="Os Temidos"
+          label={t("teamDire")}
           team="dire"
           players={team2}
           size={teamSize}

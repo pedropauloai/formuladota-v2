@@ -7,6 +7,7 @@
 //   - PRO ativo ou pausado → renderiza children com ClientShell (sidebar esquerda oculta)
 
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { ClientShell } from "@/components/client-shell/shell";
 
@@ -15,6 +16,7 @@ export default async function ProLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const t = await getTranslations("proCockpit");
   const supabase = await createClient();
   const {
     data: { user },
@@ -55,12 +57,12 @@ export default async function ProLayout({
         {/* Sidebar interna do painel PRO */}
         <aside className="w-56 border-r border-border-subtle bg-black/60 backdrop-blur-sm p-5 hidden md:block">
           <p className="mb-4 font-sans text-sm font-semibold uppercase tracking-[0.25em] text-[var(--color-brand-primary)]">
-            Painel PRO
+            {t("panelTitle")}
           </p>
           <nav className="space-y-1 text-sm">
-            <ProNavLink href="/pro" label="Visao Geral" />
-            <ProNavLink href="/pro#alunos" label="Meus Alunos" />
-            <ProNavLink href="/pro#revenue" label="Revenue" />
+            <ProNavLink href="/pro" label={t("navOverview")} />
+            <ProNavLink href="/pro#alunos" label={t("navStudents")} />
+            <ProNavLink href="/pro#revenue" label={t("navRevenue")} />
           </nav>
         </aside>
         <div className="flex-1 overflow-x-auto">{children}</div>

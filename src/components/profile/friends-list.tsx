@@ -4,6 +4,7 @@
 // Estrutura (ref client Dota 2): BUSCAR AMIGOS → PENDENTES → ONLINE → OFFLINE.
 
 import { useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { Users } from "lucide-react";
 import { usePresenceChannel, getPresenceStatus } from "@/lib/realtime/presence";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -26,6 +27,7 @@ export function FriendsList({
   initialPending = [],
   currentLobbyId = null,
 }: Props) {
+  const t = useTranslations("perfil");
   const presenceMap = usePresenceChannel(currentUserId);
 
   const { online, offline, onlineCount } = useMemo(() => {
@@ -57,8 +59,8 @@ export function FriendsList({
 
       {isEmpty ? (
         <EmptyState
-          title="Sua lista de amigos está vazia."
-          description="Busque jogadores pelo nick acima e adicione-os como amigos."
+          title={t("friendsEmptyTitle")}
+          description={t("friendsEmptyDesc")}
           icon={Users}
         />
       ) : (
@@ -68,7 +70,7 @@ export function FriendsList({
             <>
               <div className="flex items-center justify-between px-2 mt-1">
                 <p className="font-display text-[13px] font-semibold uppercase tracking-[0.08em] text-text-muted">
-                  Pendentes
+                  {t("pending")}
                 </p>
                 <span className="font-display text-[13px] font-semibold text-brand-primary">
                   {pendingSorted.length}
@@ -89,7 +91,7 @@ export function FriendsList({
           {/* Header "Online agora" com counter */}
           <div className="flex items-center justify-between px-2">
             <p className="font-display text-[13px] font-semibold uppercase tracking-[0.08em] text-text-muted">
-              Online agora
+              {t("onlineNow")}
             </p>
             {onlineCount > 0 && (
               <span className="font-display text-[13px] font-semibold text-brand-primary">
@@ -102,7 +104,7 @@ export function FriendsList({
           <div role="list" className="flex flex-col">
             {online.length === 0 ? (
               <p className="px-2 py-1 font-display text-[13px] font-semibold text-text-faded">
-                Nenhum amigo online agora.
+                {t("noFriendsOnline")}
               </p>
             ) : (
               online.map((f) => (
@@ -121,7 +123,7 @@ export function FriendsList({
             <>
               <div className="flex items-center gap-2 px-2 mt-2 pt-2 border-t border-border-subtle">
                 <p className="font-display text-[11px] font-semibold uppercase tracking-[0.1em] text-text-faded">
-                  Offline
+                  {t("offline")}
                 </p>
               </div>
               <div role="list" className="flex flex-col">

@@ -6,6 +6,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { X } from "lucide-react";
 import { CriarLobbyForm } from "@/app/criar-lobby/criar-lobby-form";
 
@@ -16,6 +17,7 @@ interface Props {
 
 export function CreateLobbyModal({ open, onClose }: Props) {
   const router = useRouter();
+  const t = useTranslations("lobbies");
 
   // ESC fecha
   useEffect(() => {
@@ -33,25 +35,25 @@ export function CreateLobbyModal({ open, onClose }: Props) {
     <div className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center p-4 sm:p-8">
       <button
         type="button"
-        aria-label="Fechar modal"
+        aria-label={t("closeModal")}
         onClick={onClose}
         className="absolute inset-0 bg-bg-deep/80 backdrop-blur-sm"
       />
 
       <div
         role="dialog"
-        aria-label="Configurações da sala"
+        aria-label={t("lobbySettings")}
         className="relative flex max-h-full w-full max-w-5xl flex-col rounded-sm border border-border-strong bg-bg-base shadow-[var(--shadow-cinematic)]"
       >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border-subtle px-5 py-3">
           <h2 className="font-display-condensed text-2xl uppercase leading-none text-text-display">
-            Configurações da sala
+            {t("lobbySettings")}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Fechar"
+            aria-label={t("close")}
             className="flex size-8 items-center justify-center rounded-sm text-text-faded hover:bg-bg-elevated hover:text-text-body transition-colors"
           >
             <X size={16} aria-hidden="true" />

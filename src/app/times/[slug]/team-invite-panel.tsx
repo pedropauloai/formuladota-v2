@@ -6,6 +6,7 @@
 // Espelha o padrão de FriendSearch pra consistência de UX (ref client Dota 2).
 
 import { useEffect, useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { Search, UserPlus, Check, Loader2 } from "lucide-react";
 import { UserAvatar } from "@/components/ui/avatar";
 import { useToast } from "@/components/ui/toast";
@@ -19,6 +20,7 @@ const DEBOUNCE_MS = 300;
 const MIN_CHARS = 3;
 
 export function TeamInvitePanel({ teamId }: { teamId: string }) {
+  const t = useTranslations("times");
   const { toast } = useToast();
   const [value, setValue] = useState("");
   // null = sem busca ativa; [] = busca sem resultados
@@ -53,14 +55,14 @@ export function TeamInvitePanel({ teamId }: { teamId: string }) {
         return;
       }
       setInvited((prev) => new Set(prev).add(userId));
-      toast({ type: "success", title: `Convite enviado pra ${name}.` });
+      toast({ type: "success", title: t("inviteSentToast", { name }) });
     });
   }
 
   return (
     <div className="rounded-md border border-border-subtle bg-bg-base p-4 space-y-3">
       <p className="font-sans text-sm font-semibold uppercase tracking-wide text-text-body">
-        Convidar jogador
+        {t("invitePlayer")}
       </p>
 
       <label className="flex items-center gap-2 rounded-sm border border-border-subtle bg-bg-elevated/60 px-2 py-1.5 focus-within:border-brand-primary/60 transition-colors">
@@ -69,8 +71,8 @@ export function TeamInvitePanel({ teamId }: { teamId: string }) {
           type="search"
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          placeholder="BUSCAR POR NICK"
-          aria-label="Buscar jogador pra convidar ao time"
+          placeholder={t("searchPlaceholder")}
+          aria-label={t("searchAriaLabel")}
           className="w-full bg-transparent font-display text-[13px] font-semibold uppercase tracking-[0.08em] text-text-body placeholder:text-text-faded outline-none"
         />
         {searching && (
@@ -79,10 +81,10 @@ export function TeamInvitePanel({ teamId }: { teamId: string }) {
       </label>
 
       {searchActive && results !== null && (
-        <div role="list" aria-label="Resultados da busca" className="flex flex-col">
+        <div role="list" aria-label={t("searchResults")} className="flex flex-col">
           {results.length === 0 && !searching ? (
             <p className="px-2 py-1 font-display text-[13px] font-semibold text-text-faded">
-              Ninguém encontrado. O jogador precisa ter a Steam vinculada.
+              {t("noResults")}
             </p>
           ) : (
             results.map((r) => (
@@ -93,7 +95,7 @@ export function TeamInvitePanel({ teamId }: { teamId: string }) {
               >
                 <UserAvatar
                   src={r.avatarUrl ?? undefined}
-                  alt={`Avatar de ${r.name}`}
+                  alt={t("avatarAlt", { name: r.name })}
                   fallback={r.name.slice(0, 2).toUpperCase()}
                   size="sm"
                 />
@@ -103,17 +105,17 @@ export function TeamInvitePanel({ teamId }: { teamId: string }) {
                 {invited.has(r.userId) ? (
                   <span className="flex items-center gap-1 font-display text-[11px] font-semibold uppercase text-success">
                     <Check size={12} aria-hidden="true" />
-                    Convidado
+                    {t("invited")}
                   </span>
                 ) : (
                   <button
                     type="button"
                     onClick={() => handleInvite(r.userId, r.name)}
-                    aria-label={`Convidar ${r.name} pro time`}
+                    aria-label={t("inviteToTeamAria", { name: r.name })}
                     className="flex items-center gap-1 rounded-sm border border-brand-primary/50 bg-brand-primary/10 px-2 py-1 font-display text-[11px] font-semibold uppercase text-brand-primary hover:bg-brand-primary/20 transition-colors"
                   >
                     <UserPlus size={12} aria-hidden="true" />
-                    Convidar
+                    {t("invite")}
                   </button>
                 )}
               </div>

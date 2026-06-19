@@ -7,14 +7,14 @@
 //
 // Gate: layout /admin valida is_admin; revalidamos aqui (defesa em camadas).
 
-import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { Users, CreditCard, Coins, Trophy, Activity, Percent, Swords } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { Card, CardContent } from "@/components/ui/card";
 
-export const metadata: Metadata = { title: "Admin Dashboard — FORMULADOTA" };
+export const metadata = { title: "Admin Dashboard — FORMULADOTA" };
 export const revalidate = 0;
 
 function brl(v: number): string {
@@ -131,6 +131,8 @@ export default async function AdminDashboardPage() {
     .single();
   if (!me?.is_admin) redirect("/dashboard");
 
+  const t = await getTranslations("misc2");
+
   const startOfMonth = new Date();
   startOfMonth.setDate(1);
   startOfMonth.setHours(0, 0, 0, 0);
@@ -148,53 +150,53 @@ export default async function AdminDashboardPage() {
           Dashboard
         </p>
         <h1 className="mt-3 font-display text-3xl uppercase tracking-tight text-text-display">
-          Visão geral — {monthLabel}
+          {t("dashOverview", { month: monthLabel })}
         </h1>
         <div className="mt-4 brand-divider" />
       </header>
 
       {/* ── Receita (duas economias: fichas + assinaturas) ── */}
-      <KpiSection title="Receita do mês">
+      <KpiSection title={t("dashRevenueSection")}>
         <KpiCard
-          label="Receita de fichas (pago)"
+          label={t("dashFichasRevenue")}
           value={brl(kpis.fichasRevenueBrl)}
           icon={Coins}
         />
         <KpiCard
-          label="Assinaturas (MRR)"
+          label={t("dashSubscriptions")}
           value={brl(kpis.mrrBrl)}
-          sub={`${kpis.activeSubscribers} assinante${kpis.activeSubscribers === 1 ? "" : "s"} ativo${kpis.activeSubscribers === 1 ? "" : "s"}`}
+          sub={t("dashSubscribersActive", { count: kpis.activeSubscribers })}
           icon={CreditCard}
         />
         <KpiCard
-          label="Repassado aos PROs"
+          label={t("dashPassedToPros")}
           value={brl(kpis.proShareBrl)}
-          sub={`de ${brl(kpis.splitTotalBrl)} com split`}
+          sub={t("dashOfWithSplit", { total: brl(kpis.splitTotalBrl) })}
           icon={Percent}
         />
         <KpiCard
-          label="Plataforma (split)"
+          label={t("dashPlatformSplit")}
           value={brl(kpis.platformShareBrl)}
           icon={Percent}
         />
       </KpiSection>
 
       {/* ── Fichas (estoque circulando) ── */}
-      <KpiSection title="Fichas do mês">
-        <KpiCard label="Fichas vendidas" value={kpis.fichasVendidas} icon={Coins} />
+      <KpiSection title={t("dashFichasSection")}>
+        <KpiCard label={t("dashFichasSold")} value={kpis.fichasVendidas} icon={Coins} />
         <KpiCard
-          label="Fichas consumidas"
+          label={t("dashFichasConsumed")}
           value={kpis.fichasConsumidas}
-          sub="1 por aluno em cada PT realizada"
+          sub={t("dashFichasConsumedSub")}
           icon={Activity}
         />
       </KpiSection>
 
       {/* ── Atividade ── */}
-      <KpiSection title="Atividade do mês">
-        <KpiCard label="Novos usuários" value={kpis.newUsers} icon={Users} />
-        <KpiCard label="PTs realizadas" value={kpis.ptsRealizadas} icon={Swords} />
-        <KpiCard label="Lobbies criados" value={kpis.lobbiesCriados} icon={Trophy} />
+      <KpiSection title={t("dashActivitySection")}>
+        <KpiCard label={t("dashNewUsers")} value={kpis.newUsers} icon={Users} />
+        <KpiCard label={t("dashPtsDone")} value={kpis.ptsRealizadas} icon={Swords} />
+        <KpiCard label={t("dashLobbiesCreated")} value={kpis.lobbiesCriados} icon={Trophy} />
       </KpiSection>
     </div>
   );

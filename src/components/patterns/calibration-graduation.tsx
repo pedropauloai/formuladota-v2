@@ -17,6 +17,7 @@
 import { useState, useEffect } from "react";
 import { AnimatePresence, m } from "motion/react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { HonorRankMedal } from "@/components/ui/honor-rank-medal";
 import { cn } from "@/lib/utils";
 import { DURATIONS, EASINGS } from "@/lib/motion/presets";
@@ -42,9 +43,6 @@ interface CalibrationGraduationProps {
 
 // ─── Dados ───────────────────────────────────────────────────────────────────
 
-const DEFAULT_PRINCIPLE =
-  "Errar faz parte do aprendizado. Não tenha medo dos erros — eles são o primeiro passo para a evolução, desde que você os reconheça e aprenda com eles.";
-
 // Fases de animação sequencial da cerimônia
 type Phase = "ambient" | "reveal" | "principle" | "ready";
 
@@ -52,11 +50,13 @@ type Phase = "ambient" | "reveal" | "principle" | "ready";
 
 export function CalibrationGraduation({
   onContinue,
-  principle = DEFAULT_PRINCIPLE,
+  principle,
   className,
 }: CalibrationGraduationProps) {
   const router = useRouter();
+  const t = useTranslations("ui");
   const motionSafe = useMotionSafeBool();
+  const resolvedPrinciple = principle ?? t("calibrationDefaultPrinciple");
   const [phase, setPhase] = useState<Phase>("ambient");
 
   // Progressão automática entre fases
@@ -94,7 +94,7 @@ export function CalibrationGraduation({
       style={{ zIndex: "var(--z-takeover)" }}
       role="dialog"
       aria-modal="true"
-      aria-label="Cerimônia de calibração concluída"
+      aria-label={t("calibrationCeremonyLabel")}
     >
       {/* ── AmbientLayer: gradiente radial brand vermelho ── */}
       <div
@@ -118,7 +118,7 @@ export function CalibrationGraduation({
           FORMULADOTA
         </p>
         <p className="font-display font-semibold text-sm uppercase tracking-wide text-text-faded">
-          Calibração concluída
+          {t("calibrationComplete")}
         </p>
       </div>
 
@@ -151,7 +151,7 @@ export function CalibrationGraduation({
             {/* Tier name — cerimônia dramática */}
             <div className="text-center">
               <p className="font-display-condensed text-sm uppercase tracking-[0.5em] text-text-faded">
-                Tier inicial
+                {t("calibrationInitialTier")}
               </p>
               <h1
                 className="mt-1 font-display text-5xl font-bold uppercase tracking-tight text-text-display"
@@ -163,7 +163,7 @@ export function CalibrationGraduation({
 
             {/* Headline cerimonial */}
             <p className="font-display text-lg font-medium uppercase tracking-wide text-text-muted">
-              Sua jornada começa agora
+              {t("calibrationJourneyStarts")}
             </p>
           </m.div>
         )}
@@ -186,7 +186,7 @@ export function CalibrationGraduation({
             <div className="mx-auto mb-6 h-px w-24 bg-border-strong" aria-hidden="true" />
 
             <p className="font-sans text-sm uppercase tracking-widest text-brand-primary mb-3">
-              Doutrina FormulaDota
+              {t("doctrineFormulaDota")}
             </p>
 
             {/* Princípio em Cinzel — usa font-display-condensed disponível */}
@@ -196,7 +196,7 @@ export function CalibrationGraduation({
                 "text-text-body md:text-2xl",
               )}
             >
-              &ldquo;{principle}&rdquo;
+              &ldquo;{resolvedPrinciple}&rdquo;
             </blockquote>
           </m.div>
         )}
@@ -228,7 +228,7 @@ export function CalibrationGraduation({
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary",
               )}
             >
-              Continuar
+              {t("continue")}
             </button>
           </m.div>
         )}

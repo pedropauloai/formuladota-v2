@@ -8,8 +8,9 @@
 //   - Separadores "/" entre as tabs
 //   - Miniatura avatar 1:1 ao lado de "Perfil" (primeira tab)
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 export type ProfileTab =
   | "perfil"
@@ -26,13 +27,13 @@ export const VALID_TABS: ProfileTab[] = [
   "progresso",
 ];
 
-// Labels PT-BR exatos da UI-SPEC — Dota 2 client style uppercase
-const TAB_LABELS: Record<ProfileTab, string> = {
-  perfil: "Perfil",
-  historico: "Histórico",
-  conquistas: "Conquistas",
-  conduta: "Conduta",
-  progresso: "Progresso",
+// Mapa tab → chave i18n — resolvido no render via t() (Dota 2 client style uppercase)
+const TAB_LABEL_KEYS: Record<ProfileTab, string> = {
+  perfil: "tabPerfil",
+  historico: "tabHistorico",
+  conquistas: "tabConquistas",
+  conduta: "tabConduta",
+  progresso: "tabProgresso",
 };
 
 interface Props {
@@ -42,10 +43,11 @@ interface Props {
 }
 
 export function ProfileTabs({ activeTab, avatarUrl }: Props) {
+  const t = useTranslations("perfil");
   return (
     <nav
       role="tablist"
-      aria-label="Seções do perfil"
+      aria-label={t("tabsNavLabel")}
       className="flex items-center gap-3"
     >
       {VALID_TABS.map((tab, index) => {
@@ -96,7 +98,7 @@ export function ProfileTabs({ activeTab, avatarUrl }: Props) {
                   )}
                 </span>
               )}
-              {TAB_LABELS[tab]}
+              {t(TAB_LABEL_KEYS[tab])}
             </Link>
           </span>
         );

@@ -13,6 +13,7 @@
 // Voz da copy: Mestre+Guardiao — direto, sem hype, sem emoji.
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { X, Hash, AlertCircle, CheckCircle, Clock, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -67,6 +68,7 @@ export function FinishMatchModal({
   students,
   onClose,
 }: FinishMatchModalProps) {
+  const t = useTranslations("proCockpit");
   const [dotaMatchId, setDotaMatchId] = useState("");
   const [preview, setPreview] = useState<PreviewValidationResult | null>(null);
   const [isPreviewing, startPreview] = useTransition();
@@ -123,14 +125,14 @@ export function FinishMatchModal({
               id="finish-match-title"
               className="font-display text-sm uppercase tracking-widest text-brand-primary"
             >
-              Finalizar Partida
+              {t("finishMatch")}
             </h2>
           </div>
           <button
             onClick={onClose}
             disabled={isAnyPending}
             className="rounded p-1 text-text-muted transition-colors hover:text-white disabled:opacity-40"
-            aria-label="Fechar"
+            aria-label={t("closeAria")}
           >
             <X className="h-4 w-4" />
           </button>
@@ -142,8 +144,8 @@ export function FinishMatchModal({
           <div className="flex items-center gap-2 rounded-lg border border-border-subtle bg-bg-elevated px-4 py-3">
             <Clock className="h-4 w-4 text-text-muted" aria-hidden="true" />
             <span className="text-sm text-text-muted">
-              {voiceChannelName ?? "Sessao sem nome"} —{" "}
-              <span className="text-text-faded">{formatDuration(startedAt)} em curso</span>
+              {voiceChannelName ?? t("unnamedSession")} —{" "}
+              <span className="text-text-faded">{t("durationInProgress", { duration: formatDuration(startedAt) })}</span>
             </span>
           </div>
 
@@ -151,7 +153,7 @@ export function FinishMatchModal({
           {students.length > 0 && (
             <div>
               <p className="mb-2 text-sm text-text-muted uppercase tracking-wider font-display font-semibold">
-                Participantes
+                {t("participants")}
               </p>
               <ul className="flex flex-wrap gap-2" role="list">
                 {students.map((student) => (
@@ -159,7 +161,7 @@ export function FinishMatchModal({
                     key={student.userId}
                     className="rounded border border-border-subtle bg-bg-elevated px-3 py-1 text-sm text-text-muted"
                   >
-                    {student.username ?? "Jogador"}
+                    {student.username ?? t("player")}
                   </li>
                 ))}
               </ul>
@@ -172,7 +174,7 @@ export function FinishMatchModal({
               htmlFor="dota-match-id"
               className="mb-2 block text-sm text-text-muted uppercase tracking-wider font-display font-semibold"
             >
-              Match ID Dota 2
+              {t("matchIdDota2")}
             </label>
             <div className="flex gap-2">
               <input
@@ -185,7 +187,7 @@ export function FinishMatchModal({
                   setDotaMatchId(clean);
                   setPreview(null); // reset preview se input mudar
                 }}
-                placeholder="Ex: 8123456789"
+                placeholder={t("matchIdPlaceholderFinish")}
                 maxLength={12}
                 disabled={isAnyPending || !!finalResult?.success}
                 className="flex-1 rounded-lg border border-border-subtle bg-bg-elevated px-4 py-2.5 text-sm text-white placeholder:text-text-faded font-mono focus:border-brand-primary/40 focus:outline-none focus:ring-1 focus:ring-brand-primary/20 disabled:opacity-50"
@@ -200,7 +202,7 @@ export function FinishMatchModal({
                 {isPreviewing ? (
                   <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                 ) : (
-                  "Validar"
+                  t("validate")
                 )}
               </Button>
             </div>
@@ -208,7 +210,7 @@ export function FinishMatchModal({
               id="match-id-hint"
               className="mt-1 text-sm text-text-faded"
             >
-              8 a 12 digitos. Disponivel na aba Recentes do Dota 2 apos a partida.
+              {t("matchIdHint")}
             </p>
           </div>
 
@@ -232,20 +234,23 @@ export function FinishMatchModal({
                 {preview.valid ? (
                   <>
                     <span className="font-medium">
-                      {preview.participantsFound}/{preview.participantsExpected} participantes confirmados na partida.
+                      {t("participantsConfirmed", {
+                        found: preview.participantsFound ?? 0,
+                        expected: preview.participantsExpected ?? 0,
+                      })}
                     </span>
                     <span className="text-sm text-success/70">
-                      Partida valida. Confirme para finalizar e consumir as fichas.
+                      {t("matchValidConfirm")}
                     </span>
                   </>
                 ) : (
                   <>
-                    <span className="font-medium">Validacao falhou</span>
+                    <span className="font-medium">{t("validationFailed")}</span>
                     <span className="text-sm text-amber-400/70">
-                      {preview.reason ?? "Erro desconhecido na validacao."}
+                      {preview.reason ?? t("validationUnknownError")}
                     </span>
                     <span className="text-sm text-amber-400/70 mt-1">
-                      Voce ainda pode confirmar — a partida sera registrada como nao verificada.
+                      {t("canStillConfirm")}
                     </span>
                   </>
                 )}
@@ -272,15 +277,15 @@ export function FinishMatchModal({
               <div className="flex flex-col gap-1">
                 {finalResult.success ? (
                   <>
-                    <span className="font-medium">Partida finalizada.</span>
+                    <span className="font-medium">{t("matchFinished")}</span>
                     <span className="text-sm text-success/70">
                       {finalResult.validated
-                        ? "Fichas consumidas e match validado via OpenDota."
-                        : "Fichas consumidas. Match registrado como nao verificado (OpenDota pode demorar)."}
+                        ? t("tokensConsumedValidated")
+                        : t("tokensConsumedUnverified")}
                     </span>
                   </>
                 ) : (
-                  <span>{finalResult.error ?? "Erro ao finalizar partida."}</span>
+                  <span>{finalResult.error ?? t("finishMatchError")}</span>
                 )}
               </div>
             </div>
@@ -294,7 +299,7 @@ export function FinishMatchModal({
               disabled={isAnyPending}
               className="flex-1 text-text-muted hover:text-white"
             >
-              Cancelar
+              {t("cancel")}
             </Button>
             <Button
               onClick={handleFinish}
@@ -304,10 +309,10 @@ export function FinishMatchModal({
               {isFinishing ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
-                  Finalizando...
+                  {t("finishing")}
                 </>
               ) : (
-                "Confirmar e Finalizar"
+                t("confirmAndFinish")
               )}
             </Button>
           </div>

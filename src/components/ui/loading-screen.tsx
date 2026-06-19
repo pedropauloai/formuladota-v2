@@ -14,6 +14,7 @@
 
 import { useEffect, useState } from "react";
 import { AnimatePresence, m } from "motion/react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { PRINCIPLES } from "@/lib/doctrine";
 import { DURATIONS, EASINGS } from "@/lib/motion/presets";
@@ -31,20 +32,16 @@ interface LoadingScreenProps {
   className?: string;
 }
 
-// ─── Fallback — caso doctrine.ts esteja vazio ────────────────────────────────
+// ─── Lista de IDs dos princípios (texto vem do i18n) ─────────────────────────
 
-const FALLBACK_BODIES: string[] = [
-  "A responsabilidade é sempre sua, 100% das vezes.",
-  "Ou você ganha, ou você aprende. Perder faz parte. Evoluir é uma escolha.",
-  "Errar faz parte do aprendizado — o primeiro passo para a evolução.",
-];
+const FALLBACK_IDS = [1, 5, 4] as const;
 
-function resolvePrincipleBodies(): string[] {
+function resolvePrincipleIds(): number[] {
   if (!Array.isArray(PRINCIPLES) || PRINCIPLES.length === 0) {
-    return FALLBACK_BODIES;
+    return [...FALLBACK_IDS];
   }
-  const bodies = PRINCIPLES.map((p) => p.body).filter(Boolean);
-  return bodies.length > 0 ? bodies : FALLBACK_BODIES;
+  const ids = PRINCIPLES.map((p) => p.id).filter((id) => Number.isFinite(id));
+  return ids.length > 0 ? ids : [...FALLBACK_IDS];
 }
 
 // ─── Componente ──────────────────────────────────────────────────────────────
@@ -55,20 +52,23 @@ export function LoadingScreen({
   rotateMs = 4000,
   className,
 }: LoadingScreenProps) {
-  const principles = resolvePrincipleBodies();
+  const td = useTranslations("doctrine");
+  const t = useTranslations("common");
+  const ids = resolvePrincipleIds();
   const [idx, setIdx] = useState(0);
   const motionSafe = useMotionSafeBool();
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setIdx((i) => (i + 1) % principles.length);
+      setIdx((i) => (i + 1) % ids.length);
     }, rotateMs);
     return () => clearInterval(interval);
-  }, [principles.length, rotateMs]);
+  }, [ids.length, rotateMs]);
 
-  const principle = principles[idx] ?? FALLBACK_BODIES[0] ?? "";
+  const currentId = ids[idx] ?? FALLBACK_IDS[0];
+  const principle = td(`principle.${currentId}.body`);
   const principleNum = idx + 1;
-  const total = principles.length;
+  const total = ids.length;
 
   return (
     <div
@@ -79,7 +79,7 @@ export function LoadingScreen({
       style={{ zIndex: "var(--z-takeover)" }}
       role="status"
       aria-live="polite"
-      aria-label={message ?? "Carregando FORMULADOTA…"}
+      aria-label={message ?? t("loading")}
     >
       {/* AmbientLayer reforçada: gradiente radial vermelho brand */}
       <div
@@ -146,7 +146,7 @@ export function LoadingScreen({
       {/* Princípio doutrinário rotativo */}
       <div className="relative max-w-2xl text-center">
         <p className="mb-3 font-display text-sm font-medium uppercase tracking-widest text-text-faded">
-          Princípio {principleNum}&nbsp;/&nbsp;{total}
+          {td("principleLabel", { id: principleNum })}&nbsp;/&nbsp;{total}
         </p>
 
         <AnimatePresence mode="wait">

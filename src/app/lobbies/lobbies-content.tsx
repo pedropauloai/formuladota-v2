@@ -9,17 +9,19 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { RefreshCw, Plus, LogIn, Compass } from "lucide-react";
 import { CreateLobbyModal } from "./create-lobby-modal";
 import { LobbyFilters } from "./lobby-filters";
 import { Button } from "@/components/ui/button";
 import type { LobbyListItem } from "./fetch-actions";
 
-const GAME_MODE_LABELS: Record<string, string> = {
-  all_pick: "Escolha livre",
-  captains_mode: "Modo capitães",
-  random_draft: "Seleção aleatória",
-  single_draft: "Escolha única",
+// Modos de jogo → chave de tradução (resolve no render via t()).
+const GAME_MODE_KEYS: Record<string, string> = {
+  all_pick: "modeAllPick",
+  captains_mode: "modeCaptainsMode",
+  random_draft: "modeRandomDraft",
+  single_draft: "modeSingleDraft",
 };
 
 interface LobbiesContentProps {
@@ -42,6 +44,7 @@ export function LobbiesContent({
   loading = false,
 }: LobbiesContentProps) {
   const router = useRouter();
+  const t = useTranslations("lobbies");
   const [showCreate, setShowCreate] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [filterMode, setFilterMode] = useState("all");
@@ -67,6 +70,18 @@ export function LobbiesContent({
     else setShowCreate(true);
   };
 
+  // Labels de modo resolvidos (key → texto traduzido) p/ tabela e filtros.
+  const modeLabels = useMemo(
+    () =>
+      Object.fromEntries(
+        Object.entries(GAME_MODE_KEYS).map(([dbKey, transKey]) => [
+          dbKey,
+          t(transKey),
+        ])
+      ),
+    [t]
+  );
+
   return (
     <>
       <div className="flex h-full flex-col">
@@ -74,10 +89,10 @@ export function LobbiesContent({
         <header className="flex items-center justify-between border-b border-border-subtle bg-bg-base px-3 py-2">
           <div className="flex items-baseline gap-2">
             <h1 className="font-display-condensed text-xl uppercase leading-none text-text-display">
-              Salas de Dota
+              {t("browserTitle")}
             </h1>
             <span className="font-display text-sm 2xl:text-base tabular-nums text-text-faded">
-              {filtered.length} {filtered.length === 1 ? "aberta" : "abertas"}
+              {t("openCount", { count: filtered.length })}
             </span>
           </div>
           <button
@@ -91,7 +106,7 @@ export function LobbiesContent({
               className={loading ? "animate-spin" : ""}
               aria-hidden="true"
             />
-            Atualizar
+            {t("refresh")}
           </button>
         </header>
 
@@ -100,10 +115,10 @@ export function LobbiesContent({
           <table className="w-full text-left">
             <thead className="sticky top-0 border-b border-border-subtle bg-bg-elevated">
               <tr>
-                <Th>Nome da sala</Th>
-                <Th align="center">Vagas</Th>
-                <Th>Modo de jogo</Th>
-                <Th>Região</Th>
+                <Th>{t("colName")}</Th>
+                <Th align="center">{t("colSlots")}</Th>
+                <Th>{t("colMode")}</Th>
+                <Th>{t("colRegion")}</Th>
               </tr>
             </thead>
             <tbody>
@@ -116,10 +131,10 @@ export function LobbiesContent({
                       aria-hidden="true"
                     />
                     <p className="font-display-condensed text-lg uppercase tracking-wide text-text-muted">
-                      Nenhuma sala aberta
+                      {t("emptyTitle")}
                     </p>
                     <p className="mt-0.5 font-body text-sm 2xl:text-base text-text-faded">
-                      Quem espera, assiste. Crie a sua e puxe o ritmo.
+                      {t("emptyBody")}
                     </p>
                   </td>
                 </tr>
@@ -148,7 +163,7 @@ export function LobbiesContent({
                         </span>
                         {lobby.status === "in_progress" && (
                           <span className="font-display text-sm font-semibold uppercase tracking-wide text-warning">
-                            em jogo
+                            {t("statusInGame")}
                           </span>
                         )}
                       </Td>
@@ -163,12 +178,12 @@ export function LobbiesContent({
                       </Td>
                       <Td>
                         <span className="block max-w-[110px] truncate font-body text-sm 2xl:text-base text-text-muted">
-                          {GAME_MODE_LABELS[lobby.game_mode] ?? lobby.game_mode}
+                          {modeLabels[lobby.game_mode] ?? lobby.game_mode}
                         </span>
                       </Td>
                       <Td>
                         <span className="font-body text-sm 2xl:text-base text-text-muted">
-                          Brasil
+                          {t("regionBrazil")}
                         </span>
                       </Td>
                     </tr>
@@ -187,7 +202,7 @@ export function LobbiesContent({
           onModeChange={setFilterMode}
           search={search}
           onSearchChange={setSearch}
-          modeLabels={GAME_MODE_LABELS}
+          modeLabels={modeLabels}
         />
 
         {/* Rodapé — CRIAR SALA + ENTRAR NA SALA */}
@@ -198,7 +213,7 @@ export function LobbiesContent({
             className="inline-flex w-full items-center justify-center gap-2 rounded-sm border border-border-strong bg-bg-elevated px-4 py-2 font-display text-sm font-semibold uppercase tracking-[0.2em] text-text-body hover:bg-bg-surface transition-colors"
           >
             <Plus size={14} aria-hidden="true" />
-            Criar sala
+            {t("createLobby")}
           </button>
           <Button
             type="button"
@@ -209,7 +224,7 @@ export function LobbiesContent({
             className="w-full tracking-[0.25em]"
           >
             <LogIn size={15} aria-hidden="true" />
-            Entrar na sala
+            {t("enterLobby")}
           </Button>
         </div>
       </div>

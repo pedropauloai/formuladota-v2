@@ -3,7 +3,8 @@
 // /times Client Component — modal criar time + cards times + cards invites pending.
 
 import { useState, useTransition } from "react";
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { useRouter } from "next/navigation";
 import { Crown, Plus, Users, X, Loader2, Mail, Check } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
@@ -45,6 +46,7 @@ export function TimesContent({
   userTeams: UserTeam[];
   invites: Invite[];
 }) {
+  const t = useTranslations("times");
   const [showCreate, setShowCreate] = useState(false);
 
   return (
@@ -53,7 +55,7 @@ export function TimesContent({
       {invites.length > 0 && (
         <section className="mb-8">
           <h2 className="mb-3 font-sans text-sm 2xl:text-sm font-semibold uppercase tracking-[0.2em] text-white/70">
-            Convites pendentes <span className="text-white/40">({invites.length})</span>
+            {t("pendingInvites")} <span className="text-white/40">({invites.length})</span>
           </h2>
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {invites.map((inv) => (
@@ -66,7 +68,7 @@ export function TimesContent({
       {/* Header times + botão criar */}
       <div className="mb-4 flex items-center justify-between">
         <h2 className="font-sans text-sm 2xl:text-sm font-semibold uppercase tracking-[0.2em] text-white/70">
-          Meus times <span className="text-white/40">({userTeams.length})</span>
+          {t("myTeams")} <span className="text-white/40">({userTeams.length})</span>
         </h2>
         <button
           type="button"
@@ -74,7 +76,7 @@ export function TimesContent({
           className="inline-flex items-center gap-2 rounded-md border border-brand-primary bg-brand-primary/15 px-4 py-2 font-sans text-sm 2xl:text-sm font-semibold uppercase tracking-wide text-white hover:bg-brand-primary transition-colors"
         >
           <Plus size={14} aria-hidden="true" />
-          Criar time
+          {t("createTeam")}
         </button>
       </div>
 
@@ -89,10 +91,10 @@ export function TimesContent({
         <div className="rounded-md border border-dashed border-white/10 bg-black/30 p-12 text-center">
           <Users size={28} className="mx-auto mb-3 text-white/30" aria-hidden="true" />
           <p className="font-display text-base 2xl:text-lg uppercase tracking-wide text-white/60">
-            Você ainda não está em nenhum time
+            {t("emptyTitle")}
           </p>
           <p className="mt-2 font-sans text-sm 2xl:text-base text-white/40">
-            Crie um time ou aceite um convite pra começar a competir.
+            {t("emptyDescription")}
           </p>
         </div>
       )}
@@ -105,6 +107,7 @@ export function TimesContent({
 // ============== Invite Card ==============
 
 function InviteCard({ invite }: { invite: Invite }) {
+  const t = useTranslations("times");
   const { toast } = useToast();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -116,7 +119,10 @@ function InviteCard({ invite }: { invite: Invite }) {
         toast({ type: "error", title: r.error });
         return;
       }
-      toast({ type: "success", title: `Você entrou no ${invite.team?.name ?? "time"}!` });
+      toast({
+        type: "success",
+        title: t("joinedTeamToast", { team: invite.team?.name ?? t("teamFallback") }),
+      });
       router.refresh();
     });
   };
@@ -139,7 +145,7 @@ function InviteCard({ invite }: { invite: Invite }) {
       <div className="flex items-center gap-2">
         <Mail size={14} className="text-amber-400" aria-hidden="true" />
         <span className="font-display font-semibold text-sm uppercase tracking-wide text-amber-400">
-          Convite
+          {t("inviteLabel")}
         </span>
       </div>
       <div>
@@ -167,7 +173,7 @@ function InviteCard({ invite }: { invite: Invite }) {
           ) : (
             <Check size={12} />
           )}
-          Aceitar
+          {t("accept")}
         </Button>
         <Button
           type="button"
@@ -178,7 +184,7 @@ function InviteCard({ invite }: { invite: Invite }) {
           className="flex-1"
         >
           <X size={12} />
-          Recusar
+          {t("decline")}
         </Button>
       </div>
     </div>
@@ -188,19 +194,20 @@ function InviteCard({ invite }: { invite: Invite }) {
 // ============== Team Card ==============
 
 function TeamCard({ team }: { team: UserTeam }) {
+  const t = useTranslations("times");
   const { toast } = useToast();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   const handleLeave = () => {
-    if (!confirm(`Sair do time ${team.name}?`)) return;
+    if (!confirm(t("leaveTeamConfirm", { team: team.name }))) return;
     startTransition(async () => {
       const r = await leaveTeam(team.id);
       if (!r.success) {
         toast({ type: "error", title: r.error });
         return;
       }
-      toast({ type: "success", title: "Você saiu do time." });
+      toast({ type: "success", title: t("leftTeamToast") });
       router.refresh();
     });
   };
@@ -237,7 +244,7 @@ function TeamCard({ team }: { team: UserTeam }) {
           <Crown
             size={14}
             className="text-amber-400 shrink-0"
-            aria-label="Capitão"
+            aria-label={t("captain")}
           />
         )}
       </div>
@@ -265,8 +272,8 @@ function TeamCard({ team }: { team: UserTeam }) {
           }}
           disabled={isPending}
           className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-white/40 hover:text-error transition-all"
-          aria-label="Sair do time"
-          title="Sair do time"
+          aria-label={t("leaveTeam")}
+          title={t("leaveTeam")}
         >
           <X size={14} />
         </button>
@@ -278,6 +285,7 @@ function TeamCard({ team }: { team: UserTeam }) {
 // ============== Create Team Modal ==============
 
 function CreateTeamModal({ onClose }: { onClose: () => void }) {
+  const t = useTranslations("times");
   const { toast } = useToast();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -307,7 +315,7 @@ function CreateTeamModal({ onClose }: { onClose: () => void }) {
         toast({ type: "error", title: r.error });
         return;
       }
-      toast({ type: "success", title: "Time criado!" });
+      toast({ type: "success", title: t("teamCreatedToast") });
       router.refresh();
       if (r.teamSlug) {
         router.push(`/times/${r.teamSlug}`);
@@ -321,7 +329,7 @@ function CreateTeamModal({ onClose }: { onClose: () => void }) {
       <button
         type="button"
         onClick={onClose}
-        aria-label="Fechar"
+        aria-label={t("close")}
         className="absolute inset-0 bg-black/70 backdrop-blur-sm"
       />
       <form
@@ -330,12 +338,12 @@ function CreateTeamModal({ onClose }: { onClose: () => void }) {
       >
         <div className="flex items-center justify-between">
           <h2 className="font-display text-base uppercase tracking-[0.2em] text-white">
-            Criar time
+            {t("createTeam")}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Fechar"
+            aria-label={t("close")}
             className="text-white/60 hover:text-white"
           >
             <X size={16} />
@@ -343,7 +351,7 @@ function CreateTeamModal({ onClose }: { onClose: () => void }) {
         </div>
 
         <div className="space-y-3">
-          <Field label="Nome do time">
+          <Field label={t("fieldName")}>
             <input
               type="text"
               required
@@ -351,13 +359,13 @@ function CreateTeamModal({ onClose }: { onClose: () => void }) {
               maxLength={60}
               value={name}
               onChange={(e) => handleNameChange(e.target.value)}
-              placeholder="Ex.: Os Imortais BR"
+              placeholder={t("fieldNamePlaceholder")}
               className="w-full rounded-md border border-border-subtle bg-black/40 px-3 py-2 font-sans text-sm 2xl:text-base text-white placeholder:text-white/30 focus:border-brand-primary focus:outline-none"
             />
           </Field>
 
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Tag (2-5 chars)">
+            <Field label={t("fieldTag")}>
               <input
                 type="text"
                 required
@@ -371,7 +379,7 @@ function CreateTeamModal({ onClose }: { onClose: () => void }) {
                 className="w-full rounded-md border border-border-subtle bg-black/40 px-3 py-2 font-display font-semibold text-sm uppercase text-white placeholder:text-white/30 focus:border-brand-primary focus:outline-none"
               />
             </Field>
-            <Field label="Slug URL">
+            <Field label={t("fieldSlug")}>
               <input
                 type="text"
                 required
@@ -387,12 +395,12 @@ function CreateTeamModal({ onClose }: { onClose: () => void }) {
             </Field>
           </div>
 
-          <Field label="Descrição (opcional)">
+          <Field label={t("fieldDescription")}>
             <textarea
               maxLength={280}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Time competitivo focado em..."
+              placeholder={t("fieldDescriptionPlaceholder")}
               rows={3}
               className="w-full rounded-md border border-border-subtle bg-black/40 px-3 py-2 font-sans text-sm 2xl:text-base text-white placeholder:text-white/30 focus:border-brand-primary focus:outline-none resize-none"
             />
@@ -411,7 +419,7 @@ function CreateTeamModal({ onClose }: { onClose: () => void }) {
             disabled={isPending}
             className="flex-1"
           >
-            Cancelar
+            {t("cancel")}
           </Button>
           <Button
             type="submit"
@@ -421,7 +429,7 @@ function CreateTeamModal({ onClose }: { onClose: () => void }) {
             className="flex-1"
           >
             {isPending ? <Loader2 size={14} className="animate-spin" /> : null}
-            {isPending ? "Criando..." : "Criar time"}
+            {isPending ? t("creating") : t("createTeam")}
           </Button>
         </div>
       </form>

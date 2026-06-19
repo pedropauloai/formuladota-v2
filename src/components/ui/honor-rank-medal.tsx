@@ -18,6 +18,7 @@
 
 import Image from "next/image"
 import { Lock } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { Tooltip } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 
@@ -33,33 +34,26 @@ export type HonorRank =
   | "lendario"
   | "mistico"
 
-export const HONOR_RANK_LABELS: Record<HonorRank, string> = {
-  novato: "Novato",
-  aprendiz: "Aprendiz",
-  piloto: "Piloto",
-  as: "Ás",
-  lendario: "Lendário",
-  mistico: "Místico",
+/**
+ * Lista canônica das bandas HONOR (ladder 0–30). Os NOMES EXIBIDOS vêm do i18n
+ * (namespace "ranks", chave ranks.honor.<banda>) — em EN traduzidos naturalmente
+ * (Rookie, Apprentice, Pilot, Ace, Legendary, Mystic). Este map serve só pra
+ * iterar/validar as bandas; NÃO use os valores como label de UI.
+ */
+export const HONOR_RANK_LABELS: Record<HonorRank, true> = {
+  novato: true,
+  aprendiz: true,
+  piloto: true,
+  as: true,
+  lendario: true,
+  mistico: true,
 }
 
 /**
  * Hover educacional por banda (voz Mestre) — nome + faixa de nível + como sobe.
- * Faixas espelham src/lib/levels.ts (TIER_CONFIG); co-requisito de SKILL no
- * topo espelha getGatedTierForLevel (Lendário exige Divine+, Místico exige Imortal).
+ * Os textos vivem no i18n (namespace "ui", chave honorTooltip.<banda>) e são
+ * resolvidos via t() dentro de <HonorShowcase>.
  */
-const HONOR_RANK_TOOLTIPS: Record<HonorRank, string> = {
-  novato:
-    "Novato · nível 0–5 (HONOR). Complete as lições da doutrina pra provar conhecimento e conquistar a primeira medalha.",
-  aprendiz:
-    "Aprendiz · nível 6–11 (HONOR). Doutrinado. Suba completando lições da doutrina e jogando PTs.",
-  piloto:
-    "Piloto · nível 12–17 (HONOR). Aplicando o método nas partidas. Suba completando lições da doutrina e jogando PTs.",
-  as: "Ás · nível 18–24 (HONOR). Domínio da pista. Suba completando lições da doutrina e jogando PTs.",
-  lendario:
-    "Lendário · nível 25–29 (HONOR). Guardião da cultura — além do nível, exige medalha Valve Divine ou superior.",
-  mistico:
-    "Místico · nível 30 (HONOR). Topo do ladder — exige medalha Valve Imortal. Compreende o jogo além do jogo.",
-}
 
 /* ------------------------------------------------------------------
  * Compat: mapeia os 8 tiers ANTIGOS de honor-score pras 6 bandas novas.
@@ -170,11 +164,13 @@ const BAND_ORDER: HonorRank[] = [
 ]
 
 export function HonorShowcase({ current }: { current: HonorRank }) {
+  const t = useTranslations("ui")
+  const tr = useTranslations("ranks")
   const currentIdx = BAND_ORDER.indexOf(current)
   return (
     <span className="block w-[400px] max-w-[88vw]">
       <span className="block text-center font-display-condensed text-lg uppercase leading-none tracking-[0.2em] text-text-muted">
-        Medalhas de nível
+        {t("honorShowcaseTitle")}
       </span>
       {/* Atual em destaque */}
       <span className="mt-2 flex flex-col items-center gap-1">
@@ -192,11 +188,11 @@ export function HonorShowcase({ current }: { current: HonorRank }) {
             current === "mistico" ? "text-brand-primary" : "text-gold",
           )}
         >
-          {HONOR_RANK_LABELS[current]}
+          {tr(`honor.${current}`)}
         </span>
       </span>
       <span className="mt-1 block text-center text-xs leading-snug text-text-muted">
-        {HONOR_RANK_TOOLTIPS[current]}
+        {t(`honorTooltip.${current}`)}
       </span>
       {/* Régua com todas as bandas */}
       <span className="mt-2.5 flex items-end justify-between gap-1 border-t border-border-subtle pt-2.5">
@@ -220,14 +216,13 @@ export function HonorShowcase({ current }: { current: HonorRank }) {
                 band === current ? "text-gold" : "text-text-faded",
               )}
             >
-              {HONOR_RANK_LABELS[band]}
+              {tr(`honor.${band}`)}
             </span>
           </span>
         ))}
       </span>
       <span className="mt-2 block text-center text-[11px] leading-snug text-text-faded">
-        Suba completando lições da doutrina e jogando PTs. O topo exige também a
-        medalha Valve correspondente.
+        {t("honorShowcaseFooter")}
       </span>
     </span>
   )
@@ -263,9 +258,11 @@ export function HonorRankMedal({
   className,
   tooltip = true,
 }: HonorRankMedalProps) {
+  const t = useTranslations("ui")
+  const tr = useTranslations("ranks")
   const px = SIZE_PX[size]
   const sizeClass = SIZE_CLASS[size]
-  const label = HONOR_RANK_LABELS[rank]
+  const label = tr(`honor.${rank}`)
 
   const hasGlow = glow || rank === "mistico"
 
@@ -284,7 +281,7 @@ export function HonorRankMedal({
         </div>
         {showLabel && (
           <span className="font-display-condensed text-sm uppercase tracking-widest text-text-faded whitespace-nowrap">
-            Sem nível
+            {t("noLevel")}
           </span>
         )}
       </div>
@@ -304,12 +301,12 @@ export function HonorRankMedal({
               "bg-warning/20 border border-warning/40 text-warning",
             )}
           >
-            Calibrando
+            {t("calibratingBadge")}
           </span>
         </div>
         {showLabel && (
           <span className="font-display-condensed text-sm uppercase tracking-widest text-warning whitespace-nowrap">
-            Em calibração
+            {t("calibratingLabel")}
           </span>
         )}
       </div>

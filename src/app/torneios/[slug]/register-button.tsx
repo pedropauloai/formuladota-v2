@@ -4,6 +4,7 @@
 // de mais de 1 time, ou inscreve direto se é só de 1.
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { Loader2, Trophy, ChevronDown } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
@@ -23,6 +24,7 @@ export function TournamentRegisterButton({
   tournamentId: string;
   availableTeams: AvailableTeam[];
 }) {
+  const t = useTranslations("torneios");
   const { toast } = useToast();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -35,7 +37,7 @@ export function TournamentRegisterButton({
         toast({ type: "error", title: r.error });
         return;
       }
-      toast({ type: "success", title: "Time inscrito no torneio!" });
+      toast({ type: "success", title: t("registerSuccess") });
       setShowDropdown(false);
       router.refresh();
     });
@@ -55,7 +57,7 @@ export function TournamentRegisterButton({
         disabled={isPending}
       >
         {isPending ? <Loader2 size={14} className="animate-spin" /> : <Trophy size={14} />}
-        Inscrever {singleTeam.name}
+        {t("registerTeamNamed", { name: singleTeam.name })}
       </Button>
     );
   }
@@ -70,7 +72,7 @@ export function TournamentRegisterButton({
         disabled={isPending}
       >
         {isPending ? <Loader2 size={14} className="animate-spin" /> : <Trophy size={14} />}
-        Inscrever time
+        {t("registerTeam")}
         <ChevronDown size={14} />
       </Button>
       {showDropdown && (

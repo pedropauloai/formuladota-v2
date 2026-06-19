@@ -9,6 +9,7 @@
 // Só o corpo rola — header fixo, página sem rolagem.
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { Loader2, PowerOff, Radio, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/ui/avatar";
@@ -42,6 +43,7 @@ export function AdminCoachDetail({
   nowMs,
   onChanged,
 }: Props) {
+  const t = useTranslations("misc2");
   // PT confirmada nesta sessão — mantém CoachNotesPanel visível após refetch
   const [notesFor, setNotesFor] = useState<AdminPendingPT | null>(null);
 
@@ -66,7 +68,7 @@ export function AdminCoachDetail({
               matchId={notesFor.matchId}
               entries={notesFor.students.map((s) => ({
                 userId: s.userId,
-                username: s.username ?? "(sem nome)",
+                username: s.username ?? t("noName"),
               }))}
             />
             <button
@@ -74,7 +76,7 @@ export function AdminCoachDetail({
               onClick={() => setNotesFor(null)}
               className="font-mono text-sm text-text-faded underline-offset-4 hover:text-text-display hover:underline"
             >
-              concluir notas
+              {t("finishNotes")}
             </button>
           </section>
         )}
@@ -83,7 +85,7 @@ export function AdminCoachDetail({
 
         <section className="space-y-2">
           <h3 className="font-display-condensed text-lg uppercase leading-none tracking-wider text-text-display">
-            Histórico recente
+            {t("recentHistory")}
           </h3>
           <AdminHistoryList history={history} onChanged={onChanged} />
         </section>
@@ -103,6 +105,7 @@ function DetailHeader({
   nowMs: number;
   onChanged: () => void;
 }) {
+  const t = useTranslations("misc2");
   return (
     <header className="flex shrink-0 flex-wrap items-center gap-3 border-b border-border-subtle px-4 py-3 xl:px-6">
       <UserAvatar
@@ -120,17 +123,17 @@ function DetailHeader({
           {coach.slug}
           {coach.headline ? ` · ${coach.headline}` : ""}
           {coach.filaAberta && coach.filaAbertaEm
-            ? ` · fila aberta há ${formatAge(coach.filaAbertaEm, nowMs)}`
-            : " · fila fechada"}
+            ? ` · ${t("queueOpenForInline", { age: formatAge(coach.filaAbertaEm, nowMs) })}`
+            : ` · ${t("queueClosed")}`}
         </p>
       </div>
 
       <p className="font-display text-sm font-semibold uppercase tracking-wide text-text-muted">
-        Hoje:{" "}
-        <span className="tabular-nums text-text-display">{coach.hoje.pts} PTs</span>
+        {t("todayLabel")}{" "}
+        <span className="tabular-nums text-text-display">{t("ptsCount", { count: coach.hoje.pts })}</span>
         {" · "}
         <span className="tabular-nums text-text-display">
-          {coach.hoje.alunos} alunos
+          {t("studentsCount", { count: coach.hoje.alunos })}
         </span>
         {" · "}
         <span className="tabular-nums text-gold">
@@ -150,20 +153,22 @@ function ForceFilaButton({
   coach: AdminCoachSummary;
   onChanged: () => void;
 }) {
+  const t = useTranslations("misc2");
   const confirm = useConfirm();
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   async function handleToggle() {
     const closing = coach.filaAberta;
+    const name = coach.username ?? coach.slug;
     const ok = await confirm({
       title: closing
-        ? `Forçar FECHAMENTO da fila de ${coach.username ?? coach.slug}?`
-        : `Forçar ABERTURA da fila de ${coach.username ?? coach.slug}?`,
+        ? t("forceCloseQueueTitle", { name })
+        : t("forceOpenQueueTitle", { name }),
       message: closing
-        ? `Todos os ${coach.waitingCount} aguardando serão removidos da fila (fichas intactas). Ação auditada.`
-        : "A fila passa a receber alunos em nome do PRO. Ação auditada.",
-      confirmLabel: closing ? "Fechar fila" : "Abrir fila",
+        ? t("forceCloseQueueMessage", { count: coach.waitingCount })
+        : t("forceOpenQueueMessage"),
+      confirmLabel: closing ? t("closeQueue") : t("openQueue"),
       variant: closing ? "destructive" : undefined,
     });
     if (!ok) return;
@@ -188,7 +193,7 @@ function ForceFilaButton({
         ) : (
           <Radio size={14} aria-hidden="true" />
         )}
-        {coach.filaAberta ? "Forçar fechar fila" : "Forçar abrir fila"}
+        {coach.filaAberta ? t("forceCloseQueue") : t("forceOpenQueue")}
       </Button>
       {error && <p className="font-mono-ui text-sm text-error">{error}</p>}
     </div>
@@ -208,6 +213,7 @@ function QueueSection({
   nowMs: number;
   onChanged: () => void;
 }) {
+  const t = useTranslations("misc2");
   const prompt = usePrompt();
   const [error, setError] = useState<string | null>(null);
   const [removingId, setRemovingId] = useState<string | null>(null);
@@ -215,16 +221,16 @@ function QueueSection({
 
   async function handleRemove(entry: AdminQueueEntry) {
     const reason = await prompt({
-      title: `Remover ${entry.username ?? "aluno"} da fila`,
-      message: "Motivo da remoção (auditado, mín 3 caracteres). Ficha fica intacta.",
-      placeholder: "Ex: aluno pediu suporte, conduta, fila travada",
+      title: t("removeFromQueueTitle", { name: entry.username ?? t("student") }),
+      message: t("removeFromQueueMessage"),
+      placeholder: t("removeFromQueuePlaceholder"),
       required: true,
-      confirmLabel: "Remover",
+      confirmLabel: t("remove"),
       variant: "destructive",
     });
     if (reason === null) return;
     if (reason.trim().length < 3) {
-      setError("Motivo precisa ter pelo menos 3 caracteres.");
+      setError(t("reasonMin3"));
       return;
     }
     setError(null);
@@ -240,15 +246,16 @@ function QueueSection({
   return (
     <section className="space-y-2">
       <h3 className="font-display-condensed text-lg uppercase leading-none tracking-wider text-text-display">
-        Fila ({queue.length}
-        {coach.filaAberta ? ` · máx ${coach.filaMaxVagas} por PT` : ""})
+        {coach.filaAberta
+          ? t("queueHeadingMax", { count: queue.length, max: coach.filaMaxVagas })
+          : t("queueHeading", { count: queue.length })}
       </h3>
 
       {queue.length === 0 ? (
         <p className="rounded-sm border border-dashed border-border-subtle bg-bg-elevated/30 p-4 text-center font-display text-sm font-semibold text-text-muted">
           {coach.filaAberta
-            ? "Fila aberta e vazia. Quem quer evoluir ainda não chegou."
-            : "Fila fechada — nada aguardando."}
+            ? t("queueEmptyOpen")
+            : t("queueEmptyClosed")}
         </p>
       ) : (
         <ul className="divide-y divide-border-subtle/60 rounded-sm border border-border-subtle bg-bg-base/40">
@@ -260,21 +267,21 @@ function QueueSection({
               <UserAvatar
                 size="sm"
                 src={e.avatarUrl ?? undefined}
-                alt={e.username ?? "Aluno"}
+                alt={e.username ?? t("student")}
                 fallback={(e.username ?? "?").slice(0, 2)}
                 className="scale-90"
               />
               <span className="min-w-0 flex-1 truncate font-display text-sm font-semibold text-text-body">
-                {e.username ?? "(sem nome)"}
+                {e.username ?? t("noName")}
               </span>
               <span className="font-mono text-sm tabular-nums text-text-muted">
-                há {formatAge(e.joinedAt, nowMs)}
+                {t("agoLabel", { age: formatAge(e.joinedAt, nowMs) })}
               </span>
               <button
                 type="button"
                 onClick={() => handleRemove(e)}
                 disabled={removingId !== null}
-                aria-label={`Remover ${e.username ?? "aluno"} da fila`}
+                aria-label={t("removeFromQueueTitle", { name: e.username ?? t("student") })}
                 className="flex size-7 items-center justify-center rounded-sm text-text-faded transition-colors hover:bg-error/15 hover:text-error disabled:opacity-50"
               >
                 {removingId === e.entryId ? (

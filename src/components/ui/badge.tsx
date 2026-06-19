@@ -28,19 +28,21 @@ import { cn } from "@/lib/utils"
  * ------------------------------------------------------------------ */
 
 /**
- * TIER_NAMES — labels PT-BR de cada faixa MMR (regra Pedro 2026-05-23: plataforma BR).
- * tier-1 = Arauto (menor MMR), tier-8 = Imortal (maior MMR).
- * Tradução literal dos nomes oficiais Valve (Herald/Guardian/Crusader/Archon/Legend/Ancient/Divine/Immortal).
+ * TIER_NUMS — faixas MMR Valve por número (tier-1 = Herald … tier-8 = Immortal).
+ * Os NOMES EXIBIDOS são resolvidos por i18n (namespace "ranks", chave
+ * ranks.dotaByNum.<n>): em EN os nomes oficiais Valve (Herald/Guardian/…),
+ * em PT os equivalentes (Arauto/Guardião/…). Este map serve só pra iterar/validar
+ * os números de tier; NÃO use os valores como label de UI.
  */
 export const TIER_NAMES = {
-  1: "Arauto",
-  2: "Guardião",
-  3: "Cruzado",
-  4: "Arconte",
-  5: "Lenda",
-  6: "Ancião",
-  7: "Divino",
-  8: "Imortal",
+  1: true,
+  2: true,
+  3: true,
+  4: true,
+  5: true,
+  6: true,
+  7: true,
+  8: true,
 } as const
 
 export type Tier = keyof typeof TIER_NAMES
@@ -169,8 +171,9 @@ export interface BadgeProps
  * <Badge variant="success">Ativo</Badge>
  *
  * @example
- * // Label dinâmico via TIER_NAMES
- * <Badge variant={`tier-${tier}` as BadgeProps["variant"]}>{TIER_NAMES[tier]}</Badge>
+ * // Label dinâmico via i18n (nome do rank resolvido por ranks.dotaByNum.<n>)
+ * const tr = useTranslations("ranks")
+ * <Badge variant={`tier-${tier}` as BadgeProps["variant"]}>{tr(`dotaByNum.${tier}`)}</Badge>
  */
 export const Badge = forwardRef<HTMLSpanElement, BadgeProps>(
   ({ className, variant, ...props }, ref) => (

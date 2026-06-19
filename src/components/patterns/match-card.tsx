@@ -16,9 +16,10 @@
  */
 
 import { m } from "motion/react";
+import { useTranslations } from "next-intl";
 import { TrendingUp, TrendingDown } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Badge, TIER_NAMES, type Tier } from "@/components/ui/badge";
+import { Badge, type Tier } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useSound } from "@/lib/sound/hooks";
 import { useMotionSafeBool } from "@/lib/motion/hooks";
@@ -66,22 +67,26 @@ export interface MatchCardProps {
 // ---------------------------------------------------------------------------
 
 /**
- * Converte uma data em string relativa PT-BR.
+ * Converte uma data em string relativa.
  * Retorna "agora", "Xmin", "Xh", "Xd", "Xsem" ou data localizada.
+ * Os rótulos vêm do i18n (namespace "ui") via o tradutor `t`.
  */
-function relativeTime(date: Date | string): string {
+function relativeTime(
+  date: Date | string,
+  t: (key: string, values?: Record<string, string | number>) => string
+): string {
   const d = typeof date === "string" ? new Date(date) : date;
   const diff = Date.now() - d.getTime();
   const minutes = Math.floor(diff / 60_000);
-  if (minutes < 1) return "agora";
-  if (minutes < 60) return `${minutes}min`;
+  if (minutes < 1) return t("timeNow");
+  if (minutes < 60) return t("timeMinutes", { n: minutes });
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h`;
+  if (hours < 24) return t("timeHours", { n: hours });
   const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}d`;
+  if (days < 7) return t("timeDays", { n: days });
   const weeks = Math.floor(days / 7);
-  if (weeks < 4) return `${weeks}sem`;
-  return d.toLocaleDateString("pt-BR");
+  if (weeks < 4) return t("timeWeeks", { n: weeks });
+  return d.toLocaleDateString();
 }
 
 // ---------------------------------------------------------------------------
@@ -175,6 +180,8 @@ export function MatchCard({
   className,
   onClick,
 }: MatchCardProps) {
+  const t = useTranslations("ui");
+  const tr = useTranslations("ranks");
   const isWin = result === "win";
   // Ícone direcional de MMR — TrendingUp para ganho, TrendingDown para perda
   const TrendIcon = mmrDelta >= 0 ? TrendingUp : TrendingDown;
@@ -197,7 +204,11 @@ export function MatchCard({
   };
 
   // Aria-label descritivo para acessibilidade (WCAG 2.1 AA — C5)
-  const ariaLabel = `Partida ${matchId}, ${isWin ? "vitória" : "derrota"}, MMR ${mmrDelta > 0 ? "+" : ""}${mmrDelta}`;
+  const ariaLabel = t("matchCardAria", {
+    matchId,
+    result: isWin ? t("win") : t("loss"),
+    mmr: `${mmrDelta > 0 ? "+" : ""}${mmrDelta}`,
+  });
 
   // ---------------------------------------------------------------------------
   // Estrutura interna compartilhada entre motion/não-motion
@@ -245,12 +256,12 @@ export function MatchCard({
                     ],
               )}
             >
-              {isWin ? "Vitória" : "Derrota"}
+              {isWin ? t("win") : t("loss")}
             </span>
 
             {/* Badge de tier — via primitivo F6 (DF6.5) */}
             <Badge variant={`tier-${tier}` as `tier-${Tier}`}>
-              {TIER_NAMES[tier]}
+              {tr(`dotaByNum.${tier}`)}
             </Badge>
           </div>
 
@@ -272,7 +283,7 @@ export function MatchCard({
         {/* Linha Radiant — até 5 heroes */}
         <div
           className="flex flex-wrap gap-1.5"
-          aria-label="Heroes Radiant"
+          aria-label={t("heroesRadiant")}
         >
           {radiantHeroes.slice(0, 5).map((h) => (
             <HeroPortrait key={`r-${h.slug}`} hero={h} side="radiant" />
@@ -282,7 +293,7 @@ export function MatchCard({
         {/* Linha Dire — até 5 heroes */}
         <div
           className="flex flex-wrap gap-1.5"
-          aria-label="Heroes Dire"
+          aria-label={t("heroesDire")}
         >
           {direHeroes.slice(0, 5).map((h) => (
             <HeroPortrait key={`d-${h.slug}`} hero={h} side="dire" />
@@ -322,7 +333,7 @@ export function MatchCard({
 
           {/* Tempo relativo — label muted, sem urgência */}
           <span className="text-[var(--color-text-muted)]">
-            {relativeTime(playedAt)}
+            {relativeTime(playedAt, t)}
           </span>
         </div>
       </CardContent>

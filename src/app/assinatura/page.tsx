@@ -14,13 +14,17 @@
 
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { AssinaturaClient } from "./assinatura-client";
 
-export const metadata: Metadata = {
-  title: "Adesão à Comunidade — FORMULADOTA",
-  description: "Gerencie sua adesão à comunidade FormulaDota.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("billing");
+  return {
+    title: t("subscriptionMetaTitle"),
+    description: t("subscriptionMetaDescription"),
+  };
+}
 
 // Tipo mínimo da subscription para evitar over-fetch
 interface SubscriptionRow {

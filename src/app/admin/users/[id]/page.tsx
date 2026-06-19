@@ -2,8 +2,8 @@
 // Server Component. 5 sub-painéis via Tabs inline.
 
 import { notFound } from "next/navigation";
-import Link from "next/link";
-import type { Metadata } from "next";
+import { Link } from "@/i18n/navigation";
+import { getTranslations } from "next-intl/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { DotaRankMedal, type DotaRank } from "@/components/ui/dota-rank-medal";
 import { HonorRankMedal, type HonorRank } from "@/components/ui/honor-rank-medal";
@@ -54,12 +54,14 @@ function honorScoreToRank(score: number | null | undefined): HonorRank {
   return "novato";
 }
 
-function behaviorLabel(status: string | null): { label: string; cls: string } {
+type Translator = Awaited<ReturnType<typeof getTranslations>>;
+
+function behaviorLabel(status: string | null, t: Translator): { label: string; cls: string } {
   const map: Record<string, { label: string; cls: string }> = {
-    ok: { label: "Sem ocorrências", cls: "text-emerald-400 border-emerald-500/40" },
-    warned: { label: "Advertido", cls: "text-amber-400 border-amber-500/40" },
-    suspended: { label: "Suspenso", cls: "text-amber-500 border-amber-600/60" },
-    banned: { label: "Banido", cls: "text-red-400 border-red-500/60" },
+    ok: { label: t("behaviorNone"), cls: "text-emerald-400 border-emerald-500/40" },
+    warned: { label: t("behaviorWarned"), cls: "text-amber-400 border-amber-500/40" },
+    suspended: { label: t("behaviorSuspended"), cls: "text-amber-500 border-amber-600/60" },
+    banned: { label: t("behaviorBanned"), cls: "text-red-400 border-red-500/60" },
   };
   return map[status ?? ""] ?? { label: status ?? "—", cls: "text-text-muted border-border-subtle" };
 }
@@ -109,7 +111,7 @@ export async function generateMetadata({
   params,
 }: {
   params: Promise<{ id: string }>;
-}): Promise<Metadata> {
+}) {
   const { id } = await params;
   const service = createServiceClient();
   const { data } = await service
@@ -130,6 +132,7 @@ export default async function AdminUserDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const t = await getTranslations("misc2");
   const service = createServiceClient();
 
   // ── Perfil base (campos do schema real — database.ts)
@@ -251,18 +254,18 @@ export default async function AdminUserDetailPage({
   };
 
   const criteriosAtendidosLabels = [
-    ...(eligCriteria.honor8 ? ["HONOR tier 8 — Imortal da Fórmula"] : []),
-    ...(eligCriteria.seasons2 ? ["Pelo menos 2 seasons no sistema"] : []),
-    ...(eligCriteria.skillTier6 ? ["Skill mínima tier 6 Dota"] : []),
-    ...(eligCriteria.noGraveStrikes ? ["Sem strikes graves no histórico"] : []),
-    ...(eligCriteria.doctrineOk ? ["Doutrina aceita há 6+ meses"] : []),
+    ...(eligCriteria.honor8 ? [t("eligHonor8Short")] : []),
+    ...(eligCriteria.seasons2 ? [t("eligSeasons2Short")] : []),
+    ...(eligCriteria.skillTier6 ? [t("eligSkill6Short")] : []),
+    ...(eligCriteria.noGraveStrikes ? [t("eligNoStrikesShort")] : []),
+    ...(eligCriteria.doctrineOk ? [t("eligDoctrineShort")] : []),
   ];
 
   const totalEligCriteria = Object.values(eligCriteria).filter(Boolean).length;
   const isEligible = totalEligCriteria === 5;
 
   // ── Conduta label
-  const conductInfo = behaviorLabel(profile.behavior_status);
+  const conductInfo = behaviorLabel(profile.behavior_status, t);
 
   return (
     <div className="p-8 space-y-8 max-w-4xl">
@@ -273,7 +276,7 @@ export default async function AdminUserDetailPage({
           className="inline-flex items-center gap-1 font-mono text-sm text-text-faded hover:text-text-muted transition-colors"
         >
           <ChevronLeft size={12} />
-          Usuários
+          {t("usersBreadcrumb")}
         </Link>
         <span className="font-mono text-sm text-text-faded">/</span>
         <span className="font-display text-sm font-semibold text-text-body">
@@ -286,10 +289,10 @@ export default async function AdminUserDetailPage({
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="font-sans text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
-              Admin / Usuário
+              {t("adminUserEyebrow")}
             </p>
             <h1 className="mt-2 font-display text-3xl uppercase tracking-tight text-text-display">
-              {profile.username ?? "(sem nome)"}
+              {profile.username ?? t("noName")}
             </h1>
             <p className="mt-1 font-mono text-sm text-text-faded">{profile.email}</p>
           </div>
@@ -301,12 +304,12 @@ export default async function AdminUserDetailPage({
             )}
             {isProAtivo && (
               <span className="rounded-md border border-brand-primary/60 px-2 py-1 font-display font-semibold text-sm uppercase tracking-wide text-brand-primary">
-                PRO Ativo
+                {t("proActive")}
               </span>
             )}
             {isBanned && (
               <span className="rounded-md border border-red-500/60 px-2 py-1 font-display font-semibold text-sm uppercase tracking-wide text-red-400">
-                Banido
+                {t("behaviorBanned")}
               </span>
             )}
           </div>
@@ -317,32 +320,35 @@ export default async function AdminUserDetailPage({
       {/* ================================================================== */}
       {/* SUB-PAINEL 1 — Identidade                                          */}
       {/* ================================================================== */}
-      <SectionCard title="1. Identidade">
+      <SectionCard title={t("section1Identity")}>
         <div className="grid gap-2">
           <InfoRow label="Username" value={profile.username ?? "—"} />
           <InfoRow label="Email" value={profile.email ?? "—"} />
           <InfoRow
             label="Discord"
-            value="Vinculado via OAuth Supabase"
+            value={t("discordLinkedOauth")}
           />
           <InfoRow
             label="Steam"
             value={
               steamLink
                 ? `${steamLink.persona ?? "—"} (${steamLink.steam_id_64})`
-                : "Não vinculado"
+                : t("notLinked")
             }
           />
           <InfoRow
-            label="Cadastro"
+            label={t("signupLabel")}
             value={new Date(profile.created_at).toLocaleString("pt-BR")}
           />
           <InfoRow
-            label="Doutrina aceita"
+            label={t("doctrineAcceptedLabel")}
             value={
               profile.doctrine_accepted_at
-                ? `v${profile.doctrine_version ?? "?"} em ${new Date(profile.doctrine_accepted_at).toLocaleDateString("pt-BR")}`
-                : "Nunca aceita"
+                ? t("doctrineAcceptedValue", {
+                    version: profile.doctrine_version ?? "?",
+                    date: new Date(profile.doctrine_accepted_at).toLocaleDateString("pt-BR"),
+                  })
+                : t("neverAccepted")
             }
           />
           <InfoRow label="Role" value={profile.role ?? "player"} />
@@ -351,7 +357,7 @@ export default async function AdminUserDetailPage({
         <div className="mt-4">
           <CoachNotesModal
             targetUserId={id}
-            username={profile.username ?? "(sem nome)"}
+            username={profile.username ?? t("noName")}
             initialNotes={adminNoteRes.data?.note ?? ""}
           />
         </div>
@@ -360,22 +366,22 @@ export default async function AdminUserDetailPage({
       {/* ================================================================== */}
       {/* SUB-PAINEL 2 — Fichas                                              */}
       {/* ================================================================== */}
-      <SectionCard title="2. Fichas">
+      <SectionCard title={t("section2Fichas")}>
         <div className="flex items-center justify-between mb-4">
           <div>
             <p className="font-display font-semibold text-sm uppercase tracking-wide text-text-faded mb-1">
-              Saldo atual
+              {t("currentBalanceLabel")}
             </p>
             <p className="font-display text-4xl text-emerald-400">
               {balance}
               <span className="ml-2 font-mono text-sm text-text-faded">
-                {balance === 1 ? "ficha" : "fichas"}
+                {t("fichaUnit", { count: balance })}
               </span>
             </p>
           </div>
           <AdjustFichasModal
             userId={id}
-            username={profile.username ?? "(sem nome)"}
+            username={profile.username ?? t("noName")}
             currentBalance={balance}
           />
         </div>
@@ -386,10 +392,10 @@ export default async function AdminUserDetailPage({
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border-subtle">
-                  <th className="text-left px-3 py-2 font-display font-semibold text-sm uppercase tracking-wide text-text-faded">Data</th>
+                  <th className="text-left px-3 py-2 font-display font-semibold text-sm uppercase tracking-wide text-text-faded">{t("colDate")}</th>
                   <th className="text-left px-3 py-2 font-display font-semibold text-sm uppercase tracking-wide text-text-faded">Delta</th>
-                  <th className="text-left px-3 py-2 font-display font-semibold text-sm uppercase tracking-wide text-text-faded">Fonte</th>
-                  <th className="text-left px-3 py-2 font-display font-semibold text-sm uppercase tracking-wide text-text-faded">Razão</th>
+                  <th className="text-left px-3 py-2 font-display font-semibold text-sm uppercase tracking-wide text-text-faded">{t("colSource")}</th>
+                  <th className="text-left px-3 py-2 font-display font-semibold text-sm uppercase tracking-wide text-text-faded">{t("colReason")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -413,7 +419,7 @@ export default async function AdminUserDetailPage({
             </table>
           </div>
         ) : (
-          <p className="font-mono text-sm text-text-faded">Nenhuma movimentação registrada.</p>
+          <p className="font-mono text-sm text-text-faded">{t("noLedgerMovements")}</p>
         )}
       </SectionCard>
 
@@ -422,7 +428,7 @@ export default async function AdminUserDetailPage({
       {/* ================================================================== */}
       <PermissionsSection
         userId={id}
-        username={profile.username ?? "(sem nome)"}
+        username={profile.username ?? t("noName")}
         available={availablePermissions}
         consumed={profile.match_permissions_consumed}
         quizCorrect={quizCorrect}
@@ -432,13 +438,13 @@ export default async function AdminUserDetailPage({
       {/* ================================================================== */}
       {/* SUB-PAINEL 4 — Conduta                                             */}
       {/* ================================================================== */}
-      <SectionCard title="4. Conduta">
+      <SectionCard title={t("section4Conduct")}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <Shield size={20} className="text-text-faded" />
             <div>
               <p className="font-display font-semibold text-sm uppercase tracking-wide text-text-faded mb-0.5">
-                Status de conduta
+                {t("conductStatus")}
               </p>
               <span
                 className={`inline-block rounded-md border px-2 py-1 font-display text-sm font-semibold ${conductInfo.cls}`}
@@ -452,7 +458,7 @@ export default async function AdminUserDetailPage({
               {(warnings as unknown[] | null ?? []).length}
             </span>
             <span className="font-display font-semibold text-sm uppercase tracking-wide text-text-faded">
-              {(warnings as unknown[] | null ?? []).length === 1 ? "strike" : "strikes"}
+              {t("strikeUnit", { count: (warnings as unknown[] | null ?? []).length })}
             </span>
           </div>
         </div>
@@ -460,11 +466,11 @@ export default async function AdminUserDetailPage({
         <div className="flex gap-2 flex-wrap mb-5">
           <ApplyStrikeModal
             targetUserId={id}
-            username={profile.username ?? "(sem nome)"}
+            username={profile.username ?? t("noName")}
           />
           <HonorBonusModal
             targetUserId={id}
-            username={profile.username ?? "(sem nome)"}
+            username={profile.username ?? t("noName")}
           />
         </div>
 
@@ -482,7 +488,7 @@ export default async function AdminUserDetailPage({
                 />
                 <div className="flex-1 min-w-0">
                   <p className="font-display font-semibold text-sm uppercase tracking-wide text-text-faded">
-                    {w.severity === "grave" ? "Strike grave" : "Strike leve"} ·{" "}
+                    {w.severity === "grave" ? t("strikeHeavy") : t("strikeLight")} ·{" "}
                     {new Date(w.created_at).toLocaleDateString("pt-BR")}
                   </p>
                   <p className="font-display text-sm font-semibold text-text-body mt-0.5">
@@ -493,14 +499,14 @@ export default async function AdminUserDetailPage({
             ))}
           </div>
         ) : (
-          <p className="font-mono text-sm text-text-faded">Nenhuma ocorrência registrada.</p>
+          <p className="font-mono text-sm text-text-faded">{t("noOccurrences")}</p>
         )}
       </SectionCard>
 
       {/* ================================================================== */}
       {/* SUB-PAINEL 5 — Honor + Skill                                        */}
       {/* ================================================================== */}
-      <SectionCard title="5. Honor e Skill">
+      <SectionCard title={t("section5HonorSkill")}>
         <div className="grid grid-cols-2 gap-6 mb-6">
           {/* HONOR */}
           <div className="flex flex-col items-center gap-3 p-4 rounded-md border border-border-subtle/50 bg-bg-elevated/20">
@@ -543,7 +549,7 @@ export default async function AdminUserDetailPage({
         <div className="mb-5">
           <div className="flex items-center justify-between mb-2">
             <p className="font-display font-semibold text-sm uppercase tracking-wide text-text-faded">
-              Status de calibração
+              {t("calibrationStatusLabel")}
             </p>
             <span className="font-display text-sm font-semibold text-text-body capitalize">
               {calibrationStatus}
@@ -567,7 +573,7 @@ export default async function AdminUserDetailPage({
             </p>
             <GrantAchievementModal
               targetUserId={id}
-              username={profile.username ?? "(sem nome)"}
+              username={profile.username ?? t("noName")}
             />
           </div>
           {(achievements as Array<{ id: string; variant: string; granted_at: string }> | null ?? []).length > 0 ? (
@@ -583,7 +589,7 @@ export default async function AdminUserDetailPage({
               ))}
             </div>
           ) : (
-            <p className="font-mono text-sm text-text-faded">Nenhum achievement.</p>
+            <p className="font-mono text-sm text-text-faded">{t("noAchievements")}</p>
           )}
         </div>
       </SectionCard>
@@ -591,7 +597,7 @@ export default async function AdminUserDetailPage({
       {/* ================================================================== */}
       {/* SUB-PAINEL 6 — Elegibilidade PRO                                   */}
       {/* ================================================================== */}
-      <SectionCard title="6. Elegibilidade PRO">
+      <SectionCard title={t("section6ProEligibility")}>
         {/* Status geral */}
         <div className="flex items-center gap-3 mb-5">
           <div
@@ -605,10 +611,10 @@ export default async function AdminUserDetailPage({
           />
           <p className="font-display text-base uppercase tracking-wide text-text-display">
             {isProAtivo
-              ? "PRO Ativo"
+              ? t("proActive")
               : isEligible
-                ? "Elegivel — pronto para promocao"
-                : `${totalEligCriteria}/5 criterios atendidos`}
+                ? t("eligibleReady")
+                : t("criteriaMetCount", { count: totalEligCriteria })}
           </p>
         </div>
 
@@ -616,29 +622,29 @@ export default async function AdminUserDetailPage({
         <div className="rounded-md border border-border-subtle/50 overflow-hidden mb-5">
           <CriterioRow
             ok={eligCriteria.honor8}
-            label="Atingiu tier 8 HONOR (Imortal da Formula)"
+            label={t("eligHonor8")}
           />
           <CriterioRow
             ok={eligCriteria.seasons2}
-            label="Permaneceu no sistema por 2+ seasons consecutivas"
+            label={t("eligSeasons2")}
           />
           <div className="flex items-center gap-3 py-2 border-b border-border-subtle/40 last:border-0">
             <HelpCircle size={14} className="text-text-faded shrink-0" />
             <span className="font-sans text-sm text-text-faded">
-              Achievements de mentor — critério a definir (fora do cálculo)
+              {t("eligMentorTbd")}
             </span>
           </div>
           <CriterioRow
             ok={eligCriteria.skillTier6}
-            label="Skill minima tier 6 Dota (Arconte+) ou equivalente"
+            label={t("eligSkill6")}
           />
           <CriterioRow
             ok={eligCriteria.noGraveStrikes}
-            label="Zero strikes graves no historico permanente"
+            label={t("eligNoStrikes")}
           />
           <CriterioRow
             ok={eligCriteria.doctrineOk}
-            label="Doutrina aceita ha 6+ meses"
+            label={t("eligDoctrine")}
           />
         </div>
 
@@ -646,11 +652,11 @@ export default async function AdminUserDetailPage({
         {isProAtivo && proPromo && (
           <div className="mb-5 rounded-md border border-brand-primary/20 bg-brand-primary/5 p-4">
             <p className="font-display font-semibold text-sm uppercase tracking-wide text-brand-primary mb-3">
-              Dados PRO
+              {t("proData")}
             </p>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <p className="font-display font-semibold text-sm text-text-faded uppercase tracking-wide mb-1">Promovido em</p>
+                <p className="font-display font-semibold text-sm text-text-faded uppercase tracking-wide mb-1">{t("promotedOn")}</p>
                 <p className="font-display text-sm font-semibold text-text-body">
                   {new Date(proPromo.created_at).toLocaleDateString("pt-BR")}
                 </p>
@@ -658,15 +664,15 @@ export default async function AdminUserDetailPage({
               {proRevenue && (
                 <>
                   <div>
-                    <p className="font-display font-semibold text-sm text-text-faded uppercase tracking-wide mb-1">Total vendas</p>
+                    <p className="font-display font-semibold text-sm text-text-faded uppercase tracking-wide mb-1">{t("totalSales")}</p>
                     <p className="font-display text-sm font-semibold text-text-body">{proRevenue.totalSales}</p>
                   </div>
                   <div>
-                    <p className="font-display font-semibold text-sm text-text-faded uppercase tracking-wide mb-1">Ganhos PRO</p>
+                    <p className="font-display font-semibold text-sm text-text-faded uppercase tracking-wide mb-1">{t("proEarnings")}</p>
                     <p className="font-display text-lg text-emerald-400">R$ {proRevenue.proEarnings.toFixed(2)}</p>
                   </div>
                   <div>
-                    <p className="font-display font-semibold text-sm text-text-faded uppercase tracking-wide mb-1">Revenue total</p>
+                    <p className="font-display font-semibold text-sm text-text-faded uppercase tracking-wide mb-1">{t("totalRevenue")}</p>
                     <p className="font-display text-lg text-text-display">R$ {proRevenue.totalRevenue.toFixed(2)}</p>
                   </div>
                 </>
@@ -680,14 +686,14 @@ export default async function AdminUserDetailPage({
           {!isProAtivo && (
             <PromoveCoachModal
               targetUserId={id}
-              username={profile.username ?? "(sem nome)"}
+              username={profile.username ?? t("noName")}
               criteriosAtendidos={criteriosAtendidosLabels}
             />
           )}
           {isProAtivo && (
             <RevokeCoachModal
               targetUserId={id}
-              username={profile.username ?? "(sem nome)"}
+              username={profile.username ?? t("noName")}
             />
           )}
         </div>

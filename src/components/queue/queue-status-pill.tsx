@@ -11,7 +11,8 @@
 //
 // Server Component — busca de filas vem do shell.tsx via prop.
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { Hourglass } from "lucide-react";
 import { TabTitleUpdater } from "./tab-title-updater";
 import { LeaveQueueButton } from "./leave-queue-button";
@@ -22,6 +23,7 @@ interface Props {
 }
 
 export function QueueStatusPill({ queues }: Props) {
+  const t = useTranslations("queue");
   if (queues.length === 0) return null;
   const q = queues[0];
   if (!q) return null;
@@ -51,11 +53,16 @@ export function QueueStatusPill({ queues }: Props) {
         <Link
           href="/dashboard"
           className="flex items-center gap-1.5 font-display text-sm 2xl:text-base font-semibold text-emerald-200 hover:text-white transition-colors"
-          aria-label={`Na fila de ${q.coachUsername ?? "PRO"}, posição ${q.position} de ${q.total}, ${q.waitingMinutes} minutos aguardando`}
+          aria-label={t("pillAriaLabel", {
+            name: q.coachUsername ?? "PRO",
+            position: q.position,
+            total: q.total,
+            minutes: q.waitingMinutes,
+          })}
         >
           <Hourglass size={12} className="text-emerald-300" aria-hidden="true" />
           <span>
-            Na fila ·{" "}
+            {t("inQueueShort")} ·{" "}
             <span className="font-mono">
               {q.position}º
             </span>

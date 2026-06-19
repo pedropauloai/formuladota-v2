@@ -25,7 +25,8 @@
 // Painel só fecha pelo ícone (sem click-outside, sem X interno).
 
 import { useState, useTransition } from "react";
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import {
   Coins,
   Crown,
@@ -215,6 +216,8 @@ function CollapsedCard({
   /** Página principal: card é base fixa do painel — sem ação de retrair. */
   locked?: boolean;
 }) {
+  const t = useTranslations("shell");
+  const name = persona ?? t("anon");
   const baseCls = `flex w-[340px] xl:w-[380px] items-center gap-3 border border-brand-primary/30 bg-bg-deep/90 backdrop-blur-md px-3 py-2 shadow-lg shadow-black/60 transition-colors ${
     connectedTop ? "rounded-b-md rounded-t-none border-t-0" : "rounded-md"
   }`;
@@ -222,7 +225,7 @@ function CollapsedCard({
     <>
       <XpAvatarRing
         src={avatar}
-        alt={`Avatar de ${persona ?? "Anônimo"}`}
+        alt={t("avatarAlt", { name })}
         fallback={(persona ?? "??").slice(0, 2)}
         level={level}
         pct={xpPct}
@@ -230,12 +233,12 @@ function CollapsedCard({
       />
       <div className="flex-1 min-w-0 text-left">
         <p className="font-display text-sm font-semibold text-text-display truncate">
-          {persona ?? "Anônimo"}
+          {name}
         </p>
         <p className="font-display text-sm font-semibold text-brand-primary/80 leading-tight">
           [{tag}]
           {isAdmin && (
-            <Crown size={11} className="ml-1 inline text-gold" aria-label="Admin" />
+            <Crown size={11} className="ml-1 inline text-gold" aria-label={t("admin")} />
           )}
         </p>
       </div>
@@ -251,7 +254,7 @@ function CollapsedCard({
     <button
       type="button"
       onClick={onToggle}
-      aria-label={connectedTop ? "Retrair mini-perfil" : "Expandir mini-perfil"}
+      aria-label={connectedTop ? t("collapseProfile") : t("expandProfile")}
       aria-expanded={connectedTop}
       className={`${baseCls} hover:border-brand-primary/60 hover:bg-bg-elevated/80`}
     >
@@ -263,9 +266,10 @@ function CollapsedCard({
 // Pedidos de amizade recebidos — pedido tem que ser visível SEM abrir o painel
 // (pacote social 2026-06-12). Dot/contador pode ser redondo (não é avatar).
 function PendingRequestsBadge({ count }: { count: number }) {
+  const t = useTranslations("shell");
   return (
     <Tooltip
-      content={`${count === 1 ? "1 pedido de amizade recebido" : `${count} pedidos de amizade recebidos`} — abra o painel de amigos pra responder.`}
+      content={t("pendingRequestsTooltip", { count })}
       side="top"
       align="end"
       className="shrink-0"
@@ -280,9 +284,10 @@ function PendingRequestsBadge({ count }: { count: number }) {
 
 // Indicador de permissões de partida (5 acertos = 1). Hover educacional explica.
 function PermissionsBadge({ permissions }: { permissions: number }) {
+  const t = useTranslations("shell");
   return (
     <Tooltip
-      content={`Permissões de partida: ${QUESTIONS_PER_PERMISSION} acertos no quiz da doutrina = 1 permissão. Acumulam — cada partida de qualquer modalidade gasta 1.`}
+      content={t("permissionsTooltip", { count: QUESTIONS_PER_PERMISSION })}
       side="top"
       align="end"
       className="shrink-0"
@@ -309,20 +314,18 @@ function ToggleIcon({
   /** Pedidos de amizade recebidos — bolha numérica sobre o ícone. */
   pendingCount?: number;
 }) {
+  const t = useTranslations("shell");
   const pendingLabel =
-    pendingCount > 0
-      ? ` (${pendingCount} ${pendingCount === 1 ? "pedido pendente" : "pedidos pendentes"})`
-      : "";
+    pendingCount > 0 ? t("pendingSuffix", { count: pendingCount }) : "";
   return (
     <button
       type="button"
       onClick={onToggle}
       aria-label={
-        (expanded ? "Fechar painel de amigos" : "Abrir painel de amigos") +
-        pendingLabel
+        (expanded ? t("closeFriends") : t("openFriends")) + pendingLabel
       }
       aria-expanded={expanded}
-      title={expanded ? "Fechar amigos" : "Abrir amigos"}
+      title={expanded ? t("closeFriendsShort") : t("openFriendsShort")}
       className={`relative flex w-12 shrink-0 items-center justify-center rounded-md border backdrop-blur-md transition-all shadow-lg shadow-black/60 ${
         expanded
           ? "border-brand-primary bg-brand-primary/20 text-text-display shadow-[0_0_16px_var(--color-brand-primary-glow)]"
@@ -376,21 +379,23 @@ function ExpandedPanel({
   initialPending: FriendListEntry[];
   currentLobbyId: string | null;
 }) {
+  const t = useTranslations("shell");
+  const name = persona ?? t("anon");
   return (
     <aside
-      aria-label="Mini-perfil e lista de amigos"
+      aria-label={t("miniProfileAria")}
       className="flex w-[340px] xl:w-[380px] flex-col gap-3 rounded-t-md rounded-b-none border border-b-0 border-brand-primary/40 bg-bg-deep/95 backdrop-blur-xl p-4 shadow-2xl shadow-black/80 h-[calc(100dvh-152px)] xl:h-[calc(100dvh-168px)] overflow-hidden animate-in slide-in-from-bottom-4 fade-in duration-200"
     >
       {/* Header — avatar + nome = Link pra /me */}
       <header>
         <Link
           href="/me"
-          aria-label="Ver meu perfil"
+          aria-label={t("viewProfile")}
           className="flex items-start gap-3 rounded hover:bg-bg-elevated/40 transition-colors p-1 -m-1"
         >
           <XpAvatarRing
             src={avatar}
-            alt={`Avatar de ${persona ?? "Anônimo"}`}
+            alt={t("avatarAlt", { name })}
             fallback={(persona ?? "??").slice(0, 2)}
             level={level}
             pct={xpPct}
@@ -398,12 +403,12 @@ function ExpandedPanel({
           />
           <div className="flex-1 min-w-0">
             <p className="font-display text-lg font-semibold text-text-display truncate">
-              {persona ?? "Anônimo"}
+              {name}
             </p>
             <p className="font-display text-sm font-semibold text-brand-primary/80 mt-0.5">
               [{tag}]
               {isAdmin && (
-                <Crown size={12} className="ml-1 inline text-gold" aria-label="Admin" />
+                <Crown size={12} className="ml-1 inline text-gold" aria-label={t("admin")} />
               )}
             </p>
           </div>
@@ -434,11 +439,11 @@ function ExpandedPanel({
       </div>
 
       {/* Atalhos compactos no fim */}
-      <nav aria-label="Atalhos" className="space-y-1 border-t border-border-subtle pt-3">
-        <CompactLink href="/codigo-de-conduta" label="Código de Conduta" icon={BookOpen} />
+      <nav aria-label={t("shortcuts")} className="space-y-1 border-t border-border-subtle pt-3">
+        <CompactLink href="/codigo-de-conduta" label={t("codeOfConduct")} icon={BookOpen} />
         <CompactLink
           href="https://discord.com/invite/v3pSuZhjBE"
-          label="Discord oficial"
+          label={t("discordOfficial")}
           icon={MessageSquare}
           external
         />
@@ -452,6 +457,7 @@ function ExpandedPanel({
 // ===========================================================================
 
 function VisitorCardCompact() {
+  const t = useTranslations("shell");
   return (
     <div className="rounded-md border border-border-subtle bg-bg-deep/95 backdrop-blur-md p-3 shadow-lg shadow-black/60">
       <div className="flex items-center gap-3">
@@ -459,8 +465,8 @@ function VisitorCardCompact() {
           <LogIn size={14} className="text-text-muted" aria-hidden="true" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-display text-sm font-semibold text-text-display">Visitante</p>
-          <p className="font-display text-sm text-text-muted">Entre pra ver amigos</p>
+          <p className="font-display text-sm font-semibold text-text-display">{t("visitor")}</p>
+          <p className="font-display text-sm text-text-muted">{t("visitorSubtitle")}</p>
         </div>
       </div>
       <form action={signInWithDiscord} className="mt-2">
@@ -469,7 +475,7 @@ function VisitorCardCompact() {
           className="w-full inline-flex items-center justify-center gap-1.5 rounded border border-brand-primary/60 bg-brand-primary/10 px-2 py-1.5 font-display text-sm font-semibold text-brand-primary hover:bg-brand-primary/20 transition-colors"
         >
           <LogIn size={11} aria-hidden="true" />
-          <span>Entrar com Discord</span>
+          <span>{t("signInDiscord")}</span>
         </button>
       </form>
     </div>
@@ -479,25 +485,26 @@ function VisitorCardCompact() {
 // Moeda = dourado (família GOLD, Pedro 2026-06-11): número em text-gold,
 // label associado em text-gold-muted, chrome do card em border-gold.
 function FichasCard({ balance, isAdmin }: { balance: number; isAdmin: boolean }) {
+  const t = useTranslations("shell");
   return (
     <div className="rounded border border-border-gold/40 bg-gradient-to-br from-gold/10 to-transparent px-3 py-2">
       {/* Hover educacional: o que é 1 ficha e quanto custa */}
       <Tooltip
-        content="1 ficha = 1 vaga numa PT com PRO · R$ 10. Compra avulsa via PIX."
+        content={t("fichasTooltip")}
         side="top"
         align="start"
       >
         <span className="flex items-center gap-2">
           <Coins size={12} className="text-gold" aria-hidden="true" />
           <span className="font-display text-sm font-semibold text-gold-muted">
-            Saldo de fichas
+            {t("fichasBalance")}
           </span>
         </span>
       </Tooltip>
       <p className="mt-1 font-display text-xl font-bold tabular-nums text-gold">
         {isAdmin ? "∞" : balance}
         <span className="ml-2 font-display text-sm font-semibold text-gold-muted">
-          {isAdmin ? "admin" : balance === 1 ? "ficha" : "fichas"}
+          {isAdmin ? t("adminUnit") : t("fichaUnit", { count: balance })}
         </span>
       </p>
     </div>

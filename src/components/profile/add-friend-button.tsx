@@ -4,6 +4,7 @@
 // friendship do par) — aqui só a transição otimista Adicionar → Pendente.
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { UserPlus, Clock, Check, Loader2 } from "lucide-react";
 import { sendFriendRequest } from "@/actions/friends";
 
@@ -15,6 +16,7 @@ interface Props {
 }
 
 export function AddFriendButton({ targetUserId, initialState }: Props) {
+  const t = useTranslations("perfil");
   const [state, setState] = useState<FriendButtonState>(initialState);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -26,7 +28,7 @@ export function AddFriendButton({ targetUserId, initialState }: Props) {
         await sendFriendRequest(targetUserId);
         setState("pending");
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Não foi possível enviar o pedido");
+        setError(e instanceof Error ? e.message : t("addFriendError"));
       }
     });
   }
@@ -35,7 +37,7 @@ export function AddFriendButton({ targetUserId, initialState }: Props) {
     return (
       <span className="inline-flex items-center gap-2 rounded-md border border-success/50 bg-success/10 px-4 py-2 font-display text-sm font-bold uppercase tracking-wide text-success">
         <Check size={15} aria-hidden="true" />
-        Amigos
+        {t("friendsState")}
       </span>
     );
   }
@@ -44,7 +46,7 @@ export function AddFriendButton({ targetUserId, initialState }: Props) {
     return (
       <span className="inline-flex items-center gap-2 rounded-md border border-border-subtle bg-bg-elevated px-4 py-2 font-display text-sm font-bold uppercase tracking-wide text-text-muted">
         <Clock size={15} aria-hidden="true" />
-        Pendente
+        {t("pendingState")}
       </span>
     );
   }
@@ -62,7 +64,7 @@ export function AddFriendButton({ targetUserId, initialState }: Props) {
         ) : (
           <UserPlus size={15} aria-hidden="true" />
         )}
-        Adicionar amigo
+        {t("addFriend")}
       </button>
       {error && (
         <p className="font-display text-sm 2xl:text-base font-semibold text-error">{error}</p>

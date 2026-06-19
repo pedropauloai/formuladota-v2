@@ -34,6 +34,9 @@ import { AmbientLayer } from "@/components/layout/AmbientLayer";
 // Reduz bundle inicial de ~45kb para ~10kb gzipped.
 // strict={true} garante que nenhum componente carrega o bundle completo acidentalmente.
 import { MotionProvider } from "@/components/layout/motion-provider";
+// i18n (next-intl) — provider client recebe locale + mensagens do request config.
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale } from "next-intl/server";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 const siteTitle = "FORMULADOTA — HUB Dota 2 Brasil";
@@ -68,11 +71,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Idioma resolvido por cookie/Accept-Language (ver src/i18n/request.ts).
+  const locale = await getLocale();
   return (
     /* data-theme="fd-dark" — V2.5 token layer.
      * Arquitetura suporta data-theme="radiant" / "dire" no futuro
@@ -80,10 +85,11 @@ export default function RootLayout({
      * Space Grotesk + Teko via @fontsource-variable carregam font-face
      * automaticamente — não precisa expor CSS var no html className. */
     <html
-      lang="pt-BR"
+      lang={locale}
       data-theme="fd-dark"
     >
       <body className="min-h-screen flex flex-col font-body">
+        <NextIntlClientProvider>
         {/* V2.5-F4: MotionProvider — LazyMotion domAnimation (~10kb vs ~45kb full bundle).
             Cobre: animate, initial, exit, whileHover, whileTap, whileFocus, variants, AnimatePresence.
             strict={true} no provider garante zero carregamento acidental do bundle completo. */}
@@ -121,6 +127,7 @@ export default function RootLayout({
         </ToastProvider>
         </SoundProvider>
         </MotionProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

@@ -14,6 +14,7 @@
 // atualiza via botão Atualizar (refetch admin-gated).
 
 import { useEffect, useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { Radio, RefreshCw, ShieldAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -28,14 +29,15 @@ import { AdminPendingStrip } from "./admin-pending-strip";
 const NIL_UUID = "00000000-0000-0000-0000-000000000000";
 
 export function AdminProsMasterDetail({ initial }: { initial: AdminProsData }) {
+  const t = useTranslations("misc2");
   const [data, setData] = useState(initial);
   const [refreshing, startTransition] = useTransition();
 
   // Relógio compartilhado (tempos de espera/fila aberta) — tick a cada 15s
   const [nowMs, setNowMs] = useState(() => Date.now());
   useEffect(() => {
-    const t = setInterval(() => setNowMs(Date.now()), 15_000);
-    return () => clearInterval(t);
+    const timer = setInterval(() => setNowMs(Date.now()), 15_000);
+    return () => clearInterval(timer);
   }, []);
 
   // Default: coach da PT pendente mais antiga > primeiro com fila aberta > primeiro
@@ -68,8 +70,8 @@ export function AdminProsMasterDetail({ initial }: { initial: AdminProsData }) {
       <div className="flex h-full items-center justify-center">
         <EmptyState
           icon={ShieldAlert}
-          title="Nenhum PRO certificado"
-          description="Quando alguém for promovido a PRO, a central de suporte dele nasce aqui."
+          title={t("noProsTitle")}
+          description={t("noProsDesc")}
           principle="random"
         />
       </div>
@@ -82,21 +84,18 @@ export function AdminProsMasterDetail({ initial }: { initial: AdminProsData }) {
       <header className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-border-subtle px-4 py-3 xl:px-6">
         <div>
           <h1 className="font-display-condensed text-2xl uppercase leading-none tracking-wider text-text-display">
-            Central de PROs
+            {t("prosCentralTitle")}
           </h1>
           <p className="mt-1 font-display text-sm font-semibold text-text-muted">
-            Suporte e emergência ·{" "}
+            {t("supportEmergency")} ·{" "}
             <span className="text-success">
               <Radio size={11} className="mr-0.5 inline" aria-hidden="true" />
-              {onlineCount} com fila aberta
+              {t("withQueueOpen", { count: onlineCount })}
             </span>
             {" · "}
-            <span className="tabular-nums text-gold">{totalWaiting}</span> na fila
+            <span className="tabular-nums text-gold">{totalWaiting}</span> {t("inQueueWord")}
             {" · "}
-            <span className="tabular-nums text-text-display">
-              {data.pending.length}
-            </span>{" "}
-            PT{data.pending.length === 1 ? "" : "s"} aguardando decisão
+            {t("ptsAwaitingDecision", { count: data.pending.length })}
           </p>
         </div>
         <button
@@ -110,7 +109,7 @@ export function AdminProsMasterDetail({ initial }: { initial: AdminProsData }) {
             className={cn(refreshing && "animate-spin")}
             aria-hidden="true"
           />
-          Atualizar
+          {t("refresh")}
         </button>
       </header>
 
@@ -172,8 +171,8 @@ export function AdminProsMasterDetail({ initial }: { initial: AdminProsData }) {
             <div className="flex h-full items-center justify-center">
               <EmptyState
                 icon={ShieldAlert}
-                title="Selecione um PRO"
-                description="Escolha um coach na lista pra ver fila, PT em curso e histórico."
+                title={t("selectProTitle")}
+                description={t("selectProDesc")}
               />
             </div>
           )}

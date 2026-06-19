@@ -26,6 +26,7 @@
 
 import { useEffect, useRef } from "react";
 import { m, AnimatePresence } from "motion/react";
+import { useTranslations } from "next-intl";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PresenceDot } from "@/components/ui/presence-dot";
@@ -96,14 +97,17 @@ function formatTimer(seconds: number): string {
 }
 
 /**
- * Retorna rótulo de status localizado (PT-BR) para exibição no header.
+ * Retorna rótulo de status localizado para exibição no header.
  */
-function getStatusLabel(status: QueueStatus): string {
+function getStatusLabel(
+  status: QueueStatus,
+  t: (key: string) => string
+): string {
   switch (status) {
-    case "idle":     return "Fila Aberta";
-    case "searching": return "Buscando Partida";
-    case "found":    return "Partida Encontrada";
-    case "in-match": return "Em Partida";
+    case "idle":     return t("queueStatusIdle");
+    case "searching": return t("queueStatusSearching");
+    case "found":    return t("queueStatusFound");
+    case "in-match": return t("queueStatusInMatch");
   }
 }
 
@@ -128,6 +132,7 @@ export function QueuePanel({
   onAccept,
   className,
 }: QueuePanelProps) {
+  const t = useTranslations("ui");
   const motionSafe = useMotionSafeBool();
   const play = useSound();
 
@@ -247,7 +252,7 @@ export function QueuePanel({
           className="font-[family-name:var(--font-display)] text-sm uppercase tracking-widest"
           style={{ color: "var(--color-text-faded)" }}
         >
-          {getStatusLabel(status)}
+          {getStatusLabel(status, t)}
         </p>
 
         {/* Counter "X/Y jogadores" — tabular-nums previne layout shift (M4) */}
@@ -266,7 +271,7 @@ export function QueuePanel({
             className="ml-[var(--space-2)] text-xl uppercase"
             style={{ color: "var(--color-text-muted)" }}
           >
-            {" jogadores"}
+            {` ${t("players")}`}
           </span>
         </h2>
       </div>
@@ -296,14 +301,14 @@ export function QueuePanel({
                 className="font-[family-name:var(--font-body)] text-sm uppercase tracking-widest mb-[var(--space-2)]"
                 style={{ color: "var(--color-text-muted)" }}
               >
-                Buscando...
+                {t("searching")}
               </p>
               {/* Timer MM:SS — fonte display, tabular-nums (sem layout shift) */}
               <span
                 className="font-[family-name:var(--font-mono)] text-5xl tabular-nums"
                 style={{ color: "var(--color-brand-primary)" }}
                 aria-live="polite"
-                aria-label={`Tempo de busca: ${formatTimer(searchSeconds)}`}
+                aria-label={t("searchTimeAria", { time: formatTimer(searchSeconds) })}
               >
                 {formatTimer(searchSeconds)}
               </span>
@@ -335,13 +340,13 @@ export function QueuePanel({
               className="font-[family-name:var(--font-display)] text-lg uppercase tracking-widest font-bold"
               style={{ color: "var(--color-text-display)" }}
             >
-              Partida Encontrada
+              {t("queueStatusFound")}
             </p>
             <p
               className="mt-[var(--space-1)] text-sm font-[family-name:var(--font-body)]"
               style={{ color: "var(--color-text-muted)" }}
             >
-              {filled}/{maxSize} jogadores prontos — aceite para confirmar
+              {t("playersReady", { filled, maxSize })}
             </p>
           </m.div>
         )}
@@ -402,7 +407,7 @@ export function QueuePanel({
                     className="text-sm font-[family-name:var(--font-display)] tracking-wide italic"
                     style={{ color: "var(--color-text-faded)" }}
                   >
-                    aguardando...
+                    {t("waiting")}
                   </span>
                 </div>
               )
@@ -440,9 +445,9 @@ export function QueuePanel({
                 variant="cinematic"
                 size="xl"
                 onClick={onJoin}
-                aria-label="Entrar na fila de partidas"
+                aria-label={t("joinQueueAria")}
               >
-                Entrar na Fila
+                {t("joinQueue")}
               </Button>
             </m.div>
           )}
@@ -461,9 +466,9 @@ export function QueuePanel({
                 variant="ghost"
                 size="sm"
                 onClick={onLeave}
-                aria-label="Sair da fila de partidas"
+                aria-label={t("leaveQueueAria")}
               >
-                Sair da fila
+                {t("leaveQueue")}
               </Button>
             </m.div>
           )}
@@ -485,9 +490,9 @@ export function QueuePanel({
                 variant="primary"
                 size="xl"
                 onClick={onAccept}
-                aria-label="Aceitar partida encontrada"
+                aria-label={t("acceptMatchAria")}
               >
-                Aceitar Partida
+                {t("acceptMatch")}
               </Button>
             </m.div>
           )}
@@ -505,7 +510,7 @@ export function QueuePanel({
                 className="text-sm font-[family-name:var(--font-body)] uppercase tracking-widest"
                 style={{ color: "var(--color-text-muted)" }}
               >
-                Partida em andamento
+                {t("matchInProgress")}
               </p>
             </m.div>
           )}

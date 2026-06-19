@@ -1,4 +1,5 @@
-import Link from "next/link";
+import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import { ClientShell } from "@/components/client-shell/shell";
 import {
   FrontierHero,
@@ -21,31 +22,37 @@ import {
 // "New Frontiers" (dota2.com/newfrontiers) — seções full-width empilhadas,
 // hero key-art dominante, títulos display UPPERCASE centralizados, reveal no
 // scroll. Texto integralmente preservado; só a APRESENTAÇÃO visual mudou.
-export const metadata = {
-  title: "Metodologia — A Fórmula do Dota de Corrida",
-  description:
-    "A teoria por trás da Fórmula: por que Dota é jogo de corrida, por que patrimônio em relação ao tempo é o KPI universal, e por que a metodologia funciona além do jogo.",
-};
+export async function generateMetadata() {
+  const t = await getTranslations("metodologia");
+  return {
+    title: t("metaTitle"),
+    description: t("metaDescription"),
+  };
+}
 
+// Distribuição de medalhas Valve. O NOME EXIBIDO da medalha vem do i18n
+// (ranks.dota.<rankId>) — Herald/Guardian/… em EN, Arauto/Guardião/… em PT.
 const MEDAL_DATA = [
-  { medal: "Herald", pct: "11,29%", count: "915.725" },
-  { medal: "Guardian", pct: "17,69%", count: "1.434.263" },
-  { medal: "Crusader", pct: "19,86%", count: "1.610.863" },
-  { medal: "Archon", pct: "18,62%", count: "1.509.754" },
-  { medal: "Legend", pct: "14,09%", count: "1.142.578" },
-  { medal: "Ancient", pct: "8,83%", count: "716.029" },
-  { medal: "Divine", pct: "5,65%", count: "458.424" },
-  { medal: "Imortal", pct: "3,97%", count: "322.101" },
-];
+  { rankId: "herald", pct: "11,29%", count: "915.725" },
+  { rankId: "guardian", pct: "17,69%", count: "1.434.263" },
+  { rankId: "crusader", pct: "19,86%", count: "1.610.863" },
+  { rankId: "archon", pct: "18,62%", count: "1.509.754" },
+  { rankId: "legend", pct: "14,09%", count: "1.142.578" },
+  { rankId: "ancient", pct: "8,83%", count: "716.029" },
+  { rankId: "divine", pct: "5,65%", count: "458.424" },
+  { rankId: "immortal", pct: "3,97%", count: "322.101" },
+] as const;
 
 export default async function MetodologiaPage() {
+  const t = await getTranslations("metodologia");
+  const tr = await getTranslations("ranks");
   return (
     <ClientShell currentRoute="/metodologia" hideRightSidebar>
       <a
         href="#tese"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-brand-primary focus:px-4 focus:py-2 focus:font-medium focus:text-text-inverse"
       >
-        Pular para o conteúdo
+        {t("skipToContent")}
       </a>
 
       {/* Scroll é dono do <main> do ClientShell (overflow-y-auto). Aqui só
@@ -60,14 +67,11 @@ export default async function MetodologiaPage() {
             HERO — key-art full-bleed + título dominante (estilo New Frontiers)
             ============================================================ */}
         <FrontierHero
-          eyebrow="Metodologia · v1"
-          title={
-            <>
-              A Teoria por Trás da{" "}
-              <span className="text-brand-primary">Fórmula</span>
-            </>
-          }
-          subtitle="Por que Dota é jogo de corrida. Por que patrimônio em relação ao tempo é o KPI universal. Por que a metodologia funciona além do jogo."
+          eyebrow={t("heroEyebrow")}
+          title={t.rich("heroTitle", {
+            red: (chunks) => <span className="text-brand-primary">{chunks}</span>,
+          })}
+          subtitle={t("heroSubtitle")}
           backgroundImage={FRONTIER_ASSETS.mapBanner}
         />
 
@@ -75,33 +79,26 @@ export default async function MetodologiaPage() {
             STATEMENT — Tese central (frase-manifesto que para o scroll)
             ============================================================ */}
         <FrontierStatement>
-          “Dota 2 não é sobre matar heróis. É sobre{" "}
-          <span className="text-brand-primary">progredir o seu herói</span> de
-          forma consistente e impedir a progressão consistente do adversário.”
+          {t.rich("thesisStatement", {
+            red: (chunks) => <span className="text-brand-primary">{chunks}</span>,
+          })}
         </FrontierStatement>
 
         {/* 01 — A Tese Central */}
         <FrontierSection
           id="tese"
           index="01"
-          title="A Tese Central"
-          intro="A frase acima é o documento. Tudo o que vem depois é a prova de que ela é verdadeira."
+          title={t("s1Title")}
+          intro={t("s1Intro")}
           width="prose"
         >
           <Prose>
             <p>
-              Não é opinião. Não é estilo de jogo. Não é preferência. É o que o
-              jogo <em>literalmente é</em> — pelo desenho que recebeu de quem o
-              criou, pelas regras matemáticas que governam seu sistema, e pela
-              lógica de tudo que acontece dentro dele. Quem entende isso,
-              manipula resultados. Quem não entende, acha que está sendo
-              perseguido pelo matchmaking.
+              {t.rich("s1Body", {
+                em: (chunks) => <em>{chunks}</em>,
+              })}
             </p>
-            <Note>
-              “Permita-se questionar. Sobre tudo e qualquer coisa. Isso sim é o
-              que evolui um ser. O FORMULADOTA é um lugar pra quem busca a
-              verdadeira evolução.”
-            </Note>
+            <Note>{t("s1Note")}</Note>
           </Prose>
         </FrontierSection>
 
@@ -109,28 +106,37 @@ export default async function MetodologiaPage() {
         <FrontierSection
           id="corrida"
           index="02"
-          title="O Jogo de Corrida"
-          intro="O que define o resultado de uma partida não é talento individual, herói escolhido ou número de kills — é velocidade de acúmulo de patrimônio em relação ao tempo."
+          title={t("s2Title")}
+          intro={t("s2Intro")}
           width="prose"
         >
           <Prose>
-            <Quote>
-              “Dota 2, assim como uma corrida de Fórmula 1, é sobre velocidade e
-              eficiência — mas não essa velocidade que você pensa. Aqui a
-              velocidade é medida pela sua capacidade de acumular patrimônio
-              líquido ao longo do tempo da partida.”
-            </Quote>
+            <Quote>{t("s2Quote")}</Quote>
             <p>
-              <strong>O relógio é o juiz da partida.</strong> Não a kill feed,
-              não o chat, não o palpite do seu suporte. O relógio. Cada minuto
-              que passa sem você extrair recurso do mapa é minuto que seu
-              adversário usou para extrair.
+              {t.rich("s2Body", {
+                strong: (chunks) => <strong>{chunks}</strong>,
+              })}
             </p>
             <DataTable
-              head={["Função", "Meta @ 10min", "Meta @ 20min", "GPM"]}
+              head={[
+                t("s2TableRole"),
+                t("s2TableGoal10"),
+                t("s2TableGoal20"),
+                t("s2TableGpm"),
+              ]}
               rows={[
-                ["Core", "5.000 ouro", "10.000 ouro", "500"],
-                ["Suporte", "2.500 ouro", "5.000 ouro", "250"],
+                [
+                  t("s2RowCore"),
+                  t("s2RowCore10"),
+                  t("s2RowCore20"),
+                  "500",
+                ],
+                [
+                  t("s2RowSupport"),
+                  t("s2RowSupport10"),
+                  t("s2RowSupport20"),
+                  "250",
+                ],
               ]}
             />
           </Prose>
@@ -140,35 +146,25 @@ export default async function MetodologiaPage() {
         <FrontierSection
           id="etimologia"
           index="03"
-          title="Defense of the Ancients"
-          intro="O nome do jogo é o argumento: defender o Ancient. Não acumular kills."
+          title={t("s3Title")}
+          intro={t("s3Intro")}
           width="prose"
         >
           <Prose>
             <p>
-              Antes de Dota 2 existir como jogo standalone da Valve, o conceito
-              nasceu em 2003 como mapa customizado do Warcraft III:{" "}
-              <strong>DotA — Defense of the Ancients</strong>. Os criadores
-              originais (Eul, depois Guinsoo, depois IceFrog) nomearam o jogo
-              pela alma do jogo: <strong>defender o Ancient</strong>.
+              {t.rich("s3Body", {
+                strong: (chunks) => <strong>{chunks}</strong>,
+              })}
             </p>
             <ul className="space-y-2 pl-6">
-              <li className="list-disc">
-                O objetivo final da partida é destruir o Ancient adversário, não
-                acumular kills
-              </li>
-              <li className="list-disc">
-                Para chegar ao Ancient adversário, você precisa defender o seu
-                durante a partida inteira
-              </li>
-              <li className="list-disc">
-                Quem morre 30 vezes mas mantém o Ancient de pé pode ganhar; quem
-                mata 30 e perde o Ancient sempre perde
-              </li>
+              <li className="list-disc">{t("s3Li0")}</li>
+              <li className="list-disc">{t("s3Li1")}</li>
+              <li className="list-disc">{t("s3Li2")}</li>
             </ul>
             <p>
-              O jogo <strong>nasceu defensivo no DNA</strong>. Foi nomeado
-              defensivo. É premiado defensivamente.
+              {t.rich("s3Close", {
+                strong: (chunks) => <strong>{chunks}</strong>,
+              })}
             </p>
           </Prose>
         </FrontierSection>
@@ -177,29 +173,17 @@ export default async function MetodologiaPage() {
         <FrontierSection
           id="xadrez"
           index="04"
-          title="O Xadrez do Futuro"
-          intro="Dota é o jogo mais complexo cognitivamente que a humanidade já desenhou — o último a cair pra inteligência artificial."
+          title={t("s4Title")}
+          intro={t("s4Intro")}
           width="prose"
         >
           <Prose>
-            <Quote>
-              “Dota 2 ele é um xadrez do futuro. E o xadrez ele foi primordial
-              no desenvolvimento das inteligências artificiais. Cara, xadrez é
-              muito difícil. DOTA 2 é mais difícil do que xadrez porque DOTA 2 é
-              um xadrez do futuro.”
-            </Quote>
+            <Quote>{t("s4Quote")}</Quote>
+            <p>{t("s4Body")}</p>
             <p>
-              A prova é prática: a OpenAI gastou anos desenvolvendo redes neurais
-              capazes de bater profissionais de Dota — primeira vitória de IA
-              sobre time profissional em 2019. Xadrez foi resolvido em 1997. Go
-              em 2016. Dota foi o último a cair.
-            </p>
-            <p>
-              <strong>Dota tem padrões emergentes.</strong> Por baixo das
-              infinitas variáveis, há padrões que se repetem — runas de água,
-              runas de efeito, altares, tormentor, power spikes. Quem reconhece
-              os padrões, manipula resultados. Quem não reconhece, joga no
-              automático e acha que tem azar.
+              {t.rich("s4Close", {
+                strong: (chunks) => <strong>{chunks}</strong>,
+              })}
             </p>
           </Prose>
         </FrontierSection>
@@ -210,33 +194,33 @@ export default async function MetodologiaPage() {
             no planeta, e 99,99% delas são terríveis no Dota").
             ============================================================ */}
         <FrontierStatement>
-          Há mais de <span className="text-brand-primary">8 bilhões</span> de
-          pessoas no planeta, e <span className="text-brand-primary">99,99%</span>{" "}
-          são terríveis em Dota 2. A diferença entre elas e o topo nunca foi
-          talento — é <span className="text-brand-primary">método</span>.
+          {t.rich("billionsStatement", {
+            red: (chunks) => <span className="text-brand-primary">{chunks}</span>,
+          })}
         </FrontierStatement>
 
         {/* 05 — Patrimônio Por Tempo é o KPI Universal */}
         <FrontierSection
           id="kpi"
           index="05"
-          title="Patrimônio Por Tempo é o KPI Universal"
-          intro="Em maio de 2026, dados públicos da OpenDota registram 8.109.737 jogadores calibrados no mundo. A distribuição prova onde está a oportunidade."
+          title={t("s5Title")}
+          intro={t("s5Intro")}
           width="prose"
         >
           <Prose>
             <DataTable
-              head={["Medalha", "Jogadores", "% mundial"]}
-              rows={MEDAL_DATA.map((m) => [m.medal, m.count, m.pct])}
+              head={[t("s5TableMedal"), t("s5TablePlayers"), t("s5TablePct")]}
+              rows={MEDAL_DATA.map((m) => [tr(`dota.${m.rankId}`), m.count, m.pct])}
             />
             <p>
-              <strong>56% dos jogadores do mundo</strong> estão em Guardian +
-              Crusader + Archon — 4,5 milhões de pessoas presas no mesmo lugar.
-              Esse é o público para quem a Fórmula foi desenhada.
+              {t.rich("s5Body1", {
+                strong: (chunks) => <strong>{chunks}</strong>,
+              })}
             </p>
             <p>
-              A diferença entre Archon e Divine não é talento. Não é ter tempo.
-              É <strong>conhecer e aplicar a metodologia</strong>.
+              {t.rich("s5Body2", {
+                strong: (chunks) => <strong>{chunks}</strong>,
+              })}
             </p>
           </Prose>
 
@@ -245,11 +229,11 @@ export default async function MetodologiaPage() {
           <div className="mt-12">
             <FrontierShowcase
               src={DOTA_UI_ART.immortalMatchmaking}
-              alt="Tela de matchmaking Immortal do Dota 2"
+              alt={t("s5ShowcaseAlt")}
               width={1600}
               height={1000}
               transparent
-              caption="O topo do ranking — onde a Fórmula quer te levar."
+              caption={t("s5ShowcaseCaption")}
             />
           </div>
         </FrontierSection>
@@ -258,45 +242,40 @@ export default async function MetodologiaPage() {
         <FrontierSection
           id="erro"
           index="06"
-          title="Jogar no Erro do Adversário"
-          intro="A maior parte das partidas é decidida por jogadores esperando o erro do adversário, não criando jogadas espetaculares."
+          title={t("s6Title")}
+          intro={t("s6Intro")}
           width="wide"
         >
           <FrontierBlockGrid
             heroSlug={HERO_SLUGS.pudge}
-            eyebrow="A emboscada"
-            title="O erro do outro é informação livre."
+            eyebrow={t("s6Eyebrow")}
+            title={t("s6BlockTitle")}
             renderSide="right"
           >
-            <Quote>
-              “Vocês têm que aprender muito a arte de jogar no erro do seu
-              adversário. Você não precisa fazer jogadas mirabolantes.”
-            </Quote>
-            <p>
-              Defender custa menos energia do que atacar. Erros do adversário
-              são informação livre — você não paga energia para causá-los. Eles
-              acontecem porque o adversário não tem a metodologia.
-            </p>
-            <p className="font-semibold">Manipulação em 3 camadas:</p>
+            <Quote>{t("s6Quote")}</Quote>
+            <p>{t("s6Body")}</p>
+            <p className="font-semibold">{t("s6LayersLabel")}</p>
             <ul className="space-y-2 pl-6">
               <li className="list-disc">
-                <strong>Mecânica (agro)</strong> — puxar agro de creep para
-                ganhar trade na lane
+                {t.rich("s6Layer0", {
+                  strong: (chunks) => <strong>{chunks}</strong>,
+                })}
               </li>
               <li className="list-disc">
-                <strong>Informacional</strong> — forçar o adversário a
-                interpretar a partida de forma errada
+                {t.rich("s6Layer1", {
+                  strong: (chunks) => <strong>{chunks}</strong>,
+                })}
               </li>
               <li className="list-disc">
-                <strong>Psicológica</strong> — punir o adversário no psicológico
-                dele para que ele cometa o erro que você precisa
+                {t.rich("s6Layer2", {
+                  strong: (chunks) => <strong>{chunks}</strong>,
+                })}
               </li>
             </ul>
             <p>
-              A Fórmula reconhece também que{" "}
-              <strong>first blood importa</strong> — se você elimina um inimigo
-              antes do combate começar, o resto da luta é 5x4. Mas o first blood
-              que vale é o que se concretiza, não o que se tenta.
+              {t.rich("s6Close", {
+                strong: (chunks) => <strong>{chunks}</strong>,
+              })}
             </p>
           </FrontierBlockGrid>
         </FrontierSection>
@@ -305,36 +284,36 @@ export default async function MetodologiaPage() {
         <FrontierSection
           id="matematica"
           index="07"
-          title="A Matemática da Evolução"
-          intro="70% de win rate não é motivação — é aritmética que qualquer pessoa pode verificar."
+          title={t("s7Title")}
+          intro={t("s7Intro")}
           width="prose"
         >
           <Prose>
             <ul className="space-y-1 pl-6 text-base 2xl:text-lg">
+              <li className="list-disc">{t("s7Li0")}</li>
               <li className="list-disc">
-                100 partidas a 70% = 70 vitórias, 30 derrotas
+                {t.rich("s7Li1", {
+                  strong: (chunks) => <strong>{chunks}</strong>,
+                })}
               </li>
+              <li className="list-disc">{t("s7Li2")}</li>
               <li className="list-disc">
-                Saldo líquido: 40 vitórias × 25 MMR ={" "}
-                <strong>+1.000 MMR</strong>
-              </li>
-              <li className="list-disc">5 partidas/dia × 20 dias = 100 partidas</li>
-              <li className="list-disc">
-                <strong>20 dias para subir 1.000 MMR</strong>
+                {t.rich("s7Li3", {
+                  strong: (chunks) => <strong>{chunks}</strong>,
+                })}
               </li>
             </ul>
-            <p>Aplicando ao caminho Guardião → Divine:</p>
+            <p>{t("s7PathLabel")}</p>
             <ul className="space-y-1 pl-6 text-base 2xl:text-lg">
-              <li className="list-disc">Guardião: 800-1800 MMR</li>
-              <li className="list-disc">Divine começa em 4600 MMR</li>
+              <li className="list-disc">{t("s7Path0")}</li>
+              <li className="list-disc">{t("s7Path1")}</li>
               <li className="list-disc">
-                300 partidas a 70% wr = <strong>2 meses</strong>
+                {t.rich("s7Path2", {
+                  strong: (chunks) => <strong>{chunks}</strong>,
+                })}
               </li>
             </ul>
-            <p>
-              Esses números são consequência matemática do compromisso. O que
-              falta na maioria dos jogadores não é capacidade — é constância.
-            </p>
+            <p>{t("s7Close")}</p>
           </Prose>
 
           {/* Showcase: tela oficial de matchmaking — a corrida de partidas.
@@ -342,11 +321,11 @@ export default async function MetodologiaPage() {
           <div className="mt-12">
             <FrontierShowcase
               src={DOTA_UI_ART.matchmaking}
-              alt="Tela de criação de partidas (matchmaking) do Dota 2"
+              alt={t("s7ShowcaseAlt")}
               width={1864}
               height={956}
               transparent
-              caption="Partida após partida — é assim que a constância vira MMR."
+              caption={t("s7ShowcaseCaption")}
             />
           </div>
         </FrontierSection>
@@ -356,30 +335,31 @@ export default async function MetodologiaPage() {
         <FrontierSection
           id="simulador"
           index="08"
-          title="Simulador de Herói"
-          intro="A Valve publicou uma vez: “99,5% dos jogadores de Dota 2 não sabem jogar Dota 2.” A Fórmula chama esses 99,5% de simuladores de herói."
+          title={t("s8Title")}
+          intro={t("s8Intro")}
           width="wide"
         >
           <FrontierBlockGrid
             heroSlug={HERO_SLUGS.muerta}
-            eyebrow="O simulador"
-            title="Sabe tudo do herói. Nada do jogo."
+            eyebrow={t("s8Eyebrow")}
+            title={t("s8BlockTitle")}
             renderSide="left"
           >
-            <p>O simulador de herói é o jogador que:</p>
+            <p>{t("s8Lead")}</p>
             <ul className="space-y-1 pl-6">
-              <li className="list-disc">Sabe usar as habilidades do herói</li>
-              <li className="list-disc">Sabe combar</li>
-              <li className="list-disc">Sabe buildar items populares</li>
+              <li className="list-disc">{t("s8Li0")}</li>
+              <li className="list-disc">{t("s8Li1")}</li>
+              <li className="list-disc">{t("s8Li2")}</li>
               <li className="list-disc">
-                <strong>Mas joga sem objetivos do mapa</strong> — relógio,
-                patrimônio, runas, altares, tormentor, roshan
+                {t.rich("s8Li3", {
+                  strong: (chunks) => <strong>{chunks}</strong>,
+                })}
               </li>
             </ul>
             <p>
-              99,5% dos jogadores fazem isso. A Fórmula é o salto desse 99,5%
-              para os <strong>0,5% que entendem o jogo</strong>. E uma vez que
-              você vê, você não desvê.
+              {t.rich("s8Close", {
+                strong: (chunks) => <strong>{chunks}</strong>,
+              })}
             </p>
           </FrontierBlockGrid>
         </FrontierSection>
@@ -388,54 +368,48 @@ export default async function MetodologiaPage() {
         <FrontierSection
           id="expansao"
           index="09"
-          title="A Expansão da Percepção da Realidade"
-          intro="Tudo o que foi articulado até aqui parece ser sobre Dota. Não é apenas sobre Dota."
+          title={t("s9Title")}
+          intro={t("s9Intro")}
           width="prose"
         >
           <Prose>
-            <p>
-              Participar da Fórmula é um convite à expansão da percepção da
-              realidade. O método que torna você melhor jogador é o mesmo método
-              que torna você melhor profissional, melhor parceiro, melhor
-              administrador da própria vida.
-            </p>
+            <p>{t("s9Body")}</p>
             <ul className="space-y-3 pl-6">
               <li className="list-disc">
-                <strong>Permitir-se questionar</strong> — o ato fundacional. Sem
-                questionamento, não há reconhecimento de padrões, não há
-                refinamento de método, não há autocrítica honesta.
+                {t.rich("s9Li0", {
+                  strong: (chunks) => <strong>{chunks}</strong>,
+                })}
               </li>
               <li className="list-disc">
-                <strong>Buscar autoresponsabilidade</strong> — no Dota, “a culpa
-                nunca é do outro”. Na vida, parar de atribuir fracassos à
-                empresa, ao governo, à família, ao acaso.
+                {t.rich("s9Li1", {
+                  strong: (chunks) => <strong>{chunks}</strong>,
+                })}
               </li>
               <li className="list-disc">
-                <strong>
-                  Praticar a não criação de expectativas em terceiros
-                </strong>{" "}
-                — calibrar expectativas apenas sobre si mesmo libera energia
-                mental para construir.
+                {t.rich("s9Li2", {
+                  strong: (chunks) => <strong>{chunks}</strong>,
+                })}
               </li>
               <li className="list-disc">
-                <strong>Reconhecer padrões em sistemas complexos</strong> — ver
-                que mercados, relacionamentos e crescimento de carreira também
-                têm padrões reconhecíveis.
+                {t.rich("s9Li3", {
+                  strong: (chunks) => <strong>{chunks}</strong>,
+                })}
               </li>
               <li className="list-disc">
-                <strong>Disciplina sobre motivação</strong> — constância e
-                método produzem resultados previsíveis em qualquer área.
+                {t.rich("s9Li4", {
+                  strong: (chunks) => <strong>{chunks}</strong>,
+                })}
               </li>
               <li className="list-disc">
-                <strong>Defender mais do que atacar</strong> — princípio de vida
-                sobre paciência estratégica que se aplica em negociações,
-                conflitos, decisões de carreira.
+                {t.rich("s9Li5", {
+                  strong: (chunks) => <strong>{chunks}</strong>,
+                })}
               </li>
             </ul>
             <p>
-              A pessoa que sai do simulador de herói no Dota é a mesma que sai do{" "}
-              <strong>simulador de vida</strong> em outras áreas. A Fórmula é o
-              método. Dota 2 é o laboratório.
+              {t.rich("s9Close", {
+                strong: (chunks) => <strong>{chunks}</strong>,
+              })}
             </p>
           </Prose>
         </FrontierSection>
@@ -444,28 +418,22 @@ export default async function MetodologiaPage() {
         <FrontierSection
           id="conclusao"
           index="10"
-          title="Conclusão"
-          intro="Dota 2 não é um jogo de azar disfarçado de habilidade. É um jogo com lógica matemática verificável."
+          title={t("s10Title")}
+          intro={t("s10Intro")}
           width="prose"
         >
           <Prose>
             <p>
-              <strong>
-                Quem reconhece a lógica, manipula resultados. Quem não
-                reconhece, atribui tudo a azar do matchmake.
-              </strong>
+              <strong>{t("s10Body1")}</strong>
             </p>
             <p>
-              O FORMULADOTA não é um lugar para quem quer subir de medalha. É um
-              lugar para <strong>quem busca a verdadeira evolução</strong> —
-              começando pelo Dota, terminando na vida inteira.
+              {t.rich("s10Body2", {
+                strong: (chunks) => <strong>{chunks}</strong>,
+              })}
             </p>
-            <Note>
-              “A ideia aqui não é te entreter — é te mudar por dentro, na forma
-              de pensar, jogar e reagir ao Dota.”
-            </Note>
+            <Note>{t("s10Note")}</Note>
             <p className="text-right font-display text-base font-semibold italic text-text-body 2xl:text-lg">
-              — Pedro Paulo, autor da metodologia
+              {t("s10Attribution")}
             </p>
           </Prose>
         </FrontierSection>
@@ -477,13 +445,13 @@ export default async function MetodologiaPage() {
               href="/codigo-de-conduta"
               className="font-display text-sm font-semibold uppercase tracking-wide text-brand-primary transition hover:text-glow-red"
             >
-              ler a doutrina →
+              {t("ctaReadDoctrine")}
             </Link>
             <Link
               href="/"
               className="font-display text-sm font-semibold uppercase tracking-wide text-text-muted transition hover:text-text-display"
             >
-              ← voltar à home
+              {t("ctaBackHome")}
             </Link>
           </div>
         </footer>

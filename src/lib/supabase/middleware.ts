@@ -2,6 +2,8 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { publicEnv } from "@/lib/env";
 import { DOCTRINE_VERSION } from "@/lib/doctrine";
+import { type Locale, LOCALE_COOKIE, isLocale } from "@/i18n/config";
+import { internalizePath, localizePath, localeFromPath } from "@/i18n/pathnames";
 
 type CookieToSet = { name: string; value: string; options: CookieOptions };
 
@@ -79,10 +81,57 @@ function isPublicPath(pathname: string): boolean {
   return isPathInList(pathname, PUBLIC_PATHS) || isPublicPlayerProfile(pathname);
 }
 
-// Refresh da sessão Supabase + enforcement de cultura.
+// --- i18n: prefixo de URL /en (localePrefix "as-needed") ------------------
+// PT (padrão) = sem prefixo. EN = /en/... . NÃO usamos o middleware do next-intl
+// (exigiria mover tudo pra app/[locale]/). Aqui resolvemos o locale, rodamos a
+// auth no path SEM prefixo, localizamos os redirects e, no fim, reescrevemos
+// /en/x → /x pra que a estrutura de pastas plana sirva a página.
+//
+// A URL é a AUTORIDADE do idioma: /en/* = en, qualquer outra rota = pt (padrão).
+// (Sem auto-redirect por cookie/idioma do navegador — o usuário escolhe EN pelo
+// seletor, que navega pra /en. Mantém o comportamento previsível e sem loops.)
+
+// Refresh da sessão Supabase + enforcement de cultura + i18n.
 // Chamado a partir de src/proxy.ts.
 export async function updateSession(request: NextRequest) {
-  let response = NextResponse.next({ request });
+  const rawPath = request.nextUrl.pathname;
+  // Path "interno" (canônico PT, sem slug traduzido) — TODA a auth opera sobre ele.
+  const pathname = internalizePath(rawPath);
+
+  // Idioma: slug exclusivo de um idioma manda (/tournaments = en, /torneios = pt);
+  // rota compartilhada (/, /dashboard, /ranking) usa o cookie NEXT_LOCALE.
+  const slugLocale = localeFromPath(rawPath);
+  let locale: Locale;
+  if (slugLocale) {
+    locale = slugLocale;
+  } else {
+    const cookie = request.cookies.get(LOCALE_COOKIE)?.value;
+    locale = isLocale(cookie) ? cookie : "pt";
+  }
+
+  // Header com o locale resolvido — lido por src/i18n/request.ts (next-intl).
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-fd-locale", locale);
+
+  // Redirects de auth → no slug do idioma atual (ex.: en → /profile, /code-of-conduct).
+  const localizedUrl = (path: string) =>
+    new URL(localizePath(path, locale), request.url);
+
+  let response = NextResponse.next({ request: { headers: requestHeaders } });
+
+  // Resposta final de "permitir": se a URL trazia slug traduzido, reescreve pro
+  // path interno (serve a rota plana) carregando os cookies de sessão do Supabase.
+  const needsRewrite = pathname !== rawPath;
+  const allow = (): NextResponse => {
+    if (!needsRewrite) return response;
+    const url = request.nextUrl.clone();
+    url.pathname = pathname;
+    const rewritten = NextResponse.rewrite(url, {
+      request: { headers: requestHeaders },
+    });
+    response.cookies.getAll().forEach((c) => rewritten.cookies.set(c));
+    return rewritten;
+  };
 
   const supabase = createServerClient(
     publicEnv.NEXT_PUBLIC_SUPABASE_URL,
@@ -94,7 +143,7 @@ export async function updateSession(request: NextRequest) {
         },
         setAll(cookiesToSet: CookieToSet[]) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-          response = NextResponse.next({ request });
+          response = NextResponse.next({ request: { headers: requestHeaders } });
           cookiesToSet.forEach(({ name, value, options }) =>
             response.cookies.set(name, value, options)
           );
@@ -108,15 +157,13 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { pathname } = request.nextUrl;
-
   // Rotas de fluxo de auth/webhook nunca são bloqueadas — preserva callback OAuth + webhooks externos.
   // /login também passa livre (é onde o visitante dispara o OAuth — gateá-la seria loop).
   if (
     isPathInList(pathname, AUTH_FLOW_PATHS) ||
     isPathInList(pathname, LOGIN_PATHS)
   ) {
-    return response;
+    return allow();
   }
 
   // GATE DE AUTENTICAÇÃO (fonte única de verdade):
@@ -125,7 +172,7 @@ export async function updateSession(request: NextRequest) {
   // pretendida pra voltar pra ela após o login.
   if (!user) {
     if (isPublicPath(pathname)) {
-      return response;
+      return allow();
     }
     // Deslogado em rota protegida → manda pra HOME pública (HUB visitante, com CTA Entrar).
     // CRÍTICO (raiz do exchange_failed): o gate NÃO dispara OAuth automaticamente. Cada
@@ -133,7 +180,7 @@ export async function updateSession(request: NextRequest) {
     // prefetches/navegações pro /login (que dispara OAuth), o verifier do login REAL era
     // sobrescrito → no callback o /token retornava 400. Agora o OAuth só acontece no clique
     // explícito no "Entrar" (form action signInWithDiscord). Redirect same-origin → sem CORS.
-    return NextResponse.redirect(new URL("/", request.url));
+    return NextResponse.redirect(localizedUrl("/"));
   }
 
   // Usuário logado. Enforcement em camadas:
@@ -151,13 +198,13 @@ export async function updateSession(request: NextRequest) {
   if (!profile) {
     // Trigger handle_new_user deveria ter criado profile no signup.
     // Se chegou aqui sem profile, deixa passar — Server Component da rota lida.
-    return response;
+    return allow();
   }
 
   // Banido — sempre redireciona pra /banned, exceto se já estiver lá.
   if (profile.behavior_status === "banned") {
-    if (pathname === "/banned") return response;
-    return NextResponse.redirect(new URL("/banned", request.url));
+    if (pathname === "/banned") return allow();
+    return NextResponse.redirect(localizedUrl("/banned"));
   }
 
   // Suspenso e ainda dentro do prazo — vai pra /suspended.
@@ -166,8 +213,8 @@ export async function updateSession(request: NextRequest) {
     profile.suspended_until &&
     new Date(profile.suspended_until) > new Date()
   ) {
-    if (pathname === "/suspended") return response;
-    return NextResponse.redirect(new URL("/suspended", request.url));
+    if (pathname === "/suspended") return allow();
+    return NextResponse.redirect(localizedUrl("/suspended"));
   }
 
   // Sem aceite da doutrina (ou versão obsoleta) — força onboarding.
@@ -178,9 +225,9 @@ export async function updateSession(request: NextRequest) {
   if (!accepted) {
     // Opcao C: navegar livre sem doutrina. So as rotas de "jogar/agir" exigem o ritual.
     if (isPathInList(pathname, DOCTRINE_REQUIRED_PATHS)) {
-      return NextResponse.redirect(new URL("/doutrina", request.url));
+      return NextResponse.redirect(localizedUrl("/doutrina"));
     }
-    return response;
+    return allow();
   }
 
   // Camada Steam (Phase 3 — H1.1): aplicada APÓS doutrina aceita.
@@ -203,19 +250,19 @@ export async function updateSession(request: NextRequest) {
       // (RLS continua protegendo dados sensíveis nas tabelas de destino) do que prender
       // todo mundo numa tela de "vincular Steam" enquanto a infra está com problema.
       console.error("[middleware] steam_links query failed:", steamErr);
-      return response;
+      return allow();
     }
 
     // User SEM Steam vinculado tentando rota protegida → manda pra /vincular/steam.
     if (!steamLink && isPathInList(pathname, STEAM_REQUIRED_PATHS)) {
-      return NextResponse.redirect(new URL("/vincular/steam", request.url));
+      return NextResponse.redirect(localizedUrl("/vincular/steam"));
     }
 
     // User COM Steam vinculado em /vincular/steam → vai pra /perfil
     // (página /vincular/steam ainda renderiza estado vinculado se acessada diretamente,
     // mas em flow normal este redirect leva o user direto pra dashboard pós-onboarding).
     if (steamLink && pathname === STEAM_LINK_PATH) {
-      return NextResponse.redirect(new URL("/perfil", request.url));
+      return NextResponse.redirect(localizedUrl("/perfil"));
     }
   }
 
@@ -225,8 +272,8 @@ export async function updateSession(request: NextRequest) {
     pathname === "/doutrina" ||
     isPathInList(pathname, BLOCKED_STATUS_PATHS)
   ) {
-    return NextResponse.redirect(new URL("/perfil", request.url));
+    return NextResponse.redirect(localizedUrl("/perfil"));
   }
 
-  return response;
+  return allow();
 }

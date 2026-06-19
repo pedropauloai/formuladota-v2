@@ -10,17 +10,19 @@
 // nem na rota raiz. Substituí 808 linhas de landing legacy (hero video,
 // manifesto, princípios, footer custom) pelo HUB.
 
-import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { ClientShell } from "@/components/client-shell/shell";
 import { HubCenter } from "@/components/client-shell/hub-center";
 import { getProsWithQueues } from "@/lib/queries/pros";
 
-export const metadata: Metadata = {
-  title: "FORMULADOTA — não é você, é o sistema",
-  description:
-    "O ambiente competitivo da Valve é quebrado — anonimato, topo fechado, regiões isoladas. A FormulaDota é a resposta: identidade real, temporadas e ranking único.",
-};
+export async function generateMetadata() {
+  const t = await getTranslations("misc2");
+  return {
+    title: t("homeMetaTitle"),
+    description: t("homeMetaDescription"),
+  };
+}
 
 // Revalida a cada 30s — presença de jogadores pode mudar
 export const revalidate = 30;

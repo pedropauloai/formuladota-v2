@@ -2,6 +2,7 @@
 // Server Component — recebe array de pacotes já filtrados (ativo=true) da page,
 // agora enriquecidos com coach info (Phase 3 — H1.4).
 
+import { getTranslations } from "next-intl/server";
 import { PackageCard, type CoachInfo } from "@/components/catalog/package-card";
 import type { Tables } from "@/types/database";
 
@@ -14,15 +15,16 @@ interface PackageGridProps {
   packages: PackageWithCoach[];
 }
 
-export function PackageGrid({ packages }: PackageGridProps) {
+export async function PackageGrid({ packages }: PackageGridProps) {
+  const t = await getTranslations("billing");
   if (packages.length === 0) {
     return (
       <div className="text-center py-12">
         <p className="text-text-muted text-lg">
-          Catálogo em breve.
+          {t("emptyCatalogTitle")}
         </p>
         <p className="text-text-muted text-sm mt-2">
-          Coach principal entrando em breve — volte em instantes.
+          {t("emptyCatalogSubtitle")}
         </p>
       </div>
     );

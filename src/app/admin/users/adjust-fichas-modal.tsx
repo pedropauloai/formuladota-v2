@@ -4,6 +4,7 @@
 // Usa <dialog> nativo + server action adjustUserFichas.
 
 import { useState, useTransition, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { Coins, Plus, Minus, Loader2 } from "lucide-react";
 import { adjustUserFichas } from "@/app/admin/fichas/actions";
 
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export function AdjustFichasModal({ userId, username, currentBalance }: Props) {
+  const t = useTranslations("misc2");
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<"grant" | "debit">("grant");
   const [amount, setAmount] = useState<string>("1");
@@ -37,7 +39,7 @@ export function AdjustFichasModal({ userId, username, currentBalance }: Props) {
     setSuccess(null);
     const n = parseInt(amount, 10);
     if (!Number.isFinite(n) || n <= 0) {
-      setError("Quantidade precisa ser número positivo.");
+      setError(t("amountMustBePositive"));
       return;
     }
     const delta = mode === "grant" ? n : -n;
@@ -46,9 +48,7 @@ export function AdjustFichasModal({ userId, username, currentBalance }: Props) {
       if (!res.success) {
         setError(res.error);
       } else {
-        setSuccess(
-          `Ajuste salvo. Novo saldo: ${res.newBalance} ${res.newBalance === 1 ? "ficha" : "fichas"}.`
-        );
+        setSuccess(t("fichasAdjustedSuccess", { balance: res.newBalance }));
         setAmount("1");
         setReason("");
       }
@@ -63,7 +63,7 @@ export function AdjustFichasModal({ userId, username, currentBalance }: Props) {
         className="inline-flex items-center gap-1.5 rounded-md border border-brand-primary/40 bg-brand-primary/5 px-2.5 py-1 font-display font-semibold text-sm uppercase tracking-wide text-brand-primary hover:bg-brand-primary/15 transition-colors"
       >
         <Coins size={11} />
-        Ajustar
+        {t("adjust")}
       </button>
 
       {open && (
@@ -82,7 +82,7 @@ export function AdjustFichasModal({ userId, username, currentBalance }: Props) {
           >
             <header className="mb-5 space-y-1">
               <p className="font-display font-semibold text-sm uppercase tracking-wide text-brand-primary">
-                Ajustar fichas
+                {t("adjustFichas")}
               </p>
               <h2
                 id="adjust-fichas-title"
@@ -91,9 +91,9 @@ export function AdjustFichasModal({ userId, username, currentBalance }: Props) {
                 {username}
               </h2>
               <p className="font-display text-sm font-semibold text-text-body">
-                Saldo atual:{" "}
+                {t("currentBalance")}{" "}
                 <span className="text-white">
-                  {currentBalance} {currentBalance === 1 ? "ficha" : "fichas"}
+                  {t("fichasCount", { count: currentBalance })}
                 </span>
               </p>
             </header>
@@ -110,7 +110,7 @@ export function AdjustFichasModal({ userId, username, currentBalance }: Props) {
                 }`}
               >
                 <Plus size={12} />
-                Adicionar
+                {t("add")}
               </button>
               <button
                 type="button"
@@ -122,7 +122,7 @@ export function AdjustFichasModal({ userId, username, currentBalance }: Props) {
                 }`}
               >
                 <Minus size={12} />
-                Remover
+                {t("remove")}
               </button>
             </div>
 
@@ -132,7 +132,7 @@ export function AdjustFichasModal({ userId, username, currentBalance }: Props) {
                   htmlFor="amount"
                   className="mb-2 block font-display font-semibold text-sm uppercase tracking-wide text-white/60"
                 >
-                  Quantidade
+                  {t("quantity")}
                 </label>
                 <input
                   id="amount"
@@ -151,18 +151,18 @@ export function AdjustFichasModal({ userId, username, currentBalance }: Props) {
                   htmlFor="reason"
                   className="mb-2 block font-display font-semibold text-sm uppercase tracking-wide text-white/60"
                 >
-                  Razão (obrigatória)
+                  {t("reasonRequiredFem")}
                 </label>
                 <textarea
                   id="reason"
                   rows={3}
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
-                  placeholder="ex: bonificação de boas-vindas, compensação por PT cancelada, estorno PIX"
+                  placeholder={t("fichasReasonPlaceholder")}
                   className="w-full resize-none rounded-md border border-border-subtle bg-black/40 px-3 py-2 font-sans text-sm text-white placeholder:text-white/30"
                 />
                 <p className="mt-1 font-mono text-sm text-white/30">
-                  {reason.length}/500 — fica no log permanente da plataforma
+                  {t("reasonCharCount", { count: reason.length })}
                 </p>
               </div>
 
@@ -181,7 +181,7 @@ export function AdjustFichasModal({ userId, username, currentBalance }: Props) {
                 disabled={pending}
                 className="rounded-md px-4 py-2 font-sans text-sm uppercase tracking-widest text-white/60 hover:text-white transition-colors"
               >
-                Fechar
+                {t("close")}
               </button>
               <button
                 type="button"
@@ -194,7 +194,7 @@ export function AdjustFichasModal({ userId, username, currentBalance }: Props) {
                 }`}
               >
                 {pending && <Loader2 size={12} className="animate-spin" />}
-                {mode === "grant" ? "Adicionar" : "Remover"} {amount || "0"}
+                {mode === "grant" ? t("add") : t("remove")} {amount || "0"}
               </button>
             </div>
           </div>

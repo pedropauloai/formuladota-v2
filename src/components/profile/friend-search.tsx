@@ -5,6 +5,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Search, UserPlus, Check, Loader2 } from "lucide-react";
 import { UserAvatar } from "@/components/ui/avatar";
 import { searchPlayers, type PlayerSearchResult } from "@/actions/friends-search";
@@ -14,6 +15,7 @@ const DEBOUNCE_MS = 300;
 const MIN_CHARS = 3;
 
 export function FriendSearch() {
+  const t = useTranslations("perfil");
   const router = useRouter();
   const [value, setValue] = useState("");
   // null = sem busca ativa; [] = busca sem resultados
@@ -63,8 +65,8 @@ export function FriendSearch() {
           type="search"
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          placeholder="BUSCAR AMIGOS"
-          aria-label="Buscar jogadores pra adicionar como amigos"
+          placeholder={t("searchFriendsPlaceholder")}
+          aria-label={t("searchFriendsAria")}
           className="w-full bg-transparent font-display text-[13px] font-semibold uppercase tracking-[0.08em] text-text-body placeholder:text-text-faded outline-none"
         />
         {searching && (
@@ -74,10 +76,10 @@ export function FriendSearch() {
 
       {/* Resultados inline (abaixo do campo, dentro do painel) */}
       {searchActive && results !== null && (
-        <div role="list" aria-label="Resultados da busca" className="flex flex-col">
+        <div role="list" aria-label={t("searchResultsAria")} className="flex flex-col">
           {results.length === 0 && !searching ? (
             <p className="px-2 py-1 font-display text-[13px] font-semibold text-text-faded">
-              Ninguém encontrado com esse nome.
+              {t("noPlayersFound")}
             </p>
           ) : (
             results.map((r) => (
@@ -104,6 +106,7 @@ function SearchResultRow({
   sent: boolean;
   onAdd: () => void;
 }) {
+  const t = useTranslations("perfil");
   return (
     <div
       role="listitem"
@@ -111,7 +114,7 @@ function SearchResultRow({
     >
       <UserAvatar
         src={result.avatarUrl ?? undefined}
-        alt={`Avatar de ${result.name}`}
+        alt={t("avatarAlt", { name: result.name })}
         fallback={result.name.slice(0, 2).toUpperCase()}
         size="sm"
       />
@@ -121,17 +124,17 @@ function SearchResultRow({
       {sent ? (
         <span className="flex items-center gap-1 font-display text-[11px] font-semibold uppercase text-success">
           <Check size={12} aria-hidden="true" />
-          Enviado
+          {t("sent")}
         </span>
       ) : (
         <button
           type="button"
           onClick={onAdd}
-          aria-label={`Adicionar ${result.name} como amigo`}
+          aria-label={t("addFriendAria", { name: result.name })}
           className="flex items-center gap-1 rounded-sm border border-brand-primary/50 bg-brand-primary/10 px-2 py-1 font-display text-[11px] font-semibold uppercase text-brand-primary hover:bg-brand-primary/20 transition-colors"
         >
           <UserPlus size={12} aria-hidden="true" />
-          Adicionar
+          {t("add")}
         </button>
       )}
     </div>

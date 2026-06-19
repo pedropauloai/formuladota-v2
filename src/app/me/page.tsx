@@ -7,6 +7,7 @@
 
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { ClientShell } from "@/components/client-shell/shell";
 import { ProfilePage } from "@/components/profile/profile-page";
 import { VALID_TABS, type ProfileTab } from "@/components/profile/profile-tabs";
@@ -18,7 +19,10 @@ import type { DotaRank } from "@/components/ui/dota-rank-medal";
 import { legacyHonorToBand, type HonorRank } from "@/components/ui/honor-rank-medal";
 import { createClient } from "@/lib/supabase/server";
 
-export const metadata: Metadata = { title: "Meu perfil — FORMULADOTA" };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("account");
+  return { title: t("meMetaTitle") };
+}
 
 // Helper local — mapeia MMR Valve → DotaRank (mesma escala do /coaches/[slug])
 function mmrToDotaRank(mmr: number | null | undefined): DotaRank {

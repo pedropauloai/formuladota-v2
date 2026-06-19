@@ -16,7 +16,8 @@
 // C14 — zero hex; C17 — zero z-index numérico; C18 — sem max-w mx-auto.
 
 import { useState } from "react";
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { Coins, Radio } from "lucide-react";
 import type { ProWithQueue, ProRecentStats } from "@/lib/queries/pros";
 import type { MyQueueEntry } from "@/lib/queries/queue";
@@ -58,6 +59,7 @@ export function ProMasterDetail({
   myCoachId = null,
   cockpitInitial = null,
 }: ProMasterDetailProps) {
+  const t = useTranslations("queue");
   const onlinePros = prosWithQueues.filter((p) => p.coach.filaAberta);
   const offlinePros = prosWithQueues.filter((p) => !p.coach.filaAberta);
 
@@ -163,13 +165,13 @@ export function ProMasterDetail({
                 href="/admin/pros"
                 className="font-display-condensed text-base uppercase leading-none tracking-wider text-text-faded transition-colors hover:text-text-display"
               >
-                Painel admin →
+                {t("adminPanel")} →
               </Link>
             )}
           </div>
           <span className="inline-flex items-center gap-1.5 font-display-condensed text-lg uppercase leading-none tracking-wider text-success">
             <Radio size={12} aria-hidden="true" />
-            {onlinePros.length} online
+            {t("onlineCount", { count: onlinePros.length })}
           </span>
         </div>
 
@@ -193,7 +195,7 @@ export function ProMasterDetail({
                 className="px-3 pb-1 pt-3 font-display-condensed text-base uppercase leading-none tracking-wider text-text-faded"
                 aria-hidden="true"
               >
-                Offline ({offlinePros.length})
+                {t("offlineCount", { count: offlinePros.length })}
               </li>
               {offlinePros.map((pro) => (
                 <li key={pro.coach.coachId}>
@@ -239,6 +241,7 @@ function QueueCtaFooter({
   myEntriesByCoach,
   inAnyQueue,
 }: FooterProps) {
+  const t = useTranslations("queue");
   if (!selected) return null;
 
   const coachId = selected.coach.coachId;
@@ -256,18 +259,18 @@ function QueueCtaFooter({
       <div className="flex items-center justify-between">
         <span className="inline-flex items-center gap-1.5 font-display-condensed text-lg uppercase leading-none tracking-wider text-text-muted">
           <Coins size={14} className="text-gold" aria-hidden="true" />
-          1 ficha · <span className="text-gold">{precoTxt}</span>
+          {t("oneFicha")} · <span className="text-gold">{precoTxt}</span>
         </span>
         {!isAdmin &&
           (fichaBalance === 0 ? (
             /* Aviso compacto "sem fichas" — herdado da UserStatusBar removida.
                O CTA abaixo já vira "Comprar ficha pra entrar" (link checkout). */
             <span className="font-display-condensed text-lg uppercase leading-none tracking-wider text-warning">
-              sem fichas
+              {t("noFichas")}
             </span>
           ) : (
             <span className="font-display-condensed text-lg uppercase leading-none tracking-wider text-text-faded">
-              saldo{" "}
+              {t("balance")}{" "}
               <span className="tabular-nums text-gold">{fichaBalance}</span>
             </span>
           ))}
@@ -293,12 +296,13 @@ function QueueCtaFooter({
 // ===========================================================================
 
 function NoProOnline() {
+  const t = useTranslations("queue");
   return (
     <div className="flex h-full items-center justify-center">
       <EmptyState
         icon={Radio}
-        title="Nenhum PRO online"
-        description="Os PROs abrem fila quando estão prontos. Ative aviso no Discord pra saber quando alguém abrir."
+        title={t("noProOnlineTitle")}
+        description={t("noProOnlineDescription")}
         principle="random"
         action={
           <a
@@ -307,7 +311,7 @@ function NoProOnline() {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 font-display text-sm font-semibold uppercase tracking-wide text-brand-primary transition-colors hover:text-text-display"
           >
-            Ativar aviso no Discord →
+            {t("enableDiscordAlert")} →
           </a>
         }
       />

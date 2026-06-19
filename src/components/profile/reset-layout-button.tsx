@@ -13,6 +13,7 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm";
@@ -24,12 +25,13 @@ export function ResetLayoutButton() {
   const [pending, startTransition] = useTransition();
   const confirm = useConfirm();
   const { toast } = useToast();
+  const t = useTranslations("perfil");
 
   async function handleReset() {
     const confirmed = await confirm({
-      title: "Restaurar layout padrão?",
-      message: "Suas posições customizadas serão perdidas.",
-      confirmLabel: "Restaurar",
+      title: t("resetLayoutConfirmTitle"),
+      message: t("resetLayoutConfirmMessage"),
+      confirmLabel: t("resetLayoutConfirmCta"),
       variant: "destructive",
     });
     if (!confirmed) return;
@@ -41,8 +43,8 @@ export function ResetLayoutButton() {
         console.error("[ResetLayoutButton] falha ao restaurar:", err);
         toast({
           type: "error",
-          title: "Falha ao restaurar",
-          description: "Não foi possível restaurar o layout padrão.",
+          title: t("resetLayoutErrTitle"),
+          description: t("resetLayoutErrDesc"),
         });
       }
     });
@@ -57,7 +59,7 @@ export function ResetLayoutButton() {
       size="sm"
     >
       <RotateCcw size={12} aria-hidden="true" />
-      {pending ? "Restaurando..." : "Restaurar padrão"}
+      {pending ? t("resetLayoutPending") : t("resetLayoutDefault")}
     </Button>
   );
 }

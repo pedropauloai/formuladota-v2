@@ -15,6 +15,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { AlertTriangle, Check, Swords, UserRound } from "lucide-react";
 import {
   startPT,
@@ -48,16 +49,17 @@ export function CockpitActionPanel({
   nowMs,
   onPTStarted,
 }: PanelProps) {
+  const t = useTranslations("proCockpit");
+
   // (c) PT em curso tem prioridade — mesmo com fila fechada a PT continua
   if (activePT) return <ActivePTPanel activePT={activePT} nowMs={nowMs} />;
 
   // (a) fila fechada — instrução curta e nada mais
   if (!filaAberta) {
     return (
-      <PanelShell title="Ação">
+      <PanelShell title={t("actionTitle")}>
         <p className="font-body text-sm leading-relaxed text-text-muted">
-          Abra a fila pra começar a montar a próxima PT. Os alunos entram com
-          ficha e aparecem aqui em tempo real.
+          {t("actionClosedHint")}
         </p>
       </PanelShell>
     );
@@ -107,6 +109,7 @@ function NextPTPanel({
   maxPT: number;
   onPTStarted: () => void;
 }) {
+  const t = useTranslations("proCockpit");
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -128,7 +131,7 @@ function NextPTPanel({
   }
 
   return (
-    <PanelShell title="Próxima PT">
+    <PanelShell title={t("nextPtTitle")}>
       {/* Mini-slots: quem entra na PT (você + 4 alunos = 5 vagas no grupo) */}
       <ul className="flex flex-col gap-1.5">
         {slots.map((entry, i) => (
@@ -146,12 +149,12 @@ function NextPTPanel({
                 <UserAvatar
                   size="sm"
                   src={entry.avatarUrl ?? undefined}
-                  alt={entry.username ?? "Aluno"}
+                  alt={entry.username ?? t("student")}
                   fallback={(entry.username ?? "?").slice(0, 2)}
                   className="scale-75"
                 />
                 <span className="min-w-0 flex-1 truncate font-display text-sm font-semibold text-text-body">
-                  {entry.username ?? "Anônimo"}
+                  {entry.username ?? t("anonymous")}
                 </span>
                 <span className="font-display text-sm font-bold tabular-nums text-gold">
                   {entry.mmr != null ? entry.mmr.toLocaleString("pt-BR") : "—"}
@@ -160,7 +163,7 @@ function NextPTPanel({
             ) : (
               <span className="inline-flex items-center gap-2 font-display-condensed text-base uppercase leading-none tracking-wider text-text-faded">
                 <UserRound size={14} aria-hidden="true" />
-                Vaga livre
+                {t("freeSlot")}
               </span>
             )}
           </li>
@@ -177,13 +180,13 @@ function NextPTPanel({
         loading={pending}
       >
         <Swords size={16} aria-hidden="true" />
-        Iniciar PT ({selectedEntries.length}/{maxPT})
+        {t("startPt", { count: selectedEntries.length, max: maxPT })}
       </Button>
 
       {error && <p className="font-mono-ui text-sm text-error">{error}</p>}
 
       <p className="font-mono text-sm leading-relaxed text-text-faded">
-        Ficha só é cobrada quando você confirmar a PT como realizada.
+        {t("chargeHint")}
       </p>
     </PanelShell>
   );
@@ -209,6 +212,7 @@ function ActivePTPanel({
   activePT: CockpitActivePT;
   nowMs: number;
 }) {
+  const t = useTranslations("proCockpit");
   const router = useRouter();
   const confirm = useConfirm();
   const prompt = usePrompt();
@@ -223,7 +227,7 @@ function ActivePTPanel({
     setValidationFail(null);
     const id = dotaMatchId.trim();
     if (!/^\d{8,12}$/.test(id)) {
-      setError("Match ID Dota deve ter entre 8 e 12 dígitos numéricos.");
+      setError(t("matchIdFormatError"));
       return;
     }
     startTransition(async () => {
@@ -233,11 +237,11 @@ function ActivePTPanel({
         dotaMatchId: id,
       });
       if (!preview.success) {
-        setError(preview.error ?? "Erro na validação OpenDota.");
+        setError(preview.error ?? t("openDotaValidationError"));
         return;
       }
       if (!preview.valid) {
-        setValidationFail(preview.reason ?? "Partida reprovada na validação.");
+        setValidationFail(preview.reason ?? t("matchRejectedValidation"));
         return;
       }
       // Passo 2 — enriquece E confirma: status vira 'realizada' (trigger cobra fichas)
@@ -252,10 +256,9 @@ function ActivePTPanel({
 
   async function handleConfirmManual() {
     const ok = await confirm({
-      title: "Confirmar PT sem dados OpenDota?",
-      message:
-        "Cobra 1 ficha de cada aluno sem importar KDA/GPM. Use só se o OpenDota estiver fora do ar. Irreversível.",
-      confirmLabel: "Confirmar mesmo assim",
+      title: t("confirmManualTitle"),
+      message: t("confirmManualMessage"),
+      confirmLabel: t("confirmAnyway"),
       variant: "destructive",
     });
     if (!ok) return;
@@ -269,17 +272,17 @@ function ActivePTPanel({
 
   async function handleCancel() {
     const reason = await prompt({
-      title: "Cancelar PT",
-      message: "Motivo do cancelamento (será salvo, mín 3 caracteres). Nenhuma ficha é cobrada.",
-      placeholder: "Ex: aluno desconectou, partida abortada",
+      title: t("cancelPtTitle"),
+      message: t("cancelPtMessage"),
+      placeholder: t("cancelPtPlaceholder"),
       required: true,
       multiline: true,
-      confirmLabel: "Cancelar PT",
+      confirmLabel: t("cancelPtConfirm"),
       variant: "destructive",
     });
     if (reason === null) return;
     if (reason.trim().length < 3) {
-      setError("Motivo precisa ter pelo menos 3 caracteres.");
+      setError(t("reasonMinError"));
       return;
     }
     setError(null);
@@ -291,17 +294,17 @@ function ActivePTPanel({
   }
 
   return (
-    <PanelShell title="PT em curso">
+    <PanelShell title={t("activePtTitle")}>
       {/* Cronômetro desde o início da PT */}
       <div className="rounded-sm border border-brand-primary/30 bg-brand-primary/5 px-3 py-4 text-center">
         <p
           className="font-display-condensed text-5xl uppercase leading-none tracking-wider tabular-nums text-text-display"
-          aria-label="Tempo de PT decorrido"
+          aria-label={t("elapsedAria")}
         >
           {formatElapsed(activePT.startedAt, nowMs)}
         </p>
         <p className="mt-1.5 font-display-condensed text-base uppercase leading-none tracking-wider text-text-muted">
-          {activePT.students.length} aluno{activePT.students.length === 1 ? "" : "s"} em campo
+          {t("studentsInGame", { count: activePT.students.length })}
         </p>
       </div>
 
@@ -315,12 +318,12 @@ function ActivePTPanel({
             <UserAvatar
               size="sm"
               src={s.avatarUrl ?? undefined}
-              alt={s.username ?? "Aluno"}
+              alt={s.username ?? t("student")}
               fallback={(s.username ?? "?").slice(0, 2)}
               className="scale-75"
             />
             <span className="font-display text-sm font-semibold text-text-body">
-              {s.username ?? "Anônimo"}
+              {s.username ?? t("anonymous")}
             </span>
           </li>
         ))}
@@ -329,14 +332,14 @@ function ActivePTPanel({
       {/* Confirmar: match ID Dota → valida anti-Turbo → enriquece + cobra fichas */}
       <label className="flex flex-col gap-1.5">
         <span className="font-display-condensed text-base uppercase leading-none tracking-wider text-text-muted">
-          Match ID Dota (pós-partida)
+          {t("matchIdLabel")}
         </span>
         <input
           type="text"
           inputMode="numeric"
           value={dotaMatchId}
           onChange={(e) => setDotaMatchId(e.target.value)}
-          placeholder="ex: 7891234567"
+          placeholder={t("matchIdPlaceholder")}
           className="w-full rounded-sm border border-border-subtle bg-bg-elevated px-3 py-2 font-mono text-sm text-text-body placeholder:text-text-faded"
         />
       </label>
@@ -350,7 +353,7 @@ function ActivePTPanel({
         loading={pending}
       >
         <Check size={16} aria-hidden="true" />
-        Confirmar PT
+        {t("confirmPt")}
       </Button>
 
       {/* Resultado da validação anti-Turbo quando reprova */}
@@ -365,7 +368,7 @@ function ActivePTPanel({
             onClick={handleConfirmManual}
             className="self-start font-display text-sm font-semibold uppercase tracking-wide text-text-muted underline-offset-4 transition-colors hover:text-text-display hover:underline"
           >
-            Confirmar sem dados (manual)
+            {t("confirmManualLink")}
           </button>
         </div>
       )}
@@ -379,7 +382,7 @@ function ActivePTPanel({
         disabled={pending}
         className="self-center font-mono text-sm text-text-faded underline-offset-4 transition-colors hover:text-error hover:underline disabled:opacity-50"
       >
-        cancelar PT (sem cobrança)
+        {t("cancelPtLink")}
       </button>
     </PanelShell>
   );

@@ -1,10 +1,6 @@
-import Link from "next/link";
-import {
-  ANTIPATTERNS,
-  CANONICAL_QUOTES,
-  PRINCIPLES,
-  PROGRESSIVE_MODERATION,
-} from "@/lib/doctrine";
+import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
+import { ANTIPATTERNS, PRINCIPLES } from "@/lib/doctrine";
 import { ClientShell } from "@/components/client-shell/shell";
 import {
   FrontierHero,
@@ -22,13 +18,17 @@ import {
 // Redesign 2026-06-01: layout cinematográfico estilo Dota 2 "New Frontiers"
 // (igual /metodologia) — hero key-art, seções full-width, statements, reveal no
 // scroll, background oficial Dota 2. Texto integralmente preservado.
-export const metadata = {
-  title: "Código de Conduta — FORMULADOTA",
-  description:
-    "A Fórmula do Dota de Corrida — princípios, anti-padrões e sistema progressivo de moderação.",
-};
+export async function generateMetadata() {
+  const t = await getTranslations("conduta");
+  return {
+    title: t("metaTitle"),
+    description: t("metaDescription"),
+  };
+}
 
 export default async function CodigoDeCondutaPage() {
+  const t = await getTranslations("conduta");
+  const td = await getTranslations("doctrine");
   const comportamentais = PRINCIPLES.filter((p) => p.category === "comportamental");
   const tecnicos = PRINCIPLES.filter((p) => p.category === "tecnico");
   const progressao = PRINCIPLES.filter((p) => p.category === "progressao");
@@ -39,7 +39,7 @@ export default async function CodigoDeCondutaPage() {
         href="#principios"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-brand-primary focus:px-4 focus:py-2 focus:font-medium focus:text-text-inverse"
       >
-        Pular para o conteúdo
+        {t("skipToContent")}
       </a>
 
       <div className="relative w-full bg-bg-deep">
@@ -51,29 +51,26 @@ export default async function CodigoDeCondutaPage() {
         <div className="relative z-10">
           {/* HERO */}
           <FrontierHero
-            eyebrow="Código de Conduta · v1"
-            title={
-              <>
-                A Fórmula do{" "}
-                <span className="text-brand-primary">Dota</span> de Corrida
-              </>
-            }
-            subtitle={CANONICAL_QUOTES.opening}
+            eyebrow={t("heroEyebrow")}
+            title={t.rich("heroTitle", {
+              red: (chunks) => (
+                <span className="text-brand-primary">{chunks}</span>
+              ),
+            })}
+            subtitle={td("quote.opening")}
             backgroundImage={FRONTIER_ASSETS.mapBanner}
           />
 
           {/* STATEMENT — a primeira regra */}
-          <FrontierStatement
-            attribution="A responsabilidade é sempre sua, 100% das vezes"
-          >
-            <span className="text-brand-primary">{CANONICAL_QUOTES.firstRule}</span>
+          <FrontierStatement attribution={t("firstRuleAttribution")}>
+            <span className="text-brand-primary">{td("quote.firstRule")}</span>
           </FrontierStatement>
 
           {/* MISSÃO */}
           <FrontierSection
             index="·"
-            title="A Missão"
-            intro={`“${CANONICAL_QUOTES.mission}”`}
+            title={t("missionTitle")}
+            intro={`“${td("quote.mission")}”`}
             width="prose"
           />
 
@@ -81,24 +78,40 @@ export default async function CodigoDeCondutaPage() {
           <FrontierSection
             id="principios"
             index="01"
-            title="Os 14 Princípios"
-            intro="A Fórmula do Dota de Corrida — os princípios que regem a cultura. Mentais, técnicos e de progressão."
+            title={t("principlesTitle")}
+            intro={t("principlesIntro")}
             width="wide"
           >
             <div className="space-y-12">
-              <PrincipleGroup title="Mentais e comportamentais">
+              <PrincipleGroup title={t("groupBehavioral")}>
                 {comportamentais.map((p) => (
-                  <PrincipleCard key={p.id} principle={p} highlight={p.id === 1} />
+                  <PrincipleCard
+                    key={p.id}
+                    id={p.id}
+                    title={td(`principle.${p.id}.title`)}
+                    body={td(`principle.${p.id}.body`)}
+                    highlight={p.id === 1}
+                  />
                 ))}
               </PrincipleGroup>
-              <PrincipleGroup title="Técnicos e de execução">
+              <PrincipleGroup title={t("groupTechnical")}>
                 {tecnicos.map((p) => (
-                  <PrincipleCard key={p.id} principle={p} />
+                  <PrincipleCard
+                    key={p.id}
+                    id={p.id}
+                    title={td(`principle.${p.id}.title`)}
+                    body={td(`principle.${p.id}.body`)}
+                  />
                 ))}
               </PrincipleGroup>
-              <PrincipleGroup title="Progressão">
+              <PrincipleGroup title={t("groupProgression")}>
                 {progressao.map((p) => (
-                  <PrincipleCard key={p.id} principle={p} />
+                  <PrincipleCard
+                    key={p.id}
+                    id={p.id}
+                    title={td(`principle.${p.id}.title`)}
+                    body={td(`principle.${p.id}.body`)}
+                  />
                 ))}
               </PrincipleGroup>
             </div>
@@ -108,13 +121,25 @@ export default async function CodigoDeCondutaPage() {
           <FrontierSection
             id="antipadroes"
             index="02"
-            title="Os 15 Padrões Tóxicos"
-            intro="Comportamentos incompatíveis com a cultura da FORMULADOTA. Geram advertência, suspensão ou banimento conforme as regras abaixo."
+            title={t("antipatternsTitle")}
+            intro={t("antipatternsIntro")}
             width="wide"
           >
             <div className="grid gap-4 md:grid-cols-2">
               {ANTIPATTERNS.map((a) => (
-                <AntipatternCard key={a.id} antipattern={a} />
+                <AntipatternCard
+                  key={a.id}
+                  id={a.id}
+                  title={td(`antipattern.${a.id}.title`)}
+                  examples={a.examples.map((_, i) =>
+                    td(`antipattern.${a.id}.ex${i}`),
+                  )}
+                  directSeverityNote={
+                    a.directSeverityNote
+                      ? td(`antipattern.${a.id}.directSeverityNote`)
+                      : undefined
+                  }
+                />
               ))}
             </div>
           </FrontierSection>
@@ -123,49 +148,49 @@ export default async function CodigoDeCondutaPage() {
           <FrontierSection
             id="moderacao"
             index="03"
-            title="Sistema Progressivo de Moderação"
-            intro="Toda violação registrada cita o princípio ou anti-padrão violado. Não é punição arbitrária — é aplicação da regra que você aceitou ao entrar."
+            title={t("moderationTitle")}
+            intro={t("moderationIntro")}
             width="prose"
           >
             <div className="mx-auto max-w-2xl space-y-4">
               <ModerationStep
                 step={1}
-                label={PROGRESSIVE_MODERATION.step1.label}
-                description={PROGRESSIVE_MODERATION.step1.description}
+                label={td("moderation.step1.label")}
+                description={td("moderation.step1.description")}
               />
               <ModerationStep
                 step={2}
-                label={PROGRESSIVE_MODERATION.step2.label}
-                description={PROGRESSIVE_MODERATION.step2.description}
+                label={td("moderation.step2.label")}
+                description={td("moderation.step2.description")}
               />
               <ModerationStep
                 step={3}
-                label={PROGRESSIVE_MODERATION.step3.label}
-                description={PROGRESSIVE_MODERATION.step3.description}
+                label={td("moderation.step3.label")}
+                description={td("moderation.step3.description")}
               />
               <p className="rounded-md border border-border-subtle bg-bg-base/60 px-4 py-3 font-display text-base font-semibold text-text-body 2xl:text-lg">
-                <strong className="text-text-display">Reset automático:</strong>{" "}
-                {PROGRESSIVE_MODERATION.reset}
+                <strong className="text-text-display">
+                  {t("resetLabel")}
+                </strong>{" "}
+                {td("moderation.reset")}
               </p>
               <p className="font-body text-base leading-relaxed text-text-muted 2xl:text-lg">
                 <strong className="text-text-display">
-                  Direito ao contraditório:
+                  {t("appealLabel")}
                 </strong>{" "}
-                você pode contestar qualquer decisão via Discord oficial. A equipe
-                FORMULADOTA revisa caso a caso e reverte manualmente se entender que
-                houve erro.
+                {t("appealBody")}
               </p>
             </div>
           </FrontierSection>
 
           {/* COMPROMISSO FINAL */}
-          <FrontierSection index="04" title="Compromisso Final" width="prose">
+          <FrontierSection index="04" title={t("commitmentTitle")} width="prose">
             <div className="mx-auto max-w-2xl space-y-6">
               <blockquote className="border-l-2 border-brand-primary pl-6 font-body text-lg italic leading-relaxed text-text-body 2xl:text-xl">
-                {CANONICAL_QUOTES.responsibility}
+                {td("quote.responsibility")}
               </blockquote>
               <blockquote className="border-l-2 border-brand-primary pl-6 font-body text-lg italic leading-relaxed text-text-body 2xl:text-xl">
-                {CANONICAL_QUOTES.competitiveMindset}
+                {td("quote.competitiveMindset")}
               </blockquote>
             </div>
           </FrontierSection>
@@ -177,13 +202,13 @@ export default async function CodigoDeCondutaPage() {
                 href="/metodologia"
                 className="font-display text-sm font-semibold uppercase tracking-wide text-brand-primary transition hover:text-glow-red"
               >
-                ler a metodologia →
+                {t("ctaReadMethodology")}
               </Link>
               <Link
                 href="/"
                 className="font-display text-sm font-semibold uppercase tracking-wide text-text-muted transition hover:text-text-display"
               >
-                ← voltar à home
+                {t("ctaBackHome")}
               </Link>
             </div>
           </footer>
@@ -217,10 +242,14 @@ function PrincipleGroup({
 // PrincipleCard — card de princípio (numeração mono + título + body)
 // ---------------------------------------------------------------------------
 function PrincipleCard({
-  principle,
+  id,
+  title,
+  body,
   highlight,
 }: {
-  principle: { id: number; title: string; body: string };
+  id: number;
+  title: string;
+  body: string;
   highlight?: boolean;
 }) {
   return (
@@ -239,7 +268,7 @@ function PrincipleCard({
             highlight ? "text-brand-primary text-glow-red" : "text-brand-primary",
           ].join(" ")}
         >
-          {String(principle.id).padStart(2, "0")}
+          {String(id).padStart(2, "0")}
         </span>
         <h4
           className={[
@@ -247,11 +276,11 @@ function PrincipleCard({
             highlight ? "text-glow-red" : "",
           ].join(" ")}
         >
-          {principle.title}
+          {title}
         </h4>
       </div>
       <p className="font-body text-base leading-relaxed text-text-body 2xl:text-lg">
-        {principle.body}
+        {body}
       </p>
     </div>
   );
@@ -261,28 +290,34 @@ function PrincipleCard({
 // AntipatternCard — card de anti-padrão (X error + exemplos + severidade)
 // ---------------------------------------------------------------------------
 function AntipatternCard({
-  antipattern,
+  id,
+  title,
+  examples,
+  directSeverityNote,
 }: {
-  antipattern: (typeof ANTIPATTERNS)[number];
+  id: number;
+  title: string;
+  examples: string[];
+  directSeverityNote?: string;
 }) {
   return (
     <div className="rounded-[var(--radius-lg)] border border-border-subtle bg-bg-elevated/40 p-5 backdrop-blur-sm">
       <div className="mb-3 flex items-baseline gap-3">
         <span className="font-mono text-sm text-error">
-          ✕ {String(antipattern.id).padStart(2, "0")}
+          ✕ {String(id).padStart(2, "0")}
         </span>
         <h4 className="font-display text-base uppercase tracking-wide text-text-display">
-          {antipattern.title}
+          {title}
         </h4>
       </div>
       <ul className="space-y-1 font-body text-base leading-relaxed text-text-body 2xl:text-lg">
-        {antipattern.examples.map((ex, i) => (
+        {examples.map((ex, i) => (
           <li key={i}>• {ex}</li>
         ))}
       </ul>
-      {antipattern.directSeverityNote && (
+      {directSeverityNote && (
         <p className="mt-3 rounded-md border border-error/40 bg-error/10 px-3 py-2 font-mono text-sm font-medium text-error">
-          ⚠ {antipattern.directSeverityNote}
+          ⚠ {directSeverityNote}
         </p>
       )}
     </div>

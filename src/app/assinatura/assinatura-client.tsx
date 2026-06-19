@@ -8,6 +8,7 @@
 // Filosofia: adesão = compromisso mútuo. Visitante continua dignificado.
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Shield, CheckCircle, XCircle, Clock, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -49,6 +50,7 @@ export function AssinaturaClient({
   subscription,
   queryParams,
 }: AssinaturaClientProps) {
+  const t = useTranslations("billing");
   const [loading, setLoading] = useState<"subscribe" | "cancel" | "reactivate" | null>(null);
 
   const handleSubscribe = async () => {
@@ -78,7 +80,7 @@ export function AssinaturaClient({
             FORMULADOTA HUB
           </h1>
           <p className="text-sm text-zinc-500">
-            Adesão à Comunidade — compromisso compartilhado
+            {t("subscriptionHeaderSubtitle")}
           </p>
         </div>
 
@@ -86,13 +88,13 @@ export function AssinaturaClient({
         {queryParams.success && (
           <div className="flex items-center gap-3 rounded-lg border border-green-800/40 bg-green-950/30 px-4 py-3 text-sm text-green-400">
             <CheckCircle className="size-4 shrink-0" />
-            Redirecionando para autorização. Quando concluir, volte a esta página.
+            {t("bannerSuccess")}
           </div>
         )}
         {queryParams.cancelled && (
           <div className="flex items-center gap-3 rounded-lg border border-zinc-700/40 bg-zinc-900/30 px-4 py-3 text-sm text-zinc-400">
             <XCircle className="size-4 shrink-0" />
-            Adesão encerrada. Acesso mantido até a data indicada abaixo.
+            {t("bannerCancelled")}
           </div>
         )}
         {queryParams.error && (
@@ -101,7 +103,7 @@ export function AssinaturaClient({
         {queryParams.info === "already_active" && (
           <div className="flex items-center gap-3 rounded-lg border border-zinc-700/40 bg-zinc-900/30 px-4 py-3 text-sm text-zinc-400">
             <AlertCircle className="size-4 shrink-0" />
-            Sua adesão já está ativa.
+            {t("bannerAlreadyActive")}
           </div>
         )}
 
@@ -143,6 +145,7 @@ function SubscriptionStateCard({
   onCancel,
   onReactivate,
 }: StateCardProps) {
+  const t = useTranslations("billing");
   if (state === "none" || state === "expired") {
     return (
       <Card className="border-zinc-800 bg-bg-base">
@@ -150,14 +153,14 @@ function SubscriptionStateCard({
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-white">
               <Shield className="size-5 text-zinc-500" />
-              Você é visitante
+              {t("visitorTitle")}
             </CardTitle>
             <Badge variant="outline" className="border-zinc-700 text-zinc-500">
-              Visitante
+              {t("visitorBadge")}
             </Badge>
           </div>
           <CardDescription>
-            Adira quando estiver pronto. Sem pressão. A comunidade está aqui quando você decidir.
+            {t("visitorDescription")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -167,10 +170,10 @@ function SubscriptionStateCard({
             className="w-full bg-red-700 text-white hover:bg-red-600 focus-visible:ring-red-600/50"
             size="lg"
           >
-            {loading === "subscribe" ? "Redirecionando..." : "Adira agora — R$ 47/mês"}
+            {loading === "subscribe" ? t("redirecting") : t("subscribeCta")}
           </Button>
           <p className="mt-3 text-center text-sm text-zinc-600">
-            Via PIX Automático. Você autoriza uma vez, a cobrança é automática todo mês.
+            {t("pixAutomaticNote")}
           </p>
         </CardContent>
       </Card>
@@ -184,14 +187,14 @@ function SubscriptionStateCard({
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-white">
               <Clock className="size-5 text-yellow-500" />
-              Aguardando autorização Pix Automático
+              {t("pendingTitle")}
             </CardTitle>
             <Badge variant="outline" className="border-yellow-800 text-yellow-600">
-              Pendente
+              {t("pendingBadge")}
             </Badge>
           </div>
           <CardDescription>
-            Autorize o Pix Automático no app do seu banco para confirmar a adesão.
+            {t("pendingDescription")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -202,7 +205,7 @@ function SubscriptionStateCard({
             className="w-full border-red-800 text-red-400 hover:bg-red-950/30"
             size="lg"
           >
-            {loading === "subscribe" ? "Redirecionando..." : "Reenviar link de autorização"}
+            {loading === "subscribe" ? t("redirecting") : t("pendingResendCta")}
           </Button>
         </CardContent>
       </Card>
@@ -216,39 +219,38 @@ function SubscriptionStateCard({
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-white">
               <CheckCircle className="size-5 text-red-500" />
-              Adesão ativa
+              {t("activeTitle")}
             </CardTitle>
             <Badge className="bg-red-900/50 text-red-400 border-red-800/50">
-              Adesao ativa
+              {t("activeBadge")}
             </Badge>
           </div>
           <CardDescription>
-            Adesão ativa até{" "}
-            <span className="text-zinc-300">
-              {formatDate(subscription?.next_payment_date ?? null)}
-            </span>
-            . Renovação automática.
+            {t.rich("activeDescription", {
+              date: formatDate(subscription?.next_payment_date ?? null),
+              highlight: (chunks) => <span className="text-zinc-300">{chunks}</span>,
+            })}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="rounded-md border border-zinc-800 bg-zinc-900/30 p-3 text-sm text-zinc-400">
             <div className="flex justify-between">
-              <span>Adesao</span>
-              <span className="text-zinc-200">HUB Mensal</span>
+              <span>{t("detailsSubscriptionLabel")}</span>
+              <span className="text-zinc-200">{t("detailsPlanName")}</span>
             </div>
             <div className="mt-1 flex justify-between">
-              <span>Valor</span>
-              <span className="text-zinc-200">R$ 47,00/mês</span>
+              <span>{t("detailsValueLabel")}</span>
+              <span className="text-zinc-200">{t("detailsValueAmount")}</span>
             </div>
             <div className="mt-1 flex justify-between">
-              <span>Próxima renovação</span>
+              <span>{t("detailsNextRenewalLabel")}</span>
               <span className="text-zinc-200">
                 {formatDate(subscription?.next_payment_date ?? null)}
               </span>
             </div>
             {subscription?.started_at && (
               <div className="mt-1 flex justify-between">
-                <span>Membro desde</span>
+                <span>{t("detailsMemberSinceLabel")}</span>
                 <span className="text-zinc-200">{formatDate(subscription.started_at)}</span>
               </div>
             )}
@@ -261,12 +263,12 @@ function SubscriptionStateCard({
             size="sm"
             className="w-full"
           >
-            {loading === "cancel" ? "Encerrando..." : "Encerrar adesão"}
+            {loading === "cancel" ? t("cancelling") : t("cancelCta")}
           </Button>
           <p className="text-center text-sm text-zinc-600">
-            Ao encerrar, você mantém acesso até{" "}
-            {formatDate(subscription?.next_payment_date ?? null)}.
-            Saia sem ressentimento — a comunidade continua aqui.
+            {t("cancelNote", {
+              date: formatDate(subscription?.next_payment_date ?? null),
+            })}
           </p>
         </CardContent>
       </Card>
@@ -280,22 +282,18 @@ function SubscriptionStateCard({
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-white">
             <XCircle className="size-5 text-zinc-500" />
-            Adesão encerrada
+            {t("cancelledTitle")}
           </CardTitle>
           <Badge variant="outline" className="border-zinc-700 text-zinc-500">
-            Encerrada
+            {t("cancelledBadge")}
           </Badge>
         </div>
         <CardDescription>
-          Adesão encerrada em{" "}
-          <span className="text-zinc-300">
-            {formatDate(subscription?.cancelled_at ?? null)}
-          </span>
-          . Acesso mantido até{" "}
-          <span className="text-zinc-300">
-            {formatDate(subscription?.next_payment_date ?? null)}
-          </span>
-          . Quando quiser voltar, é só reativar.
+          {t.rich("cancelledDescription", {
+            cancelledDate: formatDate(subscription?.cancelled_at ?? null),
+            accessDate: formatDate(subscription?.next_payment_date ?? null),
+            highlight: (chunks) => <span className="text-zinc-300">{chunks}</span>,
+          })}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -305,10 +303,10 @@ function SubscriptionStateCard({
           className="w-full bg-red-700 text-white hover:bg-red-600 focus-visible:ring-red-600/50"
           size="lg"
         >
-          {loading === "reactivate" ? "Redirecionando..." : "Reativar adesão"}
+          {loading === "reactivate" ? t("redirecting") : t("reactivateCta")}
         </Button>
         <p className="mt-3 text-center text-sm text-zinc-600">
-          Continua sendo visitante dignificado da plataforma.
+          {t("reactivateNote")}
         </p>
       </CardContent>
     </Card>
@@ -320,19 +318,21 @@ function SubscriptionStateCard({
 // ====================================================
 
 function PlanInfoCard() {
+  const t = useTranslations("billing");
+  const benefits = [
+    t("benefitLobbies"),
+    t("benefitSeasons"),
+    t("benefitDiscordBadge"),
+    t("benefitEarlyAccess"),
+  ];
   return (
     <Card className="border-zinc-800 bg-bg-base">
       <CardHeader>
-        <CardTitle className="text-sm text-zinc-400">Compromisso compartilhado — o que você acessa</CardTitle>
+        <CardTitle className="text-sm text-zinc-400">{t("planInfoTitle")}</CardTitle>
       </CardHeader>
       <CardContent>
         <ul className="space-y-2 text-sm text-zinc-500">
-          {[
-            "Criar e entrar em lobbies in-house com jogadores da comunidade",
-            "Participar de seasons com ranking e premiação",
-            "Badge de membro ativo no servidor Discord",
-            "Acesso antecipado a novas funcionalidades do HUB",
-          ].map((item) => (
+          {benefits.map((item) => (
             <li key={item} className="flex items-start gap-2">
               <Shield className="mt-0.5 size-3.5 shrink-0 text-red-700" />
               <span>{item}</span>
@@ -340,7 +340,7 @@ function PlanInfoCard() {
           ))}
         </ul>
         <p className="mt-4 text-sm text-zinc-700">
-          Coaching e serviços de mentoria individual são separados da adesão mensal.
+          {t("planInfoCoachingNote")}
         </p>
       </CardContent>
     </Card>
@@ -352,18 +352,19 @@ function PlanInfoCard() {
 // ====================================================
 
 function ErrorBanner({ code }: { code: string }) {
+  const t = useTranslations("billing");
   const messages: Record<string, string> = {
-    payment_failed: "Não foi possível criar a assinatura no Mercado Pago. Tente novamente.",
-    db_failed: "Erro interno ao salvar a assinatura. Tente novamente.",
-    cancel_failed: "Não foi possível encerrar a adesão. Tente novamente ou entre em contato.",
-    not_found: "Assinatura não encontrada.",
-    invalid_state: "Estado inválido. Recarregue a página.",
+    payment_failed: t("errorPaymentFailed"),
+    db_failed: t("errorDbFailed"),
+    cancel_failed: t("errorCancelFailed"),
+    not_found: t("errorNotFound"),
+    invalid_state: t("errorInvalidState"),
   };
 
   return (
     <div className="flex items-center gap-3 rounded-lg border border-red-800/40 bg-red-950/20 px-4 py-3 text-sm text-red-400">
       <AlertCircle className="size-4 shrink-0" />
-      {messages[code] ?? "Ocorreu um erro. Tente novamente."}
+      {messages[code] ?? t("errorGeneric")}
     </div>
   );
 }

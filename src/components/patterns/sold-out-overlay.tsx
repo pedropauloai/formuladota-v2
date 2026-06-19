@@ -22,6 +22,7 @@
  */
 
 import { Lock } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 
 // ---------------------------------------------------------------------------
@@ -71,10 +72,12 @@ export interface SoldOutOverlayProps {
  * </div>
  */
 export function SoldOutOverlay({
-  message = "LOTADA",
+  message,
   subMessage,
   className,
 }: SoldOutOverlayProps) {
+  const t = useTranslations("ui");
+  const resolvedMessage = message ?? t("soldOut");
   return (
     <div
       className={cn(
@@ -93,7 +96,7 @@ export function SoldOutOverlay({
       )}
       // Acessibilidade — anuncia que o conteúdo está indisponível
       role="status"
-      aria-label={`Sessão ${message.toLowerCase()}${subMessage ? ` — ${subMessage}` : ""}`}
+      aria-label={`${t("sessionLabel")} ${resolvedMessage.toLowerCase()}${subMessage ? ` — ${subMessage}` : ""}`}
     >
       {/* ---- Ícone Lock — bloqueio visual imediato ---- */}
       <Lock
@@ -113,7 +116,7 @@ export function SoldOutOverlay({
         )}
         aria-hidden="true" // Já anunciado no aria-label do parent
       >
-        {message}
+        {resolvedMessage}
       </span>
 
       {/* ---- Submensagem — opcional, fonte body, muted (contexto adicional) ---- */}

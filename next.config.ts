@@ -1,4 +1,8 @@
 import type { NextConfig } from "next";
+import createNextIntlPlugin from "next-intl/plugin";
+
+// next-intl: aponta pra config de request (resolução de idioma por cookie/header).
+const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const config: NextConfig = {
   reactStrictMode: true,
@@ -32,4 +36,4 @@ const config: NextConfig = {
   },
 };
 
-export default config;
+export default withNextIntl(config);

@@ -16,6 +16,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Pencil, X } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
@@ -45,6 +46,7 @@ export function StatusEditor({
   const [pending, startTransition] = useTransition();
   const { toast } = useToast();
   const router = useRouter();
+  const t = useTranslations("perfil");
 
   function handleBlur() {
     const trimmed = status.trim();
@@ -53,12 +55,12 @@ export function StatusEditor({
     startTransition(async () => {
       try {
         await updateStatusMessage(trimmed);
-        toast({ type: "success", title: "Status atualizado." });
+        toast({ type: "success", title: t("statusUpdatedToast") });
         router.refresh();
       } catch (e) {
         toast({
           type: "error",
-          title: "Erro ao salvar status.",
+          title: t("statusSaveErr"),
           description: e instanceof Error ? e.message : undefined,
         });
       }
@@ -68,7 +70,7 @@ export function StatusEditor({
   return (
     <div className="space-y-1">
       <label htmlFor="status-edit" className="font-display text-sm font-semibold uppercase tracking-wide text-text-faded">
-        Status (máx 60 chars)
+        {t("statusEditLabel")}
       </label>
       <textarea
         id="status-edit"
@@ -78,11 +80,11 @@ export function StatusEditor({
         disabled={pending}
         maxLength={60}
         rows={2}
-        placeholder="Escreva algo sobre você..."
+        placeholder={t("statusEditPlaceholder")}
         className="w-full rounded border border-brand-primary/40 bg-bg-deep/80 px-3 py-2 font-display text-base 2xl:text-lg text-text-body placeholder:text-text-faded focus:outline-none focus:border-brand-primary disabled:opacity-50"
       />
       <p className="text-right font-mono text-sm 2xl:text-base text-text-faded">
-        {status.length}/60 · auto-salva ao sair
+        {t("statusCharCount", { count: status.length })}
       </p>
     </div>
   );
@@ -102,18 +104,19 @@ export function HeroesEditor({
   const [pending, startTransition] = useTransition();
   const { toast } = useToast();
   const router = useRouter();
+  const t = useTranslations("perfil");
 
   function handleChange(newSlugs: string[]) {
     setFavorites(newSlugs);
     startTransition(async () => {
       try {
         await updateFavoriteHeroes(newSlugs);
-        toast({ type: "success", title: "Heróis favoritos atualizados." });
+        toast({ type: "success", title: t("heroesUpdatedToast") });
         router.refresh();
       } catch (e) {
         toast({
           type: "error",
-          title: "Erro ao salvar heróis.",
+          title: t("heroesSaveErr"),
           description: e instanceof Error ? e.message : undefined,
         });
       }
@@ -124,7 +127,7 @@ export function HeroesEditor({
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2">
         <span className="font-display text-sm font-semibold uppercase tracking-wide text-text-faded">
-          Heróis favoritos (até 3)
+          {t("favoriteHeroesLabel")}
         </span>
         <Button
           type="button"
@@ -134,7 +137,7 @@ export function HeroesEditor({
           disabled={pending}
         >
           {showPicker ? <X size={12} /> : <Pencil size={12} />}
-          {showPicker ? "Fechar" : "Escolher"}
+          {showPicker ? t("close") : t("choose")}
         </Button>
       </div>
 
@@ -163,6 +166,7 @@ export function PortraitEditor({
   const [pending, startTransition] = useTransition();
   const { toast } = useToast();
   const router = useRouter();
+  const t = useTranslations("perfil");
 
   function handleChange(slugs: string[]) {
     const slug = slugs[0];
@@ -171,12 +175,12 @@ export function PortraitEditor({
     startTransition(async () => {
       try {
         await updateHeroPortrait(slug);
-        toast({ type: "success", title: "Hero portrait atualizado." });
+        toast({ type: "success", title: t("portraitUpdatedToast") });
         router.refresh();
       } catch (e) {
         toast({
           type: "error",
-          title: "Erro ao salvar portrait.",
+          title: t("portraitSaveErr"),
           description: e instanceof Error ? e.message : undefined,
         });
       }
@@ -187,7 +191,7 @@ export function PortraitEditor({
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2">
         <span className="font-display text-sm font-semibold uppercase tracking-wide text-text-faded">
-          Hero portrait (background)
+          {t("heroPortraitLabel")}
         </span>
         <Button
           type="button"
@@ -197,7 +201,7 @@ export function PortraitEditor({
           disabled={pending}
         >
           {showPicker ? <X size={12} /> : <Pencil size={12} />}
-          {showPicker ? "Fechar" : "Trocar"}
+          {showPicker ? t("close") : t("swap")}
         </Button>
       </div>
 
@@ -224,10 +228,11 @@ export function AvatarEditor({
   initialAvatar: string | null;
 }) {
   const router = useRouter();
+  const t = useTranslations("perfil");
   return (
     <div className="space-y-2">
       <span className="font-display text-sm font-semibold uppercase tracking-wide text-text-faded">
-        Avatar customizado
+        {t("customAvatarLabel")}
       </span>
       <AvatarUpload
         userId={userId}

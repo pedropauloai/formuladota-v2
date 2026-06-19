@@ -7,6 +7,7 @@
 // de TIER_CONFIG (Místico), não mais "Grão-Mestre".
 
 import * as Icons from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import { HonorRankMedal } from "@/components/ui/honor-rank-medal";
 import { createClient } from "@/lib/supabase/server";
 import { displayName, displayAvatar } from "@/lib/identity";
@@ -19,6 +20,7 @@ import {
 } from "@/lib/levels";
 
 export async function TabProgresso() {
+  const t = await getTranslations("perfil");
   const supabase = await createClient();
   const {
     data: { user },
@@ -111,7 +113,7 @@ export async function TabProgresso() {
               <HonorRankMedal rank={tier} size="sm" glow={tier === "mistico"} />
               <h2 className="font-display text-2xl 2xl:text-3xl uppercase tracking-wide text-white">
                 {/* Número de nível = valor/progresso → GOLD (Pedro 2026-06-11) */}
-                Nível <span className="tabular-nums text-gold">{currentLevel}</span>
+                {t("level")} <span className="tabular-nums text-gold">{currentLevel}</span>
               </h2>
               <span className={`font-display text-sm 2xl:text-base font-semibold ${tierConfig.color}`}>
                 · {tierConfig.label}
@@ -125,7 +127,7 @@ export async function TabProgresso() {
                       {currentXp.toLocaleString("pt-BR")} /{" "}
                       {xpRequiredForNext.toLocaleString("pt-BR")}
                     </span>{" "}
-                    XP
+                    {t("xp")}
                   </span>
                   <span className="font-mono text-sm 2xl:text-base text-white/40">{progressPct}%</span>
                 </div>
@@ -136,25 +138,25 @@ export async function TabProgresso() {
                   />
                 </div>
                 <p className="mt-1.5 font-display font-semibold text-sm uppercase tracking-wide text-white/40">
-                  Próximo: Nível {currentLevel + 1}
+                  {t("nextLevel", { level: currentLevel + 1 })}
                 </p>
               </div>
             )}
             {currentLevel === 30 && (
               <p className={`mt-3 font-display font-semibold text-sm uppercase tracking-wide ${tierConfig.color}`}>
-                Nível máximo atingido — {tierConfig.label}
+                {t("maxLevelReached", { tier: tierConfig.label })}
               </p>
             )}
           </div>
           <div className="flex flex-col items-end gap-1">
             <p className="font-display font-semibold text-sm uppercase tracking-wide text-gold-muted">
-              Shards
+              {t("shards")}
             </p>
             <p className="font-display text-3xl 2xl:text-4xl tabular-nums text-gold">
               {shards.toLocaleString("pt-BR")}
             </p>
             <p className="font-display font-semibold text-sm uppercase tracking-wide tabular-nums text-white/40">
-              Total: {(userLevel?.total_shards_earned ?? 0).toLocaleString("pt-BR")}
+              {t("totalShards", { total: (userLevel?.total_shards_earned ?? 0).toLocaleString("pt-BR") })}
             </p>
           </div>
         </div>
@@ -163,16 +165,16 @@ export async function TabProgresso() {
       {/* Tiers grid */}
       <section>
         <h2 className="mb-4 font-display-condensed text-2xl uppercase leading-none tracking-wider text-text-muted">
-          Tiers
+          {t("tiers")}
         </h2>
         <div className="grid gap-3 grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
-          {(Object.keys(TIER_CONFIG) as Tier[]).map((t) => {
-            const cfg = TIER_CONFIG[t];
-            const isCurrent = t === tier;
+          {(Object.keys(TIER_CONFIG) as Tier[]).map((tierKey) => {
+            const cfg = TIER_CONFIG[tierKey];
+            const isCurrent = tierKey === tier;
             const isUnlocked = currentLevel >= cfg.levels[0];
             return (
               <div
-                key={t}
+                key={tierKey}
                 className={`rounded-md border bg-gradient-to-b ${cfg.bgGradient} p-4 text-center space-y-2 ${
                   isCurrent
                     ? `${cfg.borderColor} ring-2 ${cfg.ringColor}`
@@ -181,17 +183,17 @@ export async function TabProgresso() {
                       : "border-white/10 opacity-50"
                 }`}
               >
-                <HonorRankMedal rank={t} size="md" glow={isCurrent} className="mx-auto" />
+                <HonorRankMedal rank={tierKey} size="md" glow={isCurrent} className="mx-auto" />
                 <p className={`font-display text-sm uppercase tracking-widest ${cfg.color}`}>
                   {cfg.label}
                 </p>
                 <p className="font-display font-semibold text-sm uppercase tracking-wide text-white/50">
-                  Nível {cfg.levels[0]}
+                  {t("level")} {cfg.levels[0]}
                   {cfg.levels[0] !== cfg.levels[1] && ` – ${cfg.levels[1]}`}
                 </p>
                 {isCurrent && (
                   <p className="font-display font-semibold text-sm uppercase tracking-wide text-white">
-                    ATUAL
+                    {t("current")}
                   </p>
                 )}
               </div>
@@ -203,53 +205,53 @@ export async function TabProgresso() {
       {/* Tabela completa 30 níveis */}
       <section>
         <h2 className="mb-4 font-display-condensed text-2xl uppercase leading-none tracking-wider text-text-muted">
-          Tabela de níveis
+          {t("levelsTable")}
         </h2>
         <div className="rounded-md border border-border-subtle bg-bg-base overflow-hidden">
           <table className="w-full text-left">
             <thead className="border-b border-border-subtle bg-bg-elevated">
               <tr>
-                <Th>Nível</Th>
-                <Th align="right">XP necessário</Th>
-                <Th align="right">Total XP</Th>
-                <Th align="right">Shards</Th>
-                <Th>Tier</Th>
+                <Th>{t("tableLevel")}</Th>
+                <Th align="right">{t("tableXpRequired")}</Th>
+                <Th align="right">{t("tableTotalXp")}</Th>
+                <Th align="right">{t("tableShards")}</Th>
+                <Th>{t("tableTier")}</Th>
               </tr>
             </thead>
             <tbody>
-              {(thresholds ?? []).map((t) => {
-                const tCfg = TIER_CONFIG[getTierForLevel(t.level)];
+              {(thresholds ?? []).map((row) => {
+                const tCfg = TIER_CONFIG[getTierForLevel(row.level)];
                 const TIcon = tCfg.icon;
-                const isCurrent = t.level === currentLevel;
-                const isUnlocked = currentLevel >= t.level;
+                const isCurrent = row.level === currentLevel;
+                const isUnlocked = currentLevel >= row.level;
                 return (
                   <tr
-                    key={t.level}
+                    key={row.level}
                     className={`border-b border-white/5 last:border-0 ${
                       isCurrent ? "bg-brand-primary/15" : ""
                     } ${!isUnlocked ? "opacity-40" : ""}`}
                   >
                     <Td>
-                      <span className="font-display text-sm 2xl:text-base text-text-display">{t.level}</span>
+                      <span className="font-display text-sm 2xl:text-base text-text-display">{row.level}</span>
                       {isCurrent && (
                         <span className="ml-2 font-display font-semibold text-sm uppercase tracking-wide text-brand-primary">
-                          ATUAL
+                          {t("current")}
                         </span>
                       )}
                     </Td>
                     <Td align="right">
                       <span className="font-mono text-sm 2xl:text-base text-white/70">
-                        {t.xp_required.toLocaleString("pt-BR")}
+                        {row.xp_required.toLocaleString("pt-BR")}
                       </span>
                     </Td>
                     <Td align="right">
                       <span className="font-mono text-sm 2xl:text-base text-white/50">
-                        {t.total_xp.toLocaleString("pt-BR")}
+                        {row.total_xp.toLocaleString("pt-BR")}
                       </span>
                     </Td>
                     <Td align="right">
                       <span className="font-mono text-sm 2xl:text-base tabular-nums text-gold">
-                        {t.shards_reward.toLocaleString("pt-BR")}
+                        {row.shards_reward.toLocaleString("pt-BR")}
                       </span>
                     </Td>
                     <Td>
@@ -271,7 +273,7 @@ export async function TabProgresso() {
       {/* Histórico recente */}
       <section>
         <h2 className="mb-4 font-display-condensed text-2xl uppercase leading-none tracking-wider text-text-muted">
-          Histórico de XP <span className="text-white/40">(últimos 20)</span>
+          {t("xpHistory")} <span className="text-white/40">{t("xpHistoryLast")}</span>
         </h2>
         {events && events.length > 0 ? (
           <div className="rounded-md border border-border-subtle bg-bg-base divide-y divide-white/5">
@@ -301,15 +303,15 @@ export async function TabProgresso() {
                     </div>
                   </div>
                   <div className="flex items-center gap-3 shrink-0">
-                    <span className="font-display text-sm 2xl:text-base text-emerald-400">+{e.xp_amount} XP</span>
+                    <span className="font-display text-sm 2xl:text-base text-emerald-400">{t("xpGain", { amount: e.xp_amount })}</span>
                     {(e.shards_awarded ?? 0) > 0 && (
                       <span className="font-display text-sm 2xl:text-base tabular-nums text-gold">
-                        +{e.shards_awarded} shards
+                        {t("shardsGain", { amount: e.shards_awarded ?? 0 })}
                       </span>
                     )}
                     {leveledUp && (
                       <span className="font-display font-semibold text-sm uppercase tracking-wide text-brand-primary">
-                        Nível {e.level_before} → {e.level_after}
+                        {t("levelTransition", { from: e.level_before, to: e.level_after })}
                       </span>
                     )}
                   </div>
@@ -320,10 +322,10 @@ export async function TabProgresso() {
         ) : (
           <div className="rounded-md border border-dashed border-white/10 bg-black/30 p-8 text-center">
             <p className="font-display font-semibold text-sm uppercase tracking-wide text-white/40">
-              Nenhum evento de XP ainda
+              {t("noXpEvents")}
             </p>
             <p className="mt-2 font-sans text-sm 2xl:text-base text-white/50">
-              Responda a doutrina, jogue partidas ou conquiste badges pra ganhar XP.
+              {t("noXpEventsDesc")}
             </p>
           </div>
         )}

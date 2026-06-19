@@ -5,6 +5,7 @@
 //   SeasonRowActions — Ativar / Desativar / Encerrar (confirmação destrutiva)
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { Loader2, Plus, Power, Square, AlertCircle, CheckCircle } from "lucide-react";
 import {
   createSeason,
@@ -25,6 +26,7 @@ function Msg({ type, msg }: { type: "error" | "success"; msg: string }) {
 // ─── Form de criação ─────────────────────────────────────────────────────────
 
 export function CreateSeasonForm() {
+  const t = useTranslations("misc2");
   const [name, setName] = useState("");
   const [startedAt, setStartedAt] = useState("");
   const [prizePool, setPrizePool] = useState("");
@@ -37,7 +39,7 @@ export function CreateSeasonForm() {
     setSuccess(null);
     const pool = prizePool.trim() === "" ? undefined : Number(prizePool);
     if (pool !== undefined && (!Number.isFinite(pool) || pool < 0)) {
-      setError("Prize pool precisa ser número >= 0.");
+      setError(t("seasonPrizeInvalid"));
       return;
     }
     startTransition(async () => {
@@ -49,7 +51,7 @@ export function CreateSeasonForm() {
       if (!res.success) {
         setError(res.error);
       } else {
-        setSuccess("Season criada (inativa — ative quando quiser).");
+        setSuccess(t("seasonCreatedSuccess"));
         setName("");
         setStartedAt("");
         setPrizePool("");
@@ -65,22 +67,22 @@ export function CreateSeasonForm() {
   return (
     <div className="rounded-md border border-border-subtle bg-bg-elevated p-5 space-y-4">
       <h2 className="font-display text-sm uppercase tracking-widest text-text-display">
-        Criar season
+        {t("seasonCreateTitle")}
       </h2>
       <div className="grid gap-4 md:grid-cols-3">
         <div>
-          <label htmlFor="season-name" className={labelCls}>Nome</label>
+          <label htmlFor="season-name" className={labelCls}>{t("seasonNameLabel")}</label>
           <input
             id="season-name"
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="ex: Temporada 2 — Ascensão"
+            placeholder={t("seasonNamePlaceholder")}
             className={inputCls}
           />
         </div>
         <div>
-          <label htmlFor="season-start" className={labelCls}>Início (opcional)</label>
+          <label htmlFor="season-start" className={labelCls}>{t("seasonStartLabel")}</label>
           <input
             id="season-start"
             type="date"
@@ -90,7 +92,7 @@ export function CreateSeasonForm() {
           />
         </div>
         <div>
-          <label htmlFor="season-pool" className={labelCls}>Prize pool R$ (opcional)</label>
+          <label htmlFor="season-pool" className={labelCls}>{t("seasonPrizeLabel")}</label>
           <input
             id="season-pool"
             type="number"
@@ -114,7 +116,7 @@ export function CreateSeasonForm() {
         className="inline-flex items-center gap-2 rounded-md bg-brand-primary px-5 py-2 font-sans text-sm font-semibold uppercase tracking-widest text-white transition-colors hover:bg-brand-primary/80 disabled:opacity-50"
       >
         {pending ? <Loader2 size={12} className="animate-spin" /> : <Plus size={12} />}
-        Criar season
+        {t("seasonCreateCta")}
       </button>
     </div>
   );
@@ -124,25 +126,26 @@ export function CreateSeasonForm() {
 
 type RowActionKind = "activate" | "deactivate" | "end";
 
+// Texto (label/confirm) vem do i18n via labelKey/confirmKey; só as classes ficam aqui.
 const ROW_ACTION_COPY: Record<
   RowActionKind,
-  { label: string; confirm: string; cls: string; confirmCls: string }
+  { labelKey: string; confirmKey: string; cls: string; confirmCls: string }
 > = {
   activate: {
-    label: "Ativar",
-    confirm: "Ativar esta season? A season ativa atual será desativada.",
+    labelKey: "seasonActivate",
+    confirmKey: "seasonActivateConfirm",
     cls: "border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10",
     confirmCls: "bg-emerald-600 hover:bg-emerald-500",
   },
   deactivate: {
-    label: "Desativar",
-    confirm: "Desativar esta season? O sistema fica sem season ativa.",
+    labelKey: "seasonDeactivate",
+    confirmKey: "seasonDeactivateConfirm",
     cls: "border-amber-500/40 text-amber-400 hover:bg-amber-500/10",
     confirmCls: "bg-amber-600 hover:bg-amber-500",
   },
   end: {
-    label: "Encerrar",
-    confirm: "ENCERRAR esta season? Ação irreversível — ela não poderá ser reativada.",
+    labelKey: "seasonEnd",
+    confirmKey: "seasonEndConfirm",
     cls: "border-red-500/40 text-red-400 hover:bg-red-500/10",
     confirmCls: "bg-red-600 hover:bg-red-500",
   },
@@ -159,6 +162,7 @@ export function SeasonRowActions({
   active: boolean;
   ended: boolean;
 }) {
+  const t = useTranslations("misc2");
   const [confirming, setConfirming] = useState<RowActionKind | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -181,7 +185,7 @@ export function SeasonRowActions({
       : ["activate", "end"];
 
   if (available.length === 0) {
-    return <span className="font-mono text-sm text-text-faded">encerrada</span>;
+    return <span className="font-mono text-sm text-text-faded">{t("seasonEnded")}</span>;
   }
 
   return (
@@ -198,7 +202,7 @@ export function SeasonRowActions({
               className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 font-display font-semibold text-sm uppercase tracking-wide transition-colors disabled:opacity-50 ${copy.cls}`}
             >
               {kind === "end" ? <Square size={11} /> : <Power size={11} />}
-              {copy.label}
+              {t(copy.labelKey)}
             </button>
           );
         })}
@@ -218,10 +222,10 @@ export function SeasonRowActions({
             aria-modal="true"
           >
             <h2 className="font-display text-xl uppercase text-text-display mb-2">
-              {ROW_ACTION_COPY[confirming].label} — {seasonName}
+              {t("seasonDialogTitle", { action: t(ROW_ACTION_COPY[confirming].labelKey), name: seasonName })}
             </h2>
             <p className="font-sans text-sm text-text-body mb-6">
-              {ROW_ACTION_COPY[confirming].confirm}
+              {t(ROW_ACTION_COPY[confirming].confirmKey)}
             </p>
             <div className="flex items-center justify-end gap-3">
               <button
@@ -230,7 +234,7 @@ export function SeasonRowActions({
                 disabled={pending}
                 className="rounded-md px-4 py-2 font-sans text-sm uppercase tracking-widest text-text-faded hover:text-text-muted transition-colors"
               >
-                Cancelar
+                {t("cancel")}
               </button>
               <button
                 type="button"
@@ -239,7 +243,7 @@ export function SeasonRowActions({
                 className={`inline-flex items-center gap-2 rounded-md px-5 py-2 font-sans text-sm font-semibold uppercase tracking-widest text-white transition-colors disabled:opacity-50 ${ROW_ACTION_COPY[confirming].confirmCls}`}
               >
                 {pending && <Loader2 size={12} className="animate-spin" />}
-                Confirmar
+                {t("confirm")}
               </button>
             </div>
           </div>

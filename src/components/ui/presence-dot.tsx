@@ -14,6 +14,7 @@
 import { forwardRef, type HTMLAttributes } from "react";
 import { m } from "motion/react";
 import { cva, type VariantProps } from "class-variance-authority";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { useMotionSafeBool } from "@/lib/motion/hooks";
 
@@ -49,19 +50,6 @@ const STATUS_COLORS: Record<PresenceStatus, string> = {
   offline:    "bg-neutral-600",     /* cinza Discord */
   "in-queue": "bg-brand-primary",   /* #ac1d0e — vermelho FORMULADOTA, aguardando fila */
   "in-match": "bg-play-primary",    /* #5b8e3a — verde matchmaking, em partida ativa */
-};
-
-/**
- * Rótulos legíveis por humanos (PT-BR) para cada status.
- * Usados em aria-label e no label inline (showLabel).
- */
-export const STATUS_LABELS: Record<PresenceStatus, string> = {
-  online:     "Online",
-  away:       "Ausente",
-  dnd:        "Não perturbar",
-  offline:    "Offline",
-  "in-queue": "Na fila",
-  "in-match": "Em partida",
 };
 
 /**
@@ -132,8 +120,10 @@ export interface PresenceDotProps
  */
 export const PresenceDot = forwardRef<HTMLSpanElement, PresenceDotProps>(
   ({ className, size, status, showLabel = false, ...props }, ref) => {
+    const t = useTranslations("ui");
     const motionSafe = useMotionSafeBool();
     const isActive = ACTIVE_STATUSES.includes(status);
+    const statusLabel = t(`presence.${status}`);
 
     // Dot — animado quando estado ativo + motion habilitado
     const dot =
@@ -156,13 +146,13 @@ export const PresenceDot = forwardRef<HTMLSpanElement, PresenceDotProps>(
         <span
           ref={ref}
           className={cn("inline-flex items-center gap-1.5", className)}
-          aria-label={STATUS_LABELS[status]}
+          aria-label={statusLabel}
           role="status"
           {...props}
         >
           {dot}
           <span className="text-sm text-text-muted leading-none">
-            {STATUS_LABELS[status]}
+            {statusLabel}
           </span>
         </span>
       );
@@ -172,7 +162,7 @@ export const PresenceDot = forwardRef<HTMLSpanElement, PresenceDotProps>(
       <span
         ref={ref}
         className={cn("inline-flex items-center", className)}
-        aria-label={STATUS_LABELS[status]}
+        aria-label={statusLabel}
         role="status"
         {...props}
       >

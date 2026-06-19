@@ -30,6 +30,7 @@ import {
   Shield,
   type LucideProps,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 
 // ---------------------------------------------------------------------------
@@ -108,15 +109,6 @@ const TIER_ICONS: Record<MembershipTier, React.FC<LucideProps>> = {
   fundador:  Crown,     /* coroa — fundador, os primeiros 50 */
 };
 
-/** Rótulos de acessibilidade PT-BR por tier */
-const TIER_LABELS: Record<MembershipTier, string> = {
-  visitante:  "Visitante",
-  aluno:      "Aluno",
-  veterano:   "Veterano",
-  consagrado: "Consagrado",
-  fundador:   "Fundador",
-};
-
 // ---------------------------------------------------------------------------
 // Componente
 // ---------------------------------------------------------------------------
@@ -134,13 +126,15 @@ const TIER_LABELS: Record<MembershipTier, string> = {
  * <MembershipBadge tier="fundador" />
  */
 export function MembershipBadge({ tier, className }: MembershipBadgeProps) {
+  const t = useTranslations("ui");
   const Icon = TIER_ICONS[tier];
+  const label = t(`membership.${tier}`);
 
   return (
     <span
       className={cn(membershipBadgeVariants({ tier }), className)}
-      aria-label={TIER_LABELS[tier]}
-      title={TIER_LABELS[tier]}
+      aria-label={label}
+      title={label}
     >
       <Icon
         /* Ícone cabe no círculo de 20px — 10px é seguro */

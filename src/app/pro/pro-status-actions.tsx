@@ -9,6 +9,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Pause, Play, Edit3, Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { pausePro, resumePro } from "@/app/actions/pro-management";
@@ -24,6 +25,7 @@ interface ProStatusActionsProps {
  * Chama Server Actions e faz router.refresh() após sucesso.
  */
 export function ProStatusActions({ isActive }: ProStatusActionsProps) {
+  const t = useTranslations("proCockpit");
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [feedback, setFeedback] = useState<{
@@ -45,10 +47,10 @@ export function ProStatusActions({ isActive }: ProStatusActionsProps) {
     startTransition(async () => {
       const result = await pausePro();
       if (result.success) {
-        showFeedback("success", "Status PRO pausado. Sua fila foi fechada automaticamente.");
+        showFeedback("success", t("pausedSuccess"));
         router.refresh();
       } else {
-        showFeedback("error", result.error ?? "Erro ao pausar status.");
+        showFeedback("error", result.error ?? t("pauseError"));
       }
     });
   }
@@ -57,10 +59,10 @@ export function ProStatusActions({ isActive }: ProStatusActionsProps) {
     startTransition(async () => {
       const result = await resumePro();
       if (result.success) {
-        showFeedback("success", "Status PRO retomado.");
+        showFeedback("success", t("resumedSuccess"));
         router.refresh();
       } else {
-        showFeedback("error", result.error ?? "Erro ao retomar status.");
+        showFeedback("error", result.error ?? t("resumeError"));
       }
     });
   }
@@ -70,10 +72,10 @@ export function ProStatusActions({ isActive }: ProStatusActionsProps) {
       const result = await updateMyBio(bioText);
       if (result.success) {
         setEditingBio(false);
-        showFeedback("success", "Bio atualizada.");
+        showFeedback("success", t("bioUpdated"));
         router.refresh();
       } else {
-        showFeedback("error", result.error ?? "Erro ao salvar bio.");
+        showFeedback("error", result.error ?? t("bioSaveError"));
       }
     });
   }
@@ -95,7 +97,7 @@ export function ProStatusActions({ isActive }: ProStatusActionsProps) {
             )}
           >
             <Pause size={14} aria-hidden="true" />
-            {isPending ? "Pausando..." : "Pausar status PRO"}
+            {isPending ? t("pausing") : t("pauseProStatus")}
           </button>
         ) : (
           /* Botão Retomar */
@@ -110,7 +112,7 @@ export function ProStatusActions({ isActive }: ProStatusActionsProps) {
             )}
           >
             <Play size={14} aria-hidden="true" />
-            {isPending ? "Retomando..." : "Retomar status PRO"}
+            {isPending ? t("resuming") : t("resumeProStatus")}
           </button>
         )}
 
@@ -126,7 +128,7 @@ export function ProStatusActions({ isActive }: ProStatusActionsProps) {
             )}
           >
             <Edit3 size={14} aria-hidden="true" />
-            Editar bio
+            {t("editBio")}
           </button>
         )}
       </div>
@@ -141,7 +143,7 @@ export function ProStatusActions({ isActive }: ProStatusActionsProps) {
               "resize-none focus:outline-none focus:ring-1 focus:ring-brand-primary/50",
               "min-h-[80px]"
             )}
-            placeholder="Descreva seu estilo de coaching, especialidades e o que os alunos podem esperar..."
+            placeholder={t("bioPlaceholder")}
             value={bioText}
             onChange={(e) => setBioText(e.target.value)}
             maxLength={500}
@@ -157,7 +159,7 @@ export function ProStatusActions({ isActive }: ProStatusActionsProps) {
                 className="flex items-center gap-1 rounded px-3 py-1.5 text-sm text-text-muted hover:text-text-body transition-colors"
               >
                 <X size={12} aria-hidden="true" />
-                Cancelar
+                {t("cancel")}
               </button>
               <button
                 type="button"
@@ -170,7 +172,7 @@ export function ProStatusActions({ isActive }: ProStatusActionsProps) {
                 )}
               >
                 <Check size={12} aria-hidden="true" />
-                {isBioPending ? "Salvando..." : "Salvar bio"}
+                {isBioPending ? t("saving") : t("saveBio")}
               </button>
             </div>
           </div>
