@@ -3,14 +3,22 @@
 // HubCenter — a CAPA do client (/ e /dashboard), visitante E logado.
 //
 // É a TESE do produto, estampada e cabendo na tela SEM scroll (Pedro 2026-06-18,
-// "é o principal do produto"): o ambiente competitivo da Valve é quebrado
+// "é o principal do produto"). Otimizada pra 1920x1080 (preenche o canvas) e
+// responsiva pra baixo. Tese: o ambiente competitivo da Valve é quebrado
 // (anonimato, topo fechado, regiões isoladas) e a FormulaDota é a resposta
-// (identidade, temporadas, ranking único). A versão completa vive em /por-que.
+// (identidade, temporadas, ranking único). Aprofundamento em /por-que.
 //
 // Client Component (passa refs de LucideIcon pros pilares — não serializável).
 
 import Link from "next/link";
-import { Swords, ShieldX, Fingerprint, RotateCcw, Trophy } from "lucide-react";
+import {
+  Swords,
+  ShieldX,
+  ArrowDown,
+  Fingerprint,
+  RotateCcw,
+  Trophy,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { signInWithDiscord } from "@/app/login/actions";
 
@@ -21,26 +29,25 @@ export interface HubCenterProps {
   prosOnlineCount: number;
 }
 
-// Os 3 pilares — falha da Valve → resposta da FormulaDota. Compactos pra caber
-// na capa sem scroll; o aprofundamento mora em /por-que.
+// Os 3 pilares — falha da Valve → resposta da FormulaDota. Aprofundamento /por-que.
 const PILLARS = [
   {
     problem: "Anonimato",
     solution: "Identidade real",
     icon: Fingerprint,
-    line: "Nome público, reputação atrelada. Sem máscara, sem smurf.",
+    line: "Nome público, reputação atrelada. Sem máscara, sem smurf, sem fugir das consequências.",
   },
   {
     problem: "Topo fechado · MMR inflado",
     solution: "Temporadas que reiniciam",
     icon: RotateCcw,
-    line: "Todo ciclo recomeça. O nº 1 volta a ser alcançável.",
+    line: "Todo ciclo recomeça do zero. O nº 1 volta a ser alcançável — inclusive pra quem chegou agora.",
   },
   {
-    problem: "Rankings por região",
+    problem: "Rankings isolados por região",
     solution: "Ranking único global",
     icon: Trophy,
-    line: "Uma corrida só. O melhor é o melhor do mundo.",
+    line: "Uma corrida só, sem fronteira. O melhor é o melhor do mundo — não “o melhor da sua região”.",
   },
 ] as const;
 
@@ -51,49 +58,76 @@ export function HubCenter({ isVisitor, prosOnlineCount }: HubCenterProps) {
       : `${prosOnlineCount} ${prosOnlineCount === 1 ? "PRO" : "PROs"} em fila agora`;
 
   return (
-    <section className="mx-auto flex min-h-full w-full max-w-5xl flex-col justify-center gap-5 px-6 py-4 xl:px-10">
-      {/* TESE — headline + subtítulo */}
-      <header className="space-y-2">
-        <p className="font-display text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
+    <section className="mx-auto flex min-h-full w-full max-w-6xl flex-col justify-center gap-7 px-6 py-8 2xl:gap-10 2xl:px-10 2xl:py-10">
+      {/* TESE — headline gigante + subtítulo + prova social */}
+      <header className="space-y-3 2xl:space-y-5">
+        <p className="font-display text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary 2xl:text-base">
           Por que FormulaDota
         </p>
-        <h1 className="font-display text-3xl font-bold uppercase leading-[0.95] tracking-tight text-text-display sm:text-4xl 2xl:text-5xl">
+        <h1 className="font-display text-4xl font-bold uppercase leading-[0.92] tracking-tight text-text-display sm:text-5xl xl:text-6xl 2xl:text-8xl">
           Não é você.{" "}
           <span
             className="text-brand-primary"
-            style={{ textShadow: "0 0 24px var(--color-brand-primary-glow)" }}
+            style={{ textShadow: "0 0 32px var(--color-brand-primary-glow)" }}
           >
             É o sistema.
           </span>
         </h1>
-        <p className="max-w-2xl font-display text-base font-semibold text-text-body xl:text-lg">
+        <p className="max-w-3xl font-display text-base font-semibold leading-snug text-text-body xl:text-lg 2xl:text-2xl">
           O Dota é um dos melhores jogos do mundo. O que quebra é o ambiente
           competitivo da Valve — até as lendas vão embora. Aqui, a cultura tem regras.
         </p>
+
+        {/* Prova social do Grubby — só em telas grandes (onde há espaço). */}
+        <blockquote className="hidden border-l-2 border-brand-primary/50 pl-4 2xl:block">
+          <p className="font-display text-lg italic text-text-muted 2xl:text-xl">
+            “Eu amo Dota 2. Mas isso pode ser o fim.”
+          </p>
+          <p className="mt-1 font-display text-xs font-semibold uppercase tracking-[0.2em] text-text-faded 2xl:text-sm">
+            Grubby — lenda dos esports, ao explicar por que parou de jogar
+          </p>
+        </blockquote>
       </header>
 
       {/* 3 PILARES — falha da Valve → resposta FormulaDota */}
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-3 2xl:gap-6">
         {PILLARS.map((p) => {
           const Icon = p.icon;
           return (
             <div
               key={p.solution}
-              className="rounded-md border border-border-subtle bg-bg-base/60 p-3"
+              className="flex flex-col rounded-lg border border-border-subtle bg-bg-base/60 p-4 2xl:p-6"
             >
-              <p className="flex items-center gap-1.5 font-display text-[11px] font-semibold uppercase tracking-wide text-text-faded">
-                <ShieldX size={12} aria-hidden="true" className="shrink-0" />
-                <span className="truncate">Na Valve: {p.problem}</span>
+              {/* Na Valve (problema) */}
+              <div className="flex items-center gap-1.5 text-text-faded">
+                <ShieldX size={13} aria-hidden="true" className="shrink-0" />
+                <span className="font-display text-[11px] font-semibold uppercase tracking-wide 2xl:text-xs">
+                  Na Valve
+                </span>
+              </div>
+              <p className="mt-0.5 font-display text-sm font-semibold text-text-muted line-through decoration-error/50 2xl:text-base">
+                {p.problem}
               </p>
-              <p className="mt-1.5 flex items-center gap-1.5 font-display text-base font-bold uppercase tracking-wide text-text-display">
+
+              {/* Transformação */}
+              <ArrowDown
+                size={16}
+                aria-hidden="true"
+                className="my-2 text-brand-primary 2xl:my-3"
+              />
+
+              {/* Na FormulaDota (resposta) */}
+              <div className="flex items-center gap-2">
                 <Icon
-                  size={15}
+                  size={18}
                   aria-hidden="true"
-                  className="shrink-0 text-brand-primary"
+                  className="shrink-0 text-brand-primary 2xl:size-6"
                 />
-                {p.solution}
-              </p>
-              <p className="mt-1 font-body text-xs leading-snug text-text-muted">
+                <p className="font-display text-base font-bold uppercase leading-tight tracking-wide text-text-display 2xl:text-xl">
+                  {p.solution}
+                </p>
+              </div>
+              <p className="mt-1.5 font-body text-xs leading-snug text-text-muted 2xl:mt-2.5 2xl:text-sm">
                 {p.line}
               </p>
             </div>
@@ -102,7 +136,7 @@ export function HubCenter({ isVisitor, prosOnlineCount }: HubCenterProps) {
       </div>
 
       {/* CTA + aprofundamento + pulso da comunidade */}
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
         {isVisitor ? (
           <form action={signInWithDiscord}>
             <Button
@@ -125,12 +159,12 @@ export function HubCenter({ isVisitor, prosOnlineCount }: HubCenterProps) {
         )}
         <Link
           href="/por-que"
-          className="font-display text-sm font-semibold text-brand-primary transition-colors hover:text-text-display"
+          className="font-display text-sm font-semibold text-brand-primary transition-colors hover:text-text-display 2xl:text-base"
         >
           Entenda o porquê →
         </Link>
         <span
-          className="font-display text-sm font-semibold text-text-muted"
+          className="font-display text-sm font-semibold text-text-muted 2xl:text-base"
           role="status"
         >
           {pulso}
