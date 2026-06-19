@@ -29,6 +29,7 @@ interface Props {
 
 export function PermissionQuizModal({ open, modalidade, onClose, onGranted }: Props) {
   const t = useTranslations("doutrina");
+  const tq = useTranslations("quiz");
   const [loading, setLoading] = useState(true);
   const [pendingIds, setPendingIds] = useState<string[]>([]);
   const [answeredCount, setAnsweredCount] = useState(0);
@@ -175,7 +176,7 @@ export function PermissionQuizModal({ open, modalidade, onClose, onGranted }: Pr
         ) : (
           <article className="space-y-5">
             <h2 className="font-display text-lg font-bold leading-snug tracking-wide text-text-display">
-              {current.prompt}
+              {tq(`q.${current.id.replace(/\./g, "_")}.prompt`)}
             </h2>
 
             <ul className="space-y-2.5" role="list">
@@ -219,7 +220,7 @@ export function PermissionQuizModal({ open, modalidade, onClose, onGranted }: Pr
                         )}
                       </span>
                       <span className="font-body text-sm leading-relaxed text-text-body">
-                        {opt.text}
+                        {tq(`q.${current.id.replace(/\./g, "_")}.${opt.id}`)}
                       </span>
                     </button>
                   </li>
@@ -238,7 +239,7 @@ export function PermissionQuizModal({ open, modalidade, onClose, onGranted }: Pr
                   {gotIt ? t("feedbackCorrect") : t("feedbackWrong")}
                 </p>
                 <p className="font-body text-sm leading-relaxed text-text-body">
-                  {current.rationale}
+                  {tq(`q.${current.id.replace(/\./g, "_")}.rationale`)}
                 </p>
               </div>
             )}

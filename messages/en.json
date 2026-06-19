@@ -1743,5 +1743,1067 @@
     "prosComingSoon": "Coming soon",
     "prosNextCertified": "Next certified PRO",
     "prosBecomePro": "Want to become a PRO? Talk to Pedro on the official Discord. Network in formation — only players culturally aligned with the methodology get in."
+  },
+  "quiz": {
+    "q": {
+      "Q1_1": {
+        "prompt": "You lose a match and you're convinced the problem was your pos 5 who fed bot lane the whole game. What does the Fórmula tell you to do?",
+        "a": "Report the ally and move on to the next game without thinking about it any further.",
+        "b": "Take responsibility yourself, 100% of the time, and look for where you could have done better.",
+        "c": "Note down the ally's name to avoid him in the future.",
+        "d": "Accept that some matches are the team's fault and that's fine.",
+        "rationale": "The responsibility is always yours, 100% of the time — blaming others is the main source of conflict."
+      },
+      "Q1_2": {
+        "prompt": "Why does blaming others stall your evolution?",
+        "a": "Because the report system punishes those who complain too much.",
+        "b": "Because while you're looking at others, you don't look at yourself and you fail to see where you can improve through self-criticism.",
+        "c": "Because allies notice it and play worse on purpose.",
+        "d": "Because it lowers your GPM in the next match.",
+        "rationale": "Stopping looking at others and looking at yourself is what unlocks self-criticism."
+      },
+      "Q1_3": {
+        "prompt": "Which phrase sums up the First Rule of the Fórmula do Dota de Corrida?",
+        "a": "Frags aren't everything.",
+        "b": "Always play Core.",
+        "c": "It's NEVER the other person's fault.",
+        "d": "Mute the chat and play solo.",
+        "rationale": "Principle 1 / First Rule (CANONICAL_QUOTES.firstRule)."
+      },
+      "Q2_1": {
+        "prompt": "You expected your mid to gank your lane, he never came, and now you're irritated. According to the Fórmula, what is the root of this irritation?",
+        "a": "The mid played badly and you're right to be irritated.",
+        "b": "An expectation you projected onto an outcome that didn't depend on you alone.",
+        "c": "Matchmaking put you with a weak team.",
+        "d": "A lack of voice communication on the team.",
+        "rationale": "Frustration is born from unmet expectations — you project an outcome that doesn't depend on you alone."
+      },
+      "Q2_2": {
+        "prompt": "How does the Fórmula tell you to train emotional intelligence within matches?",
+        "a": "By taking a deep breath before every teamfight.",
+        "b": "By recognizing when you're creating expectations of others and training the habit of not getting attached to them.",
+        "c": "By always muting voice chat.",
+        "d": "By avoiding playing when you're tired.",
+        "rationale": "The exercise is to recognize the expectation and not get attached to it — this strengthens emotional intelligence."
+      },
+      "Q2_3": {
+        "prompt": "Which of these is a direct example of an unmet expectation cited in the doctrine?",
+        "a": "Expecting the server to have no lag.",
+        "b": "Expecting allies to pick the heroes you'd want them to.",
+        "c": "Expecting to win every match of the day.",
+        "d": "Expecting the enemy to miss an ability.",
+        "rationale": "Expecting allies to pick certain heroes, make plays your way, or give help that never comes."
+      },
+      "Q3_1": {
+        "prompt": "Your ally makes a play that to you is clearly wrong, but he seemed confident. What does cognitive parallax explain about this?",
+        "a": "That he was trolling on purpose.",
+        "b": "That each player interprets the game through their own perspective — what looks right to you may not make sense to him in that moment.",
+        "c": "That he has lower MMR than you.",
+        "d": "That you should take command of the team.",
+        "rationale": "Cognitive parallax — there is no absolute truth in any given play; each person interprets it through their own perspective."
+      },
+      "Q3_2": {
+        "prompt": "Accepting cognitive parallax produces what practical effect in your match?",
+        "a": "It automatically increases your farm.",
+        "b": "Fewer internal and external conflicts, and better performance.",
+        "c": "It makes allies agree with you.",
+        "d": "It reduces the number of enemy smurfs.",
+        "rationale": "The more you accept this reality, the fewer conflicts arise and the better your performance."
+      },
+      "Q3_3": {
+        "prompt": "Which statement is aligned with cognitive parallax?",
+        "a": "There is an absolutely correct play in every situation and everyone should see it.",
+        "b": "There is no absolute truth in any given play — it depends on each person's perspective.",
+        "c": "Whoever has more MMR is always right in their read.",
+        "d": "The correct read is that of the player with the best KDA.",
+        "rationale": "There is no absolute truth in any given play."
+      },
+      "Q4_1": {
+        "prompt": "You made a serious positioning mistake and died. What attitude does the Fórmula expect?",
+        "a": "Avoid taking risks for the rest of the match so you don't mess up again.",
+        "b": "Recognize the mistake and learn from it, without fear — because the mistake is the first step of evolution.",
+        "c": "Hide the mistake from the team so you don't get called out.",
+        "d": "Switch heroes next game to run away from the problem.",
+        "rationale": "Don't be afraid of mistakes — they are the first step toward evolution, as long as they're recognized."
+      },
+      "Q4_2": {
+        "prompt": "According to the doctrine, what is the condition for a mistake to become evolution?",
+        "a": "That no one notices the mistake.",
+        "b": "That you recognize the mistake and learn from it.",
+        "c": "That you win the match anyway.",
+        "d": "That the mistake never happens again.",
+        "rationale": "The mistake is the first step of evolution as long as you recognize it and learn from it."
+      },
+      "Q5_1": {
+        "prompt": "The match is lost no matter what — an unbalanced draft, nothing you do changes the outcome. What is the correct mindset?",
+        "a": "Call gg and abandon so you don't waste time.",
+        "b": "See the defeat as a point of evolution and keep your consistency — losing is part of it, evolving is a choice.",
+        "c": "Feed to end the match faster.",
+        "d": "Blame the draft and move on to the next game without reflecting.",
+        "rationale": "Every defeat is a point of evolution; losing is part of it, evolving is a choice."
+      },
+      "Q5_2": {
+        "prompt": "There are matches where defeat is inevitable. What must this NOT affect?",
+        "a": "Your mood that day.",
+        "b": "Your consistency.",
+        "c": "Your hero choice.",
+        "d": "Your farm rate.",
+        "rationale": "The inevitable defeat cannot and must not affect your consistency."
+      },
+      "Q5_3": {
+        "prompt": "Which phrase sums up how the Fórmula treats defeat?",
+        "a": "Defeat is bad luck.",
+        "b": "Either you win, or you learn.",
+        "c": "Defeat is avoided by playing safe.",
+        "d": "Defeat is the team's fault.",
+        "rationale": "Principle 5 (CANONICAL_QUOTES.winOrLearn)."
+      },
+      "Q6_1": {
+        "prompt": "You've mastered the methodology and now feel superior to the other 9 in the match. How does the Fórmula tell you to interpret this superiority?",
+        "a": "As permission to scold the allies who play worse.",
+        "b": "As responsibility: knowing more means it's now you who carries the victory.",
+        "c": "As a reason to climb faster without effort.",
+        "d": "As a right to command the team through chat.",
+        "rationale": "It's not arrogance, it's responsibility — knowing more means it's you who carries the victory."
+      },
+      "Q6_2": {
+        "prompt": "In which three dimensions do you become superior to the other 9 players, according to the doctrine?",
+        "a": "Farm, kills, and damage.",
+        "b": "Knowledge, emotional control, and adaptability.",
+        "c": "MMR, hero, and items.",
+        "d": "Reflexes, aim, and mechanics.",
+        "rationale": "Principle 6 (CANONICAL_QUOTES.topPercent). Superior in knowledge, emotional control, and adaptability."
+      },
+      "Q6_3": {
+        "prompt": "The doctrine states that 99.5% of players don't know how to play Dota 2. What is the correct use of this awareness?",
+        "a": "Justifying toxic attitudes toward the worst players.",
+        "b": "Understanding that you shouldn't expect allies to know what you know, and taking responsibility for the victory.",
+        "c": "Proving that you deserve a higher MMR now.",
+        "d": "Asking to switch teams every match.",
+        "rationale": "The awareness of the 0.5% changes how you view allies and opponents — it becomes responsibility, not arrogance."
+      },
+      "Q7_1": {
+        "prompt": "At the end of the match you had a KDA of 15/2/10 and you want to evaluate whether you played well. What does the Fórmula tell you to really check?",
+        "a": "The kill count, which proves dominance.",
+        "b": "The net worth (gold) accumulated or extracted from the map relative to time.",
+        "c": "The team's final score.",
+        "d": "How many towers you took down.",
+        "rationale": "Frags/KDA are just a consequence; the real KPI is net worth over time."
+      },
+      "Q7_2": {
+        "prompt": "Why is the clock your main guide for decisions?",
+        "a": "Because the match has a time limit.",
+        "b": "Because racing is about time, and real performance is net worth relative to time.",
+        "c": "Because smurfs show up at specific times.",
+        "d": "Because the respawn depends on the clock.",
+        "rationale": "Racing is time, time is the clock — the clock guides decisions because the KPI is gold/time."
+      },
+      "Q7_3": {
+        "prompt": "Where do you check the essential net worth per player data after the match?",
+        "a": "On the kill scoreboard.",
+        "b": "In the second option of the graphs in the match history.",
+        "c": "Only on the OpenDota profile.",
+        "d": "In the post-game chat.",
+        "rationale": "Progress evaluation concept. Net worth per player is in the second option of the history graphs."
+      },
+      "Q8_1": {
+        "prompt": "You play Core. What are the gold targets at 10 and at 20 minutes?",
+        "a": "2,500 at 10 and 5,000 at 20.",
+        "b": "5,000 at 10 and 10,000 at 20.",
+        "c": "3,000 at 10 and 6,000 at 20.",
+        "d": "10,000 at 10 and 20,000 at 20.",
+        "rationale": "Core: 5,000 at 10 min, 10,000 at 20 min."
+      },
+      "Q8_2": {
+        "prompt": "You play Support. What is your gold target?",
+        "a": "The same as the Core.",
+        "b": "Half of the Core: 2,500 at 10 min and 5,000 at 20 min.",
+        "c": "There is no gold target for Support.",
+        "d": "Double the Core, because it buys more consumables.",
+        "rationale": "Support: half of the Core — 2,500 at 10, 5,000 at 20."
+      },
+      "Q8_3": {
+        "prompt": "What GPM (gold per minute) value do these targets equate to, and what does it represent?",
+        "a": "250 GPM, the average of the majority.",
+        "b": "500 GPM, the minimum acceptable for anyone who wants to extract the maximum from the map.",
+        "c": "1,000 GPM, the ceiling of an Immortal.",
+        "d": "100 GPM, the floor for Support.",
+        "rationale": "500 GPM is the minimum acceptable for maximum resource extraction."
+      },
+      "Q9_1": {
+        "prompt": "Why does the Fórmula state that playing Core is easier than playing Support?",
+        "a": "Because the Core dies less.",
+        "b": "Because the more net worth you accumulate in less time, the simpler your decisions become.",
+        "c": "Because the Support depends on the team and the Core doesn't play as a team.",
+        "d": "Because the Core doesn't need to follow the clock.",
+        "rationale": "More net worth in less time makes decisions simpler."
+      },
+      "Q9_2": {
+        "prompt": "With more resources accumulated, what is the Core able to do?",
+        "a": "Ignore the objective of the game.",
+        "b": "Access better items, have greater impact in fights, and dictate the pace of the match.",
+        "c": "Climb MMR without winning matches.",
+        "d": "Play without paying attention to the clock.",
+        "rationale": "More resources = better items, greater impact, control of the pace."
+      },
+      "Q10_1": {
+        "prompt": "You haven't reached Immortal yet and want to evolve as fast as possible. Which role does the Fórmula recommend and until when?",
+        "a": "Hard support, until you reach Legend.",
+        "b": "Mid, until you reach at least Divine.",
+        "c": "Offlane, until Ancient.",
+        "d": "Safe lane, until Immortal.",
+        "rationale": "Play Mid until you reach at least Divine."
+      },
+      "Q10_2": {
+        "prompt": "What is the main advantage of Mid for evolution, according to the doctrine?",
+        "a": "It's the safest lane.",
+        "b": "You don't share experience with anyone — you can reach 1 level per minute (the level race).",
+        "c": "It has more regeneration runes.",
+        "d": "It's the lane where smurfs don't show up.",
+        "rationale": "Mid doesn't share XP; it allows 1 level per minute — the level race."
+      },
+      "Q10_3": {
+        "prompt": "Why is Mid called the fastest and most efficient path to evolve?",
+        "a": "Because it gives more kills.",
+        "b": "Because it develops your overall sense of Dota 2 and the ability to extract the maximum resources in the shortest time.",
+        "c": "Because it guarantees victory.",
+        "d": "Because you don't need to farm.",
+        "rationale": "Mid develops your overall sense and resource extraction in the shortest time."
+      },
+      "Q11_1": {
+        "prompt": "What are the only two setups the Fórmula recommends for applying the method?",
+        "a": "A duo in the safe lane or a trio in the jungle.",
+        "b": "100% solo Mid (with chat muted) or a group of 5 people.",
+        "c": "Any ranked queue works.",
+        "d": "Solo in any lane or a group of 3.",
+        "rationale": "Only 100% solo Mid or a group of 5."
+      },
+      "Q11_2": {
+        "prompt": "When playing 100% solo Mid, what does the doctrine tell you to do in the social settings?",
+        "a": "Leave the chat on to make calls.",
+        "b": "Mute 100% — select the option to not display anyone's messages.",
+        "c": "Mute only the voice chat.",
+        "d": "Mute only the toxic allies.",
+        "rationale": "Principle 11 / disadvantages of solo Mid. All players 100% muted."
+      },
+      "Q11_3": {
+        "prompt": "Why do combinations outside of \"solo Mid\" or \"group of 5\" stall your evolution?",
+        "a": "Because they give less MMR per win.",
+        "b": "Because they mix coordination with isolation.",
+        "c": "Because they attract more smurfs.",
+        "d": "Because they reduce your GPM.",
+        "rationale": "Any other combination mixes coordination with isolation."
+      },
+      "Q12_1": {
+        "prompt": "There's a clearly stronger smurf on the enemy team. What is the impact of this on your MMR and your evolution?",
+        "a": "Your MMR drops more if you lose to a smurf.",
+        "b": "None — the smurf doesn't change your MMR or your evolution process.",
+        "c": "You should abandon the match.",
+        "d": "You lose season XP.",
+        "rationale": "The presence of smurfs doesn't change MMR or the evolution process."
+      },
+      "Q12_2": {
+        "prompt": "How does the Fórmula tell you to face smurfs?",
+        "a": "As an injustice of matchmaking.",
+        "b": "As a challenge — you only improve by facing better people; either you win, or you learn.",
+        "c": "As a reason to stop playing for the day.",
+        "d": "As a sign that you're in the wrong MMR.",
+        "rationale": "The smurf poses a challenge; even when losing, either you win, or you learn."
+      },
+      "Q13_1": {
+        "prompt": "With a 70% win rate over 100 matches, what is the expected MMR balance?",
+        "a": "+500 MMR.",
+        "b": "+1000 MMR (40 net wins × 25 MMR).",
+        "c": "+2000 MMR.",
+        "d": "It depends only on luck.",
+        "rationale": "70 wins - 30 losses = 40 net × 25 MMR = +1000."
+      },
+      "Q13_2": {
+        "prompt": "Playing 5 matches a day with a 70% win rate, how long does it take to climb 1000 MMR?",
+        "a": "In 7 days.",
+        "b": "In 20 days (100 matches).",
+        "c": "In 2 months.",
+        "d": "In 100 days.",
+        "rationale": "100 matches at 5/day = 20 days = +1000 MMR."
+      },
+      "Q13_3": {
+        "prompt": "What is the secret for the math of the 70% to materialize?",
+        "a": "Always picking the strongest hero in the meta.",
+        "b": "Maintaining consistency and following the method.",
+        "c": "Avoiding matches against smurfs.",
+        "d": "Playing only when you're inspired.",
+        "rationale": "The secret is to maintain consistency and follow the method."
+      },
+      "Q14_1": {
+        "prompt": "What are the MMR ranges for Guardian and the start of Divine, according to the doctrine?",
+        "a": "Guardian 0–800; Divine from 3000.",
+        "b": "Guardian 800–1800; Divine from 4600.",
+        "c": "Guardian 1800–2600; Divine from 5000.",
+        "d": "Guardian 800–1800; Divine from 4000.",
+        "rationale": "Guardian between 800 and 1800; Divine starts at 4600."
+      },
+      "Q14_2": {
+        "prompt": "Maintaining a 70% win rate, how many matches and how long does it take from Guardian to Divine?",
+        "a": "About 100 matches, 1 month.",
+        "b": "About 300 matches, roughly 2 months (playing 5/day).",
+        "c": "About 500 matches, 6 months.",
+        "d": "About 1000 matches, 1 year.",
+        "rationale": "~300 matches, ~2 months at 5/day."
+      },
+      "Q14_3": {
+        "prompt": "What transforms \"months of frustration\" into real, tangible progress?",
+        "a": "Switching servers.",
+        "b": "Method and discipline.",
+        "c": "Buying a calibrated account.",
+        "d": "Waiting for the meta to change.",
+        "rationale": "With method and discipline, frustration turns into real progress."
+      },
+      "Q15_1": {
+        "prompt": "After a loss you type \"mid diff\" in chat and close the game. Which anti-pattern did you just commit?",
+        "a": "Early Surrender.",
+        "b": "Blame Culture.",
+        "c": "Toxic Communication.",
+        "d": "Inflated Ego.",
+        "rationale": "\"mid diff\", \"pos 5 bot\", \"noob carry\" are the hallmarks of Blame Culture."
+      },
+      "Q15_2": {
+        "prompt": "Which sentence is a classic symptom of Blame Culture?",
+        "a": "\"What could I have done differently?\"",
+        "b": "\"I played well, it's the team that's bad.\"",
+        "c": "\"I'll farm so I can carry the next fight.\"",
+        "d": "\"I mispositioned, I'll adjust.\"",
+        "rationale": "The \"I played well, the team is bad\" mindset."
+      },
+      "Q15_3": {
+        "prompt": "What defines the core of Blame Culture?",
+        "a": "Complaining about the server.",
+        "b": "The inability to take responsibility for your own decisions.",
+        "c": "Playing poorly mechanically.",
+        "d": "Losing many matches in a row.",
+        "rationale": "The inability to take responsibility for your own decisions."
+      },
+      "Q16_1": {
+        "prompt": "At 12 minutes the team is behind and an ally types \"gg go next\". Which anti-pattern is this?",
+        "a": "Rage Quit.",
+        "b": "Early Surrender.",
+        "c": "Systemic Victimhood.",
+        "d": "Anti-team.",
+        "rationale": "By the 10-15 min mark they're already typing \"gg go next\"."
+      },
+      "Q16_2": {
+        "prompt": "Which behavior characterizes Early Surrender?",
+        "a": "Politely asking for help in chat.",
+        "b": "Refusing to fight or to try to turn the match around because of early disadvantages.",
+        "c": "Buying defensive items early.",
+        "d": "Switching lanes in the early game.",
+        "rationale": "They refuse to fight, pinning the loss on small mistakes or early disadvantages."
+      },
+      "Q16_3": {
+        "prompt": "The match is rough at 15 minutes. What conduct aligns with the doctrine (the opposite of Early Surrender)?",
+        "a": "Type \"it's over\" and play carelessly.",
+        "b": "Hold your consistency and keep trying to turn it around — losing is part of it, surrendering early is not.",
+        "c": "Go farm the jungle and ignore the team.",
+        "d": "Leave the match.",
+        "rationale": "Anti-pattern 2 (counterpoint to Principle 5). An early disadvantage never justifies giving up."
+      },
+      "Q17_1": {
+        "prompt": "You always build Midas on offlane Spirit Breaker, no matter the situation. Which anti-pattern is this?",
+        "a": "Hero Simulator.",
+        "b": "Forcing Inappropriate Strategies.",
+        "c": "Inflated Ego.",
+        "d": "Role Fights.",
+        "rationale": "Canonical example: \"I always build Midas on offlane Spirit Breaker\"."
+      },
+      "Q17_2": {
+        "prompt": "What is the core flaw of Forcing Inappropriate Strategies?",
+        "a": "Choosing to play support of your own free will.",
+        "b": "Insisting on off-meta tactics or heroes without mastery, refusing to adapt to what the match demands.",
+        "c": "Following the meta blindly.",
+        "d": "Buying expensive items.",
+        "rationale": "Insistence on off-meta tactics/heroes without mastery, plus a failure to adapt."
+      },
+      "Q18_1": {
+        "prompt": "A player only uses chat to curse out the team and ignores every ping. Which anti-pattern is this?",
+        "a": "Anti-team.",
+        "b": "Lack of Communication or Toxic Communication.",
+        "c": "Inflated Ego.",
+        "d": "Rage Quit.",
+        "rationale": "Ignoring chat/pings, or using them only to insult."
+      },
+      "Q18_2": {
+        "prompt": "Which behavior is an example of toxic communication according to the doctrine?",
+        "a": "Pinging the map to warn of danger.",
+        "b": "Spamming chat/voice with insults and disrupting the team.",
+        "c": "Apologizing for a mistake.",
+        "d": "Staying silent while playing solo mid fully muted.",
+        "rationale": "Chat/voice spammers who insult and get in the team's way."
+      },
+      "Q19_1": {
+        "prompt": "After dying three times, a player goes to farm the jungle and stops interacting with the team for the rest of the match. Which anti-pattern is this?",
+        "a": "Intentional Feeding.",
+        "b": "Rage Quit / Disguised AFK.",
+        "c": "Early Surrender.",
+        "d": "Blame Culture.",
+        "rationale": "After dying, they go farm the jungle and stop interacting with the team."
+      },
+      "Q19_2": {
+        "prompt": "What is the hallmark of Disguised AFK?",
+        "a": "Buying the wrong items.",
+        "b": "Leaving the keyboard and waiting for the match to end, or isolating without interacting.",
+        "c": "Debating tactics in chat.",
+        "d": "Playing too aggressively.",
+        "rationale": "They leave the keyboard and wait for the match to end."
+      },
+      "Q20_1": {
+        "prompt": "A player didn't get the lane he wanted and starts dying on purpose to end the game faster. Which anti-pattern is this, and what is the consequence in a coached match?",
+        "a": "Early Surrender; a warning.",
+        "b": "Intentional Feeding; goes STRAIGHT to a 14-day suspension.",
+        "c": "Anti-team; a ban.",
+        "d": "Rage Quit; none.",
+        "rationale": "Anti-pattern 6 (severe). Feeding in a coached match goes straight to a 14-day suspension."
+      },
+      "Q20_2": {
+        "prompt": "Which mindset describes Intentional Feeding?",
+        "a": "\"I'll farm so I can carry.\"",
+        "b": "\"If they don't do what I want, I'll feed until this ends.\"",
+        "c": "\"I'll ping to coordinate.\"",
+        "d": "\"I messed up, I'll adjust.\"",
+        "rationale": "The mindset of feeding out of wounded ego or a tantrum."
+      },
+      "Q20_3": {
+        "prompt": "Why is Intentional Feeding classified as severe (not minor)?",
+        "a": "Because it disrupts the farm of a single player.",
+        "b": "Because it deliberately sabotages the match — it's griefing, and it leads to direct suspension.",
+        "c": "Because it lowers the team's GPM.",
+        "d": "Because it triggers automatic Valve reports.",
+        "rationale": "Anti-pattern 6 (severity: severe, direct severity: suspension)."
+      },
+      "Q21_1": {
+        "prompt": "\"I deserve to be in Divine, but my team holds me back here.\" Which anti-pattern does this line reveal?",
+        "a": "Systemic Victimhood.",
+        "b": "Inflated Ego.",
+        "c": "Blame Culture.",
+        "d": "Anti-team.",
+        "rationale": "\"I deserve to be in Ancient/Divine, but my team holds me back.\""
+      },
+      "Q21_2": {
+        "prompt": "What is the danger of the Inflated Ego according to the doctrine?",
+        "a": "It makes the player buy the wrong items.",
+        "b": "It becomes a justification for toxic behavior.",
+        "c": "It increases queue time.",
+        "d": "It lowers XP per minute.",
+        "rationale": "They use ego as a justification for toxic behavior."
+      },
+      "Q22_1": {
+        "prompt": "Mid is already taken, but another player insists on going mid too (\"2 mids\"). Which anti-pattern is this?",
+        "a": "Forcing Inappropriate Strategies.",
+        "b": "Role and Lane Fights.",
+        "c": "Inflated Ego.",
+        "d": "Anti-team.",
+        "rationale": "Fighting over a lane/role that's already taken (2 mids, 3 carries)."
+      },
+      "Q22_2": {
+        "prompt": "Which mindset characterizes Role and Lane Fights?",
+        "a": "\"I play wherever the team needs me.\"",
+        "b": "\"If it's not my way, it won't be anyone's way.\"",
+        "c": "\"I'll take support today.\"",
+        "d": "\"Let whoever called it first have mid.\"",
+        "rationale": "The \"if it's not my way, it won't be anyone's way\" mindset."
+      },
+      "Q23_1": {
+        "prompt": "In a 5-stack, a player refuses to listen to any call and plays only for himself, ignoring the team. Which anti-pattern is this?",
+        "a": "Inflated Ego.",
+        "b": "Disrespecting Leadership (Anti-team).",
+        "c": "Role Fights.",
+        "d": "Toxic Communication.",
+        "rationale": "Anti-pattern 9 (severe). They refuse to listen to calls and play selfishly, ignoring the team."
+      },
+      "Q23_2": {
+        "prompt": "An ally makes a polite suggestion and the player rejects it out of pure pride. Which anti-pattern is at play?",
+        "a": "Cognitive parallax.",
+        "b": "Disrespecting Leadership (Anti-team).",
+        "c": "Systemic Victimhood.",
+        "d": "Hero Simulator.",
+        "rationale": "They won't accept suggestions, even polite ones."
+      },
+      "Q23_3": {
+        "prompt": "Why is Anti-team classified as severe?",
+        "a": "Because it lowers individual farm.",
+        "b": "Because it deliberately sabotages the team's coordination — it leads to direct suspension.",
+        "c": "Because it ruins just one fight.",
+        "d": "Because it triggers a Valve report.",
+        "rationale": "Anti-pattern 9 (severity: severe)."
+      },
+      "Q24_1": {
+        "prompt": "A player types \"Brazilians only know how to feed\" in chat. What is the classification and the consequence?",
+        "a": "Toxic Communication; a warning.",
+        "b": "Prejudice/Xenophobia/Racism; immediate ban, no warning and no second chance.",
+        "c": "Inflated Ego; a 7-day suspension.",
+        "d": "Blame Culture; a small HONOR loss.",
+        "rationale": "Anti-pattern 10 (critical, direct severity: ban). Immediate ban, no warning."
+      },
+      "Q24_2": {
+        "prompt": "Which of these are examples of the Prejudice anti-pattern cited in the doctrine?",
+        "a": "\"Play better next time.\"",
+        "b": "\"Russians are all trolls\", \"laggy Peruvian\", \"Brazilians only know how to feed\".",
+        "c": "\"mid diff\", \"noob carry\".",
+        "d": "\"gg go next\".",
+        "rationale": "Offensive remarks about nationalities, accents, and play styles."
+      },
+      "Q24_3": {
+        "prompt": "It's the only anti-pattern in the matrix that jumps straight to a ban. Why?",
+        "a": "Because it's the most common.",
+        "b": "Because it's classified as critical — it offends dignity and destroys the environment, leaving no room for a repeat offense.",
+        "c": "Because Valve already bans it automatically.",
+        "d": "Because it lowers the team's win rate.",
+        "rationale": "Anti-pattern 10 (severity: critical). The only one with direct severity: ban."
+      },
+      "Q25_1": {
+        "prompt": "A player has perfect command of his hero's abilities, but reacts to the opponent's plays instead of extracting net worth in the shortest time. Which anti-pattern is this?",
+        "a": "Forcing Inappropriate Strategies.",
+        "b": "Hero Simulator.",
+        "c": "Inflated Ego.",
+        "d": "Early Surrender.",
+        "rationale": "Knows how to use the hero but plays with no game objectives, reacting instead of extracting net worth."
+      },
+      "Q25_2": {
+        "prompt": "Which game objectives does the Hero Simulator ignore?",
+        "a": "Kills and assists.",
+        "b": "The clock, net worth, runes, and the experience altar.",
+        "c": "Voice communication.",
+        "d": "Reporting toxic players.",
+        "rationale": "Plays with no game objectives — the clock, net worth, runes, the experience altar."
+      },
+      "Q25_3": {
+        "prompt": "What data point did Valve publicly acknowledge, related to the Hero Simulator?",
+        "a": "That 50% of players troll.",
+        "b": "That 99.5% of players don't know how to play Dota 2 — they play on autopilot.",
+        "c": "That matchmaking is unfair.",
+        "d": "That smurfs dominate ranked.",
+        "rationale": "Valve acknowledged that 99.5% play on autopilot (hero simulator)."
+      },
+      "Q26_1": {
+        "prompt": "You sit waiting on the support's pull and the mid's gank that never come, and you base your play on that. Which ACTIVE anti-pattern did you commit?",
+        "a": "Systemic Victimhood.",
+        "b": "Placing Expectations on Others.",
+        "c": "Anti-team.",
+        "d": "Blame Culture.",
+        "rationale": "The active behavior of projecting outcomes onto allies (the pull, the gank, the help that never comes)."
+      },
+      "Q26_2": {
+        "prompt": "What is the difference between Principle 2 (\"frustration is born of expectations\") and Anti-pattern 12?",
+        "a": "They are the same thing.",
+        "b": "The principle is the mental reaction to frustration; the anti-pattern is the ACTIVE BEHAVIOR of projecting outcomes onto others.",
+        "c": "The principle is about the opponent; the anti-pattern is about the team.",
+        "d": "The principle is technical; the anti-pattern is about farm.",
+        "rationale": "Distinct from the mental principle — here it's the act of creating the expectation."
+      },
+      "Q26_3": {
+        "prompt": "On whom CAN (and should) you place expectations, according to the doctrine?",
+        "a": "On the allies who play well.",
+        "b": "On yourself — on other people, never.",
+        "c": "On the weakest opponent.",
+        "d": "On the match's outcome.",
+        "rationale": "You can and should place expectations on yourself; on others, never."
+      },
+      "Q27_1": {
+        "prompt": "For weeks a player keeps repeating that \"matchmaking is out to get me\" and \"Dota is unfair to me\". Which anti-pattern is this?",
+        "a": "Blame Culture.",
+        "b": "Systemic Victimhood.",
+        "c": "Inflated Ego.",
+        "d": "Early Surrender.",
+        "rationale": "A chronic victim identity — \"matchmaking is out to get me\", \"Dota is unfair to me\"."
+      },
+      "Q27_2": {
+        "prompt": "What is the difference between Blame Culture (#1) and Systemic Victimhood (#13)?",
+        "a": "There is no difference.",
+        "b": "Blame Culture is a one-off reaction to a single match; Systemic Victimhood is a recurring pattern, a chronic identity.",
+        "c": "One is technical and the other is behavioral.",
+        "d": "One only happens in a 5-stack.",
+        "rationale": "Distinct from Blame Culture in that it's a chronic identity, not a one-off reaction."
+      },
+      "Q27_3": {
+        "prompt": "What is the cost of building a victim identity?",
+        "a": "Losing MMR faster.",
+        "b": "Building a shield against your own growth every time you put the blame on others.",
+        "c": "Getting more enemy smurfs.",
+        "d": "Increasing queue time.",
+        "rationale": "Putting the blame on others builds a shield against your own growth."
+      },
+      "Q28_1": {
+        "prompt": "You lost a match and went straight to the next one without reflecting. Which anti-pattern of OMISSION did you commit?",
+        "a": "Early Surrender.",
+        "b": "Refusal to Audit After a Loss.",
+        "c": "Systemic Victimhood.",
+        "d": "Rage Quit.",
+        "rationale": "An anti-pattern of omission: failing to ask the pivot question after each loss."
+      },
+      "Q28_2": {
+        "prompt": "What is the canonical pivot question you must ask after each loss?",
+        "a": "\"Who was the worst on the team?\"",
+        "b": "\"What could I have done differently to win this match, even with the team playing badly?\"",
+        "c": "\"Is it worth continuing to play today?\"",
+        "d": "\"Was the matchmaking fair?\"",
+        "rationale": "The canonical post-loss question."
+      },
+      "Q28_3": {
+        "prompt": "What happens to a loss when there is no audit?",
+        "a": "It automatically turns into a win next time.",
+        "b": "It stops being a stepping stone and becomes a cycle — without an audit there is no learning.",
+        "c": "It gets reversed by the system.",
+        "d": "It doesn't affect your progress.",
+        "rationale": "Without an audit there is no learning; the loss stops being a stepping stone and becomes a cycle."
+      },
+      "Q29_1": {
+        "prompt": "Someone joins FormulaDota saying they just want to \"have fun and relax\". What does the doctrine say about that?",
+        "a": "They're welcome, as long as they're not toxic.",
+        "b": "It violates the cultural contract — this is an environment to learn, improve, and compete, not to have fun.",
+        "c": "They can play, but only in the open lobby.",
+        "d": "It depends on their medal.",
+        "rationale": "Seeking fun violates the cultural contract — this is a place to learn, improve, and compete."
+      },
+      "Q29_2": {
+        "prompt": "According to the doctrine, what is the relationship between competition and fun?",
+        "a": "They are the same thing.",
+        "b": "Competition is not tied to fun — whoever wants to have fun plays turbo or casual, not FormulaDota.",
+        "c": "Fun should come before competition.",
+        "d": "Without fun there is no progress.",
+        "rationale": "Competition is not tied to fun; whoever wants fun plays turbo or casual."
+      },
+      "Q29_3": {
+        "prompt": "Why is this mismatch of purpose treated as an anti-pattern?",
+        "a": "Because it reduces the number of players.",
+        "b": "Because entering a competitive space looking for fun breaks the cultural agreement of the environment.",
+        "c": "Because fun gets in the way of farm.",
+        "d": "Because Valve forbids it.",
+        "rationale": "A mismatch of purpose violates the cultural contract."
+      },
+      "QM1_1": {
+        "prompt": "Why is the methodology called the \"Fórmula do Dota de Corrida\"?",
+        "a": "Because you need to play fast and click quickly.",
+        "b": "Because a race is about time, time is the clock, and real performance is net worth relative to time.",
+        "c": "Because it's a race against the smurfs.",
+        "d": "Because it's a race to get more kills than the enemy.",
+        "rationale": "Race = time = clock; the KPI is gold/time."
+      },
+      "QM1_2": {
+        "prompt": "The Fórmula do Dota de Corrida is best described as:",
+        "a": "A specific item build.",
+        "b": "A shift in mindset — a way of seeing Dota with clarity, objectivity, and focus on what matters.",
+        "c": "A rotation of meta heroes.",
+        "d": "A keyboard macro.",
+        "rationale": "\"It's not just a strategy or build. It's a shift in mindset.\""
+      },
+      "QM1_3": {
+        "prompt": "What is the central premise of the lesson, stated right at the start?",
+        "a": "To entertain you with flashy plays.",
+        "b": "To change you from within — in the way you think, play, and react to Dota.",
+        "c": "To teach you mechanical combos.",
+        "d": "To give you a calibrated account.",
+        "rationale": "CANONICAL_QUOTES.opening. \"The idea here isn't to entertain you — it's to change you from within.\""
+      },
+      "QM2_1": {
+        "prompt": "A player says he did well because he got a lot of kills. How does the Fórmula correct this view?",
+        "a": "Kills are the only indicator that matters.",
+        "b": "Frags/KDA don't define real performance — they're merely a consequence; the real indicator is net worth per time.",
+        "c": "Kills matter more than towers.",
+        "d": "KDA defines your medal.",
+        "rationale": "Concept M2 / Principle 7. Frags/KDA are a consequence, not the KPI."
+      },
+      "QM2_2": {
+        "prompt": "If KDA doesn't measure performance, what does?",
+        "a": "The number of assists.",
+        "b": "The net worth (gold) extracted from the map relative to time.",
+        "c": "The number of towers.",
+        "d": "The match duration.",
+        "rationale": "Concept M2 / Principle 7. The true indicator is net worth per time."
+      },
+      "QM3_1": {
+        "prompt": "You're deciding whether to rotate or keep farming. What is the main guide for the decision, according to the Fórmula?",
+        "a": "What the team asks for in chat.",
+        "b": "The clock — because performance is measured by net worth relative to time.",
+        "c": "The enemy's kill count.",
+        "d": "Your gut feeling in the moment.",
+        "rationale": "Concept M3 / Principle 7. The clock is the main guide for decisions."
+      },
+      "QM3_2": {
+        "prompt": "What does it mean, in practice, to use the clock as your guide?",
+        "a": "Always ending the match in the shortest time possible.",
+        "b": "Making decisions based on how much net worth you should have at that minute.",
+        "c": "Playing only short matches.",
+        "d": "Ignoring the early game.",
+        "rationale": "Concept M3 / Principle 8. The targets are anchored to time (10 and 20 min)."
+      },
+      "QM4_1": {
+        "prompt": "The match is over. What habit does the Fórmula tell you to build from now on?",
+        "a": "Watching the entire replay.",
+        "b": "Checking the net worth per player in the second option of the match history graphs, comparing it against the targets.",
+        "c": "Noting down how many kills you got.",
+        "d": "Reporting the toxic players.",
+        "rationale": "Check the net worth per player in the match history."
+      },
+      "QM4_2": {
+        "prompt": "Are the gold targets always achievable no matter what happens?",
+        "a": "Yes, they're guaranteed.",
+        "b": "They're fully achievable under ideal conditions; in a real match the other 9 can help or hinder, depending on your choices.",
+        "c": "No, they depend purely on luck.",
+        "d": "They're only achievable playing as Support.",
+        "rationale": "Values achievable under ideal conditions; a real match depends on your choices and the other 9 players."
+      },
+      "QM4_3": {
+        "prompt": "Why does comparing your net worth against the 500 GPM target matter?",
+        "a": "To gain more MMR per match.",
+        "b": "Because it objectively shows whether you extracted the minimum acceptable amount from the map's resources.",
+        "c": "Because it determines who was MVP.",
+        "d": "Because Valve requires it.",
+        "rationale": "Concept M4 / Principle 8. 500 GPM is the minimum acceptable extraction."
+      },
+      "QM5_1": {
+        "prompt": "You decide to play 100% solo Mid. What is the structural advantage of that, according to the doctrine?",
+        "a": "You always win.",
+        "b": "Your opponents tend to be easier and you start with a knowledge advantage over the 4 allies and the 5 enemies.",
+        "c": "You don't need to farm.",
+        "d": "You gain more MMR per win.",
+        "rationale": "Easier opponents; you start with a knowledge advantage."
+      },
+      "QM5_2": {
+        "prompt": "What is the accepted downside of muted solo Mid, and how should you face it?",
+        "a": "You can't farm; accept playing as Support.",
+        "b": "Communication is nearly nonexistent — you do what you need without counting on help; if someone helps, it's a bonus.",
+        "c": "You lose MMR faster.",
+        "d": "You never face smurfs.",
+        "rationale": "Communication is nearly nonexistent; help is a bonus, and the norm is to get none."
+      },
+      "QM5_3": {
+        "prompt": "In solo Mid, what is the realistic expectation about your allies?",
+        "a": "That they follow your calls.",
+        "b": "That the norm is for them not to help, and often to get in the way — any help is a bonus.",
+        "c": "That they have the same knowledge as you.",
+        "d": "That they win their own lane by themselves.",
+        "rationale": "Concept M5 (crosses with Anti-pattern 12). The norm is for allies not to help; help is a bonus."
+      },
+      "QM6_1": {
+        "prompt": "What is the advantage of playing in a 5-stack, according to the doctrine?",
+        "a": "You always face disorganized teams.",
+        "b": "You don't have to play exclusively Mid and can practice the role you like most, with healthier communication.",
+        "c": "You automatically gain more gold per minute.",
+        "d": "Smurfs don't enter 5-stack matches.",
+        "rationale": "You can practice your preferred role; healthier communication."
+      },
+      "QM6_2": {
+        "prompt": "What is the downside of a 5-stack?",
+        "a": "You can't use chat.",
+        "b": "The matches tend to be harder, because the enemy team will also be an organized, coordinated 5-stack.",
+        "c": "You lose access to Mid.",
+        "d": "You can't farm.",
+        "rationale": "The opponent is also a coordinated 5-stack."
+      },
+      "QM7_1": {
+        "prompt": "What win rate do most players maintain, and from what value is it already considered above average?",
+        "a": "40%, and above average from 50%.",
+        "b": "50%, and above average from 55%.",
+        "c": "60%, and above average from 70%.",
+        "d": "70%, and above average from 80%.",
+        "rationale": "Most players sit at 50%; from 55% on it's already above average."
+      },
+      "QM7_2": {
+        "prompt": "What is the main analytical indicator of your matches, according to the Fórmula's planning?",
+        "a": "The number of kills per match.",
+        "b": "Your win/loss rate (win rate).",
+        "c": "Your average GPM.",
+        "d": "The number of matches played.",
+        "rationale": "The main indicator is the win/loss rate."
+      },
+      "QM7_3": {
+        "prompt": "A considerable swing in your win rate (up or down) means what?",
+        "a": "That matchmaking is bugged.",
+        "b": "That something is different — it's a signal to be analyzed.",
+        "c": "That you should switch heroes.",
+        "d": "That you should stop playing.",
+        "rationale": "Any considerable swing is a sign that something is different."
+      },
+      "QM8_1": {
+        "prompt": "Valve stated that 99.5% of players don't know how to play Dota 2. How does that change the way you view your allies?",
+        "a": "You should pressure them to play like you do.",
+        "b": "You shouldn't expect them to know what you know.",
+        "c": "You should report them.",
+        "d": "You should carry everyone alone while shouting in chat.",
+        "rationale": "Don't expect allies to know what you know."
+      },
+      "QM8_2": {
+        "prompt": "Being among the 0.5% changes how you view your opponents. How?",
+        "a": "You should underestimate them and play relaxed.",
+        "b": "By understanding that they don't have your game sense.",
+        "c": "By thinking they're all smurfs.",
+        "d": "By avoiding fighting them.",
+        "rationale": "Opponents don't have your game sense."
+      },
+      "QM9_1": {
+        "prompt": "What factors can make a loss inevitable, according to the doctrine?",
+        "a": "Only your own mistake.",
+        "b": "Toxic teammates, unbalanced drafts, individual mistakes, or simply a match outside your control.",
+        "c": "Only the presence of smurfs.",
+        "d": "Only server lag.",
+        "rationale": "Lists the factors of an inevitable loss."
+      },
+      "QM9_2": {
+        "prompt": "Even with inevitable losses, what makes MMR rise as a natural consequence?",
+        "a": "Switching servers.",
+        "b": "Learning from every loss and keeping your focus on the long term.",
+        "c": "Playing more matches per day.",
+        "d": "Picking stronger heroes.",
+        "rationale": "Learning from every loss + long-term focus = MMR rises as a consequence."
+      },
+      "QM10_1": {
+        "prompt": "When you join FormulaDota, what does the competitive mindset demand of you at certain moments?",
+        "a": "Playing only the heroes you like.",
+        "b": "Setting aside habits or preferences that don't contribute to your growth, focusing on what's necessary.",
+        "c": "Playing as many matches as possible.",
+        "d": "Avoiding hard matches.",
+        "rationale": "CANONICAL_QUOTES.competitiveMindset. Set aside habits that don't contribute."
+      },
+      "QM10_2": {
+        "prompt": "What does NOT matter for starting to apply the Fórmula, according to the doctrine?",
+        "a": "Your willingness to change.",
+        "b": "What medal you're at now, how many matches you play per day, or how many you've already played in the game.",
+        "c": "Following the method consistently.",
+        "d": "Doing the post-loss audit.",
+        "rationale": "Your current medal, frequency, or match history don't matter — what matters is applying it consistently."
+      },
+      "QM11_1": {
+        "prompt": "What is FormulaDota's stated mission?",
+        "a": "To make Pedro Paulo the #1 player.",
+        "b": "To develop at least 200 players to the Immortal medal, in a 100% legitimate way.",
+        "c": "To create the largest Dota community in Brazil.",
+        "d": "To sell calibrated accounts.",
+        "rationale": "CANONICAL_QUOTES.mission. Develop 200 Immortal players in a 100% legitimate way."
+      },
+      "QM11_2": {
+        "prompt": "Does achieving the mission depend solely on the material and the method?",
+        "a": "Yes, just follow the content.",
+        "b": "No — it also depends on you, on how determined you are to reach the goal.",
+        "c": "It depends solely on matchmaking luck.",
+        "d": "It depends on the medal you started at.",
+        "rationale": "The material provides the knowledge; the result depends on your determination."
+      },
+      "QM12_1": {
+        "prompt": "What does the doctrine call the \"level race\"?",
+        "a": "Climbing a medal in a single season.",
+        "b": "Reaching up to 1 level per minute in Mid, since you don't share XP with anyone.",
+        "c": "Winning a match in under 20 minutes.",
+        "d": "Leveling up on the FormulaDota platform.",
+        "rationale": "Principle 10 / Concept M12. In Mid, 1 level per minute — the level race."
+      },
+      "QM12_2": {
+        "prompt": "Why does Mid enable the level race?",
+        "a": "Because it has more creeps.",
+        "b": "Because you don't share XP with anyone in the lane.",
+        "c": "Because Mid XP is doubled.",
+        "d": "Because the opponents are bots.",
+        "rationale": "Principle 10 / Concept M12. Not sharing XP is what allows 1 level per minute."
+      },
+      "QM13_1": {
+        "prompt": "Where is the largest concentration of Dota 2 players, according to the cited data?",
+        "a": "Immortal and Divine.",
+        "b": "Guardian, Crusader, and Archon (each with over 1.25 million players).",
+        "c": "Legend and Ancient.",
+        "d": "Spread evenly across all of them.",
+        "rationale": "The largest concentration is in Guardian, Crusader, and Archon."
+      },
+      "QM13_2": {
+        "prompt": "Who is the focus of the Fórmula's content?",
+        "a": "Only Immortal players.",
+        "b": "Players who want to climb MMR, with the goal of turning them into at least Divine.",
+        "c": "Only beginners who have never played.",
+        "d": "Only Support players.",
+        "rationale": "Aimed at those who want to climb MMR to at least Divine."
+      },
+      "QM14_1": {
+        "prompt": "According to the doctrine, what happens when you stop looking at others and start looking at yourself?",
+        "a": "You become more frustrated.",
+        "b": "You start to see where you can improve through self-criticism.",
+        "c": "You play more defensively.",
+        "d": "You lose less MMR.",
+        "rationale": "Principle 1 / Concept M14. Looking at yourself opens up self-criticism and reveals where to improve."
+      },
+      "QM14_2": {
+        "prompt": "What are self-criticism and self-analysis for in the Fórmula?",
+        "a": "To justify losses.",
+        "b": "To build real growth in Dota 2, grounded in self-responsibility.",
+        "c": "To compare your KDA with others'.",
+        "d": "To decide when to stop playing.",
+        "rationale": "Concept M14. Self-criticism/self-analysis are the engine of growth; victory is born from self-responsibility."
+      },
+      "QL1_1": {
+        "prompt": "A teammate says he doesn't play the meta because \"it's just hype and opinion.\" How does the Fórmula correct this view?",
+        "a": "Agree — the meta changes every week and isn't worth following.",
+        "b": "Explain that meta is the Most Effective Tactic Available: the pattern that recurs most and holds the highest win rate over time, validated by data, not by guesswork.",
+        "c": "Say the meta only matters in pro matches.",
+        "d": "Say everyone plays however they prefer and that's fine.",
+        "rationale": "Meta = Most Effective Tactic Available; it's the highest-win-rate pattern measured by data, not opinion."
+      },
+      "QL1_2": {
+        "prompt": "You want to know what's working in the current patch before playing. Where does the Fórmula tell you to read the meta?",
+        "a": "In the comments on YouTube videos.",
+        "b": "On dota2protracker.com, the reference for reading the patch's meta.",
+        "c": "In the chat from your previous match.",
+        "d": "In your own intuition about which heroes look strong.",
+        "rationale": "The meta is presented and measured on dota2protracker.com."
+      },
+      "QL1_3": {
+        "prompt": "Why is ignoring the meta considered a fundamentals error, and not just a preference?",
+        "a": "Because Valve punishes anyone who strays from the meta.",
+        "b": "Because ignoring the meta means ignoring the highest-win-rate pattern — it's betting opinion against data, going against the Fórmula's deterministic-chaos logic.",
+        "c": "Because teammates will report anyone who doesn't follow the meta.",
+        "d": "Because off-meta heroes can't farm.",
+        "rationale": "Playing against the meta bets opinion against data; it ties into deterministic chaos / Fibonacci (METHODOLOGY.md §4)."
+      },
+      "QL2_1": {
+        "prompt": "You want to take a hero into an off-standard position. What, according to the Fórmula, enables this?",
+        "a": "The hero being in the meta at that moment.",
+        "b": "Being a specialist on that hero — it's not the position that limits the hero, it's proven specialization that unlocks it.",
+        "c": "The team agreeing in chat before the game.",
+        "d": "Having a specific item that unlocks the role.",
+        "rationale": "Position doesn't limit the hero; what enables an off-standard hero is proven specialization."
+      },
+      "QL2_2": {
+        "prompt": "The Fórmula defines an exact number for being a \"specialist\" on a hero. What is it, and how is it verified?",
+        "a": "100 matches, verifiable in the in-game profile.",
+        "b": "1000 matches on the same hero, verifiable via the OpenDota API.",
+        "c": "500 matches, proven by the medal.",
+        "d": "300 matches, logged on the FormulaDota platform.",
+        "rationale": "Specialist = 1000 matches on the same hero, verifiable via the OpenDota API."
+      },
+      "QL2_3": {
+        "prompt": "Where is the mastery that makes you a specialist on a hero built?",
+        "a": "In turbo and casual matches.",
+        "b": "In ranked (the official game) — the platform recognizes and uses what ranked proves; it doesn't replace that path.",
+        "c": "Only by practicing against bots.",
+        "d": "By watching pro replays.",
+        "rationale": "Mastery is built by playing ranked; the platform recognizes what ranked proves."
+      },
+      "QL3_1": {
+        "prompt": "Why is there a statistical pattern in which the Radiant win more playing top and the Dire win more playing bot?",
+        "a": "Because the top creeps give more gold.",
+        "b": "Because taking the enemy's 1st tower on their vulnerable lane opens up a lot of farm space and hands you control of the high ground, along with the vision it provides.",
+        "c": "Because the server favors those sides.",
+        "d": "Because the top-lane heroes are stronger.",
+        "rationale": "Taking the 1st tower on the vulnerable lane opens farm space and grants high ground control."
+      },
+      "QL3_2": {
+        "prompt": "Why does controlling the high ground give an advantage, in terms of Dota 2 mechanics?",
+        "a": "Because heroes on the high ground get more regeneration.",
+        "b": "Because the fog mechanic means whoever is below can't see whoever is above — you always seize the initiative against an opponent with no vision.",
+        "c": "Because the high ground has more neutral creeps.",
+        "d": "Because damage is higher attacking from above.",
+        "rationale": "The high ground exists for area control because of fog; whoever is below can't see whoever is above."
+      },
+      "QL3_3": {
+        "prompt": "In the first-shot analogy, what decides the fight between heroes that are all strong and \"broken\"?",
+        "a": "Whoever has the higher MMR.",
+        "b": "Whoever fires the first shot — the privilege of the start, granted most often by high ground vision, with harmony among the players.",
+        "c": "Whoever has more accumulated gold.",
+        "d": "Whoever picked the strongest hero in the meta.",
+        "rationale": "All heroes are strong; the winner is whoever fires the first shot — the privilege of the start comes from high ground vision, with team harmony."
+      },
+      "QL4_1": {
+        "prompt": "Early in the match, how often do the bounty runes spawn, according to the Fórmula?",
+        "a": "Every 2 minutes.",
+        "b": "Every 4 minutes, starting together with the first wave when the countdown hits zero.",
+        "c": "Every 5 minutes.",
+        "d": "Only after minute 6.",
+        "rationale": "Bounty runes spawn every 4 minutes; the first one appears together with the first wave at the end of the countdown."
+      },
+      "QL4_2": {
+        "prompt": "You're unsure whether to contest the minute-0 rune alone on the wrong side. What does the Fórmula dictate?",
+        "a": "Go contest it — a bounty rune is always worth the risk.",
+        "b": "Don't go: contesting a rune on the wrong side is a mistake, and whoever goes alone probably dies; arrive in one piece, with the right level-1 skill leveled, ready for the 1st wave.",
+        "c": "Go, but only if a teammate goes with you.",
+        "d": "Wait for the second rune and ignore the first wave.",
+        "rationale": "Contesting a rune on the wrong side is a mistake; whoever goes alone probably dies. Arrive in one piece, with the right skill."
+      },
+      "QL4_3": {
+        "prompt": "A player keeps fighting over the minute-0 rune, arrives late to the 1st wave, and loses the XP from the first creeps. Which anti-pattern is he committing?",
+        "a": "Early Surrender.",
+        "b": "Hero Simulator (anti-pattern 11) — he spent resources without serving a map objective and delayed his own progression.",
+        "c": "Inflated Ego.",
+        "d": "Fighting over Roles.",
+        "rationale": "L4 ↔ anti-pattern 11. Fighting over the wrong rune and delaying your progression is Hero Simulator in action."
+      },
+      "QL5_1": {
+        "prompt": "In the Fórmula, what exactly does \"winning the lane\" mean?",
+        "a": "Having more last hits than your opponent at 10 minutes.",
+        "b": "Landing the first kill in the lane.",
+        "c": "Destroying the first tower.",
+        "d": "Having more gold than your direct opponent.",
+        "rationale": "Winning the lane = landing the first kill."
+      },
+      "QL5_2": {
+        "prompt": "How much XP does each wave deliver, and why is that number decisive?",
+        "a": "200 XP, enough for level 2 on its own.",
+        "b": "240 XP (3 melee creeps at 57 + 1 ranged at 69), which is exactly what's needed to go from level 1 to level 2.",
+        "c": "180 XP, half of what's needed for level 2.",
+        "d": "300 XP, which gives level 3 outright.",
+        "rationale": "Each wave = 3 melee (57 XP) + 1 ranged (69 XP) = 240 XP, exactly what's needed for level 2."
+      },
+      "QL5_3": {
+        "prompt": "Two players sharing the lane XP (with 1 deny) reach level 2 on the death of which creep, and why?",
+        "a": "On the 8th creep, because 8 creeps add up to 240 split between two.",
+        "b": "On the 9th creep — the first creep of the third wave — because the creep XP is odd and the \"half\" of XP is taxed by Valve, since hero XP is a whole number.",
+        "c": "On the 6th creep, because XP doubles in a dual lane.",
+        "d": "On the 12th creep, because splitting always delays level 2.",
+        "rationale": "With 1 deny, level 2 comes on the death of the 9th creep (1st creep of the 3rd wave); the odd XP has its \"half\" taxed by Valve."
+      },
+      "QL5_4": {
+        "prompt": "In an unfavorable matchup, why is it still worth focusing on hitting level 2 first?",
+        "a": "Because the opponent gives up when he loses the XP.",
+        "b": "Because the duo that hits level 2 first will always be stronger than the duo still at level 1, regardless of the matchup — 4 skills carry a far bigger power spike than 2 skills.",
+        "c": "Because level 2 guarantees the first tower.",
+        "d": "Because the matchup has no influence at all on the early game.",
+        "rationale": "Whoever hits level 2 first is always stronger than whoever is at level 1; 4 skills > 2 skills in power spike."
+      },
+      "QL5_5": {
+        "prompt": "You're in the first 3 waves of a normal lane. What does the Fórmula tell you to do with the wave?",
+        "a": "Cut the wave to pressure the tower early.",
+        "b": "Pull immediately to speed up the farm.",
+        "c": "Just play the lane — no pull and no cutting the wave; focus attentively and intentionally on the first 9 creeps and nothing else. Pull only after winning the lane.",
+        "d": "Rotate to help another lane.",
+        "rationale": "Focus on the first 9 creeps; no pull and no cutting the wave. Pull only after winning the lane."
+      },
+      "QL6_1": {
+        "prompt": "Why does the Fórmula treat the first 3 waves as the highest-return investment of the match?",
+        "a": "Because that's when you get the most gold per creep.",
+        "b": "Because Dota 2 applies the butterfly effect very aggressively: a good start (the first 3 waves) makes the mid and late game tend to be good as well.",
+        "c": "Because after 3 waves the lane is over.",
+        "d": "Because it's the only moment when you can farm.",
+        "rationale": "The butterfly effect is aggressive in Dota 2; a good start amplifies and makes the rest consistent."
+      },
+      "QL6_2": {
+        "prompt": "A player botches the early game badly and thinks he \"can still recover comfortably in the late game.\" Why does this contradict the doctrine?",
+        "a": "Because the late game doesn't exist in the Fórmula.",
+        "b": "Because early mistakes propagate through the butterfly effect — that's why L4 and L5 are so decisive: they're the input that amplifies across the rest of the match.",
+        "c": "Because recovering in the late game is forbidden.",
+        "d": "Because the opponent always wins the late game.",
+        "rationale": "Early mistakes propagate; L4 and L5 are the input of the butterfly effect."
+      }
+    },
+    "chapter": {
+      "principio": {
+        "title": "The Laws of Conduct",
+        "subtitle": "The 14 principles that govern those who play seriously."
+      },
+      "anti-padrao": {
+        "title": "What Corrodes the Game",
+        "subtitle": "The 15 anti-patterns — recognize them so you don't repeat them."
+      },
+      "metodologia-conceito": {
+        "title": "The Theory of the Race",
+        "subtitle": "Why Dota has logic, not luck."
+      },
+      "fundamento-tatico": {
+        "title": "The Fundamentals of the Lane",
+        "subtitle": "What to execute, from minute zero to the first 9 creeps."
+      }
+    }
   }
 }

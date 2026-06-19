@@ -8,7 +8,7 @@
 // Cada acerto credita XP real (sobe o nivel) via recordDoctrineAnswer.
 
 import { useMemo, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { m } from "motion/react";
 import { Check, X, ArrowRight, Lock, CheckCircle2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -35,6 +35,34 @@ const QUESTION_BY_ID = new Map(QUIZ_QUESTIONS.map((q) => [q.id, q]));
 // XP por acerto (migration 043). Durante a doutrina é a única fonte de XP, então
 // estimar totalXp = acertos * 22 dá uma barra de XP precisa que sobe em tempo real.
 const XP_PER_QUESTION = 22;
+
+// --- i18n do CONTEÚDO do quiz (namespace "quiz") -------------------------
+// IDs têm pontos (Q1.1); o next-intl usa ponto como separador de chave, então
+// sanitizamos pra underscore (Q1_1). origin e título de lição são resolvidos por
+// idioma (origin por padrão de citação; título reusa o namespace doctrine).
+const quizSid = (id: string) => id.replace(/\./g, "_");
+
+function localizeOrigin(origin: string, locale: string): string {
+  if (locale !== "en") return origin;
+  return origin
+    .replace(/^Princípio /, "Principle ")
+    .replace(/^Anti-padrão /, "Anti-pattern ")
+    .replace(/^Conceito /, "Concept ")
+    .replace(/^Fundamento /, "Fundamentals ");
+}
+
+// Título da lição localizado: princípios/anti-padrões reusam o título canônico
+// (namespace doctrine, já traduzido); metodologia usa o próprio origin.
+function useLessonTitle() {
+  const td = useTranslations("doctrine");
+  const locale = useLocale();
+  return (lesson: QuizLesson) => {
+    const n = lesson.origin.match(/\d+/)?.[0];
+    if (n && lesson.section === "principio") return td(`principle.${n}.title`);
+    if (n && lesson.section === "anti-padrao") return td(`antipattern.${n}.title`);
+    return localizeOrigin(lesson.origin, locale);
+  };
+}
 
 type View = "intro" | "trail" | "lesson" | "complete";
 
@@ -318,6 +346,7 @@ function TrailView({
   onComplete: () => void;
 }) {
   const t = useTranslations("doutrina");
+  const tq = useTranslations("quiz");
   const nextIdx = nextLessonIndex(correctIds);
 
   if (nextIdx === -1) {
@@ -374,10 +403,10 @@ function TrailView({
                     pilarLocked ? "text-text-faded" : "text-text-display"
                   )}
                 >
-                  {pilar.title}
+                  {tq(`chapter.${pilar.section}.title`)}
                 </h2>
                 <p className="font-body text-sm text-text-muted">
-                  {pilar.subtitle}
+                  {tq(`chapter.${pilar.section}.subtitle`)}
                 </p>
               </div>
             </header>
@@ -415,6 +444,7 @@ function LessonRow({
   onOpen: () => void;
 }) {
   const count = lesson.questionIds.length;
+  const lessonTitle = useLessonTitle();
   return (
     <li>
       <button
@@ -445,7 +475,7 @@ function LessonRow({
             state === "locked" ? "text-text-faded" : "text-text-body"
           )}
         >
-          {lesson.title}
+          {lessonTitle(lesson)}
         </span>
         <span className="shrink-0 font-mono text-xs text-text-faded">
           {count}
@@ -477,6 +507,10 @@ function QuestionView({
   onBack: () => void;
 }) {
   const t = useTranslations("doutrina");
+  const tq = useTranslations("quiz");
+  const locale = useLocale();
+  const lessonTitle = useLessonTitle();
+  const sid = quizSid(question.id);
   const correctId = question.options.find((o) => o.correct)?.id;
   const gotIt = chosen != null && chosen === correctId;
   const answered = chosen != null;
@@ -492,10 +526,10 @@ function QuestionView({
           <ArrowLeft size={14} /> {t("pilarsBack")}
         </button>
         <p className="font-display text-sm font-semibold uppercase tracking-[0.25em] text-brand-primary">
-          {lesson.title} · {t("remaining", { count: remaining })}
+          {lessonTitle(lesson)} · {t("remaining", { count: remaining })}
         </p>
         <h2 className="font-display text-xl font-bold leading-snug tracking-wide text-text-display md:text-2xl">
-          {question.prompt}
+          {tq(`q.${sid}.prompt`)}
         </h2>
       </header>
 
@@ -540,7 +574,7 @@ function QuestionView({
                   )}
                 </span>
                 <span className="font-body text-base leading-relaxed text-text-body">
-                  {opt.text}
+                  {tq(`q.${sid}.${opt.id}`)}
                 </span>
               </button>
             </li>
@@ -565,10 +599,10 @@ function QuestionView({
                 {gotIt ? t("feedbackCorrect") : t("feedbackWrong")}
               </p>
               <p className="font-body text-base leading-relaxed text-text-body">
-                {question.rationale}
+                {tq(`q.${sid}.rationale`)}
               </p>
               <p className="font-display text-sm font-semibold text-text-faded">
-                {question.origin}
+                {localizeOrigin(question.origin, locale)}
                 {!gotIt && t("questionWillReturn")}
               </p>
             </CardContent>
