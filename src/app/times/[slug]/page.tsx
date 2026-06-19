@@ -3,6 +3,7 @@
 // Refatorado para Design System V2.5: primitives + tokens semânticos.
 
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { ArrowLeft, Crown, Users } from "lucide-react";
@@ -19,11 +20,13 @@ interface PageProps {
 
 export async function generateMetadata(props: PageProps): Promise<Metadata> {
   const { slug } = await props.params;
-  return { title: `Time ${slug} — FORMULADOTA` };
+  const t = await getTranslations("times");
+  return { title: t("detailMetaTitle", { slug }) };
 }
 
 export default async function TeamDetailPage(props: PageProps) {
   const { slug } = await props.params;
+  const t = await getTranslations("times");
   const supabase = await createClient();
   const {
     data: { user },
@@ -81,7 +84,7 @@ export default async function TeamDetailPage(props: PageProps) {
           className="inline-flex items-center gap-2 mb-6 font-display text-sm uppercase tracking-widest text-text-muted hover:text-text-display transition-colors"
         >
           <ArrowLeft size={14} />
-          Voltar pra times
+          {t("backToTeams")}
         </Link>
 
         {/* Header do time — nome em destaque V2.5 */}
@@ -135,18 +138,18 @@ export default async function TeamDetailPage(props: PageProps) {
                 >
                   <UserAvatar
                     src={m.profile?.avatar_url ?? undefined}
-                    alt={m.profile?.username ?? "Anônimo"}
+                    alt={m.profile?.username ?? t("anonymous")}
                     fallback={(m.profile?.username ?? "??").slice(0, 2)}
                     size="md"
                   />
                   <div className="min-w-0 flex-1">
                     <p className="font-body text-sm 2xl:text-base text-text-display truncate flex items-center gap-1.5">
-                      {m.profile?.username ?? "Anônimo"}
+                      {m.profile?.username ?? t("anonymous")}
                       {m.role === "captain" && (
                         <Crown
                           size={12}
                           className="text-warning"
-                          aria-label="Capitão"
+                          aria-label={t("captain")}
                         />
                       )}
                     </p>

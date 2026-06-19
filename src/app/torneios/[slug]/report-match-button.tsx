@@ -5,6 +5,7 @@
 // vencedor pro próximo round; encerra o torneio se for a final).
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { Loader2, Flag } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
@@ -23,6 +24,7 @@ export function ReportMatchButton({
   teamAName: string;
   teamBName: string;
 }) {
+  const t = useTranslations("torneios");
   const { toast } = useToast();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -38,14 +40,14 @@ export function ReportMatchButton({
         onClick={() => setOpen(true)}
         className="w-full px-3 py-1.5 bg-bg-deep font-display font-semibold text-[11px] uppercase tracking-wide text-brand-primary hover:bg-brand-primary/10 transition-colors flex items-center justify-center gap-1.5"
       >
-        <Flag size={11} aria-hidden="true" /> Reportar placar
+        <Flag size={11} aria-hidden="true" /> {t("reportScore")}
       </button>
     );
   }
 
   const submit = () => {
     if (!winner) {
-      toast({ type: "error", title: "Escolha o time vencedor." });
+      toast({ type: "error", title: t("chooseWinner") });
       return;
     }
     startTransition(async () => {
@@ -59,7 +61,7 @@ export function ReportMatchButton({
         toast({ type: "error", title: r.error });
         return;
       }
-      toast({ type: "success", title: "Placar reportado." });
+      toast({ type: "success", title: t("scoreReported") });
       setOpen(false);
       router.refresh();
     });
@@ -70,10 +72,10 @@ export function ReportMatchButton({
       <select
         value={winner}
         onChange={(e) => setWinner(e.target.value)}
-        aria-label="Time vencedor"
+        aria-label={t("winnerLabel")}
         className="w-full rounded-sm border border-border-subtle bg-black/40 px-2 py-1.5 font-sans text-sm 2xl:text-base text-white focus:border-brand-primary focus:outline-none"
       >
-        <option value="">Vencedor…</option>
+        <option value="">{t("winnerPlaceholder")}</option>
         <option value={teamAId}>{teamAName}</option>
         <option value={teamBId}>{teamBName}</option>
       </select>
@@ -84,7 +86,7 @@ export function ReportMatchButton({
           max={99}
           value={scoreA}
           onChange={(e) => setScoreA(e.target.value)}
-          aria-label={`Placar de ${teamAName}`}
+          aria-label={t("scoreOf", { team: teamAName })}
           className="w-14 rounded-sm border border-border-subtle bg-black/40 px-2 py-1 font-mono text-sm 2xl:text-base text-white text-center focus:border-brand-primary focus:outline-none"
         />
         <span className="font-display text-text-faded">×</span>
@@ -94,7 +96,7 @@ export function ReportMatchButton({
           max={99}
           value={scoreB}
           onChange={(e) => setScoreB(e.target.value)}
-          aria-label={`Placar de ${teamBName}`}
+          aria-label={t("scoreOf", { team: teamBName })}
           className="w-14 rounded-sm border border-border-subtle bg-black/40 px-2 py-1 font-mono text-sm 2xl:text-base text-white text-center focus:border-brand-primary focus:outline-none"
         />
         <button
@@ -104,7 +106,7 @@ export function ReportMatchButton({
           className="ml-auto flex items-center gap-1 rounded-sm border border-brand-primary/50 bg-brand-primary/10 px-3 py-1 font-display text-[11px] font-semibold uppercase text-brand-primary hover:bg-brand-primary/20 transition-colors disabled:opacity-40"
         >
           {isPending ? <Loader2 size={11} className="animate-spin" /> : null}
-          Salvar
+          {t("save")}
         </button>
         <button
           type="button"
@@ -112,7 +114,7 @@ export function ReportMatchButton({
           disabled={isPending}
           className="font-display text-[11px] font-semibold uppercase text-text-faded hover:text-text-body"
         >
-          Cancelar
+          {t("cancel")}
         </button>
       </div>
     </div>

@@ -3,6 +3,8 @@
 // Refatorado para Design System V2.5: primitives + tokens semânticos.
 
 import type { Metadata } from "next";
+import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Trophy, Search } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -15,10 +17,13 @@ import { UserAvatar } from "@/components/ui/avatar";
 import { DotaRankMedal, type DotaRank } from "@/components/ui/dota-rank-medal";
 import { SeasonBanner } from "@/components/patterns/season-banner";
 
-export const metadata: Metadata = {
-  title: "Ranking — FORMULADOTA",
-  description: "Ranking da temporada atual FORMULADOTA HUB Dota 2.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("ranking");
+  return {
+    title: t("metaTitle"),
+    description: t("metaDescription"),
+  };
+}
 
 interface RankRow {
   user_id: string;
@@ -49,6 +54,7 @@ function mmrToDotaRank(mmr: number | null): DotaRank {
 export default async function RankingPage(props: {
   searchParams: Promise<{ page?: string; q?: string }>;
 }) {
+  const t = await getTranslations("ranking");
   const params = await props.searchParams;
   const page = Math.max(1, parseInt(params.page ?? "1") || 1);
   const search = (params.q ?? "").trim().toLowerCase();
@@ -163,13 +169,13 @@ export default async function RankingPage(props: {
         {/* Header padronizado V2.5: eyebrow + h1 + descrição */}
         <header className="mb-12">
           <p className="font-display text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
-            Ranking · Temporada
+            {t("eyebrow")}
           </p>
           <h1 className="mt-3 font-display text-4xl uppercase tracking-tight text-text-display md:text-5xl">
             {season.name}
           </h1>
           <p className="mt-3 font-display text-sm 2xl:text-base font-semibold text-text-body max-w-2xl">
-            Classificação dos jogadores pelo MMR da temporada atual. Top 3 destacados, demais paginados.
+            {t("subtitle")}
           </p>
         </header>
 
@@ -194,7 +200,7 @@ export default async function RankingPage(props: {
         {top3Hydrated.length > 0 && !search && (
           <section className="mb-12">
             <h2 className="mb-6 font-display text-sm font-semibold uppercase tracking-widest text-text-faded">
-              Top 3
+              {t("top3")}
             </h2>
             <div className="grid gap-4 md:grid-cols-3">
               {top3Hydrated.map((row, idx) => (
@@ -225,8 +231,8 @@ export default async function RankingPage(props: {
 
         {listHydrated.length === 0 && !search && top3Hydrated.length === 0 && (
           <EmptyState
-            title="Temporada começando"
-            description="Ainda sem partidas oficiais. Seja um dos primeiros — ative sua mensalidade e crie um lobby."
+            title={t("emptyTitle")}
+            description={t("emptyDescription")}
             icon={<Trophy />}
             principle="random"
           />
@@ -240,6 +246,7 @@ export default async function RankingPage(props: {
 // TopCard — Destaque pódio (Top 3). Posição 1 ganha glow brand.
 // ----------------------------------------------------------------
 function TopCard({ row, position }: { row: RankRow; position: number }) {
+  const t = useTranslations("ranking");
   const isChampion = position === 1;
   const dotaRank = mmrToDotaRank(row.mmr);
 
@@ -265,14 +272,14 @@ function TopCard({ row, position }: { row: RankRow; position: number }) {
         <div className="flex items-center gap-3">
           <UserAvatar
             src={row.avatar_url ?? undefined}
-            alt={row.username ?? "Anônimo"}
+            alt={row.username ?? t("anonymous")}
             fallback={(row.username ?? "??").slice(0, 2)}
             size="lg"
             ringColor={isChampion ? "brand" : null}
           />
           <div className="min-w-0">
             <p className="font-display text-base uppercase tracking-wide text-text-display truncate">
-              {row.username ?? "Anônimo"}
+              {row.username ?? t("anonymous")}
             </p>
             <p className="font-display text-sm 2xl:text-base font-semibold tabular-nums text-gold">
               {row.mmr} <span className="text-gold-muted">MMR</span>
@@ -282,7 +289,7 @@ function TopCard({ row, position }: { row: RankRow; position: number }) {
         <div className="flex items-center justify-between border-t border-border-subtle pt-3">
           <DotaRankMedal rank={dotaRank} size="sm" showLabel />
           <span className="font-display text-sm 2xl:text-base font-semibold text-text-body">
-            {row.vitorias}V — {row.derrotas}D
+            {t("winLoss", { wins: row.vitorias, losses: row.derrotas })}
           </span>
         </div>
       </CardContent>
@@ -294,6 +301,7 @@ function TopCard({ row, position }: { row: RankRow; position: number }) {
 // RankingRow — Linha individual da lista paginada
 // ----------------------------------------------------------------
 function RankingRow({ row, position }: { row: RankRow; position: number }) {
+  const t = useTranslations("ranking");
   const dotaRank = mmrToDotaRank(row.mmr);
 
   return (
@@ -302,16 +310,20 @@ function RankingRow({ row, position }: { row: RankRow; position: number }) {
       <span className="font-display text-lg 2xl:text-xl w-12 tabular-nums text-gold">#{position}</span>
       <UserAvatar
         src={row.avatar_url ?? undefined}
-        alt={row.username ?? "Anônimo"}
+        alt={row.username ?? t("anonymous")}
         fallback={(row.username ?? "??").slice(0, 2)}
         size="md"
       />
       <div className="flex-1 min-w-0">
         <p className="font-body text-sm 2xl:text-base font-medium text-text-display truncate">
-          {row.username ?? "Anônimo"}
+          {row.username ?? t("anonymous")}
         </p>
         <p className="font-display text-sm 2xl:text-base font-semibold text-text-body">
-          {row.partidas_total} partidas — {row.vitorias}V/{row.derrotas}D
+          {t("matchesRecord", {
+            matches: row.partidas_total,
+            wins: row.vitorias,
+            losses: row.derrotas,
+          })}
         </p>
       </div>
       <DotaRankMedal rank={dotaRank} size="sm" />
@@ -324,6 +336,7 @@ function RankingRow({ row, position }: { row: RankRow; position: number }) {
 // SearchBar — Form de busca por nickname (GET — recarrega page)
 // ----------------------------------------------------------------
 function SearchBar({ initialQuery }: { initialQuery: string }) {
+  const t = useTranslations("ranking");
   return (
     <form className="flex items-center gap-2 rounded-md border border-border-subtle bg-bg-base p-2">
       <Search size={16} className="ml-2 text-text-muted" aria-hidden="true" />
@@ -331,11 +344,11 @@ function SearchBar({ initialQuery }: { initialQuery: string }) {
         type="search"
         name="q"
         defaultValue={initialQuery}
-        placeholder="Buscar por nickname..."
+        placeholder={t("searchPlaceholder")}
         className="flex-1 bg-transparent px-2 py-2 font-body text-sm 2xl:text-base text-text-display placeholder:text-text-faded focus:outline-none"
       />
       <Button type="submit" variant="secondary" size="sm">
-        Buscar
+        {t("searchButton")}
       </Button>
     </form>
   );
@@ -345,6 +358,7 @@ function SearchBar({ initialQuery }: { initialQuery: string }) {
 // Pagination — Anterior / Próxima via querystring
 // ----------------------------------------------------------------
 function Pagination({ currentPage }: { currentPage: number }) {
+  const t = useTranslations("ranking");
   return (
     <nav className="mt-8 flex items-center justify-center gap-4">
       {currentPage > 1 && (
@@ -352,15 +366,17 @@ function Pagination({ currentPage }: { currentPage: number }) {
           href={`/ranking?page=${currentPage - 1}`}
           className="font-display text-sm uppercase tracking-widest text-text-muted hover:text-text-display transition-colors"
         >
-          ← Anterior
+          {t("prevPage")}
         </Link>
       )}
-      <span className="font-mono text-sm 2xl:text-base text-text-display">página {currentPage}</span>
+      <span className="font-mono text-sm 2xl:text-base text-text-display">
+        {t("pageLabel", { page: currentPage })}
+      </span>
       <Link
         href={`/ranking?page=${currentPage + 1}`}
         className="font-display text-sm uppercase tracking-widest text-text-muted hover:text-text-display transition-colors"
       >
-        Próxima →
+        {t("nextPage")}
       </Link>
     </nav>
   );
@@ -371,16 +387,17 @@ function Pagination({ currentPage }: { currentPage: number }) {
 // ----------------------------------------------------------------
 
 function NoMatchShell({ searchTerm, seasonName }: { searchTerm: string; seasonName: string }) {
+  const t = useTranslations("ranking");
   return (
     <div className="px-6 py-20">
       <EmptyState
-        title={`Nenhum resultado para "${searchTerm}"`}
-        description={`Temporada ${seasonName} — tente outro nickname ou volte ao ranking completo.`}
+        title={t("noMatchTitle", { term: searchTerm })}
+        description={t("noMatchDescription", { season: seasonName })}
         icon={<Search />}
         action={
           <Link href="/ranking">
             <Button variant="secondary" size="md">
-              ← Voltar ao ranking
+              {t("backToRanking")}
             </Button>
           </Link>
         }
@@ -390,11 +407,12 @@ function NoMatchShell({ searchTerm, seasonName }: { searchTerm: string; seasonNa
 }
 
 function RankingEmptyShell() {
+  const t = useTranslations("ranking");
   return (
     <div className="px-6 py-20">
       <EmptyState
-        title="Temporada começando"
-        description="Ainda sem partidas oficiais. Seja um dos primeiros — ative sua mensalidade e crie um lobby."
+        title={t("emptyTitle")}
+        description={t("emptyDescription")}
         icon={<Trophy />}
         principle="random"
       />

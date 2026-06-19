@@ -4,6 +4,7 @@
 // delete (captain) / kick member (captain).
 
 import { useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { Loader2, LogOut, Trash2, X } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
@@ -34,45 +35,46 @@ export function TeamDetailActions({
   members: Member[];
   currentUserId: string;
 }) {
+  const t = useTranslations("times");
   const { toast } = useToast();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   const handleLeave = () => {
-    if (!confirm(`Sair do time ${teamName}?`)) return;
+    if (!confirm(t("leaveTeamConfirm", { team: teamName }))) return;
     startTransition(async () => {
       const r = await leaveTeam(teamId);
       if (!r.success) {
         toast({ type: "error", title: r.error });
         return;
       }
-      toast({ type: "success", title: "Você saiu do time." });
+      toast({ type: "success", title: t("leftTeamToast") });
       router.push("/times");
     });
   };
 
   const handleDelete = () => {
-    if (!confirm(`DELETAR o time ${teamName}? Essa ação é irreversível.`)) return;
+    if (!confirm(t("deleteTeamConfirm", { team: teamName }))) return;
     startTransition(async () => {
       const r = await deleteTeam(teamId);
       if (!r.success) {
         toast({ type: "error", title: r.error });
         return;
       }
-      toast({ type: "success", title: "Time deletado." });
+      toast({ type: "success", title: t("teamDeletedToast") });
       router.push("/times");
     });
   };
 
   const handleKick = (userId: string, username: string | null) => {
-    if (!confirm(`Remover ${username ?? "este membro"} do time?`)) return;
+    if (!confirm(t("kickConfirm", { member: username ?? t("thisMember") }))) return;
     startTransition(async () => {
       const r = await kickMember({ teamId, userId });
       if (!r.success) {
         toast({ type: "error", title: r.error });
         return;
       }
-      toast({ type: "success", title: "Membro removido." });
+      toast({ type: "success", title: t("memberRemovedToast") });
       router.refresh();
     });
   };
@@ -86,14 +88,14 @@ export function TeamDetailActions({
   return (
     <section className="mt-10 space-y-4">
       <h2 className="font-sans text-sm 2xl:text-sm font-semibold uppercase tracking-[0.2em] text-white/70">
-        Ações
+        {t("actions")}
       </h2>
 
       {/* Captain: convidar jogador (roster ainda não cheio) */}
       {isCaptain && !rosterFull && <TeamInvitePanel teamId={teamId} />}
       {isCaptain && rosterFull && (
         <p className="rounded-md border border-border-subtle bg-bg-base px-4 py-3 font-display font-semibold text-sm uppercase tracking-wide text-text-faded">
-          Roster cheio ({MAX_ROSTER}/{MAX_ROSTER}) — remova alguém pra convidar.
+          {t("rosterFull", { max: MAX_ROSTER })}
         </p>
       )}
 
@@ -101,7 +103,7 @@ export function TeamDetailActions({
       {isCaptain && members.length > 1 && (
         <div className="rounded-md border border-border-subtle bg-bg-base p-4 space-y-3">
           <p className="font-sans text-sm font-semibold uppercase tracking-wide text-text-body">
-            Gerenciar roster
+            {t("manageRoster")}
           </p>
           <div className="space-y-2">
             {members
@@ -112,7 +114,7 @@ export function TeamDetailActions({
                   className="flex items-center justify-between gap-3 rounded-sm bg-bg-elevated px-3 py-2"
                 >
                   <span className="font-sans text-sm 2xl:text-base text-text-display">
-                    {m.profile?.username ?? "Anônimo"}{" "}
+                    {m.profile?.username ?? t("anonymous")}{" "}
                     <span className="font-display font-semibold text-sm uppercase tracking-wide text-text-faded">
                       · {m.role}
                     </span>
@@ -122,7 +124,7 @@ export function TeamDetailActions({
                     onClick={() => handleKick(m.user_id, m.profile?.username ?? null)}
                     disabled={isPending}
                     className="text-text-muted hover:text-error transition-colors disabled:opacity-30"
-                    aria-label="Remover membro"
+                    aria-label={t("removeMember")}
                   >
                     <X size={14} />
                   </button>
@@ -142,7 +144,7 @@ export function TeamDetailActions({
             disabled={isPending}
           >
             {isPending ? <Loader2 size={14} className="animate-spin" /> : <LogOut size={14} />}
-            Sair do time
+            {t("leaveTeam")}
           </Button>
         )}
 
@@ -159,7 +161,7 @@ export function TeamDetailActions({
             ) : (
               <Trash2 size={14} />
             )}
-            Deletar time
+            {t("deleteTeam")}
           </Button>
         )}
       </div>

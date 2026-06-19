@@ -6,6 +6,7 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
+import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { displayName, displayAvatar } from "@/lib/identity";
 
@@ -19,12 +20,12 @@ const createTeamSchema = z.object({
     .string()
     .min(2)
     .max(5)
-    .regex(/^[A-Z0-9]+$/, "Tag: 2-5 chars maiúsculos/números"),
+    .regex(/^[A-Z0-9]+$/, "tagRule"),
   slug: z
     .string()
     .min(3)
     .max(32)
-    .regex(/^[a-z0-9-]+$/, "Slug: minúsculas, números e hífen"),
+    .regex(/^[a-z0-9-]+$/, "slugRule"),
   description: z.string().max(280).optional(),
 });
 
@@ -34,19 +35,25 @@ export async function createTeam(input: {
   slug: string;
   description?: string;
 }): Promise<TeamResult> {
+  const t = await getTranslations("times");
   const parsed = createTeamSchema.safeParse(input);
   if (!parsed.success) {
-    return {
-      success: false,
-      error: parsed.error.issues[0]?.message ?? "Dados inválidos.",
-    };
+    // Mensagens de validação resolvidas via i18n (a chave vem do schema Zod).
+    const issue = parsed.error.issues[0];
+    const msg =
+      issue?.message === "tagRule"
+        ? t("errTagRule")
+        : issue?.message === "slugRule"
+          ? t("errSlugRule")
+          : t("errInvalidData");
+    return { success: false, error: msg };
   }
 
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { success: false, error: "Não autenticado." };
+  if (!user) return { success: false, error: t("errNotAuthenticated") };
 
   const { data, error } = await supabase
     .from("teams")
@@ -62,10 +69,10 @@ export async function createTeam(input: {
 
   if (error) {
     if (error.code === "23505") {
-      return { success: false, error: "Slug ou tag já em uso." };
+      return { success: false, error: t("errSlugTagTaken") };
     }
     console.error("[createTeam] insert falhou:", error.message);
-    return { success: false, error: "Erro ao criar time." };
+    return { success: false, error: t("errCreateTeam") };
   }
 
   revalidatePath("/times");
@@ -83,16 +90,17 @@ export async function inviteToTeam(input: {
   invitedUserId: string;
   message?: string;
 }): Promise<TeamResult> {
+  const t = await getTranslations("times");
   const parsed = inviteSchema.safeParse(input);
   if (!parsed.success) {
-    return { success: false, error: "Dados inválidos." };
+    return { success: false, error: t("errInvalidData") };
   }
 
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { success: false, error: "Não autenticado." };
+  if (!user) return { success: false, error: t("errNotAuthenticated") };
 
   // Cancela invites pending anteriores (idempotência) — RLS captain gate
   await supabase
@@ -111,10 +119,10 @@ export async function inviteToTeam(input: {
 
   if (error) {
     if (error.code === "42501") {
-      return { success: false, error: "Apenas o capitão convida." };
+      return { success: false, error: t("errOnlyCaptainInvites") };
     }
     console.error("[inviteToTeam] falhou:", error.message);
-    return { success: false, error: "Erro ao convidar." };
+    return { success: false, error: t("errInvite") };
   }
 
   revalidatePath(`/times`);
@@ -122,11 +130,12 @@ export async function inviteToTeam(input: {
 }
 
 export async function acceptInvite(inviteId: string): Promise<TeamResult> {
+  const t = await getTranslations("times");
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { success: false, error: "Não autenticado." };
+  if (!user) return { success: false, error: t("errNotAuthenticated") };
 
   const { error } = await supabase.rpc("accept_team_invite", {
     p_invite_id: inviteId,
@@ -141,11 +150,12 @@ export async function acceptInvite(inviteId: string): Promise<TeamResult> {
 }
 
 export async function declineInvite(inviteId: string): Promise<TeamResult> {
+  const t = await getTranslations("times");
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { success: false, error: "Não autenticado." };
+  if (!user) return { success: false, error: t("errNotAuthenticated") };
 
   const { error } = await supabase
     .from("team_invites")
@@ -154,7 +164,7 @@ export async function declineInvite(inviteId: string): Promise<TeamResult> {
     .eq("invited_user_id", user.id);
 
   if (error) {
-    return { success: false, error: "Erro ao recusar convite." };
+    return { success: false, error: t("errDeclineInvite") };
   }
 
   revalidatePath("/times");
@@ -162,11 +172,12 @@ export async function declineInvite(inviteId: string): Promise<TeamResult> {
 }
 
 export async function leaveTeam(teamId: string): Promise<TeamResult> {
+  const t = await getTranslations("times");
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { success: false, error: "Não autenticado." };
+  if (!user) return { success: false, error: t("errNotAuthenticated") };
 
   // Captain não pode sair — precisa transferir capitania ou deletar time
   const { data: team } = await supabase
@@ -177,7 +188,7 @@ export async function leaveTeam(teamId: string): Promise<TeamResult> {
   if (team?.captain_id === user.id) {
     return {
       success: false,
-      error: "Capitão precisa transferir capitania ou deletar o time.",
+      error: t("errCaptainCantLeave"),
     };
   }
 
@@ -188,7 +199,7 @@ export async function leaveTeam(teamId: string): Promise<TeamResult> {
     .eq("user_id", user.id);
 
   if (error) {
-    return { success: false, error: "Erro ao sair do time." };
+    return { success: false, error: t("errLeaveTeam") };
   }
 
   revalidatePath("/times");
@@ -199,11 +210,12 @@ export async function kickMember(input: {
   teamId: string;
   userId: string;
 }): Promise<TeamResult> {
+  const t = await getTranslations("times");
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { success: false, error: "Não autenticado." };
+  if (!user) return { success: false, error: t("errNotAuthenticated") };
 
   // RLS team_members_delete_self_or_captain gate
   const { error } = await supabase
@@ -213,7 +225,7 @@ export async function kickMember(input: {
     .eq("user_id", input.userId);
 
   if (error) {
-    return { success: false, error: "Erro ao remover membro." };
+    return { success: false, error: t("errRemoveMember") };
   }
 
   revalidatePath("/times");
@@ -221,11 +233,12 @@ export async function kickMember(input: {
 }
 
 export async function deleteTeam(teamId: string): Promise<TeamResult> {
+  const t = await getTranslations("times");
   const supabase = await createClient();
   const { error } = await supabase.from("teams").delete().eq("id", teamId);
 
   if (error) {
-    return { success: false, error: "Erro ao deletar time." };
+    return { success: false, error: t("errDeleteTeam") };
   }
 
   revalidatePath("/times");
@@ -320,6 +333,7 @@ export async function registerTeamForTournament(input: {
   tournamentId: string;
   teamId: string;
 }): Promise<TeamResult> {
+  const t = await getTranslations("times");
   const supabase = await createClient();
 
   const { error } = await supabase.from("tournament_teams").insert({
@@ -329,15 +343,15 @@ export async function registerTeamForTournament(input: {
 
   if (error) {
     if (error.code === "23505") {
-      return { success: false, error: "Time já inscrito neste torneio." };
+      return { success: false, error: t("errAlreadyRegistered") };
     }
     if (error.code === "42501") {
       return {
         success: false,
-        error: "Inscrições fechadas ou você não é capitão deste time.",
+        error: t("errRegistrationClosed"),
       };
     }
-    return { success: false, error: "Erro ao inscrever no torneio." };
+    return { success: false, error: t("errRegisterTournament") };
   }
 
   revalidatePath("/torneios");
