@@ -3,7 +3,7 @@
 // Refatorado para Design System V2.5: primitives + tokens semânticos.
 
 import type { Metadata } from "next";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Crown, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -28,7 +28,8 @@ export default async function TeamDetailPage(props: PageProps) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  // Leitura pública: visitante VÊ o perfil do time; ações (kick/sair/convidar)
+  // só aparecem pra membro/capitão logado.
 
   const { data: team } = await supabase
     .from("teams")
@@ -69,8 +70,8 @@ export default async function TeamDetailPage(props: PageProps) {
     };
   });
 
-  const isCaptain = team.captain_id === user.id;
-  const isMember = enrichedMembers.some((m) => m.user_id === user.id);
+  const isCaptain = !!user && team.captain_id === user.id;
+  const isMember = !!user && enrichedMembers.some((m) => m.user_id === user.id);
 
   return (
     <ClientShell currentRoute="/times">
@@ -165,7 +166,7 @@ export default async function TeamDetailPage(props: PageProps) {
           isCaptain={isCaptain}
           isMember={isMember}
           members={enrichedMembers}
-          currentUserId={user.id}
+          currentUserId={user?.id ?? ""}
         />
       </div>
     </ClientShell>

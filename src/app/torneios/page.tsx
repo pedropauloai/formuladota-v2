@@ -4,7 +4,6 @@
 
 import type { Metadata } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { Trophy, Calendar, Users, Award } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ClientShell } from "@/components/client-shell/shell";
@@ -41,14 +40,12 @@ export default async function TorneiosPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  // Leitura pública: visitante navega os torneios; inscrever/gerenciar pede login.
 
-  // Esconde drafts pra users non-admin
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("is_admin")
-    .eq("id", user.id)
-    .single();
+  // Esconde drafts pra users non-admin (e pra visitante).
+  const { data: profile } = user
+    ? await supabase.from("profiles").select("is_admin").eq("id", user.id).single()
+    : { data: null };
   const isAdmin = profile?.is_admin ?? false;
 
   const statusFilter = isAdmin

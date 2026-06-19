@@ -2,9 +2,11 @@
 // Phase 7.5. Server Component fetch + Client Component criar/aceitar.
 
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
+import { Swords } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ClientShell } from "@/components/client-shell/shell";
+import { Button } from "@/components/ui/button";
+import { signInWithDiscord } from "@/app/login/actions";
 import { TimesContent } from "./times-content";
 
 export const metadata: Metadata = {
@@ -17,7 +19,35 @@ export default async function TimesPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+
+  // Leitura pública: visitante vê o que é a área de Times + CTA. Criar/gerenciar
+  // é pessoal e pede login.
+  if (!user) {
+    return (
+      <ClientShell currentRoute="/times">
+        <div className="px-6 py-8 xl:px-12 xl:py-10 2xl:px-16 2xl:py-12">
+          <header className="mb-8 2xl:mb-10">
+            <p className="font-display text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
+              FORMULADOTA · Competitivo
+            </p>
+            <h1 className="mt-2 font-display text-3xl uppercase tracking-tight text-text-display 2xl:text-5xl">
+              Times
+            </h1>
+            <p className="mt-3 max-w-2xl font-display text-sm font-semibold text-text-body">
+              Monte um time, convide jogadores e dispute os torneios oficiais.
+              Entre com Discord pra criar e gerenciar seus times.
+            </p>
+          </header>
+          <form action={signInWithDiscord}>
+            <Button type="submit" variant="cinematic" size="lg">
+              <Swords size={20} aria-hidden="true" />
+              Entrar com Discord
+            </Button>
+          </form>
+        </div>
+      </ClientShell>
+    );
+  }
 
   // Times do user
   const { data: memberships } = await supabase

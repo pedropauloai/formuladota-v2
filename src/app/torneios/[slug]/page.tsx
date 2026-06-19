@@ -3,7 +3,7 @@
 // Refatorado para Design System V2.5: primitives + tokens semânticos.
 
 import type { Metadata } from "next";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Trophy, Calendar, Users, Award } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -65,13 +65,11 @@ export default async function TournamentDetailPage(props: PageProps) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  // Leitura pública: visitante VÊ o torneio e a chave; inscrever/reportar pedem login.
 
-  const { data: me } = await supabase
-    .from("profiles")
-    .select("is_admin")
-    .eq("id", user.id)
-    .single();
+  const { data: me } = user
+    ? await supabase.from("profiles").select("is_admin").eq("id", user.id).single()
+    : { data: null };
   const isAdmin = me?.is_admin ?? false;
 
   const { data: tournament } = await supabase
@@ -121,11 +119,10 @@ export default async function TournamentDetailPage(props: PageProps) {
     matchesByRound.set(m.round, arr);
   }
 
-  // User's teams onde é captain (pra inscrever no torneio)
-  const { data: userCaptainTeams } = await supabase
-    .from("teams")
-    .select("id, name, tag")
-    .eq("captain_id", user.id);
+  // User's teams onde é captain (pra inscrever no torneio) — só logado.
+  const { data: userCaptainTeams } = user
+    ? await supabase.from("teams").select("id, name, tag").eq("captain_id", user.id)
+    : { data: [] };
 
   const captainTeamsAvailable = (userCaptainTeams ?? []).filter(
     (t) => !registeredTeamIds.includes(t.id)

@@ -23,6 +23,8 @@ const PUBLIC_PATHS = [
   "/cookies",
   "/metodologia",
   "/ranking",
+  "/times", // leitura pública: browse de times + perfis (ações pedem login)
+  "/torneios", // leitura pública: browse de torneios + brackets (ações pedem login)
   "/coaches", // /coaches/[slug] — perfis públicos de PROs
 ];
 
