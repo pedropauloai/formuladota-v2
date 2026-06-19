@@ -7,6 +7,7 @@
 
 import Link from "next/link";
 import { MessageSquare, BookOpen } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 const HEROES_FULL_BG =
   "https://cdn.steamstatic.com/apps/dota2/images/dota_react/home/heroes_full.jpg";
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export function DashboardRightSidebar({ floating }: Props) {
+  const t = useTranslations("shell");
   const wrapperCls = floating
     ? "flex w-full flex-col gap-3 p-3 overflow-y-auto"
     : "hidden lg:flex flex-col gap-3 bg-gradient-to-l from-black/70 via-black/40 to-transparent p-4 pb-[80px] xl:pb-[96px] 2xl:pb-[112px] backdrop-blur-sm overflow-y-auto";
@@ -23,28 +25,28 @@ export function DashboardRightSidebar({ floating }: Props) {
   return (
     <aside className={wrapperCls}>
       <NewsCard
-        eyebrow="Boost de MMR · Brasil"
-        title="Evolua seu MMR"
-        description="Compre fichas, jogue PT ranked oficial com um PRO da Fórmula. Ou você ganha, ou você aprende."
+        eyebrow={t("newsEyebrow")}
+        title={t("newsTitle")}
+        description={t("newsDescription")}
         bg={HEROES_FULL_BG}
         href="/codigo-de-conduta"
-        cta="Ler manifesto"
+        cta={t("newsCta")}
       />
 
       <article className="rounded-md border border-border-subtle bg-bg-elevated/80 backdrop-blur-sm overflow-hidden">
         <p className="border-b border-border-subtle px-3 py-2 font-display text-sm text-text-display">
-          Comunidade
+          {t("community")}
         </p>
         <div className="space-y-1 p-2">
           <CommunityLink
             icon={MessageSquare}
-            label="Discord oficial"
+            label={t("discordOfficial")}
             href="https://discord.com/invite/v3pSuZhjBE"
             external
           />
           <CommunityLink
             icon={BookOpen}
-            label="Código de Conduta"
+            label={t("codeOfConduct")}
             href="/codigo-de-conduta"
           />
         </div>
@@ -52,11 +54,10 @@ export function DashboardRightSidebar({ floating }: Props) {
 
       <article className="rounded-md border border-border-subtle bg-bg-elevated/40 p-3 backdrop-blur-sm">
         <p className="font-display text-sm text-amber-300/80 mb-2">
-          A primeira regra
+          {t("firstRule")}
         </p>
         <p className="font-serif text-sm italic text-text-body leading-relaxed">
-          A culpa nunca é do outro. A responsabilidade é sempre sua, 100% das
-          vezes.
+          {t("firstRuleBody")}
         </p>
       </article>
     </aside>
