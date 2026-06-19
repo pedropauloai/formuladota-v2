@@ -5,6 +5,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Loader2, Star, MessageSquarePlus } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ export function CoachingReviewPanel({
   studentId: string;
   studentName: string;
 }) {
+  const t = useTranslations("proCockpit");
   const { toast } = useToast();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -31,7 +33,7 @@ export function CoachingReviewPanel({
 
   const submit = () => {
     if (summary.trim().length === 0) {
-      toast({ type: "error", title: "Escreva o resumo da análise." });
+      toast({ type: "error", title: t("writeSummaryError") });
       return;
     }
     startTransition(async () => {
@@ -46,7 +48,7 @@ export function CoachingReviewPanel({
         toast({ type: "error", title: r.error });
         return;
       }
-      toast({ type: "success", title: "Análise salva." });
+      toast({ type: "success", title: t("reviewSaved") });
       setSummary("");
       setStrengths("");
       setImprovements("");
@@ -59,7 +61,7 @@ export function CoachingReviewPanel({
   if (!open) {
     return (
       <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>
-        <MessageSquarePlus size={14} aria-hidden="true" /> Escrever análise de coaching
+        <MessageSquarePlus size={14} aria-hidden="true" /> {t("writeCoachingReview")}
       </Button>
     );
   }
@@ -67,7 +69,7 @@ export function CoachingReviewPanel({
   return (
     <div className="rounded-xl border border-border-subtle bg-bg-elevated p-4 space-y-3">
       <p className="font-display text-sm font-semibold uppercase tracking-wide text-text-body">
-        Análise de {studentName}
+        {t("reviewOf", { name: studentName })}
       </p>
 
       <textarea
@@ -75,7 +77,7 @@ export function CoachingReviewPanel({
         maxLength={2000}
         value={summary}
         onChange={(e) => setSummary(e.target.value)}
-        placeholder="Resumo do desempenho na sessão (obrigatório)…"
+        placeholder={t("summaryPlaceholder")}
         className={textareaCls}
       />
       <textarea
@@ -83,7 +85,7 @@ export function CoachingReviewPanel({
         maxLength={1000}
         value={strengths}
         onChange={(e) => setStrengths(e.target.value)}
-        placeholder="Pontos fortes (opcional)…"
+        placeholder={t("strengthsPlaceholder")}
         className={textareaCls}
       />
       <textarea
@@ -91,13 +93,13 @@ export function CoachingReviewPanel({
         maxLength={1000}
         value={improvements}
         onChange={(e) => setImprovements(e.target.value)}
-        placeholder="A melhorar (opcional)…"
+        placeholder={t("improvementsPlaceholder")}
         className={textareaCls}
       />
 
       <div className="flex items-center gap-3">
         <span className="font-display text-xs font-semibold uppercase tracking-wide text-text-faded">
-          Nota
+          {t("rating")}
         </span>
         <div className="flex items-center gap-1">
           {Array.from({ length: 5 }, (_, i) => (
@@ -105,7 +107,7 @@ export function CoachingReviewPanel({
               key={i}
               type="button"
               onClick={() => setRating(rating === i + 1 ? 0 : i + 1)}
-              aria-label={`Nota ${i + 1}`}
+              aria-label={t("ratingValue", { value: i + 1 })}
               className="transition-transform hover:scale-110"
             >
               <Star
@@ -121,7 +123,7 @@ export function CoachingReviewPanel({
       <div className="flex gap-2">
         <Button variant="primary" size="sm" onClick={submit} disabled={isPending}>
           {isPending ? <Loader2 size={14} className="animate-spin" /> : null}
-          Salvar análise
+          {t("saveReview")}
         </Button>
         <Button
           variant="ghost"
@@ -129,7 +131,7 @@ export function CoachingReviewPanel({
           onClick={() => setOpen(false)}
           disabled={isPending}
         >
-          Cancelar
+          {t("cancel")}
         </Button>
       </div>
     </div>

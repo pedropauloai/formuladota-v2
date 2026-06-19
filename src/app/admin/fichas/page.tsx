@@ -1,15 +1,19 @@
 // /admin/fichas — log de ajustes admin de fichas (source = admin_grant | admin_debit).
 // Mostra quem fez, em quem, quanto, por quê e quando.
 
-import type { Metadata } from "next";
 import { Plus, Minus, Coins } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-export const metadata: Metadata = { title: "Log de fichas — Admin" };
+export async function generateMetadata() {
+  const t = await getTranslations("misc2");
+  return { title: t("fichasMetaTitle") };
+}
 
 export default async function AdminFichasPage() {
+  const t = await getTranslations("misc2");
   const supabase = createServiceClient();
 
   // Últimos 200 ajustes admin
@@ -48,10 +52,10 @@ export default async function AdminFichasPage() {
     <div className="p-8 space-y-6">
       <header>
         <p className="font-sans text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
-          Fichas · Log Admin
+          {t("fichasEyebrow")}
         </p>
         <h1 className="mt-3 font-display text-3xl uppercase tracking-tight text-text-display">
-          Movimentações admin
+          {t("fichasTitle")}
         </h1>
         <div className="mt-4 brand-divider" />
       </header>
@@ -60,19 +64,19 @@ export default async function AdminFichasPage() {
       <div className="grid gap-4 md:grid-cols-3">
         <StatCard
           icon={Plus}
-          label="Total concedido"
+          label={t("fichasTotalGranted")}
           value={totalGrants}
           tone="success"
         />
         <StatCard
           icon={Minus}
-          label="Total removido"
+          label={t("fichasTotalRemoved")}
           value={totalDebits}
           tone="warning"
         />
         <StatCard
           icon={Coins}
-          label="Total de eventos"
+          label={t("fichasTotalEvents")}
           value={ledger?.length ?? 0}
           tone="brand"
         />
@@ -83,12 +87,12 @@ export default async function AdminFichasPage() {
         <table className="w-full">
           <thead className="border-b border-border-subtle">
             <tr>
-              <Th>Quando</Th>
-              <Th>Tipo</Th>
-              <Th>Alvo</Th>
+              <Th>{t("colWhen")}</Th>
+              <Th>{t("colType")}</Th>
+              <Th>{t("colTarget")}</Th>
               <Th>Delta</Th>
               <Th>Admin</Th>
-              <Th>Razão</Th>
+              <Th>{t("colReason")}</Th>
             </tr>
           </thead>
           <tbody>
@@ -140,7 +144,7 @@ export default async function AdminFichasPage() {
                   colSpan={6}
                   className="px-4 py-8 text-center font-display text-sm font-semibold text-text-body"
                 >
-                  Nenhum ajuste registrado ainda. Vá em &ldquo;Users&rdquo; pra ajustar fichas de alguém.
+                  {t("fichasEmpty")}
                 </td>
               </tr>
             )}

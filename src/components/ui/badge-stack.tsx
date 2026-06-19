@@ -10,6 +10,7 @@
  * C14 — zero hex hardcoded; apenas tokens semânticos via Tailwind.
  */
 
+import { useTranslations } from "next-intl";
 import { AchievementBadge, type AchievementVariant } from "@/components/ui/achievement-badge";
 import { cn } from "@/lib/utils";
 
@@ -56,6 +57,7 @@ export interface BadgeStackProps {
  * // Exibe: [Doutrina] [Veterano] [Streak 5] [+1]
  */
 export function BadgeStack({ badges, max = 3, className }: BadgeStackProps) {
+  const t = useTranslations("ui");
   /* Nada a exibir — retorna null silenciosamente */
   if (!badges.length) return null;
 
@@ -68,7 +70,7 @@ export function BadgeStack({ badges, max = 3, className }: BadgeStackProps) {
         "flex flex-wrap items-center gap-1",
         className,
       )}
-      aria-label={`${badges.length} conquista${badges.length !== 1 ? "s" : ""}`}
+      aria-label={t("achievementCount", { count: badges.length })}
     >
       {/* Badges visíveis — limitados por max */}
       {visible.map((item, index) => (
@@ -89,8 +91,8 @@ export function BadgeStack({ badges, max = 3, className }: BadgeStackProps) {
             "text-sm leading-none",
             "whitespace-nowrap",
           )}
-          aria-label={`e mais ${overflow} conquista${overflow !== 1 ? "s" : ""}`}
-          title={`${overflow} conquista${overflow !== 1 ? "s" : ""} não exibida${overflow !== 1 ? "s" : ""}`}
+          aria-label={t("achievementOverflowAria", { count: overflow })}
+          title={t("achievementOverflowTitle", { count: overflow })}
         >
           +{overflow}
         </span>

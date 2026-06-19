@@ -10,6 +10,7 @@
 // Após confirmar, avisa o pai (onConfirmed) pra exibir o CoachNotesPanel.
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { AlertTriangle, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/ui/avatar";
@@ -33,6 +34,7 @@ interface Props {
 }
 
 export function AdminActivePTPanel({ pt, nowMs, onChanged, onConfirmed }: Props) {
+  const t = useTranslations("misc2");
   const confirm = useConfirm();
   const prompt = usePrompt();
   const [dotaMatchId, setDotaMatchId] = useState("");
@@ -45,18 +47,18 @@ export function AdminActivePTPanel({ pt, nowMs, onChanged, onConfirmed }: Props)
     setValidationFail(null);
     const id = dotaMatchId.trim();
     if (!/^\d{8,12}$/.test(id)) {
-      setError("Match ID Dota deve ter entre 8 e 12 dígitos numéricos.");
+      setError(t("matchIdInvalid"));
       return;
     }
     startTransition(async () => {
       // Passo 1 — anti-Turbo (ranked oficial + participantes + recência)
       const preview = await adminPreviewMatchValidation(pt.matchId, id);
       if (!preview.success) {
-        setError(preview.error ?? "Erro na validação OpenDota.");
+        setError(preview.error ?? t("openDotaValidationError"));
         return;
       }
       if (!preview.valid) {
-        setValidationFail(preview.reason ?? "Partida reprovada na validação.");
+        setValidationFail(preview.reason ?? t("matchValidationFailed"));
         return;
       }
       // Passo 2 — enriquece E confirma (trigger PG cobra as fichas)
@@ -72,10 +74,9 @@ export function AdminActivePTPanel({ pt, nowMs, onChanged, onConfirmed }: Props)
 
   async function handleConfirmManual() {
     const ok = await confirm({
-      title: "Confirmar PT sem dados OpenDota?",
-      message:
-        "Cobra 1 ficha de cada aluno sem importar KDA/GPM. Use só se o OpenDota estiver fora do ar. Irreversível.",
-      confirmLabel: "Confirmar mesmo assim",
+      title: t("confirmManualTitle"),
+      message: t("confirmManualMessage"),
+      confirmLabel: t("confirmManualCta"),
       variant: "destructive",
     });
     if (!ok) return;
@@ -93,18 +94,17 @@ export function AdminActivePTPanel({ pt, nowMs, onChanged, onConfirmed }: Props)
 
   async function handleCancel() {
     const reason = await prompt({
-      title: "Cancelar PT (intervenção admin)",
-      message:
-        "Motivo do cancelamento (será salvo e auditado, mín 3 caracteres). Nenhuma ficha é cobrada.",
-      placeholder: "Ex: PRO sumiu, partida abortada, suporte ao aluno",
+      title: t("cancelPtTitle"),
+      message: t("cancelPtMessage"),
+      placeholder: t("cancelPtPlaceholder"),
       required: true,
       multiline: true,
-      confirmLabel: "Cancelar PT",
+      confirmLabel: t("cancelPtCta"),
       variant: "destructive",
     });
     if (reason === null) return;
     if (reason.trim().length < 3) {
-      setError("Motivo precisa ter pelo menos 3 caracteres.");
+      setError(t("reasonMin3"));
       return;
     }
     setError(null);
@@ -119,7 +119,7 @@ export function AdminActivePTPanel({ pt, nowMs, onChanged, onConfirmed }: Props)
     <article className="space-y-3 rounded-sm border border-warning/40 bg-warning/5 p-3">
       <header className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="font-display-condensed text-lg uppercase leading-none tracking-wider text-warning">
-          PT em curso · há{" "}
+          {t("ptInProgressFor")}{" "}
           <span className="tabular-nums">{formatElapsed(pt.createdAt, nowMs)}</span>
         </h3>
         <span className="font-mono text-sm text-text-faded">
@@ -137,18 +137,18 @@ export function AdminActivePTPanel({ pt, nowMs, onChanged, onConfirmed }: Props)
             <UserAvatar
               size="sm"
               src={s.avatarUrl ?? undefined}
-              alt={s.username ?? "Aluno"}
+              alt={s.username ?? t("student")}
               fallback={(s.username ?? "?").slice(0, 2)}
               className="scale-75"
             />
             <span className="font-display text-sm font-semibold text-text-body">
-              {s.username ?? "(sem nome)"}
+              {s.username ?? t("noName")}
             </span>
           </li>
         ))}
         {pt.students.length === 0 && (
           <li className="font-mono text-sm text-text-faded">
-            Nenhuma entry in_match vinculada (estado inconsistente — cancele).
+            {t("noInMatchEntry")}
           </li>
         )}
       </ul>
@@ -157,14 +157,14 @@ export function AdminActivePTPanel({ pt, nowMs, onChanged, onConfirmed }: Props)
       <div className="flex flex-wrap items-end gap-2">
         <label className="flex min-w-44 flex-1 flex-col gap-1.5">
           <span className="font-display-condensed text-base uppercase leading-none tracking-wider text-text-muted">
-            Match ID Dota (pós-partida)
+            {t("matchIdLabel")}
           </span>
           <input
             type="text"
             inputMode="numeric"
             value={dotaMatchId}
             onChange={(e) => setDotaMatchId(e.target.value)}
-            placeholder="ex: 7891234567"
+            placeholder={t("matchIdPlaceholder")}
             className="w-full rounded-sm border border-border-subtle bg-bg-elevated px-3 py-2 font-mono text-sm text-text-body placeholder:text-text-faded"
           />
         </label>
@@ -176,7 +176,7 @@ export function AdminActivePTPanel({ pt, nowMs, onChanged, onConfirmed }: Props)
           loading={pending}
         >
           <Check size={16} aria-hidden="true" />
-          Confirmar PT
+          {t("confirmPt")}
         </Button>
       </div>
 
@@ -191,7 +191,7 @@ export function AdminActivePTPanel({ pt, nowMs, onChanged, onConfirmed }: Props)
             onClick={handleConfirmManual}
             className="self-start font-display text-sm font-semibold uppercase tracking-wide text-text-muted underline-offset-4 transition-colors hover:text-text-display hover:underline"
           >
-            Confirmar sem dados (manual)
+            {t("confirmManualLink")}
           </button>
         </div>
       )}
@@ -204,7 +204,7 @@ export function AdminActivePTPanel({ pt, nowMs, onChanged, onConfirmed }: Props)
         disabled={pending}
         className="font-mono text-sm text-text-faded underline-offset-4 transition-colors hover:text-error hover:underline disabled:opacity-50"
       >
-        cancelar PT (sem cobrança)
+        {t("cancelPtNoCharge")}
       </button>
     </article>
   );

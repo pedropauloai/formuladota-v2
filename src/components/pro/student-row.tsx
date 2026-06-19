@@ -8,6 +8,7 @@
 // Validações de scope acontecem nas Server Actions — aqui apenas UI.
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { UserPlus, MessageSquarePlus, ThumbsUp, ThumbsDown, ChevronRight } from "lucide-react";
 import { UserAvatar } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
@@ -39,6 +40,7 @@ function ConfirmModal({
   confirmLabel,
   confirmVariant = "neutral",
 }: ConfirmModalProps) {
+  const t = useTranslations("proCockpit");
   const [text, setText] = useState("");
 
   const buttonClass = cn(
@@ -75,7 +77,7 @@ function ConfirmModal({
         />
 
         <p className="mt-1 text-sm text-text-muted">
-          {text.length}/{minLength} caracteres mínimos
+          {t("minChars", { current: text.length, min: minLength })}
         </p>
 
         <div className="mt-4 flex items-center justify-end gap-3">
@@ -85,7 +87,7 @@ function ConfirmModal({
             disabled={loading}
             className="rounded-md px-4 py-2 text-sm text-text-muted hover:text-text-body transition-colors disabled:opacity-50"
           >
-            Cancelar
+            {t("cancel")}
           </button>
           <button
             type="button"
@@ -93,7 +95,7 @@ function ConfirmModal({
             disabled={loading || text.length < minLength}
             className={buttonClass}
           >
-            {loading ? "Salvando..." : confirmLabel}
+            {loading ? t("saving") : confirmLabel}
           </button>
         </div>
       </div>
@@ -106,15 +108,18 @@ function ConfirmModal({
 // Mantido fora do componente para evitar Date.now() impure em render context
 // ---------------------------------------------------------------------------
 
-function formatRelative(dateStr: string | null): string {
+function formatRelative(
+  dateStr: string | null,
+  t: (key: string, values?: Record<string, string | number>) => string
+): string {
   if (!dateStr) return "—";
   const diff = Date.now() - new Date(dateStr).getTime();
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-  if (days === 0) return "hoje";
-  if (days === 1) return "ontem";
-  if (days < 30) return `há ${days} dias`;
+  if (days === 0) return t("relativeToday");
+  if (days === 1) return t("relativeYesterday");
+  if (days < 30) return t("relativeDays", { count: days });
   const months = Math.floor(days / 30);
-  return `há ${months} ${months === 1 ? "mês" : "meses"}`;
+  return t("relativeMonths", { count: months });
 }
 
 // ---------------------------------------------------------------------------
@@ -135,6 +140,7 @@ interface StudentRowProps {
  * Link para detalhe: /pro/students/[id].
  */
 export function StudentRow({ student, onActionSuccess }: StudentRowProps) {
+  const t = useTranslations("proCockpit");
   const [isPending, startTransition] = useTransition();
   const [modal, setModal] = useState<
     "note-positive" | "note-negative" | "recommend" | null
@@ -156,10 +162,10 @@ export function StudentRow({ student, onActionSuccess }: StudentRowProps) {
 
       setModal(null);
       if (result.success) {
-        setFeedback({ type: "success", message: "Nota registrada com sucesso." });
+        setFeedback({ type: "success", message: t("noteRegisteredSuccess") });
         onActionSuccess?.();
       } else {
-        setFeedback({ type: "error", message: result.error ?? "Erro desconhecido." });
+        setFeedback({ type: "error", message: result.error ?? t("unknownError") });
       }
 
       // Limpa feedback após 4s
@@ -173,10 +179,10 @@ export function StudentRow({ student, onActionSuccess }: StudentRowProps) {
 
       setModal(null);
       if (result.success) {
-        setFeedback({ type: "success", message: "Recomendação enviada para Pedro." });
+        setFeedback({ type: "success", message: t("recommendationSent") });
         onActionSuccess?.();
       } else {
-        setFeedback({ type: "error", message: result.error ?? "Erro desconhecido." });
+        setFeedback({ type: "error", message: result.error ?? t("unknownError") });
       }
 
       setTimeout(() => setFeedback(null), 4000);
@@ -197,23 +203,23 @@ export function StudentRow({ student, onActionSuccess }: StudentRowProps) {
         <div className="flex items-center gap-3">
           <UserAvatar
             src={student.avatarUrl ?? undefined}
-            alt={`Avatar de ${student.username ?? "Aluno"}`}
+            alt={t("avatarAlt", { name: student.username ?? t("student") })}
             fallback={initials}
             size="md"
           />
 
           <div className="flex flex-col">
             <span className="font-display text-sm font-semibold text-text-display">
-              {student.username ?? "Aluno Anônimo"}
+              {student.username ?? t("anonymousStudent")}
             </span>
 
             {/* Métricas inline */}
             <div className="flex items-center gap-3 mt-0.5 text-sm text-text-muted">
-              <span>{student.totalMatches} PTs</span>
-              <span>Ultima: {formatRelative(student.lastMatchAt)}</span>
+              <span>{t("ptsCount", { count: student.totalMatches })}</span>
+              <span>{t("lastMatch", { value: formatRelative(student.lastMatchAt, t) })}</span>
               {student.strikeCount > 0 && (
                 <span className="text-warning">
-                  {student.strikeCount} strike{student.strikeCount > 1 ? "s" : ""}
+                  {t("strikesCount", { count: student.strikeCount })}
                 </span>
               )}
             </div>
@@ -227,7 +233,7 @@ export function StudentRow({ student, onActionSuccess }: StudentRowProps) {
             type="button"
             onClick={() => setModal("note-positive")}
             disabled={isPending}
-            title="Coach Note +5 Honor"
+            title={t("coachNotePlusHonor")}
             className={cn(
               "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium",
               "bg-success/10 text-success border border-success/20",
@@ -243,7 +249,7 @@ export function StudentRow({ student, onActionSuccess }: StudentRowProps) {
             type="button"
             onClick={() => setModal("note-negative")}
             disabled={isPending}
-            title="Coach Note -5 Honor"
+            title={t("coachNoteMinusHonor")}
             className={cn(
               "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium",
               "bg-error/10 text-error border border-error/20",
@@ -259,7 +265,7 @@ export function StudentRow({ student, onActionSuccess }: StudentRowProps) {
             type="button"
             onClick={() => setModal("recommend")}
             disabled={isPending}
-            title="Recomendar para promoção PRO"
+            title={t("recommendForPromotionTitle")}
             className={cn(
               "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium",
               "bg-brand-primary/10 text-brand-primary border border-brand-primary/20",
@@ -267,7 +273,7 @@ export function StudentRow({ student, onActionSuccess }: StudentRowProps) {
             )}
           >
             <UserPlus size={12} aria-hidden="true" />
-            Recomendar
+            {t("recommend")}
           </button>
 
           {/* Ver perfil */}
@@ -280,7 +286,7 @@ export function StudentRow({ student, onActionSuccess }: StudentRowProps) {
             )}
           >
             <MessageSquarePlus size={12} aria-hidden="true" />
-            Ver perfil
+            {t("viewProfile")}
             <ChevronRight size={12} aria-hidden="true" />
           </a>
         </div>
@@ -303,39 +309,39 @@ export function StudentRow({ student, onActionSuccess }: StudentRowProps) {
       {/* Modais */}
       {modal === "note-positive" && (
         <ConfirmModal
-          title="Coach Note +5 Honor"
-          placeholder="Descreva o motivo do elogio (comportamento exemplar, ajuda ao time, etc.)..."
+          title={t("coachNotePlusHonor")}
+          placeholder={t("notePositivePlaceholderRow")}
           minLength={10}
           onConfirm={(reason) => handleCoachNote(5, reason)}
           onCancel={() => setModal(null)}
           loading={isPending}
-          confirmLabel="Confirmar +5"
+          confirmLabel={t("confirmPlus")}
           confirmVariant="positive"
         />
       )}
 
       {modal === "note-negative" && (
         <ConfirmModal
-          title="Coach Note -5 Honor"
-          placeholder="Descreva o motivo da penalidade (comportamento inadequado, postura negativa, etc.)..."
+          title={t("coachNoteMinusHonor")}
+          placeholder={t("noteNegativePlaceholderRow")}
           minLength={10}
           onConfirm={(reason) => handleCoachNote(-5, reason)}
           onCancel={() => setModal(null)}
           loading={isPending}
-          confirmLabel="Confirmar -5"
+          confirmLabel={t("confirmMinus")}
           confirmVariant="negative"
         />
       )}
 
       {modal === "recommend" && (
         <ConfirmModal
-          title="Recomendar para Promoção PRO"
-          placeholder="Justifique a recomendação — histórico de comportamento, partidas, contribuição à comunidade (mínimo 30 caracteres)..."
+          title={t("recommendForPromotionTitle")}
+          placeholder={t("recommendPlaceholderRow")}
           minLength={30}
           onConfirm={(justification) => handleRecommend(justification)}
           onCancel={() => setModal(null)}
           loading={isPending}
-          confirmLabel="Enviar Recomendação"
+          confirmLabel={t("sendRecommendation")}
           confirmVariant="neutral"
         />
       )}

@@ -5,6 +5,7 @@
 // profiles.doctrine_quiz_progress (IDs de questões corretas do Ritual).
 // Doutrinado (doctrine_accepted_at) = acesso ilimitado, não consome.
 
+import { getTranslations } from "next-intl/server";
 import { Ticket } from "lucide-react";
 import { AdjustPermissionsModal } from "./permission-modals";
 
@@ -20,7 +21,7 @@ function Stat({ label, value, sub }: { label: string; value: number; sub?: strin
   );
 }
 
-export function PermissionsSection({
+export async function PermissionsSection({
   userId,
   username,
   available,
@@ -35,13 +36,14 @@ export function PermissionsSection({
   quizCorrect: number;
   isDoctrinated: boolean;
 }) {
+  const t = await getTranslations("misc2");
   const earned = Math.floor(quizCorrect / 5);
 
   return (
     <section className="rounded-md border border-border-subtle bg-bg-elevated overflow-hidden">
       <div className="border-b border-border-subtle px-5 py-3 flex items-center justify-between">
         <h2 className="font-display text-sm uppercase tracking-widest text-text-display">
-          3. Permissões de partida
+          {t("permsSectionTitle")}
         </h2>
         <AdjustPermissionsModal
           targetUserId={userId}
@@ -53,20 +55,19 @@ export function PermissionsSection({
         {isDoctrinated && (
           <p className="flex items-center gap-2 rounded-md border border-emerald-500/40 bg-emerald-500/5 px-3 py-2 font-display text-sm font-semibold text-emerald-400">
             <Ticket size={14} />
-            Doutrinado — acesso ilimitado a partidas (não consome permissões).
+            {t("doctrinatedUnlimited")}
           </p>
         )}
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <Stat label="Disponíveis" value={available} sub="ganhas − consumidas" />
-          <Stat label="Consumidas" value={consumed} sub="contador no perfil" />
-          <Stat label="Ganhas no quiz" value={earned} sub="5 acertos = 1 permissão" />
-          <Stat label="Acertos no quiz" value={quizCorrect} sub="questões corretas (de 130)" />
+          <Stat label={t("permAvailable")} value={available} sub={t("permAvailableSub")} />
+          <Stat label={t("permConsumed")} value={consumed} sub={t("permConsumedSub")} />
+          <Stat label={t("permEarnedQuiz")} value={earned} sub={t("permEarnedQuizSub")} />
+          <Stat label={t("permQuizCorrect")} value={quizCorrect} sub={t("permQuizCorrectSub")} />
         </div>
 
         <p className="font-mono text-sm text-text-faded">
-          Saldo derivado: floor(acertos / 5) − consumidas. Conceder bônus decrementa o
-          contador de consumidas (pode ficar negativo = crédito); debitar incrementa.
+          {t("permsDerivedExplanation")}
         </p>
       </div>
     </section>

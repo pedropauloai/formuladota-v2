@@ -11,6 +11,7 @@
 // Cada ação tem input de nota opcional e registra em admin_audit_log.
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { ThumbsUp, ThumbsDown, ShieldAlert, Loader2, Check } from "lucide-react";
 import { applyCoachNote, applyStrike } from "@/app/admin/users/actions";
 import { useConfirm } from "@/components/ui/confirm";
@@ -30,10 +31,11 @@ interface CoachNotesPanelProps {
 // ─── Componente ──────────────────────────────────────────────────────────────
 
 export function CoachNotesPanel({ entries, matchId }: CoachNotesPanelProps) {
+  const t = useTranslations("misc2");
   return (
     <div className="mt-3 rounded-md border border-border-subtle bg-bg-elevated/20 p-3 space-y-3">
       <p className="font-display font-semibold text-sm uppercase tracking-wide text-text-faded">
-        Coach Notes — registrar conduta dos alunos desta PT
+        {t("coachNotesHeader")}
       </p>
       <div className="space-y-2">
         {entries.map((entry) => (
@@ -60,6 +62,7 @@ function StudentNoteRow({
   username: string;
   matchId: string;
 }) {
+  const t = useTranslations("misc2");
   const [note, setNote] = useState("");
   const [result, setResult] = useState<string | null>(null);
   const [isError, setIsError] = useState(false);
@@ -87,7 +90,7 @@ function StudentNoteRow({
       if (!res.success) {
         feedback(res.error, true);
       } else {
-        feedback(delta > 0 ? "+5 HONOR registrado" : "-5 HONOR registrado");
+        feedback(delta > 0 ? t("coachNotePos") : t("coachNoteNeg"));
         setNote("");
       }
     });
@@ -95,9 +98,9 @@ function StudentNoteRow({
 
   async function handleStrike() {
     const ok = await confirm({
-      title: `Aplicar strike leve em ${username}?`,
-      message: "Isso vai descontar 20 pontos de HONOR do aluno. Ação irreversível.",
-      confirmLabel: "Aplicar strike",
+      title: t("strikeConfirmTitle", { name: username }),
+      message: t("strikeConfirmMessage"),
+      confirmLabel: t("strikeConfirmCta"),
       variant: "destructive",
     });
     if (!ok) return;
@@ -106,13 +109,13 @@ function StudentNoteRow({
       const res = await applyStrike({
         targetUserId: userId,
         severity: "leve",
-        reason: note.trim() || `Strike leve pós-PT ${matchId}`,
+        reason: note.trim() || t("strikeDefaultReason", { matchId }),
       });
       setPendingAction(null);
       if (!res.success) {
         feedback(res.error, true);
       } else {
-        feedback("Strike leve aplicado");
+        feedback(t("strikeAppliedToast"));
         setNote("");
       }
     });
@@ -127,7 +130,7 @@ function StudentNoteRow({
         type="text"
         value={note}
         onChange={(e) => setNote(e.target.value)}
-        placeholder="Nota opcional (aparece no log)..."
+        placeholder={t("coachNotePlaceholder")}
         className="w-full rounded-md border border-border-subtle bg-bg-base/60 px-2 py-1.5 font-mono text-sm text-text-body placeholder:text-text-faded focus:outline-none focus:border-brand-primary/40"
       />
 
@@ -170,7 +173,7 @@ function StudentNoteRow({
           ) : (
             <ShieldAlert size={10} />
           )}
-          Strike leve
+          {t("strikeLight")}
         </button>
       </div>
 

@@ -5,6 +5,7 @@
 //
 // Zero hex hardcoded — apenas tokens semânticos.
 
+import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { UserAvatar } from "@/components/ui/avatar";
 import { DotaRankMedal, type DotaRank } from "@/components/ui/dota-rank-medal";
@@ -49,6 +50,7 @@ interface ProStatsHeaderProps {
  * Exibe: avatar + username + tier HONOR + tier SKILL + badge de status PRO.
  */
 export async function ProStatsHeader({ proUserId }: ProStatsHeaderProps) {
+  const t = await getTranslations("proCockpit");
   const supabase = await createClient();
 
   // Busca perfil, coach data e pro_promotion em paralelo
@@ -104,7 +106,7 @@ export async function ProStatsHeader({ proUserId }: ProStatsHeaderProps) {
         {/* Avatar com ring brand se ativo */}
         <UserAvatar
           src={avatarUrl}
-          alt={`Avatar de ${username}`}
+          alt={t("avatarAlt", { name: username })}
           fallback={initials}
           size="lg"
           ringColor={isActive ? "brand" : null}
@@ -125,7 +127,7 @@ export async function ProStatsHeader({ proUserId }: ProStatsHeaderProps) {
                   : "bg-warning/15 text-warning border border-warning/30"
               )}
             >
-              {isActive ? "PRO Ativo" : "PRO Pausado"}
+              {isActive ? t("proActive") : t("proPaused")}
             </span>
           </div>
 
@@ -158,7 +160,7 @@ export async function ProStatsHeader({ proUserId }: ProStatsHeaderProps) {
       {promo?.promoted_at && (
         <div className="text-right">
           <span className="text-sm text-text-muted uppercase tracking-wider">
-            PRO desde
+            {t("proSince")}
           </span>
           <p className="text-sm text-text-body font-mono">
             {new Date(promo.promoted_at).toLocaleDateString("pt-BR")}

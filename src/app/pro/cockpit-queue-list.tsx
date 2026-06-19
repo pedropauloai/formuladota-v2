@@ -12,6 +12,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Loader2, Share2, Timer, X } from "lucide-react";
 import { removeFromQueue } from "@/app/admin/pros/actions";
 import { UserAvatar } from "@/components/ui/avatar";
@@ -42,6 +43,7 @@ export function CockpitQueueList({
   selectable,
   nowMs,
 }: QueueListProps) {
+  const t = useTranslations("proCockpit");
   const router = useRouter();
   const prompt = usePrompt();
   const [error, setError] = useState<string | null>(null);
@@ -50,17 +52,17 @@ export function CockpitQueueList({
 
   async function handleRemove(entry: CockpitQueueEntry) {
     const reason = await prompt({
-      title: `Remover ${entry.username ?? "aluno"} da fila`,
-      message: "Informe o motivo da remoção (será logado). Ficha fica intacta.",
-      placeholder: "Ex: aluno desconectou, comportamento tóxico, etc",
-      defaultValue: "Sem motivo específico",
+      title: t("removeTitle", { name: entry.username ?? t("studentFallback") }),
+      message: t("removeMessage"),
+      placeholder: t("removePlaceholder"),
+      defaultValue: t("removeDefaultReason"),
       required: true,
-      confirmLabel: "Remover",
+      confirmLabel: t("remove"),
       variant: "destructive",
     });
     if (reason === null) return; // cancelou
     if (reason.trim().length < 3) {
-      setError("Motivo precisa ter pelo menos 3 caracteres.");
+      setError(t("reasonMinError"));
       return;
     }
     setError(null);
@@ -78,15 +80,15 @@ export function CockpitQueueList({
       <div className="flex min-h-0 flex-1 items-center justify-center overflow-y-auto">
         <EmptyState
           icon={Share2}
-          title="Fila aberta, ninguém na pista ainda"
-          description="Compartilhe sua fila — todo aluno que entrar aparece aqui em tempo real."
+          title={t("emptyQueueTitle")}
+          description={t("emptyQueueDescription")}
           principle="random"
           action={
             <a
               href="/ranked-com-pro"
               className="inline-flex items-center gap-2 font-display text-sm font-semibold uppercase tracking-wide text-brand-primary transition-colors hover:text-text-display"
             >
-              Ver minha fila em /ranked-com-pro →
+              {t("emptyQueueAction")}
             </a>
           }
         />
@@ -105,7 +107,7 @@ export function CockpitQueueList({
 
       {/* Seção PRÓXIMA PT — os primeiros da fila, visualmente destacados */}
       <SectionLabel highlight>
-        Próxima PT ({proximaPT.length}/{maxPT})
+        {t("nextPtSection", { count: proximaPT.length, max: maxPT })}
       </SectionLabel>
       <ul className="border-y border-brand-primary/25 bg-brand-primary/[0.04]">
         {proximaPT.map((entry, i) => (
@@ -126,7 +128,7 @@ export function CockpitQueueList({
       {/* Seção NA ESPERA — resto da fila */}
       {naEspera.length > 0 && (
         <>
-          <SectionLabel>Na espera ({naEspera.length})</SectionLabel>
+          <SectionLabel>{t("waitingSection", { count: naEspera.length })}</SectionLabel>
           <ul>
             {naEspera.map((entry, i) => (
               <QueueRow
@@ -196,7 +198,8 @@ function QueueRow({
   removing,
   nowMs,
 }: RowProps) {
-  const name = entry.username ?? "Anônimo";
+  const t = useTranslations("proCockpit");
+  const name = entry.username ?? t("anonymous");
   const waitingMinutes = Math.max(
     0,
     Math.floor((nowMs - new Date(entry.joinedAt).getTime()) / 60000)
@@ -217,7 +220,7 @@ function QueueRow({
           checked={checked}
           onChange={onToggle}
           className="size-4 shrink-0 cursor-pointer accent-brand-primary"
-          aria-label={`Selecionar ${name} pra próxima PT`}
+          aria-label={t("selectForPt", { name })}
         />
       )}
 
@@ -239,14 +242,14 @@ function QueueRow({
 
       <span className="inline-flex w-16 shrink-0 items-center justify-end gap-1 font-mono text-sm tabular-nums text-text-muted">
         <Timer size={12} className="text-text-faded" aria-hidden="true" />
-        {waitingMinutes}min
+        {t("minutesShort", { count: waitingMinutes })}
       </span>
 
       <button
         type="button"
         onClick={onRemove}
         disabled={removing}
-        aria-label={`Remover ${name} da fila`}
+        aria-label={t("removeFromQueueAria", { name })}
         className="flex size-8 shrink-0 items-center justify-center rounded-md text-text-faded transition-colors hover:bg-error/15 hover:text-error disabled:opacity-50"
       >
         {removing ? (

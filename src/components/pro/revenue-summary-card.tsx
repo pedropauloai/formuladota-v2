@@ -5,6 +5,7 @@
 //
 // Zero hex hardcoded — apenas tokens semânticos.
 
+import { useTranslations } from "next-intl";
 import { TrendingUp, DollarSign, Users, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { RevenueResult } from "@/app/actions/pro-management";
@@ -83,10 +84,12 @@ export function RevenueSummaryCard({
   revenue,
   period,
 }: RevenueSummaryCardProps) {
+  const t = useTranslations("proCockpit");
+
   if (!revenue.success || !revenue.data) {
     return (
       <div className="rounded-lg border border-border-subtle bg-bg-elevated p-6 text-center text-text-muted text-sm">
-        {revenue.error ?? "Dados de revenue indisponíveis."}
+        {revenue.error ?? t("revenueUnavailable")}
       </div>
     );
   }
@@ -103,7 +106,7 @@ export function RevenueSummaryCard({
       <div className="flex items-center justify-between">
         <div>
           <h3 className="font-display text-sm uppercase tracking-widest text-text-display">
-            Revenue
+            {t("revenue")}
           </h3>
           {period && (
             <p className="text-sm text-text-muted mt-0.5">{period}</p>
@@ -119,7 +122,7 @@ export function RevenueSummaryCard({
               : "bg-warning/10 text-warning border-warning/20"
           )}
         >
-          {isFirstSaleDone ? "Sponsor pago" : "Aguardando 1a venda"}
+          {isFirstSaleDone ? t("sponsorPaid") : t("awaitingFirstSale")}
         </span>
       </div>
 
@@ -127,38 +130,37 @@ export function RevenueSummaryCard({
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <MetricItem
           icon={TrendingUp}
-          label="Revenue Total"
+          label={t("totalRevenue")}
           value={formatBRL(totalRevenue)}
           highlight
         />
         <MetricItem
           icon={DollarSign}
-          label="Seus Ganhos"
+          label={t("yourEarnings")}
           value={formatBRL(proEarnings)}
         />
         <MetricItem
           icon={Star}
-          label="Sponsor Pago"
+          label={t("sponsorPaidLabel")}
           value={formatBRL(sponsorGiven)}
         />
         <MetricItem
           icon={Users}
-          label="Total Vendas"
+          label={t("totalSales")}
           value={String(totalSales)}
         />
       </div>
 
       {/* Breakdown: fee plataforma */}
       <div className="flex items-center justify-between rounded-md bg-bg-base px-4 py-2 text-sm text-text-muted">
-        <span>Fee plataforma</span>
+        <span>{t("platformFee")}</span>
         <span className="font-mono text-text-body">{formatBRL(platformFee)}</span>
       </div>
 
       {/* Aviso sobre split da primeira venda */}
       {!isFirstSaleDone && (
         <p className="text-sm text-warning/80 bg-warning/5 border border-warning/15 rounded-md px-3 py-2">
-          Sua primeira venda reserva parte do revenue ao sponsor que te
-          indicou. As vendas seguintes entram no split padrão.
+          {t("firstSaleSplitNotice")}
         </p>
       )}
     </div>

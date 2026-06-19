@@ -1,13 +1,15 @@
 // /admin/users — listagem de usuários com filtros, saldo de fichas, honor score.
 // Server Component — dados buscados no servidor via service client.
 
-import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { createServiceClient } from "@/lib/supabase/service";
 import { Eye, ChevronRight } from "lucide-react";
 
-export const metadata: Metadata = { title: "Admin Users — FORMULADOTA" };
+export const metadata = { title: "Admin Users — FORMULADOTA" };
 export const revalidate = 30;
+
+type Translator = Awaited<ReturnType<typeof getTranslations>>;
 
 // ─── Tipos ───────────────────────────────────────────────────────────────────
 
@@ -22,12 +24,12 @@ const PAGE_SIZE = 50;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function BehaviorBadge({ status }: { status: string | null }) {
+function BehaviorBadge({ status, t }: { status: string | null; t: Translator }) {
   const map: Record<string, { label: string; cls: string }> = {
     ok: { label: "OK", cls: "border-emerald-500/40 text-emerald-400" },
-    warned: { label: "Advertido", cls: "border-amber-500/40 text-amber-400" },
-    suspended: { label: "Suspenso", cls: "border-amber-600/60 text-amber-500" },
-    banned: { label: "Banido", cls: "border-red-500/60 text-red-400" },
+    warned: { label: t("behaviorWarned"), cls: "border-amber-500/40 text-amber-400" },
+    suspended: { label: t("behaviorSuspended"), cls: "border-amber-600/60 text-amber-500" },
+    banned: { label: t("behaviorBanned"), cls: "border-red-500/60 text-red-400" },
   };
   const conf =
     map[status ?? ""] ?? {
@@ -43,11 +45,11 @@ function BehaviorBadge({ status }: { status: string | null }) {
   );
 }
 
-function RoleBadge({ role }: { role: string | null }) {
+function RoleBadge({ role, t }: { role: string | null; t: Translator }) {
   const map: Record<string, { label: string; cls: string }> = {
     admin: { label: "Admin", cls: "border-brand-primary/60 text-brand-primary" },
     coach: { label: "Coach", cls: "border-purple-500/60 text-purple-400" },
-    player: { label: "Jogador", cls: "border-border-subtle text-text-muted" },
+    player: { label: t("rolePlayer"), cls: "border-border-subtle text-text-muted" },
   };
   const conf = map[role ?? ""] ?? { label: role ?? "—", cls: "border-border-subtle text-text-muted" };
   return (
@@ -76,6 +78,7 @@ export default async function AdminUsersPage({
 }: {
   searchParams: Promise<SearchParams>;
 }) {
+  const t = await getTranslations("misc2");
   const params = await searchParams;
   const search = params.q?.trim() ?? "";
   const roleFilter = params.role?.trim() ?? "";
@@ -142,11 +145,11 @@ export default async function AdminUsersPage({
           Admin / Users
         </p>
         <h1 className="mt-3 font-display text-3xl uppercase tracking-tight text-text-display">
-          Comunidade
+          {t("communityTitle")}
         </h1>
         <div className="mt-4 brand-divider" />
         <p className="mt-3 font-display text-sm font-semibold text-text-body">
-          {count ?? 0} usuários encontrados · página {page} de {Math.max(1, totalPages)}
+          {t("usersFoundPage", { count: count ?? 0, page, total: Math.max(1, totalPages) })}
         </p>
       </header>
 
@@ -156,7 +159,7 @@ export default async function AdminUsersPage({
           type="text"
           name="q"
           defaultValue={search}
-          placeholder="Buscar username ou email..."
+          placeholder={t("searchUserPlaceholder")}
           className="rounded-md border border-border-subtle bg-bg-elevated px-3 py-2 font-mono text-sm text-text-body placeholder:text-text-faded focus:outline-none focus:border-brand-primary/60 min-w-[200px]"
         />
         <select
@@ -164,33 +167,33 @@ export default async function AdminUsersPage({
           defaultValue={roleFilter}
           className="rounded-md border border-border-subtle bg-bg-elevated px-3 py-2 font-mono text-sm text-text-body focus:outline-none focus:border-brand-primary/60"
         >
-          <option value="">Todos os roles</option>
+          <option value="">{t("allRoles")}</option>
           <option value="admin">Admin</option>
           <option value="coach">Coach</option>
-          <option value="player">Jogador</option>
+          <option value="player">{t("rolePlayer")}</option>
         </select>
         <select
           name="calibration"
           defaultValue={calibrationFilter}
           className="rounded-md border border-border-subtle bg-bg-elevated px-3 py-2 font-mono text-sm text-text-body focus:outline-none focus:border-brand-primary/60"
         >
-          <option value="">Todos os status</option>
-          <option value="visitante">Visitante</option>
-          <option value="calibrando">Calibrando</option>
-          <option value="ranqueado">Ranqueado</option>
+          <option value="">{t("allStatuses")}</option>
+          <option value="visitante">{t("statusVisitor")}</option>
+          <option value="calibrando">{t("statusCalibrating")}</option>
+          <option value="ranqueado">{t("statusRanked")}</option>
         </select>
         <button
           type="submit"
           className="rounded-md border border-border-subtle bg-bg-elevated px-4 py-2 font-mono text-sm text-text-body hover:border-brand-primary/60 transition-colors"
         >
-          Filtrar
+          {t("filter")}
         </button>
         {(search || roleFilter || calibrationFilter) && (
           <Link
             href="/admin/users"
             className="rounded-md px-4 py-2 font-mono text-sm text-text-faded hover:text-text-muted transition-colors"
           >
-            Limpar
+            {t("clear")}
           </Link>
         )}
       </form>
@@ -200,20 +203,20 @@ export default async function AdminUsersPage({
         <table className="w-full">
           <thead className="border-b border-border-subtle">
             <tr>
-              <Th>Usuário</Th>
+              <Th>{t("colUser")}</Th>
               <Th>Role</Th>
-              <Th>Calibração</Th>
-              <Th>Conduta</Th>
+              <Th>{t("colCalibration")}</Th>
+              <Th>{t("colConduct")}</Th>
               <Th>Fichas</Th>
-              <Th>Cadastro</Th>
-              <Th>Ações</Th>
+              <Th>{t("colSignup")}</Th>
+              <Th>{t("colActions")}</Th>
             </tr>
           </thead>
           <tbody>
             {(profiles ?? []).length === 0 ? (
               <tr>
                 <td colSpan={7} className="px-4 py-12 text-center font-mono text-sm text-text-faded">
-                  Nenhum usuário encontrado com esses filtros.
+                  {t("noUsersFound")}
                 </td>
               </tr>
             ) : (
@@ -227,12 +230,12 @@ export default async function AdminUsersPage({
                     {/* Usuário */}
                     <Td>
                       <div className="font-medium text-text-body">
-                        {p.username ?? "(sem nome)"}
+                        {p.username ?? t("noName")}
                         {p.is_admin && (
                           <span className="ml-1.5 text-yellow-500 text-sm">ADMIN</span>
                         )}
                         {p.banned_at && (
-                          <span className="ml-1.5 text-red-500 text-sm">BANIDO</span>
+                          <span className="ml-1.5 text-red-500 text-sm">{t("bannedTag")}</span>
                         )}
                       </div>
                       <div className="font-mono text-sm text-text-faded">
@@ -242,7 +245,7 @@ export default async function AdminUsersPage({
 
                     {/* Role */}
                     <Td>
-                      <RoleBadge role={p.role} />
+                      <RoleBadge role={p.role} t={t} />
                     </Td>
 
                     {/* Calibração */}
@@ -254,7 +257,7 @@ export default async function AdminUsersPage({
 
                     {/* Conduta */}
                     <Td>
-                      <BehaviorBadge status={p.behavior_status} />
+                      <BehaviorBadge status={p.behavior_status} t={t} />
                     </Td>
 
                     {/* Fichas */}
@@ -267,7 +270,7 @@ export default async function AdminUsersPage({
                         {balance}
                       </span>
                       <span className="ml-1 font-display font-semibold text-sm text-text-faded uppercase tracking-wide">
-                        {balance === 1 ? "ficha" : "fichas"}
+                        {t("fichaUnit", { count: balance })}
                       </span>
                     </Td>
 
@@ -285,7 +288,7 @@ export default async function AdminUsersPage({
                         className="inline-flex items-center gap-1.5 rounded-md border border-border-subtle px-2.5 py-1 font-display font-semibold text-sm uppercase tracking-wide text-text-muted hover:border-brand-primary/60 hover:text-brand-primary transition-colors"
                       >
                         <Eye size={11} />
-                        Ver detalhes
+                        {t("viewDetails")}
                         <ChevronRight size={9} />
                       </Link>
                     </Td>
@@ -305,7 +308,7 @@ export default async function AdminUsersPage({
               href={buildFilterUrl({ page: String(page - 1) })}
               className="rounded-md border border-border-subtle px-3 py-1.5 font-display text-sm font-semibold text-text-body hover:border-brand-primary/60 hover:text-brand-primary transition-colors"
             >
-              Anterior
+              {t("previous")}
             </Link>
           )}
           <span className="font-mono text-sm text-text-faded">
@@ -316,7 +319,7 @@ export default async function AdminUsersPage({
               href={buildFilterUrl({ page: String(page + 1) })}
               className="rounded-md border border-border-subtle px-3 py-1.5 font-display text-sm font-semibold text-text-body hover:border-brand-primary/60 hover:text-brand-primary transition-colors"
             >
-              Próxima
+              {t("next")}
             </Link>
           )}
         </div>

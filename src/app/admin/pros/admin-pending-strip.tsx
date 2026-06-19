@@ -5,6 +5,7 @@
 // É o "o que precisa de atenção primeiro": clicar num card seleciona o coach
 // no master-detail, onde ficam as ações de emergência.
 
+import { useTranslations } from "next-intl";
 import { AlertTriangle, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AdminCoachSummary, AdminPendingPT } from "./admin-pros-types";
@@ -25,18 +26,18 @@ export function AdminPendingStrip({
   selectedCoachId,
   onSelectCoach,
 }: Props) {
+  const t = useTranslations("misc2");
   const coachById = new Map(coaches.map((c) => [c.coachId, c]));
 
   return (
     <section
-      aria-label="PTs aguardando decisão"
+      aria-label={t("pendingAriaLabel")}
       className="shrink-0 border-b border-warning/30 bg-warning/5"
     >
       <div className="flex items-center gap-2 px-4 pt-2 xl:px-6">
         <AlertTriangle size={14} className="text-warning" aria-hidden="true" />
         <h2 className="font-display-condensed text-lg uppercase leading-none tracking-wider text-warning">
-          Atenção primeiro — {pending.length} PT{pending.length === 1 ? "" : "s"}{" "}
-          aguardando decisão
+          {t("pendingAttentionFirst", { count: pending.length })}
         </h2>
       </div>
 
@@ -61,8 +62,7 @@ export function AdminPendingStrip({
                     {coach?.username ?? coach?.slug ?? "PRO"}
                   </p>
                   <p className="font-mono text-sm text-text-muted">
-                    {pt.students.length} aluno{pt.students.length === 1 ? "" : "s"}{" "}
-                    · há{" "}
+                    {t("studentsCountAgo", { count: pt.students.length })}{" "}
                     <span className="tabular-nums text-warning">
                       {formatAge(pt.createdAt, nowMs)}
                     </span>

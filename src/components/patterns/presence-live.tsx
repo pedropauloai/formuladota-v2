@@ -22,6 +22,7 @@
 "use client";
 
 import { m, AnimatePresence } from "motion/react";
+import { useTranslations } from "next-intl";
 import { Users, Clock } from "lucide-react";
 import { PresenceDot } from "@/components/ui/presence-dot";
 import { cn } from "@/lib/utils";
@@ -66,23 +67,25 @@ export interface PresenceLiveProps {
 // Helpers internos
 // ---------------------------------------------------------------------------
 
+type Translator = (key: string, values?: Record<string, string | number>) => string;
+
 /**
- * Formata o tempo até a próxima vaga em string legível (PT-BR).
+ * Formata o tempo até a próxima vaga em string legível.
  * Ex: { hours: 2, minutes: 14 } → "2h 14min"
  */
-function formatNextSlot(slot: NextSlot): string {
+function formatNextSlot(slot: NextSlot, t: Translator): string {
   const partes: string[] = [];
   if (slot.hours > 0)   partes.push(`${slot.hours}h`);
   if (slot.minutes > 0) partes.push(`${slot.minutes}min`);
-  return partes.join(" ") || "em breve";
+  return partes.join(" ") || t("soon");
 }
 
 /**
  * Retorna texto de status offline localizado.
  * Usa "retorna amanhã 19h" como texto padrão — ajustar quando horário vier do DB.
  */
-function getOfflineText(proName: string): string {
-  return `${proName} retorna amanhã às 19h`;
+function getOfflineText(proName: string, t: Translator): string {
+  return t("proReturnsTomorrow", { name: proName });
 }
 
 // ---------------------------------------------------------------------------
@@ -96,6 +99,7 @@ function PresenceLiveCompact({
   nextSlotIn,
   motionSafe,
 }: Omit<PresenceLiveProps, "variant" | "className"> & { motionSafe: boolean }) {
+  const t = useTranslations("ui");
   const isOnline = proStatus !== "offline";
 
   return (
@@ -124,14 +128,14 @@ function PresenceLiveCompact({
             exit="exit"
           >
             <Clock className="size-3.5 text-text-muted shrink-0" aria-hidden="true" />
-            <span className="text-sm text-text-muted">Próxima vaga em</span>
+            <span className="text-sm text-text-muted">{t("nextSlotIn")}</span>
             <span
               className={cn(
                 "text-sm font-semibold text-text-display tabular-nums leading-none",
                 "[font-family:var(--font-display-condensed)]"
               )}
             >
-              {formatNextSlot(nextSlotIn)}
+              {formatNextSlot(nextSlotIn, t)}
             </span>
           </m.span>
         ) : isOnline ? (
@@ -144,7 +148,7 @@ function PresenceLiveCompact({
             exit="exit"
           >
             <span className="text-success font-medium">{weekActiveStudents}</span>
-            {" alunos esta semana"}
+            {` ${t("studentsThisWeekSuffix")}`}
           </m.span>
         ) : (
           <m.span
@@ -155,7 +159,7 @@ function PresenceLiveCompact({
             animate="visible"
             exit="exit"
           >
-            {getOfflineText(proName)}
+            {getOfflineText(proName, t)}
           </m.span>
         )}
       </AnimatePresence>
@@ -174,6 +178,7 @@ function PresenceLiveExpanded({
   nextSlotIn,
   motionSafe,
 }: Omit<PresenceLiveProps, "variant" | "className"> & { motionSafe: boolean }) {
+  const t = useTranslations("ui");
   const isOnline = proStatus !== "offline";
 
   return (
@@ -192,7 +197,7 @@ function PresenceLiveExpanded({
             animate={motionSafe ? { opacity: [0.7, 1, 0.7] } : {}}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           >
-            Em partida
+            {t("inMatch")}
           </m.span>
         )}
       </div>
@@ -210,14 +215,14 @@ function PresenceLiveExpanded({
           >
             <Clock className="size-4 text-text-muted shrink-0" aria-hidden="true" />
             <div className="flex items-baseline gap-1.5">
-              <span className="text-sm text-text-muted">Próxima vaga em</span>
+              <span className="text-sm text-text-muted">{t("nextSlotIn")}</span>
               <span
                 className={cn(
                   "text-xl font-semibold text-text-display tabular-nums leading-none",
                   "[font-family:var(--font-display-condensed)]"
                 )}
               >
-                {formatNextSlot(nextSlotIn)}
+                {formatNextSlot(nextSlotIn, t)}
               </span>
             </div>
           </m.div>
@@ -231,7 +236,7 @@ function PresenceLiveExpanded({
             exit="exit"
           >
             <Clock className="size-4 text-text-muted shrink-0" aria-hidden="true" />
-            <span className="text-sm text-text-muted">Sem vagas abertas agora</span>
+            <span className="text-sm text-text-muted">{t("noOpenSlots")}</span>
           </m.div>
         ) : (
           <m.div
@@ -243,7 +248,7 @@ function PresenceLiveExpanded({
             exit="exit"
           >
             <Clock className="size-4 text-text-faded shrink-0" aria-hidden="true" />
-            <span className="text-sm text-text-faded">{getOfflineText(proName)}</span>
+            <span className="text-sm text-text-faded">{getOfflineText(proName, t)}</span>
           </m.div>
         )}
       </AnimatePresence>
@@ -260,7 +265,7 @@ function PresenceLiveExpanded({
           >
             {weekActiveStudents}
           </span>
-          {" alunos ativos esta semana"}
+          {` ${t("activeStudentsThisWeekSuffix")}`}
         </span>
       </div>
     </div>

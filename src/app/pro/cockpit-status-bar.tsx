@@ -10,6 +10,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Power, Radio, Eye } from "lucide-react";
 import { togglePROFila } from "@/app/admin/pros/actions";
 import { Button } from "@/components/ui/button";
@@ -51,6 +52,7 @@ export function CockpitStatusBar({
   waitingCount,
   nowMs,
 }: StatusBarProps) {
+  const t = useTranslations("proCockpit");
   const { toggle, pending, error } = useToggleFila();
   const confirm = useConfirm();
 
@@ -60,12 +62,12 @@ export function CockpitStatusBar({
 
   async function handleClose() {
     const ok = await confirm({
-      title: "Fechar a fila?",
+      title: t("closeQueueTitle"),
       message:
         waitingCount > 0
-          ? `${waitingCount} aluno${waitingCount === 1 ? "" : "s"} aguardando ser${waitingCount === 1 ? "á" : "ão"} removido${waitingCount === 1 ? "" : "s"} da fila (fichas permanecem intactas).`
-          : "Você para de receber alunos até abrir de novo.",
-      confirmLabel: "Fechar fila",
+          ? t("closeQueueMessageWaiting", { count: waitingCount })
+          : t("closeQueueMessageEmpty"),
+      confirmLabel: t("closeQueueConfirm"),
       variant: "destructive",
     });
     if (ok) toggle(false);
@@ -79,10 +81,12 @@ export function CockpitStatusBar({
             className="size-2 animate-pulse rounded-full bg-success"
             aria-hidden="true"
           />
-          Fila aberta
+          {t("queueOpen")}
           {minutosAberta !== null && (
             <span className="text-success/70">
-              há <span className="tabular-nums">{minutosAberta}</span> min
+              {t("openForPrefix")}{" "}
+              <span className="tabular-nums">{minutosAberta}</span>{" "}
+              {t("minutesSuffix")}
             </span>
           )}
         </span>
@@ -92,11 +96,11 @@ export function CockpitStatusBar({
           size="sm"
           onClick={handleClose}
           loading={pending}
-          aria-label="Fechar fila"
+          aria-label={t("closeQueueAria")}
           className="text-text-muted hover:text-error"
         >
           <Power size={14} aria-hidden="true" />
-          Fechar
+          {t("close")}
         </Button>
       </div>
       {error && (
@@ -111,16 +115,16 @@ export function CockpitStatusBar({
 // ---------------------------------------------------------------------------
 
 export function QueueClosedHero() {
+  const t = useTranslations("proCockpit");
   const { toggle, pending, error } = useToggleFila();
 
   return (
     <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-5 p-6 text-center">
       <p className="font-display-condensed text-2xl uppercase leading-none tracking-wider text-text-faded">
-        Fila fechada
+        {t("queueClosed")}
       </p>
       <p className="max-w-sm font-body text-sm leading-relaxed text-text-muted">
-        Nenhum aluno consegue entrar enquanto a fila está fechada. Escolha o modo
-        e abra — a fila aparece na hora em /ranked-com-pro.
+        {t("queueClosedDescription")}
       </p>
       <div className="flex flex-col gap-3 sm:flex-row">
         <Button
@@ -130,7 +134,7 @@ export function QueueClosedHero() {
           loading={pending}
         >
           <Radio size={20} aria-hidden="true" />
-          Abrir — eu jogo (PT ranked)
+          {t("openModePlay")}
         </Button>
         <Button
           variant="secondary"
@@ -139,7 +143,7 @@ export function QueueClosedHero() {
           loading={pending}
         >
           <Eye size={20} aria-hidden="true" />
-          Abrir — eu observo + análise
+          {t("openModeCoached")}
         </Button>
       </div>
       {error && <p className="font-mono-ui text-sm text-error">{error}</p>}

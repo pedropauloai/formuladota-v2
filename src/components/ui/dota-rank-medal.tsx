@@ -21,6 +21,7 @@
 
 import Image from "next/image"
 import { Lock } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { Tooltip } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 
@@ -41,20 +42,22 @@ export type DotaRank =
   | "immortal-top-100"
 
 /**
- * Labels PT-BR dos rank names oficiais Valve (regra Pedro 2026-05-23: plataforma BR).
- * APENAS nomes de medalhas traduzidos — jargões como "Streak", "Season", "Top 100"
- * mantêm inglês por serem universalmente reconhecidos na comunidade Dota BR.
+ * Lista canônica dos rankIds (ordem Herald→Immortal + Top 100 especial).
+ * Os NOMES EXIBIDOS são resolvidos por i18n (namespace "ranks", chave
+ * ranks.dota.<rankId>) — em EN saem os nomes oficiais Valve (Herald, Guardian…),
+ * em PT os equivalentes (Arauto, Guardião…). Este map serve só pra iterar/validar
+ * os ids; NÃO use os valores como label de UI.
  */
-export const RANK_LABELS: Record<DotaRank, string> = {
-  herald: "Arauto",
-  guardian: "Guardião",
-  crusader: "Cruzado",
-  archon: "Arconte",
-  legend: "Lenda",
-  ancient: "Ancião",
-  divine: "Divino",
-  immortal: "Imortal",
-  "immortal-top-100": "Imortal Top 100",
+export const RANK_LABELS: Record<DotaRank, true> = {
+  herald: true,
+  guardian: true,
+  crusader: true,
+  archon: true,
+  legend: true,
+  ancient: true,
+  divine: true,
+  immortal: true,
+  "immortal-top-100": true,
 }
 
 /**
@@ -73,13 +76,15 @@ const SKILL_ORDER: DotaRank[] = [
 ]
 
 export function SkillShowcase({ current }: { current: DotaRank }) {
+  const t = useTranslations("ui")
+  const tr = useTranslations("ranks")
   // Top 100 ocupa o mesmo degrau do Imortal na régua
   const rulerCurrent = current === "immortal-top-100" ? "immortal" : current
   const currentIdx = SKILL_ORDER.indexOf(rulerCurrent)
   return (
     <span className="block w-[420px] max-w-[88vw]">
       <span className="block text-center font-display-condensed text-lg uppercase leading-none tracking-[0.2em] text-text-muted">
-        Medalhas de classificação
+        {t("skillShowcaseTitle")}
       </span>
       <span className="mt-2 flex flex-col items-center gap-1">
         <Image
@@ -91,12 +96,11 @@ export function SkillShowcase({ current }: { current: DotaRank }) {
           aria-hidden="true"
         />
         <span className="font-display-condensed text-xl uppercase leading-none tracking-widest text-gold">
-          {RANK_LABELS[current]}
+          {tr(`dota.${current}`)}
         </span>
       </span>
       <span className="mt-1 block text-center text-xs leading-snug text-text-muted">
-        Medalha oficial Valve — mede SKILL (MMR). Distinta do seu nível
-        FormulaDota, que mede HONOR.
+        {t("skillShowcaseSubtitle")}
       </span>
       <span className="mt-2.5 flex items-end justify-between gap-1 border-t border-border-subtle pt-2.5">
         {SKILL_ORDER.map((r, i) => (
@@ -119,7 +123,7 @@ export function SkillShowcase({ current }: { current: DotaRank }) {
                 r === rulerCurrent ? "text-gold" : "text-text-faded",
               )}
             >
-              {RANK_LABELS[r]}
+              {tr(`dota.${r}`)}
             </span>
           </span>
         ))}
@@ -265,10 +269,12 @@ export function DotaRankMedal({
   className,
   tooltip = true,
 }: DotaRankMedalProps) {
+  const t = useTranslations("ui")
+  const tr = useTranslations("ranks")
   const px = SIZE_PX[size]
   const sizeClass = SIZE_CLASS[size]
   const glowClass = glow ? (GLOW_CLASS[rank] ?? "") : ""
-  const label = RANK_LABELS[rank]
+  const label = tr(`dota.${rank}`)
 
   /* ------------------------------------------------------------------
    * Estado: visitante — placeholder cinza com ícone Lock
@@ -303,7 +309,7 @@ export function DotaRankMedal({
               "uppercase tracking-widest text-text-faded whitespace-nowrap",
             )}
           >
-            Não calibrado
+            {t("notCalibrated")}
           </span>
         )}
       </div>
@@ -330,7 +336,7 @@ export function DotaRankMedal({
         >
           <Image
             src={calibratingSrc}
-            alt="Rank em calibração"
+            alt={t("rankCalibratingAlt")}
             width={px}
             height={px}
             className="object-contain w-full h-full opacity-60"
@@ -346,7 +352,7 @@ export function DotaRankMedal({
               "bg-warning/20 border border-warning/40 text-warning",
             )}
           >
-            Calibrando
+            {t("calibratingBadge")}
           </span>
         </div>
         {showLabel && (
@@ -357,7 +363,7 @@ export function DotaRankMedal({
               "uppercase tracking-widest text-warning whitespace-nowrap",
             )}
           >
-            Em calibração
+            {t("calibratingLabel")}
           </span>
         )}
       </div>

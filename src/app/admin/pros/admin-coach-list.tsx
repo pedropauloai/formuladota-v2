@@ -7,6 +7,7 @@
 // Cada linha responde: fila aberta? há quanto tempo? quantos esperando?
 // PT em curso? quanto rendeu hoje? — tudo que o admin precisa pra triagem.
 
+import { useTranslations } from "next-intl";
 import { Radio, Swords, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UserAvatar } from "@/components/ui/avatar";
@@ -28,6 +29,7 @@ export function AdminCoachListRow({
   nowMs,
   onSelect,
 }: ItemProps) {
+  const t = useTranslations("misc2");
   return (
     <button
       type="button"
@@ -53,20 +55,20 @@ export function AdminCoachListRow({
           {coach.username ?? coach.slug}
           {!coach.ativo && (
             <span className="ml-1.5 font-mono text-sm text-text-faded">
-              (inativo)
+              {t("coachInactive")}
             </span>
           )}
         </p>
         <p className="font-mono text-sm text-text-muted">
           {coach.filaAberta && coach.filaAbertaEm ? (
             <span className="text-success">
-              aberta há {formatAge(coach.filaAbertaEm, nowMs)}
+              {t("queueOpenFor", { age: formatAge(coach.filaAbertaEm, nowMs) })}
             </span>
           ) : (
-            <span className="text-text-faded">fila fechada</span>
+            <span className="text-text-faded">{t("queueClosed")}</span>
           )}
           {" · "}
-          {coach.hoje.pts} PT{coach.hoje.pts === 1 ? "" : "s"} ·{" "}
+          {t("coachPtsToday", { count: coach.hoje.pts })} ·{" "}
           <span className="tabular-nums text-gold">
             R$ {formatBRL(coach.hoje.ganhoBrl)}
           </span>
@@ -77,7 +79,7 @@ export function AdminCoachListRow({
         {hasPendingPT && (
           <span
             className="inline-flex items-center gap-1 font-display-condensed text-base uppercase leading-none tracking-wider text-warning"
-            title="PT em curso aguardando decisão"
+            title={t("ptInProgressTitle")}
           >
             <Swords size={12} aria-hidden="true" />
             PT
@@ -88,7 +90,7 @@ export function AdminCoachListRow({
             "inline-flex items-center gap-1 font-display text-sm font-bold tabular-nums",
             coach.waitingCount > 0 ? "text-text-display" : "text-text-faded"
           )}
-          title={`${coach.waitingCount} na fila`}
+          title={t("inQueueTitle", { count: coach.waitingCount })}
         >
           <Users size={12} aria-hidden="true" />
           {coach.waitingCount}

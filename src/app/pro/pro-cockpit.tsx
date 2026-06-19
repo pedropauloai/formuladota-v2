@@ -9,6 +9,7 @@
 // PRO vê na hora (refetch via Server Action, mesmo padrão da sala de lobby).
 
 import { useEffect, useState, useTransition, type ReactNode } from "react";
+import { useTranslations } from "next-intl";
 import { CockpitStatusBar, QueueClosedHero } from "./cockpit-status-bar";
 import { CockpitQueueList } from "./cockpit-queue-list";
 import { CockpitActionPanel } from "./cockpit-action-panel";
@@ -23,6 +24,7 @@ interface Props {
 }
 
 export function ProCockpit({ initial, footerExtras }: Props) {
+  const t = useTranslations("proCockpit");
   const [data, setData] = useState(initial);
   const [, startTransition] = useTransition();
 
@@ -106,11 +108,13 @@ export function ProCockpit({ initial, footerExtras }: Props) {
         {/* Rodapé: o caixa do dia sempre visível */}
         <footer className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-border-subtle bg-bg-base px-4 py-2.5">
           <p className="font-display text-sm font-semibold uppercase tracking-wide text-text-muted">
-            Hoje:{" "}
-            <span className="tabular-nums text-text-display">{data.hoje.pts} PTs</span>
+            {t("todayLabel")}{" "}
+            <span className="tabular-nums text-text-display">
+              {t("todayPts", { count: data.hoje.pts })}
+            </span>
             {" · "}
             <span className="tabular-nums text-text-display">
-              {data.hoje.alunos} alunos
+              {t("todayStudents", { count: data.hoje.alunos })}
             </span>
             {" · "}
             <span className="tabular-nums text-gold">

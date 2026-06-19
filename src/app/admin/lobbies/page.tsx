@@ -4,15 +4,15 @@
 //
 // Gate: layout /admin valida is_admin; revalidamos aqui (defesa em camadas).
 
-import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { Card } from "@/components/ui/card";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { CloseLobbyModal } from "./close-lobby-modal";
 
-export const metadata: Metadata = { title: "Admin Lobbies — FORMULADOTA" };
+export const metadata = { title: "Admin Lobbies — FORMULADOTA" };
 export const revalidate = 0;
 
 interface TeamCounts {
@@ -50,6 +50,7 @@ export default async function AdminLobbiesPage() {
     .single();
   if (!me?.is_admin) redirect("/dashboard");
 
+  const t = await getTranslations("misc2");
   const service = createServiceClient();
   const { data: lobbies } = await service
     .from("lobbies")
@@ -86,7 +87,7 @@ export default async function AdminLobbiesPage() {
           Lobbies
         </p>
         <h1 className="mt-3 font-display text-3xl uppercase tracking-tight text-text-display">
-          Ativos
+          {t("lobbiesActive")}
         </h1>
         <div className="mt-4 brand-divider" />
       </header>
@@ -95,23 +96,23 @@ export default async function AdminLobbiesPage() {
         <table className="w-full">
           <thead className="border-b border-border-subtle">
             <tr>
-              <Th>Nome</Th>
-              <Th>Modo</Th>
+              <Th>{t("colName")}</Th>
+              <Th>{t("colMode")}</Th>
               <Th>Status</Th>
-              <Th>Liga</Th>
-              <Th>Ocupação</Th>
-              <Th>Idade</Th>
+              <Th>{t("colLeague")}</Th>
+              <Th>{t("colOccupancy")}</Th>
+              <Th>{t("colAge")}</Th>
               <Th>Steam Lobby</Th>
               <Th>Match ID</Th>
-              <Th>Erro Bot</Th>
-              <Th>Ações</Th>
+              <Th>{t("colBotError")}</Th>
+              <Th>{t("colActions")}</Th>
             </tr>
           </thead>
           <tbody>
             {(lobbies ?? []).length === 0 && (
               <tr>
                 <td colSpan={10} className="px-4 py-6 text-center font-mono text-sm text-text-faded">
-                  Nenhuma sala ativa.
+                  {t("lobbiesEmpty")}
                 </td>
               </tr>
             )}

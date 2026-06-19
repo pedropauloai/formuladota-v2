@@ -6,6 +6,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Loader2, Plus, PlayCircle, GitBranch, Ban } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
@@ -30,6 +31,7 @@ function slugify(s: string): string {
 }
 
 export function CreateTournamentForm() {
+  const t = useTranslations("misc2");
   const { toast } = useToast();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -60,7 +62,7 @@ export function CreateTournamentForm() {
         toast({ type: "error", title: r.error });
         return;
       }
-      toast({ type: "success", title: "Torneio criado (rascunho)." });
+      toast({ type: "success", title: t("tourCreatedToast") });
       setName("");
       setSlug("");
       setPrizePool("");
@@ -76,11 +78,11 @@ export function CreateTournamentForm() {
       className="rounded-md border border-border-subtle bg-bg-base p-5 space-y-4"
     >
       <p className="font-display text-sm font-semibold uppercase tracking-wide text-text-body">
-        Criar torneio
+        {t("tourCreateTitle")}
       </p>
 
       <div className="grid gap-3 md:grid-cols-2">
-        <Field label="Nome">
+        <Field label={t("tourNameLabel")}>
           <input
             type="text"
             required
@@ -88,11 +90,11 @@ export function CreateTournamentForm() {
             maxLength={80}
             value={name}
             onChange={(e) => handleNameChange(e.target.value)}
-            placeholder="Ex.: Copa FormulaDota #1"
+            placeholder={t("tourNamePlaceholder")}
             className={inputCls}
           />
         </Field>
-        <Field label="Slug (URL)">
+        <Field label={t("tourSlugLabel")}>
           <input
             type="text"
             required
@@ -102,7 +104,7 @@ export function CreateTournamentForm() {
             className={`${inputCls} font-mono`}
           />
         </Field>
-        <Field label="Máx. de times">
+        <Field label={t("tourMaxTeamsLabel")}>
           <select
             value={maxTeams}
             onChange={(e) => setMaxTeams(Number(e.target.value))}
@@ -110,12 +112,12 @@ export function CreateTournamentForm() {
           >
             {MAX_TEAMS_OPTIONS.map((n) => (
               <option key={n} value={n}>
-                {n} times
+                {t("tourTeamsCount", { count: n })}
               </option>
             ))}
           </select>
         </Field>
-        <Field label="Premiação R$ (opcional)">
+        <Field label={t("tourPrizeLabel")}>
           <input
             type="number"
             min={0}
@@ -126,7 +128,7 @@ export function CreateTournamentForm() {
             className={inputCls}
           />
         </Field>
-        <Field label="Início (opcional)">
+        <Field label={t("tourStartLabel")}>
           <input
             type="datetime-local"
             value={startsAt}
@@ -134,13 +136,13 @@ export function CreateTournamentForm() {
             className={inputCls}
           />
         </Field>
-        <Field label="Descrição (opcional)">
+        <Field label={t("tourDescLabel")}>
           <input
             type="text"
             maxLength={500}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Single-elim, BO3 nas finais..."
+            placeholder={t("tourDescPlaceholder")}
             className={inputCls}
           />
         </Field>
@@ -153,7 +155,7 @@ export function CreateTournamentForm() {
         disabled={isPending || name.length < 5 || slug.length < 3}
       >
         {isPending ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
-        Criar torneio
+        {t("tourCreateTitle")}
       </Button>
     </form>
   );
@@ -168,6 +170,7 @@ export function TournamentRowActions({
   status: string;
   teamCount: number;
 }) {
+  const t = useTranslations("misc2");
   const { toast } = useToast();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -179,7 +182,7 @@ export function TournamentRowActions({
     startTransition(async () => {
       const r = await fn();
       if (!r.success) {
-        toast({ type: "error", title: r.error ?? "Erro." });
+        toast({ type: "error", title: r.error ?? t("genericError") });
         return;
       }
       toast({ type: "success", title: okMsg });
@@ -195,9 +198,9 @@ export function TournamentRowActions({
           variant="ghost"
           size="sm"
           disabled={isPending}
-          onClick={() => run(() => openRegistration({ tournamentId }), "Inscrições abertas.")}
+          onClick={() => run(() => openRegistration({ tournamentId }), t("tourRegOpenedToast"))}
         >
-          <PlayCircle size={13} /> Abrir inscrições
+          <PlayCircle size={13} /> {t("tourOpenReg")}
         </Button>
         <CancelButton tournamentId={tournamentId} isPending={isPending} onRun={run} />
       </div>
@@ -212,10 +215,10 @@ export function TournamentRowActions({
           variant="cinematic"
           size="sm"
           disabled={isPending || teamCount < 2}
-          title={teamCount < 2 ? "Mínimo 2 times inscritos" : undefined}
-          onClick={() => run(() => generateBracket({ tournamentId }), "Chave gerada!")}
+          title={teamCount < 2 ? t("tourMinTeams") : undefined}
+          onClick={() => run(() => generateBracket({ tournamentId }), t("tourBracketGenToast"))}
         >
-          <GitBranch size={13} /> Gerar chave
+          <GitBranch size={13} /> {t("tourGenBracket")}
         </Button>
         <CancelButton tournamentId={tournamentId} isPending={isPending} onRun={run} />
       </div>
@@ -234,6 +237,7 @@ function CancelButton({
   isPending: boolean;
   onRun: (fn: () => Promise<{ success: boolean; error?: string }>, okMsg: string) => void;
 }) {
+  const t = useTranslations("misc2");
   return (
     <Button
       type="button"
@@ -241,12 +245,12 @@ function CancelButton({
       size="sm"
       disabled={isPending}
       onClick={() => {
-        if (!confirm("Cancelar este torneio?")) return;
-        onRun(() => cancelTournament({ tournamentId }), "Torneio cancelado.");
+        if (!confirm(t("tourCancelConfirm"))) return;
+        onRun(() => cancelTournament({ tournamentId }), t("tourCancelledToast"));
       }}
       className="text-error"
     >
-      <Ban size={13} /> Cancelar
+      <Ban size={13} /> {t("cancel")}
     </Button>
   );
 }

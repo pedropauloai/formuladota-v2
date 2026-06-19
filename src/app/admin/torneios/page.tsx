@@ -2,8 +2,8 @@
 // gerar chave → (reporte de placar no detalhe público /torneios/[slug]).
 // Gate: layout /admin valida is_admin; revalidamos aqui (defesa em camadas).
 
-import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Trophy, Users, ExternalLink } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -12,18 +12,19 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { CreateTournamentForm, TournamentRowActions } from "./torneios-controls";
 
-export const metadata: Metadata = { title: "Admin Torneios — FORMULADOTA" };
+export const metadata = { title: "Admin Torneios — FORMULADOTA" };
 export const revalidate = 0;
 
+// Label (texto) vem do i18n via labelKey; só a variant fica aqui.
 const STATUS_LABEL: Record<
   string,
-  { label: string; variant: NonNullable<BadgeProps["variant"]> }
+  { labelKey: string | null; variant: NonNullable<BadgeProps["variant"]> }
 > = {
-  draft: { label: "Rascunho", variant: "outline" },
-  open: { label: "Inscrições abertas", variant: "success" },
-  in_progress: { label: "Em andamento", variant: "warning" },
-  completed: { label: "Encerrado", variant: "secondary" },
-  cancelled: { label: "Cancelado", variant: "error" },
+  draft: { labelKey: "tourStatusDraft", variant: "outline" },
+  open: { labelKey: "tourStatusOpen", variant: "success" },
+  in_progress: { labelKey: "tourStatusInProgress", variant: "warning" },
+  completed: { labelKey: "tourStatusCompleted", variant: "secondary" },
+  cancelled: { labelKey: "tourStatusCancelled", variant: "error" },
 };
 
 export default async function AdminTorneiosPage() {
@@ -39,6 +40,7 @@ export default async function AdminTorneiosPage() {
     .single();
   if (!me?.is_admin) redirect("/dashboard");
 
+  const tr = await getTranslations("misc2");
   const service = createServiceClient();
   const { data: tournaments } = await service
     .from("tournaments")
@@ -59,10 +61,10 @@ export default async function AdminTorneiosPage() {
     <div className="p-8 space-y-6">
       <header>
         <p className="font-sans text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
-          Torneios
+          {tr("tourEyebrow")}
         </p>
         <h1 className="mt-3 font-display text-3xl uppercase tracking-tight text-text-display">
-          Gerenciar torneios
+          {tr("tourManageTitle")}
         </h1>
         <div className="mt-4 brand-divider" />
       </header>
@@ -71,11 +73,11 @@ export default async function AdminTorneiosPage() {
 
       <div className="space-y-3">
         {(tournaments ?? []).length === 0 && (
-          <p className="font-mono text-sm text-text-faded">Nenhum torneio cadastrado.</p>
+          <p className="font-mono text-sm text-text-faded">{tr("tourEmpty")}</p>
         )}
         {(tournaments ?? []).map((t) => {
           const status = STATUS_LABEL[t.status] ?? {
-            label: t.status,
+            labelKey: null,
             variant: "outline" as const,
           };
           const teamCount = countByTournament.get(t.id) ?? 0;
@@ -90,18 +92,18 @@ export default async function AdminTorneiosPage() {
                         {t.name}
                       </h3>
                       <p className="font-display text-sm font-semibold text-text-body flex items-center gap-2">
-                        <Users size={12} aria-hidden="true" /> {teamCount}/{t.max_teams} times
+                        <Users size={12} aria-hidden="true" /> {tr("tourTeamsRatio", { count: teamCount, max: t.max_teams })}
                         <Link
                           href={`/torneios/${t.slug}`}
                           className="inline-flex items-center gap-1 text-brand-primary hover:underline"
                         >
-                          <ExternalLink size={12} aria-hidden="true" /> ver
+                          <ExternalLink size={12} aria-hidden="true" /> {tr("tourView")}
                         </Link>
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 shrink-0">
-                    <Badge variant={status.variant}>{status.label}</Badge>
+                    <Badge variant={status.variant}>{status.labelKey ? tr(status.labelKey) : t.status}</Badge>
                     <TournamentRowActions
                       tournamentId={t.id}
                       status={t.status}

@@ -144,7 +144,7 @@ export function DashboardTopBar({
         />
 
         <nav
-          aria-label="Navegação principal"
+          aria-label={t("topbar.mainNavAria")}
           className="hidden lg:flex items-center gap-1"
         >
           {principalTabs.map((t) => (
@@ -164,7 +164,7 @@ export function DashboardTopBar({
               aria-hidden="true"
             />
             <nav
-              aria-label="Navegação contextual"
+              aria-label={t("topbar.contextNavAria")}
               className="hidden lg:flex items-center gap-1"
             >
               {contextualTabs.map((t) => (
@@ -236,11 +236,12 @@ export function DashboardTopBar({
 }
 
 function PreviewModeToggle({ previewActive }: { previewActive: boolean }) {
+  const t = useTranslations("topbar");
   return (
     <form action={togglePreviewMode}>
       <button
         type="submit"
-        aria-label={previewActive ? "Voltar pra modo admin" : "Ver como usuário comum"}
+        aria-label={previewActive ? t("previewBackAria") : t("previewAsUserAria")}
         className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 font-display text-sm font-semibold transition-colors xl:px-3 ${
           previewActive
             ? "border-amber-500/60 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20"
@@ -250,13 +251,13 @@ function PreviewModeToggle({ previewActive }: { previewActive: boolean }) {
         {previewActive ? (
           <>
             <EyeOff size={11} aria-hidden="true" />
-            <span className="hidden xl:inline">Voltar pra admin</span>
+            <span className="hidden xl:inline">{t("previewBack")}</span>
             <span className="xl:hidden">Admin</span>
           </>
         ) : (
           <>
             <Eye size={11} aria-hidden="true" />
-            <span className="hidden xl:inline">Ver como user</span>
+            <span className="hidden xl:inline">{t("previewAsUser")}</span>
             <span className="xl:hidden">User</span>
           </>
         )}
@@ -280,7 +281,7 @@ function CondutaBadge() {
     >
       <Link
         href="/codigo-de-conduta"
-        aria-label="Código de Conduta — manifesto FORMULADOTA"
+        aria-label={t("nav.conduta")}
         className={cn(
           "group inline-flex items-center gap-1.5 rounded-md",
           "px-2.5 py-1 xl:px-3 xl:py-1.5",

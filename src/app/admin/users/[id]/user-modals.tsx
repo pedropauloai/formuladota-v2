@@ -10,6 +10,7 @@
 //   - CoachNotesModal: notas privadas admin (leitura/edição via admin_notes)
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import {
   Coins, ShieldAlert, Star, Trophy, ChevronUp, ChevronDown,
   Loader2, X, CheckCircle, AlertCircle,
@@ -41,6 +42,7 @@ function ModalBase({
   eyebrow?: string;
   children: React.ReactNode;
 }) {
+  const t = useTranslations("misc2");
   if (!open) return null;
   return (
     <div
@@ -69,7 +71,7 @@ function ModalBase({
             type="button"
             onClick={onClose}
             className="text-text-faded hover:text-text-muted transition-colors ml-4 mt-0.5"
-            aria-label="Fechar modal"
+            aria-label={t("closeModal")}
           >
             <X size={16} />
           </button>
@@ -128,6 +130,7 @@ function ModalActions({
   confirmCls?: string;
   disabled?: boolean;
 }) {
+  const t = useTranslations("misc2");
   return (
     <div className="flex items-center justify-end gap-3 mt-6">
       <button
@@ -136,7 +139,7 @@ function ModalActions({
         disabled={pending}
         className="rounded-md px-4 py-2 font-sans text-sm uppercase tracking-widest text-text-faded hover:text-text-muted transition-colors"
       >
-        Fechar
+        {t("close")}
       </button>
       <button
         type="button"
@@ -162,6 +165,7 @@ export function AdjustFichasModal({
   username: string;
   currentBalance: number;
 }) {
+  const t = useTranslations("misc2");
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<"grant" | "debit">("grant");
   const [amount, setAmount] = useState("1");
@@ -188,7 +192,7 @@ export function AdjustFichasModal({
     setSuccess(null);
     const n = parseInt(amount, 10);
     if (!Number.isFinite(n) || n <= 0) {
-      setError("Quantidade precisa ser número positivo.");
+      setError(t("amountMustBePositive"));
       return;
     }
     const delta = mode === "grant" ? n : -n;
@@ -197,7 +201,7 @@ export function AdjustFichasModal({
       if (!res.success) {
         setError(res.error);
       } else {
-        setSuccess(`Ajuste salvo. Novo saldo: ${res.newBalance} fichas.`);
+        setSuccess(t("fichasAdjustedSuccess", { balance: res.newBalance }));
         setAmount("1");
         setReason("");
       }
@@ -212,13 +216,13 @@ export function AdjustFichasModal({
         className="inline-flex items-center gap-1.5 rounded-md border border-emerald-500/40 bg-emerald-500/5 px-2.5 py-1 font-display font-semibold text-sm uppercase tracking-wide text-emerald-400 hover:bg-emerald-500/15 transition-colors"
       >
         <Coins size={11} />
-        Ajustar fichas
+        {t("adjustFichas")}
       </button>
 
-      <ModalBase open={open} onClose={close} eyebrow="Fichas" title={username}>
+      <ModalBase open={open} onClose={close} eyebrow={t("ebFichas")} title={username}>
         <p className="font-display text-sm font-semibold text-text-body mb-4">
-          Saldo atual:{" "}
-          <span className="text-text-body">{currentBalance} fichas</span>
+          {t("currentBalance")}{" "}
+          <span className="text-text-body">{t("fichasCount", { count: currentBalance })}</span>
         </p>
 
         {/* Mode toggle */}
@@ -237,14 +241,14 @@ export function AdjustFichasModal({
               }`}
             >
               {m === "grant" ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-              {m === "grant" ? "Adicionar" : "Remover"}
+              {m === "grant" ? t("add") : t("remove")}
             </button>
           ))}
         </div>
 
         <div className="space-y-4">
           <div>
-            <FormLabel htmlFor="fichas-amount">Quantidade</FormLabel>
+            <FormLabel htmlFor="fichas-amount">{t("quantity")}</FormLabel>
             <input
               id="fichas-amount"
               type="number"
@@ -256,12 +260,12 @@ export function AdjustFichasModal({
             />
           </div>
           <div>
-            <FormLabel htmlFor="fichas-reason">Razão (obrigatória)</FormLabel>
+            <FormLabel htmlFor="fichas-reason">{t("reasonRequiredFem")}</FormLabel>
             <FormTextarea
               id="fichas-reason"
               value={reason}
               onChange={setReason}
-              placeholder="ex: bonificação de boas-vindas, compensação por PT cancelada, estorno"
+              placeholder={t("fichasReasonPlaceholder2")}
             />
           </div>
 
@@ -273,7 +277,7 @@ export function AdjustFichasModal({
           pending={pending}
           onClose={close}
           onConfirm={submit}
-          confirmLabel={`${mode === "grant" ? "Adicionar" : "Remover"} ${amount || "0"}`}
+          confirmLabel={`${mode === "grant" ? t("add") : t("remove")} ${amount || "0"}`}
           confirmCls={mode === "grant" ? "bg-emerald-600 hover:bg-emerald-500" : "bg-amber-600 hover:bg-amber-500"}
           disabled={!reason.trim() || !amount}
         />
@@ -291,6 +295,7 @@ export function ApplyStrikeModal({
   targetUserId: string;
   username: string;
 }) {
+  const t = useTranslations("misc2");
   const [open, setOpen] = useState(false);
   const [severity, setSeverity] = useState<"leve" | "grave">("leve");
   const [reason, setReason] = useState("");
@@ -313,7 +318,7 @@ export function ApplyStrikeModal({
       if (!res.success) {
         setError(res.error);
       } else {
-        setSuccess("Strike aplicado. Honor ledger atualizado.");
+        setSuccess(t("strikeAppliedHonor"));
       }
     });
   }
@@ -326,13 +331,13 @@ export function ApplyStrikeModal({
         className="inline-flex items-center gap-1.5 rounded-md border border-red-500/40 bg-red-500/5 px-2.5 py-1 font-display font-semibold text-sm uppercase tracking-wide text-red-400 hover:bg-red-500/15 transition-colors"
       >
         <ShieldAlert size={11} />
-        Aplicar strike
+        {t("applyStrike")}
       </button>
 
-      <ModalBase open={open} onClose={close} eyebrow="Conduta" title={`Strike — ${username}`}>
+      <ModalBase open={open} onClose={close} eyebrow={t("ebConduct")} title={t("strikeTitle", { name: username })}>
         <div className="space-y-4">
           <div>
-            <FormLabel htmlFor="strike-severity">Severidade</FormLabel>
+            <FormLabel htmlFor="strike-severity">{t("severity")}</FormLabel>
             <div className="grid grid-cols-2 gap-2" id="strike-severity">
               {(["leve", "grave"] as const).map((s) => (
                 <button
@@ -347,18 +352,18 @@ export function ApplyStrikeModal({
                       : "border-border-subtle text-text-faded hover:text-text-muted"
                   }`}
                 >
-                  {s === "leve" ? "Leve (−20 honor)" : "Grave (−50 honor)"}
+                  {s === "leve" ? t("strikeLightHonor") : t("strikeHeavyHonor")}
                 </button>
               ))}
             </div>
           </div>
           <div>
-            <FormLabel htmlFor="strike-reason">Motivo (obrigatório)</FormLabel>
+            <FormLabel htmlFor="strike-reason">{t("reasonRequired")}</FormLabel>
             <FormTextarea
               id="strike-reason"
               value={reason}
               onChange={setReason}
-              placeholder="ex: comportamento tóxico na PT, desrespeito à doutrina, ausência sem aviso"
+              placeholder={t("strikeReasonPlaceholder")}
             />
           </div>
 
@@ -370,7 +375,7 @@ export function ApplyStrikeModal({
           pending={pending}
           onClose={close}
           onConfirm={submit}
-          confirmLabel="Aplicar strike"
+          confirmLabel={t("applyStrike")}
           confirmCls="bg-red-600 hover:bg-red-500"
           disabled={!reason.trim()}
         />
@@ -388,6 +393,7 @@ export function HonorBonusModal({
   targetUserId: string;
   username: string;
 }) {
+  const t = useTranslations("misc2");
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState("10");
   const [reason, setReason] = useState("");
@@ -411,7 +417,7 @@ export function HonorBonusModal({
       if (!res.success) {
         setError(res.error);
       } else {
-        setSuccess(`+${amount} pontos de HONOR concedidos.`);
+        setSuccess(t("honorGrantedSuccess", { amount }));
         setAmount("10");
         setReason("");
       }
@@ -426,13 +432,13 @@ export function HonorBonusModal({
         className="inline-flex items-center gap-1.5 rounded-md border border-yellow-500/40 bg-yellow-500/5 px-2.5 py-1 font-display font-semibold text-sm uppercase tracking-wide text-yellow-400 hover:bg-yellow-500/15 transition-colors"
       >
         <Star size={11} />
-        Bonus HONOR
+        {t("honorBonus")}
       </button>
 
-      <ModalBase open={open} onClose={close} eyebrow="Honor" title={`Bonus — ${username}`}>
+      <ModalBase open={open} onClose={close} eyebrow={t("ebHonor")} title={t("bonusTitle", { name: username })}>
         <div className="space-y-4">
           <div>
-            <FormLabel htmlFor="honor-amount">Pontos (positivo)</FormLabel>
+            <FormLabel htmlFor="honor-amount">{t("pointsPositive")}</FormLabel>
             <input
               id="honor-amount"
               type="number"
@@ -444,12 +450,12 @@ export function HonorBonusModal({
             />
           </div>
           <div>
-            <FormLabel htmlFor="honor-reason">Motivo (obrigatório)</FormLabel>
+            <FormLabel htmlFor="honor-reason">{t("reasonRequired")}</FormLabel>
             <FormTextarea
               id="honor-reason"
               value={reason}
               onChange={setReason}
-              placeholder="ex: excelente comportamento na PT, mentor reconhecido pelos colegas"
+              placeholder={t("honorReasonPlaceholder")}
             />
           </div>
 
@@ -461,7 +467,7 @@ export function HonorBonusModal({
           pending={pending}
           onClose={close}
           onConfirm={submit}
-          confirmLabel={`Conceder +${amount || "0"} HONOR`}
+          confirmLabel={t("grantHonorCta", { amount: amount || "0" })}
           confirmCls="bg-yellow-600 hover:bg-yellow-500"
           disabled={!reason.trim() || !amount}
         />
@@ -486,6 +492,7 @@ export function GrantAchievementModal({
   targetUserId: string;
   username: string;
 }) {
+  const t = useTranslations("misc2");
   const [open, setOpen] = useState(false);
   const [variant, setVariant] = useState(ACHIEVEMENT_VARIANTS[0] ?? "comendado");
   const [reason, setReason] = useState("");
@@ -507,7 +514,7 @@ export function GrantAchievementModal({
       if (!res.success) {
         setError(res.error);
       } else {
-        setSuccess(`Achievement "${variant}" concedido.`);
+        setSuccess(t("achievementGrantedSuccess", { variant }));
         setReason("");
       }
     });
@@ -521,13 +528,13 @@ export function GrantAchievementModal({
         className="inline-flex items-center gap-1.5 rounded-md border border-purple-500/40 bg-purple-500/5 px-2.5 py-1 font-display font-semibold text-sm uppercase tracking-wide text-purple-400 hover:bg-purple-500/15 transition-colors"
       >
         <Trophy size={11} />
-        Conceder achievement
+        {t("grantAchievement")}
       </button>
 
-      <ModalBase open={open} onClose={close} eyebrow="Achievement" title={username}>
+      <ModalBase open={open} onClose={close} eyebrow={t("ebAchievement")} title={username}>
         <div className="space-y-4">
           <div>
-            <FormLabel htmlFor="ach-variant">Variant</FormLabel>
+            <FormLabel htmlFor="ach-variant">{t("variant")}</FormLabel>
             <select
               id="ach-variant"
               value={variant}
@@ -540,12 +547,12 @@ export function GrantAchievementModal({
             </select>
           </div>
           <div>
-            <FormLabel htmlFor="ach-reason">Motivo (obrigatório)</FormLabel>
+            <FormLabel htmlFor="ach-reason">{t("reasonRequired")}</FormLabel>
             <FormTextarea
               id="ach-reason"
               value={reason}
               onChange={setReason}
-              placeholder="ex: ganhou o campeonato da season 1, três mentoreados promovidos"
+              placeholder={t("achievementReasonPlaceholder")}
             />
           </div>
 
@@ -557,7 +564,7 @@ export function GrantAchievementModal({
           pending={pending}
           onClose={close}
           onConfirm={submit}
-          confirmLabel="Conceder"
+          confirmLabel={t("grant")}
           confirmCls="bg-purple-600 hover:bg-purple-500"
           disabled={!reason.trim()}
         />
@@ -577,6 +584,7 @@ export function PromoveCoachModal({
   username: string;
   criteriosAtendidos: string[];
 }) {
+  const t = useTranslations("misc2");
   const [open, setOpen] = useState(false);
   const [notes, setNotes] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -593,15 +601,15 @@ export function PromoveCoachModal({
   function submit() {
     setError(null);
     if (!notes.trim()) {
-      setError("Notas de promoção obrigatórias.");
+      setError(t("promoNotesRequired"));
       return;
     }
     startTransition(async () => {
       const res = await promoveCoach({ targetUserId, promotionNotes: notes.trim() });
       if (!res.success) {
-        setError(res.error ?? "Erro desconhecido.");
+        setError(res.error ?? t("unknownError"));
       } else {
-        setSuccess(`${username} promovido a PRO com sucesso.`);
+        setSuccess(t("promoSuccess", { name: username }));
       }
     });
   }
@@ -614,14 +622,14 @@ export function PromoveCoachModal({
         className="inline-flex items-center gap-1.5 rounded-md border border-brand-primary/60 bg-brand-primary/10 px-3 py-1.5 font-sans text-sm font-semibold uppercase tracking-widest text-brand-primary hover:bg-brand-primary/20 transition-colors"
       >
         <Trophy size={12} />
-        Promover a PRO
+        {t("promoteToProBtn")}
       </button>
 
-      <ModalBase open={open} onClose={close} eyebrow="Elegibilidade PRO" title={`Promover ${username}`}>
+      <ModalBase open={open} onClose={close} eyebrow={t("ebProEligibility")} title={t("promoteTitle", { name: username })}>
         {criteriosAtendidos.length > 0 && (
           <div className="mb-4 space-y-1.5">
             <p className="font-display font-semibold text-sm uppercase tracking-wide text-text-faded mb-2">
-              Critérios atendidos
+              {t("criteriaMet")}
             </p>
             {criteriosAtendidos.map((c) => (
               <div key={c} className="flex items-center gap-2 font-mono text-sm text-emerald-400">
@@ -633,12 +641,12 @@ export function PromoveCoachModal({
         )}
 
         <div>
-          <FormLabel htmlFor="promo-notes">Notas de promoção (obrigatório)</FormLabel>
+          <FormLabel htmlFor="promo-notes">{t("promoNotesLabel")}</FormLabel>
           <FormTextarea
             id="promo-notes"
             value={notes}
             onChange={setNotes}
-            placeholder="ex: atingiu todos os critérios após a season 4, comportamento exemplar"
+            placeholder={t("promoNotesPlaceholder")}
             rows={4}
           />
         </div>
@@ -650,7 +658,7 @@ export function PromoveCoachModal({
           pending={pending}
           onClose={close}
           onConfirm={submit}
-          confirmLabel="Confirmar promoção"
+          confirmLabel={t("confirmPromotion")}
           disabled={!notes.trim()}
         />
       </ModalBase>
@@ -667,6 +675,7 @@ export function RevokeCoachModal({
   targetUserId: string;
   username: string;
 }) {
+  const t = useTranslations("misc2");
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -685,9 +694,9 @@ export function RevokeCoachModal({
     startTransition(async () => {
       const res = await revokeCoachStatus(targetUserId, reason);
       if (!res.success) {
-        setError(res.error ?? "Erro desconhecido.");
+        setError(res.error ?? t("unknownError"));
       } else {
-        setSuccess("Status PRO revogado.");
+        setSuccess(t("proStatusRevoked"));
       }
     });
   }
@@ -700,17 +709,17 @@ export function RevokeCoachModal({
         className="inline-flex items-center gap-1.5 rounded-md border border-red-500/40 bg-red-500/5 px-2.5 py-1 font-display font-semibold text-sm uppercase tracking-wide text-red-400 hover:bg-red-500/15 transition-colors"
       >
         <ShieldAlert size={11} />
-        Revogar status PRO
+        {t("revokeProStatus")}
       </button>
 
-      <ModalBase open={open} onClose={close} eyebrow="PRO" title={`Revogar — ${username}`}>
+      <ModalBase open={open} onClose={close} eyebrow="PRO" title={t("revokeTitle", { name: username })}>
         <div>
-          <FormLabel htmlFor="revoke-reason">Motivo (obrigatório)</FormLabel>
+          <FormLabel htmlFor="revoke-reason">{t("reasonRequired")}</FormLabel>
           <FormTextarea
             id="revoke-reason"
             value={reason}
             onChange={setReason}
-            placeholder="ex: strike grave, inatividade prolongada, violação grave da doutrina"
+            placeholder={t("revokeReasonPlaceholder")}
             rows={4}
           />
         </div>
@@ -722,7 +731,7 @@ export function RevokeCoachModal({
           pending={pending}
           onClose={close}
           onConfirm={submit}
-          confirmLabel="Confirmar revogação"
+          confirmLabel={t("confirmRevocation")}
           confirmCls="bg-red-600 hover:bg-red-500"
           disabled={!reason.trim()}
         />
@@ -742,6 +751,7 @@ export function CoachNotesModal({
   username: string;
   initialNotes: string;
 }) {
+  const t = useTranslations("misc2");
   const [open, setOpen] = useState(false);
   const [notes, setNotes] = useState(initialNotes);
   const [error, setError] = useState<string | null>(null);
@@ -763,7 +773,7 @@ export function CoachNotesModal({
       if (!res.success) {
         setError(res.error);
       } else {
-        setSuccess("Notas salvas.");
+        setSuccess(t("notesSaved"));
       }
     });
   }
@@ -775,20 +785,20 @@ export function CoachNotesModal({
         onClick={() => setOpen(true)}
         className="inline-flex items-center gap-1.5 rounded-md border border-border-subtle px-2.5 py-1 font-display font-semibold text-sm uppercase tracking-wide text-text-muted hover:border-brand-primary/60 hover:text-brand-primary transition-colors"
       >
-        Notas privadas Pedro
+        {t("privateNotesBtn")}
       </button>
 
-      <ModalBase open={open} onClose={close} eyebrow="Privado" title={`Notas — ${username}`}>
+      <ModalBase open={open} onClose={close} eyebrow={t("ebPrivate")} title={t("notesTitle", { name: username })}>
         <p className="mb-4 font-mono text-sm text-text-faded">
-          Visível apenas para admin. Nunca exposto ao usuário.
+          {t("notesAdminOnly")}
         </p>
         <div>
-          <FormLabel htmlFor="coach-notes-textarea">Notas</FormLabel>
+          <FormLabel htmlFor="coach-notes-textarea">{t("notesLabel")}</FormLabel>
           <FormTextarea
             id="coach-notes-textarea"
             value={notes}
             onChange={setNotes}
-            placeholder="Observações internas sobre o usuário..."
+            placeholder={t("notesPlaceholder")}
             rows={6}
           />
         </div>
@@ -800,7 +810,7 @@ export function CoachNotesModal({
           pending={pending}
           onClose={close}
           onConfirm={submit}
-          confirmLabel="Salvar notas"
+          confirmLabel={t("saveNotes")}
         />
       </ModalBase>
     </>

@@ -39,6 +39,7 @@ import {
   Calendar,
   type LucideProps,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 
 // ---------------------------------------------------------------------------
@@ -73,8 +74,6 @@ export type AchievementVariant =
 // ---------------------------------------------------------------------------
 
 interface AchievementConfig {
-  /** Rótulo exibido no badge */
-  label: string;
   /** Componente de ícone Lucide */
   icon: React.FC<LucideProps>;
   /** Classes CSS Tailwind para o pill (fundo, texto, borda) */
@@ -87,7 +86,6 @@ const ACHIEVEMENT_CONFIG: Record<AchievementVariant, AchievementConfig> = {
    * Sinal de alinhamento com os princípios da plataforma.
    */
   doutrina: {
-    label: "Doutrina",
     icon:  Shield,
     classes:
       "bg-success/10 border-success/30 text-success",
@@ -97,7 +95,6 @@ const ACHIEVEMENT_CONFIG: Record<AchievementVariant, AchievementConfig> = {
    * Veterano — usuário com histórico na plataforma (brand-primary)
    */
   veterano: {
-    label: "Veterano",
     icon:  Award,
     classes:
       "bg-brand-primary/10 border-brand-primary/30 text-brand-primary",
@@ -107,7 +104,6 @@ const ACHIEVEMENT_CONFIG: Record<AchievementVariant, AchievementConfig> = {
    * Fundador — um dos primeiros 50 membros (brand-primary-deep + glow sutil)
    */
   fundador: {
-    label: "Fundador",
     icon:  Crown,
     classes:
       "bg-brand-primary-deep/20 border-brand-primary/40 text-brand-primary",
@@ -117,7 +113,6 @@ const ACHIEVEMENT_CONFIG: Record<AchievementVariant, AchievementConfig> = {
    * Streak 5 — 5 partidas consecutivas sem faltas (âmbar warning)
    */
   "streak-5": {
-    label: "Streak 5",
     icon:  Flame,
     classes:
       "bg-warning/10 border-warning/30 text-warning",
@@ -127,7 +122,6 @@ const ACHIEVEMENT_CONFIG: Record<AchievementVariant, AchievementConfig> = {
    * Champion S1 — #1 no ranking da Temporada 1 (âmbar + glow especial)
    */
   "champion-s1": {
-    label: "#1 Season 1",
     icon:  Trophy,
     classes:
       "bg-warning/15 border-warning/50 text-warning",
@@ -137,7 +131,6 @@ const ACHIEVEMENT_CONFIG: Record<AchievementVariant, AchievementConfig> = {
    * Comendado — recebeu elogios de outros membros (brand-primary)
    */
   comendado: {
-    label: "Comendado",
     icon:  Sparkles,
     classes:
       "bg-brand-primary/10 border-brand-primary/30 text-brand-primary",
@@ -147,7 +140,6 @@ const ACHIEVEMENT_CONFIG: Record<AchievementVariant, AchievementConfig> = {
    * Bom comportamento — zero advertências, histórico limpo (verde success)
    */
   "bom-comportamento": {
-    label: "Bom Comportamento",
     icon:  ThumbsUp,
     classes:
       "bg-success/10 border-success/30 text-success",
@@ -157,7 +149,6 @@ const ACHIEVEMENT_CONFIG: Record<AchievementVariant, AchievementConfig> = {
    * Evento inaugural — participou da primeira sessão pública (info azul)
    */
   "evento-inaugural": {
-    label: "Sessão Inaugural",
     icon:  Star,
     classes:
       "bg-info/10 border-info/30 text-info",
@@ -172,7 +163,6 @@ const ACHIEVEMENT_CONFIG: Record<AchievementVariant, AchievementConfig> = {
    * Paralelo a champion-s1 (SKILL). Verde success: HONOR = máxima virtude.
    */
   "champion-s1-honor": {
-    label: "#1 Honor S1",
     icon: ShieldCheck,
     classes: "bg-success/15 border-success/50 text-success",
   },
@@ -183,7 +173,6 @@ const ACHIEVEMENT_CONFIG: Record<AchievementVariant, AchievementConfig> = {
    * Âmbar warning: momento difícil, conduta exemplar.
    */
   "derrotado-com-honra": {
-    label: "Derrota Honrada",
     icon: Shield,
     classes: "bg-warning/10 border-warning/30 text-warning",
   },
@@ -193,7 +182,6 @@ const ACHIEVEMENT_CONFIG: Record<AchievementVariant, AchievementConfig> = {
    * Info azul: conhecimento compartilhado, liderança positiva.
    */
   mentor: {
-    label: "Mentor",
     icon: GraduationCap,
     classes: "bg-info/10 border-info/30 text-info",
   },
@@ -203,7 +191,6 @@ const ACHIEVEMENT_CONFIG: Record<AchievementVariant, AchievementConfig> = {
    * Verde success: redenção é caminho, não vergonha.
    */
   reconciliado: {
-    label: "Reconciliado",
     icon: Heart,
     classes: "bg-success/10 border-success/30 text-success",
   },
@@ -213,7 +200,6 @@ const ACHIEVEMENT_CONFIG: Record<AchievementVariant, AchievementConfig> = {
    * Info azul: palavras que constroem, não destroem.
    */
   "voz-construtiva": {
-    label: "Voz Construtiva",
     icon: MessageCircle,
     classes: "bg-info/10 border-info/30 text-info",
   },
@@ -223,7 +209,6 @@ const ACHIEVEMENT_CONFIG: Record<AchievementVariant, AchievementConfig> = {
    * Brand-primary: controle emocional é pilar da filosofia FormulaDota.
    */
   "estabilidade-emocional": {
-    label: "Estabilidade",
     icon: Anchor,
     classes: "bg-brand-primary/10 border-brand-primary/30 text-brand-primary",
   },
@@ -234,7 +219,6 @@ const ACHIEVEMENT_CONFIG: Record<AchievementVariant, AchievementConfig> = {
    * Verde success: comprometimento manifesto em ação.
    */
   "presenca-disciplina": {
-    label: "Presença",
     icon: Calendar,
     classes: "bg-success/10 border-success/30 text-success",
   },
@@ -292,21 +276,23 @@ export interface AchievementBadgeProps {
  * <BadgeStack badges={[{ variant: "doutrina" }, { variant: "veteran" }]} />
  */
 export function AchievementBadge({ variant, className }: AchievementBadgeProps) {
+  const t = useTranslations("ui");
   const config = ACHIEVEMENT_CONFIG[variant];
   const Icon = config.icon;
+  const label = t(`achievement.${variant}`);
 
   return (
     <span
       className={cn(achievementBadgeVariants(), config.classes, className)}
-      title={config.label}
-      aria-label={`Conquista: ${config.label}`}
+      title={label}
+      aria-label={t("achievementAriaLabel", { label })}
     >
       <Icon
         className="size-[10px]"
         strokeWidth={2.5}
         aria-hidden="true"
       />
-      <span>{config.label}</span>
+      <span>{label}</span>
     </span>
   );
 }

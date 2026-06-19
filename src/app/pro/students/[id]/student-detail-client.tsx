@@ -7,6 +7,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { ThumbsUp, ThumbsDown, UserPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { addCoachNote, recommendPromotion } from "@/app/pro/actions";
@@ -36,6 +37,7 @@ function ConfirmModal({
   confirmLabel: string;
   confirmVariant: "positive" | "negative" | "neutral";
 }) {
+  const t = useTranslations("proCockpit");
   const [text, setText] = useState("");
 
   const btnClass = cn(
@@ -68,7 +70,7 @@ function ConfirmModal({
           disabled={loading}
         />
         <p className="mt-1 text-sm text-text-muted">
-          {text.length}/{minLength} mínimo
+          {t("minCharsMin", { current: text.length, min: minLength })}
         </p>
         <div className="mt-4 flex items-center justify-end gap-3">
           <button
@@ -77,7 +79,7 @@ function ConfirmModal({
             disabled={loading}
             className="rounded-md px-4 py-2 text-sm text-text-muted hover:text-text-body transition-colors"
           >
-            Cancelar
+            {t("cancel")}
           </button>
           <button
             type="button"
@@ -85,7 +87,7 @@ function ConfirmModal({
             disabled={loading || text.length < minLength}
             className={btnClass}
           >
-            {loading ? "Salvando..." : confirmLabel}
+            {loading ? t("saving") : confirmLabel}
           </button>
         </div>
       </div>
@@ -101,6 +103,7 @@ export function StudentDetailClient({
   studentId,
   studentName,
 }: StudentDetailClientProps) {
+  const t = useTranslations("proCockpit");
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [modal, setModal] = useState<
@@ -125,10 +128,15 @@ export function StudentDetailClient({
       });
       setModal(null);
       if (result.success) {
-        showFeedback("success", `Honor ${delta > 0 ? "+5" : "-5"} registrado para ${studentName}.`);
+        showFeedback(
+          "success",
+          delta > 0
+            ? t("honorPlusRegistered", { name: studentName })
+            : t("honorMinusRegistered", { name: studentName })
+        );
         router.refresh();
       } else {
-        showFeedback("error", result.error ?? "Erro ao registrar nota.");
+        showFeedback("error", result.error ?? t("noteRegisterError"));
       }
     });
   }
@@ -138,10 +146,10 @@ export function StudentDetailClient({
       const result = await recommendPromotion(studentId, justification);
       setModal(null);
       if (result.success) {
-        showFeedback("success", "Recomendação enviada para Pedro.");
+        showFeedback("success", t("recommendationSent"));
         router.refresh();
       } else {
-        showFeedback("error", result.error ?? "Erro ao enviar recomendação.");
+        showFeedback("error", result.error ?? t("recommendationError"));
       }
     });
   }
@@ -160,7 +168,7 @@ export function StudentDetailClient({
           )}
         >
           <ThumbsUp size={14} aria-hidden="true" />
-          Coach Note +5
+          {t("coachNotePlus")}
         </button>
 
         <button
@@ -174,7 +182,7 @@ export function StudentDetailClient({
           )}
         >
           <ThumbsDown size={14} aria-hidden="true" />
-          Coach Note -5
+          {t("coachNoteMinus")}
         </button>
 
         <button
@@ -188,7 +196,7 @@ export function StudentDetailClient({
           )}
         >
           <UserPlus size={14} aria-hidden="true" />
-          Recomendar para PRO
+          {t("recommendForPro")}
         </button>
       </div>
 
@@ -207,39 +215,39 @@ export function StudentDetailClient({
 
       {modal === "note-positive" && (
         <ConfirmModal
-          title={`Coach Note +5 — ${studentName}`}
-          placeholder="Descreva o comportamento positivo observado..."
+          title={t("coachNotePlusTitle", { name: studentName })}
+          placeholder={t("notePositivePlaceholder")}
           minLength={10}
           onConfirm={(r) => handleCoachNote(5, r)}
           onCancel={() => setModal(null)}
           loading={isPending}
-          confirmLabel="Confirmar +5"
+          confirmLabel={t("confirmPlus")}
           confirmVariant="positive"
         />
       )}
 
       {modal === "note-negative" && (
         <ConfirmModal
-          title={`Coach Note -5 — ${studentName}`}
-          placeholder="Descreva o comportamento inadequado observado..."
+          title={t("coachNoteMinusTitle", { name: studentName })}
+          placeholder={t("noteNegativePlaceholder")}
           minLength={10}
           onConfirm={(r) => handleCoachNote(-5, r)}
           onCancel={() => setModal(null)}
           loading={isPending}
-          confirmLabel="Confirmar -5"
+          confirmLabel={t("confirmMinus")}
           confirmVariant="negative"
         />
       )}
 
       {modal === "recommend" && (
         <ConfirmModal
-          title={`Recomendar ${studentName} para PRO`}
-          placeholder="Justifique a recomendação: histórico, conduta, contribuição à comunidade FormulaDota (mínimo 30 caracteres)..."
+          title={t("recommendTitle", { name: studentName })}
+          placeholder={t("recommendPlaceholder")}
           minLength={30}
           onConfirm={handleRecommend}
           onCancel={() => setModal(null)}
           loading={isPending}
-          confirmLabel="Enviar Recomendação"
+          confirmLabel={t("sendRecommendation")}
           confirmVariant="neutral"
         />
       )}

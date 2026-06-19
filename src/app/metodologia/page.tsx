@@ -30,19 +30,22 @@ export async function generateMetadata() {
   };
 }
 
+// Distribuição de medalhas Valve. O NOME EXIBIDO da medalha vem do i18n
+// (ranks.dota.<rankId>) — Herald/Guardian/… em EN, Arauto/Guardião/… em PT.
 const MEDAL_DATA = [
-  { medal: "Herald", pct: "11,29%", count: "915.725" },
-  { medal: "Guardian", pct: "17,69%", count: "1.434.263" },
-  { medal: "Crusader", pct: "19,86%", count: "1.610.863" },
-  { medal: "Archon", pct: "18,62%", count: "1.509.754" },
-  { medal: "Legend", pct: "14,09%", count: "1.142.578" },
-  { medal: "Ancient", pct: "8,83%", count: "716.029" },
-  { medal: "Divine", pct: "5,65%", count: "458.424" },
-  { medal: "Imortal", pct: "3,97%", count: "322.101" },
-];
+  { rankId: "herald", pct: "11,29%", count: "915.725" },
+  { rankId: "guardian", pct: "17,69%", count: "1.434.263" },
+  { rankId: "crusader", pct: "19,86%", count: "1.610.863" },
+  { rankId: "archon", pct: "18,62%", count: "1.509.754" },
+  { rankId: "legend", pct: "14,09%", count: "1.142.578" },
+  { rankId: "ancient", pct: "8,83%", count: "716.029" },
+  { rankId: "divine", pct: "5,65%", count: "458.424" },
+  { rankId: "immortal", pct: "3,97%", count: "322.101" },
+] as const;
 
 export default async function MetodologiaPage() {
   const t = await getTranslations("metodologia");
+  const tr = await getTranslations("ranks");
   return (
     <ClientShell currentRoute="/metodologia" hideRightSidebar>
       <a
@@ -207,7 +210,7 @@ export default async function MetodologiaPage() {
           <Prose>
             <DataTable
               head={[t("s5TableMedal"), t("s5TablePlayers"), t("s5TablePct")]}
-              rows={MEDAL_DATA.map((m) => [m.medal, m.count, m.pct])}
+              rows={MEDAL_DATA.map((m) => [tr(`dota.${m.rankId}`), m.count, m.pct])}
             />
             <p>
               {t.rich("s5Body1", {

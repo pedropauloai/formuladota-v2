@@ -15,6 +15,7 @@
 
 import { forwardRef, type HTMLAttributes, type ReactNode } from "react";
 import { cva, type VariantProps } from "class-variance-authority";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 
 // ---------------------------------------------------------------------------
@@ -46,16 +47,6 @@ const PRESENCE_COLORS: Record<PresenceStatus, string> = {
   offline:    "bg-neutral-600",   /* cinza Discord */
   "in-queue": "bg-brand-primary", /* vermelho FORMULADOTA */
   "in-match": "bg-play-primary",  /* verde matchmaking */
-};
-
-/** Rótulos PT-BR de presença para aria-label */
-const PRESENCE_LABELS: Record<PresenceStatus, string> = {
-  online:     "Online",
-  away:       "Ausente",
-  dnd:        "Não perturbar",
-  offline:    "Offline",
-  "in-queue": "Na fila",
-  "in-match": "Em partida",
 };
 
 /** Ring colorido — brand vermelho | play verde | immortal dourado */
@@ -157,7 +148,7 @@ export const UserAvatar = forwardRef<HTMLDivElement, UserAvatarProps>(
     {
       className,
       src,
-      alt = "Avatar",
+      alt,
       fallback,
       size = "md",
       badge,
@@ -167,6 +158,8 @@ export const UserAvatar = forwardRef<HTMLDivElement, UserAvatarProps>(
     },
     ref
   ) => {
+    const t = useTranslations("ui");
+    const resolvedAlt = alt ?? t("avatarAlt");
     /* Presença ativa = estados que requerem atenção visual imediata */
     const isPresenceActive =
       presence !== undefined && presence !== "offline";
@@ -187,7 +180,7 @@ export const UserAvatar = forwardRef<HTMLDivElement, UserAvatarProps>(
           "z-[var(--z-elevated)]",
         )}
         role="status"
-        aria-label={PRESENCE_LABELS[presence]}
+        aria-label={t(`presence.${presence}`)}
       >
         <span
           className={cn(
@@ -238,7 +231,7 @@ export const UserAvatar = forwardRef<HTMLDivElement, UserAvatarProps>(
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={src}
-              alt={alt}
+              alt={resolvedAlt}
               className="size-full object-cover object-top"
               draggable={false}
             />

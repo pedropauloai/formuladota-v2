@@ -34,16 +34,22 @@ function toHonorRank(tierStr: string | null): HonorRank {
   return legacyHonorToBand(tierStr ?? "aprendiz");
 }
 
-const TIER_LABELS: Record<string, string> = {
-  aprendiz: "Aprendiz",
-  disciplinado: "Disciplinado",
-  confiavel: "Confiável",
-  respeitado: "Respeitado",
-  honrado: "Honrado",
-  mestre: "Mestre",
-  lendario: "Lendário",
-  "imortal-da-formula": "Imortal da Fórmula",
-};
+// Ids dos tiers HONOR legados (modelo de 8 tiers do honor-score). Os NOMES
+// EXIBIDOS são resolvidos via i18n (ranks.honorLegacy.<id>) na render.
+const LEGACY_TIER_IDS = [
+  "aprendiz",
+  "disciplinado",
+  "confiavel",
+  "respeitado",
+  "honrado",
+  "mestre",
+  "lendario",
+  "imortal-da-formula",
+] as const;
+
+function isLegacyTierId(v: string): v is (typeof LEGACY_TIER_IDS)[number] {
+  return (LEGACY_TIER_IDS as readonly string[]).includes(v);
+}
 
 function mmrToDotaRank(mmr: number | null): DotaRank {
   if (mmr === null) return "herald";
@@ -133,6 +139,11 @@ export default async function CoachProfilePage({ params }: PageProps) {
   const { slug } = await params;
   const supabase = await createClient();
   const t = await getTranslations("misc");
+  const tr = await getTranslations("ranks");
+
+  // Resolve o nome exibido de um tier HONOR legado (i18n) com fallback ao id cru.
+  const tierName = (id: string | null): string =>
+    id && isLegacyTierId(id) ? tr(`honorLegacy.${id}`) : (id ?? tr("honorLegacy.aprendiz"));
 
   // Busca coach básico
   const { data: coach } = await supabase
@@ -230,7 +241,7 @@ export default async function CoachProfilePage({ params }: PageProps) {
 
   const honorRank = toHonorRank(honorTierStr);
   const dotaRank = mmrToDotaRank(profile.mmr_atual);
-  const tierLabel = TIER_LABELS[honorTierStr ?? "aprendiz"] ?? "Aprendiz";
+  const tierLabel = tierName(honorTierStr ?? "aprendiz");
   const isFounder = profile.is_admin;
 
   // Identidade canônica do PRO (lib/identity): Steam (persona) > Discord.
@@ -414,7 +425,7 @@ export default async function CoachProfilePage({ params }: PageProps) {
                     </span>
                     {entry.honor_tier_at_change && (
                       <span className={cn("hidden sm:inline text-text-subtle")}>
-                        ({TIER_LABELS[entry.honor_tier_at_change] ?? entry.honor_tier_at_change})
+                        ({tierName(entry.honor_tier_at_change)})
                       </span>
                     )}
                   </div>

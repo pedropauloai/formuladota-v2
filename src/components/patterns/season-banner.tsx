@@ -23,6 +23,7 @@
 
 import { useCallback, useRef, useState, useEffect } from "react";
 import { m } from "motion/react";
+import { useTranslations } from "next-intl";
 import { Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMotionSafeBool } from "@/lib/motion/hooks";
@@ -93,6 +94,7 @@ interface CountdownDisplayProps {
  * Cada unidade é exibida em tabular-nums para evitar layout shift ao mudar.
  */
 function CountdownDisplay({ remaining }: CountdownDisplayProps) {
+  const t = useTranslations("ui");
   const parts: Array<{ value: string; unit: string }> = [
     { value: pad2(remaining.days),    unit: "d" },
     { value: pad2(remaining.hours),   unit: "h" },
@@ -106,7 +108,11 @@ function CountdownDisplay({ remaining }: CountdownDisplayProps) {
         "[font-family:var(--font-display-condensed)]",
         "text-lg font-semibold tabular-nums text-text-display leading-none"
       )}
-      aria-label={`${remaining.days} dias, ${remaining.hours} horas, ${remaining.minutes} minutos restantes`}
+      aria-label={t("countdownAria", {
+        days: remaining.days,
+        hours: remaining.hours,
+        minutes: remaining.minutes,
+      })}
     >
       {parts.map(({ value, unit }, i) => (
         <span key={unit} className="inline-flex items-baseline gap-0.5">
@@ -140,6 +146,7 @@ export function SeasonBanner({
   endsAt,
   className,
 }: SeasonBannerProps) {
+  const t          = useTranslations("ui");
   const motionSafe = useMotionSafeBool();
   const play       = useSound();
 
@@ -182,7 +189,7 @@ export function SeasonBanner({
     return () => clearInterval(id);
   }, [tick]);
 
-  const seasonLabel = `Season ${seasonNumber} — ${seasonName}`;
+  const seasonLabel = t("seasonLabel", { number: seasonNumber, name: seasonName });
 
   return (
     <m.div
@@ -203,7 +210,10 @@ export function SeasonBanner({
         ease: EASINGS.softLanding,
       }}
       role="banner"
-      aria-label={`${seasonLabel} — Encerra em ${remaining ? `${remaining.days} dias` : "breve"}`}
+      aria-label={t("seasonBannerAria", {
+        label: seasonLabel,
+        ends: remaining ? t("daysCount", { count: remaining.days }) : t("soon"),
+      })}
     >
       {/* Ícone de season */}
       <Trophy
@@ -235,7 +245,7 @@ export function SeasonBanner({
         <CountdownDisplay remaining={remaining} />
       ) : (
         <span className="text-sm text-text-muted">
-          Season encerrada — aguarde Season {seasonNumber + 1}
+          {t("seasonEnded", { next: seasonNumber + 1 })}
         </span>
       )}
     </m.div>

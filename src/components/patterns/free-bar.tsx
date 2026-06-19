@@ -20,6 +20,7 @@
  */
 
 import { m, AnimatePresence } from "motion/react";
+import { useTranslations } from "next-intl";
 import { Ticket } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -96,6 +97,7 @@ export function FreeBar({
   onBuy,
   className,
 }: FreeBarProps) {
+  const t = useTranslations("ui");
   // Exibe somente quando show=true E fichasCount === 0
   const visible = show && fichasCount === 0;
 
@@ -140,7 +142,7 @@ export function FreeBar({
                 "hidden xs:block",
               )}
             >
-              SUBIR DE MMR
+              {t("climbMmr")}
             </span>
 
             {/* ---- Separador visual ---- */}
@@ -159,7 +161,7 @@ export function FreeBar({
                 <span
                   className="text-sm text-[var(--color-text-muted)] font-[family-name:var(--font-body)] hidden sm:block"
                 >
-                  Próxima partida em
+                  {t("nextMatchIn")}
                 </span>
                 {/* Countdown em Teko — reservado para momentos de impacto (semantic.css § 7) */}
                 <span
@@ -171,7 +173,7 @@ export function FreeBar({
                     "tabular-nums",
                   )}
                   // Acessibilidade: anuncia o tempo restante
-                  aria-label={`Próxima partida em ${formatNextSlot(nextSlotIn)}`}
+                  aria-label={t("nextMatchInAria", { time: formatNextSlot(nextSlotIn) })}
                 >
                   {formatNextSlot(nextSlotIn)}
                 </span>
@@ -184,10 +186,10 @@ export function FreeBar({
               size="sm"
               onClick={onBuy}
               className="shrink-0"
-              aria-label="Garantir vaga para subir de MMR — ir para página de fichas"
+              aria-label={t("guaranteeSlotAria")}
             >
               <Ticket className="size-3.5" aria-hidden="true" />
-              Garantir vaga
+              {t("guaranteeSlot")}
             </Button>
           </div>
         </m.div>

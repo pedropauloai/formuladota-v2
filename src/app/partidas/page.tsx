@@ -6,6 +6,7 @@
 // que não é gerado sem a Supabase CLI. A abordagem 2-query é mais segura e igualmente eficiente.
 
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { redirect } from "next/navigation";
 import { ShoppingBag } from "lucide-react";
@@ -17,15 +18,19 @@ import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ClientShell } from "@/components/client-shell/shell";
 
-export const metadata: Metadata = {
-  title: "Minhas Partidas — FORMULADOTA",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("ui");
+  return {
+    title: t("partidasPageTitle"),
+  };
+}
 
 // Tipo derivado do schema gerado — sem cast, sem any.
 type PurchaseRow = Tables<"purchases">;
 type PackageRow = Tables<"packages">;
 
 export default async function PartidasPage() {
+  const t = await getTranslations("ui");
   const supabase = await createClient();
   const {
     data: { user },
@@ -85,13 +90,13 @@ export default async function PartidasPage() {
       <div className="px-4 py-10 mx-auto max-w-4xl">
         <header className="mb-8 space-y-3">
           <p className="font-display text-sm uppercase tracking-[0.4em] text-brand-primary">
-            Minhas partidas
+            {t("myMatches")}
           </p>
           <h1 className="font-display text-4xl uppercase tracking-wide text-text-display">
-            Seu saldo
+            {t("yourBalance")}
           </h1>
           <p className="text-text-muted">
-            Saldo disponível para agendar partidas e sessões com o coach.
+            {t("balanceDescription")}
           </p>
         </header>
 
@@ -103,8 +108,8 @@ export default async function PartidasPage() {
         {semSaldo && (
           <div className="mt-8">
             <EmptyState
-              title="Sem saldo ainda"
-              description="Você ainda não tem partidas ou sessões disponíveis. Conheça os pacotes e comece sua mentoria."
+              title={t("noBalanceTitle")}
+              description={t("noBalanceDescription")}
               icon={<ShoppingBag />}
               principle={5}
               action={
@@ -112,7 +117,7 @@ export default async function PartidasPage() {
                   href="/pacotes"
                   className="inline-flex h-12 items-center justify-center rounded-[var(--radius-sm)] bg-brand-primary px-8 font-display text-sm font-bold uppercase tracking-widest text-text-display shadow-[var(--glow-brand)] transition-colors hover:bg-brand-primary-hover"
                 >
-                  Ver pacotes
+                  {t("viewPackages")}
                 </Link>
               }
             />
@@ -120,9 +125,9 @@ export default async function PartidasPage() {
         )}
 
         {!semSaldo && compras.length > 0 && (
-          <section className="mt-10" aria-label="Histórico de compras">
+          <section className="mt-10" aria-label={t("purchaseHistory")}>
             <h2 className="font-display text-base uppercase tracking-widest text-text-display mb-4">
-              Compras pagas
+              {t("paidPurchases")}
             </h2>
             <ul className="space-y-3">
               {compras.map((p) => {
@@ -132,7 +137,7 @@ export default async function PartidasPage() {
                   "pt-BR"
                 );
                 const packageNome =
-                  packagesMap.get(p.package_id)?.nome ?? "Pacote";
+                  packagesMap.get(p.package_id)?.nome ?? t("packageFallback");
 
                 return (
                   <li key={p.id}>
@@ -149,12 +154,12 @@ export default async function PartidasPage() {
                         <div className="flex flex-wrap gap-2">
                           {partidasRest > 0 && (
                             <Badge variant="outline">
-                              {partidasRest} partida{partidasRest === 1 ? "" : "s"}
+                              {t("matchesCount", { count: partidasRest })}
                             </Badge>
                           )}
                           {sessoesRest > 0 && (
                             <Badge variant="outline">
-                              {sessoesRest} sess{sessoesRest === 1 ? "ão" : "ões"}
+                              {t("sessionsCount", { count: sessoesRest })}
                             </Badge>
                           )}
                         </div>
