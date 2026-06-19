@@ -1,0 +1,22 @@
+{
+  "common": {
+    "language": "Idioma",
+    "loading": "Carregando…"
+  },
+  "nav": {
+    "subirMmr": "Subir MMR",
+    "ranking": "Ranking",
+    "times": "Times",
+    "torneios": "Torneios",
+    "conduta": "Conduta",
+    "entrar": "Entrar",
+    "jogarDota": "Jogar Dota"
+  },
+  "topbar": {
+    "settings": "Configurações",
+    "signOut": "Sair",
+    "prosOnline": "{count, plural, =1 {# PRO online} other {# PROs online}}",
+    "searching": "{count, plural, =1 {# jogador buscando} other {# jogadores buscando}}",
+    "condutaTooltip": "Conduta é pública na FormulaDota — responsabilidade é princípio, não opção. Leia o Código antes da sua primeira PT."
+  }
+}
