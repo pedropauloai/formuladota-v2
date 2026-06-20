@@ -25,6 +25,7 @@ const PUBLIC_PATHS = [
   "/cookies",
   "/metodologia",
   "/ranking",
+  "/meta", // leitura pública: meta de heróis (OpenDota) — vitrine de valor
   "/times", // leitura pública: browse de times + perfis (ações pedem login)
   "/torneios", // leitura pública: browse de torneios + brackets (ações pedem login)
   "/coaches", // /coaches/[slug] — perfis públicos de PROs
