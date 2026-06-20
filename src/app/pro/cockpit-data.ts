@@ -50,6 +50,8 @@ export interface CockpitData {
   filaAberta: boolean;
   filaAbertaEm: string | null;
   filaMaxVagas: number;
+  /** Modo da fila aberta: 'play' (PRO joga, 4 alunos) ou 'coached' (PRO observa, 5 alunos). */
+  mode: "play" | "coached";
   /** Fila waiting ordenada por LRU (pts hoje ASC, joined_at ASC). */
   queue: CockpitQueueEntry[];
   /** PT em curso (status='agendada') — null se não há nenhuma. */
@@ -67,6 +69,7 @@ interface CoachRow {
   fila_aberta: boolean;
   fila_aberta_em: string | null;
   fila_max_vagas: number;
+  queue_mode: string;
 }
 
 /** Busca a PT em curso (status='agendada' mais recente) + alunos in_match. */
@@ -191,6 +194,7 @@ export async function getProCockpitData(coach: CoachRow): Promise<CockpitData> {
     filaAberta: coach.fila_aberta,
     filaAbertaEm: coach.fila_aberta_em,
     filaMaxVagas: coach.fila_max_vagas,
+    mode: coach.queue_mode === "coached" ? "coached" : "play",
     queue,
     activePT,
     hoje: {

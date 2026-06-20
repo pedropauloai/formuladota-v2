@@ -24,7 +24,7 @@ import type { CockpitQueueEntry } from "./cockpit-data";
 
 interface QueueListProps {
   queue: CockpitQueueEntry[];
-  /** Capacidade da próxima PT (min(fila_max_vagas, 4)). */
+  /** Capacidade da próxima PT (coached = 5; play = min(fila_max_vagas, 4)). */
   maxPT: number;
   /** Entry ids selecionadas pra próxima PT (estado do pai). */
   selected: Set<string>;
