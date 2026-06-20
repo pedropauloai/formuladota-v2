@@ -328,3 +328,44 @@ export function normalizePlayers(match: OpenDotaMatch): NormalizedPlayer[] {
     };
   });
 }
+
+// =====================================================================
+// META DE HERÓIS (aba /meta) — estatísticas AGREGADAS da OpenDota.
+// /heroStats traz pick/win por bracket (campos "1_pick".."8_win") +
+// pro_pick/pro_win/pro_ban. Diferente de /matches/{id}, aqui CACHEAMOS:
+// o meta muda devagar e cache de 1h derruba o consumo a ~zero (free tier
+// = 60 req/min) e protege contra instabilidade da API.
+// =====================================================================
+
+export interface OpenDotaHeroStat {
+  id: number;
+  name: string;
+  localized_name: string;
+  /** "str" | "agi" | "int" | "all" (all = Universal). */
+  primary_attr: string;
+  attack_type: string;
+  roles: string[];
+  /** Path relativo no CDN Valve (ex: "/apps/dota2/.../antimage.png?"). */
+  img: string;
+  icon: string;
+  pro_pick?: number;
+  pro_win?: number;
+  pro_ban?: number;
+  // Campos por bracket ("1_pick".."8_pick" e "1_win".."8_win") — acessados
+  // por índice (chaves numéricas com underscore não dá pra tipar nominalmente).
+  [key: string]: unknown;
+}
+
+const HERO_STATS_URL = `${OPENDOTA_BASE}/heroStats`;
+
+/** Busca estatísticas agregadas de todos os heróis (cache de 1h). */
+export async function fetchHeroStats(): Promise<OpenDotaHeroStat[]> {
+  const res = await fetch(HERO_STATS_URL, {
+    headers: { Accept: "application/json" },
+    next: { revalidate: 3600 },
+  });
+  if (!res.ok) {
+    throw new OpenDotaError(`OpenDota /heroStats retornou ${res.status}`, res.status);
+  }
+  return (await res.json()) as OpenDotaHeroStat[];
+}

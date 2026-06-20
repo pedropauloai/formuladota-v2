@@ -41,6 +41,7 @@ type TopBarTabDef = {
 // + ecossistema competitivo (ranking/times/torneios), visível pra todos.
 const PRINCIPAL_TAB_DEFS = [
   { href: "/ranked-com-pro", key: "subirMmr" },
+  { href: "/meta", key: "meta" },
   { href: "/ranking", key: "ranking" },
   { href: "/times", key: "times" },
   { href: "/torneios", key: "torneios" },

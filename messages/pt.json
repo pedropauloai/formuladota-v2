@@ -8,6 +8,7 @@
     "ranking": "Ranking",
     "times": "Times",
     "torneios": "Torneios",
+    "meta": "Meta",
     "conduta": "Conduta",
     "entrar": "Entrar",
     "jogarDota": "Jogar Dota"
@@ -261,6 +262,29 @@
     "backToRanking": "← Voltar ao ranking",
     "emptyTitle": "Temporada começando",
     "emptyDescription": "Ainda sem partidas oficiais. Seja um dos primeiros — ative sua mensalidade e crie um lobby."
+  },
+  "meta": {
+    "metaTitle": "Meta de Heróis — FORMULADOTA",
+    "metaDescription": "Win rate e pick dos heróis do Dota 2 por função, no MMR Imortal.",
+    "eyebrow": "Meta · Imortal",
+    "title": "Heróis",
+    "subtitle": "O padrão que vence no topo. Win rate por função no MMR Imortal (7000+) — onde o jogo é jogado do jeito mais efetivo. O dado fala por si.",
+    "filterPosition": "Função",
+    "posAll": "Todas",
+    "pos1": "Carry",
+    "pos2": "Mid",
+    "pos3": "Offlane",
+    "pos4": "Suporte",
+    "pos5": "Hard Support",
+    "topHeroes": "Mais fortes agora",
+    "colHero": "Herói",
+    "colAttr": "Atrib",
+    "colMatches": "Partidas",
+    "colPickRate": "Pick",
+    "colWinRate": "Win Rate",
+    "source": "Dados via Stratz + OpenDota · cache de 6h",
+    "empty": "Sem dados suficientes para este filtro.",
+    "error": "Não foi possível carregar o meta agora. Tente de novo em instantes."
   },
   "perfil": {
     "metaTitle": "Perfil — FORMULADOTA",
@@ -3506,7 +3530,7 @@
       "crusader": "Cruzado",
       "archon": "Arconte",
       "legend": "Lenda",
-      "ancient": "Ancião",
+      "ancient": "Ancestral",
       "divine": "Divino",
       "immortal": "Imortal",
       "immortal-top-100": "Imortal Top 100"
@@ -3517,7 +3541,7 @@
       "3": "Cruzado",
       "4": "Arconte",
       "5": "Lenda",
-      "6": "Ancião",
+      "6": "Ancestral",
       "7": "Divino",
       "8": "Imortal"
     },
