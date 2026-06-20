@@ -90,9 +90,10 @@ export function ProCockpit({ initial, footerExtras }: Props) {
             filaAbertaEm={data.filaAbertaEm}
             waitingCount={data.queue.length}
             nowMs={nowMs}
+            onToggled={refetch}
           />
         ) : (
-          <QueueClosedHero />
+          <QueueClosedHero onToggled={refetch} />
         )}
 
         {/* Só a lista rola — a página não */}
