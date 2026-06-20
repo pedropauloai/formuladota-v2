@@ -9,7 +9,6 @@
 // por isso o FECHAR pede confirmação explícita.
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Power, Radio, Eye } from "lucide-react";
 import { togglePROFila } from "@/app/admin/pros/actions";
@@ -18,9 +17,11 @@ import { useConfirm } from "@/components/ui/confirm";
 
 type QueueMode = "play" | "coached";
 
-// Hook local compartilhado entre os dois estados (aberta/fechada)
-function useToggleFila() {
-  const router = useRouter();
+// Hook local compartilhado entre os dois estados (aberta/fechada).
+// onDone roda após sucesso — refetcha o cockpit pra o estado LOCAL (useState do
+// ProCockpit) refletir abrir/fechar na hora. router.refresh() não bastava: o
+// useState(initial) ignora o novo initial vindo do servidor.
+function useToggleFila(onDone?: () => void) {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -29,7 +30,7 @@ function useToggleFila() {
     startTransition(async () => {
       const res = await togglePROFila(open, mode);
       if (!res.success) setError(res.error);
-      else router.refresh();
+      else onDone?.();
     });
   }
 
@@ -45,15 +46,18 @@ interface StatusBarProps {
   waitingCount: number;
   /** Relógio compartilhado do cockpit (evita Date.now() impuro em render). */
   nowMs: number;
+  /** Chamado após abrir/fechar com sucesso — refetcha o cockpit (estado local). */
+  onToggled?: () => void;
 }
 
 export function CockpitStatusBar({
   filaAbertaEm,
   waitingCount,
   nowMs,
+  onToggled,
 }: StatusBarProps) {
   const t = useTranslations("proCockpit");
-  const { toggle, pending, error } = useToggleFila();
+  const { toggle, pending, error } = useToggleFila(onToggled);
   const confirm = useConfirm();
 
   const minutosAberta = filaAbertaEm
@@ -114,9 +118,9 @@ export function CockpitStatusBar({
 // QueueClosedHero — fila FECHADA (CTA gigante ocupa o centro)
 // ---------------------------------------------------------------------------
 
-export function QueueClosedHero() {
+export function QueueClosedHero({ onToggled }: { onToggled?: () => void }) {
   const t = useTranslations("proCockpit");
-  const { toggle, pending, error } = useToggleFila();
+  const { toggle, pending, error } = useToggleFila(onToggled);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-5 p-6 text-center">
@@ -137,7 +141,7 @@ export function QueueClosedHero() {
           {t("openModePlay")}
         </Button>
         <Button
-          variant="secondary"
+          variant="cinematic"
           size="lg"
           onClick={() => toggle(true, "coached")}
           loading={pending}
