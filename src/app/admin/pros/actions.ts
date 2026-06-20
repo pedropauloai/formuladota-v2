@@ -34,7 +34,7 @@ async function requireCoach(supabase: Awaited<ReturnType<typeof createClient>>) 
   if (!user) return { user: null, coach: null, error: "Não autenticado." } as const;
   const { data: coach } = await supabase
     .from("coaches")
-    .select("id, ativo, profile_id")
+    .select("id, ativo, profile_id, queue_mode")
     .eq("profile_id", user.id)
     .single();
   if (!coach) return { user, coach: null, error: "Você não é PRO." } as const;
@@ -96,13 +96,17 @@ export async function startPT(
   if (entryIds.length === 0) {
     return { success: false, error: "Selecione ao menos 1 aluno." };
   }
-  if (entryIds.length > 4) {
-    return { success: false, error: "Máximo 4 alunos por PT." };
-  }
 
   const supabase = await createClient();
   const { coach, error: authErr } = await requireCoach(supabase);
   if (!coach) return { success: false, error: authErr };
+
+  // Limite de alunos por modo: coached = 5 (PRO observa de fora, time todo é de
+  // alunos), play = 4 (PRO é o 5º jogador do time).
+  const maxAlunos = coach.queue_mode === "coached" ? 5 : 4;
+  if (entryIds.length > maxAlunos) {
+    return { success: false, error: `Máximo ${maxAlunos} alunos por PT.` };
+  }
 
   const { data: entries, error: entriesErr } = await supabase
     .from("coach_queue_entries")

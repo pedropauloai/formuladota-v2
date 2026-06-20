@@ -35,7 +35,9 @@ export function ProCockpit({ initial, footerExtras }: Props) {
     return () => clearInterval(t);
   }, []);
 
-  const maxPT = Math.min(data.filaMaxVagas, 4);
+  // Vagas da próxima PT por modo: coached = 5 (PRO observa de fora), play = 4
+  // (PRO é o 5º jogador do time). fila_max_vagas só limita o play (CHECK <= 4).
+  const maxPT = data.mode === "coached" ? 5 : Math.min(data.filaMaxVagas, 4);
 
   // Seleção da próxima PT — default: top da fila (ordem LRU). Quando a fila
   // muda (realtime), poda quem saiu e completa do topo até maxPT.

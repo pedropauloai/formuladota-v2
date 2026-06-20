@@ -16,7 +16,7 @@ export async function fetchCockpitData(): Promise<CockpitData | null> {
 
   const { data: coach } = await supabase
     .from("coaches")
-    .select("id, fila_aberta, fila_aberta_em, fila_max_vagas")
+    .select("id, fila_aberta, fila_aberta_em, fila_max_vagas, queue_mode")
     .eq("profile_id", user.id)
     .maybeSingle();
   if (!coach) return null;
