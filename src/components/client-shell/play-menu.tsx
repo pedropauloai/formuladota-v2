@@ -87,6 +87,7 @@ export function PlayMenu({ isVisitor, initial }: Props) {
   const [showQuiz, setShowQuiz] = useState(false);
   const [pending, startTransition] = useTransition();
   const [searching, setSearching] = useState(false);
+  const [elapsed, setElapsed] = useState(0); // segundos da busca atual (contador na bottom-bar)
 
   // Salas
   const [lobbies, setLobbies] = useState<LobbyListItem[]>([]);
@@ -161,7 +162,11 @@ export function PlayMenu({ isVisitor, initial }: Props) {
         router.push(`/partida/${res.matchedLobbyId}`);
         return;
       }
+      // Buscando: retrai o drawer pro estado "button" — a busca passa a viver na
+      // bottom-bar (contador + X), liberando a plataforma pra navegação enquanto espera.
+      setElapsed(0);
       setSearching(true);
+      setPhase("button");
     });
   }
 
@@ -186,6 +191,14 @@ export function PlayMenu({ isVisitor, initial }: Props) {
       clearInterval(iv);
     };
   }, [searching, router]);
+
+  // Contador de tempo da busca (mm:ss) — o reset pra 0 acontece no handleBuscar
+  // (fora do effect, pra não cair na regra react-hooks/set-state-in-effect).
+  useEffect(() => {
+    if (!searching) return;
+    const iv = setInterval(() => setElapsed((s) => s + 1), 1000);
+    return () => clearInterval(iv);
+  }, [searching]);
 
   function handleCancelSearch() {
     startTransition(async () => {
@@ -233,8 +246,31 @@ export function PlayMenu({ isVisitor, initial }: Props) {
 
   return (
     <>
-      {/* Estado BUTTON — "Jogar Dota", ou "Voltar à sala" se houver lobby ativo */}
-      {phase === "button" && (
+      {/* Estado BUTTON — durante a busca vira CONTADOR + X (cancelar); senão o
+          botão "Jogar Dota" (ou "Voltar à sala" se houver lobby ativo). */}
+      {phase === "button" && searching && (
+        <div className="pointer-events-auto flex h-14 items-center gap-3 rounded-md border-2 border-play-primary bg-bg-deep px-6 shadow-lg shadow-[var(--color-play-primary-glow)] xl:h-16 xl:px-8 2xl:h-20">
+          <Loader2 size={22} className="animate-spin text-play-primary" aria-hidden="true" />
+          <span className="flex flex-col leading-tight">
+            <span className="font-display text-xs uppercase tracking-[0.2em] text-text-muted">
+              {t("searching")}
+            </span>
+            <span className="font-display text-xl font-bold tabular-nums tracking-wider text-text-display xl:text-2xl">
+              {mmss(elapsed)}
+            </span>
+          </span>
+          <button
+            type="button"
+            onClick={handleCancelSearch}
+            disabled={pending}
+            aria-label={t("cancelSearch")}
+            className="ml-1 rounded-sm border border-border-subtle p-2 text-text-muted transition-colors hover:border-error/50 hover:text-error disabled:opacity-60"
+          >
+            <X size={20} aria-hidden="true" />
+          </button>
+        </div>
+      )}
+      {phase === "button" && !searching && (
         <button
           type="button"
           onClick={() => setPhase("expanded")}
@@ -294,8 +330,6 @@ export function PlayMenu({ isVisitor, initial }: Props) {
               error={error}
               pending={pending}
               onBuscar={handleBuscar}
-              onCancel={handleCancelSearch}
-              searching={searching}
               onCriar={() => setShowCreate(true)}
               onNavegar={openLista}
               onPro={() => router.push("/ranked-com-pro")}
@@ -407,8 +441,6 @@ function MenuView({
   error,
   pending,
   onBuscar,
-  onCancel,
-  searching,
   onCriar,
   onNavegar,
   onPro,
@@ -424,8 +456,6 @@ function MenuView({
   error: string | null;
   pending: boolean;
   onBuscar: () => void;
-  onCancel: () => void;
-  searching: boolean;
   onCriar: () => void;
   onNavegar: () => void;
   onPro: () => void;
@@ -495,32 +525,17 @@ function MenuView({
           {error && (
             <p className="rounded border border-error/30 bg-error/5 px-2.5 py-1.5 font-mono text-sm text-error">{error}</p>
           )}
-          {searching ? (
-            <>
-              <div className="flex w-full items-center justify-center gap-2 rounded-md border border-play-primary/60 bg-bg-elevated px-4 py-2.5 font-display text-base font-bold uppercase tracking-[0.15em] text-text-display">
-                <Loader2 size={18} className="animate-spin" aria-hidden="true" />
-                Buscando partida…
-              </div>
-              <button
-                type="button"
-                onClick={onCancel}
-                disabled={pending}
-                className="w-full rounded-md border border-border-subtle px-4 py-1.5 font-body text-sm text-text-muted transition-colors hover:text-text-body disabled:opacity-60"
-              >
-                Cancelar busca
-              </button>
-            </>
-          ) : (
-            <button
-              type="button"
-              onClick={onBuscar}
-              disabled={pending}
-              className="flex w-full items-center justify-center gap-2 rounded-md border border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover px-4 py-2.5 font-display text-base font-bold uppercase tracking-[0.15em] text-text-display transition-all hover:brightness-110 disabled:opacity-60"
-            >
-              {pending ? <Loader2 size={18} className="animate-spin" /> : <Search size={18} aria-hidden="true" />}
-              {t("searchMatch")}
-            </button>
-          )}
+          {/* Buscar: ao iniciar a busca o drawer retrai e o estado "searching" passa
+              a viver na bottom-bar (contador + X). Aqui fica só o gatilho de busca. */}
+          <button
+            type="button"
+            onClick={onBuscar}
+            disabled={pending}
+            className="flex w-full items-center justify-center gap-2 rounded-md border border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover px-4 py-2.5 font-display text-base font-bold uppercase tracking-[0.15em] text-text-display transition-all hover:brightness-110 disabled:opacity-60"
+          >
+            {pending ? <Loader2 size={18} className="animate-spin" /> : <Search size={18} aria-hidden="true" />}
+            {t("searchMatch")}
+          </button>
         </div>
       )}
     </>
@@ -528,6 +543,13 @@ function MenuView({
 }
 
 /* ---------------- helpers ---------------- */
+
+// Formata segundos como mm:ss (contador da busca na bottom-bar).
+function mmss(total: number): string {
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
 
 function Section({
   icon: Icon,

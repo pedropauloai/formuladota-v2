@@ -57,19 +57,21 @@ const MSG_INVITE_LOBBY = 4512;
 const MSG_LAUNCH_LOBBY = 7041;
 const MSG_ABANDON = 7035;
 const MSG_LEAVE_LOBBY = 7040;
+const MSG_KICK_FROM_TEAM = 8047; // move um membro pro pool (usado p/ tirar o bot do slot de jogador)
 
 const SO_CACHE_SUBSCRIBED = 24;
 const SO_UPDATE_MULTIPLE = 26;
 const LOBBY_SO_TYPE = 2004;
 
 const GAME_MODE_MAP = { all_pick: 22, captains_mode: 2, random_draft: 3, single_draft: 4 };
+const LEAGUE_ID = Number(process.env.DOTA_LEAGUE_ID) || 18406; // ticket da liga FormulaDota
 const RE_STEAMID64 = /^7656\d{13}$/;
 
 const client = new SteamUser();
 const dota2 = new Dota2User(client);
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 
-let LobbyCreate, LobbySetDetails, LobbyLeave, LobbyLaunch, Abandon;
+let LobbyCreate, LobbySetDetails, LobbyLeave, LobbyLaunch, Abandon, LobbyKickFromTeam;
 
 // Job atual (1 lobby por vez nesta V1 — bot único). Enquanto != null, o polling pausa.
 let jobAtivo = null; // { dbLobbyId, expectedPlayers, launched, steamLobbyId, matchId }
@@ -128,6 +130,7 @@ protobuf.load(path.join(__dirname, "lobby.proto"), (err, root) => {
   LobbyLeave = root.lookupType("CMsgPracticeLobbyLeave");
   LobbyLaunch = root.lookupType("CMsgPracticeLobbyLaunch");
   Abandon = root.lookupType("CMsgAbandonCurrentGame");
+  LobbyKickFromTeam = root.lookupType("CMsgPracticeLobbyKickFromTeam");
   console.log(`[BOT] Supabase: ${SUPABASE_URL}`);
   if (REFRESH_TOKEN) {
     console.log("[BOT] Logando com refresh token (headless)...");
@@ -242,6 +245,8 @@ async function processarLobby(lobby) {
     allowSpectating: true,
     allowCheats: false,
     fillWithBots: false,
+    leagueid: LEAGUE_ID, // ticket da liga -> habilita DotaTV/realtime + resultado por match_id
+    dotaTvDelay: 1, // 120s
     passKey: lobby.password,
   };
 
@@ -261,6 +266,20 @@ async function processarLobby(lobby) {
     dota2.sendRawBuffer(MSG_SET_DETAILS, Buffer.from(LobbySetDetails.encode(LobbySetDetails.create(cfg)).finish()));
   } catch (e) {}
   await wait(1200);
+
+  // Tira o BOT de qualquer slot de jogador -> manda pro pool (jogadores de fora), pra não
+  // ocupar vaga de quem vai jogar. Ele abandona o jogo no launch de qualquer forma.
+  try {
+    const botAccountId = client.steamID ? Number(BigInt(client.steamID.toString()) & 0xffffffffn) : 0;
+    if (botAccountId) {
+      dota2.sendRawBuffer(
+        MSG_KICK_FROM_TEAM,
+        Buffer.from(LobbyKickFromTeam.encode(LobbyKickFromTeam.create({ accountId: botAccountId })).finish())
+      );
+      console.log("[BOT] bot movido pro pool (jogadores de fora) — não ocupa slot.");
+    }
+  } catch (e) {}
+  await wait(500);
 
   // Convida cada jogador (popup no cliente Dota).
   for (const sid of steamIds) {

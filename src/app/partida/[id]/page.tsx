@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
+import { ClientShell } from "@/components/client-shell/shell";
 import { MatchPasswordCard } from "./match-password-card";
 
 export const dynamic = "force-dynamic";
@@ -74,32 +75,34 @@ export default async function PartidaPage({
       );
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-8">
-      <header className="mb-6">
-        <p className="font-display text-xs uppercase tracking-[0.25em] text-text-muted">
-          Partida FormulaDota
-        </p>
-        <h1 className="font-display text-2xl font-bold uppercase tracking-wide text-text-display">
-          {lobby.name}
-        </h1>
-        <p className="mt-1 font-body text-sm text-text-muted">
-          Modo: {lobby.game_mode} · Status: {lobby.status}
-        </p>
-      </header>
+    <ClientShell currentRoute={`/partida/${id}`}>
+      <div className="mx-auto w-full max-w-5xl px-4 py-8">
+        <header className="mb-6">
+          <p className="font-display text-xs uppercase tracking-[0.25em] text-text-muted">
+            Partida FormulaDota
+          </p>
+          <h1 className="font-display text-2xl font-bold uppercase tracking-wide text-text-display">
+            {lobby.name}
+          </h1>
+          <p className="mt-1 font-body text-sm text-text-muted">
+            Modo: {lobby.game_mode} · Status: {lobby.status}
+          </p>
+        </header>
 
-      <div className="mb-6">
-        <MatchPasswordCard
-          lobbyId={lobby.id}
-          initialPassword={lobby.password as string}
-          canEdit={canEdit}
-        />
-      </div>
+        <div className="mb-6">
+          <MatchPasswordCard
+            lobbyId={lobby.id}
+            initialPassword={lobby.password as string}
+            canEdit={canEdit}
+          />
+        </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <TeamColumn title="Iluminados" accent="text-[#00C466]" players={teamOf("radiant")} />
-        <TeamColumn title="Temidos" accent="text-brand-primary" players={teamOf("dire")} />
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <TeamColumn title="Iluminados" accent="text-[#00C466]" players={teamOf("radiant")} />
+          <TeamColumn title="Temidos" accent="text-brand-primary" players={teamOf("dire")} />
+        </div>
       </div>
-    </main>
+    </ClientShell>
   );
 }
 

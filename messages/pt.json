@@ -92,6 +92,8 @@
     "roomSettings": "Configurações da sala",
     "gameModeLabel": "Modo de jogo",
     "searchMatch": "Buscar Partida",
+    "searching": "Buscando",
+    "cancelSearch": "Cancelar busca",
     "roleSafelane": "Segura (Carry)",
     "roleMidlane": "Meio (Mid)",
     "roleOfflane": "Offlane",

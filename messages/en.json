@@ -92,6 +92,8 @@
     "roomSettings": "Room settings",
     "gameModeLabel": "Game mode",
     "searchMatch": "Find Match",
+    "searching": "Searching",
+    "cancelSearch": "Cancel search",
     "roleSafelane": "Safelane (Carry)",
     "roleMidlane": "Mid",
     "roleOfflane": "Offlane",
