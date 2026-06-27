@@ -27,7 +27,7 @@ export async function LivePROStrip() {
             {t("noProOnlineNowShort")}
           </span>
           <a
-            href="https://discord.com/invite/v3pSuZhjBE"
+            href="https://discord.com/invite/USntaFRS6x"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 font-sans text-sm font-semibold uppercase tracking-widest text-[var(--color-brand-red)] transition-colors hover:text-white"

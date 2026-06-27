@@ -18,6 +18,7 @@
     "signOut": "Sign out",
     "prosOnline": "{count, plural, =1 {# PRO online} other {# PROs online}}",
     "searching": "{count, plural, =1 {# player searching} other {# players searching}}",
+    "inQueue": "{count, plural, =1 {# in queue} other {# in queue}}",
     "condutaTooltip": "Conduct is public on FormulaDota — accountability is a principle, not an option. Read the Code before your first match.",
     "mainNavAria": "Main navigation",
     "contextNavAria": "Contextual navigation",

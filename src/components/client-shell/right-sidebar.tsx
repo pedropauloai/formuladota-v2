@@ -41,7 +41,7 @@ export function DashboardRightSidebar({ floating }: Props) {
           <CommunityLink
             icon={MessageSquare}
             label={t("discordOfficial")}
-            href="https://discord.com/invite/v3pSuZhjBE"
+            href="https://discord.com/invite/USntaFRS6x"
             external
           />
           <CommunityLink

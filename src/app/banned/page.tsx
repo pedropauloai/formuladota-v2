@@ -87,7 +87,7 @@ export default async function BannedPage() {
             <p>
               {t("bannedAppealPrefix")}{" "}
               <a
-                href="https://discord.com/invite/v3pSuZhjBE"
+                href="https://discord.com/invite/USntaFRS6x"
                 target="_blank"
                 rel="noreferrer"
                 className="text-brand-primary underline hover:text-text-display transition-colors"

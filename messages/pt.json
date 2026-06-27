@@ -18,6 +18,7 @@
     "signOut": "Sair",
     "prosOnline": "{count, plural, =1 {# PRO online} other {# PROs online}}",
     "searching": "{count, plural, =1 {# jogador buscando} other {# jogadores buscando}}",
+    "inQueue": "{count, plural, =1 {# na fila} other {# na fila}}",
     "condutaTooltip": "Conduta é pública na FormulaDota — responsabilidade é princípio, não opção. Leia o Código antes da sua primeira PT.",
     "mainNavAria": "Navegação principal",
     "contextNavAria": "Navegação contextual",

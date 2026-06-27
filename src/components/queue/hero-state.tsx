@@ -256,7 +256,7 @@ export function HeroState({
               {t("waitingProSub", { count: fichaBalance })}
             </HeroSub>
             <CtaLink
-              href="https://discord.com/invite/v3pSuZhjBE"
+              href="https://discord.com/invite/USntaFRS6x"
               external
               onNavigate={() => play("click")}
             >

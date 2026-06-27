@@ -442,7 +442,7 @@ function ExpandedPanel({
       <nav aria-label={t("shortcuts")} className="space-y-1 border-t border-border-subtle pt-3">
         <CompactLink href="/codigo-de-conduta" label={t("codeOfConduct")} icon={BookOpen} />
         <CompactLink
-          href="https://discord.com/invite/v3pSuZhjBE"
+          href="https://discord.com/invite/USntaFRS6x"
           label={t("discordOfficial")}
           icon={MessageSquare}
           external

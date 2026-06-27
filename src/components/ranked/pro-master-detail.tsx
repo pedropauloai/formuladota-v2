@@ -306,7 +306,7 @@ function NoProOnline() {
         principle="random"
         action={
           <a
-            href="https://discord.com/invite/v3pSuZhjBE"
+            href="https://discord.com/invite/USntaFRS6x"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 font-display text-sm font-semibold uppercase tracking-wide text-brand-primary transition-colors hover:text-text-display"

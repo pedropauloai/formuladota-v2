@@ -26,6 +26,7 @@ import { togglePreviewMode } from "@/lib/auth/preview-mode";
 import { Tooltip } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { QueueStatusPill } from "@/components/queue/queue-status-pill";
+import { MatchQueuePill } from "@/components/queue/match-queue-pill";
 import type { MyQueueEntry } from "@/lib/queries/queue";
 import { useTranslations } from "next-intl";
 import { LanguageSwitcher } from "@/components/i18n/language-switcher";
@@ -190,6 +191,8 @@ export function DashboardTopBar({
         <QueueStatusPill queues={myQueues} />
       ) : (
         <div className="hidden xl:flex items-center gap-2">
+          {/* Jogadores buscando partida agora (match_queue, tempo real via polling). */}
+          <MatchQueuePill />
           {prosOnlineCount > 0 && (
             <div className="flex items-center gap-2 rounded-md border border-success/30 bg-success/5 px-3 py-1">
               <span className="relative flex size-2" aria-hidden="true">

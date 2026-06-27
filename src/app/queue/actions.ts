@@ -7,6 +7,24 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
+
+// Quantos jogadores estão buscando partida AGORA (match_queue waiting, TODOS os usuários).
+// Usa service client porque match_queue tem RLS self (queue_select_self) — com o cookie
+// client o count só enxergaria a própria entry. Read-only, seguro (key fica no servidor).
+// Consumido pelo MatchQueuePill no topbar via polling leve.
+export async function getMatchSearchingCount(): Promise<number> {
+  try {
+    const service = createServiceClient();
+    const { count } = await service
+      .from("match_queue")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "waiting");
+    return count ?? 0;
+  } catch {
+    return 0;
+  }
+}
 
 export type QueueRole =
   | "support_dedicated"
