@@ -208,13 +208,19 @@ async function processarLobby(lobby) {
   console.log(`\n[BOT] === Nova partida ${lobby.id} === senha=${lobby.password} modo=${lobby.game_mode}`);
 
   // Busca os jogadores e seus SteamIDs.
+  // Fonte da verdade do vínculo Steam = tabela `steam_links` (coluna steam_id_64),
+  // gravada pelo callback /auth/steam/callback. A coluna profiles.steam_id é LEGADA
+  // e nunca é preenchida — ler dela deixava steamIds vazio e o bot não convidava ninguém.
   const { data: lps } = await supabase.from("lobby_players").select("user_id").eq("lobby_id", lobby.id);
   const userIds = (lps || []).map((p) => p.user_id);
   let steamIds = [];
   if (userIds.length) {
-    const { data: profs } = await supabase.from("profiles").select("id, steam_id").in("id", userIds);
-    steamIds = (profs || [])
-      .map((p) => p.steam_id)
+    const { data: links } = await supabase
+      .from("steam_links")
+      .select("user_id, steam_id_64")
+      .in("user_id", userIds);
+    steamIds = (links || [])
+      .map((l) => l.steam_id_64)
       .filter((s) => typeof s === "string" && RE_STEAMID64.test(s));
   }
   jobAtivo.expectedPlayers = steamIds.length;

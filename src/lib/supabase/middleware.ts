@@ -218,22 +218,13 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(localizedUrl("/suspended"));
   }
 
-  // Sem aceite da doutrina (ou versão obsoleta) — força onboarding.
-  const accepted =
-    profile.doctrine_accepted_at !== null &&
-    profile.doctrine_version === DOCTRINE_VERSION;
-
-  if (!accepted) {
-    // Opcao C: navegar livre sem doutrina. So as rotas de "jogar/agir" exigem o ritual.
-    if (isPathInList(pathname, DOCTRINE_REQUIRED_PATHS)) {
-      return NextResponse.redirect(localizedUrl("/doutrina"));
-    }
-    return allow();
-  }
-
-  // Camada Steam (Phase 3 — H1.1): aplicada APÓS doutrina aceita.
+  // Camada Steam (Phase 3 — H1.1) — roda ANTES da doutrina (Pedro 2026-06-27).
+  // Por que antes: a camada de doutrina abaixo faz `return allow()` cedo quando o
+  // ritual ainda não foi aceito. Se a checagem de Steam ficasse depois, um usuário
+  // NOVO (sem doutrina) nunca seria empurrado pra vincular a Steam pós-login Discord,
+  // e ficaria "preso" em /vincular/steam sem o redirect de saída. Mover pra cá garante
+  // o fluxo Discord → vincular Steam → app independente do estado da doutrina.
   // Buscamos steam_link no máximo 1x por request (apenas em rotas que precisam).
-  // Query é cheap — PK lookup em (user_id) com RLS permitindo o user ler própria linha.
   const needsSteamCheck =
     pathname === STEAM_LINK_PATH ||
     isPathInList(pathname, STEAM_REQUIRED_PATHS);
@@ -265,6 +256,19 @@ export async function updateSession(request: NextRequest) {
     if (steamLink && pathname === STEAM_LINK_PATH) {
       return NextResponse.redirect(localizedUrl("/perfil"));
     }
+  }
+
+  // Sem aceite da doutrina (ou versão obsoleta) — força onboarding.
+  const accepted =
+    profile.doctrine_accepted_at !== null &&
+    profile.doctrine_version === DOCTRINE_VERSION;
+
+  if (!accepted) {
+    // Opcao C: navegar livre sem doutrina. So as rotas de "jogar/agir" exigem o ritual.
+    if (isPathInList(pathname, DOCTRINE_REQUIRED_PATHS)) {
+      return NextResponse.redirect(localizedUrl("/doutrina"));
+    }
+    return allow();
   }
 
   // Já aceitou + status ok/warned: sem restrição.

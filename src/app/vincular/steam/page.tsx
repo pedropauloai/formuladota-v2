@@ -1,11 +1,12 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { Gamepad2, ShieldCheck, AlertCircle } from "lucide-react";
+import { Gamepad2, ShieldCheck, AlertCircle, ArrowRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { signInWithSteam } from "./actions";
 import { DotaBackdrop } from "@/components/dota/dota-backdrop";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 
 // Página obrigatória de vinculação Steam (Phase 3 — H1.1).
 // Middleware já garante:
@@ -196,6 +197,17 @@ async function LinkedState({
           </p>
         </div>
       </div>
+
+      {/* CTA de saída — evita o usuário ficar "preso" na tela após vincular.
+          Em fluxo normal o middleware já redireciona /vincular/steam → /perfil,
+          mas este botão garante saída mesmo em acesso direto. */}
+      <Link
+        href="/dashboard"
+        className={`${buttonVariants({ variant: "primary", size: "lg" })} mb-3 w-full`}
+      >
+        {t("steamGoToApp")}
+        <ArrowRight className="h-5 w-5" aria-hidden="true" />
+      </Link>
 
       <form action={signInWithSteam}>
         <Button type="submit" variant="ghost" size="md" className="w-full">
