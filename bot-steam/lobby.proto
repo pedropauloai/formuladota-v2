@@ -1,0 +1,70 @@
+// Protobufs mínimos das mensagens de criar lobby do Dota 2.
+// Números de campo retirados da fonte oficial (SteamDatabase/Protobufs,
+// dota_gcmessages_client_match_management.proto). O dota2-user NÃO traz
+// essas mensagens (só as de leitura), por isso definimos aqui.
+// Os NOMES dos campos podem ser livres; o que importa no fio é o NÚMERO.
+syntax = "proto2";
+
+message CMsgPracticeLobbySetDetails {
+  optional string gameName        = 2;
+  optional uint32 serverRegion    = 4;
+  optional uint32 gameMode        = 5;
+  optional bool   allowCheats     = 10;
+  optional bool   fillWithBots    = 11;
+  optional bool   allowSpectating = 13;
+  optional string passKey         = 15;
+  optional uint32 leagueid        = 16;
+  optional bool   allchat         = 23;
+  optional uint32 dotaTvDelay     = 24;  // 0=10s, 1=120s(2min), 2=300s, 3=900s
+  optional uint32 visibility      = 33;
+  optional bool   doPlayerDraft   = 53;  // Player Draft / "Imortal Draft": capitães draftam os jogadores
+}
+
+message CMsgPracticeLobbyCreate {
+  optional string                     passKey       = 5;
+  optional uint32                     clientVersion = 6;
+  optional CMsgPracticeLobbySetDetails lobbyDetails = 7;
+}
+
+message CMsgPracticeLobbyLaunch {
+  optional uint32 clientVersion = 5;  // vazio costuma funcionar; suspeito nº1 se o launch for recusado
+}
+
+message CMsgPracticeLobbySetTeamSlot {
+  optional uint32 team = 1;  // 0=Radiant, 1=Dire, 2=Broadcaster, 3=Spectator, 4=PLAYER_POOL (jogadores de fora)
+  optional uint32 slot = 2;
+}
+
+message CMsgPracticeLobbyLeave {
+}
+
+message CMsgPracticeLobbyKickFromTeam {
+  optional uint32 accountId = 1;  // tira o jogador do time -> volta pra "jogadores de fora"
+}
+
+message CMsgPracticeLobbyKick {
+  optional uint32 accountId = 3;  // REMOVE o jogador da sala (pra descartar / não-roster)
+}
+
+message CMsgPracticeLobbyJoinBroadcastChannel {
+  optional uint32 channel = 1;  // canal de narração (1 = primeiro)
+}
+
+// ---- Chat do lobby (números de campo da fonte oficial: channel_name=2, etc.) ----
+message CMsgDOTAJoinChatChannel {
+  optional string channelName = 2;
+  optional uint32 channelType = 4;  // 3 = Lobby
+}
+
+message CMsgDOTAJoinChatChannelResponse {
+  optional string channelName = 2;
+  optional fixed64 channelId = 3;
+}
+
+message CMsgDOTAChatMessage {
+  optional uint64 channelId = 2;
+  optional string text = 4;
+}
+
+message CMsgAbandonCurrentGame {
+}

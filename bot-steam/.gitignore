@@ -1,0 +1,5 @@
+# Nunca versionar credenciais nem o ambiente
+.env
+.venv/
+__pycache__/
+*.pyc

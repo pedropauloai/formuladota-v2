@@ -25,7 +25,13 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { signInWithDiscord } from "@/app/login/actions";
-import { type QueueRole, type QueueGameMode } from "@/app/queue/actions";
+import {
+  enterQueue,
+  getQueueStatus,
+  leaveQueue,
+  type QueueRole,
+  type QueueGameMode,
+} from "@/app/queue/actions";
 import { PermissionQuizModal } from "@/components/quiz/permission-quiz-modal";
 import { setPlayMenuState, type PlayMenuState } from "@/lib/play-menu-preference";
 import {
@@ -80,6 +86,7 @@ export function PlayMenu({ isVisitor, initial }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [showQuiz, setShowQuiz] = useState(false);
   const [pending, startTransition] = useTransition();
+  const [searching, setSearching] = useState(false);
 
   // Salas
   const [lobbies, setLobbies] = useState<LobbyListItem[]>([]);
@@ -138,11 +145,52 @@ export function PlayMenu({ isVisitor, initial }: Props) {
       void signInWithDiscord();
       return;
     }
-    // O matchmaking automático ainda não tem motor de pareamento — entrar na fila
-    // levaria a um "waiting" eterno. Em vez do beco-sem-saída, avisamos: jogue via
-    // Ranked com PRO ou Salas até o matchmaking abrir.
-    startTransition(() => {
-      setError(t("matchmakingSoon"));
+    setError(null);
+    startTransition(async () => {
+      const res = await enterQueue({ roles: Array.from(roles), gameMode });
+      if (!res.success) {
+        if (res.code === "need_permission") {
+          setShowQuiz(true);
+          return;
+        }
+        setError(res.error);
+        return;
+      }
+      // Entrou na fila. Se ESTE foi o jogador que fechou o X, já vai pra partida.
+      if (res.matchedLobbyId) {
+        router.push(`/partida/${res.matchedLobbyId}`);
+        return;
+      }
+      setSearching(true);
+    });
+  }
+
+  // Enquanto busca: polling do status. Quando a partida forma (matched), redireciona todos.
+  useEffect(() => {
+    if (!searching) return;
+    let active = true;
+    const tick = async () => {
+      const st = await getQueueStatus();
+      if (!active) return;
+      if (st.status === "matched" && st.matchedLobbyId) {
+        setSearching(false);
+        router.push(`/partida/${st.matchedLobbyId}`);
+      } else if (!st.inQueue) {
+        setSearching(false);
+      }
+    };
+    void tick();
+    const iv = setInterval(tick, 3000);
+    return () => {
+      active = false;
+      clearInterval(iv);
+    };
+  }, [searching, router]);
+
+  function handleCancelSearch() {
+    startTransition(async () => {
+      await leaveQueue();
+      setSearching(false);
     });
   }
 
@@ -246,6 +294,8 @@ export function PlayMenu({ isVisitor, initial }: Props) {
               error={error}
               pending={pending}
               onBuscar={handleBuscar}
+              onCancel={handleCancelSearch}
+              searching={searching}
               onCriar={() => setShowCreate(true)}
               onNavegar={openLista}
               onPro={() => router.push("/ranked-com-pro")}
@@ -357,6 +407,8 @@ function MenuView({
   error,
   pending,
   onBuscar,
+  onCancel,
+  searching,
   onCriar,
   onNavegar,
   onPro,
@@ -372,6 +424,8 @@ function MenuView({
   error: string | null;
   pending: boolean;
   onBuscar: () => void;
+  onCancel: () => void;
+  searching: boolean;
   onCriar: () => void;
   onNavegar: () => void;
   onPro: () => void;
@@ -441,15 +495,32 @@ function MenuView({
           {error && (
             <p className="rounded border border-error/30 bg-error/5 px-2.5 py-1.5 font-mono text-sm text-error">{error}</p>
           )}
-          <button
-            type="button"
-            onClick={onBuscar}
-            disabled={pending}
-            className="flex w-full items-center justify-center gap-2 rounded-md border border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover px-4 py-2.5 font-display text-base font-bold uppercase tracking-[0.15em] text-text-display transition-all hover:brightness-110 disabled:opacity-60"
-          >
-            {pending ? <Loader2 size={18} className="animate-spin" /> : <Search size={18} aria-hidden="true" />}
-            {t("searchMatch")}
-          </button>
+          {searching ? (
+            <>
+              <div className="flex w-full items-center justify-center gap-2 rounded-md border border-play-primary/60 bg-bg-elevated px-4 py-2.5 font-display text-base font-bold uppercase tracking-[0.15em] text-text-display">
+                <Loader2 size={18} className="animate-spin" aria-hidden="true" />
+                Buscando partida…
+              </div>
+              <button
+                type="button"
+                onClick={onCancel}
+                disabled={pending}
+                className="w-full rounded-md border border-border-subtle px-4 py-1.5 font-body text-sm text-text-muted transition-colors hover:text-text-body disabled:opacity-60"
+              >
+                Cancelar busca
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={onBuscar}
+              disabled={pending}
+              className="flex w-full items-center justify-center gap-2 rounded-md border border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover px-4 py-2.5 font-display text-base font-bold uppercase tracking-[0.15em] text-text-display transition-all hover:brightness-110 disabled:opacity-60"
+            >
+              {pending ? <Loader2 size={18} className="animate-spin" /> : <Search size={18} aria-hidden="true" />}
+              {t("searchMatch")}
+            </button>
+          )}
         </div>
       )}
     </>

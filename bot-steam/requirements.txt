@@ -1,0 +1,2 @@
+# OBSOLETO — caminho Python descartado (login antigo não funciona).
+# Use package.json (Node). Pode apagar este arquivo.

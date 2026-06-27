@@ -1,0 +1,22 @@
+{
+  "name": "formuladota-bot-steam",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Spike do bot Steam de lobby FormulaDota (node-steam-user + dota2-user)",
+  "main": "spike.js",
+  "scripts": {
+    "spike": "node spike.js",
+    "bot": "node bot-server.js",
+    "start": "node bot-server.js",
+    "token": "node get-refresh-token.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0",
+    "dota2-user": "^2.1.1",
+    "steam-user": "^5.3.0",
+    "steam-session": "^1.9.0",
+    "steam-totp": "^2.1.2",
+    "protobufjs": "^7.2.6",
+    "dotenv": "^16.4.5"
+  }
+}

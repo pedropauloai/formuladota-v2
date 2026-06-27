@@ -22,8 +22,16 @@ export type QueueGameMode =
   | "single_draft";
 
 export type QueueResult =
-  | { success: true; queueId: string }
+  | { success: true; queueId: string; matchedLobbyId?: string | null }
   | { success: false; error: string; code?: "need_permission" };
+
+// Tamanho da partida (X): a fila FORMA a partida ao juntar este número de jogadores.
+// TESTE (Pedro 2026-06-27): 2 (1v1) pra validar o fluxo. Pra produção real, mude pra 10
+// (ou defina QUEUE_MATCH_SIZE no ambiente — tem prioridade sobre o default).
+const MATCH_SIZE = (() => {
+  const n = Number(process.env.QUEUE_MATCH_SIZE);
+  return Number.isFinite(n) && n >= 2 ? Math.floor(n) : 2;
+})();
 
 export interface QueueStatus {
   inQueue: boolean;
@@ -95,10 +103,21 @@ export async function enterQueue(input: {
     await supabase.rpc("consume_match_permission");
   }
 
+  // Tenta FECHAR uma partida agora mesmo (auto ao juntar X). A função é SECURITY DEFINER
+  // no banco: forma os 2 times por role e marca a fila como matched. Os demais jogadores
+  // que já estavam na fila descobrem via polling do getQueueStatus.
+  // (cast: try_form_match ainda não está nos tipos gerados — rodar `pnpm db:gen-types` depois)
+  const formedRes = await supabase.rpc(
+    "try_form_match" as never,
+    { p_match_size: MATCH_SIZE } as never
+  );
+  const matchedLobbyId =
+    typeof formedRes.data === "string" ? (formedRes.data as string) : null;
+
   // Revalida tanto a rota dedicada (feed PROs) quanto o HUB (badges/contadores).
   revalidatePath("/ranked-com-pro");
   revalidatePath("/dashboard");
-  return { success: true, queueId: data.id };
+  return { success: true, queueId: data.id, matchedLobbyId };
 }
 
 export async function leaveQueue(): Promise<QueueResult> {

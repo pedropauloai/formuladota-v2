@@ -5,7 +5,7 @@ const config = [
   ...nextCoreWebVitals,
   ...nextTypescript,
   {
-    ignores: ["node_modules/**", ".next/**", "bot/**", "supabase/**", ".claude/**"],
+    ignores: ["node_modules/**", ".next/**", "bot/**", "bot-steam/**", "supabase/**", ".claude/**"],
   },
   {
     rules: {
