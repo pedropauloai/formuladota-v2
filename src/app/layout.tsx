@@ -77,6 +77,10 @@ export const metadata: Metadata = {
     title: "FormulaDota",
     statusBarStyle: "black-translucent",
   },
+  // Next 16 emite só o moderno `mobile-web-app-capable`; o alias apple cobre iOS < 16.4.
+  other: {
+    "apple-mobile-web-app-capable": "yes",
+  },
 };
 
 // Viewport mobile-first + notch (viewportFit cover) + theme-color da marca.

@@ -6,6 +6,7 @@
 // + idioma + Entrar/Sair. Mantém a pele da marca (escuro, Teko condensed, tokens).
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { Link } from "@/i18n/navigation";
 import { Menu, X, MessageSquare, BookOpen, LogIn, LogOut } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -27,19 +28,13 @@ export function MobileNav({
   const t = useTranslations();
   const close = () => setOpen(false);
 
-  return (
-    <div className="lg:hidden">
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        aria-label={t("topbar.mainNavAria")}
-        className="flex size-10 items-center justify-center rounded-md text-white/70 hover:bg-white/5 hover:text-white transition-colors"
-      >
-        <Menu size={20} aria-hidden="true" />
-      </button>
-
-      {open && (
-        <div className="fixed inset-0 z-[var(--z-modal)]">
+  // A gaveta é renderizada via PORTAL no document.body. Sem isso ela fica presa no
+  // topbar: o <header> tem `backdrop-blur-xl` (backdrop-filter), que cria um containing
+  // block e faz o `position: fixed` se ancorar no header (48px), não na viewport.
+  // Seguro no SSR: `open` começa false, então o createPortal nunca roda no servidor —
+  // só após o clique do usuário (sempre pós-hidratação).
+  const drawer = open && (
+    <div className="fixed inset-0 z-[var(--z-modal)]">
           {/* Backdrop tocável */}
           <button
             type="button"
@@ -141,7 +136,19 @@ export function MobileNav({
             </div>
           </nav>
         </div>
-      )}
+  );
+
+  return (
+    <div className="lg:hidden">
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-label={t("topbar.mainNavAria")}
+        className="flex size-10 items-center justify-center rounded-md text-white/70 hover:bg-white/5 hover:text-white transition-colors"
+      >
+        <Menu size={20} aria-hidden="true" />
+      </button>
+      {drawer ? createPortal(drawer, document.body) : null}
     </div>
   );
 }
