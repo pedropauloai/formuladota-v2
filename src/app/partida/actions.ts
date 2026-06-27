@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 
 // Define a senha do lobby Steam exibida na página da partida.
 // RLS de lobbies só permite ao criador OU admin — se não autorizado, o UPDATE não
@@ -57,6 +58,21 @@ export async function discardMatch(
   if (error) return { success: false, error: "Erro ao descartar a partida." };
   if (!data || data.length === 0) {
     return { success: false, error: "Você não tem permissão pra descartar esta partida." };
+  }
+
+  // Limpa a FILA dos jogadores dessa partida: sem isso, as entradas match_queue
+  // ficam 'matched' apontando pro lobby cancelado e o usuário fica preso no "Voltar à
+  // partida". match_queue só tem RLS self (cada user mexe na própria), então a limpeza
+  // de TODOS os jogadores usa service client — sistêmica, e só roda APÓS a autorização
+  // ter sido confirmada pelo update de lobbies acima (RLS criador/admin).
+  try {
+    const service = createServiceClient();
+    await service
+      .from("match_queue")
+      .update({ status: "cancelled" })
+      .eq("matched_lobby_id", lobbyId);
+  } catch (e) {
+    console.error("[discardMatch] limpeza de match_queue falhou:", e);
   }
 
   revalidatePath(`/partida/${lobbyId}`);

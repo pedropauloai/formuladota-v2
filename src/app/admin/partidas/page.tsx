@@ -8,6 +8,10 @@ import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { Card } from "@/components/ui/card";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
+import { DiscardMatchButton } from "@/components/match/discard-match-button";
+
+// Partida ainda "viva" — pode ser descartada da auditoria.
+const ACTIVE_STATUSES = ["pending", "open", "in_progress"];
 
 export const metadata = { title: "Admin Partidas — FORMULADOTA" };
 export const revalidate = 0;
@@ -116,12 +120,13 @@ export default async function AdminPartidasPage() {
               <Th>Steam Lobby</Th>
               <Th>Match ID</Th>
               <Th>Jogadores</Th>
+              <Th>Ação</Th>
             </tr>
           </thead>
           <tbody>
             {(lobbies ?? []).length === 0 && (
               <tr>
-                <td colSpan={9} className="px-4 py-6 text-center font-mono text-sm text-text-faded">
+                <td colSpan={10} className="px-4 py-6 text-center font-mono text-sm text-text-faded">
                   Nenhuma partida registrada.
                 </td>
               </tr>
@@ -196,6 +201,11 @@ export default async function AdminPartidasPage() {
                           );
                         })}
                       </ul>
+                    )}
+                  </Td>
+                  <Td>
+                    {ACTIVE_STATUSES.includes(l.status) && (
+                      <DiscardMatchButton lobbyId={l.id} redirectTo={null} />
                     )}
                   </Td>
                 </tr>

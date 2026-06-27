@@ -190,6 +190,28 @@ export async function getQueueStatus(): Promise<QueueStatus> {
     };
   }
 
+  // Entry 'matched' só vale enquanto o lobby existe e está ATIVO (open/in_progress).
+  // Se foi cancelado/encerrado (ex.: admin descartou), trata como fora da fila — assim o
+  // usuário não fica preso no "Voltar à partida" e o botão volta pro "Jogar Dota".
+  if (data.status === "matched" && data.matched_lobby_id) {
+    const { data: lob } = await supabase
+      .from("lobbies")
+      .select("status")
+      .eq("id", data.matched_lobby_id)
+      .maybeSingle();
+    const ativo = !!lob && (lob.status === "open" || lob.status === "in_progress");
+    if (!ativo) {
+      return {
+        inQueue: false,
+        queueId: null,
+        status: null,
+        matchedLobbyId: null,
+        joinedAt: null,
+        waitingSeconds: 0,
+      };
+    }
+  }
+
   const joinedAt = data.joined_at ? new Date(data.joined_at) : null;
   const waitingSeconds = joinedAt
     ? Math.floor((Date.now() - joinedAt.getTime()) / 1000)

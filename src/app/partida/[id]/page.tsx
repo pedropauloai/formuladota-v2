@@ -3,7 +3,7 @@ import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { ClientShell } from "@/components/client-shell/shell";
 import { MatchPasswordCard } from "./match-password-card";
-import { DiscardMatchButton } from "./discard-match-button";
+import { DiscardMatchButton } from "@/components/match/discard-match-button";
 
 export const dynamic = "force-dynamic";
 
@@ -89,12 +89,13 @@ export default async function PartidaPage({
     };
   });
 
-  // canEdit: criador da sala ou admin
-  let canEdit = !!user && user.id === (lobby.created_by as string);
-  if (user && !canEdit) {
+  // isAdmin (is_admin RPC) e canEdit. DESCARTAR = só admin; editar senha = criador OU admin.
+  let isAdmin = false;
+  if (user) {
     const adminRes = await supabase.rpc("is_admin" as never);
-    canEdit = (adminRes as { data?: unknown }).data === true;
+    isAdmin = (adminRes as { data?: unknown }).data === true;
   }
+  const canEdit = (!!user && user.id === (lobby.created_by as string)) || isAdmin;
 
   const teamOf = (team: "radiant" | "dire") =>
     players
@@ -119,7 +120,7 @@ export default async function PartidaPage({
               Modo: {lobby.game_mode} · Status: {lobby.status}
             </p>
           </div>
-          {canEdit && <DiscardMatchButton lobbyId={lobby.id} />}
+          {isAdmin && <DiscardMatchButton lobbyId={lobby.id} />}
         </header>
 
         <div className="mb-6">
