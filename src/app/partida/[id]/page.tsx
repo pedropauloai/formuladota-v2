@@ -3,6 +3,7 @@ import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { ClientShell } from "@/components/client-shell/shell";
 import { MatchPasswordCard } from "./match-password-card";
+import { DiscardMatchButton } from "./discard-match-button";
 
 export const dynamic = "force-dynamic";
 
@@ -15,18 +16,21 @@ const ROLE_META: Record<string, { pos: string; name: string }> = {
 };
 const ROLE_ORDER = ["safelane", "midlane", "offlane", "support", "support_dedicated"];
 
-type ProfileEmbed = { username: string | null; avatar_url: string | null };
+// Linha crua de lobby_players (role é coluna da migration 059, fora dos tipos gerados).
+type RawPlayer = {
+  user_id: string;
+  team: "radiant" | "dire" | "spectator";
+  role: string | null;
+};
+
+// Jogador já com a identidade resolvida (Steam → fallback Discord).
 type MatchPlayer = {
   user_id: string;
   team: "radiant" | "dire" | "spectator";
   role: string | null;
-  profiles: ProfileEmbed | ProfileEmbed[] | null;
+  name: string;
+  avatar: string | null;
 };
-
-function prof(p: MatchPlayer): ProfileEmbed | null {
-  if (!p.profiles) return null;
-  return Array.isArray(p.profiles) ? (p.profiles[0] ?? null) : p.profiles;
-}
 
 export default async function PartidaPage({
   params,
@@ -51,13 +55,39 @@ export default async function PartidaPage({
   // `role` é coluna nova (migration 059) — ainda não nos tipos gerados; cast no acesso.
   const lobbyPlayers = supabase.from("lobby_players") as unknown as {
     select: (q: string) => {
-      eq: (c: string, v: string) => PromiseLike<{ data: MatchPlayer[] | null }>;
+      eq: (c: string, v: string) => PromiseLike<{ data: RawPlayer[] | null }>;
     };
   };
   const { data: playersData } = await lobbyPlayers
-    .select("user_id, team, role, profiles(username, avatar_url)")
+    .select("user_id, team, role")
     .eq("lobby_id", id);
-  const players: MatchPlayer[] = playersData ?? [];
+  const raw: RawPlayer[] = playersData ?? [];
+
+  // Identidade in-match = STEAM (nome + avatar definitivos, que casam com o jogo).
+  // Fonte: steam_links. Fallback pro profile (Discord) só se não houver Steam vinculada.
+  const userIds = raw.map((p) => p.user_id);
+  const steamById = new Map<string, { persona: string | null; avatar_url: string | null }>();
+  const profById = new Map<string, { username: string | null; avatar_url: string | null }>();
+  if (userIds.length) {
+    const [{ data: links }, { data: profs }] = await Promise.all([
+      supabase.from("steam_links").select("user_id, persona, avatar_url").in("user_id", userIds),
+      supabase.from("profiles").select("id, username, avatar_url").in("id", userIds),
+    ]);
+    for (const l of links ?? []) steamById.set(l.user_id, l);
+    for (const pr of profs ?? []) profById.set(pr.id, pr);
+  }
+
+  const players: MatchPlayer[] = raw.map((p) => {
+    const sl = steamById.get(p.user_id);
+    const pr = profById.get(p.user_id);
+    return {
+      user_id: p.user_id,
+      team: p.team,
+      role: p.role,
+      name: sl?.persona || pr?.username || "Jogador",
+      avatar: sl?.avatar_url || pr?.avatar_url || null,
+    };
+  });
 
   // canEdit: criador da sala ou admin
   let canEdit = !!user && user.id === (lobby.created_by as string);
@@ -77,16 +107,19 @@ export default async function PartidaPage({
   return (
     <ClientShell currentRoute={`/partida/${id}`}>
       <div className="mx-auto w-full max-w-5xl px-4 py-8">
-        <header className="mb-6">
-          <p className="font-display text-xs uppercase tracking-[0.25em] text-text-muted">
-            Partida FormulaDota
-          </p>
-          <h1 className="font-display text-2xl font-bold uppercase tracking-wide text-text-display">
-            {lobby.name}
-          </h1>
-          <p className="mt-1 font-body text-sm text-text-muted">
-            Modo: {lobby.game_mode} · Status: {lobby.status}
-          </p>
+        <header className="mb-6 flex items-start justify-between gap-4">
+          <div>
+            <p className="font-display text-xs uppercase tracking-[0.25em] text-text-muted">
+              Partida FormulaDota
+            </p>
+            <h1 className="font-display text-2xl font-bold uppercase tracking-wide text-text-display">
+              {lobby.name}
+            </h1>
+            <p className="mt-1 font-body text-sm text-text-muted">
+              Modo: {lobby.game_mode} · Status: {lobby.status}
+            </p>
+          </div>
+          {canEdit && <DiscardMatchButton lobbyId={lobby.id} />}
         </header>
 
         <div className="mb-6">
@@ -126,7 +159,6 @@ function TeamColumn({
         )}
         {players.map((p) => {
           const meta = p.role ? ROLE_META[p.role] : null;
-          const info = prof(p);
           return (
             <li
               key={p.user_id}
@@ -135,9 +167,9 @@ function TeamColumn({
               <span className="flex size-6 shrink-0 items-center justify-center rounded-sm bg-bg-elevated font-display text-sm font-bold text-text-muted">
                 {meta?.pos ?? "-"}
               </span>
-              {info?.avatar_url ? (
+              {p.avatar ? (
                 <Image
-                  src={info.avatar_url}
+                  src={p.avatar}
                   alt=""
                   width={28}
                   height={28}
@@ -148,7 +180,7 @@ function TeamColumn({
                 <span className="size-7 rounded-sm bg-bg-elevated" aria-hidden="true" />
               )}
               <span className="flex-1 truncate font-body text-sm text-text-body">
-                {info?.username ?? "Jogador"}
+                {p.name}
               </span>
               <span className="font-display text-xs uppercase tracking-wide text-text-muted">
                 {meta?.name ?? "—"}

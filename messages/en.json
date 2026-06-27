@@ -87,6 +87,7 @@
   "playMenu": {
     "play": "Play Dota",
     "backToRoom": "Back to room",
+    "backToMatch": "Back to match",
     "back": "Back",
     "close": "Close",
     "roomSettings": "Room settings",

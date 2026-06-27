@@ -35,3 +35,30 @@ export async function setLobbyPassword(
   revalidatePath(`/partida/${lobbyId}`);
   return { success: true };
 }
+
+// Descarta a partida: marca lobbies.status='cancelled'. É o sinal que o bot Steam
+// (bot-server.js) detecta no poll pra expulsar todos e finalizar o lobby Steam.
+// Mesma RLS do setLobbyPassword: só criador OU admin afeta a linha (senão data vazio).
+export async function discardMatch(
+  lobbyId: string
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Não autenticado." };
+
+  const { data, error } = await supabase
+    .from("lobbies")
+    .update({ status: "cancelled" })
+    .eq("id", lobbyId)
+    .select("id");
+
+  if (error) return { success: false, error: "Erro ao descartar a partida." };
+  if (!data || data.length === 0) {
+    return { success: false, error: "Você não tem permissão pra descartar esta partida." };
+  }
+
+  revalidatePath(`/partida/${lobbyId}`);
+  return { success: true };
+}

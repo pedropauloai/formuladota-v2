@@ -87,6 +87,7 @@
   "playMenu": {
     "play": "Jogar Dota",
     "backToRoom": "Voltar à sala",
+    "backToMatch": "Voltar à partida",
     "back": "Voltar",
     "close": "Fechar",
     "roomSettings": "Configurações da sala",

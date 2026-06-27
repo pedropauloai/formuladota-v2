@@ -88,6 +88,9 @@ export function PlayMenu({ isVisitor, initial }: Props) {
   const [pending, startTransition] = useTransition();
   const [searching, setSearching] = useState(false);
   const [elapsed, setElapsed] = useState(0); // segundos da busca atual (contador na bottom-bar)
+  // Partida ativa do usuário (fila matched). Bloqueia nova busca e troca o botão por
+  // "Voltar à partida" (navega direto pra /partida/[id] em vez de abrir o drawer).
+  const [activeMatchId, setActiveMatchId] = useState<string | null>(null);
 
   // Salas
   const [lobbies, setLobbies] = useState<LobbyListItem[]>([]);
@@ -132,6 +135,22 @@ export function PlayMenu({ isVisitor, initial }: Props) {
     return () => document.removeEventListener("mousedown", onDown);
   }, [phase, showCreate, showQuiz]);
 
+  // Ao montar: descobre se o usuário já está em partida (fila matched) — pra mostrar
+  // "Voltar à partida" mesmo que ele tenha navegado pra outra tela e voltado ao HUB.
+  useEffect(() => {
+    if (isVisitor) return;
+    let active = true;
+    void getQueueStatus().then((st) => {
+      if (!active) return;
+      if (st.status === "matched" && st.matchedLobbyId) {
+        setActiveMatchId(st.matchedLobbyId);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [isVisitor]);
+
   function toggleRole(r: QueueRole) {
     setRoles((prev) => {
       const next = new Set(prev);
@@ -144,6 +163,11 @@ export function PlayMenu({ isVisitor, initial }: Props) {
   function handleBuscar() {
     if (isVisitor) {
       void signInWithDiscord();
+      return;
+    }
+    // Já está em partida → não busca outra; leva de volta pra ela.
+    if (activeMatchId) {
+      router.push(`/partida/${activeMatchId}`);
       return;
     }
     setError(null);
@@ -179,6 +203,7 @@ export function PlayMenu({ isVisitor, initial }: Props) {
       if (!active) return;
       if (st.status === "matched" && st.matchedLobbyId) {
         setSearching(false);
+        setActiveMatchId(st.matchedLobbyId);
         router.push(`/partida/${st.matchedLobbyId}`);
       } else if (!st.inQueue) {
         setSearching(false);
@@ -270,7 +295,22 @@ export function PlayMenu({ isVisitor, initial }: Props) {
           </button>
         </div>
       )}
-      {phase === "button" && !searching && (
+      {/* Em partida (fila matched) → "Voltar à partida": navega direto, não abre o drawer. */}
+      {phase === "button" && !searching && activeMatchId && (
+        <button
+          type="button"
+          onClick={() => router.push(`/partida/${activeMatchId}`)}
+          className="pointer-events-auto group relative flex h-14 items-center gap-3 overflow-hidden rounded-md border-2 border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover px-8 font-display text-lg font-bold uppercase tracking-[0.25em] text-text-display shadow-lg shadow-[var(--color-play-primary-glow)] transition-all hover:scale-[1.02] xl:h-16 xl:px-12 xl:text-xl 2xl:h-20 2xl:px-16 2xl:text-2xl"
+        >
+          <ArrowLeft size={22} aria-hidden="true" />
+          <span>{t("backToMatch")}</span>
+          <span
+            className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform [transition-duration:var(--motion-duration-hero)] group-hover:translate-x-full"
+            aria-hidden="true"
+          />
+        </button>
+      )}
+      {phase === "button" && !searching && !activeMatchId && (
         <button
           type="button"
           onClick={() => setPhase("expanded")}

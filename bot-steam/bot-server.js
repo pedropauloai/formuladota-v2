@@ -58,6 +58,11 @@ const MSG_LAUNCH_LOBBY = 7041;
 const MSG_ABANDON = 7035;
 const MSG_LEAVE_LOBBY = 7040;
 const MSG_KICK_FROM_TEAM = 8047; // move um membro pro pool (usado p/ tirar o bot do slot de jogador)
+const MSG_KICK_FROM_LOBBY = 7081; // EXPULSA o jogador da sala (usado p/ descartar a partida)
+const MSG_JOIN_CHAT = 7009; // entra num canal de chat (o do lobby, pra postar as frases)
+const MSG_JOIN_CHAT_RESP = 7010; // resposta com o channel_id do canal
+const MSG_CHAT = 7273; // envia mensagem no canal de chat
+const CHANNEL_LOBBY = 3; // DOTAChannelType_Lobby
 
 const SO_CACHE_SUBSCRIBED = 24;
 const SO_UPDATE_MULTIPLE = 26;
@@ -67,15 +72,43 @@ const GAME_MODE_MAP = { all_pick: 22, captains_mode: 2, random_draft: 3, single_
 const LEAGUE_ID = Number(process.env.DOTA_LEAGUE_ID) || 18406; // ticket da liga FormulaDota
 const RE_STEAMID64 = /^7656\d{13}$/;
 
+// Cronômetro de espera dos convidados entrarem no lobby Steam (mesma regra do spike).
+const EXPIRA_MIN = 10; // minutos até descartar se não completar
+const TICK_MS = 60000; // 1 min (baixe pra testar rápido)
+
+// Lembretes da doutrina pro chat do lobby (voz Mestre+Guardião: curto, imperativo, sem emoji).
+// Copiado do spike.js — fiel a PHILOSOPHY.md / PRODUCT_CORE.md. NÃO inventar doutrina nova.
+const FRASES_DOUTRINA = [
+  "Princípio 1: a culpa nunca é do outro.",
+  "Princípio 5: ou você ganha, ou você aprende.",
+  "Ganhar não é suficiente. Ser bom é contínuo, não pontual.",
+  "Cada derrota é um degrau.",
+  "Derrota é informação. Vitória sem aprendizado é só sorte.",
+  "O companheiro que eleva o time vale mais que o vencedor solo.",
+  "Aqui você não é anônimo. Sua conduta fica registrada.",
+  "Skill te trouxe. Conduta te mantém.",
+  "Assuma suas decisões antes de questionar as dos outros.",
+  "Jogue com responsabilidade, foco e sem desculpas.",
+];
+let fraseIdx = 0;
+function proximaFraseDoutrina() {
+  const f = FRASES_DOUTRINA[fraseIdx % FRASES_DOUTRINA.length];
+  fraseIdx += 1;
+  return f;
+}
+
 const client = new SteamUser();
 const dota2 = new Dota2User(client);
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 
 let LobbyCreate, LobbySetDetails, LobbyLeave, LobbyLaunch, Abandon, LobbyKickFromTeam;
+let LobbyKick, ChatJoin, ChatJoinResp, ChatMsg;
 
 // Job atual (1 lobby por vez nesta V1 — bot único). Enquanto != null, o polling pausa.
-let jobAtivo = null; // { dbLobbyId, expectedPlayers, launched, steamLobbyId, matchId }
+let jobAtivo = null; // { dbLobbyId, expectedPlayers, launched, steamLobbyId, matchId, invited[], membros[], cronometro, minutosRestantes, anunciados:Set }
 let processando = false;
+let chatChannelId = null; // id do canal de chat do lobby atual (pra postar as frases)
+let chatJoinPedido = false; // já pedi pra entrar no chat deste lobby?
 
 function wait(ms) {
   return new Promise((r) => setTimeout(r, ms));
@@ -85,6 +118,16 @@ function wait(ms) {
 client.on("receivedFromGC", (appid, msgType, payload) => {
   if (appid !== Dota2User.STEAM_APPID) return;
   try {
+    // Resposta de entrada no chat do lobby → captura o channel_id pra postar as frases.
+    if (msgType === MSG_JOIN_CHAT_RESP) {
+      const resp = ChatJoinResp.decode(payload);
+      if (resp.channelName && resp.channelName.indexOf("Lobby") === 0 && resp.channelId) {
+        chatChannelId = resp.channelId;
+        console.log("[BOT] entrei no chat do lobby — postando as frases ali.");
+        enviarChatLobby(proximaFraseDoutrina()); // 1ª frase ao criar a sala
+      }
+      return;
+    }
     if (msgType === SO_CACHE_SUBSCRIBED) {
       for (const o of CMsgSOCacheSubscribed.decode(payload).objects || []) {
         if (o.typeId === LOBBY_SO_TYPE) for (const d of o.objectData || []) capturaLobby(CSODOTALobby.decode(d));
@@ -105,8 +148,38 @@ function capturaLobby(lobby) {
   if (lobby.lobbyId) jobAtivo.steamLobbyId = String(lobby.lobbyId);
   if (lobby.matchId && String(lobby.matchId) !== "0") jobAtivo.matchId = String(lobby.matchId);
 
-  if (jobAtivo.launched) return;
   const botId = client.steamID ? client.steamID.toString() : "";
+
+  // Entra no chat do lobby (uma vez) pra poder postar as frases da doutrina.
+  if (lobby.lobbyId && !chatJoinPedido && ChatJoin) {
+    chatJoinPedido = true;
+    try {
+      dota2.sendRawBuffer(
+        MSG_JOIN_CHAT,
+        Buffer.from(
+          ChatJoin.encode(
+            ChatJoin.create({ channelName: "Lobby_" + lobby.lobbyId, channelType: CHANNEL_LOBBY })
+          ).finish()
+        )
+      );
+      console.log(`[BOT] entrando no chat do lobby (Lobby_${lobby.lobbyId})...`);
+    } catch (e) {}
+  }
+
+  // Membros atuais (sem o bot) — usado pro reconvite e pro descarte (kick de todos).
+  jobAtivo.membros = (lobby.allMembers || []).filter((m) => String(m.id) !== botId);
+
+  // Anuncia no chat cada jogador NOVO (cita o nome) e dispara a contagem no 1º que entra.
+  for (const m of jobAtivo.membros) {
+    const sid = String(m.id);
+    if (jobAtivo.anunciados.has(sid)) continue;
+    jobAtivo.anunciados.add(sid);
+    const faltam = Math.max(0, jobAtivo.expectedPlayers - jobAtivo.membros.length);
+    anunciarEntrada(sid, faltam);
+    if (!jobAtivo.cronometro) iniciarCronometro(jobAtivo);
+  }
+
+  if (jobAtivo.launched) return;
   // conta só quem já entrou num TIME (Iluminados=0 / Temidos=1); no pool não conta.
   const players = (lobby.allMembers || []).filter(
     (m) => String(m.id) !== botId && (m.team === 0 || m.team === 1)
@@ -116,6 +189,97 @@ function capturaLobby(lobby) {
     console.log(`[BOT] ${players.length}/${jobAtivo.expectedPlayers} jogadores entraram — lançando em 5s...`);
     const job = jobAtivo;
     setTimeout(() => lancarEFechar(job), 5000);
+  }
+}
+
+// Manda uma mensagem no chat do lobby (se já entrou no canal).
+function enviarChatLobby(text) {
+  if (!chatChannelId || !ChatMsg) return;
+  try {
+    dota2.sendRawBuffer(
+      MSG_CHAT,
+      Buffer.from(ChatMsg.encode(ChatMsg.create({ channelId: chatChannelId, text })).finish())
+    );
+  } catch (e) {}
+}
+
+// Anuncia no chat que um jogador entrou (cita o nome via getPersonas) + 1 frase da doutrina.
+function anunciarEntrada(steamId, faltam) {
+  client.getPersonas([steamId], (err, personas) => {
+    const u = personas && personas[steamId];
+    const nome = u && u.player_name ? u.player_name : "Jogador";
+    const faltaTxt = faltam > 0 ? `Faltam ${faltam} para completar.` : "Sala completa.";
+    enviarChatLobby(`${nome} entrou. ${faltaTxt}`);
+    enviarChatLobby(proximaFraseDoutrina());
+    console.log(`[BOT][CHAT] ${nome} entrou — faltam ${faltam}.`);
+  });
+}
+
+// Cronômetro de espera: a cada minuto, posta o tempo restante no chat + 1 frase e RECONVIDA
+// quem ainda não entrou. Ao zerar (EXPIRA_MIN), descarta a sala (expulsa todos + sai + cancela).
+function iniciarCronometro(job) {
+  if (job.cronometro) clearInterval(job.cronometro);
+  job.minutosRestantes = EXPIRA_MIN;
+  console.log(`[BOT] ⏰ 1º jogador entrou — contagem iniciada. Expira em ${EXPIRA_MIN} min.`);
+  enviarChatLobby(`Sala aberta. Expira em ${EXPIRA_MIN} minutos se não completar.`);
+  job.cronometro = setInterval(async () => {
+    if (jobAtivo !== job) {
+      clearInterval(job.cronometro);
+      return;
+    }
+    job.minutosRestantes -= 1;
+    if (job.minutosRestantes <= 0) {
+      clearInterval(job.cronometro);
+      job.cronometro = null;
+      console.log("[BOT] ⏰ tempo esgotado sem completar — DESCARTANDO a sala (timeout).");
+      enviarChatLobby("Tempo esgotado. Sala descartada.");
+      await descartarLobbySteam(job);
+      try {
+        await supabase
+          .from("lobbies")
+          .update({ status: "cancelled", bot_error: `timeout ${EXPIRA_MIN}min sem completar` })
+          .eq("id", job.dbLobbyId);
+      } catch (e) {}
+      jobAtivo = null;
+      return;
+    }
+    console.log(`[BOT] ⏰ o lobby expira em ${job.minutosRestantes} min...`);
+    enviarChatLobby(`O lobby expira em ${job.minutosRestantes} minuto(s) se não completar.`);
+    enviarChatLobby(proximaFraseDoutrina());
+    // Reconvida quem foi convidado mas ainda não está na sala.
+    const presentes = new Set((job.membros || []).map((m) => String(m.id)));
+    for (const sid of job.invited || []) {
+      if (presentes.has(sid)) continue;
+      try {
+        dota2.sendRawBuffer(
+          MSG_INVITE_LOBBY,
+          Buffer.from(CMsgInviteToLobby.encode(CMsgInviteToLobby.fromPartial({ steamId: sid })).finish())
+        );
+        console.log(`[BOT] ⏰ reconvite -> ${sid}`);
+      } catch (e) {}
+    }
+  }, TICK_MS);
+}
+
+// Descarta a sala no Steam: EXPULSA todos os jogadores (kick) e o bot SAI (não deixa lobby morto).
+async function descartarLobbySteam(job) {
+  const membros = (job && job.membros) || [];
+  console.log(`[BOT] descartando: expulsando ${membros.length} jogador(es).`);
+  for (const m of membros) {
+    try {
+      const accountId = Number(BigInt(m.id) & 0xffffffffn);
+      dota2.sendRawBuffer(MSG_KICK_FROM_LOBBY, Buffer.from(LobbyKick.encode(LobbyKick.create({ accountId })).finish()));
+      console.log(`[BOT] kick ${m.id} (account_id ${accountId})`);
+    } catch (e) {}
+  }
+  await wait(1500);
+  try {
+    dota2.sendRawBuffer(MSG_LEAVE_LOBBY, Buffer.from(LobbyLeave.encode(LobbyLeave.create({})).finish()));
+    console.log("[BOT] bot saiu da sala descartada.");
+  } catch (e) {}
+  if (job && job.cronometro) {
+    clearInterval(job.cronometro);
+    job.cronometro = null;
   }
 }
 
@@ -131,6 +295,10 @@ protobuf.load(path.join(__dirname, "lobby.proto"), (err, root) => {
   LobbyLaunch = root.lookupType("CMsgPracticeLobbyLaunch");
   Abandon = root.lookupType("CMsgAbandonCurrentGame");
   LobbyKickFromTeam = root.lookupType("CMsgPracticeLobbyKickFromTeam");
+  LobbyKick = root.lookupType("CMsgPracticeLobbyKick");
+  ChatJoin = root.lookupType("CMsgDOTAJoinChatChannel");
+  ChatJoinResp = root.lookupType("CMsgDOTAJoinChatChannelResponse");
+  ChatMsg = root.lookupType("CMsgDOTAChatMessage");
   console.log(`[BOT] Supabase: ${SUPABASE_URL}`);
   if (REFRESH_TOKEN) {
     console.log("[BOT] Logando com refresh token (headless)...");
@@ -183,9 +351,26 @@ dota2.on("disconnectedFromGC", (reason) => {
 
 // ---- Loop de polling: pega 1 partida pendente por vez --------------
 async function loop() {
-  if (processando || jobAtivo) return; // 1 lobby por vez (bot único)
+  if (processando) return;
   processando = true;
   try {
+    // Já tem lobby ativo? Em vez de pegar outro, VIGIA se o admin/criador descartou a
+    // partida no painel (lobbies.status='cancelled') → expulsa todos e finaliza o lobby Steam.
+    if (jobAtivo) {
+      const { data: cur } = await supabase
+        .from("lobbies")
+        .select("status")
+        .eq("id", jobAtivo.dbLobbyId)
+        .maybeSingle();
+      if (cur && cur.status === "cancelled") {
+        console.log("[BOT] partida descartada no painel — finalizando o lobby Steam.");
+        const job = jobAtivo;
+        await descartarLobbySteam(job);
+        jobAtivo = null;
+      }
+      return; // 1 lobby por vez (bot único)
+    }
+
     const { data: lobbies, error } = await supabase
       .from("lobbies")
       .select("id, password, game_mode, status, steam_lobby_id, created_at")
@@ -207,7 +392,20 @@ async function loop() {
 
 async function processarLobby(lobby) {
   // Trava o polling pra este job já no começo (evita pegar outro lobby no meio).
-  jobAtivo = { dbLobbyId: lobby.id, expectedPlayers: 0, launched: false, steamLobbyId: null, matchId: null };
+  jobAtivo = {
+    dbLobbyId: lobby.id,
+    expectedPlayers: 0,
+    launched: false,
+    steamLobbyId: null,
+    matchId: null,
+    invited: [], // SteamIDs convidados (pro reconvite por minuto)
+    membros: [], // membros atuais no lobby Steam (sem o bot)
+    anunciados: new Set(), // SteamIDs já citados no chat
+    cronometro: null,
+    minutosRestantes: EXPIRA_MIN,
+  };
+  chatChannelId = null;
+  chatJoinPedido = false;
   console.log(`\n[BOT] === Nova partida ${lobby.id} === senha=${lobby.password} modo=${lobby.game_mode}`);
 
   // Busca os jogadores e seus SteamIDs.
@@ -227,6 +425,7 @@ async function processarLobby(lobby) {
       .filter((s) => typeof s === "string" && RE_STEAMID64.test(s));
   }
   jobAtivo.expectedPlayers = steamIds.length;
+  jobAtivo.invited = steamIds;
   console.log(`[BOT] Jogadores na partida: ${userIds.length} | SteamIDs válidos p/ convite: ${steamIds.length}`);
 
   // Sai de qualquer lobby anterior e cria o novo (com a senha do site).
@@ -309,6 +508,12 @@ async function processarLobby(lobby) {
 }
 
 async function lancarEFechar(job) {
+  // Partida vai subir — para a contagem e os lembretes no chat.
+  if (job.cronometro) {
+    clearInterval(job.cronometro);
+    job.cronometro = null;
+  }
+  enviarChatLobby("Sala completa. Boa partida — e lembrem: a culpa nunca é do outro.");
   console.log("[BOT] Lançando a partida...");
   try {
     dota2.sendRawBuffer(MSG_LAUNCH_LOBBY, Buffer.from(LobbyLaunch.encode(LobbyLaunch.create({})).finish()));
