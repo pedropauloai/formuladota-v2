@@ -27,6 +27,7 @@ import { Tooltip } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { QueueStatusPill } from "@/components/queue/queue-status-pill";
 import { MatchQueuePill } from "@/components/queue/match-queue-pill";
+import { MobileNav } from "./mobile-nav";
 import type { MyQueueEntry } from "@/lib/queries/queue";
 import { useTranslations } from "next-intl";
 import { LanguageSwitcher } from "@/components/i18n/language-switcher";
@@ -113,8 +114,13 @@ export function DashboardTopBar({
         "border-b border-brand-primary/60",
       )}
     >
-      {/* Esquerda — settings + logo + tabs (configurações só pra logado) */}
+      {/* Esquerda — hambúrguer (mobile) + settings + logo + tabs */}
       <div className="flex items-center gap-2 xl:gap-4">
+        <MobileNav
+          principalTabs={principalTabs}
+          contextualTabs={contextualTabs}
+          isVisitor={isVisitor}
+        />
         {!isVisitor && (
           <>
             <TopBarIcon icon={Settings} label={t("topbar.settings")} href="/me" />
@@ -220,7 +226,10 @@ export function DashboardTopBar({
       <div className="flex items-center gap-1.5 xl:gap-2">
         {realIsAdmin && <PreviewModeToggle previewActive={previewActive} />}
         <LanguageSwitcher className="hidden sm:inline-flex" />
-        <CondutaBadge />
+        {/* Conduta: escondida no mobile (vive na gaveta MobileNav) pra não estourar o topbar. */}
+        <div className="hidden sm:block">
+          <CondutaBadge />
+        </div>
         {isVisitor ? (
           <EntrarBadge />
         ) : (

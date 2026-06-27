@@ -16,6 +16,7 @@
   "topbar": {
     "settings": "Settings",
     "signOut": "Sign out",
+    "close": "Close",
     "prosOnline": "{count, plural, =1 {# PRO online} other {# PROs online}}",
     "searching": "{count, plural, =1 {# player searching} other {# players searching}}",
     "inQueue": "{count, plural, =1 {# in queue} other {# in queue}}",

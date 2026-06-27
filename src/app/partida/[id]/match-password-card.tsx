@@ -59,7 +59,7 @@ export function MatchPasswordCard({
               type="button"
               onClick={save}
               disabled={pending}
-              className="rounded-sm border border-play-primary bg-play-primary px-3 py-1.5 font-display text-sm font-bold uppercase tracking-wide text-bg-deep disabled:opacity-60"
+              className="flex min-h-[40px] items-center rounded-sm border border-play-primary bg-play-primary px-4 font-display text-sm font-bold uppercase tracking-wide text-bg-deep disabled:opacity-60"
             >
               Salvar
             </button>
@@ -70,7 +70,7 @@ export function MatchPasswordCard({
                 setDraft(pw);
                 setMsg(null);
               }}
-              className="rounded-sm border border-border-subtle px-3 py-1.5 font-body text-sm text-text-muted hover:text-text-body"
+              className="flex min-h-[40px] items-center rounded-sm border border-border-subtle px-4 font-body text-sm text-text-muted hover:text-text-body"
             >
               Cancelar
             </button>
@@ -85,7 +85,7 @@ export function MatchPasswordCard({
             type="button"
             onClick={copy}
             aria-label="Copiar senha"
-            className="rounded-sm border border-border-subtle p-1.5 text-text-muted transition-colors hover:text-text-body"
+            className="flex size-10 items-center justify-center rounded-sm border border-border-subtle text-text-muted transition-colors hover:text-text-body"
           >
             {copied ? <Check size={16} className="text-play-primary" /> : <Copy size={16} />}
           </button>
@@ -94,7 +94,7 @@ export function MatchPasswordCard({
               type="button"
               onClick={() => setEditing(true)}
               aria-label="Editar senha"
-              className="rounded-sm border border-border-subtle p-1.5 text-text-muted transition-colors hover:text-text-body"
+              className="flex size-10 items-center justify-center rounded-sm border border-border-subtle text-text-muted transition-colors hover:text-text-body"
             >
               <Pencil size={16} />
             </button>

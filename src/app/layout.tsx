@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 // Fontes V2.5 — self-hosted via @fontsource (sem requisição Google Fonts).
 // Atualizado 2026-05-25 (segunda iteração): Space Grotesk REMOVIDA, adotada
 // UBUNTU — mesma fonte usada pelo ExitLag.com (referência AAA gaming brasileira
@@ -37,6 +37,8 @@ import { MotionProvider } from "@/components/layout/motion-provider";
 // i18n (next-intl) — provider client recebe locale + mensagens do request config.
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
+// PWA: registra o service worker (instalável + offline básico).
+import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 const siteTitle = "FORMULADOTA — HUB Dota 2 Brasil";
@@ -69,6 +71,20 @@ export const metadata: Metadata = {
     description: siteDescription,
     images: ["/brand/og-hero.png"],
   },
+  // PWA iOS — habilita "Adicionar à tela de início" como app standalone.
+  appleWebApp: {
+    capable: true,
+    title: "FormulaDota",
+    statusBarStyle: "black-translucent",
+  },
+};
+
+// Viewport mobile-first + notch (viewportFit cover) + theme-color da marca.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#C42121",
 };
 
 export default async function RootLayout({
@@ -116,6 +132,7 @@ export default async function RootLayout({
             (Pílula "Na fila" foi movida pra topbar via QueueStatusPill — não
             é mais renderizada aqui pra não forçar scroll de página.) */}
         <QueueRealtimeListener />
+        <ServiceWorkerRegister />
         {/* Pedro 2026-05-24: filosofia "tudo é client" — Header/Footer globais
             removidos (tasks #63-#68). Toda rota usa ClientShell (sistema A
             canônico — 3-col Dota 2 client real) ou é fullscreen splash (gates

@@ -267,7 +267,10 @@ export function PlayMenu({ isVisitor, initial }: Props) {
   // Há um lobby ativo? (mesmo com o menu fechado → botão vira "Voltar à sala").
   const hasSala = view === "sala" && !!lobbyId;
   // Sala usa um drawer MAIS LARGO (Pedro: visualização maior que o normal).
-  const widthCls = inSala ? "w-[600px] xl:w-[720px]" : "w-[400px] xl:w-[460px]";
+  // Mobile: largura cheia (w-full) pra não estourar a tela; sm+ volta às larguras fixas.
+  const widthCls = inSala
+    ? "w-full sm:w-[600px] xl:w-[720px]"
+    : "w-full sm:w-[400px] xl:w-[460px]";
 
   return (
     <>
