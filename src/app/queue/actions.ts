@@ -8,6 +8,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
+import type { Database } from "@/types/database";
 
 // Quantos jogadores estão buscando partida AGORA (match_queue waiting, TODOS os usuários).
 // Usa service client porque match_queue tem RLS self (queue_select_self) — com o cookie
@@ -90,26 +91,20 @@ export interface QueueSearcher {
   joinedAt: string;
 }
 
-// Linha crua do RPC (ainda fora dos tipos gerados — regenerar após aplicar a 062).
-interface QueueSearcherRow {
-  user_id: string;
-  name: string;
-  avatar: string | null;
-  roles: QueueRole[] | null;
-  level: number;
-  honor_score: number;
-  joined_at: string;
-}
+// Linha do RPC get_queue_searchers (Args: never → o overload do .rpc não infere o
+// retorno; tipamos a linha a partir do Database gerado).
+type QueueSearcherRow =
+  Database["public"]["Functions"]["get_queue_searchers"]["Returns"][number];
 
 export async function getQueueSearchers(): Promise<QueueSearcher[]> {
   const supabase = await createClient();
-  const { data } = await supabase.rpc("get_queue_searchers" as never);
+  const { data } = await supabase.rpc("get_queue_searchers");
   const rows = (data ?? []) as QueueSearcherRow[];
   return rows.map((r) => ({
     userId: r.user_id,
     name: r.name,
     avatar: r.avatar,
-    roles: Array.isArray(r.roles) ? r.roles : [],
+    roles: Array.isArray(r.roles) ? (r.roles as QueueRole[]) : [],
     level: r.level,
     honorScore: r.honor_score,
     joinedAt: r.joined_at,

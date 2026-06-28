@@ -28,7 +28,7 @@ as $$
     coalesce(sl.persona, p.username, 'Jogador')                 as name,
     coalesce(sl.avatar_url, p.avatar_url)                       as avatar,
     coalesce(mq.roles, '[]'::jsonb)                             as roles,
-    coalesce(p.current_level, 1)                               as level,
+    coalesce(ul.current_level, 1)                              as level,
     coalesce((
       select sum(hl.delta)::int from honor_ledger hl where hl.user_id = mq.user_id
     ), 0)                                                       as honor_score,
@@ -36,6 +36,7 @@ as $$
   from match_queue mq
   left join steam_links sl on sl.user_id = mq.user_id
   left join profiles    p  on p.id = mq.user_id
+  left join user_levels ul on ul.user_id = mq.user_id   -- nível/HONOR (current_level)
   where mq.status = 'waiting'
     and auth.uid() is not null   -- só pra logados (defesa extra além do grant)
   order by mq.joined_at asc;

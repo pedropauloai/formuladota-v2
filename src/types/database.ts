@@ -2551,6 +2551,18 @@ export type Database = {
           waiting_count: number
         }[]
       }
+      get_queue_searchers: {
+        Args: never
+        Returns: {
+          avatar: string
+          honor_score: number
+          joined_at: string
+          level: number
+          name: string
+          roles: Json
+          user_id: string
+        }[]
+      }
       get_sponsored_pros: {
         Args: { p_sponsor_user_id: string }
         Returns: {
