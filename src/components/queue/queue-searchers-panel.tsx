@@ -16,7 +16,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { Users, ArrowRight } from "lucide-react";
+import { Users, ArrowRight, Check } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import {
   getQueueSearchers,
@@ -43,11 +43,18 @@ interface Props {
   bare?: boolean;
   /** Se passado, as linhas de função viram clicáveis → troca pra aquela função. */
   onPickRole?: (role: QueueRole) => void;
+  /** Se passado, mostra o botão "Qualquer função" → fila por todas as 5. */
+  onPickAll?: () => void;
   /** Funções que o próprio jogador filou (marca "você" + rodapé "sua função"). */
   myRoles?: QueueRole[];
 }
 
-export function QueueSearchersPanel({ bare = false, onPickRole, myRoles }: Props) {
+export function QueueSearchersPanel({
+  bare = false,
+  onPickRole,
+  onPickAll,
+  myRoles,
+}: Props) {
   const t = useTranslations("playMenu");
   const [searchers, setSearchers] = useState<QueueSearcher[]>([]);
   const [open, setOpen] = useState(false); // hover (popover do menu)
@@ -223,6 +230,17 @@ export function QueueSearchersPanel({ bare = false, onPickRole, myRoles }: Props
           );
         })}
       </ul>
+
+      {/* Findar TODAS as funções (mais flexível = fila mais rápida). */}
+      {onPickAll && (myRoles?.length ?? 0) < ROLES.length && (
+        <button
+          type="button"
+          onClick={onPickAll}
+          className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-[var(--radius-md)] border border-gold/40 bg-gold/10 px-2.5 py-1.5 font-display text-sm font-bold uppercase tracking-wide text-gold transition-colors hover:bg-gold/20"
+        >
+          <Check size={14} aria-hidden="true" /> {t("anyRole")}
+        </button>
+      )}
 
       {/* Sua função (contexto de busca). */}
       {myRoles && myRoles.length > 0 && (

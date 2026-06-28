@@ -223,6 +223,42 @@ export async function heartbeatQueue(): Promise<void> {
     .eq("status", "waiting");
 }
 
+// Troca de função SEM sair da fila: atualiza a entry waiting EM VEZ de recriar —
+// preserva joined_at (posição na fila) e o tempo de busca, e mantém last_heartbeat.
+// A nova composição pode fechar partida na hora (try_form_match).
+export async function updateQueueRoles(
+  roles: QueueRole[]
+): Promise<QueueResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Não autenticado." };
+  if (roles.length === 0) {
+    return { success: false, error: "Selecione pelo menos 1 função." };
+  }
+
+  const { data, error } = await supabase
+    .from("match_queue")
+    .update({ roles })
+    .eq("user_id", user.id)
+    .eq("status", "waiting")
+    .select("id")
+    .maybeSingle();
+
+  if (error || !data) {
+    return { success: false, error: "Erro ao trocar de função." };
+  }
+
+  const { data: formed } = await supabase.rpc("try_form_match", {
+    p_match_size: MATCH_SIZE,
+  });
+  const matchedLobbyId = typeof formed === "string" ? formed : null;
+
+  revalidatePath("/dashboard");
+  return { success: true, queueId: data.id, matchedLobbyId };
+}
+
 export async function leaveQueue(): Promise<QueueResult> {
   const supabase = await createClient();
   const {

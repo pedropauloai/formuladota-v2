@@ -33,6 +33,7 @@ import {
   getQueueStatus,
   heartbeatQueue,
   leaveQueue,
+  updateQueueRoles,
   type QueueRole,
   type QueueGameMode,
 } from "@/app/queue/actions";
@@ -95,8 +96,8 @@ export function PlayMenu({ isVisitor, initial }: Props) {
   const [pending, startTransition] = useTransition();
   const [searching, setSearching] = useState(false);
   const [elapsed, setElapsed] = useState(0); // segundos da busca atual (contador na bottom-bar)
-  // Painel "quem está findando" aberto a partir do contador de busca (bottom-bar).
-  const [searchPanelOpen, setSearchPanelOpen] = useState(false);
+  // Painel "quem está findando" no contador de busca — EXPANDIDO por padrão.
+  const [searchPanelOpen, setSearchPanelOpen] = useState(true);
   // Partida ativa do usuário (fila matched). Bloqueia nova busca e troca o botão por
   // "Voltar à partida" (navega direto pra /partida/[id] em vez de abrir o drawer).
   const [activeMatchId, setActiveMatchId] = useState<string | null>(null);
@@ -239,9 +240,10 @@ export function PlayMenu({ isVisitor, initial }: Props) {
         return;
       }
       // Buscando: retrai o drawer pro estado "button" — a busca passa a viver na
-      // bottom-bar (contador + X), liberando a plataforma pra navegação enquanto espera.
+      // bottom-bar (contador + painel), liberando a plataforma pra navegação.
       setElapsed(0);
       setSearching(true);
+      setSearchPanelOpen(true);
       setPhase("button");
     });
   }
@@ -282,13 +284,13 @@ export function PlayMenu({ isVisitor, initial }: Props) {
     });
   }
 
-  // Troca de função SEM sair da fila: re-coloca o jogador buscando só pela função
-  // escolhida (enterQueue cancela a entry antiga e re-entra — sem custo de
-  // permissão por já estar na fila). Pensado pra "fechar a função que falta".
-  function switchRole(role: QueueRole) {
-    setRoles(new Set([role]));
+  // Troca de função enquanto busca (1 função ou todas). Atualiza a MESMA entry na
+  // fila (updateQueueRoles) — preserva joined_at e o TEMPO de busca, sem custo de
+  // permissão. A nova composição pode fechar partida na hora.
+  function applyQueueRoles(next: QueueRole[]) {
+    setRoles(new Set(next));
     startTransition(async () => {
-      const res = await enterQueue({ roles: [role], gameMode });
+      const res = await updateQueueRoles(next);
       if (!res.success) {
         setError(res.error);
         return;
@@ -297,9 +299,8 @@ export function PlayMenu({ isVisitor, initial }: Props) {
         setSearching(false);
         setSearchPanelOpen(false);
         router.push(`/partida/${res.matchedLobbyId}`);
-        return;
       }
-      setElapsed(0); // nova entry na fila → contador recomeça
+      // NÃO reseta o contador: é a mesma entry (update in place) → tempo preservado.
     });
   }
 
@@ -348,16 +349,20 @@ export function PlayMenu({ isVisitor, initial }: Props) {
       {/* Estado BUTTON — durante a busca vira CONTADOR + X (cancelar); senão o
           botão "Jogar Dota" (ou "Voltar à sala" se houver lobby ativo). */}
       {phase === "button" && searching && (
-        <div className="pointer-events-auto flex flex-col items-end gap-2">
-          {/* Painel "quem está findando" — abre ACIMA do contador. Reaproveita o
-              QueueSearchersPanel: vê a demanda por função e troca de função na hora
-              (clicável) pra fechar a que está faltando, sem sair da fila. */}
+        // Interface ÚNICA: painel "quem está findando" (retrátil) + contador, no
+        // MESMO card e na MESMA largura. Cresce pra cima a partir da bottom-bar.
+        <div className="pointer-events-auto w-[340px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-md border-2 border-play-primary bg-bg-deep shadow-lg shadow-[var(--color-play-primary-glow)]">
           {searchPanelOpen && (
-            <div className="w-[340px] max-w-[calc(100vw-2rem)] rounded-md border border-play-primary/40 bg-bg-deep p-2.5 shadow-2xl shadow-black/70 animate-in slide-in-from-bottom-2 fade-in duration-150">
-              <QueueSearchersPanel bare onPickRole={switchRole} myRoles={Array.from(roles)} />
+            <div className="border-b border-border-subtle p-2.5 animate-in slide-in-from-bottom-2 fade-in duration-150">
+              <QueueSearchersPanel
+                bare
+                onPickRole={(r) => applyQueueRoles([r])}
+                onPickAll={() => applyQueueRoles(ROLES.map((r) => r.id))}
+                myRoles={Array.from(roles)}
+              />
             </div>
           )}
-          <div className="flex h-14 items-center gap-3 rounded-md border-2 border-play-primary bg-bg-deep px-6 shadow-lg shadow-[var(--color-play-primary-glow)] xl:h-16 xl:px-8 2xl:h-20">
+          <div className="flex h-14 items-center gap-3 px-4 xl:h-16">
             <Loader2 size={22} className="animate-spin text-play-primary" aria-hidden="true" />
             <span className="flex flex-col leading-tight">
               <span className="font-display text-xs uppercase tracking-[0.2em] text-text-muted">
@@ -367,13 +372,13 @@ export function PlayMenu({ isVisitor, initial }: Props) {
                 {mmss(elapsed)}
               </span>
             </span>
-            {/* Expandir/recolher o painel da fila. */}
+            {/* Retrair/expandir o painel da fila. */}
             <button
               type="button"
               onClick={() => setSearchPanelOpen((o) => !o)}
               aria-label={t("viewQueue")}
               aria-expanded={searchPanelOpen}
-              className={`rounded-sm border p-2 transition-colors ${
+              className={`ml-auto rounded-sm border p-2 transition-colors ${
                 searchPanelOpen
                   ? "border-play-primary/50 text-play-primary"
                   : "border-border-subtle text-text-muted hover:border-play-primary/50 hover:text-play-primary"
