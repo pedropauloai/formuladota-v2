@@ -914,6 +914,7 @@ export type Database = {
           game_mode: string | null
           id: string
           joined_at: string | null
+          last_heartbeat: string
           matched_at: string | null
           matched_lobby_id: string | null
           party_id: string | null
@@ -926,6 +927,7 @@ export type Database = {
           game_mode?: string | null
           id?: string
           joined_at?: string | null
+          last_heartbeat?: string
           matched_at?: string | null
           matched_lobby_id?: string | null
           party_id?: string | null
@@ -938,6 +940,7 @@ export type Database = {
           game_mode?: string | null
           id?: string
           joined_at?: string | null
+          last_heartbeat?: string
           matched_at?: string | null
           matched_lobby_id?: string | null
           party_id?: string | null
@@ -2588,6 +2591,8 @@ export type Database = {
           tier_name: string
         }[]
       }
+      queue_liveness_tick: { Args: never; Returns: undefined }
+      recompute_queue_live_stats: { Args: never; Returns: undefined }
       release_bot: { Args: { p_account_name: string }; Returns: undefined }
       reserve_bot_for_lobby: { Args: { p_lobby_id: string }; Returns: string }
       reset_dormant_behavior: { Args: never; Returns: number }
