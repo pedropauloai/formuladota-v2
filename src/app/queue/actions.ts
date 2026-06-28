@@ -33,6 +33,44 @@ export type QueueRole =
   | "midlane"
   | "safelane";
 
+// Demanda atual por função: quantos waiting filaram cada role (qualquer usuário).
+// Alimenta o menu expandido — destaca as funções que FALTAM pra formar partida.
+// match_queue tem RLS self (cada um só vê a própria linha) → precisa do service client.
+// Read-only, seguro (key fica no servidor). Consumido por POLLING leve (~4s).
+export type RoleDemand = Record<QueueRole, number>;
+
+const EMPTY_DEMAND: RoleDemand = {
+  safelane: 0,
+  midlane: 0,
+  offlane: 0,
+  support: 0,
+  support_dedicated: 0,
+};
+
+export async function getRoleDemand(): Promise<{
+  demand: RoleDemand;
+  total: number;
+}> {
+  try {
+    const service = createServiceClient();
+    const { data } = await service
+      .from("match_queue")
+      .select("roles")
+      .eq("status", "waiting");
+
+    const demand: RoleDemand = { ...EMPTY_DEMAND };
+    for (const row of data ?? []) {
+      const roles = Array.isArray(row.roles) ? (row.roles as string[]) : [];
+      for (const r of roles) {
+        if (r in demand) demand[r as QueueRole] += 1;
+      }
+    }
+    return { demand, total: data?.length ?? 0 };
+  } catch {
+    return { demand: { ...EMPTY_DEMAND }, total: 0 };
+  }
+}
+
 export type QueueGameMode =
   | "all_pick"
   | "captains_mode"

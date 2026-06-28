@@ -23,14 +23,17 @@ import {
   Loader2,
   Search,
   ArrowLeft,
+  Check,
 } from "lucide-react";
 import { signInWithDiscord } from "@/app/login/actions";
 import {
   enterQueue,
   getQueueStatus,
+  getRoleDemand,
   leaveQueue,
   type QueueRole,
   type QueueGameMode,
+  type RoleDemand,
 } from "@/app/queue/actions";
 import { PermissionQuizModal } from "@/components/quiz/permission-quiz-modal";
 import { setPlayMenuState, type PlayMenuState } from "@/lib/play-menu-preference";
@@ -158,6 +161,11 @@ export function PlayMenu({ isVisitor, initial }: Props) {
       else next.add(r);
       return next;
     });
+  }
+
+  // "Qualquer função": marca as 5 de uma vez (fila mais rápida — mais flexível).
+  function selectAllRoles() {
+    setRoles(new Set(ROLES.map((r) => r.id)));
   }
 
   function handleBuscar() {
@@ -367,6 +375,7 @@ export function PlayMenu({ isVisitor, initial }: Props) {
               setActive={setActive}
               roles={roles}
               toggleRole={toggleRole}
+              selectAllRoles={selectAllRoles}
               gameMode={gameMode}
               setGameMode={setGameMode}
               isVisitor={isVisitor}
@@ -473,11 +482,15 @@ export function PlayMenu({ isVisitor, initial }: Props) {
 
 /* ---------------- Menu (modalidades) ---------------- */
 
+// Funções carentes pra fechar partida cheia: 2 jogadores por função (1 por time).
+const ROLE_TARGET = 2;
+
 function MenuView({
   active,
   setActive,
   roles,
   toggleRole,
+  selectAllRoles,
   gameMode,
   setGameMode,
   isVisitor,
@@ -493,6 +506,7 @@ function MenuView({
   setActive: (m: Modalidade) => void;
   roles: Set<QueueRole>;
   toggleRole: (r: QueueRole) => void;
+  selectAllRoles: () => void;
   gameMode: QueueGameMode;
   setGameMode: (m: QueueGameMode) => void;
   isVisitor: boolean;
@@ -505,6 +519,31 @@ function MenuView({
   loadingSalas: boolean;
 }) {
   const t = useTranslations("playMenu");
+
+  // Demanda por função (waiting em match_queue). Via service client (RLS self) → POLLING
+  // leve a cada 4s, só enquanto a aba Competitiva está aberta.
+  const [demand, setDemand] = useState<RoleDemand | null>(null);
+  useEffect(() => {
+    if (active !== "competitiva") return;
+    let alive = true;
+    const tick = async () => {
+      const res = await getRoleDemand();
+      if (alive) setDemand(res.demand);
+    };
+    void tick();
+    const iv = setInterval(tick, 4000);
+    return () => {
+      alive = false;
+      clearInterval(iv);
+    };
+  }, [active]);
+
+  // O que falta pra fechar composição (cada função precisa de ROLE_TARGET jogadores).
+  const deficits = ROLES.map((r) => ({
+    key: r.key,
+    missing: ROLE_TARGET - (demand?.[r.id] ?? 0),
+  })).filter((d) => d.missing > 0);
+
   return (
     <>
       <div className="flex-1 overflow-y-auto p-3 space-y-2">
@@ -512,14 +551,26 @@ function MenuView({
           <p className="mb-2.5 font-body text-sm leading-relaxed text-text-muted">
             {t("competitivaDesc")}
           </p>
+          {/* Atalho: marca as 5 funções de uma vez (mais flexível = fila mais rápida). */}
+          <button
+            type="button"
+            onClick={selectAllRoles}
+            className="mb-2 flex w-full items-center justify-center gap-1.5 rounded-[var(--radius-md)] border border-gold/40 bg-gold/10 px-2.5 py-1.5 font-display text-sm font-bold uppercase tracking-wide text-gold transition-colors hover:bg-gold/20"
+          >
+            <Check size={14} aria-hidden="true" /> {t("anyRole")}
+          </button>
           <ul className="space-y-1">
             {ROLES.map((r) => {
               const on = roles.has(r.id);
+              const count = demand?.[r.id] ?? 0;
+              // Função carente: ainda faltam jogadores pra fechar composição. Vira nudge.
+              const needed = demand !== null && count < ROLE_TARGET;
               return (
                 <li key={r.id}>
                   <button
                     type="button"
                     onClick={() => toggleRole(r.id)}
+                    title={t("roleDemandTitle", { count })}
                     className={`flex w-full items-center gap-2.5 rounded-[var(--radius-md)] border px-2.5 py-1.5 text-left transition-colors ${
                       on ? "border-brand-primary bg-brand-primary/10" : "border-border-subtle bg-bg-elevated hover:border-brand-primary/50"
                     }`}
@@ -527,7 +578,20 @@ function MenuView({
                     <span className={`flex size-5 shrink-0 items-center justify-center rounded-sm font-display text-sm font-bold ${on ? "bg-brand-primary text-bg-deep" : "bg-bg-surface text-text-muted"}`}>
                       {r.pos}
                     </span>
-                    <span className="font-body text-sm text-text-body">{t(r.key)}</span>
+                    <span className="flex-1 truncate font-body text-sm text-text-body">{t(r.key)}</span>
+                    {/* "precisa de você": só quando carente e o jogador ainda não marcou. */}
+                    {needed && !on && (
+                      <span className="shrink-0 font-display text-[0.65rem] font-bold uppercase tracking-wide text-gold">
+                        {t("needYouHere")}
+                      </span>
+                    )}
+                    {/* Demanda atual da função (verde = suprida, dourado = falta gente). */}
+                    {demand !== null && (
+                      <span className={`flex shrink-0 items-center gap-1 font-display text-sm font-bold tabular-nums ${needed ? "text-gold" : "text-play-primary"}`}>
+                        <Users size={12} aria-hidden="true" />
+                        {count}
+                      </span>
+                    )}
                   </button>
                 </li>
               );
@@ -543,6 +607,30 @@ function MenuView({
               <option key={m.id} value={m.id}>{t(m.key)}</option>
             ))}
           </select>
+          {/* Falta pra formar (nudge de composição). Só aparece após a 1ª leitura. */}
+          {demand !== null && (
+            <div className="mt-2.5 space-y-1">
+              {deficits.length === 0 ? (
+                <p className="flex items-center gap-1.5 font-body text-xs text-play-primary">
+                  <span className="inline-block size-1.5 rounded-full bg-play-primary" aria-hidden="true" />
+                  {t("compositionReady")}
+                </p>
+              ) : (
+                <p className="font-body text-xs text-text-muted">
+                  <span className="font-semibold text-gold">{t("missingToForm")}</span>{" "}
+                  {deficits.map((d, i) => (
+                    <span key={d.key}>
+                      {i > 0 ? ", " : ""}
+                      <span className="text-text-body">
+                        {d.missing} {t(d.key)}
+                      </span>
+                    </span>
+                  ))}
+                </p>
+              )}
+              <p className="font-body text-xs text-text-faded">{t("moreRolesFaster")}</p>
+            </div>
+          )}
         </Section>
 
         <Section icon={Users} title={t("salas")} subtitle={t("salasSubtitle")} active={active === "salas"} onToggle={() => setActive("salas")}>
