@@ -82,11 +82,11 @@ export type QueueResult =
   | { success: false; error: string; code?: "need_permission" };
 
 // Tamanho da partida (X): a fila FORMA a partida ao juntar este número de jogadores.
-// TESTE (Pedro 2026-06-27): 2 (1v1) pra validar o fluxo. Pra produção real, mude pra 10
-// (ou defina QUEUE_MATCH_SIZE no ambiente — tem prioridade sobre o default).
+// Produção (Pedro 2026-06-28): 10 — exige composição completa das 5 funções (2 cada).
+// Pra voltar a testar 1v1, defina QUEUE_MATCH_SIZE=2 no ambiente (tem prioridade).
 const MATCH_SIZE = (() => {
   const n = Number(process.env.QUEUE_MATCH_SIZE);
-  return Number.isFinite(n) && n >= 2 ? Math.floor(n) : 2;
+  return Number.isFinite(n) && n >= 2 ? Math.floor(n) : 10;
 })();
 
 export interface QueueStatus {
