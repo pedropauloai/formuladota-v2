@@ -207,6 +207,23 @@ export async function enterQueue(input: {
   return { success: true, queueId: data.id, matchedLobbyId };
 }
 
+// Heartbeat de liveness: o cliente pinga enquanto busca (~15s) pra provar que
+// ainda está ativo. Sem ping por ~45-60s → o pg_cron (migration 063) cancela a
+// entrada (anti-fantasma). UPDATE da PRÓPRIA entry waiting (RLS queue_update_self).
+// (cast: last_heartbeat ainda não está nos tipos gerados — regenerar após a 063)
+export async function heartbeatQueue(): Promise<void> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+  await supabase
+    .from("match_queue")
+    .update({ last_heartbeat: new Date().toISOString() } as never)
+    .eq("user_id", user.id)
+    .eq("status", "waiting");
+}
+
 export async function leaveQueue(): Promise<QueueResult> {
   const supabase = await createClient();
   const {

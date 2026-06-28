@@ -30,12 +30,12 @@ import { signInWithDiscord } from "@/app/login/actions";
 import {
   enterQueue,
   getQueueStatus,
+  heartbeatQueue,
   leaveQueue,
   type QueueRole,
   type QueueGameMode,
 } from "@/app/queue/actions";
 import { createClient } from "@/lib/supabase/client";
-import { useQueueLiveStats } from "@/lib/realtime/use-queue-live-stats";
 import { useQueueStatusRealtime } from "@/lib/realtime/use-queue-status-realtime";
 import { QueueSearchersPanel } from "@/components/queue/queue-searchers-panel";
 import { PermissionQuizModal } from "@/components/quiz/permission-quiz-modal";
@@ -158,6 +158,11 @@ export function PlayMenu({ isVisitor, initial }: Props) {
       if (!active) return;
       if (st.status === "matched" && st.matchedLobbyId) {
         setActiveMatchId(st.matchedLobbyId);
+        // Redireciona pra partida — EXCETO se já estamos nela. O PlayMenu monta
+        // global (inclusive em /partida/[id]); a guarda evita loop pra mesma rota.
+        if (!window.location.pathname.includes(`/partida/${st.matchedLobbyId}`)) {
+          router.push(`/partida/${st.matchedLobbyId}`);
+        }
       } else if (st.status === "waiting") {
         // FIND PERSISTE NO REFRESH: a busca continua viva no servidor (match_queue
         // waiting). Restaura o estado "searching" e o contador a partir de joinedAt
@@ -170,7 +175,7 @@ export function PlayMenu({ isVisitor, initial }: Props) {
     return () => {
       active = false;
     };
-  }, [isVisitor]);
+  }, [isVisitor, router]);
 
   // Sincroniza o status da fila a partir do servidor: matched → redireciona;
   // saiu da fila (cancelada) → encerra a busca. Disparado pelo realtime de status.
@@ -244,6 +249,26 @@ export function PlayMenu({ isVisitor, initial }: Props) {
     if (!searching) return;
     const iv = setInterval(() => setElapsed((s) => s + 1), 1000);
     return () => clearInterval(iv);
+  }, [searching]);
+
+  // HEARTBEAT de liveness (migration 063): enquanto busca, prova atividade a cada
+  // 15s. Parar de pingar (fechar o app) faz o servidor cancelar a fila em ~45-60s
+  // (anti-fantasma). Pinga já no início e ao voltar a aba/conexão. NÃO chama
+  // leaveQueue ao desmontar — refresh/navegação mantêm a busca viva.
+  useEffect(() => {
+    if (!searching) return;
+    void heartbeatQueue();
+    const iv = setInterval(() => void heartbeatQueue(), 15000);
+    const onWake = () => {
+      if (document.visibilityState === "visible") void heartbeatQueue();
+    };
+    window.addEventListener("online", onWake);
+    document.addEventListener("visibilitychange", onWake);
+    return () => {
+      clearInterval(iv);
+      window.removeEventListener("online", onWake);
+      document.removeEventListener("visibilitychange", onWake);
+    };
   }, [searching]);
 
   function handleCancelSearch() {
@@ -495,9 +520,6 @@ export function PlayMenu({ isVisitor, initial }: Props) {
 
 /* ---------------- Menu (modalidades) ---------------- */
 
-// Funções carentes pra fechar partida cheia: 2 jogadores por função (1 por time).
-const ROLE_TARGET = 2;
-
 function MenuView({
   active,
   setActive,
@@ -533,15 +555,8 @@ function MenuView({
 }) {
   const t = useTranslations("playMenu");
 
-  // Demanda por função AO VIVO (push via queue_live_stats — migration 061). Sem polling.
-  const { demand } = useQueueLiveStats();
-
-  // O que falta pra fechar composição (cada função precisa de ROLE_TARGET jogadores).
-  const deficits = ROLES.map((r) => ({
-    key: r.key,
-    missing: ROLE_TARGET - demand[r.id],
-  })).filter((d) => d.missing > 0);
-
+  // Demanda por função e "quem está findando" vivem no QueueSearchersPanel (acima).
+  // Aqui a lista de funções é só SELEÇÃO (sem duplicar os números do painel).
   return (
     <>
       <div className="flex-1 overflow-y-auto p-3 space-y-2">
@@ -562,15 +577,11 @@ function MenuView({
           <ul className="space-y-1">
             {ROLES.map((r) => {
               const on = roles.has(r.id);
-              const count = demand[r.id];
-              // Função carente: ainda faltam jogadores pra fechar composição. Vira nudge.
-              const needed = count < ROLE_TARGET;
               return (
                 <li key={r.id}>
                   <button
                     type="button"
                     onClick={() => toggleRole(r.id)}
-                    title={t("roleDemandTitle", { count })}
                     className={`flex w-full items-center gap-2.5 rounded-[var(--radius-md)] border px-2.5 py-1.5 text-left transition-colors ${
                       on ? "border-brand-primary bg-brand-primary/10" : "border-border-subtle bg-bg-elevated hover:border-brand-primary/50"
                     }`}
@@ -585,17 +596,8 @@ function MenuView({
                       aria-hidden="true"
                     />
                     <span className="flex-1 truncate font-body text-sm text-text-body">{t(r.key)}</span>
-                    {/* "precisa de você": só quando carente e o jogador ainda não marcou. */}
-                    {needed && !on && (
-                      <span className="shrink-0 font-display text-[0.65rem] font-bold uppercase tracking-wide text-gold">
-                        {t("needYouHere")}
-                      </span>
-                    )}
-                    {/* Demanda atual da função (verde = suprida, dourado = falta gente). */}
-                    <span className={`flex shrink-0 items-center gap-1 font-display text-sm font-bold tabular-nums ${needed ? "text-gold" : "text-play-primary"}`}>
-                      <Users size={12} aria-hidden="true" />
-                      {count}
-                    </span>
+                    {/* Marca de selecionado (a demanda vive no painel acima). */}
+                    {on && <Check size={15} className="shrink-0 text-brand-primary" aria-hidden="true" />}
                   </button>
                 </li>
               );
@@ -611,28 +613,8 @@ function MenuView({
               <option key={m.id} value={m.id}>{t(m.key)}</option>
             ))}
           </select>
-          {/* Falta pra formar (nudge de composição) — ao vivo. */}
-          <div className="mt-2.5 space-y-1">
-            {deficits.length === 0 ? (
-                <p className="flex items-center gap-1.5 font-body text-xs text-play-primary">
-                  <span className="inline-block size-1.5 rounded-full bg-play-primary" aria-hidden="true" />
-                  {t("compositionReady")}
-                </p>
-              ) : (
-                <p className="font-body text-xs text-text-muted">
-                  <span className="font-semibold text-gold">{t("missingToForm")}</span>{" "}
-                  {deficits.map((d, i) => (
-                    <span key={d.key}>
-                      {i > 0 ? ", " : ""}
-                      <span className="text-text-body">
-                        {d.missing} {t(d.key)}
-                      </span>
-                    </span>
-                  ))}
-                </p>
-              )}
-            <p className="font-body text-xs text-text-faded">{t("moreRolesFaster")}</p>
-          </div>
+          {/* Mais funções marcadas = fila mais rápida (a demanda detalhada está no painel). */}
+          <p className="mt-2.5 font-body text-xs text-text-faded">{t("moreRolesFaster")}</p>
         </Section>
 
         <Section icon={Users} title={t("salas")} subtitle={t("salasSubtitle")} active={active === "salas"} onToggle={() => setActive("salas")}>
