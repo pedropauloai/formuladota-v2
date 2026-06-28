@@ -754,6 +754,7 @@ export type Database = {
         Row: {
           joined_at: string
           lobby_id: string
+          role: string | null
           slot: number | null
           team: string
           user_id: string
@@ -761,6 +762,7 @@ export type Database = {
         Insert: {
           joined_at?: string
           lobby_id: string
+          role?: string | null
           slot?: number | null
           team: string
           user_id: string
@@ -768,6 +770,7 @@ export type Database = {
         Update: {
           joined_at?: string
           lobby_id?: string
+          role?: string | null
           slot?: number | null
           team?: string
           user_id?: string
@@ -1390,6 +1393,7 @@ export type Database = {
           hero_portrait_slug: string | null
           id: string
           is_admin: boolean
+          is_tester: boolean
           last_seen_at: string | null
           match_permissions_consumed: number
           mmr_atual: number | null
@@ -1422,6 +1426,7 @@ export type Database = {
           hero_portrait_slug?: string | null
           id: string
           is_admin?: boolean
+          is_tester?: boolean
           last_seen_at?: string | null
           match_permissions_consumed?: number
           mmr_atual?: number | null
@@ -1454,6 +1459,7 @@ export type Database = {
           hero_portrait_slug?: string | null
           id?: string
           is_admin?: boolean
+          is_tester?: boolean
           last_seen_at?: string | null
           match_permissions_consumed?: number
           mmr_atual?: number | null
@@ -1534,6 +1540,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      queue_live_stats: {
+        Row: {
+          id: string
+          roles: Json
+          updated_at: string
+          waiting_count: number
+        }
+        Insert: {
+          id?: string
+          roles?: Json
+          updated_at?: string
+          waiting_count?: number
+        }
+        Update: {
+          id?: string
+          roles?: Json
+          updated_at?: string
+          waiting_count?: number
+        }
+        Relationships: []
       }
       revenue_splits: {
         Row: {
@@ -2575,6 +2602,7 @@ export type Database = {
         Args: { p_email?: string; p_username: string }
         Returns: string
       }
+      try_form_match: { Args: { p_match_size?: number }; Returns: string }
     }
     Enums: {
       ficha_source:

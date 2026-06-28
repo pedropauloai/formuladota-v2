@@ -161,14 +161,11 @@ export async function enterQueue(input: {
 
   // Tenta FECHAR uma partida agora mesmo (auto ao juntar X). A função é SECURITY DEFINER
   // no banco: forma os 2 times por role e marca a fila como matched. Os demais jogadores
-  // que já estavam na fila descobrem via polling do getQueueStatus.
-  // (cast: try_form_match ainda não está nos tipos gerados — rodar `pnpm db:gen-types` depois)
-  const formedRes = await supabase.rpc(
-    "try_form_match" as never,
-    { p_match_size: MATCH_SIZE } as never
-  );
-  const matchedLobbyId =
-    typeof formedRes.data === "string" ? (formedRes.data as string) : null;
+  // que já estavam na fila descobrem via realtime do getQueueStatus (use-queue-status-realtime).
+  const { data: formed } = await supabase.rpc("try_form_match", {
+    p_match_size: MATCH_SIZE,
+  });
+  const matchedLobbyId = typeof formed === "string" ? formed : null;
 
   // Revalida tanto a rota dedicada (feed PROs) quanto o HUB (badges/contadores).
   revalidatePath("/ranked-com-pro");
