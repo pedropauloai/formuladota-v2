@@ -25,6 +25,7 @@ import {
   Search,
   ArrowLeft,
   Check,
+  ChevronUp,
 } from "lucide-react";
 import { signInWithDiscord } from "@/app/login/actions";
 import {
@@ -94,6 +95,8 @@ export function PlayMenu({ isVisitor, initial }: Props) {
   const [pending, startTransition] = useTransition();
   const [searching, setSearching] = useState(false);
   const [elapsed, setElapsed] = useState(0); // segundos da busca atual (contador na bottom-bar)
+  // Painel "quem está findando" aberto a partir do contador de busca (bottom-bar).
+  const [searchPanelOpen, setSearchPanelOpen] = useState(false);
   // Partida ativa do usuário (fila matched). Bloqueia nova busca e troca o botão por
   // "Voltar à partida" (navega direto pra /partida/[id] em vez de abrir o drawer).
   const [activeMatchId, setActiveMatchId] = useState<string | null>(null);
@@ -275,6 +278,28 @@ export function PlayMenu({ isVisitor, initial }: Props) {
     startTransition(async () => {
       await leaveQueue();
       setSearching(false);
+      setSearchPanelOpen(false);
+    });
+  }
+
+  // Troca de função SEM sair da fila: re-coloca o jogador buscando só pela função
+  // escolhida (enterQueue cancela a entry antiga e re-entra — sem custo de
+  // permissão por já estar na fila). Pensado pra "fechar a função que falta".
+  function switchRole(role: QueueRole) {
+    setRoles(new Set([role]));
+    startTransition(async () => {
+      const res = await enterQueue({ roles: [role], gameMode });
+      if (!res.success) {
+        setError(res.error);
+        return;
+      }
+      if (res.matchedLobbyId) {
+        setSearching(false);
+        setSearchPanelOpen(false);
+        router.push(`/partida/${res.matchedLobbyId}`);
+        return;
+      }
+      setElapsed(0); // nova entry na fila → contador recomeça
     });
   }
 
@@ -323,25 +348,53 @@ export function PlayMenu({ isVisitor, initial }: Props) {
       {/* Estado BUTTON — durante a busca vira CONTADOR + X (cancelar); senão o
           botão "Jogar Dota" (ou "Voltar à sala" se houver lobby ativo). */}
       {phase === "button" && searching && (
-        <div className="pointer-events-auto flex h-14 items-center gap-3 rounded-md border-2 border-play-primary bg-bg-deep px-6 shadow-lg shadow-[var(--color-play-primary-glow)] xl:h-16 xl:px-8 2xl:h-20">
-          <Loader2 size={22} className="animate-spin text-play-primary" aria-hidden="true" />
-          <span className="flex flex-col leading-tight">
-            <span className="font-display text-xs uppercase tracking-[0.2em] text-text-muted">
-              {t("searching")}
+        <div className="pointer-events-auto flex flex-col items-end gap-2">
+          {/* Painel "quem está findando" — abre ACIMA do contador. Reaproveita o
+              QueueSearchersPanel: vê a demanda por função e troca de função na hora
+              (clicável) pra fechar a que está faltando, sem sair da fila. */}
+          {searchPanelOpen && (
+            <div className="w-[340px] max-w-[calc(100vw-2rem)] rounded-md border border-play-primary/40 bg-bg-deep p-2.5 shadow-2xl shadow-black/70 animate-in slide-in-from-bottom-2 fade-in duration-150">
+              <QueueSearchersPanel bare onPickRole={switchRole} myRoles={Array.from(roles)} />
+            </div>
+          )}
+          <div className="flex h-14 items-center gap-3 rounded-md border-2 border-play-primary bg-bg-deep px-6 shadow-lg shadow-[var(--color-play-primary-glow)] xl:h-16 xl:px-8 2xl:h-20">
+            <Loader2 size={22} className="animate-spin text-play-primary" aria-hidden="true" />
+            <span className="flex flex-col leading-tight">
+              <span className="font-display text-xs uppercase tracking-[0.2em] text-text-muted">
+                {t("searching")}
+              </span>
+              <span className="font-display text-xl font-bold tabular-nums tracking-wider text-text-display xl:text-2xl">
+                {mmss(elapsed)}
+              </span>
             </span>
-            <span className="font-display text-xl font-bold tabular-nums tracking-wider text-text-display xl:text-2xl">
-              {mmss(elapsed)}
-            </span>
-          </span>
-          <button
-            type="button"
-            onClick={handleCancelSearch}
-            disabled={pending}
-            aria-label={t("cancelSearch")}
-            className="ml-1 rounded-sm border border-border-subtle p-2 text-text-muted transition-colors hover:border-error/50 hover:text-error disabled:opacity-60"
-          >
-            <X size={20} aria-hidden="true" />
-          </button>
+            {/* Expandir/recolher o painel da fila. */}
+            <button
+              type="button"
+              onClick={() => setSearchPanelOpen((o) => !o)}
+              aria-label={t("viewQueue")}
+              aria-expanded={searchPanelOpen}
+              className={`rounded-sm border p-2 transition-colors ${
+                searchPanelOpen
+                  ? "border-play-primary/50 text-play-primary"
+                  : "border-border-subtle text-text-muted hover:border-play-primary/50 hover:text-play-primary"
+              }`}
+            >
+              <ChevronUp
+                size={18}
+                className={`transition-transform ${searchPanelOpen ? "rotate-180" : ""}`}
+                aria-hidden="true"
+              />
+            </button>
+            <button
+              type="button"
+              onClick={handleCancelSearch}
+              disabled={pending}
+              aria-label={t("cancelSearch")}
+              className="rounded-sm border border-border-subtle p-2 text-text-muted transition-colors hover:border-error/50 hover:text-error disabled:opacity-60"
+            >
+              <X size={20} aria-hidden="true" />
+            </button>
+          </div>
         </div>
       )}
       {/* Em partida (fila matched) → "Voltar à partida": navega direto, não abre o drawer. */}
