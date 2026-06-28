@@ -10,6 +10,7 @@
 // Pedro 2026-06-03.
 
 import { useState, useEffect, useRef, useCallback, useTransition } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
@@ -36,6 +37,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { useQueueLiveStats } from "@/lib/realtime/use-queue-live-stats";
 import { useQueueStatusRealtime } from "@/lib/realtime/use-queue-status-realtime";
+import { QueueSearchersPanel } from "@/components/queue/queue-searchers-panel";
 import { PermissionQuizModal } from "@/components/quiz/permission-quiz-modal";
 import { setPlayMenuState, type PlayMenuState } from "@/lib/play-menu-preference";
 import {
@@ -156,6 +158,13 @@ export function PlayMenu({ isVisitor, initial }: Props) {
       if (!active) return;
       if (st.status === "matched" && st.matchedLobbyId) {
         setActiveMatchId(st.matchedLobbyId);
+      } else if (st.status === "waiting") {
+        // FIND PERSISTE NO REFRESH: a busca continua viva no servidor (match_queue
+        // waiting). Restaura o estado "searching" e o contador a partir de joinedAt
+        // (waitingSeconds vem do servidor) — o tempo segue de onde parou. Só o X
+        // (handleCancelSearch → leaveQueue) cancela; refresh/navegação não cancelam.
+        setElapsed(st.waitingSeconds);
+        setSearching(true);
       }
     });
     return () => {
@@ -540,6 +549,8 @@ function MenuView({
           <p className="mb-2.5 font-body text-sm leading-relaxed text-text-muted">
             {t("competitivaDesc")}
           </p>
+          {/* Painel "quem está findando" — acima da seleção de função (ao vivo). */}
+          <QueueSearchersPanel />
           {/* Atalho: marca as 5 funções de uma vez (mais flexível = fila mais rápida). */}
           <button
             type="button"
@@ -564,9 +575,15 @@ function MenuView({
                       on ? "border-brand-primary bg-brand-primary/10" : "border-border-subtle bg-bg-elevated hover:border-brand-primary/50"
                     }`}
                   >
-                    <span className={`flex size-5 shrink-0 items-center justify-center rounded-sm font-display text-sm font-bold ${on ? "bg-brand-primary text-bg-deep" : "bg-bg-surface text-text-muted"}`}>
-                      {r.pos}
-                    </span>
+                    {/* Ícone da função (pos-N, estilo dota2protracker). */}
+                    <Image
+                      src={`/dota/positions/pos-${r.pos}.png`}
+                      alt=""
+                      width={20}
+                      height={20}
+                      className="size-5 shrink-0 object-contain"
+                      aria-hidden="true"
+                    />
                     <span className="flex-1 truncate font-body text-sm text-text-body">{t(r.key)}</span>
                     {/* "precisa de você": só quando carente e o jogador ainda não marcou. */}
                     {needed && !on && (

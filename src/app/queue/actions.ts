@@ -77,6 +77,45 @@ export type QueueGameMode =
   | "random_draft"
   | "single_draft";
 
+// Quem está findando agora (painel acima da seleção de função). Vem do RPC
+// get_queue_searchers (migration 062, SECURITY DEFINER): identidade Steam + funções
+// filadas + nível/HONOR de cada waiting. Refetchado pelo realtime da fila.
+export interface QueueSearcher {
+  userId: string;
+  name: string;
+  avatar: string | null;
+  roles: QueueRole[];
+  level: number;
+  honorScore: number;
+  joinedAt: string;
+}
+
+// Linha crua do RPC (ainda fora dos tipos gerados — regenerar após aplicar a 062).
+interface QueueSearcherRow {
+  user_id: string;
+  name: string;
+  avatar: string | null;
+  roles: QueueRole[] | null;
+  level: number;
+  honor_score: number;
+  joined_at: string;
+}
+
+export async function getQueueSearchers(): Promise<QueueSearcher[]> {
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("get_queue_searchers" as never);
+  const rows = (data ?? []) as QueueSearcherRow[];
+  return rows.map((r) => ({
+    userId: r.user_id,
+    name: r.name,
+    avatar: r.avatar,
+    roles: Array.isArray(r.roles) ? r.roles : [],
+    level: r.level,
+    honorScore: r.honor_score,
+    joinedAt: r.joined_at,
+  }));
+}
+
 export type QueueResult =
   | { success: true; queueId: string; matchedLobbyId?: string | null }
   | { success: false; error: string; code?: "need_permission" };
