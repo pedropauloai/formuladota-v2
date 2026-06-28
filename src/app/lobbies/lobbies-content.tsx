@@ -7,13 +7,14 @@
 // Click seleciona (border-l brand); double-click entra direto.
 // Renderizado dentro do drawer "Jogar Dota" ou painel lateral.
 
-import { useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { RefreshCw, Plus, LogIn, Compass } from "lucide-react";
 import { CreateLobbyModal } from "./create-lobby-modal";
 import { LobbyFilters } from "./lobby-filters";
 import { Button } from "@/components/ui/button";
+import { createClient } from "@/lib/supabase/client";
 import type { LobbyListItem } from "./fetch-actions";
 
 // Modos de jogo → chave de tradução (resolve no render via t()).
@@ -50,6 +51,34 @@ export function LobbiesContent({
   const [filterMode, setFilterMode] = useState("all");
   const [filterRegion, setFilterRegion] = useState("brasil");
   const [search, setSearch] = useState("");
+  const channelId = useId();
+
+  // PUSH: salas abertas mudam (criada/encerrada/configurada) → refetcha a lista.
+  // Usa onRefresh do caller (drawer Jogar Dota) ou router.refresh (página standalone).
+  // ref pro callback: evita re-assinar quando o caller recria onRefresh por render.
+  const refreshRef = useRef<() => void>(() => {});
+  useEffect(() => {
+    refreshRef.current = onRefresh ?? (() => router.refresh());
+  }, [onRefresh, router]);
+  useEffect(() => {
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`lobbies-browser-${channelId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "lobbies",
+          filter: "status=eq.open",
+        },
+        () => refreshRef.current()
+      )
+      .subscribe();
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [channelId]);
 
   const filtered = useMemo(() => {
     return lobbies.filter((l) => {

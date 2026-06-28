@@ -9,7 +9,7 @@
 // Criar sala = popup grande centralizado. A view da sala usa um drawer MAIS LARGO.
 // Pedro 2026-06-03.
 
-import { useState, useEffect, useRef, useTransition } from "react";
+import { useState, useEffect, useRef, useCallback, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
@@ -29,12 +29,13 @@ import { signInWithDiscord } from "@/app/login/actions";
 import {
   enterQueue,
   getQueueStatus,
-  getRoleDemand,
   leaveQueue,
   type QueueRole,
   type QueueGameMode,
-  type RoleDemand,
 } from "@/app/queue/actions";
+import { createClient } from "@/lib/supabase/client";
+import { useQueueLiveStats } from "@/lib/realtime/use-queue-live-stats";
+import { useQueueStatusRealtime } from "@/lib/realtime/use-queue-status-realtime";
 import { PermissionQuizModal } from "@/components/quiz/permission-quiz-modal";
 import { setPlayMenuState, type PlayMenuState } from "@/lib/play-menu-preference";
 import {
@@ -94,6 +95,8 @@ export function PlayMenu({ isVisitor, initial }: Props) {
   // Partida ativa do usuário (fila matched). Bloqueia nova busca e troca o botão por
   // "Voltar à partida" (navega direto pra /partida/[id] em vez de abrir o drawer).
   const [activeMatchId, setActiveMatchId] = useState<string | null>(null);
+  // UUID do user logado — alimenta o realtime de status (filter user_id). null = visitante.
+  const [userId, setUserId] = useState<string | null>(null);
 
   // Salas
   const [lobbies, setLobbies] = useState<LobbyListItem[]>([]);
@@ -140,9 +143,15 @@ export function PlayMenu({ isVisitor, initial }: Props) {
 
   // Ao montar: descobre se o usuário já está em partida (fila matched) — pra mostrar
   // "Voltar à partida" mesmo que ele tenha navegado pra outra tela e voltado ao HUB.
+  // Também resolve o userId (pro realtime de status filtrar a própria entry).
   useEffect(() => {
     if (isVisitor) return;
     let active = true;
+    void createClient()
+      .auth.getUser()
+      .then(({ data }) => {
+        if (active) setUserId(data.user?.id ?? null);
+      });
     void getQueueStatus().then((st) => {
       if (!active) return;
       if (st.status === "matched" && st.matchedLobbyId) {
@@ -153,6 +162,24 @@ export function PlayMenu({ isVisitor, initial }: Props) {
       active = false;
     };
   }, [isVisitor]);
+
+  // Sincroniza o status da fila a partir do servidor: matched → redireciona;
+  // saiu da fila (cancelada) → encerra a busca. Disparado pelo realtime de status.
+  const syncQueueStatus = useCallback(async () => {
+    const st = await getQueueStatus();
+    if (st.status === "matched" && st.matchedLobbyId) {
+      setSearching(false);
+      setActiveMatchId(st.matchedLobbyId);
+      router.push(`/partida/${st.matchedLobbyId}`);
+    } else if (!st.inQueue) {
+      setSearching(false);
+    }
+  }, [router]);
+
+  // PUSH do status da própria entry (substitui o polling de 3s). Qualquer mudança
+  // na match_queue do user (partida formada via try_form_match, fila cancelada)
+  // refetcha o status. RLS self garante que só recebe push da própria linha.
+  useQueueStatusRealtime(userId, syncQueueStatus);
 
   function toggleRole(r: QueueRole) {
     setRoles((prev) => {
@@ -201,29 +228,6 @@ export function PlayMenu({ isVisitor, initial }: Props) {
       setPhase("button");
     });
   }
-
-  // Enquanto busca: polling do status. Quando a partida forma (matched), redireciona todos.
-  useEffect(() => {
-    if (!searching) return;
-    let active = true;
-    const tick = async () => {
-      const st = await getQueueStatus();
-      if (!active) return;
-      if (st.status === "matched" && st.matchedLobbyId) {
-        setSearching(false);
-        setActiveMatchId(st.matchedLobbyId);
-        router.push(`/partida/${st.matchedLobbyId}`);
-      } else if (!st.inQueue) {
-        setSearching(false);
-      }
-    };
-    void tick();
-    const iv = setInterval(tick, 3000);
-    return () => {
-      active = false;
-      clearInterval(iv);
-    };
-  }, [searching, router]);
 
   // Contador de tempo da busca (mm:ss) — o reset pra 0 acontece no handleBuscar
   // (fora do effect, pra não cair na regra react-hooks/set-state-in-effect).
@@ -520,28 +524,13 @@ function MenuView({
 }) {
   const t = useTranslations("playMenu");
 
-  // Demanda por função (waiting em match_queue). Via service client (RLS self) → POLLING
-  // leve a cada 4s, só enquanto a aba Competitiva está aberta.
-  const [demand, setDemand] = useState<RoleDemand | null>(null);
-  useEffect(() => {
-    if (active !== "competitiva") return;
-    let alive = true;
-    const tick = async () => {
-      const res = await getRoleDemand();
-      if (alive) setDemand(res.demand);
-    };
-    void tick();
-    const iv = setInterval(tick, 4000);
-    return () => {
-      alive = false;
-      clearInterval(iv);
-    };
-  }, [active]);
+  // Demanda por função AO VIVO (push via queue_live_stats — migration 061). Sem polling.
+  const { demand } = useQueueLiveStats();
 
   // O que falta pra fechar composição (cada função precisa de ROLE_TARGET jogadores).
   const deficits = ROLES.map((r) => ({
     key: r.key,
-    missing: ROLE_TARGET - (demand?.[r.id] ?? 0),
+    missing: ROLE_TARGET - demand[r.id],
   })).filter((d) => d.missing > 0);
 
   return (
@@ -562,9 +551,9 @@ function MenuView({
           <ul className="space-y-1">
             {ROLES.map((r) => {
               const on = roles.has(r.id);
-              const count = demand?.[r.id] ?? 0;
+              const count = demand[r.id];
               // Função carente: ainda faltam jogadores pra fechar composição. Vira nudge.
-              const needed = demand !== null && count < ROLE_TARGET;
+              const needed = count < ROLE_TARGET;
               return (
                 <li key={r.id}>
                   <button
@@ -586,12 +575,10 @@ function MenuView({
                       </span>
                     )}
                     {/* Demanda atual da função (verde = suprida, dourado = falta gente). */}
-                    {demand !== null && (
-                      <span className={`flex shrink-0 items-center gap-1 font-display text-sm font-bold tabular-nums ${needed ? "text-gold" : "text-play-primary"}`}>
-                        <Users size={12} aria-hidden="true" />
-                        {count}
-                      </span>
-                    )}
+                    <span className={`flex shrink-0 items-center gap-1 font-display text-sm font-bold tabular-nums ${needed ? "text-gold" : "text-play-primary"}`}>
+                      <Users size={12} aria-hidden="true" />
+                      {count}
+                    </span>
                   </button>
                 </li>
               );
@@ -607,10 +594,9 @@ function MenuView({
               <option key={m.id} value={m.id}>{t(m.key)}</option>
             ))}
           </select>
-          {/* Falta pra formar (nudge de composição). Só aparece após a 1ª leitura. */}
-          {demand !== null && (
-            <div className="mt-2.5 space-y-1">
-              {deficits.length === 0 ? (
+          {/* Falta pra formar (nudge de composição) — ao vivo. */}
+          <div className="mt-2.5 space-y-1">
+            {deficits.length === 0 ? (
                 <p className="flex items-center gap-1.5 font-body text-xs text-play-primary">
                   <span className="inline-block size-1.5 rounded-full bg-play-primary" aria-hidden="true" />
                   {t("compositionReady")}
@@ -628,9 +614,8 @@ function MenuView({
                   ))}
                 </p>
               )}
-              <p className="font-body text-xs text-text-faded">{t("moreRolesFaster")}</p>
-            </div>
-          )}
+            <p className="font-body text-xs text-text-faded">{t("moreRolesFaster")}</p>
+          </div>
         </Section>
 
         <Section icon={Users} title={t("salas")} subtitle={t("salasSubtitle")} active={active === "salas"} onToggle={() => setActive("salas")}>

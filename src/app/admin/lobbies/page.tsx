@@ -11,6 +11,7 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { Card } from "@/components/ui/card";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { CloseLobbyModal } from "./close-lobby-modal";
+import { AdminLobbiesLive } from "./live-refresh";
 
 export const metadata = { title: "Admin Lobbies — FORMULADOTA" };
 export const revalidate = 0;
@@ -82,6 +83,8 @@ export default async function AdminLobbiesPage() {
 
   return (
     <div className="p-8 space-y-6">
+      {/* Assina lobbies postgres_changes → router.refresh ao vivo (sem polling). */}
+      <AdminLobbiesLive />
       <header>
         <p className="font-sans text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
           Lobbies
