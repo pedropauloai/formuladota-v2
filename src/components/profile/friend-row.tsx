@@ -13,7 +13,7 @@
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { UserMinus, X, Check, Swords, Loader2 } from "lucide-react";
-import { UserAvatar } from "@/components/ui/avatar";
+import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { UserHoverCard } from "@/components/profile/user-hover-card";
 import { removeFriend, acceptFriendRequest, rejectFriendRequest } from "@/actions/friends";
 import { createLobbyInvite } from "@/actions/lobby-invites";
@@ -106,13 +106,23 @@ export function FriendRow({ friend, presenceStatus, currentLobbyId = null }: Pro
         online={isOnline}
         className="flex min-w-0 flex-1 items-center gap-2"
       >
-        <UserAvatar
-          src={friend.friendAvatarUrl ?? undefined}
-          alt={t("avatarAlt", { name })}
-          fallback={name.slice(0, 2).toUpperCase()}
-          size="sm"
-          presence={isOnline ? (presenceStatus as PresenceStatus) : "offline"}
-        />
+        {/* Avatar com anel de XP + badge de nível + dot de presença. */}
+        <span className="relative shrink-0">
+          <XpAvatarRing
+            src={friend.friendAvatarUrl ?? undefined}
+            alt={t("avatarAlt", { name })}
+            fallback={name.slice(0, 2).toUpperCase()}
+            level={friend.friendLevel}
+            pct={0}
+            size={28}
+          />
+          <span
+            className={`absolute right-0 top-0 size-2.5 rounded-full border-2 border-bg-deep ${
+              isOnline ? "bg-success" : "bg-text-faded"
+            }`}
+            aria-hidden="true"
+          />
+        </span>
         <div className="flex-1 min-w-0">
           <p
             className={`font-display text-[13px] font-semibold truncate ${isOnline ? "text-text-body" : "text-text-faded"}`}

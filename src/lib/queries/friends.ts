@@ -20,6 +20,8 @@ export interface FriendListEntry {
   friendUserId: string;
   friendUsername: string | null;
   friendAvatarUrl: string | null;
+  /** Nível da conta (0-30) — pro XpAvatarRing. */
+  friendLevel: number;
   friendLastSeenAt: string | null;
   friendStatusMessage: string | null;
   // direction: "outgoing" se eu fiz o pedido; "incoming" se recebi
@@ -81,11 +83,19 @@ export async function getFriendsPanel(): Promise<FriendsPanelData> {
     .filter((r) => r.status === "accepted")
     .map(friendIdOf);
 
-  // Identidade Steam (batch público) + contexto ao vivo (batch) em paralelo.
-  const [steamMap, contextMap] = await Promise.all([
-    getSteamIdentityMap(supabase, friendships.map(friendIdOf)),
+  const friendIds = friendships.map(friendIdOf);
+
+  // Identidade Steam (batch público) + contexto ao vivo + níveis (batch) em paralelo.
+  const [steamMap, contextMap, levelsRes] = await Promise.all([
+    getSteamIdentityMap(supabase, friendIds),
     getFriendContextMap(supabase, acceptedIds),
+    friendIds.length
+      ? supabase.from("user_levels").select("user_id, current_level").in("user_id", friendIds)
+      : Promise.resolve({ data: [] as { user_id: string; current_level: number }[] }),
   ]);
+  const levelMap = new Map(
+    (levelsRes.data ?? []).map((l) => [l.user_id, l.current_level])
+  );
 
   const friends: FriendListEntry[] = [];
   const pending: FriendListEntry[] = [];
@@ -111,6 +121,7 @@ export async function getFriendsPanel(): Promise<FriendsPanelData> {
       friendUserId: friendId,
       friendUsername: displayName(src),
       friendAvatarUrl: displayAvatar(src),
+      friendLevel: levelMap.get(friendId) ?? 1,
       friendLastSeenAt: prof?.last_seen_at ?? null,
       friendStatusMessage: prof?.status_message ?? null,
       direction,

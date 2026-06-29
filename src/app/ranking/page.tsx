@@ -13,7 +13,7 @@ import { ClientShell } from "@/components/client-shell/shell";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
-import { UserAvatar } from "@/components/ui/avatar";
+import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { UserHoverCard } from "@/components/profile/user-hover-card";
 import { DotaRankMedal, type DotaRank } from "@/components/ui/dota-rank-medal";
 import { SeasonBanner } from "@/components/patterns/season-banner";
@@ -30,6 +30,7 @@ interface RankRow {
   user_id: string;
   username: string | null;
   avatar_url: string | null;
+  level: number;
   mmr: number;
   vitorias: number;
   derrotas: number;
@@ -140,7 +141,7 @@ export default async function RankingPage(props: {
   // Hidrata profiles (Discord) + steam_links (identidade canônica) em batch.
   // Nick/avatar exibidos seguem a lib/identity: Steam > Discord.
   const allUserIds = Array.from(new Set([...top3List.map((r) => r.user_id), ...rows.map((r) => r.user_id)]));
-  const [{ data: profiles }, steamMap] = await Promise.all([
+  const [{ data: profiles }, steamMap, levelsRes] = await Promise.all([
     allUserIds.length > 0
       ? supabase
           .from("profiles")
@@ -148,9 +149,13 @@ export default async function RankingPage(props: {
           .in("id", allUserIds)
       : Promise.resolve({ data: null }),
     getSteamIdentityMap(supabase, allUserIds),
+    allUserIds.length > 0
+      ? supabase.from("user_levels").select("user_id, current_level").in("user_id", allUserIds)
+      : Promise.resolve({ data: [] as { user_id: string; current_level: number }[] }),
   ]);
 
   const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
+  const levelMap = new Map((levelsRes.data ?? []).map((l) => [l.user_id, l.current_level]));
   const hydrate = (r: typeof rows[number]): RankRow => {
     const p = profileMap.get(r.user_id);
     const ident = resolveIdentity(steamMap, r.user_id, p?.username, p?.avatar_url);
@@ -158,6 +163,7 @@ export default async function RankingPage(props: {
       ...r,
       username: ident.name,
       avatar_url: ident.avatarUrl,
+      level: levelMap.get(r.user_id) ?? 1,
     };
   };
 
@@ -271,12 +277,13 @@ function TopCard({ row, position }: { row: RankRow; position: number }) {
           <span className="font-display text-2xl tabular-nums text-gold-bright">#{position}</span>
         </div>
         <UserHoverCard userId={row.user_id} className="flex items-center gap-3">
-          <UserAvatar
+          <XpAvatarRing
             src={row.avatar_url ?? undefined}
             alt={row.username ?? t("anonymous")}
             fallback={(row.username ?? "??").slice(0, 2)}
-            size="lg"
-            ringColor={isChampion ? "brand" : null}
+            level={row.level}
+            pct={0}
+            size={56}
           />
           <div className="min-w-0">
             <p className="font-display text-base uppercase tracking-wide text-text-display truncate">
@@ -310,11 +317,13 @@ function RankingRow({ row, position }: { row: RankRow; position: number }) {
       {/* Posição no ranking = valor/progresso → GOLD (Pedro 2026-06-11) */}
       <span className="font-display text-lg 2xl:text-xl w-12 tabular-nums text-gold">#{position}</span>
       <UserHoverCard userId={row.user_id} className="flex min-w-0 flex-1 items-center gap-4">
-        <UserAvatar
+        <XpAvatarRing
           src={row.avatar_url ?? undefined}
           alt={row.username ?? t("anonymous")}
           fallback={(row.username ?? "??").slice(0, 2)}
-          size="md"
+          level={row.level}
+          pct={0}
+          size={40}
         />
         <div className="flex-1 min-w-0">
           <p className="font-body text-sm 2xl:text-base font-medium text-text-display truncate hover:text-brand-primary transition-colors">
