@@ -132,6 +132,7 @@
     "searchersMissing": "needs {count}",
     "searchersReady": "ready",
     "searchersNeeded": "needed",
+    "searchersToForm": "Slots filled",
     "yourRole": "Your role:",
     "youTag": "you",
     "viewQueue": "View queue",

@@ -13,7 +13,7 @@
 // — 5 linhas numéricas fixas (nudge) + stack único deduplicado. Dados do RPC
 // get_queue_searchers (só ALIVE); refetch via realtime de queue_live_stats.
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Users, ArrowRight, Check } from "lucide-react";
@@ -37,8 +37,40 @@ const ROLES: { id: QueueRole; pos: string; key: string }[] = [
 ];
 
 const ROLE_TARGET = 2; // jogadores por função pra fechar partida cheia
+const ROLE_IDS: QueueRole[] = ROLES.map((r) => r.id);
 const STACK_MAX = 6; // avatares no stack antes do "+N"
 const LIST_MAX = 24; // jogadores no popover antes do "+N mais"
+
+// Composição REAL (igual ao try_form_match): cada jogador ocupa UMA vaga, então um
+// flexível (todas as funções) conta só 1x — não infla toda função pra "2/2". Mais
+// restritos primeiro; o flexível vai pra função mais carente (distribui melhor).
+function computeComposition(searchers: { roles: QueueRole[] }[]): {
+  filled: Record<QueueRole, number>;
+  totalAssigned: number;
+} {
+  const remaining: Record<QueueRole, number> = {
+    safelane: ROLE_TARGET, midlane: ROLE_TARGET, offlane: ROLE_TARGET,
+    support: ROLE_TARGET, support_dedicated: ROLE_TARGET,
+  };
+  const filled: Record<QueueRole, number> = {
+    safelane: 0, midlane: 0, offlane: 0, support: 0, support_dedicated: 0,
+  };
+  const sorted = [...searchers].sort((a, b) => a.roles.length - b.roles.length);
+  for (const s of sorted) {
+    let best: QueueRole | null = null;
+    for (const role of ROLE_IDS) {
+      if (s.roles.includes(role) && remaining[role] > 0) {
+        if (best === null || remaining[role] > remaining[best]) best = role;
+      }
+    }
+    if (best) {
+      remaining[best] -= 1;
+      filled[best] += 1;
+    }
+  }
+  const totalAssigned = ROLE_IDS.reduce((sum, r) => sum + filled[r], 0);
+  return { filled, totalAssigned };
+}
 
 interface Props {
   /** Sem chrome de card e stack estático (contexto do contador de busca). */
@@ -106,6 +138,8 @@ export function QueueSearchersPanel({
   }, [pinned]);
 
   const total = searchers.length;
+  // Composição real (vagas ocupadas, flexível conta 1x) — base da demanda por função.
+  const comp = useMemo(() => computeComposition(searchers), [searchers]);
   const showPopover = (open || pinned) && total > 0;
   const rootCls = bare
     ? ""
@@ -172,10 +206,24 @@ export function QueueSearchersPanel({
         </div>
       )}
 
-      {/* DEMANDA por função — nudge fixo (clicável no contexto de busca). */}
-      <ul className="mt-2.5 space-y-1">
+      {/* Quantos JOGADORES (distintos) faltam pra fechar os 10 — flexível conta 1x. */}
+      <div className="mt-2.5 flex items-center justify-between border-t border-border-subtle/60 pt-2">
+        <span className="font-display text-xs font-bold uppercase tracking-wide text-text-muted">
+          {t("searchersToForm")}
+        </span>
+        <span
+          className={`font-display text-sm font-bold tabular-nums ${
+            comp.totalAssigned >= 10 ? "text-play-primary" : "text-gold"
+          }`}
+        >
+          {comp.totalAssigned}/10
+        </span>
+      </div>
+
+      {/* DEMANDA por função — vagas REAIS preenchidas (nudge; clicável na busca). */}
+      <ul className="mt-2 space-y-1">
         {ROLES.map((r) => {
-          const count = searchers.filter((s) => s.roles.includes(r.id)).length;
+          const count = comp.filled[r.id]; // vagas preenchidas (0..2), flexível conta 1x
           const needed = count < ROLE_TARGET;
           const mine = myRoles?.includes(r.id) ?? false;
           const accent = needed ? "text-gold" : "text-play-primary";
