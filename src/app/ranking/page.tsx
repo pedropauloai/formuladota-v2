@@ -14,6 +14,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { UserAvatar } from "@/components/ui/avatar";
+import { UserHoverCard } from "@/components/profile/user-hover-card";
 import { DotaRankMedal, type DotaRank } from "@/components/ui/dota-rank-medal";
 import { SeasonBanner } from "@/components/patterns/season-banner";
 
@@ -269,7 +270,7 @@ function TopCard({ row, position }: { row: RankRow; position: number }) {
           {/* Posição top 3 = valor/progresso → gold-bright (Pedro 2026-06-11) */}
           <span className="font-display text-2xl tabular-nums text-gold-bright">#{position}</span>
         </div>
-        <div className="flex items-center gap-3">
+        <UserHoverCard userId={row.user_id} className="flex items-center gap-3">
           <UserAvatar
             src={row.avatar_url ?? undefined}
             alt={row.username ?? t("anonymous")}
@@ -285,7 +286,7 @@ function TopCard({ row, position }: { row: RankRow; position: number }) {
               {row.mmr} <span className="text-gold-muted">MMR</span>
             </p>
           </div>
-        </div>
+        </UserHoverCard>
         <div className="flex items-center justify-between border-t border-border-subtle pt-3">
           <DotaRankMedal rank={dotaRank} size="sm" showLabel />
           <span className="font-display text-sm 2xl:text-base font-semibold text-text-body">
@@ -308,24 +309,26 @@ function RankingRow({ row, position }: { row: RankRow; position: number }) {
     <li className="flex items-center gap-4 rounded-md border border-border-subtle bg-bg-base p-4 transition-colors hover:border-border-brand">
       {/* Posição no ranking = valor/progresso → GOLD (Pedro 2026-06-11) */}
       <span className="font-display text-lg 2xl:text-xl w-12 tabular-nums text-gold">#{position}</span>
-      <UserAvatar
-        src={row.avatar_url ?? undefined}
-        alt={row.username ?? t("anonymous")}
-        fallback={(row.username ?? "??").slice(0, 2)}
-        size="md"
-      />
-      <div className="flex-1 min-w-0">
-        <p className="font-body text-sm 2xl:text-base font-medium text-text-display truncate">
-          {row.username ?? t("anonymous")}
-        </p>
-        <p className="font-display text-sm 2xl:text-base font-semibold text-text-body">
-          {t("matchesRecord", {
-            matches: row.partidas_total,
-            wins: row.vitorias,
-            losses: row.derrotas,
-          })}
-        </p>
-      </div>
+      <UserHoverCard userId={row.user_id} className="flex min-w-0 flex-1 items-center gap-4">
+        <UserAvatar
+          src={row.avatar_url ?? undefined}
+          alt={row.username ?? t("anonymous")}
+          fallback={(row.username ?? "??").slice(0, 2)}
+          size="md"
+        />
+        <div className="flex-1 min-w-0">
+          <p className="font-body text-sm 2xl:text-base font-medium text-text-display truncate hover:text-brand-primary transition-colors">
+            {row.username ?? t("anonymous")}
+          </p>
+          <p className="font-display text-sm 2xl:text-base font-semibold text-text-body">
+            {t("matchesRecord", {
+              matches: row.partidas_total,
+              wins: row.vitorias,
+              losses: row.derrotas,
+            })}
+          </p>
+        </div>
+      </UserHoverCard>
       <DotaRankMedal rank={dotaRank} size="sm" />
       <span className="font-mono text-sm 2xl:text-base tabular-nums text-gold w-16 text-right">{row.mmr}</span>
     </li>

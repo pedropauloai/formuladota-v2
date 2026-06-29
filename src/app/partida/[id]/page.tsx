@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ClientShell } from "@/components/client-shell/shell";
 import { MatchPasswordCard } from "./match-password-card";
 import { DiscardMatchButton } from "@/components/match/discard-match-button";
+import { UserHoverCard } from "@/components/profile/user-hover-card";
 
 export const dynamic = "force-dynamic";
 
@@ -168,21 +169,26 @@ function TeamColumn({
               <span className="flex size-6 shrink-0 items-center justify-center rounded-sm bg-bg-elevated font-display text-sm font-bold text-text-muted">
                 {meta?.pos ?? "-"}
               </span>
-              {p.avatar ? (
-                <Image
-                  src={p.avatar}
-                  alt=""
-                  width={28}
-                  height={28}
-                  className="size-7 rounded-sm object-cover"
-                  unoptimized
-                />
-              ) : (
-                <span className="size-7 rounded-sm bg-bg-elevated" aria-hidden="true" />
-              )}
-              <span className="flex-1 truncate font-body text-sm text-text-body">
-                {p.name}
-              </span>
+              <UserHoverCard
+                userId={p.user_id}
+                className="flex min-w-0 flex-1 items-center gap-3"
+              >
+                {p.avatar ? (
+                  <Image
+                    src={p.avatar}
+                    alt=""
+                    width={28}
+                    height={28}
+                    className="size-7 rounded-sm object-cover"
+                    unoptimized
+                  />
+                ) : (
+                  <span className="size-7 rounded-sm bg-bg-elevated" aria-hidden="true" />
+                )}
+                <span className="flex-1 truncate font-body text-sm text-text-body hover:text-text-display">
+                  {p.name}
+                </span>
+              </UserHoverCard>
               <span className="font-display text-xs uppercase tracking-wide text-text-muted">
                 {meta?.name ?? "—"}
               </span>

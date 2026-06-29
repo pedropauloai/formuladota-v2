@@ -14,6 +14,7 @@ import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { UserMinus, X, Check, Swords, Loader2 } from "lucide-react";
 import { UserAvatar } from "@/components/ui/avatar";
+import { UserHoverCard } from "@/components/profile/user-hover-card";
 import { removeFriend, acceptFriendRequest, rejectFriendRequest } from "@/actions/friends";
 import { createLobbyInvite } from "@/actions/lobby-invites";
 import { formatLastSeen, type PresenceStatus } from "@/lib/realtime/presence";
@@ -100,21 +101,27 @@ export function FriendRow({ friend, presenceStatus, currentLobbyId = null }: Pro
       role="listitem"
       className={`group flex items-center gap-2 rounded px-2 py-1.5 transition-colors hover:bg-bg-elevated/60 ${isOnline ? "" : "opacity-60"}`}
     >
-      <UserAvatar
-        src={friend.friendAvatarUrl ?? undefined}
-        alt={t("avatarAlt", { name })}
-        fallback={name.slice(0, 2).toUpperCase()}
-        size="sm"
-        presence={isOnline ? (presenceStatus as PresenceStatus) : "offline"}
-      />
-      <div className="flex-1 min-w-0">
-        <p
-          className={`font-display text-[13px] font-semibold truncate ${isOnline ? "text-text-body" : "text-text-faded"}`}
-        >
-          {name}
-        </p>
-        <StatusLine friend={friend} presenceStatus={presenceStatus} isOnline={isOnline} />
-      </div>
+      <UserHoverCard
+        userId={friend.friendUserId}
+        online={isOnline}
+        className="flex min-w-0 flex-1 items-center gap-2"
+      >
+        <UserAvatar
+          src={friend.friendAvatarUrl ?? undefined}
+          alt={t("avatarAlt", { name })}
+          fallback={name.slice(0, 2).toUpperCase()}
+          size="sm"
+          presence={isOnline ? (presenceStatus as PresenceStatus) : "offline"}
+        />
+        <div className="flex-1 min-w-0">
+          <p
+            className={`font-display text-[13px] font-semibold truncate ${isOnline ? "text-text-body" : "text-text-faded"}`}
+          >
+            {name}
+          </p>
+          <StatusLine friend={friend} presenceStatus={presenceStatus} isOnline={isOnline} />
+        </div>
+      </UserHoverCard>
 
       {canInvite && (
         <button

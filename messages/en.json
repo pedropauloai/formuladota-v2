@@ -86,6 +86,15 @@
     "adminUnit": "admin",
     "fichaUnit": "{count, plural, =1 {token} other {tokens}}"
   },
+  "hoverCard": {
+    "level": "Level {level}",
+    "signatureHeroes": "Heroes",
+    "message": "Message",
+    "soon": "soon",
+    "viewProfile": "View profile",
+    "online": "Online",
+    "offline": "Offline"
+  },
   "playMenu": {
     "play": "Play Dota",
     "backToRoom": "Back to room",

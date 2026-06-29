@@ -24,6 +24,7 @@ import {
   type QueueRole,
 } from "@/app/queue/actions";
 import { HonorRankMedal } from "@/components/ui/honor-rank-medal";
+import { UserHoverCard } from "@/components/profile/user-hover-card";
 import { getTierForLevel } from "@/lib/levels";
 
 const ROLES: { id: QueueRole; pos: string; key: string }[] = [
@@ -127,8 +128,9 @@ export function QueueSearchersPanel({
         <p className="font-body text-xs text-text-faded">{t("searchersEmpty")}</p>
       ) : bare ? (
         // Contexto do contador: stack estático (o painel já é um popover).
+        // hoverable → cada avatar abre o hover card (não está dentro de um botão).
         <div className="flex items-center gap-2 px-1 py-1">
-          <AvatarStack searchers={searchers} />
+          <AvatarStack searchers={searchers} hoverable />
         </div>
       ) : (
         // Contexto do menu: stack interativo com popover.
@@ -267,31 +269,47 @@ export function QueueSearchersPanel({
 
 /* ---------------- helpers ---------------- */
 
-function AvatarStack({ searchers }: { searchers: QueueSearcher[] }) {
+function AvatarStack({
+  searchers,
+  hoverable = false,
+}: {
+  searchers: QueueSearcher[];
+  /** Envolve cada avatar num UserHoverCard. NÃO usar dentro de <button>. */
+  hoverable?: boolean;
+}) {
   const extra = searchers.length - STACK_MAX;
   return (
     <>
       <span className="flex">
-        {searchers.slice(0, STACK_MAX).map((s, i) => (
-          <span
-            key={s.userId}
-            className="rounded-sm ring-1 ring-bg-deep"
-            style={{ marginLeft: i === 0 ? 0 : -6 }}
-          >
-            {s.avatar ? (
-              <Image
-                src={s.avatar}
-                alt=""
-                width={24}
-                height={24}
-                className="size-6 rounded-sm object-cover"
-                unoptimized
-              />
-            ) : (
-              <span className="block size-6 rounded-sm bg-bg-elevated" aria-hidden="true" />
-            )}
-          </span>
-        ))}
+        {searchers.slice(0, STACK_MAX).map((s, i) => {
+          const img = s.avatar ? (
+            <Image
+              src={s.avatar}
+              alt=""
+              width={24}
+              height={24}
+              className="size-6 rounded-sm object-cover"
+              unoptimized
+            />
+          ) : (
+            <span className="block size-6 rounded-sm bg-bg-elevated" aria-hidden="true" />
+          );
+          return (
+            <span
+              key={s.userId}
+              className="rounded-sm ring-1 ring-bg-deep"
+              style={{ marginLeft: i === 0 ? 0 : -6 }}
+            >
+              {hoverable ? (
+                <UserHoverCard userId={s.userId} className="block">
+                  {img}
+                </UserHoverCard>
+              ) : (
+                img
+              )}
+            </span>
+          );
+        })}
       </span>
       {extra > 0 && (
         <span className="font-display text-xs font-bold tabular-nums text-text-muted">
@@ -306,21 +324,26 @@ function SearcherRow({ s }: { s: QueueSearcher }) {
   const t = useTranslations("playMenu");
   return (
     <li className="flex items-center gap-2 rounded-sm border border-border-subtle/60 bg-bg-surface px-2 py-1">
-      {s.avatar ? (
-        <Image
-          src={s.avatar}
-          alt=""
-          width={22}
-          height={22}
-          className="size-[22px] shrink-0 rounded-sm object-cover"
-          unoptimized
-        />
-      ) : (
-        <span className="size-[22px] shrink-0 rounded-sm bg-bg-elevated" aria-hidden="true" />
-      )}
-      <span className="min-w-0 flex-1 truncate font-body text-xs text-text-body">
-        {s.name}
-      </span>
+      <UserHoverCard
+        userId={s.userId}
+        className="flex min-w-0 flex-1 items-center gap-2"
+      >
+        {s.avatar ? (
+          <Image
+            src={s.avatar}
+            alt=""
+            width={22}
+            height={22}
+            className="size-[22px] shrink-0 rounded-sm object-cover"
+            unoptimized
+          />
+        ) : (
+          <span className="size-[22px] shrink-0 rounded-sm bg-bg-elevated" aria-hidden="true" />
+        )}
+        <span className="min-w-0 flex-1 truncate font-body text-xs text-text-body hover:text-text-display">
+          {s.name}
+        </span>
+      </UserHoverCard>
       <span className="flex shrink-0 items-center gap-0.5">
         {ROLES.filter((r) => s.roles.includes(r.id)).map((r) => (
           <Image
