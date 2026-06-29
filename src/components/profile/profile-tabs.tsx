@@ -40,9 +40,19 @@ interface Props {
   activeTab: ProfileTab;
   /** Avatar URL — exibido como miniatura 1:1 ao lado de "Perfil" */
   avatarUrl?: string | null;
+  /** Base das rotas das abas. @default "/me" (perfil próprio). Perfil público
+   *  de outro user passa "/perfil/u/[id]" — navegação coerente. */
+  basePath?: string;
+  /** Abas a exibir. @default VALID_TABS. Perfil público omite as self-only. */
+  tabs?: ProfileTab[];
 }
 
-export function ProfileTabs({ activeTab, avatarUrl }: Props) {
+export function ProfileTabs({
+  activeTab,
+  avatarUrl,
+  basePath = "/me",
+  tabs = VALID_TABS,
+}: Props) {
   const t = useTranslations("perfil");
   return (
     <nav
@@ -50,7 +60,7 @@ export function ProfileTabs({ activeTab, avatarUrl }: Props) {
       aria-label={t("tabsNavLabel")}
       className="flex items-center gap-3"
     >
-      {VALID_TABS.map((tab, index) => {
+      {tabs.map((tab, index) => {
         const isActive = activeTab === tab;
         const isFirst = index === 0;
         return (
@@ -65,8 +75,8 @@ export function ProfileTabs({ activeTab, avatarUrl }: Props) {
               </span>
             )}
             <Link
-              // Tab "perfil" usa URL limpa /me (sem query param) — default (D-10)
-              href={tab === "perfil" ? "/me" : `/me?tab=${tab}`}
+              // Tab "perfil" usa a URL base limpa (sem query param) — default (D-10)
+              href={tab === "perfil" ? basePath : `${basePath}?tab=${tab}`}
               role="tab"
               aria-selected={isActive}
               className={`

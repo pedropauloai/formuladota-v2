@@ -2567,6 +2567,27 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_public_profile: {
+        Args: { p_user_id: string }
+        Returns: {
+          avatar_custom_url: string
+          avatar_url: string
+          behavior_status: string
+          derrotas: number
+          doctrine_accepted_at: string
+          favorite_heroes: Json
+          hero_portrait_slug: string
+          last_seen_at: string
+          mmr: number
+          partidas_total: number
+          status_message: string
+          steam_avatar: string
+          steam_id_64: string
+          steam_persona: string
+          username: string
+          vitorias: number
+        }[]
+      }
       get_queue_searchers: {
         Args: never
         Returns: {

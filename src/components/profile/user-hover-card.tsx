@@ -184,15 +184,13 @@ function Body({
             ({t("soon")})
           </span>
         </button>
-        {data.steamId64 && (
-          <Link
-            href={`/perfil/${data.steamId64}`}
-            className="flex w-full items-center justify-center gap-1.5 rounded-[var(--radius-md)] border border-brand-primary/40 bg-brand-primary/10 px-2.5 py-1.5 font-display text-sm font-semibold uppercase tracking-wide text-brand-primary transition-colors hover:bg-brand-primary/20"
-          >
-            <ExternalLink size={14} aria-hidden="true" />
-            {t("viewProfile")}
-          </Link>
-        )}
+        <Link
+          href={`/perfil/u/${data.userId}`}
+          className="flex w-full items-center justify-center gap-1.5 rounded-[var(--radius-md)] border border-brand-primary/40 bg-brand-primary/10 px-2.5 py-1.5 font-display text-sm font-semibold uppercase tracking-wide text-brand-primary transition-colors hover:bg-brand-primary/20"
+        >
+          <ExternalLink size={14} aria-hidden="true" />
+          {t("viewProfile")}
+        </Link>
       </div>
     </div>
   );

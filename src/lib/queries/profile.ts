@@ -123,3 +123,56 @@ export async function getProfileForMe(): Promise<ProfileForMe | null> {
     dashboardLayout: parseDashboardLayout(profile?.dashboard_layout),
   };
 }
+
+/**
+ * Mesma forma do getProfileForMe, mas pra QUALQUER user (perfil público).
+ * Lê só campos públicos via RPC get_public_profile (migration 065, SECURITY
+ * DEFINER) — profiles tem RLS self. dashboardLayout cai no DEFAULT (sem edição
+ * pública). Retorna null se o user não existir.
+ */
+export async function getPublicProfile(
+  userId: string
+): Promise<ProfileForMe | null> {
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("get_public_profile", {
+    p_user_id: userId,
+  });
+  const r = (data ?? [])[0];
+  if (!r) return null;
+
+  const identitySrc = {
+    steamPersona: r.steam_persona,
+    steamAvatar: r.steam_avatar,
+    discordUsername: r.username,
+    discordAvatar: r.avatar_custom_url ?? r.avatar_url,
+  };
+
+  const heroPortraitSlug = r.hero_portrait_slug ?? null;
+  const heroPortraitData = heroPortraitSlug ? getHeroBySlug(heroPortraitSlug) : null;
+  const favSlugs = Array.isArray(r.favorite_heroes)
+    ? (r.favorite_heroes as unknown[]).filter((s): s is string => typeof s === "string")
+    : [];
+  const favoriteHeroes = favSlugs
+    .map((slug) => getHeroBySlug(slug))
+    .filter((h): h is HeroData => h !== null);
+
+  return {
+    userId,
+    username: displayName(identitySrc),
+    avatarUrl: displayAvatar(identitySrc),
+    statusMessage: r.status_message ?? null,
+    heroPortraitSlug,
+    heroPortraitData,
+    favoriteHeroes,
+    behaviorStatus: r.behavior_status ?? null,
+    doctrineAcceptedAt: r.doctrine_accepted_at ?? null,
+    lastSeenAt: r.last_seen_at ?? null,
+    steamPersona: r.steam_persona ?? null,
+    steamId64: r.steam_id_64 ?? null,
+    mmr: r.mmr ?? null,
+    partidas: r.partidas_total ?? null,
+    vitorias: r.vitorias ?? null,
+    derrotas: r.derrotas ?? null,
+    dashboardLayout: parseDashboardLayout(null),
+  };
+}

@@ -1,28 +1,97 @@
-// /perfil/u/[userId] — resolve userId → perfil público canônico (/perfil/[steamid64]).
-//
-// Os componentes da plataforma (fila, partida, amigos…) só conhecem o userId, mas
-// o perfil público completo é roteado por steam_id_64. Esta rota faz a ponte: lê
-// o steam_links (SELECT público) e redireciona. Sem Steam vinculada → 404 (o
-// perfil público depende da identidade Steam; anti-anonimato).
+// /perfil/u/[userId] — perfil PÚBLICO de qualquer membro, na MESMA estrutura do
+// /me (ProfilePage com abas). Navegação coerente estilo client Dota 2: o perfil
+// que vejo dos outros é igual ao meu, read-only. Dados públicos via getPublicProfile
+// (RPC 065). O próprio user é redirecionado pro /me canônico.
 
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
+import { ClientShell } from "@/components/client-shell/shell";
+import { ProfilePage } from "@/components/profile/profile-page";
+import type { ProfileTab } from "@/components/profile/profile-tabs";
+import { getPublicProfile } from "@/lib/queries/profile";
+import { getCareerStats } from "@/lib/queries/career";
+import type { DotaRank } from "@/components/ui/dota-rank-medal";
+import { legacyHonorToBand, type HonorRank } from "@/components/ui/honor-rank-medal";
 
-export default async function ProfileByUserId({
-  params,
-}: {
+// Abas públicas (Progresso é self-only — usa dados do viewer; fica fora).
+const PUBLIC_TABS: ProfileTab[] = ["perfil", "historico", "conquistas", "conduta"];
+
+function mmrToDotaRank(mmr: number | null | undefined): DotaRank {
+  if (mmr == null) return "herald";
+  if (mmr >= 9000) return "immortal-top-100";
+  if (mmr >= 6000) return "immortal";
+  if (mmr >= 5000) return "divine";
+  if (mmr >= 4000) return "ancient";
+  if (mmr >= 3000) return "legend";
+  if (mmr >= 2000) return "archon";
+  if (mmr >= 1500) return "crusader";
+  if (mmr >= 770) return "guardian";
+  return "herald";
+}
+
+function toHonorRank(tierStr: string | null | undefined): HonorRank {
+  return legacyHonorToBand(tierStr ?? "aprendiz");
+}
+
+interface PageProps {
   params: Promise<{ userId: string }>;
-}) {
-  const { userId } = await params;
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("steam_links")
-    .select("steam_id_64")
-    .eq("user_id", userId)
-    .maybeSingle();
+  searchParams: Promise<{ tab?: string }>;
+}
 
-  if (data?.steam_id_64) {
-    redirect(`/perfil/${data.steam_id_64}`);
-  }
-  notFound();
+export async function generateMetadata(props: PageProps): Promise<Metadata> {
+  const { userId } = await props.params;
+  const profile = await getPublicProfile(userId);
+  return { title: profile?.username ?? "Perfil — FORMULADOTA" };
+}
+
+export default async function PublicProfilePage(props: PageProps) {
+  const { userId } = await props.params;
+  const { tab: rawTab } = await props.searchParams;
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/"); // perfis são públicos PRA MEMBROS (logados)
+  if (user.id === userId) redirect("/me"); // o próprio → /me canônico
+
+  const profile = await getPublicProfile(userId);
+  if (!profile) notFound();
+
+  const activeTab: ProfileTab =
+    rawTab && (PUBLIC_TABS as string[]).includes(rawTab)
+      ? (rawTab as ProfileTab)
+      : "perfil";
+
+  const dotaRank = mmrToDotaRank(profile.mmr);
+
+  // HONOR + carreira — mesmos RPCs/queries do /me, com o userId do alvo.
+  const { data: honorScore } = await supabase.rpc("get_honor_score", {
+    p_user_id: userId,
+  });
+  const { data: honorTierStr } = await supabase.rpc("get_honor_tier", {
+    p_score: honorScore ?? 1000,
+  });
+  const honorRank = toHonorRank(honorTierStr);
+
+  const career = await getCareerStats(userId);
+  const centerHero = profile.heroPortraitData?.portrait_url ?? undefined;
+
+  return (
+    <ClientShell currentRoute={`/perfil/u/${userId}`} immersive centerHero={centerHero}>
+      <ProfilePage
+        profile={profile}
+        activeTab={activeTab}
+        dotaRank={dotaRank}
+        honorRank={honorRank}
+        editing={false}
+        career={career}
+        coachingReviews={[]} // coaching é privado do aluno — não exposto no público
+        isOwn={false}
+        ownerUserId={userId}
+      />
+    </ClientShell>
+  );
 }

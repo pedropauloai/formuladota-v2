@@ -34,7 +34,7 @@ import { Pencil, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/ui/avatar";
 import { MedalPair } from "@/components/ui/medal-pair";
-import { ProfileTabs, type ProfileTab } from "./profile-tabs";
+import { ProfileTabs, VALID_TABS, type ProfileTab } from "./profile-tabs";
 import { SocialIconsRow, SteamIcon } from "./social-icons-row";
 import { SyncSteamButton } from "./sync-steam-button";
 import { Tooltip } from "@/components/ui/tooltip";
@@ -72,6 +72,12 @@ interface Props {
   career: CareerStats | null;
   /** Análises de coaching recebidas (sessões coachadas) — aba Conduta. */
   coachingReviews: CoachingReview[];
+  /** Perfil do PRÓPRIO user (/me) vs. perfil PÚBLICO de outro. @default true.
+   *  Quando false: sem edição, sem ações self-only, abas/rotas apontam pro
+   *  perfil público e abas self-only (Progresso) ficam ocultas. */
+  isOwn?: boolean;
+  /** UUID do dono do perfil — usado pra montar as rotas das abas no modo público. */
+  ownerUserId?: string;
 }
 
 export function ProfilePage({
@@ -82,9 +88,17 @@ export function ProfilePage({
   editing,
   career,
   coachingReviews,
+  isOwn = true,
+  ownerUserId,
 }: Props) {
   const t = useTranslations("perfil");
   const ranqueado = profile.mmr !== null;
+  // Navegação coerente: próprio = /me; público = /perfil/u/[id]. No público,
+  // Progresso (dados do viewer) é omitido — as outras abas são públicas/seguras.
+  const basePath = isOwn ? "/me" : `/perfil/u/${ownerUserId}`;
+  const visibleTabs: ProfileTab[] = isOwn
+    ? VALID_TABS
+    : ["perfil", "historico", "conquistas", "conduta"];
 
   // Herói nº 1 da carreira → backdrop VIVO do header de identidade
   const topHeroStat = career?.topHeroes[0] ?? null;
@@ -97,7 +111,12 @@ export function ProfilePage({
           lado de "Perfil" + separadores "/" entre tabs.
           ────────────────────────────────────────────────────────────── */}
       <div className="fixed top-12 xl:top-14 left-0 right-0 z-[22] flex items-center justify-center px-6 py-1.5 border-b border-brand-primary/20 bg-bg-deep/40 backdrop-blur-xl shadow-md shadow-black/40">
-        <ProfileTabs activeTab={activeTab} avatarUrl={profile.avatarUrl} />
+        <ProfileTabs
+          activeTab={activeTab}
+          avatarUrl={profile.avatarUrl}
+          basePath={basePath}
+          tabs={visibleTabs}
+        />
       </div>
 
       {/* Spacer pro submenu fixed */}
@@ -105,9 +124,8 @@ export function ProfilePage({
 
       {activeTab === "perfil" && (
         <div className="relative flex flex-col flex-1 min-h-0 p-6">
-          {/* Controles de edição — absolute top-right, respeita right-sidebar.
-              Em edit mode: [Restaurar padrão] + [Sair da edição].
-              Em leitura:   [Editar Perfil]. */}
+          {/* Controles de edição — só no PRÓPRIO perfil. */}
+          {isOwn && (
           <div className="absolute top-2 right-2 z-10 flex items-center gap-2">
             {editing ? (
               <>
@@ -128,6 +146,7 @@ export function ProfilePage({
               </Link>
             )}
           </div>
+          )}
 
           {/* ─── HEADER ÂNCORA — avatar + nome + tag FORMULADOTA ───
               Herói nº 1 da carreira como backdrop VIVO (vídeo Valve em
@@ -171,13 +190,12 @@ export function ProfilePage({
                       </a>
                     </Tooltip>
                   )}
-                  {/* Sincronizar identidade com a Steam AGORA (fura cache 1h) */}
-                  {profile.steamId64 && <SyncSteamButton />}
+                  {/* Sincronizar identidade com a Steam AGORA (fura cache 1h) — só no próprio. */}
+                  {isOwn && profile.steamId64 && <SyncSteamButton />}
                 </div>
-                {/* Redes sociais sob o nick (substitui o "FORMULADOTA" fixo,
-                    Pedro 2026-06-12) — Discord aceso (conta do login); demais
-                    acenderão quando o multi-login de validação existir. */}
-                <SocialIconsRow />
+                {/* Redes sociais sob o nick — refletem a conta do LOGIN, então só
+                    aparecem no próprio perfil (evita mostrar o social do viewer). */}
+                {isOwn && <SocialIconsRow />}
               </div>
 
               {/* Par canônico SKILL + HONOR (mandamento M12) — sempre visível
