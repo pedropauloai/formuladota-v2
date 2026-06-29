@@ -31,7 +31,7 @@ security definer
 set search_path = public
 as $$
 declare
-  v_season uuid;
+  v_season int;  -- seasons.id é integer (NÃO uuid)
 begin
   if auth.uid() is null then
     return; -- só pra logados
