@@ -14,6 +14,9 @@ export interface PublicMiniProfile {
   steamId64: string | null;
   level: number;
   mmr: number | null;
+  /** Rank Valve real (career.rankTier — STRATZ/OpenDota). Medalha SKILL canônica. */
+  rankTier: number | null;
+  leaderboardRank: number | null;
   favoriteHeroes: string[];
   friendStatus: FriendStatus;
 }
@@ -41,6 +44,8 @@ export async function getPublicMiniProfile(
     steamId64: r.steam_id_64,
     level: r.level,
     mmr: r.mmr,
+    rankTier: r.rank_tier,
+    leaderboardRank: r.leaderboard_rank,
     favoriteHeroes: Array.isArray(r.favorite_heroes)
       ? (r.favorite_heroes as string[])
       : [],

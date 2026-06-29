@@ -2560,9 +2560,11 @@ export type Database = {
           avatar: string
           favorite_heroes: Json
           friend_status: string
+          leaderboard_rank: number
           level: number
           mmr: number
           name: string
+          rank_tier: number
           steam_id_64: string
           user_id: string
         }[]

@@ -13,6 +13,7 @@ import { ProfilePage } from "@/components/profile/profile-page";
 import { VALID_TABS, type ProfileTab } from "@/components/profile/profile-tabs";
 import { getProfileForMe } from "@/lib/queries/profile";
 import { getCareerStats } from "@/lib/queries/career";
+import { rankTierToDotaRank } from "@/components/profile/career-stats";
 import { getCoachingReviewsForUser } from "@/lib/queries/coaching-reviews";
 import { refreshSteamIdentity } from "@/lib/steam/refresh-identity";
 import type { DotaRank } from "@/components/ui/dota-rank-medal";
@@ -68,11 +69,16 @@ export default async function MePage({ searchParams }: PageProps) {
   // Edit mode via searchParams — ?edit=1 ativa edição inline
   const editing = edit === "1";
 
-  const dotaRank = mmrToDotaRank(profile.mmr);
-
-  // Carreira OpenDota (cache 24h, nunca lança) — bloco "Carreira" + backdrop
-  // do herói nº 1 no header de identidade. null = sem Steam/sem dados.
+  // Carreira OpenDota/STRATZ (cache 24h, nunca lança) — bloco "Carreira" +
+  // backdrop do herói nº 1. null = sem Steam/sem dados.
   const career = await getCareerStats(profile.userId);
+
+  // Medalha SKILL = RANK VALVE REAL (career.rankTier via STRATZ/OpenDota).
+  // Só cai pro MMR da liga FormulaDota quando não há carreira sincronizada —
+  // antes usava só o MMR (vazio) e mostrava Herald pra todo mundo (bug 2026-06-29).
+  const dotaRank =
+    rankTierToDotaRank(career?.rankTier ?? null, career?.leaderboardRank ?? null) ??
+    mmrToDotaRank(profile.mmr);
 
   // HONOR tier via RPC — graceful fallback se RPC indisponível
   const supabase = await createClient();

@@ -12,6 +12,7 @@ import { ProfilePage } from "@/components/profile/profile-page";
 import { VALID_TABS, type ProfileTab } from "@/components/profile/profile-tabs";
 import { getPublicProfile } from "@/lib/queries/profile";
 import { getCareerStats } from "@/lib/queries/career";
+import { rankTierToDotaRank } from "@/components/profile/career-stats";
 import type { DotaRank } from "@/components/ui/dota-rank-medal";
 import { legacyHonorToBand, type HonorRank } from "@/components/ui/honor-rank-medal";
 
@@ -62,8 +63,6 @@ export default async function PublicProfilePage(props: PageProps) {
       ? (rawTab as ProfileTab)
       : "perfil";
 
-  const dotaRank = mmrToDotaRank(profile.mmr);
-
   // HONOR + carreira — mesmos RPCs/queries do /me, com o userId do alvo.
   const { data: honorScore } = await supabase.rpc("get_honor_score", {
     p_user_id: userId,
@@ -74,6 +73,11 @@ export default async function PublicProfilePage(props: PageProps) {
   const honorRank = toHonorRank(honorTierStr);
 
   const career = await getCareerStats(userId);
+
+  // Medalha SKILL = rank Valve real (career.rankTier) → fallback MMR da liga.
+  const dotaRank =
+    rankTierToDotaRank(career?.rankTier ?? null, career?.leaderboardRank ?? null) ??
+    mmrToDotaRank(profile.mmr);
   const centerHero = profile.heroPortraitData?.portrait_url ?? undefined;
 
   return (

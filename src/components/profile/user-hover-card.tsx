@@ -30,6 +30,7 @@ import {
 } from "@/components/profile/add-friend-button";
 import { MedalPair } from "@/components/ui/medal-pair";
 import { mmrToDotaRank } from "@/components/queue/queue-helpers";
+import { rankTierToDotaRank } from "@/components/profile/career-stats";
 import { getGatedTierForLevel } from "@/lib/levels";
 import { getHeroBySlug } from "@/lib/queries/heroes";
 
@@ -84,7 +85,10 @@ function Body({
   online?: boolean;
 }) {
   const t = useTranslations("hoverCard");
-  const dotaRank = mmrToDotaRank(data.mmr);
+  // Medalha SKILL = rank Valve real (career.rankTier) → fallback MMR.
+  const dotaRank =
+    rankTierToDotaRank(data.rankTier, data.leaderboardRank) ??
+    mmrToDotaRank(data.mmr);
   const honorRank = getGatedTierForLevel(data.level, data.mmr);
   const heroes = data.favoriteHeroes
     .map((slug) => getHeroBySlug(slug))
