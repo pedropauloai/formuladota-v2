@@ -909,6 +909,53 @@ export type Database = {
           },
         ]
       }
+      match_proposals: {
+        Row: {
+          assignments: Json
+          created_at: string
+          expires_at: string
+          game_mode: string
+          id: string
+          lobby_id: string | null
+          match_size: number
+          password: string | null
+          status: string
+          tier: string
+        }
+        Insert: {
+          assignments: Json
+          created_at?: string
+          expires_at: string
+          game_mode?: string
+          id?: string
+          lobby_id?: string | null
+          match_size?: number
+          password?: string | null
+          status?: string
+          tier?: string
+        }
+        Update: {
+          assignments?: Json
+          created_at?: string
+          expires_at?: string
+          game_mode?: string
+          id?: string
+          lobby_id?: string | null
+          match_size?: number
+          password?: string | null
+          status?: string
+          tier?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_proposals_lobby_id_fkey"
+            columns: ["lobby_id"]
+            isOneToOne: false
+            referencedRelation: "lobbies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       match_queue: {
         Row: {
           game_mode: string | null
@@ -918,6 +965,7 @@ export type Database = {
           matched_at: string | null
           matched_lobby_id: string | null
           party_id: string | null
+          proposal_id: string | null
           region: string | null
           roles: Json | null
           status: Database["public"]["Enums"]["queue_status"] | null
@@ -931,6 +979,7 @@ export type Database = {
           matched_at?: string | null
           matched_lobby_id?: string | null
           party_id?: string | null
+          proposal_id?: string | null
           region?: string | null
           roles?: Json | null
           status?: Database["public"]["Enums"]["queue_status"] | null
@@ -944,6 +993,7 @@ export type Database = {
           matched_at?: string | null
           matched_lobby_id?: string | null
           party_id?: string | null
+          proposal_id?: string | null
           region?: string | null
           roles?: Json | null
           status?: Database["public"]["Enums"]["queue_status"] | null
@@ -1398,6 +1448,7 @@ export type Database = {
           is_admin: boolean
           is_tester: boolean
           last_seen_at: string | null
+          match_cooldown_until: string | null
           match_permissions_consumed: number
           mmr_atual: number | null
           mmr_inicial: number | null
@@ -1431,6 +1482,7 @@ export type Database = {
           is_admin?: boolean
           is_tester?: boolean
           last_seen_at?: string | null
+          match_cooldown_until?: string | null
           match_permissions_consumed?: number
           mmr_atual?: number | null
           mmr_inicial?: number | null
@@ -1464,6 +1516,7 @@ export type Database = {
           is_admin?: boolean
           is_tester?: boolean
           last_seen_at?: string | null
+          match_cooldown_until?: string | null
           match_permissions_consumed?: number
           mmr_atual?: number | null
           mmr_inicial?: number | null
@@ -2488,6 +2541,7 @@ export type Database = {
       }
     }
     Functions: {
+      accept_match_proposal: { Args: { p_id: string }; Returns: string }
       accept_team_invite: { Args: { p_invite_id: string }; Returns: undefined }
       apply_match_mmr: {
         Args: { p_match_id: string; p_results: Json; p_season_id: number }
@@ -2516,12 +2570,15 @@ export type Database = {
         Args: { p_coach_id: string; p_reason: string }
         Returns: number
       }
+      confirm_match_proposal: { Args: { p_id: string }; Returns: string }
       consume_match_permission: { Args: never; Returns: undefined }
       consume_pt_fichas: { Args: { p_match_id: string }; Returns: undefined }
+      decline_match_proposal: { Args: { p_id: string }; Returns: undefined }
       ensure_player_season_mmr: {
         Args: { p_user_id: string }
         Returns: undefined
       }
+      expire_match_proposals: { Args: never; Returns: undefined }
       get_honor_score: { Args: { p_user_id: string }; Returns: number }
       get_honor_tier: { Args: { p_score: number }; Returns: string }
       get_max_price_for_pro: { Args: { p_user_id: string }; Returns: number }

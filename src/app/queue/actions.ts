@@ -147,6 +147,22 @@ export async function enterQueue(input: {
     return { success: false, error: "Selecione pelo menos 1 função." };
   }
 
+  // Cooldown de fila (recusou/ignorou um ready check — migration 067).
+  const { data: prof } = await supabase
+    .from("profiles")
+    .select("match_cooldown_until")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (prof?.match_cooldown_until && new Date(prof.match_cooldown_until) > new Date()) {
+    const mins = Math.ceil(
+      (new Date(prof.match_cooldown_until).getTime() - Date.now()) / 60000
+    );
+    return {
+      success: false,
+      error: `Em cooldown de fila por ~${mins} min (você recusou ou ignorou uma partida).`,
+    };
+  }
+
   // Já estava na fila? (re-entrada/troca de função NÃO cobra outra permissão)
   const { data: prevWaiting } = await supabase
     .from("match_queue")

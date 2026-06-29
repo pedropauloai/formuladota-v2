@@ -18,6 +18,7 @@ import type { PlayMenuState } from "@/lib/play-menu-preference";
 import { QueueStatusModal } from "@/components/landing/queue-status-modal";
 import { useTranslations } from "next-intl";
 import { PlayMenu } from "./play-menu";
+import { ReadyCheckOverlay } from "@/components/queue/ready-check-overlay";
 
 interface Props {
   /** Visitante deslogado: o menu abre como vitrine, ações disparam login. */
@@ -53,6 +54,9 @@ export function DashboardBottomBar({ isVisitor, isAdmin, myQueues, initialPlayMe
         onClose={() => setStatusModalOpen(false)}
         myQueues={myQueues}
       />
+
+      {/* Ready check (popup central "partida encontrada") — global pra logados. */}
+      {!isVisitor && <ReadyCheckOverlay />}
     </>
   );
 }

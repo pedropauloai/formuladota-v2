@@ -1,0 +1,87 @@
+"use server";
+
+// Ready check (proposta de partida) — server actions. A proposta nasce no
+// try_form_match quando 10 fecham; cada jogador aceita; os 10 aceitando → lobby.
+// Migration 067.
+
+import { createClient } from "@/lib/supabase/server";
+
+export interface ProposalMember {
+  userId: string;
+  name: string;
+  avatar: string | null;
+  team: "radiant" | "dire";
+  role: string;
+  accepted: boolean;
+  isTest: boolean;
+}
+
+export interface MatchProposal {
+  id: string;
+  status: "pending" | "confirmed" | "cancelled";
+  expiresAt: string;
+  lobbyId: string | null;
+  members: ProposalMember[];
+}
+
+interface RawMember {
+  user_id: string;
+  name?: string;
+  avatar?: string | null;
+  team?: string;
+  role?: string;
+  accepted?: boolean;
+  is_test?: boolean;
+}
+
+function mapMembers(assignments: unknown): ProposalMember[] {
+  const arr = Array.isArray(assignments) ? (assignments as RawMember[]) : [];
+  return arr.map((m) => ({
+    userId: m.user_id,
+    name: m.name ?? "Jogador",
+    avatar: m.avatar ?? null,
+    team: m.team === "dire" ? "dire" : "radiant",
+    role: m.role ?? "",
+    accepted: m.accepted === true,
+    isTest: m.is_test === true,
+  }));
+}
+
+/** Proposta PENDENTE em que o user está (RLS de membership filtra). null = nenhuma. */
+export async function getMyProposal(): Promise<MatchProposal | null> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data } = await supabase
+    .from("match_proposals")
+    .select("id, status, expires_at, lobby_id, assignments")
+    .eq("status", "pending")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!data) return null;
+  return {
+    id: data.id,
+    status: data.status as MatchProposal["status"],
+    expiresAt: data.expires_at,
+    lobbyId: data.lobby_id,
+    members: mapMembers(data.assignments),
+  };
+}
+
+/** Aceita. Retorna lobbyId quando o aceite fecha os 10 (todos aceitos). */
+export async function acceptMatchProposal(id: string): Promise<{ lobbyId: string | null }> {
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("accept_match_proposal", { p_id: id });
+  return { lobbyId: typeof data === "string" ? data : null };
+}
+
+/** Recusa. Cancela a proposta; quem aceitou re-fila; quem recusou leva cooldown. */
+export async function declineMatchProposal(id: string): Promise<void> {
+  const supabase = await createClient();
+  await supabase.rpc("decline_match_proposal", { p_id: id });
+}
