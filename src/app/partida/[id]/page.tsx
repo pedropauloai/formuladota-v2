@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ClientShell } from "@/components/client-shell/shell";
 import { MatchPasswordCard } from "./match-password-card";
 import { DiscardMatchButton } from "@/components/match/discard-match-button";
+import { FinalizeMatchButton } from "@/components/match/finalize-match-button";
 import { UserHoverCard } from "@/components/profile/user-hover-card";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { MedalPair } from "@/components/ui/medal-pair";
@@ -73,7 +74,7 @@ export default async function PartidaPage({
   // URL canônica = steam_lobby_id (gerado pelo bot). Resolve por ele primeiro;
   // fallback pro id interno (UUID) quando o param tem cara de UUID.
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
-  const cols = "id, name, password, status, game_mode, tier, created_by";
+  const cols = "id, name, password, status, game_mode, tier, created_by, dota_match_id";
   let { data: lobby } = await supabase
     .from("lobbies")
     .select(cols)
@@ -181,7 +182,15 @@ export default async function PartidaPage({
               Modo: {lobby.game_mode} · Status: {lobby.status}
             </p>
           </div>
-          {isAdmin && <DiscardMatchButton lobbyId={lobby.id} />}
+          {isAdmin && (
+            <div className="flex shrink-0 flex-col items-end gap-2">
+              {/* Finalizar: só quando o bot já registrou o dota_match_id e ainda não fechou. */}
+              {lobby.dota_match_id && lobby.status !== "completed" && (
+                <FinalizeMatchButton lobbyId={lobbyUuid} />
+              )}
+              <DiscardMatchButton lobbyId={lobby.id} />
+            </div>
+          )}
         </header>
 
         <div className="mb-6">

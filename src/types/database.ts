@@ -1032,6 +1032,7 @@ export type Database = {
           id: string
           kda: string | null
           league_id: number | null
+          lobby_id: string | null
           lobby_type: number | null
           match_dataset: string | null
           mmr_applied_at: string | null
@@ -1064,6 +1065,7 @@ export type Database = {
           id?: string
           kda?: string | null
           league_id?: number | null
+          lobby_id?: string | null
           lobby_type?: number | null
           match_dataset?: string | null
           mmr_applied_at?: string | null
@@ -1096,6 +1098,7 @@ export type Database = {
           id?: string
           kda?: string | null
           league_id?: number | null
+          lobby_id?: string | null
           lobby_type?: number | null
           match_dataset?: string | null
           mmr_applied_at?: string | null
@@ -1119,6 +1122,13 @@ export type Database = {
             columns: ["coach_id"]
             isOneToOne: false
             referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_lobby_id_fkey"
+            columns: ["lobby_id"]
+            isOneToOne: false
+            referencedRelation: "lobbies"
             referencedColumns: ["id"]
           },
           {
