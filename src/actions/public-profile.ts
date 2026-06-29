@@ -2,7 +2,6 @@
 
 // Dados PÚBLICOS de perfil pro <UserHoverCard>. Vem do RPC get_public_mini_profile
 // (migration 064, SECURITY DEFINER) — só o subconjunto público + status de amizade.
-// (cast: RPC ainda fora dos tipos gerados — regenerar após aplicar a 064)
 
 import { createClient } from "@/lib/supabase/server";
 
@@ -19,28 +18,16 @@ export interface PublicMiniProfile {
   friendStatus: FriendStatus;
 }
 
-interface Row {
-  user_id: string;
-  name: string;
-  avatar: string | null;
-  steam_id_64: string | null;
-  level: number;
-  mmr: number | null;
-  favorite_heroes: unknown;
-  friend_status: string;
-}
-
 const STATUSES: FriendStatus[] = ["none", "pending", "friends", "blocked", "self"];
 
 export async function getPublicMiniProfile(
   userId: string
 ): Promise<PublicMiniProfile | null> {
   const supabase = await createClient();
-  const { data } = await supabase.rpc("get_public_mini_profile" as never, {
+  const { data } = await supabase.rpc("get_public_mini_profile", {
     p_user_id: userId,
-  } as never);
-  const rows = (data ?? []) as Row[];
-  const r = rows[0];
+  });
+  const r = (data ?? [])[0];
   if (!r) return null;
 
   const friendStatus = (

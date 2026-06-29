@@ -2554,6 +2554,19 @@ export type Database = {
           waiting_count: number
         }[]
       }
+      get_public_mini_profile: {
+        Args: { p_user_id: string }
+        Returns: {
+          avatar: string
+          favorite_heroes: Json
+          friend_status: string
+          level: number
+          mmr: number
+          name: string
+          steam_id_64: string
+          user_id: string
+        }[]
+      }
       get_queue_searchers: {
         Args: never
         Returns: {
