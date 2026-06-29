@@ -70,8 +70,8 @@ function isPathInList(pathname: string, list: string[]): boolean {
   );
 }
 
-// Perfil público de jogador: /perfil/[steamid] é vitrine (aberto), MAS /perfil
-// (exato) é o perfil privado do user logado (exige login). Por isso não dá pra
+// Perfil público de jogador: /perfil/u/[userId] é vitrine (aberta a membros),
+// MAS /perfil (exato) é alias legado que redireciona pro /me. Por isso não dá pra
 // pôr "/perfil" em PUBLIC_PATHS (casaria os dois) — checamos o sub-path aqui.
 function isPublicPlayerProfile(pathname: string): boolean {
   return pathname.startsWith("/perfil/") && pathname !== "/perfil";
@@ -250,11 +250,10 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(localizedUrl("/vincular/steam"));
     }
 
-    // User COM Steam vinculado em /vincular/steam → vai pra /perfil
-    // (página /vincular/steam ainda renderiza estado vinculado se acessada diretamente,
-    // mas em flow normal este redirect leva o user direto pra dashboard pós-onboarding).
+    // User COM Steam vinculado em /vincular/steam → vai pro /me (perfil canônico
+    // estilo Dota 2). Antes ia pra /perfil (página de conta legada) — corrigido.
     if (steamLink && pathname === STEAM_LINK_PATH) {
-      return NextResponse.redirect(localizedUrl("/perfil"));
+      return NextResponse.redirect(localizedUrl("/me"));
     }
   }
 
@@ -272,12 +271,12 @@ export async function updateSession(request: NextRequest) {
   }
 
   // Já aceitou + status ok/warned: sem restrição.
-  // Mas se estiver navegando em /onboarding ou /suspended/banned indevidamente, manda pra perfil.
+  // Mas se estiver navegando em /onboarding ou /suspended/banned indevidamente, manda pro /me.
   if (
     pathname === "/doutrina" ||
     isPathInList(pathname, BLOCKED_STATUS_PATHS)
   ) {
-    return NextResponse.redirect(localizedUrl("/perfil"));
+    return NextResponse.redirect(localizedUrl("/me"));
   }
 
   return allow();

@@ -37,7 +37,7 @@ export default async function SuspendedPage() {
     profile?.behavior_status !== "suspended" ||
     (profile.suspended_until && new Date(profile.suspended_until) < new Date())
   ) {
-    redirect("/perfil");
+    redirect("/me");
   }
 
   // Nick canônico (Steam > Discord) — com Steam vinculada, o nome exibido vem

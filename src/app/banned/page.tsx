@@ -32,7 +32,7 @@ export default async function BannedPage() {
     .single();
 
   if (profile?.behavior_status !== "banned") {
-    redirect("/perfil");
+    redirect("/me");
   }
 
   const t = await getTranslations("account");
