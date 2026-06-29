@@ -95,3 +95,21 @@ export async function declineMatchProposal(id: string): Promise<void> {
   const supabase = await createClient();
   await supabase.rpc("decline_match_proposal", { p_id: id });
 }
+
+/**
+ * ID da rota da partida: o bot Steam grava steam_lobby_id alguns segundos após o
+ * lobby ser criado. A URL canônica é /partida/[steam_lobby_id]; enquanto o bot não
+ * gravou, routeId vem null (o overlay continua mostrando "criando lobby"). Após o
+ * timeout o caller cai pro id interno (a página resolve os dois).
+ */
+export async function getMatchRouteId(
+  lobbyId: string
+): Promise<{ routeId: string | null }> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("lobbies")
+    .select("steam_lobby_id")
+    .eq("id", lobbyId)
+    .maybeSingle();
+  return { routeId: data?.steam_lobby_id ?? null };
+}

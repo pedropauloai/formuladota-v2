@@ -70,13 +70,25 @@ export default async function PartidaPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: lobby } = await supabase
+  // URL canônica = steam_lobby_id (gerado pelo bot). Resolve por ele primeiro;
+  // fallback pro id interno (UUID) quando o param tem cara de UUID.
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+  const cols = "id, name, password, status, game_mode, tier, created_by";
+  let { data: lobby } = await supabase
     .from("lobbies")
-    .select("id, name, password, status, game_mode, tier, created_by")
-    .eq("id", id)
+    .select(cols)
+    .eq("steam_lobby_id", id)
     .maybeSingle();
+  if (!lobby && isUuid) {
+    ({ data: lobby } = await supabase
+      .from("lobbies")
+      .select(cols)
+      .eq("id", id)
+      .maybeSingle());
+  }
 
   if (!lobby) notFound();
+  const lobbyUuid = lobby.id;
 
   // `role` é coluna nova (migration 059) — ainda não nos tipos gerados; cast no acesso.
   const lobbyPlayers = supabase.from("lobby_players") as unknown as {
@@ -86,7 +98,7 @@ export default async function PartidaPage({
   };
   const { data: playersData } = await lobbyPlayers
     .select("user_id, team, role")
-    .eq("lobby_id", id);
+    .eq("lobby_id", lobbyUuid);
   const raw: RawPlayer[] = playersData ?? [];
 
   // Identidade (Steam) + nível/XP + rank Valve, tudo em batch (sem N+1). steam_links,

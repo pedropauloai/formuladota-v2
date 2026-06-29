@@ -17,6 +17,7 @@ import {
   getMyProposal,
   acceptMatchProposal,
   declineMatchProposal,
+  getMatchRouteId,
   type MatchProposal,
   type ProposalMember,
 } from "@/app/queue/ready-check-actions";
@@ -77,6 +78,8 @@ export function ReadyCheckOverlay() {
   const [proposal, setProposal] = useState<MatchProposal | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const [pending, startTransition] = useTransition();
+  // Lobby confirmado: aguardando o bot Steam gravar o steam_lobby_id pra montar a URL.
+  const [confirmedLobby, setConfirmedLobby] = useState<string | null>(null);
   const soundedFor = useRef<string | null>(null);
 
   // userId do viewer (pra saber se EU já aceitei).
@@ -86,13 +89,36 @@ export function ReadyCheckOverlay() {
       .then(({ data }) => setUserId(data.user?.id ?? null));
   }, []);
 
-  const goToMatch = useCallback(
-    (lobbyId: string) => {
-      setProposal(null);
-      router.push(`/partida/${lobbyId}`);
-    },
-    [router]
-  );
+  // Partida confirmada → entra no estado "criando lobby" (aguarda o steam_lobby_id).
+  const goToMatch = useCallback((lobbyId: string) => {
+    setProposal(null);
+    setConfirmedLobby(lobbyId);
+  }, []);
+
+  // Aguarda o bot gravar o steam_lobby_id (~segundos) e redireciona pra URL canônica
+  // /partida/[steam_lobby_id]. Timeout (~12s) → cai pro id interno (a página resolve os dois).
+  useEffect(() => {
+    if (!confirmedLobby) return;
+    let alive = true;
+    let tries = 0;
+    const poll = async () => {
+      tries += 1;
+      const { routeId } = await getMatchRouteId(confirmedLobby);
+      if (!alive) return;
+      if (routeId) {
+        router.push(`/partida/${routeId}`);
+      } else if (tries >= 12) {
+        router.push(`/partida/${confirmedLobby}`); // fallback: id interno
+      } else {
+        timer = setTimeout(poll, 1100);
+      }
+    };
+    let timer = setTimeout(poll, 800);
+    return () => {
+      alive = false;
+      clearTimeout(timer);
+    };
+  }, [confirmedLobby, router]);
 
   // Fetch inicial + realtime das propostas (RLS entrega só a do próprio user).
   useEffect(() => {
@@ -141,6 +167,21 @@ export function ReadyCheckOverlay() {
       play("reward");
     }
   }, [proposal, play]);
+
+  // Partida aceita pelos 10 → aguardando o bot criar o lobby Steam.
+  if (confirmedLobby) {
+    return (
+      <div className="pointer-events-auto fixed inset-0 z-[var(--z-takeover)] flex items-center justify-center bg-bg-deep/90 p-4 backdrop-blur-sm">
+        <div className="flex flex-col items-center gap-4 rounded-md border-2 border-play-primary bg-bg-base px-10 py-8 shadow-[var(--shadow-cinematic)]">
+          <Loader2 size={36} className="animate-spin text-play-primary" aria-hidden="true" />
+          <p className="font-display text-lg font-bold uppercase tracking-wide text-text-display">
+            Partida aceita!
+          </p>
+          <p className="font-body text-sm text-text-muted">Criando o lobby no Dota 2…</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!proposal) return null;
 
