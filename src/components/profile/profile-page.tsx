@@ -34,7 +34,7 @@ import { Pencil, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/ui/avatar";
 import { MedalPair } from "@/components/ui/medal-pair";
-import { ProfileTabs, VALID_TABS, type ProfileTab } from "./profile-tabs";
+import { ProfileTabs, type ProfileTab } from "./profile-tabs";
 import { SocialIconsRow, SteamIcon } from "./social-icons-row";
 import { SyncSteamButton } from "./sync-steam-button";
 import { Tooltip } from "@/components/ui/tooltip";
@@ -93,12 +93,10 @@ export function ProfilePage({
 }: Props) {
   const t = useTranslations("perfil");
   const ranqueado = profile.mmr !== null;
-  // Navegação coerente: próprio = /me; público = /perfil/u/[id]. No público,
-  // Progresso (dados do viewer) é omitido — as outras abas são públicas/seguras.
+  // Navegação coerente: próprio = /me; público = /perfil/u/[id]. Todas as abas
+  // funcionam pra qualquer user (Progresso/Conquistas lidos por userId; o
+  // histórico de XP e o coaching, que são pessoais, ficam ocultos no público).
   const basePath = isOwn ? "/me" : `/perfil/u/${ownerUserId}`;
-  const visibleTabs: ProfileTab[] = isOwn
-    ? VALID_TABS
-    : ["perfil", "historico", "conquistas", "conduta"];
 
   // Herói nº 1 da carreira → backdrop VIVO do header de identidade
   const topHeroStat = career?.topHeroes[0] ?? null;
@@ -115,7 +113,6 @@ export function ProfilePage({
           activeTab={activeTab}
           avatarUrl={profile.avatarUrl}
           basePath={basePath}
-          tabs={visibleTabs}
         />
       </div>
 
@@ -259,7 +256,7 @@ export function ProfilePage({
 
       {activeTab === "conquistas" && (
         <div className="flex-1 min-h-0 p-6">
-          <TabConquistas />
+          <TabConquistas userId={profile.userId} />
         </div>
       )}
 
@@ -278,7 +275,13 @@ export function ProfilePage({
 
       {activeTab === "progresso" && (
         <div className="flex-1 min-h-0 p-6">
-          <TabProgresso />
+          <TabProgresso
+            userId={profile.userId}
+            isOwn={isOwn}
+            persona={profile.username ?? ""}
+            avatar={profile.avatarUrl}
+            mmr={profile.mmr}
+          />
         </div>
       )}
     </div>

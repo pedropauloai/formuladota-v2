@@ -19,64 +19,86 @@ import {
   type Tier,
 } from "@/lib/levels";
 
-export async function TabProgresso() {
+interface TabProgressoProps {
+  /** Dono da progressão. */
+  userId: string;
+  /** Próprio user (true) → inicializa user_levels + mostra histórico de XP
+   *  (xp_events é RLS self). Perfil público (false) → read-only, sem histórico. */
+  isOwn: boolean;
+  /** Identidade + MMR já resolvidos (perfil passa). Omitidos → o componente busca
+   *  (página /progresso do próprio user). */
+  persona?: string;
+  avatar?: string | null;
+  mmr?: number | null;
+}
+
+export async function TabProgresso({
+  userId,
+  isOwn,
+  persona: personaProp,
+  avatar: avatarProp,
+  mmr: mmrProp,
+}: TabProgressoProps) {
   const t = await getTranslations("perfil");
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
 
-  // Inicializa user_levels se não existe (idempotente).
-  await supabase
-    .from("user_levels")
-    .upsert({ user_id: user.id }, { onConflict: "user_id", ignoreDuplicates: true });
+  // Inicializa user_levels só no PRÓPRIO perfil (não escreve em linha de terceiro).
+  if (isOwn) {
+    await supabase
+      .from("user_levels")
+      .upsert({ user_id: userId }, { onConflict: "user_id", ignoreDuplicates: true });
+  }
 
-  const [{ data: userLevel }, { data: thresholds }, { data: events }, { data: profile }, { data: steamLink }] =
-    await Promise.all([
-      supabase
-        .from("user_levels")
-        .select(
-          "current_level, current_xp, total_xp_earned, total_shards_earned, current_shards, updated_at"
-        )
-        .eq("user_id", user.id)
-        .single(),
-      supabase
-        .from("level_thresholds")
-        .select("level, xp_required, total_xp, shards_reward")
-        .order("level"),
-      supabase
+  const [{ data: userLevel }, { data: thresholds }] = await Promise.all([
+    supabase
+      .from("user_levels")
+      .select(
+        "current_level, current_xp, total_xp_earned, total_shards_earned, current_shards, updated_at"
+      )
+      .eq("user_id", userId)
+      .maybeSingle(),
+    supabase
+      .from("level_thresholds")
+      .select("level, xp_required, total_xp, shards_reward")
+      .order("level"),
+  ]);
+
+  // Histórico de XP é pessoal (xp_events = RLS self) → só no próprio perfil.
+  const eventsRes = isOwn
+    ? await supabase
         .from("xp_events")
         .select("source, xp_amount, shards_awarded, level_before, level_after, created_at")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .order("created_at", { ascending: false })
-        .limit(20),
-      supabase
-        .from("profiles")
-        .select("username, avatar_url, mmr_atual")
-        .eq("id", user.id)
-        .single(),
-      supabase
-        .from("steam_links")
-        .select("persona, avatar_url")
-        .eq("user_id", user.id)
-        .maybeSingle(),
+        .limit(20)
+    : null;
+  const events = eventsRes?.data ?? [];
+
+  // Identidade + MMR: usa props quando fornecidos; senão busca (próprio user).
+  let persona = personaProp;
+  let avatar = avatarProp ?? null;
+  let mmr = mmrProp ?? null;
+  if (persona === undefined) {
+    const [{ data: profile }, { data: steamLink }] = await Promise.all([
+      supabase.from("profiles").select("username, avatar_url, mmr_atual").eq("id", userId).maybeSingle(),
+      supabase.from("steam_links").select("persona, avatar_url").eq("user_id", userId).maybeSingle(),
     ]);
+    const identitySrc = {
+      steamPersona: steamLink?.persona,
+      steamAvatar: steamLink?.avatar_url,
+      discordUsername: profile?.username,
+      discordAvatar: profile?.avatar_url,
+    };
+    persona = displayName(identitySrc);
+    avatar = displayAvatar(identitySrc);
+    mmr = profile?.mmr_atual ?? null;
+  }
 
   const currentLevel = userLevel?.current_level ?? 1;
   const currentXp = userLevel?.current_xp ?? 0;
   const shards = userLevel?.current_shards ?? 0;
-  // Identidade canônica via lib/identity (anti-anonimato: Steam > Discord).
-  const identitySrc = {
-    steamPersona: steamLink?.persona,
-    steamAvatar: steamLink?.avatar_url,
-    discordUsername: profile?.username,
-    discordAvatar: profile?.avatar_url,
-  };
-  const persona = displayName(identitySrc);
-  const avatar = displayAvatar(identitySrc);
   // Topo do ladder tem co-requisito de SKILL: Lendário exige Divine, Místico exige Imortal.
-  const tier = getGatedTierForLevel(currentLevel, profile?.mmr_atual ?? null);
+  const tier = getGatedTierForLevel(currentLevel, mmr);
   const tierConfig = TIER_CONFIG[tier];
 
   const nextThreshold = thresholds?.find((t) => t.level === currentLevel + 1);
@@ -270,7 +292,8 @@ export async function TabProgresso() {
         </div>
       </section>
 
-      {/* Histórico recente */}
+      {/* Histórico recente — pessoal (xp_events RLS self), só no próprio perfil. */}
+      {isOwn && (
       <section>
         <h2 className="mb-4 font-display-condensed text-2xl uppercase leading-none tracking-wider text-text-muted">
           {t("xpHistory")} <span className="text-white/40">{t("xpHistoryLast")}</span>
@@ -330,6 +353,7 @@ export async function TabProgresso() {
           </div>
         )}
       </section>
+      )}
     </div>
   );
 }

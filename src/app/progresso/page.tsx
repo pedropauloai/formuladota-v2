@@ -38,7 +38,7 @@ export default async function ProgressoPage() {
           </h1>
           <div className="mt-4 brand-divider" />
         </header>
-        <TabProgresso />
+        <TabProgresso userId={user.id} isOwn />
       </div>
     </ClientShell>
   );

@@ -9,14 +9,11 @@ import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { ClientShell } from "@/components/client-shell/shell";
 import { ProfilePage } from "@/components/profile/profile-page";
-import type { ProfileTab } from "@/components/profile/profile-tabs";
+import { VALID_TABS, type ProfileTab } from "@/components/profile/profile-tabs";
 import { getPublicProfile } from "@/lib/queries/profile";
 import { getCareerStats } from "@/lib/queries/career";
 import type { DotaRank } from "@/components/ui/dota-rank-medal";
 import { legacyHonorToBand, type HonorRank } from "@/components/ui/honor-rank-medal";
-
-// Abas públicas (Progresso é self-only — usa dados do viewer; fica fora).
-const PUBLIC_TABS: ProfileTab[] = ["perfil", "historico", "conquistas", "conduta"];
 
 function mmrToDotaRank(mmr: number | null | undefined): DotaRank {
   if (mmr == null) return "herald";
@@ -61,7 +58,7 @@ export default async function PublicProfilePage(props: PageProps) {
   if (!profile) notFound();
 
   const activeTab: ProfileTab =
-    rawTab && (PUBLIC_TABS as string[]).includes(rawTab)
+    rawTab && (VALID_TABS as string[]).includes(rawTab)
       ? (rawTab as ProfileTab)
       : "perfil";
 
