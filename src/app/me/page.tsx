@@ -13,6 +13,7 @@ import { ProfilePage } from "@/components/profile/profile-page";
 import { VALID_TABS, type ProfileTab } from "@/components/profile/profile-tabs";
 import { getProfileForMe } from "@/lib/queries/profile";
 import { getCareerStats } from "@/lib/queries/career";
+import { syncPlayerStats } from "@/app/perfil/actions";
 import { rankTierToDotaRank } from "@/components/profile/career-stats";
 import { getCoachingReviewsForUser } from "@/lib/queries/coaching-reviews";
 import { refreshSteamIdentity } from "@/lib/steam/refresh-identity";
@@ -93,6 +94,17 @@ export default async function MePage({ searchParams }: PageProps) {
   // Análises de coaching recebidas (aba Conduta) — RLS: o aluno lê as próprias.
   const coachingReviews = await getCoachingReviewsForUser(supabase, profile.userId);
 
+  // Stats externos (KDA/GPM/XPM médios — STRATZ/OpenDota, cache 24h). Best-effort.
+  const ext = await syncPlayerStats({ userId: profile.userId });
+  const externalStats = ext.success
+    ? {
+        source: ext.data.source,
+        avgKDA: ext.data.avgKDA,
+        avgGPM: ext.data.avgGPM,
+        avgXPM: ext.data.avgXPM,
+      }
+    : null;
+
   // BLOCKER #3 fix: ClientShell immersive + centerHero gerencia o hero portrait
   // fullscreen background. Quando profile.heroPortraitData é null (sem herói escolhido),
   // undefined → ClientShell cai pro background atmospheric padrão.
@@ -108,6 +120,7 @@ export default async function MePage({ searchParams }: PageProps) {
         editing={editing}
         career={career}
         coachingReviews={coachingReviews}
+        externalStats={externalStats}
       />
     </ClientShell>
   );

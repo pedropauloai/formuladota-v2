@@ -78,6 +78,13 @@ interface Props {
   isOwn?: boolean;
   /** UUID do dono do perfil — usado pra montar as rotas das abas no modo público. */
   ownerUserId?: string;
+  /** Stats externos (média das últimas partidas — STRATZ/OpenDota). null = sem dados. */
+  externalStats?: {
+    source: string;
+    avgKDA: number;
+    avgGPM: number;
+    avgXPM: number;
+  } | null;
 }
 
 export function ProfilePage({
@@ -90,6 +97,7 @@ export function ProfilePage({
   coachingReviews,
   isOwn = true,
   ownerUserId,
+  externalStats,
 }: Props) {
   const t = useTranslations("perfil");
   const ranqueado = profile.mmr !== null;
@@ -238,6 +246,23 @@ export function ProfilePage({
             }}
           />
 
+          {/* ─── Estatísticas externas (média recente STRATZ/OpenDota) ─── */}
+          {externalStats && externalStats.avgKDA > 0 && (
+            <section className="mt-6">
+              <h2 className="mb-3 font-sans text-sm font-semibold uppercase tracking-widest text-text-faded">
+                {t("expandedStats")}{" "}
+                <span className="normal-case tracking-normal text-text-faded">
+                  {t("sourceLabel", { source: externalStats.source })}
+                </span>
+              </h2>
+              <div className="grid max-w-xl grid-cols-3 gap-3">
+                <ExternalStatCard label={t("statAvgKda")} value={externalStats.avgKDA.toFixed(2)} />
+                <ExternalStatCard label={t("statAvgGpm")} value={Math.round(externalStats.avgGPM)} />
+                <ExternalStatCard label={t("statAvgXpm")} value={Math.round(externalStats.avgXPM)} />
+              </div>
+            </section>
+          )}
+
           {/* ─── Editores adicionais (avatar custom + hero portrait) — só em edit ─── */}
           {editing && (
             <div className="mt-6 space-y-4 max-w-md">
@@ -284,6 +309,16 @@ export function ProfilePage({
           />
         </div>
       )}
+    </div>
+  );
+}
+
+// Card compacto de stat externo (KDA/GPM/XPM) — número GOLD (valor/progresso).
+function ExternalStatCard({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="rounded-[var(--radius-md)] border border-border-subtle bg-bg-elevated/40 px-3 py-2.5">
+      <p className="font-sans text-xs uppercase tracking-widest text-text-faded">{label}</p>
+      <p className="mt-1 font-display-condensed text-2xl tabular-nums text-gold">{value}</p>
     </div>
   );
 }

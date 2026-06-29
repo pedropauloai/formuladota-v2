@@ -12,6 +12,7 @@ import { ProfilePage } from "@/components/profile/profile-page";
 import { VALID_TABS, type ProfileTab } from "@/components/profile/profile-tabs";
 import { getPublicProfile } from "@/lib/queries/profile";
 import { getCareerStats } from "@/lib/queries/career";
+import { syncPlayerStats } from "@/app/perfil/actions";
 import { rankTierToDotaRank } from "@/components/profile/career-stats";
 import type { DotaRank } from "@/components/ui/dota-rank-medal";
 import { legacyHonorToBand, type HonorRank } from "@/components/ui/honor-rank-medal";
@@ -78,6 +79,17 @@ export default async function PublicProfilePage(props: PageProps) {
   const dotaRank =
     rankTierToDotaRank(career?.rankTier ?? null, career?.leaderboardRank ?? null) ??
     mmrToDotaRank(profile.mmr);
+
+  // Stats externos (KDA/GPM/XPM — cache 24h; após o backfill admin lê do cache).
+  const ext = await syncPlayerStats({ userId });
+  const externalStats = ext.success
+    ? {
+        source: ext.data.source,
+        avgKDA: ext.data.avgKDA,
+        avgGPM: ext.data.avgGPM,
+        avgXPM: ext.data.avgXPM,
+      }
+    : null;
   const centerHero = profile.heroPortraitData?.portrait_url ?? undefined;
 
   return (
@@ -92,6 +104,7 @@ export default async function PublicProfilePage(props: PageProps) {
         coachingReviews={[]} // coaching é privado do aluno — não exposto no público
         isOwn={false}
         ownerUserId={userId}
+        externalStats={externalStats}
       />
     </ClientShell>
   );

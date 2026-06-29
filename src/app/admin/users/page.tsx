@@ -5,6 +5,7 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { createServiceClient } from "@/lib/supabase/service";
 import { Eye, ChevronRight } from "lucide-react";
+import { BackfillStatsButton } from "./backfill-stats-button";
 
 export const metadata = { title: "Admin Users — FORMULADOTA" };
 export const revalidate = 30;
@@ -141,12 +142,18 @@ export default async function AdminUsersPage({
     <div className="p-8 space-y-6">
       {/* ── Header ── */}
       <header>
-        <p className="font-sans text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
-          Admin / Users
-        </p>
-        <h1 className="mt-3 font-display text-3xl uppercase tracking-tight text-text-display">
-          {t("communityTitle")}
-        </h1>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className="font-sans text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
+              Admin / Users
+            </p>
+            <h1 className="mt-3 font-display text-3xl uppercase tracking-tight text-text-display">
+              {t("communityTitle")}
+            </h1>
+          </div>
+          {/* Backfill de stats externos (carreira + KDA/GPM/XPM) de todos. */}
+          <BackfillStatsButton />
+        </div>
         <div className="mt-4 brand-divider" />
         <p className="mt-3 font-display text-sm font-semibold text-text-body">
           {t("usersFoundPage", { count: count ?? 0, page, total: Math.max(1, totalPages) })}
