@@ -9,7 +9,6 @@
 // 60s; mostra quem já aceitou; toca som ao aparecer. Migration 067.
 
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Check, Loader2, Swords, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -21,6 +20,20 @@ import {
   type MatchProposal,
   type ProposalMember,
 } from "@/app/queue/ready-check-actions";
+import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
+import { MedalPair } from "@/components/ui/medal-pair";
+import { UserHoverCard } from "@/components/profile/user-hover-card";
+import { rankTierToDotaRank } from "@/components/profile/career-stats";
+import { getGatedTierForLevel } from "@/lib/levels";
+
+// Sem nº de MMR Valve público — proxy do rank pro gate de honra.
+function mmrFromRankTier(rankTier: number | null): number | null {
+  if (rankTier == null) return null;
+  const medal = Math.floor(rankTier / 10);
+  if (medal >= 8) return 6000;
+  if (medal === 7) return 5000;
+  return 0;
+}
 
 const DURATION_MS = 60_000;
 
@@ -43,6 +56,9 @@ function mapRow(row: {
       role: typeof o.role === "string" ? o.role : "",
       accepted: o.accepted === true,
       isTest: o.is_test === true,
+      rankTier: typeof o.rank_tier === "number" ? o.rank_tier : null,
+      leaderboardRank: typeof o.leaderboard_rank === "number" ? o.leaderboard_rank : null,
+      level: typeof o.level === "number" ? o.level : 1,
     };
   });
   return {
@@ -171,7 +187,7 @@ export function ReadyCheckOverlay() {
 
   return (
     <div className="pointer-events-auto fixed inset-0 z-[var(--z-takeover)] flex items-center justify-center bg-bg-deep/85 p-4 backdrop-blur-sm animate-in fade-in duration-150">
-      <div className="relative w-full max-w-lg overflow-hidden rounded-md border-2 border-play-primary bg-bg-base shadow-[var(--shadow-cinematic)] animate-in zoom-in-95 duration-150">
+      <div className="relative w-full max-w-2xl overflow-hidden rounded-md border-2 border-play-primary bg-bg-base shadow-[var(--shadow-cinematic)] animate-in zoom-in-95 duration-150">
         {/* Barra superior decrescente (60s). */}
         <div className="h-1.5 w-full bg-bg-elevated">
           <div
@@ -257,37 +273,45 @@ function TeamList({
         {title}
       </p>
       <ul className="space-y-1.5">
-        {members.map((m) => (
-          <li
-            key={m.userId}
-            className={`flex items-center gap-2 rounded-sm border px-2 py-1.5 ${
-              m.accepted
-                ? "border-play-primary/40 bg-play-primary/5"
-                : "border-border-subtle bg-bg-elevated/40"
-            }`}
-          >
-            {m.avatar ? (
-              <Image
-                src={m.avatar}
-                alt=""
-                width={22}
-                height={22}
-                className={`size-[22px] shrink-0 rounded-sm object-cover ${m.accepted ? "" : "opacity-50"}`}
-                unoptimized
-              />
-            ) : (
-              <span className="size-[22px] shrink-0 rounded-sm bg-bg-elevated" aria-hidden="true" />
-            )}
-            <span className={`min-w-0 flex-1 truncate font-body text-xs ${m.accepted ? "text-text-body" : "text-text-faded"}`}>
-              {m.userId === meId ? "Você" : m.name}
-            </span>
-            {m.accepted ? (
-              <Check size={13} className="shrink-0 text-play-primary" aria-hidden="true" />
-            ) : (
-              <Loader2 size={12} className="shrink-0 animate-spin text-text-faded" aria-hidden="true" />
-            )}
-          </li>
-        ))}
+        {members.map((m) => {
+          const dotaRank = rankTierToDotaRank(m.rankTier, m.leaderboardRank) ?? "herald";
+          const honorRank = getGatedTierForLevel(m.level, mmrFromRankTier(m.rankTier));
+          return (
+            <li
+              key={m.userId}
+              className={`flex items-center gap-2 rounded-sm border px-2 py-1.5 ${
+                m.accepted
+                  ? "border-play-primary/40 bg-play-primary/5"
+                  : "border-border-subtle bg-bg-elevated/40"
+              }`}
+            >
+              <UserHoverCard
+                userId={m.userId}
+                className={`flex min-w-0 flex-1 items-center gap-2 ${m.accepted ? "" : "opacity-60"}`}
+              >
+                {/* Avatar com anel de XP + badge de nível. */}
+                <XpAvatarRing
+                  src={m.avatar}
+                  alt={m.name}
+                  fallback={m.name.slice(0, 2).toUpperCase()}
+                  level={m.level}
+                  pct={0}
+                  size={30}
+                />
+                <span className="min-w-0 flex-1 truncate font-body text-xs text-text-body">
+                  {m.userId === meId ? "Você" : m.name}
+                </span>
+              </UserHoverCard>
+              {/* Par de medalhas SKILL + HONRA. */}
+              <MedalPair dotaRank={dotaRank} honorRank={honorRank} size="sm" />
+              {m.accepted ? (
+                <Check size={14} className="shrink-0 text-play-primary" aria-hidden="true" />
+              ) : (
+                <Loader2 size={13} className="shrink-0 animate-spin text-text-faded" aria-hidden="true" />
+              )}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

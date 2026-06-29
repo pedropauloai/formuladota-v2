@@ -14,6 +14,10 @@ export interface ProposalMember {
   role: string;
   accepted: boolean;
   isTest: boolean;
+  /** Rank Valve real (medalha SKILL) + nível (medalha HONRA). */
+  rankTier: number | null;
+  leaderboardRank: number | null;
+  level: number;
 }
 
 export interface MatchProposal {
@@ -32,6 +36,9 @@ interface RawMember {
   role?: string;
   accepted?: boolean;
   is_test?: boolean;
+  rank_tier?: number | null;
+  leaderboard_rank?: number | null;
+  level?: number | null;
 }
 
 function mapMembers(assignments: unknown): ProposalMember[] {
@@ -44,6 +51,9 @@ function mapMembers(assignments: unknown): ProposalMember[] {
     role: m.role ?? "",
     accepted: m.accepted === true,
     isTest: m.is_test === true,
+    rankTier: m.rank_tier ?? null,
+    leaderboardRank: m.leaderboard_rank ?? null,
+    level: m.level ?? 1,
   }));
 }
 

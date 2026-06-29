@@ -25,6 +25,7 @@ import {
 } from "@/app/queue/actions";
 import { HonorRankMedal } from "@/components/ui/honor-rank-medal";
 import { UserHoverCard } from "@/components/profile/user-hover-card";
+import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { getTierForLevel } from "@/lib/levels";
 
 const ROLES: { id: QueueRole; pos: string; key: string }[] = [
@@ -321,25 +322,21 @@ function AvatarStack({
 }
 
 function SearcherRow({ s }: { s: QueueSearcher }) {
-  const t = useTranslations("playMenu");
   return (
     <li className="flex items-center gap-2 rounded-sm border border-border-subtle/60 bg-bg-surface px-2 py-1">
       <UserHoverCard
         userId={s.userId}
         className="flex min-w-0 flex-1 items-center gap-2"
       >
-        {s.avatar ? (
-          <Image
-            src={s.avatar}
-            alt=""
-            width={22}
-            height={22}
-            className="size-[22px] shrink-0 rounded-sm object-cover"
-            unoptimized
-          />
-        ) : (
-          <span className="size-[22px] shrink-0 rounded-sm bg-bg-elevated" aria-hidden="true" />
-        )}
+        {/* Avatar com anel de XP + badge de nível (padrão da plataforma). */}
+        <XpAvatarRing
+          src={s.avatar}
+          alt={s.name}
+          fallback={s.name.slice(0, 2).toUpperCase()}
+          level={s.level}
+          pct={0}
+          size={24}
+        />
         <span className="min-w-0 flex-1 truncate font-body text-xs text-text-body hover:text-text-display">
           {s.name}
         </span>
@@ -356,9 +353,6 @@ function SearcherRow({ s }: { s: QueueSearcher }) {
             aria-hidden="true"
           />
         ))}
-      </span>
-      <span className="shrink-0 font-display text-[0.7rem] font-bold tabular-nums text-text-muted">
-        {t("playerLevelShort", { level: s.level })}
       </span>
       <HonorRankMedal rank={getTierForLevel(s.level)} size="sm" tooltip={false} />
     </li>

@@ -29,6 +29,7 @@ import {
   type FriendButtonState,
 } from "@/components/profile/add-friend-button";
 import { MedalPair } from "@/components/ui/medal-pair";
+import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { mmrToDotaRank } from "@/components/queue/queue-helpers";
 import { rankTierToDotaRank } from "@/components/profile/career-stats";
 import { getGatedTierForLevel } from "@/lib/levels";
@@ -107,24 +108,20 @@ function Body({
 
   return (
     <div className="space-y-3">
-      {/* Identidade */}
+      {/* Identidade — avatar com anel de XP + badge de nível (padrão da plataforma). */}
       <div className="flex items-start gap-3">
         <div className="relative shrink-0">
-          {data.avatar ? (
-            <Image
-              src={data.avatar}
-              alt=""
-              width={48}
-              height={48}
-              className="size-12 rounded-sm object-cover"
-              unoptimized
-            />
-          ) : (
-            <span className="block size-12 rounded-sm bg-bg-elevated" aria-hidden="true" />
-          )}
+          <XpAvatarRing
+            src={data.avatar}
+            alt={data.name}
+            fallback={data.name.slice(0, 2).toUpperCase()}
+            level={data.level}
+            pct={0}
+            size={44}
+          />
           {online !== undefined && (
             <span
-              className={`absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-bg-deep ${
+              className={`absolute right-0 top-0 size-3 rounded-full border-2 border-bg-deep ${
                 online ? "bg-success" : "bg-text-faded"
               }`}
               aria-label={online ? t("online") : t("offline")}
