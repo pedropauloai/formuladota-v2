@@ -250,6 +250,40 @@ export async function fetchMyParty(): Promise<PartyView | null> {
   return getMyParty(supabase, user.id);
 }
 
+export interface PartyChatMessageView {
+  id: string;
+  senderId: string;
+  body: string;
+  createdAt: string;
+}
+
+/** Histórico do chat do grupo (últimas 50). RLS garante que sou membro. */
+export async function fetchPartyMessages(): Promise<PartyChatMessageView[]> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data: pm } = await supabase
+    .from("party_members")
+    .select("party_id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (!pm) return [];
+
+  const { data } = await supabase
+    .from("party_messages")
+    .select("id, sender_id, body, created_at")
+    .eq("party_id", pm.party_id)
+    .order("created_at", { ascending: false })
+    .limit(50);
+
+  return (data ?? [])
+    .reverse()
+    .map((m) => ({ id: m.id, senderId: m.sender_id, body: m.body, createdAt: m.created_at }));
+}
+
 /** Re-busca convites de grupo (listener realtime chama no INSERT). */
 export async function fetchMyPartyInvites(): Promise<PartyInviteView[]> {
   const supabase = await createClient();

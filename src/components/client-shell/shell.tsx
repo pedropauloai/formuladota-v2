@@ -36,14 +36,19 @@ import { getPreviewModeActive } from "@/lib/auth/preview-mode";
 import { getSidebarExpanded } from "@/lib/auth/sidebar-preference";
 import { getFriendsPanel } from "@/lib/queries/friends";
 import { getMyOpenLobby, getMyLobbyInvites } from "@/lib/queries/lobby-social";
+import { getDmInbox } from "@/lib/queries/messages";
+import { getMyParty, getMyPartyInvites } from "@/lib/queries/party";
 import { xpProgress } from "@/lib/levels";
 import { getPlayMenuState } from "@/lib/play-menu-preference";
 import { DashboardTopBar } from "./top-bar";
 import { displayName, displayAvatar } from "@/lib/identity";
 import { MiniProfilePanel } from "./mini-profile-panel";
 import { LobbyInviteListener } from "./lobby-invite-listener";
+import { PartyInviteListener } from "./party-invite-listener";
 import { DashboardRightSidebar } from "./right-sidebar";
 import { DashboardBottomBar } from "./bottom-bar";
+import { ChatDock } from "@/components/chat/chat-dock";
+import { PartyPanel } from "@/components/party/party-panel";
 
 interface ClientShellProps {
   /** Conteúdo do center panel — área entre top-bar e bottom-bar. */
@@ -107,6 +112,9 @@ export async function ClientShell({
     playMenuState,
     myOpenLobby,
     lobbyInvites,
+    dmInbox,
+    myParty,
+    partyInvites,
   ] = await Promise.all([
     isVisitor ? Promise.resolve(null) : fetchPrivateData(supabase, user.id),
     getProsWithQueues(),
@@ -126,6 +134,11 @@ export async function ClientShell({
     isVisitor ? Promise.resolve(null) : getMyOpenLobby(supabase, user.id),
     // Convites de sala recebidos — banner global (LobbyInviteListener).
     isVisitor ? Promise.resolve([]) : getMyLobbyInvites(supabase, user.id),
+    // Caixa de entrada de mensagens (ChatDock).
+    isVisitor ? Promise.resolve([]) : getDmInbox(supabase),
+    // Minha party (PartyPanel) + convites de grupo (PartyInviteListener).
+    isVisitor ? Promise.resolve(null) : getMyParty(supabase, user.id),
+    isVisitor ? Promise.resolve([]) : getMyPartyInvites(supabase, user.id),
   ]);
 
   const profile = privateData?.profile ?? null;
@@ -255,9 +268,14 @@ export async function ClientShell({
           />
         )}
 
-        {/* Convites de sala recebidos — banner realtime global */}
+        {/* Convites de sala + grupo (banners realtime), chat dock e painel do grupo */}
         {!isVisitor && user && (
-          <LobbyInviteListener userId={user.id} initialInvites={lobbyInvites} />
+          <>
+            <LobbyInviteListener userId={user.id} initialInvites={lobbyInvites} />
+            <PartyInviteListener userId={user.id} initialInvites={partyInvites} />
+            <ChatDock currentUserId={user.id} initialInbox={dmInbox} />
+            <PartyPanel currentUserId={user.id} initialParty={myParty} />
+          </>
         )}
 
         {!hideBottomBar && (
@@ -365,9 +383,14 @@ export async function ClientShell({
         />
       )}
 
-      {/* Convites de sala recebidos — banner realtime global */}
+      {/* Convites de sala + grupo (banners realtime), chat dock e painel do grupo */}
       {!isVisitor && user && (
-        <LobbyInviteListener userId={user.id} initialInvites={lobbyInvites} />
+        <>
+          <LobbyInviteListener userId={user.id} initialInvites={lobbyInvites} />
+          <PartyInviteListener userId={user.id} initialInvites={partyInvites} />
+          <ChatDock currentUserId={user.id} initialInbox={dmInbox} />
+          <PartyPanel currentUserId={user.id} initialParty={myParty} />
+        </>
       )}
 
       {!hideBottomBar && (
