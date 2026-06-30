@@ -7,6 +7,11 @@ import { useState } from "react";
 import type { PlayerFull, AdvantageSeries } from "@/lib/dota/match-stats";
 import type { PlayerSeries } from "@/lib/dota/match-series";
 import type { Ward } from "@/lib/dota/match-vision";
+import type {
+  ObjectiveEvent,
+  TeamfightView,
+  DraftPick,
+} from "@/lib/dota/match-objectives";
 import { MatchScoreboard } from "@/components/match/match-scoreboard";
 import { splitTeams } from "@/components/match/shared";
 import { PerformancePanel } from "@/components/match/tabs/performance-panel";
@@ -15,6 +20,9 @@ import { BuildsPanel } from "@/components/match/tabs/builds-panel";
 import { CombatPanel } from "@/components/match/tabs/combat-panel";
 import { MapsPanel } from "@/components/match/tabs/maps-panel";
 import { BenchmarksPanel } from "@/components/match/tabs/benchmarks-panel";
+import { TeamfightsPanel } from "@/components/match/tabs/teamfights-panel";
+import { ObjectivesPanel } from "@/components/match/tabs/objectives-panel";
+import { DraftPanel } from "@/components/match/tabs/draft-panel";
 
 const TABS = [
   "Visão geral",
@@ -23,23 +31,34 @@ const TABS = [
   "Builds",
   "Combate",
   "Mapas",
+  "Teamfights",
+  "Objetivos",
+  "Draft",
   "Benchmarks",
 ] as const;
 type Tab = (typeof TABS)[number];
+
+export interface MatchDetailData {
+  players: PlayerFull[];
+  advantage: AdvantageSeries;
+  series: PlayerSeries[];
+  wards: Ward[];
+  objectives: ObjectiveEvent[];
+  teamfights: TeamfightView[];
+  draft: { radiant: DraftPick[]; dire: DraftPick[] };
+  radiantWin: boolean | null;
+}
 
 export function MatchDetail({
   players,
   advantage,
   series,
   wards,
+  objectives,
+  teamfights,
+  draft,
   radiantWin,
-}: {
-  players: PlayerFull[];
-  advantage: AdvantageSeries;
-  series: PlayerSeries[];
-  wards: Ward[];
-  radiantWin: boolean | null;
-}) {
+}: MatchDetailData) {
   const [tab, setTab] = useState<Tab>("Visão geral");
   const { radiant, dire } = splitTeams(players);
 
@@ -75,6 +94,9 @@ export function MatchDetail({
       {tab === "Builds" && <BuildsPanel players={players} />}
       {tab === "Combate" && <CombatPanel players={players} />}
       {tab === "Mapas" && <MapsPanel players={players} wards={wards} />}
+      {tab === "Teamfights" && <TeamfightsPanel teamfights={teamfights} />}
+      {tab === "Objetivos" && <ObjectivesPanel objectives={objectives} />}
+      {tab === "Draft" && <DraftPanel radiant={draft.radiant} dire={draft.dire} />}
       {tab === "Benchmarks" && <BenchmarksPanel players={players} />}
     </div>
   );

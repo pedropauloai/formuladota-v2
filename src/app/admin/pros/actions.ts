@@ -488,6 +488,30 @@ export async function enrichMatchFromOpenDota(
     return { success: false, error: "Players salvos mas erro ao atualizar match." };
   }
 
+  // Dados de NÍVEL-PARTIDA (teamfights/objetivos/draft/chat) → tabela pública
+  // match_details (migration 069). Best-effort + cast (tabela nova, fora dos tipos).
+  try {
+    const md = opendotaMatch as unknown as {
+      teamfights?: unknown;
+      objectives?: unknown;
+      picks_bans?: unknown;
+      chat?: unknown;
+    };
+    const mdTable = supabase.from("match_details" as never) as unknown as {
+      upsert: (row: Record<string, unknown>) => PromiseLike<{ error: unknown }>;
+    };
+    await mdTable.upsert({
+      match_id: matchId,
+      dota_match_id: String(opendotaMatch.match_id),
+      teamfights: md.teamfights ?? null,
+      objectives: md.objectives ?? null,
+      picks_bans: md.picks_bans ?? null,
+      chat: md.chat ?? null,
+    });
+  } catch (e) {
+    console.error("[enrichMatch] match_details falhou:", e instanceof Error ? e.message : e);
+  }
+
   // Aplica MMR ao ranking da temporada (best-effort — falha aqui não quebra a
   // confirmação da PT; a partida já está 'realizada' e as fichas consumidas).
   try {

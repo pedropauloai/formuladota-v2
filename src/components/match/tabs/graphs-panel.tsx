@@ -35,6 +35,13 @@ export function GraphsPanel({
 }) {
   return (
     <div className="space-y-4">
+      <Section title="Probabilidade de vitória (estimativa)">
+        <SignedAreaChart
+          data={advantage.winProbRadiant.map((p) => p - 0.5)}
+          unit=""
+          format={(n) => `${Math.round((n + 0.5) * 100)}% Iluminados`}
+        />
+      </Section>
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
         <Section title="Vantagem de ouro">
           <SignedAreaChart data={advantage.goldAdv} unit="ouro" />

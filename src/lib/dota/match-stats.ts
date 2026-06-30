@@ -220,6 +220,18 @@ export interface AdvantageSeries {
   goldAdv: number[];
   /** Vantagem de XP Iluminados−Temidos por minuto. */
   xpAdv: number[];
+  /** Probabilidade ESTIMADA de vitória dos Iluminados (0..1) por minuto. */
+  winProbRadiant: number[];
+}
+
+// Estimativa simples de win-prob: logística sobre a vantagem combinada de ouro+XP,
+// com peso crescente conforme o jogo avança (uma vantagem tardia decide mais).
+// NÃO é o modelo proprietário do STRATZ — é um proxy transparente.
+function winProb(goldAdv: number, xpAdv: number, minute: number, totalMin: number): number {
+  const progress = totalMin > 0 ? Math.min(1, minute / totalMin) : 0;
+  const weight = 1 + progress * 1.5; // 1.0 cedo → 2.5 no fim
+  const combined = (goldAdv + xpAdv) * weight;
+  return 1 / (1 + Math.exp(-combined / 16000));
 }
 
 // Reconstrói a vantagem de ouro/XP somando as séries por time (radiant − dire).
@@ -232,6 +244,7 @@ export function buildAdvantage(
   const minutes: number[] = [];
   const goldAdv: number[] = [];
   const xpAdv: number[] = [];
+  const winProbRadiant: number[] = [];
   for (let i = 0; i < len; i++) {
     let g = 0;
     let x = 0;
@@ -243,8 +256,9 @@ export function buildAdvantage(
     minutes.push(i);
     goldAdv.push(g);
     xpAdv.push(x);
+    winProbRadiant.push(winProb(g, x, i, len - 1));
   }
-  return { minutes, goldAdv, xpAdv };
+  return { minutes, goldAdv, xpAdv, winProbRadiant };
 }
 
 export function goldSeries(r: RawOD): number[] {

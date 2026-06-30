@@ -17,6 +17,11 @@ import {
   type MatchPlayerRow,
   type Identity,
 } from "@/lib/dota/assemble-match";
+import {
+  parseObjectives,
+  parseTeamfights,
+  parseDraft,
+} from "@/lib/dota/match-objectives";
 
 export const dynamic = "force-dynamic";
 
@@ -73,6 +78,25 @@ export default async function HistoricoPartidaPage({
   }
 
   const { players, advantage, wards, series } = assembleMatch(rows, identityById);
+
+  // Dados de nível-partida (público) — abas Teamfights/Objetivos/Draft.
+  // match_details é tabela nova (migration 069), ainda fora dos tipos gerados → cast.
+  const detailsTable = supabase.from("match_details" as never) as unknown as {
+    select: (q: string) => {
+      eq: (c: string, v: string) => {
+        maybeSingle: () => PromiseLike<{
+          data: { teamfights: unknown; objectives: unknown; picks_bans: unknown } | null;
+        }>;
+      };
+    };
+  };
+  const { data: details } = await detailsTable
+    .select("teamfights, objectives, picks_bans")
+    .eq("match_id", id)
+    .maybeSingle();
+  const objectives = parseObjectives(details?.objectives);
+  const teamfights = parseTeamfights(details?.teamfights);
+  const draft = parseDraft(details?.picks_bans);
 
   const radiantRows = rows.filter((r) => r.team === "radiant");
   const direRows = rows.filter((r) => r.team === "dire");
@@ -159,6 +183,9 @@ export default async function HistoricoPartidaPage({
           advantage={advantage}
           series={series}
           wards={wards}
+          objectives={objectives}
+          teamfights={teamfights}
+          draft={draft}
           radiantWin={radiantWin}
         />
       </div>
