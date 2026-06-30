@@ -89,8 +89,8 @@ export interface QueueSearcher {
   level: number;
   honorScore: number;
   joinedAt: string;
-  /** Modo de jogo filado (migration 071) — usado pra contar por modo. */
-  gameMode: QueueGameMode;
+  /** Modos de jogo filados (migration 072) — multi. Mostrados no card de searchers. */
+  gameModes: QueueGameMode[];
 }
 
 // Linha do RPC get_queue_searchers (Args: never → o overload do .rpc não infere o
@@ -101,18 +101,21 @@ type QueueSearcherRow =
 export async function getQueueSearchers(): Promise<QueueSearcher[]> {
   const supabase = await createClient();
   const { data } = await supabase.rpc("get_queue_searchers");
-  // game_mode é novo no RPC (migration 071) e ainda não está nos tipos gerados → cast.
-  const rows = (data ?? []) as (QueueSearcherRow & { game_mode?: string })[];
-  return rows.map((r) => ({
-    userId: r.user_id,
-    name: r.name,
-    avatar: r.avatar,
-    roles: Array.isArray(r.roles) ? (r.roles as QueueRole[]) : [],
-    level: r.level,
-    honorScore: r.honor_score,
-    joinedAt: r.joined_at,
-    gameMode: (r.game_mode as QueueGameMode) ?? "all_pick",
-  }));
+  // game_modes é novo no RPC (migration 072) e ainda não está nos tipos gerados → cast.
+  const rows = (data ?? []) as (QueueSearcherRow & { game_modes?: unknown })[];
+  return rows.map((r) => {
+    const modes = Array.isArray(r.game_modes) ? (r.game_modes as QueueGameMode[]) : [];
+    return {
+      userId: r.user_id,
+      name: r.name,
+      avatar: r.avatar,
+      roles: Array.isArray(r.roles) ? (r.roles as QueueRole[]) : [],
+      level: r.level,
+      honorScore: r.honor_score,
+      joinedAt: r.joined_at,
+      gameModes: modes.length ? modes : (["all_pick"] as QueueGameMode[]),
+    };
+  });
 }
 
 export type QueueResult =
@@ -138,7 +141,8 @@ export interface QueueStatus {
 
 export async function enterQueue(input: {
   roles: QueueRole[];
-  gameMode?: QueueGameMode;
+  /** Modos selecionados (multi). Uma linha por user com o array → casar remove de todas. */
+  gameModes?: QueueGameMode[];
   region?: string;
 }): Promise<QueueResult> {
   const supabase = await createClient();
@@ -182,15 +186,22 @@ export async function enterQueue(input: {
     .eq("user_id", user.id)
     .eq("status", "waiting");
 
+  // Modos selecionados (ao menos 1). game_modes (array, migration 072) é o que vale;
+  // game_mode (coluna antiga, NOT NULL) recebe o primeiro pra compat. game_modes é
+  // coluna nova fora dos tipos gerados → cast no insert.
+  const modes =
+    input.gameModes && input.gameModes.length ? input.gameModes : (["all_pick"] as QueueGameMode[]);
+  const insertRow = {
+    user_id: user.id,
+    roles: input.roles,
+    game_mode: modes[0],
+    game_modes: modes,
+    region: input.region ?? "brasil",
+    status: "waiting",
+  };
   const { data, error } = await supabase
     .from("match_queue")
-    .insert({
-      user_id: user.id,
-      roles: input.roles,
-      game_mode: input.gameMode ?? "all_pick",
-      region: input.region ?? "brasil",
-      status: "waiting",
-    })
+    .insert(insertRow as never)
     .select("id")
     .single();
 

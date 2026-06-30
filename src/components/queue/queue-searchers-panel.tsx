@@ -37,6 +37,15 @@ const ROLES: { id: QueueRole; pos: string; key: string }[] = [
   { id: "support_dedicated", pos: "5", key: "roleSupportDedicated" },
 ];
 
+// Rótulos curtos dos modos (badge por jogador + contagem por modo).
+const MODE_LABEL: Record<QueueGameMode, string> = {
+  all_pick: "Escolha livre",
+  captains_mode: "Capitães",
+  random_draft: "Aleatória",
+  single_draft: "Única",
+};
+const MODE_ORDER: QueueGameMode[] = ["all_pick", "captains_mode"];
+
 const ROLE_TARGET = 2; // jogadores por função pra fechar partida cheia
 const ROLE_IDS: QueueRole[] = ROLES.map((r) => r.id);
 const STACK_MAX = 6; // avatares no stack antes do "+N"
@@ -82,8 +91,6 @@ interface Props {
   onPickAll?: () => void;
   /** Funções que o próprio jogador filou (marca "você" + rodapé "sua função"). */
   myRoles?: QueueRole[];
-  /** Se passado, conta SÓ quem está filando neste modo de jogo (contador por modo). */
-  gameMode?: QueueGameMode;
 }
 
 export function QueueSearchersPanel({
@@ -91,7 +98,6 @@ export function QueueSearchersPanel({
   onPickRole,
   onPickAll,
   myRoles,
-  gameMode,
 }: Props) {
   const t = useTranslations("playMenu");
   const [searchers, setSearchers] = useState<QueueSearcher[]>([]);
@@ -141,12 +147,14 @@ export function QueueSearchersPanel({
     return () => document.removeEventListener("mousedown", onDown);
   }, [pinned]);
 
-  // Filtra por modo de jogo quando pedido (contador individual por modo).
-  const visible = useMemo(
-    () => (gameMode ? searchers.filter((s) => s.gameMode === gameMode) : searchers),
-    [searchers, gameMode]
-  );
+  const visible = searchers;
   const total = visible.length;
+  // Contagem POR MODO (cada jogador conta em cada modo que marcou).
+  const modeCounts = useMemo(() => {
+    const c: Record<string, number> = {};
+    for (const s of visible) for (const m of s.gameModes) c[m] = (c[m] ?? 0) + 1;
+    return c;
+  }, [visible]);
   // Composição real (vagas ocupadas, flexível conta 1x) — base da demanda por função.
   const comp = useMemo(() => computeComposition(visible), [visible]);
   const showPopover = (open || pinned) && total > 0;
@@ -166,6 +174,20 @@ export function QueueSearchersPanel({
           {t("searchersInQueue", { count: total })}
         </span>
       </div>
+
+      {/* Contagem POR MODO de jogo. */}
+      {total > 0 && (
+        <div className="mb-2 flex flex-wrap items-center gap-1.5">
+          {MODE_ORDER.filter((m) => modeCounts[m]).map((m) => (
+            <span
+              key={m}
+              className="rounded-sm bg-bg-elevated px-1.5 py-0.5 font-display text-[0.65rem] uppercase tracking-wide text-text-muted"
+            >
+              {MODE_LABEL[m]} <span className="font-bold text-gold">{modeCounts[m]}</span>
+            </span>
+          ))}
+        </div>
+      )}
 
       {/* QUEM: stack deduplicado */}
       {total === 0 ? (
@@ -409,6 +431,17 @@ function SearcherRow({ s }: { s: QueueSearcher }) {
             className="size-3.5 object-contain"
             aria-hidden="true"
           />
+        ))}
+      </span>
+      {/* Modo(s) que o jogador está buscando. */}
+      <span className="flex shrink-0 items-center gap-1">
+        {MODE_ORDER.filter((m) => s.gameModes.includes(m)).map((m) => (
+          <span
+            key={m}
+            className="rounded-sm bg-bg-elevated px-1 py-0.5 font-display text-[0.58rem] uppercase tracking-wide text-text-faded"
+          >
+            {MODE_LABEL[m]}
+          </span>
         ))}
       </span>
       <HonorRankMedal rank={getTierForLevel(s.level)} size="sm" tooltip={false} />

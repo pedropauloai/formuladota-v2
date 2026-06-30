@@ -90,7 +90,17 @@ export function PlayMenu({ isVisitor, initial }: Props) {
 
   // Competitiva
   const [roles, setRoles] = useState<Set<QueueRole>>(new Set());
-  const [gameMode, setGameMode] = useState<QueueGameMode>("all_pick");
+  // Multi-modo (Pedro 2026-06-30): marca/desmarca; ao menos 1 ativo. Quem marca os
+  // dois entra nas duas filas e sai de ambas ao casar (1 linha por user no banco).
+  const [gameModes, setGameModes] = useState<QueueGameMode[]>(["all_pick"]);
+  const toggleGameMode = (m: QueueGameMode) =>
+    setGameModes((prev) =>
+      prev.includes(m)
+        ? prev.length > 1
+          ? prev.filter((x) => x !== m)
+          : prev
+        : [...prev, m]
+    );
   const [error, setError] = useState<string | null>(null);
   const [showQuiz, setShowQuiz] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -225,7 +235,7 @@ export function PlayMenu({ isVisitor, initial }: Props) {
     }
     setError(null);
     startTransition(async () => {
-      const res = await enterQueue({ roles: Array.from(roles), gameMode });
+      const res = await enterQueue({ roles: Array.from(roles), gameModes });
       if (!res.success) {
         if (res.code === "need_permission") {
           setShowQuiz(true);
@@ -356,7 +366,6 @@ export function PlayMenu({ isVisitor, initial }: Props) {
             <div className="border-b border-border-subtle p-2.5 animate-in slide-in-from-bottom-2 fade-in duration-150">
               <QueueSearchersPanel
                 bare
-                gameMode={gameMode}
                 onPickRole={(r) => applyQueueRoles([r])}
                 onPickAll={() => applyQueueRoles(ROLES.map((r) => r.id))}
                 myRoles={Array.from(roles)}
@@ -473,8 +482,8 @@ export function PlayMenu({ isVisitor, initial }: Props) {
               roles={roles}
               toggleRole={toggleRole}
               selectAllRoles={selectAllRoles}
-              gameMode={gameMode}
-              setGameMode={setGameMode}
+              gameModes={gameModes}
+              toggleGameMode={toggleGameMode}
               isVisitor={isVisitor}
               error={error}
               pending={pending}
@@ -585,8 +594,8 @@ function MenuView({
   roles,
   toggleRole,
   selectAllRoles,
-  gameMode,
-  setGameMode,
+  gameModes,
+  toggleGameMode,
   isVisitor,
   error,
   pending,
@@ -601,8 +610,8 @@ function MenuView({
   roles: Set<QueueRole>;
   toggleRole: (r: QueueRole) => void;
   selectAllRoles: () => void;
-  gameMode: QueueGameMode;
-  setGameMode: (m: QueueGameMode) => void;
+  gameModes: QueueGameMode[];
+  toggleGameMode: (m: QueueGameMode) => void;
   isVisitor: boolean;
   error: string | null;
   pending: boolean;
@@ -623,9 +632,8 @@ function MenuView({
           <p className="mb-2.5 font-body text-sm leading-relaxed text-text-muted">
             {t("competitivaDesc")}
           </p>
-          {/* Painel "quem está findando" — acima da seleção de função (ao vivo).
-              Conta só quem fila no MODO selecionado (contador por modo). */}
-          <QueueSearchersPanel gameMode={gameMode} />
+          {/* Painel "quem está findando" — mostra o modo que cada um busca. */}
+          <QueueSearchersPanel />
           {/* Atalho: marca as 5 funções de uma vez (mais flexível = fila mais rápida). */}
           <button
             type="button"
@@ -663,16 +671,38 @@ function MenuView({
               );
             })}
           </ul>
-          <select
-            value={gameMode}
-            onChange={(e) => setGameMode(e.target.value as QueueGameMode)}
-            className="mt-2.5 w-full rounded-[var(--radius-md)] border border-border-subtle bg-bg-elevated px-2.5 py-1.5 font-body text-sm text-text-body"
-            aria-label={t("gameModeLabel")}
-          >
-            {GAME_MODES.map((m) => (
-              <option key={m.id} value={m.id}>{t(m.key)}</option>
-            ))}
-          </select>
+          {/* Modos de jogo — MULTI-seleção (marque ao menos 1). Quem marca os dois
+              entra nas duas filas. */}
+          <div className="mt-2.5 space-y-1.5">
+            <span className="font-display text-xs font-semibold uppercase tracking-wide text-text-faded">
+              {t("gameModeLabel")}
+            </span>
+            {GAME_MODES.map((m) => {
+              const on = gameModes.includes(m.id);
+              return (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => toggleGameMode(m.id)}
+                  aria-pressed={on}
+                  className={`flex w-full items-center gap-2.5 rounded-[var(--radius-md)] border px-2.5 py-1.5 text-left transition-colors ${
+                    on
+                      ? "border-brand-primary bg-brand-primary/10"
+                      : "border-border-subtle bg-bg-elevated hover:border-brand-primary/50"
+                  }`}
+                >
+                  <span
+                    className={`flex size-4 shrink-0 items-center justify-center rounded-sm border ${
+                      on ? "border-brand-primary bg-brand-primary/20" : "border-border-strong"
+                    }`}
+                  >
+                    {on && <Check size={12} className="text-brand-primary" aria-hidden="true" />}
+                  </span>
+                  <span className="flex-1 truncate font-body text-sm text-text-body">{t(m.key)}</span>
+                </button>
+              );
+            })}
+          </div>
           {/* Mais funções marcadas = fila mais rápida (a demanda detalhada está no painel). */}
           <p className="mt-2.5 font-body text-xs text-text-faded">{t("moreRolesFaster")}</p>
         </Section>
