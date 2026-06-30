@@ -433,6 +433,130 @@ export type Database = {
           },
         ]
       }
+      dm_conversations: {
+        Row: {
+          created_at: string
+          id: string
+          last_message_at: string | null
+          last_message_preview: string | null
+          last_sender_id: string | null
+          user_a: string
+          user_b: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          last_message_preview?: string | null
+          last_sender_id?: string | null
+          user_a: string
+          user_b: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          last_message_preview?: string | null
+          last_sender_id?: string | null
+          user_a?: string
+          user_b?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dm_conversations_last_sender_id_fkey"
+            columns: ["last_sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dm_conversations_user_a_fkey"
+            columns: ["user_a"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dm_conversations_user_b_fkey"
+            columns: ["user_b"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dm_messages: {
+        Row: {
+          body: string
+          conversation_id: string
+          created_at: string
+          id: string
+          sender_id: string
+        }
+        Insert: {
+          body: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          sender_id: string
+        }
+        Update: {
+          body?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dm_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "dm_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dm_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dm_reads: {
+        Row: {
+          conversation_id: string
+          last_read_at: string
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          last_read_at?: string
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          last_read_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dm_reads_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "dm_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dm_reads_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       doctrine_versions: {
         Row: {
           notes: string | null
@@ -792,6 +916,50 @@ export type Database = {
           },
         ]
       }
+      match_details: {
+        Row: {
+          chat: Json | null
+          dota_match_id: string | null
+          fetched_at: string
+          game_mode: number | null
+          lobby_type: number | null
+          match_id: string
+          objectives: Json | null
+          picks_bans: Json | null
+          teamfights: Json | null
+        }
+        Insert: {
+          chat?: Json | null
+          dota_match_id?: string | null
+          fetched_at?: string
+          game_mode?: number | null
+          lobby_type?: number | null
+          match_id: string
+          objectives?: Json | null
+          picks_bans?: Json | null
+          teamfights?: Json | null
+        }
+        Update: {
+          chat?: Json | null
+          dota_match_id?: string | null
+          fetched_at?: string
+          game_mode?: number | null
+          lobby_type?: number | null
+          match_id?: string
+          objectives?: Json | null
+          picks_bans?: Json | null
+          teamfights?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_details_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: true
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       match_players: {
         Row: {
           aghanims_scepter: boolean | null
@@ -959,6 +1127,7 @@ export type Database = {
       match_queue: {
         Row: {
           game_mode: string | null
+          game_modes: string[]
           id: string
           joined_at: string | null
           last_heartbeat: string
@@ -973,6 +1142,7 @@ export type Database = {
         }
         Insert: {
           game_mode?: string | null
+          game_modes?: string[]
           id?: string
           joined_at?: string | null
           last_heartbeat?: string
@@ -987,6 +1157,7 @@ export type Database = {
         }
         Update: {
           game_mode?: string | null
+          game_modes?: string[]
           id?: string
           joined_at?: string | null
           last_heartbeat?: string
@@ -1251,35 +1422,93 @@ export type Database = {
       parties: {
         Row: {
           created_at: string | null
+          game_modes: string[]
           id: string
           leader_id: string
+          region: string
+          updated_at: string
         }
         Insert: {
           created_at?: string | null
+          game_modes?: string[]
           id?: string
           leader_id: string
+          region?: string
+          updated_at?: string
         }
         Update: {
           created_at?: string | null
+          game_modes?: string[]
           id?: string
           leader_id?: string
+          region?: string
+          updated_at?: string
         }
         Relationships: []
+      }
+      party_invites: {
+        Row: {
+          created_at: string
+          id: string
+          invitee_id: string
+          inviter_id: string
+          party_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invitee_id: string
+          inviter_id: string
+          party_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invitee_id?: string
+          inviter_id?: string
+          party_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "party_invites_invitee_id_fkey"
+            columns: ["invitee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "party_invites_inviter_id_fkey"
+            columns: ["inviter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "party_invites_party_id_fkey"
+            columns: ["party_id"]
+            isOneToOne: false
+            referencedRelation: "parties"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       party_members: {
         Row: {
           joined_at: string | null
           party_id: string
+          roles: Json
           user_id: string
         }
         Insert: {
           joined_at?: string | null
           party_id: string
+          roles?: Json
           user_id: string
         }
         Update: {
           joined_at?: string | null
           party_id?: string
+          roles?: Json
           user_id?: string
         }
         Relationships: [
@@ -1288,6 +1517,45 @@ export type Database = {
             columns: ["party_id"]
             isOneToOne: false
             referencedRelation: "parties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      party_messages: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          party_id: string
+          sender_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          party_id: string
+          sender_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          party_id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "party_messages_party_id_fkey"
+            columns: ["party_id"]
+            isOneToOne: false
+            referencedRelation: "parties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "party_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -2342,7 +2610,9 @@ export type Database = {
       user_stats_extended: {
         Row: {
           avg_gpm: number | null
+          avg_hero_damage: number | null
           avg_kda: number | null
+          avg_last_hits: number | null
           avg_xpm: number | null
           career: Json | null
           hero_winrates: Json | null
@@ -2355,7 +2625,9 @@ export type Database = {
         }
         Insert: {
           avg_gpm?: number | null
+          avg_hero_damage?: number | null
           avg_kda?: number | null
+          avg_last_hits?: number | null
           avg_xpm?: number | null
           career?: Json | null
           hero_winrates?: Json | null
@@ -2368,7 +2640,9 @@ export type Database = {
         }
         Update: {
           avg_gpm?: number | null
+          avg_hero_damage?: number | null
           avg_kda?: number | null
+          avg_last_hits?: number | null
           avg_xpm?: number | null
           career?: Json | null
           hero_winrates?: Json | null
@@ -2551,7 +2825,12 @@ export type Database = {
       }
     }
     Functions: {
+      _assign_team_roles: {
+        Args: { p_members: Json; p_roles: string[]; p_team: string }
+        Returns: Json
+      }
       accept_match_proposal: { Args: { p_id: string }; Returns: string }
+      accept_party_invite: { Args: { p_invite: string }; Returns: string }
       accept_team_invite: { Args: { p_invite_id: string }; Returns: undefined }
       apply_match_mmr: {
         Args: { p_match_id: string; p_results: Json; p_season_id: number }
@@ -2583,11 +2862,28 @@ export type Database = {
       confirm_match_proposal: { Args: { p_id: string }; Returns: string }
       consume_match_permission: { Args: never; Returns: undefined }
       consume_pt_fichas: { Args: { p_match_id: string }; Returns: undefined }
+      create_party: { Args: never; Returns: string }
       decline_match_proposal: { Args: { p_id: string }; Returns: undefined }
+      dm_get_or_create_conversation: {
+        Args: { p_other: string }
+        Returns: string
+      }
+      dm_inbox: {
+        Args: never
+        Returns: {
+          conversation_id: string
+          last_message_at: string
+          last_preview: string
+          last_sender_id: string
+          other_user_id: string
+          unread_count: number
+        }[]
+      }
       ensure_player_season_mmr: {
         Args: { p_user_id: string }
         Returns: undefined
       }
+      enter_party_queue: { Args: { p_game_modes: string[] }; Returns: Json }
       expire_match_proposals: { Args: never; Returns: undefined }
       get_honor_score: { Args: { p_user_id: string }; Returns: number }
       get_honor_tier: { Args: { p_score: number }; Returns: string }
@@ -2661,6 +2957,7 @@ export type Database = {
         Args: never
         Returns: {
           avatar: string
+          game_modes: Json
           honor_score: number
           joined_at: string
           level: number
@@ -2685,13 +2982,31 @@ export type Database = {
       is_pro_first_sale: { Args: { p_pro_user_id: string }; Returns: boolean }
       is_user_active: { Args: { p_user_id: string }; Returns: boolean }
       join_coach_queue: { Args: { p_coach_id: string }; Returns: Json }
+      kick_party_member: { Args: { p_user: string }; Returns: undefined }
       leave_coach_queue: { Args: { p_entry_id: string }; Returns: Json }
+      leave_party: { Args: never; Returns: undefined }
+      leave_party_queue: { Args: never; Returns: undefined }
       mmr_to_tier: {
         Args: { p_mmr: number }
         Returns: {
           stars: number
           tier: number
           tier_name: string
+        }[]
+      }
+      my_party: {
+        Args: never
+        Returns: {
+          avatar: string
+          game_modes: Json
+          in_queue: boolean
+          joined_at: string
+          leader_id: string
+          level: number
+          member_id: string
+          name: string
+          party_id: string
+          roles: Json
         }[]
       }
       queue_liveness_tick: { Args: never; Returns: undefined }
@@ -2722,6 +3037,7 @@ export type Database = {
         Args: { p_email?: string; p_username: string }
         Returns: string
       }
+      transfer_party_leader: { Args: { p_user: string }; Returns: undefined }
       try_form_match: { Args: { p_match_size?: number }; Returns: string }
     }
     Enums: {
