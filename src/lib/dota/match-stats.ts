@@ -250,3 +250,6 @@ export function goldSeries(r: RawOD): number[] {
 export function xpSeries(r: RawOD): number[] {
   return numArr(r, "xp_t");
 }
+export function lhSeries(r: RawOD): number[] {
+  return numArr(r, "lh_t");
+}

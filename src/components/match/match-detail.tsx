@@ -5,22 +5,24 @@
 
 import { useState } from "react";
 import type { PlayerFull, AdvantageSeries } from "@/lib/dota/match-stats";
+import type { PlayerSeries } from "@/lib/dota/match-series";
+import type { Ward } from "@/lib/dota/match-vision";
 import { MatchScoreboard } from "@/components/match/match-scoreboard";
 import { splitTeams } from "@/components/match/shared";
 import { PerformancePanel } from "@/components/match/tabs/performance-panel";
-import { FarmPanel } from "@/components/match/tabs/farm-panel";
+import { GraphsPanel } from "@/components/match/tabs/graphs-panel";
 import { BuildsPanel } from "@/components/match/tabs/builds-panel";
 import { CombatPanel } from "@/components/match/tabs/combat-panel";
-import { VisionPanel } from "@/components/match/tabs/vision-panel";
+import { MapsPanel } from "@/components/match/tabs/maps-panel";
 import { BenchmarksPanel } from "@/components/match/tabs/benchmarks-panel";
 
 const TABS = [
   "Visão geral",
   "Performance",
-  "Economia",
+  "Gráficos",
   "Builds",
   "Combate",
-  "Visão",
+  "Mapas",
   "Benchmarks",
 ] as const;
 type Tab = (typeof TABS)[number];
@@ -28,10 +30,14 @@ type Tab = (typeof TABS)[number];
 export function MatchDetail({
   players,
   advantage,
+  series,
+  wards,
   radiantWin,
 }: {
   players: PlayerFull[];
   advantage: AdvantageSeries;
+  series: PlayerSeries[];
+  wards: Ward[];
   radiantWin: boolean | null;
 }) {
   const [tab, setTab] = useState<Tab>("Visão geral");
@@ -65,10 +71,10 @@ export function MatchDetail({
         <MatchScoreboard radiant={radiant} dire={dire} radiantWin={radiantWin} />
       )}
       {tab === "Performance" && <PerformancePanel players={players} />}
-      {tab === "Economia" && <FarmPanel players={players} advantage={advantage} />}
+      {tab === "Gráficos" && <GraphsPanel series={series} advantage={advantage} />}
       {tab === "Builds" && <BuildsPanel players={players} />}
       {tab === "Combate" && <CombatPanel players={players} />}
-      {tab === "Visão" && <VisionPanel players={players} />}
+      {tab === "Mapas" && <MapsPanel players={players} wards={wards} />}
       {tab === "Benchmarks" && <BenchmarksPanel players={players} />}
     </div>
   );

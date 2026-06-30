@@ -72,7 +72,7 @@ export default async function HistoricoPartidaPage({
     }
   }
 
-  const { players, advantage } = assembleMatch(rows, identityById);
+  const { players, advantage, wards, series } = assembleMatch(rows, identityById);
 
   const radiantRows = rows.filter((r) => r.team === "radiant");
   const direRows = rows.filter((r) => r.team === "dire");
@@ -154,7 +154,13 @@ export default async function HistoricoPartidaPage({
           </div>
         </header>
 
-        <MatchDetail players={players} advantage={advantage} radiantWin={radiantWin} />
+        <MatchDetail
+          players={players}
+          advantage={advantage}
+          series={series}
+          wards={wards}
+          radiantWin={radiantWin}
+        />
       </div>
     </ClientShell>
   );

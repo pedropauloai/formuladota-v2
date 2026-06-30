@@ -14,8 +14,11 @@ import {
   buildAdvantage,
   goldSeries,
   xpSeries,
+  lhSeries,
 } from "@/lib/dota/match-stats";
 import { parsePurchases, parseSkills } from "@/lib/dota/match-build";
+import { parsePlayerWards, type Ward } from "@/lib/dota/match-vision";
+import { type PlayerSeries, colorFor } from "@/lib/dota/match-series";
 
 export interface MatchPlayerRow {
   user_id: string | null;
@@ -64,12 +67,22 @@ function unitMap(rows: MatchPlayerRow[], team: "radiant" | "dire"): Map<string, 
   return m;
 }
 
+export interface MatchView {
+  players: PlayerFull[];
+  advantage: AdvantageSeries;
+  wards: Ward[];
+  series: PlayerSeries[];
+}
+
 export function assembleMatch(
   rows: MatchPlayerRow[],
   identityById: Map<string, Identity>
-): { players: PlayerFull[]; advantage: AdvantageSeries } {
+): MatchView {
   const radiantUnits = unitMap(rows, "radiant");
   const direUnits = unitMap(rows, "dire");
+
+  const wards: Ward[] = [];
+  const series: PlayerSeries[] = [];
 
   const players: PlayerFull[] = rows.map((r) => {
     const id = r.user_id ? identityById.get(r.user_id) : undefined;
@@ -77,6 +90,21 @@ export function assembleMatch(
     const raw: RawOD = r.raw_opendota ?? {};
     const enemyMap = r.team === "radiant" ? direUnits : radiantUnits;
     const inv = (r.items?.inventory ?? []).map((x) => x ?? 0);
+    const heroName = hero?.name_pt ?? `Herói ${r.hero_id}`;
+    const heroIcon = hero?.image_icon ?? null;
+    const slot = teamSlot(r);
+
+    // Coleta wards (minimapa) e série temporal (gráficos) deste jogador.
+    wards.push(...parsePlayerWards(raw, r.team, heroName, heroIcon));
+    series.push({
+      name: heroName,
+      heroIcon,
+      team: r.team,
+      color: colorFor(r.team, slot),
+      gold: goldSeries(raw),
+      xp: xpSeries(raw),
+      lh: lhSeries(raw),
+    });
 
     return {
       // identidade + herói (ScoreboardPlayer)
@@ -84,7 +112,7 @@ export function assembleMatch(
       name: id?.persona || id?.username || r.personaname || "Jogador anônimo",
       avatar: id?.avatar_url || null,
       profileHref: r.user_id ? `/perfil/u/${r.user_id}` : null,
-      heroName: hero?.name_pt ?? `Herói ${r.hero_id}`,
+      heroName,
       heroPortrait: hero?.portrait_url ?? null,
       level: r.level,
       kills: r.kills,
@@ -102,9 +130,9 @@ export function assembleMatch(
       neutral: r.items?.neutral ?? null,
       // extras pra abas
       team: r.team,
-      slot: teamSlot(r),
+      slot,
       heroId: r.hero_id,
-      heroIcon: hero?.image_icon ?? null,
+      heroIcon,
       isWinner: r.is_winner,
       performance: parsePerformance(raw),
       combat: parseCombat(raw),
@@ -124,5 +152,5 @@ export function assembleMatch(
     }))
   );
 
-  return { players, advantage };
+  return { players, advantage, wards, series };
 }
