@@ -13,6 +13,7 @@ import { ProfilePage } from "@/components/profile/profile-page";
 import { VALID_TABS, type ProfileTab } from "@/components/profile/profile-tabs";
 import { getProfileForMe } from "@/lib/queries/profile";
 import { getCareerStats } from "@/lib/queries/career";
+import { getFormulaDotaProfileStats } from "@/lib/queries/formuladota-stats";
 import { syncPlayerStats } from "@/app/perfil/actions";
 import { rankTierToDotaRank } from "@/components/profile/career-stats";
 import { getCoachingReviewsForUser } from "@/lib/queries/coaching-reviews";
@@ -94,16 +95,27 @@ export default async function MePage({ searchParams }: PageProps) {
   // Análises de coaching recebidas (aba Conduta) — RLS: o aluno lê as próprias.
   const coachingReviews = await getCoachingReviewsForUser(supabase, profile.userId);
 
-  // Stats externos (KDA/GPM/XPM médios — STRATZ/OpenDota, cache 24h). Best-effort.
+  // Carreira REAL (STRATZ) + partidas FormulaDota → os 2 hexágonos de performance.
   const ext = await syncPlayerStats({ userId: profile.userId });
-  const externalStats = ext.success
+  const extData = ext.success ? ext.data : null;
+  const fdotaStats = await getFormulaDotaProfileStats(profile.userId);
+
+  // Hexágono "Conta geral" = carreira do STRATZ (KDA/GPM/XPM/LH/Dano médios).
+  const general = extData
     ? {
-        source: ext.data.source,
-        avgKDA: ext.data.avgKDA,
-        avgGPM: ext.data.avgGPM,
-        avgXPM: ext.data.avgXPM,
+        matches: extData.totalMatches,
+        wins: extData.totalWins,
+        losses: Math.max(0, extData.totalMatches - extData.totalWins),
+        avgKDA: extData.avgKDA,
+        avgGPM: extData.avgGPM,
+        avgXPM: extData.avgXPM,
+        avgLastHits: extData.avgLastHits,
+        avgHeroDamage: extData.avgHeroDamage,
       }
     : null;
+
+  // Top heróis do header = OpenDota all-time (melhor "mais jogados"). O STRATZ
+  // heroesPerformance é janela RECENTE, não all-time — por isso não serve aqui.
 
   // BLOCKER #3 fix: ClientShell immersive + centerHero gerencia o hero portrait
   // fullscreen background. Quando profile.heroPortraitData é null (sem herói escolhido),
@@ -120,7 +132,8 @@ export default async function MePage({ searchParams }: PageProps) {
         editing={editing}
         career={career}
         coachingReviews={coachingReviews}
-        externalStats={externalStats}
+        general={general}
+        fdota={fdotaStats}
       />
     </ClientShell>
   );

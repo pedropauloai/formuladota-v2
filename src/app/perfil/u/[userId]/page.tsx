@@ -11,6 +11,7 @@ import { ProfilePage } from "@/components/profile/profile-page";
 import { VALID_TABS, type ProfileTab } from "@/components/profile/profile-tabs";
 import { getPublicProfile } from "@/lib/queries/profile";
 import { getCareerStats } from "@/lib/queries/career";
+import { getFormulaDotaProfileStats } from "@/lib/queries/formuladota-stats";
 import { syncPlayerStats } from "@/app/perfil/actions";
 import { rankTierToDotaRank } from "@/components/profile/career-stats";
 import type { DotaRank } from "@/components/ui/dota-rank-medal";
@@ -79,14 +80,20 @@ export default async function PublicProfilePage(props: PageProps) {
     rankTierToDotaRank(career?.rankTier ?? null, career?.leaderboardRank ?? null) ??
     mmrToDotaRank(profile.mmr);
 
-  // Stats externos (KDA/GPM/XPM — cache 24h; após o backfill admin lê do cache).
+  // Carreira STRATZ + partidas FormulaDota → os 2 hexágonos (igual ao /me).
   const ext = await syncPlayerStats({ userId });
-  const externalStats = ext.success
+  const extData = ext.success ? ext.data : null;
+  const fdotaStats = await getFormulaDotaProfileStats(userId);
+  const general = extData
     ? {
-        source: ext.data.source,
-        avgKDA: ext.data.avgKDA,
-        avgGPM: ext.data.avgGPM,
-        avgXPM: ext.data.avgXPM,
+        matches: extData.totalMatches,
+        wins: extData.totalWins,
+        losses: Math.max(0, extData.totalMatches - extData.totalWins),
+        avgKDA: extData.avgKDA,
+        avgGPM: extData.avgGPM,
+        avgXPM: extData.avgXPM,
+        avgLastHits: extData.avgLastHits,
+        avgHeroDamage: extData.avgHeroDamage,
       }
     : null;
   const centerHero = profile.heroPortraitData?.portrait_url ?? undefined;
@@ -103,7 +110,8 @@ export default async function PublicProfilePage(props: PageProps) {
         coachingReviews={[]} // coaching é privado do aluno — não exposto no público
         isOwn={false}
         ownerUserId={userId}
-        externalStats={externalStats}
+        general={general}
+        fdota={fdotaStats}
       />
     </ClientShell>
   );

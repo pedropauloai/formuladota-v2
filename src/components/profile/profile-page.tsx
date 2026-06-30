@@ -45,6 +45,7 @@ import { TabConduta } from "./tab-conduta";
 import { TabProgresso } from "./tab-progresso";
 import { AvatarPortraitEdit } from "./avatar-portrait-edit";
 import { ResetLayoutButton } from "./reset-layout-button";
+import type { StatBlock } from "./profile-stats-card";
 import {
   CareerIdentityInline,
   SignatureHeroesStrip,
@@ -74,13 +75,10 @@ interface Props {
   isOwn?: boolean;
   /** UUID do dono do perfil — usado pra montar as rotas das abas no modo público. */
   ownerUserId?: string;
-  /** Stats externos (média das últimas partidas — STRATZ/OpenDota). null = sem dados. */
-  externalStats?: {
-    source: string;
-    avgKDA: number;
-    avgGPM: number;
-    avgXPM: number;
-  } | null;
+  /** Hexágono "Conta geral" (carreira STRATZ). null = sem Steam/sem dados. */
+  general?: StatBlock | null;
+  /** Hexágono "FormulaDota" (partidas da liga). null = sem partidas. */
+  fdota?: StatBlock | null;
 }
 
 export function ProfilePage({
@@ -93,7 +91,8 @@ export function ProfilePage({
   coachingReviews,
   isOwn = true,
   ownerUserId,
-  externalStats,
+  general = null,
+  fdota = null,
 }: Props) {
   const t = useTranslations("perfil");
   const ranqueado = profile.mmr !== null;
@@ -222,12 +221,9 @@ export function ProfilePage({
               initialLayout={profile.dashboardLayout}
               editing={editing}
               data={{
-                partidas: profile.partidas,
-                vitorias: profile.vitorias,
-                derrotas: profile.derrotas,
-                mmr: profile.mmr,
+                general,
+                fdota,
                 favoriteHeroes: profile.favoriteHeroes,
-                externalStats: externalStats ?? null,
               }}
             />
           </div>

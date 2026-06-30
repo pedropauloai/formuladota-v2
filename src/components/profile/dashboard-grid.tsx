@@ -30,7 +30,7 @@ import "react-grid-layout/css/styles.css";
 // react-resizable CSS embed: v2.x do react-grid-layout não traz styles.css de
 // react-resizable; usamos só o do próprio grid layout (que já inclui resize handles).
 
-import { WidgetStats } from "./widgets/widget-stats";
+import { ProfileStatsCard, type StatBlock } from "./profile-stats-card";
 import { WidgetHeroes } from "./widgets/widget-heroes";
 import { updateDashboardLayout } from "@/actions/profile";
 import {
@@ -55,18 +55,10 @@ const ROW_HEIGHT = 80;
 const DEBOUNCE_MS = 1000;
 
 interface WidgetData {
-  partidas: number | null;
-  vitorias: number | null;
-  derrotas: number | null;
-  mmr: number | null;
+  /** Performance: hexágono "Conta geral" (STRATZ) + "FormulaDota" (liga). */
+  general: StatBlock | null;
+  fdota: StatBlock | null;
   favoriteHeroes: HeroData[];
-  /** Média recente (STRATZ/OpenDota) — KDA/GPM/XPM no hexágono. */
-  externalStats: {
-    source: string;
-    avgKDA: number;
-    avgGPM: number;
-    avgXPM: number;
-  } | null;
 }
 
 // Margem entre células (px) — espelha a prop margin do grid.
@@ -169,14 +161,7 @@ export function DashboardGrid({ initialLayout, editing, data }: Props) {
   const widgets = useMemo(
     () => ({
       stats: (
-        <WidgetStats
-          partidas={data.partidas}
-          vitorias={data.vitorias}
-          derrotas={data.derrotas}
-          mmr={data.mmr}
-          externalStats={data.externalStats}
-          editing={editing}
-        />
+        <ProfileStatsCard general={data.general} fdota={data.fdota} editing={editing} />
       ),
       heroes: <WidgetHeroes favoriteHeroes={data.favoriteHeroes} editing={editing} />,
     }),

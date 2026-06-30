@@ -14,6 +14,10 @@ export interface PlayerStatsExtended {
   avgKDA: number;
   avgGPM: number;
   avgXPM: number;
+  /** Média de last hits por partida (últimas ~20). */
+  avgLastHits: number;
+  /** Média de dano a heróis por partida (últimas ~20). */
+  avgHeroDamage: number;
   /** Top 5 heróis mais jogados */
   topHeroes: {
     heroId: number;
@@ -76,11 +80,15 @@ async function fetchFromStratz(
           winCount
         }
         matches(request: { take: 20 }) {
-          kills
-          deaths
-          assists
-          goldPerMinute
-          xpPerMinute
+          players(steamAccountId: $id) {
+            kills
+            deaths
+            assists
+            goldPerMinute
+            experiencePerMinute
+            numLastHits
+            heroDamage
+          }
         }
       }
     }
@@ -113,11 +121,18 @@ async function fetchFromStratz(
           winCount: number;
         }>;
         matches?: Array<{
-          kills: number;
-          deaths: number;
-          assists: number;
-          goldPerMinute: number;
-          xpPerMinute: number;
+          // As stats por partida ficam no PLAYER (filtrado por steamAccountId), não
+          // no MatchType. Antes a query pedia kills no match → 400 → SEMPRE caía pro
+          // OpenDota (bug histórico, corrigido 2026-06-30).
+          players?: Array<{
+            kills: number;
+            deaths: number;
+            assists: number;
+            goldPerMinute: number;
+            experiencePerMinute: number;
+            numLastHits: number;
+            heroDamage: number;
+          }>;
         }>;
       };
     };
@@ -126,18 +141,15 @@ async function fetchFromStratz(
   const p = json.data?.player;
   if (!p) return null;
 
-  const matches = p.matches ?? [];
+  // 1 player por match (o filtrado). Achata pra média das últimas ~20.
+  const pm = (p.matches ?? []).flatMap((m) => m.players ?? []);
+  const denom = Math.max(1, pm.length);
   const totalKDA =
-    matches.reduce(
-      (sum, m) => sum + (m.kills + m.assists) / Math.max(1, m.deaths),
-      0
-    ) / Math.max(1, matches.length);
-  const totalGPM =
-    matches.reduce((sum, m) => sum + m.goldPerMinute, 0) /
-    Math.max(1, matches.length);
-  const totalXPM =
-    matches.reduce((sum, m) => sum + m.xpPerMinute, 0) /
-    Math.max(1, matches.length);
+    pm.reduce((sum, m) => sum + (m.kills + m.assists) / Math.max(1, m.deaths), 0) / denom;
+  const totalGPM = pm.reduce((sum, m) => sum + m.goldPerMinute, 0) / denom;
+  const totalXPM = pm.reduce((sum, m) => sum + (m.experiencePerMinute ?? 0), 0) / denom;
+  const totalLH = pm.reduce((sum, m) => sum + (m.numLastHits ?? 0), 0) / denom;
+  const totalDmg = pm.reduce((sum, m) => sum + (m.heroDamage ?? 0), 0) / denom;
 
   return {
     source: "stratz",
@@ -146,6 +158,8 @@ async function fetchFromStratz(
     avgKDA: Number(totalKDA.toFixed(2)),
     avgGPM: Number(totalGPM.toFixed(1)),
     avgXPM: Number(totalXPM.toFixed(1)),
+    avgLastHits: Number(totalLH.toFixed(1)),
+    avgHeroDamage: Number(totalDmg.toFixed(0)),
     topHeroes: (p.heroesPerformance ?? []).map((h) => ({
       heroId: h.heroId,
       matches: h.matchCount,
@@ -193,6 +207,8 @@ async function fetchFromOpenDota(
     assists: number;
     gold_per_min: number;
     xp_per_min: number;
+    last_hits: number;
+    hero_damage: number;
   }>;
 
   // Agrega: total matches/wins de heroes (mais confiável que player.win_count
@@ -215,6 +231,14 @@ async function fetchFromOpenDota(
     recent.length > 0
       ? recent.reduce((s, m) => s + m.xp_per_min, 0) / recent.length
       : 0;
+  const avgLastHits =
+    recent.length > 0
+      ? recent.reduce((s, m) => s + (m.last_hits ?? 0), 0) / recent.length
+      : 0;
+  const avgHeroDamage =
+    recent.length > 0
+      ? recent.reduce((s, m) => s + (m.hero_damage ?? 0), 0) / recent.length
+      : 0;
 
   const topHeroes = [...heroes]
     .sort((a, b) => b.games - a.games)
@@ -233,6 +257,8 @@ async function fetchFromOpenDota(
     avgKDA: Number(avgKDA.toFixed(2)),
     avgGPM: Number(avgGPM.toFixed(1)),
     avgXPM: Number(avgXPM.toFixed(1)),
+    avgLastHits: Number(avgLastHits.toFixed(1)),
+    avgHeroDamage: Number(avgHeroDamage.toFixed(0)),
     topHeroes,
   };
 }

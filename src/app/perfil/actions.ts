@@ -44,13 +44,19 @@ export async function syncPlayerStats(input: {
   const { data: cached } = await supabase
     .from("user_stats_extended")
     .select(
-      "hero_winrates, avg_kda, avg_gpm, avg_xpm, total_matches, total_wins, source, last_synced_at"
+      "hero_winrates, avg_kda, avg_gpm, avg_xpm, avg_last_hits, avg_hero_damage, total_matches, total_wins, source, last_synced_at"
     )
     .eq("user_id", input.userId)
     .single();
 
+  // Cache "fresh" só se também tiver as colunas novas (migration 073): caches
+  // antigos (last hits/dano = null) são tratados como vencidos pra re-sincronizar
+  // e popular os eixos novos do hexágono já na próxima visita.
+  const hasNewCols =
+    (cached as { avg_last_hits?: number | null } | null)?.avg_last_hits != null;
   const fresh =
     cached?.last_synced_at &&
+    hasNewCols &&
     Date.now() - new Date(cached.last_synced_at).getTime() < TTL_MS;
 
   if (fresh && !input.force && cached) {
@@ -73,22 +79,25 @@ export async function syncPlayerStats(input: {
     return { success: false, error: "Sem dados externos disponíveis." };
   }
 
-  // UPSERT em user_stats_extended
-  await supabase.from("user_stats_extended").upsert(
-    {
-      user_id: input.userId,
-      hero_winrates: stats.topHeroes,
-      avg_kda: stats.avgKDA,
-      avg_gpm: stats.avgGPM,
-      avg_xpm: stats.avgXPM,
-      total_matches: stats.totalMatches,
-      total_wins: stats.totalWins,
-      source: stats.source,
-      last_synced_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: "user_id" }
-  );
+  // UPSERT em user_stats_extended. avg_last_hits/avg_hero_damage são colunas novas
+  // (migration 073), ainda fora dos tipos gerados → cast no row.
+  const statsRow = {
+    user_id: input.userId,
+    hero_winrates: stats.topHeroes,
+    avg_kda: stats.avgKDA,
+    avg_gpm: stats.avgGPM,
+    avg_xpm: stats.avgXPM,
+    avg_last_hits: stats.avgLastHits,
+    avg_hero_damage: stats.avgHeroDamage,
+    total_matches: stats.totalMatches,
+    total_wins: stats.totalWins,
+    source: stats.source,
+    last_synced_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
+  await supabase
+    .from("user_stats_extended")
+    .upsert(statsRow as never, { onConflict: "user_id" });
 
   return { success: true, cached: false, data: stats };
 }
@@ -171,6 +180,8 @@ function cachedToData(row: {
   avg_kda: number | null;
   avg_gpm: number | null;
   avg_xpm: number | null;
+  avg_last_hits?: number | null;
+  avg_hero_damage?: number | null;
   total_matches: number | null;
   total_wins: number | null;
   source: string | null;
@@ -187,6 +198,8 @@ function cachedToData(row: {
     avgKDA: Number(row.avg_kda ?? 0),
     avgGPM: Number(row.avg_gpm ?? 0),
     avgXPM: Number(row.avg_xpm ?? 0),
+    avgLastHits: Number(row.avg_last_hits ?? 0),
+    avgHeroDamage: Number(row.avg_hero_damage ?? 0),
     topHeroes: heroes,
   };
 }
