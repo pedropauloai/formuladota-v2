@@ -7,12 +7,20 @@
 📋 **Fontes da verdade, em ordem:** ler **`docs/foundations/index.md`** primeiro (índice de 1 linha por doc — padrão LLM Wiki: seguir só os links relevantes pra tarefa, não varrer a pasta) → `.planning/ROADMAP.md` + `STATE.md` → migrations em `supabase/migrations/`. O `PRD.md` na raiz é o documento ORIGINAL (loja de mentoria 1-1) e foi **sobrescrito em escopo** pelos pivôs de maio/2026 — usar só como contexto histórico.
 
 ### Constraints
-- **Tech Stack**: Next.js 16 (App Router) + React 19 + TypeScript + Tailwind v4 + Supabase + Discord OAuth + Mercado Pago (PIX) + Discord.js bot
-- **Deploy**: produção em formuladota-v2.vercel.app (git-connected)
+- **Tech Stack**: Next.js 16 (App Router) + React 19 + TypeScript + Tailwind v4 + Supabase + Discord OAuth + Mercado Pago (PIX) + bot Discord (Discord.js) + bot Steam/Dota GC (node-steam-user)
+- **Deploy**: web em **formuladota-v2.vercel.app** (Vercel, git-connected — push na `main` = deploy). **Os dois bots (`bot/` Discord e `bot-steam/` Steam/GC) têm deploy AUTOMÁTICO no Railway** (git-connected) ao dar push na `main` — NÃO precisa redeploy manual.
 - **Persona**: jogador Dota 2 brasileiro comprometido, de qualquer bracket
 - **Pricing**: ficha de vaga = **R$ 10 fixo** (pricing descentralizado por PRO foi REVERTIDO em 2026-06-02, migration 041). Split 85/10/5. Mudança de preço = aprovação Pedro.
 - **Gates de acesso**: criar sala = assinatura ativa; entrar em lobby = nível 6 (doutrinado) OU ≥1 permissão de partida; lobby elite = assinatura + Imortal Valve + Místico nv30. Lógica centralizada em `src/lib/` e enforced por RLS/funções SQL.
 - **Maintainability**: Pedro é não-dev. Código deve ser legível, comentários em português onde não-óbvio
+
+### Estado atual — sistema de partidas & placar (atualizado 2026-06-30)
+- **URL canônica de uma partida = `dota_match_id`** (ID real da Valve, ex `8873698944`), tanto AO VIVO quanto no HISTÓRICO. NÃO usar UUID interno nem `steam_lobby_id` na URL gerada.
+  - **Ao vivo** (`/partida/[id]`): o `bot-steam` grava `dota_match_id` JUNTO com `steam_lobby_id` ao criar o lobby (no lobby de liga o match_id já vem no SO cache). O overlay de aceite (`ready-check-overlay`) espera ~30s (poll de `getMatchRouteId`) e redireciona pra `/partida/<dota_match_id>`. A página resolve `dota_match_id` → `steam_lobby_id` (legado) → UUID.
+  - **Histórico/placar** (`/partida/historico/[id]`): resolve `dota_match_id`→`match_id` via tabela **`match_details`** (pública, migration 069), porque `matches` tem RLS restrita (+ `notas_pedro` privado) e não serve pro público.
+- **Placar pós-jogo completo** em `/partida/historico/[dota_match_id]`: 10 abas estilo OpenDota/STRATZ (Visão geral, Performance, Gráficos, Builds, Combate, **Mapas/minimapa de visão**, Teamfights, Objetivos, Draft, Benchmarks). Tudo SSR a partir de `match_players.raw_opendota` (objeto OpenDota completo por jogador, leitura pública) + `match_details` (nível-partida: teamfights/objectives/picks_bans/chat). Componentes em `src/components/match/`, parsers puros em `src/lib/dota/` (match-stats, match-build, match-vision, match-series, match-objectives, assemble-match).
+- **Catálogos estáticos** (gerar via `pnpm gen:heroes|gen:items|gen:abilities`): `src/data/dota-{heroes,items,abilities}.json`. Minimapa do Dota em `public/dota/minimap/minimap.jpg` (mapa atual `detailed_<patch>`; transform de coordenadas = `gameCoordToUV` do OpenDota — ver memória reference_dota_minimap_vision).
+- O enrich (`enrichMatchFromOpenDota` em `src/app/admin/pros/actions.ts`) popula `match_players` + `match_details`. Hoje existe **1 partida real** registrada.
 
 ## Workflow Recomendado
 
@@ -74,11 +82,10 @@ Demais regras:
 - Idempotência: webhook duplicado não duplica saldo
 - Lib canônica: `src/lib/mercadopago/` (a pasta — o arquivo `src/lib/mercadopago.ts` é legado em consolidação)
 
-### Discord
-- OAuth via Supabase (não implementar do zero)
-- Bot separado em `bot/` (Node.js + Discord.js)
-- Bot lê DB Supabase via service role key
-- Slash commands registrados no servidor
+### Bots (Discord + Steam) — deploy automático no Railway
+- **`bot/`** — bot **Discord** (Discord.js v14 + TypeScript, Docker). Railway via `bot/railway.toml` (healthcheck `/health`, `node dist/index.js`). OAuth Discord é via Supabase (não reimplementar do zero). Slash commands no servidor. Lê DB via service role key.
+- **`bot-steam/`** — worker **Steam/Dota GC** (`bot-server.js`, `node-steam-user` + `dota2-user` + `lobby.proto`). É a máquina que CRIA a sala no Dota: pega lobby confirmado (`lobbies` status='open', `steam_lobby_id` NULL), cria via GC, convida os 10, lança, e grava `steam_lobby_id` + `dota_match_id` de volta. (O README dele diz "SPIKE", mas hoje é o worker de produção.)
+- **Os dois fazem deploy AUTOMÁTICO no Railway ao dar push na `main`** — não precisa redeploy manual. Posso validar pela próxima partida se necessário.
 
 ### Git
 - Branches: `feat/`, `fix/`, `refactor/`, `docs/`, `chore/`
@@ -98,8 +105,10 @@ pnpm build        # build produção
 pnpm typecheck    # tipos
 pnpm lint         # eslint
 pnpm db:gen-types # gera types/database.ts via Supabase CLI
+pnpm gen:heroes   # regenera catálogo de heróis (idem gen:items, gen:abilities)
 
-cd bot && pnpm dev  # bot Discord local
+cd bot && pnpm dev          # bot Discord local
+cd bot-steam && pnpm bot    # worker Steam/GC local (node bot-server.js)
 ```
 
 ## Testing
