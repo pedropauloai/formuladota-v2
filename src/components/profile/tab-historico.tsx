@@ -3,6 +3,7 @@
 // Funciona pra QUALQUER user (perfil próprio e público).
 
 import Image from "next/image";
+import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getHeroById } from "@/lib/queries/heroes";
@@ -54,7 +55,11 @@ export async function TabHistorico({ userId }: { userId: string }) {
             const hero = getHeroById(m.hero_id);
             const kda = ((m.kills + m.assists) / Math.max(1, m.deaths)).toFixed(2);
             return (
-              <li key={`${m.match_id}-${i}`} className="flex items-center gap-3 px-3 py-2.5">
+              <li key={`${m.match_id}-${i}`}>
+                <Link
+                  href={`/partida/historico/${m.match_id}`}
+                  className="flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-bg-surface/40"
+                >
                 {/* Resultado (faixa lateral). */}
                 <span
                   className={`h-9 w-1 shrink-0 rounded-full ${
@@ -109,6 +114,7 @@ export async function TabHistorico({ userId }: { userId: string }) {
                       })
                     : ""}
                 </span>
+                </Link>
               </li>
             );
           })}

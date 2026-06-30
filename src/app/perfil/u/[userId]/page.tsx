@@ -5,7 +5,6 @@
 
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
-import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { ClientShell } from "@/components/client-shell/shell";
 import { ProfilePage } from "@/components/profile/profile-page";

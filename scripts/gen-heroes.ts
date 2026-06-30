@@ -41,7 +41,9 @@ function buildUrls(slug: string) {
   return {
     image_full: `${CDN_BASE}/${slug}.png`,
     image_icon: `${CDN_BASE}/icons/${slug}.png`,
-    portrait_url: `${CDN_BASE}/renders/${slug}.png`,
+    // /crops/ = retrato vertical oficial. O antigo /renders/ retorna 404 na CDN
+    // da Valve (validado em 2026-06-29 contra os 127 heróis).
+    portrait_url: `${CDN_BASE}/crops/${slug}.png`,
   };
 }
 
