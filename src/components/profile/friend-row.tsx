@@ -12,11 +12,13 @@
 
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { UserMinus, X, Check, Swords, Loader2 } from "lucide-react";
+import { UserMinus, X, Check, Swords, Loader2, MessageCircle, UsersRound } from "lucide-react";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { UserHoverCard } from "@/components/profile/user-hover-card";
 import { removeFriend, acceptFriendRequest, rejectFriendRequest } from "@/actions/friends";
 import { createLobbyInvite } from "@/actions/lobby-invites";
+import { inviteToParty } from "@/actions/party";
+import { openChatWith } from "@/lib/chat/open-chat";
 import { formatLastSeen, type PresenceStatus } from "@/lib/realtime/presence";
 import type { FriendListEntry } from "@/lib/queries/friends";
 
@@ -60,6 +62,30 @@ export function FriendRow({ friend, presenceStatus, currentLobbyId = null }: Pro
         setInviteState(res.success ? "sent" : "error");
       } catch {
         setInviteState("error");
+      }
+    });
+  };
+
+  // Abre o chat 1-1 com este amigo (ChatDock escuta o evento global).
+  const handleMessage = () => {
+    openChatWith({
+      userId: friend.friendUserId,
+      name,
+      avatar: friend.friendAvatarUrl,
+    });
+  };
+
+  // Convida pro grupo (cria a party se eu não tiver uma — idempotente).
+  const [partyState, setPartyState] = useState<InviteState>("idle");
+  const handlePartyInvite = () => {
+    if (partyState === "sending" || partyState === "sent") return;
+    setPartyState("sending");
+    startTransition(async () => {
+      try {
+        const res = await inviteToParty(friend.friendUserId);
+        setPartyState(res.success ? "sent" : "error");
+      } catch {
+        setPartyState("error");
       }
     });
   };
@@ -132,6 +158,47 @@ export function FriendRow({ friend, presenceStatus, currentLobbyId = null }: Pro
           <StatusLine friend={friend} presenceStatus={presenceStatus} isOnline={isOnline} />
         </div>
       </UserHoverCard>
+
+      {/* Mensagem direta — disponível pra qualquer amigo aceito (online ou não). */}
+      {friend.status === "accepted" && (
+        <button
+          type="button"
+          onClick={handleMessage}
+          aria-label={`Conversar com ${name}`}
+          title="Mensagem"
+          className="p-1 text-text-faded hover:text-brand-primary transition-colors"
+        >
+          <MessageCircle size={14} aria-hidden="true" />
+        </button>
+      )}
+
+      {/* Convidar pro grupo — amigo aceito e online. */}
+      {friend.status === "accepted" && isOnline && (
+        <button
+          type="button"
+          onClick={handlePartyInvite}
+          disabled={partyState === "sending" || partyState === "sent"}
+          aria-label={
+            partyState === "sent" ? `Convite pro grupo enviado a ${name}` : `Convidar ${name} pro grupo`
+          }
+          title={partyState === "sent" ? "Convidado pro grupo" : "Convidar pro grupo"}
+          className={`p-1 transition-colors ${
+            partyState === "sent"
+              ? "text-brand-primary"
+              : partyState === "error"
+                ? "text-error"
+                : "text-text-faded hover:text-brand-primary"
+          }`}
+        >
+          {partyState === "sending" ? (
+            <Loader2 size={14} className="animate-spin" aria-hidden="true" />
+          ) : partyState === "sent" ? (
+            <Check size={14} aria-hidden="true" />
+          ) : (
+            <UsersRound size={14} aria-hidden="true" />
+          )}
+        </button>
+      )}
 
       {canInvite && (
         <button
