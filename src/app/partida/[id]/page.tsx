@@ -10,7 +10,7 @@ import { UserHoverCard } from "@/components/profile/user-hover-card";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { MedalPair } from "@/components/ui/medal-pair";
 import { rankTierToDotaRank } from "@/components/profile/career-stats";
-import { getGatedTierForLevel, xpProgress } from "@/lib/levels";
+import { getGatedTierForLevel, xpProgress, mmrFromRankTier } from "@/lib/levels";
 import type { DotaRank } from "@/components/ui/dota-rank-medal";
 import type { HonorRank } from "@/components/ui/honor-rank-medal";
 
@@ -26,16 +26,6 @@ const ROLE_META: Record<string, { pos: string; key: string }> = {
   support_dedicated: { pos: "5", key: "roleSupportDedicated" },
 };
 const ROLE_ORDER = ["safelane", "midlane", "offlane", "support", "support_dedicated"];
-
-// Sem nº de MMR Valve público — derivamos um proxy do rank pra o gate de HONRA
-// (Lendário exige Divine, Místico exige Imortal).
-function mmrFromRankTier(rankTier: number | null): number | null {
-  if (rankTier == null) return null;
-  const medal = Math.floor(rankTier / 10);
-  if (medal >= 8) return 6000; // Imortal
-  if (medal === 7) return 5000; // Divine
-  return 0;
-}
 
 type RawPlayer = {
   user_id: string;

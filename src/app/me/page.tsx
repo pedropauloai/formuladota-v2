@@ -19,7 +19,8 @@ import { rankTierToDotaRank } from "@/components/profile/career-stats";
 import { getCoachingReviewsForUser } from "@/lib/queries/coaching-reviews";
 import { refreshSteamIdentity } from "@/lib/steam/refresh-identity";
 import type { DotaRank } from "@/components/ui/dota-rank-medal";
-import { legacyHonorToBand, type HonorRank } from "@/components/ui/honor-rank-medal";
+import type { HonorRank } from "@/components/ui/honor-rank-medal";
+import { getGatedTierForLevel, xpProgress, mmrFromRankTier } from "@/lib/levels";
 import { createClient } from "@/lib/supabase/server";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -39,12 +40,6 @@ function mmrToDotaRank(mmr: number | null | undefined): DotaRank {
   if (mmr >= 1500) return "crusader";
   if (mmr >= 770) return "guardian";
   return "herald";
-}
-
-// Helper — converte string do RPC get_honor_tier para HonorRank tipado
-function toHonorRank(tierStr: string | null | undefined): HonorRank {
-  // RPC get_honor_tier ainda retorna o modelo antigo (8 tiers) — mapeia pras 6 bandas.
-  return legacyHonorToBand(tierStr ?? "aprendiz");
 }
 
 // Next.js 15+: searchParams é uma Promise que precisa de await (pitfall 5)
@@ -82,15 +77,21 @@ export default async function MePage({ searchParams }: PageProps) {
     rankTierToDotaRank(career?.rankTier ?? null, career?.leaderboardRank ?? null) ??
     mmrToDotaRank(profile.mmr);
 
-  // HONOR tier via RPC — graceful fallback se RPC indisponível
+  // HONOR = NÍVEL da conta (decisão "nível É o honor" 2026-06-02) com co-requisito
+  // de skill no topo. MESMA fonte do mini-perfil e do hover-card — antes o /me usava
+  // o honor_ledger legado (legacyHonorToBand) e a medalha divergia do mini-perfil.
   const supabase = await createClient();
-  const { data: honorScore } = await supabase.rpc("get_honor_score", {
-    p_user_id: profile.userId,
-  });
-  const { data: honorTierStr } = await supabase.rpc("get_honor_tier", {
-    p_score: honorScore ?? 1000,
-  });
-  const honorRank = toHonorRank(honorTierStr);
+  const { data: levelRow } = await supabase
+    .from("user_levels")
+    .select("total_xp_earned")
+    .eq("user_id", profile.userId)
+    .maybeSingle();
+  const { level } = xpProgress(levelRow?.total_xp_earned ?? 0);
+  // Gate de honra pela skill Valve REAL (career.rankTier), não pelo MMR de liga.
+  const honorRank: HonorRank = getGatedTierForLevel(
+    level,
+    mmrFromRankTier(career?.rankTier ?? null)
+  );
 
   // Análises de coaching recebidas (aba Conduta) — RLS: o aluno lê as próprias.
   const coachingReviews = await getCoachingReviewsForUser(supabase, profile.userId);

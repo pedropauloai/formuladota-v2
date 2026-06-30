@@ -32,7 +32,7 @@ import { MedalPair } from "@/components/ui/medal-pair";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { mmrToDotaRank } from "@/components/queue/queue-helpers";
 import { rankTierToDotaRank } from "@/components/profile/career-stats";
-import { getGatedTierForLevel } from "@/lib/levels";
+import { getGatedTierForLevel, mmrFromRankTier } from "@/lib/levels";
 import { getHeroBySlug } from "@/lib/queries/heroes";
 
 interface Props {
@@ -90,7 +90,8 @@ function Body({
   const dotaRank =
     rankTierToDotaRank(data.rankTier, data.leaderboardRank) ??
     mmrToDotaRank(data.mmr);
-  const honorRank = getGatedTierForLevel(data.level, data.mmr);
+  // Gate de honra pela skill Valve REAL (rankTier), não pelo MMR de liga.
+  const honorRank = getGatedTierForLevel(data.level, mmrFromRankTier(data.rankTier));
   const heroes = data.favoriteHeroes
     .map((slug) => getHeroBySlug(slug))
     .filter((h): h is NonNullable<typeof h> => h !== null)

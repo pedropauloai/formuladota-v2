@@ -275,7 +275,6 @@ export function ProfilePage({
             isOwn={isOwn}
             persona={profile.username ?? ""}
             avatar={profile.avatarUrl}
-            mmr={profile.mmr}
           />
         </div>
       )}

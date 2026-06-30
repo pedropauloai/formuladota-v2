@@ -41,8 +41,6 @@ import {
 import { type DotaRank } from "@/components/ui/dota-rank-medal";
 import { type HonorRank } from "@/components/ui/honor-rank-medal";
 import { MedalPair } from "@/components/ui/medal-pair";
-import { mmrToDotaRank } from "@/components/queue/queue-helpers";
-import { getGatedTierForLevel } from "@/lib/levels";
 import { signInWithDiscord } from "@/app/login/actions";
 import { toggleSidebar } from "@/lib/auth/sidebar-preference";
 import { FriendsList } from "@/components/profile/friends-list";
@@ -64,8 +62,10 @@ interface Props {
   xpPct: number;
   /** Saldo de permissões de partida (5 acertos = 1). */
   permissions: number;
-  /** MMR atual (profiles.mmr_atual) — par de medalhas SKILL+HONOR. */
-  mmr: number | null;
+  /** Medalha SKILL (Valve) — calculada no shell (rank Valve real > MMR), igual ao /me. */
+  dotaRank: DotaRank;
+  /** Medalha HONOR (nível) — calculada no shell (getGatedTierForLevel), igual ao /me. */
+  honorRank: HonorRank;
   /** Estado inicial do cookie sidebar_expanded — passado do shell SSR. */
   initialExpanded: boolean;
   /**
@@ -93,7 +93,8 @@ export function MiniProfilePanel({
   level,
   xpPct,
   permissions,
-  mmr,
+  dotaRank,
+  honorRank,
   initialExpanded,
   lockedExpanded = false,
   currentUserId,
@@ -101,9 +102,8 @@ export function MiniProfilePanel({
   initialPending = [],
   currentLobbyId = null,
 }: Props) {
-  // Par canônico de medalhas (mandamento M12): SKILL (Valve/MMR) + HONOR (nível).
-  const dotaRank = mmrToDotaRank(mmr);
-  const honorRank = getGatedTierForLevel(level, mmr);
+  // Par canônico de medalhas (mandamento M12): SKILL (Valve) + HONOR (nível).
+  // dotaRank/honorRank vêm prontos do shell — MESMA fonte do /me e do hover-card.
   // Pedidos RECEBIDOS pedem ação — badge visível mesmo com o painel fechado.
   const pendingIncomingCount = initialPending.filter(
     (p) => p.direction === "incoming"

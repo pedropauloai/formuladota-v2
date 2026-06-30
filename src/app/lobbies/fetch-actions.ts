@@ -5,7 +5,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { getSteamIdentityMap, resolveIdentity } from "@/lib/queries/identities";
-import { xpProgress, getGatedTierForLevel } from "@/lib/levels";
+import { xpProgress, getGatedTierForLevel, mmrFromRankTier } from "@/lib/levels";
 import { parseCareerStats } from "@/lib/dota/career";
 import { getHeroById } from "@/lib/queries/heroes";
 import type { SignatureHero } from "@/components/dota/hero-video-backdrop";
@@ -89,25 +89,41 @@ export async function fetchLobbyRoom(lobbyId: string): Promise<LobbyRoomData | n
   // Leitura extra (read-model, zero lógica de domínio): MMR + XP total pra
   // renderizar medalha HONOR e MMR em gold nos slots da sala (ref do client Dota).
   // steam_links em batch (players + líder): nick/avatar = Steam > Discord.
-  const [{ data: profiles }, { data: levels }, steamMap] = await Promise.all([
-    playerIds.length > 0
-      ? supabase
-          .from("profiles")
-          .select("id, username, avatar_url, mmr_atual")
-          .in("id", playerIds)
-      : Promise.resolve({ data: null }),
-    playerIds.length > 0
-      ? supabase
-          .from("user_levels")
-          .select("user_id, total_xp_earned")
-          .in("user_id", playerIds)
-      : Promise.resolve({ data: null }),
-    getSteamIdentityMap(supabase, [...playerIds, lobby.created_by]),
-  ]);
+  const [{ data: profiles }, { data: levels }, { data: careers }, steamMap] =
+    await Promise.all([
+      playerIds.length > 0
+        ? supabase
+            .from("profiles")
+            .select("id, username, avatar_url, mmr_atual")
+            .in("id", playerIds)
+        : Promise.resolve({ data: null }),
+      playerIds.length > 0
+        ? supabase
+            .from("user_levels")
+            .select("user_id, total_xp_earned")
+            .in("user_id", playerIds)
+        : Promise.resolve({ data: null }),
+      // Rank Valve real (cache) — gate de HONRA pela skill Valve, não pelo MMR de liga.
+      playerIds.length > 0
+        ? supabase
+            .from("user_stats_extended")
+            .select("user_id, career")
+            .in("user_id", playerIds)
+        : Promise.resolve({ data: null }),
+      getSteamIdentityMap(supabase, [...playerIds, lobby.created_by]),
+    ]);
 
   const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
   const levelMap = new Map(
     (levels ?? []).map((l) => [l.user_id, l.total_xp_earned])
+  );
+  const rankTierMap = new Map(
+    (careers ?? []).map((c) => [
+      c.user_id,
+      typeof (c.career as { rankTier?: number } | null)?.rankTier === "number"
+        ? (c.career as { rankTier: number }).rankTier
+        : null,
+    ])
   );
   const players: PlayerSlot[] = (playersData ?? []).map((p) => {
     const prof = profileMap.get(p.user_id);
@@ -121,7 +137,7 @@ export async function fetchLobbyRoom(lobbyId: string): Promise<LobbyRoomData | n
       username: ident.name,
       avatarUrl: ident.avatarUrl,
       mmr: prof?.mmr_atual ?? null,
-      honorRank: getGatedTierForLevel(level, prof?.mmr_atual ?? null),
+      honorRank: getGatedTierForLevel(level, mmrFromRankTier(rankTierMap.get(p.user_id) ?? null)),
     };
   });
 
