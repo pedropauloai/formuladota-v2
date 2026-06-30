@@ -2921,13 +2921,17 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: {
           avatar: string
+          career_losses: number
+          career_wins: number
           favorite_heroes: Json
           friend_status: string
+          last_seen_at: string
           leaderboard_rank: number
           level: number
           mmr: number
           name: string
           rank_tier: number
+          status_message: string
           steam_id_64: string
           user_id: string
         }[]

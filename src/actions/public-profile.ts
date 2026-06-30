@@ -17,6 +17,12 @@ export interface PublicMiniProfile {
   /** Rank Valve real (career.rankTier — STRATZ/OpenDota). Medalha SKILL canônica. */
   rankTier: number | null;
   leaderboardRank: number | null;
+  /** Vitórias/derrotas de carreira (cache STRATZ) — pro winrate do card. */
+  careerWins: number | null;
+  careerLosses: number | null;
+  /** Recado do perfil (status_message) e presença (último visto). */
+  statusMessage: string | null;
+  lastSeenAt: string | null;
   favoriteHeroes: string[];
   friendStatus: FriendStatus;
 }
@@ -46,6 +52,10 @@ export async function getPublicMiniProfile(
     mmr: r.mmr,
     rankTier: r.rank_tier,
     leaderboardRank: r.leaderboard_rank,
+    careerWins: r.career_wins,
+    careerLosses: r.career_losses,
+    statusMessage: r.status_message,
+    lastSeenAt: r.last_seen_at,
     favoriteHeroes: Array.isArray(r.favorite_heroes)
       ? (r.favorite_heroes as string[])
       : [],

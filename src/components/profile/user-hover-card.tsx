@@ -1,20 +1,22 @@
 "use client";
 
 // UserHoverCard — card de perfil PÚBLICO ao passar o mouse sobre qualquer
-// avatar/nome de usuário na plataforma (doutrina anti-anonimato: identidade é
-// pública pra membros). UM componente, usado em todo lugar (fila, partida,
-// amigos, ranking…). Gatilho = avatar/nome como Link pro perfil completo
-// (/perfil/u/[userId]); o card abre no hover (desktop) e o clique/tap navega.
+// avatar/nome de usuário (doutrina anti-anonimato: identidade pública pra membros).
+// UM componente, usado em todo lugar (fila, partida, amigos, ranking, lobby…).
 //
-// Dados PÚBLICOS só (getPublicMiniProfile, RPC 064): identidade Steam, par de
-// medalhas SKILL+HONOR, heróis favoritos, e ações (adicionar amigo, mensagem,
-// ver perfil). Lazy: só busca quando abre.
+// Otimizado 2026-06-30:
+//   - CACHE client com TTL (não refaz o RPC a cada re-hover do mesmo user)
+//   - Skeleton no lugar do spinner (zero layout shift)
+//   - Mensagem AGORA funciona (abre o ChatDock via openChatWith — DM, migration 074)
+//   - Convidar pro grupo (party) inline pra amigos
+//   - Conteúdo rico: medalhas SKILL+HONOR (rank Valve real), winrate de carreira,
+//     recado, presença ("Online"/"Visto há Xh")
 
-import { useState, type ReactNode } from "react";
+import { useState, useTransition, type ReactNode } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { MessageSquare, ExternalLink, Loader2 } from "lucide-react";
+import { MessageCircle, UsersRound, ExternalLink, Loader2, Check } from "lucide-react";
 import {
   HoverCard,
   HoverCardTrigger,
@@ -33,7 +35,10 @@ import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { mmrToDotaRank } from "@/components/queue/queue-helpers";
 import { rankTierToDotaRank } from "@/components/profile/career-stats";
 import { getGatedTierForLevel, mmrFromRankTier } from "@/lib/levels";
+import { formatLastSeen } from "@/lib/realtime/presence";
 import { getHeroBySlug } from "@/lib/queries/heroes";
+import { openChatWith } from "@/lib/chat/open-chat";
+import { inviteToParty } from "@/actions/party";
 
 interface Props {
   userId: string;
@@ -45,14 +50,26 @@ interface Props {
   className?: string;
 }
 
+// Cache client (TTL 2min): re-hover do mesmo user numa lista não refaz o RPC.
+const TTL_MS = 2 * 60 * 1000;
+const cache = new Map<string, { data: PublicMiniProfile | null; at: number }>();
+
+async function fetchMini(userId: string): Promise<PublicMiniProfile | null> {
+  const hit = cache.get(userId);
+  if (hit && Date.now() - hit.at < TTL_MS) return hit.data;
+  const data = await getPublicMiniProfile(userId);
+  cache.set(userId, { data, at: Date.now() });
+  return data;
+}
+
 export function UserHoverCard({ userId, children, online, className }: Props) {
   const [data, setData] = useState<PublicMiniProfile | null>(null);
   const [loading, setLoading] = useState(false);
 
   function onOpenChange(open: boolean) {
-    if (open && !data && !loading) {
+    if (open && !data) {
       setLoading(true);
-      void getPublicMiniProfile(userId)
+      void fetchMini(userId)
         .then((d) => setData(d))
         .finally(() => setLoading(false));
     }
@@ -65,11 +82,15 @@ export function UserHoverCard({ userId, children, online, className }: Props) {
           {children}
         </Link>
       </HoverCardTrigger>
-      <HoverCardContent className="w-72">
+      <HoverCardContent className="w-80">
         {!data ? (
-          <div className="flex items-center justify-center py-6 text-text-muted">
-            <Loader2 size={20} className="animate-spin" aria-hidden="true" />
-          </div>
+          loading ? (
+            <Skeleton />
+          ) : (
+            <p className="py-4 text-center font-display text-sm text-text-faded">
+              Perfil indisponível.
+            </p>
+          )
         ) : (
           <Body data={data} online={online} />
         )}
@@ -78,26 +99,46 @@ export function UserHoverCard({ userId, children, online, className }: Props) {
   );
 }
 
-function Body({
-  data,
-  online,
-}: {
-  data: PublicMiniProfile;
-  online?: boolean;
-}) {
+function Skeleton() {
+  return (
+    <div className="space-y-3 animate-pulse">
+      <div className="flex items-start gap-3">
+        <div className="size-11 shrink-0 rounded-sm bg-bg-elevated" />
+        <div className="flex-1 space-y-2 pt-1">
+          <div className="h-3.5 w-2/3 rounded bg-bg-elevated" />
+          <div className="h-2.5 w-1/3 rounded bg-bg-elevated" />
+        </div>
+      </div>
+      <div className="h-8 w-24 rounded bg-bg-elevated" />
+      <div className="h-9 w-full rounded bg-bg-elevated" />
+    </div>
+  );
+}
+
+function Body({ data, online }: { data: PublicMiniProfile; online?: boolean }) {
   const t = useTranslations("hoverCard");
-  // Medalha SKILL = rank Valve real (career.rankTier) → fallback MMR.
+
+  // Medalhas — MESMA fonte canônica do /me e mini-perfil (rank Valve real).
   const dotaRank =
-    rankTierToDotaRank(data.rankTier, data.leaderboardRank) ??
-    mmrToDotaRank(data.mmr);
-  // Gate de honra pela skill Valve REAL (rankTier), não pelo MMR de liga.
+    rankTierToDotaRank(data.rankTier, data.leaderboardRank) ?? mmrToDotaRank(data.mmr);
   const honorRank = getGatedTierForLevel(data.level, mmrFromRankTier(data.rankTier));
+
   const heroes = data.favoriteHeroes
     .map((slug) => getHeroBySlug(slug))
     .filter((h): h is NonNullable<typeof h> => h !== null)
     .slice(0, 3);
 
-  // AddFriendButton só aceita none/pending/friends. self/blocked → sem botão.
+  const totalGames = (data.careerWins ?? 0) + (data.careerLosses ?? 0);
+  const winrate = totalGames > 0 ? Math.round(((data.careerWins ?? 0) / totalGames) * 100) : null;
+
+  // Presença: online conhecido → "Online"; senão "Visto há Xh" (last_seen_at).
+  const presence =
+    online === true ? t("online") : formatLastSeen(data.lastSeenAt);
+
+  const isFriend = data.friendStatus === "friends";
+  const isSelf = data.friendStatus === "self";
+
+  // AddFriendButton só aceita none/pending/friends.
   const friendState: FriendButtonState | null =
     data.friendStatus === "friends"
       ? "friends"
@@ -109,7 +150,7 @@ function Body({
 
   return (
     <div className="space-y-3">
-      {/* Identidade — avatar com anel de XP + badge de nível (padrão da plataforma). */}
+      {/* Identidade */}
       <div className="flex items-start gap-3">
         <div className="relative shrink-0">
           <XpAvatarRing
@@ -135,20 +176,37 @@ function Body({
           </p>
           <p className="font-display text-xs font-semibold uppercase tracking-wide text-text-muted">
             {t("level", { level: data.level })}
+            {presence && (
+              <>
+                {" · "}
+                <span className={online ? "text-success" : "text-text-faded"}>{presence}</span>
+              </>
+            )}
           </p>
         </div>
       </div>
 
-      {/* Par canônico SKILL + HONOR (os dois eixos). */}
-      <MedalPair
-        dotaRank={dotaRank}
-        honorRank={honorRank}
-        size="sm"
-        side="bottom"
-        align="start"
-      />
+      {/* Recado (status message) */}
+      {data.statusMessage && (
+        <p className="line-clamp-2 font-display text-sm italic text-text-body">
+          “{data.statusMessage}”
+        </p>
+      )}
 
-      {/* Heróis de assinatura (favoritos). */}
+      {/* Medalhas + winrate de carreira na mesma linha */}
+      <div className="flex items-center justify-between gap-2">
+        <MedalPair dotaRank={dotaRank} honorRank={honorRank} size="sm" side="bottom" align="start" />
+        {winrate !== null && (
+          <div className="text-right leading-tight">
+            <p className="font-display-condensed text-xl tabular-nums text-gold">{winrate}%</p>
+            <p className="font-display text-[0.65rem] uppercase tracking-wide text-text-faded">
+              {totalGames.toLocaleString("pt-BR")} partidas
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Heróis de assinatura */}
       {heroes.length > 0 && (
         <div className="flex items-center gap-1.5">
           <span className="font-display text-[0.65rem] uppercase tracking-wide text-text-faded">
@@ -171,29 +229,106 @@ function Body({
 
       {/* Ações */}
       <div className="space-y-1.5 border-t border-border-subtle pt-2.5">
-        {friendState && (
-          <AddFriendButton targetUserId={data.userId} initialState={friendState} />
+        {friendState && <AddFriendButton targetUserId={data.userId} initialState={friendState} />}
+
+        {/* Mensagem + grupo só pra amigos (DM e party exigem amizade aceita). */}
+        {isFriend && (
+          <div className="flex gap-1.5">
+            <MessageAction
+              userId={data.userId}
+              name={data.name}
+              avatar={data.avatar}
+            />
+            <PartyInviteAction userId={data.userId} />
+          </div>
         )}
-        <button
-          type="button"
-          disabled
-          title={t("soon")}
-          className="flex w-full items-center justify-center gap-1.5 rounded-[var(--radius-md)] border border-border-subtle bg-bg-elevated px-2.5 py-1.5 font-display text-sm font-semibold uppercase tracking-wide text-text-faded opacity-70"
-        >
-          <MessageSquare size={14} aria-hidden="true" />
-          {t("message")}
-          <span className="text-[0.65rem] normal-case tracking-normal">
-            ({t("soon")})
-          </span>
-        </button>
-        <Link
-          href={`/perfil/u/${data.userId}`}
-          className="flex w-full items-center justify-center gap-1.5 rounded-[var(--radius-md)] border border-brand-primary/40 bg-brand-primary/10 px-2.5 py-1.5 font-display text-sm font-semibold uppercase tracking-wide text-brand-primary transition-colors hover:bg-brand-primary/20"
-        >
-          <ExternalLink size={14} aria-hidden="true" />
-          {t("viewProfile")}
-        </Link>
+
+        {!isSelf && (
+          <Link
+            href={`/perfil/u/${data.userId}`}
+            className="flex w-full items-center justify-center gap-1.5 rounded-[var(--radius-md)] border border-brand-primary/40 bg-brand-primary/10 px-2.5 py-1.5 font-display text-sm font-semibold uppercase tracking-wide text-brand-primary transition-colors hover:bg-brand-primary/20"
+          >
+            <ExternalLink size={14} aria-hidden="true" />
+            {t("viewProfile")}
+          </Link>
+        )}
+        {isSelf && (
+          <Link
+            href="/me"
+            className="flex w-full items-center justify-center gap-1.5 rounded-[var(--radius-md)] border border-brand-primary/40 bg-brand-primary/10 px-2.5 py-1.5 font-display text-sm font-semibold uppercase tracking-wide text-brand-primary transition-colors hover:bg-brand-primary/20"
+          >
+            <ExternalLink size={14} aria-hidden="true" />
+            {t("viewProfile")}
+          </Link>
+        )}
       </div>
     </div>
+  );
+}
+
+// Botão MENSAGEM — abre o ChatDock (DM) via evento global. Substitui o "em breve".
+function MessageAction({
+  userId,
+  name,
+  avatar,
+}: {
+  userId: string;
+  name: string;
+  avatar: string | null;
+}) {
+  const t = useTranslations("hoverCard");
+  return (
+    <button
+      type="button"
+      onClick={() => openChatWith({ userId, name, avatar })}
+      className="flex flex-1 items-center justify-center gap-1.5 rounded-[var(--radius-md)] border border-border-strong bg-bg-elevated px-2.5 py-1.5 font-display text-sm font-semibold uppercase tracking-wide text-text-body transition-colors hover:border-brand-primary/60 hover:text-text-display"
+    >
+      <MessageCircle size={14} aria-hidden="true" />
+      {t("message")}
+    </button>
+  );
+}
+
+// Botão CONVIDAR PRO GRUPO — cria a party (idempotente) e convida.
+function PartyInviteAction({ userId }: { userId: string }) {
+  const [state, setState] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [, startTransition] = useTransition();
+
+  function handleInvite() {
+    if (state === "sending" || state === "sent") return;
+    setState("sending");
+    startTransition(async () => {
+      try {
+        const res = await inviteToParty(userId);
+        setState(res.success ? "sent" : "error");
+      } catch {
+        setState("error");
+      }
+    });
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleInvite}
+      disabled={state === "sending" || state === "sent"}
+      title="Convidar pro grupo"
+      className={`flex flex-1 items-center justify-center gap-1.5 rounded-[var(--radius-md)] border px-2.5 py-1.5 font-display text-sm font-semibold uppercase tracking-wide transition-colors disabled:opacity-70 ${
+        state === "sent"
+          ? "border-brand-primary/50 bg-brand-primary/10 text-brand-primary"
+          : state === "error"
+            ? "border-error/50 text-error"
+            : "border-border-strong bg-bg-elevated text-text-body hover:border-brand-primary/60 hover:text-text-display"
+      }`}
+    >
+      {state === "sending" ? (
+        <Loader2 size={14} className="animate-spin" aria-hidden="true" />
+      ) : state === "sent" ? (
+        <Check size={14} aria-hidden="true" />
+      ) : (
+        <UsersRound size={14} aria-hidden="true" />
+      )}
+      {state === "sent" ? "Convidado" : "Grupo"}
+    </button>
   );
 }
