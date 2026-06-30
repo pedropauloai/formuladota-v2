@@ -155,6 +155,20 @@ export async function enterQueue(input: {
     return { success: false, error: "Selecione pelo menos 1 função." };
   }
 
+  // Em grupo? A fila solo racharia a party — o líder busca pelo painel do grupo
+  // (enterPartyQueue, migration 076). Bloqueia a fila solo de qualquer membro.
+  const { data: partyMembership } = await supabase
+    .from("party_members")
+    .select("party_id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (partyMembership) {
+    return {
+      success: false,
+      error: "Você está em grupo — a busca é iniciada pelo líder no painel do grupo.",
+    };
+  }
+
   // Cooldown de fila (recusou/ignorou um ready check — migration 067).
   const { data: prof } = await supabase
     .from("profiles")

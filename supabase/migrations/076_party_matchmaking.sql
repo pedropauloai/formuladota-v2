@@ -21,6 +21,7 @@ create or replace function public._assign_team_roles(
 returns jsonb
 language plpgsql
 immutable
+set search_path = public
 as $$
 declare
   v_taken text[] := '{}';
