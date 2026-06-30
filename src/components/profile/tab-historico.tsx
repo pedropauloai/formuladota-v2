@@ -1,14 +1,14 @@
 // Tab Histórico — partidas FORMULADOTA do jogador (match_players, leitura pública).
-// Stats reais por partida vindos do OpenDota: herói, K/D/A, vitória/derrota, GPM.
-// Funciona pra QUALQUER user (perfil próprio e público).
+// Linha rica estilo Dotabuff: herói, V/D, K/D/A + KDA, LH/DN, GPM, patrimônio e os
+// ITENS da partida. Funciona pra QUALQUER user (perfil próprio e público).
 
 import Image from "next/image";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getHeroById } from "@/lib/queries/heroes";
+import { itemImageUrl } from "@/lib/queries/items";
 import { gameModeName } from "@/lib/dota/game-mode";
-import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 
 interface MatchRow {
@@ -19,8 +19,17 @@ interface MatchRow {
   deaths: number;
   assists: number;
   gold_per_min: number;
+  last_hits: number;
+  denies: number;
+  net_worth: number;
   is_winner: boolean;
   enriched_at: string | null;
+  items: { inventory?: (number | null)[]; neutral?: number | null } | null;
+}
+
+function fmtK(n: number): string {
+  if (Math.abs(n) >= 1000) return `${(n / 1000).toFixed(1)}k`;
+  return String(n);
 }
 
 export async function TabHistorico({ userId }: { userId: string }) {
@@ -30,26 +39,22 @@ export async function TabHistorico({ userId }: { userId: string }) {
   const { data } = await supabase
     .from("match_players")
     .select(
-      "match_id, hero_id, hero_name, kills, deaths, assists, gold_per_min, is_winner, enriched_at"
+      "match_id, hero_id, hero_name, kills, deaths, assists, gold_per_min, last_hits, denies, net_worth, is_winner, enriched_at, items"
     )
     .eq("user_id", userId)
     .order("enriched_at", { ascending: false })
     .limit(25);
-  const rows = (data ?? []) as MatchRow[];
+  const rows = (data ?? []) as unknown as MatchRow[];
 
   if (rows.length === 0) {
     return (
       <div className="pt-6">
-        <EmptyState
-          title={t("historicoEmptyTitle")}
-          description={t("historicoEmptyDesc")}
-        />
+        <EmptyState title={t("historicoEmptyTitle")} description={t("historicoEmptyDesc")} />
       </div>
     );
   }
 
-  // URL canônica do placar = dota_match_id (ID real da Valve). match_details é
-  // pública e mapeia match_id (UUID) → dota_match_id. Cast: tabela nova (069).
+  // URL canônica do placar = dota_match_id + tipo de partida. match_details é pública.
   const matchIds = [...new Set(rows.map((m) => m.match_id))];
   const mdTable = supabase.from("match_details" as never) as unknown as {
     select: (q: string) => {
@@ -74,88 +79,134 @@ export async function TabHistorico({ userId }: { userId: string }) {
   }
 
   return (
-    <div className="pt-6">
-      <Card variant="flat" className="overflow-hidden p-0">
-        <ul className="divide-y divide-border-subtle/60">
-          {rows.map((m, i) => {
-            const hero = getHeroById(m.hero_id);
-            const kda = ((m.kills + m.assists) / Math.max(1, m.deaths)).toFixed(2);
-            const modeName = gameModeName(modeByMatch.get(m.match_id));
-            return (
-              <li key={`${m.match_id}-${i}`}>
-                <Link
-                  href={`/partida/historico/${dotaByMatch.get(m.match_id) ?? m.match_id}`}
-                  className="flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-bg-surface/40"
-                >
-                {/* Resultado (faixa lateral). */}
-                <span
-                  className={`h-9 w-1 shrink-0 rounded-full ${
-                    m.is_winner ? "bg-play-primary" : "bg-error"
-                  }`}
-                  aria-hidden="true"
-                />
+    <ul className="space-y-2 pt-6">
+      {rows.map((m, i) => {
+        const hero = getHeroById(m.hero_id);
+        const kda = ((m.kills + m.assists) / Math.max(1, m.deaths)).toFixed(2);
+        const modeName = gameModeName(modeByMatch.get(m.match_id));
+        const date = m.enriched_at
+          ? new Date(m.enriched_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })
+          : null;
+        const inv = (m.items?.inventory ?? []).map((x) => x ?? 0);
+        return (
+          <li key={`${m.match_id}-${i}`}>
+            <Link
+              href={`/partida/historico/${dotaByMatch.get(m.match_id) ?? m.match_id}`}
+              className={`flex flex-col gap-2.5 rounded-[var(--radius-md)] border border-l-[3px] border-border-subtle bg-bg-elevated/40 p-2.5 transition-colors hover:bg-bg-surface/50 lg:flex-row lg:items-center ${
+                m.is_winner ? "border-l-play-primary" : "border-l-error"
+              }`}
+            >
+              {/* Herói + identidade. */}
+              <div className="flex min-w-0 flex-1 items-center gap-2.5">
                 {hero ? (
                   <Image
-                    src={hero.portrait_url}
+                    src={hero.image_full}
                     alt={hero.name_pt}
                     title={hero.name_pt}
-                    width={40}
-                    height={40}
-                    className="size-10 shrink-0 rounded-sm object-cover"
+                    width={64}
+                    height={36}
                     unoptimized
+                    className="h-9 w-16 shrink-0 rounded-sm object-cover"
                   />
                 ) : (
-                  <span className="size-10 shrink-0 rounded-sm bg-bg-elevated" aria-hidden="true" />
+                  <span className="h-9 w-16 shrink-0 rounded-sm bg-bg-elevated" aria-hidden="true" />
                 )}
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-body text-sm font-medium text-text-display">
+                <div className="min-w-0">
+                  <p className="truncate font-body text-sm font-semibold text-text-display">
                     {hero?.name_pt ?? m.hero_name ?? `Herói ${m.hero_id}`}
                   </p>
-                  <p
-                    className={`font-display text-xs font-bold uppercase tracking-wide ${
-                      m.is_winner ? "text-play-primary" : "text-error"
-                    }`}
-                  >
-                    {m.is_winner ? t("matchWin") : t("matchLoss")}
-                  </p>
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                    <span
+                      className={`font-display text-[0.7rem] font-bold uppercase tracking-wide ${
+                        m.is_winner ? "text-play-primary" : "text-error"
+                      }`}
+                    >
+                      {m.is_winner ? t("matchWin") : t("matchLoss")}
+                    </span>
+                    {modeName && (
+                      <span className="font-display text-[0.7rem] uppercase tracking-wide text-text-faded">
+                        · {modeName}
+                      </span>
+                    )}
+                    {date && <span className="font-display text-[0.7rem] text-text-faded">· {date}</span>}
+                  </div>
                 </div>
-                {/* Tipo de partida (modo de jogo). */}
-                <div className="hidden shrink-0 text-right sm:block">
-                  <p className="font-display text-xs font-semibold uppercase tracking-wide text-text-muted">
-                    {modeName ?? "—"}
-                  </p>
-                  <p className="font-display text-[0.7rem] uppercase tracking-wide text-text-faded">
-                    Modo
-                  </p>
-                </div>
-                <div className="shrink-0 text-right">
-                  <p className="font-display text-sm font-bold tabular-nums text-text-display">
-                    {m.kills}/{m.deaths}/{m.assists}
-                  </p>
-                  <p className="font-display text-[0.7rem] uppercase tracking-wide text-text-faded">
-                    {t("matchKda", { kda })}
-                  </p>
-                </div>
-                <div className="hidden shrink-0 text-right sm:block">
-                  <p className="font-mono text-sm tabular-nums text-gold">{m.gold_per_min}</p>
-                  <p className="font-display text-[0.7rem] uppercase tracking-wide text-text-faded">
-                    GPM
-                  </p>
-                </div>
-                <span className="hidden shrink-0 font-display text-xs text-text-faded md:block">
-                  {m.enriched_at
-                    ? new Date(m.enriched_at).toLocaleDateString("pt-BR", {
-                        day: "2-digit",
-                        month: "2-digit",
-                      })
-                    : ""}
-                </span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </Card>
+              </div>
+
+              {/* Stats. */}
+              <div className="flex shrink-0 items-center gap-4 sm:gap-5">
+                <Stat label={t("matchKda", { kda })} accent="text-text-display">
+                  <span className="text-play-primary">{m.kills}</span>
+                  <span className="text-text-faded">/</span>
+                  <span className="text-error">{m.deaths}</span>
+                  <span className="text-text-faded">/</span>
+                  <span className="text-gold">{m.assists}</span>
+                </Stat>
+                <Stat label="LH / DN" accent="text-text-muted">
+                  {m.last_hits}
+                  <span className="text-text-faded"> / </span>
+                  {m.denies}
+                </Stat>
+                <Stat label="GPM" accent="text-gold">
+                  {m.gold_per_min}
+                </Stat>
+                <Stat label="Patrim." accent="text-gold">
+                  {fmtK(m.net_worth)}
+                </Stat>
+              </div>
+
+              {/* Itens da partida. */}
+              <div className="flex shrink-0 items-center gap-0.5">
+                {[0, 1, 2, 3, 4, 5].map((idx) => (
+                  <ItemIcon key={idx} id={inv[idx] ?? 0} />
+                ))}
+                <span className="mx-0.5 h-4 w-px bg-border-subtle/60" aria-hidden="true" />
+                <ItemIcon id={m.items?.neutral ?? 0} neutral />
+              </div>
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+function Stat({
+  label,
+  accent,
+  children,
+}: {
+  label: string;
+  accent: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="text-right">
+      <p className={`font-display text-sm font-bold tabular-nums ${accent}`}>{children}</p>
+      <p className="font-display text-[0.65rem] uppercase tracking-wide text-text-faded">{label}</p>
     </div>
+  );
+}
+
+function ItemIcon({ id, neutral = false }: { id: number; neutral?: boolean }) {
+  const url = itemImageUrl(id);
+  const ring = neutral ? "ring-1 ring-gold/50" : "";
+  if (!url) {
+    return (
+      <span
+        className={`block h-[18px] w-6 shrink-0 rounded-sm border border-border-subtle/60 bg-bg-surface ${ring}`}
+        aria-hidden="true"
+      />
+    );
+  }
+  return (
+    <Image
+      src={url}
+      alt=""
+      width={24}
+      height={18}
+      unoptimized
+      className={`h-[18px] w-6 shrink-0 rounded-sm object-cover ${ring}`}
+    />
   );
 }
