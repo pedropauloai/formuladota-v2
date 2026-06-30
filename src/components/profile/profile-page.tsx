@@ -30,7 +30,7 @@
 
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
-import { Pencil, X } from "lucide-react";
+import { Pencil, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/ui/avatar";
 import { MedalPair } from "@/components/ui/medal-pair";
@@ -111,7 +111,7 @@ export function ProfilePage({
   const topHero = topHeroStat ? getHeroById(topHeroStat.heroId) : null;
 
   return (
-    <div className="relative flex flex-col min-h-full">
+    <div className="relative flex h-full flex-col overflow-hidden">
       {/* ──────────────────────────────────────────────────────────────
           SUBMENU SUPERIOR — FIXED de uma ponta a outra. Avatar 1:1 ao
           lado de "Perfil" + separadores "/" entre tabs.
@@ -128,38 +128,14 @@ export function ProfilePage({
       <div className="h-9 shrink-0" aria-hidden="true" />
 
       {activeTab === "perfil" && (
-        <div className="relative flex flex-col flex-1 min-h-0 p-6">
-          {/* Controles de edição — só no PRÓPRIO perfil. */}
-          {isOwn && (
-          <div className="absolute top-2 right-2 z-10 flex items-center gap-2">
-            {editing ? (
-              <>
-                <ResetLayoutButton />
-                <Link href="/me">
-                  <Button variant="secondary" size="sm">
-                    <X size={12} aria-hidden="true" />
-                    {t("exitEditing")}
-                  </Button>
-                </Link>
-              </>
-            ) : (
-              <Link href="/me?edit=1">
-                <Button variant="cinematic" size="sm">
-                  <Pencil size={12} aria-hidden="true" />
-                  {t("editProfile")}
-                </Button>
-              </Link>
-            )}
-          </div>
-          )}
-
+        <div className="relative flex flex-1 min-h-0 flex-col overflow-hidden p-6">
           {/* ─── HEADER ÂNCORA — avatar + nome + tag FORMULADOTA ───
               Herói nº 1 da carreira como backdrop VIVO (vídeo Valve em
               opacidade baixa + gradiente — atmosfera, não compete com o nome).
               CARREIRA ENCAIXADA AQUI (2026-06-11): medalha Valve + winrate +
               TOP {n} + top 3 heróis vivos na MESMA linha do header — nada de
               seção nova empilhada (feedback Pedro: zero rolagem extra). */}
-          <header className="relative mb-6 overflow-hidden rounded-sm">
+          <header className="relative mb-4 shrink-0 overflow-hidden rounded-sm">
             {topHero && (
               <HeroVideoBackdrop
                 heroSlug={topHero.slug}
@@ -226,67 +202,78 @@ export function ProfilePage({
             </div>
           </header>
 
-          {/* ─── DASHBOARD GRID — widgets arrastáveis (drag em edit mode) ─── */}
-          <DashboardGrid
-            initialLayout={profile.dashboardLayout}
-            editing={editing}
-            data={{
-              dotaRank,
-              honorRank,
-              ranqueado,
-              partidas: profile.partidas,
-              vitorias: profile.vitorias,
-              derrotas: profile.derrotas,
-              mmr: profile.mmr,
-              statusMessage: profile.statusMessage,
-              favoriteHeroes: profile.favoriteHeroes,
-              // Veterania de carreira → células extras DENTRO do widget Stats
-              // (altura do widget é fixa pelo grid — página não cresce)
-              careerTotals: career?.totals ?? null,
-            }}
-          />
+          {/* ─── DASHBOARD GRID — preenche a altura restante (zero scroll de página).
+              A média recente STRATZ/OpenDota agora vive DENTRO do widget Stats. ─── */}
+          <div className="min-h-0 flex-1">
+            <DashboardGrid
+              initialLayout={profile.dashboardLayout}
+              editing={editing}
+              data={{
+                dotaRank,
+                honorRank,
+                ranqueado,
+                partidas: profile.partidas,
+                vitorias: profile.vitorias,
+                derrotas: profile.derrotas,
+                mmr: profile.mmr,
+                statusMessage: profile.statusMessage,
+                favoriteHeroes: profile.favoriteHeroes,
+                careerTotals: career?.totals ?? null,
+                externalStats: externalStats ?? null,
+              }}
+            />
+          </div>
 
-          {/* ─── Estatísticas externas (média recente STRATZ/OpenDota) ─── */}
-          {externalStats && externalStats.avgKDA > 0 && (
-            <section className="mt-6">
-              <h2 className="mb-3 font-sans text-sm font-semibold uppercase tracking-widest text-text-faded">
-                {t("expandedStats")}{" "}
-                <span className="normal-case tracking-normal text-text-faded">
-                  {t("sourceLabel", { source: externalStats.source })}
-                </span>
-              </h2>
-              <div className="grid max-w-xl grid-cols-3 gap-3">
-                <ExternalStatCard label={t("statAvgKda")} value={externalStats.avgKDA.toFixed(2)} />
-                <ExternalStatCard label={t("statAvgGpm")} value={Math.round(externalStats.avgGPM)} />
-                <ExternalStatCard label={t("statAvgXpm")} value={Math.round(externalStats.avgXPM)} />
-              </div>
-            </section>
-          )}
-
-          {/* ─── Editores adicionais (avatar custom + hero portrait) — só em edit ─── */}
-          {editing && (
-            <div className="mt-6 space-y-4 max-w-md">
-              <PortraitEditor initialPortrait={profile.heroPortraitSlug} />
-              <AvatarEditor userId={profile.userId} initialAvatar={profile.avatarUrl} />
+          {/* ─── BARRA INFERIOR de ações (Pedro 2026-06-30: salvar no RODAPÉ).
+              Em edição: editores de avatar/retrato + restaurar + Salvar e sair.
+              Fora de edição: só o botão Editar perfil. ─── */}
+          {isOwn && (
+            <div className="mt-3 flex shrink-0 flex-wrap items-end justify-end gap-x-5 gap-y-2 border-t border-border-subtle pt-3">
+              {editing ? (
+                <>
+                  <div className="flex flex-1 flex-wrap items-end gap-x-6 gap-y-2">
+                    <div className="min-w-[170px]">
+                      <PortraitEditor initialPortrait={profile.heroPortraitSlug} />
+                    </div>
+                    <div className="min-w-[170px]">
+                      <AvatarEditor userId={profile.userId} initialAvatar={profile.avatarUrl} />
+                    </div>
+                  </div>
+                  <ResetLayoutButton />
+                  <Link href="/me">
+                    <Button variant="cinematic" size="sm">
+                      <Check size={14} aria-hidden="true" />
+                      Salvar e sair
+                    </Button>
+                  </Link>
+                </>
+              ) : (
+                <Link href="/me?edit=1">
+                  <Button variant="cinematic" size="sm">
+                    <Pencil size={12} aria-hidden="true" />
+                    {t("editProfile")}
+                  </Button>
+                </Link>
+              )}
             </div>
           )}
         </div>
       )}
 
       {activeTab === "historico" && (
-        <div className="flex-1 min-h-0 p-6">
+        <div className="flex-1 min-h-0 overflow-y-auto p-6">
           <TabHistorico userId={profile.userId} />
         </div>
       )}
 
       {activeTab === "conquistas" && (
-        <div className="flex-1 min-h-0 p-6">
+        <div className="flex-1 min-h-0 overflow-y-auto p-6">
           <TabConquistas userId={profile.userId} />
         </div>
       )}
 
       {activeTab === "conduta" && (
-        <div className="flex-1 min-h-0 p-6">
+        <div className="flex-1 min-h-0 overflow-y-auto p-6">
           <TabConduta
             honorRank={honorRank}
             behaviorStatus={profile.behaviorStatus}
@@ -299,7 +286,7 @@ export function ProfilePage({
       )}
 
       {activeTab === "progresso" && (
-        <div className="flex-1 min-h-0 p-6">
+        <div className="flex-1 min-h-0 overflow-y-auto p-6">
           <TabProgresso
             userId={profile.userId}
             isOwn={isOwn}
@@ -309,16 +296,6 @@ export function ProfilePage({
           />
         </div>
       )}
-    </div>
-  );
-}
-
-// Card compacto de stat externo (KDA/GPM/XPM) — número GOLD (valor/progresso).
-function ExternalStatCard({ label, value }: { label: string; value: string | number }) {
-  return (
-    <div className="rounded-[var(--radius-md)] border border-border-subtle bg-bg-elevated/40 px-3 py-2.5">
-      <p className="font-sans text-xs uppercase tracking-widest text-text-faded">{label}</p>
-      <p className="mt-1 font-display-condensed text-2xl tabular-nums text-gold">{value}</p>
     </div>
   );
 }

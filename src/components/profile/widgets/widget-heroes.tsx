@@ -18,20 +18,20 @@ export function WidgetHeroes({ favoriteHeroes, editing }: Props) {
       {editing ? (
         <HeroesEditor initialFavorites={favoriteHeroes} />
       ) : favoriteHeroes.length > 0 ? (
-        <div className="flex items-end gap-3 flex-wrap">
+        <div className="grid grid-cols-3 gap-3">
           {favoriteHeroes.slice(0, 3).map((hero) => (
-            <div key={hero.slug} className="flex flex-col items-center gap-1">
-              <div className="relative w-[72px] h-[40px] rounded-sm overflow-hidden border border-border-subtle">
+            <div key={hero.slug} className="flex flex-col gap-1.5">
+              <div className="relative aspect-[16/10] w-full overflow-hidden rounded-sm border border-border-subtle">
                 <Image
                   src={hero.image_full}
                   alt={hero.name_pt}
                   fill
-                  sizes="72px"
+                  sizes="180px"
                   className="object-cover"
                   unoptimized
                 />
               </div>
-              <p className="font-display text-[11px] font-semibold text-text-faded truncate max-w-[72px]">
+              <p className="truncate font-display text-xs font-semibold text-text-muted">
                 {hero.name_pt}
               </p>
             </div>

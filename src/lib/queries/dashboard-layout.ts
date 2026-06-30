@@ -54,28 +54,30 @@ export type DashboardLayout = z.infer<typeof dashboardLayoutSchema>;
 // Grid de 12 colunas; cada unidade de altura = ~80px.
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Layout DEFAULT (Pedro 2026-06-30): LARGURA CHEIA + 2 linhas só (maxRows=4).
+// O /me é immersive → o <main> já é centralizado entre as sidebars, então usar a
+// largura toda do main é o correto (o antigo "centralizar cols 3-10" centralizava
+// DE NOVO e espremia o conteúdo). Coluna estreita à esquerda (medalhas/status) +
+// coluna larga à direita (stats/heróis). O DashboardGrid calcula a altura das
+// linhas dinamicamente pra preencher a viewport SEM gerar scroll.
 export const DEFAULT_LAYOUT: DashboardLayout = {
   lg: [
-    // 4 cols cada, lado a lado, centralizado (cols 3-10)
-    { i: "medals", x: 3, y: 0, w: 4, h: 2 },
-    { i: "stats",  x: 7, y: 0, w: 4, h: 2 },
-    // Status + heróis: largura 8 cols, centralizados (cols 3-10)
-    { i: "status", x: 3, y: 2, w: 8, h: 1 },
-    { i: "heroes", x: 3, y: 3, w: 8, h: 3 },
+    { i: "medals", x: 0, y: 0, w: 4, h: 2 },
+    { i: "stats",  x: 4, y: 0, w: 8, h: 2 },
+    { i: "status", x: 0, y: 2, w: 4, h: 2 },
+    { i: "heroes", x: 4, y: 2, w: 8, h: 2 },
   ],
   md: [
-    // md = 10 cols. Centralizar com 1 col livre cada lado (cols 1-8 = 8 cols)
-    { i: "medals", x: 1, y: 0, w: 4, h: 2 },
-    { i: "stats",  x: 5, y: 0, w: 4, h: 2 },
-    { i: "status", x: 1, y: 2, w: 8, h: 1 },
-    { i: "heroes", x: 1, y: 3, w: 8, h: 3 },
+    { i: "medals", x: 0, y: 0, w: 4, h: 2 },
+    { i: "stats",  x: 4, y: 0, w: 6, h: 2 },
+    { i: "status", x: 0, y: 2, w: 4, h: 2 },
+    { i: "heroes", x: 4, y: 2, w: 6, h: 2 },
   ],
   sm: [
-    // sm = 6 cols. Mobile = full-width (não tem mini-profile fixed na lateral).
-    { i: "medals", x: 0, y: 0, w: 6, h: 2 },
-    { i: "stats",  x: 0, y: 2, w: 6, h: 2 },
-    { i: "status", x: 0, y: 4, w: 6, h: 1 },
-    { i: "heroes", x: 0, y: 5, w: 6, h: 3 },
+    { i: "medals", x: 0, y: 0, w: 3, h: 2 },
+    { i: "stats",  x: 3, y: 0, w: 3, h: 2 },
+    { i: "status", x: 0, y: 2, w: 6, h: 1 },
+    { i: "heroes", x: 0, y: 3, w: 6, h: 2 },
   ],
 };
 

@@ -71,7 +71,18 @@ interface WidgetData {
   favoriteHeroes: HeroData[];
   /** Acumulados de carreira (OpenDota) — células extras no widget Stats. */
   careerTotals: CareerTotals | null;
+  /** Média recente (STRATZ/OpenDota) — linha extra no widget Stats. */
+  externalStats: {
+    source: string;
+    avgKDA: number;
+    avgGPM: number;
+    avgXPM: number;
+  } | null;
 }
+
+// Margem entre células (px) — espelha a prop margin do grid.
+const GRID_MARGIN = 16;
+const MIN_ROW_HEIGHT = 44;
 
 interface Props {
   initialLayout: DashboardLayout;
@@ -84,6 +95,8 @@ export function DashboardGrid({ initialLayout, editing, data }: Props) {
     buildLayouts(initialLayout),
   );
   const [containerWidth, setContainerWidth] = useState(0);
+  const [containerHeight, setContainerHeight] = useState(0);
+  const [bp, setBp] = useState<keyof typeof COLS>("lg");
   const containerRef = useRef<HTMLDivElement | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -116,8 +129,9 @@ export function DashboardGrid({ initialLayout, editing, data }: Props) {
     if (!containerRef.current) return;
     const el = containerRef.current;
     const observer = new ResizeObserver((entries) => {
-      const w = entries[0]?.contentRect.width ?? 0;
-      if (w > 0) setContainerWidth(w);
+      const rect = entries[0]?.contentRect;
+      if (rect && rect.width > 0) setContainerWidth(rect.width);
+      if (rect && rect.height > 0) setContainerHeight(rect.height);
     });
     observer.observe(el);
     return () => observer.disconnect();
@@ -180,6 +194,7 @@ export function DashboardGrid({ initialLayout, editing, data }: Props) {
           derrotas={data.derrotas}
           mmr={data.mmr}
           careerTotals={data.careerTotals}
+          externalStats={data.externalStats}
           editing={editing}
         />
       ),
@@ -189,21 +204,35 @@ export function DashboardGrid({ initialLayout, editing, data }: Props) {
     [data, editing],
   );
 
+  // Altura de linha DINÂMICA: o grid preenche EXATAMENTE a altura do container
+  // (entre header e barra de edição), então nunca gera scroll. Calcula a partir
+  // do nº de linhas do layout ativo (por breakpoint).
+  const activeLayout = layouts[bp] ?? layouts.lg ?? [];
+  const maxRows = Math.max(1, ...activeLayout.map((it) => it.y + it.h));
+  const rowHeight =
+    containerHeight > 0
+      ? Math.max(
+          MIN_ROW_HEIGHT,
+          Math.floor((containerHeight - (maxRows + 1) * GRID_MARGIN) / maxRows),
+        )
+      : ROW_HEIGHT;
+
   return (
-    <div ref={containerRef} className="w-full">
-      {containerWidth > 0 && (
+    <div ref={containerRef} className="h-full w-full overflow-hidden">
+      {containerWidth > 0 && containerHeight > 0 && (
         <ResponsiveGridLayout
           className="layout"
           layouts={layouts}
           breakpoints={BREAKPOINTS}
           cols={COLS}
-          rowHeight={ROW_HEIGHT}
+          rowHeight={rowHeight}
           width={containerWidth}
           isDraggable={editing}
           isResizable={editing}
-          margin={[16, 16]}
+          margin={[GRID_MARGIN, GRID_MARGIN]}
           containerPadding={[0, 0]}
           onLayoutChange={handleLayoutChange}
+          onBreakpointChange={(b) => setBp(b as keyof typeof COLS)}
           compactType={null /* layout livre — user controla totalmente */}
           preventCollision={false}
         >
