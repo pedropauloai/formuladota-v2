@@ -129,47 +129,71 @@ export default async function HistoricoPartidaPage({
           Voltar
         </Link>
 
-        <header className="mb-6">
-          <p className="font-display text-xs uppercase tracking-[0.25em] text-text-muted">
-            Partida FormulaDota
-          </p>
+        <header className="mb-6 overflow-hidden rounded-[var(--radius-lg)] border border-border-subtle bg-bg-elevated/40">
+          {/* Banner: times flanqueando o placar central (estilo STRATZ). */}
+          <div className="flex items-center justify-between gap-3 px-4 py-5 sm:gap-6 sm:px-8">
+            {/* Iluminados (esquerda). */}
+            <div className="flex-1 text-right">
+              <p className="font-display text-xl font-bold uppercase tracking-wide text-[#00C466] sm:text-2xl">
+                Iluminados
+              </p>
+              {radiantWin != null && (
+                <p
+                  className={`font-display text-xs font-bold uppercase tracking-wide ${
+                    radiantWin ? "text-[#00C466]" : "text-text-faded"
+                  }`}
+                >
+                  {radiantWin ? "Vitória" : "Derrota"}
+                </p>
+              )}
+            </div>
 
-          <div className="mt-2 flex flex-wrap items-baseline gap-x-4 gap-y-1">
-            <span className="font-display text-2xl font-bold uppercase tracking-wide text-[#00C466]">
-              Iluminados
-            </span>
-            <span className="font-display text-3xl font-bold tabular-nums text-text-display">
-              {radiantScore}
-              <span className="mx-2 text-text-faded">x</span>
-              {direScore}
-            </span>
-            <span className="font-display text-2xl font-bold uppercase tracking-wide text-brand-primary">
-              Temidos
-            </span>
+            {/* Placar + duração no centro. */}
+            <div className="shrink-0 text-center">
+              <div className="flex items-center gap-2 font-display text-4xl font-bold tabular-nums sm:text-5xl">
+                <span className={radiantWin ? "text-[#00C466]" : "text-text-muted"}>
+                  {radiantScore}
+                </span>
+                <span className="text-text-faded">:</span>
+                <span className={radiantWin === false ? "text-brand-primary" : "text-text-muted"}>
+                  {direScore}
+                </span>
+              </div>
+              {duration != null && (
+                <span className="mt-1 inline-flex items-center gap-1 rounded-sm bg-bg-surface px-2 py-0.5 font-mono text-xs tabular-nums text-text-muted">
+                  <Clock className="size-3" />
+                  {duration}min
+                </span>
+              )}
+            </div>
+
+            {/* Temidos (direita). */}
+            <div className="flex-1 text-left">
+              <p className="font-display text-xl font-bold uppercase tracking-wide text-brand-primary sm:text-2xl">
+                Temidos
+              </p>
+              {radiantWin != null && (
+                <p
+                  className={`font-display text-xs font-bold uppercase tracking-wide ${
+                    radiantWin === false ? "text-brand-primary" : "text-text-faded"
+                  }`}
+                >
+                  {radiantWin === false ? "Vitória" : "Derrota"}
+                </p>
+              )}
+            </div>
           </div>
 
-          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 font-body text-sm text-text-muted">
-            {radiantWin != null && (
-              <span>
-                Vitória{" "}
-                <strong className={radiantWin ? "text-[#00C466]" : "text-brand-primary"}>
-                  {radiantWin ? "Iluminados" : "Temidos"}
-                </strong>
-              </span>
-            )}
-            {duration != null && (
-              <span className="inline-flex items-center gap-1">
-                <Clock className="size-3.5" />
-                {duration} min
-              </span>
-            )}
-            {dateStr && <span>{dateStr}</span>}
+          {/* Barra de metadados. */}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-border-subtle bg-bg-surface/40 px-4 py-2 font-display text-xs uppercase tracking-wide text-text-muted sm:px-8">
+            <span>Partida FormulaDota</span>
+            {dateStr && <span className="text-text-faded">{dateStr}</span>}
             {dotaMatchId && (
               <a
                 href={`https://www.opendota.com/matches/${dotaMatchId}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-text-muted transition-colors hover:text-text-display"
+                className="ml-auto inline-flex items-center gap-1 normal-case text-text-muted transition-colors hover:text-text-display"
               >
                 OpenDota
                 <ExternalLink className="size-3.5" />
