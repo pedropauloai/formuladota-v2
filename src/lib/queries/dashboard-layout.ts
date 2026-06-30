@@ -7,16 +7,15 @@
 //   - NULL = renderiza DEFAULT_LAYOUT
 //   - Validado via Zod no Server Action updateDashboardLayout
 //
-// Widgets fixos (IDs canônicos):
-//   "medals"  → DotaRank + HonorRank lado a lado
-//   "stats"   → Partidas / Vitórias / Derrotas / MMR
-//   "status"  → status message do user
-//   "heroes"  → 3 heróis favoritos
+// Widgets fixos (IDs canônicos) — Pedro 2026-06-30: ficaram só 2 (foco em stats).
+// Medalhas saíram (já aparecem grandes no header); Status saiu (sem uso por ora).
+//   "stats"   → Partidas / Vitórias / Derrotas / MMR + carreira + média recente
+//   "heroes"  → heróis favoritos
 
 import { z } from "zod";
 
 /** IDs canônicos dos widgets reposicionáveis. */
-export const WIDGET_IDS = ["medals", "stats", "status", "heroes"] as const;
+export const WIDGET_IDS = ["stats", "heroes"] as const;
 export type WidgetId = (typeof WIDGET_IDS)[number];
 
 /** Item de layout — espelhado da assinatura do react-grid-layout. */
@@ -61,23 +60,20 @@ export type DashboardLayout = z.infer<typeof dashboardLayoutSchema>;
 // coluna larga à direita (stats/heróis). O DashboardGrid calcula a altura das
 // linhas dinamicamente pra preencher a viewport SEM gerar scroll.
 export const DEFAULT_LAYOUT: DashboardLayout = {
+  // Stats (esquerda, mais estreito) + Heróis favoritos (direita, mais largo),
+  // ambos ocupando a ALTURA toda numa linha só. A altura de linha é dinâmica
+  // (DashboardGrid) → preenche a viewport sem scroll.
   lg: [
-    { i: "medals", x: 0, y: 0, w: 4, h: 2 },
-    { i: "stats",  x: 4, y: 0, w: 8, h: 2 },
-    { i: "status", x: 0, y: 2, w: 4, h: 2 },
-    { i: "heroes", x: 4, y: 2, w: 8, h: 2 },
+    { i: "stats",  x: 0, y: 0, w: 5, h: 4 },
+    { i: "heroes", x: 5, y: 0, w: 7, h: 4 },
   ],
   md: [
-    { i: "medals", x: 0, y: 0, w: 4, h: 2 },
-    { i: "stats",  x: 4, y: 0, w: 6, h: 2 },
-    { i: "status", x: 0, y: 2, w: 4, h: 2 },
-    { i: "heroes", x: 4, y: 2, w: 6, h: 2 },
+    { i: "stats",  x: 0, y: 0, w: 4, h: 4 },
+    { i: "heroes", x: 4, y: 0, w: 6, h: 4 },
   ],
   sm: [
-    { i: "medals", x: 0, y: 0, w: 3, h: 2 },
-    { i: "stats",  x: 3, y: 0, w: 3, h: 2 },
-    { i: "status", x: 0, y: 2, w: 6, h: 1 },
-    { i: "heroes", x: 0, y: 3, w: 6, h: 2 },
+    { i: "stats",  x: 0, y: 0, w: 6, h: 2 },
+    { i: "heroes", x: 0, y: 2, w: 6, h: 2 },
   ],
 };
 

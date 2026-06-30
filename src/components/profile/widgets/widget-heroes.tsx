@@ -18,20 +18,21 @@ export function WidgetHeroes({ favoriteHeroes, editing }: Props) {
       {editing ? (
         <HeroesEditor initialFavorites={favoriteHeroes} />
       ) : favoriteHeroes.length > 0 ? (
-        <div className="grid grid-cols-3 gap-3">
+        // Retratos VERTICAIS preenchendo a altura do card (sem scroll interno).
+        <div className="grid h-full grid-cols-3 gap-3">
           {favoriteHeroes.slice(0, 3).map((hero) => (
-            <div key={hero.slug} className="flex flex-col gap-1.5">
-              <div className="relative aspect-[16/10] w-full overflow-hidden rounded-sm border border-border-subtle">
+            <div key={hero.slug} className="flex min-h-0 flex-col gap-1.5">
+              <div className="relative min-h-0 flex-1 overflow-hidden rounded-sm border border-border-subtle">
                 <Image
-                  src={hero.image_full}
+                  src={hero.portrait_url}
                   alt={hero.name_pt}
                   fill
-                  sizes="180px"
-                  className="object-cover"
+                  sizes="200px"
+                  className="object-cover object-top"
                   unoptimized
                 />
               </div>
-              <p className="truncate font-display text-xs font-semibold text-text-muted">
+              <p className="shrink-0 truncate text-center font-display text-xs font-semibold text-text-muted">
                 {hero.name_pt}
               </p>
             </div>

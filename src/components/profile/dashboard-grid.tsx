@@ -30,9 +30,7 @@ import "react-grid-layout/css/styles.css";
 // react-resizable CSS embed: v2.x do react-grid-layout não traz styles.css de
 // react-resizable; usamos só o do próprio grid layout (que já inclui resize handles).
 
-import { WidgetMedals } from "./widgets/widget-medals";
 import { WidgetStats } from "./widgets/widget-stats";
-import { WidgetStatus } from "./widgets/widget-status";
 import { WidgetHeroes } from "./widgets/widget-heroes";
 import { updateDashboardLayout } from "@/actions/profile";
 import {
@@ -43,8 +41,6 @@ import {
 } from "@/lib/queries/dashboard-layout";
 import type { HeroData } from "@/lib/queries/heroes";
 import type { CareerTotals } from "@/lib/dota/career";
-import type { DotaRank } from "@/components/ui/dota-rank-medal";
-import type { HonorRank } from "@/components/ui/honor-rank-medal";
 
 // SSR off — react-grid-layout precisa medir DOM antes de renderizar
 // Usamos a API legacy que mantém isDraggable/isResizable como props top-level.
@@ -60,14 +56,10 @@ const ROW_HEIGHT = 80;
 const DEBOUNCE_MS = 1000;
 
 interface WidgetData {
-  dotaRank: DotaRank;
-  honorRank: HonorRank;
-  ranqueado: boolean;
   partidas: number | null;
   vitorias: number | null;
   derrotas: number | null;
   mmr: number | null;
-  statusMessage: string | null;
   favoriteHeroes: HeroData[];
   /** Acumulados de carreira (OpenDota) — células extras no widget Stats. */
   careerTotals: CareerTotals | null;
@@ -179,14 +171,6 @@ export function DashboardGrid({ initialLayout, editing, data }: Props) {
 
   const widgets = useMemo(
     () => ({
-      medals: (
-        <WidgetMedals
-          dotaRank={data.dotaRank}
-          honorRank={data.honorRank}
-          ranqueado={data.ranqueado}
-          editing={editing}
-        />
-      ),
       stats: (
         <WidgetStats
           partidas={data.partidas}
@@ -198,7 +182,6 @@ export function DashboardGrid({ initialLayout, editing, data }: Props) {
           editing={editing}
         />
       ),
-      status: <WidgetStatus statusMessage={data.statusMessage} editing={editing} />,
       heroes: <WidgetHeroes favoriteHeroes={data.favoriteHeroes} editing={editing} />,
     }),
     [data, editing],
