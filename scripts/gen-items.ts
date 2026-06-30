@@ -23,8 +23,10 @@ interface OpenDotaItem {
 
 type ItemsConstants = Record<string, OpenDotaItem>;
 
-// id → { dname, img } — chave string porque JSON não tem chave numérica.
-type ItemCatalog = Record<string, { dname: string; img: string }>;
+// id → { name, dname, img } — chave string porque JSON não tem chave numérica.
+// `name` = chave interna do item (ex "blink"); usado pra casar com purchase_log,
+// que referencia itens por nome, não por id.
+type ItemCatalog = Record<string, { name: string; dname: string; img: string }>;
 
 async function fetchItems(): Promise<ItemsConstants> {
   const url = "https://api.opendota.com/api/constants/items";
@@ -47,9 +49,10 @@ async function main(): Promise<void> {
   }
 
   const catalog: ItemCatalog = {};
-  for (const item of Object.values(raw)) {
+  for (const [name, item] of Object.entries(raw)) {
     if (typeof item.id !== "number" || !item.img) continue;
     catalog[String(item.id)] = {
+      name,
       dname: item.dname ?? "Item",
       img: item.img,
     };

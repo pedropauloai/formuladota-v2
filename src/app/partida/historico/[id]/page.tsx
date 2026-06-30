@@ -1,50 +1,29 @@
-// Placar pós-jogo de uma partida FormulaDota (histórico). Rota dedicada, pública
-// (match_players tem SELECT público — coerente com a cultura anti-anonimato).
+// Placar pós-jogo COMPLETO de uma partida FormulaDota (estilo OpenDota, com abas).
+// Rota dedicada, pública (match_players tem SELECT público — coerente com a cultura
+// anti-anonimato). Todo o parsing roda no servidor; o cliente só troca de aba.
 //
-// Tudo que o placar precisa vem de match_players (público). A tabela `matches`
-// (duração, link OpenDota) é lida em best-effort: admin enxerga via RLS, público
-// degrada sem quebrar. Vitória e placar (soma de kills por time = placar real do
-// Dota) são derivados dos próprios jogadores.
+// A tabela `matches` (duração, link OpenDota) é lida em best-effort: admin enxerga
+// via RLS, público degrada sem quebrar. Vitória e placar (soma de kills por time =
+// placar real do Dota) são derivados dos próprios jogadores.
 
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ExternalLink, Clock } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ClientShell } from "@/components/client-shell/shell";
-import { getHeroById } from "@/lib/queries/heroes";
+import { MatchDetail } from "@/components/match/match-detail";
 import {
-  MatchScoreboard,
-  type ScoreboardPlayer,
-} from "@/components/match/match-scoreboard";
+  assembleMatch,
+  type MatchPlayerRow,
+  type Identity,
+} from "@/lib/dota/assemble-match";
 
 export const dynamic = "force-dynamic";
 
-interface PlayerRow {
-  user_id: string | null;
-  team: "radiant" | "dire";
-  player_slot: number;
-  is_winner: boolean;
-  hero_id: number;
-  personaname: string | null;
-  kills: number;
-  deaths: number;
-  assists: number;
-  last_hits: number;
-  denies: number;
-  gold_per_min: number;
-  xp_per_min: number;
-  net_worth: number;
-  level: number;
-  hero_damage: number;
-  hero_healing: number;
-  tower_damage: number;
-  items: {
-    inventory?: (number | null)[];
-    backpack?: (number | null)[];
-    neutral?: number | null;
-    neutral2?: number | null;
-  } | null;
-}
+const PLAYER_COLS =
+  "user_id, team, player_slot, is_winner, hero_id, personaname, kills, deaths, assists, " +
+  "last_hits, denies, gold_per_min, xp_per_min, net_worth, level, hero_damage, hero_healing, " +
+  "tower_damage, items, raw_opendota";
 
 export default async function HistoricoPartidaPage({
   params,
@@ -54,17 +33,15 @@ export default async function HistoricoPartidaPage({
   const { id } = await params;
   const supabase = await createClient();
 
-  // Stats de TODOS os jogadores (público). É a fonte do placar inteiro.
+  // Stats de TODOS os jogadores (público) — fonte de todas as abas.
   const { data: playersData } = await supabase
     .from("match_players")
-    .select(
-      "user_id, team, player_slot, is_winner, hero_id, personaname, kills, deaths, assists, last_hits, denies, gold_per_min, xp_per_min, net_worth, level, hero_damage, hero_healing, tower_damage, items"
-    )
+    .select(PLAYER_COLS)
     .eq("match_id", id)
     .order("team", { ascending: true })
     .order("player_slot", { ascending: true });
 
-  const rows = (playersData ?? []) as PlayerRow[];
+  const rows = (playersData ?? []) as unknown as MatchPlayerRow[];
   if (rows.length === 0) notFound();
 
   // Meta da partida (best-effort: público pode não enxergar `matches`).
@@ -76,57 +53,34 @@ export default async function HistoricoPartidaPage({
 
   // Identidade dos jogadores logados (steam_links → fallback profiles).
   const userIds = rows.map((r) => r.user_id).filter((v): v is string => Boolean(v));
-  const steamById = new Map<string, { persona: string | null; avatar_url: string | null }>();
-  const profById = new Map<string, { username: string | null; avatar_url: string | null }>();
+  const identityById = new Map<string, Identity>();
   if (userIds.length) {
     const [{ data: links }, { data: profs }] = await Promise.all([
       supabase.from("steam_links").select("user_id, persona, avatar_url").in("user_id", userIds),
       supabase.from("profiles").select("id, username, avatar_url").in("id", userIds),
     ]);
-    for (const l of links ?? []) steamById.set(l.user_id, l);
-    for (const p of profs ?? []) profById.set(p.id, p);
+    for (const l of links ?? []) {
+      identityById.set(l.user_id, { persona: l.persona, avatar_url: l.avatar_url, username: null });
+    }
+    for (const p of profs ?? []) {
+      const cur = identityById.get(p.id);
+      identityById.set(p.id, {
+        persona: cur?.persona ?? null,
+        avatar_url: cur?.avatar_url ?? p.avatar_url,
+        username: p.username,
+      });
+    }
   }
 
-  function toScoreboardPlayer(r: PlayerRow): ScoreboardPlayer {
-    const sl = r.user_id ? steamById.get(r.user_id) : undefined;
-    const pr = r.user_id ? profById.get(r.user_id) : undefined;
-    const hero = getHeroById(r.hero_id);
-    const inv = (r.items?.inventory ?? []).map((x) => x ?? 0);
-    return {
-      userId: r.user_id,
-      name: sl?.persona || pr?.username || r.personaname || "Jogador anônimo",
-      avatar: sl?.avatar_url || pr?.avatar_url || null,
-      profileHref: r.user_id ? `/perfil/u/${r.user_id}` : null,
-      heroName: hero?.name_pt ?? `Herói ${r.hero_id}`,
-      heroPortrait: hero?.portrait_url ?? null,
-      level: r.level,
-      kills: r.kills,
-      deaths: r.deaths,
-      assists: r.assists,
-      lastHits: r.last_hits,
-      denies: r.denies,
-      gpm: r.gold_per_min,
-      xpm: r.xp_per_min,
-      netWorth: r.net_worth,
-      heroDamage: r.hero_damage,
-      towerDamage: r.tower_damage,
-      heroHealing: r.hero_healing,
-      inventory: inv,
-      neutral: r.items?.neutral ?? null,
-    };
-  }
+  const { players, advantage } = assembleMatch(rows, identityById);
 
   const radiantRows = rows.filter((r) => r.team === "radiant");
   const direRows = rows.filter((r) => r.team === "dire");
-  const radiant = radiantRows.map(toScoreboardPlayer);
-  const dire = direRows.map(toScoreboardPlayer);
-
-  // Vitória: usa matches.radiant_win se visível; senão deriva dos jogadores.
   const radiantWin = matchMeta?.radiant_win ?? radiantRows[0]?.is_winner ?? null;
 
-  // Placar = soma de kills por time (idêntico ao placar exibido no Dota); usa o
-  // valor autoritativo de matches quando disponível.
-  const sumKills = (list: PlayerRow[]) => list.reduce((acc, r) => acc + r.kills, 0);
+  // Placar = soma de kills por time (idêntico ao placar do Dota); valor autoritativo
+  // de matches quando disponível.
+  const sumKills = (list: MatchPlayerRow[]) => list.reduce((acc, r) => acc + r.kills, 0);
   const radiantScore = matchMeta?.radiant_score ?? sumKills(radiantRows);
   const direScore = matchMeta?.dire_score ?? sumKills(direRows);
 
@@ -156,7 +110,6 @@ export default async function HistoricoPartidaPage({
             Partida FormulaDota
           </p>
 
-          {/* Placar grande: Iluminados X x Y Temidos. */}
           <div className="mt-2 flex flex-wrap items-baseline gap-x-4 gap-y-1">
             <span className="font-display text-2xl font-bold uppercase tracking-wide text-[#00C466]">
               Iluminados
@@ -171,7 +124,6 @@ export default async function HistoricoPartidaPage({
             </span>
           </div>
 
-          {/* Metadados: vencedor + duração + data + link externo. */}
           <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 font-body text-sm text-text-muted">
             {radiantWin != null && (
               <span>
@@ -202,7 +154,7 @@ export default async function HistoricoPartidaPage({
           </div>
         </header>
 
-        <MatchScoreboard radiant={radiant} dire={dire} radiantWin={radiantWin} />
+        <MatchDetail players={players} advantage={advantage} radiantWin={radiantWin} />
       </div>
     </ClientShell>
   );

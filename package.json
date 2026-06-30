@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit",
     "db:gen-types": "supabase gen types typescript --project-id $SUPABASE_PROJECT_ID --schema public > src/types/database.ts",
     "gen:heroes": "npx tsx scripts/gen-heroes.ts",
-    "gen:items": "npx tsx scripts/gen-items.ts"
+    "gen:items": "npx tsx scripts/gen-items.ts",
+    "gen:abilities": "npx tsx scripts/gen-abilities.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
