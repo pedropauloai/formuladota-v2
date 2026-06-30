@@ -1,87 +1,123 @@
-// Aba Builds — por jogador: timeline de compra de itens (com minuto) e a ordem de
-// evolução de habilidades (skill build). Itens triviais já filtrados no parser.
+// Aba Builds — por jogador, estilo STRATZ: ordem de skills · botas (com timing) ·
+// itens importantes (com timing) · item neutro.
 
 import Image from "next/image";
 import type { PlayerFull, BuildPurchase, BuildSkill } from "@/lib/dota/match-stats";
 import { splitTeams, mmss, PlayerLabel, TeamHeader } from "@/components/match/shared";
 
-function PurchaseIcon({ buy }: { buy: BuildPurchase }) {
+function SkillIcons({ skills }: { skills: BuildSkill[] }) {
+  if (!skills.length) return <span className="text-text-faded">—</span>;
   return (
-    <div className="flex shrink-0 flex-col items-center gap-0.5">
+    <div className="flex flex-wrap gap-0.5">
+      {skills.map((s, i) => (
+        <span key={i} className="relative" title={`Nível ${i + 1}: ${s.dname}`}>
+          {s.img ? (
+            <Image
+              src={s.img}
+              alt={s.dname}
+              width={20}
+              height={20}
+              unoptimized
+              className="size-5 rounded-sm object-cover"
+            />
+          ) : (
+            <span className="flex size-5 items-center justify-center rounded-sm bg-gold/20 font-display text-[0.55rem] font-bold text-gold">
+              T
+            </span>
+          )}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function ItemWithTime({ buy }: { buy: BuildPurchase }) {
+  return (
+    <div className="flex shrink-0 flex-col items-center gap-0.5" title={`${buy.dname} — ${mmss(buy.t)}`}>
       {buy.img ? (
         <Image
           src={buy.img}
           alt={buy.dname}
-          title={`${buy.dname} — ${mmss(buy.t)}`}
-          width={36}
-          height={27}
+          width={32}
+          height={24}
           unoptimized
-          className="h-[27px] w-9 rounded-sm object-cover ring-1 ring-border-subtle/60"
+          className="h-6 w-8 rounded-sm object-cover ring-1 ring-border-subtle/60"
         />
       ) : (
-        <span className="h-[27px] w-9 rounded-sm bg-bg-surface" aria-hidden="true" />
+        <span className="h-6 w-8 rounded-sm bg-bg-surface" aria-hidden="true" />
       )}
-      <span className="font-mono text-[0.6rem] tabular-nums text-text-faded">{mmss(buy.t)}</span>
+      <span className="font-mono text-[0.58rem] tabular-nums text-text-faded">{mmss(buy.t)}</span>
     </div>
   );
 }
 
-function SkillIcon({ skill, level }: { skill: BuildSkill; level: number }) {
+function PlayerRow({ p }: { p: PlayerFull }) {
   return (
-    <div className="relative shrink-0" title={`Nível ${level}: ${skill.dname}`}>
-      {skill.img ? (
-        <Image
-          src={skill.img}
-          alt={skill.dname}
-          width={26}
-          height={26}
-          unoptimized
-          className="size-[26px] rounded-sm object-cover"
-        />
-      ) : (
-        <span className="flex size-[26px] items-center justify-center rounded-sm bg-gold/20 font-display text-[0.6rem] font-bold text-gold">
-          T
-        </span>
-      )}
-      <span className="absolute -bottom-1 -right-1 rounded-sm bg-bg-base px-0.5 font-mono text-[0.55rem] tabular-nums text-text-muted ring-1 ring-border-subtle">
-        {level}
-      </span>
-    </div>
-  );
-}
-
-function PlayerBuild({ p }: { p: PlayerFull }) {
-  return (
-    <div className="rounded-[var(--radius-lg)] border border-border-subtle bg-bg-elevated/40 p-3">
-      <div className="mb-2.5 border-b border-border-subtle/60 pb-2">
+    <tr className="align-top hover:bg-bg-surface/40">
+      <td className="px-3 py-2.5">
         <PlayerLabel p={p} />
+      </td>
+      <td className="px-2 py-2.5">
+        <SkillIcons skills={p.skills} />
+      </td>
+      <td className="px-2 py-2.5">
+        {p.boots ? <ItemWithTime buy={p.boots} /> : <span className="text-text-faded">—</span>}
+      </td>
+      <td className="px-2 py-2.5">
+        {p.importantItems.length ? (
+          <div className="flex flex-wrap gap-1.5">
+            {p.importantItems.map((buy, i) => (
+              <ItemWithTime key={i} buy={buy} />
+            ))}
+          </div>
+        ) : (
+          <span className="text-text-faded">—</span>
+        )}
+      </td>
+      <td className="px-3 py-2.5">
+        {p.neutralItem?.img ? (
+          <Image
+            src={p.neutralItem.img}
+            alt={p.neutralItem.dname}
+            title={p.neutralItem.dname}
+            width={28}
+            height={28}
+            unoptimized
+            className="size-7 rounded-full object-cover ring-1 ring-gold/40"
+          />
+        ) : (
+          <span className="text-text-faded">—</span>
+        )}
+      </td>
+    </tr>
+  );
+}
+
+function TeamBuilds({ players, team }: { players: PlayerFull[]; team: "radiant" | "dire" }) {
+  return (
+    <div>
+      <TeamHeader team={team} />
+      <div className="overflow-x-auto rounded-[var(--radius-lg)] border border-border-subtle bg-bg-elevated/40">
+        <table className="w-full min-w-[720px] border-collapse">
+          <thead>
+            <tr className="border-b border-border-subtle/60 text-left">
+              {["Jogador", "Build de skills", "Botas", "Itens importantes", "Neutro"].map((h) => (
+                <th
+                  key={h}
+                  className="px-3 py-2 font-display text-[0.62rem] font-bold uppercase tracking-wide text-text-faded"
+                >
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border-subtle/40">
+            {players.map((p, i) => (
+              <PlayerRow key={p.userId ?? `${team}-${i}`} p={p} />
+            ))}
+          </tbody>
+        </table>
       </div>
-
-      <p className="mb-1 font-display text-[0.62rem] font-bold uppercase tracking-wide text-text-faded">
-        Itens
-      </p>
-      {p.purchases.length ? (
-        <div className="mb-3 flex gap-1.5 overflow-x-auto pb-1">
-          {p.purchases.map((buy, i) => (
-            <PurchaseIcon key={i} buy={buy} />
-          ))}
-        </div>
-      ) : (
-        <p className="mb-3 font-body text-xs text-text-faded">Sem dados de compra.</p>
-      )}
-
-      <p className="mb-1.5 font-display text-[0.62rem] font-bold uppercase tracking-wide text-text-faded">
-        Skills
-      </p>
-      {p.skills.length ? (
-        <div className="flex flex-wrap gap-1.5">
-          {p.skills.map((skill, i) => (
-            <SkillIcon key={i} skill={skill} level={i + 1} />
-          ))}
-        </div>
-      ) : (
-        <p className="font-body text-xs text-text-faded">Sem dados de skill build.</p>
-      )}
     </div>
   );
 }
@@ -90,19 +126,8 @@ export function BuildsPanel({ players }: { players: PlayerFull[] }) {
   const { radiant, dire } = splitTeams(players);
   return (
     <div className="space-y-5">
-      {(["radiant", "dire"] as const).map((team) => {
-        const list = team === "radiant" ? radiant : dire;
-        return (
-          <div key={team}>
-            <TeamHeader team={team} />
-            <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
-              {list.map((p, i) => (
-                <PlayerBuild key={p.userId ?? `${team}-${i}`} p={p} />
-              ))}
-            </div>
-          </div>
-        );
-      })}
+      <TeamBuilds players={radiant} team="radiant" />
+      <TeamBuilds players={dire} team="dire" />
     </div>
   );
 }

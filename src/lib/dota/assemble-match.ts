@@ -16,7 +16,12 @@ import {
   xpSeries,
   lhSeries,
 } from "@/lib/dota/match-stats";
-import { parsePurchases, parseSkills } from "@/lib/dota/match-build";
+import {
+  parseBoots,
+  parseImportant,
+  parseNeutral,
+  parseSkills,
+} from "@/lib/dota/match-build";
 import { parsePlayerWards, type Ward } from "@/lib/dota/match-vision";
 import { type PlayerSeries, colorFor } from "@/lib/dota/match-series";
 
@@ -93,6 +98,7 @@ export function assembleMatch(
     const heroName = hero?.name_pt ?? `Herói ${r.hero_id}`;
     const heroIcon = hero?.image_icon ?? null;
     const slot = teamSlot(r);
+    const perf = parsePerformance(raw);
 
     // Coleta wards (minimapa) e série temporal (gráficos) deste jogador.
     wards.push(...parsePlayerWards(raw, r.team, heroName, heroIcon));
@@ -134,12 +140,15 @@ export function assembleMatch(
       heroId: r.hero_id,
       heroIcon,
       isWinner: r.is_winner,
-      performance: parsePerformance(raw),
+      performance: perf,
       combat: parseCombat(raw),
       vision: parseVision(raw),
       benchmarks: parseBenchmarks(raw),
-      purchases: parsePurchases(raw),
+      boots: parseBoots(raw),
+      importantItems: parseImportant(raw),
+      neutralItem: parseNeutral(r.items?.neutral ?? null),
       skills: parseSkills(raw),
+      teamfightPct: perf.teamfightPct,
       killsVsEnemies: parseKillsVsEnemies(raw, enemyMap),
     };
   });

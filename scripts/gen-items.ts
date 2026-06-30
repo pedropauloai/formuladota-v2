@@ -19,6 +19,7 @@ interface OpenDotaItem {
   id?: number;
   dname?: string;
   img?: string; // path relativo no CDN Valve (ex "/apps/dota2/.../blink.png?t=...")
+  cost?: number | null;
 }
 
 type ItemsConstants = Record<string, OpenDotaItem>;
@@ -26,7 +27,7 @@ type ItemsConstants = Record<string, OpenDotaItem>;
 // id → { name, dname, img } — chave string porque JSON não tem chave numérica.
 // `name` = chave interna do item (ex "blink"); usado pra casar com purchase_log,
 // que referencia itens por nome, não por id.
-type ItemCatalog = Record<string, { name: string; dname: string; img: string }>;
+type ItemCatalog = Record<string, { name: string; dname: string; img: string; cost: number }>;
 
 async function fetchItems(): Promise<ItemsConstants> {
   const url = "https://api.opendota.com/api/constants/items";
@@ -55,6 +56,7 @@ async function main(): Promise<void> {
       name,
       dname: item.dname ?? "Item",
       img: item.img,
+      cost: typeof item.cost === "number" ? item.cost : 0,
     };
   }
 

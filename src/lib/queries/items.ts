@@ -13,6 +13,27 @@ export interface ItemData {
   dname: string;
   /** Path relativo do ícone no CDN Valve. */
   img: string;
+  /** Custo em ouro (0 = consumível/recipe sem custo direto). */
+  cost: number;
+}
+
+// Botas conhecidas (categoria própria na build, igual STRATZ).
+const BOOTS = new Set([
+  "boots",
+  "power_treads",
+  "phase_boots",
+  "arcane_boots",
+  "tranquil_boots",
+  "travel_boots",
+  "travel_boots_2",
+  "guardian_greaves",
+  "boots_of_bearing",
+  "force_boots",
+]);
+
+/** É um par de botas (qualquer tier)? */
+export function isBoots(name: string | null | undefined): boolean {
+  return name ? BOOTS.has(name) : false;
 }
 
 // Mapa id(string) → { name, dname, img }. id 0 (ou ausente) = slot vazio.

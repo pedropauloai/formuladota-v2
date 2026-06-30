@@ -26,6 +26,8 @@ export interface ScoreboardPlayer {
   heroDamage: number;
   towerDamage: number;
   heroHealing: number;
+  /** Participação em teamfights (0..1) — coluna CA. */
+  teamfightPct: number | null;
   /** 6 slots de inventário (ids; 0 = vazio). */
   inventory: number[];
   /** Item neutro (id; null = nenhum). */
@@ -36,10 +38,6 @@ export interface ScoreboardPlayer {
 function fmtK(n: number): string {
   if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
   return String(n);
-}
-
-function kdaRatio(k: number, d: number, a: number): string {
-  return ((k + a) / Math.max(1, d)).toFixed(2);
 }
 
 // Um slot de item (ícone ou caixa vazia). Itens NÃO são avatar → não seguem a
@@ -148,6 +146,18 @@ function PlayerCell({ p }: { p: ScoreboardPlayer }) {
   return inner;
 }
 
+function NetWorthCell({ value, max }: { value: number; max: number }) {
+  const pct = Math.max(4, Math.min(100, Math.round((value / Math.max(1, max)) * 100)));
+  return (
+    <td className="px-2 py-2.5 text-right">
+      <span className="block font-mono text-sm tabular-nums text-gold">{fmtK(value)}</span>
+      <span className="mt-1 block h-1 w-full overflow-hidden rounded-sm bg-bg-surface">
+        <span className="block h-full bg-gold/70" style={{ width: `${pct}%` }} />
+      </span>
+    </td>
+  );
+}
+
 function TeamTable({
   title,
   accent,
@@ -159,6 +169,21 @@ function TeamTable({
   won: boolean | null;
   players: ScoreboardPlayer[];
 }) {
+  const maxNw = Math.max(1, ...players.map((p) => p.netWorth));
+  const tot = players.reduce(
+    (a, p) => ({
+      k: a.k + p.kills,
+      d: a.d + p.deaths,
+      as: a.as + p.assists,
+      lh: a.lh + p.lastHits,
+      gpm: a.gpm + p.gpm,
+      nw: a.nw + p.netWorth,
+      dmg: a.dmg + p.heroDamage,
+      heal: a.heal + p.heroHealing,
+    }),
+    { k: 0, d: 0, as: 0, lh: 0, gpm: 0, nw: 0, dmg: 0, heal: 0 }
+  );
+
   return (
     <section className="overflow-hidden rounded-[var(--radius-lg)] border border-border-subtle bg-bg-elevated/40">
       <header className="flex items-center justify-between gap-3 border-b border-border-subtle px-3 py-2.5">
@@ -176,14 +201,14 @@ function TeamTable({
         )}
       </header>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[760px] border-collapse">
+        <table className="w-full min-w-[820px] border-collapse">
           <thead>
             <tr className="border-b border-border-subtle/60">
               <th className="px-3 py-2 text-left font-display text-[0.65rem] font-bold uppercase tracking-wide text-text-faded">
                 Jogador
               </th>
               <Th>K / D / A</Th>
-              <Th>KDA</Th>
+              <Th>CA</Th>
               <Th>LH / DN</Th>
               <Th>GPM</Th>
               <Th>XPM</Th>
@@ -209,8 +234,8 @@ function TeamTable({
                   <span className="text-text-faded"> / </span>
                   <span className="text-gold">{p.assists}</span>
                 </td>
-                <td className="px-2 py-2.5 text-right font-display text-sm tabular-nums text-text-muted">
-                  {kdaRatio(p.kills, p.deaths, p.assists)}
+                <td className="px-2 py-2.5 text-right font-mono text-sm tabular-nums text-text-muted">
+                  {p.teamfightPct != null ? `${Math.round(p.teamfightPct * 100)}%` : "—"}
                 </td>
                 <td className="px-2 py-2.5 text-right font-display text-sm tabular-nums text-text-muted">
                   {p.lastHits}
@@ -223,9 +248,7 @@ function TeamTable({
                 <td className="px-2 py-2.5 text-right font-mono text-sm tabular-nums text-text-muted">
                   {p.xpm}
                 </td>
-                <td className="px-2 py-2.5 text-right font-mono text-sm tabular-nums text-gold">
-                  {fmtK(p.netWorth)}
-                </td>
+                <NetWorthCell value={p.netWorth} max={maxNw} />
                 <td className="px-2 py-2.5 text-right font-mono text-sm tabular-nums text-text-muted">
                   {fmtK(p.heroDamage)}
                 </td>
@@ -240,6 +263,34 @@ function TeamTable({
                 </td>
               </tr>
             ))}
+            {/* Totais do time. */}
+            <tr className="border-t border-border-subtle bg-bg-surface/30 font-bold">
+              <td className="px-3 py-2 font-display text-xs uppercase tracking-wide text-text-muted">
+                Totais
+              </td>
+              <td className="px-2 py-2 text-right font-display text-sm tabular-nums text-text-display">
+                {tot.k} / {tot.d} / {tot.as}
+              </td>
+              <td />
+              <td className="px-2 py-2 text-right font-mono text-sm tabular-nums text-text-muted">
+                {tot.lh}
+              </td>
+              <td className="px-2 py-2 text-right font-mono text-sm tabular-nums text-gold">
+                {tot.gpm}
+              </td>
+              <td />
+              <td className="px-2 py-2 text-right font-mono text-sm tabular-nums text-gold">
+                {fmtK(tot.nw)}
+              </td>
+              <td className="px-2 py-2 text-right font-mono text-sm tabular-nums text-text-muted">
+                {fmtK(tot.dmg)}
+              </td>
+              <td />
+              <td className="px-2 py-2 text-right font-mono text-sm tabular-nums text-text-muted">
+                {fmtK(tot.heal)}
+              </td>
+              <td />
+            </tr>
           </tbody>
         </table>
       </div>

@@ -105,7 +105,10 @@ export interface PlayerFull extends ScoreboardPlayer {
   combat: CombatStats;
   vision: VisionStats;
   benchmarks: BenchRow[];
-  purchases: BuildPurchase[];
+  /** Build categorizada (estilo STRATZ). */
+  boots: BuildPurchase | null;
+  importantItems: BuildPurchase[];
+  neutralItem: { img: string | null; dname: string } | null;
   skills: BuildSkill[];
   /** Abates contra cada inimigo (índice = slot 0..4 do time adversário). */
   killsVsEnemies: number[];
