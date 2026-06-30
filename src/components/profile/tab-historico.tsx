@@ -7,6 +7,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getHeroById } from "@/lib/queries/heroes";
+import { gameModeName } from "@/lib/dota/game-mode";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 
@@ -55,13 +56,21 @@ export async function TabHistorico({ userId }: { userId: string }) {
       in: (
         c: string,
         v: string[]
-      ) => PromiseLike<{ data: { match_id: string; dota_match_id: string | null }[] | null }>;
+      ) => PromiseLike<{
+        data:
+          | { match_id: string; dota_match_id: string | null; game_mode: number | null }[]
+          | null;
+      }>;
     };
   };
-  const { data: mds } = await mdTable.select("match_id, dota_match_id").in("match_id", matchIds);
+  const { data: mds } = await mdTable
+    .select("match_id, dota_match_id, game_mode")
+    .in("match_id", matchIds);
   const dotaByMatch = new Map<string, string>();
+  const modeByMatch = new Map<string, number>();
   for (const d of mds ?? []) {
     if (d.dota_match_id) dotaByMatch.set(d.match_id, d.dota_match_id);
+    if (d.game_mode != null) modeByMatch.set(d.match_id, d.game_mode);
   }
 
   return (
@@ -71,6 +80,7 @@ export async function TabHistorico({ userId }: { userId: string }) {
           {rows.map((m, i) => {
             const hero = getHeroById(m.hero_id);
             const kda = ((m.kills + m.assists) / Math.max(1, m.deaths)).toFixed(2);
+            const modeName = gameModeName(modeByMatch.get(m.match_id));
             return (
               <li key={`${m.match_id}-${i}`}>
                 <Link
@@ -107,6 +117,15 @@ export async function TabHistorico({ userId }: { userId: string }) {
                     }`}
                   >
                     {m.is_winner ? t("matchWin") : t("matchLoss")}
+                  </p>
+                </div>
+                {/* Tipo de partida (modo de jogo). */}
+                <div className="hidden shrink-0 text-right sm:block">
+                  <p className="font-display text-xs font-semibold uppercase tracking-wide text-text-muted">
+                    {modeName ?? "—"}
+                  </p>
+                  <p className="font-display text-[0.7rem] uppercase tracking-wide text-text-faded">
+                    Modo
                   </p>
                 </div>
                 <div className="shrink-0 text-right">

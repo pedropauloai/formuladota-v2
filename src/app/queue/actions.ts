@@ -89,6 +89,8 @@ export interface QueueSearcher {
   level: number;
   honorScore: number;
   joinedAt: string;
+  /** Modo de jogo filado (migration 071) — usado pra contar por modo. */
+  gameMode: QueueGameMode;
 }
 
 // Linha do RPC get_queue_searchers (Args: never → o overload do .rpc não infere o
@@ -99,7 +101,8 @@ type QueueSearcherRow =
 export async function getQueueSearchers(): Promise<QueueSearcher[]> {
   const supabase = await createClient();
   const { data } = await supabase.rpc("get_queue_searchers");
-  const rows = (data ?? []) as QueueSearcherRow[];
+  // game_mode é novo no RPC (migration 071) e ainda não está nos tipos gerados → cast.
+  const rows = (data ?? []) as (QueueSearcherRow & { game_mode?: string })[];
   return rows.map((r) => ({
     userId: r.user_id,
     name: r.name,
@@ -108,6 +111,7 @@ export async function getQueueSearchers(): Promise<QueueSearcher[]> {
     level: r.level,
     honorScore: r.honor_score,
     joinedAt: r.joined_at,
+    gameMode: (r.game_mode as QueueGameMode) ?? "all_pick",
   }));
 }
 

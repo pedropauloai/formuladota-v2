@@ -120,11 +120,10 @@ export function CriarLobbyForm({ onCreated, onClose, editLobbyId, defaults }: Fo
             />
           </Field>
           <Field label={t("fieldMode")}>
+            {/* Só 2 modos (Pedro 2026-06-30): escolha livre + capitães. */}
             <select name="gameMode" defaultValue={defaults?.gameMode ?? "all_pick"} className={INPUT}>
               <option value="all_pick">{t("modeAllPickCompetitive")}</option>
               <option value="captains_mode">{t("modeCaptainsMode")}</option>
-              <option value="random_draft">{t("modeRandomDraft")}</option>
-              <option value="single_draft">{t("modeSingleDraft")}</option>
             </select>
           </Field>
           <Field label={t("lobbyPassword")}>

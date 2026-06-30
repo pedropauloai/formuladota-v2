@@ -63,11 +63,11 @@ const ROLES: { id: QueueRole; pos: string; key: string }[] = [
   { id: "support_dedicated", pos: "5", key: "roleSupportDedicated" },
 ];
 
+// Só 2 modos oferecidos (Pedro 2026-06-30): escolha livre + capitães. Os outros
+// valores do enum seguem aceitos em dados antigos, mas não aparecem mais na UI.
 const GAME_MODES: { id: QueueGameMode; key: string }[] = [
   { id: "all_pick", key: "modeAllPick" },
   { id: "captains_mode", key: "modeCaptains" },
-  { id: "random_draft", key: "modeRandomDraft" },
-  { id: "single_draft", key: "modeSingleDraft" },
 ];
 
 interface Props {
@@ -356,6 +356,7 @@ export function PlayMenu({ isVisitor, initial }: Props) {
             <div className="border-b border-border-subtle p-2.5 animate-in slide-in-from-bottom-2 fade-in duration-150">
               <QueueSearchersPanel
                 bare
+                gameMode={gameMode}
                 onPickRole={(r) => applyQueueRoles([r])}
                 onPickAll={() => applyQueueRoles(ROLES.map((r) => r.id))}
                 myRoles={Array.from(roles)}
@@ -622,8 +623,9 @@ function MenuView({
           <p className="mb-2.5 font-body text-sm leading-relaxed text-text-muted">
             {t("competitivaDesc")}
           </p>
-          {/* Painel "quem está findando" — acima da seleção de função (ao vivo). */}
-          <QueueSearchersPanel />
+          {/* Painel "quem está findando" — acima da seleção de função (ao vivo).
+              Conta só quem fila no MODO selecionado (contador por modo). */}
+          <QueueSearchersPanel gameMode={gameMode} />
           {/* Atalho: marca as 5 funções de uma vez (mais flexível = fila mais rápida). */}
           <button
             type="button"

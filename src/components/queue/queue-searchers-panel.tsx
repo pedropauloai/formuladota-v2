@@ -22,6 +22,7 @@ import {
   getQueueSearchers,
   type QueueSearcher,
   type QueueRole,
+  type QueueGameMode,
 } from "@/app/queue/actions";
 import { HonorRankMedal } from "@/components/ui/honor-rank-medal";
 import { UserHoverCard } from "@/components/profile/user-hover-card";
@@ -81,6 +82,8 @@ interface Props {
   onPickAll?: () => void;
   /** Funções que o próprio jogador filou (marca "você" + rodapé "sua função"). */
   myRoles?: QueueRole[];
+  /** Se passado, conta SÓ quem está filando neste modo de jogo (contador por modo). */
+  gameMode?: QueueGameMode;
 }
 
 export function QueueSearchersPanel({
@@ -88,6 +91,7 @@ export function QueueSearchersPanel({
   onPickRole,
   onPickAll,
   myRoles,
+  gameMode,
 }: Props) {
   const t = useTranslations("playMenu");
   const [searchers, setSearchers] = useState<QueueSearcher[]>([]);
@@ -137,9 +141,14 @@ export function QueueSearchersPanel({
     return () => document.removeEventListener("mousedown", onDown);
   }, [pinned]);
 
-  const total = searchers.length;
+  // Filtra por modo de jogo quando pedido (contador individual por modo).
+  const visible = useMemo(
+    () => (gameMode ? searchers.filter((s) => s.gameMode === gameMode) : searchers),
+    [searchers, gameMode]
+  );
+  const total = visible.length;
   // Composição real (vagas ocupadas, flexível conta 1x) — base da demanda por função.
-  const comp = useMemo(() => computeComposition(searchers), [searchers]);
+  const comp = useMemo(() => computeComposition(visible), [visible]);
   const showPopover = (open || pinned) && total > 0;
   const rootCls = bare
     ? ""
@@ -165,7 +174,7 @@ export function QueueSearchersPanel({
         // Contexto do contador: stack estático (o painel já é um popover).
         // hoverable → cada avatar abre o hover card (não está dentro de um botão).
         <div className="flex items-center gap-2 px-1 py-1">
-          <AvatarStack searchers={searchers} hoverable />
+          <AvatarStack searchers={visible} hoverable />
         </div>
       ) : (
         // Contexto do menu: stack interativo com popover.
@@ -183,7 +192,7 @@ export function QueueSearchersPanel({
             aria-expanded={showPopover}
             className="flex w-full items-center gap-2 rounded-sm px-1 py-1 transition-colors hover:bg-bg-elevated/60"
           >
-            <AvatarStack searchers={searchers} />
+            <AvatarStack searchers={visible} />
             <span className="ml-auto font-body text-[0.7rem] uppercase tracking-wide text-text-faded">
               {t("searchersSeeAll")}
             </span>
@@ -192,7 +201,7 @@ export function QueueSearchersPanel({
           {showPopover && (
             <div className="absolute left-0 right-0 top-full z-[var(--z-system)] mt-1 max-h-72 overflow-y-auto rounded-[var(--radius-md)] border border-border-strong bg-bg-base p-2 shadow-[var(--shadow-cinematic)]">
               <ul className="space-y-1">
-                {searchers.slice(0, LIST_MAX).map((s) => (
+                {visible.slice(0, LIST_MAX).map((s) => (
                   <SearcherRow key={s.userId} s={s} />
                 ))}
               </ul>

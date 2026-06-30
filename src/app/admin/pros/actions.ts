@@ -496,6 +496,8 @@ export async function enrichMatchFromOpenDota(
       objectives?: unknown;
       picks_bans?: unknown;
       chat?: unknown;
+      game_mode?: number;
+      lobby_type?: number;
     };
     const mdTable = supabase.from("match_details" as never) as unknown as {
       upsert: (row: Record<string, unknown>) => PromiseLike<{ error: unknown }>;
@@ -507,6 +509,8 @@ export async function enrichMatchFromOpenDota(
       objectives: md.objectives ?? null,
       picks_bans: md.picks_bans ?? null,
       chat: md.chat ?? null,
+      game_mode: md.game_mode ?? null,
+      lobby_type: md.lobby_type ?? null,
     });
   } catch (e) {
     console.error("[enrichMatch] match_details falhou:", e instanceof Error ? e.message : e);
