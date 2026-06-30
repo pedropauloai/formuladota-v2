@@ -38,8 +38,10 @@ import { getFriendsPanel } from "@/lib/queries/friends";
 import { getMyOpenLobby, getMyLobbyInvites } from "@/lib/queries/lobby-social";
 import { getDmInbox } from "@/lib/queries/messages";
 import { getMyParty, getMyPartyInvites } from "@/lib/queries/party";
-import { xpProgress } from "@/lib/levels";
+import { xpProgress, getGatedTierForLevel, mmrFromRankTier } from "@/lib/levels";
 import { getPlayMenuState } from "@/lib/play-menu-preference";
+import { mmrToDotaRank } from "@/components/queue/queue-helpers";
+import { rankTierToDotaRank } from "@/components/profile/career-stats";
 import { DashboardTopBar } from "./top-bar";
 import { displayName, displayAvatar } from "@/lib/identity";
 import { MiniProfilePanel } from "./mini-profile-panel";
@@ -151,6 +153,19 @@ export async function ClientShell({
   const userXpPct = privateData?.xpPct ?? 0;
   const matchPermissions = privateData?.permissions ?? 0;
 
+  // Par de medalhas do mini-perfil — MESMA fonte canônica do /me e do hover-card:
+  // SKILL = rank Valve real (career.rankTier) com fallback no MMR; HONOR = nível
+  // (decisão "nível É o honor" 2026-06-02). Antes o mini-perfil usava só MMR
+  // (vazio → Herald pra todos) e divergia do /me.
+  const userMmr = profile?.mmr_atual ?? null;
+  const careerRankTier = privateData?.careerRankTier ?? null;
+  const miniDotaRank =
+    rankTierToDotaRank(careerRankTier, privateData?.careerLeaderboardRank ?? null) ??
+    mmrToDotaRank(userMmr);
+  // Gate de honra pela skill Valve REAL (não pelo MMR de liga, que é ~1000 pra
+  // todos) — igual ao /me, hover-card, ready-check e placar de partida.
+  const miniHonorRank = getGatedTierForLevel(userLevel, mmrFromRankTier(careerRankTier));
+
   const prosOnline = prosWithQueues.map((p) => p.coach);
   // Pedro 2026-05-26: StickyQueueBanner antigo foi REMOVIDO. Status "Na fila"
   // agora vive como pílula DENTRO da topbar (QueueStatusPill substitui o
@@ -258,7 +273,8 @@ export async function ClientShell({
             level={userLevel}
             xpPct={userXpPct}
             permissions={matchPermissions}
-            mmr={profile?.mmr_atual ?? null}
+            dotaRank={miniDotaRank}
+            honorRank={miniHonorRank}
             initialExpanded={sidebarExpanded}
             lockedExpanded={currentRoute === "/"}
             currentUserId={user?.id ?? null}
@@ -373,7 +389,8 @@ export async function ClientShell({
           level={userLevel}
           xpPct={userXpPct}
           permissions={matchPermissions}
-          mmr={profile?.mmr_atual ?? null}
+          dotaRank={miniDotaRank}
+          honorRank={miniHonorRank}
           initialExpanded={sidebarExpanded}
           lockedExpanded={currentRoute === "/"}
           currentUserId={user?.id ?? null}
@@ -423,6 +440,7 @@ async function fetchPrivateData(
     fichaBalance,
     myQueues,
     { data: levelRow },
+    { data: careerRow },
   ] = await Promise.all([
     supabase
       .from("profiles")
@@ -450,6 +468,13 @@ async function fetchPrivateData(
       .select("total_xp_earned")
       .eq("user_id", userId)
       .maybeSingle(),
+    // Cache de carreira (STRATZ/OpenDota) — pra medalha SKILL = rank Valve REAL,
+    // igual ao /me e ao hover-card. Leitura barata do cache (sem network/sync).
+    supabase
+      .from("user_stats_extended")
+      .select("career")
+      .eq("user_id", userId)
+      .maybeSingle(),
   ]);
 
   // Nível + barra de XP derivados do XP total (espelho da curva no client).
@@ -463,6 +488,15 @@ async function fetchPrivateData(
     Math.floor(answered / 5) - (profile?.match_permissions_consumed ?? 0)
   );
 
+  // Rank Valve real do cache de carreira (jsonb). Leitura defensiva — mesmo cache
+  // que /me popula; se vazio/antigo, rankTier null → cai pro MMR (igual ao /me).
+  const career = careerRow?.career as
+    | { rankTier?: number | null; leaderboardRank?: number | null }
+    | null;
+  const careerRankTier = typeof career?.rankTier === "number" ? career.rankTier : null;
+  const careerLeaderboardRank =
+    typeof career?.leaderboardRank === "number" ? career.leaderboardRank : null;
+
   return {
     profile,
     steamLink,
@@ -472,5 +506,7 @@ async function fetchPrivateData(
     level,
     xpPct,
     permissions,
+    careerRankTier,
+    careerLeaderboardRank,
   };
 }

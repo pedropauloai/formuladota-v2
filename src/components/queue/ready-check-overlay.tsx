@@ -25,16 +25,7 @@ import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { MedalPair } from "@/components/ui/medal-pair";
 import { UserHoverCard } from "@/components/profile/user-hover-card";
 import { rankTierToDotaRank } from "@/components/profile/career-stats";
-import { getGatedTierForLevel } from "@/lib/levels";
-
-// Sem nº de MMR Valve público — proxy do rank pro gate de honra.
-function mmrFromRankTier(rankTier: number | null): number | null {
-  if (rankTier == null) return null;
-  const medal = Math.floor(rankTier / 10);
-  if (medal >= 8) return 6000;
-  if (medal === 7) return 5000;
-  return 0;
-}
+import { getGatedTierForLevel, mmrFromRankTier } from "@/lib/levels";
 
 const DURATION_MS = 60_000;
 

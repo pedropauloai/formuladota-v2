@@ -12,7 +12,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getPtsTodayMap } from "@/lib/queries/queue";
 import { getSteamIdentityMap, resolveIdentity } from "@/lib/queries/identities";
 import { getProRecentStats } from "@/lib/queries/pros";
-import { xpProgress, getGatedTierForLevel } from "@/lib/levels";
+import { xpProgress, getGatedTierForLevel, mmrFromRankTier } from "@/lib/levels";
 import type { HonorRank } from "@/components/ui/honor-rank-medal";
 
 // Preço fixo da ficha (decisão Pedro 2026-06-02) e split do PRO (migration 031:
@@ -143,25 +143,41 @@ export async function getProCockpitData(coach: CoachRow): Promise<CockpitData> {
   // Leitura extra (read-model): MMR + XP total pra renderizar medalha HONOR e
   // MMR em gold por linha da fila — mesmo padrão de fetchLobbyRoom.
   // steam_links em paralelo: nick/avatar exibidos = identidade Steam > Discord.
-  const [{ data: profiles }, { data: levels }, steamMap] = await Promise.all([
-    userIds.length > 0
-      ? supabase
-          .from("profiles")
-          .select("id, username, avatar_url, mmr_atual")
-          .in("id", userIds)
-      : Promise.resolve({ data: null }),
-    userIds.length > 0
-      ? supabase
-          .from("user_levels")
-          .select("user_id, total_xp_earned")
-          .in("user_id", userIds)
-      : Promise.resolve({ data: null }),
-    getSteamIdentityMap(supabase, userIds),
-  ]);
+  const [{ data: profiles }, { data: levels }, { data: careers }, steamMap] =
+    await Promise.all([
+      userIds.length > 0
+        ? supabase
+            .from("profiles")
+            .select("id, username, avatar_url, mmr_atual")
+            .in("id", userIds)
+        : Promise.resolve({ data: null }),
+      userIds.length > 0
+        ? supabase
+            .from("user_levels")
+            .select("user_id, total_xp_earned")
+            .in("user_id", userIds)
+        : Promise.resolve({ data: null }),
+      // Rank Valve real (cache) — gate de HONRA pela skill Valve, não pelo MMR de liga.
+      userIds.length > 0
+        ? supabase
+            .from("user_stats_extended")
+            .select("user_id, career")
+            .in("user_id", userIds)
+        : Promise.resolve({ data: null }),
+      getSteamIdentityMap(supabase, userIds),
+    ]);
 
   const profileById = new Map((profiles ?? []).map((p) => [p.id, p]));
   const xpByUser = new Map(
     (levels ?? []).map((l) => [l.user_id, l.total_xp_earned])
+  );
+  const rankTierByUser = new Map(
+    (careers ?? []).map((c) => [
+      c.user_id,
+      typeof (c.career as { rankTier?: number } | null)?.rankTier === "number"
+        ? (c.career as { rankTier: number }).rankTier
+        : null,
+    ])
   );
 
   // Ordena por LRU: quem jogou menos PTs com o coach nas últimas 24h primeiro,
@@ -183,7 +199,7 @@ export async function getProCockpitData(coach: CoachRow): Promise<CockpitData> {
       username: ident.name,
       avatarUrl: ident.avatarUrl,
       mmr: prof?.mmr_atual ?? null,
-      honorRank: getGatedTierForLevel(level, prof?.mmr_atual ?? null),
+      honorRank: getGatedTierForLevel(level, mmrFromRankTier(rankTierByUser.get(e.user_id) ?? null)),
       joinedAt: e.joined_at,
       ptsToday: ptsTodayMap.get(`${e.user_id}::${e.coach_id}`) ?? 0,
     };

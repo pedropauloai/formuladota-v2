@@ -15,6 +15,7 @@ import {
   TIER_CONFIG,
   getTierForLevel,
   getGatedTierForLevel,
+  mmrFromRankTier,
   XP_SOURCE_LABELS,
   type Tier,
 } from "@/lib/levels";
@@ -25,11 +26,11 @@ interface TabProgressoProps {
   /** Próprio user (true) → inicializa user_levels + mostra histórico de XP
    *  (xp_events é RLS self). Perfil público (false) → read-only, sem histórico. */
   isOwn: boolean;
-  /** Identidade + MMR já resolvidos (perfil passa). Omitidos → o componente busca
-   *  (página /progresso do próprio user). */
+  /** Identidade já resolvida (perfil passa). Omitidos → o componente busca
+   *  (página /progresso do próprio user). O gate de honra usa o rank Valve real
+   *  (career.rankTier), buscado aqui — nunca o MMR de liga. */
   persona?: string;
   avatar?: string | null;
-  mmr?: number | null;
 }
 
 export async function TabProgresso({
@@ -37,7 +38,6 @@ export async function TabProgresso({
   isOwn,
   persona: personaProp,
   avatar: avatarProp,
-  mmr: mmrProp,
 }: TabProgressoProps) {
   const t = await getTranslations("perfil");
   const supabase = await createClient();
@@ -49,19 +49,31 @@ export async function TabProgresso({
       .upsert({ user_id: userId }, { onConflict: "user_id", ignoreDuplicates: true });
   }
 
-  const [{ data: userLevel }, { data: thresholds }] = await Promise.all([
-    supabase
-      .from("user_levels")
-      .select(
-        "current_level, current_xp, total_xp_earned, total_shards_earned, current_shards, updated_at"
-      )
-      .eq("user_id", userId)
-      .maybeSingle(),
-    supabase
-      .from("level_thresholds")
-      .select("level, xp_required, total_xp, shards_reward")
-      .order("level"),
-  ]);
+  const [{ data: userLevel }, { data: thresholds }, { data: careerRow }] =
+    await Promise.all([
+      supabase
+        .from("user_levels")
+        .select(
+          "current_level, current_xp, total_xp_earned, total_shards_earned, current_shards, updated_at"
+        )
+        .eq("user_id", userId)
+        .maybeSingle(),
+      supabase
+        .from("level_thresholds")
+        .select("level, xp_required, total_xp, shards_reward")
+        .order("level"),
+      supabase
+        .from("user_stats_extended")
+        .select("career")
+        .eq("user_id", userId)
+        .maybeSingle(),
+    ]);
+
+  // Gate de honra (Lendário/Místico) pela skill Valve REAL — igual ao header /me,
+  // mini-perfil e hover-card. NUNCA pelo MMR de liga (que é ~1000 pra todos).
+  const careerJson = careerRow?.career as { rankTier?: number | null } | null;
+  const careerRankTier =
+    typeof careerJson?.rankTier === "number" ? careerJson.rankTier : null;
 
   // Histórico de XP é pessoal (xp_events = RLS self) → só no próprio perfil.
   const eventsRes = isOwn
@@ -74,13 +86,12 @@ export async function TabProgresso({
     : null;
   const events = eventsRes?.data ?? [];
 
-  // Identidade + MMR: usa props quando fornecidos; senão busca (próprio user).
+  // Identidade: usa props quando fornecidos; senão busca (próprio user).
   let persona = personaProp;
   let avatar = avatarProp ?? null;
-  let mmr = mmrProp ?? null;
   if (persona === undefined) {
     const [{ data: profile }, { data: steamLink }] = await Promise.all([
-      supabase.from("profiles").select("username, avatar_url, mmr_atual").eq("id", userId).maybeSingle(),
+      supabase.from("profiles").select("username, avatar_url").eq("id", userId).maybeSingle(),
       supabase.from("steam_links").select("persona, avatar_url").eq("user_id", userId).maybeSingle(),
     ]);
     const identitySrc = {
@@ -91,14 +102,13 @@ export async function TabProgresso({
     };
     persona = displayName(identitySrc);
     avatar = displayAvatar(identitySrc);
-    mmr = profile?.mmr_atual ?? null;
   }
 
   const currentLevel = userLevel?.current_level ?? 1;
   const currentXp = userLevel?.current_xp ?? 0;
   const shards = userLevel?.current_shards ?? 0;
   // Topo do ladder tem co-requisito de SKILL: Lendário exige Divine, Místico exige Imortal.
-  const tier = getGatedTierForLevel(currentLevel, mmr);
+  const tier = getGatedTierForLevel(currentLevel, mmrFromRankTier(careerRankTier));
   const tierConfig = TIER_CONFIG[tier];
 
   const nextThreshold = thresholds?.find((t) => t.level === currentLevel + 1);

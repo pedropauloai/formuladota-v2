@@ -126,6 +126,21 @@ const DIVINE_MMR = 5000;
 const IMMORTAL_MMR = 6000;
 
 /**
+ * Converte a medalha Valve REAL (rankTier: dezena = medalha, 8 = Imortal, 7 =
+ * Divine) num MMR equivalente SÓ pro co-requisito de skill do gate de honra
+ * (getGatedTierForLevel). Imortal → 6000, Divine → 5000, abaixo → 0. null = sem
+ * rank público. É a fonte CERTA do gate: o MMR da liga começa ~1000 pra todos e
+ * NÃO reflete a skill Valve, então usá-lo rebaixaria Imortais a Ás indevidamente.
+ */
+export function mmrFromRankTier(rankTier: number | null | undefined): number | null {
+  if (rankTier == null) return null;
+  const medal = Math.floor(rankTier / 10);
+  if (medal >= 8) return IMMORTAL_MMR;
+  if (medal === 7) return DIVINE_MMR;
+  return 0;
+}
+
+/**
  * Banda HONOR com CO-REQUISITO DE SKILL no topo (decisão Pedro 2026-06-02):
  * Lendário (25) exige medalha Valve Divine+; Místico (30) exige Imortal. Bandas 0–24 = só nível.
  * Se o nível habilita Lendário/Místico mas a medalha (derivada do MMR Valve atual) não alcança,
