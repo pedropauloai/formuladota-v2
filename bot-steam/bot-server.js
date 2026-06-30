@@ -495,11 +495,15 @@ async function processarLobby(lobby) {
   }
 
   // Grava steam_lobby_id de volta (marca como "criado" pra não reprocessar).
+  // No lobby de liga o dota_match_id já vem junto no SO cache — gravamos os DOIS
+  // aqui pra a URL canônica do site (= dota_match_id) ficar disponível cedo.
   await wait(1500);
-  await supabase
-    .from("lobbies")
-    .update({ steam_lobby_id: jobAtivo.steamLobbyId || "created", bot_account_name: USERNAME })
-    .eq("id", lobby.id);
+  const updLobby = {
+    steam_lobby_id: jobAtivo.steamLobbyId || "created",
+    bot_account_name: USERNAME,
+  };
+  if (jobAtivo.matchId) updLobby.dota_match_id = jobAtivo.matchId;
+  await supabase.from("lobbies").update(updLobby).eq("id", lobby.id);
 
   console.log(
     `[BOT] ✅ Lobby pronto (steam_lobby_id=${jobAtivo.steamLobbyId || "?"}). ` +

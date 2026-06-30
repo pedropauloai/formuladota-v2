@@ -95,8 +95,10 @@ export function ReadyCheckOverlay() {
     setConfirmedLobby(lobbyId);
   }, []);
 
-  // Aguarda o bot gravar o steam_lobby_id (~segundos) e redireciona pra URL canônica
-  // /partida/[steam_lobby_id]. Timeout (~12s) → cai pro id interno (a página resolve os dois).
+  // Aguarda o bot gravar o dota_match_id (o ID real da Valve, gravado junto com o
+  // steam_lobby_id ao criar o lobby) e redireciona pra URL canônica
+  // /partida/[dota_match_id]. Janela de ~30s (tempo de carga do Dota); no timeout
+  // cai pro id interno (a página resolve dota_match_id, steam_lobby_id e UUID).
   useEffect(() => {
     if (!confirmedLobby) return;
     let alive = true;
@@ -107,7 +109,7 @@ export function ReadyCheckOverlay() {
       if (!alive) return;
       if (routeId) {
         router.push(`/partida/${routeId}`);
-      } else if (tries >= 12) {
+      } else if (tries >= 27) {
         router.push(`/partida/${confirmedLobby}`); // fallback: id interno
       } else {
         timer = setTimeout(poll, 1100);

@@ -71,15 +71,23 @@ export default async function PartidaPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  // URL canônica = steam_lobby_id (gerado pelo bot). Resolve por ele primeiro;
-  // fallback pro id interno (UUID) quando o param tem cara de UUID.
+  // URL canônica = dota_match_id (ID real da Valve, gravado pelo bot junto com o
+  // steam_lobby_id). Resolve por ele primeiro; cai pra steam_lobby_id (legado) e,
+  // se o param tem cara de UUID, pro id interno.
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
   const cols = "id, name, password, status, game_mode, tier, created_by, dota_match_id";
   let { data: lobby } = await supabase
     .from("lobbies")
     .select(cols)
-    .eq("steam_lobby_id", id)
+    .eq("dota_match_id", id)
     .maybeSingle();
+  if (!lobby) {
+    ({ data: lobby } = await supabase
+      .from("lobbies")
+      .select(cols)
+      .eq("steam_lobby_id", id)
+      .maybeSingle());
+  }
   if (!lobby && isUuid) {
     ({ data: lobby } = await supabase
       .from("lobbies")

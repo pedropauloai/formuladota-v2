@@ -97,10 +97,11 @@ export async function declineMatchProposal(id: string): Promise<void> {
 }
 
 /**
- * ID da rota da partida: o bot Steam grava steam_lobby_id alguns segundos após o
- * lobby ser criado. A URL canônica é /partida/[steam_lobby_id]; enquanto o bot não
- * gravou, routeId vem null (o overlay continua mostrando "criando lobby"). Após o
- * timeout o caller cai pro id interno (a página resolve os dois).
+ * ID da rota da partida: a URL canônica é /partida/[dota_match_id] — o ID real da
+ * Valve, que no lobby de liga o bot grava junto com o steam_lobby_id, poucos
+ * segundos após criar o lobby. Enquanto o bot não gravou, routeId vem null (o
+ * overlay continua mostrando "criando lobby"). Após o timeout o caller cai pro id
+ * interno (a página resolve dota_match_id, steam_lobby_id legado e UUID).
  */
 export async function getMatchRouteId(
   lobbyId: string
@@ -108,8 +109,8 @@ export async function getMatchRouteId(
   const supabase = await createClient();
   const { data } = await supabase
     .from("lobbies")
-    .select("steam_lobby_id")
+    .select("dota_match_id")
     .eq("id", lobbyId)
     .maybeSingle();
-  return { routeId: data?.steam_lobby_id ?? null };
+  return { routeId: data?.dota_match_id ?? null };
 }
