@@ -40,7 +40,6 @@ import {
   type WidgetId,
 } from "@/lib/queries/dashboard-layout";
 import type { HeroData } from "@/lib/queries/heroes";
-import type { CareerTotals } from "@/lib/dota/career";
 
 // SSR off — react-grid-layout precisa medir DOM antes de renderizar
 // Usamos a API legacy que mantém isDraggable/isResizable como props top-level.
@@ -61,9 +60,7 @@ interface WidgetData {
   derrotas: number | null;
   mmr: number | null;
   favoriteHeroes: HeroData[];
-  /** Acumulados de carreira (OpenDota) — células extras no widget Stats. */
-  careerTotals: CareerTotals | null;
-  /** Média recente (STRATZ/OpenDota) — linha extra no widget Stats. */
+  /** Média recente (STRATZ/OpenDota) — KDA/GPM/XPM no hexágono. */
   externalStats: {
     source: string;
     avgKDA: number;
@@ -177,7 +174,6 @@ export function DashboardGrid({ initialLayout, editing, data }: Props) {
           vitorias={data.vitorias}
           derrotas={data.derrotas}
           mmr={data.mmr}
-          careerTotals={data.careerTotals}
           externalStats={data.externalStats}
           editing={editing}
         />

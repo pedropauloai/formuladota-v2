@@ -30,7 +30,7 @@
 
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
-import { Pencil, X } from "lucide-react";
+import { Pencil, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MedalPair } from "@/components/ui/medal-pair";
 import { ProfileTabs, type ProfileTab } from "./profile-tabs";
@@ -125,27 +125,15 @@ export function ProfilePage({
 
       {activeTab === "perfil" && (
         <div className="relative flex flex-1 min-h-0 flex-col overflow-hidden p-6">
-          {/* Controles de edição — TOPO direito (Pedro 2026-06-30: de volta ao topo). */}
-          {isOwn && (
-            <div className="absolute right-2 top-2 z-10 flex items-center gap-2">
-              {editing ? (
-                <>
-                  <ResetLayoutButton />
-                  <Link href="/me">
-                    <Button variant="secondary" size="sm">
-                      <X size={12} aria-hidden="true" />
-                      {t("exitEditing")}
-                    </Button>
-                  </Link>
-                </>
-              ) : (
-                <Link href="/me?edit=1">
-                  <Button variant="cinematic" size="sm">
-                    <Pencil size={12} aria-hidden="true" />
-                    {t("editProfile")}
-                  </Button>
-                </Link>
-              )}
+          {/* Botão EDITAR — topo direito (só fora de edição). O salvar fica no RODAPÉ. */}
+          {isOwn && !editing && (
+            <div className="absolute right-2 top-2 z-10">
+              <Link href="/me?edit=1">
+                <Button variant="cinematic" size="sm">
+                  <Pencil size={12} aria-hidden="true" />
+                  {t("editProfile")}
+                </Button>
+              </Link>
             </div>
           )}
 
@@ -209,7 +197,7 @@ export function ProfilePage({
               <MedalPair
                 dotaRank={dotaRank}
                 honorRank={honorRank}
-                size="lg"
+                size="xl"
                 className="shrink-0"
               />
 
@@ -239,11 +227,23 @@ export function ProfilePage({
                 derrotas: profile.derrotas,
                 mmr: profile.mmr,
                 favoriteHeroes: profile.favoriteHeroes,
-                careerTotals: career?.totals ?? null,
                 externalStats: externalStats ?? null,
               }}
             />
           </div>
+
+          {/* ─── RODAPÉ de edição — salvar fica embaixo (Pedro 2026-06-30). ─── */}
+          {isOwn && editing && (
+            <div className="mt-3 flex shrink-0 items-center justify-end gap-2 border-t border-border-subtle pt-3">
+              <ResetLayoutButton />
+              <Link href="/me">
+                <Button variant="cinematic" size="sm">
+                  <Check size={14} aria-hidden="true" />
+                  Salvar e sair
+                </Button>
+              </Link>
+            </div>
+          )}
         </div>
       )}
 

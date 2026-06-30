@@ -1,9 +1,9 @@
 // WidgetHeroes — até 3 heróis favoritos do user. Editável inline em edit mode.
 
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { WidgetShell } from "./widget-shell";
 import { HeroesEditor } from "../inline-edit-controls";
+import { HeroVideo } from "@/components/dota/hero-video";
 import type { HeroData } from "@/lib/queries/heroes";
 
 interface Props {
@@ -18,18 +18,15 @@ export function WidgetHeroes({ favoriteHeroes, editing }: Props) {
       {editing ? (
         <HeroesEditor initialFavorites={favoriteHeroes} />
       ) : favoriteHeroes.length > 0 ? (
-        // Retratos VERTICAIS preenchendo a altura do card (sem scroll interno).
-        <div className="grid h-full grid-cols-3 gap-3">
+        // Vídeo VIVO do herói (webm Valve) preenchendo a altura — sem scroll interno.
+        <div className="grid h-full grid-cols-3 grid-rows-1 gap-3">
           {favoriteHeroes.slice(0, 3).map((hero) => (
             <div key={hero.slug} className="flex min-h-0 flex-col gap-1.5">
-              <div className="relative min-h-0 flex-1 overflow-hidden rounded-sm border border-border-subtle">
-                <Image
-                  src={hero.portrait_url}
-                  alt={hero.name_pt}
-                  fill
-                  sizes="200px"
-                  className="object-cover object-top"
-                  unoptimized
+              <div className="min-h-0 flex-1">
+                <HeroVideo
+                  heroSlug={hero.slug}
+                  heroName={hero.name_pt}
+                  className="h-full w-full rounded-sm"
                 />
               </div>
               <p className="shrink-0 truncate text-center font-display text-xs font-semibold text-text-muted">
