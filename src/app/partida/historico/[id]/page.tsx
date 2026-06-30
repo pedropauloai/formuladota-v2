@@ -38,11 +38,42 @@ export default async function HistoricoPartidaPage({
   const { id } = await params;
   const supabase = await createClient();
 
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+
+  // match_details é pública e tem dota_match_id → resolve o ID real da Valve
+  // (URL canônica) pro match_id interno (UUID). matches tem RLS restrita, então
+  // NÃO dá pra resolver por lá pro público. Cast: tabela nova (migration 069).
+  const mdTable = supabase.from("match_details" as never) as unknown as {
+    select: (q: string) => {
+      eq: (c: string, v: string) => {
+        maybeSingle: () => PromiseLike<{
+          data: {
+            match_id?: string;
+            teamfights?: unknown;
+            objectives?: unknown;
+            picks_bans?: unknown;
+          } | null;
+        }>;
+      };
+    };
+  };
+
+  // URL canônica = dota_match_id (ex 8873698944). Aceita UUID interno como fallback.
+  let matchUuid = id;
+  if (!isUuid) {
+    const { data: resolved } = await mdTable
+      .select("match_id")
+      .eq("dota_match_id", id)
+      .maybeSingle();
+    if (!resolved?.match_id) notFound();
+    matchUuid = resolved.match_id;
+  }
+
   // Stats de TODOS os jogadores (público) — fonte de todas as abas.
   const { data: playersData } = await supabase
     .from("match_players")
     .select(PLAYER_COLS)
-    .eq("match_id", id)
+    .eq("match_id", matchUuid)
     .order("team", { ascending: true })
     .order("player_slot", { ascending: true });
 
@@ -53,7 +84,7 @@ export default async function HistoricoPartidaPage({
   const { data: matchMeta } = await supabase
     .from("matches")
     .select("dota_match_id, duracao_min, radiant_win, radiant_score, dire_score, enriched_at")
-    .eq("id", id)
+    .eq("id", matchUuid)
     .maybeSingle();
 
   // Identidade dos jogadores logados (steam_links → fallback profiles).
@@ -80,19 +111,9 @@ export default async function HistoricoPartidaPage({
   const { players, advantage, wards, series } = assembleMatch(rows, identityById);
 
   // Dados de nível-partida (público) — abas Teamfights/Objetivos/Draft.
-  // match_details é tabela nova (migration 069), ainda fora dos tipos gerados → cast.
-  const detailsTable = supabase.from("match_details" as never) as unknown as {
-    select: (q: string) => {
-      eq: (c: string, v: string) => {
-        maybeSingle: () => PromiseLike<{
-          data: { teamfights: unknown; objectives: unknown; picks_bans: unknown } | null;
-        }>;
-      };
-    };
-  };
-  const { data: details } = await detailsTable
+  const { data: details } = await mdTable
     .select("teamfights, objectives, picks_bans")
-    .eq("match_id", id)
+    .eq("match_id", matchUuid)
     .maybeSingle();
   const objectives = parseObjectives(details?.objectives);
   const teamfights = parseTeamfights(details?.teamfights);

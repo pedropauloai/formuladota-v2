@@ -47,6 +47,23 @@ export async function TabHistorico({ userId }: { userId: string }) {
     );
   }
 
+  // URL canônica do placar = dota_match_id (ID real da Valve). match_details é
+  // pública e mapeia match_id (UUID) → dota_match_id. Cast: tabela nova (069).
+  const matchIds = [...new Set(rows.map((m) => m.match_id))];
+  const mdTable = supabase.from("match_details" as never) as unknown as {
+    select: (q: string) => {
+      in: (
+        c: string,
+        v: string[]
+      ) => PromiseLike<{ data: { match_id: string; dota_match_id: string | null }[] | null }>;
+    };
+  };
+  const { data: mds } = await mdTable.select("match_id, dota_match_id").in("match_id", matchIds);
+  const dotaByMatch = new Map<string, string>();
+  for (const d of mds ?? []) {
+    if (d.dota_match_id) dotaByMatch.set(d.match_id, d.dota_match_id);
+  }
+
   return (
     <div className="pt-6">
       <Card variant="flat" className="overflow-hidden p-0">
@@ -57,7 +74,7 @@ export async function TabHistorico({ userId }: { userId: string }) {
             return (
               <li key={`${m.match_id}-${i}`}>
                 <Link
-                  href={`/partida/historico/${m.match_id}`}
+                  href={`/partida/historico/${dotaByMatch.get(m.match_id) ?? m.match_id}`}
                   className="flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-bg-surface/40"
                 >
                 {/* Resultado (faixa lateral). */}
