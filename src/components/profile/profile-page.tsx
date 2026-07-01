@@ -193,27 +193,32 @@ export function ProfilePage({
                   )}
                   {/* Sincronizar identidade com a Steam AGORA (fura cache 1h) — só no próprio. */}
                   {isOwn && profile.steamId64 && <SyncSteamButton />}
+                  {/* Medalhas SKILL + HONOR COMPACTAS, coladas ao nome — fiel ao
+                      cliente Dota 2 (a patente vive ao lado da identidade), não como
+                      medalhões grandes flutuando (Pedro 2026-07-01). Hover = showcase. */}
+                  <MedalPair
+                    dotaRank={dotaRank}
+                    honorRank={honorRank}
+                    size="sm"
+                    className="ml-1 shrink-0"
+                  />
                 </div>
                 {/* Redes sociais sob o nick — refletem a conta do LOGIN, então só
                     aparecem no próprio perfil (evita mostrar o social do viewer). */}
                 {isOwn && <SocialIconsRow />}
               </div>
 
-              {/* ── Cluster direito: resumo de carreira (winrate + TOP) + par de
-                  medalhas SKILL+HONOR. Os heróis saíram do header (viram a seção
-                  "destaque" abaixo) → topo respira e as medalhas ganham ar. M12:
-                  o par de medalhas fica SEMPRE visível (Pedro 2026-07-01). ── */}
-              <div className="flex shrink-0 items-center gap-4 sm:gap-5">
-                {career ? (
-                  // showMedal=false: a medalha Valve já está no par canônico ao lado.
-                  <div className="hidden md:block">
-                    <CareerIdentityInline career={career} showMedal={false} />
-                  </div>
-                ) : (
-                  <CareerLinkSteamCta className="hidden md:inline-flex" />
-                )}
-                <MedalPair dotaRank={dotaRank} honorRank={honorRank} size="lg" />
-              </div>
+              {/* ── Cluster direito: só o resumo de carreira (winrate + TOP). As
+                  medalhas agora ficam coladas ao nome (padrão Dota 2), liberando a
+                  direita e mantendo o topo harmônico (Pedro 2026-07-01). ── */}
+              {career ? (
+                <div className="hidden shrink-0 md:block">
+                  {/* showMedal=false: a patente Valve já está ao lado do nome. */}
+                  <CareerIdentityInline career={career} showMedal={false} />
+                </div>
+              ) : (
+                <CareerLinkSteamCta className="hidden shrink-0 md:inline-flex" />
+              )}
             </div>
           </header>
 
