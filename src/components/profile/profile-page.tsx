@@ -51,6 +51,7 @@ import {
   CareerIdentityInline,
   CareerLinkSteamCta,
 } from "./career-stats";
+import { getHeroById, type HeroData } from "@/lib/queries/heroes";
 import type { ProfileForMe } from "@/lib/queries/profile";
 import type { CareerStats } from "@/lib/dota/career";
 import type { DotaRank } from "@/components/ui/dota-rank-medal";
@@ -103,6 +104,25 @@ export function ProfilePage({
   // funcionam pra qualquer user (Progresso/Conquistas lidos por userId; o
   // histórico de XP e o coaching, que são pessoais, ficam ocultos no público).
   const basePath = isOwn ? "/me" : `/perfil/u/${ownerUserId}`;
+
+  // Heróis DESTAQUE (híbrido, Pedro 2026-07-01): os que o user FIXOU primeiro, e o
+  // resto preenchido automaticamente pelos melhores por estatística (career.topHeroes).
+  // Assim a seção nunca fica vazia (perfil novo já mostra os melhores) e ainda preserva
+  // a expressão (o user fixa/troca no editor). pinned=true → "fixado"; false → "auto".
+  const pinnedHeroes = profile.favoriteHeroes;
+  const pinnedSlugs = new Set(pinnedHeroes.map((h) => h.slug));
+  const autoHeroes: HeroData[] = [];
+  for (const th of career?.topHeroes ?? []) {
+    if (pinnedHeroes.length + autoHeroes.length >= 3) break;
+    const h = getHeroById(th.heroId);
+    if (h && !pinnedSlugs.has(h.slug) && !autoHeroes.some((a) => a.slug === h.slug)) {
+      autoHeroes.push(h);
+    }
+  }
+  const featuredHeroes: { hero: HeroData; pinned: boolean }[] = [
+    ...pinnedHeroes.map((hero) => ({ hero, pinned: true })),
+    ...autoHeroes.map((hero) => ({ hero, pinned: false })),
+  ].slice(0, 3);
 
   return (
     <div className="relative flex h-full flex-col overflow-hidden">
@@ -232,6 +252,7 @@ export function ProfilePage({
                 general,
                 fdota,
                 favoriteHeroes: profile.favoriteHeroes,
+                featuredHeroes,
               }}
             />
           </div>
