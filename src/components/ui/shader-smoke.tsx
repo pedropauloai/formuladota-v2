@@ -11,7 +11,7 @@
 // pointer-events-none). Respeita prefers-reduced-motion e pausa em aba oculta.
 // Fallback gracioso: sem WebGL → canvas transparente (nada quebra).
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type CSSProperties } from "react";
 import { useReducedMotion } from "@/lib/particles/hooks";
 import { cn } from "@/lib/utils";
 
@@ -52,14 +52,12 @@ void main(){
   float f = fbm(p + 2.0*r);
   float d = clamp(f, 0.0, 1.0);
   d = pow(d, 1.5);
-  // denso no canto inferior DIREITO, esvaindo LONGE pra esquerda e pra cima.
-  float mx = smoothstep(-1.1, 1.15, uv.x);         // denso à direita, chega longe à esquerda
-  float my = smoothstep(1.35, -0.15, uv.y);        // denso embaixo, sobe mais alto
-  // edgeFade: leva o alpha a ZERO de forma SUAVE antes das bordas do canvas, pra não
-  // aparecer "linha de corte" — a fumaça precisa parecer PNG/alpha. Pedro 2026-07-01.
-  float edgeFade = smoothstep(0.0, 0.18, uv.x)     // some suave na borda ESQUERDA
-                 * smoothstep(1.0, 0.78, uv.y);    // some suave na borda TOPO
-  float mask = mx * my * edgeFade;
+  // Denso no canto inferior DIREITO, com um FADE LONGO que chega a zero na própria
+  // borda do canvas (esquerda e topo) — sem encurtar; a fumaça pode invadir até o meio
+  // da tela e some suave (parece PNG/alpha), sem "linha de corte". Pedro 2026-07-01.
+  float mx = smoothstep(0.03, 0.92, uv.x);         // cheio à direita, esvai a 0 na esquerda
+  float my = smoothstep(0.99, -0.10, uv.y);        // cheio embaixo, esvai a 0 no topo
+  float mask = mx * my;
   d *= mask;
   vec3 col = mix(u_mid * 0.12, u_mid, smoothstep(0.05, 0.5, d));
   col = mix(col, u_hot, smoothstep(0.4, 0.9, d));
@@ -86,9 +84,10 @@ void main(){
     emberCore += smoothstep(0.0042, 0.0, dd) * life * flick;   // núcleo minúsculo
     emberHalo += smoothstep(0.011, 0.0, dd) * life;            // halo delicado
   }
-  // faíscas também somem suave nas bordas (sem corte)
-  emberCore *= edgeFade;
-  emberHalo *= edgeFade;
+  // faíscas somem suave nas bordas esquerda/topo (sem corte)
+  float sparkFade = smoothstep(0.0, 0.1, uv.x) * smoothstep(1.0, 0.86, uv.y);
+  emberCore *= sparkFade;
+  emberHalo *= sparkFade;
   col += (u_hot + vec3(0.55)) * emberCore * 2.2;    // núcleo quase BRANCO (brilhante)
   col += u_hot * emberHalo * 0.8;                   // halo na cor quente
   alpha += emberCore * 1.7 + emberHalo * 0.45;
@@ -115,10 +114,13 @@ interface Props {
   intensity?: number;
   /** Multiplicador de velocidade. */
   speed?: number;
+  /** Posição/tamanho por inline style (imune ao JIT do Tailwind pra valores grandes). */
+  style?: CSSProperties;
 }
 
 export function ShaderSmoke({
   className,
+  style,
   mid = "#00C466",
   hot = "#e0b64e",
   intensity = 0.9,
@@ -271,6 +273,7 @@ export function ShaderSmoke({
         "pointer-events-none absolute z-0 overflow-hidden",
         className ?? "-inset-x-8 -top-28 bottom-0"
       )}
+      style={style}
     >
       <canvas ref={canvasRef} className="block h-full w-full" />
     </div>

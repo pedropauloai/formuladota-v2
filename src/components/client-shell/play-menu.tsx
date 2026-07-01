@@ -410,10 +410,10 @@ export function PlayMenu({
             hot={smokeTheme?.hot ?? "#e0b64e"}
             intensity={1.3}
             speed={1.8}
-            // ALTURA FIXA ancorada no canto inferior direito (independente da altura do
-            // card) — assim NÃO redimensiona/reinicia ao expandir/retrair o painel. Larga
-            // (transborda muito pra esquerda) e emana da base direita. Pedro 2026-07-01.
-            className="-left-56 right-0 -bottom-8 h-[640px]"
+            // Tamanho FIXO (não muda ao expandir/retrair) via inline style — invade até
+            // ~meio da tela pra esquerda, emanando da base direita. Pedro 2026-07-01.
+            className=""
+            style={{ left: "-780px", right: "0", bottom: "-2rem", height: "680px" }}
           />
           <div className="relative z-[1] w-full overflow-hidden rounded-md border-2 border-play-primary bg-bg-deep/70 backdrop-blur-md shadow-lg shadow-[var(--color-play-primary-glow)]">
           {searchPanelOpen && (
