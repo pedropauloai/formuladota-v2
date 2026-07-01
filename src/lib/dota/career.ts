@@ -125,48 +125,39 @@ interface StratzCareerResponse {
     player?: {
       matchCount?: number | null;
       winCount?: number | null;
-      steamAccount?: {
-        seasonRank?: number | null;
-        seasonLeaderboardRank?: number | null;
-        lastMatchDateTime?: number | string | null;
-      } | null;
     } | null;
   };
 }
 
+// Query de carreira: SÓ matchCount/winCount — a MESMA forma que o hexágono de stats
+// (src/lib/stratz.ts) usa com sucesso comprovado. O bloco steamAccount{seasonRank
+// seasonLeaderboardRank ...} tinha um campo inválido que fazia a query inteira falhar
+// → data.player=null → caía pro OpenDota /wl (752/750, sem Turbo e ainda incompleto).
+// O rank/leaderboard vem do OpenDota no assemble (já correto: medalha Imortal + TOP).
 const STRATZ_CAREER_QUERY = `query CareerPlayer($id: Long!) {
   player(steamAccountId: $id) {
     matchCount
     winCount
-    steamAccount {
-      seasonRank
-      seasonLeaderboardRank
-      lastMatchDateTime
-    }
   }
 }`;
 
-// Query MÍNIMA de fallback — só o que é comprovadamente válido no schema STRATZ
-// (matchCount/winCount/seasonRank; a mesma base que o hexágono de stats já usa com
-// sucesso). Se a query rica acima falhar por um campo extra inválido (ex.: a API
-// retorna data.player=null e caíamos pro OpenDota — bug que dava W/L sem Turbo,
-// 752/750 em vez de 2150/1091), esta recupera o W/L real do STRATZ. lastMatchAt
-// vira null nesse caminho (não-crítico).
-const STRATZ_CAREER_QUERY_MIN = `query CareerPlayerMin($id: Long!) {
+// Turbo (gameMode 23) — pra descontar do total e casar com o nº do cliente Dota do
+// jogador (Pedro: 2150 total − 76 turbo = 2074). Query SEPARADA e resiliente: se o
+// filtro não for aceito pelo schema, retorna null e mostramos o total (nunca pior
+// que o fix principal). GAME_MODE_TURBO no STRATZ = 23.
+const STRATZ_TURBO_QUERY = `query TurboCount($id: Long!) {
   player(steamAccountId: $id) {
-    matchCount
-    winCount
-    steamAccount {
-      seasonRank
-      seasonLeaderboardRank
-    }
+    matchCount(request: { gameModeIds: [23] })
+    winCount(request: { gameModeIds: [23] })
   }
 }`;
 
 /**
- * Busca matchCount/winCount + seasonRank no STRATZ.
- * Melhor-esforço: chave ausente, HTTP != 200 ou shape inesperado → null
+ * W/L de carreira via STRATZ (autoritativo, mais completo que o /wl da OpenDota).
+ * Total via query provada; desconta Turbo pra casar com o nº do cliente Dota.
+ * Melhor-esforço: chave ausente / HTTP != 200 / shape inesperado → null
  * (o caller cai pros valores OpenDota — degradação suave, sync nunca quebra).
+ * rankTier/leaderboard ficam null aqui de propósito → vêm do OpenDota no assemble.
  */
 async function fetchStratzCareer(
   accountId32: number
@@ -174,22 +165,36 @@ async function fetchStratzCareer(
   const apiKey = serverEnv.STRATZ_API_KEY;
   if (!apiKey) return null;
 
-  // Tenta a query rica (com lastMatchDateTime); se falhar/retornar null, cai pra
-  // mínima — assim o W/L real do STRATZ (com Turbo) é preservado mesmo que um campo
-  // extra da rica seja inválido no schema. Só cai pro OpenDota se AMBAS falharem.
-  const rich = await runStratzCareer(apiKey, accountId32, STRATZ_CAREER_QUERY);
-  if (rich) return rich;
-  const min = await runStratzCareer(apiKey, accountId32, STRATZ_CAREER_QUERY_MIN);
-  if (min) return min;
-  console.warn("[stratz] career: rich e min falharam — fallback OpenDota");
-  return null;
+  const total = await runStratzCount(apiKey, accountId32, STRATZ_CAREER_QUERY);
+  if (!total) {
+    console.warn("[stratz] career (total) falhou — fallback OpenDota");
+    return null;
+  }
+
+  // Desconta Turbo (opcional/resiliente): só subtrai se o resultado for SANO — turbo
+  // tem que ser uma fração do total (0 < turbo < total). Se o filtro for ignorado pelo
+  // schema, a query volta o total inteiro (turbo==total) → guarda impede o "0 partidas";
+  // se falhar de vez, turbo=null → mostra o total. Nunca zera nem regride.
+  const turbo = await runStratzCount(apiKey, accountId32, STRATZ_TURBO_QUERY);
+  const turboOk = turbo && turbo.match > 0 && turbo.match < total.match;
+  const matchCount = turboOk ? total.match - turbo.match : total.match;
+  const winCount = turboOk ? Math.max(0, total.win - turbo.win) : total.win;
+
+  return {
+    matchCount,
+    winCount,
+    rankTier: null, // vem do OpenDota no assemble (seasonRank do STRATZ quebrava a query)
+    leaderboardRank: null,
+    lastMatchAt: null,
+  };
 }
 
-async function runStratzCareer(
+/** Roda uma query STRATZ que retorna player.matchCount/winCount. null em qualquer falha. */
+async function runStratzCount(
   apiKey: string,
   accountId32: number,
   query: string
-): Promise<StratzCareerSlice | null> {
+): Promise<{ match: number; win: number } | null> {
   try {
     const res = await fetch("https://api.stratz.com/graphql", {
       method: "POST",
@@ -204,34 +209,17 @@ async function runStratzCareer(
       cache: "no-store",
     });
     if (!res.ok) {
-      console.warn(`[stratz] career retornou ${res.status}`);
+      console.warn(`[stratz] count retornou ${res.status}`);
       return null;
     }
-
     const json = (await res.json()) as StratzCareerResponse;
     const player = json.data?.player;
-    if (
-      !player ||
-      typeof player.matchCount !== "number" ||
-      typeof player.winCount !== "number"
-    ) {
+    if (!player || typeof player.matchCount !== "number" || typeof player.winCount !== "number") {
       return null;
     }
-
-    const account = player.steamAccount;
-    // lastMatchDateTime vem em unix SEGUNDOS (Long — pode chegar como string)
-    const lastMatchUnix = Number(account?.lastMatchDateTime ?? NaN);
-    return {
-      matchCount: player.matchCount,
-      winCount: player.winCount,
-      rankTier: account?.seasonRank ?? null,
-      leaderboardRank: account?.seasonLeaderboardRank ?? null,
-      lastMatchAt: Number.isFinite(lastMatchUnix)
-        ? new Date(lastMatchUnix * 1000).toISOString()
-        : null,
-    };
+    return { match: player.matchCount, win: player.winCount };
   } catch (err) {
-    console.warn("[stratz] career fetch falhou:", (err as Error).message);
+    console.warn("[stratz] count fetch falhou:", (err as Error).message);
     return null;
   }
 }
