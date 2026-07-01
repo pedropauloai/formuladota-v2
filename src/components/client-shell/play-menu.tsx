@@ -340,9 +340,19 @@ export function PlayMenu({
 
   function handleCancelSearch() {
     startTransition(async () => {
-      // Em grupo, cancelar tira o grupo inteiro da fila.
-      if (inParty) await leavePartyQueue();
-      else await leaveQueue();
+      // Cancela a fila de forma robusta (fix do bug da "busca presa"): chama AS DUAS
+      // — leaveQueue (minha linha) e leavePartyQueue (que no SQL agora cancela minha
+      // entry solo OU a party toda). Cobre solo, grupo, e um inParty desatualizado.
+      await leaveQueue();
+      await leavePartyQueue();
+      // Rede de segurança: só encerra a busca na UI se o servidor CONFIRMAR que saí.
+      // Sem isso, um cancelamento que errou o alvo escondia o painel e a entry
+      // sobrevivente ressuscitava a busca no próximo mount.
+      const st = await getQueueStatus();
+      if (st.status === "waiting") {
+        setError(t("cancelFailed"));
+        return;
+      }
       setSearching(false);
       setSearchPanelOpen(false);
     });

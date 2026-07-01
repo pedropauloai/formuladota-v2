@@ -191,6 +191,7 @@
     "searchMatch": "Buscar Partida",
     "searching": "Buscando",
     "cancelSearch": "Cancelar busca",
+    "cancelFailed": "Não foi possível sair da fila. Tente de novo.",
     "roleSafelane": "Segura (Carry)",
     "roleMidlane": "Meio (Mid)",
     "roleOfflane": "Offlane",
