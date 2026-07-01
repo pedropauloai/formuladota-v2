@@ -49,15 +49,15 @@ void main(){
   vec2 r = vec2(fbm(p + 2.0*q + vec2(1.7, 9.2) + t), fbm(p + 2.0*q + vec2(8.3, 2.8) - t));
   float f = fbm(p + 2.0*r);
   float d = clamp(f, 0.0, 1.0);
-  d = pow(d, 1.7);
+  d = pow(d, 1.4);                                 // mais denso (grau a mais)
   // máscara: denso embaixo, some no topo + bordas
-  float mask = smoothstep(1.0, 0.1, uv.y);
-  mask *= smoothstep(0.0, 0.22, uv.x) * smoothstep(1.0, 0.78, uv.x);
+  float mask = smoothstep(1.05, 0.08, uv.y);
+  mask *= smoothstep(0.0, 0.2, uv.x) * smoothstep(1.0, 0.8, uv.x);
   d *= mask;
   // cor: escuro -> mid (verde) -> hot (dourado) nas partes densas + glow
-  vec3 col = mix(u_mid * 0.12, u_mid, smoothstep(0.08, 0.55, d));
-  col = mix(col, u_hot, smoothstep(0.5, 0.92, d));
-  col += u_hot * pow(d, 3.0) * 0.7;                // glow (fake bloom)
+  vec3 col = mix(u_mid * 0.14, u_mid, smoothstep(0.06, 0.5, d));
+  col = mix(col, u_hot, smoothstep(0.45, 0.9, d));
+  col += u_hot * pow(d, 2.6) * 0.95;               // glow (fake bloom) mais forte
   float alpha = clamp(d * u_intensity, 0.0, 1.0);
   gl_FragColor = vec4(col, alpha);
 }
