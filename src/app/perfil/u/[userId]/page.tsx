@@ -6,6 +6,7 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getEquippedForUser } from "@/lib/queries/cosmetics";
 import { ClientShell } from "@/components/client-shell/shell";
 import { ProfilePage } from "@/components/profile/profile-page";
 import { VALID_TABS, type ProfileTab } from "@/components/profile/profile-tabs";
@@ -116,7 +117,9 @@ export default async function PublicProfilePage(props: PageProps) {
         avgHeroDamage: extData.avgHeroDamage,
       }
     : null;
-  const centerHero = profile.heroPortraitData?.portrait_url ?? undefined;
+  // Fundo = tema equipado (slot profile_theme); default limpo (sem herói automático).
+  const equippedForBg = await getEquippedForUser(supabase, profile.userId);
+  const centerHero = equippedForBg.profileTheme ?? undefined;
 
   return (
     <ClientShell currentRoute={`/perfil/u/${userId}`} immersive centerHero={centerHero}>

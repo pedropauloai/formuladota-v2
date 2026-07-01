@@ -17,6 +17,7 @@ import {
   asSmokeAsset,
   asFrameAsset,
   asBadgeAsset,
+  profileThemeCss,
 } from "@/lib/cosmetics";
 import type { CollectionItem } from "@/lib/queries/cosmetics";
 import { cn } from "@/lib/utils";
@@ -69,6 +70,19 @@ function Preview({ item, level }: { item: CollectionItem; level: number }) {
       <span className="flex size-11 items-center justify-center rounded-sm border border-brand-primary/40 bg-bg-deep text-brand-primary">
         <BadgeIcon name={b?.icon} />
       </span>
+    );
+  }
+  if (item.slot === "profile_theme") {
+    // Preview do fundo (imagem ou gradiente CSS) numa miniatura 16:9.
+    const bg = profileThemeCss(item.assetRef);
+    return (
+      <div
+        className="h-16 w-full overflow-hidden rounded-sm border border-border-subtle bg-bg-deep"
+        style={
+          bg ? { backgroundImage: bg, backgroundSize: "cover", backgroundPosition: "center" } : undefined
+        }
+        aria-hidden="true"
+      />
     );
   }
   return null;

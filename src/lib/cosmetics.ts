@@ -26,6 +26,18 @@ export type CosmeticSource =
   | "comunidade"
   | "voto";
 
+// Fundo do perfil (slot profile_theme) → valor CSS de `background-image`. Dois formatos:
+//   { kind: "image", image: "/dota/backgrounds/x.jpg" } → url("...")
+//   { kind: "css",   background: "<gradientes>" }        → o próprio valor CSS
+// (fallback: image "solto" pra compat). null = fundo premium limpo (default).
+export function profileThemeCss(
+  ref: Record<string, unknown>
+): string | null {
+  if (ref.kind === "css" && typeof ref.background === "string") return ref.background;
+  if (typeof ref.image === "string") return `url("${ref.image}")`;
+  return null;
+}
+
 // asset_ref (config que o front usa pra renderizar) — shapes por slot.
 export type RingAsset = { kind: "tier"; tier: Tier } | { kind: "none" };
 export type SmokeAsset = { mid: string; hot: string };

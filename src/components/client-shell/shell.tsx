@@ -214,7 +214,7 @@ export async function ClientShell({
           <div
             className="pointer-events-none fixed inset-0 z-0"
             style={{
-              backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.2) 30%, rgba(0,0,0,0.4) 70%, rgba(0,0,0,0.85) 100%), url(${centerHero})`,
+              backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.2) 30%, rgba(0,0,0,0.4) 70%, rgba(0,0,0,0.85) 100%), ${centerHero}`,
               backgroundSize: "cover",
               backgroundPosition: "center",
             }}
@@ -365,7 +365,7 @@ export async function ClientShell({
             <div
               className="pointer-events-none absolute inset-0 z-[var(--z-content)]"
               style={{
-                backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 30%, rgba(0,0,0,0.2) 70%, rgba(0,0,0,0.85) 100%), url(${centerHero})`,
+                backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 30%, rgba(0,0,0,0.2) 70%, rgba(0,0,0,0.85) 100%), ${centerHero}`,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
               }}

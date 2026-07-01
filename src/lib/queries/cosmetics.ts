@@ -8,6 +8,7 @@ import {
   asSmokeAsset,
   asFrameAsset,
   asBadgeAsset,
+  profileThemeCss,
   meetsRequirement,
   type Cosmetic,
   type CosmeticSlot,
@@ -97,8 +98,7 @@ export async function getEquippedForUser(
     else if (c.slot === "smoke") out.smoke = asSmokeAsset(ref);
     else if (c.slot === "frame") out.frame = asFrameAsset(ref);
     else if (c.slot === "badge") out.badge = asBadgeAsset(ref);
-    else if (c.slot === "profile_theme")
-      out.profileTheme = typeof ref.image === "string" ? ref.image : null;
+    else if (c.slot === "profile_theme") out.profileTheme = profileThemeCss(ref);
   }
   return out;
 }
