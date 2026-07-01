@@ -368,6 +368,19 @@ export function PlayMenu({
     });
   }
 
+  // Toggle de função DURANTE a busca: marca OU desmarca mantendo as demais (mesma
+  // simetria do menu). Nunca deixa a fila sem nenhuma função (mínimo 1).
+  function toggleQueueRole(r: QueueRole) {
+    const next = new Set(roles);
+    if (next.has(r)) {
+      if (next.size <= 1) return; // sempre ao menos 1 função na fila
+      next.delete(r);
+    } else {
+      next.add(r);
+    }
+    applyQueueRoles(Array.from(next));
+  }
+
   function openLista() {
     if (isVisitor) {
       void signInWithDiscord();
@@ -431,7 +444,7 @@ export function PlayMenu({
             <div className="border-b border-border-subtle p-2.5 animate-in slide-in-from-bottom-2 fade-in duration-150">
               <QueueSearchersPanel
                 bare
-                onPickRole={(r) => applyQueueRoles([r])}
+                onToggleRole={toggleQueueRole}
                 onPickAll={() => applyQueueRoles(ROLES.map((r) => r.id))}
                 myRoles={Array.from(roles)}
               />
