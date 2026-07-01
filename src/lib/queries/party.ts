@@ -44,6 +44,39 @@ export interface PartyInviteView {
   inviterAvatarUrl: string | null;
 }
 
+export interface PartyInviteMemberPreview {
+  userId: string;
+  name: string;
+  avatar: string | null;
+}
+
+/** Convite + preview do grupo (quem chamou + quem já está) pro popup central. */
+export interface PartyInviteDetailed {
+  id: string;
+  partyId: string;
+  inviterName: string;
+  inviterAvatar: string | null;
+  members: PartyInviteMemberPreview[];
+}
+
+type PartyInviteDetailedRow =
+  Database["public"]["Functions"]["party_invites_detailed"]["Returns"][number];
+
+/** Convites recebidos com preview dos membros (RPC SECURITY DEFINER, migration 078). */
+export async function getPartyInvitesDetailed(
+  supabase: ServerClient
+): Promise<PartyInviteDetailed[]> {
+  const { data } = await supabase.rpc("party_invites_detailed");
+  const rows = (data ?? []) as PartyInviteDetailedRow[];
+  return rows.map((r) => ({
+    id: r.invite_id,
+    partyId: r.party_id,
+    inviterName: r.inviter_name,
+    inviterAvatar: r.inviter_avatar,
+    members: (Array.isArray(r.members) ? r.members : []) as unknown as PartyInviteMemberPreview[],
+  }));
+}
+
 /** Snapshot da party do user logado (null se não está em nenhuma). */
 export async function getMyParty(
   supabase: ServerClient,

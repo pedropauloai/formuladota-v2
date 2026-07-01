@@ -10,8 +10,10 @@ import { createClient } from "@/lib/supabase/server";
 import {
   getMyParty,
   getMyPartyInvites,
+  getPartyInvitesDetailed,
   type PartyView,
   type PartyInviteView,
+  type PartyInviteDetailed,
 } from "@/lib/queries/party";
 
 const UUIDSchema = z.string().uuid("ID inválido");
@@ -292,4 +294,14 @@ export async function fetchMyPartyInvites(): Promise<PartyInviteView[]> {
   } = await supabase.auth.getUser();
   if (!user) return [];
   return getMyPartyInvites(supabase, user.id);
+}
+
+/** Convites de grupo com preview dos membros (popup central). */
+export async function fetchPartyInvitesDetailed(): Promise<PartyInviteDetailed[]> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+  return getPartyInvitesDetailed(supabase);
 }

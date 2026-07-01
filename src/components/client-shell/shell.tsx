@@ -37,7 +37,7 @@ import { getSidebarExpanded } from "@/lib/auth/sidebar-preference";
 import { getFriendsPanel } from "@/lib/queries/friends";
 import { getMyOpenLobby, getMyLobbyInvites } from "@/lib/queries/lobby-social";
 import { getDmInbox } from "@/lib/queries/messages";
-import { getMyParty, getMyPartyInvites } from "@/lib/queries/party";
+import { getMyParty, getPartyInvitesDetailed } from "@/lib/queries/party";
 import { xpProgress, getGatedTierForLevel, mmrFromRankTier } from "@/lib/levels";
 import { getPlayMenuState } from "@/lib/play-menu-preference";
 import { mmrToDotaRank } from "@/components/queue/queue-helpers";
@@ -46,11 +46,10 @@ import { DashboardTopBar } from "./top-bar";
 import { displayName, displayAvatar } from "@/lib/identity";
 import { MiniProfilePanel } from "./mini-profile-panel";
 import { LobbyInviteListener } from "./lobby-invite-listener";
-import { PartyInviteListener } from "./party-invite-listener";
+import { PartyInvitePopup } from "@/components/party/party-invite-popup";
 import { DashboardRightSidebar } from "./right-sidebar";
 import { DashboardBottomBar } from "./bottom-bar";
-import { ChatDock } from "@/components/chat/chat-dock";
-import { PartyPanel } from "@/components/party/party-panel";
+import { ChatBar } from "@/components/chat/chat-bar";
 
 interface ClientShellProps {
   /** Conteúdo do center panel — área entre top-bar e bottom-bar. */
@@ -136,11 +135,11 @@ export async function ClientShell({
     isVisitor ? Promise.resolve(null) : getMyOpenLobby(supabase, user.id),
     // Convites de sala recebidos — banner global (LobbyInviteListener).
     isVisitor ? Promise.resolve([]) : getMyLobbyInvites(supabase, user.id),
-    // Caixa de entrada de mensagens (ChatDock).
+    // Caixa de entrada de mensagens (ChatBar).
     isVisitor ? Promise.resolve([]) : getDmInbox(supabase),
-    // Minha party (PartyPanel) + convites de grupo (PartyInviteListener).
+    // Minha party (frame no mini-perfil) + convites de grupo (popup central).
     isVisitor ? Promise.resolve(null) : getMyParty(supabase, user.id),
-    isVisitor ? Promise.resolve([]) : getMyPartyInvites(supabase, user.id),
+    isVisitor ? Promise.resolve([]) : getPartyInvitesDetailed(supabase),
   ]);
 
   const profile = privateData?.profile ?? null;
@@ -281,16 +280,23 @@ export async function ClientShell({
             initialFriends={friendsPanel.friends}
             initialPending={friendsPanel.pending}
             currentLobbyId={myOpenLobby?.id ?? null}
+            party={myParty}
+            friends={friendsPanel.friends}
           />
         )}
 
-        {/* Convites de sala + grupo (banners realtime), chat dock e painel do grupo */}
+        {/* Convite de sala (banner), convite de grupo (popup central) e chat bar */}
         {!isVisitor && user && (
           <>
             <LobbyInviteListener userId={user.id} initialInvites={lobbyInvites} />
-            <PartyInviteListener userId={user.id} initialInvites={partyInvites} />
-            <ChatDock currentUserId={user.id} initialInbox={dmInbox} />
-            <PartyPanel currentUserId={user.id} initialParty={myParty} />
+            <PartyInvitePopup userId={user.id} initialInvites={partyInvites} />
+            <ChatBar
+              currentUserId={user.id}
+              party={myParty}
+              lobbyId={myOpenLobby?.id ?? null}
+              initialInbox={dmInbox}
+              friends={friendsPanel.friends}
+            />
           </>
         )}
 
@@ -306,6 +312,7 @@ export async function ClientShell({
               prosOnline={prosOnline}
               myQueues={myQueues}
               initialPlayMenu={playMenuState}
+              inParty={myParty !== null}
             />
           </div>
         )}
@@ -397,16 +404,23 @@ export async function ClientShell({
           initialFriends={friendsPanel.friends}
           initialPending={friendsPanel.pending}
           currentLobbyId={myOpenLobby?.id ?? null}
+          party={myParty}
+          friends={friendsPanel.friends}
         />
       )}
 
-      {/* Convites de sala + grupo (banners realtime), chat dock e painel do grupo */}
+      {/* Convite de sala (banner), convite de grupo (popup central) e chat bar */}
       {!isVisitor && user && (
         <>
           <LobbyInviteListener userId={user.id} initialInvites={lobbyInvites} />
-          <PartyInviteListener userId={user.id} initialInvites={partyInvites} />
-          <ChatDock currentUserId={user.id} initialInbox={dmInbox} />
-          <PartyPanel currentUserId={user.id} initialParty={myParty} />
+          <PartyInvitePopup userId={user.id} initialInvites={partyInvites} />
+          <ChatBar
+            currentUserId={user.id}
+            party={myParty}
+            lobbyId={myOpenLobby?.id ?? null}
+            initialInbox={dmInbox}
+            friends={friendsPanel.friends}
+          />
         </>
       )}
 
@@ -420,6 +434,7 @@ export async function ClientShell({
             prosOnline={prosOnline}
             myQueues={myQueues}
             initialPlayMenu={playMenuState}
+            inParty={myParty !== null}
           />
         </div>
       )}
