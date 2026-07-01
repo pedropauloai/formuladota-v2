@@ -1,4 +1,85 @@
 {
+  "colecao": {
+    "metaTitle": "Coleção",
+    "eyebrow": "Compendium",
+    "title": "Sua Coleção",
+    "subtitle": "Equipe os cosméticos que você desbloqueou pelo mérito. Mais chegam com o Compendium a cada temporada.",
+    "empty": "Nada por aqui ainda. Suba de nível pra desbloquear seus primeiros cosméticos.",
+    "equip": "Equipar",
+    "equipped": "Equipado",
+    "locked": "Bloqueado",
+    "equipError": "Não foi possível equipar",
+    "slots": {
+      "ring": "Anel",
+      "frame": "Moldura",
+      "smoke": "Fumaça",
+      "badge": "Selo",
+      "profile_theme": "Tema de perfil",
+      "name_effect": "Efeito de nome",
+      "notification_sound": "Som",
+      "chat_reaction": "Reações"
+    }
+  },
+  "planos": {
+    "metaTitle": "Planos",
+    "eyebrow": "Compendium",
+    "title": "Escolha seu plano",
+    "subtitle": "Todo mundo joga e evolui de graça. Os planos aceleram o Compendium e desbloqueiam cosméticos exclusivos da temporada.",
+    "perMonth": "/mês",
+    "free": "Grátis",
+    "badgeTop": "Topo",
+    "subscribe": "Assinar",
+    "currentBase": "Seu plano base",
+    "note": "A cobrança recorrente chega em breve — por enquanto, isto é uma prévia dos planos.",
+    "names": { "gratuito": "Gratuito", "aegis": "Aegis", "godlike": "Godlike" },
+    "features": {
+      "trilhaBasica": "Trilha grátis do Compendium",
+      "trilhaCompleta": "Trilha completa do Compendium",
+      "cosmeticosMerito": "Cosméticos de mérito (nível e tier)",
+      "mult1": "XP do passe 1×",
+      "mult15": "XP do passe 1,5×",
+      "mult2": "XP do passe 2×",
+      "linhaAegis": "Linha de cosméticos Aegis da temporada",
+      "linhaGodlike": "Cosmético Imortal Godlike da temporada",
+      "criarSalas": "Criar salas sem limite",
+      "seloGodlike": "Selo Godlike no perfil",
+      "acessoAntecipado": "Acesso antecipado a novidades"
+    }
+  },
+  "compendium": {
+    "metaTitle": "Compendium",
+    "eyebrow": "Compendium",
+    "subtitle": "Sua trilha da temporada. Suba de nível jogando e cumprindo a doutrina pra desbloquear cosméticos exclusivos.",
+    "daysLeft": "Acaba em {days} dias",
+    "passLevel": "Nível do passe",
+    "toNext": "{pct}% pro próximo",
+    "passHint": "O motor de XP dedicado do passe chega em breve — por enquanto, reflete o seu nível de conta.",
+    "trackTitle": "Trilha de recompensas",
+    "freeTrack": "Grátis",
+    "paidTrack": "Passe",
+    "missionsTitle": "Missões da semana",
+    "missionsHint": "Missões renovam toda semana e alimentam o XP do passe.",
+    "rewards": {
+      "ringNovato": "Aura Ferro",
+      "badgeDoutrinado": "Selo Doutrinado",
+      "ringPiloto": "Aura Prata",
+      "ringAs": "Aura Ouro",
+      "ringLendario": "Aura Lendária",
+      "ringMistico": "Aura Mística",
+      "frameBrand": "Moldura Fórmula",
+      "smokeEmber": "Brasa da Fórmula",
+      "frameGold": "Moldura Dourada",
+      "nameEffect": "Efeito de nome",
+      "profileTheme": "Tema de perfil",
+      "smokeMystic": "Névoa Mística"
+    },
+    "missions": {
+      "doutrina": "Complete uma lição da doutrina",
+      "jogar": "Jogue uma partida",
+      "vencer": "Vença uma partida",
+      "convidar": "Convide um amigo pro grupo"
+    }
+  },
   "common": {
     "language": "Idioma",
     "loading": "Carregando…"
@@ -15,6 +96,7 @@
   },
   "topbar": {
     "settings": "Configurações",
+    "myProfile": "Meu perfil",
     "signOut": "Sair",
     "close": "Fechar",
     "prosOnline": "{count, plural, =1 {# PRO online} other {# PROs online}}",
@@ -59,6 +141,9 @@
     "community": "Comunidade",
     "discordOfficial": "Discord oficial",
     "codeOfConduct": "Código de Conduta",
+    "collection": "Coleção",
+    "compendium": "Compendium",
+    "plans": "Planos",
     "firstRule": "A primeira regra",
     "firstRuleBody": "A culpa nunca é do outro. A responsabilidade é sempre sua, 100% das vezes.",
     "prosPanel": "Painel PROs",

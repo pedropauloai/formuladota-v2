@@ -25,6 +25,7 @@
 
 - [REVENUE_MODEL.md](REVENUE_MODEL.md) — Split 85/10/5; sponsor fee one-time na primeira ficha de novo PRO.
 - [PRICING_MODEL.md](PRICING_MODEL.md) — **DEPRECADO** — pricing descentralizado abandonado; ficha = R$ 10 fixo desde 2026-06-02 (migration 041).
+- [COMPENDIUM.md](COMPENDIUM.md) — **EM IDEAÇÃO** — cosméticos equipáveis + passe sazonal (inspirado no Compendium do TI) + freemium 3 planos (Gratuito/Aegis/Godlike). Assinatura potencializa Compendium.
 
 ## Metodologia (conteúdo da doutrina)
 

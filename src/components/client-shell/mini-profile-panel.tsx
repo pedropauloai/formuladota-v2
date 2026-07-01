@@ -27,16 +27,7 @@
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import {
-  Coins,
-  Crown,
-  ExternalLink,
-  MessageSquare,
-  BookOpen,
-  LogIn,
-  Users,
-  ShieldCheck,
-} from "lucide-react";
+import { Coins, Crown, LogIn, Users, ShieldCheck } from "lucide-react";
 import { type DotaRank } from "@/components/ui/dota-rank-medal";
 import { type HonorRank } from "@/components/ui/honor-rank-medal";
 import { MedalPair } from "@/components/ui/medal-pair";
@@ -49,6 +40,7 @@ import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { QUESTIONS_PER_PERMISSION } from "@/lib/quiz/permissions";
 import type { FriendListEntry } from "@/lib/queries/friends";
 import type { PartyView } from "@/lib/queries/party";
+import type { RingAsset, FrameAsset } from "@/lib/cosmetics";
 
 interface Props {
   isVisitor: boolean;
@@ -86,6 +78,10 @@ interface Props {
   party?: PartyView | null;
   /** Amigos aceitos — pra lista de convite dos slots do grupo. */
   friends?: FriendListEntry[];
+  /** Cosmético de ring equipado (glow) — null = default por tier. */
+  ringVariant?: RingAsset | null;
+  /** Cosmético de moldura equipado. */
+  frame?: FrameAsset | null;
 }
 
 export function MiniProfilePanel({
@@ -108,6 +104,8 @@ export function MiniProfilePanel({
   currentLobbyId = null,
   party = null,
   friends = [],
+  ringVariant = null,
+  frame = null,
 }: Props) {
   // Par canônico de medalhas (mandamento M12): SKILL (Valve) + HONOR (nível).
   // dotaRank/honorRank vêm prontos do shell — MESMA fonte do /me e do hover-card.
@@ -156,6 +154,8 @@ export function MiniProfilePanel({
           initialFriends={initialFriends}
           initialPending={initialPending}
           currentLobbyId={currentLobbyId}
+          ringVariant={ringVariant}
+          frame={frame}
         />
       )}
 
@@ -172,6 +172,8 @@ export function MiniProfilePanel({
           currentUserId={currentUserId}
           party={party}
           friends={friends}
+          ringVariant={ringVariant}
+          frame={frame}
           connectedTop={expanded}
           onToggle={handleToggle}
           locked={lockedExpanded}
@@ -203,6 +205,8 @@ function CollapsedCard({
   currentUserId,
   party,
   friends,
+  ringVariant,
+  frame,
   connectedTop = false,
   onToggle,
   locked = false,
@@ -215,6 +219,8 @@ function CollapsedCard({
   currentUserId: string | null;
   party: PartyView | null;
   friends: FriendListEntry[];
+  ringVariant: RingAsset | null;
+  frame: FrameAsset | null;
   /** Quando true (painel expandido aberto), borda superior + canto superior
       ficam planos pra conectar visualmente ao ExpandedPanel acima. */
   connectedTop?: boolean;
@@ -237,6 +243,8 @@ function CollapsedCard({
       level={level}
       pct={xpPct}
       size={40}
+      ringVariant={ringVariant}
+      frame={frame}
     />
   );
   return (
@@ -347,6 +355,8 @@ function ExpandedPanel({
   initialFriends,
   initialPending,
   currentLobbyId,
+  ringVariant,
+  frame,
 }: {
   persona: string | null;
   avatar: string | null;
@@ -361,6 +371,8 @@ function ExpandedPanel({
   initialFriends: FriendListEntry[];
   initialPending: FriendListEntry[];
   currentLobbyId: string | null;
+  ringVariant: RingAsset | null;
+  frame: FrameAsset | null;
 }) {
   const t = useTranslations("shell");
   const name = persona ?? t("anon");
@@ -383,6 +395,8 @@ function ExpandedPanel({
             level={level}
             pct={xpPct}
             size={52}
+            ringVariant={ringVariant}
+            frame={frame}
           />
           <div className="flex-1 min-w-0">
             <p className="font-display text-lg font-semibold text-text-display truncate">
@@ -421,16 +435,6 @@ function ExpandedPanel({
         />
       </div>
 
-      {/* Atalhos compactos no fim */}
-      <nav aria-label={t("shortcuts")} className="space-y-1 border-t border-border-subtle pt-3">
-        <CompactLink href="/codigo-de-conduta" label={t("codeOfConduct")} icon={BookOpen} />
-        <CompactLink
-          href="https://discord.com/invite/USntaFRS6x"
-          label={t("discordOfficial")}
-          icon={MessageSquare}
-          external
-        />
-      </nav>
     </aside>
   );
 }
@@ -494,32 +498,3 @@ function FichasCard({ balance, isAdmin }: { balance: number; isAdmin: boolean })
   );
 }
 
-function CompactLink({
-  href,
-  label,
-  icon: Icon,
-  external,
-}: {
-  href: string;
-  label: string;
-  icon: typeof BookOpen;
-  external?: boolean;
-}) {
-  const cls =
-    "flex items-center gap-2 rounded px-2 py-1.5 font-sans text-sm text-text-body hover:bg-bg-elevated hover:text-text-display transition-colors";
-  if (external) {
-    return (
-      <a href={href} target="_blank" rel="noreferrer" className={cls}>
-        <Icon size={12} aria-hidden="true" />
-        {label}
-        <ExternalLink size={9} className="ml-auto text-text-faded" aria-hidden="true" />
-      </a>
-    );
-  }
-  return (
-    <Link href={href} className={cls}>
-      <Icon size={12} aria-hidden="true" />
-      {label}
-    </Link>
-  );
-}

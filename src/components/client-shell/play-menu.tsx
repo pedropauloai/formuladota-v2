@@ -46,6 +46,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useQueueStatusRealtime } from "@/lib/realtime/use-queue-status-realtime";
 import { QueueSearchersPanel } from "@/components/queue/queue-searchers-panel";
 import { ShaderSmoke } from "@/components/ui/shader-smoke";
+import type { SmokeAsset } from "@/lib/cosmetics";
 import { PermissionQuizModal } from "@/components/quiz/permission-quiz-modal";
 import { setPlayMenuState, type PlayMenuState } from "@/lib/play-menu-preference";
 import {
@@ -81,9 +82,16 @@ interface Props {
   initial: PlayMenuState;
   /** Em grupo? Buscar coloca TODO o grupo na fila (mesmo time). */
   inParty?: boolean;
+  /** Fumaça equipada (cosmético) — cores do shader no card de busca. */
+  smokeTheme?: SmokeAsset | null;
 }
 
-export function PlayMenu({ isVisitor, initial, inParty = false }: Props) {
+export function PlayMenu({
+  isVisitor,
+  initial,
+  inParty = false,
+  smokeTheme = null,
+}: Props) {
   const router = useRouter();
   const t = useTranslations("playMenu");
   const drawerRef = useRef<HTMLElement>(null);
@@ -397,8 +405,17 @@ export function PlayMenu({ isVisitor, initial, inParty = false }: Props) {
         // Interface ÚNICA: painel "quem está findando" (retrátil) + contador. Fumaça
         // por SHADER atrás (ShaderSmoke) enquanto busca — flagship premium tier-1.
         <div className="pointer-events-auto relative w-[340px] max-w-[calc(100vw-2rem)]">
-          <ShaderSmoke mid="#00C466" hot="#e0b64e" intensity={1.05} />
-          <div className="relative z-[1] w-full overflow-hidden rounded-md border-2 border-play-primary bg-bg-deep shadow-lg shadow-[var(--color-play-primary-glow)]">
+          <ShaderSmoke
+            mid={smokeTheme?.mid ?? "#00C466"}
+            hot={smokeTheme?.hot ?? "#e0b64e"}
+            intensity={1.3}
+            speed={1.8}
+            // Tamanho FIXO (não muda ao expandir/retrair) via inline style — invade até
+            // ~meio da tela pra esquerda, emanando da base direita. Pedro 2026-07-01.
+            className=""
+            style={{ left: "-780px", right: "0", bottom: "-2rem", height: "680px" }}
+          />
+          <div className="relative z-[1] w-full overflow-hidden rounded-md border-2 border-play-primary bg-bg-deep/70 backdrop-blur-md shadow-lg shadow-[var(--color-play-primary-glow)]">
           {searchPanelOpen && (
             <div className="border-b border-border-subtle p-2.5 animate-in slide-in-from-bottom-2 fade-in duration-150">
               <QueueSearchersPanel
@@ -469,6 +486,10 @@ export function PlayMenu({ isVisitor, initial, inParty = false }: Props) {
         <button
           type="button"
           onClick={() => setPhase("expanded")}
+          // Respiro lateral do botão (o card de busca encosta na direita; o botão, não).
+          // O respiro do fundo vem do container. Inline pra não depender do JIT do
+          // Tailwind. Fiel ao dota 2 menu.png. Pedro 2026-07-01.
+          style={{ marginRight: "2.5rem" }}
           className="pointer-events-auto group relative flex h-11 items-center gap-3 overflow-hidden rounded-md border-2 border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover px-8 font-display text-lg font-bold uppercase tracking-[0.25em] text-text-display shadow-lg shadow-[var(--color-play-primary-glow)] transition-all hover:scale-[1.02] xl:h-12 xl:px-12 xl:text-xl 2xl:h-14 2xl:px-16 2xl:text-2xl"
         >
           {hasSala ? <ArrowLeft size={22} aria-hidden="true" /> : <Play size={22} aria-hidden="true" />}

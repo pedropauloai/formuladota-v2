@@ -1,0 +1,93 @@
+"use server";
+
+// Server actions de cosméticos (Compendium Fase 0). Equipar/desequipar.
+// O DIREITO de mérito é validado AQUI (TS, fonte única da curva = src/lib/levels.ts);
+// a RPC equip_cosmetic revalida a trava de posse pra itens 'locked' (pagos/futuros).
+
+import { z } from "zod";
+import { revalidatePath } from "next/cache";
+import { createClient } from "@/lib/supabase/server";
+import { xpProgress } from "@/lib/levels";
+import {
+  meetsRequirement,
+  COSMETIC_SLOTS,
+  type CosmeticRequirement,
+} from "@/lib/cosmetics";
+
+type ActionResult = { success: boolean; error?: string };
+
+const IdSchema = z.string().uuid();
+const SlotSchema = z.enum(COSMETIC_SLOTS);
+
+export async function equipCosmetic(cosmeticId: string): Promise<ActionResult> {
+  if (!IdSchema.safeParse(cosmeticId).success) {
+    return { success: false, error: "ID inválido" };
+  }
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Não autorizado" };
+
+  const { data: cos } = await supabase
+    .from("cosmetics")
+    .select("id, requirement")
+    .eq("id", cosmeticId)
+    .eq("active", true)
+    .maybeSingle();
+  if (!cos) return { success: false, error: "Cosmético inexistente" };
+
+  const req = (cos.requirement ?? { kind: "free" }) as CosmeticRequirement;
+  if (req.kind === "locked") {
+    const { data: own } = await supabase
+      .from("user_cosmetics")
+      .select("cosmetic_id")
+      .eq("user_id", user.id)
+      .eq("cosmetic_id", cosmeticId)
+      .maybeSingle();
+    if (!own) return { success: false, error: "Você ainda não tem esse item." };
+  } else {
+    const { data: levelRow } = await supabase
+      .from("user_levels")
+      .select("total_xp_earned")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    const { level } = xpProgress(levelRow?.total_xp_earned ?? 0);
+    if (!meetsRequirement(req, level)) {
+      return { success: false, error: "Você ainda não desbloqueou esse item." };
+    }
+  }
+
+  const { error } = await supabase.rpc("equip_cosmetic", {
+    p_cosmetic_id: cosmeticId,
+  });
+  if (error) {
+    console.error("[equipCosmetic] error:", error);
+    return { success: false, error: "Não foi possível equipar" };
+  }
+
+  revalidatePath("/colecao");
+  revalidatePath("/me");
+  return { success: true };
+}
+
+export async function unequipSlot(slot: string): Promise<ActionResult> {
+  if (!SlotSchema.safeParse(slot).success) {
+    return { success: false, error: "Slot inválido" };
+  }
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Não autorizado" };
+
+  const { error } = await supabase.rpc("unequip_slot", { p_slot: slot });
+  if (error) {
+    console.error("[unequipSlot] error:", error);
+    return { success: false, error: "Não foi possível desequipar" };
+  }
+
+  revalidatePath("/colecao");
+  revalidatePath("/me");
+  return { success: true };
+}
