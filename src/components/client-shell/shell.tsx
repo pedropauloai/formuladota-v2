@@ -306,7 +306,6 @@ export async function ClientShell({
           <div className="absolute bottom-0 inset-x-0 z-[var(--z-overlay)] pointer-events-none">
             <DashboardBottomBar
               isVisitor={isVisitor}
-              isAdmin={adminFlag}
               fichaBalance={fichaBalance}
               fichaPackageId={fichaPackage?.id ?? null}
               prosOnline={prosOnline}
@@ -428,7 +427,6 @@ export async function ClientShell({
         <div className="absolute bottom-0 inset-x-0 z-[var(--z-overlay)] pointer-events-none">
           <DashboardBottomBar
             isVisitor={isVisitor}
-            isAdmin={adminFlag}
             fichaBalance={fichaBalance}
             fichaPackageId={fichaPackage?.id ?? null}
             prosOnline={prosOnline}
