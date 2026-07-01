@@ -48,12 +48,9 @@ export function DashboardBottomBar({
 
   return (
     <>
-      <div
-        className="relative z-[var(--z-overlay)] flex h-20 shrink-0 items-end justify-end xl:h-24 2xl:h-28 pointer-events-none"
-        // padding via inline (imune ao JIT do Tailwind que não gerava pr-*): fiel ao
-        // cliente Dota — mais respiro à direita do que embaixo. Pedro 2026-07-01.
-        style={{ paddingRight: "2.75rem", paddingBottom: "1.25rem" }}
-      >
+      {/* Sem padding: o CARD de busca encosta no canto inferior direito (fiel ao Dota).
+          O respiro do botão "Jogar Dota" vive no próprio botão (play-menu). */}
+      <div className="relative z-[var(--z-overlay)] flex h-20 shrink-0 items-end justify-end xl:h-24 2xl:h-28 pointer-events-none">
         <Cta
           isVisitor={isVisitor}
           inQueue={inQueue}

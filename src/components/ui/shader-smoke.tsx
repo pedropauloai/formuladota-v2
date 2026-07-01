@@ -45,7 +45,8 @@ void main(){
 
   // --- fumaça/brasa: fbm com domain warp, densa na base, subindo ---
   vec2 p = vec2(uv.x*aspect, uv.y) * 3.0;
-  p.y -= t * 2.2;
+  p.x += t * 1.2;                                  // deriva diagonal (estilo Dota)
+  p.y -= t * 2.6;
   vec2 q = vec2(fbm(p), fbm(p + vec2(5.2, 1.3)));
   vec2 r = vec2(fbm(p + 2.0*q + vec2(1.7, 9.2) + t), fbm(p + 2.0*q + vec2(8.3, 2.8) - t));
   float f = fbm(p + 2.0*r);
@@ -62,17 +63,17 @@ void main(){
 
   // --- faíscas / brasas subindo (o detalhe do cliente Dota) ---
   float ember = 0.0;
-  for (int i = 0; i < 16; i++) {
+  for (int i = 0; i < 22; i++) {
     float fi = float(i);
     float sx = hash(vec2(fi, 7.13));
-    float sp = 0.30 + hash(vec2(fi, 3.7)) * 0.55;   // velocidade da faísca
+    float sp = 0.35 + hash(vec2(fi, 3.7)) * 0.65;   // velocidade da faísca (mais rápida)
     float ph = hash(vec2(fi, 9.1));
-    float y = fract(ph + t * sp * 1.8);             // sobe 0->1 e reinicia
-    float x = sx + 0.03 * sin(u_time * 0.7 + fi * 2.1) * y; // leve deriva lateral
+    float y = fract(ph + t * sp * 2.8);             // sobe 0->1 e reinicia (mais rápido)
+    float x = sx + y * 0.32 + 0.05 * sin(u_time * 0.9 + fi * 2.1); // sobe na DIAGONAL
     vec2 pos = vec2(x * aspect, y);
     float dd = distance(vec2(uv.x * aspect, uv.y), pos);
     float life = (1.0 - y) * smoothstep(0.0, 0.08, y); // nasce embaixo, some no topo
-    ember += smoothstep(0.013, 0.0, dd) * life;
+    ember += smoothstep(0.016, 0.0, dd) * life;
   }
   ember *= edges;                                   // faíscas somem junto com as bordas
   col += u_hot * ember * 2.4;                       // faíscas brilham quente
