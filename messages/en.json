@@ -191,6 +191,7 @@
     "searchMatch": "Find Match",
     "searching": "Searching",
     "cancelSearch": "Cancel search",
+    "cancelFailed": "Couldn't leave the queue. Try again.",
     "roleSafelane": "Safelane (Carry)",
     "roleMidlane": "Mid",
     "roleOfflane": "Offlane",
