@@ -158,7 +158,7 @@ function MemberSlot({
           src={avatar ?? undefined}
           alt={name}
           fallback={name.slice(0, 2).toUpperCase()}
-          size="sm"
+          size="md"
           ringColor={isLeaderMember ? "brand" : null}
         />
         {isLeaderMember && (
@@ -232,13 +232,13 @@ function EmptySlot({
         onClick={onToggle}
         aria-label="Convidar pro grupo"
         title="Convidar pro grupo"
-        className={`flex size-8 items-center justify-center rounded-sm border border-dashed transition-colors ${
+        className={`flex size-10 items-center justify-center rounded-sm border border-dashed transition-colors ${
           open
-            ? "border-brand-primary text-brand-primary"
+            ? "border-brand-primary bg-brand-primary/5 text-brand-primary"
             : "border-border-strong text-text-faded hover:border-brand-primary/60 hover:text-brand-primary"
         }`}
       >
-        <Plus size={15} aria-hidden="true" />
+        <Plus size={16} aria-hidden="true" />
       </button>
       {open && (
         <div className="absolute bottom-full left-1/2 z-[var(--z-system)] mb-2 -translate-x-1/2 w-56 overflow-hidden rounded-md border border-border-strong bg-bg-deep shadow-2xl shadow-black/70">
