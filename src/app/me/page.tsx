@@ -21,6 +21,7 @@ import { refreshSteamIdentity } from "@/lib/steam/refresh-identity";
 import type { DotaRank } from "@/components/ui/dota-rank-medal";
 import type { HonorRank } from "@/components/ui/honor-rank-medal";
 import { getGatedTierForLevel, xpProgress, mmrFromRankTier } from "@/lib/levels";
+import { getEquippedForUser } from "@/lib/queries/cosmetics";
 import { createClient } from "@/lib/supabase/server";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -118,10 +119,11 @@ export default async function MePage({ searchParams }: PageProps) {
   // Top heróis do header = OpenDota all-time (melhor "mais jogados"). O STRATZ
   // heroesPerformance é janela RECENTE, não all-time — por isso não serve aqui.
 
-  // BLOCKER #3 fix: ClientShell immersive + centerHero gerencia o hero portrait
-  // fullscreen background. Quando profile.heroPortraitData é null (sem herói escolhido),
-  // undefined → ClientShell cai pro background atmospheric padrão.
-  const centerHero = profile.heroPortraitData?.portrait_url ?? undefined;
+  // Fundo do perfil = cosmético do slot profile_theme EQUIPADO (biblioteca de fundos).
+  // Default (nada equipado) = undefined → fundo premium limpo, SEM herói automático
+  // (Pedro 2026-07-01: o retrato do herói atrás poluía; agora o fundo é escolhível).
+  const equippedForBg = await getEquippedForUser(supabase, profile.userId);
+  const centerHero = equippedForBg.profileTheme ?? undefined;
 
   return (
     <ClientShell currentRoute="/me" immersive centerHero={centerHero}>

@@ -56,6 +56,9 @@ export interface EquippedCosmetics {
   smoke: SmokeAsset | null;
   frame: FrameAsset | null;
   badge: BadgeAsset | null;
+  /** Fundo do perfil (slot profile_theme) — URL da imagem. null = fundo premium limpo
+      (default, Pedro 2026-07-01: sem herói automático de fundo). */
+  profileTheme: string | null;
 }
 
 const EMPTY_EQUIPPED: EquippedCosmetics = {
@@ -63,6 +66,7 @@ const EMPTY_EQUIPPED: EquippedCosmetics = {
   smoke: null,
   frame: null,
   badge: null,
+  profileTheme: null,
 };
 
 /**
@@ -93,6 +97,8 @@ export async function getEquippedForUser(
     else if (c.slot === "smoke") out.smoke = asSmokeAsset(ref);
     else if (c.slot === "frame") out.frame = asFrameAsset(ref);
     else if (c.slot === "badge") out.badge = asBadgeAsset(ref);
+    else if (c.slot === "profile_theme")
+      out.profileTheme = typeof ref.image === "string" ? ref.image : null;
   }
   return out;
 }
