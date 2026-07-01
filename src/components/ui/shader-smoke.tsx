@@ -62,9 +62,11 @@ void main(){
   col += u_hot * pow(d, 2.6) * 1.0;                // glow quente (fake bloom)
   float alpha = d;
 
-  // --- faíscas: partem da DIREITA-baixo e viajam pra ESQUERDA-cima ---
-  float ember = 0.0;
-  for (int i = 0; i < 22; i++) {
+  // --- faíscas DELICADAS e BRILHANTES: núcleo minúsculo quase branco + halo suave,
+  //     partindo da DIREITA-baixo pra ESQUERDA-cima, com cintilação ---
+  float emberCore = 0.0;
+  float emberHalo = 0.0;
+  for (int i = 0; i < 30; i++) {
     float fi = float(i);
     float sx = hash(vec2(fi, 7.13));
     float sy = hash(vec2(fi, 4.9));
@@ -75,11 +77,14 @@ void main(){
     float y = (0.02 + sy * 0.20) + pr * 0.45;       // sobe levemente
     vec2 pos = vec2(x * aspect, y);
     float dd = distance(vec2(uv.x * aspect, uv.y), pos);
-    float life = (1.0 - pr) * smoothstep(0.0, 0.08, pr); // some no fim do trajeto
-    ember += smoothstep(0.016, 0.0, dd) * life;
+    float life = (1.0 - pr) * smoothstep(0.0, 0.06, pr);       // some no fim do trajeto
+    float flick = 0.65 + 0.35 * sin(u_time * 9.0 + fi * 5.0);  // cintila
+    emberCore += smoothstep(0.0042, 0.0, dd) * life * flick;   // núcleo minúsculo
+    emberHalo += smoothstep(0.011, 0.0, dd) * life;            // halo delicado
   }
-  col += u_hot * ember * 2.4;                       // faíscas brilham quente
-  alpha += ember * 1.5;
+  col += (u_hot + vec3(0.55)) * emberCore * 2.2;    // núcleo quase BRANCO (brilhante)
+  col += u_hot * emberHalo * 0.8;                   // halo na cor quente
+  alpha += emberCore * 1.7 + emberHalo * 0.45;
 
   alpha = clamp(alpha * u_intensity, 0.0, 1.0);
   gl_FragColor = vec4(col, alpha);
