@@ -52,9 +52,10 @@ void main(){
   float f = fbm(p + 2.0*r);
   float d = clamp(f, 0.0, 1.0);
   d = pow(d, 1.5);
-  // denso no canto inferior DIREITO, esvai pra esquerda e pra cima
-  float mx = smoothstep(-0.25, 1.0, uv.x);         // mais denso à direita
-  float my = smoothstep(1.05, -0.05, uv.y);        // mais denso embaixo
+  // denso no canto inferior DIREITO, esvaindo LONGE pra esquerda e pra cima
+  // (alcança até onde as faíscas viajam)
+  float mx = smoothstep(-1.1, 1.15, uv.x);         // denso à direita, chega longe à esquerda
+  float my = smoothstep(1.35, -0.15, uv.y);        // denso embaixo, sobe mais alto
   float mask = mx * my;
   d *= mask;
   vec3 col = mix(u_mid * 0.12, u_mid, smoothstep(0.05, 0.5, d));
