@@ -30,7 +30,7 @@ import { ToastProvider } from "@/components/ui/toast";
 import { ConfirmProvider } from "@/components/ui/confirm";
 // V2.5-F3: Camada atmosférica root-level com tsParticles (DF3.1)
 // position:fixed, z-index:var(--z-atmosphere)=-10, pointer-events:none
-import { AmbientLayer } from "@/components/layout/AmbientLayer";
+import { PremiumBackdrop } from "@/components/layout/premium-backdrop";
 // V2.5-F4: LazyMotion domAnimation via Client Component wrapper (DF4.5)
 // Reduz bundle inicial de ~45kb para ~10kb gzipped.
 // strict={true} garante que nenhum componente carrega o bundle completo acidentalmente.
@@ -109,7 +109,7 @@ export default async function RootLayout({
       lang={locale}
       data-theme="fd-dark"
     >
-      <body className="min-h-screen flex flex-col font-body">
+      <body className="min-h-screen flex flex-col font-body bg-[#0b0c0f]">
         <NextIntlClientProvider>
         {/* V2.5-F4: MotionProvider — LazyMotion domAnimation (~10kb vs ~45kb full bundle).
             Cobre: animate, initial, exit, whileHover, whileTap, whileFocus, variants, AnimatePresence.
@@ -127,12 +127,9 @@ export default async function RootLayout({
             Montado dentro de ToastProvider (pode disparar toast em erros).
             Sem UI quando inativo — só renderiza Dialog quando confirm()/prompt() chama. */}
         <ConfirmProvider>
-        {/* V2.5-F3: Camada atmosférica — partículas "dust" sutis em toda a app.
-            position:fixed, z-index:-10 (var(--z-atmosphere)), pointer-events:none.
-            Pausa automaticamente quando aba fica oculta (Page Visibility API).
-            Desabilitar por página: adicionar data-ambient="off" no body/html,
-            ou usar prop density="off" se remontar for aceitável. */}
-        <AmbientLayer density="medium" preset="dust" />
+        {/* Fundo premium global ESTÁTICO (Pedro 2026-07-01) — substitui o preto chapado.
+            Neutro de marca + mesh de luz brand + vinheta + grão. Vale pra todas as rotas. */}
+        <PremiumBackdrop />
         {/* Realtime listener (client) — sem UI, escuta changes em queue.
             (Pílula "Na fila" foi movida pra topbar via QueueStatusPill — não
             é mais renderizada aqui pra não forçar scroll de página.) */}
