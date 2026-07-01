@@ -107,6 +107,7 @@ let LobbyKick, ChatJoin, ChatJoinResp, ChatMsg;
 // Job atual (1 lobby por vez nesta V1 — bot único). Enquanto != null, o polling pausa.
 let jobAtivo = null; // { dbLobbyId, expectedPlayers, launched, steamLobbyId, matchId, invited[], membros[], cronometro, minutosRestantes, anunciados:Set }
 let processando = false;
+let gcIniciado = false; // o loop/limpeza já rodaram? (evita duplicar em reconexão do GC)
 let chatChannelId = null; // id do canal de chat do lobby atual (pra postar as frases)
 let chatJoinPedido = false; // já pedi pra entrar no chat deste lobby?
 
@@ -337,13 +338,55 @@ client.on("loggedOn", () => {
 });
 
 dota2.on("connectedToGC", () => {
-  console.log("[BOT] GC do Dota CONECTADO. Saindo de lobby anterior e iniciando o polling...");
-  try {
-    dota2.sendRawBuffer(MSG_LEAVE_LOBBY, Buffer.from(LobbyLeave.encode(LobbyLeave.create({})).finish()));
-  } catch (e) {}
+  // RECONEXÃO: o GC pode reconectar durante uma partida. Se o polling já foi iniciado,
+  // NÃO reinicia nada — antes, cada reconexão saía do lobby (abandonando a partida que
+  // o bot vigiava) e ligava outro setInterval (timers acumulados).
+  if (gcIniciado) {
+    console.log("[BOT] GC reconectado (job em andamento preservado, sem reiniciar o loop).");
+    return;
+  }
+  gcIniciado = true;
+  console.log("[BOT] GC do Dota CONECTADO. Iniciando o polling...");
+  // Só sai de lobby anterior se NÃO houver job ativo (não abandonar partida em curso).
+  if (!jobAtivo) {
+    try {
+      dota2.sendRawBuffer(MSG_LEAVE_LOBBY, Buffer.from(LobbyLeave.encode(LobbyLeave.create({})).finish()));
+    } catch (e) {}
+  }
+  void recuperarOrfaos(); // limpa partidas que ficaram no meio se o bot caiu antes
   setInterval(loop, POLL_MS);
   console.log(`[BOT] Aguardando partidas (consultando o Supabase a cada ${POLL_MS / 1000}s)...`);
 });
+
+// RECOVERY no boot: o estado do job vive só na memória; se o bot caiu no meio da criação,
+// ao reiniciar esses lobbies ficam "no limbo" (reservados/half-created) e prendem os
+// jogadores. Marca como indisponível os que este bot reservou mas não confirmou, e que
+// já estão parados há >3min (o filtro de tempo evita matar um job recém-criado por OUTRA
+// instância durante um deploy — esse ainda tem menos de 3min).
+async function recuperarOrfaos() {
+  const corte = new Date(Date.now() - 3 * 60 * 1000).toISOString();
+  try {
+    const { data: a } = await supabase
+      .from("lobbies")
+      .update({ status: "bot_unavailable", bot_error: "bot reiniciou no meio da criação" })
+      .eq("status", "open")
+      .eq("bot_account_name", USERNAME)
+      .is("steam_lobby_id", null)
+      .lt("created_at", corte)
+      .select("id");
+    const { data: b } = await supabase
+      .from("lobbies")
+      .update({ status: "bot_unavailable", bot_error: "sala não confirmada (sentinel legado)" })
+      .eq("status", "open")
+      .eq("steam_lobby_id", "created")
+      .lt("created_at", corte)
+      .select("id");
+    const n = (a?.length || 0) + (b?.length || 0);
+    if (n) console.log(`[BOT] recovery: ${n} lobby(s) órfão(s) marcados como indisponíveis.`);
+  } catch (e) {
+    console.error("[BOT] recovery falhou:", e.message);
+  }
+}
 
 dota2.on("disconnectedFromGC", (reason) => {
   console.log(`[BOT] GC desconectou (motivo ${reason}). Tentando reconectar...`);
@@ -376,13 +419,33 @@ async function loop() {
       .select("id, password, game_mode, status, steam_lobby_id, created_at")
       .eq("status", "open")
       .is("steam_lobby_id", null)
+      .is("bot_account_name", null) // só lobbies AINDA não reservados por nenhum bot
       .order("created_at", { ascending: true })
       .limit(1);
     if (error) {
       console.error("[BOT] erro ao consultar lobbies:", error.message);
       return;
     }
-    if (lobbies && lobbies.length > 0) await processarLobby(lobbies[0]);
+    if (lobbies && lobbies.length > 0) {
+      const lobby = lobbies[0];
+      // CLAIM ATÔMICO (evita 2 salas quando 2 instâncias rodam juntas, ex.: no deploy):
+      // marca bot_account_name SÓ SE ainda estiver livre. Quem pegar a linha, processa;
+      // o outro recebe null e desiste. É a "senha da padaria" — só um leva.
+      const { data: claimed } = await supabase
+        .from("lobbies")
+        .update({ bot_account_name: USERNAME })
+        .eq("id", lobby.id)
+        .eq("status", "open")
+        .is("steam_lobby_id", null)
+        .is("bot_account_name", null)
+        .select("id")
+        .maybeSingle();
+      if (!claimed) {
+        console.log(`[BOT] lobby ${lobby.id} já foi reservado por outra instância — pulando.`);
+        return;
+      }
+      await processarLobby(lobby);
+    }
   } catch (e) {
     console.error("[BOT] erro no loop:", e.message);
   } finally {
@@ -494,21 +557,47 @@ async function processarLobby(lobby) {
     await wait(300);
   }
 
-  // Grava steam_lobby_id de volta (marca como "criado" pra não reprocessar).
-  // No lobby de liga o dota_match_id já vem junto no SO cache — gravamos os DOIS
-  // aqui pra a URL canônica do site (= dota_match_id) ficar disponível cedo.
-  await wait(1500);
+  // Espera o GC CONFIRMAR o lobby real (capturaLobby popula jobAtivo.steamLobbyId via
+  // SO cache). Antes gravávamos "created" às cegas — se o GC não respondesse, a partida
+  // saía da fila mas NENHUMA sala existia e os 10 ficavam esperando convite pra sempre.
+  // Agora: se o GC não confirmar no tempo, é FALHA real (o sistema pode retentar).
+  const confirmou = await esperarSteamLobbyId(8000);
+  if (!confirmou) {
+    console.error("[BOT] GC não confirmou o lobby a tempo — marcando bot_unavailable.");
+    await falhar(lobby.id, "GC não confirmou a criação do lobby");
+    return;
+  }
+
+  // No lobby de liga o dota_match_id já vem junto no SO cache — gravamos os DOIS aqui
+  // pra a URL canônica do site (= dota_match_id) ficar disponível cedo.
   const updLobby = {
-    steam_lobby_id: jobAtivo.steamLobbyId || "created",
+    steam_lobby_id: jobAtivo.steamLobbyId,
     bot_account_name: USERNAME,
   };
   if (jobAtivo.matchId) updLobby.dota_match_id = jobAtivo.matchId;
   await supabase.from("lobbies").update(updLobby).eq("id", lobby.id);
 
   console.log(
-    `[BOT] ✅ Lobby pronto (steam_lobby_id=${jobAtivo.steamLobbyId || "?"}). ` +
+    `[BOT] ✅ Lobby pronto (steam_lobby_id=${jobAtivo.steamLobbyId}). ` +
       `Convites: ${steamIds.length}. Aguardando os jogadores entrarem pra lançar...`
   );
+}
+
+// Espera jobAtivo.steamLobbyId ser populado pelo SO cache do GC (capturaLobby), com
+// timeout. true = confirmado; false = o GC não respondeu (tratar como falha).
+function esperarSteamLobbyId(timeoutMs) {
+  return new Promise((resolve) => {
+    const t0 = Date.now();
+    const iv = setInterval(() => {
+      if (jobAtivo && jobAtivo.steamLobbyId) {
+        clearInterval(iv);
+        resolve(true);
+      } else if (Date.now() - t0 > timeoutMs) {
+        clearInterval(iv);
+        resolve(false);
+      }
+    }, 300);
+  });
 }
 
 async function lancarEFechar(job) {
