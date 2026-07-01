@@ -16,7 +16,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { Users, ArrowRight, Check } from "lucide-react";
+import { Users, Check } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import {
   getQueueSearchers,
@@ -85,17 +85,17 @@ function computeComposition(searchers: { roles: QueueRole[] }[]): {
 interface Props {
   /** Sem chrome de card e stack estático (contexto do contador de busca). */
   bare?: boolean;
-  /** Se passado, as linhas de função viram clicáveis → troca pra aquela função. */
-  onPickRole?: (role: QueueRole) => void;
+  /** Se passado (contexto de busca), as 5 funções viram toggle: marca/desmarca. */
+  onToggleRole?: (role: QueueRole) => void;
   /** Se passado, mostra o botão "Qualquer função" → fila por todas as 5. */
   onPickAll?: () => void;
-  /** Funções que o próprio jogador filou (marca "você" + rodapé "sua função"). */
+  /** Funções que o próprio jogador filou (destaca as selecionadas no toggle). */
   myRoles?: QueueRole[];
 }
 
 export function QueueSearchersPanel({
   bare = false,
-  onPickRole,
+  onToggleRole,
   onPickAll,
   myRoles,
 }: Props) {
@@ -267,27 +267,49 @@ export function QueueSearchersPanel({
         </span>
       </div>
 
-      {/* PRECISA-SE — funções carentes (< 2 ofertas). No contexto de busca, cada chip
-          é clicável → troca pra aquela função na hora (re-fila sem custo). Sem X/2. */}
-      {neededRoles.length > 0 && (
-        <div className="mt-2 flex flex-wrap items-center gap-1.5">
-          <span className="font-display text-[0.7rem] font-bold uppercase tracking-wide text-gold">
-            {t("searchersNeededRoles")}
-          </span>
-          {neededRoles.map((r) =>
-            onPickRole ? (
-              <button
-                key={r.id}
-                type="button"
-                onClick={() => onPickRole(r.id)}
-                title={t(r.key)}
-                className="flex items-center gap-1 rounded-sm border border-gold/40 bg-gold/10 px-1.5 py-0.5 font-display text-[0.7rem] font-semibold uppercase tracking-wide text-gold transition-colors hover:bg-gold/20"
-              >
-                <Image src={`/dota/positions/pos-${r.pos}.png`} alt="" width={14} height={14} className="size-3.5 shrink-0 object-contain" aria-hidden="true" />
-                <span className="truncate">{t(r.key)}</span>
-                <ArrowRight size={11} aria-hidden="true" />
-              </button>
-            ) : (
+      {onToggleRole ? (
+        // CONTEXTO DE BUSCA — controle completo: as 5 funções viram TOGGLE (marca e
+        // desmarca com o mesmo toque). Selecionada = destaque + check; carente (nudge)
+        // = dourada; disponível = neutra. Re-fila na hora (mantém o tempo).
+        <>
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            <span className="mr-0.5 font-display text-[0.7rem] font-bold uppercase tracking-wide text-play-primary">
+              {t("searchersYouOffer")}
+            </span>
+            {ROLES.map((r) => {
+              const on = myRoleSet.has(r.id);
+              const scarce = offers[r.id] < ROLE_TARGET;
+              const cls = on
+                ? "border-play-primary/50 bg-play-primary/15 text-play-primary"
+                : scarce
+                  ? "border-gold/40 bg-gold/10 text-gold hover:bg-gold/20"
+                  : "border-border-subtle bg-bg-elevated text-text-muted hover:border-play-primary/40";
+              return (
+                <button
+                  key={r.id}
+                  type="button"
+                  onClick={() => onToggleRole(r.id)}
+                  aria-pressed={on}
+                  title={t(r.key)}
+                  className={`flex items-center gap-1 rounded-sm border px-1.5 py-0.5 font-display text-[0.7rem] font-semibold uppercase tracking-wide transition-colors ${cls}`}
+                >
+                  <Image src={`/dota/positions/pos-${r.pos}.png`} alt="" width={14} height={14} className="size-3.5 shrink-0 object-contain" aria-hidden="true" />
+                  <span className="truncate">{t(r.key)}</span>
+                  {on && <Check size={11} aria-hidden="true" />}
+                </button>
+              );
+            })}
+          </div>
+          <p className="mt-1 font-body text-[0.7rem] text-text-faded">{t("searchersToggleHint")}</p>
+        </>
+      ) : (
+        // CONTEXTO DE MENU — só informativo: funções carentes (a seleção é na lista abaixo).
+        neededRoles.length > 0 && (
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            <span className="font-display text-[0.7rem] font-bold uppercase tracking-wide text-gold">
+              {t("searchersNeededRoles")}
+            </span>
+            {neededRoles.map((r) => (
               <span
                 key={r.id}
                 title={t(r.key)}
@@ -296,29 +318,9 @@ export function QueueSearchersPanel({
                 <Image src={`/dota/positions/pos-${r.pos}.png`} alt="" width={14} height={14} className="size-3.5 shrink-0 object-contain" aria-hidden="true" />
                 <span className="truncate">{t(r.key)}</span>
               </span>
-            )
-          )}
-        </div>
-      )}
-
-      {/* VOCÊ TOPA — suas funções escolhidas. Indicação ÚNICA (some o "você" repetido
-          por linha e o antigo rodapé "Sua função"). */}
-      {myRoles && myRoles.length > 0 && (
-        <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-          <span className="font-display text-[0.7rem] font-bold uppercase tracking-wide text-play-primary">
-            {t("searchersYouOffer")}
-          </span>
-          {ROLES.filter((r) => myRoles.includes(r.id)).map((r) => (
-            <span
-              key={r.id}
-              title={t(r.key)}
-              className="flex items-center gap-1 rounded-sm border border-play-primary/40 bg-play-primary/10 px-1.5 py-0.5 font-display text-[0.7rem] font-semibold uppercase tracking-wide text-play-primary"
-            >
-              <Image src={`/dota/positions/pos-${r.pos}.png`} alt="" width={14} height={14} className="size-3.5 shrink-0 object-contain" aria-hidden="true" />
-              <span className="truncate">{t(r.key)}</span>
-            </span>
-          ))}
-        </div>
+            ))}
+          </div>
+        )
       )}
 
       {/* Findar TODAS as funções (mais flexível = fila mais rápida). */}
