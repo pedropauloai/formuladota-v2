@@ -146,6 +146,23 @@ const STRATZ_CAREER_QUERY = `query CareerPlayer($id: Long!) {
   }
 }`;
 
+// Query MÍNIMA de fallback — só o que é comprovadamente válido no schema STRATZ
+// (matchCount/winCount/seasonRank; a mesma base que o hexágono de stats já usa com
+// sucesso). Se a query rica acima falhar por um campo extra inválido (ex.: a API
+// retorna data.player=null e caíamos pro OpenDota — bug que dava W/L sem Turbo,
+// 752/750 em vez de 2150/1091), esta recupera o W/L real do STRATZ. lastMatchAt
+// vira null nesse caminho (não-crítico).
+const STRATZ_CAREER_QUERY_MIN = `query CareerPlayerMin($id: Long!) {
+  player(steamAccountId: $id) {
+    matchCount
+    winCount
+    steamAccount {
+      seasonRank
+      seasonLeaderboardRank
+    }
+  }
+}`;
+
 /**
  * Busca matchCount/winCount + seasonRank no STRATZ.
  * Melhor-esforço: chave ausente, HTTP != 200 ou shape inesperado → null
@@ -157,6 +174,22 @@ async function fetchStratzCareer(
   const apiKey = serverEnv.STRATZ_API_KEY;
   if (!apiKey) return null;
 
+  // Tenta a query rica (com lastMatchDateTime); se falhar/retornar null, cai pra
+  // mínima — assim o W/L real do STRATZ (com Turbo) é preservado mesmo que um campo
+  // extra da rica seja inválido no schema. Só cai pro OpenDota se AMBAS falharem.
+  const rich = await runStratzCareer(apiKey, accountId32, STRATZ_CAREER_QUERY);
+  if (rich) return rich;
+  const min = await runStratzCareer(apiKey, accountId32, STRATZ_CAREER_QUERY_MIN);
+  if (min) return min;
+  console.warn("[stratz] career: rich e min falharam — fallback OpenDota");
+  return null;
+}
+
+async function runStratzCareer(
+  apiKey: string,
+  accountId32: number,
+  query: string
+): Promise<StratzCareerSlice | null> {
   try {
     const res = await fetch("https://api.stratz.com/graphql", {
       method: "POST",
@@ -166,15 +199,12 @@ async function fetchStratzCareer(
         // STRATZ exige User-Agent identificado — sem ele retorna 403
         "User-Agent": "STRATZ_API",
       },
-      body: JSON.stringify({
-        query: STRATZ_CAREER_QUERY,
-        variables: { id: accountId32 },
-      }),
+      body: JSON.stringify({ query, variables: { id: accountId32 } }),
       // Cache fica no Supabase (TTL 24h) — aqui sempre dado fresco
       cache: "no-store",
     });
     if (!res.ok) {
-      console.warn(`[stratz] career retornou ${res.status} — fallback OpenDota`);
+      console.warn(`[stratz] career retornou ${res.status}`);
       return null;
     }
 
@@ -201,7 +231,7 @@ async function fetchStratzCareer(
         : null,
     };
   } catch (err) {
-    console.warn("[stratz] career fetch falhou — fallback OpenDota:", (err as Error).message);
+    console.warn("[stratz] career fetch falhou:", (err as Error).message);
     return null;
   }
 }
