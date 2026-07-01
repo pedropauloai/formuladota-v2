@@ -44,10 +44,12 @@ import { MedalPair } from "@/components/ui/medal-pair";
 import { signInWithDiscord } from "@/app/login/actions";
 import { toggleSidebar } from "@/lib/auth/sidebar-preference";
 import { FriendsList } from "@/components/profile/friends-list";
+import { PartyFrame } from "@/components/party/party-frame";
 import { Tooltip } from "@/components/ui/tooltip";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { QUESTIONS_PER_PERMISSION } from "@/lib/quiz/permissions";
 import type { FriendListEntry } from "@/lib/queries/friends";
+import type { PartyView } from "@/lib/queries/party";
 
 interface Props {
   isVisitor: boolean;
@@ -81,6 +83,10 @@ interface Props {
   initialPending?: FriendListEntry[];
   /** Sala ABERTA em que o user está — habilita "Convidar pra sala". */
   currentLobbyId?: string | null;
+  /** Grupo atual — renderiza os 4 slots ao lado do card (estilo Dota). */
+  party?: PartyView | null;
+  /** Amigos aceitos — pra lista de convite dos slots do grupo. */
+  friends?: FriendListEntry[];
 }
 
 export function MiniProfilePanel({
@@ -101,6 +107,8 @@ export function MiniProfilePanel({
   initialFriends,
   initialPending = [],
   currentLobbyId = null,
+  party = null,
+  friends = [],
 }: Props) {
   // Par canônico de medalhas (mandamento M12): SKILL (Valve) + HONOR (nível).
   // dotaRank/honorRank vêm prontos do shell — MESMA fonte do /me e do hover-card.
@@ -169,6 +177,12 @@ export function MiniProfilePanel({
           onToggle={handleToggle}
           locked={lockedExpanded}
         />
+        {/* Frame do grupo — 4 slots ao lado da foto (estilo cliente Dota 2). */}
+        {currentUserId && (
+          <div className="flex items-center rounded-md border border-brand-primary/20 bg-bg-deep/80 px-2 backdrop-blur-md">
+            <PartyFrame currentUserId={currentUserId} initialParty={party} friends={friends} />
+          </div>
+        )}
         {!lockedExpanded && (
           <ToggleIcon
             expanded={expanded}

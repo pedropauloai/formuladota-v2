@@ -30,9 +30,11 @@ interface Props {
   myQueues: MyQueueEntry[];
   /** Estado do menu Jogar Dota (cookie) — persiste entre rotas. */
   initialPlayMenu: PlayMenuState;
+  /** Está em grupo? A busca vira "em grupo" (todos entram na fila juntos). */
+  inParty: boolean;
 }
 
-export function DashboardBottomBar({ isVisitor, isAdmin, myQueues, initialPlayMenu }: Props) {
+export function DashboardBottomBar({ isVisitor, isAdmin, myQueues, initialPlayMenu, inParty }: Props) {
   const [statusModalOpen, setStatusModalOpen] = useState(false);
 
   const inQueue = myQueues.length > 0;
@@ -45,6 +47,7 @@ export function DashboardBottomBar({ isVisitor, isAdmin, myQueues, initialPlayMe
           isAdmin={isAdmin}
           inQueue={inQueue}
           initialPlayMenu={initialPlayMenu}
+          inParty={inParty}
           onStatusClick={() => setStatusModalOpen(true)}
         />
       </div>
@@ -66,10 +69,11 @@ interface CtaProps {
   isAdmin: boolean;
   inQueue: boolean;
   initialPlayMenu: PlayMenuState;
+  inParty: boolean;
   onStatusClick: () => void;
 }
 
-function Cta({ isVisitor, isAdmin, inQueue, initialPlayMenu, onStatusClick }: CtaProps) {
+function Cta({ isVisitor, isAdmin, inQueue, initialPlayMenu, inParty, onStatusClick }: CtaProps) {
   const t = useTranslations("shell");
   const base =
     "pointer-events-auto group relative flex h-14 items-center gap-3 overflow-hidden rounded-md border-2 px-8 font-display text-lg font-bold uppercase tracking-[0.25em] shadow-lg transition-all hover:scale-[1.02] xl:h-16 xl:px-12 xl:text-xl 2xl:h-20 2xl:px-16 2xl:text-2xl 2xl:tracking-[0.3em]";
@@ -110,5 +114,5 @@ function Cta({ isVisitor, isAdmin, inQueue, initialPlayMenu, onStatusClick }: Ct
   }
 
   // Visitante e usuário comum — PlayMenu (drawer full-height + estados persistidos).
-  return <PlayMenu isVisitor={isVisitor} initial={initialPlayMenu} />;
+  return <PlayMenu isVisitor={isVisitor} initial={initialPlayMenu} inParty={inParty} />;
 }

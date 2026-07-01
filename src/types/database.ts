@@ -874,6 +874,45 @@ export type Database = {
           },
         ]
       }
+      lobby_messages: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          lobby_id: string
+          sender_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          lobby_id: string
+          sender_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          lobby_id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lobby_messages_lobby_id_fkey"
+            columns: ["lobby_id"]
+            isOneToOne: false
+            referencedRelation: "lobbies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lobby_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lobby_players: {
         Row: {
           joined_at: string
@@ -3011,6 +3050,17 @@ export type Database = {
           name: string
           party_id: string
           roles: Json
+        }[]
+      }
+      party_invites_detailed: {
+        Args: never
+        Returns: {
+          invite_id: string
+          inviter_avatar: string
+          inviter_id: string
+          inviter_name: string
+          members: Json
+          party_id: string
         }[]
       }
       queue_liveness_tick: { Args: never; Returns: undefined }

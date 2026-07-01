@@ -37,6 +37,11 @@ import {
   type QueueRole,
   type QueueGameMode,
 } from "@/app/queue/actions";
+import {
+  enterPartyQueue,
+  leavePartyQueue,
+  updateMyPartyRoles,
+} from "@/actions/party";
 import { createClient } from "@/lib/supabase/client";
 import { useQueueStatusRealtime } from "@/lib/realtime/use-queue-status-realtime";
 import { QueueSearchersPanel } from "@/components/queue/queue-searchers-panel";
@@ -73,9 +78,11 @@ const GAME_MODES: { id: QueueGameMode; key: string }[] = [
 interface Props {
   isVisitor: boolean;
   initial: PlayMenuState;
+  /** Em grupo? Buscar coloca TODO o grupo na fila (mesmo time). */
+  inParty?: boolean;
 }
 
-export function PlayMenu({ isVisitor, initial }: Props) {
+export function PlayMenu({ isVisitor, initial, inParty = false }: Props) {
   const router = useRouter();
   const t = useTranslations("playMenu");
   const drawerRef = useRef<HTMLElement>(null);
@@ -199,6 +206,11 @@ export function PlayMenu({ isVisitor, initial }: Props) {
       setSearching(false);
       setActiveMatchId(st.matchedLobbyId);
       router.push(`/partida/${st.matchedLobbyId}`);
+    } else if (st.status === "waiting") {
+      // Passivo: outro membro do grupo iniciou a busca → reflete o "buscando"
+      // (contador + heartbeat) mesmo sem eu ter clicado.
+      setElapsed(st.waitingSeconds);
+      setSearching(true);
     } else if (!st.inQueue) {
       setSearching(false);
     }
@@ -235,6 +247,26 @@ export function PlayMenu({ isVisitor, initial }: Props) {
     }
     setError(null);
     startTransition(async () => {
+      // EM GRUPO: qualquer membro que buscar coloca TODOS na fila (mesmo time).
+      // Persiste as funções escolhidas como as minhas no grupo antes de buscar.
+      if (inParty) {
+        if (roles.size > 0) await updateMyPartyRoles(Array.from(roles));
+        const pres = await enterPartyQueue(gameModes);
+        if (!pres.success) {
+          setError(pres.error);
+          return;
+        }
+        if (pres.matchedLobbyId) {
+          router.push(`/partida/${pres.matchedLobbyId}`);
+          return;
+        }
+        setElapsed(0);
+        setSearching(true);
+        setSearchPanelOpen(true);
+        setPhase("button");
+        return;
+      }
+
       const res = await enterQueue({ roles: Array.from(roles), gameModes });
       if (!res.success) {
         if (res.code === "need_permission") {
@@ -288,7 +320,9 @@ export function PlayMenu({ isVisitor, initial }: Props) {
 
   function handleCancelSearch() {
     startTransition(async () => {
-      await leaveQueue();
+      // Em grupo, cancelar tira o grupo inteiro da fila.
+      if (inParty) await leavePartyQueue();
+      else await leaveQueue();
       setSearching(false);
       setSearchPanelOpen(false);
     });

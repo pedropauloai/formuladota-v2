@@ -1,6 +1,6 @@
 // Event bus leve pra abrir uma conversa de qualquer lugar (lista de amigos,
 // hover card, party) sem precisar de Context atravessando o shell inteiro.
-// O ChatDock (montado no shell) escuta OPEN_CHAT_EVENT.
+// A ChatBar (montada no shell) escuta OPEN_CHAT_EVENT e abre a aba de DM.
 
 export interface OpenChatDetail {
   userId: string;
