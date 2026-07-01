@@ -226,7 +226,12 @@ export function ProfilePage({
                 </div>
                 {/* Redes sociais sob o nick — refletem a conta do LOGIN, então só
                     aparecem no próprio perfil (evita mostrar o social do viewer). */}
-                {isOwn && <SocialIconsRow />}
+                {/* Redes sociais sob o nick — em TODOS os perfis (Pedro 2026-07-01):
+                    os ícones são placeholders idênticos pra todos (Discord conectado,
+                    já que todo login é via Discord; o resto "em breve"), então não
+                    expõem dado do viewer. Antes só apareciam no próprio (isOwn) e o
+                    perfil público ficava sem — inconsistente. */}
+                <SocialIconsRow />
               </div>
 
               {/* ── Cluster direito: só o resumo de carreira (winrate + TOP). As
