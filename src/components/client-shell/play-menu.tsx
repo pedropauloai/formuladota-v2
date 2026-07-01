@@ -45,7 +45,6 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { useQueueStatusRealtime } from "@/lib/realtime/use-queue-status-realtime";
 import { QueueSearchersPanel } from "@/components/queue/queue-searchers-panel";
-import { SmokeParticles } from "@/components/ui/smoke-particles";
 import { PermissionQuizModal } from "@/components/quiz/permission-quiz-modal";
 import { setPlayMenuState, type PlayMenuState } from "@/lib/play-menu-preference";
 import {
@@ -394,11 +393,9 @@ export function PlayMenu({ isVisitor, initial, inParty = false }: Props) {
       {/* Estado BUTTON — durante a busca vira CONTADOR + X (cancelar); senão o
           botão "Jogar Dota" (ou "Voltar à sala" se houver lobby ativo). */}
       {phase === "button" && searching && (
-        // Interface ÚNICA: painel "quem está findando" (retrátil) + contador. Fumaça
-        // viva atrás (SmokeParticles) enquanto busca — detalhe premium estilo Dota 2.
-        <div className="pointer-events-auto relative w-[340px] max-w-[calc(100vw-2rem)]">
-          <SmokeParticles />
-          <div className="relative z-[1] w-full overflow-hidden rounded-md border-2 border-play-primary bg-bg-deep shadow-lg shadow-[var(--color-play-primary-glow)]">
+        // Interface ÚNICA: painel "quem está findando" (retrátil) + contador, no
+        // MESMO card e na MESMA largura. Cresce pra cima a partir da bottom-bar.
+        <div className="pointer-events-auto w-[340px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-md border-2 border-play-primary bg-bg-deep shadow-lg shadow-[var(--color-play-primary-glow)]">
           {searchPanelOpen && (
             <div className="border-b border-border-subtle p-2.5 animate-in slide-in-from-bottom-2 fade-in duration-150">
               <QueueSearchersPanel
@@ -446,7 +443,6 @@ export function PlayMenu({ isVisitor, initial, inParty = false }: Props) {
             >
               <X size={20} aria-hidden="true" />
             </button>
-          </div>
           </div>
         </div>
       )}

@@ -8,13 +8,7 @@
 
 import { useTranslations } from "next-intl";
 import { TIER_CONFIG, getTierForLevel, type Tier } from "@/lib/levels";
-import { useReducedMotion } from "@/lib/particles/hooks";
 import { cn } from "@/lib/utils";
-
-// Ordem dos tiers → intensidade do glow. Quanto mais alto o tier, mais "vivo" o
-// anel fica (aura pulsante + halo de luz girando). Novato = sem glow (ainda não
-// provou nada — combina com a doutrina).
-const TIER_ORDER: Tier[] = ["novato", "aprendiz", "piloto", "as", "lendario", "mistico"];
 
 interface Props {
   src?: string | null;
@@ -41,14 +35,8 @@ export function XpAvatarRing({
   size = 44,
 }: Props) {
   const t = useTranslations("ui");
-  const prefersReducedMotion = useReducedMotion();
   const resolvedTier = tier ?? getTierForLevel(level);
   const cfg = TIER_CONFIG[resolvedTier];
-
-  // Intensidade do glow por tier. aura = aprendiz+ ; halo girando = ás+ (premium).
-  const intensity = Math.max(0, TIER_ORDER.indexOf(resolvedTier));
-  const hasAura = intensity >= 1;
-  const hasHalo = intensity >= 3 && !prefersReducedMotion;
 
   // Geometria: container = avatar + folga pra borda. SVG cobre o container.
   const stroke = 3;
@@ -80,35 +68,10 @@ export function XpAvatarRing({
 
   return (
     <div
-      className={cn("relative shrink-0", cfg.color)}
+      className="relative shrink-0"
       style={{ width: box, height: box }}
       aria-label={t("xpRingAria", { level, pct: Math.round(clamped * 100) })}
     >
-      {/* Aura pulsante na cor do tier — brilho "vivo" atrás do anel. */}
-      {hasAura && (
-        <span
-          aria-hidden="true"
-          className={cn(
-            "pointer-events-none absolute -inset-1 rounded-md bg-[radial-gradient(circle,currentColor_0%,transparent_70%)]",
-            intensity >= 4 ? "opacity-40" : "opacity-25",
-            !prefersReducedMotion && "animate-pulse"
-          )}
-          style={{ filter: `blur(${intensity >= 3 ? 6 : 4}px)` }}
-        />
-      )}
-      {/* Halo de luz GIRANDO (dois arcos) — só tiers de topo (ás+). Fica premium. */}
-      {hasHalo && (
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute -inset-1 rounded-md opacity-50 animate-spin [animation-duration:7s]"
-          style={{
-            background:
-              "conic-gradient(from 0deg, transparent 0deg, currentColor 40deg, transparent 90deg, transparent 270deg, currentColor 310deg, transparent 360deg)",
-            filter: "blur(3px)",
-          }}
-        />
-      )}
-
       {/* Borda-progresso */}
       <svg
         className={cn("absolute inset-0", cfg.color)}
@@ -138,7 +101,7 @@ export function XpAvatarRing({
           strokeDashoffset={1 - clamped}
           style={{
             transition: "stroke-dashoffset 700ms cubic-bezier(0.22,1,0.36,1)",
-            filter: `drop-shadow(0 0 ${4 + intensity}px currentColor)`,
+            filter: "drop-shadow(0 0 4px currentColor)",
           }}
         />
       </svg>
