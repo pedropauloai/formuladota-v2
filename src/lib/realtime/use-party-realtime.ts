@@ -6,7 +6,7 @@
 //
 // Padrões: callback em useRef; cleanup removeChannel; refetch via action.
 
-import { useEffect, useRef } from "react";
+import { useEffect, useId, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 interface PartyMsgRow {
@@ -26,6 +26,7 @@ export interface PartyChatMessage {
 
 /** Qualquer mudança estrutural na minha party (membros/líder/fila) → onChange. */
 export function usePartyRealtime(partyId: string | null, onChange: () => void) {
+  const uid = useId();
   const cbRef = useRef(onChange);
   useEffect(() => {
     cbRef.current = onChange;
@@ -34,8 +35,10 @@ export function usePartyRealtime(partyId: string | null, onChange: () => void) {
   useEffect(() => {
     if (!partyId) return;
     const supabase = createClient();
+    // Nome ÚNICO por instância (useId) — evita colisão de canal com o mesmo tópico
+    // quando mais de um componente assina a mesma party.
     const channel = supabase
-      .channel(`party-${partyId}`)
+      .channel(`party-${partyId}-${uid}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "party_members", filter: `party_id=eq.${partyId}` },
@@ -55,7 +58,7 @@ export function usePartyRealtime(partyId: string | null, onChange: () => void) {
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, [partyId]);
+  }, [partyId, uid]);
 }
 
 /** Mensagens novas no chat do grupo. */
@@ -63,6 +66,7 @@ export function usePartyMessages(
   partyId: string | null,
   onMessage: (m: PartyChatMessage) => void
 ) {
+  const uid = useId();
   const cbRef = useRef(onMessage);
   useEffect(() => {
     cbRef.current = onMessage;
@@ -72,7 +76,7 @@ export function usePartyMessages(
     if (!partyId) return;
     const supabase = createClient();
     const channel = supabase
-      .channel(`party-chat-${partyId}`)
+      .channel(`party-chat-${partyId}-${uid}`)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "party_messages", filter: `party_id=eq.${partyId}` },
@@ -90,5 +94,5 @@ export function usePartyMessages(
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, [partyId]);
+  }, [partyId, uid]);
 }

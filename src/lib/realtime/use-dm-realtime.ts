@@ -7,7 +7,7 @@
 // Padrões (RESEARCH): callback em useRef (não re-assina o canal a cada render);
 // cleanup obrigatório removeChannel; payload tratado como gatilho/append.
 
-import { useEffect, useRef } from "react";
+import { useEffect, useId, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { DmMessage } from "@/lib/queries/messages";
 
@@ -24,6 +24,7 @@ export function useDmMessages(
   conversationId: string | null,
   onMessage: (m: DmMessage) => void
 ) {
+  const uid = useId();
   const cbRef = useRef(onMessage);
   useEffect(() => {
     cbRef.current = onMessage;
@@ -33,7 +34,7 @@ export function useDmMessages(
     if (!conversationId) return;
     const supabase = createClient();
     const channel = supabase
-      .channel(`dm-${conversationId}`)
+      .channel(`dm-${conversationId}-${uid}`)
       .on(
         "postgres_changes",
         {
@@ -57,7 +58,7 @@ export function useDmMessages(
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, [conversationId]);
+  }, [conversationId, uid]);
 }
 
 /**
@@ -68,6 +69,7 @@ export function useDmInboxSignal(
   enabled: boolean,
   onInsert: (senderId: string, conversationId: string) => void
 ) {
+  const uid = useId();
   const cbRef = useRef(onInsert);
   useEffect(() => {
     cbRef.current = onInsert;
@@ -77,7 +79,7 @@ export function useDmInboxSignal(
     if (!enabled) return;
     const supabase = createClient();
     const channel = supabase
-      .channel("dm-inbox-signal")
+      .channel(`dm-inbox-signal-${uid}`)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "dm_messages" },
@@ -90,5 +92,5 @@ export function useDmInboxSignal(
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, [enabled]);
+  }, [enabled, uid]);
 }
