@@ -332,18 +332,9 @@ export async function ClientShell({
 
   // ============== Modo DEFAULT — grid 3-col ==============
   return (
-    <div className={`relative flex ${shellHeightCls} flex-col overflow-hidden bg-black`}>
-      <div
-        className="pointer-events-none fixed inset-0 z-[var(--z-atmosphere)]"
-        style={{
-          backgroundImage: `
-            radial-gradient(ellipse at 50% 0%, rgba(172, 29, 14, 0.08) 0%, transparent 60%),
-            radial-gradient(ellipse at 50% 100%, rgba(0, 0, 0, 0.95) 0%, transparent 80%),
-            linear-gradient(to bottom, var(--color-bg-base) 0%, var(--color-bg-deep) 50%, black 100%)
-          `,
-        }}
-        aria-hidden="true"
-      />
+    // Sem bg-black: o PremiumBackdrop global (root layout) é o fundo — evita o preto
+    // chapado e vale pra todas as rotas. Pedro 2026-07-01.
+    <div className={`relative flex ${shellHeightCls} flex-col overflow-hidden`}>
 
       <DashboardTopBar
         currentRoute={currentRoute}

@@ -104,11 +104,14 @@ export function PlayMenu({
   const [active, setActive] = useState<Modalidade>(initial.a);
   const [lobbyId, setLobbyId] = useState<string | null>(initial.l);
 
-  // Competitiva
-  const [roles, setRoles] = useState<Set<QueueRole>>(new Set());
+  // Competitiva — funções/modos RESTAURADOS do cookie (Pedro 2026-07-01): o jogador
+  // reencontra a última seleção ao abrir a busca, sem remarcar toda vez.
+  const [roles, setRoles] = useState<Set<QueueRole>>(new Set(initial.r ?? []));
   // Multi-modo (Pedro 2026-06-30): marca/desmarca; ao menos 1 ativo. Quem marca os
   // dois entra nas duas filas e sai de ambas ao casar (1 linha por user no banco).
-  const [gameModes, setGameModes] = useState<QueueGameMode[]>(["all_pick"]);
+  const [gameModes, setGameModes] = useState<QueueGameMode[]>(
+    initial.g && initial.g.length > 0 ? initial.g : ["all_pick"]
+  );
   const toggleGameMode = (m: QueueGameMode) =>
     setGameModes((prev) =>
       prev.includes(m)
@@ -138,9 +141,17 @@ export function PlayMenu({
   const [editing, setEditing] = useState(false);
 
   // Persiste o estado no cookie sempre que muda (sobrevive à navegação entre rotas).
+  // Inclui funções/modos escolhidos → a próxima busca já vem com a seleção salva.
   useEffect(() => {
-    void setPlayMenuState({ s: phase, v: view, l: lobbyId, a: active });
-  }, [phase, view, lobbyId, active]);
+    void setPlayMenuState({
+      s: phase,
+      v: view,
+      l: lobbyId,
+      a: active,
+      r: Array.from(roles),
+      g: gameModes,
+    });
+  }, [phase, view, lobbyId, active, roles, gameModes]);
 
   // Ao montar: re-busca a sala aberta (se o cookie apontava pra uma).
   useEffect(() => {
