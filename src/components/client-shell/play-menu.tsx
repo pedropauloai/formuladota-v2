@@ -49,6 +49,7 @@ import { ShaderSmoke } from "@/components/ui/shader-smoke";
 import type { SmokeAsset } from "@/lib/cosmetics";
 import { PermissionQuizModal } from "@/components/quiz/permission-quiz-modal";
 import { setPlayMenuState, type PlayMenuState } from "@/lib/play-menu-preference";
+import { ROLES, GAME_MODES } from "@/lib/queue/constants";
 import {
   fetchOpenLobbies,
   fetchLobbyRoom,
@@ -61,21 +62,6 @@ import { CriarLobbyForm } from "@/app/criar-lobby/criar-lobby-form";
 
 type Modalidade = "competitiva" | "salas" | "pro";
 type View = "menu" | "lista" | "sala";
-
-const ROLES: { id: QueueRole; pos: string; key: string }[] = [
-  { id: "safelane", pos: "1", key: "roleSafelane" },
-  { id: "midlane", pos: "2", key: "roleMidlane" },
-  { id: "offlane", pos: "3", key: "roleOfflane" },
-  { id: "support", pos: "4", key: "roleSupport" },
-  { id: "support_dedicated", pos: "5", key: "roleSupportDedicated" },
-];
-
-// Só 2 modos oferecidos (Pedro 2026-06-30): escolha livre + capitães. Os outros
-// valores do enum seguem aceitos em dados antigos, mas não aparecem mais na UI.
-const GAME_MODES: { id: QueueGameMode; key: string }[] = [
-  { id: "all_pick", key: "modeAllPick" },
-  { id: "captains_mode", key: "modeCaptains" },
-];
 
 interface Props {
   isVisitor: boolean;

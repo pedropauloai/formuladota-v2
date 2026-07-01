@@ -525,7 +525,7 @@ export function GrantAchievementModal({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 rounded-md border border-purple-500/40 bg-purple-500/5 px-2.5 py-1 font-display font-semibold text-sm uppercase tracking-wide text-purple-400 hover:bg-purple-500/15 transition-colors"
+        className="inline-flex items-center gap-1.5 rounded-md border border-yellow-500/40 bg-yellow-500/5 px-2.5 py-1 font-display font-semibold text-sm uppercase tracking-wide text-yellow-400 hover:bg-yellow-500/15 transition-colors"
       >
         <Trophy size={11} />
         {t("grantAchievement")}
@@ -565,7 +565,7 @@ export function GrantAchievementModal({
           onClose={close}
           onConfirm={submit}
           confirmLabel={t("grant")}
-          confirmCls="bg-purple-600 hover:bg-purple-500"
+          confirmCls="bg-yellow-600 hover:bg-yellow-500"
           disabled={!reason.trim()}
         />
       </ModalBase>

@@ -49,7 +49,7 @@ function BehaviorBadge({ status, t }: { status: string | null; t: Translator }) 
 function RoleBadge({ role, t }: { role: string | null; t: Translator }) {
   const map: Record<string, { label: string; cls: string }> = {
     admin: { label: "Admin", cls: "border-brand-primary/60 text-brand-primary" },
-    coach: { label: "Coach", cls: "border-purple-500/60 text-purple-400" },
+    coach: { label: "Coach", cls: "border-yellow-500/60 text-yellow-400" },
     player: { label: t("rolePlayer"), cls: "border-border-subtle text-text-muted" },
   };
   const conf = map[role ?? ""] ?? { label: role ?? "—", cls: "border-border-subtle text-text-muted" };
