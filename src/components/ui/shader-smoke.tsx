@@ -41,24 +41,44 @@ float fbm(vec2 p){
 void main(){
   vec2 uv = gl_FragCoord.xy / u_res.xy;
   float aspect = u_res.x / max(u_res.y, 1.0);
-  vec2 p = vec2(uv.x*aspect, uv.y) * 3.0;
   float t = u_time * 0.09;
-  p.y -= t * 2.2;                                  // sobe
-  // domain warp — dá o aspecto de fumaça enrolando
+
+  // --- fumaça/brasa: fbm com domain warp, densa na base, subindo ---
+  vec2 p = vec2(uv.x*aspect, uv.y) * 3.0;
+  p.y -= t * 2.2;
   vec2 q = vec2(fbm(p), fbm(p + vec2(5.2, 1.3)));
   vec2 r = vec2(fbm(p + 2.0*q + vec2(1.7, 9.2) + t), fbm(p + 2.0*q + vec2(8.3, 2.8) - t));
   float f = fbm(p + 2.0*r);
   float d = clamp(f, 0.0, 1.0);
-  d = pow(d, 1.4);                                 // mais denso (grau a mais)
-  // máscara: denso embaixo, some no topo + bordas
-  float mask = smoothstep(1.05, 0.08, uv.y);
-  mask *= smoothstep(0.0, 0.2, uv.x) * smoothstep(1.0, 0.8, uv.x);
+  d = pow(d, 1.5);
+  // denso na base, some no topo; suaviza nas laterais
+  float edges = smoothstep(0.0, 0.16, uv.x) * smoothstep(1.0, 0.84, uv.x);
+  float mask = smoothstep(0.98, 0.04, uv.y) * edges;
   d *= mask;
-  // cor: escuro -> mid (verde) -> hot (dourado) nas partes densas + glow
-  vec3 col = mix(u_mid * 0.14, u_mid, smoothstep(0.06, 0.5, d));
-  col = mix(col, u_hot, smoothstep(0.45, 0.9, d));
-  col += u_hot * pow(d, 2.6) * 0.95;               // glow (fake bloom) mais forte
-  float alpha = clamp(d * u_intensity, 0.0, 1.0);
+  vec3 col = mix(u_mid * 0.12, u_mid, smoothstep(0.05, 0.5, d));
+  col = mix(col, u_hot, smoothstep(0.4, 0.9, d));
+  col += u_hot * pow(d, 2.6) * 1.0;                // glow quente (fake bloom)
+  float alpha = d;
+
+  // --- faíscas / brasas subindo (o detalhe do cliente Dota) ---
+  float ember = 0.0;
+  for (int i = 0; i < 16; i++) {
+    float fi = float(i);
+    float sx = hash(vec2(fi, 7.13));
+    float sp = 0.30 + hash(vec2(fi, 3.7)) * 0.55;   // velocidade da faísca
+    float ph = hash(vec2(fi, 9.1));
+    float y = fract(ph + t * sp * 1.8);             // sobe 0->1 e reinicia
+    float x = sx + 0.03 * sin(u_time * 0.7 + fi * 2.1) * y; // leve deriva lateral
+    vec2 pos = vec2(x * aspect, y);
+    float dd = distance(vec2(uv.x * aspect, uv.y), pos);
+    float life = (1.0 - y) * smoothstep(0.0, 0.08, y); // nasce embaixo, some no topo
+    ember += smoothstep(0.013, 0.0, dd) * life;
+  }
+  ember *= edges;                                   // faíscas somem junto com as bordas
+  col += u_hot * ember * 2.4;                       // faíscas brilham quente
+  alpha += ember * 1.5;
+
+  alpha = clamp(alpha * u_intensity, 0.0, 1.0);
   gl_FragColor = vec4(col, alpha);
 }
 `;
@@ -104,6 +124,15 @@ export function ShaderSmoke({
     });
     if (!gl) return; // sem WebGL → fallback transparente
 
+    // Limpa IMEDIATAMENTE pra transparente. No ANGLE/D3D11 (Windows) um canvas WebGL
+    // recém-criado e ainda não desenhado — ou com shader que falha — aparece BRANCO.
+    // Garantir o buffer limpo antes de qualquer coisa evita o "bloco branco".
+    gl.clearColor(0, 0, 0, 0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    // Perda de contexto não deve pintar o canvas de branco.
+    const onLost = (e: Event) => e.preventDefault();
+    canvas.addEventListener("webglcontextlost", onLost);
+
     const vs = gl.createShader(gl.VERTEX_SHADER);
     const fs = gl.createShader(gl.FRAGMENT_SHADER);
     const prog = gl.createProgram();
@@ -114,6 +143,16 @@ export function ShaderSmoke({
     gl.compileShader(vs);
     gl.shaderSource(fs, FRAG);
     gl.compileShader(fs);
+    // Se o shader não compila neste driver/GPU, deixa o canvas TRANSPARENTE (limpo),
+    // nunca branco — e desiste graciosamente.
+    if (
+      !gl.getShaderParameter(vs, gl.COMPILE_STATUS) ||
+      !gl.getShaderParameter(fs, gl.COMPILE_STATUS)
+    ) {
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      canvas.removeEventListener("webglcontextlost", onLost);
+      return;
+    }
     gl.attachShader(prog, vs);
     gl.attachShader(prog, fs);
     gl.linkProgram(prog);
@@ -180,6 +219,7 @@ export function ShaderSmoke({
       running = false;
       cancelAnimationFrame(raf);
       document.removeEventListener("visibilitychange", onVis);
+      canvas.removeEventListener("webglcontextlost", onLost);
       ro.disconnect();
       const lose = gl.getExtension("WEBGL_lose_context");
       if (lose) lose.loseContext();

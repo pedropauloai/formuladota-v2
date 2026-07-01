@@ -408,7 +408,10 @@ export function PlayMenu({
           <ShaderSmoke
             mid={smokeTheme?.mid ?? "#00C466"}
             hot={smokeTheme?.hot ?? "#e0b64e"}
-            intensity={1.05}
+            intensity={1.15}
+            // Transborda o card em todos os lados (aparece mesmo com o painel expandido)
+            // e desce encostando na base da tela. Pedro 2026-07-01.
+            className="-inset-x-16 -top-40 -bottom-4"
           />
           <div className="relative z-[1] w-full overflow-hidden rounded-md border-2 border-play-primary bg-bg-deep shadow-lg shadow-[var(--color-play-primary-glow)]">
           {searchPanelOpen && (

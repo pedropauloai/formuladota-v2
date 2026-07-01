@@ -20,6 +20,32 @@
       "chat_reaction": "Reactions"
     }
   },
+  "planos": {
+    "metaTitle": "Plans",
+    "eyebrow": "Compendium",
+    "title": "Choose your plan",
+    "subtitle": "Everyone plays and levels up for free. Plans speed up the Compendium and unlock season-exclusive cosmetics.",
+    "perMonth": "/mo",
+    "free": "Free",
+    "badgeTop": "Top",
+    "subscribe": "Subscribe",
+    "currentBase": "Your base plan",
+    "note": "Recurring billing is coming soon — for now, this is a preview of the plans.",
+    "names": { "gratuito": "Free", "aegis": "Aegis", "godlike": "Godlike" },
+    "features": {
+      "trilhaBasica": "Free Compendium track",
+      "trilhaCompleta": "Full Compendium track",
+      "cosmeticosMerito": "Merit cosmetics (level & tier)",
+      "mult1": "Pass XP 1×",
+      "mult15": "Pass XP 1.5×",
+      "mult2": "Pass XP 2×",
+      "linhaAegis": "Season Aegis cosmetic line",
+      "linhaGodlike": "Season Godlike Immortal cosmetic",
+      "criarSalas": "Unlimited room creation",
+      "seloGodlike": "Godlike badge on profile",
+      "acessoAntecipado": "Early access to new features"
+    }
+  },
   "common": {
     "language": "Language",
     "loading": "Loading…"

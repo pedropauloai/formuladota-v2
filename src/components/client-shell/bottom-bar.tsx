@@ -48,7 +48,7 @@ export function DashboardBottomBar({
 
   return (
     <>
-      <div className="relative z-[var(--z-overlay)] flex h-20 shrink-0 items-end justify-end px-4 pb-3 xl:h-24 xl:px-6 2xl:h-28 2xl:px-8 pointer-events-none">
+      <div className="relative z-[var(--z-overlay)] flex h-20 shrink-0 items-end justify-end px-6 pb-6 xl:h-24 xl:px-10 xl:pb-8 2xl:h-28 2xl:px-14 2xl:pb-10 pointer-events-none">
         <Cta
           isVisitor={isVisitor}
           inQueue={inQueue}

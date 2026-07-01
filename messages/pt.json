@@ -20,6 +20,32 @@
       "chat_reaction": "Reações"
     }
   },
+  "planos": {
+    "metaTitle": "Planos",
+    "eyebrow": "Compendium",
+    "title": "Escolha seu plano",
+    "subtitle": "Todo mundo joga e evolui de graça. Os planos aceleram o Compendium e desbloqueiam cosméticos exclusivos da temporada.",
+    "perMonth": "/mês",
+    "free": "Grátis",
+    "badgeTop": "Topo",
+    "subscribe": "Assinar",
+    "currentBase": "Seu plano base",
+    "note": "A cobrança recorrente chega em breve — por enquanto, isto é uma prévia dos planos.",
+    "names": { "gratuito": "Gratuito", "aegis": "Aegis", "godlike": "Godlike" },
+    "features": {
+      "trilhaBasica": "Trilha grátis do Compendium",
+      "trilhaCompleta": "Trilha completa do Compendium",
+      "cosmeticosMerito": "Cosméticos de mérito (nível e tier)",
+      "mult1": "XP do passe 1×",
+      "mult15": "XP do passe 1,5×",
+      "mult2": "XP do passe 2×",
+      "linhaAegis": "Linha de cosméticos Aegis da temporada",
+      "linhaGodlike": "Cosmético Imortal Godlike da temporada",
+      "criarSalas": "Criar salas sem limite",
+      "seloGodlike": "Selo Godlike no perfil",
+      "acessoAntecipado": "Acesso antecipado a novidades"
+    }
+  },
   "common": {
     "language": "Idioma",
     "loading": "Carregando…"
