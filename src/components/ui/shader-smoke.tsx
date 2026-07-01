@@ -52,11 +52,14 @@ void main(){
   float f = fbm(p + 2.0*r);
   float d = clamp(f, 0.0, 1.0);
   d = pow(d, 1.5);
-  // denso no canto inferior DIREITO, esvaindo LONGE pra esquerda e pra cima
-  // (alcança até onde as faíscas viajam)
+  // denso no canto inferior DIREITO, esvaindo LONGE pra esquerda e pra cima.
   float mx = smoothstep(-1.1, 1.15, uv.x);         // denso à direita, chega longe à esquerda
   float my = smoothstep(1.35, -0.15, uv.y);        // denso embaixo, sobe mais alto
-  float mask = mx * my;
+  // edgeFade: leva o alpha a ZERO de forma SUAVE antes das bordas do canvas, pra não
+  // aparecer "linha de corte" — a fumaça precisa parecer PNG/alpha. Pedro 2026-07-01.
+  float edgeFade = smoothstep(0.0, 0.18, uv.x)     // some suave na borda ESQUERDA
+                 * smoothstep(1.0, 0.78, uv.y);    // some suave na borda TOPO
+  float mask = mx * my * edgeFade;
   d *= mask;
   vec3 col = mix(u_mid * 0.12, u_mid, smoothstep(0.05, 0.5, d));
   col = mix(col, u_hot, smoothstep(0.4, 0.9, d));
@@ -83,6 +86,9 @@ void main(){
     emberCore += smoothstep(0.0042, 0.0, dd) * life * flick;   // núcleo minúsculo
     emberHalo += smoothstep(0.011, 0.0, dd) * life;            // halo delicado
   }
+  // faíscas também somem suave nas bordas (sem corte)
+  emberCore *= edgeFade;
+  emberHalo *= edgeFade;
   col += (u_hot + vec3(0.55)) * emberCore * 2.2;    // núcleo quase BRANCO (brilhante)
   col += u_hot * emberHalo * 0.8;                   // halo na cor quente
   alpha += emberCore * 1.7 + emberHalo * 0.45;
