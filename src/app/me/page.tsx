@@ -67,40 +67,41 @@ export default async function MePage({ searchParams }: PageProps) {
   // Edit mode via searchParams — ?edit=1 ativa edição inline
   const editing = edit === "1";
 
-  // Carreira OpenDota/STRATZ (cache 24h, nunca lança) — bloco "Carreira" +
-  // backdrop do herói nº 1. null = sem Steam/sem dados.
-  const career = await getCareerStats(profile.userId);
+  // PERFORMANCE (auditoria): tudo que só depende de profile.userId roda em PARALELO.
+  // Antes eram ~6 awaits em série (~6 round-trips somados no TTFB). getCareerStats e
+  // syncPlayerStats têm cache próprio (24h) e nunca lançam.
+  const supabase = await createClient();
+  const [career, levelRow, coachingReviews, ext, fdotaStats, equippedForBg] =
+    await Promise.all([
+      // Carreira OpenDota/STRATZ (cache 24h) — hexágono + medalha SKILL.
+      getCareerStats(profile.userId),
+      supabase
+        .from("user_levels")
+        .select("total_xp_earned")
+        .eq("user_id", profile.userId)
+        .maybeSingle(),
+      // Análises de coaching recebidas (aba Conduta) — RLS: aluno lê as próprias.
+      getCoachingReviewsForUser(supabase, profile.userId),
+      // Carreira REAL (STRATZ) pros hexágonos de performance.
+      syncPlayerStats({ userId: profile.userId }),
+      getFormulaDotaProfileStats(profile.userId),
+      // Fundo do perfil (slot profile_theme equipado).
+      getEquippedForUser(supabase, profile.userId),
+    ]);
 
-  // Medalha SKILL = RANK VALVE REAL (career.rankTier via STRATZ/OpenDota).
-  // Só cai pro MMR da liga FormulaDota quando não há carreira sincronizada —
-  // antes usava só o MMR (vazio) e mostrava Herald pra todo mundo (bug 2026-06-29).
+  // Medalha SKILL = RANK VALVE REAL (career.rankTier); fallback pro MMR de liga.
   const dotaRank =
     rankTierToDotaRank(career?.rankTier ?? null, career?.leaderboardRank ?? null) ??
     mmrToDotaRank(profile.mmr);
 
-  // HONOR = NÍVEL da conta (decisão "nível É o honor" 2026-06-02) com co-requisito
-  // de skill no topo. MESMA fonte do mini-perfil e do hover-card — antes o /me usava
-  // o honor_ledger legado (legacyHonorToBand) e a medalha divergia do mini-perfil.
-  const supabase = await createClient();
-  const { data: levelRow } = await supabase
-    .from("user_levels")
-    .select("total_xp_earned")
-    .eq("user_id", profile.userId)
-    .maybeSingle();
-  const { level } = xpProgress(levelRow?.total_xp_earned ?? 0);
-  // Gate de honra pela skill Valve REAL (career.rankTier), não pelo MMR de liga.
+  // HONOR = NÍVEL da conta com co-requisito de skill (gate pela skill Valve real).
+  const { level } = xpProgress(levelRow.data?.total_xp_earned ?? 0);
   const honorRank: HonorRank = getGatedTierForLevel(
     level,
     mmrFromRankTier(career?.rankTier ?? null)
   );
 
-  // Análises de coaching recebidas (aba Conduta) — RLS: o aluno lê as próprias.
-  const coachingReviews = await getCoachingReviewsForUser(supabase, profile.userId);
-
-  // Carreira REAL (STRATZ) + partidas FormulaDota → os 2 hexágonos de performance.
-  const ext = await syncPlayerStats({ userId: profile.userId });
   const extData = ext.success ? ext.data : null;
-  const fdotaStats = await getFormulaDotaProfileStats(profile.userId);
 
   // Hexágono "Conta geral" = carreira do STRATZ (KDA/GPM/XPM/LH/Dano médios).
   const general = extData
@@ -116,13 +117,7 @@ export default async function MePage({ searchParams }: PageProps) {
       }
     : null;
 
-  // Top heróis do header = OpenDota all-time (melhor "mais jogados"). O STRATZ
-  // heroesPerformance é janela RECENTE, não all-time — por isso não serve aqui.
-
-  // Fundo do perfil = cosmético do slot profile_theme EQUIPADO (biblioteca de fundos).
-  // Default (nada equipado) = undefined → fundo premium limpo, SEM herói automático
-  // (Pedro 2026-07-01: o retrato do herói atrás poluía; agora o fundo é escolhível).
-  const equippedForBg = await getEquippedForUser(supabase, profile.userId);
+  // Fundo do perfil = profile_theme equipado; default (nada) = fundo premium limpo.
   const centerHero = equippedForBg.profileTheme ?? undefined;
 
   return (
