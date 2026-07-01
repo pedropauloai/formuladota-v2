@@ -73,8 +73,8 @@ export function PartyInvitePopup({ userId, initialInvites }: Props) {
   }
 
   return (
-    <div className="pointer-events-none fixed inset-0 z-[var(--z-takeover)] flex items-center justify-center p-4">
-      <div className="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg border border-brand-primary/50 bg-bg-deep/95 backdrop-blur-xl shadow-[var(--shadow-cinematic)] animate-in zoom-in-95 fade-in duration-200">
+    <div className="pointer-events-auto fixed inset-0 z-[var(--z-takeover)] flex items-center justify-center bg-bg-deep/85 p-4 backdrop-blur-sm animate-in fade-in duration-150">
+      <div className="w-full max-w-sm overflow-hidden rounded-lg border border-brand-primary/50 bg-bg-deep/95 shadow-[var(--shadow-cinematic)] animate-in zoom-in-95 fade-in duration-200">
         {/* Cabeçalho */}
         <div className="flex flex-col items-center gap-3 border-b border-border-subtle px-6 pt-6 pb-5">
           <span className="flex items-center gap-1.5 font-display text-[12px] font-bold uppercase tracking-[0.15em] text-brand-primary">

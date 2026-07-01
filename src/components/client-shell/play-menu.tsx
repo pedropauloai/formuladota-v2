@@ -22,7 +22,7 @@ import {
   Plus,
   Compass,
   Loader2,
-  Search,
+  Play,
   ArrowLeft,
   Check,
   ChevronUp,
@@ -406,7 +406,7 @@ export function PlayMenu({ isVisitor, initial, inParty = false }: Props) {
               />
             </div>
           )}
-          <div className="flex h-14 items-center gap-3 px-4 xl:h-16">
+          <div className="flex h-11 items-center gap-3 px-4 xl:h-12">
             <Loader2 size={22} className="animate-spin text-play-primary" aria-hidden="true" />
             <span className="flex flex-col leading-tight">
               <span className="font-display text-xs uppercase tracking-[0.2em] text-text-muted">
@@ -451,7 +451,7 @@ export function PlayMenu({ isVisitor, initial, inParty = false }: Props) {
         <button
           type="button"
           onClick={() => router.push(`/partida/${activeMatchId}`)}
-          className="pointer-events-auto group relative flex h-14 items-center gap-3 overflow-hidden rounded-md border-2 border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover px-8 font-display text-lg font-bold uppercase tracking-[0.25em] text-text-display shadow-lg shadow-[var(--color-play-primary-glow)] transition-all hover:scale-[1.02] xl:h-16 xl:px-12 xl:text-xl 2xl:h-20 2xl:px-16 2xl:text-2xl"
+          className="pointer-events-auto group relative flex h-11 items-center gap-3 overflow-hidden rounded-md border-2 border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover px-8 font-display text-lg font-bold uppercase tracking-[0.25em] text-text-display shadow-lg shadow-[var(--color-play-primary-glow)] transition-all hover:scale-[1.02] xl:h-12 xl:px-12 xl:text-xl 2xl:h-14 2xl:px-16 2xl:text-2xl"
         >
           <ArrowLeft size={22} aria-hidden="true" />
           <span>{t("backToMatch")}</span>
@@ -465,9 +465,9 @@ export function PlayMenu({ isVisitor, initial, inParty = false }: Props) {
         <button
           type="button"
           onClick={() => setPhase("expanded")}
-          className="pointer-events-auto group relative flex h-14 items-center gap-3 overflow-hidden rounded-md border-2 border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover px-8 font-display text-lg font-bold uppercase tracking-[0.25em] text-text-display shadow-lg shadow-[var(--color-play-primary-glow)] transition-all hover:scale-[1.02] xl:h-16 xl:px-12 xl:text-xl 2xl:h-20 2xl:px-16 2xl:text-2xl"
+          className="pointer-events-auto group relative flex h-11 items-center gap-3 overflow-hidden rounded-md border-2 border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover px-8 font-display text-lg font-bold uppercase tracking-[0.25em] text-text-display shadow-lg shadow-[var(--color-play-primary-glow)] transition-all hover:scale-[1.02] xl:h-12 xl:px-12 xl:text-xl 2xl:h-14 2xl:px-16 2xl:text-2xl"
         >
-          {hasSala ? <ArrowLeft size={22} aria-hidden="true" /> : <Search size={22} aria-hidden="true" />}
+          {hasSala ? <ArrowLeft size={22} aria-hidden="true" /> : <Play size={22} aria-hidden="true" />}
           <span>{hasSala ? t("backToRoom") : t("play")}</span>
           <span
             className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform [transition-duration:var(--motion-duration-hero)] group-hover:translate-x-full"
@@ -766,13 +766,15 @@ function MenuView({
           )}
           {/* Buscar: ao iniciar a busca o drawer retrai e o estado "searching" passa
               a viver na bottom-bar (contador + X). Aqui fica só o gatilho de busca. */}
+          {/* MESMO tamanho/estilo do botão "Jogar Dota" (Pedro 2026-07-01): a
+              sensação é que o menu abre e o próprio botão troca as palavras. */}
           <button
             type="button"
             onClick={onBuscar}
             disabled={pending}
-            className="flex w-full items-center justify-center gap-2 rounded-md border border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover px-4 py-2.5 font-display text-base font-bold uppercase tracking-[0.15em] text-text-display transition-all hover:brightness-110 disabled:opacity-60"
+            className="flex h-11 w-full items-center justify-center gap-3 rounded-md border-2 border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover px-8 font-display text-lg font-bold uppercase tracking-[0.25em] text-text-display shadow-lg shadow-[var(--color-play-primary-glow)] transition-all hover:brightness-110 disabled:opacity-60 xl:h-12 xl:text-xl"
           >
-            {pending ? <Loader2 size={18} className="animate-spin" /> : <Search size={18} aria-hidden="true" />}
+            {pending ? <Loader2 size={22} className="animate-spin" /> : <Play size={22} aria-hidden="true" />}
             {t("searchMatch")}
           </button>
         </div>
