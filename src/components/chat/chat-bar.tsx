@@ -106,6 +106,16 @@ export function ChatBar({ currentUserId, party, lobbyId, initialInbox, friends }
       setInbox(data);
       if (senderId === currentUserId) return;
       const conv = data.find((c) => c.otherUserId === senderId);
+      // Abre a ABA da conversa com quem mandou (sem roubar foco / sem forçar
+      // expandir) — o usuário não precisa mais achar a conversa no "+". A badge
+      // de não-lidas aparece nessa aba via alertIncoming.
+      if (conv) {
+        setOpenDms((prev) =>
+          prev.some((d) => d.userId === senderId)
+            ? prev
+            : [...prev, { userId: senderId, name: conv.otherName, avatar: conv.otherAvatarUrl }]
+        );
+      }
       alertIncoming(
         `dm:${senderId}`,
         conv?.otherName ?? "Nova mensagem",

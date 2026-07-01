@@ -49,22 +49,28 @@ function MessageList({
   }, [messages]);
 
   return (
-    <div ref={ref} className="h-[240px] overflow-y-auto px-3 py-2 space-y-1">
+    <div ref={ref} className="h-[240px] overflow-y-auto px-3 py-2">
       {messages.length === 0 ? (
-        <p className="px-1 py-6 text-center font-display text-[13px] text-text-faded">{emptyHint}</p>
+        <div className="flex h-full items-center justify-center">
+          <p className="text-center font-display text-[13px] text-text-faded">{emptyHint}</p>
+        </div>
       ) : (
-        messages.map((m) => {
-          const mine = m.senderId === currentUserId;
-          return (
-            <p key={m.id} className="font-sans text-[13px] leading-snug break-words">
-              <span className={`font-display font-semibold ${mine ? "text-brand-primary" : "text-text-display"}`}>
-                {mine ? "Você" : m.senderName}:
-              </span>{" "}
-              <span className="text-text-body">{m.body}</span>{" "}
-              <span className="text-[10px] text-text-faded tabular-nums">{timeLabel(m.createdAt)}</span>
-            </p>
-          );
-        })
+        // Ancorado no rodapé: com poucas mensagens elas ficam embaixo (preenchem
+        // de baixo pra cima); a mais nova sempre embaixo.
+        <div className="flex min-h-full flex-col justify-end space-y-1">
+          {messages.map((m) => {
+            const mine = m.senderId === currentUserId;
+            return (
+              <p key={m.id} className="font-sans text-[13px] leading-snug break-words">
+                <span className={`font-display font-semibold ${mine ? "text-brand-primary" : "text-text-display"}`}>
+                  {mine ? "Você" : m.senderName}:
+                </span>{" "}
+                <span className="text-text-body">{m.body}</span>{" "}
+                <span className="text-[10px] text-text-faded tabular-nums">{timeLabel(m.createdAt)}</span>
+              </p>
+            );
+          })}
+        </div>
       )}
     </div>
   );
