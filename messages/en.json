@@ -96,6 +96,7 @@
   },
   "topbar": {
     "settings": "Settings",
+    "myProfile": "My profile",
     "signOut": "Sign out",
     "close": "Close",
     "prosOnline": "{count, plural, =1 {# PRO online} other {# PROs online}}",

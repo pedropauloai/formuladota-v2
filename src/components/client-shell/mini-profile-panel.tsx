@@ -27,18 +27,7 @@
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import {
-  Coins,
-  Crown,
-  ExternalLink,
-  MessageSquare,
-  BookOpen,
-  LogIn,
-  Users,
-  ShieldCheck,
-  Palette,
-  ScrollText,
-} from "lucide-react";
+import { Coins, Crown, LogIn, Users, ShieldCheck } from "lucide-react";
 import { type DotaRank } from "@/components/ui/dota-rank-medal";
 import { type HonorRank } from "@/components/ui/honor-rank-medal";
 import { MedalPair } from "@/components/ui/medal-pair";
@@ -446,19 +435,6 @@ function ExpandedPanel({
         />
       </div>
 
-      {/* Atalhos compactos no fim */}
-      <nav aria-label={t("shortcuts")} className="space-y-1 border-t border-border-subtle pt-3">
-        <CompactLink href="/colecao" label={t("collection")} icon={Palette} />
-        <CompactLink href="/compendium" label={t("compendium")} icon={ScrollText} />
-        <CompactLink href="/planos" label={t("plans")} icon={Crown} />
-        <CompactLink href="/codigo-de-conduta" label={t("codeOfConduct")} icon={BookOpen} />
-        <CompactLink
-          href="https://discord.com/invite/USntaFRS6x"
-          label={t("discordOfficial")}
-          icon={MessageSquare}
-          external
-        />
-      </nav>
     </aside>
   );
 }
@@ -522,32 +498,3 @@ function FichasCard({ balance, isAdmin }: { balance: number; isAdmin: boolean })
   );
 }
 
-function CompactLink({
-  href,
-  label,
-  icon: Icon,
-  external,
-}: {
-  href: string;
-  label: string;
-  icon: typeof BookOpen;
-  external?: boolean;
-}) {
-  const cls =
-    "flex items-center gap-2 rounded px-2 py-1.5 font-sans text-sm text-text-body hover:bg-bg-elevated hover:text-text-display transition-colors";
-  if (external) {
-    return (
-      <a href={href} target="_blank" rel="noreferrer" className={cls}>
-        <Icon size={12} aria-hidden="true" />
-        {label}
-        <ExternalLink size={9} className="ml-auto text-text-faded" aria-hidden="true" />
-      </a>
-    );
-  }
-  return (
-    <Link href={href} className={cls}>
-      <Icon size={12} aria-hidden="true" />
-      {label}
-    </Link>
-  );
-}

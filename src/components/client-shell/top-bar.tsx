@@ -20,8 +20,19 @@
 
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
-import { Settings, LogOut, LogIn, Shield, Eye, EyeOff, Radio, Swords } from "lucide-react";
-import { signOut, signInWithDiscord } from "@/app/login/actions";
+import {
+  Settings,
+  LogIn,
+  Shield,
+  Eye,
+  EyeOff,
+  Radio,
+  Swords,
+  Palette,
+  ScrollText,
+  Crown,
+} from "lucide-react";
+import { signInWithDiscord } from "@/app/login/actions";
 import { togglePreviewMode } from "@/lib/auth/preview-mode";
 import { Tooltip } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -30,7 +41,7 @@ import { MatchQueuePill } from "@/components/queue/match-queue-pill";
 import { MobileNav } from "./mobile-nav";
 import type { MyQueueEntry } from "@/lib/queries/queue";
 import { useTranslations } from "next-intl";
-import { LanguageSwitcher } from "@/components/i18n/language-switcher";
+import { SettingsPopup } from "./settings-popup";
 
 type TopBarTabDef = {
   href: string;
@@ -123,7 +134,7 @@ export function DashboardTopBar({
         />
         {!isVisitor && (
           <>
-            <TopBarIcon icon={Settings} label={t("topbar.settings")} href="/me" />
+            <SettingsPopup />
             <div
               className="h-5 w-px bg-white/15 xl:h-6 xl:mx-1"
               aria-hidden="true"
@@ -225,24 +236,19 @@ export function DashboardTopBar({
       {/* Direita — CONDUTA cinematic (todos) + (Entrar/Logout) + PreviewToggle (admin real) */}
       <div className="flex items-center gap-1.5 xl:gap-2">
         {realIsAdmin && <PreviewModeToggle previewActive={previewActive} />}
-        <LanguageSwitcher className="hidden sm:inline-flex" />
+        {/* Atalhos do Compendium — só ícone + tooltip no hover (Pedro 2026-07-01). */}
+        {!isVisitor && (
+          <div className="hidden sm:flex items-center gap-0.5">
+            <TopBarIconTip icon={Palette} label={t("shell.collection")} href="/colecao" />
+            <TopBarIconTip icon={ScrollText} label={t("shell.compendium")} href="/compendium" />
+            <TopBarIconTip icon={Crown} label={t("shell.plans")} href="/planos" />
+          </div>
+        )}
         {/* Conduta: escondida no mobile (vive na gaveta MobileNav) pra não estourar o topbar. */}
         <div className="hidden sm:block">
           <CondutaBadge />
         </div>
-        {isVisitor ? (
-          <EntrarBadge />
-        ) : (
-          <form action={signOut}>
-            <button
-              type="submit"
-              aria-label={t("topbar.signOut")}
-              className="flex size-8 items-center justify-center rounded-md text-white/60 hover:bg-white/5 hover:text-white transition-colors"
-            >
-              <LogOut size={16} aria-hidden="true" />
-            </button>
-          </form>
-        )}
+        {isVisitor && <EntrarBadge />}
       </div>
     </header>
   );
@@ -368,27 +374,25 @@ function TopBarTab({
   );
 }
 
-function TopBarIcon({
+// Ícone de atalho no topbar — só ícone, label aparece no hover (Tooltip).
+function TopBarIconTip({
   icon: Icon,
   label,
   href,
 }: {
   icon: typeof Settings;
   label: string;
-  href?: string;
+  href: string;
 }) {
-  const cls =
-    "flex size-8 items-center justify-center rounded-md text-white/60 hover:bg-white/5 hover:text-white transition-colors";
-  if (href) {
-    return (
-      <Link href={href} aria-label={label} className={cls}>
+  return (
+    <Tooltip content={label} side="bottom" focusable={false}>
+      <Link
+        href={href}
+        aria-label={label}
+        className="flex size-8 items-center justify-center rounded-md text-white/60 hover:bg-white/5 hover:text-white transition-colors"
+      >
         <Icon size={16} aria-hidden="true" />
       </Link>
-    );
-  }
-  return (
-    <button type="button" aria-label={label} className={cls}>
-      <Icon size={16} aria-hidden="true" />
-    </button>
+    </Tooltip>
   );
 }
