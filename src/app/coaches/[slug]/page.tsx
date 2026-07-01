@@ -284,7 +284,7 @@ export default async function CoachProfilePage({ params }: PageProps) {
                 {coachName}
               </h1>
               {isFounder && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-sm font-medium uppercase tracking-wider bg-brand-purple/15 text-brand-purple border border-brand-purple/30">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-sm font-medium uppercase tracking-wider bg-gold/15 text-gold border border-gold/30">
                   {t("coachFounderBadge")}
                 </span>
               )}

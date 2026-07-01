@@ -1,0 +1,39 @@
+-- 087_index_foreign_keys.sql — Índices nas FKs sem suporte (advisor unindexed_foreign_keys).
+-- Puramente aditivo: acelera JOINs e ON DELETE/UPDATE cascade; zero mudança de comportamento.
+-- IF NOT EXISTS = idempotente. Tabelas pequenas (projeto novo) → criação instantânea.
+create index if not exists idx_behavior_status_log_changed_by on public.behavior_status_log (changed_by);
+create index if not exists idx_behavior_status_log_warning_id on public.behavior_status_log (warning_id);
+create index if not exists idx_bots_current_lobby_id on public.bots (current_lobby_id);
+create index if not exists idx_coach_queue_entries_match_id on public.coach_queue_entries (match_id);
+create index if not exists idx_coach_queue_entries_purchase_id on public.coach_queue_entries (purchase_id);
+create index if not exists idx_coach_queue_entries_user_id on public.coach_queue_entries (user_id);
+create index if not exists idx_coaching_reviews_match_id on public.coaching_reviews (match_id);
+create index if not exists idx_dm_conversations_last_sender_id on public.dm_conversations (last_sender_id);
+create index if not exists idx_dm_messages_sender_id on public.dm_messages (sender_id);
+create index if not exists idx_dm_reads_user_id on public.dm_reads (user_id);
+create index if not exists idx_honor_ledger_admin_user_id on public.honor_ledger (admin_user_id);
+create index if not exists idx_lobbies_bot_account_name on public.lobbies (bot_account_name);
+create index if not exists idx_lobby_invites_inviter_id on public.lobby_invites (inviter_id);
+create index if not exists idx_lobby_messages_sender_id on public.lobby_messages (sender_id);
+create index if not exists idx_match_proposals_lobby_id on public.match_proposals (lobby_id);
+create index if not exists idx_match_queue_matched_lobby_id on public.match_queue (matched_lobby_id);
+create index if not exists idx_match_queue_party_id on public.match_queue (party_id);
+create index if not exists idx_matches_purchase_id on public.matches (purchase_id);
+create index if not exists idx_packages_coach_id on public.packages (coach_id);
+create index if not exists idx_parties_leader_id on public.parties (leader_id);
+create index if not exists idx_party_invites_inviter_id on public.party_invites (inviter_id);
+create index if not exists idx_party_messages_sender_id on public.party_messages (sender_id);
+create index if not exists idx_purchases_package_id on public.purchases (package_id);
+create index if not exists idx_revenue_splits_ficha_ledger_id on public.revenue_splits (ficha_ledger_id);
+create index if not exists idx_revenue_splits_purchase_id on public.revenue_splits (purchase_id);
+create index if not exists idx_sessions_purchase_id on public.sessions (purchase_id);
+create index if not exists idx_team_invites_invited_by on public.team_invites (invited_by);
+create index if not exists idx_tournament_matches_lobby_id on public.tournament_matches (lobby_id);
+create index if not exists idx_tournament_matches_team_a_id on public.tournament_matches (team_a_id);
+create index if not exists idx_tournament_matches_team_b_id on public.tournament_matches (team_b_id);
+create index if not exists idx_tournament_matches_winner_team_id on public.tournament_matches (winner_team_id);
+create index if not exists idx_tournaments_created_by on public.tournaments (created_by);
+create index if not exists idx_user_badges_badge_id on public.user_badges (badge_id);
+create index if not exists idx_user_cosmetics_cosmetic_id on public.user_cosmetics (cosmetic_id);
+create index if not exists idx_user_equipped_cosmetic_id on public.user_equipped (cosmetic_id);
+create index if not exists idx_user_warnings_issued_by on public.user_warnings (issued_by);

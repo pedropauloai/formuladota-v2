@@ -28,23 +28,7 @@ import { HonorRankMedal } from "@/components/ui/honor-rank-medal";
 import { UserHoverCard } from "@/components/profile/user-hover-card";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { getTierForLevel } from "@/lib/levels";
-
-const ROLES: { id: QueueRole; pos: string; key: string }[] = [
-  { id: "safelane", pos: "1", key: "roleSafelane" },
-  { id: "midlane", pos: "2", key: "roleMidlane" },
-  { id: "offlane", pos: "3", key: "roleOfflane" },
-  { id: "support", pos: "4", key: "roleSupport" },
-  { id: "support_dedicated", pos: "5", key: "roleSupportDedicated" },
-];
-
-// Rótulos curtos dos modos (badge por jogador + contagem por modo).
-const MODE_LABEL: Record<QueueGameMode, string> = {
-  all_pick: "Escolha livre",
-  captains_mode: "Capitães",
-  random_draft: "Aleatória",
-  single_draft: "Única",
-};
-const MODE_ORDER: QueueGameMode[] = ["all_pick", "captains_mode"];
+import { ROLES, MODE_LABEL, MODE_ORDER } from "@/lib/queue/constants";
 
 const ROLE_TARGET = 2; // jogadores por função pra fechar partida cheia
 const ROLE_IDS: QueueRole[] = ROLES.map((r) => r.id);

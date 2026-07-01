@@ -581,7 +581,7 @@ export default async function AdminUserDetailPage({
               {(achievements as Array<{ id: string; variant: string; granted_at: string }> | null ?? []).map((a) => (
                 <span
                   key={a.id}
-                  className="rounded-md border border-purple-500/40 bg-purple-500/5 px-2 py-1 font-display font-semibold text-sm uppercase tracking-wide text-purple-400"
+                  className="rounded-md border border-yellow-500/40 bg-yellow-500/5 px-2 py-1 font-display font-semibold text-sm uppercase tracking-wide text-yellow-400"
                   title={new Date(a.granted_at).toLocaleDateString("pt-BR")}
                 >
                   {a.variant}
