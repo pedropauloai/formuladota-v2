@@ -18,6 +18,7 @@ import {
   asFrameAsset,
   asBadgeAsset,
   profileThemeCss,
+  profileThemeThumbCss,
 } from "@/lib/cosmetics";
 import type { CollectionItem } from "@/lib/queries/cosmetics";
 import { cn } from "@/lib/utils";
@@ -73,8 +74,8 @@ function Preview({ item, level }: { item: CollectionItem; level: number }) {
     );
   }
   if (item.slot === "profile_theme") {
-    // Preview do fundo (imagem ou gradiente CSS) numa miniatura 16:9.
-    const bg = profileThemeCss(item.assetRef);
+    // Preview do fundo (imagem ou gradiente CSS) numa miniatura 16:9 — usa a thumb leve.
+    const bg = profileThemeThumbCss(profileThemeCss(item.assetRef));
     return (
       <div
         className="h-16 w-full overflow-hidden rounded-sm border border-border-subtle bg-bg-deep"

@@ -38,6 +38,17 @@ export function profileThemeCss(
   return null;
 }
 
+// Versão LEVE do fundo pra miniaturas (picker/coleção): troca o wallpaper full-res
+// (~200-490KB) pela thumb ~15-25KB (bg-XX.jpg → bg-XX-thumb.jpg). Gradientes CSS
+// passam intactos (já são leves). O fundo fullscreen do perfil segue usando o full.
+export function profileThemeThumbCss(css: string | null): string | null {
+  if (!css) return null;
+  return css.replace(
+    /\/dota\/backgrounds\/(bg-\d+)\.jpg/g,
+    "/dota/backgrounds/$1-thumb.jpg"
+  );
+}
+
 // asset_ref (config que o front usa pra renderizar) — shapes por slot.
 export type RingAsset = { kind: "tier"; tier: Tier } | { kind: "none" };
 export type SmokeAsset = { mid: string; hot: string };

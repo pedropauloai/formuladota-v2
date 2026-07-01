@@ -21,6 +21,7 @@ import {
   unequipSlot,
   type ProfileThemeOption,
 } from "@/actions/cosmetics";
+import { profileThemeThumbCss } from "@/lib/cosmetics";
 
 // Mesmo overlay de leitura do ClientShell immersive (topo/base escurecidos).
 const OVERLAY =
@@ -209,7 +210,12 @@ function ThumbButton({
         className="absolute inset-0"
         style={
           bg
-            ? { backgroundImage: bg, backgroundSize: "cover", backgroundPosition: "center" }
+            ? {
+                // Miniatura leve (thumb ~15KB em vez do wallpaper full ~300KB).
+                backgroundImage: profileThemeThumbCss(bg) ?? bg,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }
             : { backgroundColor: "#0a0a0b" }
         }
         aria-hidden="true"
