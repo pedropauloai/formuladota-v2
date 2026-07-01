@@ -20,6 +20,7 @@ import { SoundProvider } from "@/components/layout/sound-provider";
 // StickyQueueBanner REMOVIDO (Pedro 2026-05-26) — substituído por QueueStatusPill
 // que vive dentro da topbar (sem forçar scroll de página).
 import { QueueRealtimeListener } from "@/components/queue/realtime-listener";
+import { RealtimeAuthSync } from "@/components/client-shell/realtime-auth-sync";
 // V2.5-F6: ToastProvider — sistema de toasts bottom-center custom (DF6.4)
 // Único sistema de toast do app (sonner removido 2026-06-02 — migração completa).
 import { ToastProvider } from "@/components/ui/toast";
@@ -135,6 +136,9 @@ export default async function RootLayout({
         {/* Realtime listener (client) — sem UI, escuta changes em queue.
             (Pílula "Na fila" foi movida pra topbar via QueueStatusPill — não
             é mais renderizada aqui pra não forçar scroll de página.) */}
+        {/* Seta o token de auth na conexão de realtime — sem isso a RLS de
+            postgres_changes não entrega eventos cross-usuário (só com F5). */}
+        <RealtimeAuthSync />
         <QueueRealtimeListener />
         <ServiceWorkerRegister />
         {/* Pedro 2026-05-24: filosofia "tudo é client" — Header/Footer globais
