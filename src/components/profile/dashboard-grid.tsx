@@ -58,7 +58,10 @@ interface WidgetData {
   /** Performance: hexágono "Conta geral" (STRATZ) + "FormulaDota" (liga). */
   general: StatBlock | null;
   fdota: StatBlock | null;
+  /** Fixados pelo user (editor). */
   favoriteHeroes: HeroData[];
+  /** Exibição: fixados + auto-fill por stat (pinned=true → "fixado", false → "auto"). */
+  featuredHeroes: { hero: HeroData; pinned: boolean }[];
 }
 
 // Margem entre células (px) — espelha a prop margin do grid.
@@ -163,7 +166,13 @@ export function DashboardGrid({ initialLayout, editing, data }: Props) {
       stats: (
         <ProfileStatsCard general={data.general} fdota={data.fdota} editing={editing} />
       ),
-      heroes: <WidgetHeroes favoriteHeroes={data.favoriteHeroes} editing={editing} />,
+      heroes: (
+        <WidgetHeroes
+          favoriteHeroes={data.favoriteHeroes}
+          featuredHeroes={data.featuredHeroes}
+          editing={editing}
+        />
+      ),
     }),
     [data, editing],
   );
