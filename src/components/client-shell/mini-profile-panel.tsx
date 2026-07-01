@@ -35,7 +35,6 @@ import {
   BookOpen,
   LogIn,
   Users,
-  UserPlus,
   ShieldCheck,
 } from "lucide-react";
 import { type DotaRank } from "@/components/ui/dota-rank-medal";
@@ -167,22 +166,16 @@ export function MiniProfilePanel({
         <CollapsedCard
           persona={persona}
           avatar={avatar}
-          tag={tag}
-          isAdmin={isAdmin}
           level={level}
           xpPct={xpPct}
           permissions={permissions}
-          pendingCount={pendingIncomingCount}
+          currentUserId={currentUserId}
+          party={party}
+          friends={friends}
           connectedTop={expanded}
           onToggle={handleToggle}
           locked={lockedExpanded}
         />
-        {/* Frame do grupo — 4 slots ao lado da foto (estilo cliente Dota 2). */}
-        {currentUserId && (
-          <div className="flex items-center rounded-md border border-brand-primary/20 bg-bg-deep/80 px-2 backdrop-blur-md">
-            <PartyFrame currentUserId={currentUserId} initialParty={party} friends={friends} />
-          </div>
-        )}
         {!lockedExpanded && (
           <ToggleIcon
             expanded={expanded}
@@ -204,25 +197,24 @@ export function MiniProfilePanel({
 function CollapsedCard({
   persona,
   avatar,
-  tag,
-  isAdmin,
   level,
   xpPct,
   permissions,
-  pendingCount = 0,
+  currentUserId,
+  party,
+  friends,
   connectedTop = false,
   onToggle,
   locked = false,
 }: {
   persona: string | null;
   avatar: string | null;
-  tag: string;
-  isAdmin: boolean;
   level: number;
   xpPct: number;
   permissions: number;
-  /** Pedidos de amizade RECEBIDOS — badge visível sem abrir o painel. */
-  pendingCount?: number;
+  currentUserId: string | null;
+  party: PartyView | null;
+  friends: FriendListEntry[];
   /** Quando true (painel expandido aberto), borda superior + canto superior
       ficam planos pra conectar visualmente ao ExpandedPanel acima. */
   connectedTop?: boolean;
@@ -232,67 +224,44 @@ function CollapsedCard({
 }) {
   const t = useTranslations("shell");
   const name = persona ?? t("anon");
-  const baseCls = `flex w-[340px] xl:w-[380px] items-center gap-3 border border-brand-primary/30 bg-bg-deep/90 backdrop-blur-md px-3 py-2 shadow-lg shadow-black/60 transition-colors ${
+  const baseCls = `flex w-[340px] xl:w-[380px] items-center gap-2 border border-brand-primary/30 bg-bg-deep/90 backdrop-blur-md px-3 py-2 shadow-lg shadow-black/60 transition-colors ${
     connectedTop ? "rounded-b-md rounded-t-none border-t-0" : "rounded-md"
   }`;
-  const inner = (
-    <>
-      <XpAvatarRing
-        src={avatar}
-        alt={t("avatarAlt", { name })}
-        fallback={(persona ?? "??").slice(0, 2)}
-        level={level}
-        pct={xpPct}
-        size={36}
-      />
-      <div className="flex-1 min-w-0 text-left">
-        <p className="font-display text-sm font-semibold text-text-display truncate">
-          {name}
-        </p>
-        <p className="font-display text-sm font-semibold text-brand-primary/80 leading-tight">
-          [{tag}]
-          {isAdmin && (
-            <Crown size={11} className="ml-1 inline text-gold" aria-label={t("admin")} />
-          )}
-        </p>
-      </div>
-      {pendingCount > 0 && <PendingRequestsBadge count={pendingCount} />}
+  // Foto de perfil (40px). Sem nome/tag no card retraído (Pedro 2026-06-30): os
+  // slots do grupo ocupam essa região, no MESMO tamanho da foto.
+  const avatarEl = (
+    <XpAvatarRing
+      src={avatar}
+      alt={t("avatarAlt", { name })}
+      fallback={(persona ?? "??").slice(0, 2)}
+      level={level}
+      pct={xpPct}
+      size={40}
+    />
+  );
+  return (
+    <div className={baseCls}>
+      {locked ? (
+        avatarEl
+      ) : (
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-label={connectedTop ? t("collapseProfile") : t("expandProfile")}
+          aria-expanded={connectedTop}
+          title={name}
+          className="shrink-0 rounded-sm transition-opacity hover:opacity-90"
+        >
+          {avatarEl}
+        </button>
+      )}
+      {/* Slots do grupo — colados na foto (estilo cliente Dota 2). */}
+      {currentUserId && (
+        <PartyFrame currentUserId={currentUserId} initialParty={party} friends={friends} />
+      )}
+      <div className="flex-1" />
       <PermissionsBadge permissions={permissions} />
-    </>
-  );
-
-  // Página principal: sempre expandido — o card é só a base visual do painel.
-  if (locked) return <div className={baseCls}>{inner}</div>;
-
-  return (
-    <button
-      type="button"
-      onClick={onToggle}
-      aria-label={connectedTop ? t("collapseProfile") : t("expandProfile")}
-      aria-expanded={connectedTop}
-      className={`${baseCls} hover:border-brand-primary/60 hover:bg-bg-elevated/80`}
-    >
-      {inner}
-    </button>
-  );
-}
-
-// Pedidos de amizade recebidos — pedido tem que ser visível SEM abrir o painel
-// (pacote social 2026-06-12). Dot/contador pode ser redondo (não é avatar).
-function PendingRequestsBadge({ count }: { count: number }) {
-  const t = useTranslations("shell");
-  return (
-    <Tooltip
-      content={t("pendingRequestsTooltip", { count })}
-      side="top"
-      align="end"
-      className="shrink-0"
-    >
-      <span className="flex items-center gap-1 rounded-sm border border-success/40 bg-success/10 px-1.5 py-1 font-display text-sm font-bold text-success">
-        <UserPlus size={13} aria-hidden="true" />
-        <span className="tabular-nums">{count}</span>
-      </span>
-    </Tooltip>
+    </div>
   );
 }
 
