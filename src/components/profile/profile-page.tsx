@@ -49,11 +49,8 @@ import { ProfileFriendButton, type ProfileFriendState } from "./profile-friend-b
 import type { StatBlock } from "./profile-stats-card";
 import {
   CareerIdentityInline,
-  SignatureHeroesStrip,
   CareerLinkSteamCta,
 } from "./career-stats";
-import { HeroVideoBackdrop } from "@/components/dota/hero-video-backdrop";
-import { getHeroById } from "@/lib/queries/heroes";
 import type { ProfileForMe } from "@/lib/queries/profile";
 import type { CareerStats } from "@/lib/dota/career";
 import type { DotaRank } from "@/components/ui/dota-rank-medal";
@@ -107,10 +104,6 @@ export function ProfilePage({
   // histórico de XP e o coaching, que são pessoais, ficam ocultos no público).
   const basePath = isOwn ? "/me" : `/perfil/u/${ownerUserId}`;
 
-  // Herói nº 1 da carreira → backdrop VIVO do header de identidade
-  const topHeroStat = career?.topHeroes[0] ?? null;
-  const topHero = topHeroStat ? getHeroById(topHeroStat.heroId) : null;
-
   return (
     <div className="relative flex h-full flex-col overflow-hidden">
       {/* ──────────────────────────────────────────────────────────────
@@ -160,15 +153,12 @@ export function ProfilePage({
               CARREIRA ENCAIXADA AQUI (2026-06-11): medalha Valve + winrate +
               TOP {n} + top 3 heróis vivos na MESMA linha do header — nada de
               seção nova empilhada (feedback Pedro: zero rolagem extra). */}
-          <header className="relative mb-4 shrink-0 overflow-hidden rounded-sm">
-            {topHero && (
-              <HeroVideoBackdrop
-                heroSlug={topHero.slug}
-                heroName={topHero.name_pt}
-                gradientClass="bg-gradient-to-r from-bg-deep/70 via-bg-deep/20 to-bg-deep/80"
-              />
-            )}
-            <div className={`relative flex items-center gap-5 ${topHero ? "p-4" : ""}`}>
+          {/* Header SEM vídeo de herói no fundo (Pedro 2026-07-01): mostrava o
+              próprio herói principal do user atrás dele (ex.: Tinker sobre Tinker)
+              e poluía. Fundo = o premium global; um dia o user escolhe um bg da
+              biblioteca de assets (slot cosmético profile_theme). */}
+          <header className="relative mb-4 shrink-0 overflow-hidden rounded-sm border border-border-subtle/60 bg-bg-elevated/30">
+            <div className="relative flex items-center gap-5 p-4">
               {/* Avatar — em edição vira editável NO PRÓPRIO avatar (popover de
                   câmera com upload + retrato), sem componente/card separado. */}
               <AvatarPortraitEdit
@@ -209,26 +199,21 @@ export function ProfilePage({
                 {isOwn && <SocialIconsRow />}
               </div>
 
-              {/* Par canônico SKILL + HONOR (mandamento M12) — sempre visível
-                  no header; hover abre o showcase de todas as medalhas. */}
-              <MedalPair
-                dotaRank={dotaRank}
-                honorRank={honorRank}
-                size="lg"
-                className="shrink-0"
-              />
-
-              {/* Carreira inline — some em telas estreitas pra NUNCA quebrar
-                  linha e esticar o header (altura ≤ avatar XL de 96px). */}
-              {career ? (
-                <div className="hidden md:flex items-center gap-5 shrink-0">
-                  {/* showMedal=false: a medalha Valve já está no par canônico ao lado */}
-                  <CareerIdentityInline career={career} showMedal={false} />
-                  <SignatureHeroesStrip career={career} className="hidden xl:flex" />
-                </div>
-              ) : (
-                <CareerLinkSteamCta className="hidden md:inline-flex shrink-0" />
-              )}
+              {/* ── Cluster direito: resumo de carreira (winrate + TOP) + par de
+                  medalhas SKILL+HONOR. Os heróis saíram do header (viram a seção
+                  "destaque" abaixo) → topo respira e as medalhas ganham ar. M12:
+                  o par de medalhas fica SEMPRE visível (Pedro 2026-07-01). ── */}
+              <div className="flex shrink-0 items-center gap-4 sm:gap-5">
+                {career ? (
+                  // showMedal=false: a medalha Valve já está no par canônico ao lado.
+                  <div className="hidden md:block">
+                    <CareerIdentityInline career={career} showMedal={false} />
+                  </div>
+                ) : (
+                  <CareerLinkSteamCta className="hidden md:inline-flex" />
+                )}
+                <MedalPair dotaRank={dotaRank} honorRank={honorRank} size="lg" />
+              </div>
             </div>
           </header>
 
