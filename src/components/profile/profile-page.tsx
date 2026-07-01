@@ -45,6 +45,7 @@ import { TabConduta } from "./tab-conduta";
 import { TabProgresso } from "./tab-progresso";
 import { AvatarPortraitEdit } from "./avatar-portrait-edit";
 import { ResetLayoutButton } from "./reset-layout-button";
+import { ProfileFriendButton, type ProfileFriendState } from "./profile-friend-button";
 import type { StatBlock } from "./profile-stats-card";
 import {
   CareerIdentityInline,
@@ -79,6 +80,9 @@ interface Props {
   general?: StatBlock | null;
   /** Hexágono "FormulaDota" (partidas da liga). null = sem partidas. */
   fdota?: StatBlock | null;
+  /** Estado da amizade com o viewer (só perfil público) → botão no header. */
+  friendState?: ProfileFriendState;
+  friendshipId?: string | null;
 }
 
 export function ProfilePage({
@@ -93,6 +97,8 @@ export function ProfilePage({
   ownerUserId,
   general = null,
   fdota = null,
+  friendState,
+  friendshipId = null,
 }: Props) {
   const t = useTranslations("perfil");
   const ranqueado = profile.mmr !== null;
@@ -133,6 +139,18 @@ export function ProfilePage({
                   {t("editProfile")}
                 </Button>
               </Link>
+            </div>
+          )}
+
+          {/* Perfil público: gestão de amizade (adicionar/aceitar/remover) — aqui,
+              não no mini-perfil/hover (Pedro 2026-07-01). */}
+          {!isOwn && ownerUserId && friendState && (
+            <div className="absolute right-2 top-2 z-10">
+              <ProfileFriendButton
+                targetUserId={ownerUserId}
+                friendshipId={friendshipId}
+                initial={friendState}
+              />
             </div>
           )}
 

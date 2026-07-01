@@ -12,7 +12,7 @@
 
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { UserMinus, X, Check, Swords, Loader2, MessageCircle, UsersRound } from "lucide-react";
+import { X, Check, Swords, Loader2, MessageCircle, UsersRound } from "lucide-react";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { UserHoverCard } from "@/components/profile/user-hover-card";
 import { removeFriend, acceptFriendRequest, rejectFriendRequest } from "@/actions/friends";
@@ -33,22 +33,10 @@ type InviteState = "idle" | "sending" | "sent" | "error";
 
 export function FriendRow({ friend, presenceStatus, currentLobbyId = null }: Props) {
   const t = useTranslations("perfil");
-  const [confirming, setConfirming] = useState(false);
   const [inviteState, setInviteState] = useState<InviteState>("idle");
   const [isPending, startTransition] = useTransition();
   const isOnline = presenceStatus !== "offline";
   const name = friend.friendUsername ?? t("friendFallbackName");
-
-  const handleRemove = () => {
-    startTransition(async () => {
-      try {
-        await removeFriend(friend.friendshipId);
-      } catch {
-        // Silent fail — CLAUDE.md proíbe log em Client Component.
-      }
-      setConfirming(false);
-    });
-  };
 
   const handleInvite = () => {
     if (!currentLobbyId || inviteState === "sending" || inviteState === "sent") return;
@@ -89,34 +77,6 @@ export function FriendRow({ friend, presenceStatus, currentLobbyId = null }: Pro
       }
     });
   };
-
-  // Confirmação inline (não modal) — UI-SPEC Interaction Contracts > Remoção de amigo
-  if (confirming) {
-    return (
-      <div className="flex items-center gap-2 rounded px-2 py-1.5 bg-bg-elevated/80">
-        <p className="flex-1 min-w-0 truncate font-display text-[13px] font-semibold text-text-body">
-          {t("friendRemoveQuestion", { name })}
-        </p>
-        <button
-          type="button"
-          onClick={handleRemove}
-          disabled={isPending}
-          aria-label={t("friendConfirmRemoveAria", { name })}
-          className="rounded px-2 py-1 font-display text-[11px] font-semibold text-error border border-error/60 hover:bg-error/10 transition-colors disabled:opacity-50"
-        >
-          {t("friendRemoveCta")}
-        </button>
-        <button
-          type="button"
-          onClick={() => setConfirming(false)}
-          aria-label={t("friendCancelRemoveAria")}
-          className="text-text-faded hover:text-text-display p-1"
-        >
-          <X size={14} aria-hidden="true" />
-        </button>
-      </div>
-    );
-  }
 
   // Convidar pra sala: só amigo aceito, online, com o viewer numa sala aberta.
   const canInvite =
@@ -226,17 +186,6 @@ export function FriendRow({ friend, presenceStatus, currentLobbyId = null }: Pro
           ) : (
             <Swords size={14} aria-hidden="true" />
           )}
-        </button>
-      )}
-
-      {friend.status === "accepted" && (
-        <button
-          type="button"
-          onClick={() => setConfirming(true)}
-          aria-label={t("friendRemoveFromListAria", { name })}
-          className="opacity-0 group-hover:opacity-100 transition-opacity text-text-faded hover:text-error p-1"
-        >
-          <UserMinus size={14} aria-hidden="true" />
         </button>
       )}
 

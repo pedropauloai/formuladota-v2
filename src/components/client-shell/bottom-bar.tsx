@@ -10,8 +10,7 @@
 // de MMR" / acoplado a ficha). Ficha/permissão são tratadas dentro de cada modalidade.
 
 import { useState } from "react";
-import { Link } from "@/i18n/navigation";
-import { Radio, Hourglass } from "lucide-react";
+import { Hourglass } from "lucide-react";
 import type { ProLiveStatus } from "@/lib/queries/pros";
 import type { MyQueueEntry } from "@/lib/queries/queue";
 import type { PlayMenuState } from "@/lib/play-menu-preference";
@@ -23,7 +22,6 @@ import { ReadyCheckOverlay } from "@/components/queue/ready-check-overlay";
 interface Props {
   /** Visitante deslogado: o menu abre como vitrine, ações disparam login. */
   isVisitor: boolean;
-  isAdmin: boolean;
   fichaBalance: number;
   fichaPackageId: string | null;
   prosOnline: ProLiveStatus[];
@@ -34,7 +32,7 @@ interface Props {
   inParty: boolean;
 }
 
-export function DashboardBottomBar({ isVisitor, isAdmin, myQueues, initialPlayMenu, inParty }: Props) {
+export function DashboardBottomBar({ isVisitor, myQueues, initialPlayMenu, inParty }: Props) {
   const [statusModalOpen, setStatusModalOpen] = useState(false);
 
   const inQueue = myQueues.length > 0;
@@ -44,7 +42,6 @@ export function DashboardBottomBar({ isVisitor, isAdmin, myQueues, initialPlayMe
       <div className="relative z-[var(--z-overlay)] flex h-20 shrink-0 items-end justify-end px-4 pb-3 xl:h-24 xl:px-6 2xl:h-28 2xl:px-8 pointer-events-none">
         <Cta
           isVisitor={isVisitor}
-          isAdmin={isAdmin}
           inQueue={inQueue}
           initialPlayMenu={initialPlayMenu}
           inParty={inParty}
@@ -66,14 +63,13 @@ export function DashboardBottomBar({ isVisitor, isAdmin, myQueues, initialPlayMe
 
 interface CtaProps {
   isVisitor: boolean;
-  isAdmin: boolean;
   inQueue: boolean;
   initialPlayMenu: PlayMenuState;
   inParty: boolean;
   onStatusClick: () => void;
 }
 
-function Cta({ isVisitor, isAdmin, inQueue, initialPlayMenu, inParty, onStatusClick }: CtaProps) {
+function Cta({ isVisitor, inQueue, initialPlayMenu, inParty, onStatusClick }: CtaProps) {
   const t = useTranslations("shell");
   const base =
     "pointer-events-auto group relative flex h-14 items-center gap-3 overflow-hidden rounded-md border-2 px-8 font-display text-lg font-bold uppercase tracking-[0.25em] shadow-lg transition-all hover:scale-[1.02] xl:h-16 xl:px-12 xl:text-xl 2xl:h-20 2xl:px-16 2xl:text-2xl 2xl:tracking-[0.3em]";
@@ -83,20 +79,6 @@ function Cta({ isVisitor, isAdmin, inQueue, initialPlayMenu, inParty, onStatusCl
       aria-hidden="true"
     />
   );
-
-  // Admin (real) — atalho pro painel (não para visitante).
-  if (isAdmin) {
-    return (
-      <Link
-        href="/admin/pros"
-        className={`${base} border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover text-text-display shadow-[var(--color-play-primary-glow)] hover:shadow-[var(--color-play-primary-glow)]`}
-      >
-        <Radio size={22} aria-hidden="true" />
-        <span>{t("prosPanel")}</span>
-        {shine}
-      </Link>
-    );
-  }
 
   // Em fila do PRO — abre o status da fila.
   if (inQueue) {

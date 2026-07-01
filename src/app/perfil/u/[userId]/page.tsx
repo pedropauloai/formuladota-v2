@@ -15,7 +15,9 @@ import { getFormulaDotaProfileStats } from "@/lib/queries/formuladota-stats";
 import { syncPlayerStats } from "@/app/perfil/actions";
 import { rankTierToDotaRank } from "@/components/profile/career-stats";
 import type { DotaRank } from "@/components/ui/dota-rank-medal";
-import { legacyHonorToBand, type HonorRank } from "@/components/ui/honor-rank-medal";
+import type { HonorRank } from "@/components/ui/honor-rank-medal";
+import { getGatedTierForLevel, xpProgress, mmrFromRankTier } from "@/lib/levels";
+import type { ProfileFriendState } from "@/components/profile/profile-friend-button";
 
 function mmrToDotaRank(mmr: number | null | undefined): DotaRank {
   if (mmr == null) return "herald";
@@ -28,10 +30,6 @@ function mmrToDotaRank(mmr: number | null | undefined): DotaRank {
   if (mmr >= 1500) return "crusader";
   if (mmr >= 770) return "guardian";
   return "herald";
-}
-
-function toHonorRank(tierStr: string | null | undefined): HonorRank {
-  return legacyHonorToBand(tierStr ?? "aprendiz");
 }
 
 interface PageProps {
@@ -64,16 +62,38 @@ export default async function PublicProfilePage(props: PageProps) {
       ? (rawTab as ProfileTab)
       : "perfil";
 
-  // HONOR + carreira — mesmos RPCs/queries do /me, com o userId do alvo.
-  const { data: honorScore } = await supabase.rpc("get_honor_score", {
-    p_user_id: userId,
-  });
-  const { data: honorTierStr } = await supabase.rpc("get_honor_tier", {
-    p_score: honorScore ?? 1000,
-  });
-  const honorRank = toHonorRank(honorTierStr);
+  // Estado de amizade com o viewer → botão no header (adicionar/aceitar/remover).
+  const { data: friendship } = await supabase
+    .from("friendships")
+    .select("id, status, requester_id")
+    .or(
+      `and(requester_id.eq.${user.id},addressee_id.eq.${userId}),` +
+        `and(requester_id.eq.${userId},addressee_id.eq.${user.id})`
+    )
+    .maybeSingle();
+  let friendState: ProfileFriendState = "none";
+  let friendshipId: string | null = null;
+  if (friendship) {
+    friendshipId = friendship.id;
+    if (friendship.status === "accepted") friendState = "friends";
+    else if (friendship.status === "pending")
+      friendState = friendship.requester_id === user.id ? "pending_out" : "pending_in";
+    // blocked → "none" (esconde o botão de ação)
+  }
 
   const career = await getCareerStats(userId);
+
+  // HONOR = NÍVEL (canônico), gate pela skill Valve real — igual ao /me e mini-perfil.
+  const { data: levelRow } = await supabase
+    .from("user_levels")
+    .select("total_xp_earned")
+    .eq("user_id", userId)
+    .maybeSingle();
+  const { level } = xpProgress(levelRow?.total_xp_earned ?? 0);
+  const honorRank: HonorRank = getGatedTierForLevel(
+    level,
+    mmrFromRankTier(career?.rankTier ?? null)
+  );
 
   // Medalha SKILL = rank Valve real (career.rankTier) → fallback MMR da liga.
   const dotaRank =
@@ -112,6 +132,8 @@ export default async function PublicProfilePage(props: PageProps) {
         ownerUserId={userId}
         general={general}
         fdota={fdotaStats}
+        friendState={friendState}
+        friendshipId={friendshipId}
       />
     </ClientShell>
   );

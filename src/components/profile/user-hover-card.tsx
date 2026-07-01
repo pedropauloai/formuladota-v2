@@ -16,7 +16,7 @@ import { useState, useTransition, type ReactNode } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { MessageCircle, UsersRound, ExternalLink, Loader2, Check } from "lucide-react";
+import { MessageCircle, UsersRound, Loader2, Check } from "lucide-react";
 import {
   HoverCard,
   HoverCardTrigger,
@@ -26,10 +26,6 @@ import {
   getPublicMiniProfile,
   type PublicMiniProfile,
 } from "@/actions/public-profile";
-import {
-  AddFriendButton,
-  type FriendButtonState,
-} from "@/components/profile/add-friend-button";
 import { MedalPair } from "@/components/ui/medal-pair";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { mmrToDotaRank } from "@/components/queue/queue-helpers";
@@ -135,18 +131,9 @@ function Body({ data, online }: { data: PublicMiniProfile; online?: boolean }) {
   const presence =
     online === true ? t("online") : formatLastSeen(data.lastSeenAt);
 
+  // Adicionar/remover amigo vive na PÁGINA do perfil (clicar na foto leva lá).
+  // Aqui o hover é só um preview + atalhos de mensagem/grupo pra quem já é amigo.
   const isFriend = data.friendStatus === "friends";
-  const isSelf = data.friendStatus === "self";
-
-  // AddFriendButton só aceita none/pending/friends.
-  const friendState: FriendButtonState | null =
-    data.friendStatus === "friends"
-      ? "friends"
-      : data.friendStatus === "pending"
-        ? "pending"
-        : data.friendStatus === "none"
-          ? "none"
-          : null;
 
   return (
     <div className="space-y-3">
@@ -227,41 +214,14 @@ function Body({ data, online }: { data: PublicMiniProfile; online?: boolean }) {
         </div>
       )}
 
-      {/* Ações */}
-      <div className="space-y-1.5 border-t border-border-subtle pt-2.5">
-        {friendState && <AddFriendButton targetUserId={data.userId} initialState={friendState} />}
-
-        {/* Mensagem + grupo só pra amigos (DM e party exigem amizade aceita). */}
-        {isFriend && (
-          <div className="flex gap-1.5">
-            <MessageAction
-              userId={data.userId}
-              name={data.name}
-              avatar={data.avatar}
-            />
-            <PartyInviteAction userId={data.userId} />
-          </div>
-        )}
-
-        {!isSelf && (
-          <Link
-            href={`/perfil/u/${data.userId}`}
-            className="flex w-full items-center justify-center gap-1.5 rounded-[var(--radius-md)] border border-brand-primary/40 bg-brand-primary/10 px-2.5 py-1.5 font-display text-sm font-semibold uppercase tracking-wide text-brand-primary transition-colors hover:bg-brand-primary/20"
-          >
-            <ExternalLink size={14} aria-hidden="true" />
-            {t("viewProfile")}
-          </Link>
-        )}
-        {isSelf && (
-          <Link
-            href="/me"
-            className="flex w-full items-center justify-center gap-1.5 rounded-[var(--radius-md)] border border-brand-primary/40 bg-brand-primary/10 px-2.5 py-1.5 font-display text-sm font-semibold uppercase tracking-wide text-brand-primary transition-colors hover:bg-brand-primary/20"
-          >
-            <ExternalLink size={14} aria-hidden="true" />
-            {t("viewProfile")}
-          </Link>
-        )}
-      </div>
+      {/* Ações — só pra amigos (DM e grupo exigem amizade aceita). Adicionar
+          amigo é na página do perfil (clicar na foto). */}
+      {isFriend && (
+        <div className="flex gap-1.5 border-t border-border-subtle pt-2.5">
+          <MessageAction userId={data.userId} name={data.name} avatar={data.avatar} />
+          <PartyInviteAction userId={data.userId} />
+        </div>
+      )}
     </div>
   );
 }
