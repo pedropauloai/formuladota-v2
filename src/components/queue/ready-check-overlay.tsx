@@ -26,6 +26,7 @@ import { MedalPair } from "@/components/ui/medal-pair";
 import { UserHoverCard } from "@/components/profile/user-hover-card";
 import { rankTierToDotaRank } from "@/components/profile/career-stats";
 import { getGatedTierForLevel, mmrFromRankTier } from "@/lib/levels";
+import { ShaderSmoke } from "@/components/ui/shader-smoke";
 
 const DURATION_MS = 60_000;
 
@@ -221,7 +222,9 @@ export function ReadyCheckOverlay() {
 
   return (
     <div className="pointer-events-auto fixed inset-0 z-[var(--z-takeover)] flex items-center justify-center bg-bg-deep/85 p-4 backdrop-blur-sm animate-in fade-in duration-150">
-      <div className="relative w-full max-w-2xl overflow-hidden rounded-md border-2 border-play-primary bg-bg-base shadow-[var(--shadow-cinematic)] animate-in zoom-in-95 duration-150">
+      {/* Fumaça por shader ao redor do card — pico dramático "partida encontrada". */}
+      <ShaderSmoke className="inset-0" mid="#00C466" hot="#e0b64e" intensity={0.7} />
+      <div className="relative z-[1] w-full max-w-2xl overflow-hidden rounded-md border-2 border-play-primary bg-bg-base shadow-[var(--shadow-cinematic)] animate-in zoom-in-95 duration-150">
         {/* Barra superior decrescente (60s). */}
         <div className="h-1.5 w-full bg-bg-elevated">
           <div
