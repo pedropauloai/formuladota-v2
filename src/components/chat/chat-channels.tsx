@@ -110,42 +110,42 @@ function Composer({ onSend, placeholder }: { onSend: (body: string) => void; pla
 export function PartyChannelPanel({
   partyId,
   currentUserId,
-  nameById,
 }: {
   partyId: string;
   currentUserId: string;
-  nameById: Record<string, string>;
 }) {
   const [messages, setMessages] = useState<ChatLineData[]>([]);
   const [, startTransition] = useTransition();
+
+  // Nome do remetente vem RESOLVIDO do servidor (fetchPartyMessages) — o payload
+  // do realtime não traz nome, então re-busca (baixo volume), igual ao canal Sala.
+  const reload = () =>
+    fetchPartyMessages().then((msgs) =>
+      setMessages(
+        msgs.map((m) => ({
+          id: m.id,
+          senderId: m.senderId,
+          senderName: m.senderName,
+          body: m.body,
+          createdAt: m.createdAt,
+        }))
+      )
+    );
 
   useEffect(() => {
     let active = true;
     void fetchPartyMessages().then((msgs) => {
       if (active)
         setMessages(
-          msgs.map((m) => ({
-            id: m.id,
-            senderId: m.senderId,
-            senderName: nameById[m.senderId] ?? "Jogador",
-            body: m.body,
-            createdAt: m.createdAt,
-          }))
+          msgs.map((m) => ({ id: m.id, senderId: m.senderId, senderName: m.senderName, body: m.body, createdAt: m.createdAt }))
         );
     });
     return () => {
       active = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [partyId]);
 
-  usePartyMessages(partyId, (m) => {
-    setMessages((prev) =>
-      prev.some((x) => x.id === m.id)
-        ? prev
-        : [...prev, { id: m.id, senderId: m.senderId, senderName: nameById[m.senderId] ?? "Jogador", body: m.body, createdAt: m.createdAt }]
-    );
-  });
+  usePartyMessages(partyId, () => void reload());
 
   return (
     <>

@@ -7,6 +7,7 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { getSteamIdentityMap, resolveIdentity } from "@/lib/queries/identities";
 import {
   getMyParty,
   getMyPartyInvites,
@@ -255,11 +256,15 @@ export async function fetchMyParty(): Promise<PartyView | null> {
 export interface PartyChatMessageView {
   id: string;
   senderId: string;
+  /** Nome do remetente resolvido no servidor (Steam > Discord). */
+  senderName: string;
   body: string;
   createdAt: string;
 }
 
-/** Histórico do chat do grupo (últimas 50). RLS garante que sou membro. */
+/** Histórico do chat do grupo (últimas 50) com nome do remetente resolvido.
+ *  Resolve no servidor (não depende do roster que o ChatBar tem em memória —
+ *  esse pode estar desatualizado se alguém entrou no grupo depois). */
 export async function fetchPartyMessages(): Promise<PartyChatMessageView[]> {
   const supabase = await createClient();
   const {
@@ -281,9 +286,25 @@ export async function fetchPartyMessages(): Promise<PartyChatMessageView[]> {
     .order("created_at", { ascending: false })
     .limit(50);
 
-  return (data ?? [])
-    .reverse()
-    .map((m) => ({ id: m.id, senderId: m.sender_id, body: m.body, createdAt: m.created_at }));
+  const rows = (data ?? []).reverse();
+  const senderIds = [...new Set(rows.map((m) => m.sender_id))];
+  const [{ data: profiles }, steamMap] = await Promise.all([
+    supabase.from("profiles").select("id, username, avatar_url").in("id", senderIds),
+    getSteamIdentityMap(supabase, senderIds),
+  ]);
+  const profileById = new Map((profiles ?? []).map((p) => [p.id, p]));
+
+  return rows.map((m) => {
+    const p = profileById.get(m.sender_id);
+    const ident = resolveIdentity(steamMap, m.sender_id, p?.username, p?.avatar_url);
+    return {
+      id: m.id,
+      senderId: m.sender_id,
+      senderName: ident.name,
+      body: m.body,
+      createdAt: m.created_at,
+    };
+  });
 }
 
 /** Re-busca convites de grupo (listener realtime chama no INSERT). */
