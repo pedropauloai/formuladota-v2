@@ -128,6 +128,7 @@ export function ShaderSmoke({
 
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.clearColor(0, 0, 0, 0); // buffer transparente — limpo a cada frame (ver frame())
 
     const uRes = gl.getUniformLocation(prog, "u_res");
     const uTime = gl.getUniformLocation(prog, "u_time");
@@ -155,6 +156,9 @@ export function ShaderSmoke({
     const start = performance.now();
     function frame() {
       if (!running) return;
+      // Limpa o buffer a cada frame — SEM isto o blend acumula quadro após quadro e
+      // as áreas densas saturam pra BRANCO com o tempo (bug da fumaça travada branca).
+      gl!.clear(gl!.COLOR_BUFFER_BIT);
       gl!.uniform1f(uTime, ((performance.now() - start) / 1000) * speed);
       gl!.drawArrays(gl!.TRIANGLES, 0, 3);
       raf = requestAnimationFrame(frame);

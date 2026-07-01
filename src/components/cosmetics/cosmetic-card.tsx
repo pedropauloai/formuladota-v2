@@ -8,7 +8,6 @@ import { useRouter } from "next/navigation";
 import { Lock, Sparkles, GraduationCap } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
-import { ShaderSmoke } from "@/components/ui/shader-smoke";
 import { equipCosmetic, unequipSlot } from "@/actions/cosmetics";
 import { useToast } from "@/components/ui/toast";
 import {
@@ -56,10 +55,27 @@ function Preview({ item, level }: { item: CollectionItem; level: number }) {
     );
   }
   if (item.slot === "smoke") {
+    // Preview LEVE por gradiente CSS (não WebGL): cada ShaderSmoke abre um contexto
+    // WebGL, e vários simultâneos (grid de previews + card de busca global) estouram
+    // o limite do browser → canvas branco. O shader REAL roda só no uso (card de
+    // busca / ready-check), 1 por vez. Aqui, um "brilho de brasa" com as cores do tema.
     const s = asSmokeAsset(item.assetRef);
+    const mid = s?.mid ?? "#00C466";
+    const hot = s?.hot ?? "#e0b64e";
     return (
       <div className="relative h-16 w-full overflow-hidden rounded-sm border border-border-subtle bg-bg-deep">
-        {s && <ShaderSmoke mid={s.mid} hot={s.hot} intensity={1.1} className="inset-0" />}
+        <div
+          className="absolute inset-0 animate-pulse"
+          style={{
+            backgroundImage: `radial-gradient(ellipse 80% 65% at 50% 118%, ${hot} 0%, ${mid} 34%, transparent 72%)`,
+          }}
+        />
+        <div
+          className="absolute inset-0 opacity-60"
+          style={{
+            backgroundImage: `radial-gradient(ellipse 45% 45% at 32% 122%, ${mid} 0%, transparent 60%)`,
+          }}
+        />
       </div>
     );
   }
