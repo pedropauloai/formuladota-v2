@@ -214,7 +214,7 @@ export function ProfilePage({
               <MedalPair
                 dotaRank={dotaRank}
                 honorRank={honorRank}
-                size="xl"
+                size="lg"
                 className="shrink-0"
               />
 
