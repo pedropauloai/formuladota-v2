@@ -16,6 +16,8 @@ import { fetchDmInbox } from "@/actions/messages";
 import { useDmInboxSignal } from "@/lib/realtime/use-dm-realtime";
 import { usePartyMessages } from "@/lib/realtime/use-party-realtime";
 import { useLobbyMessages } from "@/lib/realtime/use-lobby-realtime";
+import { useSound } from "@/lib/sound/hooks";
+import { useToast } from "@/components/ui/toast";
 import { OPEN_CHAT_EVENT, type OpenChatDetail } from "@/lib/chat/open-chat";
 import type { DmInboxEntry } from "@/lib/queries/messages";
 import type { PartyView } from "@/lib/queries/party";
@@ -42,6 +44,8 @@ export function ChatBar({ currentUserId, party, lobbyId, initialInbox, friends }
   const [unread, setUnread] = useState<Record<string, number>>({});
   const [inbox, setInbox] = useState<DmInboxEntry[]>(initialInbox);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const play = useSound();
+  const { toast } = useToast();
 
   const partyId = party?.partyId ?? null;
   const nameById: Record<string, string> = Object.fromEntries(
@@ -83,17 +87,31 @@ export function ChatBar({ currentUserId, party, lobbyId, initialInbox, friends }
     return () => window.removeEventListener(OPEN_CHAT_EVENT, handler);
   }, [openDm]);
 
-  // Contadores de não-lidas por canal (só quando a aba não está ativa+aberta).
-  const bump = (tabId: string) =>
-    setUnread((u) => (expanded && validActive === tabId ? u : { ...u, [tabId]: (u[tabId] ?? 0) + 1 }));
+  // Mensagem nova (de outra pessoa) → badge + SOM + TOAST, só quando NÃO estou
+  // vendo aquela aba (aberta + ativa). Atende o pedido de "notificação + áudio".
+  const alertIncoming = (tabId: string, title: string, body?: string) => {
+    if (expanded && validActive === tabId) return;
+    setUnread((u) => ({ ...u, [tabId]: (u[tabId] ?? 0) + 1 }));
+    play("notification");
+    toast({ type: "info", title, description: body });
+  };
 
   usePartyMessages(partyId, (m) => {
-    if (m.senderId !== currentUserId) bump("party");
+    if (m.senderId === currentUserId) return;
+    alertIncoming("party", `${nameById[m.senderId] ?? "Alguém"} no grupo`, m.body);
   });
-  useLobbyMessages(lobbyId, () => bump("lobby"));
+  useLobbyMessages(lobbyId, () => alertIncoming("lobby", "Nova mensagem na sala"));
   useDmInboxSignal(true, (senderId) => {
-    void fetchDmInbox().then(setInbox);
-    if (senderId !== currentUserId) bump(`dm:${senderId}`);
+    void fetchDmInbox().then((data) => {
+      setInbox(data);
+      if (senderId === currentUserId) return;
+      const conv = data.find((c) => c.otherUserId === senderId);
+      alertIncoming(
+        `dm:${senderId}`,
+        conv?.otherName ?? "Nova mensagem",
+        conv?.lastPreview ?? undefined
+      );
+    });
   });
 
   function toggleBar() {
@@ -165,7 +183,7 @@ export function ChatBar({ currentUserId, party, lobbyId, initialInbox, friends }
               onPick={openDm}
             />
           ) : validActive === "party" && partyId ? (
-            <PartyChannelPanel partyId={partyId} currentUserId={currentUserId} nameById={nameById} />
+            <PartyChannelPanel partyId={partyId} currentUserId={currentUserId} />
           ) : validActive === "lobby" && lobbyId ? (
             <LobbyChannelPanel lobbyId={lobbyId} currentUserId={currentUserId} />
           ) : validActive?.startsWith("dm:") ? (
