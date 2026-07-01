@@ -191,10 +191,11 @@ export function QueueSearchersPanel({
       {total === 0 ? (
         <p className="font-body text-xs text-text-faded">{t("searchersEmpty")}</p>
       ) : bare ? (
-        // Contexto do contador: stack estático (o painel já é um popover).
-        // hoverable → cada avatar abre o hover card (não está dentro de um botão).
+        // Contexto da BUSCA: mostra TODOS os que estão findando, sem "+N" (Pedro
+        // 2026-07-01 — transparência total de quem está na fila). Cada avatar tem
+        // hover com o perfil; o teto de 10 por partida cabe folgado.
         <div className="flex items-center gap-2 px-1 py-1">
-          <AvatarStack searchers={visible} hoverable />
+          <AvatarStack searchers={visible} hoverable max={Infinity} />
         </div>
       ) : (
         // Contexto do menu: stack interativo com popover.
@@ -326,16 +327,20 @@ export function QueueSearchersPanel({
 function AvatarStack({
   searchers,
   hoverable = false,
+  max = STACK_MAX,
 }: {
   searchers: QueueSearcher[];
   /** Envolve cada avatar num UserHoverCard. NÃO usar dentro de <button>. */
   hoverable?: boolean;
+  /** Máx de avatares antes do "+N". No contexto de busca passa Infinity (mostra TODOS
+      — transparência total de quem está findando, sem truncar). */
+  max?: number;
 }) {
-  const extra = searchers.length - STACK_MAX;
+  const extra = searchers.length - max;
   return (
     <>
-      <span className="flex">
-        {searchers.slice(0, STACK_MAX).map((s, i) => {
+      <span className="flex flex-wrap gap-y-1">
+        {searchers.slice(0, max).map((s, i) => {
           const img = s.avatar ? (
             <Image
               src={s.avatar}
