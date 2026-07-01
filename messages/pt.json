@@ -46,6 +46,40 @@
       "acessoAntecipado": "Acesso antecipado a novidades"
     }
   },
+  "compendium": {
+    "metaTitle": "Compendium",
+    "eyebrow": "Compendium",
+    "subtitle": "Sua trilha da temporada. Suba de nível jogando e cumprindo a doutrina pra desbloquear cosméticos exclusivos.",
+    "daysLeft": "Acaba em {days} dias",
+    "passLevel": "Nível do passe",
+    "toNext": "{pct}% pro próximo",
+    "passHint": "O motor de XP dedicado do passe chega em breve — por enquanto, reflete o seu nível de conta.",
+    "trackTitle": "Trilha de recompensas",
+    "freeTrack": "Grátis",
+    "paidTrack": "Passe",
+    "missionsTitle": "Missões da semana",
+    "missionsHint": "Missões renovam toda semana e alimentam o XP do passe.",
+    "rewards": {
+      "ringNovato": "Aura Ferro",
+      "badgeDoutrinado": "Selo Doutrinado",
+      "ringPiloto": "Aura Prata",
+      "ringAs": "Aura Ouro",
+      "ringLendario": "Aura Lendária",
+      "ringMistico": "Aura Mística",
+      "frameBrand": "Moldura Fórmula",
+      "smokeEmber": "Brasa da Fórmula",
+      "frameGold": "Moldura Dourada",
+      "nameEffect": "Efeito de nome",
+      "profileTheme": "Tema de perfil",
+      "smokeMystic": "Névoa Mística"
+    },
+    "missions": {
+      "doutrina": "Complete uma lição da doutrina",
+      "jogar": "Jogue uma partida",
+      "vencer": "Vença uma partida",
+      "convidar": "Convide um amigo pro grupo"
+    }
+  },
   "common": {
     "language": "Idioma",
     "loading": "Carregando…"
@@ -107,6 +141,8 @@
     "discordOfficial": "Discord oficial",
     "codeOfConduct": "Código de Conduta",
     "collection": "Coleção",
+    "compendium": "Compendium",
+    "plans": "Planos",
     "firstRule": "A primeira regra",
     "firstRuleBody": "A culpa nunca é do outro. A responsabilidade é sempre sua, 100% das vezes.",
     "prosPanel": "Painel PROs",

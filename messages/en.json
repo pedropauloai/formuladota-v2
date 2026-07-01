@@ -46,6 +46,40 @@
       "acessoAntecipado": "Early access to new features"
     }
   },
+  "compendium": {
+    "metaTitle": "Compendium",
+    "eyebrow": "Compendium",
+    "subtitle": "Your season track. Level up by playing and following the doctrine to unlock exclusive cosmetics.",
+    "daysLeft": "Ends in {days} days",
+    "passLevel": "Pass level",
+    "toNext": "{pct}% to the next",
+    "passHint": "The dedicated pass XP engine is coming soon — for now it reflects your account level.",
+    "trackTitle": "Reward track",
+    "freeTrack": "Free",
+    "paidTrack": "Pass",
+    "missionsTitle": "Weekly missions",
+    "missionsHint": "Missions refresh every week and feed the pass XP.",
+    "rewards": {
+      "ringNovato": "Iron Aura",
+      "badgeDoutrinado": "Doctrined Badge",
+      "ringPiloto": "Silver Aura",
+      "ringAs": "Gold Aura",
+      "ringLendario": "Legendary Aura",
+      "ringMistico": "Mystic Aura",
+      "frameBrand": "Fórmula Frame",
+      "smokeEmber": "Fórmula Ember",
+      "frameGold": "Golden Frame",
+      "nameEffect": "Name effect",
+      "profileTheme": "Profile theme",
+      "smokeMystic": "Mystic Haze"
+    },
+    "missions": {
+      "doutrina": "Complete a doctrine lesson",
+      "jogar": "Play a match",
+      "vencer": "Win a match",
+      "convidar": "Invite a friend to your group"
+    }
+  },
   "common": {
     "language": "Language",
     "loading": "Loading…"
@@ -107,6 +141,8 @@
     "discordOfficial": "Official Discord",
     "codeOfConduct": "Code of Conduct",
     "collection": "Collection",
+    "compendium": "Compendium",
+    "plans": "Plans",
     "firstRule": "The first rule",
     "firstRuleBody": "It's never the other guy's fault. The responsibility is always yours, 100% of the time.",
     "prosPanel": "PROs panel",

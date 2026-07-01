@@ -37,6 +37,7 @@ import {
   Users,
   ShieldCheck,
   Palette,
+  ScrollText,
 } from "lucide-react";
 import { type DotaRank } from "@/components/ui/dota-rank-medal";
 import { type HonorRank } from "@/components/ui/honor-rank-medal";
@@ -448,6 +449,8 @@ function ExpandedPanel({
       {/* Atalhos compactos no fim */}
       <nav aria-label={t("shortcuts")} className="space-y-1 border-t border-border-subtle pt-3">
         <CompactLink href="/colecao" label={t("collection")} icon={Palette} />
+        <CompactLink href="/compendium" label={t("compendium")} icon={ScrollText} />
+        <CompactLink href="/planos" label={t("plans")} icon={Crown} />
         <CompactLink href="/codigo-de-conduta" label={t("codeOfConduct")} icon={BookOpen} />
         <CompactLink
           href="https://discord.com/invite/USntaFRS6x"
