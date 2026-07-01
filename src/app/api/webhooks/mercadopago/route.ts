@@ -87,11 +87,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       console.error("[webhook/mp] tipo não suportado:", payload.type);
     }
   } catch (err) {
-    // Erro interno — log mas retornar 200 (MP não deve retentar por erro nosso processado)
-    console.error("[webhook/mp] erro interno no handler:", err);
+    // Falha TRANSITÓRIA (rede ao buscar detalhe no MP, ou erro de DB): retornar 500
+    // pra o Mercado Pago RETENTAR (retry ~15min × 3). Sem isto, um pagamento aprovado
+    // podia ficar sem crédito pra sempre (fix A2 auditoria). Casos terminais (status
+    // não aprovado, compra desconhecida, duplicado) usam `return` e caem no 200 abaixo.
+    console.error("[webhook/mp] erro transitório no handler — pedindo retry (500):", err);
+    return NextResponse.json({ error: "retry" }, { status: 500 });
   }
 
-  // SEMPRE 200
+  // Sucesso ou caso terminal tratado → 200 (MP não retenta).
   return NextResponse.json({ received: true });
 }
 
@@ -105,13 +109,14 @@ async function handlePaymentEvent(
 ): Promise<void> {
   const result = await getPaymentDetail(paymentId);
   if (!result.success) {
-    console.error("[webhook/mp] getPaymentDetail falhou:", result.error);
-    return;
+    // Falha ao buscar o detalhe no MP (rede/timeout) — TRANSITÓRIO: propaga pra que
+    // o handler retorne 500 e o Mercado Pago RETENTE (senão perderíamos o crédito).
+    throw new Error(`getPaymentDetail falhou: ${result.error}`);
   }
 
   const payment = result.data;
 
-  // Só processa pagamentos aprovados
+  // Só processa pagamentos aprovados (terminal — não retentar).
   if (payment.status !== "approved") return;
 
   if (!payment.external_reference) {
@@ -119,43 +124,23 @@ async function handlePaymentEvent(
     return;
   }
 
-  // UPDATE condicional — idempotência: só atualiza se ainda 'pendente'
-  // Se payment_provider foi salvo como 'mercadopago' na criação do purchase, filtra aqui
-  const { data: updated, error } = await supabase
-    .from("purchases")
-    .update({ status: "pago" })
-    .eq("id", payment.external_reference)
-    .eq("status", "pendente")
-    .eq("payment_provider", "mercadopago")
-    .select("id, user_id, partidas_compradas, sessoes_compradas, package_id")
-    .maybeSingle();
-
+  // Crédito ATÔMICO (fix A1 auditoria): UPDATE purchase→'pago' + INSERT ficha_ledger
+  // na MESMA transação (RPC). Se o ledger falhar, rollback → purchase segue 'pendente'
+  // e o retry do MP credita certo. Idempotente (UPDATE condicional em 'pendente').
+  const { data, error } = await supabase.rpc(
+    "credit_ficha_purchase" as never,
+    { p_purchase_id: payment.external_reference } as never
+  );
   if (error) {
-    console.error("[webhook/mp] update purchase falhou:", error.message);
-    return;
+    // Erro de DB — TRANSITÓRIO: propaga → 500/retry.
+    throw new Error(`credit_ficha_purchase falhou: ${(error as { message: string }).message}`);
   }
 
-  if (!updated) return; // webhook duplicado ou compra desconhecida — silencioso
-
-  // Gap 2 MVP Fichas (2026-05-23): insere em ficha_ledger pra creditar saldo.
-  // Trigger PG `apply_ficha_ledger` atualiza user_fichas.balance automaticamente.
-  // Idempotência garantida pelo UPDATE conditional da purchase acima.
-  if (updated.partidas_compradas > 0) {
-    const { error: ledgerError } = await supabase
-      .from("ficha_ledger")
-      .insert({
-        user_id: updated.user_id,
-        delta: updated.partidas_compradas,
-        source: "purchase",
-        source_id: updated.id,
-      });
-    if (ledgerError) {
-      console.error("[webhook/mp] insert ficha_ledger falhou:", ledgerError.message);
-    }
-  }
+  const credited = data as PurchaseRow | null;
+  if (!credited) return; // webhook duplicado / compra desconhecida — nada a creditar.
 
   // Email confirmação (fire-and-forget)
-  void sendPurchaseConfirmationSafely(supabase, updated);
+  void sendPurchaseConfirmationSafely(supabase, credited);
 }
 
 // ====================================================
