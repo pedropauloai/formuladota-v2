@@ -30,7 +30,7 @@
 
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
-import { Pencil, Check } from "lucide-react";
+import { Pencil, Check, ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MedalPair } from "@/components/ui/medal-pair";
 import { ProfileTabs, type ProfileTab } from "./profile-tabs";
@@ -219,8 +219,8 @@ export function ProfilePage({
                   <MedalPair
                     dotaRank={dotaRank}
                     honorRank={honorRank}
-                    size="sm"
-                    className="ml-1 shrink-0"
+                    size="md"
+                    className="ml-1.5 shrink-0"
                   />
                 </div>
                 {/* Redes sociais sob o nick — refletem a conta do LOGIN, então só
@@ -260,6 +260,13 @@ export function ProfilePage({
           {/* ─── RODAPÉ de edição — salvar fica embaixo (Pedro 2026-06-30). ─── */}
           {isOwn && editing && (
             <div className="mt-3 flex shrink-0 items-center justify-end gap-2 border-t border-border-subtle pt-3">
+              {/* Trocar fundo → biblioteca de fundos na /coleção (slot profile_theme). */}
+              <Link href="/colecao">
+                <Button variant="ghost" size="sm">
+                  <ImageIcon size={14} aria-hidden="true" />
+                  {t("changeBackground")}
+                </Button>
+              </Link>
               <ResetLayoutButton />
               <Link href="/me">
                 <Button variant="cinematic" size="sm">
