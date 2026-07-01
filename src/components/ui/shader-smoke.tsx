@@ -121,61 +121,22 @@ export function ShaderSmoke({
       premultipliedAlpha: false,
       antialias: false,
       depth: false,
+      // preserva o buffer entre frames — no ANGLE/D3D11 (Windows) evita o backbuffer
+      // não-inicializado aparecer BRANCO antes/entre os draws.
+      preserveDrawingBuffer: true,
     });
     if (!gl) return; // sem WebGL → fallback transparente
-
-    // Limpa IMEDIATAMENTE pra transparente. No ANGLE/D3D11 (Windows) um canvas WebGL
-    // recém-criado e ainda não desenhado — ou com shader que falha — aparece BRANCO.
-    // Garantir o buffer limpo antes de qualquer coisa evita o "bloco branco".
-    gl.clearColor(0, 0, 0, 0);
-    gl.clear(gl.COLOR_BUFFER_BIT);
-    // Perda de contexto não deve pintar o canvas de branco.
-    const onLost = (e: Event) => e.preventDefault();
-    canvas.addEventListener("webglcontextlost", onLost);
-
-    const vs = gl.createShader(gl.VERTEX_SHADER);
-    const fs = gl.createShader(gl.FRAGMENT_SHADER);
-    const prog = gl.createProgram();
-    const buf = gl.createBuffer();
-    if (!vs || !fs || !prog || !buf) return;
-
-    gl.shaderSource(vs, VERT);
-    gl.compileShader(vs);
-    gl.shaderSource(fs, FRAG);
-    gl.compileShader(fs);
-    // Se o shader não compila neste driver/GPU, deixa o canvas TRANSPARENTE (limpo),
-    // nunca branco — e desiste graciosamente.
-    if (
-      !gl.getShaderParameter(vs, gl.COMPILE_STATUS) ||
-      !gl.getShaderParameter(fs, gl.COMPILE_STATUS)
-    ) {
-      gl.clear(gl.COLOR_BUFFER_BIT);
-      canvas.removeEventListener("webglcontextlost", onLost);
-      return;
-    }
-    gl.attachShader(prog, vs);
-    gl.attachShader(prog, fs);
-    gl.linkProgram(prog);
-    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return;
-    gl.useProgram(prog);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
-    const loc = gl.getAttribLocation(prog, "a");
-    gl.enableVertexAttribArray(loc);
-    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-
-    gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-    gl.clearColor(0, 0, 0, 0); // buffer transparente — limpo a cada frame (ver frame())
-
-    const uRes = gl.getUniformLocation(prog, "u_res");
-    const uTime = gl.getUniformLocation(prog, "u_time");
-    gl.uniform3fv(gl.getUniformLocation(prog, "u_mid"), hexToRgb(mid));
-    gl.uniform3fv(gl.getUniformLocation(prog, "u_hot"), hexToRgb(hot));
-    gl.uniform1f(gl.getUniformLocation(prog, "u_intensity"), intensity);
+    const glc = gl;
 
     const dpr = Math.min(window.devicePixelRatio || 1, 1.75);
+    let uRes: WebGLUniformLocation | null = null;
+    let uTime: WebGLUniformLocation | null = null;
+    let ready = false;
+    let running = false;
+    let raf = 0;
+    let disposed = false;
+    const start = performance.now();
+
     function resize() {
       const w = Math.max(1, Math.floor((canvas!.clientWidth || 1) * dpr));
       const h = Math.max(1, Math.floor((canvas!.clientHeight || 1) * dpr));
@@ -183,46 +144,106 @@ export function ShaderSmoke({
         canvas!.width = w;
         canvas!.height = h;
       }
-      gl!.viewport(0, 0, w, h);
-      gl!.uniform2f(uRes, w, h);
+      glc.viewport(0, 0, w, h);
+      if (uRes) glc.uniform2f(uRes, w, h);
     }
-    const ro = new ResizeObserver(resize);
-    ro.observe(canvas);
-    resize();
 
-    let raf = 0;
-    let running = true;
-    const start = performance.now();
+    // (Re)compila e configura o programa. Chamado no mount e após webglcontextrestored,
+    // pra que a fumaça se RECUPERE sozinha quando o browser recria o contexto (o que
+    // causava o "bloco branco" travado — ver Pedro 2026-07-01).
+    function build(): boolean {
+      glc.clearColor(0, 0, 0, 0);
+      glc.clear(glc.COLOR_BUFFER_BIT);
+      const vs = glc.createShader(glc.VERTEX_SHADER);
+      const fs = glc.createShader(glc.FRAGMENT_SHADER);
+      const prog = glc.createProgram();
+      const buf = glc.createBuffer();
+      if (!vs || !fs || !prog || !buf) return false;
+      glc.shaderSource(vs, VERT);
+      glc.compileShader(vs);
+      glc.shaderSource(fs, FRAG);
+      glc.compileShader(fs);
+      if (
+        !glc.getShaderParameter(vs, glc.COMPILE_STATUS) ||
+        !glc.getShaderParameter(fs, glc.COMPILE_STATUS)
+      ) {
+        glc.clear(glc.COLOR_BUFFER_BIT); // transparente, nunca branco
+        return false;
+      }
+      glc.attachShader(prog, vs);
+      glc.attachShader(prog, fs);
+      glc.linkProgram(prog);
+      if (!glc.getProgramParameter(prog, glc.LINK_STATUS)) return false;
+      glc.useProgram(prog);
+      glc.bindBuffer(glc.ARRAY_BUFFER, buf);
+      glc.bufferData(glc.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), glc.STATIC_DRAW);
+      const loc = glc.getAttribLocation(prog, "a");
+      glc.enableVertexAttribArray(loc);
+      glc.vertexAttribPointer(loc, 2, glc.FLOAT, false, 0, 0);
+      glc.enable(glc.BLEND);
+      glc.blendFunc(glc.SRC_ALPHA, glc.ONE_MINUS_SRC_ALPHA);
+      glc.clearColor(0, 0, 0, 0);
+      uRes = glc.getUniformLocation(prog, "u_res");
+      uTime = glc.getUniformLocation(prog, "u_time");
+      glc.uniform3fv(glc.getUniformLocation(prog, "u_mid"), hexToRgb(mid));
+      glc.uniform3fv(glc.getUniformLocation(prog, "u_hot"), hexToRgb(hot));
+      glc.uniform1f(glc.getUniformLocation(prog, "u_intensity"), intensity);
+      resize();
+      return true;
+    }
+
     function frame() {
-      if (!running) return;
-      // Limpa o buffer a cada frame — SEM isto o blend acumula quadro após quadro e
-      // as áreas densas saturam pra BRANCO com o tempo (bug da fumaça travada branca).
-      gl!.clear(gl!.COLOR_BUFFER_BIT);
-      gl!.uniform1f(uTime, ((performance.now() - start) / 1000) * speed);
-      gl!.drawArrays(gl!.TRIANGLES, 0, 3);
+      if (!running || disposed) return;
+      glc.clear(glc.COLOR_BUFFER_BIT);
+      if (uTime) glc.uniform1f(uTime, ((performance.now() - start) / 1000) * speed);
+      glc.drawArrays(glc.TRIANGLES, 0, 3);
       raf = requestAnimationFrame(frame);
     }
-    frame();
+    function startLoop() {
+      if (running || !ready || disposed) return;
+      running = true;
+      frame();
+    }
+    function stopLoop() {
+      running = false;
+      cancelAnimationFrame(raf);
+    }
+
+    // Perda de contexto: pausa (sem pintar branco) e, ao restaurar, recompila e retoma.
+    const onLost = (e: Event) => {
+      e.preventDefault();
+      ready = false;
+      stopLoop();
+    };
+    const onRestored = () => {
+      ready = build();
+      if (ready) startLoop();
+    };
+    canvas.addEventListener("webglcontextlost", onLost);
+    canvas.addEventListener("webglcontextrestored", onRestored);
+
+    ready = build();
+    if (ready) startLoop();
+
+    const ro = new ResizeObserver(resize);
+    ro.observe(canvas);
 
     const onVis = () => {
-      if (document.hidden) {
-        running = false;
-        cancelAnimationFrame(raf);
-      } else if (!running) {
-        running = true;
-        frame();
-      }
+      if (document.hidden) stopLoop();
+      else startLoop();
     };
     document.addEventListener("visibilitychange", onVis);
 
     return () => {
-      running = false;
-      cancelAnimationFrame(raf);
+      disposed = true;
+      stopLoop();
       document.removeEventListener("visibilitychange", onVis);
       canvas.removeEventListener("webglcontextlost", onLost);
+      canvas.removeEventListener("webglcontextrestored", onRestored);
       ro.disconnect();
-      const lose = gl.getExtension("WEBGL_lose_context");
-      if (lose) lose.loseContext();
+      // NÃO chamar loseContext() aqui: se o effect re-roda (mid/hot mudam) ou o
+      // componente re-monta, forçar a perda MATA o contexto e o getContext seguinte
+      // pega um contexto morto → canvas branco. O browser libera via GC. Pedro 2026-07-01.
     };
   }, [prefersReducedMotion, mid, hot, intensity, speed]);
 

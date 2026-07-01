@@ -48,7 +48,12 @@ export function DashboardBottomBar({
 
   return (
     <>
-      <div className="relative z-[var(--z-overlay)] flex h-20 shrink-0 items-end justify-end px-6 pb-6 xl:h-24 xl:px-10 xl:pb-8 2xl:h-28 2xl:px-14 2xl:pb-10 pointer-events-none">
+      <div
+        className="relative z-[var(--z-overlay)] flex h-20 shrink-0 items-end justify-end xl:h-24 2xl:h-28 pointer-events-none"
+        // padding via inline (imune ao JIT do Tailwind que não gerava pr-*): fiel ao
+        // cliente Dota — mais respiro à direita do que embaixo. Pedro 2026-07-01.
+        style={{ paddingRight: "2.75rem", paddingBottom: "1.25rem" }}
+      >
         <Cta
           isVisitor={isVisitor}
           inQueue={inQueue}
