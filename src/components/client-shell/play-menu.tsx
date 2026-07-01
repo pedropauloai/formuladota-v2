@@ -410,9 +410,10 @@ export function PlayMenu({
             hot={smokeTheme?.hot ?? "#e0b64e"}
             intensity={1.3}
             speed={1.8}
-            // Área grande transbordando pra ESQUERDA e pra CIMA (o card encosta no canto
-            // direito da tela), descendo até a base. Pedro 2026-07-01.
-            className="-left-40 -right-4 -top-64 -bottom-6"
+            // ALTURA FIXA ancorada no canto inferior direito (independente da altura do
+            // card) — assim NÃO redimensiona/reinicia ao expandir/retrair o painel. Larga
+            // (transborda muito pra esquerda) e emana da base direita. Pedro 2026-07-01.
+            className="-left-56 right-0 -bottom-8 h-[640px]"
           />
           <div className="relative z-[1] w-full overflow-hidden rounded-md border-2 border-play-primary bg-bg-deep/70 backdrop-blur-md shadow-lg shadow-[var(--color-play-primary-glow)]">
           {searchPanelOpen && (
@@ -485,9 +486,10 @@ export function PlayMenu({
         <button
           type="button"
           onClick={() => setPhase("expanded")}
-          // Respiro do canto (o card de busca encosta; o botão, não). Inline pra não
-          // depender do JIT do Tailwind. Fiel ao dota 2 menu.png. Pedro 2026-07-01.
-          style={{ marginRight: "2.5rem", marginBottom: "1.25rem" }}
+          // Respiro lateral do botão (o card de busca encosta na direita; o botão, não).
+          // O respiro do fundo vem do container. Inline pra não depender do JIT do
+          // Tailwind. Fiel ao dota 2 menu.png. Pedro 2026-07-01.
+          style={{ marginRight: "2.5rem" }}
           className="pointer-events-auto group relative flex h-11 items-center gap-3 overflow-hidden rounded-md border-2 border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover px-8 font-display text-lg font-bold uppercase tracking-[0.25em] text-text-display shadow-lg shadow-[var(--color-play-primary-glow)] transition-all hover:scale-[1.02] xl:h-12 xl:px-12 xl:text-xl 2xl:h-14 2xl:px-16 2xl:text-2xl"
         >
           {hasSala ? <ArrowLeft size={22} aria-hidden="true" /> : <Play size={22} aria-hidden="true" />}

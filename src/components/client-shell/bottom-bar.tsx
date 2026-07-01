@@ -48,9 +48,12 @@ export function DashboardBottomBar({
 
   return (
     <>
-      {/* Sem padding: o CARD de busca encosta no canto inferior direito (fiel ao Dota).
-          O respiro do botão "Jogar Dota" vive no próprio botão (play-menu). */}
-      <div className="relative z-[var(--z-overlay)] flex h-20 shrink-0 items-end justify-end xl:h-24 2xl:h-28 pointer-events-none">
+      {/* Card de busca encosta na LATERAL direita (sem padding-right), com respiro só do
+          FUNDO (padding-bottom). O respiro lateral do botão "Jogar Dota" vive no botão. */}
+      <div
+        className="relative z-[var(--z-overlay)] flex h-20 shrink-0 items-end justify-end xl:h-24 2xl:h-28 pointer-events-none"
+        style={{ paddingBottom: "1.25rem" }}
+      >
         <Cta
           isVisitor={isVisitor}
           inQueue={inQueue}
