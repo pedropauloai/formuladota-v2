@@ -155,8 +155,22 @@ export function QueueSearchersPanel({
     for (const s of visible) for (const m of s.gameModes) c[m] = (c[m] ?? 0) + 1;
     return c;
   }, [visible]);
-  // Composição real (vagas ocupadas, flexível conta 1x) — base da demanda por função.
+  // Composição real (vagas ocupadas, flexível conta 1x) — usada só pro "faltam X pra formar".
   const comp = useMemo(() => computeComposition(visible), [visible]);
+  // Quantos jogadores OFERECEM cada função (headcount; flexível conta em cada uma que topa).
+  // Base intuitiva do nudge (Pedro 2026-07-01): substitui o X/2 de vagas — que confundia,
+  // pois um flexível enche 1 vaga só e fazia a função marcada aparecer "0/2".
+  const offers = useMemo(() => {
+    const o: Record<QueueRole, number> = {
+      safelane: 0, midlane: 0, offlane: 0, support: 0, support_dedicated: 0,
+    };
+    for (const s of visible) for (const r of s.roles) if (r in o) o[r as QueueRole] += 1;
+    return o;
+  }, [visible]);
+  const myRoleSet = useMemo(() => new Set(myRoles ?? []), [myRoles]);
+  // Funções carentes (menos de 2 ofertas) que EU ainda não cubro → o que vale a pena pegar.
+  const neededRoles = ROLES.filter((r) => offers[r.id] < ROLE_TARGET && !myRoleSet.has(r.id));
+  const missingToForm = Math.max(0, 10 - comp.totalAssigned);
   const showPopover = (open || pinned) && total > 0;
   const rootCls = bare
     ? ""
@@ -237,81 +251,75 @@ export function QueueSearchersPanel({
         </div>
       )}
 
-      {/* Quantos JOGADORES (distintos) faltam pra fechar os 10 — flexível conta 1x. */}
+      {/* Faltam quantos jogadores pra fechar os 10 (contagem simples, sem X/2 por vaga). */}
       <div className="mt-2.5 flex items-center justify-between border-t border-border-subtle/60 pt-2">
         <span className="font-display text-xs font-bold uppercase tracking-wide text-text-muted">
-          {t("searchersToForm")}
+          {t("searchersToFormLabel")}
         </span>
         <span
           className={`font-display text-sm font-bold tabular-nums ${
-            comp.totalAssigned >= 10 ? "text-play-primary" : "text-gold"
+            missingToForm === 0 ? "text-play-primary" : "text-gold"
           }`}
         >
-          {comp.totalAssigned}/10
+          {missingToForm === 0
+            ? t("searchersFormReady")
+            : t("searchersToFormCount", { count: missingToForm })}
         </span>
       </div>
 
-      {/* DEMANDA por função — vagas REAIS preenchidas (nudge; clicável na busca). */}
-      <ul className="mt-2 space-y-1">
-        {ROLES.map((r) => {
-          const count = comp.filled[r.id]; // vagas preenchidas (0..2), flexível conta 1x
-          const needed = count < ROLE_TARGET;
-          const mine = myRoles?.includes(r.id) ?? false;
-          const accent = needed ? "text-gold" : "text-play-primary";
-          const clickable = !!onPickRole && !mine;
+      {/* PRECISA-SE — funções carentes (< 2 ofertas). No contexto de busca, cada chip
+          é clicável → troca pra aquela função na hora (re-fila sem custo). Sem X/2. */}
+      {neededRoles.length > 0 && (
+        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          <span className="font-display text-[0.7rem] font-bold uppercase tracking-wide text-gold">
+            {t("searchersNeededRoles")}
+          </span>
+          {neededRoles.map((r) =>
+            onPickRole ? (
+              <button
+                key={r.id}
+                type="button"
+                onClick={() => onPickRole(r.id)}
+                title={t(r.key)}
+                className="flex items-center gap-1 rounded-sm border border-gold/40 bg-gold/10 px-1.5 py-0.5 font-display text-[0.7rem] font-semibold uppercase tracking-wide text-gold transition-colors hover:bg-gold/20"
+              >
+                <Image src={`/dota/positions/pos-${r.pos}.png`} alt="" width={14} height={14} className="size-3.5 shrink-0 object-contain" aria-hidden="true" />
+                <span className="truncate">{t(r.key)}</span>
+                <ArrowRight size={11} aria-hidden="true" />
+              </button>
+            ) : (
+              <span
+                key={r.id}
+                title={t(r.key)}
+                className="flex items-center gap-1 rounded-sm border border-border-subtle bg-bg-elevated px-1.5 py-0.5 font-display text-[0.7rem] font-semibold uppercase tracking-wide text-text-muted"
+              >
+                <Image src={`/dota/positions/pos-${r.pos}.png`} alt="" width={14} height={14} className="size-3.5 shrink-0 object-contain" aria-hidden="true" />
+                <span className="truncate">{t(r.key)}</span>
+              </span>
+            )
+          )}
+        </div>
+      )}
 
-          const content = (
-            <>
-              <Image
-                src={`/dota/positions/pos-${r.pos}.png`}
-                alt=""
-                width={16}
-                height={16}
-                className="size-4 shrink-0 object-contain"
-                aria-hidden="true"
-              />
-              <span className="flex-1 truncate font-display text-xs font-semibold uppercase tracking-wide text-text-muted">
-                {t(r.key)}
-              </span>
-              <span className={`font-display text-xs font-bold tabular-nums ${accent}`}>
-                {Math.min(count, ROLE_TARGET)}/{ROLE_TARGET}
-              </span>
-              <span className={`w-14 shrink-0 text-right font-body text-[0.7rem] ${accent}`}>
-                {count === 0
-                  ? t("searchersNeeded")
-                  : needed
-                    ? t("searchersMissing", { count: ROLE_TARGET - count })
-                    : t("searchersReady")}
-              </span>
-              {/* Afford. de troca (só no contexto de busca). */}
-              {onPickRole &&
-                (mine ? (
-                  <span className="w-8 shrink-0 text-right font-display text-[0.6rem] font-bold uppercase tracking-wide text-play-primary">
-                    {t("youTag")}
-                  </span>
-                ) : (
-                  <ArrowRight size={12} className={`shrink-0 ${accent}`} aria-hidden="true" />
-                ))}
-            </>
-          );
-
-          return (
-            <li key={r.id}>
-              {clickable ? (
-                <button
-                  type="button"
-                  onClick={() => onPickRole(r.id)}
-                  className="flex w-full items-center gap-2 rounded-sm px-1 py-0.5 text-left transition-colors hover:bg-bg-elevated/60"
-                >
-                  {content}
-                </button>
-              ) : (
-                <div className="flex items-center gap-2 px-1 py-0.5">{content}</div>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+      {/* VOCÊ TOPA — suas funções escolhidas. Indicação ÚNICA (some o "você" repetido
+          por linha e o antigo rodapé "Sua função"). */}
+      {myRoles && myRoles.length > 0 && (
+        <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+          <span className="font-display text-[0.7rem] font-bold uppercase tracking-wide text-play-primary">
+            {t("searchersYouOffer")}
+          </span>
+          {ROLES.filter((r) => myRoles.includes(r.id)).map((r) => (
+            <span
+              key={r.id}
+              title={t(r.key)}
+              className="flex items-center gap-1 rounded-sm border border-play-primary/40 bg-play-primary/10 px-1.5 py-0.5 font-display text-[0.7rem] font-semibold uppercase tracking-wide text-play-primary"
+            >
+              <Image src={`/dota/positions/pos-${r.pos}.png`} alt="" width={14} height={14} className="size-3.5 shrink-0 object-contain" aria-hidden="true" />
+              <span className="truncate">{t(r.key)}</span>
+            </span>
+          ))}
+        </div>
+      )}
 
       {/* Findar TODAS as funções (mais flexível = fila mais rápida). */}
       {onPickAll && (myRoles?.length ?? 0) < ROLES.length && (
@@ -322,26 +330,6 @@ export function QueueSearchersPanel({
         >
           <Check size={14} aria-hidden="true" /> {t("anyRole")}
         </button>
-      )}
-
-      {/* Sua função (contexto de busca). */}
-      {myRoles && myRoles.length > 0 && (
-        <div className="mt-2 flex items-center gap-1.5 border-t border-border-subtle/60 pt-2">
-          <span className="font-body text-[0.7rem] uppercase tracking-wide text-text-faded">
-            {t("yourRole")}
-          </span>
-          {ROLES.filter((r) => myRoles.includes(r.id)).map((r) => (
-            <Image
-              key={r.id}
-              src={`/dota/positions/pos-${r.pos}.png`}
-              alt=""
-              width={14}
-              height={14}
-              className="size-3.5 object-contain"
-              aria-hidden="true"
-            />
-          ))}
-        </div>
       )}
     </div>
   );
