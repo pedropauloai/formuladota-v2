@@ -43,39 +43,41 @@ void main(){
   float aspect = u_res.x / max(u_res.y, 1.0);
   float t = u_time * 0.09;
 
-  // --- fumaça/brasa: fbm com domain warp, densa na base, subindo ---
+  // --- fumaça/brasa: fluxo LATERAL dominante (direita → esquerda), leve subida ---
   vec2 p = vec2(uv.x*aspect, uv.y) * 3.0;
-  p.x += t * 1.8;                                  // deriva diagonal forte (estilo Dota)
-  p.y -= t * 2.6;
+  p.x += t * 3.6;                                  // fluxo visual pra ESQUERDA (dominante)
+  p.y -= t * 1.0;                                  // leve subida
   vec2 q = vec2(fbm(p), fbm(p + vec2(5.2, 1.3)));
   vec2 r = vec2(fbm(p + 2.0*q + vec2(1.7, 9.2) + t), fbm(p + 2.0*q + vec2(8.3, 2.8) - t));
   float f = fbm(p + 2.0*r);
   float d = clamp(f, 0.0, 1.0);
   d = pow(d, 1.5);
-  // denso na base, some no topo; suaviza nas laterais
-  float edges = smoothstep(0.0, 0.16, uv.x) * smoothstep(1.0, 0.84, uv.x);
-  float mask = smoothstep(0.98, 0.04, uv.y) * edges;
+  // denso no canto inferior DIREITO, esvai pra esquerda e pra cima
+  float mx = smoothstep(-0.25, 1.0, uv.x);         // mais denso à direita
+  float my = smoothstep(1.05, -0.05, uv.y);        // mais denso embaixo
+  float mask = mx * my;
   d *= mask;
   vec3 col = mix(u_mid * 0.12, u_mid, smoothstep(0.05, 0.5, d));
   col = mix(col, u_hot, smoothstep(0.4, 0.9, d));
   col += u_hot * pow(d, 2.6) * 1.0;                // glow quente (fake bloom)
   float alpha = d;
 
-  // --- faíscas / brasas subindo (o detalhe do cliente Dota) ---
+  // --- faíscas: partem da DIREITA-baixo e viajam pra ESQUERDA-cima ---
   float ember = 0.0;
   for (int i = 0; i < 22; i++) {
     float fi = float(i);
     float sx = hash(vec2(fi, 7.13));
-    float sp = 0.35 + hash(vec2(fi, 3.7)) * 0.65;   // velocidade da faísca (mais rápida)
+    float sy = hash(vec2(fi, 4.9));
+    float sp = 0.35 + hash(vec2(fi, 3.7)) * 0.65;   // velocidade da faísca
     float ph = hash(vec2(fi, 9.1));
-    float y = fract(ph + t * sp * 2.8);             // sobe 0->1 e reinicia (mais rápido)
-    float x = sx + y * 0.45 + 0.05 * sin(u_time * 0.9 + fi * 2.1); // sobe na DIAGONAL (forte)
+    float pr = fract(ph + t * sp * 2.4);            // progresso 0->1
+    float x = (0.78 + sx * 0.28) - pr * 1.25;       // nasce à DIREITA, vai pra ESQUERDA
+    float y = (0.02 + sy * 0.20) + pr * 0.45;       // sobe levemente
     vec2 pos = vec2(x * aspect, y);
     float dd = distance(vec2(uv.x * aspect, uv.y), pos);
-    float life = (1.0 - y) * smoothstep(0.0, 0.08, y); // nasce embaixo, some no topo
+    float life = (1.0 - pr) * smoothstep(0.0, 0.08, pr); // some no fim do trajeto
     ember += smoothstep(0.016, 0.0, dd) * life;
   }
-  ember *= edges;                                   // faíscas somem junto com as bordas
   col += u_hot * ember * 2.4;                       // faíscas brilham quente
   alpha += ember * 1.5;
 
