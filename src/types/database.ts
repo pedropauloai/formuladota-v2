@@ -14,6 +14,99 @@ export type Database = {
   }
   public: {
     Tables: {
+      cosmetics: {
+        Row: {
+          active: boolean
+          asset_ref: Json
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          rarity: string
+          requirement: Json
+          season_id: string | null
+          slot: string
+          slug: string
+          sort_order: number
+          source: string
+        }
+        Insert: {
+          active?: boolean
+          asset_ref?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          rarity?: string
+          requirement?: Json
+          season_id?: string | null
+          slot: string
+          slug: string
+          sort_order?: number
+          source?: string
+        }
+        Update: {
+          active?: boolean
+          asset_ref?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          rarity?: string
+          requirement?: Json
+          season_id?: string | null
+          slot?: string
+          slug?: string
+          sort_order?: number
+          source?: string
+        }
+        Relationships: []
+      }
+      user_cosmetics: {
+        Row: {
+          acquired_at: string
+          acquired_via: string
+          cosmetic_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          acquired_at?: string
+          acquired_via?: string
+          cosmetic_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          acquired_at?: string
+          acquired_via?: string
+          cosmetic_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_equipped: {
+        Row: {
+          cosmetic_id: string
+          equipped_at: string
+          slot: string
+          user_id: string
+        }
+        Insert: {
+          cosmetic_id: string
+          equipped_at?: string
+          slot: string
+          user_id: string
+        }
+        Update: {
+          cosmetic_id?: string
+          equipped_at?: string
+          slot?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       admin_audit_log: {
         Row: {
           action: string
@@ -2864,6 +2957,18 @@ export type Database = {
       }
     }
     Functions: {
+      equip_cosmetic: {
+        Args: { p_cosmetic_id: string }
+        Returns: undefined
+      }
+      unequip_slot: {
+        Args: { p_slot: string }
+        Returns: undefined
+      }
+      grant_cosmetic: {
+        Args: { p_cosmetic_id: string; p_user_id: string; p_via?: string }
+        Returns: undefined
+      }
       _assign_team_roles: {
         Args: { p_members: Json; p_roles: string[]; p_team: string }
         Returns: Json

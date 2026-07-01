@@ -1,4 +1,25 @@
 {
+  "colecao": {
+    "metaTitle": "Collection",
+    "eyebrow": "Compendium",
+    "title": "Your Collection",
+    "subtitle": "Equip the cosmetics you've unlocked through merit. More arrive with the Compendium each season.",
+    "empty": "Nothing here yet. Level up to unlock your first cosmetics.",
+    "equip": "Equip",
+    "equipped": "Equipped",
+    "locked": "Locked",
+    "equipError": "Couldn't equip",
+    "slots": {
+      "ring": "Ring",
+      "frame": "Frame",
+      "smoke": "Smoke",
+      "badge": "Badge",
+      "profile_theme": "Profile theme",
+      "name_effect": "Name effect",
+      "notification_sound": "Sound",
+      "chat_reaction": "Reactions"
+    }
+  },
   "common": {
     "language": "Language",
     "loading": "Loading…"
@@ -59,6 +80,7 @@
     "community": "Community",
     "discordOfficial": "Official Discord",
     "codeOfConduct": "Code of Conduct",
+    "collection": "Collection",
     "firstRule": "The first rule",
     "firstRuleBody": "It's never the other guy's fault. The responsibility is always yours, 100% of the time.",
     "prosPanel": "PROs panel",

@@ -46,6 +46,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useQueueStatusRealtime } from "@/lib/realtime/use-queue-status-realtime";
 import { QueueSearchersPanel } from "@/components/queue/queue-searchers-panel";
 import { ShaderSmoke } from "@/components/ui/shader-smoke";
+import type { SmokeAsset } from "@/lib/cosmetics";
 import { PermissionQuizModal } from "@/components/quiz/permission-quiz-modal";
 import { setPlayMenuState, type PlayMenuState } from "@/lib/play-menu-preference";
 import {
@@ -81,9 +82,16 @@ interface Props {
   initial: PlayMenuState;
   /** Em grupo? Buscar coloca TODO o grupo na fila (mesmo time). */
   inParty?: boolean;
+  /** Fumaça equipada (cosmético) — cores do shader no card de busca. */
+  smokeTheme?: SmokeAsset | null;
 }
 
-export function PlayMenu({ isVisitor, initial, inParty = false }: Props) {
+export function PlayMenu({
+  isVisitor,
+  initial,
+  inParty = false,
+  smokeTheme = null,
+}: Props) {
   const router = useRouter();
   const t = useTranslations("playMenu");
   const drawerRef = useRef<HTMLElement>(null);
@@ -397,7 +405,11 @@ export function PlayMenu({ isVisitor, initial, inParty = false }: Props) {
         // Interface ÚNICA: painel "quem está findando" (retrátil) + contador. Fumaça
         // por SHADER atrás (ShaderSmoke) enquanto busca — flagship premium tier-1.
         <div className="pointer-events-auto relative w-[340px] max-w-[calc(100vw-2rem)]">
-          <ShaderSmoke mid="#00C466" hot="#e0b64e" intensity={1.05} />
+          <ShaderSmoke
+            mid={smokeTheme?.mid ?? "#00C466"}
+            hot={smokeTheme?.hot ?? "#e0b64e"}
+            intensity={1.05}
+          />
           <div className="relative z-[1] w-full overflow-hidden rounded-md border-2 border-play-primary bg-bg-deep shadow-lg shadow-[var(--color-play-primary-glow)]">
           {searchPanelOpen && (
             <div className="border-b border-border-subtle p-2.5 animate-in slide-in-from-bottom-2 fade-in duration-150">

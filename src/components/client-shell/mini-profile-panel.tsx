@@ -36,6 +36,7 @@ import {
   LogIn,
   Users,
   ShieldCheck,
+  Palette,
 } from "lucide-react";
 import { type DotaRank } from "@/components/ui/dota-rank-medal";
 import { type HonorRank } from "@/components/ui/honor-rank-medal";
@@ -49,6 +50,7 @@ import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { QUESTIONS_PER_PERMISSION } from "@/lib/quiz/permissions";
 import type { FriendListEntry } from "@/lib/queries/friends";
 import type { PartyView } from "@/lib/queries/party";
+import type { RingAsset, FrameAsset } from "@/lib/cosmetics";
 
 interface Props {
   isVisitor: boolean;
@@ -86,6 +88,10 @@ interface Props {
   party?: PartyView | null;
   /** Amigos aceitos — pra lista de convite dos slots do grupo. */
   friends?: FriendListEntry[];
+  /** Cosmético de ring equipado (glow) — null = default por tier. */
+  ringVariant?: RingAsset | null;
+  /** Cosmético de moldura equipado. */
+  frame?: FrameAsset | null;
 }
 
 export function MiniProfilePanel({
@@ -108,6 +114,8 @@ export function MiniProfilePanel({
   currentLobbyId = null,
   party = null,
   friends = [],
+  ringVariant = null,
+  frame = null,
 }: Props) {
   // Par canônico de medalhas (mandamento M12): SKILL (Valve) + HONOR (nível).
   // dotaRank/honorRank vêm prontos do shell — MESMA fonte do /me e do hover-card.
@@ -156,6 +164,8 @@ export function MiniProfilePanel({
           initialFriends={initialFriends}
           initialPending={initialPending}
           currentLobbyId={currentLobbyId}
+          ringVariant={ringVariant}
+          frame={frame}
         />
       )}
 
@@ -172,6 +182,8 @@ export function MiniProfilePanel({
           currentUserId={currentUserId}
           party={party}
           friends={friends}
+          ringVariant={ringVariant}
+          frame={frame}
           connectedTop={expanded}
           onToggle={handleToggle}
           locked={lockedExpanded}
@@ -203,6 +215,8 @@ function CollapsedCard({
   currentUserId,
   party,
   friends,
+  ringVariant,
+  frame,
   connectedTop = false,
   onToggle,
   locked = false,
@@ -215,6 +229,8 @@ function CollapsedCard({
   currentUserId: string | null;
   party: PartyView | null;
   friends: FriendListEntry[];
+  ringVariant: RingAsset | null;
+  frame: FrameAsset | null;
   /** Quando true (painel expandido aberto), borda superior + canto superior
       ficam planos pra conectar visualmente ao ExpandedPanel acima. */
   connectedTop?: boolean;
@@ -237,6 +253,8 @@ function CollapsedCard({
       level={level}
       pct={xpPct}
       size={40}
+      ringVariant={ringVariant}
+      frame={frame}
     />
   );
   return (
@@ -347,6 +365,8 @@ function ExpandedPanel({
   initialFriends,
   initialPending,
   currentLobbyId,
+  ringVariant,
+  frame,
 }: {
   persona: string | null;
   avatar: string | null;
@@ -361,6 +381,8 @@ function ExpandedPanel({
   initialFriends: FriendListEntry[];
   initialPending: FriendListEntry[];
   currentLobbyId: string | null;
+  ringVariant: RingAsset | null;
+  frame: FrameAsset | null;
 }) {
   const t = useTranslations("shell");
   const name = persona ?? t("anon");
@@ -383,6 +405,8 @@ function ExpandedPanel({
             level={level}
             pct={xpPct}
             size={52}
+            ringVariant={ringVariant}
+            frame={frame}
           />
           <div className="flex-1 min-w-0">
             <p className="font-display text-lg font-semibold text-text-display truncate">
@@ -423,6 +447,7 @@ function ExpandedPanel({
 
       {/* Atalhos compactos no fim */}
       <nav aria-label={t("shortcuts")} className="space-y-1 border-t border-border-subtle pt-3">
+        <CompactLink href="/colecao" label={t("collection")} icon={Palette} />
         <CompactLink href="/codigo-de-conduta" label={t("codeOfConduct")} icon={BookOpen} />
         <CompactLink
           href="https://discord.com/invite/USntaFRS6x"

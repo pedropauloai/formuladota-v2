@@ -14,6 +14,7 @@ import { Hourglass } from "lucide-react";
 import type { ProLiveStatus } from "@/lib/queries/pros";
 import type { MyQueueEntry } from "@/lib/queries/queue";
 import type { PlayMenuState } from "@/lib/play-menu-preference";
+import type { SmokeAsset } from "@/lib/cosmetics";
 import { QueueStatusModal } from "@/components/landing/queue-status-modal";
 import { useTranslations } from "next-intl";
 import { PlayMenu } from "./play-menu";
@@ -30,9 +31,17 @@ interface Props {
   initialPlayMenu: PlayMenuState;
   /** Está em grupo? A busca vira "em grupo" (todos entram na fila juntos). */
   inParty: boolean;
+  /** Fumaça equipada (cosmético) — aplicada no card de busca e no ready-check. */
+  smokeTheme?: SmokeAsset | null;
 }
 
-export function DashboardBottomBar({ isVisitor, myQueues, initialPlayMenu, inParty }: Props) {
+export function DashboardBottomBar({
+  isVisitor,
+  myQueues,
+  initialPlayMenu,
+  inParty,
+  smokeTheme = null,
+}: Props) {
   const [statusModalOpen, setStatusModalOpen] = useState(false);
 
   const inQueue = myQueues.length > 0;
@@ -45,6 +54,7 @@ export function DashboardBottomBar({ isVisitor, myQueues, initialPlayMenu, inPar
           inQueue={inQueue}
           initialPlayMenu={initialPlayMenu}
           inParty={inParty}
+          smokeTheme={smokeTheme}
           onStatusClick={() => setStatusModalOpen(true)}
         />
       </div>
@@ -56,7 +66,7 @@ export function DashboardBottomBar({ isVisitor, myQueues, initialPlayMenu, inPar
       />
 
       {/* Ready check (popup central "partida encontrada") — global pra logados. */}
-      {!isVisitor && <ReadyCheckOverlay />}
+      {!isVisitor && <ReadyCheckOverlay smokeTheme={smokeTheme} />}
     </>
   );
 }
@@ -66,10 +76,18 @@ interface CtaProps {
   inQueue: boolean;
   initialPlayMenu: PlayMenuState;
   inParty: boolean;
+  smokeTheme: SmokeAsset | null;
   onStatusClick: () => void;
 }
 
-function Cta({ isVisitor, inQueue, initialPlayMenu, inParty, onStatusClick }: CtaProps) {
+function Cta({
+  isVisitor,
+  inQueue,
+  initialPlayMenu,
+  inParty,
+  smokeTheme,
+  onStatusClick,
+}: CtaProps) {
   const t = useTranslations("shell");
   const base =
     "pointer-events-auto group relative flex h-11 items-center gap-3 overflow-hidden rounded-md border-2 px-8 font-display text-lg font-bold uppercase tracking-[0.25em] shadow-lg transition-all hover:scale-[1.02] xl:h-12 xl:px-12 xl:text-xl 2xl:h-14 2xl:px-16 2xl:text-2xl 2xl:tracking-[0.3em]";
@@ -96,5 +114,12 @@ function Cta({ isVisitor, inQueue, initialPlayMenu, inParty, onStatusClick }: Ct
   }
 
   // Visitante e usuário comum — PlayMenu (drawer full-height + estados persistidos).
-  return <PlayMenu isVisitor={isVisitor} initial={initialPlayMenu} inParty={inParty} />;
+  return (
+    <PlayMenu
+      isVisitor={isVisitor}
+      initial={initialPlayMenu}
+      inParty={inParty}
+      smokeTheme={smokeTheme}
+    />
+  );
 }

@@ -1,4 +1,25 @@
 {
+  "colecao": {
+    "metaTitle": "Coleção",
+    "eyebrow": "Compendium",
+    "title": "Sua Coleção",
+    "subtitle": "Equipe os cosméticos que você desbloqueou pelo mérito. Mais chegam com o Compendium a cada temporada.",
+    "empty": "Nada por aqui ainda. Suba de nível pra desbloquear seus primeiros cosméticos.",
+    "equip": "Equipar",
+    "equipped": "Equipado",
+    "locked": "Bloqueado",
+    "equipError": "Não foi possível equipar",
+    "slots": {
+      "ring": "Anel",
+      "frame": "Moldura",
+      "smoke": "Fumaça",
+      "badge": "Selo",
+      "profile_theme": "Tema de perfil",
+      "name_effect": "Efeito de nome",
+      "notification_sound": "Som",
+      "chat_reaction": "Reações"
+    }
+  },
   "common": {
     "language": "Idioma",
     "loading": "Carregando…"
@@ -59,6 +80,7 @@
     "community": "Comunidade",
     "discordOfficial": "Discord oficial",
     "codeOfConduct": "Código de Conduta",
+    "collection": "Coleção",
     "firstRule": "A primeira regra",
     "firstRuleBody": "A culpa nunca é do outro. A responsabilidade é sempre sua, 100% das vezes.",
     "prosPanel": "Painel PROs",

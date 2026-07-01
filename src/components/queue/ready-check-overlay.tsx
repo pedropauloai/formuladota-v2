@@ -27,6 +27,7 @@ import { UserHoverCard } from "@/components/profile/user-hover-card";
 import { rankTierToDotaRank } from "@/components/profile/career-stats";
 import { getGatedTierForLevel, mmrFromRankTier } from "@/lib/levels";
 import { ShaderSmoke } from "@/components/ui/shader-smoke";
+import type { SmokeAsset } from "@/lib/cosmetics";
 
 const DURATION_MS = 60_000;
 
@@ -63,7 +64,11 @@ function mapRow(row: {
   };
 }
 
-export function ReadyCheckOverlay() {
+export function ReadyCheckOverlay({
+  smokeTheme = null,
+}: {
+  smokeTheme?: SmokeAsset | null;
+}) {
   const router = useRouter();
   const play = useSound();
   const [userId, setUserId] = useState<string | null>(null);
@@ -223,7 +228,12 @@ export function ReadyCheckOverlay() {
   return (
     <div className="pointer-events-auto fixed inset-0 z-[var(--z-takeover)] flex items-center justify-center bg-bg-deep/85 p-4 backdrop-blur-sm animate-in fade-in duration-150">
       {/* Fumaça por shader ao redor do card — pico dramático "partida encontrada". */}
-      <ShaderSmoke className="inset-0" mid="#00C466" hot="#e0b64e" intensity={0.88} />
+      <ShaderSmoke
+        className="inset-0"
+        mid={smokeTheme?.mid ?? "#00C466"}
+        hot={smokeTheme?.hot ?? "#e0b64e"}
+        intensity={0.88}
+      />
       <div className="relative z-[1] w-full max-w-2xl overflow-hidden rounded-md border-2 border-play-primary bg-bg-base shadow-[var(--shadow-cinematic)] animate-in zoom-in-95 duration-150">
         {/* Barra superior decrescente (60s). */}
         <div className="h-1.5 w-full bg-bg-elevated">

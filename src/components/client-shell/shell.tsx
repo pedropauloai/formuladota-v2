@@ -38,6 +38,7 @@ import { getFriendsPanel } from "@/lib/queries/friends";
 import { getMyOpenLobby, getMyLobbyInvites } from "@/lib/queries/lobby-social";
 import { getDmInbox } from "@/lib/queries/messages";
 import { getMyParty, getPartyInvitesDetailed } from "@/lib/queries/party";
+import { getEquippedForUser } from "@/lib/queries/cosmetics";
 import { xpProgress, getGatedTierForLevel, mmrFromRankTier } from "@/lib/levels";
 import { getPlayMenuState } from "@/lib/play-menu-preference";
 import { mmrToDotaRank } from "@/components/queue/queue-helpers";
@@ -116,6 +117,7 @@ export async function ClientShell({
     dmInbox,
     myParty,
     partyInvites,
+    equipped,
   ] = await Promise.all([
     isVisitor ? Promise.resolve(null) : fetchPrivateData(supabase, user.id),
     getProsWithQueues(),
@@ -140,6 +142,8 @@ export async function ClientShell({
     // Minha party (frame no mini-perfil) + convites de grupo (popup central).
     isVisitor ? Promise.resolve(null) : getMyParty(supabase, user.id),
     isVisitor ? Promise.resolve([]) : getPartyInvitesDetailed(supabase),
+    // Cosméticos equipados (ring/frame no mini-perfil, smoke no card de busca).
+    isVisitor ? Promise.resolve(null) : getEquippedForUser(supabase, user.id),
   ]);
 
   const profile = privateData?.profile ?? null;
@@ -151,6 +155,10 @@ export async function ClientShell({
   const userLevel = privateData?.level ?? 1;
   const userXpPct = privateData?.xpPct ?? 0;
   const matchPermissions = privateData?.permissions ?? 0;
+  // Cosméticos equipados — ring/frame no avatar, smoke no card de busca (fallback null).
+  const ringVariant = equipped?.ring ?? null;
+  const frameCosmetic = equipped?.frame ?? null;
+  const smokeTheme = equipped?.smoke ?? null;
 
   // Par de medalhas do mini-perfil — MESMA fonte canônica do /me e do hover-card:
   // SKILL = rank Valve real (career.rankTier) com fallback no MMR; HONOR = nível
@@ -282,6 +290,8 @@ export async function ClientShell({
             currentLobbyId={myOpenLobby?.id ?? null}
             party={myParty}
             friends={friendsPanel.friends}
+            ringVariant={ringVariant}
+            frame={frameCosmetic}
           />
         )}
 
@@ -312,6 +322,7 @@ export async function ClientShell({
               myQueues={myQueues}
               initialPlayMenu={playMenuState}
               inParty={myParty !== null}
+            smokeTheme={smokeTheme}
             />
           </div>
         )}
@@ -405,6 +416,8 @@ export async function ClientShell({
           currentLobbyId={myOpenLobby?.id ?? null}
           party={myParty}
           friends={friendsPanel.friends}
+          ringVariant={ringVariant}
+          frame={frameCosmetic}
         />
       )}
 
@@ -433,6 +446,7 @@ export async function ClientShell({
             myQueues={myQueues}
             initialPlayMenu={playMenuState}
             inParty={myParty !== null}
+            smokeTheme={smokeTheme}
           />
         </div>
       )}

@@ -5,10 +5,15 @@
 // O avatar é QUADRADO (rounded-sm) — padrão Steam/Dota, nunca circular
 // (ver memory/feedback_avatar_quadrado). A barra anima quando `pct` muda → sobe em
 // tempo real conforme o usuário ganha XP respondendo o quiz.
+//
+// COSMÉTICOS (Compendium Fase 0): o GLOW e a MOLDURA são equipáveis. Se `ringVariant`
+// for passado, ele dita o glow (tier específico ou 'none'=sem glow); senão, fallback =
+// tier do próprio nível (comportamento histórico). `frame` desenha a moldura equipada.
 
 import { useTranslations } from "next-intl";
 import { TIER_CONFIG, getTierForLevel, type Tier } from "@/lib/levels";
 import { useReducedMotion } from "@/lib/particles/hooks";
+import type { RingAsset, FrameAsset } from "@/lib/cosmetics";
 import { cn } from "@/lib/utils";
 
 // Intensidade do glow por tier — o anel "ganha vida" conforme sobe (Novato sem
@@ -28,6 +33,10 @@ interface Props {
   tier?: Tier;
   /** Tamanho do avatar interno, em px. */
   size?: number;
+  /** Cosmético de ring equipado (glow). null/undefined = default por tier. */
+  ringVariant?: RingAsset | null;
+  /** Cosmético de moldura equipado. null/undefined/none = sem moldura. */
+  frame?: FrameAsset | null;
 }
 
 export function XpAvatarRing({
@@ -38,15 +47,29 @@ export function XpAvatarRing({
   pct,
   tier,
   size = 44,
+  ringVariant,
+  frame,
 }: Props) {
   const t = useTranslations("ui");
   const prefersReducedMotion = useReducedMotion();
   const resolvedTier = tier ?? getTierForLevel(level);
-  const cfg = TIER_CONFIG[resolvedTier];
 
-  const intensity = Math.max(0, TIER_ORDER.indexOf(resolvedTier));
+  // Tier VISUAL do glow: cosmético equipado manda; senão, o tier real (fallback).
+  const glowOff = ringVariant?.kind === "none";
+  const visualTier: Tier =
+    ringVariant?.kind === "tier" ? ringVariant.tier : resolvedTier;
+  const cfg = TIER_CONFIG[visualTier];
+
+  const intensity = glowOff ? 0 : Math.max(0, TIER_ORDER.indexOf(visualTier));
   const hasAura = intensity >= 1;
   const hasHalo = intensity >= 3 && !prefersReducedMotion;
+
+  const frameColor =
+    frame && frame.kind !== "none"
+      ? frame.color === "gold"
+        ? "border-gold"
+        : "border-brand-primary"
+      : null;
 
   // Geometria: container = avatar + folga pra borda. SVG cobre o container.
   const stroke = 3;
@@ -82,6 +105,17 @@ export function XpAvatarRing({
       style={{ width: box, height: box }}
       aria-label={t("xpRingAria", { level, pct: Math.round(clamped * 100) })}
     >
+      {/* Moldura equipada (frame) — borda decorativa ao redor do avatar. */}
+      {frameColor && (
+        <span
+          aria-hidden="true"
+          className={cn(
+            "pointer-events-none absolute -inset-[3px] rounded-md border-2",
+            frameColor,
+            frame?.kind === "animated" && !prefersReducedMotion && "animate-pulse"
+          )}
+        />
+      )}
       {/* Aura pulsante na cor do tier — brilho vivo atrás do anel. */}
       {hasAura && (
         <span
@@ -147,7 +181,9 @@ export function XpAvatarRing({
           strokeDashoffset={1 - clamped}
           style={{
             transition: "stroke-dashoffset 700ms cubic-bezier(0.22,1,0.36,1)",
-            filter: `drop-shadow(0 0 ${4 + intensity * 1.5}px currentColor)`,
+            filter: glowOff
+              ? "none"
+              : `drop-shadow(0 0 ${4 + intensity * 1.5}px currentColor)`,
           }}
         />
       </svg>
