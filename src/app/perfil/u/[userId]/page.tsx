@@ -63,34 +63,43 @@ export default async function PublicProfilePage(props: PageProps) {
       ? (rawTab as ProfileTab)
       : "perfil";
 
+  // PERFORMANCE (auditoria): amizade + carreira + nível + stats + fundo em PARALELO
+  // (antes eram ~6 awaits em série). Todos só dependem de user.id/userId.
+  const [friendship, career, levelRow, ext, fdotaStats, equippedForBg] =
+    await Promise.all([
+      supabase
+        .from("friendships")
+        .select("id, status, requester_id")
+        .or(
+          `and(requester_id.eq.${user.id},addressee_id.eq.${userId}),` +
+            `and(requester_id.eq.${userId},addressee_id.eq.${user.id})`
+        )
+        .maybeSingle(),
+      getCareerStats(userId),
+      supabase
+        .from("user_levels")
+        .select("total_xp_earned")
+        .eq("user_id", userId)
+        .maybeSingle(),
+      syncPlayerStats({ userId }),
+      getFormulaDotaProfileStats(userId),
+      getEquippedForUser(supabase, profile.userId),
+    ]);
+
   // Estado de amizade com o viewer → botão no header (adicionar/aceitar/remover).
-  const { data: friendship } = await supabase
-    .from("friendships")
-    .select("id, status, requester_id")
-    .or(
-      `and(requester_id.eq.${user.id},addressee_id.eq.${userId}),` +
-        `and(requester_id.eq.${userId},addressee_id.eq.${user.id})`
-    )
-    .maybeSingle();
   let friendState: ProfileFriendState = "none";
   let friendshipId: string | null = null;
-  if (friendship) {
-    friendshipId = friendship.id;
-    if (friendship.status === "accepted") friendState = "friends";
-    else if (friendship.status === "pending")
-      friendState = friendship.requester_id === user.id ? "pending_out" : "pending_in";
+  if (friendship.data) {
+    friendshipId = friendship.data.id;
+    if (friendship.data.status === "accepted") friendState = "friends";
+    else if (friendship.data.status === "pending")
+      friendState =
+        friendship.data.requester_id === user.id ? "pending_out" : "pending_in";
     // blocked → "none" (esconde o botão de ação)
   }
 
-  const career = await getCareerStats(userId);
-
   // HONOR = NÍVEL (canônico), gate pela skill Valve real — igual ao /me e mini-perfil.
-  const { data: levelRow } = await supabase
-    .from("user_levels")
-    .select("total_xp_earned")
-    .eq("user_id", userId)
-    .maybeSingle();
-  const { level } = xpProgress(levelRow?.total_xp_earned ?? 0);
+  const { level } = xpProgress(levelRow.data?.total_xp_earned ?? 0);
   const honorRank: HonorRank = getGatedTierForLevel(
     level,
     mmrFromRankTier(career?.rankTier ?? null)
@@ -101,10 +110,7 @@ export default async function PublicProfilePage(props: PageProps) {
     rankTierToDotaRank(career?.rankTier ?? null, career?.leaderboardRank ?? null) ??
     mmrToDotaRank(profile.mmr);
 
-  // Carreira STRATZ + partidas FormulaDota → os 2 hexágonos (igual ao /me).
-  const ext = await syncPlayerStats({ userId });
   const extData = ext.success ? ext.data : null;
-  const fdotaStats = await getFormulaDotaProfileStats(userId);
   const general = extData
     ? {
         matches: extData.totalMatches,
@@ -118,7 +124,6 @@ export default async function PublicProfilePage(props: PageProps) {
       }
     : null;
   // Fundo = tema equipado (slot profile_theme); default limpo (sem herói automático).
-  const equippedForBg = await getEquippedForUser(supabase, profile.userId);
   const centerHero = equippedForBg.profileTheme ?? undefined;
 
   return (
