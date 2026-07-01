@@ -397,7 +397,7 @@ export function PlayMenu({ isVisitor, initial, inParty = false }: Props) {
         // Interface ÚNICA: painel "quem está findando" (retrátil) + contador. Fumaça
         // por SHADER atrás (ShaderSmoke) enquanto busca — flagship premium tier-1.
         <div className="pointer-events-auto relative w-[340px] max-w-[calc(100vw-2rem)]">
-          <ShaderSmoke mid="#00C466" hot="#e0b64e" intensity={0.95} />
+          <ShaderSmoke mid="#00C466" hot="#e0b64e" intensity={1.05} />
           <div className="relative z-[1] w-full overflow-hidden rounded-md border-2 border-play-primary bg-bg-deep shadow-lg shadow-[var(--color-play-primary-glow)]">
           {searchPanelOpen && (
             <div className="border-b border-border-subtle p-2.5 animate-in slide-in-from-bottom-2 fade-in duration-150">

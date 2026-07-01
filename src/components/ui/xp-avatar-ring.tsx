@@ -8,7 +8,12 @@
 
 import { useTranslations } from "next-intl";
 import { TIER_CONFIG, getTierForLevel, type Tier } from "@/lib/levels";
+import { useReducedMotion } from "@/lib/particles/hooks";
 import { cn } from "@/lib/utils";
+
+// Intensidade do glow por tier — o anel "ganha vida" conforme sobe (Novato sem
+// glow → Místico no máximo). aura = aprendiz+ ; halos girando = ás+.
+const TIER_ORDER: Tier[] = ["novato", "aprendiz", "piloto", "as", "lendario", "mistico"];
 
 interface Props {
   src?: string | null;
@@ -35,8 +40,13 @@ export function XpAvatarRing({
   size = 44,
 }: Props) {
   const t = useTranslations("ui");
+  const prefersReducedMotion = useReducedMotion();
   const resolvedTier = tier ?? getTierForLevel(level);
   const cfg = TIER_CONFIG[resolvedTier];
+
+  const intensity = Math.max(0, TIER_ORDER.indexOf(resolvedTier));
+  const hasAura = intensity >= 1;
+  const hasHalo = intensity >= 3 && !prefersReducedMotion;
 
   // Geometria: container = avatar + folga pra borda. SVG cobre o container.
   const stroke = 3;
@@ -68,10 +78,46 @@ export function XpAvatarRing({
 
   return (
     <div
-      className="relative shrink-0"
+      className={cn("relative shrink-0", cfg.color)}
       style={{ width: box, height: box }}
       aria-label={t("xpRingAria", { level, pct: Math.round(clamped * 100) })}
     >
+      {/* Aura pulsante na cor do tier — brilho vivo atrás do anel. */}
+      {hasAura && (
+        <span
+          aria-hidden="true"
+          className={cn(
+            "pointer-events-none absolute -inset-1.5 rounded-md bg-[radial-gradient(circle,currentColor_0%,transparent_68%)]",
+            intensity >= 4 ? "opacity-60" : "opacity-40",
+            !prefersReducedMotion && "animate-pulse"
+          )}
+          style={{ filter: `blur(${intensity >= 3 ? 8 : 5}px)` }}
+        />
+      )}
+      {/* Dois halos de luz girando em sentidos opostos (ás+) — energia viva. */}
+      {hasHalo && (
+        <>
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute -inset-1.5 rounded-md opacity-70 animate-spin [animation-duration:6s]"
+            style={{
+              background:
+                "conic-gradient(from 0deg, transparent 0deg, currentColor 30deg, transparent 80deg, transparent 180deg, currentColor 210deg, transparent 260deg)",
+              filter: "blur(4px)",
+            }}
+          />
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute -inset-2 rounded-md opacity-40 animate-spin [animation-duration:10s] [animation-direction:reverse]"
+            style={{
+              background:
+                "conic-gradient(from 140deg, transparent 0deg, currentColor 50deg, transparent 110deg)",
+              filter: "blur(6px)",
+            }}
+          />
+        </>
+      )}
+
       {/* Borda-progresso */}
       <svg
         className={cn("absolute inset-0", cfg.color)}
@@ -101,7 +147,7 @@ export function XpAvatarRing({
           strokeDashoffset={1 - clamped}
           style={{
             transition: "stroke-dashoffset 700ms cubic-bezier(0.22,1,0.36,1)",
-            filter: "drop-shadow(0 0 4px currentColor)",
+            filter: `drop-shadow(0 0 ${4 + intensity * 1.5}px currentColor)`,
           }}
         />
       </svg>
