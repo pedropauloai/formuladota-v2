@@ -135,6 +135,7 @@
     "doctrineLink": "Conheça a doutrina →",
     "ctaLogin": "Entrar com Discord",
     "ctaPlay": "Subir de MMR",
+    "ctaMatches": "Ver Partidas",
     "whyLink": "Entenda o porquê →",
     "pulso": "{count, plural, =0 {Nenhum PRO em fila agora} =1 {# PRO em fila agora} other {# PROs em fila agora}}"
   },

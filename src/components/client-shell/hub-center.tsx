@@ -31,6 +31,8 @@ export interface HubCenterProps {
   isVisitor?: boolean;
   /** PROs com fila aberta agora — pulso da comunidade (prova social). */
   prosOnlineCount: number;
+  /** Feature flag on = CTA "Subir MMR" (/ranked-com-pro); off = "Ver Partidas" (/partidas). */
+  showRankedComPro?: boolean;
 }
 
 // Os 3 pilares — falha da Valve → resposta da FormulaDota. Texto via i18n (capa).
@@ -41,8 +43,11 @@ const PILLARS = [
   { id: "Regiao", icon: Trophy },
 ] as const;
 
-export function HubCenter({ isVisitor, prosOnlineCount }: HubCenterProps) {
+export function HubCenter({ isVisitor, prosOnlineCount, showRankedComPro = false }: HubCenterProps) {
   const t = useTranslations("capa");
+  // CTA de ação (logado): "Subir MMR" quando a feature está on; senão "Ver Partidas".
+  const ctaHref = showRankedComPro ? "/ranked-com-pro" : "/partidas";
+  const ctaLabel = showRankedComPro ? t("ctaPlay") : t("ctaMatches");
 
   return (
     <section className="mx-auto flex min-h-full w-full max-w-6xl flex-col justify-center gap-5 px-6 py-6 2xl:gap-8 2xl:px-10 2xl:py-10">
@@ -148,10 +153,10 @@ export function HubCenter({ isVisitor, prosOnlineCount }: HubCenterProps) {
             </Button>
           </form>
         ) : (
-          <Link href="/ranked-com-pro" aria-label={t("ctaPlay")}>
+          <Link href={ctaHref} aria-label={ctaLabel}>
             <Button variant="cinematic" size="lg">
               <Swords size={20} aria-hidden="true" />
-              {t("ctaPlay")}
+              {ctaLabel}
             </Button>
           </Link>
         )}
