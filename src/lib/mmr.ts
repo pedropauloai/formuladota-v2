@@ -127,3 +127,29 @@ export function mmrToTier(mmr: number): TierInfo {
   }
   return { tier: 1, stars: 1, tierName: "Herald" };
 }
+
+// =====================================================================
+// CALIBRAÇÃO (ver docs/foundations/RANKING_SYSTEM.md)
+// =====================================================================
+
+/** Nº de placements até calibrar (medalha revelada, K volta ao normal). */
+export const CALIBRATION_MATCHES = 7;
+/** Swing dobrado durante a calibração ("vale o dobro" — converge rápido). */
+export const CALIBRATION_MULTIPLIER = 2;
+
+/**
+ * Semente de MMR a partir da medalha Valve (rank_tier OpenDota: dezena = medalha
+ * 1–8, unidade = estrela 0–5). Usada na PRIMEIRA partida da temporada pra um jogador
+ * sem linha ainda — evita começar do 1000 chapado (Imortal larga perto do topo).
+ * null = sem rank público → cai pro STARTING_MMR no caller.
+ */
+export function seedMmrFromRankTier(rankTier: number | null | undefined): number | null {
+  if (rankTier == null || rankTier <= 0) return null;
+  const medal = Math.floor(rankTier / 10);
+  const stars = rankTier % 10;
+  if (medal >= 8) return 6000; // Imortal
+  const band = TIER_BANDS.find((b) => b.tier === medal);
+  if (!band) return null;
+  // Meio da estrela dentro da banda (cada estrela ≈ 154 MMR).
+  return band.min + Math.max(0, Math.min(5, stars) - 1) * 154 + 77;
+}

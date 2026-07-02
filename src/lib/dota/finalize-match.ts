@@ -16,6 +16,7 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { fetchOpenDotaMatch, normalizePlayers } from "./opendota";
+import { applyMatchMmr } from "@/lib/queries/apply-match-mmr";
 
 const STEAM_64_OFFSET = 76561197960265728n;
 function steam64To32(steamId64: string): number {
@@ -182,7 +183,16 @@ export async function finalizeMatchmakingLobby(
     } as never)
     .eq("id", matchId);
 
-  // 6) Fecha o lobby e libera os jogadores.
+  // 6) Aplica MMR ao ranking da temporada (best-effort — nunca quebra o finalize).
+  // O próprio applyMatchMmr PULA se a season for beta/inexistente (pré-temporada
+  // não conta). Grava o delta por jogador em match_players.mmr_change (histórico).
+  try {
+    await applyMatchMmr(supabase as never, matchId);
+  } catch (e) {
+    console.error("[finalize] applyMatchMmr falhou:", e instanceof Error ? e.message : e);
+  }
+
+  // 7) Fecha o lobby e libera os jogadores.
   await closeLobbyAndRelease(supabase, lobbyId);
 
   return { success: true, playersInserted, dotaMatchId };
