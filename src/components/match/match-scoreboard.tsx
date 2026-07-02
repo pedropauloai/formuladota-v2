@@ -9,6 +9,7 @@ import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { UserHoverCard } from "@/components/profile/user-hover-card";
 import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
 import { mmrToDotaRank } from "@/components/queue/queue-helpers";
+import { mmrToTier } from "@/lib/mmr";
 
 export interface ScoreboardPlayer {
   userId: string | null;
@@ -135,6 +136,7 @@ function PlayerCell({ p }: { p: ScoreboardPlayer }) {
       {p.mmr != null && (
         <DotaRankMedal
           rank={mmrToDotaRank(p.mmr)}
+          stars={mmrToTier(p.mmr).stars}
           variant="formuladota"
           size="md"
           tooltip={false}

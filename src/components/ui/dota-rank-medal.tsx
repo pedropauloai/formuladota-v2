@@ -20,7 +20,7 @@
  */
 
 import Image from "next/image"
-import { Lock } from "lucide-react"
+import { Lock, Star } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { Tooltip } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
@@ -324,6 +324,39 @@ export interface DotaRankMedalProps {
    * marca, RANK sazonal). @default "valve"
    */
   variant?: DotaMedalVariant
+
+  /**
+   * Estrelas da sub-divisão (1–5, como no cliente Dota 2). Só faz sentido abaixo do
+   * Imortal (que não tem estrela). `undefined` = uso decorativo/genérico (não mostra).
+   * Cada estrela ≈ 154 MMR até Ancião e ≈ 200 no Divino (escala oficial, ver src/lib/mmr.ts).
+   */
+  stars?: number
+}
+
+/**
+ * StarPips — fileira de estrelas douradas sobre a base da medalha (a Valve embute
+ * as estrelas na arte; como usamos a arte-base sem elas, sobrepomos os pips). Não
+ * renderiza no Imortal/Top 100 (sem sub-divisão). Escala com o tamanho da medalha.
+ */
+function StarPips({ stars, rank, px }: { stars: number; rank: DotaRank; px: number }) {
+  if (rank === "immortal" || rank === "immortal-top-100") return null
+  const count = Math.min(5, Math.max(1, Math.round(stars)))
+  const starSize = Math.max(5, Math.round(px * 0.17))
+  return (
+    <span
+      className="pointer-events-none absolute inset-x-0 bottom-[6%] flex items-center justify-center gap-[1px] drop-shadow-[0_1px_1px_rgba(0,0,0,0.9)]"
+      aria-hidden="true"
+    >
+      {Array.from({ length: count }).map((_, i) => (
+        <Star
+          key={i}
+          size={starSize}
+          strokeWidth={1.75}
+          className="fill-gold text-bg-deep"
+        />
+      ))}
+    </span>
+  )
 }
 
 /* ------------------------------------------------------------------
@@ -354,6 +387,7 @@ export function DotaRankMedal({
   className,
   tooltip = true,
   variant = "valve",
+  stars,
 }: DotaRankMedalProps) {
   const t = useTranslations("ui")
   const tr = useTranslations("ranks")
@@ -505,6 +539,8 @@ export function DotaRankMedal({
             /* Sem placeholder blur — imagens pequenas não precisam */
             placeholder="empty"
           />
+          {/* Estrelas da sub-divisão (1–5) — fiel ao cliente Dota 2. */}
+          {typeof stars === "number" && <StarPips stars={stars} rank={rank} px={px} />}
           {/* Monograma FD — só em md+ (em sm poluiria); assina a pele de marca. */}
           {isFd && size !== "sm" && (
             <span

@@ -10,6 +10,8 @@ export interface LivePlayer {
   name: string;
   avatar: string | null;
   level: number;
+  /** MMR atual da temporada (pra medalha do rank). null = sem MMR. */
+  mmr: number | null;
 }
 
 export interface LiveMatch {
@@ -31,6 +33,8 @@ export interface HistoryPlayer {
   name: string;
   avatar: string | null;
   level: number;
+  /** MMR atual da temporada (pra medalha do rank). null = sem MMR. */
+  mmr: number | null;
 }
 
 export interface HistoryMatch {
@@ -56,6 +60,7 @@ export async function getLiveMatches(): Promise<LiveMatch[]> {
       name: string;
       avatar: string | null;
       level: number | null;
+      mmr: number | null;
     }[];
   }[];
   return rows.map((r) => ({
@@ -68,6 +73,7 @@ export async function getLiveMatches(): Promise<LiveMatch[]> {
       name: p.name,
       avatar: p.avatar,
       level: p.level ?? 1,
+      mmr: p.mmr ?? null,
     })),
   }));
 }
@@ -94,6 +100,7 @@ export async function getRecentMatches(limit = 20, offset = 0): Promise<HistoryM
       name: string;
       avatar: string | null;
       level: number | null;
+      mmr: number | null;
     }[];
   }[];
   return rows.map((r) => ({
@@ -115,6 +122,7 @@ export async function getRecentMatches(limit = 20, offset = 0): Promise<HistoryM
       name: p.name,
       avatar: p.avatar,
       level: p.level ?? 1,
+      mmr: p.mmr ?? null,
     })),
   }));
 }
