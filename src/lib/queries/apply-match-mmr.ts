@@ -45,14 +45,15 @@ export async function applyMatchMmr(
     return { applied: 0, skipped: "sem jogadores da plataforma" };
   }
 
-  // Só temporada ATIVA e NÃO-beta conta (pré-temporada = testes, não ranqueia).
+  // Temporada ATIVA. A beta (pré-temporada) TAMBÉM conta agora (Pedro 2026-07-02):
+  // os testadores veem o MMR real no histórico + ranking; na virada pro S1 todos
+  // levam o soft reset -30% de qualquer forma, então o S1 continua protegido.
   const { data: season } = await supabase
     .from("seasons")
-    .select("id, beta")
+    .select("id")
     .eq("active", true)
     .maybeSingle();
   if (!season) return { applied: 0, skipped: "sem temporada ativa" };
-  if (season.beta) return { applied: 0, skipped: "pré-temporada (beta) não conta" };
 
   // Estado atual por jogador: MMR (semente da medalha Valve na 1ª partida da season)
   // + calibração (não calibrado → swing dobrado). rank_tier vem do match_players.
