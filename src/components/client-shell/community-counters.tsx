@@ -1,10 +1,10 @@
 "use client";
 
-// Indicadores da comunidade no topbar (estilo GamersClub): total ONLINE + total
-// BANIDO. O de banidos é clicável → /mural. Recebe os valores iniciais do SSR
-// (shell) e faz polling leve (45s) pra ficar vivo. Também pinga o próprio heartbeat
-// de last_seen_at (60s) — como o topbar está SEMPRE montado, garante que todo
-// logado conta como online mesmo com o painel de amigos fechado.
+// Indicador sutil da comunidade no topbar (ao lado da Conduta): online + banidos
+// EMPILHADOS num só componente. O bloco INTEIRO é clicável → /mural (accountability).
+// Recebe os valores iniciais do SSR (shell) e faz polling leve (45s). Também pinga o
+// próprio heartbeat de last_seen_at (60s) — como o topbar está SEMPRE montado, garante
+// que todo logado conta como online mesmo com o painel de amigos fechado.
 
 import { useEffect, useState } from "react";
 import { Ban } from "lucide-react";
@@ -53,29 +53,31 @@ export function CommunityCountersBar({
   }, [isLoggedIn]);
 
   return (
-    <div className="flex items-center gap-2">
-      {/* ONLINE — ponto verde pulsante + total */}
-      <div className="flex items-center gap-2 rounded-md border border-success/30 bg-success/5 px-3 py-1">
-        <span className="relative flex size-2" aria-hidden="true">
+    <Link
+      href="/mural"
+      aria-label={t("communityStatsAria", {
+        online: counters.online,
+        banned: counters.banned,
+      })}
+      className="hidden md:flex flex-col justify-center gap-0.5 rounded-md px-2 py-0.5 leading-none text-text-faded transition-colors hover:bg-white/5 hover:text-text-muted"
+    >
+      {/* Online — ponto verde pulsante + total */}
+      <span className="flex items-center gap-1.5">
+        <span className="relative flex size-1.5" aria-hidden="true">
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75" />
-          <span className="relative inline-flex size-2 rounded-full bg-success" />
+          <span className="relative inline-flex size-1.5 rounded-full bg-success" />
         </span>
-        <span className="font-display text-sm font-semibold tabular-nums text-success/90">
+        <span className="font-display text-[0.7rem] font-semibold uppercase tracking-wide tabular-nums">
           {t("onlineCount", { count: counters.online })}
         </span>
-      </div>
-
-      {/* BANIDOS — clicável → /mural (accountability pública, anti-anonimato) */}
-      <Link
-        href="/mural"
-        aria-label={t("bannedCountAria", { count: counters.banned })}
-        className="flex items-center gap-1.5 rounded-md border border-error/30 bg-error/5 px-3 py-1 text-error/90 transition-colors hover:border-error/60 hover:bg-error/10 hover:text-error"
-      >
-        <Ban size={12} aria-hidden="true" />
-        <span className="font-display text-sm font-semibold tabular-nums">
+      </span>
+      {/* Banidos — ícone + total (clique no bloco leva pro Mural) */}
+      <span className="flex items-center gap-1.5">
+        <Ban size={10} className="text-error/70" aria-hidden="true" />
+        <span className="font-display text-[0.7rem] font-semibold uppercase tracking-wide tabular-nums">
           {t("bannedCount", { count: counters.banned })}
         </span>
-      </Link>
-    </div>
+      </span>
+    </Link>
   );
 }
