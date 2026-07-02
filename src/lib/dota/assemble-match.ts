@@ -116,7 +116,7 @@ export function assembleMatch(
     return {
       // identidade + herói (ScoreboardPlayer)
       userId: r.user_id,
-      name: id?.persona || id?.username || r.personaname || "Jogador anônimo",
+      name: id?.username || id?.persona || r.personaname || "Jogador anônimo",
       avatar: id?.avatar_url || null,
       profileHref: r.user_id ? `/perfil/u/${r.user_id}` : null,
       heroName,
