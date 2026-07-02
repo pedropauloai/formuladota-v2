@@ -27,6 +27,7 @@ import {
   type PublicMiniProfile,
 } from "@/actions/public-profile";
 import { MedalPair } from "@/components/ui/medal-pair";
+import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { mmrToDotaRank } from "@/components/queue/queue-helpers";
 import { mmrToTier } from "@/lib/mmr";
@@ -163,6 +164,19 @@ function Body({ data, online }: { data: PublicMiniProfile; online?: boolean }) {
             />
           )}
         </div>
+        {/* Medalha do rank ENTRE a foto e o nome (padrão Dota 2). Usa o rank
+            sazonal FormulaDota (o que conta aqui); sem MMR, cai na Valve. */}
+        {(seasonRank ?? dotaRank) && (
+          <DotaRankMedal
+            rank={seasonRank ?? dotaRank}
+            stars={seasonRank ? seasonStars : dotaStars}
+            variant={seasonRank ? "formuladota" : "valve"}
+            size="md"
+            tooltip={false}
+            glow={(seasonRank ?? dotaRank) === "immortal"}
+            className="shrink-0 self-center"
+          />
+        )}
         <div className="min-w-0 flex-1">
           <p className="truncate font-display text-base font-semibold text-text-display">
             {data.name}
@@ -186,9 +200,10 @@ function Body({ data, online }: { data: PublicMiniProfile; online?: boolean }) {
         </p>
       )}
 
-      {/* Medalhas + winrate de carreira na mesma linha */}
+      {/* Selos SKILL (Valve) + HONRA + winrate. O rank sazonal já está na identidade
+          (entre foto e nome), então aqui só os eixos secundários — sem duplicar. */}
       <div className="flex items-center justify-between gap-2">
-        <MedalPair dotaRank={dotaRank} dotaStars={dotaStars} honorRank={honorRank} seasonRank={seasonRank} seasonStars={seasonStars} size="sm" side="bottom" align="start" />
+        <MedalPair dotaRank={dotaRank} dotaStars={dotaStars} honorRank={honorRank} size="sm" side="bottom" align="start" />
         {winrate !== null && (
           <div className="text-right leading-tight">
             <p className="font-display-condensed text-xl tabular-nums text-gold">{winrate}%</p>
