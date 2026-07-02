@@ -1862,6 +1862,7 @@ export type Database = {
           match_permissions_consumed: number
           mmr_atual: number | null
           mmr_inicial: number | null
+          official_nick_set: boolean
           role: string
           role_preferida: string | null
           status_message: string | null
@@ -1896,6 +1897,7 @@ export type Database = {
           match_permissions_consumed?: number
           mmr_atual?: number | null
           mmr_inicial?: number | null
+          official_nick_set?: boolean
           role?: string
           role_preferida?: string | null
           status_message?: string | null
@@ -1930,6 +1932,7 @@ export type Database = {
           match_permissions_consumed?: number
           mmr_atual?: number | null
           mmr_inicial?: number | null
+          official_nick_set?: boolean
           role?: string
           role_preferida?: string | null
           status_message?: string | null

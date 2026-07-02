@@ -46,6 +46,7 @@ import { TabConquistas } from "./tab-conquistas";
 import { TabConduta } from "./tab-conduta";
 import { TabProgresso } from "./tab-progresso";
 import { AvatarPortraitEdit } from "./avatar-portrait-edit";
+import { NickEditor } from "./inline-edit-controls";
 import { ResetLayoutButton } from "./reset-layout-button";
 import { ProfileFriendButton, type ProfileFriendState } from "./profile-friend-button";
 import type { StatBlock } from "./profile-stats-card";
@@ -298,7 +299,11 @@ export function ProfilePage({
 
           {/* ─── RODAPÉ de edição — salvar fica embaixo (Pedro 2026-06-30). ─── */}
           {isOwn && editing && (
-            <div className="mt-3 flex shrink-0 items-center justify-end gap-2 border-t border-border-subtle pt-3">
+            <div className="mt-3 flex shrink-0 flex-wrap items-center justify-end gap-2 border-t border-border-subtle pt-3">
+              {/* Nick oficial — uso único (corrige números/maiúsculas). */}
+              <span className="mr-auto">
+                <NickEditor currentNick={profile.username} alreadySet={profile.officialNickSet} />
+              </span>
               {/* Trocar fundo → popup com preview em tempo real (slot profile_theme). */}
               <BackgroundPicker />
               <ResetLayoutButton />

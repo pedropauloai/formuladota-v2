@@ -50,6 +50,58 @@ export async function updateStatusMessage(text: string): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------
+// setOfficialNick — registro ÚNICO do nick oficial (Pedro 2026-07-02)
+// ---------------------------------------------------------------------------
+// Anti-anonimato: o nick vem do Discord, mas o user pode corrigir UMA vez
+// (números/maiúsculas). `official_nick_set` (migration 108) trava o uso único.
+
+const OfficialNickSchema = z
+  .string()
+  .transform((s) => s.trim())
+  .pipe(
+    z
+      .string()
+      .min(2, "Mínimo 2 caracteres")
+      .max(32, "Máximo 32 caracteres")
+      .regex(/^[\p{L}\p{N} ._-]+$/u, "Use só letras, números, espaço e . _ -")
+  );
+
+export async function setOfficialNick(nick: string): Promise<void> {
+  const parsed = OfficialNickSchema.safeParse(nick);
+  if (!parsed.success) {
+    throw new Error(parsed.error.errors[0]?.message ?? "Nick inválido");
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Não autorizado");
+
+  // Uso único: se já registrou o nick oficial, bloqueia.
+  const { data: row } = await supabase
+    .from("profiles")
+    .select("official_nick_set")
+    .eq("id", user.id)
+    .single();
+  if (row?.official_nick_set) {
+    throw new Error("Você já registrou seu nick oficial — é uso único.");
+  }
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ username: parsed.data, official_nick_set: true })
+    .eq("id", user.id);
+
+  if (error) {
+    console.error("[setOfficialNick] error:", error);
+    throw new Error("Não foi possível registrar o nick oficial");
+  }
+
+  revalidatePath("/me");
+}
+
+// ---------------------------------------------------------------------------
 // updateFavoriteHeroes — Aba Heróis Favoritos do modal (D-19)
 // ---------------------------------------------------------------------------
 
