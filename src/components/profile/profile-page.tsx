@@ -200,6 +200,17 @@ export function ProfilePage({
                 initialAvatar={profile.avatarUrl}
                 initialPortrait={profile.heroPortraitSlug}
               />
+              {/* Medalhas ENTRE a foto e o nome — fiel ao cliente Dota 2 (a patente
+                  vive coladinha ao retrato, antes da identidade). Pedro 2026-07-02. */}
+              <MedalPair
+                dotaRank={dotaRank}
+                dotaStars={dotaStars}
+                honorRank={honorRank}
+                seasonRank={seasonRank}
+                seasonStars={seasonStars}
+                size="md"
+                className="shrink-0"
+              />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2.5">
                   <h1 className="font-display text-[28px] font-bold text-text-display leading-tight truncate">
@@ -222,18 +233,6 @@ export function ProfilePage({
                   )}
                   {/* Sincronizar identidade com a Steam AGORA (fura cache 1h) — só no próprio. */}
                   {isOwn && profile.steamId64 && <SyncSteamButton />}
-                  {/* Medalhas SKILL + HONOR COMPACTAS, coladas ao nome — fiel ao
-                      cliente Dota 2 (a patente vive ao lado da identidade), não como
-                      medalhões grandes flutuando (Pedro 2026-07-01). Hover = showcase. */}
-                  <MedalPair
-                    dotaRank={dotaRank}
-                    dotaStars={dotaStars}
-                    honorRank={honorRank}
-                    seasonRank={seasonRank}
-                    seasonStars={seasonStars}
-                    size="md"
-                    className="ml-1.5 shrink-0"
-                  />
                 </div>
                 {/* Redes sociais sob o nick — refletem a conta do LOGIN, então só
                     aparecem no próprio perfil (evita mostrar o social do viewer). */}

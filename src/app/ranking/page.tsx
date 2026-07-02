@@ -5,8 +5,9 @@
 import type { Metadata } from "next";
 import { useTranslations } from "next-intl";
 import { getTranslations } from "next-intl/server";
+import Image from "next/image";
 import { Link } from "@/i18n/navigation";
-import { Trophy, Search } from "lucide-react";
+import { Trophy, Search, HelpCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getSteamIdentityMap, resolveIdentity } from "@/lib/queries/identities";
 import { ClientShell } from "@/components/client-shell/shell";
@@ -174,23 +175,44 @@ export default async function RankingPage(props: {
   return (
     <ClientShell currentRoute="/ranking">
       <div className="px-6 py-10 xl:px-12">
-        {/* Header padronizado V2.5: eyebrow + h1 + descrição */}
-        <header className="mb-12">
-          <p className="font-display text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
-            {t("eyebrow")}
-          </p>
-          <h1 className="mt-3 font-display text-4xl uppercase tracking-tight text-text-display md:text-5xl">
-            {season.name}
-          </h1>
-          <p className="mt-3 font-display text-sm 2xl:text-base font-semibold text-text-body max-w-2xl">
-            {t("subtitle")}
-          </p>
-          <Link
-            href="/mmr"
-            className="mt-3 inline-flex items-center gap-1.5 font-display text-sm font-semibold uppercase tracking-wide text-brand-primary transition-colors hover:text-text-display"
-          >
-            Como funciona o MMR? →
-          </Link>
+        {/* Header cinematográfico: imagem (Lina + medalha Imortal) ao fundo com fade
+            inferior + esquerdo pra leitura. H1 à esquerda e o CTA grande "Como
+            funciona o MMR?" na MESMA linha, à direita (Pedro 2026-07-02). */}
+        <header className="relative mb-10 overflow-hidden rounded-[var(--radius-lg)] border border-border-subtle">
+          <Image
+            src="/images/ranking/season-header.png"
+            alt=""
+            fill
+            priority
+            unoptimized
+            aria-hidden="true"
+            className="object-cover object-right"
+          />
+          {/* Fade inferior (pro conteúdo abaixo) + fade esquerdo (leitura do texto). */}
+          <div className="absolute inset-0 bg-gradient-to-t from-bg-base via-bg-base/60 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-bg-base via-bg-base/70 to-transparent" />
+          <div className="relative flex flex-col gap-5 p-6 md:flex-row md:items-center md:justify-between md:p-8">
+            <div className="min-w-0">
+              <p className="font-display text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
+                {t("eyebrow")}
+              </p>
+              <h1 className="mt-2 font-display text-4xl uppercase tracking-tight text-text-display md:text-5xl">
+                {season.name}
+              </h1>
+              <p className="mt-2 max-w-xl font-display text-sm 2xl:text-base font-semibold text-text-body">
+                {t("subtitle")}
+              </p>
+            </div>
+            {/* CTA grande e destacado — atalho pra página didática do MMR. */}
+            <Link
+              href="/mmr"
+              className="group inline-flex shrink-0 items-center gap-2.5 self-start rounded-md border-2 border-brand-primary bg-brand-primary/15 px-5 py-3 font-display text-lg font-bold uppercase tracking-wide text-text-display shadow-lg shadow-black/40 backdrop-blur-sm transition-all hover:scale-[1.02] hover:bg-brand-primary/25 md:self-center md:text-xl"
+            >
+              <HelpCircle className="size-5 text-brand-primary md:size-6" aria-hidden="true" />
+              Como funciona o MMR?
+              <span className="transition-transform group-hover:translate-x-0.5">→</span>
+            </Link>
+          </div>
         </header>
 
         {/* Banner de temporada (countdown) — movido da home pra cá (Pedro
