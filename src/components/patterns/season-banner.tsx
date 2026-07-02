@@ -41,6 +41,12 @@ export interface SeasonBannerProps {
   seasonName: string;
   /** Data/hora de encerramento da season (UTC). */
   endsAt: Date;
+  /**
+   * "strip" (padrão): faixa full-width com borda inferior.
+   * "hero": embutido no header-imagem — sem faixa/borda própria, transparente e
+   *  maior (Pedro 2026-07-02, funde a tag da season no header do /ranking).
+   */
+  variant?: "strip" | "hero";
   className?: string;
 }
 
@@ -144,8 +150,10 @@ export function SeasonBanner({
   seasonNumber,
   seasonName,
   endsAt,
+  variant = "strip",
   className,
 }: SeasonBannerProps) {
+  const isHero = variant === "hero";
   const t          = useTranslations("ui");
   const motionSafe = useMotionSafeBool();
   const play       = useSound();
@@ -194,12 +202,11 @@ export function SeasonBanner({
   return (
     <m.div
       className={cn(
-        /* Layout */
-        "w-full h-10 flex items-center justify-center px-4 gap-3",
-        /* Background: gradient brand sutil → transparent (da esquerda) */
-        "bg-gradient-to-r from-brand-primary/10 via-brand-primary/5 to-transparent",
-        /* Borda inferior da brand */
-        "border-b border-brand-primary/30",
+        isHero
+          ? // Embutido no header: chip transparente, sem borda/faixa, maior.
+            "inline-flex items-center gap-2.5"
+          : // Faixa padrão full-width com borda inferior + gradient brand.
+            "w-full h-10 flex items-center justify-center px-4 gap-3 bg-gradient-to-r from-brand-primary/10 via-brand-primary/5 to-transparent border-b border-brand-primary/30",
         className
       )}
       variants={fadeIn}
@@ -217,12 +224,17 @@ export function SeasonBanner({
     >
       {/* Ícone de season */}
       <Trophy
-        className="size-3.5 text-brand-primary shrink-0"
+        className={cn("text-brand-primary shrink-0", isHero ? "size-5" : "size-3.5")}
         aria-hidden="true"
       />
 
       {/* Nome da season */}
-      <span className="text-sm font-semibold text-text-body whitespace-nowrap">
+      <span
+        className={cn(
+          "font-semibold text-text-body whitespace-nowrap",
+          isHero ? "text-base md:text-lg" : "text-sm"
+        )}
+      >
         {seasonLabel}
       </span>
 
