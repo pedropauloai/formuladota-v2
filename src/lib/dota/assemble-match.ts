@@ -56,6 +56,10 @@ export interface Identity {
   persona: string | null;
   avatar_url: string | null;
   username: string | null;
+  /** Nível da conta FormulaDota (identidade). */
+  level?: number | null;
+  /** MMR FormulaDota da temporada ativa (identidade). */
+  mmr?: number | null;
 }
 
 // Slot dentro do time (0..4) — alinha as duas metades pra matriz de abates.
@@ -120,8 +124,11 @@ export function assembleMatch(
       avatar: id?.avatar_url || null,
       profileHref: r.user_id ? `/perfil/u/${r.user_id}` : null,
       heroName,
-      heroPortrait: hero?.portrait_url ?? null,
-      level: r.level,
+      // Imagem OFICIAL do CDN (landscape), não o corte portrait.
+      heroPortrait: hero?.image_full ?? null,
+      level: r.level, // nível do herói na partida
+      accountLevel: id?.level ?? 1, // nível da conta (identidade)
+      mmr: id?.mmr ?? null, // MMR FormulaDota (identidade)
       kills: r.kills,
       deaths: r.deaths,
       assists: r.assists,

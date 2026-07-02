@@ -89,14 +89,27 @@ export default async function HistoricoPartidaPage({
     .eq("id", matchUuid)
     .maybeSingle();
 
-  // Identidade dos jogadores logados (steam_links → fallback profiles).
+  // Identidade dos jogadores: nick (Discord>Steam), avatar, + NÍVEL da conta e
+  // MMR FormulaDota (identidade viaja com o jogador, decisão Pedro 2026-07-02).
   const userIds = rows.map((r) => r.user_id).filter((v): v is string => Boolean(v));
   const identityById = new Map<string, Identity>();
   if (userIds.length) {
-    const [{ data: links }, { data: profs }] = await Promise.all([
-      supabase.from("steam_links").select("user_id, persona, avatar_url").in("user_id", userIds),
-      supabase.from("profiles").select("id, username, avatar_url").in("id", userIds),
-    ]);
+    const { data: season } = await supabase
+      .from("seasons")
+      .select("id")
+      .eq("active", true)
+      .maybeSingle();
+    const [{ data: links }, { data: profs }, { data: levels }, { data: mmrs }] =
+      await Promise.all([
+        supabase.from("steam_links").select("user_id, persona, avatar_url").in("user_id", userIds),
+        supabase.from("profiles").select("id, username, avatar_url").in("id", userIds),
+        supabase.from("user_levels").select("user_id, current_level").in("user_id", userIds),
+        season?.id
+          ? supabase.from("player_season_mmr").select("user_id, mmr").eq("season_id", season.id).in("user_id", userIds)
+          : Promise.resolve({ data: [] as { user_id: string; mmr: number }[] }),
+      ]);
+    const levelBy = new Map((levels ?? []).map((l) => [l.user_id, l.current_level]));
+    const mmrBy = new Map((mmrs ?? []).map((m) => [m.user_id, m.mmr]));
     for (const l of links ?? []) {
       identityById.set(l.user_id, { persona: l.persona, avatar_url: l.avatar_url, username: null });
     }
@@ -107,6 +120,11 @@ export default async function HistoricoPartidaPage({
         avatar_url: cur?.avatar_url ?? p.avatar_url,
         username: p.username,
       });
+    }
+    // Merge nível + MMR em todos os user_ids (mesmo os sem steam/profile).
+    for (const uid of userIds) {
+      const cur = identityById.get(uid) ?? { persona: null, avatar_url: null, username: null };
+      identityById.set(uid, { ...cur, level: levelBy.get(uid) ?? 1, mmr: mmrBy.get(uid) ?? null });
     }
   }
 
