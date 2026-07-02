@@ -37,6 +37,8 @@ interface Props {
   avatarUrl: string | null;
   username: string | null;
   dotaRank: DotaRank;
+  /** Estrelas (1–5) da medalha SKILL Valve. Omitido = sem pips. */
+  dotaStars?: number;
   honorRank: HonorRank;
   ranqueado: boolean;
   statusMessage: string | null;
@@ -50,6 +52,7 @@ export function ProfileIdentity({
   avatarUrl,
   username,
   dotaRank,
+  dotaStars,
   honorRank,
   ranqueado,
   statusMessage,
@@ -85,6 +88,7 @@ export function ProfileIdentity({
           <div className="flex items-center gap-3 flex-wrap">
             <DotaRankMedal
               rank={dotaRank}
+              stars={dotaStars}
               size="md"
               showLabel
               glow={dotaRank === "immortal" || dotaRank === "immortal-top-100"}
