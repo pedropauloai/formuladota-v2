@@ -32,6 +32,8 @@ const serverSchema = z.object({
   // Stratz GraphQL (Phase 7)
   STRATZ_API_KEY: optional,
   OPENDOTA_API_KEY: optional,
+  // Segredo do cron de finalização automática (pg_cron → /api/cron/finalize-matches).
+  CRON_SECRET: optional,
   RESEND_API_KEY: optional,
   EMAIL_FROM: z.preprocess(
     (v) => (v === "" ? undefined : v),
