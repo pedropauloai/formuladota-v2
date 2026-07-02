@@ -9,55 +9,59 @@ import { getHeroById } from "@/lib/queries/heroes";
 import { UserAvatar } from "@/components/ui/avatar";
 import type { HistoryMatch, HistoryPlayer, LiveMatch } from "@/lib/queries/matches-feed";
 
-// Chip de jogador: herói (40px) com o avatar do jogador sobreposto + ±MMR embaixo.
+// Chip de jogador: o AVATAR é o destaque (identidade = o produto; anti-anonimato),
+// com o herói como badge no canto + o nick e o ±MMR embaixo.
 function PlayerChip({ player }: { player: HistoryPlayer }) {
   const hero = player.heroId ? getHeroById(player.heroId) : null;
   const mmr = player.mmrChange;
   return (
     <span
-      className="flex w-10 shrink-0 flex-col items-center gap-1"
+      className="flex w-14 shrink-0 flex-col items-center gap-1"
       title={`${player.name}${hero ? ` · ${hero.name_pt}` : ""}`}
     >
-      <span className="relative block size-10">
-        {hero ? (
+      <span className="relative block size-14">
+        {/* Avatar do jogador — elemento principal (quadrado, padrão Steam/Dota). */}
+        {player.avatar ? (
           <Image
-            src={hero.image_icon}
-            alt={hero.name_pt}
-            width={40}
-            height={40}
+            src={player.avatar}
+            alt={player.name}
+            width={56}
+            height={56}
             unoptimized
-            className="size-10 rounded-sm border border-border-subtle object-cover"
+            className="size-14 rounded-sm border border-border-subtle object-cover"
           />
         ) : (
-          <span className="block size-10 rounded-sm bg-bg-elevated" aria-hidden="true" />
+          <span className="flex size-14 items-center justify-center rounded-sm border border-border-subtle bg-bg-elevated font-display text-sm font-bold text-text-muted">
+            {player.name.slice(0, 2).toUpperCase()}
+          </span>
         )}
-        {/* Avatar do jogador — badge no canto inferior direito (quem jogou o herói). */}
-        <span className="absolute -bottom-1 -right-1 rounded-sm ring-1 ring-bg-deep">
-          {player.avatar ? (
+        {/* Herói — badge secundário no canto inferior direito. */}
+        {hero && (
+          <span className="absolute -bottom-1 -right-1 rounded-sm ring-1 ring-bg-deep">
             <Image
-              src={player.avatar}
-              alt=""
-              width={16}
-              height={16}
+              src={hero.image_icon}
+              alt={hero.name_pt}
+              width={24}
+              height={24}
               unoptimized
-              className="size-4 rounded-sm object-cover"
-              aria-hidden="true"
+              className="size-6 rounded-sm object-cover"
             />
-          ) : (
-            <span className="block size-4 rounded-sm bg-bg-surface" aria-hidden="true" />
-          )}
-        </span>
+          </span>
+        )}
+      </span>
+      <span className="block w-full truncate text-center font-display text-[0.65rem] font-medium leading-none text-text-body">
+        {player.name}
       </span>
       {mmr != null ? (
         <span
-          className={`font-display text-[0.6rem] font-bold tabular-nums leading-none ${
+          className={`font-display text-xs font-bold tabular-nums leading-none ${
             mmr >= 0 ? "text-play-primary" : "text-error"
           }`}
         >
           {mmr >= 0 ? `+${mmr}` : mmr}
         </span>
       ) : (
-        <span className="text-[0.6rem] leading-none text-text-faded">—</span>
+        <span className="text-xs leading-none text-text-faded">—</span>
       )}
     </span>
   );
