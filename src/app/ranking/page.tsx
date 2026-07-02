@@ -202,7 +202,7 @@ export default async function RankingPage(props: {
           lista/pódio ficarem legíveis. Pedro 2026-07-02. */}
       <div
         aria-hidden="true"
-        className="pointer-events-none fixed inset-x-0 top-[64px] bottom-0 z-0 overflow-hidden lg:left-[320px] lg:right-[320px] xl:left-[360px] xl:right-[360px] xl:top-[72px] 2xl:left-[380px] 2xl:right-[380px]"
+        className="pointer-events-none fixed inset-x-0 top-[64px] bottom-0 z-0 overflow-hidden xl:top-[72px] lg:right-[320px] xl:right-[360px] 2xl:right-[380px]"
       >
         {/* w-full + h-auto = a imagem INTEIRA (sem corte), escalando com a largura da
             coluna em qualquer resolução (responsivo). Ocupa o topo; o overlay escurece
