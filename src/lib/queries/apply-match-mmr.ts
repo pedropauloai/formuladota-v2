@@ -13,6 +13,7 @@ import {
   computePerfScore,
   modulateMmrDelta,
   seedMmrFromRankTier,
+  applySeasonDecay,
   CALIBRATION_MATCHES,
   CALIBRATION_MULTIPLIER,
   STARTING_MMR,
@@ -72,9 +73,30 @@ export async function applyMatchMmr(
       placements: r.placements_played ?? 0,
     });
   }
-  // MMR atual: linha existente → seu mmr; senão semeia da medalha Valve → senão 1000.
+  // Carry-over do SOFT RESET: quem não tem linha nesta season herda o MMR da season
+  // anterior DECAÍDO -30% (applySeasonDecay) — prioritário sobre a semente Valve.
+  // Assim o veterano re-calibra perto de onde parou (não do 1000 chapado).
+  const noRowUsers = userIds.filter((u) => !rowOf.has(u));
+  const carryOf = new Map<string, number>();
+  if (noRowUsers.length > 0) {
+    const { data: prev } = await supabase
+      .from("player_season_mmr")
+      .select("user_id, mmr, season_id")
+      .in("user_id", noRowUsers)
+      .lt("season_id", season.id)
+      .order("season_id", { ascending: false });
+    for (const r of prev ?? []) {
+      if (!carryOf.has(r.user_id)) carryOf.set(r.user_id, applySeasonDecay(r.mmr));
+    }
+  }
+
+  // MMR inicial: linha da season → seu mmr; senão carry-over decaído; senão semente
+  // da medalha Valve; senão 1000.
   const getMmr = (uid: string) =>
-    rowOf.get(uid)?.mmr ?? seedMmrFromRankTier(rankTierOf.get(uid)) ?? STARTING_MMR;
+    rowOf.get(uid)?.mmr ??
+    carryOf.get(uid) ??
+    seedMmrFromRankTier(rankTierOf.get(uid)) ??
+    STARTING_MMR;
   // Ainda calibrando? (sem linha OU placements < 7) → delta vale o dobro.
   const isCalibrating = (uid: string) => {
     const r = rowOf.get(uid);
