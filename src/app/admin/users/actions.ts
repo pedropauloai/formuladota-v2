@@ -387,3 +387,81 @@ export async function applyCoachNote(input: {
 
   return { success: true };
 }
+
+// ====================================================
+// swapSteamLink — troca MANUAL da conta Steam vinculada (exceção admin)
+// ====================================================
+// Anti-anonimato/anti-smurf: 1 Steam = 1 identidade (steam_links, UNIQUE steam_id_64).
+// Quando um jogador vincula a conta ERRADA por engano e comprova ao Pedro, o admin
+// troca aqui. Zera persona/avatar → a identidade re-sincroniza no próximo acesso do
+// jogador (refreshSteamIdentity no /me). Busta o cache de stats (era da conta antiga).
+
+export type SwapSteamResult = { success: true } | { success: false; error: string };
+
+const STEAMID64_RE = /^\d{17}$/;
+
+export async function swapSteamLink(
+  targetUserId: string,
+  newSteamId64: string,
+  reason: string
+): Promise<SwapSteamResult> {
+  const adminCheck = await requireAdmin();
+  if (!adminCheck.ok) return { success: false, error: adminCheck.error };
+
+  const sid = newSteamId64.trim();
+  if (!STEAMID64_RE.test(sid)) {
+    return { success: false, error: "SteamID64 inválido (precisa ter 17 dígitos)." };
+  }
+  if (!reason.trim()) {
+    return { success: false, error: "Descreva o motivo (comprovação do engano do jogador)." };
+  }
+
+  const service = createServiceClient();
+
+  // O novo Steam já pertence a OUTRO usuário? (viola a UNIQUE + o anti-smurf).
+  const { data: conflict } = await service
+    .from("steam_links")
+    .select("user_id")
+    .eq("steam_id_64", sid)
+    .maybeSingle();
+  if (conflict && conflict.user_id !== targetUserId) {
+    return { success: false, error: "Esse Steam já está vinculado a OUTRO usuário." };
+  }
+
+  const { data: before } = await service
+    .from("steam_links")
+    .select("steam_id_64, persona")
+    .eq("user_id", targetUserId)
+    .maybeSingle();
+
+  // Upsert (PK = user_id): troca o steam_id, zera persona/avatar (re-sync), verified agora.
+  const { error } = await service.from("steam_links").upsert({
+    user_id: targetUserId,
+    steam_id_64: sid,
+    persona: null,
+    avatar_url: null,
+    verified_at: new Date().toISOString(),
+  } as never);
+  if (error) {
+    return { success: false, error: "Erro ao trocar o vínculo: " + error.message };
+  }
+
+  // Cache de stats/carreira pertencia à conta ANTIGA → busta pra re-sincronizar.
+  await service
+    .from("user_stats_extended")
+    .update({ career: null, updated_at: "2020-01-01T00:00:00Z" } as never)
+    .eq("user_id", targetUserId);
+
+  await insertAuditLog(service, {
+    actorId: adminCheck.adminId,
+    targetUserId,
+    action: "swap_steam_link",
+    reason,
+    payloadBefore: (before ?? {}) as Record<string, unknown>,
+    payloadAfter: { steam_id_64: sid },
+  });
+
+  revalidatePath(`/admin/users/${targetUserId}`);
+  revalidatePath("/me");
+  return { success: true };
+}

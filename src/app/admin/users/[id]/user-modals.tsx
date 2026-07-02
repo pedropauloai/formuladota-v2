@@ -13,13 +13,14 @@ import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import {
   Coins, ShieldAlert, Star, Trophy, ChevronUp, ChevronDown,
-  Loader2, X, CheckCircle, AlertCircle,
+  Loader2, X, CheckCircle, AlertCircle, RefreshCw,
 } from "lucide-react";
 import {
   adjustUserFichasAdmin,
   applyStrike,
   applyHonorBonus,
   grantAchievement,
+  swapSteamLink,
 } from "@/app/admin/users/actions";
 import {
   promoveCoach,
@@ -811,6 +812,98 @@ export function CoachNotesModal({
           onClose={close}
           onConfirm={submit}
           confirmLabel={t("saveNotes")}
+        />
+      </ModalBase>
+    </>
+  );
+}
+
+// ─── SwapSteamModal ──────────────────────────────────────────────────────────
+// Troca MANUAL da conta Steam vinculada (exceção anti-smurf). Só após o jogador
+// comprovar ao Pedro que vinculou a conta errada por engano.
+
+export function SwapSteamModal({
+  targetUserId,
+  username,
+  currentSteamId,
+}: {
+  targetUserId: string;
+  username: string;
+  currentSteamId: string | null;
+}) {
+  const [open, setOpen] = useState(false);
+  const [steamId, setSteamId] = useState("");
+  const [reason, setReason] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  function close() {
+    setOpen(false);
+    setError(null);
+    setSuccess(null);
+    setSteamId("");
+    setReason("");
+  }
+
+  function submit() {
+    setError(null);
+    startTransition(async () => {
+      const res = await swapSteamLink(targetUserId, steamId, reason);
+      if (!res.success) setError(res.error);
+      else setSuccess("Vínculo Steam trocado. A identidade re-sincroniza no próximo acesso do jogador.");
+    });
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="inline-flex items-center gap-1.5 rounded-md border border-border-subtle bg-bg-surface px-2.5 py-1 font-display font-semibold text-sm uppercase tracking-wide text-text-muted hover:border-brand-primary/50 hover:text-text-display transition-colors"
+      >
+        <RefreshCw size={11} />
+        Trocar Steam
+      </button>
+
+      <ModalBase open={open} onClose={close} eyebrow="Anti-smurf · exceção" title={`Trocar Steam de ${username}`}>
+        <div className="space-y-4">
+          <p className="font-body text-sm text-text-muted">
+            Use SÓ quando o jogador comprovar que vinculou a conta errada por engano.
+            {currentSteamId ? ` Atual: ${currentSteamId}` : " (nenhuma conta vinculada hoje)"}
+          </p>
+          <div>
+            <FormLabel htmlFor="swap-steamid">Novo SteamID64 (17 dígitos)</FormLabel>
+            <input
+              id="swap-steamid"
+              value={steamId}
+              onChange={(e) => setSteamId(e.target.value)}
+              placeholder="7656119..."
+              inputMode="numeric"
+              className="w-full rounded-md border border-border-subtle bg-black/40 px-3 py-2 font-mono text-sm text-text-body outline-none focus:border-brand-primary/60"
+            />
+          </div>
+          <div>
+            <FormLabel htmlFor="swap-reason">Motivo / comprovação (obrigatório)</FormLabel>
+            <FormTextarea
+              id="swap-reason"
+              value={reason}
+              onChange={setReason}
+              placeholder="Ex.: jogador X comprovou no Discord que vinculou o smurf por engano; conta correta é ..."
+            />
+          </div>
+
+          {error && <StatusMsg type="error" msg={error} />}
+          {success && <StatusMsg type="success" msg={success} />}
+        </div>
+
+        <ModalActions
+          pending={pending}
+          onClose={close}
+          onConfirm={submit}
+          confirmLabel="Trocar Steam"
+          confirmCls="bg-brand-primary hover:brightness-110"
+          disabled={!steamId.trim() || !reason.trim()}
         />
       </ModalBase>
     </>
