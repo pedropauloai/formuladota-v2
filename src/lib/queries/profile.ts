@@ -29,6 +29,8 @@ export interface ProfileForMe {
   derrotas: number | null;
   // Layout dos widgets do /me (sempre válido — fallback pra DEFAULT_LAYOUT)
   dashboardLayout: DashboardLayout;
+  // Já registrou o nick oficial? (uso único do editor de nick)
+  officialNickSet: boolean;
 }
 
 /**
@@ -47,7 +49,7 @@ export async function getProfileForMe(): Promise<ProfileForMe | null> {
       supabase
         .from("profiles")
         .select(
-          "username, avatar_url, status_message, hero_portrait_slug, favorite_heroes, avatar_custom_url, last_seen_at, behavior_status, doctrine_accepted_at, dashboard_layout"
+          "username, avatar_url, status_message, hero_portrait_slug, favorite_heroes, avatar_custom_url, last_seen_at, behavior_status, doctrine_accepted_at, dashboard_layout, official_nick_set"
         )
         .eq("id", user.id)
         .single(),
@@ -121,6 +123,7 @@ export async function getProfileForMe(): Promise<ProfileForMe | null> {
     vitorias: mmrRow?.vitorias ?? null,
     derrotas: mmrRow?.derrotas ?? null,
     dashboardLayout: parseDashboardLayout(profile?.dashboard_layout),
+    officialNickSet: profile?.official_nick_set ?? false,
   };
 }
 
@@ -174,5 +177,6 @@ export async function getPublicProfile(
     vitorias: r.vitorias ?? null,
     derrotas: r.derrotas ?? null,
     dashboardLayout: parseDashboardLayout(null),
+    officialNickSet: true, // perfil público não edita nick → trata como já definido
   };
 }

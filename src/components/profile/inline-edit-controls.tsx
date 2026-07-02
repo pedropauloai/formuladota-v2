@@ -17,7 +17,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Pencil, X } from "lucide-react";
+import { Pencil, X, Check } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
 import { HeroPicker } from "./hero-picker";
@@ -26,6 +26,7 @@ import {
   updateStatusMessage,
   updateFavoriteHeroes,
   updateHeroPortrait,
+  setOfficialNick,
 } from "@/actions/profile";
 import type { HeroData } from "@/lib/queries/heroes";
 
@@ -240,5 +241,86 @@ export function AvatarEditor({
         onSaved={() => router.refresh()}
       />
     </div>
+  );
+}
+
+// ===========================================================================
+// NickEditor — registro ÚNICO do nick oficial (corrige números/maiúsculas).
+// Anti-anonimato: ajuste pontual, não troca livre. O servidor trava o uso único
+// (setOfficialNick); aqui, quando já registrado (alreadySet), vira só um aviso.
+// ===========================================================================
+
+export function NickEditor({
+  currentNick,
+  alreadySet,
+}: {
+  currentNick: string | null;
+  alreadySet: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [nick, setNick] = useState(currentNick ?? "");
+  const [pending, startTransition] = useTransition();
+  const { toast } = useToast();
+  const router = useRouter();
+
+  if (alreadySet) {
+    return (
+      <span className="font-display text-xs uppercase tracking-wide text-text-faded">
+        Nick oficial registrado
+      </span>
+    );
+  }
+
+  function save() {
+    startTransition(async () => {
+      try {
+        await setOfficialNick(nick);
+        toast({ type: "success", title: "Nick oficial registrado" });
+        setOpen(false);
+        router.refresh();
+      } catch (e) {
+        toast({
+          type: "error",
+          title: "Não foi possível registrar",
+          description: e instanceof Error ? e.message : undefined,
+        });
+      }
+    });
+  }
+
+  if (!open) {
+    return (
+      <Button variant="secondary" size="sm" onClick={() => setOpen(true)}>
+        <Pencil size={14} aria-hidden="true" />
+        Registrar nick oficial
+      </Button>
+    );
+  }
+
+  return (
+    <span className="flex items-center gap-2">
+      <input
+        value={nick}
+        onChange={(e) => setNick(e.target.value.slice(0, 32))}
+        disabled={pending}
+        maxLength={32}
+        placeholder="Seu nick oficial"
+        aria-label="Nick oficial"
+        className="w-44 rounded border border-brand-primary/40 bg-bg-deep/80 px-2.5 py-1.5 font-display text-sm text-text-body placeholder:text-text-faded focus:border-brand-primary focus:outline-none disabled:opacity-50"
+      />
+      <Button variant="cinematic" size="sm" onClick={save} disabled={pending || nick.trim().length < 2}>
+        <Check size={14} aria-hidden="true" />
+        Salvar
+      </Button>
+      <button
+        type="button"
+        onClick={() => setOpen(false)}
+        disabled={pending}
+        aria-label="Cancelar"
+        className="text-text-faded transition-colors hover:text-text-display disabled:opacity-50"
+      >
+        <X size={16} aria-hidden="true" />
+      </button>
+    </span>
   );
 }
