@@ -28,6 +28,8 @@ export interface ScoreboardPlayer {
   heroHealing: number;
   /** Participação em teamfights (0..1) — coluna CA. */
   teamfightPct: number | null;
+  /** Delta de MMR desta partida (+/-). null = não ranqueado (ex.: pré-temporada). */
+  mmrChange: number | null;
   /** 6 slots de inventário (ids; 0 = vazio). */
   inventory: number[];
   /** Item neutro (id; null = nenhum). */
@@ -146,6 +148,27 @@ function PlayerCell({ p }: { p: ScoreboardPlayer }) {
   return inner;
 }
 
+// Delta de MMR da partida: +N verde (ganhou) / -N vermelho (perdeu) / "—" se não
+// ranqueado (pré-temporada ou jogador de fora da plataforma).
+function MmrCell({ value }: { value: number | null }) {
+  if (value == null) {
+    return (
+      <td className="px-2 py-2.5 text-right font-mono text-sm tabular-nums text-text-faded">—</td>
+    );
+  }
+  const pos = value >= 0;
+  return (
+    <td
+      className={`px-2 py-2.5 text-right font-display text-sm font-bold tabular-nums ${
+        pos ? "text-play-primary" : "text-error"
+      }`}
+    >
+      {pos ? "+" : ""}
+      {value}
+    </td>
+  );
+}
+
 function NetWorthCell({ value, max }: { value: number; max: number }) {
   const pct = Math.max(4, Math.min(100, Math.round((value / Math.max(1, max)) * 100)));
   return (
@@ -208,6 +231,7 @@ function TeamTable({
                 Jogador
               </th>
               <Th>K / D / A</Th>
+              <Th>MMR</Th>
               <Th>CA</Th>
               <Th>LH / DN</Th>
               <Th>GPM</Th>
@@ -234,6 +258,7 @@ function TeamTable({
                   <span className="text-text-faded"> / </span>
                   <span className="text-gold">{p.assists}</span>
                 </td>
+                <MmrCell value={p.mmrChange} />
                 <td className="px-2 py-2.5 text-right font-mono text-sm tabular-nums text-text-muted">
                   {p.teamfightPct != null ? `${Math.round(p.teamfightPct * 100)}%` : "—"}
                 </td>
@@ -271,7 +296,8 @@ function TeamTable({
               <td className="px-2 py-2 text-right font-display text-sm tabular-nums text-text-display">
                 {tot.k} / {tot.d} / {tot.as}
               </td>
-              <td />
+              <td />{/* MMR (sem total) */}
+              <td />{/* CA */}
               <td className="px-2 py-2 text-right font-mono text-sm tabular-nums text-text-muted">
                 {tot.lh}
               </td>
