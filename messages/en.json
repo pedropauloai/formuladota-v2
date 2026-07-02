@@ -87,6 +87,7 @@
   "nav": {
     "subirMmr": "Live Coaching",
     "ranking": "Ranking",
+    "partidas": "Matches",
     "times": "Teams",
     "torneios": "Tournaments",
     "meta": "Meta",
@@ -371,6 +372,20 @@
     "errAlreadyRegistered": "Team already registered for this tournament.",
     "errRegistrationClosed": "Registration closed or you're not the captain of this team.",
     "errRegisterTournament": "Error registering for the tournament."
+  },
+  "matchesFeed": {
+    "metaTitle": "Matches — FORMULADOTA",
+    "eyebrow": "Community",
+    "title": "Matches",
+    "subtitle": "What's happening right now, plus the full history of league matches.",
+    "liveTitle": "Happening now",
+    "liveEmpty": "No live matches right now.",
+    "historyTitle": "History",
+    "historyEmptyTitle": "No matches yet",
+    "historyEmptyDescription": "League matches show up here as soon as they finish.",
+    "prevPage": "← Previous",
+    "nextPage": "Next →",
+    "pageLabel": "Page {page}"
   },
   "ranking": {
     "metaTitle": "Ranking — FORMULADOTA",

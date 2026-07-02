@@ -58,6 +58,7 @@ const PRINCIPAL_TAB_DEFS = [
   { href: "/ranked-com-pro", key: "subirMmr" },
   { href: "/meta", key: "meta" },
   { href: "/ranking", key: "ranking" },
+  { href: "/partidas", key: "partidas" },
   { href: "/times", key: "times" },
   { href: "/torneios", key: "torneios" },
 ] as const;
