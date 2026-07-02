@@ -8,11 +8,12 @@
 
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ExternalLink, Clock } from "lucide-react";
+import { ArrowLeft, ExternalLink, Clock, Ban } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ClientShell } from "@/components/client-shell/shell";
 import { MatchDetail } from "@/components/match/match-detail";
 import { CopyMatchId } from "@/components/match/copy-match-id";
+import { getMatchBans } from "@/lib/queries/match-bans";
 import {
   assembleMatch,
   type MatchPlayerRow,
@@ -132,6 +133,8 @@ export default async function HistoricoPartidaPage({
 
   const duration = matchMeta?.duracao_min ?? null;
   const dotaMatchId = matchMeta?.dota_match_id ?? null;
+  // Banimentos ligados a ESTA partida (público — accountability no placar).
+  const matchBans = dotaMatchId ? await getMatchBans(dotaMatchId) : [];
   const dateStr = matchMeta?.enriched_at
     ? new Date(matchMeta.enriched_at).toLocaleDateString("pt-BR", {
         day: "2-digit",
@@ -224,6 +227,40 @@ export default async function HistoricoPartidaPage({
             )}
           </div>
         </header>
+
+        {/* Aviso público de banimento nesta partida (anti-anonimato — visível a todos). */}
+        {matchBans.length > 0 && (
+          <div className="mb-6 rounded-[var(--radius-md)] border border-error/40 bg-error/5 p-4">
+            <p className="flex items-center gap-2 font-display text-xs font-bold uppercase tracking-[0.15em] text-error">
+              <Ban className="size-4" aria-hidden="true" />
+              {matchBans.length === 1
+                ? "Jogador banido nesta partida"
+                : "Jogadores banidos nesta partida"}
+            </p>
+            <ul className="mt-2 space-y-1.5">
+              {matchBans.map((b) => (
+                <li key={b.userId} className="text-sm">
+                  <Link
+                    href={`/perfil/u/${b.userId}`}
+                    className="font-display font-bold text-text-display hover:text-brand-primary"
+                  >
+                    {b.username ?? "Jogador"}
+                  </Link>
+                  {b.antipattern && (
+                    <span className="ml-2 font-display text-xs font-semibold uppercase tracking-wide text-error/90">
+                      {b.antipattern}
+                    </span>
+                  )}
+                  {b.notes && (
+                    <p className="mt-0.5 font-body text-xs leading-relaxed text-text-muted">
+                      {b.notes}
+                    </p>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         <MatchDetail
           players={players}

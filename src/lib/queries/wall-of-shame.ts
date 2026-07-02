@@ -1,9 +1,14 @@
 // Mural da Vergonha — lista pública de jogadores suspensos/banidos por quebra de
 // regra, com o princípio/anti-padrão violado. Coerente com o anti-anonimato
 // (nome público, reputação atrelada). Ver docs/foundations/RANKING_SYSTEM.md (Eixo 4).
+//
+// Lê via RPC wall_of_shame() (SECURITY DEFINER, migration 098) — user_warnings tem
+// RLS restrita (admin/próprio), então a RPC expõe só os campos públicos das punições
+// APLICADAS pra qualquer um (o Mural é público por design).
 
 import { createClient } from "@/lib/supabase/server";
 import { PRINCIPLES, ANTIPATTERNS } from "@/lib/doctrine";
+import { steam64To32 } from "@/lib/dota/opendota";
 
 export interface WallEntry {
   userId: string;
@@ -14,6 +19,25 @@ export interface WallEntry {
   antipattern: string | null;
   since: string | null; // banned_at (ban) ou issued_at (suspensão)
   suspendedUntil: string | null;
+  // Links (anti-anonimato: identidade pública, verificável).
+  steamId64: string | null;
+  steamId32: number | null;
+  dotaMatchId: string | null; // partida onde a punição ocorreu (histórico)
+}
+
+interface WallRow {
+  user_id: string;
+  username: string | null;
+  status: "suspended" | "banned";
+  banned_at: string | null;
+  banned_reason: string | null;
+  suspended_until: string | null;
+  principle_violated: number | null;
+  antipattern_violated: number | null;
+  notes: string | null;
+  issued_at: string | null;
+  dota_match_id: string | null;
+  steam_id_64: string | null;
 }
 
 const principleTitle = (n: number | null) =>
@@ -23,51 +47,22 @@ const antipatternTitle = (n: number | null) =>
 
 export async function getWallOfShame(): Promise<WallEntry[]> {
   const supabase = await createClient();
+  const { data } = await supabase.rpc("wall_of_shame");
+  const rows = (data ?? []) as WallRow[];
 
-  // Quem está suspenso ou banido (o gate de acesso do Eixo 4).
-  const { data: profs } = await supabase
-    .from("profiles")
-    .select("id, username, behavior_status, banned_at, banned_reason, suspended_until")
-    .in("behavior_status", ["suspended", "banned"]);
-
-  const rows = profs ?? [];
-  if (rows.length === 0) return [];
-
-  // Warning aplicado mais recente de cada um (princípio/anti-padrão/motivo).
-  const ids = rows.map((r) => r.id);
-  const { data: warnings } = await supabase
-    .from("user_warnings")
-    .select("user_id, principle_violated, antipattern_violated, notes, issued_at, status")
-    .in("user_id", ids)
-    .eq("status", "aplicada")
-    .order("issued_at", { ascending: false });
-
-  type WarningRow = {
-    user_id: string;
-    principle_violated: number | null;
-    antipattern_violated: number | null;
-    notes: string | null;
-    issued_at: string | null;
-  };
-  const latestByUser = new Map<string, WarningRow>();
-  for (const w of (warnings ?? []) as WarningRow[]) {
-    if (!latestByUser.has(w.user_id)) latestByUser.set(w.user_id, w);
-  }
-
-  const entries: WallEntry[] = rows.map((p) => {
-    const w = latestByUser.get(p.id);
-    const status = p.behavior_status === "banned" ? "banned" : "suspended";
-    return {
-      userId: p.id,
-      username: p.username,
-      status,
-      reason: p.banned_reason ?? w?.notes ?? null,
-      principle: principleTitle(w?.principle_violated ?? null),
-      antipattern: antipatternTitle(w?.antipattern_violated ?? null),
-      since: status === "banned" ? (p.banned_at ?? null) : (w?.issued_at ?? null),
-      suspendedUntil: p.suspended_until ?? null,
-    };
-  });
+  const entries: WallEntry[] = rows.map((r) => ({
+    userId: r.user_id,
+    username: r.username,
+    status: r.status,
+    reason: r.banned_reason ?? r.notes ?? null,
+    principle: principleTitle(r.principle_violated),
+    antipattern: antipatternTitle(r.antipattern_violated),
+    since: r.status === "banned" ? (r.banned_at ?? null) : (r.issued_at ?? null),
+    suspendedUntil: r.suspended_until,
+    steamId64: r.steam_id_64,
+    steamId32: r.steam_id_64 ? steam64To32(r.steam_id_64) : null,
+    dotaMatchId: r.dota_match_id,
+  }));
 
   // Banidos primeiro, depois por data mais recente.
   return entries.sort((a, b) => {
