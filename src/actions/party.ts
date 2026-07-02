@@ -202,6 +202,12 @@ export async function enterPartyQueue(gameModes: string[]): Promise<PartyQueueRe
     if (res.error === "in_match") {
       return { success: false, error: `${res.who ?? "Um membro"} já está em partida.` };
     }
+    if (res.error === "no_rank") {
+      return {
+        success: false,
+        error: `${res.who ?? "Um membro"} está sem medalha Valve legível (perfil Dota privado ou descalibrado).`,
+      };
+    }
     return { success: false, error: "Não foi possível buscar." };
   }
 

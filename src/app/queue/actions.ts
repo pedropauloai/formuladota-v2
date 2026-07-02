@@ -120,7 +120,7 @@ export async function getQueueSearchers(): Promise<QueueSearcher[]> {
 
 export type QueueResult =
   | { success: true; queueId: string; matchedLobbyId?: string | null }
-  | { success: false; error: string; code?: "need_permission" | "in_match" };
+  | { success: false; error: string; code?: "need_permission" | "in_match" | "no_rank" };
 
 // Tamanho da partida (X): a fila FORMA a partida ao juntar este número de jogadores.
 // Produção (Pedro 2026-06-28): 10 — exige composição completa das 5 funções (2 cada).
@@ -153,6 +153,22 @@ export async function enterQueue(input: {
 
   if (input.roles.length === 0) {
     return { success: false, error: "Selecione pelo menos 1 função." };
+  }
+
+  // GATE anti-smurf: precisa de medalha Valve LEGÍVEL (perfil Dota público +
+  // calibrado). Perfil privado ou conta descalibrada → rankTier nulo → não joga.
+  const { data: ext } = await supabase
+    .from("user_stats_extended")
+    .select("career")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  const rankTier = (ext?.career as { rankTier?: number | null } | null)?.rankTier ?? null;
+  if (rankTier == null) {
+    return {
+      success: false,
+      error: "Deixe seu perfil Dota PÚBLICO e calibrado pra entrar na fila — a medalha é a prova do seu nível.",
+      code: "no_rank",
+    };
   }
 
   // TRAVA DE VERDADE (servidor): já está em partida ativa? Não pode buscar outra.
