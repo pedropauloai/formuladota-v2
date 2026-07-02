@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
-import { ShieldX, Ban, Clock } from "lucide-react";
+import { ShieldX, Ban, Clock, ExternalLink, Swords, UserRound } from "lucide-react";
+import { Link } from "@/i18n/navigation";
 import { ClientShell } from "@/components/client-shell/shell";
-import { getWallOfShame } from "@/lib/queries/wall-of-shame";
+import { getWallOfShame, type WallEntry } from "@/lib/queries/wall-of-shame";
+import { SteamIcon } from "@/components/profile/social-icons-row";
 
 export const metadata: Metadata = {
   title: "Mural da Vergonha — FORMULADOTA",
@@ -94,6 +96,7 @@ export default async function MuralPage() {
                         ? ` · até ${new Date(e.suspendedUntil).toLocaleDateString("pt-BR")}`
                         : ""}
                     </p>
+                    <VerifyLinks entry={e} />
                   </div>
                 </li>
               );
@@ -102,5 +105,60 @@ export default async function MuralPage() {
         )}
       </div>
     </ClientShell>
+  );
+}
+
+// Links de verificação (anti-anonimato: identidade pública e checável por qualquer um).
+// Perfil FormulaDota (interno) + Steam + Stratz + OpenDota + a partida onde puniu.
+function VerifyLinks({ entry }: { entry: WallEntry }) {
+  const cls =
+    "inline-flex items-center gap-1 rounded-sm border border-border-subtle bg-bg-elevated/60 px-2 py-1 font-display text-[0.7rem] font-semibold uppercase tracking-wide text-text-muted transition-colors hover:border-brand-primary/50 hover:text-text-display";
+  return (
+    <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+      <Link href={`/perfil/u/${entry.userId}`} className={cls}>
+        <UserRound size={12} aria-hidden="true" />
+        Perfil
+      </Link>
+      {entry.steamId64 && (
+        <a
+          href={`https://steamcommunity.com/profiles/${entry.steamId64}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={cls}
+        >
+          <SteamIcon size={12} />
+          Steam
+          <ExternalLink size={10} aria-hidden="true" />
+        </a>
+      )}
+      {entry.steamId32 && (
+        <>
+          <a
+            href={`https://stratz.com/players/${entry.steamId32}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={cls}
+          >
+            Stratz
+            <ExternalLink size={10} aria-hidden="true" />
+          </a>
+          <a
+            href={`https://www.opendota.com/players/${entry.steamId32}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={cls}
+          >
+            OpenDota
+            <ExternalLink size={10} aria-hidden="true" />
+          </a>
+        </>
+      )}
+      {entry.dotaMatchId && (
+        <Link href={`/partida/historico/${entry.dotaMatchId}`} className={cls}>
+          <Swords size={12} aria-hidden="true" />
+          Partida {entry.dotaMatchId}
+        </Link>
+      )}
+    </div>
   );
 }
