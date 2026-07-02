@@ -6,50 +6,45 @@ import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { Clock, Radio } from "lucide-react";
 import { getHeroById } from "@/lib/queries/heroes";
-import { UserAvatar } from "@/components/ui/avatar";
-import type { HistoryMatch, HistoryPlayer, LiveMatch } from "@/lib/queries/matches-feed";
+import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
+import type { HistoryMatch, HistoryPlayer, LiveMatch, LivePlayer } from "@/lib/queries/matches-feed";
 
-// Chip de jogador: o AVATAR é o destaque (identidade = o produto; anti-anonimato),
-// com o herói como badge no canto + o nick e o ±MMR embaixo.
+// Chip de jogador: o AVATAR + NÍVEL da conta são o destaque (identidade = o produto;
+// anti-anonimato). O herói é badge secundário (canto superior, longe do badge de
+// nível que fica embaixo do anel). Nick + ±MMR embaixo.
 function PlayerChip({ player }: { player: HistoryPlayer }) {
   const hero = player.heroId ? getHeroById(player.heroId) : null;
   const mmr = player.mmrChange;
   return (
     <span
-      className="flex w-14 shrink-0 flex-col items-center gap-1"
+      className="flex w-16 shrink-0 flex-col items-center gap-0.5"
       title={`${player.name}${hero ? ` · ${hero.name_pt}` : ""}`}
     >
-      <span className="relative block size-14">
-        {/* Avatar do jogador — elemento principal (quadrado, padrão Steam/Dota). */}
-        {player.avatar ? (
-          <Image
-            src={player.avatar}
-            alt={player.name}
-            width={56}
-            height={56}
-            unoptimized
-            className="size-14 rounded-sm border border-border-subtle object-cover"
-          />
-        ) : (
-          <span className="flex size-14 items-center justify-center rounded-sm border border-border-subtle bg-bg-elevated font-display text-sm font-bold text-text-muted">
-            {player.name.slice(0, 2).toUpperCase()}
-          </span>
-        )}
-        {/* Herói — badge secundário no canto inferior direito. */}
+      <span className="relative">
+        {/* Avatar + anel de XP com o NÍVEL da conta (identidade, sempre com o jogador). */}
+        <XpAvatarRing
+          src={player.avatar ?? undefined}
+          alt={player.name}
+          fallback={player.name.slice(0, 2).toUpperCase()}
+          level={player.level}
+          pct={0}
+          size={44}
+        />
+        {/* Herói — badge secundário no canto superior direito. */}
         {hero && (
-          <span className="absolute -bottom-1 -right-1 rounded-sm ring-1 ring-bg-deep">
+          <span className="absolute -right-1 top-0 rounded-sm ring-1 ring-bg-deep">
             <Image
               src={hero.image_icon}
               alt={hero.name_pt}
-              width={24}
-              height={24}
+              width={22}
+              height={22}
               unoptimized
-              className="size-6 rounded-sm object-cover"
+              className="size-[22px] rounded-sm object-cover"
             />
           </span>
         )}
       </span>
-      <span className="block w-full truncate text-center font-display text-[0.65rem] font-medium leading-none text-text-body">
+      <span className="mt-1 block w-full truncate text-center font-display text-[0.65rem] font-medium leading-none text-text-body">
         {player.name}
       </span>
       {mmr != null ? (
@@ -125,20 +120,23 @@ export function LiveMatchCard({ match }: { match: LiveMatch }) {
   const radiant = match.players.filter((p) => p.team === "radiant");
   const dire = match.players.filter((p) => p.team === "dire");
 
-  const Team = ({ players, align }: { players: LiveMatch["players"]; align: "end" | "start" }) => (
+  const Team = ({ players, align }: { players: LivePlayer[]; align: "end" | "start" }) => (
     <div
-      className={`flex flex-1 flex-wrap items-center gap-1.5 ${
+      className={`flex flex-1 flex-wrap items-center gap-2 ${
         align === "end" ? "justify-end" : "justify-start"
       }`}
     >
       {players.map((p, i) => (
-        <UserAvatar
-          key={i}
-          src={p.avatar ?? undefined}
-          alt={p.name}
-          fallback={p.name.slice(0, 2).toUpperCase()}
-          size="sm"
-        />
+        <span key={i} title={p.name}>
+          <XpAvatarRing
+            src={p.avatar ?? undefined}
+            alt={p.name}
+            fallback={p.name.slice(0, 2).toUpperCase()}
+            level={p.level}
+            pct={0}
+            size={36}
+          />
+        </span>
       ))}
     </div>
   );

@@ -9,6 +9,7 @@ export interface LivePlayer {
   team: "radiant" | "dire" | "spectator";
   name: string;
   avatar: string | null;
+  level: number;
 }
 
 export interface LiveMatch {
@@ -29,6 +30,7 @@ export interface HistoryPlayer {
   mmrChange: number | null;
   name: string;
   avatar: string | null;
+  level: number;
 }
 
 export interface HistoryMatch {
@@ -48,7 +50,13 @@ export async function getLiveMatches(): Promise<LiveMatch[]> {
     dota_match_id: string;
     name: string | null;
     started_at: string | null;
-    players: { user_id: string | null; team: string; name: string; avatar: string | null }[];
+    players: {
+      user_id: string | null;
+      team: string;
+      name: string;
+      avatar: string | null;
+      level: number | null;
+    }[];
   }[];
   return rows.map((r) => ({
     dotaMatchId: r.dota_match_id,
@@ -59,6 +67,7 @@ export async function getLiveMatches(): Promise<LiveMatch[]> {
       team: p.team === "dire" ? "dire" : p.team === "spectator" ? "spectator" : "radiant",
       name: p.name,
       avatar: p.avatar,
+      level: p.level ?? 1,
     })),
   }));
 }
@@ -84,6 +93,7 @@ export async function getRecentMatches(limit = 20, offset = 0): Promise<HistoryM
       mmr_change: number | null;
       name: string;
       avatar: string | null;
+      level: number | null;
     }[];
   }[];
   return rows.map((r) => ({
@@ -104,6 +114,7 @@ export async function getRecentMatches(limit = 20, offset = 0): Promise<HistoryM
       mmrChange: p.mmr_change,
       name: p.name,
       avatar: p.avatar,
+      level: p.level ?? 1,
     })),
   }));
 }
