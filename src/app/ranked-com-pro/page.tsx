@@ -43,13 +43,10 @@ export default async function RankedComProPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  // Feature flag: com "ranked_com_pro" desligada, a rota some pros usuários
-  // (admin continua acessando pra testar).
-  const [flags, meRow] = await Promise.all([
-    getFeatureFlags(),
-    supabase.from("profiles").select("is_admin").eq("id", user.id).single(),
-  ]);
-  if (!flags.ranked_com_pro && meRow.data?.is_admin !== true) {
+  // Feature flag AUTORITATIVA: com "ranked_com_pro" desligada, a rota some pra TODOS
+  // (inclusive admin — Pedro 2026-07-02). Pra testar, reative no painel de flags.
+  const flags = await getFeatureFlags();
+  if (!flags.ranked_com_pro) {
     redirect("/dashboard");
   }
 

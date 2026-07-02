@@ -199,10 +199,11 @@ export async function ClientShell({
   const adminFlag = realIsAdmin && !previewActive;
   // Preview mode também oculta tab PRO contextual (admin vendo como user comum).
   const isPro = !isVisitor && proPromotion != null && !previewActive;
-  // Feature flag: "Subir MMR / Ranked com PRO". Desligada = some pros usuários;
-  // admin (fora do preview) continua enxergando pra testar. Controla topbar,
-  // sidebar, menu Jogar e a rota /ranked-com-pro.
-  const showRankedComPro = featureFlags.ranked_com_pro || adminFlag;
+  // Feature flag: "Subir MMR / Ranked com PRO". A flag é AUTORITATIVA — off esconde
+  // pra TODOS, inclusive admin (Pedro 2026-07-02: "desativei e o CTA continuou").
+  // Pra testar, o admin reativa no painel de flags. Controla topbar, sidebar, menu
+  // Jogar e a rota /ranked-com-pro.
+  const showRankedComPro = featureFlags.ranked_com_pro;
   // Persona/avatar: null pra visitante (LeftSidebar mostra VisitorCard).
   // Identidade canônica via lib/identity (anti-anonimato: Steam > Discord, nunca vazio).
   const identitySrc = {

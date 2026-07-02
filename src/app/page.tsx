@@ -36,17 +36,14 @@ export default async function HomePage() {
   const isVisitor = user === null;
 
   // A capa-tese só precisa do pulso da comunidade (PROs em fila) — leve.
-  // + feature flag: com "ranked_com_pro" off, o CTA vira "Ver Partidas".
-  // Admin continua vendo o CTA "Subir MMR" (pra testar a feature escondida).
-  const [prosWithQueues, flags, meRow] = await Promise.all([
+  // + feature flag AUTORITATIVA: com "ranked_com_pro" off, o CTA vira "Ver Partidas"
+  // pra TODOS, inclusive admin (Pedro 2026-07-02). Reative no painel pra testar.
+  const [prosWithQueues, flags] = await Promise.all([
     getProsWithQueues(),
     getFeatureFlags(),
-    user
-      ? supabase.from("profiles").select("is_admin").eq("id", user.id).single()
-      : Promise.resolve({ data: null as { is_admin: boolean } | null }),
   ]);
   const prosOnlineCount = prosWithQueues.filter((p) => p.coach.filaAberta).length;
-  const showRankedComPro = flags.ranked_com_pro || meRow.data?.is_admin === true;
+  const showRankedComPro = flags.ranked_com_pro;
 
   return (
     <ClientShell currentRoute="/" immersive>
