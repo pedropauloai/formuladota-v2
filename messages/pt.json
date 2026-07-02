@@ -181,6 +181,9 @@
     "fichasBalance": "Saldo de fichas",
     "adminUnit": "admin",
     "fichaUnit": "{count, plural, =1 {ficha} other {fichas}}",
+    "levelCardTitle": "Progresso de nível",
+    "levelMaxed": "Nível máximo · Místico",
+    "levelToNext": "{pct}% para o Nível {next}",
     "sidebar": {
       "recentTitle": "Últimas partidas",
       "recentCta": "Ver todas",
@@ -207,7 +210,8 @@
     "soon": "em breve",
     "viewProfile": "Ver perfil",
     "online": "Online",
-    "offline": "Offline"
+    "offline": "Offline",
+    "howMmrWorks": "Como funciona o MMR?"
   },
   "playMenu": {
     "play": "Jogar Dota",

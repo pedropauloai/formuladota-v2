@@ -555,7 +555,7 @@ export function DotaRankMedal({
           {/* Estrelas da sub-divisão (1–5) — fiel ao cliente Dota 2. */}
           {typeof stars === "number" && <StarPips stars={stars} rank={rank} px={px} />}
           {/* Leaderboard de Imortais (estilo oficial Dota): brilho radial PULSANTE no
-              centro da medalha + a POSIÇÃO (#N) na placa inferior, em creme pergaminho. */}
+              centro da medalha + a POSIÇÃO (#N) na placa inferior, em DOURADO (fino). */}
           {typeof leaderboardNumber === "number" && (
             <>
               <span
@@ -571,11 +571,11 @@ export function DotaRankMedal({
                 aria-hidden="true"
               />
               <span
-                className="pointer-events-none absolute inset-x-0 bottom-[9%] flex items-center justify-center"
+                className="pointer-events-none absolute inset-x-0 bottom-[4%] flex items-center justify-center"
                 aria-hidden="true"
               >
                 <span
-                  className="font-display-condensed font-bold leading-none text-gold-cream drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]"
+                  className="font-display-condensed font-medium leading-none text-gold drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]"
                   style={{ fontSize: px * 0.28 }}
                 >
                   {leaderboardNumber}

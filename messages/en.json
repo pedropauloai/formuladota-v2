@@ -181,6 +181,9 @@
     "fichasBalance": "Token balance",
     "adminUnit": "admin",
     "fichaUnit": "{count, plural, =1 {token} other {tokens}}",
+    "levelCardTitle": "Level progress",
+    "levelMaxed": "Max level · Mystic",
+    "levelToNext": "{pct}% to Level {next}",
     "sidebar": {
       "recentTitle": "Recent matches",
       "recentCta": "See all",
@@ -207,7 +210,8 @@
     "soon": "soon",
     "viewProfile": "View profile",
     "online": "Online",
-    "offline": "Offline"
+    "offline": "Offline",
+    "howMmrWorks": "How does MMR work?"
   },
   "playMenu": {
     "play": "Play Dota",

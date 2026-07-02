@@ -99,13 +99,23 @@ export default async function RankingPage(props: {
     );
   }
 
+  // Banidos NÃO aparecem no ranking (Pedro 2026-07-02). RPC pública (DEFINER) do
+  // Mural — user_warnings tem RLS restrita, então essa é a via legível pra todos.
+  const { data: punished } = await supabase.rpc("wall_of_shame");
+  const bannedIds = ((punished ?? []) as { user_id: string; status: string }[])
+    .filter((p) => p.status === "banned")
+    .map((p) => p.user_id);
+  const banFilter = bannedIds.length ? `(${bannedIds.join(",")})` : null;
+
   // Top 3 sempre visível (não paginado)
-  const { data: top3 } = await supabase
+  let top3Query = supabase
     .from("player_season_mmr")
     .select("user_id, mmr, vitorias, derrotas, partidas_total")
     .eq("season_id", season.id)
     .order("mmr", { ascending: false })
     .limit(3);
+  if (banFilter) top3Query = top3Query.not("user_id", "in", banFilter);
+  const { data: top3 } = await top3Query;
 
   // Lista paginada (offset)
   const offset = (page - 1) * PAGE_SIZE;
@@ -153,6 +163,7 @@ export default async function RankingPage(props: {
       .order("mmr", { ascending: false });
   }
 
+  if (banFilter) listQuery = listQuery.not("user_id", "in", banFilter);
   const { data: list } = await listQuery;
   const rows: { user_id: string; mmr: number; vitorias: number; derrotas: number; partidas_total: number }[] =
     list ?? [];
@@ -190,19 +201,24 @@ export default async function RankingPage(props: {
             todo o topo e faz FADE na base (transição pro fundo). A tag da season vive
             fundida aqui (countdown ao vivo) + CTA grande do MMR. Pedro 2026-07-02. */}
         <header className="relative -mx-6 mb-10 overflow-hidden border-b border-border-subtle xl:-mx-12">
-          <Image
-            src="/images/ranking/season-header.png"
-            alt=""
-            fill
-            priority
-            unoptimized
-            aria-hidden="true"
-            className="object-cover object-top"
-          />
-          {/* Fade forte na BASE (some no fundo) + leve à esquerda (leitura do texto). */}
-          <div className="absolute inset-0 bg-gradient-to-t from-bg-base via-bg-base/45 to-bg-base/5" />
-          <div className="absolute inset-0 bg-gradient-to-r from-bg-base/80 via-bg-base/20 to-transparent" />
-          <div className="relative flex flex-col gap-6 px-6 py-12 md:flex-row md:items-center md:justify-between md:px-12 md:py-16">
+          {/* A imagem da Lina preenche o header INTEIRO sem cortar: no desktop o
+              container respeita o aspecto real (1920×622), então nada é recortado;
+              no mobile ganha altura mínima. Fade suave na base funde no fundo. */}
+          <div className="relative min-h-[340px] md:min-h-0 md:aspect-[1920/622] md:max-h-[460px]">
+            <Image
+              src="/images/ranking/season-header.png"
+              alt=""
+              fill
+              priority
+              unoptimized
+              aria-hidden="true"
+              className="object-cover object-center"
+            />
+            {/* Fade suave na BASE (funde no fundo da página). */}
+            <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-bg-base via-bg-base/60 to-transparent" />
+            {/* Scrim LEVE à esquerda só pra leitura do título (sem esconder a Lina). */}
+            <div className="absolute inset-0 bg-gradient-to-r from-bg-base/60 via-bg-base/5 to-transparent" />
+            <div className="absolute inset-0 flex flex-col justify-center gap-5 px-6 py-8 md:flex-row md:items-center md:justify-between md:px-12">
             <div className="min-w-0">
               <p className="font-display text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
                 {t("eyebrow")}
@@ -233,6 +249,7 @@ export default async function RankingPage(props: {
               Como funciona o MMR?
               <span className="transition-transform group-hover:translate-x-0.5">→</span>
             </Link>
+            </div>
           </div>
         </header>
 
