@@ -293,7 +293,6 @@ export async function ClientShell({
             avatar={avatar}
             tag={userTag}
             isAdmin={adminFlag}
-            fichaBalance={fichaBalance}
             level={userLevel}
             xpPct={userXpPct}
             permissions={matchPermissions}
@@ -414,7 +413,6 @@ export async function ClientShell({
           avatar={avatar}
           tag={userTag}
           isAdmin={adminFlag}
-          fichaBalance={fichaBalance}
           level={userLevel}
           xpPct={userXpPct}
           permissions={matchPermissions}

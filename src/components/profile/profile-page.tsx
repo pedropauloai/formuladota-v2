@@ -269,6 +269,10 @@ export function ProfilePage({
                   )}
                   {/* Sincronizar identidade com a Steam AGORA (fura cache 1h) — só no próprio. */}
                   {isOwn && profile.steamId64 && <SyncSteamButton />}
+                  {/* Botão de nick oficial COLADO ao nome (fácil de achar ao editar). */}
+                  {isOwn && editing && (
+                    <NickEditor currentNick={profile.username} alreadySet={profile.officialNickSet} />
+                  )}
                 </div>
                 {/* Redes sociais sob o nick — refletem a conta do LOGIN, então só
                     aparecem no próprio perfil (evita mostrar o social do viewer). */}
@@ -277,7 +281,11 @@ export function ProfilePage({
                     já que todo login é via Discord; o resto "em breve"), então não
                     expõem dado do viewer. Antes só apareciam no próprio (isOwn) e o
                     perfil público ficava sem — inconsistente. */}
-                <SocialIconsRow links={profile.socialLinks} />
+                <span className="mt-1.5 flex items-center gap-2.5">
+                  <SocialIconsRow links={profile.socialLinks} className="flex items-center gap-2.5" />
+                  {/* Botão de redes COLADO à fileira (fácil de achar ao editar). */}
+                  {isOwn && editing && <SocialLinksEditor initial={profile.socialLinks} />}
+                </span>
               </div>
 
               {/* ── Cluster direito: só o resumo de carreira (winrate + TOP). As
@@ -312,11 +320,8 @@ export function ProfilePage({
           {/* ─── RODAPÉ de edição — salvar fica embaixo (Pedro 2026-06-30). ─── */}
           {isOwn && editing && (
             <div className="mt-3 flex shrink-0 flex-wrap items-center justify-end gap-2 border-t border-border-subtle pt-3">
-              {/* Nick oficial (uso único) + redes sociais — à esquerda do rodapé. */}
-              <span className="mr-auto flex items-center gap-2">
-                <NickEditor currentNick={profile.username} alreadySet={profile.officialNickSet} />
-                <SocialLinksEditor initial={profile.socialLinks} />
-              </span>
+              {/* Nick oficial + redes agora ficam COLADOS às informações no header
+                  (fáceis de achar ao editar) — saíram daqui. Pedro 2026-07-02. */}
               {/* Trocar fundo → popup com preview em tempo real (slot profile_theme). */}
               <BackgroundPicker />
               <ResetLayoutButton />

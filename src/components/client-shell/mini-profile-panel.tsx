@@ -27,7 +27,7 @@
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { Coins, Crown, LogIn, Users, ShieldCheck } from "lucide-react";
+import { Crown, LogIn, Users, ShieldCheck, TrendingUp } from "lucide-react";
 import { type DotaRank } from "@/components/ui/dota-rank-medal";
 import { type HonorRank } from "@/components/ui/honor-rank-medal";
 import { MedalPair } from "@/components/ui/medal-pair";
@@ -48,7 +48,6 @@ interface Props {
   avatar: string | null;
   tag: string;
   isAdmin: boolean;
-  fichaBalance: number;
   /** Nível da conta (0-30) pro avatar-ring. */
   level: number;
   /** Progresso de XP dentro do nível (0-1) — barra na borda do avatar. */
@@ -92,7 +91,6 @@ export function MiniProfilePanel({
   avatar,
   tag,
   isAdmin,
-  fichaBalance,
   level,
   xpPct,
   permissions,
@@ -148,7 +146,6 @@ export function MiniProfilePanel({
           avatar={avatar}
           tag={tag}
           isAdmin={isAdmin}
-          fichaBalance={fichaBalance}
           level={level}
           xpPct={xpPct}
           dotaRank={dotaRank}
@@ -350,7 +347,6 @@ function ExpandedPanel({
   avatar,
   tag,
   isAdmin,
-  fichaBalance,
   level,
   xpPct,
   dotaRank,
@@ -367,7 +363,6 @@ function ExpandedPanel({
   avatar: string | null;
   tag: string;
   isAdmin: boolean;
-  fichaBalance: number;
   level: number;
   xpPct: number;
   dotaRank: DotaRank;
@@ -432,8 +427,9 @@ function ExpandedPanel({
         </Link>
       </header>
 
-      {/* Saldo de fichas compact */}
-      <FichasCard balance={fichaBalance} isAdmin={isAdmin} />
+      {/* Progresso de nível (fideliza — eixo lealdade). Substituiu o card de fichas,
+          que pertence ao ranked-com-pro/fichas (feature flag off). Pedro 2026-07-02. */}
+      <LevelProgressCard level={level} xpPct={xpPct} />
 
       {/* Lista de amigos (scrollable) */}
       <div className="flex-1 min-h-0 overflow-y-auto">
@@ -479,30 +475,31 @@ function VisitorCardCompact() {
   );
 }
 
-// Moeda = dourado (família GOLD, Pedro 2026-06-11): número em text-gold,
-// label associado em text-gold-muted, chrome do card em border-gold.
-function FichasCard({ balance, isAdmin }: { balance: number; isAdmin: boolean }) {
+// Progresso de nível (eixo lealdade): barra de XP pro próximo nível. Usa dados que
+// o mini-perfil já tem (level + xpPct), sem query nova. No nível 30 (Místico) = máximo.
+function LevelProgressCard({ level, xpPct }: { level: number; xpPct: number }) {
   const t = useTranslations("shell");
+  const maxed = level >= 30;
+  const pct = Math.max(0, Math.min(100, Math.round(xpPct * 100)));
   return (
-    <div className="rounded border border-border-gold/40 bg-gradient-to-br from-gold/10 to-transparent px-3 py-2">
-      {/* Hover educacional: o que é 1 ficha e quanto custa */}
-      <Tooltip
-        content={t("fichasTooltip")}
-        side="top"
-        align="start"
-      >
-        <span className="flex items-center gap-2">
-          <Coins size={12} className="text-gold" aria-hidden="true" />
-          <span className="font-display text-sm font-semibold text-gold-muted">
-            {t("fichasBalance")}
-          </span>
+    <div className="rounded border border-border-subtle bg-bg-elevated/40 px-3 py-2">
+      <div className="flex items-center justify-between">
+        <span className="flex items-center gap-2 font-display text-sm font-semibold text-text-body">
+          <TrendingUp size={12} className="text-brand-primary" aria-hidden="true" />
+          {t("levelCardTitle")}
         </span>
-      </Tooltip>
-      <p className="mt-1 font-display text-xl font-bold tabular-nums text-gold">
-        {isAdmin ? "∞" : balance}
-        <span className="ml-2 font-display text-sm font-semibold text-gold-muted">
-          {isAdmin ? t("adminUnit") : t("fichaUnit", { count: balance })}
+        <span className="font-display-condensed text-lg font-bold tabular-nums text-gold">
+          {level}
         </span>
+      </div>
+      <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-bg-deep">
+        <div
+          className="h-full rounded-full bg-brand-primary transition-all"
+          style={{ width: `${maxed ? 100 : pct}%` }}
+        />
+      </div>
+      <p className="mt-1 font-display text-xs text-text-faded">
+        {maxed ? t("levelMaxed") : t("levelToNext", { pct, next: level + 1 })}
       </p>
     </div>
   );

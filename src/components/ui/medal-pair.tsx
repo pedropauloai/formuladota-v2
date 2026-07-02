@@ -64,17 +64,20 @@ export function MedalPair({
   return (
     <Tooltip
       content={
+        // Ordem = PRIORIDADE (Pedro 2026-07-02): a NOSSA medalha (rank sazonal
+        // FormulaDota) vem PRIMEIRO, depois honra; a Valve (SKILL, pré-calibração)
+        // fica por ÚLTIMO — ela não é o protagonista.
         <span className="block divide-y divide-border-subtle">
-          <span className="block pb-3">
-            <SkillShowcase current={dotaRank} />
-          </span>
           {seasonRank && (
-            <span className="block py-3">
+            <span className="block pb-3">
               <RankShowcase current={seasonRank} />
             </span>
           )}
-          <span className="block pt-3">
+          <span className={seasonRank ? "block py-3" : "block pb-3"}>
             <HonorShowcase current={honorRank} />
+          </span>
+          <span className="block pt-3">
+            <SkillShowcase current={dotaRank} />
           </span>
         </span>
       }

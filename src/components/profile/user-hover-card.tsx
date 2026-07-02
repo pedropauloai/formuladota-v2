@@ -16,7 +16,7 @@ import { useState, useTransition, type ReactNode } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { MessageCircle, UsersRound, Loader2, Check } from "lucide-react";
+import { MessageCircle, UsersRound, Loader2, Check, HelpCircle } from "lucide-react";
 import {
   HoverCard,
   HoverCardTrigger,
@@ -27,7 +27,6 @@ import {
   type PublicMiniProfile,
 } from "@/actions/public-profile";
 import { MedalPair } from "@/components/ui/medal-pair";
-import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
 import { ValveCredential } from "@/components/profile/valve-credential";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { mmrToDotaRank } from "@/components/queue/queue-helpers";
@@ -165,19 +164,21 @@ function Body({ data, online }: { data: PublicMiniProfile; online?: boolean }) {
             />
           )}
         </div>
-        {/* Medalha do rank ENTRE a foto e o nome (padrão Dota 2). Usa o rank
-            sazonal FormulaDota (o que conta aqui); sem MMR, cai na Valve. */}
-        {(seasonRank ?? dotaRank) && (
-          <DotaRankMedal
-            rank={seasonRank ?? dotaRank}
-            stars={seasonRank ? seasonStars : dotaStars}
-            variant={seasonRank ? "formuladota" : "valve"}
-            size="md"
-            tooltip={false}
-            glow={(seasonRank ?? dotaRank) === "immortal"}
-            className="shrink-0 self-center"
-          />
-        )}
+        {/* Medalhas do NOSSO sistema (rank sazonal + honra) ENTRE foto e nome —
+            MESMO padrão do perfil (skillInline=false: a Valve fica de fora, vira
+            credencial abaixo). A explicação de todos os eixos segue no showcase. */}
+        <MedalPair
+          dotaRank={dotaRank}
+          dotaStars={dotaStars}
+          honorRank={honorRank}
+          seasonRank={seasonRank}
+          seasonStars={seasonStars}
+          skillInline={false}
+          size="sm"
+          side="bottom"
+          align="start"
+          className="shrink-0 self-center"
+        />
         <div className="min-w-0 flex-1">
           <p className="truncate font-display text-base font-semibold text-text-display">
             {data.name}
@@ -201,14 +202,11 @@ function Body({ data, online }: { data: PublicMiniProfile; online?: boolean }) {
         </p>
       )}
 
-      {/* HONRA + credencial Valve (dimmed) + winrate. O rank sazonal (nossa medalha)
-          já está na identidade (entre foto e nome); a Valve fica rebaixada aqui como
-          chip discreto (skillInline=false mantém a explicação no showcase). */}
+      {/* Credencial Valve (dimmed) + winrate. As medalhas do nosso sistema (rank +
+          honra) já estão na identidade, entre foto e nome — aqui só a conta Valve
+          rebaixada, sem duplicar. */}
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <MedalPair dotaRank={dotaRank} dotaStars={dotaStars} honorRank={honorRank} size="sm" skillInline={false} side="bottom" align="start" />
-          <ValveCredential rank={dotaRank} stars={dotaStars} size="sm" />
-        </div>
+        <ValveCredential rank={dotaRank} stars={dotaStars} size="sm" />
         {winrate !== null && (
           <div className="text-right leading-tight">
             <p className="font-display-condensed text-xl tabular-nums text-gold">{winrate}%</p>
@@ -248,6 +246,15 @@ function Body({ data, online }: { data: PublicMiniProfile; online?: boolean }) {
           <PartyInviteAction userId={data.userId} />
         </div>
       )}
+
+      {/* CTA educacional — leva pra página que explica o ranking/MMR. */}
+      <Link
+        href="/mmr"
+        className="flex items-center justify-center gap-1.5 border-t border-border-subtle pt-2.5 font-display text-xs font-semibold uppercase tracking-wide text-text-muted transition-colors hover:text-brand-primary"
+      >
+        <HelpCircle size={13} aria-hidden="true" />
+        {t("howMmrWorks")}
+      </Link>
     </div>
   );
 }
