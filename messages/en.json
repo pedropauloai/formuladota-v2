@@ -419,6 +419,7 @@
     "eyebrow": "Ranking · Season",
     "subtitle": "Player standings by MMR for the current season. Top 3 highlighted, the rest paginated.",
     "top3": "Top 3",
+    "searchResultsFor": "Results for “{query}”",
     "anonymous": "Anonymous",
     "winLoss": "{wins}W — {losses}L",
     "matchesRecord": "{matches} matches — {wins}W/{losses}L",

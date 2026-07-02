@@ -28,6 +28,14 @@ interface MedalPairProps {
   seasonStars?: number
   /** Nº do leaderboard (#N) dentro do anel — só top 10 Imortais. */
   seasonLeaderboardNumber?: number
+  /**
+   * Exibe a medalha SKILL Valve INLINE no par. @default true.
+   * `false` (telas de identidade — perfil/mini/hover): a Valve sai do par (fica
+   * só RANK sazonal + HONRA), pra NÃO disputar destaque com a nossa medalha —
+   * a info da conta Valve vira credencial discreta (<ValveCredential>) e segue
+   * no showcase do hover. Pedro 2026-07-02.
+   */
+  skillInline?: boolean
   /** Tamanho repassado às medalhas. @default "md" */
   size?: "sm" | "md" | "lg" | "xl"
   /** Glow nas medalhas de topo (Imortal/Místico). @default true */
@@ -46,6 +54,7 @@ export function MedalPair({
   dotaStars,
   seasonStars,
   seasonLeaderboardNumber,
+  skillInline = true,
   size = "md",
   glow = true,
   side = "top",
@@ -74,13 +83,15 @@ export function MedalPair({
       contentClassName="max-w-none p-3"
       className={cn("inline-flex items-center gap-1.5", className)}
     >
-      <DotaRankMedal
-        rank={dotaRank}
-        stars={dotaStars}
-        size={size}
-        tooltip={false}
-        glow={glow && (dotaRank === "immortal" || dotaRank === "immortal-top-100")}
-      />
+      {skillInline && (
+        <DotaRankMedal
+          rank={dotaRank}
+          stars={dotaStars}
+          size={size}
+          tooltip={false}
+          glow={glow && (dotaRank === "immortal" || dotaRank === "immortal-top-100")}
+        />
+      )}
       {seasonRank && (
         <DotaRankMedal
           rank={seasonRank}

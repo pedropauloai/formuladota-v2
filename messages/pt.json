@@ -419,6 +419,7 @@
     "eyebrow": "Ranking · Temporada",
     "subtitle": "Classificação dos jogadores pelo MMR da temporada atual. Top 3 destacados, demais paginados.",
     "top3": "Top 3",
+    "searchResultsFor": "Resultados para “{query}”",
     "anonymous": "Anônimo",
     "winLoss": "{wins}V — {losses}D",
     "matchesRecord": "{matches} partidas — {wins}V/{losses}D",

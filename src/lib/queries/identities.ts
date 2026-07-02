@@ -9,8 +9,21 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { displayName, displayAvatar, type IdentitySources } from "@/lib/identity";
+import { SOCIAL_KEYS, type SocialLinks } from "@/components/profile/social-icons-row";
 
 type ServerClient = Awaited<ReturnType<typeof createClient>>;
+
+/** Parseia o JSON social_links da view em SocialLinks (só URLs válidas). undefined se vazio. */
+function parseSocialLinks(raw: unknown): SocialLinks | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const src = raw as Record<string, unknown>;
+  const out: SocialLinks = {};
+  for (const key of SOCIAL_KEYS) {
+    const v = src[key];
+    if (typeof v === "string" && v.trim()) out[key] = v;
+  }
+  return Object.keys(out).length > 0 ? out : undefined;
+}
 
 export interface SteamIdentity {
   persona: string | null;
@@ -47,6 +60,8 @@ export async function getSteamIdentityMap(
 export interface ResolvedIdentity {
   name: string;
   avatarUrl: string | null;
+  /** Redes sociais VINCULADAS (só as que o user configurou). undefined = nenhuma. */
+  socialLinks?: SocialLinks;
 }
 
 /**
@@ -65,17 +80,23 @@ export async function getIdentityMap(
   if (ids.length === 0) return new Map();
 
   const [discordRes, steamMap] = await Promise.all([
-    supabase.from("public_player_identities").select("id, username, avatar_url").in("id", ids),
+    supabase
+      .from("public_player_identities")
+      .select("id, username, avatar_url, social_links")
+      .in("id", ids),
     getSteamIdentityMap(supabase, ids),
   ]);
   const discord = new Map(
-    (discordRes.data ?? []).map((d) => [d.id, { username: d.username, avatar: d.avatar_url }])
+    (discordRes.data ?? []).map((d) => [
+      d.id,
+      { username: d.username, avatar: d.avatar_url, social: parseSocialLinks(d.social_links) },
+    ])
   );
 
   const out = new Map<string, ResolvedIdentity>();
   for (const id of ids) {
     const d = discord.get(id);
-    out.set(id, resolveIdentity(steamMap, id, d?.username, d?.avatar));
+    out.set(id, { ...resolveIdentity(steamMap, id, d?.username, d?.avatar), socialLinks: d?.social });
   }
   return out;
 }
