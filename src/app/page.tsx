@@ -15,6 +15,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ClientShell } from "@/components/client-shell/shell";
 import { HubCenter } from "@/components/client-shell/hub-center";
 import { getProsWithQueues } from "@/lib/queries/pros";
+import { getFeatureFlags } from "@/lib/queries/feature-flags";
 
 export async function generateMetadata() {
   const t = await getTranslations("misc2");
@@ -35,12 +36,25 @@ export default async function HomePage() {
   const isVisitor = user === null;
 
   // A capa-tese só precisa do pulso da comunidade (PROs em fila) — leve.
-  const prosWithQueues = await getProsWithQueues();
+  // + feature flag: com "ranked_com_pro" off, o CTA vira "Ver Partidas".
+  // Admin continua vendo o CTA "Subir MMR" (pra testar a feature escondida).
+  const [prosWithQueues, flags, meRow] = await Promise.all([
+    getProsWithQueues(),
+    getFeatureFlags(),
+    user
+      ? supabase.from("profiles").select("is_admin").eq("id", user.id).single()
+      : Promise.resolve({ data: null as { is_admin: boolean } | null }),
+  ]);
   const prosOnlineCount = prosWithQueues.filter((p) => p.coach.filaAberta).length;
+  const showRankedComPro = flags.ranked_com_pro || meRow.data?.is_admin === true;
 
   return (
     <ClientShell currentRoute="/" immersive>
-      <HubCenter isVisitor={isVisitor} prosOnlineCount={prosOnlineCount} />
+      <HubCenter
+        isVisitor={isVisitor}
+        prosOnlineCount={prosOnlineCount}
+        showRankedComPro={showRankedComPro}
+      />
     </ClientShell>
   );
 }
