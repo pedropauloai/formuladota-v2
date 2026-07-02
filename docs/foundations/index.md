@@ -26,6 +26,7 @@
 - [REVENUE_MODEL.md](REVENUE_MODEL.md) — Split 85/10/5; sponsor fee one-time na primeira ficha de novo PRO.
 - [PRICING_MODEL.md](PRICING_MODEL.md) — **DEPRECADO** — pricing descentralizado abandonado; ficha = R$ 10 fixo desde 2026-06-02 (migration 041).
 - [COMPENDIUM.md](COMPENDIUM.md) — **EM IDEAÇÃO** — cosméticos equipáveis + passe sazonal (inspirado no Compendium do TI) + freemium 3 planos (Gratuito/Aegis/Godlike). Assinatura potencializa Compendium.
+- [RANKING_SYSTEM.md](RANKING_SYSTEM.md) — Fundação de nivelamento (2026-07-01): 4 eixos (Valve legado · rank FormulaDota sazonal reusando as 8 medalhas · Nível 1→30 lealdade · Honra conduta+Mural). Reset+calibração por temporada (2 meses, S1 = 01/ago), Místico = Imortal (in-house OU Valve).
 
 ## Metodologia (conteúdo da doutrina)
 
