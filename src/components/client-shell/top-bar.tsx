@@ -209,17 +209,13 @@ export function DashboardTopBar({
             - Fora de fila → status "X PROs online"
           A pílula de fila substitui a de PROs porque a info mais relevante no
           momento é o estado atual do user, não a quantidade de PROs disponíveis. */}
-      <div className="hidden lg:flex items-center gap-2">
-        {/* Contadores da comunidade — SEMPRE visíveis (online + banidos → /mural). */}
-        <CommunityCountersBar initial={communityCounters} isLoggedIn={!isVisitor} />
-        {/* Fila/PROs — só xl+ (info secundária), e some quando o user está em fila. */}
-        {inQueue ? (
-          <QueueStatusPill queues={myQueues} />
-        ) : (
-          <div className="hidden xl:flex items-center gap-2">
-            {/* Jogadores buscando partida agora (match_queue, tempo real via polling). */}
-            <MatchQueuePill />
-            {prosOnlineCount > 0 && (
+      {inQueue ? (
+        <QueueStatusPill queues={myQueues} />
+      ) : (
+        <div className="hidden xl:flex items-center gap-2">
+          {/* Jogadores buscando partida agora (match_queue, tempo real via polling). */}
+          <MatchQueuePill />
+          {prosOnlineCount > 0 && (
             <div className="flex items-center gap-2 rounded-md border border-success/30 bg-success/5 px-3 py-1">
               <span className="relative flex size-2" aria-hidden="true">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75" />
@@ -231,20 +227,21 @@ export function DashboardTopBar({
               <Radio size={12} className="text-success/80" aria-hidden="true" />
             </div>
           )}
-            {searchingCount > 0 && (
-              <div className="flex items-center gap-2 rounded-md border border-info/30 bg-info/5 px-3 py-1">
-                <Swords size={12} className="text-info/80" aria-hidden="true" />
-                <span className="font-display text-sm font-semibold text-info/90">
-                  {t("topbar.searching", { count: searchingCount })}
-                </span>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+          {searchingCount > 0 && (
+            <div className="flex items-center gap-2 rounded-md border border-info/30 bg-info/5 px-3 py-1">
+              <Swords size={12} className="text-info/80" aria-hidden="true" />
+              <span className="font-display text-sm font-semibold text-info/90">
+                {t("topbar.searching", { count: searchingCount })}
+              </span>
+            </div>
+          )}
+        </div>
+      )}
 
-      {/* Direita — CONDUTA cinematic (todos) + (Entrar/Logout) + PreviewToggle (admin real) */}
+      {/* Direita — indicadores comunidade + CONDUTA + (Entrar/Logout) + PreviewToggle */}
       <div className="flex items-center gap-1.5 xl:gap-2">
+        {/* Online + banidos EMPILHADOS num só bloco sutil, clicável → /mural. */}
+        <CommunityCountersBar initial={communityCounters} isLoggedIn={!isVisitor} />
         {realIsAdmin && <PreviewModeToggle previewActive={previewActive} />}
         {/* Atalhos do Compendium — só ícone + tooltip no hover (Pedro 2026-07-01). */}
         {!isVisitor && (
