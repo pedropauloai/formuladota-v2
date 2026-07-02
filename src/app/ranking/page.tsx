@@ -181,11 +181,11 @@ export default async function RankingPage(props: {
 
   return (
     <ClientShell currentRoute="/ranking">
-      <div className="px-6 py-10 xl:px-12">
-        {/* Header cinematográfico: imagem (Lina + medalha Imortal) ao fundo com fade
-            inferior + esquerdo pra leitura. H1 à esquerda e o CTA grande "Como
-            funciona o MMR?" na MESMA linha, à direita (Pedro 2026-07-02). */}
-        <header className="relative mb-10 overflow-hidden rounded-[var(--radius-lg)] border border-border-subtle">
+      <div className="px-6 pb-10 xl:px-12">
+        {/* Header cinematográfico FULL-BLEED, colado na topbar: a imagem da Lina cobre
+            todo o topo e faz FADE na base (transição pro fundo). A tag da season vive
+            fundida aqui (countdown ao vivo) + CTA grande do MMR. Pedro 2026-07-02. */}
+        <header className="relative -mx-6 mb-10 overflow-hidden border-b border-border-subtle xl:-mx-12">
           <Image
             src="/images/ranking/season-header.png"
             alt=""
@@ -193,22 +193,32 @@ export default async function RankingPage(props: {
             priority
             unoptimized
             aria-hidden="true"
-            className="object-cover object-right"
+            className="object-cover object-top"
           />
-          {/* Fade inferior (pro conteúdo abaixo) + fade esquerdo (leitura do texto). */}
-          <div className="absolute inset-0 bg-gradient-to-t from-bg-base via-bg-base/60 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-bg-base via-bg-base/70 to-transparent" />
-          <div className="relative flex flex-col gap-5 p-6 md:flex-row md:items-center md:justify-between md:p-8">
+          {/* Fade forte na BASE (some no fundo) + leve à esquerda (leitura do texto). */}
+          <div className="absolute inset-0 bg-gradient-to-t from-bg-base via-bg-base/45 to-bg-base/5" />
+          <div className="absolute inset-0 bg-gradient-to-r from-bg-base/80 via-bg-base/20 to-transparent" />
+          <div className="relative flex flex-col gap-6 px-6 py-12 md:flex-row md:items-center md:justify-between md:px-12 md:py-16">
             <div className="min-w-0">
               <p className="font-display text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
                 {t("eyebrow")}
               </p>
-              <h1 className="mt-2 font-display text-4xl uppercase tracking-tight text-text-display md:text-5xl">
+              <h1 className="mt-2 font-display text-4xl uppercase tracking-tight text-text-display drop-shadow-lg md:text-6xl">
                 {season.name}
               </h1>
-              <p className="mt-2 max-w-xl font-display text-sm 2xl:text-base font-semibold text-text-body">
-                {t("subtitle")}
-              </p>
+              {/* Tag da season fundida no header — countdown ao vivo, em destaque. */}
+              <div className="mt-3">
+                <SeasonBanner
+                  variant="hero"
+                  seasonNumber={season.id}
+                  seasonName={season.name}
+                  endsAt={
+                    season.ended_at
+                      ? new Date(season.ended_at)
+                      : new Date(new Date(season.started_at).getTime() + 90 * 24 * 60 * 60 * 1000)
+                  }
+                />
+              </div>
             </div>
             {/* CTA grande e destacado — atalho pra página didática do MMR. */}
             <Link
@@ -221,23 +231,6 @@ export default async function RankingPage(props: {
             </Link>
           </div>
         </header>
-
-        {/* Banner de temporada (countdown) — movido da home pra cá (Pedro
-            2026-06-18 — "subpáginas": a temporada vive junto da classificação). */}
-        <div className="mb-12">
-          <SeasonBanner
-            seasonNumber={season.id}
-            seasonName={season.name}
-            endsAt={
-              season.ended_at
-                ? new Date(season.ended_at)
-                : new Date(
-                    new Date(season.started_at).getTime() +
-                      90 * 24 * 60 * 60 * 1000
-                  )
-            }
-          />
-        </div>
 
         {/* Top 3 cards */}
         {top3Hydrated.length > 0 && !search && (
