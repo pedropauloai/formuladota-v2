@@ -38,8 +38,10 @@ import { Tooltip } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { QueueStatusPill } from "@/components/queue/queue-status-pill";
 import { MatchQueuePill } from "@/components/queue/match-queue-pill";
+import { CommunityCountersBar } from "./community-counters";
 import { MobileNav } from "./mobile-nav";
 import type { MyQueueEntry } from "@/lib/queries/queue";
+import type { CommunityCounters } from "@/actions/community";
 import { useTranslations } from "next-intl";
 import { SettingsPopup } from "./settings-popup";
 
@@ -78,6 +80,8 @@ interface Props {
   /** Filas do user — quando >0, substitui a pílula "PROs online" por "Na fila".
    *  Pedro 2026-05-26: solução pro StickyBanner que forçava scroll. */
   myQueues: MyQueueEntry[];
+  /** Contadores públicos (online + banidos) — estilo GamersClub, sempre visíveis. */
+  communityCounters: CommunityCounters;
 }
 
 export function DashboardTopBar({
@@ -90,6 +94,7 @@ export function DashboardTopBar({
   prosOnlineCount,
   searchingCount,
   myQueues,
+  communityCounters,
 }: Props) {
   const t = useTranslations();
   const inQueue = myQueues.length > 0;
@@ -204,13 +209,17 @@ export function DashboardTopBar({
             - Fora de fila → status "X PROs online"
           A pílula de fila substitui a de PROs porque a info mais relevante no
           momento é o estado atual do user, não a quantidade de PROs disponíveis. */}
-      {inQueue ? (
-        <QueueStatusPill queues={myQueues} />
-      ) : (
-        <div className="hidden xl:flex items-center gap-2">
-          {/* Jogadores buscando partida agora (match_queue, tempo real via polling). */}
-          <MatchQueuePill />
-          {prosOnlineCount > 0 && (
+      <div className="hidden lg:flex items-center gap-2">
+        {/* Contadores da comunidade — SEMPRE visíveis (online + banidos → /mural). */}
+        <CommunityCountersBar initial={communityCounters} isLoggedIn={!isVisitor} />
+        {/* Fila/PROs — só xl+ (info secundária), e some quando o user está em fila. */}
+        {inQueue ? (
+          <QueueStatusPill queues={myQueues} />
+        ) : (
+          <div className="hidden xl:flex items-center gap-2">
+            {/* Jogadores buscando partida agora (match_queue, tempo real via polling). */}
+            <MatchQueuePill />
+            {prosOnlineCount > 0 && (
             <div className="flex items-center gap-2 rounded-md border border-success/30 bg-success/5 px-3 py-1">
               <span className="relative flex size-2" aria-hidden="true">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75" />
@@ -222,16 +231,17 @@ export function DashboardTopBar({
               <Radio size={12} className="text-success/80" aria-hidden="true" />
             </div>
           )}
-          {searchingCount > 0 && (
-            <div className="flex items-center gap-2 rounded-md border border-info/30 bg-info/5 px-3 py-1">
-              <Swords size={12} className="text-info/80" aria-hidden="true" />
-              <span className="font-display text-sm font-semibold text-info/90">
-                {t("topbar.searching", { count: searchingCount })}
-              </span>
-            </div>
-          )}
-        </div>
-      )}
+            {searchingCount > 0 && (
+              <div className="flex items-center gap-2 rounded-md border border-info/30 bg-info/5 px-3 py-1">
+                <Swords size={12} className="text-info/80" aria-hidden="true" />
+                <span className="font-display text-sm font-semibold text-info/90">
+                  {t("topbar.searching", { count: searchingCount })}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Direita — CONDUTA cinematic (todos) + (Entrar/Logout) + PreviewToggle (admin real) */}
       <div className="flex items-center gap-1.5 xl:gap-2">
