@@ -4,8 +4,9 @@
 // disponíveis em match_players. Denso e compacto por decisão de design (cliente real).
 
 import Image from "next/image";
-import Link from "next/link";
 import { itemImageUrl } from "@/lib/queries/items";
+import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
+import { UserHoverCard } from "@/components/profile/user-hover-card";
 
 export interface ScoreboardPlayer {
   userId: string | null;
@@ -14,7 +15,12 @@ export interface ScoreboardPlayer {
   profileHref: string | null;
   heroName: string;
   heroPortrait: string | null;
+  /** Nível DO HERÓI na partida (in-game). */
   level: number;
+  /** Nível DA CONTA FormulaDota (identidade) — badge no anel de XP. */
+  accountLevel: number;
+  /** MMR FormulaDota da temporada (identidade). null = sem MMR ainda. */
+  mmr: number | null;
   kills: number;
   deaths: number;
   assists: number;
@@ -95,54 +101,56 @@ function Th({ children, className = "" }: { children: React.ReactNode; className
 function PlayerCell({ p }: { p: ScoreboardPlayer }) {
   const inner = (
     <span className="flex items-center gap-2.5">
-      {/* Portrait do herói com badge de nível sobreposto. */}
+      {/* Herói: imagem OFICIAL do CDN (landscape) + nível do herói na partida. */}
       <span className="relative shrink-0">
         {p.heroPortrait ? (
           <Image
             src={p.heroPortrait}
             alt={p.heroName}
             title={p.heroName}
-            width={48}
-            height={32}
+            width={64}
+            height={36}
             unoptimized
-            className="h-8 w-12 rounded-sm object-cover"
+            className="h-9 w-16 rounded-sm object-cover"
           />
         ) : (
-          <span className="block h-8 w-12 rounded-sm bg-bg-elevated" aria-hidden="true" />
+          <span className="block h-9 w-16 rounded-sm bg-bg-elevated" aria-hidden="true" />
         )}
         <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 rounded-sm bg-bg-base px-1 font-display text-[0.6rem] font-bold tabular-nums text-gold ring-1 ring-border-subtle">
           {p.level}
         </span>
       </span>
-      {/* Avatar do usuário (quadrado, padrão Steam) + nome + herói. */}
-      <span className="flex min-w-0 items-center gap-2">
-        {p.avatar ? (
-          <Image
-            src={p.avatar}
-            alt=""
-            width={24}
-            height={24}
-            unoptimized
-            className="size-6 shrink-0 rounded-sm object-cover"
-          />
-        ) : null}
-        <span className="min-w-0">
-          <span className="block truncate font-body text-sm font-medium text-text-display">
-            {p.name}
-          </span>
-          <span className="block truncate font-display text-[0.7rem] uppercase tracking-wide text-text-faded">
-            {p.heroName}
-          </span>
+      {/* Identidade: avatar com anel de XP + NÍVEL da conta (não o do herói). */}
+      <XpAvatarRing
+        src={p.avatar ?? undefined}
+        alt={p.name}
+        fallback={p.name.slice(0, 2).toUpperCase()}
+        level={p.accountLevel}
+        pct={0}
+        size={32}
+      />
+      <span className="min-w-0">
+        <span className="block truncate font-body text-sm font-medium text-text-display">
+          {p.name}
+        </span>
+        {/* Herói + MMR FormulaDota (identidade). */}
+        <span className="block truncate font-display text-[0.7rem] uppercase tracking-wide text-text-muted">
+          {p.heroName}
+          {p.mmr != null && (
+            <span className="ml-1.5 text-gold tabular-nums">{p.mmr} MMR</span>
+          )}
         </span>
       </span>
     </span>
   );
 
-  if (p.profileHref) {
+  // Hover rico (medalhas + winrate + presença) e link pro perfil — igual ao resto
+  // do app. Substitui o <Link> simples que não abria hover.
+  if (p.userId) {
     return (
-      <Link href={p.profileHref} className="transition-opacity hover:opacity-80">
+      <UserHoverCard userId={p.userId} className="inline-flex transition-opacity hover:opacity-80">
         {inner}
-      </Link>
+      </UserHoverCard>
     );
   }
   return inner;
