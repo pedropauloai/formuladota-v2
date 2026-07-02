@@ -11,6 +11,15 @@ export const MMR_CEILING = 7000;
 /** Teto de variação por partida (evita swings absurdos tipo +64). */
 export const MAX_MATCH_DELTA = 30;
 
+/** Piso do Imortal (fim do Divino) — acima disso o ranqueamento é por POSIÇÃO. */
+export const IMMORTAL_FLOOR = 5620;
+/**
+ * Elite do leaderboard de Imortais: os TOP N (por MMR na temporada) ganham a
+ * medalha vermelha (immortal-top-100). Pequeno de propósito no começo (a base ainda
+ * é pequena) — subir depois é trocar essa constante. Pedro 2026-07-02.
+ */
+export const IMMORTAL_ELITE_TOP = 10;
+
 /**
  * Calcula delta MMR de cada jogador após match 5v5.
  * Retorna objeto com radiantDelta + direDelta (positivo radiant = ganhou).

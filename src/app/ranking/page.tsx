@@ -17,7 +17,14 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { UserHoverCard } from "@/components/profile/user-hover-card";
 import { DotaRankMedal, type DotaRank } from "@/components/ui/dota-rank-medal";
-import { mmrToTier } from "@/lib/mmr";
+import { mmrToTier, IMMORTAL_FLOOR, IMMORTAL_ELITE_TOP } from "@/lib/mmr";
+
+// Medalha do rank: os TOP N Imortais (por posição) ganham a vermelha (elite);
+// o resto segue o MMR. `position` é a colocação global (1-based) na temporada.
+function rankMedalFor(mmr: number, position: number): DotaRank {
+  if (mmr >= IMMORTAL_FLOOR && position <= IMMORTAL_ELITE_TOP) return "immortal-top-100";
+  return mmrToDotaRank(mmr);
+}
 import { SeasonBanner } from "@/components/patterns/season-banner";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -284,7 +291,7 @@ export default async function RankingPage(props: {
 function TopCard({ row, position }: { row: RankRow; position: number }) {
   const t = useTranslations("ranking");
   const isChampion = position === 1;
-  const dotaRank = mmrToDotaRank(row.mmr);
+  const dotaRank = rankMedalFor(row.mmr, position);
 
   return (
     <Card
@@ -339,7 +346,7 @@ function TopCard({ row, position }: { row: RankRow; position: number }) {
 // ----------------------------------------------------------------
 function RankingRow({ row, position }: { row: RankRow; position: number }) {
   const t = useTranslations("ranking");
-  const dotaRank = mmrToDotaRank(row.mmr);
+  const dotaRank = rankMedalFor(row.mmr, position);
 
   return (
     <li className="flex items-center gap-4 rounded-md border border-border-subtle bg-bg-base p-4 transition-colors hover:border-border-brand">
