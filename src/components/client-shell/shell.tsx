@@ -44,6 +44,7 @@ import { getPlayMenuState } from "@/lib/play-menu-preference";
 import { mmrToDotaRank } from "@/components/queue/queue-helpers";
 import { rankTierToDotaRank } from "@/components/profile/career-stats";
 import { DashboardTopBar } from "./top-bar";
+import { getCommunityCounters } from "@/actions/community";
 import { displayName, displayAvatar } from "@/lib/identity";
 import { MiniProfilePanel } from "./mini-profile-panel";
 import { LobbyInviteListener } from "./lobby-invite-listener";
@@ -118,6 +119,7 @@ export async function ClientShell({
     myParty,
     partyInvites,
     equipped,
+    communityCounters,
   ] = await Promise.all([
     isVisitor ? Promise.resolve(null) : fetchPrivateData(supabase, user.id),
     getProsWithQueues(),
@@ -144,6 +146,8 @@ export async function ClientShell({
     isVisitor ? Promise.resolve([]) : getPartyInvitesDetailed(supabase),
     // Cosméticos equipados (ring/frame no mini-perfil, smoke no card de busca).
     isVisitor ? Promise.resolve(null) : getEquippedForUser(supabase, user.id),
+    // Contadores públicos do topbar (online + banidos) — estilo GamersClub.
+    getCommunityCounters(),
   ]);
 
   const profile = privateData?.profile ?? null;
@@ -235,6 +239,7 @@ export async function ClientShell({
             prosOnlineCount={prosOnlineCount}
             searchingCount={searchingCount}
             myQueues={myQueues}
+            communityCounters={communityCounters}
           />
         </div>
 
@@ -349,6 +354,7 @@ export async function ClientShell({
         prosOnlineCount={prosOnlineCount}
         searchingCount={searchingCount}
         myQueues={myQueues}
+        communityCounters={communityCounters}
       />
 
       {/* Grid columns — sidebar lateral REMOVIDA 2026-05-26 (refator pra fidelidade Dota 2).
