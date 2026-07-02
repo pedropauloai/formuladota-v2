@@ -15,6 +15,7 @@ import {
   PromoveCoachModal,
   RevokeCoachModal,
   CoachNotesModal,
+  SwapSteamModal,
 } from "./user-modals";
 import {
   ChevronLeft, CheckCircle, XCircle, Shield,
@@ -336,6 +337,14 @@ export default async function AdminUserDetailPage({
                 : t("notLinked")
             }
           />
+          {/* Troca manual do vínculo Steam (exceção anti-smurf — só com comprovação). */}
+          <div className="mt-2">
+            <SwapSteamModal
+              targetUserId={id}
+              username={profile.username ?? t("noName")}
+              currentSteamId={steamLink?.steam_id_64 ?? null}
+            />
+          </div>
           <InfoRow
             label={t("signupLabel")}
             value={new Date(profile.created_at).toLocaleString("pt-BR")}
