@@ -86,11 +86,30 @@ const SOCIAL_BRANDS: SocialBrand[] = [
  * reduzida (acende ao vincular). Sem links por enquanto — tooltip único
  * explica o futuro sistema de validação de identidade.
  */
-export function SocialIconsRow({ links }: { links?: SocialLinks }) {
+export function SocialIconsRow({
+  links,
+  onlyLinked = false,
+  size = 16,
+  className,
+}: {
+  links?: SocialLinks
+  /** Só mostra as redes que o user VINCULOU (sem Discord/placeholders) — evita
+   *  repetir logos apagados em listas (ex.: ranking). Pedro 2026-07-02. */
+  onlyLinked?: boolean
+  /** Tamanho dos ícones em px. @default 16 */
+  size?: number
+  className?: string
+}) {
   const t = useTranslations("perfil");
+  // No modo onlyLinked, filtra pras marcas com URL registrada (Discord não tem
+  // `key`, então cai fora naturalmente). Sem nenhuma vinculada → não renderiza.
+  const brands = onlyLinked
+    ? SOCIAL_BRANDS.filter((b) => b.key && links?.[b.key])
+    : SOCIAL_BRANDS;
+  if (brands.length === 0) return null;
   return (
-    <span className="mt-1.5 flex items-center gap-2.5">
-      {SOCIAL_BRANDS.map((brand) => {
+    <span className={className ?? "mt-1.5 flex items-center gap-2.5"}>
+      {brands.map((brand) => {
         const { name, key, path, connected, color } = brand;
         // Discord = sempre conectado (login). As outras acendem quando têm URL.
         const url = key ? links?.[key] : undefined;
@@ -102,8 +121,8 @@ export function SocialIconsRow({ links }: { links?: SocialLinks }) {
               lit ? t("socialConnected", { name }) : t("socialComingSoon", { name })
             }
             viewBox="0 0 24 24"
-            width={16}
-            height={16}
+            width={size}
+            height={size}
             fill={color}
             className={lit ? "" : "opacity-40"}
           >

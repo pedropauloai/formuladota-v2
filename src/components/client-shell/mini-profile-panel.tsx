@@ -417,10 +417,13 @@ function ExpandedPanel({
           </div>
           {/* Par canônico SKILL + HONOR — hover combinado abre SUTILMENTE pra
               DIREITA do mini-perfil (Pedro 2026-06-12), não pra cima. */}
+          {/* Só rank sazonal + honra inline; a Valve fica no showcase do hover
+              (skillInline=false), pra não competir com a nossa medalha. */}
           <MedalPair
             dotaRank={dotaRank}
             honorRank={honorRank}
             seasonRank={seasonRank}
+            skillInline={false}
             size="md"
             side="right"
             align="start"

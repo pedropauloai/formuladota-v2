@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { UserHoverCard } from "@/components/profile/user-hover-card";
+import { SocialIconsRow, type SocialLinks } from "@/components/profile/social-icons-row";
 import { DotaRankMedal, type DotaRank } from "@/components/ui/dota-rank-medal";
 import { mmrToTier, IMMORTAL_FLOOR, IMMORTAL_ELITE_TOP, IMMORTAL_LEADERBOARD_TOP } from "@/lib/mmr";
 
@@ -52,6 +53,8 @@ interface RankRow {
   vitorias: number;
   derrotas: number;
   partidas_total: number;
+  /** Redes sociais VINCULADAS (só as configuradas) — vitrine do jogador. */
+  socialLinks?: SocialLinks;
 }
 
 const PAGE_SIZE = 50;
@@ -173,6 +176,7 @@ export default async function RankingPage(props: {
       username: ident?.name ?? null,
       avatar_url: ident?.avatarUrl ?? null,
       level: levelMap.get(r.user_id) ?? 1,
+      socialLinks: ident?.socialLinks,
     };
   };
 
@@ -232,12 +236,18 @@ export default async function RankingPage(props: {
           </div>
         </header>
 
-        {/* Top 3 cards */}
+        {/* Cabeçalho da lista: rótulo à esquerda + busca SUTIL à direita (Pedro
+            2026-07-02). A busca subiu pra cá — antes dividia o pódio da lista. */}
+        <div className="mb-6 flex items-center justify-between gap-4">
+          <h2 className="font-display text-sm font-semibold uppercase tracking-widest text-text-faded">
+            {search ? t("searchResultsFor", { query: search }) : t("top3")}
+          </h2>
+          <SearchBar initialQuery={search} />
+        </div>
+
+        {/* Top 3 cards — pódio (não repetido na lista abaixo) */}
         {top3Hydrated.length > 0 && !search && (
-          <section className="mb-12">
-            <h2 className="mb-6 font-display text-sm font-semibold uppercase tracking-widest text-text-faded">
-              {t("top3")}
-            </h2>
+          <section className="mb-8">
             <div className="grid gap-4 md:grid-cols-3">
               {top3Hydrated.map((row, idx) => (
                 <TopCard key={row.user_id} row={row} position={idx + 1} />
@@ -246,18 +256,13 @@ export default async function RankingPage(props: {
           </section>
         )}
 
-        {/* Search */}
-        <SearchBar initialQuery={search} />
-
-        {/* List */}
-        <ol className="space-y-2 mt-8">
-          {listHydrated.map((row, idx) => (
-            <RankingRow
-              key={row.user_id}
-              row={row}
-              position={search ? idx + 1 : offset + idx + 1}
-            />
-          ))}
+        {/* List — na 1ª página começa no #4 (o pódio acima já mostra 1–3). */}
+        <ol className="space-y-2">
+          {listHydrated.map((row, idx) => {
+            const position = search ? idx + 1 : offset + idx + 1;
+            if (!search && page === 1 && idx < 3) return null;
+            return <RankingRow key={row.user_id} row={row} position={position} />;
+          })}
         </ol>
 
         {/* Pagination */}
@@ -332,9 +337,18 @@ function TopCard({ row, position }: { row: RankRow; position: number }) {
             size="sm"
             showLabel
           />
-          <span className="font-display text-sm 2xl:text-base font-semibold text-text-body">
-            {t("winLoss", { wins: row.vitorias, losses: row.derrotas })}
-          </span>
+          <div className="flex items-center gap-3">
+            {/* Vitrine: só redes vinculadas (sem placeholders). */}
+            <SocialIconsRow
+              links={row.socialLinks}
+              onlyLinked
+              size={16}
+              className="flex items-center gap-2.5"
+            />
+            <span className="font-display text-sm 2xl:text-base font-semibold text-text-body">
+              {t("winLoss", { wins: row.vitorias, losses: row.derrotas })}
+            </span>
+          </div>
         </div>
       </CardContent>
     </Card>
@@ -349,10 +363,10 @@ function RankingRow({ row, position }: { row: RankRow; position: number }) {
   const dotaRank = rankMedalFor(row.mmr, position);
 
   return (
-    <li className="flex items-center gap-4 rounded-md border border-border-subtle bg-bg-base p-4 transition-colors hover:border-border-brand">
+    <li className="flex items-center gap-3 rounded-md border border-border-subtle bg-bg-base p-3 transition-colors hover:border-border-brand">
       {/* Posição no ranking = valor/progresso → GOLD (Pedro 2026-06-11) */}
-      <span className="font-display text-lg 2xl:text-xl w-12 tabular-nums text-gold">#{position}</span>
-      <UserHoverCard userId={row.user_id} className="flex min-w-0 flex-1 items-center gap-4">
+      <span className="w-10 shrink-0 text-center font-display text-lg 2xl:text-xl tabular-nums text-gold">#{position}</span>
+      <UserHoverCard userId={row.user_id} className="flex min-w-0 flex-1 items-center gap-3">
         <XpAvatarRing
           src={row.avatar_url ?? undefined}
           alt={row.username ?? t("anonymous")}
@@ -361,11 +375,27 @@ function RankingRow({ row, position }: { row: RankRow; position: number }) {
           pct={0}
           size={40}
         />
-        <div className="flex-1 min-w-0">
-          <p className="font-body text-sm 2xl:text-base font-medium text-text-display truncate hover:text-brand-primary transition-colors">
-            {row.username ?? t("anonymous")}
-          </p>
-          <p className="font-display text-sm 2xl:text-base font-semibold text-text-body">
+        {/* Medalha ENTRE a foto e o nome (fiel ao Dota 2). Pedro 2026-07-02. */}
+        <DotaRankMedal
+          rank={dotaRank}
+          stars={mmrToTier(row.mmr).stars}
+          leaderboardNumber={leaderboardNumberFor(row.mmr, position)}
+          variant="formuladota"
+          size="sm"
+          tooltip={false}
+          className="shrink-0"
+        />
+        <div className="min-w-0">
+          {/* MMR logo depois do nome (nome trunca; MMR nunca some). */}
+          <div className="flex items-baseline gap-2 min-w-0">
+            <p className="truncate font-body text-sm 2xl:text-base font-medium text-text-display hover:text-brand-primary transition-colors">
+              {row.username ?? t("anonymous")}
+            </p>
+            <span className="shrink-0 font-display text-sm 2xl:text-base font-semibold tabular-nums text-gold">
+              {row.mmr} <span className="text-gold-muted">MMR</span>
+            </span>
+          </div>
+          <p className="font-display text-xs 2xl:text-sm text-text-body">
             {t("matchesRecord", {
               matches: row.partidas_total,
               wins: row.vitorias,
@@ -374,14 +404,13 @@ function RankingRow({ row, position }: { row: RankRow; position: number }) {
           </p>
         </div>
       </UserHoverCard>
-      <DotaRankMedal
-        rank={dotaRank}
-        stars={mmrToTier(row.mmr).stars}
-        leaderboardNumber={leaderboardNumberFor(row.mmr, position)}
-        variant="formuladota"
-        size="sm"
+      {/* Vitrine: só as redes que o jogador VINCULOU (sem placeholders). */}
+      <SocialIconsRow
+        links={row.socialLinks}
+        onlyLinked
+        size={17}
+        className="flex shrink-0 items-center gap-2.5"
       />
-      <span className="font-mono text-sm 2xl:text-base tabular-nums text-gold w-16 text-right">{row.mmr}</span>
     </li>
   );
 }
@@ -391,19 +420,18 @@ function RankingRow({ row, position }: { row: RankRow; position: number }) {
 // ----------------------------------------------------------------
 function SearchBar({ initialQuery }: { initialQuery: string }) {
   const t = useTranslations("ranking");
+  // Sutil (Pedro 2026-07-02): pill fina, ícone dentro, submit no Enter — sem
+  // botão grande. Fica no cabeçalho da lista, não dividindo o pódio.
   return (
-    <form className="flex items-center gap-2 rounded-md border border-border-subtle bg-bg-base p-2">
-      <Search size={16} className="ml-2 text-text-muted" aria-hidden="true" />
+    <form className="flex w-full max-w-[240px] items-center gap-2 rounded-md border border-border-subtle bg-bg-base/60 px-2.5 py-1.5 transition-colors focus-within:border-border-brand">
+      <Search size={15} className="shrink-0 text-text-muted" aria-hidden="true" />
       <input
         type="search"
         name="q"
         defaultValue={initialQuery}
         placeholder={t("searchPlaceholder")}
-        className="flex-1 bg-transparent px-2 py-2 font-body text-sm 2xl:text-base text-text-display placeholder:text-text-faded focus:outline-none"
+        className="min-w-0 flex-1 bg-transparent font-body text-sm text-text-display placeholder:text-text-faded focus:outline-none"
       />
-      <Button type="submit" variant="secondary" size="sm">
-        {t("searchButton")}
-      </Button>
     </form>
   );
 }

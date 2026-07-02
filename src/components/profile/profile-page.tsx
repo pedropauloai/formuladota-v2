@@ -36,9 +36,9 @@ import { MedalPair } from "@/components/ui/medal-pair";
 import { mmrToDotaRank } from "@/components/queue/queue-helpers";
 import { mmrToTier, IMMORTAL_ELITE_TOP, IMMORTAL_LEADERBOARD_TOP } from "@/lib/mmr";
 import { ProfileTabs, type ProfileTab } from "./profile-tabs";
-import { SocialIconsRow, SteamIcon } from "./social-icons-row";
+import { SocialIconsRow } from "./social-icons-row";
+import { ValveCredential } from "./valve-credential";
 import { SyncSteamButton } from "./sync-steam-button";
-import { Tooltip } from "@/components/ui/tooltip";
 import { steam64To32 } from "@/lib/dota/opendota";
 import { DashboardGrid } from "./dashboard-grid";
 import { TabHistorico } from "./tab-historico";
@@ -219,6 +219,9 @@ export function ProfilePage({
               />
               {/* Medalhas ENTRE a foto e o nome — fiel ao cliente Dota 2 (a patente
                   vive coladinha ao retrato, antes da identidade). Pedro 2026-07-02. */}
+              {/* Entre foto e nome ficam SÓ as medalhas do NOSSO sistema (rank
+                  sazonal + honra). A Valve saiu do par (skillInline=false) e virou
+                  credencial discreta ao lado do nome. Pedro 2026-07-02. */}
               <MedalPair
                 dotaRank={dotaRank}
                 dotaStars={dotaStars}
@@ -226,6 +229,7 @@ export function ProfilePage({
                 seasonRank={seasonRank}
                 seasonStars={seasonStars}
                 seasonLeaderboardNumber={seasonLeaderboardNumber}
+                skillInline={false}
                 size="md"
                 className="shrink-0"
               />
@@ -248,20 +252,20 @@ export function ProfilePage({
                       #{immortalRank.position}
                     </span>
                   )}
-                  {/* Logo Steam ao lado do nick → perfil do usuário no STRATZ
-                      (Pedro 2026-06-12). Identidade = Steam; STRATZ = vitrine. */}
-                  {profile.steamId64 && (
-                    <Tooltip content={t("viewStratzProfile")} side="bottom" focusable={false}>
-                      <a
-                        href={`https://stratz.com/players/${steam64To32(profile.steamId64)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label={t("stratzProfileAria")}
-                        className="text-text-muted transition-colors hover:text-text-display"
-                      >
-                        <SteamIcon size={20} />
-                      </a>
-                    </Tooltip>
+                  {/* Credencial da CONTA Valve — medalha pequena/dimmed + link STRATZ.
+                      Info da conta preservada, mas SEM competir com a nossa medalha
+                      (Pedro 2026-07-02). Só quando há carreira Valve (rank real). */}
+                  {career && (
+                    <ValveCredential
+                      rank={dotaRank}
+                      stars={dotaStars}
+                      stratzHref={
+                        profile.steamId64
+                          ? `https://stratz.com/players/${steam64To32(profile.steamId64)}`
+                          : undefined
+                      }
+                      stratzLabel={t("viewStratzProfile")}
+                    />
                   )}
                   {/* Sincronizar identidade com a Steam AGORA (fura cache 1h) — só no próprio. */}
                   {isOwn && profile.steamId64 && <SyncSteamButton />}

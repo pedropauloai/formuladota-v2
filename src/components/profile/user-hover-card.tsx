@@ -28,6 +28,7 @@ import {
 } from "@/actions/public-profile";
 import { MedalPair } from "@/components/ui/medal-pair";
 import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
+import { ValveCredential } from "@/components/profile/valve-credential";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { mmrToDotaRank } from "@/components/queue/queue-helpers";
 import { mmrToTier } from "@/lib/mmr";
@@ -200,10 +201,14 @@ function Body({ data, online }: { data: PublicMiniProfile; online?: boolean }) {
         </p>
       )}
 
-      {/* Selos SKILL (Valve) + HONRA + winrate. O rank sazonal já está na identidade
-          (entre foto e nome), então aqui só os eixos secundários — sem duplicar. */}
+      {/* HONRA + credencial Valve (dimmed) + winrate. O rank sazonal (nossa medalha)
+          já está na identidade (entre foto e nome); a Valve fica rebaixada aqui como
+          chip discreto (skillInline=false mantém a explicação no showcase). */}
       <div className="flex items-center justify-between gap-2">
-        <MedalPair dotaRank={dotaRank} dotaStars={dotaStars} honorRank={honorRank} size="sm" side="bottom" align="start" />
+        <div className="flex items-center gap-2">
+          <MedalPair dotaRank={dotaRank} dotaStars={dotaStars} honorRank={honorRank} size="sm" skillInline={false} side="bottom" align="start" />
+          <ValveCredential rank={dotaRank} stars={dotaStars} size="sm" />
+        </div>
         {winrate !== null && (
           <div className="text-right leading-tight">
             <p className="font-display-condensed text-xl tabular-nums text-gold">{winrate}%</p>
