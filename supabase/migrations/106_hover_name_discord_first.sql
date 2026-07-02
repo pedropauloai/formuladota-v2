@@ -1,0 +1,54 @@
+-- 106: o nome exibido no hover (get_public_mini_profile) vinha Steam-first
+-- (coalesce(sl.persona, p.username)) — o OPOSTO da política anti-anonimato
+-- (displayName = Discord-first; a Steam se edita a cada derrota). Alinha pra
+-- Discord-first. O avatar segue Steam-first (displayAvatar), então não muda.
+create or replace function public.get_public_mini_profile(p_user_id uuid)
+ returns table(user_id uuid, name text, avatar text, steam_id_64 text, level integer, mmr integer, rank_tier integer, leaderboard_rank integer, career_wins integer, career_losses integer, status_message text, last_seen_at timestamp with time zone, favorite_heroes jsonb, friend_status text)
+ language plpgsql
+ security definer
+ set search_path to 'public'
+as $function$
+declare
+  v_viewer uuid := auth.uid();
+begin
+  if v_viewer is null then
+    return;
+  end if;
+
+  return query
+  select
+    p.id,
+    coalesce(p.username, sl.persona, 'Jogador')      as name,
+    coalesce(sl.avatar_url, p.avatar_url)            as avatar,
+    sl.steam_id_64,
+    coalesce(ul.current_level, 1)                    as level,
+    p.mmr_atual                                      as mmr,
+    (use.career->>'rankTier')::int                   as rank_tier,
+    (use.career->>'leaderboardRank')::int            as leaderboard_rank,
+    (use.career->>'wins')::int                       as career_wins,
+    (use.career->>'losses')::int                     as career_losses,
+    p.status_message                                 as status_message,
+    p.last_seen_at                                   as last_seen_at,
+    coalesce(p.favorite_heroes, '[]'::jsonb)         as favorite_heroes,
+    case
+      when v_viewer = p.id then 'self'
+      else coalesce((
+        select case f.status
+                 when 'accepted' then 'friends'
+                 when 'pending'  then 'pending'
+                 when 'blocked'  then 'blocked'
+                 else 'none'
+               end
+        from friendships f
+        where (f.requester_id = v_viewer and f.addressee_id = p.id)
+           or (f.requester_id = p.id and f.addressee_id = v_viewer)
+        limit 1
+      ), 'none')
+    end                                              as friend_status
+  from profiles p
+  left join steam_links sl on sl.user_id = p.id
+  left join user_levels ul on ul.user_id = p.id
+  left join user_stats_extended use on use.user_id = p.id
+  where p.id = p_user_id;
+end;
+$function$;

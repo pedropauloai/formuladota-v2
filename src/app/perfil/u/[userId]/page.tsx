@@ -9,6 +9,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getEquippedForUser } from "@/lib/queries/cosmetics";
 import { ClientShell } from "@/components/client-shell/shell";
 import { ProfilePage } from "@/components/profile/profile-page";
+import { getImmortalRank } from "@/lib/queries/immortal-leaderboard";
 import { VALID_TABS, type ProfileTab } from "@/components/profile/profile-tabs";
 import { getPublicProfile } from "@/lib/queries/profile";
 import { getCareerStats } from "@/lib/queries/career";
@@ -126,6 +127,9 @@ export default async function PublicProfilePage(props: PageProps) {
   // Fundo = tema equipado (slot profile_theme); default limpo (sem herói automático).
   const centerHero = equippedForBg.profileTheme ?? undefined;
 
+  // Posição no leaderboard de Imortais (#N + elite → medalha vermelha).
+  const immortalRank = await getImmortalRank(userId);
+
   return (
     <ClientShell currentRoute={`/perfil/u/${userId}`} immersive centerHero={centerHero}>
       <ProfilePage
@@ -142,6 +146,7 @@ export default async function PublicProfilePage(props: PageProps) {
         fdota={fdotaStats}
         friendState={friendState}
         friendshipId={friendshipId}
+        immortalRank={immortalRank}
       />
     </ClientShell>
   );

@@ -3,7 +3,7 @@
 // Um único ponto de fetch pra a sidebar ficar puramente apresentacional.
 
 import { createClient } from "@/lib/supabase/server";
-import { getSteamIdentityMap, resolveIdentity } from "@/lib/queries/identities";
+import { getIdentityMap } from "@/lib/queries/identities";
 import { getRecentMatches, type HistoryMatch } from "@/lib/queries/matches-feed";
 import { getWallOfShame, type WallEntry } from "@/lib/queries/wall-of-shame";
 
@@ -68,26 +68,21 @@ export async function getSidebarData(): Promise<SidebarData> {
     : { data: [] as { user_id: string; mmr: number }[] };
   const top3 = top3Res.data ?? [];
 
-  // Hidrata identidade (Steam > Discord) + nível dos top 3.
+  // Identidade via FONTE ÚNICA (getIdentityMap): Discord-first pra qualquer viewer.
   const ids = top3.map((r) => r.user_id);
-  const [profilesRes, steamMap, levelsRes] = await Promise.all([
-    ids.length > 0
-      ? supabase.from("profiles").select("id, username, avatar_url").in("id", ids)
-      : Promise.resolve({ data: null }),
-    getSteamIdentityMap(supabase, ids),
+  const [identityMap, levelsRes] = await Promise.all([
+    getIdentityMap(supabase, ids),
     ids.length > 0
       ? supabase.from("user_levels").select("user_id, current_level").in("user_id", ids)
       : Promise.resolve({ data: [] as { user_id: string; current_level: number }[] }),
   ]);
-  const profileMap = new Map((profilesRes.data ?? []).map((p) => [p.id, p]));
   const levelMap = new Map((levelsRes.data ?? []).map((l) => [l.user_id, l.current_level]));
   const topRanking: SidebarRankRow[] = top3.map((r) => {
-    const p = profileMap.get(r.user_id);
-    const ident = resolveIdentity(steamMap, r.user_id, p?.username, p?.avatar_url);
+    const ident = identityMap.get(r.user_id);
     return {
       userId: r.user_id,
-      name: ident.name,
-      avatar: ident.avatarUrl,
+      name: ident?.name ?? "Jogador",
+      avatar: ident?.avatarUrl ?? null,
       level: levelMap.get(r.user_id) ?? 1,
       mmr: r.mmr,
     };

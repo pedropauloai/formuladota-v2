@@ -677,7 +677,8 @@
     "reviewBy": "Review by {coach}",
     "ratingAria": "Rating {rating} of 5",
     "strengths": "Strengths",
-    "improvements": "To improve"
+    "improvements": "To improve",
+    "immortalRankTitle": "#{position} on the season Immortal leaderboard"
   },
   "lobbies": {
     "browserTitle": "Dota Lobbies",

@@ -677,7 +677,8 @@
     "reviewBy": "Análise de {coach}",
     "ratingAria": "Nota {rating} de 5",
     "strengths": "Pontos fortes",
-    "improvements": "A melhorar"
+    "improvements": "A melhorar",
+    "immortalRankTitle": "#{position} no leaderboard de Imortais da temporada"
   },
   "lobbies": {
     "browserTitle": "Salas de Dota",
