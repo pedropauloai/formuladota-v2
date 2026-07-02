@@ -84,6 +84,8 @@ interface Props {
   /** Estado da amizade com o viewer (só perfil público) → botão no header. */
   friendState?: ProfileFriendState;
   friendshipId?: string | null;
+  /** Posição no leaderboard de Imortais (null se abaixo do piso). elite = medalha vermelha. */
+  immortalRank?: { position: number; elite: boolean } | null;
 }
 
 export function ProfilePage({
@@ -100,11 +102,18 @@ export function ProfilePage({
   fdota = null,
   friendState,
   friendshipId = null,
+  immortalRank = null,
 }: Props) {
   const t = useTranslations("perfil");
   const ranqueado = profile.mmr !== null;
   // Rank FormulaDota (Eixo 2, sazonal) — 3º selo, só quando há MMR de temporada.
-  const seasonRank = profile.mmr !== null ? mmrToDotaRank(profile.mmr) : undefined;
+  // Elite do leaderboard (top N Imortais) → medalha VERMELHA (immortal-top-100).
+  const seasonRank =
+    profile.mmr === null
+      ? undefined
+      : immortalRank?.elite
+        ? "immortal-top-100"
+        : mmrToDotaRank(profile.mmr);
   // Estrelas da sub-divisão (1–5). SKILL Valve = unidade do rank_tier (medalha×10+estrela);
   // sem rank Valve, o selo cai no MMR da liga → mesmas estrelas do sazonal.
   const seasonStars = profile.mmr !== null ? mmrToTier(profile.mmr).stars : undefined;
@@ -216,6 +225,20 @@ export function ProfilePage({
                   <h1 className="font-display text-[28px] font-bold text-text-display leading-tight truncate">
                     {profile.username ?? t("anonymous")}
                   </h1>
+                  {/* Posição no leaderboard de Imortais (#N) — acima do piso Imortal,
+                      o que vale é a POSIÇÃO. Elite (top N) em vermelho. */}
+                  {immortalRank && (
+                    <span
+                      className={`shrink-0 rounded-sm border px-1.5 py-0.5 font-display-condensed text-base font-bold tabular-nums leading-none ${
+                        immortalRank.elite
+                          ? "border-brand-primary/50 bg-brand-primary/15 text-brand-primary"
+                          : "border-gold/40 bg-gold/10 text-gold"
+                      }`}
+                      title={t("immortalRankTitle", { position: immortalRank.position })}
+                    >
+                      #{immortalRank.position}
+                    </span>
+                  )}
                   {/* Logo Steam ao lado do nick → perfil do usuário no STRATZ
                       (Pedro 2026-06-12). Identidade = Steam; STRATZ = vitrine. */}
                   {profile.steamId64 && (

@@ -9,7 +9,7 @@ import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { Trophy, Search, HelpCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { getSteamIdentityMap, resolveIdentity } from "@/lib/queries/identities";
+import { getIdentityMap } from "@/lib/queries/identities";
 import { ClientShell } from "@/components/client-shell/shell";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -147,31 +147,23 @@ export default async function RankingPage(props: {
     list ?? [];
   const top3List: typeof rows = top3 ?? [];
 
-  // Hidrata profiles (Discord) + steam_links (identidade canônica) em batch.
-  // Nick/avatar exibidos seguem a lib/identity: Steam > Discord.
+  // Identidade via FONTE ÚNICA (getIdentityMap): Discord-first pra QUALQUER viewer
+  // (visitante/user/admin) — antes caía no nick Steam pra não-admin por causa da RLS.
   const allUserIds = Array.from(new Set([...top3List.map((r) => r.user_id), ...rows.map((r) => r.user_id)]));
-  const [{ data: profiles }, steamMap, levelsRes] = await Promise.all([
-    allUserIds.length > 0
-      ? supabase
-          .from("profiles")
-          .select("id, username, avatar_url")
-          .in("id", allUserIds)
-      : Promise.resolve({ data: null }),
-    getSteamIdentityMap(supabase, allUserIds),
+  const [identityMap, levelsRes] = await Promise.all([
+    getIdentityMap(supabase, allUserIds),
     allUserIds.length > 0
       ? supabase.from("user_levels").select("user_id, current_level").in("user_id", allUserIds)
       : Promise.resolve({ data: [] as { user_id: string; current_level: number }[] }),
   ]);
 
-  const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
   const levelMap = new Map((levelsRes.data ?? []).map((l) => [l.user_id, l.current_level]));
   const hydrate = (r: typeof rows[number]): RankRow => {
-    const p = profileMap.get(r.user_id);
-    const ident = resolveIdentity(steamMap, r.user_id, p?.username, p?.avatar_url);
+    const ident = identityMap.get(r.user_id);
     return {
       ...r,
-      username: ident.name,
-      avatar_url: ident.avatarUrl,
+      username: ident?.name ?? null,
+      avatar_url: ident?.avatarUrl ?? null,
       level: levelMap.get(r.user_id) ?? 1,
     };
   };

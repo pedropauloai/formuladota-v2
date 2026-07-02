@@ -44,9 +44,45 @@ export async function getSteamIdentityMap(
   );
 }
 
+export interface ResolvedIdentity {
+  name: string;
+  avatarUrl: string | null;
+}
+
+/**
+ * FONTE ÚNICA de identidade pra read-models de TERCEIROS (ranking, sidebar, feed…):
+ * resolve {name, avatarUrl} por user em 1 par de queries batch, SEM depender do
+ * viewer. Lê o Discord (username/avatar) da VIEW pública `public_player_identities`
+ * (migration 107 — fura a RLS de profiles só nas 3 colunas de identidade), então
+ * funciona pra visitante e usuário comum também (antes caía no nick Steam porque a
+ * RLS de profiles escondia o username). Nome = Discord-first; avatar = Steam-first.
+ */
+export async function getIdentityMap(
+  supabase: ServerClient,
+  userIds: string[]
+): Promise<Map<string, ResolvedIdentity>> {
+  const ids = [...new Set(userIds)].filter(Boolean);
+  if (ids.length === 0) return new Map();
+
+  const [discordRes, steamMap] = await Promise.all([
+    supabase.from("public_player_identities").select("id, username, avatar_url").in("id", ids),
+    getSteamIdentityMap(supabase, ids),
+  ]);
+  const discord = new Map(
+    (discordRes.data ?? []).map((d) => [d.id, { username: d.username, avatar: d.avatar_url }])
+  );
+
+  const out = new Map<string, ResolvedIdentity>();
+  for (const id of ids) {
+    const d = discord.get(id);
+    out.set(id, resolveIdentity(steamMap, id, d?.username, d?.avatar));
+  }
+  return out;
+}
+
 /**
  * Resolve nome/avatar canônicos de UM user a partir do mapa Steam + dados Discord
- * (profiles). Steam > Discord, fallback "Anônimo"/null — regra da lib/identity.
+ * (profiles). Nome = Discord-first; avatar = Steam-first — regra da lib/identity.
  */
 export function resolveIdentity(
   steamMap: SteamIdentityMap,

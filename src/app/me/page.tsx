@@ -10,6 +10,7 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { ClientShell } from "@/components/client-shell/shell";
 import { ProfilePage } from "@/components/profile/profile-page";
+import { getImmortalRank } from "@/lib/queries/immortal-leaderboard";
 import { VALID_TABS, type ProfileTab } from "@/components/profile/profile-tabs";
 import { getProfileForMe } from "@/lib/queries/profile";
 import { getCareerStats } from "@/lib/queries/career";
@@ -120,6 +121,9 @@ export default async function MePage({ searchParams }: PageProps) {
   // Fundo do perfil = profile_theme equipado; default (nada) = fundo premium limpo.
   const centerHero = equippedForBg.profileTheme ?? undefined;
 
+  // Posição no leaderboard de Imortais (#N + elite → medalha vermelha).
+  const immortalRank = await getImmortalRank(profile.userId);
+
   return (
     <ClientShell currentRoute="/me" immersive centerHero={centerHero}>
       <ProfilePage
@@ -132,6 +136,7 @@ export default async function MePage({ searchParams }: PageProps) {
         coachingReviews={coachingReviews}
         general={general}
         fdota={fdotaStats}
+        immortalRank={immortalRank}
       />
     </ClientShell>
   );
