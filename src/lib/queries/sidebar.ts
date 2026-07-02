@@ -31,19 +31,31 @@ export interface SidebarData {
 }
 
 const DAY_MS = 86_400_000;
-const SEASON_LEN_MS = 60 * DAY_MS; // 2 meses (fallback quando ended_at é nulo)
+const SEASON_LEN_MS = 90 * DAY_MS; // fallback só se não houver ended_at NEM próxima season
 
 export async function getSidebarData(): Promise<SidebarData> {
   const supabase = await createClient();
 
-  // Season ativa (nome + janela pro countdown).
-  const seasonRes = await supabase
-    .from("seasons")
-    .select("id, name, started_at, ended_at, beta")
-    .eq("active", true)
-    .limit(1)
-    .maybeSingle();
+  // Season ativa (nome + janela pro countdown) + a PRÓXIMA agendada (define o fim
+  // real da beta, que não tem ended_at — ela roda até a próxima temporada começar).
+  const [seasonRes, nextSeasonRes] = await Promise.all([
+    supabase
+      .from("seasons")
+      .select("id, name, started_at, ended_at, beta")
+      .eq("active", true)
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from("seasons")
+      .select("started_at")
+      .eq("active", false)
+      .gt("started_at", new Date().toISOString())
+      .order("started_at", { ascending: true })
+      .limit(1)
+      .maybeSingle(),
+  ]);
   const seasonRow = seasonRes.data;
+  const nextStart = nextSeasonRes.data?.started_at ?? null;
 
   // Top 3 por MMR da season ativa.
   const top3Res = seasonRow
@@ -86,9 +98,12 @@ export async function getSidebarData(): Promise<SidebarData> {
 
   let season: SidebarSeason | null = null;
   if (seasonRow) {
+    // Fim = ended_at explícito → início da próxima temporada → fallback +90d.
     const end = seasonRow.ended_at
       ? new Date(seasonRow.ended_at).getTime()
-      : new Date(seasonRow.started_at).getTime() + SEASON_LEN_MS;
+      : nextStart
+        ? new Date(nextStart).getTime()
+        : new Date(seasonRow.started_at).getTime() + SEASON_LEN_MS;
     const daysLeft = Math.max(0, Math.ceil((end - Date.now()) / DAY_MS));
     season = { name: seasonRow.name, daysLeft, beta: Boolean(seasonRow.beta) };
   }

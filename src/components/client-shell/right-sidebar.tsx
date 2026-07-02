@@ -132,25 +132,25 @@ function CardCta({ href, label }: { href: string; label: string }) {
   );
 }
 
-function HeroStrip({ match }: { match: HistoryMatch }) {
+function HeroStrip({ match, team }: { match: HistoryMatch; team: "radiant" | "dire" }) {
   const heroes = match.players
-    .filter((p) => p.team === "radiant" || p.team === "dire")
+    .filter((p) => p.team === team)
     .map((p) => (p.heroId ? getHeroById(p.heroId) : null));
   return (
-    <span className="flex items-center gap-0.5">
+    <span className={`flex items-center gap-0.5 ${team === "dire" ? "flex-row-reverse" : ""}`}>
       {heroes.slice(0, 5).map((h, i) =>
         h ? (
           <Image
             key={i}
             src={h.image_icon}
             alt={h.name_pt}
-            width={18}
-            height={18}
+            width={16}
+            height={16}
             unoptimized
-            className="size-[18px] rounded-sm object-cover"
+            className="size-4 rounded-sm object-cover"
           />
         ) : (
-          <span key={i} className="size-[18px] rounded-sm bg-bg-surface" aria-hidden="true" />
+          <span key={i} className="size-4 rounded-sm bg-bg-surface" aria-hidden="true" />
         )
       )}
     </span>
@@ -179,10 +179,12 @@ function RecentMatchesCard({
             <li key={m.dotaMatchId}>
               <Link
                 href={`/partida/historico/${m.dotaMatchId}`}
-                className="flex items-center justify-between gap-2 px-3 py-2 transition-colors hover:bg-bg-elevated"
+                className="flex items-center gap-1.5 px-3 py-2 transition-colors hover:bg-bg-elevated"
               >
-                <HeroStrip match={m} />
-                <span className="flex items-center gap-1.5 font-display text-sm font-bold tabular-nums">
+                <span className="flex-1">
+                  <HeroStrip match={m} team="radiant" />
+                </span>
+                <span className="flex shrink-0 items-center gap-1 font-display text-sm font-bold tabular-nums">
                   <span className={m.radiantWin ? "text-play-primary" : "text-text-muted"}>
                     {m.radiantScore ?? 0}
                   </span>
@@ -190,6 +192,9 @@ function RecentMatchesCard({
                   <span className={m.radiantWin === false ? "text-brand-primary" : "text-text-muted"}>
                     {m.direScore ?? 0}
                   </span>
+                </span>
+                <span className="flex flex-1 justify-end">
+                  <HeroStrip match={m} team="dire" />
                 </span>
               </Link>
             </li>
