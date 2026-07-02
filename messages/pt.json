@@ -3515,6 +3515,8 @@
     },
     "skillShowcaseTitle": "Medalhas de classificação",
     "skillShowcaseSubtitle": "Medalha oficial Valve — mede SKILL (MMR). Distinta do seu nível FormulaDota, que mede HONOR.",
+    "rankShowcaseTitle": "Rank FormulaDota",
+    "rankShowcaseSubtitle": "Seu rank da temporada, conquistado nas partidas da liga. Mesma escala da Valve, mas com reset a cada temporada — o que vale aqui dentro. A medalha Valve é o legado; este é o presente.",
     "notCalibrated": "Não calibrado",
     "rankCalibratingAlt": "Rank em calibração",
     "calibratingBadge": "Calibrando",

@@ -33,6 +33,7 @@ import { useTranslations } from "next-intl";
 import { Pencil, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MedalPair } from "@/components/ui/medal-pair";
+import { mmrToDotaRank } from "@/components/queue/queue-helpers";
 import { ProfileTabs, type ProfileTab } from "./profile-tabs";
 import { SocialIconsRow, SteamIcon } from "./social-icons-row";
 import { SyncSteamButton } from "./sync-steam-button";
@@ -101,6 +102,8 @@ export function ProfilePage({
 }: Props) {
   const t = useTranslations("perfil");
   const ranqueado = profile.mmr !== null;
+  // Rank FormulaDota (Eixo 2, sazonal) — 3º selo, só quando há MMR de temporada.
+  const seasonRank = profile.mmr !== null ? mmrToDotaRank(profile.mmr) : undefined;
   // Navegação coerente: próprio = /me; público = /perfil/u/[id]. Todas as abas
   // funcionam pra qualquer user (Progresso/Conquistas lidos por userId; o
   // histórico de XP e o coaching, que são pessoais, ficam ocultos no público).
@@ -220,6 +223,7 @@ export function ProfilePage({
                   <MedalPair
                     dotaRank={dotaRank}
                     honorRank={honorRank}
+                    seasonRank={seasonRank}
                     size="md"
                     className="ml-1.5 shrink-0"
                   />

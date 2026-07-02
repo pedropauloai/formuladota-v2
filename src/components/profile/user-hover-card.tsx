@@ -118,6 +118,8 @@ function Body({ data, online }: { data: PublicMiniProfile; online?: boolean }) {
   const dotaRank =
     rankTierToDotaRank(data.rankTier, data.leaderboardRank) ?? mmrToDotaRank(data.mmr);
   const honorRank = getGatedTierForLevel(data.level, mmrFromRankTier(data.rankTier));
+  // Rank FormulaDota (sazonal, Eixo 2) — só quando o jogador tem MMR de temporada.
+  const seasonRank = data.mmr != null ? mmrToDotaRank(data.mmr) : undefined;
 
   const heroes = data.favoriteHeroes
     .map((slug) => getHeroBySlug(slug))
@@ -182,7 +184,7 @@ function Body({ data, online }: { data: PublicMiniProfile; online?: boolean }) {
 
       {/* Medalhas + winrate de carreira na mesma linha */}
       <div className="flex items-center justify-between gap-2">
-        <MedalPair dotaRank={dotaRank} honorRank={honorRank} size="sm" side="bottom" align="start" />
+        <MedalPair dotaRank={dotaRank} honorRank={honorRank} seasonRank={seasonRank} size="sm" side="bottom" align="start" />
         {winrate !== null && (
           <div className="text-right leading-tight">
             <p className="font-display-condensed text-xl tabular-nums text-gold">{winrate}%</p>

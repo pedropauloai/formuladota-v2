@@ -59,6 +59,8 @@ interface Props {
   dotaRank: DotaRank;
   /** Medalha HONOR (nível) — calculada no shell (getGatedTierForLevel), igual ao /me. */
   honorRank: HonorRank;
+  /** Rank FormulaDota sazonal (Eixo 2) — 3º selo opcional, igual ao /me. */
+  seasonRank?: DotaRank;
   /** Estado inicial do cookie sidebar_expanded — passado do shell SSR. */
   initialExpanded: boolean;
   /**
@@ -96,6 +98,7 @@ export function MiniProfilePanel({
   permissions,
   dotaRank,
   honorRank,
+  seasonRank,
   initialExpanded,
   lockedExpanded = false,
   currentUserId,
@@ -150,6 +153,7 @@ export function MiniProfilePanel({
           xpPct={xpPct}
           dotaRank={dotaRank}
           honorRank={honorRank}
+          seasonRank={seasonRank}
           currentUserId={currentUserId}
           initialFriends={initialFriends}
           initialPending={initialPending}
@@ -351,6 +355,7 @@ function ExpandedPanel({
   xpPct,
   dotaRank,
   honorRank,
+  seasonRank,
   currentUserId,
   initialFriends,
   initialPending,
@@ -367,6 +372,7 @@ function ExpandedPanel({
   xpPct: number;
   dotaRank: DotaRank;
   honorRank: HonorRank;
+  seasonRank?: DotaRank;
   currentUserId: string | null;
   initialFriends: FriendListEntry[];
   initialPending: FriendListEntry[];
@@ -414,6 +420,7 @@ function ExpandedPanel({
           <MedalPair
             dotaRank={dotaRank}
             honorRank={honorRank}
+            seasonRank={seasonRank}
             size="md"
             side="right"
             align="start"

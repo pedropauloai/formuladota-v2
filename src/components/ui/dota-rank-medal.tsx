@@ -42,6 +42,15 @@ export type DotaRank =
   | "immortal-top-100"
 
 /**
+ * Pele da medalha:
+ * - "valve" (padrão): medalha oficial Valve crua = SKILL legado (Eixo 1).
+ * - "formuladota": MESMA arte, mas com moldura de marca = RANK sazonal da liga
+ *   (Eixo 2). Reusa a escala das 8 medalhas (decisão GamersClub), diferenciada
+ *   pela pele — nunca confundir com a Valve crua.
+ */
+export type DotaMedalVariant = "valve" | "formuladota"
+
+/**
  * Lista canônica dos rankIds (ordem Herald→Immortal + Top 100 especial).
  * Os NOMES EXIBIDOS são resolvidos por i18n (namespace "ranks", chave
  * ranks.dota.<rankId>) — em EN saem os nomes oficiais Valve (Herald, Guardian…),
@@ -133,19 +142,89 @@ export function SkillShowcase({ current }: { current: DotaRank }) {
 }
 
 
-/** Wrapper condicional do showcase — <MedalPair> desliga o hover individual. */
+/**
+ * RankShowcase — hover do RANK FormulaDota (Eixo 2). Mesma régua das 8 medalhas
+ * Valve (decisão GamersClub: reusar a escala), mas enquadrado como o rank SAZONAL
+ * da liga — o que vale aqui dentro (a medalha Valve é só o legado/semente).
+ */
+export function RankShowcase({ current }: { current: DotaRank }) {
+  const t = useTranslations("ui")
+  const tr = useTranslations("ranks")
+  const rulerCurrent = current === "immortal-top-100" ? "immortal" : current
+  const currentIdx = SKILL_ORDER.indexOf(rulerCurrent)
+  return (
+    <span className="block w-[420px] max-w-[88vw]">
+      <span className="block text-center font-display-condensed text-lg uppercase leading-none tracking-[0.2em] text-brand-primary">
+        {t("rankShowcaseTitle")}
+      </span>
+      <span className="mt-2 flex flex-col items-center gap-1">
+        {/* Medalha atual com a moldura FormulaDota (mesma pele do selo compacto) */}
+        <span className="inline-flex rounded-sm border border-brand-primary/45 bg-bg-deep/50 p-1">
+          <Image
+            src={`/icons/dota-ranks/${current}.png`}
+            alt=""
+            width={64}
+            height={64}
+            className="object-contain"
+            aria-hidden="true"
+          />
+        </span>
+        <span className="font-display-condensed text-xl uppercase leading-none tracking-widest text-gold">
+          {tr(`dota.${current}`)}
+        </span>
+      </span>
+      <span className="mt-1 block text-center text-xs leading-snug text-text-muted">
+        {t("rankShowcaseSubtitle")}
+      </span>
+      <span className="mt-2.5 flex items-end justify-between gap-1 border-t border-border-subtle pt-2.5">
+        {SKILL_ORDER.map((r, i) => (
+          <span key={r} className="flex flex-1 flex-col items-center gap-0.5">
+            <Image
+              src={`/icons/dota-ranks/${r}.png`}
+              alt=""
+              width={36}
+              height={36}
+              className={cn(
+                "object-contain transition-opacity",
+                i > currentIdx && "opacity-40",
+                r === rulerCurrent && "scale-110",
+              )}
+              aria-hidden="true"
+            />
+            <span
+              className={cn(
+                "font-display-condensed text-[10px] uppercase tracking-wide",
+                r === rulerCurrent ? "text-gold" : "text-text-faded",
+              )}
+            >
+              {tr(`dota.${r}`)}
+            </span>
+          </span>
+        ))}
+      </span>
+    </span>
+  )
+}
+
+
+/** Wrapper condicional do showcase — <MedalPair> desliga o hover individual.
+ *  variant "formuladota" mostra o RankShowcase (rank sazonal); "valve" o SkillShowcase. */
 function MaybeTooltip({
   enabled,
   rank,
+  variant,
   children,
 }: {
   enabled: boolean
   rank: DotaRank
+  variant: DotaMedalVariant
   children: React.ReactNode
 }) {
   if (!enabled) return <>{children}</>
+  const content =
+    variant === "formuladota" ? <RankShowcase current={rank} /> : <SkillShowcase current={rank} />
   return (
-    <Tooltip content={<SkillShowcase current={rank} />} contentClassName="max-w-none p-3">
+    <Tooltip content={content} contentClassName="max-w-none p-3">
       {children}
     </Tooltip>
   )
@@ -239,6 +318,12 @@ export interface DotaRankMedalProps {
    * <MedalPair> (hover combinado único). @default true
    */
   tooltip?: boolean
+
+  /**
+   * Pele da medalha — "valve" (crua, SKILL legado) ou "formuladota" (moldura de
+   * marca, RANK sazonal). @default "valve"
+   */
+  variant?: DotaMedalVariant
 }
 
 /* ------------------------------------------------------------------
@@ -268,6 +353,7 @@ export function DotaRankMedal({
   calibrationStatus,
   className,
   tooltip = true,
+  variant = "valve",
 }: DotaRankMedalProps) {
   const t = useTranslations("ui")
   const tr = useTranslations("ranks")
@@ -275,6 +361,7 @@ export function DotaRankMedal({
   const sizeClass = SIZE_CLASS[size]
   const glowClass = glow ? (GLOW_CLASS[rank] ?? "") : ""
   const label = tr(`dota.${rank}`)
+  const isFd = variant === "formuladota"
 
   /* ------------------------------------------------------------------
    * Estado: visitante — placeholder cinza com ícone Lock
@@ -383,8 +470,9 @@ export function DotaRankMedal({
       )}
     >
       {/* Medalha — imagem oficial Dota 2 carregada via next/image.
-          Hover educacional: SKILL (Valve) é eixo distinto do HONOR (FormulaDota). */}
-      <MaybeTooltip enabled={tooltip} rank={rank}>
+          Hover educacional: SKILL (Valve) é eixo distinto do HONOR (FormulaDota).
+          variant "formuladota" = MESMA arte com moldura de marca (rank sazonal). */}
+      <MaybeTooltip enabled={tooltip} rank={rank} variant={variant}>
         <div
           className={cn(
             sizeClass,
@@ -392,6 +480,11 @@ export function DotaRankMedal({
             "flex items-center justify-center",
             /* Isolamento de contexto para o drop-shadow funcionar corretamente */
             "isolate",
+            /* Pele FormulaDota: moldura angular de marca sobre a MESMA medalha,
+               pra nunca confundir o rank sazonal (Eixo 2) com a Valve crua (Eixo 1).
+               Sem padding: a medalha mantém o tamanho cheio (mesmo peso visual do par). */
+            isFd &&
+              "rounded-sm border border-brand-primary/45 bg-bg-deep/50 shadow-[inset_0_0_10px_rgba(196,33,33,0.15)]",
           )}
         >
           <Image
@@ -412,6 +505,15 @@ export function DotaRankMedal({
             /* Sem placeholder blur — imagens pequenas não precisam */
             placeholder="empty"
           />
+          {/* Monograma FD — só em md+ (em sm poluiria); assina a pele de marca. */}
+          {isFd && size !== "sm" && (
+            <span
+              className="absolute -bottom-1 -right-1 rounded-sm bg-brand-primary px-1 font-display-condensed text-[9px] font-bold uppercase leading-tight tracking-wide text-white shadow-sm"
+              aria-hidden="true"
+            >
+              FD
+            </span>
+          )}
         </div>
       </MaybeTooltip>
 
@@ -425,8 +527,8 @@ export function DotaRankMedal({
             size === "sm" ? "text-sm" : size === "xl" ? "text-sm" : "text-sm",
             /* Estilo de label game client: uppercase + tracking largo */
             "uppercase tracking-widest",
-            /* Cor semântica: muted para não competir com a medalha */
-            "text-text-muted",
+            /* Cor semântica: muted (Valve) ou marca (rank FormulaDota) */
+            isFd ? "text-brand-primary" : "text-text-muted",
             /* Sem quebra de linha */
             "whitespace-nowrap",
           )}

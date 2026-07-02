@@ -295,7 +295,7 @@ function TopCard({ row, position }: { row: RankRow; position: number }) {
           </div>
         </UserHoverCard>
         <div className="flex items-center justify-between border-t border-border-subtle pt-3">
-          <DotaRankMedal rank={dotaRank} size="sm" showLabel />
+          <DotaRankMedal rank={dotaRank} variant="formuladota" size="sm" showLabel />
           <span className="font-display text-sm 2xl:text-base font-semibold text-text-body">
             {t("winLoss", { wins: row.vitorias, losses: row.derrotas })}
           </span>
@@ -338,7 +338,7 @@ function RankingRow({ row, position }: { row: RankRow; position: number }) {
           </p>
         </div>
       </UserHoverCard>
-      <DotaRankMedal rank={dotaRank} size="sm" />
+      <DotaRankMedal rank={dotaRank} variant="formuladota" size="sm" />
       <span className="font-mono text-sm 2xl:text-base tabular-nums text-gold w-16 text-right">{row.mmr}</span>
     </li>
   );
