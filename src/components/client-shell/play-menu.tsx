@@ -63,6 +63,14 @@ import { CriarLobbyForm } from "@/app/criar-lobby/criar-lobby-form";
 type Modalidade = "competitiva" | "salas" | "pro";
 type View = "menu" | "lista" | "sala";
 
+// Já estamos numa página de partida? Guarda por PREFIXO (qualquer id: dota_match_id,
+// steam_lobby_id ou UUID) — o ready-check e o PlayMenu usam ids diferentes pra MESMA
+// partida, e comparar id específico fazia os dois brigarem em loop. Cobre o path com
+// ou sem prefixo de locale (ex.: /partida/... e /pt/partida/...).
+function onMatchRoute(): boolean {
+  return typeof window !== "undefined" && /\/partida\//.test(window.location.pathname);
+}
+
 interface Props {
   isVisitor: boolean;
   initial: PlayMenuState;
@@ -185,9 +193,12 @@ export function PlayMenu({
       if (!active) return;
       if (st.status === "matched" && st.matchedLobbyId) {
         setActiveMatchId(st.matchedLobbyId);
-        // Redireciona pra partida — EXCETO se já estamos nela. O PlayMenu monta
-        // global (inclusive em /partida/[id]); a guarda evita loop pra mesma rota.
-        if (!window.location.pathname.includes(`/partida/${st.matchedLobbyId}`)) {
+        // Redireciona pra partida — EXCETO se JÁ estamos numa rota /partida/.
+        // A guarda é por PREFIXO (qualquer id), não pelo matchedLobbyId específico:
+        // o ready-check redireciona pra /partida/<dota_match_id> (ID da Valve), enquanto
+        // aqui o id é o UUID do lobby. Comparar só o UUID fazia os dois navegadores
+        // brigarem e o usuário ficava em loop entre as duas URLs da MESMA partida.
+        if (!onMatchRoute()) {
           router.push(`/partida/${st.matchedLobbyId}`);
         }
       } else if (st.status === "waiting") {
@@ -211,7 +222,12 @@ export function PlayMenu({
     if (st.status === "matched" && st.matchedLobbyId) {
       setSearching(false);
       setActiveMatchId(st.matchedLobbyId);
-      router.push(`/partida/${st.matchedLobbyId}`);
+      // Mesma guarda por prefixo do efeito de mount: se já estamos numa rota
+      // /partida/, NÃO re-empurra (senão os heartbeats de liveness re-disparariam
+      // este sync e puxariam o usuário do <dota_match_id> de volta pro <UUID> em loop).
+      if (!onMatchRoute()) {
+        router.push(`/partida/${st.matchedLobbyId}`);
+      }
     } else if (st.status === "waiting") {
       // Passivo: outro membro do grupo iniciou a busca → reflete o "buscando"
       // (contador + heartbeat) mesmo sem eu ter clicado.

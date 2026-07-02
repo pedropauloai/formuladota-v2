@@ -106,8 +106,10 @@ export function ReadyCheckOverlay({
       if (!alive) return;
       if (routeId) {
         router.push(`/partida/${routeId}`);
+        setConfirmedLobby(null); // dispensa o takeover "criando lobby" ao navegar
       } else if (tries >= 27) {
         router.push(`/partida/${confirmedLobby}`); // fallback: id interno
+        setConfirmedLobby(null);
       } else {
         timer = setTimeout(poll, 1100);
       }
