@@ -23,6 +23,7 @@ interface MatchRow {
   denies: number;
   net_worth: number;
   is_winner: boolean;
+  mmr_change: number | null;
   enriched_at: string | null;
   items: { inventory?: (number | null)[]; neutral?: number | null } | null;
 }
@@ -39,7 +40,7 @@ export async function TabHistorico({ userId }: { userId: string }) {
   const { data } = await supabase
     .from("match_players")
     .select(
-      "match_id, hero_id, hero_name, kills, deaths, assists, gold_per_min, last_hits, denies, net_worth, is_winner, enriched_at, items"
+      "match_id, hero_id, hero_name, kills, deaths, assists, gold_per_min, last_hits, denies, net_worth, is_winner, mmr_change, enriched_at, items"
     )
     .eq("user_id", userId)
     .order("enriched_at", { ascending: false })
@@ -92,7 +93,7 @@ export async function TabHistorico({ userId }: { userId: string }) {
           <li key={`${m.match_id}-${i}`}>
             <Link
               href={`/partida/historico/${dotaByMatch.get(m.match_id) ?? m.match_id}`}
-              className={`flex flex-col gap-2.5 rounded-[var(--radius-md)] border border-l-[3px] border-border-subtle bg-bg-elevated/40 p-2.5 transition-colors hover:bg-bg-surface/50 lg:flex-row lg:items-center ${
+              className={`flex flex-col gap-2.5 rounded-[var(--radius-md)] border border-l-[3px] border-border-subtle bg-bg-deep/80 p-2.5 backdrop-blur-sm transition-colors hover:bg-bg-surface/70 lg:flex-row lg:items-center ${
                 m.is_winner ? "border-l-play-primary" : "border-l-error"
               }`}
             >
@@ -124,22 +125,39 @@ export async function TabHistorico({ userId }: { userId: string }) {
                       {m.is_winner ? t("matchWin") : t("matchLoss")}
                     </span>
                     {modeName && (
-                      <span className="font-display text-[0.7rem] uppercase tracking-wide text-text-faded">
+                      <span className="font-display text-[0.7rem] uppercase tracking-wide text-text-muted">
                         · {modeName}
                       </span>
                     )}
-                    {date && <span className="font-display text-[0.7rem] text-text-faded">· {date}</span>}
+                    {date && <span className="font-display text-[0.7rem] text-text-muted">· {date}</span>}
                   </div>
                 </div>
               </div>
 
               {/* Stats. */}
               <div className="flex shrink-0 items-center gap-4 sm:gap-5">
+                {/* Variação de MMR da partida (match_players.mmr_change). */}
+                <Stat
+                  label="MMR"
+                  accent={
+                    m.mmr_change == null
+                      ? "text-text-muted"
+                      : m.mmr_change >= 0
+                        ? "text-play-primary"
+                        : "text-error"
+                  }
+                >
+                  {m.mmr_change == null
+                    ? "—"
+                    : m.mmr_change >= 0
+                      ? `+${m.mmr_change}`
+                      : m.mmr_change}
+                </Stat>
                 <Stat label={t("matchKda", { kda })} accent="text-text-display">
                   <span className="text-play-primary">{m.kills}</span>
-                  <span className="text-text-faded">/</span>
+                  <span className="text-text-muted">/</span>
                   <span className="text-error">{m.deaths}</span>
-                  <span className="text-text-faded">/</span>
+                  <span className="text-text-muted">/</span>
                   <span className="text-gold">{m.assists}</span>
                 </Stat>
                 <Stat label="LH / DN" accent="text-text-muted">
@@ -183,7 +201,7 @@ function Stat({
   return (
     <div className="text-right">
       <p className={`font-display text-sm font-bold tabular-nums ${accent}`}>{children}</p>
-      <p className="font-display text-[0.65rem] uppercase tracking-wide text-text-faded">{label}</p>
+      <p className="font-display text-[0.65rem] uppercase tracking-wide text-text-muted">{label}</p>
     </div>
   );
 }

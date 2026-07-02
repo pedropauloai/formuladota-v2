@@ -26,6 +26,7 @@ export interface HistoryPlayer {
   kills: number;
   deaths: number;
   assists: number;
+  mmrChange: number | null;
   name: string;
   avatar: string | null;
 }
@@ -80,6 +81,7 @@ export async function getRecentMatches(limit = 20, offset = 0): Promise<HistoryM
       kills: number;
       deaths: number;
       assists: number;
+      mmr_change: number | null;
       name: string;
       avatar: string | null;
     }[];
@@ -99,6 +101,7 @@ export async function getRecentMatches(limit = 20, offset = 0): Promise<HistoryM
       kills: p.kills,
       deaths: p.deaths,
       assists: p.assists,
+      mmrChange: p.mmr_change,
       name: p.name,
       avatar: p.avatar,
     })),
