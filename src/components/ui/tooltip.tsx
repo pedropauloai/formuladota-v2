@@ -16,6 +16,7 @@ import {
   useCallback,
   useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
   type ReactNode,
@@ -51,25 +52,47 @@ const VIEWPORT_PAD = 8
 interface Pos {
   x: number
   y: number
-  transform: string
 }
 
-/** Calcula a posição fixa da bolha a partir do rect do trigger. */
-function computePos(rect: DOMRect, side: Side, align: Align): Pos {
+const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v))
+
+/**
+ * Posição FINAL (left/top absolutos, sem transform) considerando o TAMANHO da bolha:
+ * escolhe o melhor lado (FLIP quando o lado pedido não cabe) e faz clamp no eixo
+ * transversal — a bolha SEMPRE aparece inteira, no melhor espaço, em qualquer lugar
+ * da interface (Pedro 2026-07-02: "nunca expandir pro lado errado").
+ */
+function computePos(rect: DOMRect, bw: number, bh: number, side: Side, align: Align): Pos {
+  const vw = window.innerWidth
+  const vh = window.innerHeight
+
   if (side === "left" || side === "right") {
-    const x = side === "left" ? rect.left - GAP : rect.right + GAP
-    const tx = side === "left" ? "-100%" : "0%"
-    const y =
-      align === "start" ? rect.top : align === "end" ? rect.bottom : rect.top + rect.height / 2
-    const ty = align === "start" ? "0%" : align === "end" ? "-100%" : "-50%"
-    return { x, y, transform: `translate(${tx}, ${ty})` }
+    const fitsRight = rect.right + GAP + bw <= vw - VIEWPORT_PAD
+    const fitsLeft = rect.left - GAP - bw >= VIEWPORT_PAD
+    // Mantém o lado pedido se couber; senão vira pro oposto; senão pro que tem mais espaço.
+    const useLeft =
+      side === "left" ? fitsLeft || !fitsRight : !(fitsRight || !fitsLeft)
+    const x = useLeft ? rect.left - GAP - bw : rect.right + GAP
+    const yRaw =
+      align === "start"
+        ? rect.top
+        : align === "end"
+          ? rect.bottom - bh
+          : rect.top + rect.height / 2 - bh / 2
+    return { x: clamp(x, VIEWPORT_PAD, vw - VIEWPORT_PAD - bw), y: clamp(yRaw, VIEWPORT_PAD, vh - VIEWPORT_PAD - bh) }
   }
-  const y = side === "top" ? rect.top - GAP : rect.bottom + GAP
-  const ty = side === "top" ? "-100%" : "0%"
-  const x =
-    align === "start" ? rect.left : align === "end" ? rect.right : rect.left + rect.width / 2
-  const tx = align === "start" ? "0%" : align === "end" ? "-100%" : "-50%"
-  return { x, y, transform: `translate(${tx}, ${ty})` }
+
+  const fitsTop = rect.top - GAP - bh >= VIEWPORT_PAD
+  const fitsBottom = rect.bottom + GAP + bh <= vh - VIEWPORT_PAD
+  const useTop = side === "top" ? fitsTop || !fitsBottom : !(fitsBottom || !fitsTop)
+  const y = useTop ? rect.top - GAP - bh : rect.bottom + GAP
+  const xRaw =
+    align === "start"
+      ? rect.left
+      : align === "end"
+        ? rect.right - bw
+        : rect.left + rect.width / 2 - bw / 2
+  return { x: clamp(xRaw, VIEWPORT_PAD, vw - VIEWPORT_PAD - bw), y: clamp(y, VIEWPORT_PAD, vh - VIEWPORT_PAD - bh) }
 }
 
 export function Tooltip({
@@ -85,57 +108,47 @@ export function Tooltip({
   const wrapperRef = useRef<HTMLSpanElement>(null)
   const bubbleRef = useRef<HTMLSpanElement>(null)
   const enterTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // trigger = rect do gatilho (bolha renderiza escondida pra medir); pos = final.
+  const [trigger, setTrigger] = useState<DOMRect | null>(null)
   const [pos, setPos] = useState<Pos | null>(null)
 
-  const show = useCallback(
-    (immediate: boolean) => {
-      if (enterTimer.current) clearTimeout(enterTimer.current)
-      const open = () => {
-        const rect = wrapperRef.current?.getBoundingClientRect()
-        if (rect) setPos(computePos(rect, side, align))
+  const show = useCallback((immediate: boolean) => {
+    if (enterTimer.current) clearTimeout(enterTimer.current)
+    const open = () => {
+      const rect = wrapperRef.current?.getBoundingClientRect()
+      if (rect) {
+        setPos(null)
+        setTrigger(rect)
       }
-      if (immediate) open()
-      else enterTimer.current = setTimeout(open, 150)
-    },
-    [side, align]
-  )
+    }
+    if (immediate) open()
+    else enterTimer.current = setTimeout(open, 150)
+  }, [])
 
   const hide = useCallback(() => {
     if (enterTimer.current) clearTimeout(enterTimer.current)
+    setTrigger(null)
     setPos(null)
   }, [])
 
+  // Mede a bolha (já montada, invisível) e escolhe o melhor lado + clamp. Layout
+  // effect: posiciona antes do paint (sem flash).
+  useLayoutEffect(() => {
+    if (!trigger || !bubbleRef.current) return
+    const b = bubbleRef.current.getBoundingClientRect()
+    setPos(computePos(trigger, b.width, b.height, side, align))
+  }, [trigger, side, align])
+
   // Posição fixa fica defasada se a página rolar/redimensionar — esconde.
   useEffect(() => {
-    if (!pos) return
+    if (!trigger) return
     window.addEventListener("scroll", hide, { capture: true, passive: true })
     window.addEventListener("resize", hide, { passive: true })
     return () => {
       window.removeEventListener("scroll", hide, { capture: true })
       window.removeEventListener("resize", hide)
     }
-  }, [pos, hide])
-
-  // Clamp pós-render NOS DOIS EIXOS (Pedro 2026-06-12): a bolha se adapta pra
-  // aparecer inteira dentro do viewport, independente de onde o trigger esteja.
-  useEffect(() => {
-    const el = bubbleRef.current
-    if (!el || !pos) return
-    // Reset antes de medir (re-aberturas reaproveitam o nó)
-    el.style.marginLeft = "0px"
-    el.style.marginTop = "0px"
-    const r = el.getBoundingClientRect()
-    let dx = 0
-    if (r.left < VIEWPORT_PAD) dx = VIEWPORT_PAD - r.left
-    else if (r.right > window.innerWidth - VIEWPORT_PAD)
-      dx = window.innerWidth - VIEWPORT_PAD - r.right
-    let dy = 0
-    if (r.top < VIEWPORT_PAD) dy = VIEWPORT_PAD - r.top
-    else if (r.bottom > window.innerHeight - VIEWPORT_PAD)
-      dy = window.innerHeight - VIEWPORT_PAD - r.bottom
-    if (dx !== 0) el.style.marginLeft = `${dx}px`
-    if (dy !== 0) el.style.marginTop = `${dy}px`
-  }, [pos])
+  }, [trigger, hide])
 
   return (
     <span
@@ -145,14 +158,14 @@ export function Tooltip({
         className
       )}
       tabIndex={focusable ? 0 : undefined}
-      aria-describedby={pos ? id : undefined}
+      aria-describedby={trigger ? id : undefined}
       onMouseEnter={() => show(false)}
       onMouseLeave={hide}
       onFocus={() => show(true)}
       onBlur={hide}
     >
       {children}
-      {pos &&
+      {trigger &&
         createPortal(
           <span
             ref={bubbleRef}
@@ -160,9 +173,10 @@ export function Tooltip({
             role="tooltip"
             style={{
               position: "fixed",
-              left: pos.x,
-              top: pos.y,
-              transform: pos.transform,
+              left: pos ? pos.x : 0,
+              top: pos ? pos.y : 0,
+              // Invisível até medir/posicionar (evita flash no canto).
+              visibility: pos ? "visible" : "hidden",
             }}
             className={cn(
               // Acima de TUDO (drawers, modais) — tooltip é efêmero
