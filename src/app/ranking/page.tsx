@@ -196,61 +196,58 @@ export default async function RankingPage(props: {
 
   return (
     <ClientShell currentRoute="/ranking">
-      <div className="px-6 pb-10 xl:px-12">
-        {/* Header cinematográfico FULL-BLEED, colado na topbar: a imagem da Lina cobre
-            todo o topo e faz FADE na base (transição pro fundo). A tag da season vive
-            fundida aqui (countdown ao vivo) + CTA grande do MMR. Pedro 2026-07-02. */}
-        <header className="relative -mx-6 mb-10 overflow-hidden border-b border-border-subtle xl:-mx-12">
-          {/* A imagem da Lina preenche o header INTEIRO sem cortar: no desktop o
-              container respeita o aspecto real (1920×622), então nada é recortado;
-              no mobile ganha altura mínima. Fade suave na base funde no fundo. */}
-          <div className="relative min-h-[340px] md:min-h-0 md:aspect-[1920/622] md:max-h-[460px]">
-            <Image
-              src="/images/ranking/season-header.png"
-              alt=""
-              fill
-              priority
-              unoptimized
-              aria-hidden="true"
-              className="object-cover object-center"
-            />
-            {/* Fade suave na BASE (funde no fundo da página). */}
-            <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-bg-base via-bg-base/60 to-transparent" />
-            {/* Scrim LEVE à esquerda só pra leitura do título (sem esconder a Lina). */}
-            <div className="absolute inset-0 bg-gradient-to-r from-bg-base/60 via-bg-base/5 to-transparent" />
-            <div className="absolute inset-0 flex flex-col justify-center gap-5 px-6 py-8 md:flex-row md:items-center md:justify-between md:px-12">
-            <div className="min-w-0">
-              <p className="font-display text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
-                {t("eyebrow")}
-              </p>
-              <h1 className="mt-2 font-display text-4xl uppercase tracking-tight text-text-display drop-shadow-lg md:text-6xl">
-                {season.name}
-              </h1>
-              {/* Tag da season fundida no header — countdown ao vivo, em destaque. */}
-              <div className="mt-3">
-                <SeasonBanner
-                  variant="hero"
-                  seasonNumber={season.id}
-                  seasonName={season.name}
-                  endsAt={
-                    season.ended_at
-                      ? new Date(season.ended_at)
-                      : new Date(new Date(season.started_at).getTime() + 90 * 24 * 60 * 60 * 1000)
-                  }
-                />
-              </div>
-            </div>
-            {/* CTA grande e destacado — atalho pra página didática do MMR. */}
-            <Link
-              href="/mmr"
-              className="group inline-flex shrink-0 items-center gap-2.5 self-start rounded-md border-2 border-brand-primary bg-brand-primary/15 px-5 py-3 font-display text-lg font-bold uppercase tracking-wide text-text-display shadow-lg shadow-black/40 backdrop-blur-sm transition-all hover:scale-[1.02] hover:bg-brand-primary/25 md:self-center md:text-xl"
-            >
-              <HelpCircle className="size-5 text-brand-primary md:size-6" aria-hidden="true" />
-              Como funciona o MMR?
-              <span className="transition-transform group-hover:translate-x-0.5">→</span>
-            </Link>
+      {/* A Lina é o BACKGROUND da PÁGINA (não um header em caixa): fixa ATRÁS do
+          conteúdo da coluna central (mesmos recuos das sidebars), o conteúdo rola por
+          cima. object-top mantém o rosto; o fade vertical escurece pra baixo pra
+          lista/pódio ficarem legíveis. Pedro 2026-07-02. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-x-0 top-[64px] bottom-0 z-0 lg:left-[320px] lg:right-[320px] xl:left-[360px] xl:right-[360px] xl:top-[72px] 2xl:left-[380px] 2xl:right-[380px]"
+      >
+        <Image
+          src="/images/ranking/season-header.png"
+          alt=""
+          fill
+          priority
+          unoptimized
+          className="object-cover object-[25%_top]"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-bg-base/20 via-bg-base/85 to-bg-base" />
+      </div>
+
+      <div className="relative z-10 px-6 pb-10 xl:px-12">
+        {/* Header sobre o fundo da Lina — sem caixa/imagem própria (a imagem é o
+            fundo da página). Título + tag da season + CTA do MMR. */}
+        <header className="mb-10 flex flex-col gap-5 pt-10 md:flex-row md:items-center md:justify-between md:pt-14">
+          <div className="min-w-0">
+            <p className="font-display text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
+              {t("eyebrow")}
+            </p>
+            <h1 className="mt-2 font-display text-4xl uppercase tracking-tight text-text-display drop-shadow-lg md:text-6xl">
+              {season.name}
+            </h1>
+            <div className="mt-3">
+              <SeasonBanner
+                variant="hero"
+                seasonNumber={season.id}
+                seasonName={season.name}
+                endsAt={
+                  season.ended_at
+                    ? new Date(season.ended_at)
+                    : new Date(new Date(season.started_at).getTime() + 90 * 24 * 60 * 60 * 1000)
+                }
+              />
             </div>
           </div>
+          {/* CTA grande e destacado — atalho pra página didática do MMR. */}
+          <Link
+            href="/mmr"
+            className="group inline-flex shrink-0 items-center gap-2.5 self-start rounded-md border-2 border-brand-primary bg-brand-primary/15 px-5 py-3 font-display text-lg font-bold uppercase tracking-wide text-text-display shadow-lg shadow-black/40 backdrop-blur-sm transition-all hover:scale-[1.02] hover:bg-brand-primary/25 md:self-center md:text-xl"
+          >
+            <HelpCircle className="size-5 text-brand-primary md:size-6" aria-hidden="true" />
+            Como funciona o MMR?
+            <span className="transition-transform group-hover:translate-x-0.5">→</span>
+          </Link>
         </header>
 
         {/* Cabeçalho da lista: rótulo à esquerda + busca SUTIL à direita (Pedro
