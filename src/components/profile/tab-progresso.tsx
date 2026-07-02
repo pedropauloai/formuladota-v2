@@ -9,6 +9,7 @@
 import * as Icons from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { HonorRankMedal } from "@/components/ui/honor-rank-medal";
+import { SeasonHistoryMural } from "./season-history-mural";
 import { createClient } from "@/lib/supabase/server";
 import { displayName, displayAvatar } from "@/lib/identity";
 import {
@@ -120,6 +121,9 @@ export async function TabProgresso({
 
   return (
     <div className="space-y-10">
+      {/* Imortalização — histórico permanente de temporadas (vazio até a 1ª fechar). */}
+      <SeasonHistoryMural userId={userId} />
+
       {/* Hero — estado atual */}
       <section
         className={`rounded-md border ${tierConfig.borderColor} bg-gradient-to-b ${tierConfig.bgGradient} p-6 2xl:p-8`}
