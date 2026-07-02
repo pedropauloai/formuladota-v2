@@ -98,7 +98,7 @@ export default async function AdminTemporadasPage() {
                     seasonId={s.id}
                     seasonName={s.name}
                     active={s.active}
-                    ended={Boolean(s.ended_at) && new Date(s.ended_at) <= now}
+                    ended={s.ended_at != null && new Date(s.ended_at) <= now}
                   />
                 </div>
               </div>
