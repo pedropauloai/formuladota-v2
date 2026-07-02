@@ -169,6 +169,8 @@ export async function ClientShell({
   const miniDotaRank =
     rankTierToDotaRank(careerRankTier, privateData?.careerLeaderboardRank ?? null) ??
     mmrToDotaRank(userMmr);
+  // Rank FormulaDota sazonal (Eixo 2) — 3º selo, só com MMR de temporada.
+  const miniSeasonRank = userMmr != null ? mmrToDotaRank(userMmr) : undefined;
   // Gate de honra pela skill Valve REAL (não pelo MMR de liga, que é ~1000 pra
   // todos) — igual ao /me, hover-card, ready-check e placar de partida.
   const miniHonorRank = getGatedTierForLevel(userLevel, mmrFromRankTier(careerRankTier));
@@ -282,6 +284,7 @@ export async function ClientShell({
             permissions={matchPermissions}
             dotaRank={miniDotaRank}
             honorRank={miniHonorRank}
+            seasonRank={miniSeasonRank}
             initialExpanded={sidebarExpanded}
             lockedExpanded={currentRoute === "/"}
             currentUserId={user?.id ?? null}
@@ -399,6 +402,7 @@ export async function ClientShell({
           permissions={matchPermissions}
           dotaRank={miniDotaRank}
           honorRank={miniHonorRank}
+          seasonRank={miniSeasonRank}
           initialExpanded={sidebarExpanded}
           lockedExpanded={currentRoute === "/"}
           currentUserId={user?.id ?? null}

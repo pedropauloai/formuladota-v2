@@ -1,10 +1,12 @@
-// MedalPair — par canônico SKILL (Valve) + HONOR (FormulaDota) com UM ÚNICO
-// hover combinado (Pedro 2026-06-12): o showcase mostra as duas réguas de
-// medalhas num painel só, em vez de um tooltip por medalha.
+// MedalPair — trio canônico dos eixos de rank com UM ÚNICO hover combinado
+// (Pedro 2026-06-12; 3º selo 2026-07-01): SKILL (Valve crua) + RANK (pele
+// FormulaDota, sazonal) + HONOR/NÍVEL. O showcase mostra as réguas num painel só.
+// O rank sazonal (seasonRank) é OPCIONAL — sem ele, o par volta a ser SKILL+HONOR.
 
 import {
   DotaRankMedal,
   SkillShowcase,
+  RankShowcase,
   type DotaRank,
 } from "@/components/ui/dota-rank-medal"
 import {
@@ -18,7 +20,9 @@ import { cn } from "@/lib/utils"
 interface MedalPairProps {
   dotaRank: DotaRank
   honorRank: HonorRank
-  /** Tamanho repassado às duas medalhas. @default "md" */
+  /** Rank sazonal FormulaDota (Eixo 2). Omitido = sem calibração/sem season → não exibe. */
+  seasonRank?: DotaRank
+  /** Tamanho repassado às medalhas. @default "md" */
   size?: "sm" | "md" | "lg" | "xl"
   /** Glow nas medalhas de topo (Imortal/Místico). @default true */
   glow?: boolean
@@ -32,6 +36,7 @@ interface MedalPairProps {
 export function MedalPair({
   dotaRank,
   honorRank,
+  seasonRank,
   size = "md",
   glow = true,
   side = "top",
@@ -45,6 +50,11 @@ export function MedalPair({
           <span className="block pb-3">
             <SkillShowcase current={dotaRank} />
           </span>
+          {seasonRank && (
+            <span className="block py-3">
+              <RankShowcase current={seasonRank} />
+            </span>
+          )}
           <span className="block pt-3">
             <HonorShowcase current={honorRank} />
           </span>
@@ -61,6 +71,15 @@ export function MedalPair({
         tooltip={false}
         glow={glow && (dotaRank === "immortal" || dotaRank === "immortal-top-100")}
       />
+      {seasonRank && (
+        <DotaRankMedal
+          rank={seasonRank}
+          variant="formuladota"
+          size={size}
+          tooltip={false}
+          glow={glow && (seasonRank === "immortal" || seasonRank === "immortal-top-100")}
+        />
+      )}
       <HonorRankMedal
         rank={honorRank}
         size={size}

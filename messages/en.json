@@ -3515,6 +3515,8 @@
     },
     "skillShowcaseTitle": "Rank medals",
     "skillShowcaseSubtitle": "Official Valve medal — measures SKILL (MMR). Distinct from your FormulaDota level, which measures HONOR.",
+    "rankShowcaseTitle": "FormulaDota Rank",
+    "rankShowcaseSubtitle": "Your season rank, earned in league matches. Same scale as Valve, but it resets every season — this is the one that counts in here. The Valve medal is the legacy; this is the present.",
     "notCalibrated": "Not calibrated",
     "rankCalibratingAlt": "Rank calibrating",
     "calibratingBadge": "Calibrating",
