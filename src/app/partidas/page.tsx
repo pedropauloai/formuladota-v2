@@ -14,6 +14,7 @@ import { ClientShell } from "@/components/client-shell/shell";
 import { EmptyState } from "@/components/ui/empty-state";
 import { getLiveMatches, getRecentMatches } from "@/lib/queries/matches-feed";
 import { HistoryMatchCard, LiveMatchCard } from "@/components/match/match-feed-cards";
+import { MatchIdSearch } from "@/components/match/match-id-search";
 
 export const dynamic = "force-dynamic";
 
@@ -48,6 +49,10 @@ export default async function PartidasPage(props: {
             {t("title")}
           </h1>
           <p className="mt-2 max-w-2xl font-body text-sm text-text-muted">{t("subtitle")}</p>
+          {/* Buscar partida por ID (dota_match_id) → placar do histórico. */}
+          <div className="mt-4 max-w-md">
+            <MatchIdSearch />
+          </div>
         </header>
 
         {/* Acontecendo agora (só na 1ª página). */}

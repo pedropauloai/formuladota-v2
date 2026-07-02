@@ -381,6 +381,8 @@
     "subtitle": "O que está rolando agora e o histórico de todas as partidas da liga.",
     "liveTitle": "Acontecendo agora",
     "liveEmpty": "Nenhuma partida ao vivo neste momento.",
+    "searchByIdPlaceholder": "Buscar partida pelo ID (ex.: 8876919975)",
+    "searchByIdButton": "Buscar",
     "historyTitle": "Histórico",
     "historyEmptyTitle": "Nenhuma partida ainda",
     "historyEmptyDescription": "As partidas da liga aparecem aqui assim que forem finalizadas.",

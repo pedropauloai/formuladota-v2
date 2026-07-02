@@ -381,6 +381,8 @@
     "subtitle": "What's happening right now, plus the full history of league matches.",
     "liveTitle": "Happening now",
     "liveEmpty": "No live matches right now.",
+    "searchByIdPlaceholder": "Search match by ID (e.g. 8876919975)",
+    "searchByIdButton": "Search",
     "historyTitle": "History",
     "historyEmptyTitle": "No matches yet",
     "historyEmptyDescription": "League matches show up here as soon as they finish.",
