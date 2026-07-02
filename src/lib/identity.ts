@@ -1,7 +1,12 @@
 // Identidade canônica do usuário — fonte ÚNICA de verdade pro nome/avatar exibidos.
 // Decisão Pedro 2026-06-03 (ver memory/project_identidade_antianonimato): anonimato é
-// PROIBIDO. O nome é o nick consistente entre as redes (Steam + Discord hoje; Twitch/
-// YouTube/Instagram/X no futuro). Puxa da Steam (persona) com fallback no Discord.
+// PROIBIDO. O nome é o nick consistente entre as redes (Discord + Steam hoje; Twitch/
+// YouTube/Instagram/X no futuro).
+//
+// NOME = HANDLE DO DISCORD primeiro (Pedro 2026-07-02): o @ do Discord é ESTÁVEL, e a
+// persona da Steam tem cultura de ser trocada (às vezes a cada derrota) pra se esconder
+// — o oposto do anti-anonimato. Steam persona vira só fallback. O AVATAR continua Steam
+// (mais "de jogo") > Discord.
 //
 // Use displayName()/displayAvatar() em TODO lugar em vez de espalhar
 // `steamLink?.persona ?? profile?.username` — isso elimina a bagunça de nomes divergentes.
@@ -17,12 +22,12 @@ export interface IdentitySources {
   discordAvatar?: string | null;
 }
 
-/** Nome canônico: Steam (nome do jogo) > Discord (login). Nunca vazio. */
+/** Nome canônico: HANDLE do Discord (estável) > persona Steam (fallback). Nunca vazio. */
 export function displayName(src: IdentitySources): string {
-  const steam = src.steamPersona?.trim();
-  if (steam) return steam;
   const discord = src.discordUsername?.trim();
   if (discord) return discord;
+  const steam = src.steamPersona?.trim();
+  if (steam) return steam;
   return "Anônimo";
 }
 
