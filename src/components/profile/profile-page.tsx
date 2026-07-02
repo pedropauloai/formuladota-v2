@@ -46,7 +46,7 @@ import { TabConquistas } from "./tab-conquistas";
 import { TabConduta } from "./tab-conduta";
 import { TabProgresso } from "./tab-progresso";
 import { AvatarPortraitEdit } from "./avatar-portrait-edit";
-import { NickEditor } from "./inline-edit-controls";
+import { NickEditor, SocialLinksEditor } from "./inline-edit-controls";
 import { ResetLayoutButton } from "./reset-layout-button";
 import { ProfileFriendButton, type ProfileFriendState } from "./profile-friend-button";
 import type { StatBlock } from "./profile-stats-card";
@@ -265,7 +265,7 @@ export function ProfilePage({
                     já que todo login é via Discord; o resto "em breve"), então não
                     expõem dado do viewer. Antes só apareciam no próprio (isOwn) e o
                     perfil público ficava sem — inconsistente. */}
-                <SocialIconsRow />
+                <SocialIconsRow links={profile.socialLinks} />
               </div>
 
               {/* ── Cluster direito: só o resumo de carreira (winrate + TOP). As
@@ -300,9 +300,10 @@ export function ProfilePage({
           {/* ─── RODAPÉ de edição — salvar fica embaixo (Pedro 2026-06-30). ─── */}
           {isOwn && editing && (
             <div className="mt-3 flex shrink-0 flex-wrap items-center justify-end gap-2 border-t border-border-subtle pt-3">
-              {/* Nick oficial — uso único (corrige números/maiúsculas). */}
-              <span className="mr-auto">
+              {/* Nick oficial (uso único) + redes sociais — à esquerda do rodapé. */}
+              <span className="mr-auto flex items-center gap-2">
                 <NickEditor currentNick={profile.username} alreadySet={profile.officialNickSet} />
+                <SocialLinksEditor initial={profile.socialLinks} />
               </span>
               {/* Trocar fundo → popup com preview em tempo real (slot profile_theme). */}
               <BackgroundPicker />

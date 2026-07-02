@@ -8,6 +8,19 @@ import {
   parseDashboardLayout,
   type DashboardLayout,
 } from "@/lib/queries/dashboard-layout";
+import { SOCIAL_KEYS, type SocialLinks } from "@/components/profile/social-icons-row";
+
+/** Coerção segura de jsonb → SocialLinks: só chaves conhecidas + valores string. */
+function parseSocialLinks(raw: unknown): SocialLinks {
+  if (!raw || typeof raw !== "object") return {};
+  const src = raw as Record<string, unknown>;
+  const out: SocialLinks = {};
+  for (const key of SOCIAL_KEYS) {
+    const v = src[key];
+    if (typeof v === "string" && v.length > 0) out[key] = v;
+  }
+  return out;
+}
 
 export interface ProfileForMe {
   userId: string;
@@ -31,6 +44,8 @@ export interface ProfileForMe {
   dashboardLayout: DashboardLayout;
   // Já registrou o nick oficial? (uso único do editor de nick)
   officialNickSet: boolean;
+  // Redes sociais registradas (rede → URL do perfil). Discord vem do login.
+  socialLinks: SocialLinks;
 }
 
 /**
@@ -49,7 +64,7 @@ export async function getProfileForMe(): Promise<ProfileForMe | null> {
       supabase
         .from("profiles")
         .select(
-          "username, avatar_url, status_message, hero_portrait_slug, favorite_heroes, avatar_custom_url, last_seen_at, behavior_status, doctrine_accepted_at, dashboard_layout, official_nick_set"
+          "username, avatar_url, status_message, hero_portrait_slug, favorite_heroes, avatar_custom_url, last_seen_at, behavior_status, doctrine_accepted_at, dashboard_layout, official_nick_set, social_links"
         )
         .eq("id", user.id)
         .single(),
@@ -124,6 +139,7 @@ export async function getProfileForMe(): Promise<ProfileForMe | null> {
     derrotas: mmrRow?.derrotas ?? null,
     dashboardLayout: parseDashboardLayout(profile?.dashboard_layout),
     officialNickSet: profile?.official_nick_set ?? false,
+    socialLinks: parseSocialLinks(profile?.social_links),
   };
 }
 
@@ -178,5 +194,6 @@ export async function getPublicProfile(
     derrotas: r.derrotas ?? null,
     dashboardLayout: parseDashboardLayout(null),
     officialNickSet: true, // perfil público não edita nick → trata como já definido
+    socialLinks: parseSocialLinks((r as { social_links?: unknown }).social_links),
   };
 }

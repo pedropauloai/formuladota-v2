@@ -1863,6 +1863,7 @@ export type Database = {
           mmr_atual: number | null
           mmr_inicial: number | null
           official_nick_set: boolean
+          social_links: Json
           role: string
           role_preferida: string | null
           status_message: string | null
@@ -1898,6 +1899,7 @@ export type Database = {
           mmr_atual?: number | null
           mmr_inicial?: number | null
           official_nick_set?: boolean
+          social_links?: Json
           role?: string
           role_preferida?: string | null
           status_message?: string | null
@@ -1933,6 +1935,7 @@ export type Database = {
           mmr_atual?: number | null
           mmr_inicial?: number | null
           official_nick_set?: boolean
+          social_links?: Json
           role?: string
           role_preferida?: string | null
           status_message?: string | null

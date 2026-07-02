@@ -27,8 +27,10 @@ import {
   updateFavoriteHeroes,
   updateHeroPortrait,
   setOfficialNick,
+  updateSocialLinks,
 } from "@/actions/profile";
 import type { HeroData } from "@/lib/queries/heroes";
+import { SOCIAL_KEYS, type SocialLinks } from "./social-icons-row";
 
 // HeroPicker tem props (mode, maxSelections, initialSelected, onChange).
 // AvatarUpload tem props (userId, currentAvatarUrl, onSaved).
@@ -240,6 +242,89 @@ export function AvatarEditor({
         currentAvatarUrl={initialAvatar}
         onSaved={() => router.refresh()}
       />
+    </div>
+  );
+}
+
+// ===========================================================================
+// SocialLinksEditor — registra as URLs das redes sociais (Discord vem do login).
+// ===========================================================================
+
+const SOCIAL_LABELS: Record<(typeof SOCIAL_KEYS)[number], string> = {
+  twitch: "Twitch",
+  youtube: "YouTube",
+  kick: "Kick",
+  instagram: "Instagram",
+  twitter: "X / Twitter",
+};
+
+export function SocialLinksEditor({ initial }: { initial: SocialLinks }) {
+  const [open, setOpen] = useState(false);
+  const [links, setLinks] = useState<Record<string, string>>(() => ({ ...initial }));
+  const [pending, startTransition] = useTransition();
+  const { toast } = useToast();
+  const router = useRouter();
+
+  function save() {
+    startTransition(async () => {
+      try {
+        await updateSocialLinks(links);
+        toast({ type: "success", title: "Redes sociais salvas" });
+        setOpen(false);
+        router.refresh();
+      } catch (e) {
+        toast({
+          type: "error",
+          title: "Não foi possível salvar",
+          description: e instanceof Error ? e.message : undefined,
+        });
+      }
+    });
+  }
+
+  if (!open) {
+    return (
+      <Button variant="secondary" size="sm" onClick={() => setOpen(true)}>
+        <Pencil size={14} aria-hidden="true" />
+        Redes sociais
+      </Button>
+    );
+  }
+
+  return (
+    <div className="w-full space-y-2 rounded-md border border-brand-primary/40 bg-bg-deep/80 p-3">
+      <p className="font-display text-sm font-semibold uppercase tracking-wide text-text-faded">
+        Redes sociais (cole a URL do seu perfil)
+      </p>
+      {SOCIAL_KEYS.map((key) => (
+        <label key={key} className="flex items-center gap-2">
+          <span className="w-24 shrink-0 font-display text-sm text-text-muted">
+            {SOCIAL_LABELS[key]}
+          </span>
+          <input
+            type="url"
+            value={links[key] ?? ""}
+            onChange={(e) => setLinks((p) => ({ ...p, [key]: e.target.value }))}
+            disabled={pending}
+            placeholder="https://…"
+            className="flex-1 rounded border border-border-subtle bg-bg-base px-2.5 py-1.5 font-body text-sm text-text-body placeholder:text-text-faded focus:border-brand-primary focus:outline-none disabled:opacity-50"
+          />
+        </label>
+      ))}
+      <div className="flex items-center justify-end gap-2 pt-1">
+        <button
+          type="button"
+          onClick={() => setOpen(false)}
+          disabled={pending}
+          className="font-display text-sm uppercase tracking-wide text-text-faded transition-colors hover:text-text-display disabled:opacity-50"
+        >
+          Cancelar
+        </button>
+        <Button variant="cinematic" size="sm" onClick={save} disabled={pending}>
+          <Check size={14} aria-hidden="true" />
+          Salvar
+        </Button>
+      </div>
     </div>
   );
 }

@@ -102,6 +102,62 @@ export async function setOfficialNick(nick: string): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------
+// updateSocialLinks — redes sociais do usuário (Pedro 2026-07-02)
+// ---------------------------------------------------------------------------
+// O Discord vem do login; aqui o user registra as outras redes (URL do perfil).
+// Guardamos a URL completa por rede (sem adivinhar formato de handle).
+
+const SOCIAL_KEYS = ["twitch", "youtube", "kick", "instagram", "twitter"] as const;
+
+const urlOrEmpty = z
+  .string()
+  .trim()
+  .max(200, "URL longa demais")
+  .refine((s) => s === "" || /^https?:\/\/.+\..+/.test(s), "URL inválida (use https://…)");
+
+const SocialLinksSchema = z.object({
+  twitch: urlOrEmpty.optional(),
+  youtube: urlOrEmpty.optional(),
+  kick: urlOrEmpty.optional(),
+  instagram: urlOrEmpty.optional(),
+  twitter: urlOrEmpty.optional(),
+});
+
+export async function updateSocialLinks(
+  links: Record<string, string>
+): Promise<void> {
+  const parsed = SocialLinksSchema.safeParse(links);
+  if (!parsed.success) {
+    throw new Error(parsed.error.errors[0]?.message ?? "Links inválidos");
+  }
+
+  // Só guarda as redes preenchidas (string vazia = remover o vínculo).
+  const clean: Record<string, string> = {};
+  for (const key of SOCIAL_KEYS) {
+    const v = parsed.data[key]?.trim();
+    if (v) clean[key] = v;
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Não autorizado");
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ social_links: clean })
+    .eq("id", user.id);
+
+  if (error) {
+    console.error("[updateSocialLinks] error:", error);
+    throw new Error("Não foi possível salvar as redes sociais");
+  }
+
+  revalidatePath("/me");
+}
+
+// ---------------------------------------------------------------------------
 // updateFavoriteHeroes — Aba Heróis Favoritos do modal (D-19)
 // ---------------------------------------------------------------------------
 
