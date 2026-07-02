@@ -39,16 +39,16 @@ interface RankRow {
 
 const PAGE_SIZE = 50;
 
-// Conversão MMR → rank Dota 2 (espelhada de coaches/[slug]/page.tsx)
+// Conversão MMR → rank Dota (escala oficial do wiki, mesma das TIER_BANDS de
+// src/lib/mmr.ts). Imortal = 5620; teto in-house 7000.
 function mmrToDotaRank(mmr: number | null): DotaRank {
   if (mmr === null) return "herald";
-  if (mmr >= 9000) return "immortal-top-100";
-  if (mmr >= 6000) return "immortal";
-  if (mmr >= 5000) return "divine";
-  if (mmr >= 4000) return "ancient";
-  if (mmr >= 3000) return "legend";
-  if (mmr >= 2000) return "archon";
-  if (mmr >= 1500) return "crusader";
+  if (mmr >= 5620) return "immortal";
+  if (mmr >= 4620) return "divine";
+  if (mmr >= 3850) return "ancient";
+  if (mmr >= 3080) return "legend";
+  if (mmr >= 2310) return "archon";
+  if (mmr >= 1540) return "crusader";
   if (mmr >= 770) return "guardian";
   return "herald";
 }

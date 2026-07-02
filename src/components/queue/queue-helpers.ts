@@ -5,16 +5,17 @@ import type { DotaRank } from "@/components/ui/dota-rank-medal";
 import type { HonorRank } from "@/components/ui/honor-rank-medal";
 import type { BoardCoach } from "./queue-board";
 
-// Mapeia MMR Valve → DotaRank V2.5 (escala oficial Valve, mesma de /me)
+// Mapeia MMR → DotaRank pela escala OFICIAL do Dota (wiki 2025/2026), mesma das
+// TIER_BANDS de src/lib/mmr.ts. Imortal = 5620 (teto in-house 7000). O "immortal-top-100"
+// não vem do MMR (vem do leaderboard rank, tratado à parte).
 export function mmrToDotaRank(mmr: number | null | undefined): DotaRank {
   if (mmr == null) return "herald";
-  if (mmr >= 9000) return "immortal-top-100";
-  if (mmr >= 6000) return "immortal";
-  if (mmr >= 5000) return "divine";
-  if (mmr >= 4000) return "ancient";
-  if (mmr >= 3000) return "legend";
-  if (mmr >= 2000) return "archon";
-  if (mmr >= 1500) return "crusader";
+  if (mmr >= 5620) return "immortal";
+  if (mmr >= 4620) return "divine";
+  if (mmr >= 3850) return "ancient";
+  if (mmr >= 3080) return "legend";
+  if (mmr >= 2310) return "archon";
+  if (mmr >= 1540) return "crusader";
   if (mmr >= 770) return "guardian";
   return "herald";
 }
