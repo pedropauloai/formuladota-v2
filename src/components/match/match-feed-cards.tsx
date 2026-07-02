@@ -7,6 +7,9 @@ import { Link } from "@/i18n/navigation";
 import { Clock, Radio } from "lucide-react";
 import { getHeroById } from "@/lib/queries/heroes";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
+import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
+import { mmrToDotaRank } from "@/components/queue/queue-helpers";
+import { mmrToTier } from "@/lib/mmr";
 import type { HistoryMatch, HistoryPlayer, LiveMatch, LivePlayer } from "@/lib/queries/matches-feed";
 
 // Chip de jogador: o AVATAR + NÍVEL da conta são o destaque (identidade = o produto;
@@ -44,7 +47,18 @@ function PlayerChip({ player }: { player: HistoryPlayer }) {
           </span>
         )}
       </span>
-      <span className="mt-1 block w-full truncate text-center font-display text-[0.65rem] font-medium leading-none text-text-body">
+      {/* Medalha do rank FormulaDota (representa o MMR atual). */}
+      {player.mmr != null && (
+        <DotaRankMedal
+          rank={mmrToDotaRank(player.mmr)}
+          stars={mmrToTier(player.mmr).stars}
+          variant="formuladota"
+          size="sm"
+          tooltip={false}
+          className="mt-1"
+        />
+      )}
+      <span className="mt-0.5 block w-full truncate text-center font-display text-[0.65rem] font-medium leading-none text-text-body">
         {player.name}
       </span>
       {mmr != null ? (
