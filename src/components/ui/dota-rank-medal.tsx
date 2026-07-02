@@ -514,11 +514,9 @@ export function DotaRankMedal({
             "flex items-center justify-center",
             /* Isolamento de contexto para o drop-shadow funcionar corretamente */
             "isolate",
-            /* Pele FormulaDota: moldura angular de marca sobre a MESMA medalha,
-               pra nunca confundir o rank sazonal (Eixo 2) com a Valve crua (Eixo 1).
-               Sem padding: a medalha mantém o tamanho cheio (mesmo peso visual do par). */
-            isFd &&
-              "rounded-sm border border-brand-primary/45 bg-bg-deep/50 shadow-[inset_0_0_10px_rgba(196,33,33,0.15)]",
+            /* Pele FormulaDota: identidade dada pelo MONOGRAMA FD (canto), sem caixa
+               em volta — a moldura+fundo poluíam e davam sensação de baixa definição
+               (Pedro 2026-07-02). A medalha respira limpa, no tamanho cheio. */
           )}
         >
           <Image
@@ -526,6 +524,10 @@ export function DotaRankMedal({
             alt={`${label} rank medal`}
             width={px}
             height={px}
+            /* unoptimized: serve o PNG 256px cheio pro browser redimensionar (nítido em
+               telas HiDPI). O pipeline do Next reamostrava pra 32/48px e borrava a
+               medalha — era a "baixa definição" que o Pedro via (2026-07-02). */
+            unoptimized
             className={cn(
               "object-contain",
               "w-full h-full",

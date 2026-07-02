@@ -247,7 +247,7 @@ function TeamTable({
         )}
       </header>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[820px] border-collapse">
+        <table className="w-full min-w-[960px] border-collapse">
           <thead>
             <tr className="border-b border-border-subtle/60">
               <th className="px-3 py-2 text-left font-display text-[0.65rem] font-bold uppercase tracking-wide text-text-faded">
