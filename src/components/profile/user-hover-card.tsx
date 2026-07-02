@@ -29,6 +29,7 @@ import {
 import { MedalPair } from "@/components/ui/medal-pair";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { mmrToDotaRank } from "@/components/queue/queue-helpers";
+import { mmrToTier } from "@/lib/mmr";
 import { rankTierToDotaRank } from "@/components/profile/career-stats";
 import { getGatedTierForLevel, mmrFromRankTier } from "@/lib/levels";
 import { formatLastSeen } from "@/lib/realtime/presence";
@@ -120,6 +121,9 @@ function Body({ data, online }: { data: PublicMiniProfile; online?: boolean }) {
   const honorRank = getGatedTierForLevel(data.level, mmrFromRankTier(data.rankTier));
   // Rank FormulaDota (sazonal, Eixo 2) — só quando o jogador tem MMR de temporada.
   const seasonRank = data.mmr != null ? mmrToDotaRank(data.mmr) : undefined;
+  // Estrelas da sub-divisão (1–5): SKILL = unidade do rank_tier Valve; sazonal = MMR da liga.
+  const seasonStars = data.mmr != null ? mmrToTier(data.mmr).stars : undefined;
+  const dotaStars = data.rankTier ? data.rankTier % 10 : seasonStars;
 
   const heroes = data.favoriteHeroes
     .map((slug) => getHeroBySlug(slug))
@@ -184,7 +188,7 @@ function Body({ data, online }: { data: PublicMiniProfile; online?: boolean }) {
 
       {/* Medalhas + winrate de carreira na mesma linha */}
       <div className="flex items-center justify-between gap-2">
-        <MedalPair dotaRank={dotaRank} honorRank={honorRank} seasonRank={seasonRank} size="sm" side="bottom" align="start" />
+        <MedalPair dotaRank={dotaRank} dotaStars={dotaStars} honorRank={honorRank} seasonRank={seasonRank} seasonStars={seasonStars} size="sm" side="bottom" align="start" />
         {winrate !== null && (
           <div className="text-right leading-tight">
             <p className="font-display-condensed text-xl tabular-nums text-gold">{winrate}%</p>

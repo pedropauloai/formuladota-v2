@@ -34,6 +34,7 @@ import { Pencil, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MedalPair } from "@/components/ui/medal-pair";
 import { mmrToDotaRank } from "@/components/queue/queue-helpers";
+import { mmrToTier } from "@/lib/mmr";
 import { ProfileTabs, type ProfileTab } from "./profile-tabs";
 import { SocialIconsRow, SteamIcon } from "./social-icons-row";
 import { SyncSteamButton } from "./sync-steam-button";
@@ -104,6 +105,10 @@ export function ProfilePage({
   const ranqueado = profile.mmr !== null;
   // Rank FormulaDota (Eixo 2, sazonal) — 3º selo, só quando há MMR de temporada.
   const seasonRank = profile.mmr !== null ? mmrToDotaRank(profile.mmr) : undefined;
+  // Estrelas da sub-divisão (1–5). SKILL Valve = unidade do rank_tier (medalha×10+estrela);
+  // sem rank Valve, o selo cai no MMR da liga → mesmas estrelas do sazonal.
+  const seasonStars = profile.mmr !== null ? mmrToTier(profile.mmr).stars : undefined;
+  const dotaStars = career?.rankTier ? career.rankTier % 10 : seasonStars;
   // Navegação coerente: próprio = /me; público = /perfil/u/[id]. Todas as abas
   // funcionam pra qualquer user (Progresso/Conquistas lidos por userId; o
   // histórico de XP e o coaching, que são pessoais, ficam ocultos no público).
@@ -222,8 +227,10 @@ export function ProfilePage({
                       medalhões grandes flutuando (Pedro 2026-07-01). Hover = showcase. */}
                   <MedalPair
                     dotaRank={dotaRank}
+                    dotaStars={dotaStars}
                     honorRank={honorRank}
                     seasonRank={seasonRank}
+                    seasonStars={seasonStars}
                     size="md"
                     className="ml-1.5 shrink-0"
                   />

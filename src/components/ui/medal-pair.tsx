@@ -22,6 +22,10 @@ interface MedalPairProps {
   honorRank: HonorRank
   /** Rank sazonal FormulaDota (Eixo 2). Omitido = sem calibração/sem season → não exibe. */
   seasonRank?: DotaRank
+  /** Estrelas (1–5) da medalha SKILL Valve. Omitido = sem pips. */
+  dotaStars?: number
+  /** Estrelas (1–5) do rank sazonal FormulaDota. Omitido = sem pips. */
+  seasonStars?: number
   /** Tamanho repassado às medalhas. @default "md" */
   size?: "sm" | "md" | "lg" | "xl"
   /** Glow nas medalhas de topo (Imortal/Místico). @default true */
@@ -37,6 +41,8 @@ export function MedalPair({
   dotaRank,
   honorRank,
   seasonRank,
+  dotaStars,
+  seasonStars,
   size = "md",
   glow = true,
   side = "top",
@@ -67,6 +73,7 @@ export function MedalPair({
     >
       <DotaRankMedal
         rank={dotaRank}
+        stars={dotaStars}
         size={size}
         tooltip={false}
         glow={glow && (dotaRank === "immortal" || dotaRank === "immortal-top-100")}
@@ -74,6 +81,7 @@ export function MedalPair({
       {seasonRank && (
         <DotaRankMedal
           rank={seasonRank}
+          stars={seasonStars}
           variant="formuladota"
           size={size}
           tooltip={false}

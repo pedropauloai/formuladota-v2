@@ -16,6 +16,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { UserHoverCard } from "@/components/profile/user-hover-card";
 import { DotaRankMedal, type DotaRank } from "@/components/ui/dota-rank-medal";
+import { mmrToTier } from "@/lib/mmr";
 import { SeasonBanner } from "@/components/patterns/season-banner";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -301,7 +302,7 @@ function TopCard({ row, position }: { row: RankRow; position: number }) {
           </div>
         </UserHoverCard>
         <div className="flex items-center justify-between border-t border-border-subtle pt-3">
-          <DotaRankMedal rank={dotaRank} variant="formuladota" size="sm" showLabel />
+          <DotaRankMedal rank={dotaRank} stars={mmrToTier(row.mmr).stars} variant="formuladota" size="sm" showLabel />
           <span className="font-display text-sm 2xl:text-base font-semibold text-text-body">
             {t("winLoss", { wins: row.vitorias, losses: row.derrotas })}
           </span>
@@ -344,7 +345,7 @@ function RankingRow({ row, position }: { row: RankRow; position: number }) {
           </p>
         </div>
       </UserHoverCard>
-      <DotaRankMedal rank={dotaRank} variant="formuladota" size="sm" />
+      <DotaRankMedal rank={dotaRank} stars={mmrToTier(row.mmr).stars} variant="formuladota" size="sm" />
       <span className="font-mono text-sm 2xl:text-base tabular-nums text-gold w-16 text-right">{row.mmr}</span>
     </li>
   );
