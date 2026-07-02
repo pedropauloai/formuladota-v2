@@ -12,6 +12,9 @@ import {
   calculateMmrDelta,
   computePerfScore,
   modulateMmrDelta,
+  seedMmrFromRankTier,
+  CALIBRATION_MATCHES,
+  CALIBRATION_MULTIPLIER,
   STARTING_MMR,
 } from "@/lib/mmr";
 
@@ -30,7 +33,7 @@ export async function applyMatchMmr(
 ): Promise<ApplyMmrResult> {
   const { data: players } = await supabase
     .from("match_players")
-    .select("user_id, team, is_winner, benchmarks")
+    .select("user_id, team, is_winner, benchmarks, rank_tier")
     .eq("match_id", matchId);
 
   // Só jogadores da plataforma (com user_id) ganham/perdem MMR.
@@ -41,23 +44,42 @@ export async function applyMatchMmr(
     return { applied: 0, skipped: "sem jogadores da plataforma" };
   }
 
+  // Só temporada ATIVA e NÃO-beta conta (pré-temporada = testes, não ranqueia).
   const { data: season } = await supabase
     .from("seasons")
-    .select("id")
+    .select("id, beta")
     .eq("active", true)
     .maybeSingle();
   if (!season) return { applied: 0, skipped: "sem temporada ativa" };
+  if (season.beta) return { applied: 0, skipped: "pré-temporada (beta) não conta" };
 
-  // MMRs atuais (default STARTING_MMR pra quem ainda não tem linha na season).
+  // Estado atual por jogador: MMR (semente da medalha Valve na 1ª partida da season)
+  // + calibração (não calibrado → swing dobrado). rank_tier vem do match_players.
   const userIds = platform.map((p) => p.user_id);
+  const rankTierOf = new Map<string, number | null>();
+  for (const p of platform) rankTierOf.set(p.user_id, (p.rank_tier as number | null) ?? null);
+
   const { data: existing } = await supabase
     .from("player_season_mmr")
-    .select("user_id, mmr")
+    .select("user_id, mmr, calibrated, placements_played")
     .eq("season_id", season.id)
     .in("user_id", userIds);
-  const mmrOf = new Map<string, number>();
-  for (const r of existing ?? []) mmrOf.set(r.user_id, r.mmr);
-  const getMmr = (uid: string) => mmrOf.get(uid) ?? STARTING_MMR;
+  const rowOf = new Map<string, { mmr: number; calibrated: boolean; placements: number }>();
+  for (const r of existing ?? []) {
+    rowOf.set(r.user_id, {
+      mmr: r.mmr,
+      calibrated: Boolean(r.calibrated),
+      placements: r.placements_played ?? 0,
+    });
+  }
+  // MMR atual: linha existente → seu mmr; senão semeia da medalha Valve → senão 1000.
+  const getMmr = (uid: string) =>
+    rowOf.get(uid)?.mmr ?? seedMmrFromRankTier(rankTierOf.get(uid)) ?? STARTING_MMR;
+  // Ainda calibrando? (sem linha OU placements < 7) → delta vale o dobro.
+  const isCalibrating = (uid: string) => {
+    const r = rowOf.get(uid);
+    return !r || (!r.calibrated && r.placements < CALIBRATION_MATCHES);
+  };
 
   // Médias por time (dos jogadores da plataforma de cada lado). Se um lado não
   // tem jogador da plataforma, espelha o outro (não distorce o Elo).
@@ -88,10 +110,13 @@ export async function applyMatchMmr(
     const base = p.team === "radiant" ? radiantDelta : direDelta;
     const won = Boolean(p.is_winner);
     const perf = computePerfScore(p.benchmarks as PerfBenchmarks | null);
-    const delta = modulateMmrDelta(base, perf, won);
+    let delta = modulateMmrDelta(base, perf, won);
+    // Calibração: delta vale o DOBRO (converge rápido pro nível real).
+    if (isCalibrating(p.user_id)) delta *= CALIBRATION_MULTIPLIER;
     return {
       user_id: p.user_id,
       new_mmr: Math.max(0, getMmr(p.user_id) + delta),
+      delta, // gravado em match_players.mmr_change (aparece no histórico)
       won,
     };
   });
