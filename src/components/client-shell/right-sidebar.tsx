@@ -294,7 +294,8 @@ function SeasonCard({
           {daysLeftLabel}
         </p>
       </div>
-      <CardCta href="/ranking" label={cta} />
+      {/* CTA leva pro guia do MMR (ponto de entrada pro /mmr, Pedro 2026-07-02). */}
+      <CardCta href="/mmr" label={cta} />
     </article>
   );
 }
