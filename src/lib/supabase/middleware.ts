@@ -35,7 +35,9 @@ const PUBLIC_PATHS = [
 // Login: rota que dispara o Discord OAuth. NUNCA gateada (senão loop infinito).
 const LOGIN_PATHS = ["/login"];
 
-const AUTH_FLOW_PATHS = ["/auth", "/api/auth", "/api/webhooks"];
+// /api/cron: jobs sistêmicos (sem sessão) — têm auth próprio (CRON_SECRET). Sem
+// isso o middleware redirecionava (307) e o pg_net nunca chegava na rota.
+const AUTH_FLOW_PATHS = ["/auth", "/api/auth", "/api/webhooks", "/api/cron"];
 
 // Pedro 2026-06-03: o gate de "jogar" deixou de ser "doutrina 100% completa" e virou
 // PERMISSAO (5 acertos = 1 permissao), aplicada na RLS + pop-up de perguntas no fluxo de
