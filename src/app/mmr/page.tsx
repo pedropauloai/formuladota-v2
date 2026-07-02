@@ -290,8 +290,11 @@ export default function MmrExplainerPage() {
                   </p>
                   <p>
                     Os <strong className="text-brand-primary">Top {IMMORTAL_ELITE_TOP}</strong> da
-                    temporada ganham a <strong className="text-brand-primary">medalha vermelha</strong>{" "}
-                    (a elite) — a mesma arte lendária, reservada pra quem está no cume.
+                    temporada ganham a{" "}
+                    <strong className="text-brand-primary">medalha oficial de leaderboard</strong> — a
+                    mesma do #1 ao #{IMMORTAL_ELITE_TOP}, com a sua{" "}
+                    <strong className="text-text-display">posição gravada dentro dela</strong>, igual
+                    ao cliente do Dota.
                   </p>
                 </div>
               </div>

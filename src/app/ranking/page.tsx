@@ -17,19 +17,19 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { UserHoverCard } from "@/components/profile/user-hover-card";
 import { DotaRankMedal, type DotaRank } from "@/components/ui/dota-rank-medal";
-import { mmrToTier, IMMORTAL_FLOOR, IMMORTAL_LEADERBOARD_TOP } from "@/lib/mmr";
+import { mmrToTier, IMMORTAL_FLOOR, IMMORTAL_ELITE_TOP } from "@/lib/mmr";
 
-// Medalha do rank: os TOP 30 Imortais (por posição) usam a medalha de LEADERBOARD
-// (anel oficial que segura o número); o resto segue o MMR. `position` = colocação
-// global (1-based) na temporada; o #1 ainda ganha a coroa (via prop crown).
+// Medalha do rank: o TOP 10 Imortais (por posição) usa a MESMA medalha oficial de
+// leaderboard (anel que segura o número) — do rank 1 ao 10, idêntica (Pedro 2026-07-02);
+// o resto segue o MMR. `position` = colocação global (1-based) na temporada.
 function rankMedalFor(mmr: number, position: number): DotaRank {
-  if (mmr >= IMMORTAL_FLOOR && position <= IMMORTAL_LEADERBOARD_TOP) return "immortal-leaderboard";
+  if (mmr >= IMMORTAL_FLOOR && position <= IMMORTAL_ELITE_TOP) return "immortal-leaderboard";
   return mmrToDotaRank(mmr);
 }
 
-// Número do leaderboard (#N dentro da medalha) pros Imortais no top da temporada.
+// Número do leaderboard (#N dentro do anel) — só o top 10.
 function leaderboardNumberFor(mmr: number, position: number): number | undefined {
-  return mmr >= IMMORTAL_FLOOR && position <= IMMORTAL_LEADERBOARD_TOP ? position : undefined;
+  return mmr >= IMMORTAL_FLOOR && position <= IMMORTAL_ELITE_TOP ? position : undefined;
 }
 import { SeasonBanner } from "@/components/patterns/season-banner";
 
@@ -326,7 +326,6 @@ function TopCard({ row, position }: { row: RankRow; position: number }) {
             rank={dotaRank}
             stars={mmrToTier(row.mmr).stars}
             leaderboardNumber={leaderboardNumberFor(row.mmr, position)}
-            crown={position === 1 && row.mmr >= IMMORTAL_FLOOR}
             variant="formuladota"
             size="sm"
             showLabel
@@ -377,7 +376,6 @@ function RankingRow({ row, position }: { row: RankRow; position: number }) {
         rank={dotaRank}
         stars={mmrToTier(row.mmr).stars}
         leaderboardNumber={leaderboardNumberFor(row.mmr, position)}
-        crown={position === 1 && row.mmr >= IMMORTAL_FLOOR}
         variant="formuladota"
         size="sm"
       />

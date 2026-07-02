@@ -23,7 +23,7 @@ import { getHeroById } from "@/lib/queries/heroes";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
 import { mmrToDotaRank } from "@/components/queue/queue-helpers";
-import { mmrToTier, IMMORTAL_FLOOR, IMMORTAL_LEADERBOARD_TOP } from "@/lib/mmr";
+import { mmrToTier, IMMORTAL_FLOOR, IMMORTAL_ELITE_TOP } from "@/lib/mmr";
 
 const HEROES_FULL_BG =
   "https://cdn.steamstatic.com/apps/dota2/images/dota_react/home/heroes_full.jpg";
@@ -246,15 +246,14 @@ function RankingCard({
                 />
                 <DotaRankMedal
                   rank={
-                    r.mmr >= IMMORTAL_FLOOR && i + 1 <= IMMORTAL_LEADERBOARD_TOP
+                    r.mmr >= IMMORTAL_FLOOR && i + 1 <= IMMORTAL_ELITE_TOP
                       ? "immortal-leaderboard"
                       : mmrToDotaRank(r.mmr)
                   }
                   stars={mmrToTier(r.mmr).stars}
                   leaderboardNumber={
-                    r.mmr >= IMMORTAL_FLOOR && i + 1 <= IMMORTAL_LEADERBOARD_TOP ? i + 1 : undefined
+                    r.mmr >= IMMORTAL_FLOOR && i + 1 <= IMMORTAL_ELITE_TOP ? i + 1 : undefined
                   }
-                  crown={i === 0 && r.mmr >= IMMORTAL_FLOOR}
                   variant="formuladota"
                   size="sm"
                   tooltip={false}

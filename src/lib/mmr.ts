@@ -14,16 +14,12 @@ export const MAX_MATCH_DELTA = 30;
 /** Piso do Imortal (fim do Divino) — acima disso o ranqueamento é por POSIÇÃO. */
 export const IMMORTAL_FLOOR = 5620;
 /**
- * Elite do leaderboard de Imortais: os TOP N (por MMR na temporada) ganham a
- * medalha vermelha (immortal-top-100). Pequeno de propósito no começo (a base ainda
- * é pequena) — subir depois é trocar essa constante. Pedro 2026-07-02.
+ * Elite do leaderboard de Imortais: os TOP N (por posição na temporada) ganham a
+ * medalha OFICIAL de leaderboard (anel) do Dota — do #1 ao #N ela é IDÊNTICA (Pedro
+ * 2026-07-02, confirmado contra o wiki), o que muda é o NÚMERO dentro do anel. Sem
+ * coroa/arte única no #1. Pequeno de propósito no começo — subir é trocar a constante.
  */
 export const IMMORTAL_ELITE_TOP = 10;
-/**
- * Top do leaderboard que exibe a POSIÇÃO (#N) dentro da medalha, estilo oficial.
- * Pedro 2026-07-02: top 30 numerado; medalha vermelha nos top 10; coroa no #1.
- */
-export const IMMORTAL_LEADERBOARD_TOP = 30;
 
 /**
  * Calcula delta MMR de cada jogador após match 5v5.
