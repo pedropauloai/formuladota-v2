@@ -31,7 +31,11 @@
     "subscribe": "Subscribe",
     "currentBase": "Your base plan",
     "note": "Recurring billing is coming soon — for now, this is a preview of the plans.",
-    "names": { "gratuito": "Free", "aegis": "Aegis", "godlike": "Godlike" },
+    "names": {
+      "gratuito": "Free",
+      "aegis": "Aegis",
+      "godlike": "Godlike"
+    },
     "features": {
       "trilhaBasica": "Free Compendium track",
       "trilhaCompleta": "Full Compendium track",
@@ -175,7 +179,25 @@
     "fichasTooltip": "1 token = 1 slot in a match with a PRO · R$ 10. One-off purchase via PIX.",
     "fichasBalance": "Token balance",
     "adminUnit": "admin",
-    "fichaUnit": "{count, plural, =1 {token} other {tokens}}"
+    "fichaUnit": "{count, plural, =1 {token} other {tokens}}",
+    "sidebar": {
+      "recentTitle": "Recent matches",
+      "recentCta": "See all",
+      "recentEmpty": "No matches yet.",
+      "rankingTitle": "Ranking leaders",
+      "rankingCta": "See full ranking",
+      "rankingEmpty": "Ranking is empty.",
+      "seasonTitle": "Current season",
+      "seasonDaysLeft": "{days, plural, =0 {Last day} =1 {1 day left} other {# days left}}",
+      "seasonCta": "See ranking",
+      "muralTitle": "Wall of Shame",
+      "muralCount": "{count, plural, =1 {1 player punished} other {# players punished}}",
+      "muralCta": "See the Wall",
+      "muralEmpty": "No one punished. Keep it that way.",
+      "banned": "Banned",
+      "suspended": "Suspended",
+      "vs": "vs"
+    }
   },
   "hoverCard": {
     "level": "Level {level}",
