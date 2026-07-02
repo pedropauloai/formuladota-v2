@@ -45,9 +45,10 @@ const PILLARS = [
 
 export function HubCenter({ isVisitor, prosOnlineCount, showRankedComPro = false }: HubCenterProps) {
   const t = useTranslations("capa");
-  // CTA de ação (logado): "Subir MMR" quando a feature está on; senão "Ver Partidas".
-  const ctaHref = showRankedComPro ? "/ranked-com-pro" : "/partidas";
-  const ctaLabel = showRankedComPro ? t("ctaPlay") : t("ctaMatches");
+  // CTA de ação (logado): "Subir MMR" quando a feature está on; senão o guia do MMR
+  // (/mmr) — vitrine didática do sistema (Pedro 2026-07-02).
+  const ctaHref = showRankedComPro ? "/ranked-com-pro" : "/mmr";
+  const ctaLabel = showRankedComPro ? t("ctaPlay") : t("ctaMmr");
 
   return (
     <section className="mx-auto flex min-h-full w-full max-w-6xl flex-col justify-center gap-5 px-6 py-6 2xl:gap-8 2xl:px-10 2xl:py-10">
@@ -166,12 +167,16 @@ export function HubCenter({ isVisitor, prosOnlineCount, showRankedComPro = false
         >
           {t("whyLink")}
         </Link>
-        <span
-          className="font-display text-sm font-semibold text-text-muted 2xl:text-base"
-          role="status"
-        >
-          {t("pulso", { count: prosOnlineCount })}
-        </span>
+        {/* Pulso de PROs online — só quando a feature "Ranked com PRO" está ligada
+            (com ela off, "0 PROs online" não faz sentido). Pedro 2026-07-02. */}
+        {showRankedComPro && (
+          <span
+            className="font-display text-sm font-semibold text-text-muted 2xl:text-base"
+            role="status"
+          >
+            {t("pulso", { count: prosOnlineCount })}
+          </span>
+        )}
       </div>
     </section>
   );

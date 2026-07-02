@@ -62,7 +62,7 @@ const TLDR = [
     icon: ShieldCheck,
     titulo: "Sem inflação",
     texto:
-      "Escala oficial do Dota, teto de 7000. Imortal começa em 5620 e o topo é por posição — não infla com o tempo.",
+      "Escala oficial do Dota. Imortal começa em 5620 e o topo é por POSIÇÃO (leaderboard) — sem teto que trava, sem inflação.",
   },
 ];
 
@@ -94,16 +94,8 @@ export default function MmrExplainerPage() {
       <div className="w-full pb-16">
         {/* ─── HERO full-bleed: textura ao fundo + fade, título + intro ─── */}
         <header className="relative overflow-hidden border-b border-border-subtle">
-          <Image
-            src="/images/textures/ripple-texture.png"
-            alt=""
-            fill
-            priority
-            unoptimized
-            aria-hidden="true"
-            className="object-cover opacity-30"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-bg-base via-bg-base/70 to-bg-base/30" />
+          {/* Fundo sóbrio (gradiente de marca) — sem textura forçada. */}
+          <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/12 via-bg-base to-bg-base" />
           <div className="relative mx-auto w-full max-w-6xl px-6 py-14 xl:px-10 xl:py-20">
             <p className="font-display text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
               Ranking · Guia
@@ -143,8 +135,8 @@ export default function MmrExplainerPage() {
                 Usamos a <strong className="text-text-display">mesma escala oficial do Dota</strong>:
                 8 medalhas, de Arauto a Imortal. Abaixo do Imortal, cada medalha tem{" "}
                 <strong className="text-text-display">5 estrelas</strong> — cada estrela vale ~154 MMR
-                (e ~200 no Divino). O teto do FormulaDota é{" "}
-                <strong className="text-gold">7000</strong>.
+                (e ~200 no Divino). No <strong className="text-brand-primary">Imortal</strong> não há
+                teto: o rank é por <strong className="text-text-display">posição</strong>.
               </p>
               <p className="text-text-muted">
                 No seu perfil você vê a medalha <strong className="text-text-display">Valve</strong>{" "}

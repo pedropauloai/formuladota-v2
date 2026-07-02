@@ -19,6 +19,11 @@ export const IMMORTAL_FLOOR = 5620;
  * é pequena) — subir depois é trocar essa constante. Pedro 2026-07-02.
  */
 export const IMMORTAL_ELITE_TOP = 10;
+/**
+ * Top do leaderboard que exibe a POSIÇÃO (#N) dentro da medalha, estilo oficial.
+ * Pedro 2026-07-02: top 30 numerado; medalha vermelha nos top 10; coroa no #1.
+ */
+export const IMMORTAL_LEADERBOARD_TOP = 30;
 
 /**
  * Calcula delta MMR de cada jogador após match 5v5.
