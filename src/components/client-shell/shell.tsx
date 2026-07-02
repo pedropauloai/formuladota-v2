@@ -45,6 +45,7 @@ import { mmrToDotaRank } from "@/components/queue/queue-helpers";
 import { rankTierToDotaRank } from "@/components/profile/career-stats";
 import { DashboardTopBar } from "./top-bar";
 import { getCommunityCounters } from "@/actions/community";
+import { getFeatureFlags } from "@/lib/queries/feature-flags";
 import { displayName, displayAvatar } from "@/lib/identity";
 import { MiniProfilePanel } from "./mini-profile-panel";
 import { LobbyInviteListener } from "./lobby-invite-listener";
@@ -120,6 +121,7 @@ export async function ClientShell({
     partyInvites,
     equipped,
     communityCounters,
+    featureFlags,
   ] = await Promise.all([
     isVisitor ? Promise.resolve(null) : fetchPrivateData(supabase, user.id),
     getProsWithQueues(),
@@ -148,6 +150,8 @@ export async function ClientShell({
     isVisitor ? Promise.resolve(null) : getEquippedForUser(supabase, user.id),
     // Contadores públicos do topbar (online + banidos) — estilo GamersClub.
     getCommunityCounters(),
+    // Feature flags (ex.: ranked_com_pro) — liga/desliga entradas da feature.
+    getFeatureFlags(),
   ]);
 
   const profile = privateData?.profile ?? null;
@@ -195,6 +199,10 @@ export async function ClientShell({
   const adminFlag = realIsAdmin && !previewActive;
   // Preview mode também oculta tab PRO contextual (admin vendo como user comum).
   const isPro = !isVisitor && proPromotion != null && !previewActive;
+  // Feature flag: "Subir MMR / Ranked com PRO". Desligada = some pros usuários;
+  // admin (fora do preview) continua enxergando pra testar. Controla topbar,
+  // sidebar, menu Jogar e a rota /ranked-com-pro.
+  const showRankedComPro = featureFlags.ranked_com_pro || adminFlag;
   // Persona/avatar: null pra visitante (LeftSidebar mostra VisitorCard).
   // Identidade canônica via lib/identity (anti-anonimato: Steam > Discord, nunca vazio).
   const identitySrc = {
@@ -240,6 +248,7 @@ export async function ClientShell({
             searchingCount={searchingCount}
             myQueues={myQueues}
             communityCounters={communityCounters}
+            showRankedComPro={showRankedComPro}
           />
         </div>
 
@@ -257,7 +266,7 @@ export async function ClientShell({
           </div>
         ) : (
           <div className={`hidden lg:flex absolute right-0 top-[96px] xl:top-[104px] ${bottomReserveCls} z-[var(--z-overlay)] w-[320px] xl:w-[360px] 2xl:w-[380px]`}>
-            <DashboardRightSidebar floating />
+            <DashboardRightSidebar floating showRankedComPro={showRankedComPro} />
           </div>
         )}
 
@@ -331,6 +340,7 @@ export async function ClientShell({
               initialPlayMenu={playMenuState}
               inParty={myParty !== null}
             smokeTheme={smokeTheme}
+              showRankedComPro={showRankedComPro}
             />
           </div>
         )}
@@ -355,6 +365,7 @@ export async function ClientShell({
         searchingCount={searchingCount}
         myQueues={myQueues}
         communityCounters={communityCounters}
+        showRankedComPro={showRankedComPro}
       />
 
       {/* Grid columns — sidebar lateral REMOVIDA 2026-05-26 (refator pra fidelidade Dota 2).
@@ -390,7 +401,7 @@ export async function ClientShell({
             {rightSidebar}
           </aside>
         ) : (
-          <DashboardRightSidebar />
+          <DashboardRightSidebar showRankedComPro={showRankedComPro} />
         )}
       </div>
 
@@ -448,6 +459,7 @@ export async function ClientShell({
             initialPlayMenu={playMenuState}
             inParty={myParty !== null}
             smokeTheme={smokeTheme}
+            showRankedComPro={showRankedComPro}
           />
         </div>
       )}

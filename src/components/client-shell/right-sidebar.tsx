@@ -14,9 +14,11 @@ const HEROES_FULL_BG =
 
 interface Props {
   floating?: boolean;
+  /** Feature flag: mostra o card "Boost de MMR / Ranked com PRO". Off = esconde. */
+  showRankedComPro?: boolean;
 }
 
-export function DashboardRightSidebar({ floating }: Props) {
+export function DashboardRightSidebar({ floating, showRankedComPro = false }: Props) {
   const t = useTranslations("shell");
   const wrapperCls = floating
     ? "flex w-full flex-col gap-3 p-3 overflow-y-auto"
@@ -24,14 +26,17 @@ export function DashboardRightSidebar({ floating }: Props) {
 
   return (
     <aside className={wrapperCls}>
-      <NewsCard
-        eyebrow={t("newsEyebrow")}
-        title={t("newsTitle")}
-        description={t("newsDescription")}
-        bg={HEROES_FULL_BG}
-        href="/codigo-de-conduta"
-        cta={t("newsCta")}
-      />
+      {/* Card "Boost de MMR / Ranked com PRO" — some quando a feature flag está off. */}
+      {showRankedComPro && (
+        <NewsCard
+          eyebrow={t("newsEyebrow")}
+          title={t("newsTitle")}
+          description={t("newsDescription")}
+          bg={HEROES_FULL_BG}
+          href="/codigo-de-conduta"
+          cta={t("newsCta")}
+        />
+      )}
 
       <article className="rounded-md border border-border-subtle bg-bg-elevated/80 backdrop-blur-sm overflow-hidden">
         <p className="border-b border-border-subtle px-3 py-2 font-display text-sm text-text-display">
