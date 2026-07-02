@@ -7,6 +7,8 @@ import Image from "next/image";
 import { itemImageUrl } from "@/lib/queries/items";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { UserHoverCard } from "@/components/profile/user-hover-card";
+import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
+import { mmrToDotaRank } from "@/components/queue/queue-helpers";
 
 export interface ScoreboardPlayer {
   userId: string | null;
@@ -129,6 +131,17 @@ function PlayerCell({ p }: { p: ScoreboardPlayer }) {
         pct={0}
         size={32}
       />
+      {/* Medalha do RANK FormulaDota (representa o MMR) — entre a foto e o nome. */}
+      {p.mmr != null && (
+        <DotaRankMedal
+          rank={mmrToDotaRank(p.mmr)}
+          variant="formuladota"
+          size="md"
+          tooltip={false}
+          glow={p.mmr >= 5620}
+          className="shrink-0"
+        />
+      )}
       <span className="min-w-0">
         <span className="block truncate font-body text-sm font-medium text-text-display">
           {p.name}
