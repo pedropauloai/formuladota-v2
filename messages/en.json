@@ -141,7 +141,8 @@
     "ctaPlay": "Climb MMR",
     "ctaMatches": "View Matches",
     "whyLink": "See why →",
-    "pulso": "{count, plural, =0 {No PRO in queue right now} =1 {# PRO in queue right now} other {# PROs in queue right now}}"
+    "pulso": "{count, plural, =0 {No PRO in queue right now} =1 {# PRO in queue right now} other {# PROs in queue right now}}",
+    "ctaMmr": "How MMR works"
   },
   "shell": {
     "newsEyebrow": "MMR Boost · Brazil",

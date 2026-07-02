@@ -17,13 +17,23 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { UserHoverCard } from "@/components/profile/user-hover-card";
 import { DotaRankMedal, type DotaRank } from "@/components/ui/dota-rank-medal";
-import { mmrToTier, IMMORTAL_FLOOR, IMMORTAL_ELITE_TOP } from "@/lib/mmr";
+import {
+  mmrToTier,
+  IMMORTAL_FLOOR,
+  IMMORTAL_ELITE_TOP,
+  IMMORTAL_LEADERBOARD_TOP,
+} from "@/lib/mmr";
 
 // Medalha do rank: os TOP N Imortais (por posição) ganham a vermelha (elite);
 // o resto segue o MMR. `position` é a colocação global (1-based) na temporada.
 function rankMedalFor(mmr: number, position: number): DotaRank {
   if (mmr >= IMMORTAL_FLOOR && position <= IMMORTAL_ELITE_TOP) return "immortal-top-100";
   return mmrToDotaRank(mmr);
+}
+
+// Número do leaderboard (#N dentro da medalha) pros Imortais no top da temporada.
+function leaderboardNumberFor(mmr: number, position: number): number | undefined {
+  return mmr >= IMMORTAL_FLOOR && position <= IMMORTAL_LEADERBOARD_TOP ? position : undefined;
 }
 import { SeasonBanner } from "@/components/patterns/season-banner";
 
@@ -316,7 +326,15 @@ function TopCard({ row, position }: { row: RankRow; position: number }) {
           </div>
         </UserHoverCard>
         <div className="flex items-center justify-between border-t border-border-subtle pt-3">
-          <DotaRankMedal rank={dotaRank} stars={mmrToTier(row.mmr).stars} variant="formuladota" size="sm" showLabel />
+          <DotaRankMedal
+            rank={dotaRank}
+            stars={mmrToTier(row.mmr).stars}
+            leaderboardNumber={leaderboardNumberFor(row.mmr, position)}
+            crown={position === 1 && row.mmr >= IMMORTAL_FLOOR}
+            variant="formuladota"
+            size="sm"
+            showLabel
+          />
           <span className="font-display text-sm 2xl:text-base font-semibold text-text-body">
             {t("winLoss", { wins: row.vitorias, losses: row.derrotas })}
           </span>
@@ -359,7 +377,14 @@ function RankingRow({ row, position }: { row: RankRow; position: number }) {
           </p>
         </div>
       </UserHoverCard>
-      <DotaRankMedal rank={dotaRank} stars={mmrToTier(row.mmr).stars} variant="formuladota" size="sm" />
+      <DotaRankMedal
+        rank={dotaRank}
+        stars={mmrToTier(row.mmr).stars}
+        leaderboardNumber={leaderboardNumberFor(row.mmr, position)}
+        crown={position === 1 && row.mmr >= IMMORTAL_FLOOR}
+        variant="formuladota"
+        size="sm"
+      />
       <span className="font-mono text-sm 2xl:text-base tabular-nums text-gold w-16 text-right">{row.mmr}</span>
     </li>
   );

@@ -17,7 +17,6 @@ import {
   CALIBRATION_MATCHES,
   CALIBRATION_MULTIPLIER,
   STARTING_MMR,
-  MMR_CEILING,
 } from "@/lib/mmr";
 
 type ServerClient = Awaited<ReturnType<typeof createClient>>;
@@ -139,8 +138,10 @@ export async function applyMatchMmr(
     if (isCalibrating(p.user_id)) delta *= CALIBRATION_MULTIPLIER;
     return {
       user_id: p.user_id,
-      // Clampa em [0, 7000] — teto não-inflacionário (Imortal 5620 → topo 7000).
-      new_mmr: Math.max(0, Math.min(MMR_CEILING, getMmr(p.user_id) + delta)),
+      // Sem teto superior (Pedro 2026-07-02): acima do Imortal o rank é por POSIÇÃO
+      // (leaderboard), não pelo número — então travar em 7000 só punia. Piso 0; o
+      // ±30/partida já evita swing absurdo.
+      new_mmr: Math.max(0, getMmr(p.user_id) + delta),
       delta, // gravado em match_players.mmr_change (aparece no histórico)
       won,
     };
