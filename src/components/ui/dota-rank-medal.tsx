@@ -40,6 +40,7 @@ export type DotaRank =
   | "divine"
   | "immortal"
   | "immortal-top-100"
+  | "immortal-leaderboard"
 
 /**
  * Pele da medalha:
@@ -67,6 +68,7 @@ export const RANK_LABELS: Record<DotaRank, true> = {
   divine: true,
   immortal: true,
   "immortal-top-100": true,
+  "immortal-leaderboard": true,
 }
 
 /**
@@ -263,6 +265,7 @@ const GLOW_CLASS: Partial<Record<DotaRank, string>> = {
   divine: "drop-shadow-[0_0_12px_var(--color-purple-500)]",
   // Reduzido 16→8px (Pedro 2026-06-12: glow do Imortal estava forte demais)
   immortal: "drop-shadow-[0_0_8px_var(--color-warning)]",
+  "immortal-leaderboard": "drop-shadow-[0_0_10px_var(--color-warning)]",
   "immortal-top-100":
     "drop-shadow-[0_0_24px_var(--color-warning)] drop-shadow-[0_0_48px_var(--color-brand-primary-glow)]",
 }
@@ -348,7 +351,8 @@ export interface DotaRankMedalProps {
  * renderiza no Imortal/Top 100 (sem sub-divisão). Escala com o tamanho da medalha.
  */
 function StarPips({ stars, rank, px }: { stars: number; rank: DotaRank; px: number }) {
-  if (rank === "immortal" || rank === "immortal-top-100") return null
+  if (rank === "immortal" || rank === "immortal-top-100" || rank === "immortal-leaderboard")
+    return null
   const count = Math.min(5, Math.max(1, Math.round(stars)))
   const starSize = Math.max(5, Math.round(px * 0.17))
   return (

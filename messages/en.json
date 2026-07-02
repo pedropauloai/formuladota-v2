@@ -3719,7 +3719,8 @@
       "ancient": "Ancient",
       "divine": "Divine",
       "immortal": "Immortal",
-      "immortal-top-100": "Immortal"
+      "immortal-top-100": "Immortal",
+      "immortal-leaderboard": "Immortal"
     },
     "dotaByNum": {
       "1": "Herald",

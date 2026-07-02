@@ -17,17 +17,13 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { UserHoverCard } from "@/components/profile/user-hover-card";
 import { DotaRankMedal, type DotaRank } from "@/components/ui/dota-rank-medal";
-import {
-  mmrToTier,
-  IMMORTAL_FLOOR,
-  IMMORTAL_ELITE_TOP,
-  IMMORTAL_LEADERBOARD_TOP,
-} from "@/lib/mmr";
+import { mmrToTier, IMMORTAL_FLOOR, IMMORTAL_LEADERBOARD_TOP } from "@/lib/mmr";
 
-// Medalha do rank: os TOP N Imortais (por posição) ganham a vermelha (elite);
-// o resto segue o MMR. `position` é a colocação global (1-based) na temporada.
+// Medalha do rank: os TOP 30 Imortais (por posição) usam a medalha de LEADERBOARD
+// (anel oficial que segura o número); o resto segue o MMR. `position` = colocação
+// global (1-based) na temporada; o #1 ainda ganha a coroa (via prop crown).
 function rankMedalFor(mmr: number, position: number): DotaRank {
-  if (mmr >= IMMORTAL_FLOOR && position <= IMMORTAL_ELITE_TOP) return "immortal-top-100";
+  if (mmr >= IMMORTAL_FLOOR && position <= IMMORTAL_LEADERBOARD_TOP) return "immortal-leaderboard";
   return mmrToDotaRank(mmr);
 }
 
