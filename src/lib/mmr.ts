@@ -4,6 +4,13 @@
 export const ELO_K = 25;
 export const STARTING_MMR = 1000;
 
+// TETO do MMR in-house (Pedro 2026-07-02): a escala é ANCORADA na do Dota real
+// (Imortal = 5620) e LIMITADA a 7000 pra não inflacionar — o topo tem que significar
+// algo, não virar "6000 é pouco". Sem teto, a calibração dobrada inflava tudo.
+export const MMR_CEILING = 7000;
+/** Teto de variação por partida (evita swings absurdos tipo +64). */
+export const MAX_MATCH_DELTA = 30;
+
 /**
  * Calcula delta MMR de cada jogador após match 5v5.
  * Retorna objeto com radiantDelta + direDelta (positivo radiant = ganhou).
@@ -90,8 +97,10 @@ export function modulateMmrDelta(
   won: boolean
 ): number {
   const perfBonus = Math.round(PERF_SWING * (perfScore - 0.5));
-  const final = baseDelta + perfBonus;
-  return won ? Math.max(1, final) : Math.min(-1, final);
+  // Teto por partida (Pedro 2026-07-02): limita o swing a ±MAX_MATCH_DELTA
+  // (evita os +64 que a calibração dobrada gerava).
+  const clamped = Math.max(-MAX_MATCH_DELTA, Math.min(MAX_MATCH_DELTA, baseDelta + perfBonus));
+  return won ? Math.max(1, clamped) : Math.min(-1, clamped);
 }
 
 /**
@@ -104,15 +113,17 @@ export interface TierInfo {
   tierName: string;
 }
 
-const TIER_BANDS: Array<{ tier: number; name: string; min: number; range: number }> = [
-  { tier: 1, name: "Herald", min: 0, range: 770 },
-  { tier: 2, name: "Guardian", min: 770, range: 770 },
-  { tier: 3, name: "Crusader", min: 1540, range: 770 },
-  { tier: 4, name: "Archon", min: 2310, range: 770 },
-  { tier: 5, name: "Legend", min: 3080, range: 770 },
-  { tier: 6, name: "Ancient", min: 3850, range: 770 },
-  { tier: 7, name: "Divine", min: 4620, range: 770 },
-  { tier: 8, name: "Immortal", min: 5390, range: Infinity },
+// Bandas ANCORADAS na escala oficial do Dota (wiki 2025/2026): cada estrela ≈ 154 MMR
+// até Ancião; Divino ≈ 200/estrela (4620–5619); Imortal a partir de 5620.
+const TIER_BANDS: Array<{ tier: number; name: string; min: number; range: number; starStep: number }> = [
+  { tier: 1, name: "Herald", min: 0, range: 770, starStep: 154 },
+  { tier: 2, name: "Guardian", min: 770, range: 770, starStep: 154 },
+  { tier: 3, name: "Crusader", min: 1540, range: 770, starStep: 154 },
+  { tier: 4, name: "Archon", min: 2310, range: 770, starStep: 154 },
+  { tier: 5, name: "Legend", min: 3080, range: 770, starStep: 154 },
+  { tier: 6, name: "Ancient", min: 3850, range: 770, starStep: 154 },
+  { tier: 7, name: "Divine", min: 4620, range: 1000, starStep: 200 },
+  { tier: 8, name: "Immortal", min: 5620, range: Infinity, starStep: 0 },
 ];
 
 export function mmrToTier(mmr: number): TierInfo {
@@ -121,7 +132,7 @@ export function mmrToTier(mmr: number): TierInfo {
       const stars =
         band.tier === 8
           ? 0
-          : Math.min(5, Math.max(1, Math.floor((mmr - band.min) / 154) + 1));
+          : Math.min(5, Math.max(1, Math.floor((mmr - band.min) / band.starStep) + 1));
       return { tier: band.tier, stars, tierName: band.name };
     }
   }
@@ -132,10 +143,12 @@ export function mmrToTier(mmr: number): TierInfo {
 // CALIBRAÇÃO (ver docs/foundations/RANKING_SYSTEM.md)
 // =====================================================================
 
-/** Nº de placements até calibrar (medalha revelada, K volta ao normal). */
-export const CALIBRATION_MATCHES = 7;
-/** Swing dobrado durante a calibração ("vale o dobro" — converge rápido). */
-export const CALIBRATION_MULTIPLIER = 2;
+/** Nº de placements até calibrar (medalha revelada; antes disso = descalibrado). */
+export const CALIBRATION_MATCHES = 10;
+/** Multiplicador na calibração. 1 = SEM dobrar (Pedro 2026-07-02: o "dobro" inflava
+ *  o MMR e o afastava da medalha real). Calibração só controla quando a medalha é
+ *  revelada, não infla mais o swing. */
+export const CALIBRATION_MULTIPLIER = 1;
 
 /**
  * Semente de MMR a partir da medalha Valve (rank_tier OpenDota: dezena = medalha
@@ -147,9 +160,11 @@ export function seedMmrFromRankTier(rankTier: number | null | undefined): number
   if (rankTier == null || rankTier <= 0) return null;
   const medal = Math.floor(rankTier / 10);
   const stars = rankTier % 10;
-  if (medal >= 8) return 6000; // Imortal
+  // Imortal = PISO real da escala (5620), não 6000 — o topo (até 7000) é conquistado
+  // jogando, não semeado. Distribui os 80 (medalha×10+estrela) da API dentro de 0–5620.
+  if (medal >= 8) return 5620;
   const band = TIER_BANDS.find((b) => b.tier === medal);
   if (!band) return null;
-  // Meio da estrela dentro da banda (cada estrela ≈ 154 MMR).
-  return band.min + Math.max(0, Math.min(5, stars) - 1) * 154 + 77;
+  // Meio da estrela dentro da banda (starStep por medalha: 154 até Ancião, 200 no Divino).
+  return band.min + Math.max(0, Math.min(5, stars) - 1) * band.starStep + Math.round(band.starStep / 2);
 }
