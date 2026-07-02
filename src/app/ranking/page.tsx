@@ -184,6 +184,12 @@ export default async function RankingPage(props: {
           <p className="mt-3 font-display text-sm 2xl:text-base font-semibold text-text-body max-w-2xl">
             {t("subtitle")}
           </p>
+          <Link
+            href="/mmr"
+            className="mt-3 inline-flex items-center gap-1.5 font-display text-sm font-semibold uppercase tracking-wide text-brand-primary transition-colors hover:text-text-display"
+          >
+            Como funciona o MMR? →
+          </Link>
         </header>
 
         {/* Banner de temporada (countdown) — movido da home pra cá (Pedro
