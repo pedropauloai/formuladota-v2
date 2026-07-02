@@ -163,7 +163,7 @@ export default async function HistoricoPartidaPage({
 
   return (
     <ClientShell currentRoute={`/partida/historico/${id}`}>
-      <div className="mx-auto w-full max-w-6xl px-4 py-8">
+      <div className="mx-auto w-full max-w-7xl px-4 py-8">
         <Link
           href="/me"
           className="mb-5 inline-flex items-center gap-1.5 font-display text-xs uppercase tracking-wide text-text-muted transition-colors hover:text-text-display"

@@ -41,16 +41,19 @@ export default async function PartidasPage(props: {
   return (
     <ClientShell currentRoute="/partidas">
       <div className="mx-auto w-full max-w-5xl px-4 py-8">
-        <header className="mb-8">
-          <p className="font-display text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
-            {t("eyebrow")}
-          </p>
-          <h1 className="mt-2 font-display text-3xl font-bold uppercase tracking-tight text-text-display md:text-4xl">
-            {t("title")}
-          </h1>
-          <p className="mt-2 max-w-2xl font-body text-sm text-text-muted">{t("subtitle")}</p>
-          {/* Buscar partida por ID (dota_match_id) → placar do histórico. */}
-          <div className="mt-4 max-w-md">
+        <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="font-display text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
+              {t("eyebrow")}
+            </p>
+            <h1 className="mt-2 font-display text-3xl font-bold uppercase tracking-tight text-text-display md:text-4xl">
+              {t("title")}
+            </h1>
+            <p className="mt-2 max-w-2xl font-body text-sm text-text-muted">{t("subtitle")}</p>
+          </div>
+          {/* Buscar partida por ID (dota_match_id) → placar do histórico. No canto
+              direito, na mesma linha do título (Pedro 2026-07-02). */}
+          <div className="w-full shrink-0 sm:w-80">
             <MatchIdSearch />
           </div>
         </header>

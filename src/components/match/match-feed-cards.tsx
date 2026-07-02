@@ -35,7 +35,7 @@ function PlayerChip({ player }: { player: HistoryPlayer }) {
         />
         {/* Herói — badge secundário no canto superior direito. */}
         {hero && (
-          <span className="absolute -right-1 top-0 rounded-sm ring-1 ring-bg-deep">
+          <span className="absolute -right-1 top-0 rounded-sm">
             <Image
               src={hero.image_icon}
               alt={hero.name_pt}
