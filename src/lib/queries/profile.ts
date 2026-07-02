@@ -153,9 +153,15 @@ export async function getPublicProfile(
   userId: string
 ): Promise<ProfileForMe | null> {
   const supabase = await createClient();
-  const { data } = await supabase.rpc("get_public_profile", {
-    p_user_id: userId,
-  });
+  const [{ data }, { data: idRow }] = await Promise.all([
+    supabase.rpc("get_public_profile", { p_user_id: userId }),
+    // social_links não vem no RPC legado → lê da view pública de identidade.
+    supabase
+      .from("public_player_identities")
+      .select("social_links")
+      .eq("id", userId)
+      .maybeSingle(),
+  ]);
   const r = (data ?? [])[0];
   if (!r) return null;
 
@@ -194,6 +200,6 @@ export async function getPublicProfile(
     derrotas: r.derrotas ?? null,
     dashboardLayout: parseDashboardLayout(null),
     officialNickSet: true, // perfil público não edita nick → trata como já definido
-    socialLinks: parseSocialLinks((r as { social_links?: unknown }).social_links),
+    socialLinks: parseSocialLinks(idRow?.social_links),
   };
 }

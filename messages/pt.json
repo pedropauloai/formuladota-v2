@@ -189,7 +189,7 @@
       "rankingEmpty": "Ranking ainda vazio.",
       "seasonTitle": "Temporada atual",
       "seasonDaysLeft": "{days, plural, =0 {Último dia} =1 {Falta 1 dia} other {Faltam # dias}}",
-      "seasonCta": "Ver ranking",
+      "seasonCta": "Como funciona o MMR",
       "muralTitle": "Mural da Vergonha",
       "muralCount": "{count, plural, =1 {1 jogador punido} other {# jogadores punidos}}",
       "muralCta": "Ver o Mural",

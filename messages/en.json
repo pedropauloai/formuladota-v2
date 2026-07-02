@@ -189,7 +189,7 @@
       "rankingEmpty": "Ranking is empty.",
       "seasonTitle": "Current season",
       "seasonDaysLeft": "{days, plural, =0 {Last day} =1 {1 day left} other {# days left}}",
-      "seasonCta": "See ranking",
+      "seasonCta": "How MMR works",
       "muralTitle": "Wall of Shame",
       "muralCount": "{count, plural, =1 {1 player punished} other {# players punished}}",
       "muralCta": "See the Wall",
