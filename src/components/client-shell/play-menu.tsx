@@ -295,6 +295,11 @@ export function PlayMenu({
           setShowQuiz(true);
           return;
         }
+        // Servidor barrou: já está em partida (estado do client estava defasado) →
+        // ressincroniza pra o botão virar "Voltar à partida" e mostra o motivo.
+        if (res.code === "in_match") {
+          void syncQueueStatus();
+        }
         setError(res.error);
         return;
       }

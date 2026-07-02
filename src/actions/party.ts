@@ -199,6 +199,9 @@ export async function enterPartyQueue(gameModes: string[]): Promise<PartyQueueRe
     if (res.error === "cooldown") {
       return { success: false, error: `${res.who ?? "Um membro"} está em cooldown de fila.` };
     }
+    if (res.error === "in_match") {
+      return { success: false, error: `${res.who ?? "Um membro"} já está em partida.` };
+    }
     return { success: false, error: "Não foi possível buscar." };
   }
 
