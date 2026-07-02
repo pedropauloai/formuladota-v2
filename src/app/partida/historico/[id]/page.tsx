@@ -29,7 +29,7 @@ export const dynamic = "force-dynamic";
 const PLAYER_COLS =
   "user_id, team, player_slot, is_winner, hero_id, personaname, kills, deaths, assists, " +
   "last_hits, denies, gold_per_min, xp_per_min, net_worth, level, hero_damage, hero_healing, " +
-  "tower_damage, items, raw_opendota";
+  "tower_damage, items, mmr_change, raw_opendota";
 
 export default async function HistoricoPartidaPage({
   params,

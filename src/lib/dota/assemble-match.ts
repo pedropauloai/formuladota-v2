@@ -48,6 +48,7 @@ export interface MatchPlayerRow {
     inventory?: (number | null)[];
     neutral?: number | null;
   } | null;
+  mmr_change: number | null;
   raw_opendota: RawOD | null;
 }
 
@@ -149,6 +150,7 @@ export function assembleMatch(
       neutralItem: parseNeutral(r.items?.neutral ?? null),
       skills: parseSkills(raw),
       teamfightPct: perf.teamfightPct,
+      mmrChange: r.mmr_change ?? null,
       killsVsEnemies: parseKillsVsEnemies(raw, enemyMap),
     };
   });
