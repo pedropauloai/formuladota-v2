@@ -202,17 +202,22 @@ export default async function RankingPage(props: {
           lista/pódio ficarem legíveis. Pedro 2026-07-02. */}
       <div
         aria-hidden="true"
-        className="pointer-events-none fixed inset-x-0 top-[64px] bottom-0 z-0 lg:left-[320px] lg:right-[320px] xl:left-[360px] xl:right-[360px] xl:top-[72px] 2xl:left-[380px] 2xl:right-[380px]"
+        className="pointer-events-none fixed inset-x-0 top-[64px] bottom-0 z-0 overflow-hidden lg:left-[320px] lg:right-[320px] xl:left-[360px] xl:right-[360px] xl:top-[72px] 2xl:left-[380px] 2xl:right-[380px]"
       >
+        {/* w-full + h-auto = a imagem INTEIRA (sem corte), escalando com a largura da
+            coluna em qualquer resolução (responsivo). Ocupa o topo; o overlay escurece
+            progressivamente pro fundo sólido embaixo (sem borda dura). */}
         <Image
           src="/images/ranking/season-header.png"
           alt=""
-          fill
+          width={1920}
+          height={622}
           priority
           unoptimized
-          className="object-cover object-[25%_top]"
+          sizes="100vw"
+          className="h-auto w-full"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-bg-base/20 via-bg-base/85 to-bg-base" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-bg-base/55 to-bg-base" />
       </div>
 
       <div className="relative z-10 px-6 pb-10 xl:px-12">
