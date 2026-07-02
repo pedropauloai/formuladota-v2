@@ -83,6 +83,8 @@ interface Props {
   myQueues: MyQueueEntry[];
   /** Contadores públicos (online + banidos) — estilo GamersClub, sempre visíveis. */
   communityCounters: CommunityCounters;
+  /** Feature flag: mostra a aba "Subir MMR / Ranked com PRO". Off = esconde. */
+  showRankedComPro: boolean;
 }
 
 export function DashboardTopBar({
@@ -96,12 +98,16 @@ export function DashboardTopBar({
   searchingCount,
   myQueues,
   communityCounters,
+  showRankedComPro,
 }: Props) {
   const t = useTranslations();
   const inQueue = myQueues.length > 0;
   // Nav principal visível pra TODOS — inclusive visitante (Pedro 2026-06-18):
   // mostra a amplitude do produto antes do login. Label traduzido (PT/EN).
-  const principalTabs: TopBarTabDef[] = PRINCIPAL_TAB_DEFS.map((d) => ({
+  // A aba "Subir MMR" (/ranked-com-pro) some quando a feature flag está off.
+  const principalTabs: TopBarTabDef[] = PRINCIPAL_TAB_DEFS.filter(
+    (d) => showRankedComPro || d.href !== "/ranked-com-pro"
+  ).map((d) => ({
     href: d.href,
     label: t(`nav.${d.key}`),
   }));

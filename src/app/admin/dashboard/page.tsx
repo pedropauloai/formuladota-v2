@@ -13,6 +13,8 @@ import { Users, CreditCard, Coins, Trophy, Activity, Percent, Swords } from "luc
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { Card, CardContent } from "@/components/ui/card";
+import { getFeatureFlags } from "@/lib/queries/feature-flags";
+import { FeatureFlagsPanel } from "./feature-flags-panel";
 
 export const metadata = { title: "Admin Dashboard — FORMULADOTA" };
 export const revalidate = 0;
@@ -136,7 +138,10 @@ export default async function AdminDashboardPage() {
   const startOfMonth = new Date();
   startOfMonth.setDate(1);
   startOfMonth.setHours(0, 0, 0, 0);
-  const kpis = await fetchMonthKpis(startOfMonth.toISOString());
+  const [kpis, featureFlags] = await Promise.all([
+    fetchMonthKpis(startOfMonth.toISOString()),
+    getFeatureFlags(),
+  ]);
 
   const monthLabel = new Date().toLocaleDateString("pt-BR", {
     month: "long",
@@ -198,6 +203,14 @@ export default async function AdminDashboardPage() {
         <KpiCard label={t("dashPtsDone")} value={kpis.ptsRealizadas} icon={Swords} />
         <KpiCard label={t("dashLobbiesCreated")} value={kpis.lobbiesCriados} icon={Trophy} />
       </KpiSection>
+
+      {/* ── Funcionalidades (feature flags) — liga/desliga sem deploy ── */}
+      <section className="space-y-3">
+        <h2 className="font-sans text-sm font-semibold uppercase tracking-widest text-text-faded">
+          Funcionalidades
+        </h2>
+        <FeatureFlagsPanel initial={featureFlags} />
+      </section>
     </div>
   );
 }

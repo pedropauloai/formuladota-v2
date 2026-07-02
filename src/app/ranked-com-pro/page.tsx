@@ -20,6 +20,7 @@ import {
 import { getFichaPackage } from "@/lib/queries/packages";
 import { getMyQueueStatus } from "@/lib/queries/queue";
 import { getPreviewModeActive } from "@/lib/auth/preview-mode";
+import { getFeatureFlags } from "@/lib/queries/feature-flags";
 import { getProCockpitData } from "@/app/pro/cockpit-data";
 import { getCareerStats } from "@/lib/queries/career";
 import { getHeroById } from "@/lib/queries/heroes";
@@ -41,6 +42,16 @@ export default async function RankedComProPage() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
+
+  // Feature flag: com "ranked_com_pro" desligada, a rota some pros usuários
+  // (admin continua acessando pra testar).
+  const [flags, meRow] = await Promise.all([
+    getFeatureFlags(),
+    supabase.from("profiles").select("is_admin").eq("id", user.id).single(),
+  ]);
+  if (!flags.ranked_com_pro && meRow.data?.is_admin !== true) {
+    redirect("/dashboard");
+  }
 
   const [
     { data: profile },

@@ -33,6 +33,8 @@ interface Props {
   inParty: boolean;
   /** Fumaça equipada (cosmético) — aplicada no card de busca e no ready-check. */
   smokeTheme?: SmokeAsset | null;
+  /** Feature flag: mostra a modalidade "Ranked com PRO" no menu Jogar. */
+  showRankedComPro: boolean;
 }
 
 export function DashboardBottomBar({
@@ -41,6 +43,7 @@ export function DashboardBottomBar({
   initialPlayMenu,
   inParty,
   smokeTheme = null,
+  showRankedComPro,
 }: Props) {
   const [statusModalOpen, setStatusModalOpen] = useState(false);
 
@@ -60,6 +63,7 @@ export function DashboardBottomBar({
           initialPlayMenu={initialPlayMenu}
           inParty={inParty}
           smokeTheme={smokeTheme}
+          showRankedComPro={showRankedComPro}
           onStatusClick={() => setStatusModalOpen(true)}
         />
       </div>
@@ -82,6 +86,7 @@ interface CtaProps {
   initialPlayMenu: PlayMenuState;
   inParty: boolean;
   smokeTheme: SmokeAsset | null;
+  showRankedComPro: boolean;
   onStatusClick: () => void;
 }
 
@@ -91,6 +96,7 @@ function Cta({
   initialPlayMenu,
   inParty,
   smokeTheme,
+  showRankedComPro,
   onStatusClick,
 }: CtaProps) {
   const t = useTranslations("shell");
@@ -125,6 +131,7 @@ function Cta({
       initial={initialPlayMenu}
       inParty={inParty}
       smokeTheme={smokeTheme}
+      showRankedComPro={showRankedComPro}
     />
   );
 }

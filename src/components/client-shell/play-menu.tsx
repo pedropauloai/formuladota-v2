@@ -78,6 +78,8 @@ interface Props {
   inParty?: boolean;
   /** Fumaça equipada (cosmético) — cores do shader no card de busca. */
   smokeTheme?: SmokeAsset | null;
+  /** Feature flag: mostra a modalidade "Ranked com PRO" no drawer. @default false */
+  showRankedComPro?: boolean;
 }
 
 export function PlayMenu({
@@ -85,6 +87,7 @@ export function PlayMenu({
   initial,
   inParty = false,
   smokeTheme = null,
+  showRankedComPro = false,
 }: Props) {
   const router = useRouter();
   const t = useTranslations("playMenu");
@@ -592,6 +595,7 @@ export function PlayMenu({
               onNavegar={openLista}
               onPro={() => router.push("/ranked-com-pro")}
               loadingSalas={loadingSalas}
+              showRankedComPro={showRankedComPro}
             />
           )}
 
@@ -704,6 +708,7 @@ function MenuView({
   onNavegar,
   onPro,
   loadingSalas,
+  showRankedComPro,
 }: {
   active: Modalidade;
   setActive: (m: Modalidade) => void;
@@ -720,6 +725,7 @@ function MenuView({
   onNavegar: () => void;
   onPro: () => void;
   loadingSalas: boolean;
+  showRankedComPro: boolean;
 }) {
   const t = useTranslations("playMenu");
 
@@ -817,12 +823,15 @@ function MenuView({
           </div>
         </Section>
 
-        <Section icon={Crown} title={t("pro")} subtitle={t("proSubtitle")} active={active === "pro"} onToggle={() => setActive("pro")}>
-          <p className="mb-2.5 font-body text-sm leading-relaxed text-text-muted">
-            {t("proDesc")}
-          </p>
-          <ActionBtn icon={Crown} label={t("viewPros")} variant="primary" full onClick={() => (isVisitor ? void signInWithDiscord() : onPro())} />
-        </Section>
+        {/* Ranked com PRO — some quando a feature flag está desligada. */}
+        {showRankedComPro && (
+          <Section icon={Crown} title={t("pro")} subtitle={t("proSubtitle")} active={active === "pro"} onToggle={() => setActive("pro")}>
+            <p className="mb-2.5 font-body text-sm leading-relaxed text-text-muted">
+              {t("proDesc")}
+            </p>
+            <ActionBtn icon={Crown} label={t("viewPros")} variant="primary" full onClick={() => (isVisitor ? void signInWithDiscord() : onPro())} />
+          </Section>
+        )}
       </div>
 
       {active === "competitiva" && (
