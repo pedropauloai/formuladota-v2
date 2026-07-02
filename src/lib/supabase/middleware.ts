@@ -25,6 +25,7 @@ const PUBLIC_PATHS = [
   "/cookies",
   "/metodologia",
   "/ranking",
+  "/mmr", // leitura pública: guia didático de como funciona o MMR — vitrine de valor
   "/meta", // leitura pública: meta de heróis (OpenDota) — vitrine de valor
   "/times", // leitura pública: browse de times + perfis (ações pedem login)
   "/torneios", // leitura pública: browse de torneios + brackets (ações pedem login)
