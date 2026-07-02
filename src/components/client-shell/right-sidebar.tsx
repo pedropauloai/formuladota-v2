@@ -23,7 +23,7 @@ import { getHeroById } from "@/lib/queries/heroes";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
 import { mmrToDotaRank } from "@/components/queue/queue-helpers";
-import { mmrToTier, IMMORTAL_FLOOR, IMMORTAL_ELITE_TOP } from "@/lib/mmr";
+import { mmrToTier, IMMORTAL_FLOOR, IMMORTAL_ELITE_TOP, IMMORTAL_LEADERBOARD_TOP } from "@/lib/mmr";
 
 const HEROES_FULL_BG =
   "https://cdn.steamstatic.com/apps/dota2/images/dota_react/home/heroes_full.jpg";
@@ -206,6 +206,14 @@ function RecentMatchesCard({
   );
 }
 
+// Medalha do leaderboard (mesma regra do /ranking): #1–#10 escura, #11–#30 vermelha.
+function sidebarRankMedal(mmr: number, position: number): ReturnType<typeof mmrToDotaRank> {
+  if (mmr < IMMORTAL_FLOOR) return mmrToDotaRank(mmr);
+  if (position <= IMMORTAL_ELITE_TOP) return "immortal-leaderboard";
+  if (position <= IMMORTAL_LEADERBOARD_TOP) return "immortal-top-100";
+  return mmrToDotaRank(mmr);
+}
+
 /* ------------------------------------------------------------------ */
 /* Card: Top do ranking — pódio top 3 (avatar + medalha + nick + MMR).    */
 /* ------------------------------------------------------------------ */
@@ -245,14 +253,10 @@ function RankingCard({
                   size={28}
                 />
                 <DotaRankMedal
-                  rank={
-                    r.mmr >= IMMORTAL_FLOOR && i + 1 <= IMMORTAL_ELITE_TOP
-                      ? "immortal-leaderboard"
-                      : mmrToDotaRank(r.mmr)
-                  }
+                  rank={sidebarRankMedal(r.mmr, i + 1)}
                   stars={mmrToTier(r.mmr).stars}
                   leaderboardNumber={
-                    r.mmr >= IMMORTAL_FLOOR && i + 1 <= IMMORTAL_ELITE_TOP ? i + 1 : undefined
+                    r.mmr >= IMMORTAL_FLOOR && i + 1 <= IMMORTAL_LEADERBOARD_TOP ? i + 1 : undefined
                   }
                   variant="formuladota"
                   size="sm"

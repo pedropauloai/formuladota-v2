@@ -90,6 +90,8 @@ html[data-theme="fd-dark"] {
   --color-gold:        var(--fd-raw-gold-500);   /* #c8aa6e */
   /* Hover / estado ativo de elementos gold */
   --color-gold-bright: var(--fd-raw-gold-300);   /* #e3cf9e */
+  /* Creme/pergaminho do Dota — número do leaderboard na placa da medalha */
+  --color-gold-cream:  var(--fd-raw-gold-100);   /* #f0e6cf */
   /* Labels/captions associados a números gold */
   --color-gold-muted:  var(--fd-raw-gold-700);   /* #846d3f */
   /* Bordas de destaque (cards importantes, seleção) */

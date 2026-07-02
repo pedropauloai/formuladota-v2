@@ -67,6 +67,7 @@
    * ------------------------------------------------------- */
   --color-gold:                var(--color-gold);
   --color-gold-bright:         var(--color-gold-bright);
+  --color-gold-cream:          var(--color-gold-cream);
   --color-gold-muted:          var(--color-gold-muted);
   --color-border-gold:         var(--color-border-gold);
 
@@ -429,5 +430,22 @@
 }
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+/* ---------------------------------------------------------------------------
+ * Brilho pulsante do número no leaderboard de Imortais (medalha oficial Dota).
+ * CSS puro (o componente é Server): glow radial central com pulso DELICADO de
+ * opacidade + escala. translate(-50%,-50%) preservado no keyframe pois o glow
+ * é ancorado por left/top no centro do brilho da medalha.
+ * ------------------------------------------------------------------------- */
+@keyframes fd-medal-glow {
+  0%, 100% { opacity: 0.4;  transform: translate(-50%, -50%) scale(0.92); }
+  50%      { opacity: 0.72; transform: translate(-50%, -50%) scale(1.08); }
+}
+.fd-medal-glow {
+  animation: fd-medal-glow 2600ms var(--motion-ease-soft-landing) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fd-medal-glow { animation: none; opacity: 0.7; transform: translate(-50%, -50%); }
 }
 

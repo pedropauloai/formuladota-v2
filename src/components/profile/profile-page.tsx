@@ -34,7 +34,7 @@ import { Pencil, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MedalPair } from "@/components/ui/medal-pair";
 import { mmrToDotaRank } from "@/components/queue/queue-helpers";
-import { mmrToTier } from "@/lib/mmr";
+import { mmrToTier, IMMORTAL_ELITE_TOP, IMMORTAL_LEADERBOARD_TOP } from "@/lib/mmr";
 import { ProfileTabs, type ProfileTab } from "./profile-tabs";
 import { SocialIconsRow, SteamIcon } from "./social-icons-row";
 import { SyncSteamButton } from "./sync-steam-button";
@@ -108,15 +108,20 @@ export function ProfilePage({
   const t = useTranslations("perfil");
   const ranqueado = profile.mmr !== null;
   // Rank FormulaDota (Eixo 2, sazonal) — 3º selo, só quando há MMR de temporada.
-  // Elite do leaderboard (top 10 Imortais) → medalha OFICIAL de leaderboard (anel),
-  // com a POSIÇÃO (#N) dentro do anel (idêntica do #1 ao #10; o número diferencia).
+  // Leaderboard de Imortais (estilo oficial Dota): #1–#10 medalha ESCURA (anel),
+  // #11–#30 medalha VERMELHA, ambas com a POSIÇÃO (#N) gravada na placa.
+  const lbPos = immortalRank && immortalRank.position <= IMMORTAL_LEADERBOARD_TOP
+    ? immortalRank.position
+    : null;
   const seasonRank =
     profile.mmr === null
       ? undefined
-      : immortalRank?.elite
+      : lbPos != null && lbPos <= IMMORTAL_ELITE_TOP
         ? "immortal-leaderboard"
-        : mmrToDotaRank(profile.mmr);
-  const seasonLeaderboardNumber = immortalRank?.elite ? immortalRank.position : undefined;
+        : lbPos != null
+          ? "immortal-top-100"
+          : mmrToDotaRank(profile.mmr);
+  const seasonLeaderboardNumber = lbPos ?? undefined;
   // Estrelas da sub-divisão (1–5). SKILL Valve = unidade do rank_tier (medalha×10+estrela);
   // sem rank Valve, o selo cai no MMR da liga → mesmas estrelas do sazonal.
   const seasonStars = profile.mmr !== null ? mmrToTier(profile.mmr).stars : undefined;
