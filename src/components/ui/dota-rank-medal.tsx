@@ -554,20 +554,34 @@ export function DotaRankMedal({
           />
           {/* Estrelas da sub-divisão (1–5) — fiel ao cliente Dota 2. */}
           {typeof stars === "number" && <StarPips stars={stars} rank={rank} px={px} />}
-          {/* Número do leaderboard DENTRO da medalha (estilo oficial): posição da
-              temporada pros Imortais no topo. */}
+          {/* Leaderboard de Imortais (estilo oficial Dota): brilho radial PULSANTE no
+              centro da medalha + a POSIÇÃO (#N) na placa inferior, em creme pergaminho. */}
           {typeof leaderboardNumber === "number" && (
-            <span
-              className="pointer-events-none absolute inset-0 flex items-center justify-center"
-              aria-hidden="true"
-            >
+            <>
               <span
-                className="font-display-condensed font-bold leading-none text-gold drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]"
-                style={{ fontSize: px * 0.42 }}
+                className="fd-medal-glow pointer-events-none absolute rounded-full mix-blend-plus-lighter"
+                style={{
+                  left: "50%",
+                  top: "42%",
+                  width: px * 0.46,
+                  height: px * 0.46,
+                  background:
+                    "radial-gradient(circle, rgba(255,226,165,0.8) 0%, rgba(255,175,70,0.28) 45%, transparent 70%)",
+                }}
+                aria-hidden="true"
+              />
+              <span
+                className="pointer-events-none absolute inset-x-0 bottom-[9%] flex items-center justify-center"
+                aria-hidden="true"
               >
-                {leaderboardNumber}
+                <span
+                  className="font-display-condensed font-bold leading-none text-gold-cream drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]"
+                  style={{ fontSize: px * 0.28 }}
+                >
+                  {leaderboardNumber}
+                </span>
               </span>
-            </span>
+            </>
           )}
           {/* Monograma FD — só em md+ (em sm poluiria); assina a pele de marca. */}
           {isFd && size !== "sm" && (

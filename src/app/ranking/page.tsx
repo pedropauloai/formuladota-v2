@@ -17,19 +17,21 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { UserHoverCard } from "@/components/profile/user-hover-card";
 import { DotaRankMedal, type DotaRank } from "@/components/ui/dota-rank-medal";
-import { mmrToTier, IMMORTAL_FLOOR, IMMORTAL_ELITE_TOP } from "@/lib/mmr";
+import { mmrToTier, IMMORTAL_FLOOR, IMMORTAL_ELITE_TOP, IMMORTAL_LEADERBOARD_TOP } from "@/lib/mmr";
 
-// Medalha do rank: o TOP 10 Imortais (por posição) usa a MESMA medalha oficial de
-// leaderboard (anel que segura o número) — do rank 1 ao 10, idêntica (Pedro 2026-07-02);
-// o resto segue o MMR. `position` = colocação global (1-based) na temporada.
+// Medalha do rank pro leaderboard de Imortais (estilo oficial Dota, Pedro 2026-07-02):
+// #1–#10 = medalha ESCURA (anel), #11–#30 = medalha VERMELHA; o resto segue o MMR.
+// `position` = colocação global (1-based) na temporada.
 function rankMedalFor(mmr: number, position: number): DotaRank {
-  if (mmr >= IMMORTAL_FLOOR && position <= IMMORTAL_ELITE_TOP) return "immortal-leaderboard";
+  if (mmr < IMMORTAL_FLOOR) return mmrToDotaRank(mmr);
+  if (position <= IMMORTAL_ELITE_TOP) return "immortal-leaderboard";
+  if (position <= IMMORTAL_LEADERBOARD_TOP) return "immortal-top-100";
   return mmrToDotaRank(mmr);
 }
 
-// Número do leaderboard (#N dentro do anel) — só o top 10.
+// Número do leaderboard (#N na placa da medalha) — top 30.
 function leaderboardNumberFor(mmr: number, position: number): number | undefined {
-  return mmr >= IMMORTAL_FLOOR && position <= IMMORTAL_ELITE_TOP ? position : undefined;
+  return mmr >= IMMORTAL_FLOOR && position <= IMMORTAL_LEADERBOARD_TOP ? position : undefined;
 }
 import { SeasonBanner } from "@/components/patterns/season-banner";
 
