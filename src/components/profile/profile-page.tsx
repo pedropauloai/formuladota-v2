@@ -108,13 +108,15 @@ export function ProfilePage({
   const t = useTranslations("perfil");
   const ranqueado = profile.mmr !== null;
   // Rank FormulaDota (Eixo 2, sazonal) — 3º selo, só quando há MMR de temporada.
-  // Elite do leaderboard (top N Imortais) → medalha VERMELHA (immortal-top-100).
+  // Elite do leaderboard (top 10 Imortais) → medalha OFICIAL de leaderboard (anel),
+  // com a POSIÇÃO (#N) dentro do anel (idêntica do #1 ao #10; o número diferencia).
   const seasonRank =
     profile.mmr === null
       ? undefined
       : immortalRank?.elite
-        ? "immortal-top-100"
+        ? "immortal-leaderboard"
         : mmrToDotaRank(profile.mmr);
+  const seasonLeaderboardNumber = immortalRank?.elite ? immortalRank.position : undefined;
   // Estrelas da sub-divisão (1–5). SKILL Valve = unidade do rank_tier (medalha×10+estrela);
   // sem rank Valve, o selo cai no MMR da liga → mesmas estrelas do sazonal.
   const seasonStars = profile.mmr !== null ? mmrToTier(profile.mmr).stars : undefined;
@@ -218,6 +220,7 @@ export function ProfilePage({
                 honorRank={honorRank}
                 seasonRank={seasonRank}
                 seasonStars={seasonStars}
+                seasonLeaderboardNumber={seasonLeaderboardNumber}
                 size="md"
                 className="shrink-0"
               />

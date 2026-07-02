@@ -20,7 +20,7 @@
  */
 
 import Image from "next/image"
-import { Lock, Star, Crown } from "lucide-react"
+import { Lock, Star } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { Tooltip } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
@@ -340,9 +340,6 @@ export interface DotaRankMedalProps {
    * o número DENTRO da medalha (estilo oficial do Dota). Só pra Imortal no top da temporada.
    */
   leaderboardNumber?: number
-
-  /** Coroa sobre a medalha — reservado ao #1 do leaderboard (único). */
-  crown?: boolean
 }
 
 /**
@@ -402,7 +399,6 @@ export function DotaRankMedal({
   variant = "valve",
   stars,
   leaderboardNumber,
-  crown,
 }: DotaRankMedalProps) {
   const t = useTranslations("ui")
   const tr = useTranslations("ranks")
@@ -572,14 +568,6 @@ export function DotaRankMedal({
                 {leaderboardNumber}
               </span>
             </span>
-          )}
-          {/* Coroa do #1 (única). */}
-          {crown && (
-            <Crown
-              size={Math.max(10, Math.round(px * 0.34))}
-              className="absolute -top-1 left-1/2 -translate-x-1/2 fill-gold text-gold drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]"
-              aria-hidden="true"
-            />
           )}
           {/* Monograma FD — só em md+ (em sm poluiria); assina a pele de marca. */}
           {isFd && size !== "sm" && (

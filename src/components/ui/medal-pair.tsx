@@ -26,6 +26,8 @@ interface MedalPairProps {
   dotaStars?: number
   /** Estrelas (1–5) do rank sazonal FormulaDota. Omitido = sem pips. */
   seasonStars?: number
+  /** Nº do leaderboard (#N) dentro do anel — só top 10 Imortais. */
+  seasonLeaderboardNumber?: number
   /** Tamanho repassado às medalhas. @default "md" */
   size?: "sm" | "md" | "lg" | "xl"
   /** Glow nas medalhas de topo (Imortal/Místico). @default true */
@@ -43,6 +45,7 @@ export function MedalPair({
   seasonRank,
   dotaStars,
   seasonStars,
+  seasonLeaderboardNumber,
   size = "md",
   glow = true,
   side = "top",
@@ -82,10 +85,16 @@ export function MedalPair({
         <DotaRankMedal
           rank={seasonRank}
           stars={seasonStars}
+          leaderboardNumber={seasonLeaderboardNumber}
           variant="formuladota"
           size={size}
           tooltip={false}
-          glow={glow && (seasonRank === "immortal" || seasonRank === "immortal-top-100")}
+          glow={
+            glow &&
+            (seasonRank === "immortal" ||
+              seasonRank === "immortal-top-100" ||
+              seasonRank === "immortal-leaderboard")
+          }
         />
       )}
       <HonorRankMedal
