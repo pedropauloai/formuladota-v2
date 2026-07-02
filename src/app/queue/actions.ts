@@ -120,7 +120,7 @@ export async function getQueueSearchers(): Promise<QueueSearcher[]> {
 
 export type QueueResult =
   | { success: true; queueId: string; matchedLobbyId?: string | null }
-  | { success: false; error: string; code?: "need_permission" };
+  | { success: false; error: string; code?: "need_permission" | "in_match" };
 
 // Tamanho da partida (X): a fila FORMA a partida ao juntar este número de jogadores.
 // Produção (Pedro 2026-06-28): 10 — exige composição completa das 5 funções (2 cada).
@@ -153,6 +153,18 @@ export async function enterQueue(input: {
 
   if (input.roles.length === 0) {
     return { success: false, error: "Selecione pelo menos 1 função." };
+  }
+
+  // TRAVA DE VERDADE (servidor): já está em partida ativa? Não pode buscar outra.
+  // Fonte única is_in_active_match (mesma regra do getQueueStatus). O botão opaco/
+  // "Voltar à partida" na UI é só o espelho — a proteção real é aqui.
+  const { data: inMatch } = await supabase.rpc("is_in_active_match", { p_user: user.id });
+  if (inMatch === true) {
+    return {
+      success: false,
+      error: "Você já está em partida. Termine a atual antes de buscar outra.",
+      code: "in_match",
+    };
   }
 
   // Em grupo? A fila solo racharia a party — o líder busca pelo painel do grupo
