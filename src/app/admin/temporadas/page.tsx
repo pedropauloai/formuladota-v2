@@ -30,6 +30,7 @@ export default async function AdminTemporadasPage() {
   if (!me?.is_admin) redirect("/dashboard");
 
   const t = await getTranslations("misc2");
+  const now = new Date();
   const service = createServiceClient();
   const { data: seasons } = await service
     .from("seasons")
@@ -85,12 +86,19 @@ export default async function AdminTemporadasPage() {
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
                   {s.active && <Badge variant="success">{t("seasonBadgeActive")}</Badge>}
-                  {s.ended_at && !s.active && <Badge variant="secondary">{t("seasonBadgeEnded")}</Badge>}
+                  {/* Estado por DATA (não presença de ended_at): a Genesis tem ended_at
+                      no futuro e ainda nem começou → "Agendada", não "Encerrada". */}
+                  {!s.active && new Date(s.started_at) > now && (
+                    <Badge variant="secondary">{t("seasonBadgeScheduled")}</Badge>
+                  )}
+                  {!s.active && new Date(s.started_at) <= now && s.ended_at && new Date(s.ended_at) <= now && (
+                    <Badge variant="secondary">{t("seasonBadgeEnded")}</Badge>
+                  )}
                   <SeasonRowActions
                     seasonId={s.id}
                     seasonName={s.name}
                     active={s.active}
-                    ended={Boolean(s.ended_at)}
+                    ended={Boolean(s.ended_at) && new Date(s.ended_at) <= now}
                   />
                 </div>
               </div>

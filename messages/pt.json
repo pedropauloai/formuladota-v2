@@ -3341,7 +3341,8 @@
     "promotedOn": "Promovido em",
     "totalSales": "Total vendas",
     "proEarnings": "Ganhos PRO",
-    "totalRevenue": "Revenue total"
+    "totalRevenue": "Revenue total",
+    "seasonBadgeScheduled": "Agendada"
   },
   "proCockpit": {
     "panelTitle": "Painel PRO",
