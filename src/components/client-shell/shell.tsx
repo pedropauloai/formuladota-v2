@@ -177,7 +177,9 @@ export async function ClientShell({
     level: userLevel,
   });
   const miniDotaRank = miniBadges.skillRank;
+  const miniSkillStars = miniBadges.skillStars;
   const miniSeasonRank = miniBadges.seasonRank;
+  const miniSeasonStars = miniBadges.seasonStars;
   const miniHonorRank = miniBadges.honorRank;
 
   const prosOnline = prosWithQueues.map((p) => p.coach);
@@ -294,8 +296,10 @@ export async function ClientShell({
             xpPct={userXpPct}
             permissions={matchPermissions}
             dotaRank={miniDotaRank}
+            skillStars={miniSkillStars}
             honorRank={miniHonorRank}
             seasonRank={miniSeasonRank}
+            seasonStars={miniSeasonStars}
             initialExpanded={sidebarExpanded}
             lockedExpanded={currentRoute === "/"}
             currentUserId={user?.id ?? null}

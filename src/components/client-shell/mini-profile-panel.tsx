@@ -56,10 +56,14 @@ interface Props {
   permissions: number;
   /** Medalha SKILL (Valve) — calculada no shell (rank Valve real > MMR), igual ao /me. */
   dotaRank: DotaRank;
+  /** Estrelas (1-5) da medalha SKILL — sem isso a medalha vinha sem estrela. */
+  skillStars?: number;
   /** Medalha HONOR (nível) — calculada no shell (getGatedTierForLevel), igual ao /me. */
   honorRank: HonorRank;
   /** Rank FormulaDota sazonal (Eixo 2) — 3º selo opcional, igual ao /me. */
   seasonRank?: DotaRank;
+  /** Estrelas (1-5) da medalha SEASON — igual ao /me. */
+  seasonStars?: number;
   /** Estado inicial do cookie sidebar_expanded — passado do shell SSR. */
   initialExpanded: boolean;
   /**
@@ -95,8 +99,10 @@ export function MiniProfilePanel({
   xpPct,
   permissions,
   dotaRank,
+  skillStars,
   honorRank,
   seasonRank,
+  seasonStars,
   initialExpanded,
   lockedExpanded = false,
   currentUserId,
@@ -149,8 +155,10 @@ export function MiniProfilePanel({
           level={level}
           xpPct={xpPct}
           dotaRank={dotaRank}
+          skillStars={skillStars}
           honorRank={honorRank}
           seasonRank={seasonRank}
+          seasonStars={seasonStars}
           currentUserId={currentUserId}
           initialFriends={initialFriends}
           initialPending={initialPending}
@@ -350,8 +358,10 @@ function ExpandedPanel({
   level,
   xpPct,
   dotaRank,
+  skillStars,
   honorRank,
   seasonRank,
+  seasonStars,
   currentUserId,
   initialFriends,
   initialPending,
@@ -366,8 +376,10 @@ function ExpandedPanel({
   level: number;
   xpPct: number;
   dotaRank: DotaRank;
+  skillStars?: number;
   honorRank: HonorRank;
   seasonRank?: DotaRank;
+  seasonStars?: number;
   currentUserId: string | null;
   initialFriends: FriendListEntry[];
   initialPending: FriendListEntry[];
@@ -416,8 +428,10 @@ function ExpandedPanel({
               (skillInline=false), pra não competir com a nossa medalha. */}
           <MedalPair
             dotaRank={dotaRank}
+            dotaStars={skillStars}
             honorRank={honorRank}
             seasonRank={seasonRank}
+            seasonStars={seasonStars}
             skillInline={false}
             size="md"
             side="right"
