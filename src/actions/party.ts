@@ -190,11 +190,21 @@ export async function enterPartyQueue(gameModes: string[]): Promise<PartyQueueRe
     ok: boolean;
     error?: string;
     who?: string;
+    spread?: number;
     lobby_id?: string | null;
   };
   if (!res.ok) {
     if (res.error === "not_leader") {
       return { success: false, error: "Só o líder do grupo inicia a busca." };
+    }
+    // Grupo com variação de MMR grande demais (anti-smurf): jogadores muito distantes
+    // em nível não podem buscar juntos — senão furam o balanceamento por skill.
+    if (res.error === "mmr_spread") {
+      const s = typeof res.spread === "number" ? res.spread : null;
+      return {
+        success: false,
+        error: `O grupo tem uma diferença de MMR ${s ? `de ${s} ` : ""}acima do limite de 2800. Jogadores muito distantes de nível não podem buscar partida em grupo — é o mesmo limite do Dota, pra manter as partidas equilibradas.`,
+      };
     }
     if (res.error === "cooldown") {
       return { success: false, error: `${res.who ?? "Um membro"} está em cooldown de fila.` };
