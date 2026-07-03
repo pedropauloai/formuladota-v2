@@ -55,6 +55,7 @@ export default async function HistoricoPartidaPage({
             teamfights?: unknown;
             objectives?: unknown;
             picks_bans?: unknown;
+            mvp_user_id?: string | null;
           } | null;
         }>;
       };
@@ -144,12 +145,13 @@ export default async function HistoricoPartidaPage({
 
   // Dados de nível-partida (público) — abas Teamfights/Objetivos/Draft.
   const { data: details } = await mdTable
-    .select("teamfights, objectives, picks_bans")
+    .select("teamfights, objectives, picks_bans, mvp_user_id")
     .eq("match_id", matchUuid)
     .maybeSingle();
   const objectives = parseObjectives(details?.objectives);
   const teamfights = parseTeamfights(details?.teamfights);
   const draft = parseDraft(details?.picks_bans);
+  const mvpUserId = details?.mvp_user_id ?? null;
 
   const radiantRows = rows.filter((r) => r.team === "radiant");
   const direRows = rows.filter((r) => r.team === "dire");
@@ -305,6 +307,7 @@ export default async function HistoricoPartidaPage({
           draft={draft}
           radiantWin={radiantWin}
           dotaMatchId={dotaMatchId ?? id}
+          mvpUserId={mvpUserId}
         />
       </div>
     </ClientShell>

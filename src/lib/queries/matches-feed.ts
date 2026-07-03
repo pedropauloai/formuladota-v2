@@ -54,6 +54,8 @@ export interface HistoryMatch {
   /** Média de MMR de cada time no momento da partida (favorito/zebra). */
   radiantAvg: number | null;
   direAvg: number | null;
+  /** Jogador MVP (maior desempenho da partida). null = sem MVP definido. */
+  mvpUserId: string | null;
   players: HistoryPlayer[];
 }
 
@@ -121,6 +123,7 @@ export async function getRecentMatches(limit = 20, offset = 0): Promise<HistoryM
     date: string | null;
     radiant_avg_mmr: number | null;
     dire_avg_mmr: number | null;
+    mvp_user_id: string | null;
     players: {
       user_id: string | null;
       team: string;
@@ -146,6 +149,7 @@ export async function getRecentMatches(limit = 20, offset = 0): Promise<HistoryM
     date: r.date,
     radiantAvg: r.radiant_avg_mmr ?? null,
     direAvg: r.dire_avg_mmr ?? null,
+    mvpUserId: r.mvp_user_id ?? null,
     players: (r.players ?? []).map((p) => ({
       userId: p.user_id,
       team: p.team === "dire" ? "dire" : p.team === "spectator" ? "spectator" : "radiant",

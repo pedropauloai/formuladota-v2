@@ -4,6 +4,7 @@
 // disponíveis em match_players. Denso e compacto por decisão de design (cliente real).
 
 import Image from "next/image";
+import { Crown } from "lucide-react";
 import { itemImageUrl } from "@/lib/queries/items";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { UserHoverCard } from "@/components/profile/user-hover-card";
@@ -101,7 +102,7 @@ function Th({ children, className = "" }: { children: React.ReactNode; className
   );
 }
 
-function PlayerCell({ p }: { p: ScoreboardPlayer }) {
+function PlayerCell({ p, isMvp = false }: { p: ScoreboardPlayer; isMvp?: boolean }) {
   const inner = (
     <span className="flex items-center gap-2.5">
       {/* Herói: imagem OFICIAL do CDN (landscape) + nível do herói na partida. */}
@@ -145,8 +146,16 @@ function PlayerCell({ p }: { p: ScoreboardPlayer }) {
         />
       )}
       <span className="min-w-0">
-        <span className="block truncate font-body text-sm font-medium text-text-display">
+        <span className="flex items-center gap-1.5 truncate font-body text-sm font-medium text-text-display">
           {p.name}
+          {isMvp && (
+            <span
+              className="inline-flex shrink-0 items-center gap-0.5 rounded-sm bg-gold/15 px-1 py-0.5 font-display text-[0.6rem] font-bold uppercase tracking-wide text-gold"
+              title="MVP da partida"
+            >
+              <Crown className="size-2.5" aria-hidden="true" /> MVP
+            </span>
+          )}
         </span>
         {/* Herói + MMR FormulaDota (identidade). */}
         <span className="block truncate font-display text-[0.7rem] uppercase tracking-wide text-text-muted">
@@ -209,11 +218,13 @@ function TeamTable({
   accent,
   won,
   players,
+  mvpUserId,
 }: {
   title: string;
   accent: string;
   won: boolean | null;
   players: ScoreboardPlayer[];
+  mvpUserId: string | null;
 }) {
   const maxNw = Math.max(1, ...players.map((p) => p.netWorth));
   const tot = players.reduce(
@@ -272,7 +283,7 @@ function TeamTable({
             {players.map((p, i) => (
               <tr key={p.userId ?? `${title}-${i}`} className="hover:bg-bg-surface/40">
                 <td className="px-3 py-2.5">
-                  <PlayerCell p={p} />
+                  <PlayerCell p={p} isMvp={p.userId != null && p.userId === mvpUserId} />
                 </td>
                 <td className="px-2 py-2.5 text-right font-display text-sm font-bold tabular-nums text-text-display">
                   <span className="text-play-primary">{p.kills}</span>
@@ -351,10 +362,12 @@ export function MatchScoreboard({
   radiant,
   dire,
   radiantWin,
+  mvpUserId = null,
 }: {
   radiant: ScoreboardPlayer[];
   dire: ScoreboardPlayer[];
   radiantWin: boolean | null;
+  mvpUserId?: string | null;
 }) {
   return (
     <div className="space-y-4">
@@ -363,12 +376,14 @@ export function MatchScoreboard({
         accent="text-[#00C466]"
         won={radiantWin == null ? null : radiantWin}
         players={radiant}
+        mvpUserId={mvpUserId}
       />
       <TeamTable
         title="Temidos"
         accent="text-brand-primary"
         won={radiantWin == null ? null : !radiantWin}
         players={dire}
+        mvpUserId={mvpUserId}
       />
     </div>
   );

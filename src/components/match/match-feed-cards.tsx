@@ -4,7 +4,7 @@
 
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
-import { Clock, Radio, Ban } from "lucide-react";
+import { Clock, Radio, Ban, Crown } from "lucide-react";
 import { getHeroById } from "@/lib/queries/heroes";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
@@ -15,15 +15,17 @@ import type { HistoryMatch, HistoryPlayer, LiveMatch, LivePlayer } from "@/lib/q
 // Chip de jogador: o AVATAR + NÍVEL da conta são o destaque (identidade = o produto;
 // anti-anonimato). O herói é badge secundário (canto superior, longe do badge de
 // nível que fica embaixo do anel). Nick + ±MMR embaixo.
-function PlayerChip({ player }: { player: HistoryPlayer }) {
+function PlayerChip({ player, isMvp }: { player: HistoryPlayer; isMvp?: boolean }) {
   const hero = player.heroId ? getHeroById(player.heroId) : null;
   const mmr = player.mmrChange;
   return (
     <span
       className="flex w-16 shrink-0 flex-col items-center gap-0.5"
-      title={`${player.name}${player.banned ? " · BANIDO" : ""}${hero ? ` · ${hero.name_pt}` : ""}`}
+      title={`${player.name}${isMvp ? " · MVP" : ""}${player.banned ? " · BANIDO" : ""}${hero ? ` · ${hero.name_pt}` : ""}`}
     >
       <span className={`relative ${player.banned ? "opacity-90" : ""}`}>
+        {/* MVP — coroa dourada sobre o avatar (maior desempenho da partida). */}
+        {isMvp && <MvpMark />}
         {/* Avatar + anel de XP com o NÍVEL da conta (identidade, sempre com o jogador). */}
         <XpAvatarRing
           src={player.avatar ?? undefined}
@@ -82,6 +84,19 @@ function PlayerChip({ player }: { player: HistoryPlayer }) {
   );
 }
 
+/** Coroa de MVP sobre o avatar (topo, centralizada) — maior desempenho da partida. */
+function MvpMark() {
+  return (
+    <span
+      className="absolute -top-2 left-1/2 z-10 flex size-[18px] -translate-x-1/2 items-center justify-center rounded-full border border-bg-deep bg-gold text-bg-deep shadow"
+      title="MVP da partida"
+      aria-label="MVP da partida"
+    >
+      <Crown className="size-3" strokeWidth={2.5} aria-hidden="true" />
+    </span>
+  );
+}
+
 /** Selo de BANIDO sobre o avatar (canto inferior esquerdo, longe do herói). */
 function BannedMark() {
   return (
@@ -128,7 +143,7 @@ export function HistoryMatchCard({ match }: { match: HistoryMatch }) {
         {/* Iluminados */}
         <div className="flex flex-1 items-start justify-end gap-1.5">
           {radiant.map((p, i) => (
-            <PlayerChip key={`r${i}`} player={p} />
+            <PlayerChip key={`r${i}`} player={p} isMvp={p.userId != null && p.userId === match.mvpUserId} />
           ))}
         </div>
 
@@ -158,7 +173,7 @@ export function HistoryMatchCard({ match }: { match: HistoryMatch }) {
         {/* Temidos */}
         <div className="flex flex-1 items-start justify-start gap-1.5">
           {dire.map((p, i) => (
-            <PlayerChip key={`d${i}`} player={p} />
+            <PlayerChip key={`d${i}`} player={p} isMvp={p.userId != null && p.userId === match.mvpUserId} />
           ))}
         </div>
       </div>
