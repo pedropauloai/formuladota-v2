@@ -401,11 +401,11 @@ function StatCol({
           ? "text-error"
           : "text-text-display";
   return (
-    <div className={cn("w-16 shrink-0 text-center 2xl:w-20", className)}>
-      <p className={cn("font-display-condensed text-lg font-bold tabular-nums leading-none 2xl:text-xl", toneClass)}>
+    <div className={cn("w-16 shrink-0 text-center 2xl:w-24", className)}>
+      <p className={cn("font-display-condensed text-2xl font-bold tabular-nums leading-none 2xl:text-3xl", toneClass)}>
         {value}
       </p>
-      <p className="mt-0.5 font-display text-[0.6rem] uppercase tracking-wide text-text-faded">{label}</p>
+      <p className="mt-1 font-display text-[0.7rem] uppercase tracking-wide text-text-faded 2xl:text-xs">{label}</p>
     </div>
   );
 }
@@ -418,7 +418,7 @@ function RankingRow({ row, position }: { row: RankRow; position: number }) {
   return (
     <li className="flex items-center gap-3 rounded-md border border-border-subtle bg-bg-base p-3 transition-colors hover:border-border-brand">
       {/* Posição no ranking = valor/progresso → GOLD (Pedro 2026-06-11) */}
-      <span className="w-10 shrink-0 text-center font-display text-lg 2xl:text-xl tabular-nums text-gold">#{position}</span>
+      <span className="w-12 shrink-0 text-center font-display text-2xl 2xl:text-3xl tabular-nums text-gold">#{position}</span>
       {/* Identidade (link) + redes lado a lado — as redes ficam FORA do link
           (âncora dentro de âncora é HTML inválido) mas coladas ao nome. */}
       <div className="flex min-w-0 flex-1 items-center gap-2.5">
@@ -442,7 +442,7 @@ function RankingRow({ row, position }: { row: RankRow; position: number }) {
             tooltip={false}
             className="shrink-0"
           />
-          <p className="min-w-0 truncate font-body text-sm 2xl:text-base font-medium text-text-display hover:text-brand-primary transition-colors">
+          <p className="min-w-0 truncate font-body text-lg 2xl:text-xl font-medium text-text-display hover:text-brand-primary transition-colors">
             {row.username ?? t("anonymous")}
           </p>
         </UserHoverCard>
