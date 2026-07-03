@@ -1,141 +1,80 @@
-# formuladota v2
+# FórmulaDota
 
-> Plataforma de mentoria Dota 2 em tempo real com Pedro Paulo (Immortal/Top 0.5%).
+> O app da comunidade **FórmulaDota** — uma cultura competitiva de Dota 2 liderada por Pedro Paulo (Immortal / Top 0.5%). **A cultura é o produto; o Dota é o terreno.**
 
-## O que é
+Plataforma web (com desktop e mobile no horizonte) que funciona como uma máquina de doutrinação e conversão de mentalidade: o jogador aprende a **Fórmula** (a doutrina competitiva), prova que absorveu, e só então destrava jogar em lobbies com a comunidade — subindo num ranking próprio, com identidade pública e reputação atrelada.
 
-Site onde clientes:
-1. Logam com Discord
-2. Compram pacotes de partidas com Pedro (R$ 10/partida)
-3. Agendam horários
-4. Jogam ranked junto com Pedro (mentoria em tempo real)
-5. Acompanham progressão (MMR, stats, conquistas)
+Produção: **[formuladota-v2.vercel.app](https://formuladota-v2.vercel.app)**
 
-Bot Discord integrado pra `/perfil`, `/saldo`, `/agendar` + notificações.
+## Como funciona (o loop)
 
-## Status
+1. **Entra** com Discord e vincula a Steam — identidade pública, **anti-anonimato** (1 Steam = 1 identidade, anti-smurf).
+2. **Doutrina** — um quiz em **4 Pilares** (estilo Duolingo: erra → explica → exige acertar). Chegar ao **nível 6** = *doutrinado*.
+3. **Destrava jogar** — entrar em lobby exige ser doutrinado **ou** ter permissão de partida (5 acertos no quiz = 1 permissão).
+4. **Joga** — matchmaking por skill forma partidas 5×5 (lobby livre + lobby elite Imortal); um bot cria a sala no Dota e convida os 10.
+5. **Sobe** — cada partida move o **MMR FórmulaDota** (Elo + desempenho medido do replay), reseta por temporada, e no topo vira leaderboard de Imortais.
+6. **Placar pós-jogo completo** — 12 abas estilo OpenDota/STRATZ (visão geral, MMR, performance, gráficos, builds, combate, mapas, **presença/heatmap**, teamfights, objetivos, draft, benchmarks), com destaque de **MVP** e explicação transparente de como o MMR mudou.
 
-🚧 **Em construção** — MVP previsto pra 7 dias após início.
-
-## Documentação
-
-- 📋 [`PRD.md`](./PRD.md) — Product Requirements Document completo
-- 🤖 [`CLAUDE.md`](./CLAUDE.md) — Instruções pro Claude Code
-- 📐 `ARCHITECTURE.md` — Decisões técnicas (em construção)
-- ✅ `TASKS.md` — Backlog (em construção)
-
-## Quickstart Dev
-
-```bash
-# Clone + install
-pnpm install
-
-# Setup env
-cp .env.example .env.local
-# preencher Supabase, Discord, AbacatePay keys
-
-# Run dev
-pnpm dev
-
-# Bot Discord (terminal separado)
-cd bot && pnpm dev
-```
-
-## Webhook Local Dev (Phase 2 — AbacatePay PIX)
-
-Para testar fluxo de pagamento end-to-end localmente, você precisa de um tunnel HTTP→localhost porque AbacatePay (na nuvem) não consegue alcançar `http://localhost:3000` diretamente.
-
-Usamos [smee.io](https://smee.io) — não exige conta, sem rate limit em dev.
-
-### Setup (uma vez)
-
-1. Acesse [smee.io](https://smee.io) e clique **Start a new channel**. Ele vai gerar uma URL única tipo `https://smee.io/abc123XYZ`.
-2. No dashboard da AbacatePay (sandbox), crie um webhook:
-   - **Endpoint URL**: a URL que o smee.io te deu acima
-   - **Secret**: gere uma string aleatória e salve em `ABACATEPAY_WEBHOOK_SECRET` no seu `.env.local`
-   - **Eventos**: marque `transparent.completed`, `transparent.disputed`, `transparent.refunded`
-
-### Rodar (toda vez que for desenvolver)
-
-Em **três terminais separados**:
-
-```bash
-# Terminal 1 — tunnel smee.io
-pnpm dlx smee-client \
-  --url https://smee.io/SEU-CANAL \
-  --target http://localhost:3000/api/webhooks/abacatepay
-
-# Terminal 2 — Next.js dev server
-pnpm dev
-
-# Terminal 3 — quando quiser simular pagamento sem fluxo PIX real:
-curl -X POST "https://api.abacatepay.com/v2/transparents/simulate-payment?id=PIX_ID_AQUI" \
-  -H "Authorization: Bearer $ABACATEPAY_API_KEY"
-```
-
-Substitua `SEU-CANAL` pelo ID que o smee.io te deu, e `PIX_ID_AQUI` pelo `id` retornado em `POST /v2/transparents/create`.
-
-### Fallback: ngrok
-
-Se smee.io estiver instável, use [ngrok](https://ngrok.com) (agora exige conta gratuita):
-
-```bash
-ngrok http 3000
-# Copie a URL HTTPS gerada e cole no dashboard AbacatePay como endpoint
-```
-
-### Validar HMAC manualmente (debug)
-
-Se webhook retornar 401 "Assinatura inválida" mesmo com tunnel rodando, verifique:
-
-1. `ABACATEPAY_WEBHOOK_SECRET` no `.env.local` bate exatamente com o secret configurado no dashboard AbacatePay.
-2. Você está usando `request.text()` ANTES de qualquer `JSON.parse` (parsear muda o body e quebra a assinatura — ver Pitfall 2 em `.planning/phases/02-catalog-checkout/02-RESEARCH.md`).
+Partidas premium ("ranked com PRO") usam **fichas de vaga (R$ 10 fixo, PIX)**. Conduta é pública: quem viola a doutrina vai pro **Mural da Vergonha**.
 
 ## Stack
 
-- **Frontend**: Next.js 15 + React 19 + TypeScript + Tailwind v4 + shadcn/ui
-- **Backend**: Supabase (PostgreSQL + Auth + Storage)
-- **Auth**: Discord OAuth via Supabase
-- **Pagamentos**: AbacatePay (PIX)
-- **Stats Dota**: OpenDota API
-- **Bot**: Discord.js v14 (Node)
-- **Hosting**: Vercel (web) + Railway (bot)
+- **Web** — Next.js 16 (App Router) + React 19 + TypeScript (strict) + Tailwind v4 + shadcn/ui
+- **Backend** — Supabase (Postgres + Auth + Storage), RLS em todas as tabelas
+- **Auth** — Discord OAuth via Supabase; vínculo Steam para identidade competitiva
+- **Pagamentos** — Mercado Pago (PIX), webhook validado por HMAC
+- **Stats Dota** — OpenDota API (enrich do replay parseado)
+- **Bots** — Discord.js v14 (`bot/`) + worker Steam/Dota GC com node-steam-user (`bot-steam/`)
+- **Hosting** — Vercel (web, git-connected) + Railway (os dois bots, deploy automático)
 
-## Features V1 (MVP)
+## Arquitetura
 
-- ✅ Discord OAuth login
-- ✅ Catálogo de pacotes (avulso e mensal)
-- ✅ Checkout PIX via AbacatePay
-- ✅ Agendamento de partidas (calendário)
-- ✅ Histórico de partidas + stats
-- ✅ Bot Discord (`/perfil`, `/saldo`, `/agendar`)
-- ✅ Painel admin pro Pedro
+Três serviços, todos com deploy automático ao dar push na `main`:
 
-## Pricing inicial
+- **`/` (web)** — Next.js na Vercel. Server Components por padrão; Server Actions para mutations; API Routes só para webhooks externos.
+- **`bot/`** — bot Discord (slash commands, notificações), lê o DB via service role.
+- **`bot-steam/`** — worker que cria a sala no Dota via Game Coordinator: pega um lobby confirmado, cria a partida, convida os 10, lança, e grava `dota_match_id` de volta.
 
-| Pacote | Tipo | Preço |
-|---|---|---|
-| Avulsa (1 partida) | avulso | R$ 10 |
-| Pacote 5 | avulso | R$ 50 |
-| Pacote 10 | avulso | R$ 100 |
-| Mentoria mensal (8 partidas + 2 sessões) | mensal | R$ 100 |
+A lógica de acesso (gates de nível, permissões, assinatura) é centralizada em `src/lib/` e reforçada por RLS e funções SQL.
 
-> Pricing escala naturalmente conforme demanda apertar.
+## Documentação
 
-## Por que esse projeto
+Fontes da verdade, em ordem:
 
-Pedro saiu do Dota em nov/2025 por burnout. Construir esse sistema permite:
-- **Voltar parcialmente ao Dota** sem comunidade aberta tóxica
-- **Receita adicional** sem dependência total
-- **Lives 2-3h/dia max** (vs 8h+ antes)
-- **Distância profissional via produto digital**
-- **Caso público** de construção com Claude Code
+1. **[`docs/foundations/index.md`](./docs/foundations/index.md)** — índice dos docs fundacionais de produto e design (padrão LLM Wiki: siga só os links relevantes).
+2. **`.planning/ROADMAP.md`** + **`.planning/STATE.md`** — fases e estado atual.
+3. **`supabase/migrations/`** — o schema é a verdade final.
+4. **[`CLAUDE.md`](./CLAUDE.md)** — instruções e convenções para desenvolvimento assistido.
 
-Detalhes da decisão estratégica: [Conflito - voltar ou não pro Dota (Obsidian)](../../segundo-cerebro/10%20-%20Pessoal/Conflitos/Voltar%20ou%20nao%20voltar%20pro%20Dota.md)
+> `PRD.md` na raiz é o documento **original** (loja de mentoria 1-1) e foi sobrescrito em escopo pelos pivôs de 2026 — serve só como contexto histórico.
+
+## Quickstart
+
+```bash
+pnpm install
+cp .env.example .env.local   # preencher Supabase, Discord, Mercado Pago (MP_*), OpenDota
+pnpm dev                     # web em localhost:3000
+
+cd bot && pnpm dev           # bot Discord (terminal separado)
+cd bot-steam && pnpm bot     # worker Steam/GC (terminal separado)
+```
+
+`.env.example` é a fonte da verdade das variáveis de ambiente.
+
+## Comandos
+
+```bash
+pnpm build          # build de produção
+pnpm typecheck      # tipos (tsc --noEmit)
+pnpm lint           # eslint
+pnpm db:gen-types   # gera types/database.ts via Supabase CLI
+pnpm gen:heroes     # regenera catálogo de heróis (idem gen:items, gen:abilities)
+```
+
+## Convenções
+
+TypeScript strict (zero `any`), funções ≤ 50 linhas, arquivos ≤ 300 linhas, early return. Zod em todo input de API/Server Action. RLS obrigatória. Cores/tokens de design vêm de `src/styles/tokens/` — nunca hardcoded. Conventional Commits, PR para qualquer mudança (sem push direto na `main`). Detalhes em [`CLAUDE.md`](./CLAUDE.md).
 
 ## Contato
 
-Pedro Paulo — pedropauloaitech@gmail.com
-- 🐦 [@PedroPauloAI](https://x.com/PedroPauloAI)
-- 💼 [pedropauloai.vercel.app](https://pedropauloai.vercel.app)
-- 🐙 [github.com/pedropauloai](https://github.com/pedropauloai)
+Pedro Paulo — [@PedroPauloAI](https://x.com/PedroPauloAI) · [github.com/pedropauloai](https://github.com/pedropauloai)
