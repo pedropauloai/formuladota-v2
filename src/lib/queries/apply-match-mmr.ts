@@ -34,7 +34,7 @@ export async function applyMatchMmr(
 ): Promise<ApplyMmrResult> {
   const { data: players } = await supabase
     .from("match_players")
-    .select("user_id, team, is_winner, benchmarks, rank_tier")
+    .select("user_id, team, is_winner, benchmarks, rank_tier, raw_opendota")
     .eq("match_id", matchId);
 
   // Só jogadores da plataforma (com user_id) ganham/perdem MMR.
@@ -132,7 +132,13 @@ export async function applyMatchMmr(
   const results = platform.map((p) => {
     const base = p.team === "radiant" ? radiantDelta : direDelta;
     const won = Boolean(p.is_winner);
-    const perf = computePerfScore(p.benchmarks as PerfBenchmarks | null);
+    // Presença em teamfight (0..1) vem do replay parseado — peso dominante no perf
+    // score v2. Ausente (partida não parseada no momento) → sai da média.
+    const tfp = (p.raw_opendota as { teamfight_participation?: number } | null)
+      ?.teamfight_participation;
+    const perf = computePerfScore(p.benchmarks as PerfBenchmarks | null, {
+      teamfightParticipation: typeof tfp === "number" ? tfp : null,
+    });
     let delta = modulateMmrDelta(base, perf, won);
     // Calibração: delta vale o DOBRO (converge rápido pro nível real).
     if (isCalibrating(p.user_id)) delta *= CALIBRATION_MULTIPLIER;

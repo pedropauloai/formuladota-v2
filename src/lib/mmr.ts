@@ -70,32 +70,63 @@ export function applySeasonDecay(currentMmr: number): number {
  * OBJETIVOS. `hero_damage_per_min` é contribuição de combate (≠ contagem de
  * kills, que é deliberadamente IGNORADA). Pesos calibráveis depois.
  */
-export const PERF_BENCHMARK_KEYS = [
-  "gold_per_min",
-  "xp_per_min",
-  "last_hits_per_min",
-  "hero_damage_per_min",
-  "tower_damage",
-] as const;
+// MODELO v2 (Pedro 2026-07-03). O v1 tinha 5 métricas com peso IGUAL, das quais 3
+// eram FARM (gold/xp/last_hits, correlacionadas) → o score era ~60% farm. Isso
+// punia suportes e PREMIAVA o "farmador egoísta" (jungle/split roubando recurso) —
+// o OPOSTO da doutrina (o coletivo vence). v2 pondera e adiciona impacto difícil de
+// manipular. Cada benchmark é PERCENTIL POR HERÓI (OpenDota), justo entre heróis;
+// teamfight_participation vem do replay parseado (0..1 direto). Componentes ausentes
+// (ex.: partida não parseada) saem da média ponderada.
+export const PERF_COMPONENTS: ReadonlyArray<{
+  key: string;
+  weight: number;
+  source: "benchmark" | "direct";
+}> = [
+  // Presença nas lutas: mais alinhada à doutrina (jogar JUNTO) e a mais à prova de
+  // manipulação (tem que estar nas brigas, não farmando sozinho). Peso dominante.
+  { key: "teamfight_participation", weight: 3, source: "direct" },
+  { key: "hero_damage_per_min", weight: 2, source: "benchmark" }, // combate
+  { key: "tower_damage", weight: 2, source: "benchmark" },        // objetivos / fechar o jogo
+  { key: "hero_healing_per_min", weight: 1, source: "benchmark" },// suporte/utility (v1 ignorava)
+  { key: "stuns_per_min", weight: 1, source: "benchmark" },       // controle / iniciação
+  { key: "gold_per_min", weight: 1, source: "benchmark" },        // farm importa, mas não domina
+];
 
 /** Amplitude do ajuste de desempenho: ±(PERF_SWING/2) MMR no extremo. */
 export const PERF_SWING = 20;
 
+/** Sinais parseados fora dos benchmarks (ex.: presença em teamfight, 0..1). */
+export interface PerfExtras {
+  teamfightParticipation?: number | null;
+}
+
 /**
- * Score de desempenho 0..1 a partir dos percentis OpenDota. Média dos pcts das
- * chaves doutrinárias. Sem dados → 0.5 (neutro: não altera o Elo → win/loss puro).
+ * Score de desempenho 0..1 = média PONDERADA dos PERF_COMPONENTS disponíveis.
+ * Sem nenhum dado → 0.5 (neutro: win/loss puro). O win/loss é a espinha; isto só
+ * modula ±PERF_SWING/2.
  */
 export function computePerfScore(
-  benchmarks: Record<string, { pct?: number | null }> | null | undefined
+  benchmarks: Record<string, { pct?: number | null }> | null | undefined,
+  extras?: PerfExtras
 ): number {
-  if (!benchmarks) return 0.5;
-  const pcts: number[] = [];
-  for (const key of PERF_BENCHMARK_KEYS) {
-    const pct = benchmarks[key]?.pct;
-    if (typeof pct === "number" && pct >= 0 && pct <= 1) pcts.push(pct);
+  let weighted = 0;
+  let weightSum = 0;
+  for (const c of PERF_COMPONENTS) {
+    let value: number | null = null;
+    if (c.source === "direct" && c.key === "teamfight_participation") {
+      const t = extras?.teamfightParticipation;
+      if (typeof t === "number" && t >= 0 && t <= 1) value = t;
+    } else {
+      const pct = benchmarks?.[c.key]?.pct;
+      if (typeof pct === "number" && pct >= 0 && pct <= 1) value = pct;
+    }
+    if (value !== null) {
+      weighted += c.weight * value;
+      weightSum += c.weight;
+    }
   }
-  if (pcts.length === 0) return 0.5;
-  return pcts.reduce((a, b) => a + b, 0) / pcts.length;
+  if (weightSum === 0) return 0.5;
+  return weighted / weightSum;
 }
 
 /**
