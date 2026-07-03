@@ -15,8 +15,19 @@
 // Recebe um supabase client JÁ criado (service role no script/cron, server no action).
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { fetchOpenDotaMatch, normalizePlayers } from "./opendota";
+import {
+  fetchOpenDotaMatch,
+  normalizePlayers,
+  isMatchParsed,
+  requestOpenDotaParse,
+  type OpenDotaMatch,
+} from "./opendota";
 import { applyMatchMmr } from "@/lib/queries/apply-match-mmr";
+
+// Quanto tempo esperar o parse do replay antes de aplicar o MMR só com os dados
+// básicos (fallback). O parse da OpenDota costuma sair em 1-5 min; 15 min cobre
+// folgado sem prender o MMR pra sempre se o replay expirar/der erro. (Pedro 2026-07-03)
+const PARSE_FALLBACK_MS = 15 * 60 * 1000;
 
 const STEAM_64_OFFSET = 76561197960265728n;
 function steam64To32(steamId64: string): number {
@@ -183,19 +194,113 @@ export async function finalizeMatchmakingLobby(
     } as never)
     .eq("id", matchId);
 
-  // 6) Aplica MMR ao ranking da temporada (best-effort — nunca quebra o finalize).
-  // O próprio applyMatchMmr PULA se a season for beta/inexistente (pré-temporada
-  // não conta). Grava o delta por jogador em match_players.mmr_change (histórico).
-  try {
-    await applyMatchMmr(supabase as never, matchId);
-  } catch (e) {
-    console.error("[finalize] applyMatchMmr falhou:", e instanceof Error ? e.message : e);
+  // 6) MMR NÃO é aplicado aqui (Pedro 2026-07-03): a partida acabou de terminar e o
+  // replay ainda NÃO foi parseado pela OpenDota → faltaria a métrica de maior peso
+  // (presença em teamfight). Solicitamos o parse e deixamos o MMR PENDENTE
+  // (mmr_applied_at NULL). O cron chama finalizePendingMmr() nos próximos ciclos e
+  // aplica o MMR assim que o parse ficar pronto (ou por fallback após 15 min). Isso
+  // NÃO atrasa a liberação dos jogadores — o lobby é fechado já a seguir.
+  if (!isMatchParsed(od)) {
+    await requestOpenDotaParse(dotaMatchId);
   }
 
-  // 7) Fecha o lobby e libera os jogadores.
+  // 7) Fecha o lobby e libera os jogadores (imediato — independe do MMR/parse).
   await closeLobbyAndRelease(supabase, lobbyId);
 
   return { success: true, playersInserted, dotaMatchId };
+}
+
+/**
+ * Aplica o MMR das partidas PENDENTES (realizada + mmr_applied_at NULL). Chamado
+ * pelo cron a cada ciclo. Espera o replay ser PARSEADO pra usar o desempenho
+ * completo (presença em teamfight etc.); se o parse não chegar em PARSE_FALLBACK_MS,
+ * aplica com os dados básicos pra não travar o MMR. Pedro 2026-07-03.
+ */
+export async function finalizePendingMmr(
+  supabase: SupabaseClient,
+  opts?: { fallbackMs?: number; limit?: number }
+): Promise<{ applied: number; waitingParse: number; results: Array<Record<string, unknown>> }> {
+  const fallbackMs = opts?.fallbackMs ?? PARSE_FALLBACK_MS;
+  const { data: pending } = await supabase
+    .from("matches")
+    .select("id, dota_match_id, enriched_at")
+    .eq("status", "realizada")
+    .is("mmr_applied_at", null)
+    .not("dota_match_id", "is", null)
+    .order("enriched_at", { ascending: true })
+    .limit(opts?.limit ?? 10);
+
+  let applied = 0;
+  let waitingParse = 0;
+  const results: Array<Record<string, unknown>> = [];
+
+  for (const m of pending ?? []) {
+    const dotaMatchId = String(m.dota_match_id);
+    let od: OpenDotaMatch;
+    try {
+      od = await fetchOpenDotaMatch(dotaMatchId);
+    } catch {
+      results.push({ dotaMatchId, status: "indisponivel" });
+      continue;
+    }
+
+    const parsed = isMatchParsed(od);
+    const agedMs = m.enriched_at ? Date.now() - new Date(m.enriched_at).getTime() : Infinity;
+
+    if (!parsed) {
+      await requestOpenDotaParse(dotaMatchId); // best-effort — acelera
+      if (agedMs < fallbackMs) {
+        waitingParse += 1;
+        results.push({ dotaMatchId, status: "aguardando_parse" });
+        continue;
+      }
+      // fallback: parse não veio a tempo → aplica com o que tem.
+      results.push({ dotaMatchId, status: "fallback_sem_parse" });
+    } else {
+      // Parseou → atualiza os players com o replay completo ANTES de calcular o MMR
+      // (pra o perfScore v2 enxergar teamfight_participation / stuns).
+      await updatePlayersFromOd(supabase, m.id, od);
+      results.push({ dotaMatchId, status: "parseada" });
+    }
+
+    try {
+      await applyMatchMmr(supabase as never, m.id);
+      applied += 1;
+    } catch (e) {
+      results.push({ dotaMatchId, status: "erro_mmr", detail: e instanceof Error ? e.message : "?" });
+    }
+  }
+
+  return { applied, waitingParse, results };
+}
+
+/** Atualiza match_players (raw_opendota + benchmarks + colunas) a partir do od
+ *  parseado, casando por player_slot. Sem auth (uso interno cron/service). */
+async function updatePlayersFromOd(
+  supabase: SupabaseClient,
+  matchId: string,
+  od: OpenDotaMatch
+): Promise<void> {
+  for (const p of normalizePlayers(od)) {
+    await supabase
+      .from("match_players")
+      .update({
+        gold_per_min: p.gold_per_min,
+        xp_per_min: p.xp_per_min,
+        last_hits: p.last_hits,
+        denies: p.denies,
+        net_worth: p.net_worth,
+        level: p.level,
+        hero_damage: p.hero_damage,
+        hero_healing: p.hero_healing,
+        tower_damage: p.tower_damage,
+        items: p.items,
+        benchmarks: p.benchmarks,
+        raw_opendota: p.raw_opendota as unknown as Record<string, unknown>,
+      } as never)
+      .eq("match_id", matchId)
+      .eq("player_slot", p.player_slot);
+  }
 }
 
 // Fecha o lobby (completed) → getQueueStatus deixa de redirecionar os 10 pra a rota da

@@ -13,7 +13,7 @@ import { NextResponse } from "next/server";
 import { requireServerEnv } from "@/lib/env";
 import { createServiceClient } from "@/lib/supabase/service";
 import { fetchOpenDotaMatch } from "@/lib/dota/opendota";
-import { finalizeMatchmakingLobby } from "@/lib/dota/finalize-match";
+import { finalizeMatchmakingLobby, finalizePendingMmr } from "@/lib/dota/finalize-match";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -65,10 +65,21 @@ export async function POST(req: Request) {
     }
   }
 
+  // Fase B: aplica o MMR das partidas já finalizadas cujo replay JÁ foi parseado
+  // (ou por fallback). Separado da finalização pra não atrasar a liberação dos
+  // jogadores — o MMR usa o desempenho completo (presença em teamfight etc.).
+  let mmr: Awaited<ReturnType<typeof finalizePendingMmr>> | null = null;
+  try {
+    mmr = await finalizePendingMmr(supabase);
+  } catch (e) {
+    mmr = { applied: 0, waitingParse: 0, results: [{ error: e instanceof Error ? e.message : "?" }] };
+  }
+
   return NextResponse.json({
     ok: true,
     checked: (lobbies ?? []).length,
     finalized: results.filter((r) => r.status === "finalizada").length,
     results,
+    mmr,
   });
 }
