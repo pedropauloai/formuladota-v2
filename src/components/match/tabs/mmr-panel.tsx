@@ -4,10 +4,18 @@
 // e JUSTIFICA o cálculo (Elo + desempenho v2), pra o jogador entender de onde veio.
 // Enquanto o replay não é parseado, o MMR fica pendente — o painel faz POLLING e
 // atualiza sozinho (sem refresh) quando os dados chegam.
+// O desempenho fica SEMPRE exposto (sem clicar) e cada jogador aparece com a
+// identidade completa (avatar+nível, medalha, redes) — reforça o anti-anonimato.
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { Loader2, TrendingUp, TrendingDown, Scale } from "lucide-react";
 import { getMatchMmrState, type MmrState, type MmrPlayerBreakdown } from "@/app/partida/mmr-actions";
+import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
+import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
+import { SocialIconsRow } from "@/components/profile/social-icons-row";
+import { mmrToDotaRank } from "@/components/queue/queue-helpers";
+import { mmrToTier } from "@/lib/mmr";
 
 // Rótulos legíveis dos componentes do perfScore (espelham PERF_COMPONENTS).
 const COMPONENT_LABEL: Record<string, string> = {
@@ -28,8 +36,6 @@ export function MmrPanel({ dotaMatchId }: { dotaMatchId: string }) {
     let alive = true;
     let timer: ReturnType<typeof setInterval> | null = null;
 
-    // Uma leitura: atualiza o estado (após await → assíncrono) e para o polling
-    // quando o MMR já foi aplicado (replay processado).
     const tick = async () => {
       const s = await getMatchMmrState(dotaMatchId).catch(() => null);
       if (!alive || !s) return;
@@ -40,15 +46,14 @@ export function MmrPanel({ dotaMatchId }: { dotaMatchId: string }) {
       }
     };
 
-    void tick(); // imediato
-    timer = setInterval(tick, POLL_MS); // e refaz sozinho enquanto pendente
+    void tick();
+    timer = setInterval(tick, POLL_MS);
     return () => {
       alive = false;
       if (timer) clearInterval(timer);
     };
   }, [dotaMatchId]);
 
-  // Carregando inicial.
   if (!state) {
     return (
       <div className="flex items-center justify-center gap-2 py-16 font-display text-sm text-text-muted">
@@ -79,6 +84,14 @@ export function MmrPanel({ dotaMatchId }: { dotaMatchId: string }) {
         </p>
       </div>
 
+      {state.applied && state.radiantAvg != null && state.direAvg != null && (
+        <TeamBalanceCard
+          radiantAvg={state.radiantAvg}
+          direAvg={state.direAvg}
+          radiantWon={radiantWonOf(state.players)}
+        />
+      )}
+
       {!state.applied && (
         <div className="flex items-center gap-3 rounded-[var(--radius-md)] border border-brand-primary/40 bg-brand-primary/5 p-4">
           <Loader2 className="size-5 shrink-0 animate-spin text-brand-primary" />
@@ -94,17 +107,9 @@ export function MmrPanel({ dotaMatchId }: { dotaMatchId: string }) {
         </div>
       )}
 
-      {state.applied && state.radiantAvg != null && state.direAvg != null && (
-        <TeamBalanceCard
-          radiantAvg={state.radiantAvg}
-          direAvg={state.direAvg}
-          radiantWon={radiantWonOf(state.players)}
-        />
-      )}
-
       <div className="grid gap-4 lg:grid-cols-2">
-        <TeamColumn title="Iluminados" tone="win" players={state.players.filter((p) => p.team === "radiant")} pending={!state.applied} />
-        <TeamColumn title="Temidos" tone="loss" players={state.players.filter((p) => p.team === "dire")} pending={!state.applied} />
+        <TeamColumn title="Iluminados" players={state.players.filter((p) => p.team === "radiant")} pending={!state.applied} />
+        <TeamColumn title="Temidos" players={state.players.filter((p) => p.team === "dire")} pending={!state.applied} />
       </div>
     </div>
   );
@@ -116,6 +121,132 @@ function radiantWonOf(players: MmrPlayerBreakdown[]): boolean | null {
   if (r) return r.won;
   const d = players.find((p) => p.team === "dire");
   return d ? !d.won : null;
+}
+
+function TeamColumn({
+  title,
+  players,
+  pending,
+}: {
+  title: string;
+  players: MmrPlayerBreakdown[];
+  pending: boolean;
+}) {
+  if (players.length === 0) return null;
+  return (
+    <div>
+      <h3 className="mb-2 font-display text-sm font-bold uppercase tracking-wide text-text-faded">{title}</h3>
+      <ul className="space-y-2">
+        {players.map((p) => (
+          <PlayerCard key={p.userId} p={p} pending={pending} />
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function PlayerCard({ p, pending }: { p: MmrPlayerBreakdown; pending: boolean }) {
+  const positive = (p.delta ?? 0) >= 0;
+  const perfPct = Math.round(p.perfScore * 100);
+
+  return (
+    <li className="rounded-md border border-border-subtle bg-bg-base p-3">
+      {/* Identidade completa + delta. */}
+      <div className="flex items-center gap-2.5">
+        <span className="relative shrink-0">
+          <XpAvatarRing
+            src={p.avatar ?? undefined}
+            alt={p.name}
+            fallback={p.name.slice(0, 2).toUpperCase()}
+            level={p.level}
+            pct={0}
+            size={40}
+          />
+          {/* Herói — badge no canto. */}
+          {p.heroImage && (
+            <span className="absolute -right-1 -top-1 rounded-sm">
+              <Image
+                src={p.heroImage}
+                alt={p.heroName ?? ""}
+                width={20}
+                height={20}
+                unoptimized
+                className="size-5 rounded-sm object-cover"
+              />
+            </span>
+          )}
+        </span>
+
+        {p.seasonMmr != null && (
+          <DotaRankMedal
+            rank={mmrToDotaRank(p.seasonMmr)}
+            stars={mmrToTier(p.seasonMmr).stars}
+            variant="formuladota"
+            size="sm"
+            tooltip={false}
+            className="shrink-0"
+          />
+        )}
+
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-body text-sm font-semibold text-text-display">{p.name}</p>
+          <p className="truncate font-display text-xs text-text-faded">
+            {p.heroName ?? "—"} · {p.won ? "Vitória" : "Derrota"}
+          </p>
+          {p.socialLinks && (
+            <SocialIconsRow links={p.socialLinks} onlyLinked size={12} className="mt-1 flex items-center gap-2" />
+          )}
+        </div>
+
+        {/* Delta de MMR (autoritativo). Pendente → traço. */}
+        <div className="shrink-0 text-right">
+          {pending || p.delta == null ? (
+            <span className="font-mono text-sm text-text-faded">—</span>
+          ) : (
+            <span
+              className={`inline-flex items-center gap-1 font-display-condensed text-2xl font-bold tabular-nums ${
+                positive ? "text-play-primary" : "text-error"
+              }`}
+            >
+              {positive ? <TrendingUp className="size-4" /> : <TrendingDown className="size-4" />}
+              {positive ? "+" : ""}
+              {p.delta}
+            </span>
+          )}
+          <p className="font-display text-[0.65rem] uppercase tracking-wide text-text-faded">
+            desemp. <span className="text-gold">{perfPct}%</span>
+          </p>
+        </div>
+      </div>
+
+      {/* Desempenho SEMPRE exposto (barras de componentes). */}
+      {p.components.length > 0 ? (
+        <ul className="mt-3 space-y-1 border-t border-border-subtle/50 pt-2.5">
+          {p.components.map((c) => (
+            <li key={c.key} className="flex items-center gap-2">
+              <span className="w-36 shrink-0 font-body text-[0.7rem] text-text-muted">
+                {COMPONENT_LABEL[c.key] ?? c.key}
+                <span className="ml-1 text-text-faded">·{c.weight}x</span>
+              </span>
+              <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-bg-deep">
+                <span
+                  className="block h-full rounded-full bg-brand-primary"
+                  style={{ width: `${Math.round(c.value * 100)}%` }}
+                />
+              </span>
+              <span className="w-8 shrink-0 text-right font-mono text-[0.7rem] tabular-nums text-text-body">
+                {Math.round(c.value * 100)}%
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-2 border-t border-border-subtle/50 pt-2 font-body text-[0.7rem] text-text-faded">
+          Estatísticas detalhadas do replay ainda não disponíveis.
+        </p>
+      )}
+    </li>
+  );
 }
 
 /**
@@ -137,10 +268,8 @@ function TeamBalanceCard({
   const favName = favRadiant ? "Iluminados" : "Temidos";
   const favAvg = favRadiant ? radiantAvg : direAvg;
   const undAvg = favRadiant ? direAvg : radiantAvg;
-  // Chance esperada do favorito (Elo).
   const favChance = Math.round((1 / (1 + Math.pow(10, (undAvg - favAvg) / 400))) * 100);
   const favWon = radiantWon == null ? null : favRadiant === radiantWon;
-
   const parelho = diff < 100;
 
   return (
@@ -182,113 +311,5 @@ function TeamBalanceCard({
         )}
       </p>
     </div>
-  );
-}
-
-function TeamColumn({
-  title,
-  players,
-  pending,
-}: {
-  title: string;
-  tone: "win" | "loss";
-  players: MmrPlayerBreakdown[];
-  pending: boolean;
-}) {
-  if (players.length === 0) return null;
-  return (
-    <div>
-      <h3 className="mb-2 font-display text-sm font-bold uppercase tracking-wide text-text-faded">{title}</h3>
-      <ul className="space-y-2">
-        {players.map((p) => (
-          <PlayerRow key={p.userId} p={p} pending={pending} />
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-function PlayerRow({ p, pending }: { p: MmrPlayerBreakdown; pending: boolean }) {
-  const [open, setOpen] = useState(false);
-  const positive = (p.delta ?? 0) >= 0;
-  const perfPct = Math.round(p.perfScore * 100);
-
-  return (
-    <li className="rounded-md border border-border-subtle bg-bg-base">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-bg-elevated/40"
-      >
-        <span className="min-w-0 flex-1">
-          <span className="block truncate font-body text-sm font-medium text-text-display">{p.name}</span>
-          <span className="block truncate font-display text-xs text-text-faded">
-            {p.heroName ?? "—"} · {p.won ? "Vitória" : "Derrota"}
-          </span>
-        </span>
-        {/* Delta de MMR (autoritativo). Pendente → traço. */}
-        {pending || p.delta == null ? (
-          <span className="font-mono text-sm text-text-faded">—</span>
-        ) : (
-          <span
-            className={`inline-flex items-center gap-1 font-display-condensed text-xl font-bold tabular-nums ${
-              positive ? "text-play-primary" : "text-error"
-            }`}
-          >
-            {positive ? <TrendingUp className="size-4" /> : <TrendingDown className="size-4" />}
-            {positive ? "+" : ""}
-            {p.delta}
-          </span>
-        )}
-      </button>
-
-      {open && (
-        <div className="border-t border-border-subtle/60 px-3 py-3">
-          {/* Desempenho geral. */}
-          <div className="mb-2 flex items-center justify-between font-display text-xs uppercase tracking-wide">
-            <span className="text-text-faded">Desempenho na partida</span>
-            <span className="text-gold">
-              {perfPct}%{" "}
-              <span className="text-text-faded normal-case">
-                ({p.perfBonus >= 0 ? "+" : ""}
-                {p.perfBonus} de ajuste)
-              </span>
-            </span>
-          </div>
-          {/* Componentes (de onde veio o desempenho). */}
-          {p.components.length > 0 ? (
-            <ul className="space-y-1.5">
-              {p.components.map((c) => (
-                <li key={c.key} className="flex items-center gap-2">
-                  <span className="w-40 shrink-0 font-body text-xs text-text-muted">
-                    {COMPONENT_LABEL[c.key] ?? c.key}
-                    <span className="ml-1 text-text-faded">·{c.weight}x</span>
-                  </span>
-                  <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-bg-deep">
-                    <span
-                      className="block h-full rounded-full bg-brand-primary"
-                      style={{ width: `${Math.round(c.value * 100)}%` }}
-                    />
-                  </span>
-                  <span className="w-9 shrink-0 text-right font-mono text-xs tabular-nums text-text-body">
-                    {Math.round(c.value * 100)}%
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="font-body text-xs text-text-faded">
-              Estatísticas detalhadas do replay ainda não disponíveis.
-            </p>
-          )}
-          <p className="mt-2.5 font-body text-xs leading-relaxed text-text-faded">
-            Cada barra é o seu percentil comparado à média do{" "}
-            <strong className="text-text-muted">seu herói</strong> (·Nx = o peso no cálculo). O
-            resultado da partida (Elo) é a base; o desempenho ajustou{" "}
-            {p.perfBonus >= 0 ? "para cima" : "para baixo"}.
-          </p>
-        </div>
-      )}
-    </li>
   );
 }

@@ -10,6 +10,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getIdentityMap } from "@/lib/queries/identities";
 import { getHeroById } from "@/lib/queries/heroes";
 import { computePerfScore, PERF_COMPONENTS, PERF_SWING } from "@/lib/mmr";
+import type { SocialLinks } from "@/components/profile/social-icons-row";
 
 export interface MmrComponent {
   key: string;
@@ -21,7 +22,14 @@ export interface MmrComponent {
 export interface MmrPlayerBreakdown {
   userId: string;
   name: string;
+  /** Identidade completa (mesmos dados dos cards): avatar, nível, medalha, redes. */
+  avatar: string | null;
+  level: number;
+  /** MMR atual da temporada → medalha do rank. null = sem MMR. */
+  seasonMmr: number | null;
+  socialLinks?: SocialLinks;
   heroName: string | null;
+  heroImage: string | null;
   team: "radiant" | "dire";
   won: boolean;
   /** Delta final gravado (autoritativo). null = ainda não aplicado. */
@@ -89,10 +97,25 @@ export async function getMatchMmrState(dotaMatchId: string): Promise<MmrState> {
   // (auth.uid()=user_id OR is_admin) → a aba ficaria presa em "Calculando".
   const applied = platform.some((p) => typeof p.mmr_change === "number");
 
-  const identity = await getIdentityMap(
-    supabase,
-    platform.map((p) => p.user_id)
-  );
+  const userIds = platform.map((p) => p.user_id);
+  const { data: activeSeason } = await supabase
+    .from("seasons")
+    .select("id")
+    .eq("active", true)
+    .maybeSingle();
+  const [identity, { data: levels }, { data: seasonRows }] = await Promise.all([
+    getIdentityMap(supabase, userIds),
+    supabase.from("user_levels").select("user_id, current_level").in("user_id", userIds),
+    activeSeason
+      ? supabase
+          .from("player_season_mmr")
+          .select("user_id, mmr")
+          .eq("season_id", activeSeason.id)
+          .in("user_id", userIds)
+      : Promise.resolve({ data: [] as { user_id: string; mmr: number | null }[] }),
+  ]);
+  const levelOf = new Map((levels ?? []).map((l) => [l.user_id, l.current_level ?? 1]));
+  const seasonMmrOf = new Map((seasonRows ?? []).map((r) => [r.user_id, r.mmr ?? null]));
 
   const players: MmrPlayerBreakdown[] = platform.map((p) => {
     const bench = (p.benchmarks ?? null) as Record<string, { pct?: number | null }> | null;
@@ -115,10 +138,17 @@ export async function getMatchMmrState(dotaMatchId: string): Promise<MmrState> {
       if (value !== null) components.push({ key: c.key, value, weight: c.weight });
     }
 
+    const ident = identity.get(p.user_id);
+    const hero = getHeroById(p.hero_id);
     return {
       userId: p.user_id,
-      name: identity.get(p.user_id)?.name ?? "Jogador",
-      heroName: getHeroById(p.hero_id)?.name_pt ?? null,
+      name: ident?.name ?? "Jogador",
+      avatar: ident?.avatarUrl ?? null,
+      level: levelOf.get(p.user_id) ?? 1,
+      seasonMmr: seasonMmrOf.get(p.user_id) ?? null,
+      socialLinks: ident?.socialLinks,
+      heroName: hero?.name_pt ?? null,
+      heroImage: hero?.image_icon ?? null,
       team: p.team as "radiant" | "dire",
       won: Boolean(p.is_winner),
       delta: typeof p.mmr_change === "number" ? p.mmr_change : null,
