@@ -13,6 +13,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ClientShell } from "@/components/client-shell/shell";
 import { MatchDetail } from "@/components/match/match-detail";
 import { CopyMatchId } from "@/components/match/copy-match-id";
+import { ReprocessMatchButton } from "@/components/match/reprocess-match-button";
 import { getMatchBans } from "@/lib/queries/match-bans";
 import {
   assembleMatch,
@@ -131,6 +132,14 @@ export default async function HistoricoPartidaPage({
     }
   }
 
+  // Viewer é admin? (mostra o botão de reprocessar OpenDota — corrige abas vazias).
+  const { data: { user: viewer } } = await supabase.auth.getUser();
+  let viewerIsAdmin = false;
+  if (viewer) {
+    const { data: vp } = await supabase.from("profiles").select("is_admin").eq("id", viewer.id).maybeSingle();
+    viewerIsAdmin = vp?.is_admin === true;
+  }
+
   const { players, advantage, wards, series } = assembleMatch(rows, identityById);
 
   // Dados de nível-partida (público) — abas Teamfights/Objetivos/Draft.
@@ -235,6 +244,9 @@ export default async function HistoricoPartidaPage({
             <span>Partida FormulaDota</span>
             {dateStr && <span className="text-text-faded">{dateStr}</span>}
             {dotaMatchId && <CopyMatchId matchId={dotaMatchId} />}
+            {viewerIsAdmin && (
+              <ReprocessMatchButton matchId={matchUuid} dotaMatchId={id} />
+            )}
             {dotaMatchId && (
               <a
                 href={`https://www.opendota.com/matches/${dotaMatchId}`}

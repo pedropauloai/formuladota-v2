@@ -289,6 +289,35 @@ export async function validateOpendotaMatch(
 /**
  * Normaliza os 10 players da OpenDota pra formato pronto pra insert em match_players.
  */
+/**
+ * Uma partida está PARSEADA (replay processado) quando os campos de replay
+ * existem — ex.: `lane_role` no 1º jogador (só vem do parse). Sem parse, a
+ * OpenDota devolve só os dados básicos e as abas Performance/Gráficos/Builds/
+ * Combate/Mapas/Teamfights ficam vazias. (Pedro 2026-07-03)
+ */
+export function isMatchParsed(match: OpenDotaMatch): boolean {
+  const p0 = match.players?.[0] as Record<string, unknown> | undefined;
+  return Boolean(p0 && "lane_role" in p0);
+}
+
+/**
+ * Solicita à OpenDota o PARSE do replay (POST /request/{id}). Assíncrono: a
+ * OpenDota baixa o replay da Valve e processa (~1-5 min). Best-effort — falha
+ * (ex.: replay expirado na Valve) não lança. Depois é só re-buscar/reprocessar.
+ */
+export async function requestOpenDotaParse(matchId: string | number): Promise<boolean> {
+  try {
+    const res = await fetch(`${OPENDOTA_BASE}/request/${matchId}`, {
+      method: "POST",
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
 export function normalizePlayers(match: OpenDotaMatch): NormalizedPlayer[] {
   return match.players.map((p) => {
     const team: "radiant" | "dire" = p.player_slot < 128 ? "radiant" : "dire";
