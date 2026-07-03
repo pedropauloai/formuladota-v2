@@ -26,6 +26,13 @@
 -- essas passam. Só a escrita crua via PostgREST roda como 'authenticated' e é barrada.
 -- Service role (admin, cron, sync server-side) roda como 'service_role' e também passa.
 -- Mesmo idioma de gate usado em apply_match_mmr.
+--
+-- ⚠️ MANUTENÇÃO: a lista de colunas congeladas abaixo é HARDCODED. Toda migration futura
+-- que adicionar uma coluna de gate/privilégio/punição a `profiles` (ex.: novo tipo de
+-- ban, novo eixo de progressão, novo gate de acesso) PRECISA adicioná-la a esta lista —
+-- senão a coluna volta a ser gravável direto pelo usuário via anon key, silenciosamente.
+-- Candidato a teste de regressão (/gsd:add-tests): com JWT de usuário comum, tentar forjar
+-- cada coluna protegida e esperar exceção.
 
 create or replace function public.enforce_profiles_frozen_columns()
 returns trigger
