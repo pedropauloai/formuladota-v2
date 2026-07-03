@@ -16,6 +16,7 @@ import {
   RevokeCoachModal,
   CoachNotesModal,
   SwapSteamModal,
+  EditUserModal,
 } from "./user-modals";
 import {
   ChevronLeft, CheckCircle, XCircle, Shield,
@@ -204,6 +205,23 @@ export default async function AdminUserDetailPage({
     .eq("user_id", id)
     .maybeSingle();
 
+  // ── MMR da temporada ATIVA (player_season_mmr) — editável no painel admin.
+  const { data: activeSeason } = await service
+    .from("seasons")
+    .select("id")
+    .eq("active", true)
+    .maybeSingle();
+  let seasonMmr: number | null = null;
+  if (activeSeason) {
+    const { data: seasonRow } = await service
+      .from("player_season_mmr")
+      .select("mmr")
+      .eq("user_id", id)
+      .eq("season_id", activeSeason.id)
+      .maybeSingle();
+    seasonMmr = seasonRow?.mmr ?? null;
+  }
+
   // ── Achievements
   const { data: achievements } = await service
     .from("achievements" as never)
@@ -313,6 +331,15 @@ export default async function AdminUserDetailPage({
                 {t("behaviorBanned")}
               </span>
             )}
+            {/* Edição direta dos dados (nome, MMR, ban, acesso). Pedro 2026-07-03. */}
+            <EditUserModal
+              targetUserId={id}
+              username={profile.username ?? t("noName")}
+              seasonMmr={seasonMmr}
+              isBanned={isBanned}
+              isAdmin={Boolean(profile.is_admin)}
+              role={profile.role ?? "player"}
+            />
           </div>
         </div>
         <div className="brand-divider" />
