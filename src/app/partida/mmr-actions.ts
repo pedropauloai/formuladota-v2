@@ -34,10 +34,15 @@ export interface MmrPlayerBreakdown {
 }
 
 export interface MmrState {
-  /** true quando matches.mmr_applied_at está setado (MMR já calculado). */
+  /** true quando o MMR já foi calculado (derivado de match_players.mmr_change,
+   *  que é leitura pública — matches.mmr_applied_at tem RLS e não serve ao público). */
   applied: boolean;
   /** true se a partida foi encontrada. */
   found: boolean;
+  /** Média de MMR de cada time no momento da partida (favorito vs zebra). null = não
+   *  gravado (partida anterior à migration 113). */
+  radiantAvg: number | null;
+  direAvg: number | null;
   players: MmrPlayerBreakdown[];
 }
 
@@ -46,33 +51,43 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 export async function getMatchMmrState(dotaMatchId: string): Promise<MmrState> {
   const supabase = await createClient();
 
-  // Resolve o match_id interno (a URL usa o dota_match_id). match_details é pública.
-  let matchUuid = dotaMatchId;
-  if (!UUID_RE.test(dotaMatchId)) {
-    const { data: md } = await (supabase.from("match_details" as never) as unknown as {
-      select: (q: string) => {
-        eq: (c: string, v: string) => { maybeSingle: () => PromiseLike<{ data: { match_id?: string } | null }> };
+  // match_details é PÚBLICA (matches tem RLS restrita): resolve o match_id interno
+  // (a URL usa o dota_match_id) E traz as médias de MMR dos times (favorito/zebra).
+  const isUuid = UUID_RE.test(dotaMatchId);
+  const { data: md } = await (supabase.from("match_details" as never) as unknown as {
+    select: (q: string) => {
+      eq: (c: string, v: string) => {
+        maybeSingle: () => PromiseLike<{
+          data: { match_id?: string; radiant_avg_mmr?: number | null; dire_avg_mmr?: number | null } | null;
+        }>;
       };
-    })
-      .select("match_id")
-      .eq("dota_match_id", dotaMatchId)
-      .maybeSingle();
-    if (!md?.match_id) return { applied: false, found: false, players: [] };
-    matchUuid = md.match_id;
-  }
+    };
+  })
+    .select("match_id, radiant_avg_mmr, dire_avg_mmr")
+    .eq(isUuid ? "match_id" : "dota_match_id", dotaMatchId)
+    .maybeSingle();
 
-  const [{ data: match }, { data: rows }] = await Promise.all([
-    supabase.from("matches").select("mmr_applied_at").eq("id", matchUuid).maybeSingle(),
-    supabase
-      .from("match_players")
-      .select("user_id, team, is_winner, hero_id, mmr_change, benchmarks, raw_opendota")
-      .eq("match_id", matchUuid),
-  ]);
+  const matchUuid = isUuid ? dotaMatchId : md?.match_id;
+  if (!matchUuid) return { applied: false, found: false, radiantAvg: null, direAvg: null, players: [] };
+  const radiantAvg = md?.radiant_avg_mmr ?? null;
+  const direAvg = md?.dire_avg_mmr ?? null;
+
+  const { data: rows } = await supabase
+    .from("match_players")
+    .select("user_id, team, is_winner, hero_id, mmr_change, benchmarks, raw_opendota")
+    .eq("match_id", matchUuid);
 
   const platform = (rows ?? []).filter(
     (r): r is typeof r & { user_id: string } => Boolean(r.user_id)
   );
-  if (platform.length === 0) return { applied: false, found: (rows ?? []).length > 0, players: [] };
+  if (platform.length === 0) {
+    return { applied: false, found: (rows ?? []).length > 0, radiantAvg, direAvg, players: [] };
+  }
+
+  // "Aplicado" = algum jogador da plataforma já tem mmr_change gravado (leitura
+  // pública). Não lemos matches.mmr_applied_at: a RLS de matches o esconde do público
+  // (auth.uid()=user_id OR is_admin) → a aba ficaria presa em "Calculando".
+  const applied = platform.some((p) => typeof p.mmr_change === "number");
 
   const identity = await getIdentityMap(
     supabase,
@@ -117,8 +132,10 @@ export async function getMatchMmrState(dotaMatchId: string): Promise<MmrState> {
   players.sort((a, b) => (b.delta ?? 0) - (a.delta ?? 0));
 
   return {
-    applied: Boolean(match?.mmr_applied_at),
+    applied,
     found: true,
+    radiantAvg,
+    direAvg,
     players,
   };
 }

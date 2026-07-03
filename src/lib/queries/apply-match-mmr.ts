@@ -153,11 +153,16 @@ export async function applyMatchMmr(
     };
   });
 
+  // p_radiant_avg/p_dire_avg (migration 113) persistem a média de MMR de cada time
+  // em match_details, pra a aba MMR explicar favorito/zebra. Cast: os tipos gerados
+  // ainda não têm os 2 params opcionais (db:gen-types).
   const { data, error } = await supabase.rpc("apply_match_mmr", {
     p_match_id: matchId,
     p_season_id: season.id,
     p_results: results,
-  });
+    p_radiant_avg: radiantAvg,
+    p_dire_avg: direAvg,
+  } as never);
   if (error) throw new Error(error.message);
   return { applied: (data as number) ?? 0 };
 }
