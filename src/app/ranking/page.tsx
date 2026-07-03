@@ -35,6 +35,7 @@ function leaderboardNumberFor(mmr: number, position: number): number | undefined
   return mmr >= IMMORTAL_FLOOR && position <= IMMORTAL_LEADERBOARD_TOP ? position : undefined;
 }
 import { SeasonBanner } from "@/components/patterns/season-banner";
+import { cn } from "@/lib/utils";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("ranking");
@@ -378,9 +379,41 @@ function TopCard({ row, position }: { row: RankRow; position: number }) {
 // ----------------------------------------------------------------
 // RankingRow — Linha individual da lista paginada
 // ----------------------------------------------------------------
+// Coluna de estatística: número em cima + rótulo embaixo. Preenche o espaço da
+// linha com informação clara (estilo tabela de leaderboard). Pedro 2026-07-03.
+function StatCol({
+  value,
+  label,
+  tone = "body",
+  className,
+}: {
+  value: string | number;
+  label: string;
+  tone?: "gold" | "win" | "loss" | "body";
+  className?: string;
+}) {
+  const toneClass =
+    tone === "gold"
+      ? "text-gold"
+      : tone === "win"
+        ? "text-play-primary"
+        : tone === "loss"
+          ? "text-error"
+          : "text-text-display";
+  return (
+    <div className={cn("w-16 shrink-0 text-center 2xl:w-20", className)}>
+      <p className={cn("font-display-condensed text-lg font-bold tabular-nums leading-none 2xl:text-xl", toneClass)}>
+        {value}
+      </p>
+      <p className="mt-0.5 font-display text-[0.6rem] uppercase tracking-wide text-text-faded">{label}</p>
+    </div>
+  );
+}
+
 function RankingRow({ row, position }: { row: RankRow; position: number }) {
   const t = useTranslations("ranking");
   const dotaRank = rankMedalFor(row.mmr, position);
+  const winrate = row.partidas_total > 0 ? Math.round((row.vitorias / row.partidas_total) * 100) : null;
 
   return (
     <li className="flex items-center gap-3 rounded-md border border-border-subtle bg-bg-base p-3 transition-colors hover:border-border-brand">
@@ -405,31 +438,24 @@ function RankingRow({ row, position }: { row: RankRow; position: number }) {
           tooltip={false}
           className="shrink-0"
         />
-        <div className="min-w-0">
-          {/* MMR logo depois do nome (nome trunca; MMR nunca some). */}
-          <div className="flex items-baseline gap-2 min-w-0">
-            <p className="truncate font-body text-sm 2xl:text-base font-medium text-text-display hover:text-brand-primary transition-colors">
-              {row.username ?? t("anonymous")}
-            </p>
-            <span className="shrink-0 font-display text-sm 2xl:text-base font-semibold tabular-nums text-gold">
-              {row.mmr} <span className="text-gold-muted">MMR</span>
-            </span>
-          </div>
-          <p className="font-display text-xs 2xl:text-sm text-text-body">
-            {t("matchesRecord", {
-              matches: row.partidas_total,
-              wins: row.vitorias,
-              losses: row.derrotas,
-            })}
-          </p>
-        </div>
+        {/* Nome ocupa o espaço livre; as métricas viram COLUNAS à direita. */}
+        <p className="min-w-0 flex-1 truncate font-body text-sm 2xl:text-base font-medium text-text-display hover:text-brand-primary transition-colors">
+          {row.username ?? t("anonymous")}
+        </p>
       </UserHoverCard>
+      {/* Colunas de stats — preenchem o vazio da linha. Progressivas: MMR sempre;
+          Partidas/V/D só em telas maiores (sm/md); Winrate em lg+. */}
+      <StatCol value={row.mmr} label={t("statMmr")} tone="gold" />
+      <StatCol value={row.partidas_total} label={t("statMatches")} className="hidden sm:block" />
+      <StatCol value={row.vitorias} label={t("statWins")} tone="win" className="hidden md:block" />
+      <StatCol value={row.derrotas} label={t("statLosses")} tone="loss" className="hidden md:block" />
+      <StatCol value={winrate === null ? "—" : `${winrate}%`} label={t("statWinrate")} className="hidden lg:block" />
       {/* Vitrine: só as redes que o jogador VINCULOU (sem placeholders). */}
       <SocialIconsRow
         links={row.socialLinks}
         onlyLinked
         size={17}
-        className="flex shrink-0 items-center gap-2.5"
+        className="hidden xl:flex w-24 shrink-0 items-center justify-end gap-2.5"
       />
     </li>
   );
