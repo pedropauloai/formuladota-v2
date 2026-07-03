@@ -21,8 +21,9 @@ import { createClient } from "@/lib/supabase/server";
 import { displayAvatar, displayName } from "@/lib/identity";
 import { ClientShell } from "@/components/client-shell/shell";
 import { UserAvatar } from "@/components/ui/avatar";
-import { DotaRankMedal, type DotaRank } from "@/components/ui/dota-rank-medal";
+import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
 import { HonorRankMedal, legacyHonorToBand, type HonorRank } from "@/components/ui/honor-rank-medal";
+import { mmrToDotaRank } from "@/lib/dota/rank-badges";
 import { cn } from "@/lib/utils";
 
 // ---------------------------------------------------------------------------
@@ -51,18 +52,8 @@ function isLegacyTierId(v: string): v is (typeof LEGACY_TIER_IDS)[number] {
   return (LEGACY_TIER_IDS as readonly string[]).includes(v);
 }
 
-function mmrToDotaRank(mmr: number | null): DotaRank {
-  if (mmr === null) return "herald";
-  if (mmr >= 9000) return "immortal-top-100";
-  if (mmr >= 6000) return "immortal";
-  if (mmr >= 5000) return "divine";
-  if (mmr >= 4000) return "ancient";
-  if (mmr >= 3000) return "legend";
-  if (mmr >= 2000) return "archon";
-  if (mmr >= 1500) return "crusader";
-  if (mmr >= 770) return "guardian";
-  return "herald";
-}
+// mmrToDotaRank: fonte única (@/lib/dota/rank-badges), régua oficial 5620.
+
 
 // ---------------------------------------------------------------------------
 // Tipos auxiliares internos

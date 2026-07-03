@@ -16,32 +16,17 @@ import { getProfileForMe } from "@/lib/queries/profile";
 import { getCareerStats } from "@/lib/queries/career";
 import { getFormulaDotaProfileStats } from "@/lib/queries/formuladota-stats";
 import { syncPlayerStats } from "@/app/perfil/actions";
-import { rankTierToDotaRank } from "@/components/profile/career-stats";
+import { computeRankBadges } from "@/lib/dota/rank-badges";
 import { getCoachingReviewsForUser } from "@/lib/queries/coaching-reviews";
 import { refreshSteamIdentity } from "@/lib/steam/refresh-identity";
-import type { DotaRank } from "@/components/ui/dota-rank-medal";
 import type { HonorRank } from "@/components/ui/honor-rank-medal";
-import { getGatedTierForLevel, xpProgress, mmrFromRankTier } from "@/lib/levels";
+import { xpProgress } from "@/lib/levels";
 import { getEquippedForUser } from "@/lib/queries/cosmetics";
 import { createClient } from "@/lib/supabase/server";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("account");
   return { title: t("meMetaTitle") };
-}
-
-// Helper local — mapeia MMR Valve → DotaRank (mesma escala do /coaches/[slug])
-function mmrToDotaRank(mmr: number | null | undefined): DotaRank {
-  if (mmr == null) return "herald";
-  if (mmr >= 9000) return "immortal-top-100";
-  if (mmr >= 6000) return "immortal";
-  if (mmr >= 5000) return "divine";
-  if (mmr >= 4000) return "ancient";
-  if (mmr >= 3000) return "legend";
-  if (mmr >= 2000) return "archon";
-  if (mmr >= 1500) return "crusader";
-  if (mmr >= 770) return "guardian";
-  return "herald";
 }
 
 // Next.js 15+: searchParams é uma Promise que precisa de await (pitfall 5)
@@ -90,17 +75,18 @@ export default async function MePage({ searchParams }: PageProps) {
       getEquippedForUser(supabase, profile.userId),
     ]);
 
-  // Medalha SKILL = RANK VALVE REAL (career.rankTier); fallback pro MMR de liga.
-  const dotaRank =
-    rankTierToDotaRank(career?.rankTier ?? null, career?.leaderboardRank ?? null) ??
-    mmrToDotaRank(profile.mmr);
-
-  // HONOR = NÍVEL da conta com co-requisito de skill (gate pela skill Valve real).
+  // Medalhas via FONTE ÚNICA (computeRankBadges): SKILL = rank Valve real; HONRA =
+  // nível com gate pela skill. O SEASON é computado no ProfilePage (de profile.mmr,
+  // o MMR da temporada) com a mesma conversão canônica.
   const { level } = xpProgress(levelRow.data?.total_xp_earned ?? 0);
-  const honorRank: HonorRank = getGatedTierForLevel(
+  const badges = computeRankBadges({
+    careerRankTier: career?.rankTier ?? null,
+    careerLeaderboardRank: career?.leaderboardRank ?? null,
+    seasonMmr: profile.mmr,
     level,
-    mmrFromRankTier(career?.rankTier ?? null)
-  );
+  });
+  const dotaRank = badges.skillRank;
+  const honorRank: HonorRank = badges.honorRank;
 
   const extData = ext.success ? ext.data : null;
 

@@ -39,10 +39,9 @@ import { getMyOpenLobby, getMyLobbyInvites } from "@/lib/queries/lobby-social";
 import { getDmInbox } from "@/lib/queries/messages";
 import { getMyParty, getPartyInvitesDetailed } from "@/lib/queries/party";
 import { getEquippedForUser } from "@/lib/queries/cosmetics";
-import { xpProgress, getGatedTierForLevel, mmrFromRankTier } from "@/lib/levels";
+import { xpProgress } from "@/lib/levels";
 import { getPlayMenuState } from "@/lib/play-menu-preference";
-import { mmrToDotaRank } from "@/components/queue/queue-helpers";
-import { rankTierToDotaRank } from "@/components/profile/career-stats";
+import { computeRankBadges } from "@/lib/dota/rank-badges";
 import { DashboardTopBar } from "./top-bar";
 import { getCommunityCounters } from "@/actions/community";
 import { getFeatureFlags } from "@/lib/queries/feature-flags";
@@ -168,20 +167,18 @@ export async function ClientShell({
   const frameCosmetic = equipped?.frame ?? null;
   const smokeTheme = equipped?.smoke ?? null;
 
-  // Par de medalhas do mini-perfil — MESMA fonte canônica do /me e do hover-card:
-  // SKILL = rank Valve real (career.rankTier) com fallback no MMR; HONOR = nível
-  // (decisão "nível É o honor" 2026-06-02). Antes o mini-perfil usava só MMR
-  // (vazio → Herald pra todos) e divergia do /me.
-  const userMmr = profile?.mmr_atual ?? null;
-  const careerRankTier = privateData?.careerRankTier ?? null;
-  const miniDotaRank =
-    rankTierToDotaRank(careerRankTier, privateData?.careerLeaderboardRank ?? null) ??
-    mmrToDotaRank(userMmr);
-  // Rank FormulaDota sazonal (Eixo 2) — 3º selo, só com MMR de temporada.
-  const miniSeasonRank = userMmr != null ? mmrToDotaRank(userMmr) : undefined;
-  // Gate de honra pela skill Valve REAL (não pelo MMR de liga, que é ~1000 pra
-  // todos) — igual ao /me, hover-card, ready-check e placar de partida.
-  const miniHonorRank = getGatedTierForLevel(userLevel, mmrFromRankTier(careerRankTier));
+  // Medalhas do mini-perfil via FONTE ÚNICA (computeRankBadges) — as MESMAS fontes
+  // e conversões do /me, hover, ready-check e admin. SEASON vem do player_season_mmr
+  // (temporada), não mais do mmr_atual (Valve legado), que dessincronizava do perfil.
+  const miniBadges = computeRankBadges({
+    careerRankTier: privateData?.careerRankTier ?? null,
+    careerLeaderboardRank: privateData?.careerLeaderboardRank ?? null,
+    seasonMmr: privateData?.seasonMmr ?? null,
+    level: userLevel,
+  });
+  const miniDotaRank = miniBadges.skillRank;
+  const miniSeasonRank = miniBadges.seasonRank;
+  const miniHonorRank = miniBadges.honorRank;
 
   const prosOnline = prosWithQueues.map((p) => p.coach);
   // Pedro 2026-05-26: StickyQueueBanner antigo foi REMOVIDO. Status "Na fila"
@@ -480,6 +477,7 @@ async function fetchPrivateData(
     myQueues,
     { data: levelRow },
     { data: careerRow },
+    { data: seasonMmrRow },
   ] = await Promise.all([
     supabase
       .from("profiles")
@@ -514,6 +512,15 @@ async function fetchPrivateData(
       .select("career")
       .eq("user_id", userId)
       .maybeSingle(),
+    // MMR da TEMPORADA ativa (player_season_mmr) — fonte do rank sazonal, IGUAL ao
+    // /me e ao ranking. Antes o mini-perfil usava profiles.mmr_atual (Valve legado)
+    // e a medalha divergia do perfil (Pedro 2026-07-03).
+    supabase
+      .from("player_season_mmr")
+      .select("mmr, seasons!inner(active)")
+      .eq("user_id", userId)
+      .eq("seasons.active", true)
+      .maybeSingle(),
   ]);
 
   // Nível + barra de XP derivados do XP total (espelho da curva no client).
@@ -547,5 +554,6 @@ async function fetchPrivateData(
     permissions,
     careerRankTier,
     careerLeaderboardRank,
+    seasonMmr: (seasonMmrRow as { mmr?: number } | null)?.mmr ?? null,
   };
 }

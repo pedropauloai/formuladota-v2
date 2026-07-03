@@ -15,24 +15,10 @@ import { getPublicProfile } from "@/lib/queries/profile";
 import { getCareerStats } from "@/lib/queries/career";
 import { getFormulaDotaProfileStats } from "@/lib/queries/formuladota-stats";
 import { syncPlayerStats } from "@/app/perfil/actions";
-import { rankTierToDotaRank } from "@/components/profile/career-stats";
-import type { DotaRank } from "@/components/ui/dota-rank-medal";
+import { computeRankBadges } from "@/lib/dota/rank-badges";
 import type { HonorRank } from "@/components/ui/honor-rank-medal";
-import { getGatedTierForLevel, xpProgress, mmrFromRankTier } from "@/lib/levels";
+import { xpProgress } from "@/lib/levels";
 import type { ProfileFriendState } from "@/components/profile/profile-friend-button";
-
-function mmrToDotaRank(mmr: number | null | undefined): DotaRank {
-  if (mmr == null) return "herald";
-  if (mmr >= 9000) return "immortal-top-100";
-  if (mmr >= 6000) return "immortal";
-  if (mmr >= 5000) return "divine";
-  if (mmr >= 4000) return "ancient";
-  if (mmr >= 3000) return "legend";
-  if (mmr >= 2000) return "archon";
-  if (mmr >= 1500) return "crusader";
-  if (mmr >= 770) return "guardian";
-  return "herald";
-}
 
 interface PageProps {
   params: Promise<{ userId: string }>;
@@ -99,17 +85,16 @@ export default async function PublicProfilePage(props: PageProps) {
     // blocked → "none" (esconde o botão de ação)
   }
 
-  // HONOR = NÍVEL (canônico), gate pela skill Valve real — igual ao /me e mini-perfil.
+  // Medalhas via FONTE ÚNICA (computeRankBadges) — igual ao /me, mini-perfil e hover.
   const { level } = xpProgress(levelRow.data?.total_xp_earned ?? 0);
-  const honorRank: HonorRank = getGatedTierForLevel(
+  const badges = computeRankBadges({
+    careerRankTier: career?.rankTier ?? null,
+    careerLeaderboardRank: career?.leaderboardRank ?? null,
+    seasonMmr: profile.mmr,
     level,
-    mmrFromRankTier(career?.rankTier ?? null)
-  );
-
-  // Medalha SKILL = rank Valve real (career.rankTier) → fallback MMR da liga.
-  const dotaRank =
-    rankTierToDotaRank(career?.rankTier ?? null, career?.leaderboardRank ?? null) ??
-    mmrToDotaRank(profile.mmr);
+  });
+  const dotaRank = badges.skillRank;
+  const honorRank: HonorRank = badges.honorRank;
 
   const extData = ext.success ? ext.data : null;
   const general = extData

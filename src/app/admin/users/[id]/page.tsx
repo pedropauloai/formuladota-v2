@@ -5,7 +5,8 @@ import { notFound } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { getTranslations } from "next-intl/server";
 import { createServiceClient } from "@/lib/supabase/service";
-import { DotaRankMedal, type DotaRank } from "@/components/ui/dota-rank-medal";
+import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
+import { mmrToDotaRank } from "@/lib/dota/rank-badges";
 import { HonorRankMedal, type HonorRank } from "@/components/ui/honor-rank-medal";
 import {
   AdjustFichasModal,
@@ -34,17 +35,6 @@ function getNowMs(): number {
 
 // ─── Helpers de tipo ─────────────────────────────────────────────────────────
 
-function mmrToRank(mmr: number | null | undefined): DotaRank {
-  if (!mmr) return "herald";
-  if (mmr >= 7700) return "immortal";
-  if (mmr >= 6200) return "divine";
-  if (mmr >= 5500) return "ancient";
-  if (mmr >= 4600) return "legend";
-  if (mmr >= 3850) return "archon";
-  if (mmr >= 3100) return "crusader";
-  if (mmr >= 1540) return "guardian";
-  return "herald";
-}
 
 function honorScoreToRank(score: number | null | undefined): HonorRank {
   const s = score ?? 0;
@@ -244,7 +234,7 @@ export default async function AdminUserDetailPage({
   const quizCorrect = Array.isArray(profile.doctrine_quiz_progress)
     ? profile.doctrine_quiz_progress.length
     : 0;
-  const dotaRank = mmrToRank(profile.mmr_atual);
+  const dotaRank = mmrToDotaRank(profile.mmr_atual);
   const isBanned = Boolean(profile.banned_at);
   const calibrationStatus = (profile.calibration_status ?? "visitante") as
     | "visitante"
