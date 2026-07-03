@@ -14,7 +14,12 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { fetchOpenDotaMatch, normalizePlayers } from "@/lib/dota/opendota";
+import {
+  fetchOpenDotaMatch,
+  normalizePlayers,
+  isMatchParsed,
+  requestOpenDotaParse,
+} from "@/lib/dota/opendota";
 import { applyMatchMmr } from "@/lib/queries/apply-match-mmr";
 import { sendPTConfirmedEmail } from "@/lib/resend";
 
@@ -398,6 +403,14 @@ export async function enrichMatchFromOpenDota(
     return { success: false, error: "Erro OpenDota: " + msg };
   }
 
+  // Se o replay ainda NÃO foi parseado pela OpenDota, os campos avançados (rota,
+  // teamfight, APM, neutros, séries de ouro/XP, builds) não vêm — as abas do placar
+  // ficariam vazias. Solicitamos o parse (assíncrono ~1-5 min) pra depois REPROCESSAR
+  // e completar. O enrich segue com os dados básicos disponíveis. (Pedro 2026-07-03)
+  if (!isMatchParsed(opendotaMatch)) {
+    await requestOpenDotaParse(dotaMatchId);
+  }
+
   const normalized = normalizePlayers(opendotaMatch);
 
   const accountIds = normalized.map((p) => p.steam_account_id).filter((id) => id > 0);
@@ -532,4 +545,105 @@ export async function enrichMatchFromOpenDota(
   revalidatePath("/dashboard");
   revalidatePath("/ranking");
   return { success: true, data: { playersInserted: playerRows.length } };
+}
+
+// ============== reprocessMatchOpenDota ==============
+// Re-busca a partida na OpenDota e ATUALIZA os dados do placar. Serve pra partidas
+// que foram enriquecidas ANTES do replay ser parseado (abas Performance/Gráficos/
+// Builds/etc vazias): agora que a OpenDota parseou, regravamos o raw_opendota
+// completo + match_details. Idempotente: NÃO mexe em fichas nem MMR (o enrich já
+// tratou disso). Se ainda não parseou, solicita o parse e avisa. (Pedro 2026-07-03)
+
+export async function reprocessMatchOpenDota(
+  matchId: string,
+  dotaMatchId: string
+): Promise<ActionResult<{ updated: number; parsed: boolean }>> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Não autenticado." };
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("is_admin")
+    .eq("id", user.id)
+    .single();
+  if (profile?.is_admin !== true) {
+    return { success: false, error: "Apenas admins podem reprocessar." };
+  }
+
+  let opendotaMatch;
+  try {
+    opendotaMatch = await fetchOpenDotaMatch(dotaMatchId);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "erro desconhecido";
+    return { success: false, error: "Erro OpenDota: " + msg };
+  }
+
+  // Ainda não parseado → solicita o parse e pede pra tentar de novo em minutos.
+  if (!isMatchParsed(opendotaMatch)) {
+    await requestOpenDotaParse(dotaMatchId);
+    return {
+      success: false,
+      error:
+        "Replay ainda não parseado pela OpenDota. Parse solicitado — tente reprocessar em alguns minutos.",
+    };
+  }
+
+  // Atualiza cada jogador (casando por player_slot) com o raw_opendota completo +
+  // as colunas derivadas dos campos parseados.
+  const normalized = normalizePlayers(opendotaMatch);
+  let updated = 0;
+  for (const p of normalized) {
+    const { error } = await supabase
+      .from("match_players")
+      .update({
+        gold_per_min: p.gold_per_min,
+        xp_per_min: p.xp_per_min,
+        last_hits: p.last_hits,
+        denies: p.denies,
+        net_worth: p.net_worth,
+        level: p.level,
+        hero_damage: p.hero_damage,
+        hero_healing: p.hero_healing,
+        tower_damage: p.tower_damage,
+        items: p.items,
+        benchmarks: p.benchmarks,
+        raw_opendota: p.raw_opendota as unknown as Record<string, unknown>,
+      } as never)
+      .eq("match_id", matchId)
+      .eq("player_slot", p.player_slot);
+    if (!error) updated += 1;
+  }
+
+  // Dados nível-partida (teamfights/objetivos/draft) — agora completos pós-parse.
+  try {
+    const md = opendotaMatch as unknown as {
+      teamfights?: unknown;
+      objectives?: unknown;
+      picks_bans?: unknown;
+      chat?: unknown;
+      game_mode?: number;
+      lobby_type?: number;
+    };
+    const mdTable = supabase.from("match_details" as never) as unknown as {
+      upsert: (row: Record<string, unknown>) => PromiseLike<{ error: unknown }>;
+    };
+    await mdTable.upsert({
+      match_id: matchId,
+      dota_match_id: String(opendotaMatch.match_id),
+      teamfights: md.teamfights ?? null,
+      objectives: md.objectives ?? null,
+      picks_bans: md.picks_bans ?? null,
+      chat: md.chat ?? null,
+      game_mode: md.game_mode ?? null,
+      lobby_type: md.lobby_type ?? null,
+    });
+  } catch (e) {
+    console.error("[reprocessMatch] match_details falhou:", e instanceof Error ? e.message : e);
+  }
+
+  revalidatePath(`/partida/historico/${dotaMatchId}`);
+  return { success: true, data: { updated, parsed: true } };
 }
