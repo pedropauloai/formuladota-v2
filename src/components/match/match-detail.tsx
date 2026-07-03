@@ -23,9 +23,11 @@ import { BenchmarksPanel } from "@/components/match/tabs/benchmarks-panel";
 import { TeamfightsPanel } from "@/components/match/tabs/teamfights-panel";
 import { ObjectivesPanel } from "@/components/match/tabs/objectives-panel";
 import { DraftPanel } from "@/components/match/tabs/draft-panel";
+import { MmrPanel } from "@/components/match/tabs/mmr-panel";
 
 const TABS = [
   "Visão geral",
+  "MMR",
   "Performance",
   "Gráficos",
   "Builds",
@@ -47,6 +49,8 @@ export interface MatchDetailData {
   teamfights: TeamfightView[];
   draft: { radiant: DraftPick[]; dire: DraftPick[] };
   radiantWin: boolean | null;
+  /** dota_match_id (URL canônica) — a aba MMR faz polling por ele. */
+  dotaMatchId: string;
 }
 
 export function MatchDetail({
@@ -58,6 +62,7 @@ export function MatchDetail({
   teamfights,
   draft,
   radiantWin,
+  dotaMatchId,
 }: MatchDetailData) {
   const [tab, setTab] = useState<Tab>("Visão geral");
   const { radiant, dire } = splitTeams(players);
@@ -89,6 +94,7 @@ export function MatchDetail({
       {tab === "Visão geral" && (
         <MatchScoreboard radiant={radiant} dire={dire} radiantWin={radiantWin} />
       )}
+      {tab === "MMR" && <MmrPanel dotaMatchId={dotaMatchId} />}
       {tab === "Performance" && <PerformancePanel players={players} />}
       {tab === "Gráficos" && <GraphsPanel series={series} advantage={advantage} />}
       {tab === "Builds" && <BuildsPanel players={players} />}

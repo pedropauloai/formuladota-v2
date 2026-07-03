@@ -304,6 +304,7 @@ export default async function HistoricoPartidaPage({
           teamfights={teamfights}
           draft={draft}
           radiantWin={radiantWin}
+          dotaMatchId={dotaMatchId ?? id}
         />
       </div>
     </ClientShell>
