@@ -12,6 +12,8 @@ export interface LivePlayer {
   level: number;
   /** MMR atual da temporada (pra medalha do rank). null = sem MMR. */
   mmr: number | null;
+  /** Jogador banido (behavior_status='banned') — marca pública no card. */
+  banned: boolean;
 }
 
 export interface LiveMatch {
@@ -19,6 +21,9 @@ export interface LiveMatch {
   name: string | null;
   startedAt: string | null;
   players: LivePlayer[];
+  /** Média de MMR de cada time (dos jogadores com MMR). null = sem dado. */
+  radiantAvg: number | null;
+  direAvg: number | null;
 }
 
 export interface HistoryPlayer {
@@ -35,6 +40,8 @@ export interface HistoryPlayer {
   level: number;
   /** MMR atual da temporada (pra medalha do rank). null = sem MMR. */
   mmr: number | null;
+  /** Jogador banido (behavior_status='banned') — marca pública no card. */
+  banned: boolean;
 }
 
 export interface HistoryMatch {
@@ -44,6 +51,9 @@ export interface HistoryMatch {
   direScore: number | null;
   durationMin: number | null;
   date: string | null;
+  /** Média de MMR de cada time no momento da partida (favorito/zebra). */
+  radiantAvg: number | null;
+  direAvg: number | null;
   players: HistoryPlayer[];
 }
 
@@ -61,21 +71,42 @@ export async function getLiveMatches(): Promise<LiveMatch[]> {
       avatar: string | null;
       level: number | null;
       mmr: number | null;
+      banned?: boolean;
     }[];
   }[];
-  return rows.map((r) => ({
-    dotaMatchId: r.dota_match_id,
-    name: r.name,
-    startedAt: r.started_at,
-    players: (r.players ?? []).map((p) => ({
+  return rows.map((r) => {
+    const players = (r.players ?? []).map((p) => ({
       userId: p.user_id,
-      team: p.team === "dire" ? "dire" : p.team === "spectator" ? "spectator" : "radiant",
+      team: (p.team === "dire" ? "dire" : p.team === "spectator" ? "spectator" : "radiant") as
+        | "radiant"
+        | "dire"
+        | "spectator",
       name: p.name,
       avatar: p.avatar,
       level: p.level ?? 1,
       mmr: p.mmr ?? null,
-    })),
-  }));
+      banned: Boolean(p.banned),
+    }));
+    return {
+      dotaMatchId: r.dota_match_id,
+      name: r.name,
+      startedAt: r.started_at,
+      players,
+      // Ao vivo o MMR do momento não está gravado → média do MMR atual dos jogadores.
+      radiantAvg: teamAvg(players, "radiant"),
+      direAvg: teamAvg(players, "dire"),
+    };
+  });
+}
+
+/** Média (arredondada) do MMR dos jogadores de um time; null se ninguém tem MMR. */
+function teamAvg(
+  players: { team: string; mmr: number | null }[],
+  team: "radiant" | "dire"
+): number | null {
+  const xs = players.filter((p) => p.team === team && typeof p.mmr === "number").map((p) => p.mmr as number);
+  if (xs.length === 0) return null;
+  return Math.round(xs.reduce((a, b) => a + b, 0) / xs.length);
 }
 
 export async function getRecentMatches(limit = 20, offset = 0): Promise<HistoryMatch[]> {
@@ -88,6 +119,8 @@ export async function getRecentMatches(limit = 20, offset = 0): Promise<HistoryM
     dire_score: number | null;
     duration_min: number | null;
     date: string | null;
+    radiant_avg_mmr: number | null;
+    dire_avg_mmr: number | null;
     players: {
       user_id: string | null;
       team: string;
@@ -101,6 +134,7 @@ export async function getRecentMatches(limit = 20, offset = 0): Promise<HistoryM
       avatar: string | null;
       level: number | null;
       mmr: number | null;
+      banned?: boolean;
     }[];
   }[];
   return rows.map((r) => ({
@@ -110,6 +144,8 @@ export async function getRecentMatches(limit = 20, offset = 0): Promise<HistoryM
     direScore: r.dire_score,
     durationMin: r.duration_min,
     date: r.date,
+    radiantAvg: r.radiant_avg_mmr ?? null,
+    direAvg: r.dire_avg_mmr ?? null,
     players: (r.players ?? []).map((p) => ({
       userId: p.user_id,
       team: p.team === "dire" ? "dire" : p.team === "spectator" ? "spectator" : "radiant",
@@ -123,6 +159,7 @@ export async function getRecentMatches(limit = 20, offset = 0): Promise<HistoryM
       avatar: p.avatar,
       level: p.level ?? 1,
       mmr: p.mmr ?? null,
+      banned: Boolean(p.banned),
     })),
   }));
 }

@@ -4,7 +4,7 @@
 
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
-import { Clock, Radio } from "lucide-react";
+import { Clock, Radio, Ban } from "lucide-react";
 import { getHeroById } from "@/lib/queries/heroes";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
@@ -21,9 +21,9 @@ function PlayerChip({ player }: { player: HistoryPlayer }) {
   return (
     <span
       className="flex w-16 shrink-0 flex-col items-center gap-0.5"
-      title={`${player.name}${hero ? ` · ${hero.name_pt}` : ""}`}
+      title={`${player.name}${player.banned ? " · BANIDO" : ""}${hero ? ` · ${hero.name_pt}` : ""}`}
     >
-      <span className="relative">
+      <span className={`relative ${player.banned ? "opacity-90" : ""}`}>
         {/* Avatar + anel de XP com o NÍVEL da conta (identidade, sempre com o jogador). */}
         <XpAvatarRing
           src={player.avatar ?? undefined}
@@ -46,6 +46,8 @@ function PlayerChip({ player }: { player: HistoryPlayer }) {
             />
           </span>
         )}
+        {/* Marca de BANIDO — accountability pública (Mural da Vergonha). */}
+        {player.banned && <BannedMark />}
       </span>
       {/* Medalha do rank FormulaDota (representa o MMR atual). */}
       {player.mmr != null && (
@@ -58,7 +60,11 @@ function PlayerChip({ player }: { player: HistoryPlayer }) {
           className="mt-1"
         />
       )}
-      <span className="mt-0.5 block w-full truncate text-center font-display text-[0.65rem] font-medium leading-none text-text-body">
+      <span
+        className={`mt-0.5 block w-full truncate text-center font-display text-[0.65rem] font-medium leading-none ${
+          player.banned ? "text-error line-through" : "text-text-body"
+        }`}
+      >
         {player.name}
       </span>
       {mmr != null ? (
@@ -73,6 +79,35 @@ function PlayerChip({ player }: { player: HistoryPlayer }) {
         <span className="text-xs leading-none text-text-faded">—</span>
       )}
     </span>
+  );
+}
+
+/** Selo de BANIDO sobre o avatar (canto inferior esquerdo, longe do herói). */
+function BannedMark() {
+  return (
+    <span
+      className="absolute -bottom-0.5 -left-1 flex size-[18px] items-center justify-center rounded-sm border border-bg-deep bg-error text-bg-deep shadow"
+      title="Banido"
+      aria-label="Banido"
+    >
+      <Ban className="size-3" strokeWidth={3} aria-hidden="true" />
+    </span>
+  );
+}
+
+/** Barra central com a média de MMR de cada time (favorito destacado em dourado). */
+function TeamAvgRow({ radiantAvg, direAvg }: { radiantAvg: number | null; direAvg: number | null }) {
+  if (radiantAvg == null || direAvg == null) return null;
+  const rFav = radiantAvg >= direAvg;
+  return (
+    <div
+      className="mt-1 flex items-center justify-center gap-1.5 font-mono text-[0.65rem] tabular-nums text-text-faded"
+      title="MMR médio de cada time"
+    >
+      <span className={rFav ? "font-bold text-gold" : ""}>{radiantAvg}</span>
+      <span className="uppercase tracking-wide">méd</span>
+      <span className={!rFav ? "font-bold text-gold" : ""}>{direAvg}</span>
+    </div>
   );
 }
 
@@ -117,6 +152,7 @@ export function HistoryMatchCard({ match }: { match: HistoryMatch }) {
               </span>
             )}
           </div>
+          <TeamAvgRow radiantAvg={match.radiantAvg} direAvg={match.direAvg} />
         </div>
 
         {/* Temidos */}
@@ -130,18 +166,15 @@ export function HistoryMatchCard({ match }: { match: HistoryMatch }) {
   );
 }
 
-export function LiveMatchCard({ match }: { match: LiveMatch }) {
-  const radiant = match.players.filter((p) => p.team === "radiant");
-  const dire = match.players.filter((p) => p.team === "dire");
-
-  const Team = ({ players, align }: { players: LivePlayer[]; align: "end" | "start" }) => (
+function LiveTeam({ players, align }: { players: LivePlayer[]; align: "end" | "start" }) {
+  return (
     <div
       className={`flex flex-1 flex-wrap items-center gap-2 ${
         align === "end" ? "justify-end" : "justify-start"
       }`}
     >
       {players.map((p, i) => (
-        <span key={i} title={p.name}>
+        <span key={i} className="relative" title={`${p.name}${p.banned ? " · BANIDO" : ""}`}>
           <XpAvatarRing
             src={p.avatar ?? undefined}
             alt={p.name}
@@ -150,10 +183,16 @@ export function LiveMatchCard({ match }: { match: LiveMatch }) {
             pct={0}
             size={36}
           />
+          {p.banned && <BannedMark />}
         </span>
       ))}
     </div>
   );
+}
+
+export function LiveMatchCard({ match }: { match: LiveMatch }) {
+  const radiant = match.players.filter((p) => p.team === "radiant");
+  const dire = match.players.filter((p) => p.team === "dire");
 
   return (
     <Link
@@ -171,11 +210,14 @@ export function LiveMatchCard({ match }: { match: LiveMatch }) {
         <Radio size={12} className="text-play-primary/80" aria-hidden="true" />
       </div>
       <div className="flex items-center justify-between gap-3">
-        <Team players={radiant} align="end" />
-        <span className="shrink-0 font-display text-sm font-bold uppercase tracking-wide text-text-muted">
-          vs
-        </span>
-        <Team players={dire} align="start" />
+        <LiveTeam players={radiant} align="end" />
+        <div className="flex shrink-0 flex-col items-center">
+          <span className="font-display text-sm font-bold uppercase tracking-wide text-text-muted">
+            vs
+          </span>
+          <TeamAvgRow radiantAvg={match.radiantAvg} direAvg={match.direAvg} />
+        </div>
+        <LiveTeam players={dire} align="start" />
       </div>
     </Link>
   );
