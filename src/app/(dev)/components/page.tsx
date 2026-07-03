@@ -727,7 +727,7 @@ export default function ComponentsPage() {
                 <CardDescription>variant=estabilidade — partidas sem strike</CardDescription>
               </CardHeader>
               <CardContent>
-                Controle emocional contínuo — pilar da filosofia FormulaDota.
+                Controle emocional contínuo — pilar da filosofia do FORMULADOTA.
               </CardContent>
             </Card>
             <OnFireOverlay streakCount={20} variant="estabilidade" position="top-right" />
@@ -958,7 +958,7 @@ export default function ComponentsPage() {
               mmr={7200}
               rank="immortal"
               honorRank="as"
-              headline="Criador da FormulaDota — Imortal Top 0.5%"
+              headline="Criador do FORMULADOTA — Imortal Top 0.5%"
               membershipTier="consagrado"
               ringColor="play"
               presence="online"

@@ -59,7 +59,7 @@ function resolvePrincipleId(
 // ─── Componente ──────────────────────────────────────────────────────────────
 
 /**
- * EmptyState narrativo da Fórmula Dota.
+ * EmptyState narrativo do FORMULADOTA.
  *
  * Em vez de "nenhum dado encontrado", cada estado vazio cita um princípio da
  * doutrina para reforçar a cultura do produto — transformando telas vazias em

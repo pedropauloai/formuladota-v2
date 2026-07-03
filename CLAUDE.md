@@ -2,13 +2,14 @@
 
 ## Project
 
-**formuladota v2** é o **app da comunidade FormulaDota** — uma cultura competitiva de Dota 2 liderada por Pedro Paulo (Immortal/Top 0.5%). A plataforma é uma máquina de doutrinação e conversão de mentalidade: quiz de doutrina em 4 Pilares, sistema de progressão por níveis, lobbies (livre + elite Imortal), partidas "ranked com PRO" via fichas PIX, e identidade pública anti-anonimato. **A cultura é o produto; o Dota é o terreno.**
+**formuladota v2** é o **app da comunidade FORMULADOTA** — uma cultura competitiva de Dota 2 liderada por Pedro Paulo (Immortal/Top 0.5%). A plataforma é uma máquina de doutrinação e conversão de mentalidade: quiz de doutrina em 4 Pilares, sistema de progressão por níveis, lobbies (livre + elite Imortal), partidas "ranked com PRO" via fichas PIX, e identidade pública anti-anonimato. **A cultura é o produto; o Dota é o terreno.**
 
 📋 **Fontes da verdade, em ordem:** ler **`docs/foundations/index.md`** primeiro (índice de 1 linha por doc — padrão LLM Wiki: seguir só os links relevantes pra tarefa, não varrer a pasta) → `.planning/ROADMAP.md` + `STATE.md` → migrations em `supabase/migrations/`. O `PRD.md` na raiz é o documento ORIGINAL (loja de mentoria 1-1) e foi **sobrescrito em escopo** pelos pivôs de maio/2026 — usar só como contexto histórico.
 
 ### Constraints
+- **Marca (LEI de copy)**: o nome é **FORMULADOTA** — sempre em CAIXA ALTA, **sem acento**, sem espaço (nunca "Fórmula Dota", "Formula Dota" nem "formuladota"). É **MASCULINO**: "**o/do/no** FORMULADOTA", NUNCA "a/da/na FORMULADOTA". ("da comunidade FORMULADOTA" é válido — quem é feminino ali é *comunidade*.) Fonte: `docs/foundations/PRODUCT_CORE.md` (regras B1/B2 + glossário de marca).
 - **Tech Stack**: Next.js 16 (App Router) + React 19 + TypeScript + Tailwind v4 + Supabase + Discord OAuth + Mercado Pago (PIX) + bot Discord (Discord.js) + bot Steam/Dota GC (node-steam-user)
-- **Deploy**: web em **formuladota-v2.vercel.app** (Vercel, git-connected — push na `main` = deploy). **Os dois bots (`bot/` Discord e `bot-steam/` Steam/GC) têm deploy AUTOMÁTICO no Railway** (git-connected) ao dar push na `main` — NÃO precisa redeploy manual.
+- **Deploy**: web em **formuladota.com** (Vercel, git-connected — push na `main` = deploy). **Os dois bots (`bot/` Discord e `bot-steam/` Steam/GC) têm deploy AUTOMÁTICO no Railway** (git-connected) ao dar push na `main` — NÃO precisa redeploy manual.
 - **Persona**: jogador Dota 2 brasileiro comprometido, de qualquer bracket
 - **Pricing**: ficha de vaga = **R$ 10 fixo** (pricing descentralizado por PRO foi REVERTIDO em 2026-06-02, migration 041). Split 85/10/5. Mudança de preço = aprovação Pedro.
 - **Gates de acesso**: criar sala = assinatura ativa; entrar em lobby = nível 6 (doutrinado) OU ≥1 permissão de partida; lobby elite = assinatura + Imortal Valve + Místico nv30. Lógica centralizada em `src/lib/` e enforced por RLS/funções SQL.

@@ -6,7 +6,7 @@
 
 ## 1. Visão — por que
 
-Recriar, dentro da FormulaDota, a **paixão sazonal pelo Compendium** que o jogador de Dota tinha todo ano no TI: uma temporada que vira um *evento* — trilha de recompensas, previsões dos torneios, missões, baús, metas de comunidade e cosméticos que você exibe com orgulho no seu perfil público.
+Recriar, dentro do FORMULADOTA, a **paixão sazonal pelo Compendium** que o jogador de Dota tinha todo ano no TI: uma temporada que vira um *evento* — trilha de recompensas, previsões dos torneios, missões, baús, metas de comunidade e cosméticos que você exibe com orgulho no seu perfil público.
 
 Diferença crítica de contexto: **não temos itens in-game da Valve** (terrenos, wards, couriers). Nossos cosméticos são de **plataforma/identidade** — o perfil público anti-anonimato é a vitrine (ver [[POSITIONING.md]] e a memória `project_identidade_antianonimato`). O que se exibe é *quem você é na Fórmula*: seu ring, sua moldura, seus badges de temporada, seu tema de perfil. **A cultura é o produto** — cosméticos marcam mérito e pertencimento, não são só enfeite pago.
 

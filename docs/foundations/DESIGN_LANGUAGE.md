@@ -45,7 +45,7 @@ A regra de ouro: **nenhum valor de cor, espacamento, duracao ou z-index aparece 
 
 ### 2.1 Vermelho — Familia completa (nao single accent)
 
-O vermelho da FormulaDota e uma FAMILIA, nao um valor unico. Desde 2026-05-23 a cor canonica e o **vermelho ExitLag `#C42121`** (`--fd-raw-red-600`), escolha intencional de Pedro — mais punchy que o `#ac1d0e` original (preservado como `red-700` legacy). Valores completos da familia (50→900 + glows): ver `src/styles/tokens/raw.css`.
+O vermelho do FORMULADOTA e uma FAMILIA, nao um valor unico. Desde 2026-05-23 a cor canonica e o **vermelho ExitLag `#C42121`** (`--fd-raw-red-600`), escolha intencional de Pedro — mais punchy que o `#ac1d0e` original (preservado como `red-700` legacy). Valores completos da familia (50→900 + glows): ver `src/styles/tokens/raw.css`.
 
 Regras de uso (estas sim sao lei deste doc):
 - `--color-brand-primary` em CTAs primarios de marca, bordas de destaque, logotipo.

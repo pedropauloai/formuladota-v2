@@ -111,7 +111,7 @@
     "communityStatsAria": "{online} online · {banned} banidos — ver o Mural da Vergonha",
     "searching": "{count, plural, =1 {# jogador buscando} other {# jogadores buscando}}",
     "inQueue": "{count, plural, =1 {# na fila} other {# na fila}}",
-    "condutaTooltip": "Conduta é pública na FormulaDota — responsabilidade é princípio, não opção. Leia o Código antes da sua primeira PT.",
+    "condutaTooltip": "Conduta é pública no FORMULADOTA — responsabilidade é princípio, não opção. Leia o Código antes da sua primeira PT.",
     "mainNavAria": "Navegação principal",
     "contextNavAria": "Navegação contextual",
     "previewBackAria": "Voltar pra modo admin",
@@ -880,7 +880,7 @@
     "badgeStart": "Início",
     "startEyebrow": "Comece sua jornada",
     "startTitle": "Compre sua primeira ficha",
-    "startSub": "Cada ficha vale 1 vaga em PT ranked oficial com um PRO da FORMULADOTA. Ficha só é cobrada quando o PRO confirmar que a partida ocorreu.",
+    "startSub": "Cada ficha vale 1 vaga em PT ranked oficial com um PRO do FORMULADOTA. Ficha só é cobrada quando o PRO confirmar que a partida ocorreu.",
     "pillAriaLabel": "Na fila de {name}, posição {position} de {total}, {minutes} minutos aguardando",
     "inQueueShort": "Na fila",
     "leave": "Sair",
@@ -1058,7 +1058,7 @@
     "progressTitle": "Progresso",
     "bannedMetaTitle": "Conta encerrada — FORMULADOTA",
     "bannedEyebrow": "conta encerrada",
-    "bannedTitle": "Sua conta foi banida da FORMULADOTA.",
+    "bannedTitle": "Sua conta foi banida do FORMULADOTA.",
     "bannedAtLabel": "banido em",
     "bannedReasonLabel": "motivo",
     "bannedExplain1": "Banimento é a etapa final do sistema progressivo de moderação. Sua conta está congelada — você não pode comprar, jogar ou agendar sessões.",
@@ -1731,7 +1731,7 @@
       },
       "15": {
         "title": "Buscar Diversão em Espaço de Competição",
-        "ex0": "Entrar na FORMULADOTA buscando diversão viola o contrato cultural.",
+        "ex0": "Entrar no FORMULADOTA buscando diversão viola o contrato cultural.",
         "ex1": "Aqui não é ambiente para se divertir — é para aprender, evoluir e competir.",
         "ex2": "Competição não está coligada com diversão. Quem quer se divertir, joga turbo ou casual."
       }
@@ -1778,7 +1778,7 @@
     "groupTechnical": "Técnicos e de execução",
     "groupProgression": "Progressão",
     "antipatternsTitle": "Os 15 Padrões Tóxicos",
-    "antipatternsIntro": "Comportamentos incompatíveis com a cultura da FORMULADOTA. Geram advertência, suspensão ou banimento conforme as regras abaixo.",
+    "antipatternsIntro": "Comportamentos incompatíveis com a cultura do FORMULADOTA. Geram advertência, suspensão ou banimento conforme as regras abaixo.",
     "moderationTitle": "Sistema Progressivo de Moderação",
     "moderationIntro": "Toda violação registrada cita o princípio ou anti-padrão violado. Não é punição arbitrária — é aplicação da regra que você aceitou ao entrar.",
     "resetLabel": "Reset automático:",
@@ -1790,7 +1790,7 @@
   },
   "manifesto": {
     "metaTitle": "Por que FormulaDota — não é você, é o sistema",
-    "metaDescription": "O ambiente competitivo oficial do Dota 2 tem três falhas estruturais: anonimato, topo fechado e ranking fragmentado. A FormulaDota constrói o ambiente que falta — identidade real, temporadas que reiniciam e ranking único.",
+    "metaDescription": "O ambiente competitivo oficial do Dota 2 tem três falhas estruturais: anonimato, topo fechado e ranking fragmentado. O FORMULADOTA constrói o ambiente que falta — identidade real, temporadas que reiniciam e ranking único.",
     "heroEyebrow": "Por que FormulaDota",
     "heroTitle": "Não é você. <red>É o sistema.</red>",
     "heroSubtitle": "O Dota é um dos melhores jogos do mundo. O que está quebrado é o ambiente competitivo da Valve — e até as lendas estão indo embora.",
@@ -1798,9 +1798,9 @@
     "grubbyBody": "Lenda dos esports — múltiplas vezes campeão mundial de Warcraft III e referência em <em>mentalidade positiva</em>. Quando o jogador mais equilibrado do cenário — justo o que ensina a manter a cabeça boa — é expulso pela toxicidade, fica provado: não é o jogador, é o sistema sem regras.",
     "photoCredit": "Foto: Wikimedia Commons",
     "comparisonTitle": "Três falhas. Três respostas.",
-    "comparisonIntro": "O matchmaking oficial da Valve tem três falhas estruturais. Não são bugs — são escolhas de design que produzem o ambiente que afasta quem leva o jogo a sério. A FormulaDota não tenta consertar a Valve: constrói o ambiente que ela deveria ter.",
+    "comparisonIntro": "O matchmaking oficial da Valve tem três falhas estruturais. Não são bugs — são escolhas de design que produzem o ambiente que afasta quem leva o jogo a sério. O FORMULADOTA não tenta consertar a Valve: constrói o ambiente que ela deveria ter.",
     "naValve": "Na Valve",
-    "naFormulaDota": "Na FormulaDota",
+    "naFormulaDota": "No FORMULADOTA",
     "row": {
       "anonimato": {
         "problemTitle": "Anonimato",
@@ -2578,7 +2578,7 @@
         "rationale": "Sem auditoria não há aprendizado; derrota deixa de ser degrau e vira ciclo."
       },
       "Q29_1": {
-        "prompt": "Alguém entra na FormulaDota dizendo que só quer \"se divertir e relaxar\". O que a doutrina diz sobre isso?",
+        "prompt": "Alguém entra no FORMULADOTA dizendo que só quer \"se divertir e relaxar\". O que a doutrina diz sobre isso?",
         "a": "É bem-vindo, contanto que não seja tóxico.",
         "b": "Viola o contrato cultural — aqui é ambiente pra aprender, evoluir e competir, não pra se divertir.",
         "c": "Pode jogar, mas só no lobby livre.",
@@ -2778,7 +2778,7 @@
         "rationale": "Aprender com cada derrota + foco no longo prazo = MMR sobe como consequência."
       },
       "QM10_1": {
-        "prompt": "Ao entrar na FormulaDota, o que a mentalidade competitiva exige de você em alguns momentos?",
+        "prompt": "Ao entrar no FORMULADOTA, o que a mentalidade competitiva exige de você em alguns momentos?",
         "a": "Jogar só os heróis que você gosta.",
         "b": "Deixar de lado hábitos ou preferências que não contribuem pra sua evolução, focando no necessário.",
         "c": "Jogar o máximo de partidas possível.",
@@ -3312,7 +3312,7 @@
     "bannedTag": "BANIDO",
     "viewDetails": "Ver detalhes",
     "homeMetaTitle": "FORMULADOTA — não é você, é o sistema",
-    "homeMetaDescription": "O ambiente competitivo da Valve é quebrado — anonimato, topo fechado, regiões isoladas. A FormulaDota é a resposta: identidade real, temporadas e ranking único.",
+    "homeMetaDescription": "O ambiente competitivo da Valve é quebrado — anonimato, topo fechado, regiões isoladas. O FORMULADOTA é a resposta: identidade real, temporadas e ranking único.",
     "usersBreadcrumb": "Usuários",
     "adminUserEyebrow": "Admin / Usuário",
     "proActive": "PRO Ativo",
@@ -3628,7 +3628,7 @@
     "calibrationComplete": "Calibração concluída",
     "calibrationInitialTier": "Tier inicial",
     "calibrationJourneyStarts": "Sua jornada começa agora",
-    "doctrineFormulaDota": "Doutrina FormulaDota",
+    "doctrineFormulaDota": "Doutrino FORMULADOTA",
     "timeNow": "agora",
     "timeMinutes": "{n}min",
     "timeHours": "{n}h",

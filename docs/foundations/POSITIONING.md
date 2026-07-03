@@ -14,11 +14,11 @@
 
 ## A descoberta central
 
-A FormulaDota foi pensada por muito tempo como **uma plataforma de Dota que possui uma cultura**.
+O FORMULADOTA foi pensada por muito tempo como **uma plataforma de Dota que possui uma cultura**.
 
 A hipótese mais profunda é o inverso:
 
-> **A FormulaDota é uma cultura que usa o Dota como terreno comum.**
+> **O FORMULADOTA é uma cultura que usa o Dota como terreno comum.**
 
 Lobbies, progressão, níveis, medalhas, HONOR, ranking, quiz, matchmaking — **nenhum desses é
 o produto.** Todos são **mecanismos de proteção cultural**. O produto é a cultura: o
@@ -27,10 +27,10 @@ entre jogadores** — uma dor presente em praticamente todas as brackets do Dota
 
 ## Não é uma escola de Dota
 
-A armadilha perigosa: assumir que a FormulaDota existe pra ensinar a subir de MMR. Nunca foi
+A armadilha perigosa: assumir que o FORMULADOTA existe pra ensinar a subir de MMR. Nunca foi
 isso. O diferencial do conteúdo de Pedro nunca foi build/mecânica/estratégia — foi a
 **interpretação do jogo**. A Fórmula do Dota de Corrida é um **modelo mental**, não uma build.
-"A culpa nunca é do outro" é uma **filosofia**, não uma dica. A FormulaDota sempre esteve mais
+"A culpa nunca é do outro" é uma **filosofia**, não uma dica. O FORMULADOTA sempre esteve mais
 perto de **transformação de mentalidade** do que de ensino técnico. O sistema atual finalmente
 reconhece isso.
 
@@ -38,13 +38,13 @@ reconhece isso.
 
 A medalha mede habilidade. Não mede **amor pelo jogo**, **comprometimento** nem **investimento
 emocional**. Existem Arcontes com 10.000 partidas, Lendas com 8.000, Cruzados que acompanham
-o cenário há mais de uma década. A dor que a FormulaDota resolve — toxicidade, abandono, falta
+o cenário há mais de uma década. A dor que o FORMULADOTA resolve — toxicidade, abandono, falta
 de comprometimento, desalinhamento cultural — **aparece em todas as brackets**, não só no topo.
 
 ## O público-alvo (a correção mais importante)
 
 Distinção crítica: não é "jogadores de Dota", é **"jogadores que ainda se importam
-profundamente com o Dota"**. A FormulaDota não precisa atingir todos — precisa **encontrar a
+profundamente com o Dota"**. O FORMULADOTA não precisa atingir todos — precisa **encontrar a
 minoria certa**. O público ideal (em qualquer medalha):
 
 - acompanha o cenário competitivo
@@ -65,7 +65,7 @@ excelência de dedicação**. (Ver HONOR_SYSTEM.md — co-requisito de SKILL no 
 ## O possível erro de mercado
 
 Pergunta errada: *"Existem 200 Imortais dispostos a pagar mensalidade?"*
-Pergunta certa: *"Quantos jogadores de Dota sofrem a dor que a FormulaDota resolve?"*
+Pergunta certa: *"Quantos jogadores de Dota sofrem a dor que o FORMULADOTA resolve?"*
 
 O mercado potencial não são só Imortais — são **Arcontes, Lendas, Ancestrais, Divines e
 Imortais**, unidos pela mesma dor. A dor não é falta de habilidade; é a **qualidade da
@@ -87,11 +87,11 @@ cria cultura artificialmente**.
 **Nota sobre rejeição:** a doutrina ser ignorada/debochada em comunidades aleatórias de Dota
 não a invalida. Há diferença entre **entrar na comunidade dos outros** (onde as pessoas só
 querem partida) e **construir um ambiente próprio** onde a filosofia vem primeiro e os sistemas
-vêm depois. A FormulaDota inverte a lógica.
+vêm depois. O FORMULADOTA inverte a lógica.
 
 ## A grande mudança de posicionamento
 
-A FormulaDota **não está tentando mudar toda a comunidade de Dota**. Está tentando **encontrar
+O FORMULADOTA **não está tentando mudar toda a comunidade de Dota**. Está tentando **encontrar
 quem já deseja algo diferente**. O objetivo não é converter milhões — é **reunir os que já
 compartilham dos mesmos valores**.
 
@@ -117,7 +117,7 @@ Aí o valor deixa de ser funcional e vira **emocional, pertencimento, comunidade
 
 ## Resumo (a lente de toda decisão futura)
 
-A FormulaDota não existe pra criar lobbies, rankings, medalhas ou progressão. Tudo isso são
+O FORMULADOTA não existe pra criar lobbies, rankings, medalhas ou progressão. Tudo isso são
 **ferramentas**. A missão real é construir um **ambiente onde jogadores comprometidos
 compartilham a mesma filosofia** sobre responsabilidade, evolução, convivência e competição
 saudável no Dota.

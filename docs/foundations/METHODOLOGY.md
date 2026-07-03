@@ -219,7 +219,7 @@ Quem aceita ideias sem questionar não evolui — apenas troca de prisão. Quem 
 
 A pessoa que sai do simulador de herói no Dota é a mesma que sai do **simulador de vida** em outras áreas — operando no automático, reagindo a estímulos, sem consultar o relógio próprio, sem saber qual o objetivo do mapa em que está. A Fórmula é o método. Dota 2 é o laboratório.
 
-Essa é a razão pela qual a metodologia importa além do jogo. Quem vem para a FORMULADOTA por causa de MMR descobre, sem querer, que está construindo um novo padrão de tomada de decisão — e esse padrão acompanha em tudo que vier depois.
+Essa é a razão pela qual a metodologia importa além do jogo. Quem vem para o FORMULADOTA por causa de MMR descobre, sem querer, que está construindo um novo padrão de tomada de decisão — e esse padrão acompanha em tudo que vier depois.
 
 ---
 

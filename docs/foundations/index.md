@@ -7,7 +7,7 @@
 
 ## Produto e posicionamento
 
-- [PHILOSOPHY.md](PHILOSOPHY.md) — Os 14 pilares filosóficos e a razão de existência da FormulaDota.
+- [PHILOSOPHY.md](PHILOSOPHY.md) — Os 14 pilares filosóficos e a razão de existência do FORMULADOTA.
 - [POSITIONING.md](POSITIONING.md) — FormulaDota é cultura que usa Dota como terreno; público = jogadores que ainda se importam.
 - [PRODUCT_CORE.md](PRODUCT_CORE.md) — Identidade de marca (Mestre + Guardião), voz, hierarquia de feedback de eventos (HONOR e SKILL).
 
