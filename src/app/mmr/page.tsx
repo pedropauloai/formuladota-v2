@@ -184,7 +184,7 @@ export default function MmrExplainerPage() {
                   Quando você joga sua primeira partida na liga, a gente{" "}
                   <strong className="text-text-display">importa o seu nível real</strong> a partir da
                   sua medalha Valve — você já entra no valor que aquela medalha representa (um Divino
-                  3 entra mais alto que um Divino 1). Nada de "começar do zero e calibrar": a sua
+                  3 entra mais alto que um Divino 1). Nada de “começar do zero e calibrar”: a sua
                   medalha JÁ é a prova do seu nível.
                 </p>
                 <p>
@@ -228,30 +228,26 @@ export default function MmrExplainerPage() {
                 <span className="text-error">−</span> vermelho).
               </p>
             </Section>
-            <div className="overflow-hidden rounded-[var(--radius-md)] border border-border-subtle bg-bg-elevated/30">
-              <Image
-                src="/images/mmr/performance.png"
-                alt="Painel de performance de uma partida"
-                width={900}
-                height={560}
-                unoptimized
-                className="h-auto w-full object-cover"
-              />
-            </div>
+            <Image
+              src="/images/mmr/performance.png"
+              alt="Painel de performance de uma partida"
+              width={900}
+              height={560}
+              unoptimized
+              className="h-auto w-full"
+            />
           </div>
 
           {/* ─── Desempenho detalhado — ILUSTRAÇÃO (graphs) + texto ─── */}
           <div className="grid items-center gap-10 border-t border-border-subtle pt-12 lg:grid-cols-2">
-            <div className="order-2 overflow-hidden rounded-[var(--radius-md)] border border-border-subtle bg-bg-elevated/30 lg:order-1">
-              <Image
-                src="/images/mmr/graphs-player-damage.png"
-                alt="Gráfico de dano por jogador ao longo da partida"
-                width={900}
-                height={560}
-                unoptimized
-                className="h-auto w-full object-cover"
-              />
-            </div>
+            <Image
+              src="/images/mmr/graphs-player-damage.png"
+              alt="Gráfico de dano por jogador ao longo da partida"
+              width={900}
+              height={560}
+              unoptimized
+              className="order-2 h-auto w-full lg:order-1"
+            />
             <div className="order-1 lg:order-2">
               <Section icon={Swords} titulo="Desempenho é medido de verdade">
                 <p>
