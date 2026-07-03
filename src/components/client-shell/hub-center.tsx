@@ -5,7 +5,7 @@
 // É a TESE do produto, estampada e cabendo na tela SEM scroll (Pedro 2026-06-18,
 // "é o principal do produto"). Otimizada pra 1920x1080 (preenche o canvas) e
 // responsiva pra baixo. Tese: o ambiente competitivo da Valve é quebrado
-// (anonimato, topo fechado, regiões isoladas) e a FormulaDota é a resposta
+// (anonimato, topo fechado, regiões isoladas) e o FORMULADOTA é a resposta
 // (identidade, temporadas, ranking único). Aprofundamento em /manifesto.
 //
 // i18n: textos via namespace "capa" (next-intl). PT padrão, EN no pivô internacional.
@@ -35,7 +35,7 @@ export interface HubCenterProps {
   showRankedComPro?: boolean;
 }
 
-// Os 3 pilares — falha da Valve → resposta da FormulaDota. Texto via i18n (capa).
+// Os 3 pilares — falha da Valve → resposta do FORMULADOTA. Texto via i18n (capa).
 // `id` casa com as chaves pillar<Id>Problem/Solution/Line nas mensagens.
 const PILLARS = [
   { id: "Anonimato", icon: Fingerprint },
@@ -71,7 +71,7 @@ export function HubCenter({ isVisitor, prosOnlineCount, showRankedComPro = false
         </p>
       </header>
 
-      {/* 3 PILARES — falha da Valve → resposta FormulaDota */}
+      {/* 3 PILARES — falha da Valve → resposta FORMULADOTA */}
       <div className="grid gap-4 sm:grid-cols-3 2xl:gap-6">
         {PILLARS.map((p) => {
           const Icon = p.icon;
@@ -98,7 +98,7 @@ export function HubCenter({ isVisitor, prosOnlineCount, showRankedComPro = false
                 className="my-2 text-brand-primary 2xl:my-3"
               />
 
-              {/* Na FormulaDota (resposta) */}
+              {/* No FORMULADOTA (resposta) */}
               <div className="flex items-center gap-2">
                 <Icon
                   size={18}

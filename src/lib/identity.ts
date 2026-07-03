@@ -61,5 +61,5 @@ export function nicksConsistent(src: IdentitySources): boolean {
 /** Mensagem de instrução quando os nicks divergem (null se consistente). */
 export function identityWarning(src: IdentitySources): string | null {
   if (nicksConsistent(src)) return null;
-  return "Seu nick na Steam e no Discord estão diferentes. Na FormulaDota o anonimato não é permitido — use o MESMO nome em todas as redes. Sincronize seu nick.";
+  return "Seu nick na Steam e no Discord estão diferentes. No FORMULADOTA o anonimato não é permitido — use o MESMO nome em todas as redes. Sincronize seu nick.";
 }

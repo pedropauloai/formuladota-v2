@@ -1,10 +1,10 @@
-# FórmulaDota
+# FORMULADOTA
 
-> O app da comunidade **FórmulaDota** — uma cultura competitiva de Dota 2 liderada por Pedro Paulo (Immortal / Top 0.5%). **A cultura é o produto; o Dota é o terreno.**
+> O app da comunidade **FORMULADOTA** — uma cultura competitiva de Dota 2 liderada por Pedro Paulo (Immortal / Top 0.5%). **A cultura é o produto; o Dota é o terreno.**
 
 Plataforma web (com desktop e mobile no horizonte) que funciona como uma máquina de doutrinação e conversão de mentalidade: o jogador aprende a **Fórmula** (a doutrina competitiva), prova que absorveu, e só então destrava jogar em lobbies com a comunidade — subindo num ranking próprio, com identidade pública e reputação atrelada.
 
-Produção: **[formuladota-v2.vercel.app](https://formuladota-v2.vercel.app)**
+Produção: **[formuladota.com](https://formuladota.com)**
 
 ## Como funciona (o loop)
 
@@ -12,7 +12,7 @@ Produção: **[formuladota-v2.vercel.app](https://formuladota-v2.vercel.app)**
 2. **Doutrina** — um quiz em **4 Pilares** (estilo Duolingo: erra → explica → exige acertar). Chegar ao **nível 6** = *doutrinado*.
 3. **Destrava jogar** — entrar em lobby exige ser doutrinado **ou** ter permissão de partida (5 acertos no quiz = 1 permissão).
 4. **Joga** — matchmaking por skill forma partidas 5×5 (lobby livre + lobby elite Imortal); um bot cria a sala no Dota e convida os 10.
-5. **Sobe** — cada partida move o **MMR FórmulaDota** (Elo + desempenho medido do replay), reseta por temporada, e no topo vira leaderboard de Imortais.
+5. **Sobe** — cada partida move o **MMR FORMULADOTA** (Elo + desempenho medido do replay), reseta por temporada, e no topo vira leaderboard de Imortais.
 6. **Placar pós-jogo completo** — 12 abas estilo OpenDota/STRATZ (visão geral, MMR, performance, gráficos, builds, combate, mapas, **presença/heatmap**, teamfights, objetivos, draft, benchmarks), com destaque de **MVP** e explicação transparente de como o MMR mudou.
 
 Partidas premium ("ranked com PRO") usam **fichas de vaga (R$ 10 fixo, PIX)**. Conduta é pública: quem viola a doutrina vai pro **Mural da Vergonha**.

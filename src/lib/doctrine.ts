@@ -307,7 +307,7 @@ export const ANTIPATTERNS: Antipattern[] = [
     severity: "media",
     title: "Buscar Diversão em Espaço de Competição",
     examples: [
-      "Entrar na FORMULADOTA buscando diversão viola o contrato cultural.",
+      "Entrar no FORMULADOTA buscando diversão viola o contrato cultural.",
       "Aqui não é ambiente para se divertir — é para aprender, evoluir e competir.",
       "Competição não está coligada com diversão. Quem quer se divertir, joga turbo ou casual.",
     ],

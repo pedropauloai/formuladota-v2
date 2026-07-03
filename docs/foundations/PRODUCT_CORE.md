@@ -364,6 +364,7 @@ maiuscula em caixa alta e reservada para o CTA principal e nomes de entidade (FO
 | Regra | Correto | Errado |
 |-------|---------|--------|
 | B1: nome da marca | FORMULADOTA | Fórmula Dota / Formula Dota / formuladota |
+| B2: gênero (masculino) | "o FORMULADOTA", "do FORMULADOTA", "no FORMULADOTA" | "a/da/no FORMULADOTA" |
 | B6: admin | (implicito, sem mencao) | "Pedro Paulo", "o coach", "o Pedro" |
 
 A plataforma nao menciona "Pedro Paulo" em nenhuma superficie voltada ao usuario. A bio do
@@ -657,7 +658,7 @@ de oferta. Sem "ultima chance". Sem "so hoje".
 
 | Termo | Uso Correto | Uso Errado |
 |-------|------------|------------|
-| FORMULADOTA | Sempre maiusculo, sem acento, sem espaco | Fórmula Dota, Formula Dota, formuladota |
+| FORMULADOTA | Sempre maiusculo, sem acento, sem espaco, MASCULINO ("o/do FORMULADOTA") | Fórmula Dota, Formula Dota, formuladota, "a/do FORMULADOTA" |
 | doutrina | Minusculo quando substantivo comum | Doutrina (maiusculo desnecessario) |
 | principio | Minusculo + numero: "Principio 1" | "o Principio Numero Um" |
 | coach | Minusculo, sem aspas | "o Coach", Coach (maiusculo) |

@@ -1,6 +1,6 @@
 // Página pública "Por que FormulaDota" — o problema do matchmaking oficial da
 // Valve (anonimato, topo fechado/MMR inflado, ranking fragmentado por região) e
-// a resposta da FormulaDota. Ancorada na prova social do Grubby (lenda dos
+// a resposta do FORMULADOTA. Ancorada na prova social do Grubby (lenda dos
 // esports expulsa pela toxicidade). Usada na conversão de visitante E como base
 // das propostas a representantes. Acessível sem login (vitrine).
 //
@@ -29,7 +29,7 @@ export async function generateMetadata() {
   };
 }
 
-// Cada par: a falha da Valve (o que ela produz) × a resposta da FormulaDota.
+// Cada par: a falha da Valve (o que ela produz) × a resposta do FORMULADOTA.
 // Só os ÍCONES e a chave (id) vivem aqui; o TEXTO vem do namespace "manifesto".
 const COMPARISONS = [
   {
@@ -181,7 +181,7 @@ export default async function ManifestoPage() {
 }
 
 // Linha comparativa: à esquerda a falha da Valve (tom de alerta), à direita a
-// resposta da FormulaDota (tom da marca). No mobile empilha (falha em cima).
+// resposta do FORMULADOTA (tom da marca). No mobile empilha (falha em cima).
 function ComparisonRow({
   item,
   naValve,
@@ -224,7 +224,7 @@ function ComparisonRow({
         </p>
       </div>
 
-      {/* Resposta da FormulaDota */}
+      {/* Resposta do FORMULADOTA */}
       <div className="flex flex-col gap-2 bg-bg-elevated/60 p-5">
         <div className="flex items-center gap-2 text-brand-primary">
           <SolutionIcon size={16} aria-hidden="true" />

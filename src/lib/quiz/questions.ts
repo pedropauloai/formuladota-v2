@@ -1027,7 +1027,7 @@ export const QUIZ_QUESTIONS: QuizQuestion[] = [
     id: "Q29.1",
     section: "anti-padrao",
     origin: "Anti-padrão 15",
-    prompt: 'Alguém entra na FormulaDota dizendo que só quer "se divertir e relaxar". O que a doutrina diz sobre isso?',
+    prompt: 'Alguém entra no FORMULADOTA dizendo que só quer "se divertir e relaxar". O que a doutrina diz sobre isso?',
     options: [
       { id: "a", text: "É bem-vindo, contanto que não seja tóxico.", correct: false },
       { id: "b", text: "Viola o contrato cultural — aqui é ambiente pra aprender, evoluir e competir, não pra se divertir.", correct: true },
@@ -1359,7 +1359,7 @@ export const QUIZ_QUESTIONS: QuizQuestion[] = [
     id: "QM10.1",
     section: "metodologia-conceito",
     origin: "Conceito M10",
-    prompt: "Ao entrar na FormulaDota, o que a mentalidade competitiva exige de você em alguns momentos?",
+    prompt: "Ao entrar no FORMULADOTA, o que a mentalidade competitiva exige de você em alguns momentos?",
     options: [
       { id: "a", text: "Jogar só os heróis que você gosta.", correct: false },
       { id: "b", text: "Deixar de lado hábitos ou preferências que não contribuem pra sua evolução, focando no necessário.", correct: true },
