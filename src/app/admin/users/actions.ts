@@ -465,3 +465,223 @@ export async function swapSteamLink(
   revalidatePath("/me");
   return { success: true };
 }
+
+// ====================================================
+// EDIÇÃO DE DADOS DO USUÁRIO (Pedro 2026-07-03)
+// Painel admin ganha edição direta de: nome, MMR da temporada, ban e acesso.
+// Todas passam por requireAdmin + audit log.
+// ====================================================
+
+export type EditResult = { success: true } | { success: false; error: string };
+
+// ── Nome / nick oficial ──────────────────────────────────────────────────────
+// Corrige o username exibido (números, caps, nome errado) sem depender do botão
+// de uso único do jogador. Marca official_nick_set=true (fica "definido").
+export async function updateUsernameAdmin(
+  targetUserId: string,
+  username: string
+): Promise<EditResult> {
+  const nick = username.trim();
+  if (nick.length < 2 || nick.length > 32) {
+    return { success: false, error: "Nome precisa ter entre 2 e 32 caracteres." };
+  }
+
+  const adminCheck = await requireAdmin();
+  if (!adminCheck.ok) return { success: false, error: adminCheck.error };
+
+  const service = createServiceClient();
+  const { data: before } = await service
+    .from("profiles")
+    .select("username")
+    .eq("id", targetUserId)
+    .maybeSingle();
+
+  const { error } = await service
+    .from("profiles")
+    .update({ username: nick, official_nick_set: true } as never)
+    .eq("id", targetUserId);
+  if (error) return { success: false, error: "Erro ao atualizar o nome: " + error.message };
+
+  await insertAuditLog(service, {
+    actorId: adminCheck.adminId,
+    targetUserId,
+    action: "admin_edit_username",
+    reason: "Edição admin do nome",
+    payloadBefore: { username: before?.username ?? null },
+    payloadAfter: { username: nick },
+  });
+
+  revalidatePath(`/admin/users/${targetUserId}`);
+  revalidatePath("/admin/users");
+  revalidatePath("/ranking");
+  revalidatePath(`/perfil/u/${targetUserId}`);
+  return { success: true };
+}
+
+// ── MMR da temporada ─────────────────────────────────────────────────────────
+// Ajusta o MMR FormulaDota da SEASON ATIVA (player_season_mmr). Ex.: corrigir
+// calibração errada. Afeta a posição no /ranking. Cria a linha se não existir.
+export async function setSeasonMmrAdmin(
+  targetUserId: string,
+  mmr: number,
+  reason: string
+): Promise<EditResult> {
+  if (!Number.isInteger(mmr) || mmr < 0 || mmr > 10000) {
+    return { success: false, error: "MMR precisa ser um inteiro entre 0 e 10000." };
+  }
+  if (reason.trim().length < 3) {
+    return { success: false, error: "Razão obrigatória (mínimo 3 caracteres)." };
+  }
+
+  const adminCheck = await requireAdmin();
+  if (!adminCheck.ok) return { success: false, error: adminCheck.error };
+
+  const service = createServiceClient();
+  const { data: season } = await service
+    .from("seasons")
+    .select("id")
+    .eq("active", true)
+    .maybeSingle();
+  if (!season) return { success: false, error: "Nenhuma temporada ativa." };
+
+  const { data: before } = await service
+    .from("player_season_mmr")
+    .select("mmr")
+    .eq("user_id", targetUserId)
+    .eq("season_id", season.id)
+    .maybeSingle();
+
+  // peak_mmr não é tocado aqui (é gerido pelo fluxo de partidas); ajuste manual
+  // só corrige o mmr corrente + garante calibrated.
+  const { error } = await service
+    .from("player_season_mmr")
+    .upsert(
+      {
+        user_id: targetUserId,
+        season_id: season.id,
+        mmr,
+        calibrated: true,
+      } as never,
+      { onConflict: "user_id,season_id" }
+    );
+  if (error) return { success: false, error: "Erro ao ajustar o MMR: " + error.message };
+
+  await insertAuditLog(service, {
+    actorId: adminCheck.adminId,
+    targetUserId,
+    action: "admin_edit_season_mmr",
+    reason: reason.trim(),
+    payloadBefore: { mmr: before?.mmr ?? null },
+    payloadAfter: { mmr, season_id: season.id },
+  });
+
+  revalidatePath(`/admin/users/${targetUserId}`);
+  revalidatePath("/admin/users");
+  revalidatePath("/ranking");
+  return { success: true };
+}
+
+// ── Conduta: banir / desbanir ────────────────────────────────────────────────
+// Banimento DIRETO (o acúmulo de strikes também bane, mas às vezes o admin quer
+// aplicar/reverter na hora). Banido sai do /ranking e entra no /mural.
+export async function setBanStatusAdmin(
+  targetUserId: string,
+  banned: boolean,
+  reason: string
+): Promise<EditResult> {
+  if (banned && reason.trim().length < 5) {
+    return { success: false, error: "Descreva o motivo do banimento (mínimo 5 caracteres)." };
+  }
+
+  const adminCheck = await requireAdmin();
+  if (!adminCheck.ok) return { success: false, error: adminCheck.error };
+  if (targetUserId === adminCheck.adminId) {
+    return { success: false, error: "Você não pode banir a si mesmo." };
+  }
+
+  const service = createServiceClient();
+  const { data: before } = await service
+    .from("profiles")
+    .select("behavior_status, banned_at")
+    .eq("id", targetUserId)
+    .maybeSingle();
+
+  const patch = banned
+    ? {
+        behavior_status: "banned",
+        banned_at: new Date().toISOString(),
+        banned_reason: reason.trim(),
+      }
+    : {
+        behavior_status: "ok",
+        banned_at: null,
+        banned_reason: null,
+      };
+
+  const { error } = await service.from("profiles").update(patch as never).eq("id", targetUserId);
+  if (error) return { success: false, error: "Erro ao alterar conduta: " + error.message };
+
+  await insertAuditLog(service, {
+    actorId: adminCheck.adminId,
+    targetUserId,
+    action: banned ? "admin_ban" : "admin_unban",
+    reason: reason.trim() || "Desbanimento admin",
+    payloadBefore: { behavior_status: before?.behavior_status ?? null },
+    payloadAfter: { behavior_status: patch.behavior_status },
+  });
+
+  revalidatePath(`/admin/users/${targetUserId}`);
+  revalidatePath("/admin/users");
+  revalidatePath("/ranking");
+  revalidatePath("/mural");
+  return { success: true };
+}
+
+// ── Acesso: role / admin ─────────────────────────────────────────────────────
+// Sensível: concede/remove poderes. Guardas: não permite remover o próprio admin
+// (evita se trancar pra fora).
+export async function setUserAccessAdmin(
+  targetUserId: string,
+  input: { isAdmin: boolean; role: string },
+  reason: string
+): Promise<EditResult> {
+  const role = input.role.trim();
+  if (!["player", "coach", "admin"].includes(role)) {
+    return { success: false, error: "Role inválida (player, coach ou admin)." };
+  }
+  if (reason.trim().length < 3) {
+    return { success: false, error: "Razão obrigatória (mínimo 3 caracteres)." };
+  }
+
+  const adminCheck = await requireAdmin();
+  if (!adminCheck.ok) return { success: false, error: adminCheck.error };
+  if (targetUserId === adminCheck.adminId && !input.isAdmin) {
+    return { success: false, error: "Você não pode remover o seu próprio admin." };
+  }
+
+  const service = createServiceClient();
+  const { data: before } = await service
+    .from("profiles")
+    .select("is_admin, role")
+    .eq("id", targetUserId)
+    .maybeSingle();
+
+  const { error } = await service
+    .from("profiles")
+    .update({ is_admin: input.isAdmin, role } as never)
+    .eq("id", targetUserId);
+  if (error) return { success: false, error: "Erro ao alterar acesso: " + error.message };
+
+  await insertAuditLog(service, {
+    actorId: adminCheck.adminId,
+    targetUserId,
+    action: "admin_edit_access",
+    reason: reason.trim(),
+    payloadBefore: { is_admin: before?.is_admin ?? null, role: before?.role ?? null },
+    payloadAfter: { is_admin: input.isAdmin, role },
+  });
+
+  revalidatePath(`/admin/users/${targetUserId}`);
+  revalidatePath("/admin/users");
+  return { success: true };
+}

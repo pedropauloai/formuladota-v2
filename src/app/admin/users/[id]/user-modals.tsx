@@ -21,7 +21,12 @@ import {
   applyHonorBonus,
   grantAchievement,
   swapSteamLink,
+  updateUsernameAdmin,
+  setSeasonMmrAdmin,
+  setBanStatusAdmin,
+  setUserAccessAdmin,
 } from "@/app/admin/users/actions";
+import { Pencil } from "lucide-react";
 import {
   promoveCoach,
   revokeCoachStatus,
@@ -813,6 +818,244 @@ export function CoachNotesModal({
           onConfirm={submit}
           confirmLabel={t("saveNotes")}
         />
+      </ModalBase>
+    </>
+  );
+}
+
+// ─── EditUserModal ───────────────────────────────────────────────────────────
+// Edição direta dos dados do usuário (Pedro 2026-07-03): nome, MMR da temporada,
+// ban/desban e acesso (role/admin). Cada seção salva de forma independente.
+
+function EditSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-md border border-border-subtle/60 bg-black/20 p-4">
+      <p className="mb-3 font-display font-semibold text-sm uppercase tracking-wide text-text-faded">
+        {title}
+      </p>
+      {children}
+    </div>
+  );
+}
+
+function SaveBtn({ pending, onClick, disabled, label = "Salvar", cls }: {
+  pending: boolean; onClick: () => void; disabled?: boolean; label?: string; cls?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={pending || disabled}
+      className={`inline-flex items-center gap-1.5 rounded-md px-4 py-2 font-sans text-sm font-semibold uppercase tracking-widest text-white transition-colors disabled:opacity-50 ${cls ?? "bg-brand-primary hover:bg-brand-primary/80"}`}
+    >
+      {pending && <Loader2 size={12} className="animate-spin" />}
+      {label}
+    </button>
+  );
+}
+
+const TEXT_INPUT_CLS =
+  "w-full rounded-md border border-border-subtle bg-black/40 px-3 py-2 font-mono text-sm text-text-body outline-none focus:border-brand-primary/60";
+
+export function EditUserModal({
+  targetUserId,
+  username,
+  seasonMmr,
+  isBanned,
+  isAdmin,
+  role,
+}: {
+  targetUserId: string;
+  username: string;
+  seasonMmr: number | null;
+  isBanned: boolean;
+  isAdmin: boolean;
+  role: string;
+}) {
+  const [open, setOpen] = useState(false);
+
+  // Estado por seção
+  const [nick, setNick] = useState(username);
+  const [mmr, setMmr] = useState(seasonMmr != null ? String(seasonMmr) : "");
+  const [mmrReason, setMmrReason] = useState("");
+  const [banReason, setBanReason] = useState("");
+  const [roleVal, setRoleVal] = useState(role || "player");
+  const [adminVal, setAdminVal] = useState(isAdmin);
+  const [accessReason, setAccessReason] = useState("");
+
+  // Feedback por seção
+  const [msg, setMsg] = useState<Record<string, { type: "error" | "success"; text: string } | null>>({});
+  const [pending, startTransition] = useTransition();
+  const [busy, setBusy] = useState<string | null>(null);
+
+  function setSectionMsg(key: string, m: { type: "error" | "success"; text: string } | null) {
+    setMsg((prev) => ({ ...prev, [key]: m }));
+  }
+
+  function run(key: string, fn: () => Promise<{ success: boolean; error?: string }>, okText: string) {
+    setSectionMsg(key, null);
+    setBusy(key);
+    startTransition(async () => {
+      const res = await fn();
+      setBusy(null);
+      if (!res.success) setSectionMsg(key, { type: "error", text: res.error ?? "Erro." });
+      else setSectionMsg(key, { type: "success", text: okText });
+    });
+  }
+
+  function close() {
+    setOpen(false);
+    setMsg({});
+    setBusy(null);
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="inline-flex items-center gap-1.5 rounded-md border border-brand-primary/60 bg-brand-primary/10 px-3 py-1.5 font-sans text-sm font-semibold uppercase tracking-widest text-brand-primary hover:bg-brand-primary/20 transition-colors"
+      >
+        <Pencil size={12} />
+        Editar dados
+      </button>
+
+      <ModalBase open={open} onClose={close} eyebrow="Admin · edição" title={`Editar ${username}`}>
+        <div className="space-y-4">
+          {/* NOME */}
+          <EditSection title="Nome / nick oficial">
+            <input
+              value={nick}
+              onChange={(e) => setNick(e.target.value)}
+              className={TEXT_INPUT_CLS}
+              maxLength={32}
+            />
+            <div className="mt-3 flex items-center justify-between gap-3">
+              {msg.nick ? <StatusMsg type={msg.nick.type} msg={msg.nick.text} /> : <span />}
+              <SaveBtn
+                pending={busy === "nick" && pending}
+                disabled={!nick.trim() || nick.trim() === username}
+                onClick={() => run("nick", () => updateUsernameAdmin(targetUserId, nick), "Nome atualizado.")}
+              />
+            </div>
+          </EditSection>
+
+          {/* MMR TEMPORADA */}
+          <EditSection title="MMR da temporada">
+            <input
+              type="number"
+              min="0"
+              max="10000"
+              value={mmr}
+              onChange={(e) => setMmr(e.target.value)}
+              placeholder="ex.: 5620"
+              className={TEXT_INPUT_CLS}
+            />
+            <input
+              value={mmrReason}
+              onChange={(e) => setMmrReason(e.target.value)}
+              placeholder="Motivo (ex.: correção de calibração)"
+              className={`${TEXT_INPUT_CLS} mt-2`}
+            />
+            <div className="mt-3 flex items-center justify-between gap-3">
+              {msg.mmr ? <StatusMsg type={msg.mmr.type} msg={msg.mmr.text} /> : <span />}
+              <SaveBtn
+                pending={busy === "mmr" && pending}
+                disabled={!mmr || !mmrReason.trim()}
+                onClick={() =>
+                  run("mmr", () => setSeasonMmrAdmin(targetUserId, parseInt(mmr, 10), mmrReason), "MMR ajustado.")
+                }
+              />
+            </div>
+          </EditSection>
+
+          {/* CONDUTA: BAN */}
+          <EditSection title={isBanned ? "Conduta — banido" : "Conduta — banir"}>
+            <p className="mb-2 font-body text-sm text-text-muted">
+              {isBanned
+                ? "Este usuário está banido. Você pode remover o banimento."
+                : "Banir remove o jogador do ranking e o coloca no Mural da Vergonha."}
+            </p>
+            {!isBanned && (
+              <input
+                value={banReason}
+                onChange={(e) => setBanReason(e.target.value)}
+                placeholder="Motivo do banimento (obrigatório)"
+                className={TEXT_INPUT_CLS}
+              />
+            )}
+            <div className="mt-3 flex items-center justify-between gap-3">
+              {msg.ban ? <StatusMsg type={msg.ban.type} msg={msg.ban.text} /> : <span />}
+              <SaveBtn
+                pending={busy === "ban" && pending}
+                disabled={!isBanned && !banReason.trim()}
+                label={isBanned ? "Desbanir" : "Banir"}
+                cls={isBanned ? "bg-emerald-600 hover:bg-emerald-500" : "bg-red-600 hover:bg-red-500"}
+                onClick={() =>
+                  run(
+                    "ban",
+                    () => setBanStatusAdmin(targetUserId, !isBanned, isBanned ? "Desbanimento admin" : banReason),
+                    isBanned ? "Banimento removido." : "Usuário banido."
+                  )
+                }
+              />
+            </div>
+          </EditSection>
+
+          {/* ACESSO */}
+          <EditSection title="Acesso — role / admin">
+            <div className="flex items-center gap-3">
+              <select
+                value={roleVal}
+                onChange={(e) => setRoleVal(e.target.value)}
+                className={TEXT_INPUT_CLS}
+              >
+                <option value="player">player</option>
+                <option value="coach">coach</option>
+                <option value="admin">admin</option>
+              </select>
+              <label className="flex shrink-0 items-center gap-2 font-display text-sm uppercase tracking-wide text-text-body">
+                <input
+                  type="checkbox"
+                  checked={adminVal}
+                  onChange={(e) => setAdminVal(e.target.checked)}
+                  className="size-4 accent-brand-primary"
+                />
+                is_admin
+              </label>
+            </div>
+            <input
+              value={accessReason}
+              onChange={(e) => setAccessReason(e.target.value)}
+              placeholder="Motivo (obrigatório)"
+              className={`${TEXT_INPUT_CLS} mt-2`}
+            />
+            <div className="mt-3 flex items-center justify-between gap-3">
+              {msg.access ? <StatusMsg type={msg.access.type} msg={msg.access.text} /> : <span />}
+              <SaveBtn
+                pending={busy === "access" && pending}
+                disabled={!accessReason.trim()}
+                onClick={() =>
+                  run(
+                    "access",
+                    () => setUserAccessAdmin(targetUserId, { isAdmin: adminVal, role: roleVal }, accessReason),
+                    "Acesso atualizado."
+                  )
+                }
+              />
+            </div>
+          </EditSection>
+        </div>
+
+        <div className="mt-5 flex justify-end">
+          <button
+            type="button"
+            onClick={close}
+            className="rounded-md px-4 py-2 font-sans text-sm uppercase tracking-widest text-text-faded hover:text-text-muted transition-colors"
+          >
+            Fechar
+          </button>
+        </div>
       </ModalBase>
     </>
   );
