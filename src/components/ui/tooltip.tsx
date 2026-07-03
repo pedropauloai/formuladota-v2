@@ -175,7 +175,7 @@ export function Tooltip({
               position: "fixed",
               left: pos ? pos.x : 0,
               top: pos ? pos.y : 0,
-              // Invisível até medir/posicionar (evita flash no canto).
+              // Invisível até medir/posicionar (evita flash no canto (0,0)).
               visibility: pos ? "visible" : "hidden",
             }}
             className={cn(
@@ -183,7 +183,10 @@ export function Tooltip({
               "pointer-events-none z-[var(--z-takeover)] w-max max-w-[280px]",
               "rounded-sm border border-border-strong bg-bg-deep/95 px-2.5 py-1.5 backdrop-blur-md",
               "font-sans text-xs leading-snug text-text-body shadow-lg shadow-black/70",
-              "animate-in fade-in duration-100",
+              // A animação de entrada SÓ roda depois de posicionar (pos != null).
+              // Antes ela rodava durante o mount em (0,0) e a bolha parecia "surgir
+              // de uma região estranha" — o canto — antes de saltar pro lugar. (Pedro 2026-07-02)
+              pos ? "animate-in fade-in duration-100" : "opacity-0",
               contentClassName
             )}
           >
