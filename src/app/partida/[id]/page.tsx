@@ -111,7 +111,9 @@ export default async function PartidaPage({
     const [{ data: links }, { data: profs }, { data: levels }, { data: stats }] =
       await Promise.all([
         supabase.from("steam_links").select("user_id, persona, avatar_url").in("user_id", userIds),
-        supabase.from("profiles").select("id, username, avatar_url").in("id", userIds),
+        // View pública (Discord-first) em vez de `profiles` direto — a RLS de profiles
+        // esconde username de não-admin (viravam "anônimo"). A view expõe só identidade.
+        supabase.from("public_player_identities").select("id, username, avatar_url").in("id", userIds),
         supabase.from("user_levels").select("user_id, current_level, total_xp_earned").in("user_id", userIds),
         supabase.from("user_stats_extended").select("user_id, career").in("user_id", userIds),
       ]);
