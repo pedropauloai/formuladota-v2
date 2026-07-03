@@ -6,7 +6,7 @@
 // atualiza sozinho (sem refresh) quando os dados chegam.
 
 import { useEffect, useState } from "react";
-import { Loader2, TrendingUp, TrendingDown } from "lucide-react";
+import { Loader2, TrendingUp, TrendingDown, Scale } from "lucide-react";
 import { getMatchMmrState, type MmrState, type MmrPlayerBreakdown } from "@/app/partida/mmr-actions";
 
 // Rótulos legíveis dos componentes do perfScore (espelham PERF_COMPONENTS).
@@ -94,10 +94,93 @@ export function MmrPanel({ dotaMatchId }: { dotaMatchId: string }) {
         </div>
       )}
 
+      {state.applied && state.radiantAvg != null && state.direAvg != null && (
+        <TeamBalanceCard
+          radiantAvg={state.radiantAvg}
+          direAvg={state.direAvg}
+          radiantWon={radiantWonOf(state.players)}
+        />
+      )}
+
       <div className="grid gap-4 lg:grid-cols-2">
         <TeamColumn title="Iluminados" tone="win" players={state.players.filter((p) => p.team === "radiant")} pending={!state.applied} />
         <TeamColumn title="Temidos" tone="loss" players={state.players.filter((p) => p.team === "dire")} pending={!state.applied} />
       </div>
+    </div>
+  );
+}
+
+/** Quem venceu (radiant?) a partir dos jogadores da plataforma. */
+function radiantWonOf(players: MmrPlayerBreakdown[]): boolean | null {
+  const r = players.find((p) => p.team === "radiant");
+  if (r) return r.won;
+  const d = players.find((p) => p.team === "dire");
+  return d ? !d.won : null;
+}
+
+/**
+ * Explica o BALANCEAMENTO da partida (favorito vs zebra): mostra a média de MMR de
+ * cada time e por que o resultado (Elo) valeu mais/menos. Chance esperada = fórmula
+ * Elo (400 de diferença ≈ 10× mais provável).
+ */
+function TeamBalanceCard({
+  radiantAvg,
+  direAvg,
+  radiantWon,
+}: {
+  radiantAvg: number;
+  direAvg: number;
+  radiantWon: boolean | null;
+}) {
+  const diff = Math.abs(radiantAvg - direAvg);
+  const favRadiant = radiantAvg >= direAvg;
+  const favName = favRadiant ? "Iluminados" : "Temidos";
+  const favAvg = favRadiant ? radiantAvg : direAvg;
+  const undAvg = favRadiant ? direAvg : radiantAvg;
+  // Chance esperada do favorito (Elo).
+  const favChance = Math.round((1 / (1 + Math.pow(10, (undAvg - favAvg) / 400))) * 100);
+  const favWon = radiantWon == null ? null : favRadiant === radiantWon;
+
+  const parelho = diff < 100;
+
+  return (
+    <div className="rounded-[var(--radius-md)] border border-border-subtle bg-bg-elevated/40 p-4">
+      <p className="flex items-center gap-2 font-display text-sm font-bold uppercase tracking-wide text-text-display">
+        <Scale className="size-4 text-brand-primary" aria-hidden="true" />
+        Equilíbrio da partida
+      </p>
+      <div className="mt-3 flex items-center gap-3 font-display-condensed">
+        <span className="flex-1 text-right">
+          <span className="block text-xs uppercase tracking-wide text-text-faded">Iluminados</span>
+          <span className="text-2xl font-bold tabular-nums text-text-display">{radiantAvg}</span>
+        </span>
+        <span className="font-body text-xs text-text-faded">MMR médio</span>
+        <span className="flex-1">
+          <span className="block text-xs uppercase tracking-wide text-text-faded">Temidos</span>
+          <span className="text-2xl font-bold tabular-nums text-text-display">{direAvg}</span>
+        </span>
+      </div>
+      <p className="mt-3 font-body text-sm leading-relaxed text-text-muted">
+        {parelho ? (
+          <>
+            Os times estavam <strong className="text-text-display">parelhos</strong> (diferença de{" "}
+            {diff} de MMR) — o resultado (Elo) valeu o padrão pros dois lados; o que separou os
+            deltas foi o <strong className="text-text-display">desempenho</strong> de cada um.
+          </>
+        ) : (
+          <>
+            Os <strong className="text-text-display">{favName}</strong> eram os{" "}
+            <strong className="text-text-display">favoritos</strong> — {favAvg} contra {undAvg} de
+            MMR médio (chance esperada de vitória ~<strong className="text-gold">{favChance}%</strong>
+            ).{" "}
+            {favWon == null
+              ? null
+              : favWon
+                ? "Como o favorito venceu (o esperado), a vitória valeu MENOS pra eles e a derrota puniu MENOS a zebra."
+                : "Como a ZEBRA venceu (o inesperado), a vitória valeu MAIS pra ela e o favorito perdeu MAIS."}
+          </>
+        )}
+      </p>
     </div>
   );
 }
