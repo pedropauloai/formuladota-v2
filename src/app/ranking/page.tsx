@@ -419,30 +419,41 @@ function RankingRow({ row, position }: { row: RankRow; position: number }) {
     <li className="flex items-center gap-3 rounded-md border border-border-subtle bg-bg-base p-3 transition-colors hover:border-border-brand">
       {/* Posição no ranking = valor/progresso → GOLD (Pedro 2026-06-11) */}
       <span className="w-10 shrink-0 text-center font-display text-lg 2xl:text-xl tabular-nums text-gold">#{position}</span>
-      <UserHoverCard userId={row.user_id} className="flex min-w-0 flex-1 items-center gap-3">
-        <XpAvatarRing
-          src={row.avatar_url ?? undefined}
-          alt={row.username ?? t("anonymous")}
-          fallback={(row.username ?? "??").slice(0, 2)}
-          level={row.level}
-          pct={0}
-          size={40}
+      {/* Identidade (link) + redes lado a lado — as redes ficam FORA do link
+          (âncora dentro de âncora é HTML inválido) mas coladas ao nome. */}
+      <div className="flex min-w-0 flex-1 items-center gap-2.5">
+        <UserHoverCard userId={row.user_id} className="flex min-w-0 items-center gap-3">
+          <XpAvatarRing
+            src={row.avatar_url ?? undefined}
+            alt={row.username ?? t("anonymous")}
+            fallback={(row.username ?? "??").slice(0, 2)}
+            level={row.level}
+            pct={0}
+            size={40}
+          />
+          {/* Medalha ENTRE a foto e o nome (fiel ao Dota 2) — lg pra o número do
+              top 10 ser legível. Pedro 2026-07-03. */}
+          <DotaRankMedal
+            rank={dotaRank}
+            stars={mmrToTier(row.mmr).stars}
+            leaderboardNumber={leaderboardNumberFor(row.mmr, position)}
+            variant="formuladota"
+            size="lg"
+            tooltip={false}
+            className="shrink-0"
+          />
+          <p className="min-w-0 truncate font-body text-sm 2xl:text-base font-medium text-text-display hover:text-brand-primary transition-colors">
+            {row.username ?? t("anonymous")}
+          </p>
+        </UserHoverCard>
+        {/* Redes VINCULADAS ao lado do nome (identificação). Pedro 2026-07-03. */}
+        <SocialIconsRow
+          links={row.socialLinks}
+          onlyLinked
+          size={16}
+          className="flex shrink-0 items-center gap-2"
         />
-        {/* Medalha ENTRE a foto e o nome (fiel ao Dota 2). Pedro 2026-07-02. */}
-        <DotaRankMedal
-          rank={dotaRank}
-          stars={mmrToTier(row.mmr).stars}
-          leaderboardNumber={leaderboardNumberFor(row.mmr, position)}
-          variant="formuladota"
-          size="sm"
-          tooltip={false}
-          className="shrink-0"
-        />
-        {/* Nome ocupa o espaço livre; as métricas viram COLUNAS à direita. */}
-        <p className="min-w-0 flex-1 truncate font-body text-sm 2xl:text-base font-medium text-text-display hover:text-brand-primary transition-colors">
-          {row.username ?? t("anonymous")}
-        </p>
-      </UserHoverCard>
+      </div>
       {/* Colunas de stats — preenchem o vazio da linha. Progressivas: MMR sempre;
           Partidas/V/D só em telas maiores (sm/md); Winrate em lg+. */}
       <StatCol value={row.mmr} label={t("statMmr")} tone="gold" />
@@ -450,13 +461,6 @@ function RankingRow({ row, position }: { row: RankRow; position: number }) {
       <StatCol value={row.vitorias} label={t("statWins")} tone="win" className="hidden md:block" />
       <StatCol value={row.derrotas} label={t("statLosses")} tone="loss" className="hidden md:block" />
       <StatCol value={winrate === null ? "—" : `${winrate}%`} label={t("statWinrate")} className="hidden lg:block" />
-      {/* Vitrine: só as redes que o jogador VINCULOU (sem placeholders). */}
-      <SocialIconsRow
-        links={row.socialLinks}
-        onlyLinked
-        size={17}
-        className="hidden xl:flex w-24 shrink-0 items-center justify-end gap-2.5"
-      />
     </li>
   );
 }

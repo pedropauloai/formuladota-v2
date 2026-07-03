@@ -19,7 +19,6 @@ import {
 } from "lucide-react";
 import { ClientShell } from "@/components/client-shell/shell";
 import { DotaRankMedal, type DotaRank } from "@/components/ui/dota-rank-medal";
-import { IMMORTAL_ELITE_TOP } from "@/lib/mmr";
 
 export const metadata: Metadata = {
   title: "Como funciona o MMR — FORMULADOTA",
@@ -77,14 +76,51 @@ function Section({
 }) {
   return (
     <section>
-      <h2 className="flex items-center gap-2.5 font-display text-2xl font-bold uppercase tracking-wide text-text-display">
-        <Icon className="size-6 text-brand-primary" aria-hidden="true" />
+      <h2 className="flex items-center gap-2.5 font-display text-2xl font-bold uppercase tracking-wide text-text-display 2xl:text-3xl">
+        <Icon className="size-6 text-brand-primary 2xl:size-7" aria-hidden="true" />
         {titulo}
       </h2>
-      <div className="mt-3 space-y-3 font-body text-sm leading-relaxed text-text-body 2xl:text-base">
+      <div className="mt-4 space-y-4 font-body text-base leading-8 text-text-body 2xl:text-lg 2xl:leading-9">
         {children}
       </div>
     </section>
+  );
+}
+
+// Cartão de uma das 3 faixas de Imortal (base / vermelha / leaderboard).
+function ImmortalTier({
+  rank,
+  titulo,
+  faixa,
+  desc,
+  leaderboardNumber,
+  highlight,
+}: {
+  rank: DotaRank;
+  titulo: string;
+  faixa: string;
+  desc: string;
+  leaderboardNumber?: number;
+  highlight?: boolean;
+}) {
+  return (
+    <div
+      className={`flex flex-col items-center gap-3 rounded-[var(--radius-md)] border p-5 text-center ${
+        highlight ? "border-brand-primary/50 bg-brand-primary/10" : "border-border-subtle bg-bg-elevated/40"
+      }`}
+    >
+      <DotaRankMedal
+        rank={rank}
+        leaderboardNumber={leaderboardNumber}
+        variant="formuladota"
+        size="xl"
+        glow
+        tooltip={false}
+      />
+      <p className="font-display text-lg font-bold uppercase tracking-wide text-text-display">{titulo}</p>
+      <p className="-mt-2 font-display text-xs uppercase tracking-wide text-gold">{faixa}</p>
+      <p className="font-body text-sm leading-6 text-text-muted">{desc}</p>
+    </div>
   );
 }
 
@@ -92,18 +128,32 @@ export default function MmrExplainerPage() {
   return (
     <ClientShell currentRoute="/mmr">
       <div className="w-full pb-16">
-        {/* ─── HERO full-bleed: textura ao fundo + fade, título + intro ─── */}
+        {/* ─── HERO full-bleed: imagem da Lina + leaderboard à direita, texto à
+            esquerda com fade pra leitura. ─── */}
         <header className="relative overflow-hidden border-b border-border-subtle">
-          {/* Fundo sóbrio (gradiente de marca) — sem textura forçada. */}
           <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/12 via-bg-base to-bg-base" />
-          <div className="relative mx-auto w-full max-w-6xl px-6 py-14 xl:px-10 xl:py-20">
+          {/* Ilustração (Lina segurando a medalha + cards de leaderboard ao fundo) —
+              à direita no desktop; fade à esquerda garante leitura do texto. */}
+          <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[62%] lg:block">
+            <Image
+              src="/images/mmr/matchmaking.png"
+              alt=""
+              fill
+              priority
+              unoptimized
+              aria-hidden="true"
+              className="object-contain object-right"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-bg-base via-bg-base/40 to-transparent" />
+          </div>
+          <div className="relative mx-auto w-full max-w-6xl px-6 py-16 xl:px-10 xl:py-24">
             <p className="font-display text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
               Ranking · Guia
             </p>
-            <h1 className="mt-2 max-w-4xl font-display text-5xl font-bold uppercase tracking-tight text-text-display drop-shadow-lg md:text-6xl">
+            <h1 className="mt-3 max-w-4xl font-display text-5xl font-bold uppercase tracking-tight text-text-display drop-shadow-lg md:text-6xl">
               Como funciona o MMR
             </h1>
-            <p className="mt-4 max-w-3xl font-body text-base leading-relaxed text-text-muted 2xl:text-lg">
+            <p className="mt-5 max-w-xl font-body text-lg leading-8 text-text-muted 2xl:text-xl 2xl:leading-9">
               O MMR FormulaDota é o número que mede o seu nível dentro da liga. Ele nasce da sua
               medalha real do Dota, sobe e desce nas partidas, reseta a cada temporada — e no topo,
               vira uma corrida por posição. Aqui está tudo, do resumo ao detalhe.
@@ -113,17 +163,17 @@ export default function MmrExplainerPage() {
 
         <div className="mx-auto w-full max-w-6xl px-6 xl:px-10">
           {/* ─── TL;DR — 4 cards largos ─── */}
-          <div className="-mt-2 mb-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-4 mb-16 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {TLDR.map((c) => (
               <div
                 key={c.titulo}
-                className="rounded-[var(--radius-md)] border border-border-subtle bg-bg-elevated/50 p-5 backdrop-blur-sm"
+                className="rounded-[var(--radius-md)] border border-border-subtle bg-bg-elevated/50 p-6 backdrop-blur-sm"
               >
-                <c.icon className="size-6 text-brand-primary" aria-hidden="true" />
-                <p className="mt-3 font-display text-base font-bold uppercase tracking-wide text-text-display">
+                <c.icon className="size-7 text-brand-primary" aria-hidden="true" />
+                <p className="mt-4 font-display text-lg font-bold uppercase tracking-wide text-text-display">
                   {c.titulo}
                 </p>
-                <p className="mt-1.5 font-body text-sm leading-relaxed text-text-muted">{c.texto}</p>
+                <p className="mt-2 font-body text-base leading-7 text-text-muted">{c.texto}</p>
               </div>
             ))}
           </div>
@@ -158,7 +208,7 @@ export default function MmrExplainerPage() {
                   }`}
                 >
                   <DotaRankMedal
-                    rank={tier.rank === "immortal" ? "immortal-top-100" : tier.rank}
+                    rank={tier.rank}
                     variant="formuladota"
                     size="md"
                     tooltip={false}
@@ -264,35 +314,46 @@ export default function MmrExplainerPage() {
             </div>
           </div>
 
-          {/* ─── O TOPO: leaderboard de Imortais ─── */}
-          <div className="mt-12 overflow-hidden rounded-[var(--radius-lg)] border border-brand-primary/40 bg-brand-primary/5">
-            <div className="grid gap-8 p-6 md:grid-cols-[auto_1fr] md:items-center md:p-8">
-              <div className="flex items-center justify-center">
-                <DotaRankMedal rank="immortal-top-100" variant="formuladota" size="xl" glow tooltip={false} />
+          {/* ─── O TOPO: leaderboard de Imortais — 3 medalhas distintas ─── */}
+          <div className="mt-14 overflow-hidden rounded-[var(--radius-lg)] border border-brand-primary/40 bg-brand-primary/5">
+            <div className="p-6 md:p-9">
+              <h2 className="flex items-center gap-2.5 font-display text-2xl font-bold uppercase tracking-wide text-text-display 2xl:text-3xl">
+                <Crown className="size-6 text-brand-primary 2xl:size-7" aria-hidden="true" />
+                No topo, vale a POSIÇÃO
+              </h2>
+              <div className="mt-4 space-y-4 font-body text-base leading-8 text-text-body 2xl:text-lg 2xl:leading-9">
+                <p>
+                  Acima de <strong className="text-gold">5620</strong> (piso do Imortal), o número
+                  para de importar sozinho — o que vale é o seu{" "}
+                  <strong className="text-text-display">lugar no leaderboard</strong> da temporada:
+                  Imortal <strong className="text-text-display">#1</strong>, #2, #3… Um ranking
+                  global, sem teto inflacionado, onde ser o melhor é ser o{" "}
+                  <strong className="text-text-display">#1 de verdade</strong>.
+                </p>
               </div>
-              <div>
-                <h2 className="flex items-center gap-2.5 font-display text-2xl font-bold uppercase tracking-wide text-text-display">
-                  <Crown className="size-6 text-brand-primary" aria-hidden="true" />
-                  No topo, vale a POSIÇÃO
-                </h2>
-                <div className="mt-3 space-y-3 font-body text-sm leading-relaxed text-text-body 2xl:text-base">
-                  <p>
-                    Acima de <strong className="text-gold">5620</strong> (piso do Imortal), o número
-                    para de importar sozinho — o que vale é o seu{" "}
-                    <strong className="text-text-display">lugar no leaderboard</strong> da temporada:
-                    Imortal <strong className="text-text-display">#1</strong>, #2, #3… Um ranking
-                    global, sem teto inflacionado, onde ser o melhor é ser o{" "}
-                    <strong className="text-text-display">#1 de verdade</strong>.
-                  </p>
-                  <p>
-                    Os <strong className="text-brand-primary">Top {IMMORTAL_ELITE_TOP}</strong> da
-                    temporada ganham a{" "}
-                    <strong className="text-brand-primary">medalha oficial de leaderboard</strong> — a
-                    mesma do #1 ao #{IMMORTAL_ELITE_TOP}, com a sua{" "}
-                    <strong className="text-text-display">posição gravada dentro dela</strong>, igual
-                    ao cliente do Dota.
-                  </p>
-                </div>
+              {/* As 3 medalhas de Imortal, da base ao topo — cada faixa tem a sua. */}
+              <div className="mt-8 grid gap-5 sm:grid-cols-3">
+                <ImmortalTier
+                  rank="immortal"
+                  titulo="Imortal"
+                  faixa="5620+ · fora do top 30"
+                  desc="A medalha padrão de todo Imortal da liga."
+                />
+                <ImmortalTier
+                  rank="immortal-top-100"
+                  titulo="Top 30 – 11"
+                  faixa="a elite da temporada"
+                  desc="A medalha vermelha, com a sua posição gravada dentro dela."
+                  leaderboardNumber={23}
+                />
+                <ImmortalTier
+                  rank="immortal-leaderboard"
+                  titulo="Top 10 – 1"
+                  faixa="o cume do leaderboard"
+                  desc="A medalha oficial de leaderboard — do #1 ao #10, com o número dentro."
+                  leaderboardNumber={1}
+                  highlight
+                />
               </div>
             </div>
           </div>
