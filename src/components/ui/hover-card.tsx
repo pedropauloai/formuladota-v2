@@ -26,7 +26,9 @@ const HoverCardContent = React.forwardRef<
         // Só fade (sem zoom): o zoom-in-95 crescia a partir do canto de ancoragem e
         // dava sensação de "surgir de uma região estranha". O Radix já posiciona a
         // bolha corretamente — o fade puro é estável. (Pedro 2026-07-02)
-        "duration-100 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+        // transition-none: evita que o default `transition: all` (ligado pelo
+        // duration-100) faça o card deslizar quando o Radix ajusta a posição.
+        "transition-none duration-100 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
         className
       )}
       {...props}

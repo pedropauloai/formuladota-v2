@@ -173,9 +173,13 @@ export function Tooltip({
             role="tooltip"
             style={{
               position: "fixed",
-              left: pos ? pos.x : 0,
-              top: pos ? pos.y : 0,
-              // Invisível até medir/posicionar (evita flash no canto (0,0)).
+              // Antes de medir (pos=null), ancora no PRÓPRIO gatilho — nunca em (0,0),
+              // que é o canto da TELA (position:fixed). Se um paint escapar antes do
+              // reposicionamento fino, a bolha pisca EM CIMA do ícone, não no canto —
+              // é o que dava a sensação de "surgir de uma região estranha". (Pedro 2026-07-02)
+              left: pos ? pos.x : (trigger ? trigger.left : 0),
+              top: pos ? pos.y : (trigger ? trigger.bottom + GAP : 0),
+              // E fica invisível até o cálculo final (dupla proteção).
               visibility: pos ? "visible" : "hidden",
             }}
             className={cn(
@@ -183,9 +187,13 @@ export function Tooltip({
               "pointer-events-none z-[var(--z-takeover)] w-max max-w-[280px]",
               "rounded-sm border border-border-strong bg-bg-deep/95 px-2.5 py-1.5 backdrop-blur-md",
               "font-sans text-xs leading-snug text-text-body shadow-lg shadow-black/70",
-              // A animação de entrada SÓ roda depois de posicionar (pos != null).
-              // Antes ela rodava durante o mount em (0,0) e a bolha parecia "surgir
-              // de uma região estranha" — o canto — antes de saltar pro lugar. (Pedro 2026-07-02)
+              // transition-none é CRÍTICO: sem transition-property explícito, o
+              // `duration-100` ativava o default `transition: all` — então a mudança
+              // de left/top (posição inicial → final) DESLIZAVA a bolha pela tela.
+              // Era esse slide que dava a sensação de "surgir de uma região estranha".
+              // A entrada continua suave via `animate-in fade-in` (é animation, não
+              // transition — não afeta a posição). (Pedro 2026-07-02)
+              "transition-none",
               pos ? "animate-in fade-in duration-100" : "opacity-0",
               contentClassName
             )}
