@@ -29,10 +29,7 @@ import {
 import { MedalPair } from "@/components/ui/medal-pair";
 import { ValveCredential } from "@/components/profile/valve-credential";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
-import { mmrToDotaRank } from "@/components/queue/queue-helpers";
-import { mmrToTier } from "@/lib/mmr";
-import { rankTierToDotaRank } from "@/components/profile/career-stats";
-import { getGatedTierForLevel, mmrFromRankTier } from "@/lib/levels";
+import { computeRankBadges } from "@/lib/dota/rank-badges";
 import { formatLastSeen } from "@/lib/realtime/presence";
 import { getHeroBySlug } from "@/lib/queries/heroes";
 import { openChatWith } from "@/lib/chat/open-chat";
@@ -116,15 +113,19 @@ function Skeleton() {
 function Body({ data, online }: { data: PublicMiniProfile; online?: boolean }) {
   const t = useTranslations("hoverCard");
 
-  // Medalhas — MESMA fonte canônica do /me e mini-perfil (rank Valve real).
-  const dotaRank =
-    rankTierToDotaRank(data.rankTier, data.leaderboardRank) ?? mmrToDotaRank(data.mmr);
-  const honorRank = getGatedTierForLevel(data.level, mmrFromRankTier(data.rankTier));
-  // Rank FormulaDota (sazonal, Eixo 2) — só quando o jogador tem MMR de temporada.
-  const seasonRank = data.mmr != null ? mmrToDotaRank(data.mmr) : undefined;
-  // Estrelas da sub-divisão (1–5): SKILL = unidade do rank_tier Valve; sazonal = MMR da liga.
-  const seasonStars = data.mmr != null ? mmrToTier(data.mmr).stars : undefined;
-  const dotaStars = data.rankTier ? data.rankTier % 10 : seasonStars;
+  // Medalhas via FONTE ÚNICA (computeRankBadges) — MESMAS fontes e conversões do
+  // /me, mini-perfil, ready-check e admin.
+  const badges = computeRankBadges({
+    careerRankTier: data.rankTier,
+    careerLeaderboardRank: data.leaderboardRank,
+    seasonMmr: data.mmr,
+    level: data.level,
+  });
+  const dotaRank = badges.skillRank;
+  const honorRank = badges.honorRank;
+  const seasonRank = badges.seasonRank;
+  const seasonStars = badges.seasonStars;
+  const dotaStars = badges.skillStars;
 
   const heroes = data.favoriteHeroes
     .map((slug) => getHeroBySlug(slug))

@@ -24,8 +24,7 @@ import {
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { MedalPair } from "@/components/ui/medal-pair";
 import { UserHoverCard } from "@/components/profile/user-hover-card";
-import { rankTierToDotaRank } from "@/components/profile/career-stats";
-import { getGatedTierForLevel, mmrFromRankTier } from "@/lib/levels";
+import { computeRankBadges } from "@/lib/dota/rank-badges";
 import { ShaderSmoke } from "@/components/ui/shader-smoke";
 import type { SmokeAsset } from "@/lib/cosmetics";
 
@@ -323,8 +322,14 @@ function TeamList({
       </p>
       <ul className="space-y-1.5">
         {members.map((m) => {
-          const dotaRank = rankTierToDotaRank(m.rankTier, m.leaderboardRank) ?? "herald";
-          const honorRank = getGatedTierForLevel(m.level, mmrFromRankTier(m.rankTier));
+          // FONTE ÚNICA (computeRankBadges) — mesmas conversões do perfil/mini/hover.
+          const badges = computeRankBadges({
+            careerRankTier: m.rankTier,
+            careerLeaderboardRank: m.leaderboardRank,
+            level: m.level,
+          });
+          const dotaRank = badges.skillRank;
+          const honorRank = badges.honorRank;
           return (
             <li
               key={m.userId}

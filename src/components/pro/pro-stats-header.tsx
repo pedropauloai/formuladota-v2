@@ -8,8 +8,9 @@
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { UserAvatar } from "@/components/ui/avatar";
-import { DotaRankMedal, type DotaRank } from "@/components/ui/dota-rank-medal";
+import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
 import { HonorRankMedal, legacyHonorToBand, type HonorRank } from "@/components/ui/honor-rank-medal";
+import { mmrToDotaRank } from "@/lib/dota/rank-badges";
 import { cn } from "@/lib/utils";
 
 // ---------------------------------------------------------------------------
@@ -20,20 +21,6 @@ import { cn } from "@/lib/utils";
 function toHonorRank(tierStr: string | null): HonorRank {
   // RPC get_honor_tier ainda retorna o modelo antigo (8 tiers) — mapeia pras 6 bandas.
   return legacyHonorToBand(tierStr ?? "aprendiz");
-}
-
-/** Converte MMR numérico para DotaRank simplificado (sem stars) */
-function mmrToDotaRank(mmr: number | null): DotaRank {
-  if (mmr === null) return "herald";
-  if (mmr >= 9000) return "immortal-top-100";
-  if (mmr >= 6000) return "immortal";
-  if (mmr >= 5000) return "divine";
-  if (mmr >= 4000) return "ancient";
-  if (mmr >= 3000) return "legend";
-  if (mmr >= 2000) return "archon";
-  if (mmr >= 1500) return "crusader";
-  if (mmr >= 770) return "guardian";
-  return "herald";
 }
 
 // ---------------------------------------------------------------------------

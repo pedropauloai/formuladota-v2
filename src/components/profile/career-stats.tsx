@@ -19,45 +19,17 @@
 
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
-import { DotaRankMedal, type DotaRank } from "@/components/ui/dota-rank-medal";
+import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
 import { Tooltip } from "@/components/ui/tooltip";
 import { HeroFace } from "@/components/dota/hero-face";
 import { getHeroById } from "@/lib/queries/heroes";
 import type { CareerStats, CareerHeroStat } from "@/lib/dota/career";
 import { cn } from "@/lib/utils";
 
-// ---------------------------------------------------------------------------
-// rank_tier Valve → DotaRank
-// ---------------------------------------------------------------------------
-
-// rank_tier (STRATZ seasonRank / OpenDota): dezena = medalha (1..8), unidade = estrelas.
-const TIER_TO_RANK: Record<number, DotaRank> = {
-  1: "herald",
-  2: "guardian",
-  3: "crusader",
-  4: "archon",
-  5: "legend",
-  6: "ancient",
-  7: "divine",
-  8: "immortal",
-};
-
-/**
- * Converte rank_tier (STRATZ/OpenDota) → DotaRank do design system.
- * Retorna null quando o jogador não expõe rank público.
- * Imortal com leaderboard ≤ 100 ganha a medalha vermelha exclusiva.
- */
-export function rankTierToDotaRank(
-  rankTier: number | null,
-  leaderboardRank: number | null
-): DotaRank | null {
-  if (rankTier == null) return null;
-  const medal = Math.floor(rankTier / 10);
-  if (medal === 8 && leaderboardRank != null && leaderboardRank <= 100) {
-    return "immortal-top-100";
-  }
-  return TIER_TO_RANK[medal] ?? null;
-}
+// rank_tier Valve → DotaRank: a implementação canônica vive em @/lib/dota/rank-badges
+// (fonte única). Importado + re-exportado aqui só por compatibilidade dos imports.
+import { rankTierToDotaRank } from "@/lib/dota/rank-badges";
+export { rankTierToDotaRank };
 
 // ---------------------------------------------------------------------------
 // Resolução heroId → catálogo estático (slug pro HeroVideo + nome PT)
