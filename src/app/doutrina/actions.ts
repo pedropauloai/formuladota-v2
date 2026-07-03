@@ -11,6 +11,7 @@
 
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 import { DOCTRINE_VERSION } from "@/lib/doctrine";
 import { QUIZ_QUESTIONS } from "@/lib/quiz/questions";
 import { QUESTIONS_PER_PERMISSION } from "@/lib/quiz/permissions";
@@ -165,7 +166,12 @@ export async function recordDoctrineAnswer(
       update.doctrine_version = DOCTRINE_VERSION;
     }
 
-    const { error } = await supabase
+    // As colunas de doutrina (doctrine_*) são de GATE e ficam congeladas contra escrita
+    // direta do usuário pelo trigger da migration 117. A correção já foi validada acima
+    // no servidor (contra QUIZ_QUESTIONS) e user.id vem de auth.getUser(), então a
+    // gravação é feita via service role — o usuário não consegue forjar o aceite/progresso
+    // chamando o PostgREST direto com a anon key.
+    const { error } = await createServiceClient()
       .from("profiles")
       .update(update)
       .eq("id", user.id);
