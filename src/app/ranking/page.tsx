@@ -340,21 +340,21 @@ function TopCard({ row, position }: { row: RankRow; position: number }) {
             size={56}
           />
           {/* Medalha ENTRE a foto e o nome (fiel ao Dota) e GRANDE — o pódio dá
-              destaque ao rank. Pedro 2026-07-03. */}
+              destaque máximo ao rank. Pedro 2026-07-03. */}
           <DotaRankMedal
             rank={dotaRank}
             stars={mmrToTier(row.mmr).stars}
             leaderboardNumber={leaderboardNumberFor(row.mmr, position)}
             variant="formuladota"
-            size="lg"
+            size="xl"
             tooltip={false}
             className="shrink-0"
           />
           <div className="min-w-0">
-            <p className="font-display text-base uppercase tracking-wide text-text-display truncate">
+            <p className="font-display text-2xl 2xl:text-3xl uppercase tracking-wide text-text-display truncate">
               {row.username ?? t("anonymous")}
             </p>
-            <p className="font-display text-sm 2xl:text-base font-semibold tabular-nums text-gold">
+            <p className="font-display text-base 2xl:text-lg font-semibold tabular-nums text-gold">
               {row.mmr} <span className="text-gold-muted">MMR</span>
             </p>
           </div>
