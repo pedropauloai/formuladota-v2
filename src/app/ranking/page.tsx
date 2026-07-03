@@ -338,6 +338,17 @@ function TopCard({ row, position }: { row: RankRow; position: number }) {
             pct={0}
             size={56}
           />
+          {/* Medalha ENTRE a foto e o nome (fiel ao Dota) e GRANDE — o pódio dá
+              destaque ao rank. Pedro 2026-07-03. */}
+          <DotaRankMedal
+            rank={dotaRank}
+            stars={mmrToTier(row.mmr).stars}
+            leaderboardNumber={leaderboardNumberFor(row.mmr, position)}
+            variant="formuladota"
+            size="lg"
+            tooltip={false}
+            className="shrink-0"
+          />
           <div className="min-w-0">
             <p className="font-display text-base uppercase tracking-wide text-text-display truncate">
               {row.username ?? t("anonymous")}
@@ -348,26 +359,16 @@ function TopCard({ row, position }: { row: RankRow; position: number }) {
           </div>
         </UserHoverCard>
         <div className="flex items-center justify-between border-t border-border-subtle pt-3">
-          <DotaRankMedal
-            rank={dotaRank}
-            stars={mmrToTier(row.mmr).stars}
-            leaderboardNumber={leaderboardNumberFor(row.mmr, position)}
-            variant="formuladota"
-            size="sm"
-            showLabel
+          {/* Vitrine: só redes vinculadas (sem placeholders). */}
+          <SocialIconsRow
+            links={row.socialLinks}
+            onlyLinked
+            size={16}
+            className="flex items-center gap-2.5"
           />
-          <div className="flex items-center gap-3">
-            {/* Vitrine: só redes vinculadas (sem placeholders). */}
-            <SocialIconsRow
-              links={row.socialLinks}
-              onlyLinked
-              size={16}
-              className="flex items-center gap-2.5"
-            />
-            <span className="font-display text-sm 2xl:text-base font-semibold text-text-body">
-              {t("winLoss", { wins: row.vitorias, losses: row.derrotas })}
-            </span>
-          </div>
+          <span className="font-display text-sm 2xl:text-base font-semibold text-text-body">
+            {t("winLoss", { wins: row.vitorias, losses: row.derrotas })}
+          </span>
         </div>
       </CardContent>
     </Card>
