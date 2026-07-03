@@ -25,6 +25,8 @@ import {
   parseTeamfights,
   parseDraft,
 } from "@/lib/dota/match-objectives";
+import { parsePlayerHeatmap, type PlayerHeatmap } from "@/lib/dota/match-heatmap";
+import { getHeroById } from "@/lib/queries/heroes";
 
 export const dynamic = "force-dynamic";
 
@@ -142,6 +144,23 @@ export default async function HistoricoPartidaPage({
   }
 
   const { players, advantage, wards, series } = assembleMatch(rows, identityById);
+
+  // Mapa de calor de posição por jogador (lane_pos → minimapa). Aba "Presença".
+  const heatmaps: PlayerHeatmap[] = rows.map((r) => {
+    const hero = getHeroById(r.hero_id);
+    const cells = parsePlayerHeatmap(r.raw_opendota);
+    const ident = r.user_id ? identityById.get(r.user_id) : null;
+    return {
+      userId: r.user_id,
+      slot: r.player_slot,
+      team: r.team,
+      playerName: ident?.username ?? ident?.persona ?? r.personaname ?? "Jogador",
+      heroName: hero?.name_pt ?? `Herói ${r.hero_id}`,
+      heroIcon: hero?.image_icon ?? null,
+      cells,
+      hasData: cells.length > 0,
+    };
+  });
 
   // Dados de nível-partida (público) — abas Teamfights/Objetivos/Draft.
   const { data: details } = await mdTable
@@ -308,6 +327,7 @@ export default async function HistoricoPartidaPage({
           radiantWin={radiantWin}
           dotaMatchId={dotaMatchId ?? id}
           mvpUserId={mvpUserId}
+          heatmaps={heatmaps}
         />
       </div>
     </ClientShell>

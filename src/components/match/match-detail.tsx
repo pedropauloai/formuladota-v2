@@ -7,6 +7,7 @@ import { useState } from "react";
 import type { PlayerFull, AdvantageSeries } from "@/lib/dota/match-stats";
 import type { PlayerSeries } from "@/lib/dota/match-series";
 import type { Ward } from "@/lib/dota/match-vision";
+import type { PlayerHeatmap } from "@/lib/dota/match-heatmap";
 import type {
   ObjectiveEvent,
   TeamfightView,
@@ -19,6 +20,7 @@ import { GraphsPanel } from "@/components/match/tabs/graphs-panel";
 import { BuildsPanel } from "@/components/match/tabs/builds-panel";
 import { CombatPanel } from "@/components/match/tabs/combat-panel";
 import { MapsPanel } from "@/components/match/tabs/maps-panel";
+import { HeatmapPanel } from "@/components/match/tabs/heatmap-panel";
 import { BenchmarksPanel } from "@/components/match/tabs/benchmarks-panel";
 import { TeamfightsPanel } from "@/components/match/tabs/teamfights-panel";
 import { ObjectivesPanel } from "@/components/match/tabs/objectives-panel";
@@ -33,6 +35,7 @@ const TABS = [
   "Builds",
   "Combate",
   "Mapas",
+  "Presença",
   "Teamfights",
   "Objetivos",
   "Draft",
@@ -53,6 +56,8 @@ export interface MatchDetailData {
   dotaMatchId: string;
   /** Jogador MVP (maior desempenho) — coroa no placar. null = sem MVP. */
   mvpUserId: string | null;
+  /** Mapa de calor de posição por jogador — aba "Presença". */
+  heatmaps: PlayerHeatmap[];
 }
 
 export function MatchDetail({
@@ -66,6 +71,7 @@ export function MatchDetail({
   radiantWin,
   dotaMatchId,
   mvpUserId,
+  heatmaps,
 }: MatchDetailData) {
   const [tab, setTab] = useState<Tab>("Visão geral");
   const { radiant, dire } = splitTeams(players);
@@ -103,6 +109,7 @@ export function MatchDetail({
       {tab === "Builds" && <BuildsPanel players={players} />}
       {tab === "Combate" && <CombatPanel players={players} />}
       {tab === "Mapas" && <MapsPanel players={players} wards={wards} />}
+      {tab === "Presença" && <HeatmapPanel heatmaps={heatmaps} />}
       {tab === "Teamfights" && <TeamfightsPanel teamfights={teamfights} />}
       {tab === "Objetivos" && <ObjectivesPanel objectives={objectives} />}
       {tab === "Draft" && <DraftPanel radiant={draft.radiant} dire={draft.dire} />}
