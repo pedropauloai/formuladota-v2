@@ -29,11 +29,17 @@ function clampPct(v: number): number {
   return Math.max(0, Math.min(100, v));
 }
 
-function toPct(x: number, y: number): { leftPct: number; topPct: number } {
+/** Converte coordenada de mundo (x,y ~64..192) → posição % no minimapa (gameCoordToUV
+ *  do OpenDota: offset 64, grade 127, Y invertido). Compartilhado com o heatmap. */
+export function gameCoordToPct(x: number, y: number): { leftPct: number; topPct: number } {
   return {
     leftPct: clampPct(((x - MAP_MIN) / MAP_GRID) * 100),
     topPct: clampPct(((MAP_GRID - (y - MAP_MIN)) / MAP_GRID) * 100),
   };
+}
+
+function toPct(x: number, y: number): { leftPct: number; topPct: number } {
+  return gameCoordToPct(x, y);
 }
 
 function readLog(
