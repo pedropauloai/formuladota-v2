@@ -15,6 +15,8 @@ import {
   Swords,
   Lock,
   Crown,
+  Scale,
+  Users,
   ArrowRight,
 } from "lucide-react";
 import { ClientShell } from "@/components/client-shell/shell";
@@ -242,6 +244,45 @@ export default function MmrExplainerPage() {
                   medalha pública é a sua identidade competitiva. Sem ela, não dá pra confirmar quem
                   você é — por isso perfil privado não entra na fila.
                 </p>
+              </div>
+            </Section>
+          </div>
+
+          {/* ─── Com quem você joga (matchmaking por skill) ─── */}
+          <div className="border-t border-border-subtle pt-12">
+            <Section icon={Scale} titulo="Com quem você joga">
+              <p>
+                A fila te junta com <strong className="text-text-display">gente do seu nível</strong>.
+                Ela começa procurando jogadores <strong className="text-text-display">bem perto do seu
+                MMR</strong> e vai <strong className="text-text-display">abrindo aos poucos</strong> se
+                você esperar — assim ninguém fica preso na fila em horário vazio, mas o padrão é
+                partida equilibrada. Você não cai num jogo com alguém muito acima ou muito abaixo de
+                você.
+              </p>
+              <div className="mt-2 grid gap-4 lg:grid-cols-2">
+                <div className="rounded-[var(--radius-md)] border border-border-subtle bg-bg-elevated/40 p-5">
+                  <p className="flex items-center gap-2 font-display text-lg font-bold uppercase tracking-wide text-text-display">
+                    <Scale className="size-5 text-brand-primary" aria-hidden="true" />
+                    Times equilibrados
+                  </p>
+                  <p className="mt-2 font-body text-base leading-7 text-text-muted">
+                    Os dois lados são montados pra ter a{" "}
+                    <strong className="text-text-display">média de MMR parecida</strong> — jogo justo
+                    dos dois lados. É por isso que, quando há diferença, ganhar de um time mais forte
+                    vale mais no cálculo (logo abaixo).
+                  </p>
+                </div>
+                <div className="rounded-[var(--radius-md)] border border-border-subtle bg-bg-elevated/40 p-5">
+                  <p className="flex items-center gap-2 font-display text-lg font-bold uppercase tracking-wide text-text-display">
+                    <Users className="size-5 text-brand-primary" aria-hidden="true" />
+                    Grupo tem limite
+                  </p>
+                  <p className="mt-2 font-body text-base leading-7 text-text-muted">
+                    Se você chama amigos, a diferença de nível dentro do grupo não pode passar de{" "}
+                    <strong className="text-gold">2800 de MMR</strong>. Senão daria pra “carregar”
+                    alguém e furar o equilíbrio — é o mesmo limite do Dota.
+                  </p>
+                </div>
               </div>
             </Section>
           </div>
