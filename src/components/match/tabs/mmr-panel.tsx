@@ -9,7 +9,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Loader2, TrendingUp, TrendingDown, Scale } from "lucide-react";
+import { Loader2, TrendingUp, TrendingDown, Scale, Crown } from "lucide-react";
 import { getMatchMmrState, type MmrState, type MmrPlayerBreakdown } from "@/app/partida/mmr-actions";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
@@ -70,6 +70,8 @@ export function MmrPanel({ dotaMatchId }: { dotaMatchId: string }) {
     );
   }
 
+  const mvpUserId = mvpOf(state);
+
   return (
     <div className="space-y-6">
       {/* Explicação do modelo (transparência do cálculo). */}
@@ -108,11 +110,19 @@ export function MmrPanel({ dotaMatchId }: { dotaMatchId: string }) {
       )}
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <TeamColumn title="Iluminados" players={state.players.filter((p) => p.team === "radiant")} pending={!state.applied} />
-        <TeamColumn title="Temidos" players={state.players.filter((p) => p.team === "dire")} pending={!state.applied} />
+        <TeamColumn title="Iluminados" players={state.players.filter((p) => p.team === "radiant")} pending={!state.applied} mvpUserId={mvpUserId} />
+        <TeamColumn title="Temidos" players={state.players.filter((p) => p.team === "dire")} pending={!state.applied} mvpUserId={mvpUserId} />
       </div>
     </div>
   );
+}
+
+/** MVP = maior perfScore da partida (só quando aplicado). Mesmo critério do backend. */
+function mvpOf(state: MmrState): string | null {
+  if (!state.applied) return null;
+  let best: MmrPlayerBreakdown | null = null;
+  for (const p of state.players) if (p.perfScore > (best?.perfScore ?? -1)) best = p;
+  return best?.userId ?? null;
 }
 
 /** Quem venceu (radiant?) a partir dos jogadores da plataforma. */
@@ -127,10 +137,12 @@ function TeamColumn({
   title,
   players,
   pending,
+  mvpUserId,
 }: {
   title: string;
   players: MmrPlayerBreakdown[];
   pending: boolean;
+  mvpUserId: string | null;
 }) {
   if (players.length === 0) return null;
   return (
@@ -138,19 +150,23 @@ function TeamColumn({
       <h3 className="mb-2 font-display text-sm font-bold uppercase tracking-wide text-text-faded">{title}</h3>
       <ul className="space-y-2">
         {players.map((p) => (
-          <PlayerCard key={p.userId} p={p} pending={pending} />
+          <PlayerCard key={p.userId} p={p} pending={pending} isMvp={p.userId === mvpUserId} />
         ))}
       </ul>
     </div>
   );
 }
 
-function PlayerCard({ p, pending }: { p: MmrPlayerBreakdown; pending: boolean }) {
+function PlayerCard({ p, pending, isMvp }: { p: MmrPlayerBreakdown; pending: boolean; isMvp: boolean }) {
   const positive = (p.delta ?? 0) >= 0;
   const perfPct = Math.round(p.perfScore * 100);
 
   return (
-    <li className="rounded-md border border-border-subtle bg-bg-base p-3">
+    <li
+      className={`rounded-md border bg-bg-base p-3 ${
+        isMvp ? "border-gold/60 bg-gold/[0.04]" : "border-border-subtle"
+      }`}
+    >
       {/* Identidade completa + delta. */}
       <div className="flex items-center gap-2.5">
         <span className="relative shrink-0">
@@ -175,6 +191,16 @@ function PlayerCard({ p, pending }: { p: MmrPlayerBreakdown; pending: boolean })
               />
             </span>
           )}
+          {/* MVP — coroa dourada sobre o avatar. */}
+          {isMvp && (
+            <span
+              className="absolute -left-1.5 -top-1.5 flex size-[18px] items-center justify-center rounded-full border border-bg-deep bg-gold text-bg-deep shadow"
+              title="MVP da partida"
+              aria-label="MVP da partida"
+            >
+              <Crown className="size-3" strokeWidth={2.5} aria-hidden="true" />
+            </span>
+          )}
         </span>
 
         {p.seasonMmr != null && (
@@ -189,7 +215,14 @@ function PlayerCard({ p, pending }: { p: MmrPlayerBreakdown; pending: boolean })
         )}
 
         <div className="min-w-0 flex-1">
-          <p className="truncate font-body text-sm font-semibold text-text-display">{p.name}</p>
+          <p className="flex items-center gap-1.5 truncate font-body text-sm font-semibold text-text-display">
+            {p.name}
+            {isMvp && (
+              <span className="inline-flex items-center gap-0.5 rounded-sm bg-gold/15 px-1 py-0.5 font-display text-[0.6rem] font-bold uppercase tracking-wide text-gold">
+                <Crown className="size-2.5" aria-hidden="true" /> MVP
+              </span>
+            )}
+          </p>
           <p className="truncate font-display text-xs text-text-faded">
             {p.heroName ?? "—"} · {p.won ? "Vitória" : "Derrota"}
           </p>

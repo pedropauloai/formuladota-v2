@@ -51,6 +51,8 @@ export interface MatchDetailData {
   radiantWin: boolean | null;
   /** dota_match_id (URL canônica) — a aba MMR faz polling por ele. */
   dotaMatchId: string;
+  /** Jogador MVP (maior desempenho) — coroa no placar. null = sem MVP. */
+  mvpUserId: string | null;
 }
 
 export function MatchDetail({
@@ -63,6 +65,7 @@ export function MatchDetail({
   draft,
   radiantWin,
   dotaMatchId,
+  mvpUserId,
 }: MatchDetailData) {
   const [tab, setTab] = useState<Tab>("Visão geral");
   const { radiant, dire } = splitTeams(players);
@@ -92,7 +95,7 @@ export function MatchDetail({
 
       {/* Painel ativo. */}
       {tab === "Visão geral" && (
-        <MatchScoreboard radiant={radiant} dire={dire} radiantWin={radiantWin} />
+        <MatchScoreboard radiant={radiant} dire={dire} radiantWin={radiantWin} mvpUserId={mvpUserId} />
       )}
       {tab === "MMR" && <MmrPanel dotaMatchId={dotaMatchId} />}
       {tab === "Performance" && <PerformancePanel players={players} />}

@@ -129,6 +129,10 @@ export async function applyMatchMmr(
     radiantWon,
   });
 
+  // MVP = maior perfScore da partida inteira (Pedro 2026-07-03). Guardamos o perf de
+  // cada jogador pra escolher o melhor depois do map.
+  let mvpUserId: string | null = null;
+  let mvpPerf = -1;
   const results = platform.map((p) => {
     const base = p.team === "radiant" ? radiantDelta : direDelta;
     const won = Boolean(p.is_winner);
@@ -139,6 +143,10 @@ export async function applyMatchMmr(
     const perf = computePerfScore(p.benchmarks as PerfBenchmarks | null, {
       teamfightParticipation: typeof tfp === "number" ? tfp : null,
     });
+    if (perf > mvpPerf) {
+      mvpPerf = perf;
+      mvpUserId = p.user_id;
+    }
     let delta = modulateMmrDelta(base, perf, won);
     // Calibração: delta vale o DOBRO (converge rápido pro nível real).
     if (isCalibrating(p.user_id)) delta *= CALIBRATION_MULTIPLIER;
@@ -153,15 +161,16 @@ export async function applyMatchMmr(
     };
   });
 
-  // p_radiant_avg/p_dire_avg (migration 113) persistem a média de MMR de cada time
-  // em match_details, pra a aba MMR explicar favorito/zebra. Cast: os tipos gerados
-  // ainda não têm os 2 params opcionais (db:gen-types).
+  // p_radiant_avg/p_dire_avg (113) + p_mvp_user_id (115) persistem em match_details:
+  // médias dos times (favorito/zebra) e o MVP. Cast: tipos gerados ainda sem esses
+  // params opcionais (db:gen-types).
   const { data, error } = await supabase.rpc("apply_match_mmr", {
     p_match_id: matchId,
     p_season_id: season.id,
     p_results: results,
     p_radiant_avg: radiantAvg,
     p_dire_avg: direAvg,
+    p_mvp_user_id: mvpUserId,
   } as never);
   if (error) throw new Error(error.message);
   return { applied: (data as number) ?? 0 };
