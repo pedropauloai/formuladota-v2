@@ -102,7 +102,10 @@ export default async function HistoricoPartidaPage({
     const [{ data: links }, { data: profs }, { data: levels }, { data: mmrs }] =
       await Promise.all([
         supabase.from("steam_links").select("user_id, persona, avatar_url").in("user_id", userIds),
-        supabase.from("profiles").select("id, username, avatar_url").in("id", userIds),
+        // View pública (Discord-first) em vez de `profiles` direto: a RLS de profiles
+        // só deixa admin/self/coach lerem username → sem isso, não-admin via "anônimo".
+        // A view expõe SÓ identidade pública, então o nome/foto Discord aparece pra todos.
+        supabase.from("public_player_identities").select("id, username, avatar_url").in("id", userIds),
         supabase.from("user_levels").select("user_id, current_level").in("user_id", userIds),
         season?.id
           ? supabase.from("player_season_mmr").select("user_id, mmr").eq("season_id", season.id).in("user_id", userIds)
