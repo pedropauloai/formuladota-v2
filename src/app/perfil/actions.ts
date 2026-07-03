@@ -5,6 +5,7 @@
 // com TTL 24h. UPSERT não bloqueia render — caller pode chamar fire-and-forget.
 
 import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 import { fetchPlayerStats, type PlayerStatsExtended } from "@/lib/stratz";
 import { steam64To32 } from "@/lib/dota/opendota";
 import {
@@ -28,6 +29,14 @@ export async function syncPlayerStats(input: {
   force?: boolean;
 }): Promise<SyncResult> {
   const supabase = await createClient();
+
+  // Exige caller autenticado (server action é endpoint POST aberto). Não precisa ser o
+  // dono do userId — perfis alheios sincronizam ao serem vistos — mas bloqueia disparo
+  // anônimo do fetch externo (proteção do rate limit compartilhado OpenDota/Stratz).
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Não autenticado." };
 
   // Steam link primeiro — sem isso, sem stats externos
   const { data: steamLink } = await supabase
@@ -95,7 +104,10 @@ export async function syncPlayerStats(input: {
     last_synced_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
-  await supabase
+  // Escrita via service role: user_stats_extended ficou sem policy de escrita self
+  // (migration 117 — usuário forjava career.rankTier). Os valores aqui vêm do fetch
+  // externo (Stratz/OpenDota), não do input do usuário, então gravar via service é seguro.
+  await createServiceClient()
     .from("user_stats_extended")
     .upsert(statsRow as never, { onConflict: "user_id" });
 
@@ -120,6 +132,13 @@ export async function syncCareerStats(input: {
   force?: boolean;
 }): Promise<CareerSyncResult> {
   const supabase = await createClient();
+
+  // Exige caller autenticado (ver syncPlayerStats): bloqueia disparo anônimo do fetch
+  // externo sem impedir sync de perfil alheio.
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "Não autenticado." };
 
   // Steam link primeiro — OpenDota só conhece account_id (derivado do Steam64)
   const { data: steamLink } = await supabase
@@ -161,14 +180,16 @@ export async function syncCareerStats(input: {
     return { success: false, error: "Sem dados de carreira disponíveis." };
   }
 
-  // UPSERT só das colunas de career — não toca nas colunas do sync Stratz
-  await supabase.from("user_stats_extended").upsert(
+  // UPSERT só das colunas de career — não toca nas colunas do sync Stratz.
+  // Via service role (migration 117 removeu a escrita self de user_stats_extended):
+  // o career vem do fetch OpenDota/Stratz, não do input do usuário.
+  await createServiceClient().from("user_stats_extended").upsert(
     {
       user_id: input.userId,
       career: stats,
       last_synced_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-    },
+    } as never,
     { onConflict: "user_id" }
   );
 
