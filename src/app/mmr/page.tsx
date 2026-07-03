@@ -23,7 +23,7 @@ import { DotaRankMedal, type DotaRank } from "@/components/ui/dota-rank-medal";
 export const metadata: Metadata = {
   title: "Como funciona o MMR — FORMULADOTA",
   description:
-    "Seu MMR FormulaDota, explicado: importado da sua medalha Valve, escala oficial do Dota, teto 7000, leaderboard de Imortais por posição.",
+    "Seu MMR FormulaDota, explicado: importado da sua medalha Valve, escala oficial do Dota, desempenho que premia jogar em equipe (não farm egoísta) e leaderboard de Imortais por posição.",
 };
 
 // Escala (espelha TIER_BANDS de src/lib/mmr.ts). Imortal no topo = por POSIÇÃO.
@@ -265,9 +265,12 @@ export default function MmrExplainerPage() {
                     aria-hidden="true"
                   />
                   <span>
-                    <strong className="text-text-display">Desempenho:</strong> o quão bem você jogou
-                    (por herói, comparado à média) ajusta o valor. Jogar bem numa derrota faz você
-                    perder menos — <em>ou você ganha, ou você aprende</em>.
+                    <strong className="text-text-display">Desempenho:</strong> o quanto você
+                    contribuiu ajusta o valor — e o que pesa mais é{" "}
+                    <strong className="text-text-display">estar nas lutas com o time</strong>, além de
+                    dano, objetivos, cura e controle. Farmar sozinho e fugir das brigas{" "}
+                    <em>não</em> engorda a nota. Jogar bem numa derrota faz você perder menos —{" "}
+                    <em>ou você ganha, ou você aprende</em>.
                   </span>
                 </li>
               </ul>
@@ -301,14 +304,19 @@ export default function MmrExplainerPage() {
             <div className="order-1 lg:order-2">
               <Section icon={Swords} titulo="Desempenho é medido de verdade">
                 <p>
-                  A gente não olha só o placar: cada partida traz gráficos completos (dano, ouro,
-                  experiência, objetivos) por jogador e por minuto. O seu desempenho é comparado com
-                  a <strong className="text-text-display">média do seu herói</strong> — então um
-                  suporte é medido como suporte, um carry como carry.
+                  A gente não olha só o placar: cada partida traz o retrato completo do replay (dano,
+                  ouro, objetivos, cura, controle, presença em teamfight) por jogador. Cada métrica é
+                  comparada com a <strong className="text-text-display">média do seu herói</strong> —
+                  então um suporte é medido como suporte, um carry como carry.
+                </p>
+                <p>
+                  O maior peso vai pra <strong className="text-text-display">presença em
+                  teamfight</strong>: no FormulaDota, quem decide a partida com o time vale mais que
+                  quem enche o próprio patrimônio de longe. É a doutrina virando número —{" "}
+                  <em>o coletivo vence</em>.
                 </p>
                 <p className="text-text-muted">
-                  É esse retrato honesto que modula o seu MMR e que você revê no placar pós-jogo,
-                  aba por aba.
+                  Esse retrato modula o seu MMR e você o revê no placar pós-jogo, aba por aba.
                 </p>
               </Section>
             </div>
