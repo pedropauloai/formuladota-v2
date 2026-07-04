@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { validateAndFetchSteam } from "@/lib/steam";
+import { seedSeasonMmrForUser } from "@/lib/queries/seed-season-mmr";
 
 // Callback do Steam OpenID 2.0 — Steam redireciona aqui após user autorizar.
 // Esta rota está em AUTH_FLOW_PATHS no middleware → não é bloqueada
@@ -43,6 +44,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       console.error("[steam/callback] upsert steam_links:", dbErr.message);
       return NextResponse.redirect(`${origin}/vincular/steam?error=db_failed`);
     }
+
+    // Semeia o MMR de temporada pela medalha Valve (busca o career na OpenDota).
+    // Best-effort: nunca quebra o vínculo — sem isto a medalha FORMULADOTA sai
+    // como Arauto/placeholder até a 1ª partida. Ver src/lib/queries/seed-season-mmr.
+    await seedSeasonMmrForUser(user.id, { fetchCareer: true });
 
     return NextResponse.redirect(`${origin}/vincular/steam?ok=1`);
   } catch (err) {

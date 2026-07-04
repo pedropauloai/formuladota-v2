@@ -52,6 +52,7 @@ function mapRow(row: {
       rankTier: typeof o.rank_tier === "number" ? o.rank_tier : null,
       leaderboardRank: typeof o.leaderboard_rank === "number" ? o.leaderboard_rank : null,
       level: typeof o.level === "number" ? o.level : 1,
+      seasonMmr: typeof o.season_mmr === "number" ? o.season_mmr : null,
     };
   });
   return {
@@ -323,9 +324,12 @@ function TeamList({
       <ul className="space-y-1.5">
         {members.map((m) => {
           // FONTE ÚNICA (computeRankBadges) — mesmas conversões do perfil/mini/hover.
+          // seasonMmr entra como fallback: sem rank Valve legível, a medalha vem
+          // do MMR FORMULADOTA da season (semeado pela medalha no vínculo).
           const badges = computeRankBadges({
             careerRankTier: m.rankTier,
             careerLeaderboardRank: m.leaderboardRank,
+            seasonMmr: m.seasonMmr,
             level: m.level,
           });
           const dotaRank = badges.skillRank;

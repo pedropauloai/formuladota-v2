@@ -18,6 +18,8 @@ export interface ProposalMember {
   rankTier: number | null;
   leaderboardRank: number | null;
   level: number;
+  /** MMR FORMULADOTA da season (fallback de medalha quando não há rank Valve). */
+  seasonMmr: number | null;
 }
 
 export interface MatchProposal {
@@ -39,6 +41,7 @@ interface RawMember {
   rank_tier?: number | null;
   leaderboard_rank?: number | null;
   level?: number | null;
+  season_mmr?: number | null;
 }
 
 function mapMembers(assignments: unknown): ProposalMember[] {
@@ -54,6 +57,7 @@ function mapMembers(assignments: unknown): ProposalMember[] {
     rankTier: m.rank_tier ?? null,
     leaderboardRank: m.leaderboard_rank ?? null,
     level: m.level ?? 1,
+    seasonMmr: m.season_mmr ?? null,
   }));
 }
 
