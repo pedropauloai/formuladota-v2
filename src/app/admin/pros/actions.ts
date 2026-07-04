@@ -21,6 +21,7 @@ import {
   requestOpenDotaParse,
 } from "@/lib/dota/opendota";
 import { applyMatchMmr } from "@/lib/queries/apply-match-mmr";
+import { updatePlayersFromOd } from "@/lib/dota/finalize-match";
 import { sendPTConfirmedEmail } from "@/lib/resend";
 
 const STEAM_64_OFFSET = 76561197960265728n;
@@ -601,31 +602,12 @@ export async function reprocessMatchOpenDota(
     };
   }
 
-  // Atualiza cada jogador (casando por player_slot) com o raw_opendota completo +
-  // as colunas derivadas dos campos parseados.
+  // Atualiza os 10 jogadores num ÚNICO upsert em lote (casando por player_slot)
+  // com o raw_opendota completo + colunas derivadas — antes eram 10 UPDATEs
+  // sequenciais (10 round-trips ao Postgres). Mesmo helper do cron.
   const normalized = normalizePlayers(opendotaMatch);
-  let updated = 0;
-  for (const p of normalized) {
-    const { error } = await supabase
-      .from("match_players")
-      .update({
-        gold_per_min: p.gold_per_min,
-        xp_per_min: p.xp_per_min,
-        last_hits: p.last_hits,
-        denies: p.denies,
-        net_worth: p.net_worth,
-        level: p.level,
-        hero_damage: p.hero_damage,
-        hero_healing: p.hero_healing,
-        tower_damage: p.tower_damage,
-        items: p.items,
-        benchmarks: p.benchmarks,
-        raw_opendota: p.raw_opendota as unknown as Record<string, unknown>,
-      } as never)
-      .eq("match_id", matchId)
-      .eq("player_slot", p.player_slot);
-    if (!error) updated += 1;
-  }
+  await updatePlayersFromOd(supabase as never, matchId, opendotaMatch);
+  const updated = normalized.length;
 
   // Dados nível-partida (teamfights/objetivos/draft) — agora completos pós-parse.
   try {
