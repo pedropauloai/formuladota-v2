@@ -278,6 +278,12 @@ export function PlayMenu({
         if (roles.size > 0) await updateMyPartyRoles(Array.from(roles));
         const pres = await enterPartyQueue(gameModes);
         if (!pres.success) {
+          // Gate de doutrina (migration 124): se EU sou quem falta, abre o
+          // pop-up de 5 perguntas; se é outro membro, mostra quem.
+          if (pres.code === "need_permission" && pres.selfNeeds) {
+            setShowQuiz(true);
+            return;
+          }
           setError(pres.error);
           return;
         }

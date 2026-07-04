@@ -165,7 +165,14 @@ export async function updateMyPartyRoles(roles: string[]): Promise<PartyResult> 
 
 export type PartyQueueResult =
   | { success: true; matchedLobbyId: string | null }
-  | { success: false; error: string };
+  | {
+      success: false;
+      error: string;
+      /** Gate de doutrina (migration 124): quem precisa responder o quiz. */
+      code?: "need_permission";
+      /** true quando quem precisa é o PRÓPRIO caller (abre o pop-up de quiz). */
+      selfNeeds?: boolean;
+    };
 
 /** O LÍDER coloca a party inteira na fila (mesmo time garantido). */
 export async function enterPartyQueue(gameModes: string[]): Promise<PartyQueueResult> {
@@ -190,12 +197,33 @@ export async function enterPartyQueue(gameModes: string[]): Promise<PartyQueueRe
     ok: boolean;
     error?: string;
     who?: string;
+    who_id?: string;
     spread?: number;
     lobby_id?: string | null;
   };
   if (!res.ok) {
     if (res.error === "not_leader") {
       return { success: false, error: "Só o líder do grupo inicia a busca." };
+    }
+    // Gate de doutrina religado (migration 124): a fila exige doutrina OU
+    // permissão de TODOS os membros. Se quem falta é o próprio líder, o front
+    // abre o pop-up de 5 perguntas; se é outro membro, nomeia quem.
+    if (res.error === "need_permission") {
+      const selfNeeds = res.who_id === user.id;
+      return {
+        success: false,
+        code: "need_permission",
+        selfNeeds,
+        error: selfNeeds
+          ? "Responda 5 perguntas pra liberar 1 partida."
+          : `${res.who ?? "Um membro"} ainda precisa responder a doutrina pra liberar partida (5 perguntas no menu Jogar).`,
+      };
+    }
+    if (res.error === "region_mismatch") {
+      return {
+        success: false,
+        error: "O grupo tem jogadores de regiões diferentes — as filas não se misturam.",
+      };
     }
     // Grupo com variação de MMR grande demais (anti-smurf): jogadores muito distantes
     // em nível não podem buscar juntos — senão furam o balanceamento por skill.
