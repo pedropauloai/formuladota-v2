@@ -211,7 +211,7 @@ export default async function RankingPage(props: {
             coluna em qualquer resolução (responsivo). Ocupa o topo; o overlay escurece
             progressivamente pro fundo sólido embaixo (sem borda dura). */}
         <Image
-          src="/images/ranking/season-header.png"
+          src="/images/ranking/season-header.webp"
           alt=""
           width={1920}
           height={622}
