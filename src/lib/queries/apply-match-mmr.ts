@@ -14,6 +14,10 @@ import {
   modulateMmrDelta,
   seedMmrFromRankTier,
   applySeasonDecay,
+  assignRolesByNetWorth,
+  normalizeStuns,
+  normalizeWards,
+  type PlayerRole,
   CALIBRATION_MATCHES,
   CALIBRATION_MULTIPLIER,
   STARTING_MMR,
@@ -129,6 +133,33 @@ export async function applyMatchMmr(
     radiantWon,
   });
 
+  // FUNÇÃO por net worth (v3): usa os 10 jogadores (não só os da plataforma) — o
+  // net worth de um sup só faz sentido comparado ao time inteiro. Depois cada
+  // jogador da plataforma é avaliado no perfil da SUA função (core vs support).
+  const rawOf = (p: (typeof platform)[number] | (typeof allPlayers)[number]) =>
+    p.raw_opendota as Record<string, unknown> | null;
+  const nwOf = (p: (typeof allPlayers)[number]) => {
+    const nw = rawOf(p)?.net_worth;
+    return typeof nw === "number" ? nw : null;
+  };
+  const allPlayers = players ?? [];
+  const rolesArr = assignRolesByNetWorth(
+    allPlayers.map((p) => ({ team: p.team, netWorth: nwOf(p) }))
+  );
+  const roleOf = new Map<string, PlayerRole>();
+  allPlayers.forEach((p, i) => {
+    if (p.user_id) roleOf.set(p.user_id, rolesArr[i] ?? "core");
+  });
+  // Duração da partida (mesma pra todos) — pra normalizar stuns/wards por minuto.
+  let matchDurationMin = 0;
+  for (const p of allPlayers) {
+    const d = rawOf(p)?.duration;
+    if (typeof d === "number" && d > 0) {
+      matchDurationMin = d / 60;
+      break;
+    }
+  }
+
   // MVP = maior perfScore da partida inteira (Pedro 2026-07-03). Guardamos o perf de
   // cada jogador pra escolher o melhor depois do map.
   let mvpUserId: string | null = null;
@@ -136,12 +167,19 @@ export async function applyMatchMmr(
   const results = platform.map((p) => {
     const base = p.team === "radiant" ? radiantDelta : direDelta;
     const won = Boolean(p.is_winner);
-    // Presença em teamfight (0..1) vem do replay parseado — peso dominante no perf
-    // score v2. Ausente (partida não parseada no momento) → sai da média.
-    const tfp = (p.raw_opendota as { teamfight_participation?: number } | null)
-      ?.teamfight_participation;
-    const perf = computePerfScore(p.benchmarks as PerfBenchmarks | null, {
+    const role = roleOf.get(p.user_id) ?? "core";
+    const raw = rawOf(p);
+    // Sinais "direct" do replay parseado (ausentes se não parseada → saem da média):
+    //   teamfight_participation (0..1), stuns (seg) e wards (obs+sen), normalizados.
+    const tfp = raw?.teamfight_participation;
+    const stunsSec = typeof raw?.stuns === "number" ? raw.stuns : null;
+    const obs = typeof raw?.obs_placed === "number" ? raw.obs_placed : null;
+    const sen = typeof raw?.sen_placed === "number" ? raw.sen_placed : null;
+    const wardsTotal = obs == null && sen == null ? null : (obs ?? 0) + (sen ?? 0);
+    const perf = computePerfScore(role, p.benchmarks as PerfBenchmarks | null, {
       teamfightParticipation: typeof tfp === "number" ? tfp : null,
+      stuns: normalizeStuns(stunsSec, matchDurationMin),
+      wards: normalizeWards(wardsTotal, matchDurationMin),
     });
     if (perf > mvpPerf) {
       mvpPerf = perf;

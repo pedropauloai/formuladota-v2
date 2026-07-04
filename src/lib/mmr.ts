@@ -64,69 +64,152 @@ export function applySeasonDecay(currentMmr: number): number {
 // HERÓI, então são justos entre funções (um suporte é comparado a suportes).
 // =====================================================================
 
-/**
- * Chaves de benchmark usadas no score de desempenho.
- * Doutrina "Dota é corrida patrimonial, não kills": pesamos ECONOMIA e
- * OBJETIVOS. `hero_damage_per_min` é contribuição de combate (≠ contagem de
- * kills, que é deliberadamente IGNORADA). Pesos calibráveis depois.
- */
-// MODELO v2 (Pedro 2026-07-03). O v1 tinha 5 métricas com peso IGUAL, das quais 3
-// eram FARM (gold/xp/last_hits, correlacionadas) → o score era ~60% farm. Isso
-// punia suportes e PREMIAVA o "farmador egoísta" (jungle/split roubando recurso) —
-// o OPOSTO da doutrina (o coletivo vence). v2 pondera e adiciona impacto difícil de
-// manipular. Cada benchmark é PERCENTIL POR HERÓI (OpenDota), justo entre heróis;
-// teamfight_participation vem do replay parseado (0..1 direto). Componentes ausentes
-// (ex.: partida não parseada) saem da média ponderada.
-export const PERF_COMPONENTS: ReadonlyArray<{
+// MODELO v3 — PESOS POR FUNÇÃO (Pedro 2026-07-04). Dados reais provaram que o v2
+// (perfil único) PUNIA suporte: 5/10 do peso vinha de hero_damage/tower/gpm, onde
+// suporte tem percentil estruturalmente baixo (não é o trabalho dele). Além disso
+// o v2 tinha um componente FANTASMA: "stuns_per_min" NÃO existe nos benchmarks da
+// OpenDota (chaves reais: gold/xp/kills/last_hits/hero_damage/hero_healing por min
+// + tower_damage) — nunca somou.
+//
+// v3: cada jogador é avaliado no PERFIL da sua FUNÇÃO (core vs support, detectada
+// por net worth). Doutrina "Dota é corrida patrimonial + jogar JUNTO": teamfight
+// domina nos dois; o resto reflete o que CADA função entrega. Componente ausente
+// (partida não parseada, sem benchmark) sai da média ponderada. `stuns` e `wards`
+// são "direct" (do replay parseado, normalizados — ver normalizeStuns/normalizeWards).
+export type PlayerRole = "core" | "support";
+
+export interface PerfComponent {
   key: string;
   weight: number;
   source: "benchmark" | "direct";
-}> = [
-  // Presença nas lutas: mais alinhada à doutrina (jogar JUNTO) e a mais à prova de
-  // manipulação (tem que estar nas brigas, não farmando sozinho). Peso dominante.
-  { key: "teamfight_participation", weight: 3, source: "direct" },
-  { key: "hero_damage_per_min", weight: 2, source: "benchmark" }, // combate
-  { key: "tower_damage", weight: 2, source: "benchmark" },        // objetivos / fechar o jogo
-  { key: "hero_healing_per_min", weight: 1, source: "benchmark" },// suporte/utility (v1 ignorava)
-  { key: "stuns_per_min", weight: 1, source: "benchmark" },       // controle / iniciação
-  { key: "gold_per_min", weight: 1, source: "benchmark" },        // farm importa, mas não domina
-];
+}
+
+export const PERF_PROFILES: Record<PlayerRole, ReadonlyArray<PerfComponent>> = {
+  core: [
+    { key: "teamfight_participation", weight: 3, source: "direct" }, // jogar junto (domina)
+    { key: "hero_damage_per_min", weight: 2, source: "benchmark" },  // combate
+    { key: "tower_damage", weight: 2, source: "benchmark" },         // objetivos / fechar
+    { key: "hero_healing_per_min", weight: 1, source: "benchmark" }, // utility eventual
+    { key: "gold_per_min", weight: 1, source: "benchmark" },         // farm importa, não domina
+    { key: "stuns", weight: 1, source: "direct" },                   // controle
+  ],
+  support: [
+    { key: "teamfight_participation", weight: 3, source: "direct" }, // jogar junto (domina)
+    { key: "stuns", weight: 2, source: "direct" },                   // controle = trabalho do sup
+    { key: "hero_healing_per_min", weight: 2, source: "benchmark" }, // cura/utility
+    { key: "hero_damage_per_min", weight: 1, source: "benchmark" },  // combate secundário
+    { key: "wards", weight: 1, source: "direct" },                   // visão (só no sup)
+    // SEM tower_damage e SEM gold_per_min: não é o trabalho do suporte, punia injustamente.
+  ],
+};
 
 /** Amplitude do ajuste de desempenho: ±(PERF_SWING/2) MMR no extremo. */
 export const PERF_SWING = 20;
 
-/** Sinais parseados fora dos benchmarks (ex.: presença em teamfight, 0..1). */
-export interface PerfExtras {
-  teamfightParticipation?: number | null;
+// --- Normalização dos sinais "direct" do replay parseado (0..1) --------------
+/** Teto de stun: 4s de stun por MINUTO de jogo = pct 1,0. Calibrável. */
+export const STUN_SECONDS_PER_MIN_CAP = 4;
+/** Teto de wards: ~0,6 ward por MINUTO de jogo = pct 1,0. Calibrável. */
+export const WARDS_PER_MIN_CAP = 0.6;
+
+/** stuns (segundos de stun, raw_opendota.stuns) → pct 0..1. null se ausente. */
+export function normalizeStuns(
+  stunSeconds: number | null | undefined,
+  durationMin: number
+): number | null {
+  if (typeof stunSeconds !== "number" || !(durationMin > 0)) return null;
+  return Math.min(1, Math.max(0, stunSeconds) / (durationMin * STUN_SECONDS_PER_MIN_CAP));
+}
+
+/** wards totais (obs_placed + sen_placed) → pct 0..1. null se ausente. */
+export function normalizeWards(
+  wardsTotal: number | null | undefined,
+  durationMin: number
+): number | null {
+  if (typeof wardsTotal !== "number" || !(durationMin > 0)) return null;
+  return Math.min(1, Math.max(0, wardsTotal) / (durationMin * WARDS_PER_MIN_CAP));
 }
 
 /**
- * Score de desempenho 0..1 = média PONDERADA dos PERF_COMPONENTS disponíveis.
- * Sem nenhum dado → 0.5 (neutro: win/loss puro). O win/loss é a espinha; isto só
- * modula ±PERF_SWING/2.
+ * FUNÇÃO por net worth: em cada time, os 2 de MENOR net worth = SUPPORT (pos 4/5),
+ * o resto CORE. Baseline até o lane_role parseado refinar. Retorna um array de
+ * roles alinhado ao input (mesma ordem).
  */
-export function computePerfScore(
+export function assignRolesByNetWorth(
+  players: ReadonlyArray<{ team: string; netWorth: number | null | undefined }>
+): PlayerRole[] {
+  const roles: PlayerRole[] = players.map(() => "core");
+  for (const team of Array.from(new Set(players.map((p) => p.team)))) {
+    const inTeam = players
+      .map((p, i) => ({ i, nw: p.netWorth ?? 0, t: p.team }))
+      .filter((x) => x.t === team)
+      .sort((a, b) => a.nw - b.nw);
+    for (let k = 0; k < Math.min(2, inTeam.length); k++) {
+      roles[inTeam[k]!.i] = "support";
+    }
+  }
+  return roles;
+}
+
+/** Sinais "direct" (do replay parseado), já normalizados 0..1. */
+export interface PerfExtras {
+  teamfightParticipation?: number | null;
+  /** normalizeStuns(raw.stuns, duraçãoMin). */
+  stuns?: number | null;
+  /** normalizeWards(raw.obs_placed + raw.sen_placed, duraçãoMin). */
+  wards?: number | null;
+}
+
+function directValue(key: string, extras?: PerfExtras): number | null {
+  const v =
+    key === "teamfight_participation"
+      ? extras?.teamfightParticipation
+      : key === "stuns"
+        ? extras?.stuns
+        : key === "wards"
+          ? extras?.wards
+          : null;
+  return typeof v === "number" && v >= 0 && v <= 1 ? v : null;
+}
+
+/**
+ * Componentes PRESENTES (valor 0..1 disponível) do perfil da função — usado tanto
+ * pelo score quanto pela exibição do breakdown na aba MMR. Ausentes saem fora.
+ */
+export function perfComponents(
+  role: PlayerRole,
   benchmarks: Record<string, { pct?: number | null }> | null | undefined,
   extras?: PerfExtras
-): number {
-  let weighted = 0;
-  let weightSum = 0;
-  for (const c of PERF_COMPONENTS) {
+): Array<{ key: string; value: number; weight: number }> {
+  const out: Array<{ key: string; value: number; weight: number }> = [];
+  for (const c of PERF_PROFILES[role]) {
     let value: number | null = null;
-    if (c.source === "direct" && c.key === "teamfight_participation") {
-      const t = extras?.teamfightParticipation;
-      if (typeof t === "number" && t >= 0 && t <= 1) value = t;
+    if (c.source === "direct") {
+      value = directValue(c.key, extras);
     } else {
       const pct = benchmarks?.[c.key]?.pct;
       if (typeof pct === "number" && pct >= 0 && pct <= 1) value = pct;
     }
-    if (value !== null) {
-      weighted += c.weight * value;
-      weightSum += c.weight;
-    }
+    if (value !== null) out.push({ key: c.key, value, weight: c.weight });
   }
-  if (weightSum === 0) return 0.5;
-  return weighted / weightSum;
+  return out;
+}
+
+/**
+ * Score de desempenho 0..1 = média PONDERADA dos componentes presentes do perfil
+ * da FUNÇÃO. Sem nenhum dado → 0.5 (neutro: win/loss puro). O win/loss é a espinha;
+ * isto só modula ±PERF_SWING/2.
+ */
+export function computePerfScore(
+  role: PlayerRole,
+  benchmarks: Record<string, { pct?: number | null }> | null | undefined,
+  extras?: PerfExtras
+): number {
+  const present = perfComponents(role, benchmarks, extras);
+  if (present.length === 0) return 0.5;
+  const weightSum = present.reduce((a, c) => a + c.weight, 0);
+  const weighted = present.reduce((a, c) => a + c.weight * c.value, 0);
+  return weightSum === 0 ? 0.5 : weighted / weightSum;
 }
 
 /**

@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "db:gen-types": "supabase gen types typescript --project-id $SUPABASE_PROJECT_ID --schema public > src/types/database.ts",
     "gen:heroes": "npx tsx scripts/gen-heroes.ts",
@@ -61,6 +62,7 @@
     "pg": "^8.20.0",
     "postcss": "^8.4.49",
     "tailwindcss": "^4.0.0-beta.6",
-    "typescript": "^5.6.3"
+    "typescript": "^5.6.3",
+    "vitest": "^4.1.9"
   }
 }

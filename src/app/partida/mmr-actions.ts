@@ -9,7 +9,15 @@
 import { createClient } from "@/lib/supabase/server";
 import { getIdentityMap } from "@/lib/queries/identities";
 import { getHeroById } from "@/lib/queries/heroes";
-import { computePerfScore, PERF_COMPONENTS, PERF_SWING } from "@/lib/mmr";
+import {
+  computePerfScore,
+  perfComponents,
+  PERF_SWING,
+  assignRolesByNetWorth,
+  normalizeStuns,
+  normalizeWards,
+  type PlayerRole,
+} from "@/lib/mmr";
 import type { SocialLinks } from "@/components/profile/social-icons-row";
 
 export interface MmrComponent {
@@ -117,26 +125,49 @@ export async function getMatchMmrState(dotaMatchId: string): Promise<MmrState> {
   const levelOf = new Map((levels ?? []).map((l) => [l.user_id, l.current_level ?? 1]));
   const seasonMmrOf = new Map((seasonRows ?? []).map((r) => [r.user_id, r.mmr ?? null]));
 
+  // FUNÇÃO por net worth (v3) — usa os 10 jogadores da partida (inclui não-plataforma)
+  // pra ranquear, depois lê a função de cada jogador da plataforma pelo perfil certo.
+  const rawOf = (p: { raw_opendota: unknown }) =>
+    p.raw_opendota as Record<string, unknown> | null;
+  const allRows = rows ?? [];
+  const rolesArr = assignRolesByNetWorth(
+    allRows.map((p) => {
+      const nw = (p.raw_opendota as Record<string, unknown> | null)?.net_worth;
+      return { team: p.team, netWorth: typeof nw === "number" ? nw : null };
+    })
+  );
+  const roleOf = new Map<string, PlayerRole>();
+  allRows.forEach((p, i) => {
+    if (p.user_id) roleOf.set(p.user_id, rolesArr[i] ?? "core");
+  });
+  let matchDurationMin = 0;
+  for (const p of allRows) {
+    const d = (p.raw_opendota as Record<string, unknown> | null)?.duration;
+    if (typeof d === "number" && d > 0) {
+      matchDurationMin = d / 60;
+      break;
+    }
+  }
+
   const players: MmrPlayerBreakdown[] = platform.map((p) => {
     const bench = (p.benchmarks ?? null) as Record<string, { pct?: number | null }> | null;
-    const tfp = (p.raw_opendota as { teamfight_participation?: number } | null)?.teamfight_participation;
-    const teamfightParticipation = typeof tfp === "number" ? tfp : null;
-    const perfScore = computePerfScore(bench, { teamfightParticipation });
+    const role = roleOf.get(p.user_id) ?? "core";
+    const raw = rawOf(p);
+    const tfp = raw?.teamfight_participation;
+    const stunsSec = typeof raw?.stuns === "number" ? raw.stuns : null;
+    const obs = typeof raw?.obs_placed === "number" ? raw.obs_placed : null;
+    const sen = typeof raw?.sen_placed === "number" ? raw.sen_placed : null;
+    const wardsTotal = obs == null && sen == null ? null : (obs ?? 0) + (sen ?? 0);
+    const extras = {
+      teamfightParticipation: typeof tfp === "number" ? tfp : null,
+      stuns: normalizeStuns(stunsSec, matchDurationMin),
+      wards: normalizeWards(wardsTotal, matchDurationMin),
+    };
+    const perfScore = computePerfScore(role, bench, extras);
     const perfBonus = Math.round(PERF_SWING * (perfScore - 0.5));
 
-    // Componentes presentes (mesma lógica do computePerfScore) — pra exibir de onde
-    // veio o desempenho.
-    const components: MmrComponent[] = [];
-    for (const c of PERF_COMPONENTS) {
-      let value: number | null = null;
-      if (c.source === "direct" && c.key === "teamfight_participation") {
-        if (teamfightParticipation != null) value = teamfightParticipation;
-      } else {
-        const pct = bench?.[c.key]?.pct;
-        if (typeof pct === "number" && pct >= 0 && pct <= 1) value = pct;
-      }
-      if (value !== null) components.push({ key: c.key, value, weight: c.weight });
-    }
+    // Componentes presentes do perfil da função — pra exibir de onde veio o desempenho.
+    const components: MmrComponent[] = perfComponents(role, bench, extras);
 
     const ident = identity.get(p.user_id);
     const hero = getHeroById(p.hero_id);

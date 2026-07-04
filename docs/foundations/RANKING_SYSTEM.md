@@ -34,6 +34,15 @@ isso: **4 eixos, cada um medindo UMA coisa**, sem redundância de significado.
 - **Sazonal**: reseta e recalibra a cada temporada (o serviço que a Valve não dá).
 - Motor: Elo K=25 + modulador de desempenho (±10, percentis OpenDota por herói —
   justo entre funções). Ver `src/lib/mmr.ts` (já existe).
+- **Modelo de desempenho v3 — PESOS POR FUNÇÃO (2026-07-04, `PERF_PROFILES`):** o v2
+  usava um perfil ÚNICO que punia suporte (5/10 do peso em hero_damage/tower/gpm, onde
+  suporte tem percentil estruturalmente baixo) e tinha um componente FANTASMA
+  (`stuns_per_min`, benchmark que não existe na OpenDota). O v3 detecta a **função por
+  net worth** (os 2 menores de cada time = suporte) e avalia cada jogador no perfil da
+  SUA função: **teamfight domina nos dois**; CORE pondera dano/torre/farm; SUPPORT
+  pondera stun/cura/visão (wards) e **não** usa torre nem gpm. `stuns` e `wards` vêm do
+  replay parseado, normalizados (`normalizeStuns` 4s/min = teto; `normalizeWards`
+  0,6/min = teto); ausentes saem da média. Testes em `src/lib/mmr.test.ts`.
 - **Um ladder só** pra toda a comunidade (não separa "povão" de "elite"). Lobby elite
   permanece **gate de ACESSO**, não sistema de rating paralelo.
 
