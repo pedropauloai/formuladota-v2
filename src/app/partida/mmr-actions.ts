@@ -9,6 +9,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getIdentityMap } from "@/lib/queries/identities";
 import { getHeroById } from "@/lib/queries/heroes";
+import { xpProgress } from "@/lib/levels";
 import {
   computePerfScore,
   perfComponents,
@@ -33,6 +34,8 @@ export interface MmrPlayerBreakdown {
   /** Identidade completa (mesmos dados dos cards): avatar, nível, medalha, redes. */
   avatar: string | null;
   level: number;
+  /** Progresso 0..1 do nível atual — pro anel de XP preencher. */
+  xpPct: number;
   /** MMR atual da temporada → medalha do rank. null = sem MMR. */
   seasonMmr: number | null;
   socialLinks?: SocialLinks;
@@ -117,7 +120,7 @@ export async function getMatchMmrState(dotaMatchId: string): Promise<MmrState> {
     .maybeSingle();
   const [identity, { data: levels }, { data: seasonRows }] = await Promise.all([
     getIdentityMap(supabase, userIds),
-    supabase.from("user_levels").select("user_id, current_level").in("user_id", userIds),
+    supabase.from("user_levels").select("user_id, total_xp_earned").in("user_id", userIds),
     activeSeason
       ? supabase
           .from("player_season_mmr")
@@ -126,7 +129,7 @@ export async function getMatchMmrState(dotaMatchId: string): Promise<MmrState> {
           .in("user_id", userIds)
       : Promise.resolve({ data: [] as { user_id: string; mmr: number | null }[] }),
   ]);
-  const levelOf = new Map((levels ?? []).map((l) => [l.user_id, l.current_level ?? 1]));
+  const xpOf = new Map((levels ?? []).map((l) => [l.user_id, xpProgress(l.total_xp_earned ?? 0)]));
   const seasonMmrOf = new Map((seasonRows ?? []).map((r) => [r.user_id, r.mmr ?? null]));
 
   // FUNÇÃO por net worth (v3) — usa os 10 jogadores da partida (inclui não-plataforma)
@@ -190,7 +193,8 @@ export async function getMatchMmrState(dotaMatchId: string): Promise<MmrState> {
       userId: p.user_id,
       name: ident?.name ?? "Jogador",
       avatar: ident?.avatarUrl ?? null,
-      level: levelOf.get(p.user_id) ?? 1,
+      level: xpOf.get(p.user_id)?.level ?? 1,
+      xpPct: xpOf.get(p.user_id)?.pct ?? 0,
       seasonMmr: seasonMmrOf.get(p.user_id) ?? null,
       socialLinks: ident?.socialLinks,
       heroName: hero?.name_pt ?? null,

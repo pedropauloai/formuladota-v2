@@ -6,12 +6,15 @@ import { createClient } from "@/lib/supabase/server";
 import { getIdentityMap } from "@/lib/queries/identities";
 import { getRecentMatches, type HistoryMatch } from "@/lib/queries/matches-feed";
 import { getWallOfShame, type WallEntry } from "@/lib/queries/wall-of-shame";
+import { xpProgress } from "@/lib/levels";
 
 export interface SidebarRankRow {
   userId: string;
   name: string;
   avatar: string | null;
   level: number;
+  /** Progresso 0..1 do nível atual (pro anel de XP preencher). */
+  xpPct: number;
   mmr: number;
 }
 
@@ -73,17 +76,23 @@ export async function getSidebarData(): Promise<SidebarData> {
   const [identityMap, levelsRes] = await Promise.all([
     getIdentityMap(supabase, ids),
     ids.length > 0
-      ? supabase.from("user_levels").select("user_id, current_level").in("user_id", ids)
-      : Promise.resolve({ data: [] as { user_id: string; current_level: number }[] }),
+      ? supabase.from("user_levels").select("user_id, total_xp_earned").in("user_id", ids)
+      : Promise.resolve({ data: [] as { user_id: string; total_xp_earned: number }[] }),
   ]);
-  const levelMap = new Map((levelsRes.data ?? []).map((l) => [l.user_id, l.current_level]));
+  // Nível E progresso do anel vêm da MESMA fonte (total_xp_earned → xpProgress),
+  // como no /ranking e no hover — o anel preenche "de forma global".
+  const xpMap = new Map(
+    (levelsRes.data ?? []).map((l) => [l.user_id, xpProgress(l.total_xp_earned ?? 0)])
+  );
   const topRanking: SidebarRankRow[] = top3.map((r) => {
     const ident = identityMap.get(r.user_id);
+    const xp = xpMap.get(r.user_id);
     return {
       userId: r.user_id,
       name: ident?.name ?? "Jogador",
       avatar: ident?.avatarUrl ?? null,
-      level: levelMap.get(r.user_id) ?? 1,
+      level: xp?.level ?? 1,
+      xpPct: xp?.pct ?? 0,
       mmr: r.mmr,
     };
   });

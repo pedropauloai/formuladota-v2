@@ -15,6 +15,7 @@ import { MatchDetail } from "@/components/match/match-detail";
 import { CopyMatchId } from "@/components/match/copy-match-id";
 import { ReprocessMatchButton } from "@/components/match/reprocess-match-button";
 import { getMatchBans } from "@/lib/queries/match-bans";
+import { xpProgress } from "@/lib/levels";
 import {
   assembleMatch,
   type MatchPlayerRow,
@@ -137,12 +138,12 @@ export default async function HistoricoPartidaPage({
         // só deixa admin/self/coach lerem username → sem isso, não-admin via "anônimo".
         // A view expõe SÓ identidade pública, então o nome/foto Discord aparece pra todos.
         supabase.from("public_player_identities").select("id, username, avatar_url").in("id", userIds),
-        supabase.from("user_levels").select("user_id, current_level").in("user_id", userIds),
+        supabase.from("user_levels").select("user_id, total_xp_earned").in("user_id", userIds),
         season?.id
           ? supabase.from("player_season_mmr").select("user_id, mmr").eq("season_id", season.id).in("user_id", userIds)
           : Promise.resolve({ data: [] as { user_id: string; mmr: number }[] }),
       ]);
-    const levelBy = new Map((levels ?? []).map((l) => [l.user_id, l.current_level]));
+    const xpBy = new Map((levels ?? []).map((l) => [l.user_id, xpProgress(l.total_xp_earned ?? 0)]));
     const mmrBy = new Map((mmrs ?? []).map((m) => [m.user_id, m.mmr]));
     for (const l of links ?? []) {
       identityById.set(l.user_id, { persona: l.persona, avatar_url: l.avatar_url, username: null });
@@ -158,7 +159,13 @@ export default async function HistoricoPartidaPage({
     // Merge nível + MMR em todos os user_ids (mesmo os sem steam/profile).
     for (const uid of userIds) {
       const cur = identityById.get(uid) ?? { persona: null, avatar_url: null, username: null };
-      identityById.set(uid, { ...cur, level: levelBy.get(uid) ?? 1, mmr: mmrBy.get(uid) ?? null });
+      const xp = xpBy.get(uid);
+      identityById.set(uid, {
+        ...cur,
+        level: xp?.level ?? 1,
+        xpPct: xp?.pct ?? 0,
+        mmr: mmrBy.get(uid) ?? null,
+      });
     }
   }
 

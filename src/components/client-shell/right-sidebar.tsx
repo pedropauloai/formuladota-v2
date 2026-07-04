@@ -249,7 +249,7 @@ function RankingCard({
                   alt={r.name}
                   fallback={r.name.slice(0, 2).toUpperCase()}
                   level={r.level}
-                  pct={0}
+                  pct={r.xpPct}
                   size={28}
                 />
                 <DotaRankMedal

@@ -5,6 +5,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { getHeroBySlug } from "@/lib/queries/heroes";
+import { xpProgress } from "@/lib/levels";
 import type { SocialLinks } from "@/components/profile/social-icons-row";
 
 export type FriendStatus = "none" | "pending" | "friends" | "blocked" | "self";
@@ -43,6 +44,10 @@ export interface PublicMiniProfile {
   predominantPos: number | null;
   /** Redes sociais vinculadas (ícones no hover). */
   socialLinks: SocialLinks;
+  /** Colocação na season ativa (rank por MMR) — pra medalha idêntica ao /ranking. */
+  seasonPosition: number | null;
+  /** Progresso 0..1 do nível atual (pro anel de XP preencher no hover). */
+  xpPct: number;
 }
 
 const STATUSES: FriendStatus[] = ["none", "pending", "friends", "blocked", "self"];
@@ -85,5 +90,7 @@ export async function getPublicMiniProfile(
     seasonMatches: (r as { season_matches?: number }).season_matches ?? 0,
     predominantPos: (r as { predominant_pos?: number | null }).predominant_pos ?? null,
     socialLinks: ((r as { social_links?: SocialLinks }).social_links ?? {}) as SocialLinks,
+    seasonPosition: (r as { season_position?: number | null }).season_position ?? null,
+    xpPct: xpProgress(Number((r as { total_xp?: number | null }).total_xp ?? 0)).pct,
   };
 }

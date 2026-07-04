@@ -26,13 +26,12 @@ import {
   getPublicMiniProfile,
   type PublicMiniProfile,
 } from "@/actions/public-profile";
-import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
+import { SeasonRankMedal } from "@/components/ui/season-rank-medal";
 import { HonorRankMedal } from "@/components/ui/honor-rank-medal";
 import { SocialIconsRow } from "@/components/profile/social-icons-row";
 import { RoleIcon } from "@/components/match/match-scoreboard";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { computeRankBadges } from "@/lib/dota/rank-badges";
-import { mmrToTier } from "@/lib/mmr";
 import { formatLastSeen } from "@/lib/realtime/presence";
 import { openChatWith } from "@/lib/chat/open-chat";
 import { inviteToParty } from "@/actions/party";
@@ -124,10 +123,6 @@ function Body({ data, online }: { data: PublicMiniProfile; online?: boolean }) {
     level: data.level,
   });
   const honorRank = badges.honorRank;
-  // Medalha FORMULADOTA (rank sazonal, Eixo 2) = o DESTAQUE do hover. Sem MMR de
-  // season → cai na medalha derivada do MMR (mesma pele). Valve fica só no perfil.
-  const seasonRank = badges.seasonRank ?? badges.skillRank;
-  const seasonStars = badges.seasonRank ? badges.seasonStars : mmrToTier(data.mmr ?? 0).stars;
 
   // Heróis já resolvidos no SERVIDOR (getPublicMiniProfile) — o catálogo
   // dota-heroes.json (75KB) não entra mais no bundle deste componente ubíquo.
@@ -151,7 +146,7 @@ function Body({ data, online }: { data: PublicMiniProfile; online?: boolean }) {
             alt={data.name}
             fallback={data.name.slice(0, 2).toUpperCase()}
             level={data.level}
-            pct={0}
+            pct={data.xpPct}
             size={44}
           />
           {online !== undefined && (
@@ -163,16 +158,10 @@ function Body({ data, online }: { data: PublicMiniProfile; online?: boolean }) {
             />
           )}
         </div>
-        {/* Medalha FORMULADOTA GRANDE = destaque do hover (a Valve saiu — vive só no
-            perfil). Honra menor ao lado. */}
+        {/* Medalha FORMULADOTA GRANDE = destaque do hover — EXATAMENTE a do /ranking
+            (mesma SeasonRankMedal + mmr + posição na season). Honra menor ao lado. */}
         <div className="flex shrink-0 items-center gap-1.5 self-center">
-          <DotaRankMedal
-            rank={seasonRank}
-            stars={seasonStars}
-            variant="formuladota"
-            size="lg"
-            tooltip={false}
-          />
+          <SeasonRankMedal mmr={data.mmr} position={data.seasonPosition} size="lg" />
           <HonorRankMedal rank={honorRank} size="sm" tooltip={false} />
         </div>
         <div className="min-w-0 flex-1">

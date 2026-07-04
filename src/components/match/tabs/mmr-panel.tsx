@@ -177,7 +177,7 @@ function PlayerCard({ p, pending, isMvp }: { p: MmrPlayerBreakdown; pending: boo
             alt={p.name}
             fallback={p.name.slice(0, 2).toUpperCase()}
             level={p.level}
-            pct={0}
+            pct={p.xpPct}
             size={40}
           />
           {/* Herói — badge no canto. */}

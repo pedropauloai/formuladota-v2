@@ -17,24 +17,9 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { UserHoverCard } from "@/components/profile/user-hover-card";
 import { SocialIconsRow, type SocialLinks } from "@/components/profile/social-icons-row";
-import { DotaRankMedal, type DotaRank } from "@/components/ui/dota-rank-medal";
-import { mmrToTier, IMMORTAL_FLOOR, IMMORTAL_ELITE_TOP, IMMORTAL_LEADERBOARD_TOP } from "@/lib/mmr";
+import { SeasonRankMedal } from "@/components/ui/season-rank-medal";
 import { GAME_REGIONS, REGION_LABELS, isGameRegion, type GameRegion } from "@/lib/regions";
-
-// Medalha do rank pro leaderboard de Imortais (estilo oficial Dota, Pedro 2026-07-02):
-// #1–#10 = medalha ESCURA (anel), #11–#30 = medalha VERMELHA; o resto segue o MMR.
-// `position` = colocação global (1-based) na temporada.
-function rankMedalFor(mmr: number, position: number): DotaRank {
-  if (mmr < IMMORTAL_FLOOR) return mmrToDotaRank(mmr);
-  if (position <= IMMORTAL_ELITE_TOP) return "immortal-leaderboard";
-  if (position <= IMMORTAL_LEADERBOARD_TOP) return "immortal-top-100";
-  return mmrToDotaRank(mmr);
-}
-
-// Número do leaderboard (#N na placa da medalha) — top 30.
-function leaderboardNumberFor(mmr: number, position: number): number | undefined {
-  return mmr >= IMMORTAL_FLOOR && position <= IMMORTAL_LEADERBOARD_TOP ? position : undefined;
-}
+import { xpProgress } from "@/lib/levels";
 import { SeasonBanner } from "@/components/patterns/season-banner";
 import { cn } from "@/lib/utils";
 
@@ -51,6 +36,8 @@ interface RankRow {
   username: string | null;
   avatar_url: string | null;
   level: number;
+  /** Progresso de XP dentro do nível (0-1) — preenche o anel do avatar. */
+  xpPct: number;
   mmr: number;
   vitorias: number;
   derrotas: number;
@@ -62,20 +49,6 @@ interface RankRow {
 }
 
 const PAGE_SIZE = 50;
-
-// Conversão MMR → rank Dota (escala oficial do wiki, mesma das TIER_BANDS de
-// src/lib/mmr.ts). Imortal = 5620; teto in-house 7000.
-function mmrToDotaRank(mmr: number | null): DotaRank {
-  if (mmr === null) return "herald";
-  if (mmr >= 5620) return "immortal";
-  if (mmr >= 4620) return "divine";
-  if (mmr >= 3850) return "ancient";
-  if (mmr >= 3080) return "legend";
-  if (mmr >= 2310) return "archon";
-  if (mmr >= 1540) return "crusader";
-  if (mmr >= 770) return "guardian";
-  return "herald";
-}
 
 export default async function RankingPage(props: {
   searchParams: Promise<{ page?: string; q?: string; region?: string }>;
@@ -186,18 +159,24 @@ export default async function RankingPage(props: {
   const [identityMap, levelsRes] = await Promise.all([
     getIdentityMap(supabase, allUserIds),
     allUserIds.length > 0
-      ? supabase.from("user_levels").select("user_id, current_level").in("user_id", allUserIds)
-      : Promise.resolve({ data: [] as { user_id: string; current_level: number }[] }),
+      ? supabase.from("user_levels").select("user_id, total_xp_earned").in("user_id", allUserIds)
+      : Promise.resolve({ data: [] as { user_id: string; total_xp_earned: number }[] }),
   ]);
 
-  const levelMap = new Map((levelsRes.data ?? []).map((l) => [l.user_id, l.current_level]));
+  // Nível + progresso de XP a partir do XP total (fonte única xpProgress) — o anel
+  // do avatar mostra o preenchimento real, não mais vazio.
+  const xpMap = new Map(
+    (levelsRes.data ?? []).map((l) => [l.user_id, xpProgress(l.total_xp_earned ?? 0)])
+  );
   const hydrate = (r: typeof rows[number]): RankRow => {
     const ident = identityMap.get(r.user_id);
+    const xp = xpMap.get(r.user_id);
     return {
       ...r,
       username: ident?.name ?? null,
       avatar_url: ident?.avatarUrl ?? null,
-      level: levelMap.get(r.user_id) ?? 1,
+      level: xp?.level ?? 1,
+      xpPct: xp?.pct ?? 0,
       socialLinks: ident?.socialLinks,
     };
   };
@@ -342,7 +321,6 @@ export default async function RankingPage(props: {
 function TopCard({ row, position }: { row: RankRow; position: number }) {
   const t = useTranslations("ranking");
   const isChampion = position === 1;
-  const dotaRank = rankMedalFor(row.mmr, position);
 
   return (
     <Card
@@ -369,20 +347,12 @@ function TopCard({ row, position }: { row: RankRow; position: number }) {
             alt={row.username ?? t("anonymous")}
             fallback={(row.username ?? "??").slice(0, 2)}
             level={row.level}
-            pct={0}
+            pct={row.xpPct}
             size={56}
           />
           {/* Medalha ENTRE a foto e o nome (fiel ao Dota) e GRANDE — o pódio dá
-              destaque máximo ao rank. Pedro 2026-07-03. */}
-          <DotaRankMedal
-            rank={dotaRank}
-            stars={mmrToTier(row.mmr).stars}
-            leaderboardNumber={leaderboardNumberFor(row.mmr, position)}
-            variant="formuladota"
-            size="xl"
-            tooltip={false}
-            className="shrink-0"
-          />
+              destaque máximo ao rank. FONTE ÚNICA (SeasonRankMedal) = MESMA do hover. */}
+          <SeasonRankMedal mmr={row.mmr} position={position} size="xl" className="shrink-0" />
           <div className="min-w-0">
             <p className="font-display text-2xl 2xl:text-3xl uppercase tracking-wide text-text-display truncate">
               {row.username ?? t("anonymous")}
@@ -466,7 +436,6 @@ function RankStats({ row, className }: { row: RankRow; className?: string }) {
 
 function RankingRow({ row, position }: { row: RankRow; position: number }) {
   const t = useTranslations("ranking");
-  const dotaRank = rankMedalFor(row.mmr, position);
 
   return (
     <li className="flex items-center gap-3 rounded-md border border-border-subtle bg-bg-base p-3 transition-colors hover:border-border-brand">
@@ -481,20 +450,12 @@ function RankingRow({ row, position }: { row: RankRow; position: number }) {
             alt={row.username ?? t("anonymous")}
             fallback={(row.username ?? "??").slice(0, 2)}
             level={row.level}
-            pct={0}
+            pct={row.xpPct}
             size={40}
           />
-          {/* Medalha ENTRE a foto e o nome (fiel ao Dota 2) — lg pra o número do
-              top 10 ser legível. Pedro 2026-07-03. */}
-          <DotaRankMedal
-            rank={dotaRank}
-            stars={mmrToTier(row.mmr).stars}
-            leaderboardNumber={leaderboardNumberFor(row.mmr, position)}
-            variant="formuladota"
-            size="lg"
-            tooltip={false}
-            className="shrink-0"
-          />
+          {/* Medalha ENTRE a foto e o nome (fiel ao Dota 2) — FONTE ÚNICA
+              (SeasonRankMedal), MESMA medalha do hover. */}
+          <SeasonRankMedal mmr={row.mmr} position={position} size="lg" className="shrink-0" />
           <p className="min-w-0 truncate font-body text-lg 2xl:text-xl font-medium text-text-display hover:text-brand-primary transition-colors">
             {row.username ?? t("anonymous")}
           </p>

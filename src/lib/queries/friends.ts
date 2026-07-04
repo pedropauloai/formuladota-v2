@@ -9,6 +9,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { displayAvatar, displayName } from "@/lib/identity";
+import { xpProgress } from "@/lib/levels";
 import { getSteamIdentityMap } from "@/lib/queries/identities";
 import {
   getFriendContextMap,
@@ -22,6 +23,8 @@ export interface FriendListEntry {
   friendAvatarUrl: string | null;
   /** Nível da conta (0-30) — pro XpAvatarRing. */
   friendLevel: number;
+  /** Progresso 0..1 do nível atual — pro anel de XP preencher. */
+  friendXpPct: number;
   friendLastSeenAt: string | null;
   friendStatusMessage: string | null;
   // direction: "outgoing" se eu fiz o pedido; "incoming" se recebi
@@ -90,11 +93,12 @@ export async function getFriendsPanel(): Promise<FriendsPanelData> {
     getSteamIdentityMap(supabase, friendIds),
     getFriendContextMap(supabase, acceptedIds),
     friendIds.length
-      ? supabase.from("user_levels").select("user_id, current_level").in("user_id", friendIds)
-      : Promise.resolve({ data: [] as { user_id: string; current_level: number }[] }),
+      ? supabase.from("user_levels").select("user_id, total_xp_earned").in("user_id", friendIds)
+      : Promise.resolve({ data: [] as { user_id: string; total_xp_earned: number }[] }),
   ]);
-  const levelMap = new Map(
-    (levelsRes.data ?? []).map((l) => [l.user_id, l.current_level])
+  // Nível E progresso do anel da MESMA fonte (total_xp_earned → xpProgress).
+  const xpMap = new Map(
+    (levelsRes.data ?? []).map((l) => [l.user_id, xpProgress(l.total_xp_earned ?? 0)])
   );
 
   const friends: FriendListEntry[] = [];
@@ -121,7 +125,8 @@ export async function getFriendsPanel(): Promise<FriendsPanelData> {
       friendUserId: friendId,
       friendUsername: displayName(src),
       friendAvatarUrl: displayAvatar(src),
-      friendLevel: levelMap.get(friendId) ?? 1,
+      friendLevel: xpMap.get(friendId)?.level ?? 1,
+      friendXpPct: xpMap.get(friendId)?.pct ?? 0,
       friendLastSeenAt: prof?.last_seen_at ?? null,
       friendStatusMessage: prof?.status_message ?? null,
       direction,

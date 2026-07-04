@@ -99,7 +99,7 @@ export function FriendRow({ friend, presenceStatus, currentLobbyId = null }: Pro
             alt={t("avatarAlt", { name })}
             fallback={name.slice(0, 2).toUpperCase()}
             level={friend.friendLevel}
-            pct={0}
+            pct={friend.friendXpPct}
             size={28}
           />
           <span

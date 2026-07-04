@@ -24,6 +24,7 @@ import {
   type QueueRole,
 } from "@/app/queue/actions";
 import { HonorRankMedal } from "@/components/ui/honor-rank-medal";
+import { SeasonRankMedal } from "@/components/ui/season-rank-medal";
 import { UserHoverCard } from "@/components/profile/user-hover-card";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { getTierForLevel } from "@/lib/levels";
@@ -391,9 +392,11 @@ function SearcherRow({ s }: { s: QueueSearcher }) {
           alt={s.name}
           fallback={s.name.slice(0, 2).toUpperCase()}
           level={s.level}
-          pct={0}
+          pct={s.xpPct}
           size={24}
         />
+        {/* Medalha FORMULADOTA da season (entre foto e nome, fiel ao Dota). */}
+        <SeasonRankMedal mmr={s.mmr} size="sm" className="shrink-0" />
         <span className="min-w-0 flex-1 truncate font-body text-xs text-text-body hover:text-text-display">
           {s.name}
         </span>

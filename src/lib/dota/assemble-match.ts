@@ -59,6 +59,8 @@ export interface Identity {
   username: string | null;
   /** Nível da conta FormulaDota (identidade). */
   level?: number | null;
+  /** Progresso 0..1 do nível atual — pro anel de XP preencher. */
+  xpPct?: number | null;
   /** MMR FormulaDota da temporada ativa (identidade). */
   mmr?: number | null;
 }
@@ -142,6 +144,8 @@ export function assembleMatch(
       heroPortrait: hero?.image_full ?? null,
       level: r.level, // nível do herói na partida
       accountLevel: id?.level ?? 1, // nível da conta (identidade)
+      accountXpPct: id?.xpPct ?? 0, // progresso do nível → anel de XP
+
       mmr: id?.mmr ?? null, // MMR FormulaDota (identidade)
       role: roleByIndex.get(r) ?? "core", // função (core/support) por net worth
       positionSlot: posByRow.get(r) ?? 1, // posição 1-5 (ícone da role específica)

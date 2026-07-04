@@ -23,6 +23,8 @@ export interface ScoreboardPlayer {
   level: number;
   /** Nível DA CONTA FormulaDota (identidade) — badge no anel de XP. */
   accountLevel: number;
+  /** Progresso 0..1 do nível da conta — preenche o anel de XP. */
+  accountXpPct: number;
   /** MMR FormulaDota da temporada (identidade). null = sem MMR ainda. */
   mmr: number | null;
   /** Função detectada por net worth (core/support) — perfil de avaliação do perf. */
@@ -168,7 +170,7 @@ function PlayerCell({ p, isMvp = false }: { p: ScoreboardPlayer; isMvp?: boolean
         alt={p.name}
         fallback={p.name.slice(0, 2).toUpperCase()}
         level={p.accountLevel}
-        pct={0}
+        pct={p.accountXpPct}
         size={32}
       />
       {/* Medalha do RANK FormulaDota (representa o MMR) — entre a foto e o nome. */}

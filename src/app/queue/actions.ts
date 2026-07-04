@@ -8,6 +8,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
+import { xpProgress } from "@/lib/levels";
 import type { Database } from "@/types/database";
 
 // Quantos jogadores estão buscando partida AGORA (match_queue waiting, TODOS os usuários).
@@ -87,6 +88,10 @@ export interface QueueSearcher {
   avatar: string | null;
   roles: QueueRole[];
   level: number;
+  /** Progresso de XP no nível (0-1) — preenche o anel do avatar. */
+  xpPct: number;
+  /** MMR FormulaDota da season — medalha na sidebar. null = sem MMR. */
+  mmr: number | null;
   honorScore: number;
   joinedAt: string;
   /** Modos de jogo filados (migration 072) — multi. Mostrados no card de searchers. */
@@ -101,16 +106,23 @@ type QueueSearcherRow =
 export async function getQueueSearchers(): Promise<QueueSearcher[]> {
   const supabase = await createClient();
   const { data } = await supabase.rpc("get_queue_searchers");
-  // game_modes é novo no RPC (migration 072) e ainda não está nos tipos gerados → cast.
-  const rows = (data ?? []) as (QueueSearcherRow & { game_modes?: unknown })[];
+  // game_modes/mmr/total_xp são novos no RPC e ainda não estão nos tipos gerados → cast.
+  const rows = (data ?? []) as (QueueSearcherRow & {
+    game_modes?: unknown;
+    mmr?: number | null;
+    total_xp?: number | null;
+  })[];
   return rows.map((r) => {
     const modes = Array.isArray(r.game_modes) ? (r.game_modes as QueueGameMode[]) : [];
+    const xp = xpProgress(typeof r.total_xp === "number" ? r.total_xp : 0);
     return {
       userId: r.user_id,
       name: r.name,
       avatar: r.avatar,
       roles: Array.isArray(r.roles) ? (r.roles as QueueRole[]) : [],
-      level: r.level,
+      level: xp.level,
+      xpPct: xp.pct,
+      mmr: typeof r.mmr === "number" ? r.mmr : null,
       honorScore: r.honor_score,
       joinedAt: r.joined_at,
       gameModes: modes.length ? modes : (["all_pick"] as QueueGameMode[]),
