@@ -181,6 +181,34 @@ export function PlayMenu({
     return () => document.removeEventListener("mousedown", onDown);
   }, [phase, showCreate, showQuiz]);
 
+  // Empurra pra partida SÓ na TRANSIÇÃO pra matched — uma vez por partida.
+  // Antes, qualquer sync com status=matched (heartbeat/realtime) re-empurrava
+  // sempre que a rota atual não fosse /partida/*, então o usuário ficava PRESO:
+  // navegava pro /ranking e era puxado de volta. Agora, depois de empurrar uma
+  // vez pra esta partida, a navegação é livre (o botão "Voltar à partida" cobre
+  // o retorno manual). sessionStorage sobrevive a remonta/refresh — não re-puxa.
+  const pushToMatchOnce = useCallback(
+    (matchId: string) => {
+      const KEY = "fd_pushed_match";
+      let already: string | null = null;
+      try {
+        already = sessionStorage.getItem(KEY);
+      } catch {
+        // sessionStorage indisponível — degrada pra guarda por rota (comportamento antigo).
+      }
+      if (already === matchId) return; // já empurrou pra esta partida → navegação livre
+      try {
+        sessionStorage.setItem(KEY, matchId);
+      } catch {
+        /* ignore */
+      }
+      if (!onMatchRoute()) {
+        router.push(`/partida/${matchId}`);
+      }
+    },
+    [router]
+  );
+
   // Ao montar: descobre se o usuário já está em partida (fila matched) — pra mostrar
   // "Voltar à partida" mesmo que ele tenha navegado pra outra tela e voltado ao HUB.
   // Também resolve o userId (pro realtime de status filtrar a própria entry).
@@ -196,14 +224,9 @@ export function PlayMenu({
       if (!active) return;
       if (st.status === "matched" && st.matchedLobbyId) {
         setActiveMatchId(st.matchedLobbyId);
-        // Redireciona pra partida — EXCETO se JÁ estamos numa rota /partida/.
-        // A guarda é por PREFIXO (qualquer id), não pelo matchedLobbyId específico:
-        // o ready-check redireciona pra /partida/<dota_match_id> (ID da Valve), enquanto
-        // aqui o id é o UUID do lobby. Comparar só o UUID fazia os dois navegadores
-        // brigarem e o usuário ficava em loop entre as duas URLs da MESMA partida.
-        if (!onMatchRoute()) {
-          router.push(`/partida/${st.matchedLobbyId}`);
-        }
+        // Empurra UMA vez por partida (ver pushToMatchOnce) — no reload em cima de
+        // uma partida ativa, leva pra ela; depois disso a navegação é livre.
+        pushToMatchOnce(st.matchedLobbyId);
       } else if (st.status === "waiting") {
         // FIND PERSISTE NO REFRESH: a busca continua viva no servidor (match_queue
         // waiting). Restaura o estado "searching" e o contador a partir de joinedAt
@@ -216,7 +239,7 @@ export function PlayMenu({
     return () => {
       active = false;
     };
-  }, [isVisitor, router]);
+  }, [isVisitor, router, pushToMatchOnce]);
 
   // Sincroniza o status da fila a partir do servidor: matched → redireciona;
   // saiu da fila (cancelada) → encerra a busca. Disparado pelo realtime de status.
@@ -225,12 +248,10 @@ export function PlayMenu({
     if (st.status === "matched" && st.matchedLobbyId) {
       setSearching(false);
       setActiveMatchId(st.matchedLobbyId);
-      // Mesma guarda por prefixo do efeito de mount: se já estamos numa rota
-      // /partida/, NÃO re-empurra (senão os heartbeats de liveness re-disparariam
-      // este sync e puxariam o usuário do <dota_match_id> de volta pro <UUID> em loop).
-      if (!onMatchRoute()) {
-        router.push(`/partida/${st.matchedLobbyId}`);
-      }
+      // Empurra só na transição pra matched (uma vez por partida) — os heartbeats
+      // de liveness re-disparam este sync o tempo todo; sem a guarda, puxavam o
+      // usuário de volta pra partida a cada navegação. pushToMatchOnce trava isso.
+      pushToMatchOnce(st.matchedLobbyId);
     } else if (st.status === "waiting") {
       // Passivo: outro membro do grupo iniciou a busca → reflete o "buscando"
       // (contador + heartbeat) mesmo sem eu ter clicado.
@@ -238,8 +259,14 @@ export function PlayMenu({
       setSearching(true);
     } else if (!st.inQueue) {
       setSearching(false);
+      // Saiu da fila / partida encerrada → libera pra próxima partida empurrar.
+      try {
+        sessionStorage.removeItem("fd_pushed_match");
+      } catch {
+        /* ignore */
+      }
     }
-  }, [router]);
+  }, [pushToMatchOnce]);
 
   // PUSH do status da própria entry (substitui o polling de 3s). Qualquer mudança
   // na match_queue do user (partida formada via try_form_match, fila cancelada)
