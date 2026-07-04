@@ -40,6 +40,8 @@ import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
 // PWA: registra o service worker (instalável + offline básico).
 import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
+// Vercel Web Analytics — track page views and Web Vitals automatically.
+import { Analytics } from "@vercel/analytics/next";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 const siteTitle = "FORMULADOTA — HUB Dota 2 Brasil";
@@ -145,6 +147,7 @@ export default async function RootLayout({
             /vincular/steam). Layout root não impõe mais chrome — cada rota é
             responsável pelo próprio. */}
         <div className="flex-1">{children}</div>
+        <Analytics />
         </ConfirmProvider>
         </ToastProvider>
         </SoundProvider>
