@@ -2,8 +2,14 @@ import { getTranslations } from "next-intl/server";
 import { Check, Crown, Sparkles } from "lucide-react";
 import { PLANS, formatPrice, type Plan, type PlanId } from "@/lib/plans";
 import { cn } from "@/lib/utils";
+import { signInWithDiscord } from "@/app/login/actions";
+import { SubscribeButton } from "./subscribe-button";
+import type { SubscriptionTier } from "@/lib/subscriptions/tiers";
 
-// Vitrine dos planos (Compendium). Server component — sem checkout real ainda.
+// Vitrine dos planos (Compendium) — ÚNICA vitrine da /planos (fix 04/07:
+// a duplicata de cards vinda da /assinatura foi removida; os botões daqui
+// disparam o checkout real). Display names (Godlike / Beyond Godlike) vêm
+// do i18n — IDs internos (aegis/godlike ↔ plus/premium) não mudam.
 
 type Translator = Awaited<ReturnType<typeof getTranslations>>;
 
@@ -13,7 +19,20 @@ const PLAN_STYLE: Record<PlanId, { border: string; accent: string }> = {
   godlike: { border: "border-gold/60", accent: "text-gold" },
 };
 
-export async function PlansView() {
+// Card da vitrine → tier de assinatura (config em src/lib/subscriptions/tiers.ts).
+const PLAN_TO_TIER: Partial<Record<PlanId, SubscriptionTier>> = {
+  aegis: "plus",
+  godlike: "premium",
+};
+
+export interface PlansViewProps {
+  /** Visitante deslogado → botão dispara o login Discord. */
+  isLoggedIn: boolean;
+  /** Tier da assinatura ATIVA (gerência fica no card de status acima). */
+  activeTier: SubscriptionTier | null;
+}
+
+export async function PlansView({ isLoggedIn, activeTier }: PlansViewProps) {
   const t = await getTranslations("planos");
   return (
     <div className="mx-auto max-w-5xl space-y-8">
@@ -31,18 +50,27 @@ export async function PlansView() {
 
       <div className="grid items-start gap-4 md:grid-cols-3">
         {PLANS.map((p) => (
-          <PlanCard key={p.id} plan={p} t={t} />
+          <PlanCard key={p.id} plan={p} t={t} isLoggedIn={isLoggedIn} activeTier={activeTier} />
         ))}
       </div>
-
-      <p className="text-center font-display text-[12px] text-text-faded">{t("note")}</p>
     </div>
   );
 }
 
-function PlanCard({ plan, t }: { plan: Plan; t: Translator }) {
+function PlanCard({
+  plan,
+  t,
+  isLoggedIn,
+  activeTier,
+}: {
+  plan: Plan;
+  t: Translator;
+  isLoggedIn: boolean;
+  activeTier: SubscriptionTier | null;
+}) {
   const s = PLAN_STYLE[plan.id];
   const isFree = plan.priceMonthly === 0;
+  const tier = PLAN_TO_TIER[plan.id];
   return (
     <div
       className={cn(
@@ -102,23 +130,76 @@ function PlanCard({ plan, t }: { plan: Plan; t: Translator }) {
       </ul>
 
       <div className="mt-5">
-        {isFree ? (
-          <span className="block rounded-sm border border-border-subtle py-2 text-center font-display text-[13px] font-semibold uppercase tracking-wide text-text-faded">
-            {t("currentBase")}
-          </span>
-        ) : (
-          <span
-            className={cn(
-              "block rounded-sm border-2 py-2 text-center font-display text-[13px] font-bold uppercase tracking-wide",
-              plan.id === "godlike"
-                ? "border-gold/60 bg-gold/10 text-gold"
-                : "border-brand-primary bg-brand-primary/15 text-text-display"
-            )}
-          >
-            {t("subscribe")}
-          </span>
-        )}
+        <PlanCta
+          plan={plan}
+          t={t}
+          tier={tier}
+          isLoggedIn={isLoggedIn}
+          activeTier={activeTier}
+        />
       </div>
     </div>
   );
+}
+
+// CTA do card: grátis = plano base · assinante deste tier = "plano ativo" ·
+// com QUALQUER assinatura ativa = sem botão (gerência no card de status) ·
+// logado sem assinatura = checkout real · visitante = login Discord.
+function PlanCta({
+  plan,
+  t,
+  tier,
+  isLoggedIn,
+  activeTier,
+}: {
+  plan: Plan;
+  t: Translator;
+  tier: SubscriptionTier | undefined;
+  isLoggedIn: boolean;
+  activeTier: SubscriptionTier | null;
+}) {
+  const buttonCls = cn(
+    "block rounded-sm border-2 py-2 text-center font-display text-[13px] font-bold uppercase tracking-wide transition-colors",
+    plan.id === "godlike"
+      ? "border-gold/60 bg-gold/10 text-gold hover:bg-gold/20"
+      : "border-brand-primary bg-brand-primary/15 text-text-display hover:bg-brand-primary/25"
+  );
+
+  if (plan.priceMonthly === 0 || !tier) {
+    return (
+      <span className="block rounded-sm border border-border-subtle py-2 text-center font-display text-[13px] font-semibold uppercase tracking-wide text-text-faded">
+        {t("currentBase")}
+      </span>
+    );
+  }
+
+  if (activeTier === tier) {
+    return (
+      <span className="block rounded-sm border border-success/50 bg-success/10 py-2 text-center font-display text-[13px] font-bold uppercase tracking-wide text-success">
+        {t("activePlan")}
+      </span>
+    );
+  }
+
+  // Assinatura ativa de OUTRO tier: sem botão (trocar = cancelar e reassinar,
+  // gerência no card de status; a action barraria com already_active).
+  if (activeTier) {
+    return (
+      <span className="block rounded-sm border border-border-subtle py-2 text-center font-display text-[13px] font-semibold uppercase tracking-wide text-text-faded">
+        —
+      </span>
+    );
+  }
+
+  if (!isLoggedIn) {
+    return (
+      <form action={signInWithDiscord}>
+        <button type="submit" className={cn(buttonCls, "w-full")}>
+          {t("subscribe")}
+        </button>
+      </form>
+    );
+  }
+
+  return <SubscribeButton tier={tier} className={buttonCls} />;
 }

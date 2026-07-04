@@ -106,8 +106,8 @@ export async function createSubscription(tierInput?: string): Promise<void> {
   const result = await createPreapproval({
     reason:
       tier === "premium"
-        ? "FORMULADOTA Premium — Mensalidade"
-        : "FORMULADOTA Plus — Mensalidade",
+        ? "FORMULADOTA BEYOND GODLIKE — Mensalidade"
+        : "FORMULADOTA GODLIKE — Mensalidade",
     payerEmail: user.email ?? "",
     externalReference: `user-${user.id}`,
     transactionAmount: price.amount,

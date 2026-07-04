@@ -1,24 +1,16 @@
 "use client";
 
-// Painel FUNCIONAL de assinatura Plus/Premium — vive DENTRO da /planos
-// (rota canônica, ClientShell). Fusão da antiga /assinatura (2026-07-04):
-// 5 estados (none/pending/authorized/cancelled_active/expired), cards de
-// tier com preço pela REGIÃO de jogo e ações assinar/cancelar/reativar.
+// Painel de STATUS da assinatura — vive DENTRO da /planos, ACIMA da vitrine
+// (fix 04/07: a duplicata de cards TierGrid foi removida; a vitrine original
+// da PlansView é a única, e assinar acontece nos botões dela). Aqui ficam:
+// banners de retorno do MP/Stripe + card de gerência (pending/authorized/
+// cancelled_active) com cancelar/reativar. Estados none/expired = só banners.
 //
-// Voz: Mestre + Guardião — sem urgência fabricada. Visitante não vê este
-// painel (a página mostra a vitrine + CTA de login).
+// Voz: Mestre + Guardião — sem urgência fabricada.
 
 import { useState } from "react";
-import { useTranslations, useLocale } from "next-intl";
-import {
-  Shield,
-  CheckCircle,
-  XCircle,
-  Clock,
-  AlertCircle,
-  Crown,
-  Check,
-} from "lucide-react";
+import { useTranslations } from "next-intl";
+import { CheckCircle, XCircle, Clock, AlertCircle } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -29,25 +21,15 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  createSubscription,
   cancelSubscription,
   reactivateSubscription,
 } from "@/app/actions/subscription";
-import type { GameRegion } from "@/lib/regions";
-import {
-  SUBSCRIPTION_TIERS,
-  TIER_PRICES,
-  TIER_BENEFIT_KEYS,
-  formatTierPrice,
-  isSubscriptionTier,
-  type SubscriptionTier,
-} from "@/lib/subscriptions/tiers";
+import { isSubscriptionTier, type SubscriptionTier } from "@/lib/subscriptions/tiers";
 import type { SubscriptionRow, SubscriptionState } from "@/lib/subscriptions/state";
 
 interface SubscriptionPanelProps {
   state: SubscriptionState;
   subscription: SubscriptionRow | null;
-  region: GameRegion;
   queryParams: {
     success: boolean;
     cancelled: boolean;
@@ -69,21 +51,14 @@ function formatDate(iso: string | null): string {
 export function SubscriptionPanel({
   state,
   subscription,
-  region,
   queryParams,
 }: SubscriptionPanelProps) {
   const t = useTranslations("billing");
-  const [loading, setLoading] = useState<"subscribe" | "cancel" | "reactivate" | null>(null);
+  const [loading, setLoading] = useState<"cancel" | "reactivate" | null>(null);
   // Tier da assinatura existente (pra reativar no mesmo tier) — default plus.
   const currentTier: SubscriptionTier = isSubscriptionTier(subscription?.tier)
     ? subscription.tier
     : "plus";
-
-  const handleSubscribe = async (tier: SubscriptionTier) => {
-    setLoading("subscribe");
-    await createSubscription(tier);
-    setLoading(null);
-  };
 
   const handleCancel = async () => {
     setLoading("cancel");
@@ -120,11 +95,9 @@ export function SubscriptionPanel({
         </div>
       )}
 
-      {/* Sem assinatura (ou expirada): grade dos 2 tiers com preço da região.
-          Demais estados: card único de status. */}
-      {state === "none" || state === "expired" ? (
-        <TierGrid region={region} loading={loading} onSubscribe={handleSubscribe} />
-      ) : (
+      {/* Card de gerência só quando há assinatura (pending/authorized/
+          cancelled_active). none/expired: a vitrine abaixo assume. */}
+      {state !== "none" && state !== "expired" && (
         <SubscriptionStateCard
           state={state}
           subscription={subscription}
@@ -139,78 +112,6 @@ export function SubscriptionPanel({
 }
 
 // ====================================================
-// Grade dos 2 tiers (Plus / Premium) — preço pela região de jogo
-// ====================================================
-
-function TierGrid({
-  region,
-  loading,
-  onSubscribe,
-}: {
-  region: GameRegion;
-  loading: string | null;
-  onSubscribe: (tier: SubscriptionTier) => Promise<void>;
-}) {
-  const t = useTranslations("billing");
-  const locale = useLocale();
-
-  return (
-    <div className="grid gap-4 md:grid-cols-2">
-      {SUBSCRIPTION_TIERS.map((tier) => {
-        const premium = tier === "premium";
-        const price = formatTierPrice(TIER_PRICES[region][tier], locale);
-        return (
-          <Card
-            key={tier}
-            className={premium ? "border-brand-primary/60 bg-bg-base" : "border-zinc-800 bg-bg-base"}
-          >
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2 text-white">
-                  {premium ? (
-                    <Crown className="size-5 text-brand-primary" aria-hidden="true" />
-                  ) : (
-                    <Shield className="size-5 text-zinc-400" aria-hidden="true" />
-                  )}
-                  {t(premium ? "tierPremiumName" : "tierPlusName")}
-                </CardTitle>
-                {premium && (
-                  <Badge className="border-brand-primary/50 bg-brand-primary/15 text-brand-primary">
-                    {t("tierPremiumBadge")}
-                  </Badge>
-                )}
-              </div>
-              <CardDescription>
-                <span className="font-display text-2xl font-bold text-text-display">{price}</span>
-                <span className="ml-1 text-zinc-500">{t("perMonth")}</span>
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <ul className="space-y-2 text-sm text-zinc-400">
-                {TIER_BENEFIT_KEYS[tier].map((key) => (
-                  <li key={key} className="flex items-start gap-2">
-                    <Check className="mt-0.5 size-3.5 shrink-0 text-brand-primary" aria-hidden="true" />
-                    <span>{t(key)}</span>
-                  </li>
-                ))}
-              </ul>
-              <Button
-                onClick={() => onSubscribe(tier)}
-                disabled={loading !== null}
-                className="w-full bg-red-700 text-white hover:bg-red-600 focus-visible:ring-red-600/50"
-                size="lg"
-              >
-                {loading === "subscribe" ? t("redirecting") : t("subscribeCta")}
-              </Button>
-            </CardContent>
-          </Card>
-        );
-      })}
-    </div>
-  );
-}
-
-// ====================================================
 // Card único de estado (pending / authorized / cancelled_active)
 // ====================================================
 
@@ -218,7 +119,7 @@ interface StateCardProps {
   state: SubscriptionState;
   subscription: SubscriptionRow | null;
   currentTier: SubscriptionTier;
-  loading: "subscribe" | "cancel" | "reactivate" | null;
+  loading: "cancel" | "reactivate" | null;
   onCancel: () => Promise<void>;
   onReactivate: () => Promise<void>;
 }

@@ -30,26 +30,25 @@
     "badgeTop": "Top",
     "subscribe": "Subscribe",
     "currentBase": "Your base plan",
-    "note": "Recurring billing is coming soon — for now, this is a preview of the plans.",
     "names": {
       "gratuito": "Free",
-      "aegis": "Aegis",
-      "godlike": "Godlike"
+      "aegis": "Godlike",
+      "godlike": "Beyond Godlike"
     },
     "features": {
       "trilhaBasica": "Free Compendium track",
       "trilhaCompleta": "Full Compendium track",
-      "cosmeticosMerito": "Merit cosmetics (level & tier)",
+      "cosmeticosMerito": "Merit cosmetics — the Aegis is earned, never bought",
       "mult1": "Pass XP 1×",
       "mult15": "Pass XP 1.5×",
       "mult2": "Pass XP 2×",
-      "linhaAegis": "Season Aegis cosmetic line",
-      "linhaGodlike": "Season Godlike Immortal cosmetic",
+      "linhaAegis": "Season Godlike cosmetic line",
+      "linhaGodlike": "Season Beyond Godlike Immortal cosmetic",
       "criarSalas": "Unlimited room creation",
-      "seloGodlike": "Godlike badge on profile",
+      "seloGodlike": "Beyond Godlike badge on profile",
       "acessoAntecipado": "Early access to new features"
     },
-    "loginToSubscribe": "Sign in with Discord to subscribe"
+    "activePlan": "Active plan"
   },
   "compendium": {
     "metaTitle": "Compendium",
@@ -1029,8 +1028,8 @@
     "expiresFallback": "1 hour",
     "generatingPix": "Generating PIX",
     "backToPackages": "Back to packages",
-    "tierPlusName": "FORMULADOTA Plus",
-    "tierPremiumName": "FORMULADOTA Premium",
+    "tierPlusName": "FORMULADOTA GODLIKE",
+    "tierPremiumName": "FORMULADOTA BEYOND GODLIKE",
     "tierPremiumBadge": "Top tier",
     "perMonth": "/month",
     "benefitCreateLobbies": "Create community lobbies",
@@ -1040,7 +1039,7 @@
     "benefitAllPlus": "Everything in Plus",
     "benefitEliteLobby": "Access to the Immortal elite lobby (requires Valve Immortal + Mystic lv30)",
     "benefitXpBoostMax": "Maximum XP boost on the pass",
-    "benefitCosmeticsGodlike": "Godlike-tier cosmetics",
+    "benefitCosmeticsGodlike": "Beyond Godlike cosmetics",
     "benefitProAccess": "PRO priority and replay analysis",
     "errorStripeSoon": "International payments (Stripe) are coming soon to your region. Hang tight."
   },

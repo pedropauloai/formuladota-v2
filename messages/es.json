@@ -30,26 +30,25 @@
     "badgeTop": "Top",
     "subscribe": "Suscribirse",
     "currentBase": "Tu plan base",
-    "note": "La facturación recurrente llega pronto — por ahora, esto es una vista previa de los planes.",
     "names": {
       "gratuito": "Gratis",
-      "aegis": "Aegis",
-      "godlike": "Godlike"
+      "aegis": "Godlike",
+      "godlike": "Beyond Godlike"
     },
     "features": {
       "trilhaBasica": "Vía gratuita del Compendium",
       "trilhaCompleta": "Vía completa del Compendium",
-      "cosmeticosMerito": "Cosméticos por mérito (nivel y tier)",
+      "cosmeticosMerito": "Cosméticos por mérito — la Aegis se gana, no se compra",
       "mult1": "XP del pase 1×",
       "mult15": "XP del pase 1.5×",
       "mult2": "XP del pase 2×",
-      "linhaAegis": "Línea de cosméticos Aegis de temporada",
-      "linhaGodlike": "Cosmético Immortal Godlike de temporada",
+      "linhaAegis": "Línea de cosméticos Godlike de temporada",
+      "linhaGodlike": "Cosmético Immortal Beyond Godlike de temporada",
       "criarSalas": "Creación ilimitada de salas",
-      "seloGodlike": "Insignia Godlike en el perfil",
+      "seloGodlike": "Insignia Beyond Godlike en el perfil",
       "acessoAntecipado": "Acceso anticipado a nuevas funciones"
     },
-    "loginToSubscribe": "Inicia sesión con Discord para suscribirte"
+    "activePlan": "Plan activo"
   },
   "compendium": {
     "metaTitle": "Compendium",
@@ -1029,8 +1028,8 @@
     "expiresFallback": "1 hora",
     "generatingPix": "Generando PIX",
     "backToPackages": "Volver a los paquetes",
-    "tierPlusName": "FORMULADOTA Plus",
-    "tierPremiumName": "FORMULADOTA Premium",
+    "tierPlusName": "FORMULADOTA GODLIKE",
+    "tierPremiumName": "FORMULADOTA BEYOND GODLIKE",
     "tierPremiumBadge": "Tier máximo",
     "perMonth": "/mes",
     "benefitCreateLobbies": "Crear salas (lobbies) de la comunidad",
@@ -1040,7 +1039,7 @@
     "benefitAllPlus": "Todo lo del Plus",
     "benefitEliteLobby": "Acceso al lobby élite Immortal (requiere Immortal Valve + Místico nv30)",
     "benefitXpBoostMax": "XP boost máximo en el pase",
-    "benefitCosmeticsGodlike": "Cosméticos tier Godlike",
+    "benefitCosmeticsGodlike": "Cosméticos Beyond Godlike",
     "benefitProAccess": "Prioridad y análisis con PRO",
     "errorStripeSoon": "Los pagos internacionales (Stripe) llegan pronto a tu región. Aguanta firme."
   },

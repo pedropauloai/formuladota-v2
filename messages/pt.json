@@ -30,26 +30,25 @@
     "badgeTop": "Topo",
     "subscribe": "Assinar",
     "currentBase": "Seu plano base",
-    "note": "A cobrança recorrente chega em breve — por enquanto, isto é uma prévia dos planos.",
     "names": {
       "gratuito": "Gratuito",
-      "aegis": "Aegis",
-      "godlike": "Godlike"
+      "aegis": "Godlike",
+      "godlike": "Beyond Godlike"
     },
     "features": {
       "trilhaBasica": "Trilha grátis do Compendium",
       "trilhaCompleta": "Trilha completa do Compendium",
-      "cosmeticosMerito": "Cosméticos de mérito (nível e tier)",
+      "cosmeticosMerito": "Cosméticos de mérito — a Aegis se conquista, não se compra",
       "mult1": "XP do passe 1×",
       "mult15": "XP do passe 1,5×",
       "mult2": "XP do passe 2×",
-      "linhaAegis": "Linha de cosméticos Aegis da temporada",
-      "linhaGodlike": "Cosmético Imortal Godlike da temporada",
+      "linhaAegis": "Linha de cosméticos Godlike da temporada",
+      "linhaGodlike": "Cosmético Imortal Beyond Godlike da temporada",
       "criarSalas": "Criar salas sem limite",
-      "seloGodlike": "Selo Godlike no perfil",
+      "seloGodlike": "Selo Beyond Godlike no perfil",
       "acessoAntecipado": "Acesso antecipado a novidades"
     },
-    "loginToSubscribe": "Entrar com Discord pra assinar"
+    "activePlan": "Plano ativo"
   },
   "compendium": {
     "metaTitle": "Compendium",
@@ -1029,8 +1028,8 @@
     "expiresFallback": "1 hora",
     "generatingPix": "Gerando PIX",
     "backToPackages": "Voltar aos pacotes",
-    "tierPlusName": "FORMULADOTA Plus",
-    "tierPremiumName": "FORMULADOTA Premium",
+    "tierPlusName": "FORMULADOTA GODLIKE",
+    "tierPremiumName": "FORMULADOTA BEYOND GODLIKE",
     "tierPremiumBadge": "Máximo",
     "perMonth": "/mês",
     "benefitCreateLobbies": "Criar salas (lobbies) da comunidade",
@@ -1040,7 +1039,7 @@
     "benefitAllPlus": "Tudo do Plus",
     "benefitEliteLobby": "Acesso ao lobby elite Imortal (exige Imortal Valve + Místico nv30)",
     "benefitXpBoostMax": "XP boost máximo no passe",
-    "benefitCosmeticsGodlike": "Cosméticos tier Godlike",
+    "benefitCosmeticsGodlike": "Cosméticos Beyond Godlike",
     "benefitProAccess": "Prioridade e análise com PRO",
     "errorStripeSoon": "Pagamento internacional (Stripe) chega em breve pra sua região. Aguenta firme."
   },
