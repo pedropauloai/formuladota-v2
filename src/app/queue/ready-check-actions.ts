@@ -5,6 +5,7 @@
 // Migration 067.
 
 import { createClient } from "@/lib/supabase/server";
+import { xpProgress } from "@/lib/levels";
 
 export interface ProposalMember {
   userId: string;
@@ -18,6 +19,8 @@ export interface ProposalMember {
   rankTier: number | null;
   leaderboardRank: number | null;
   level: number;
+  /** Progresso 0..1 do nível atual — pro anel de XP preencher. */
+  xpPct: number;
   /** MMR FORMULADOTA da season (fallback de medalha quando não há rank Valve). */
   seasonMmr: number | null;
 }
@@ -41,6 +44,7 @@ interface RawMember {
   rank_tier?: number | null;
   leaderboard_rank?: number | null;
   level?: number | null;
+  total_xp?: number | null;
   season_mmr?: number | null;
 }
 
@@ -57,6 +61,7 @@ function mapMembers(assignments: unknown): ProposalMember[] {
     rankTier: m.rank_tier ?? null,
     leaderboardRank: m.leaderboard_rank ?? null,
     level: m.level ?? 1,
+    xpPct: xpProgress(m.total_xp ?? 0).pct,
     seasonMmr: m.season_mmr ?? null,
   }));
 }

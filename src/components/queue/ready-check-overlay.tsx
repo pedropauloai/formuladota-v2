@@ -25,6 +25,7 @@ import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { MedalPair } from "@/components/ui/medal-pair";
 import { UserHoverCard } from "@/components/profile/user-hover-card";
 import { computeRankBadges } from "@/lib/dota/rank-badges";
+import { xpProgress } from "@/lib/levels";
 import { ShaderSmoke } from "@/components/ui/shader-smoke";
 import type { SmokeAsset } from "@/lib/cosmetics";
 
@@ -52,6 +53,7 @@ function mapRow(row: {
       rankTier: typeof o.rank_tier === "number" ? o.rank_tier : null,
       leaderboardRank: typeof o.leaderboard_rank === "number" ? o.leaderboard_rank : null,
       level: typeof o.level === "number" ? o.level : 1,
+      xpPct: xpProgress(typeof o.total_xp === "number" ? o.total_xp : 0).pct,
       seasonMmr: typeof o.season_mmr === "number" ? o.season_mmr : null,
     };
   });
@@ -353,7 +355,7 @@ function TeamList({
                   alt={m.name}
                   fallback={m.name.slice(0, 2).toUpperCase()}
                   level={m.level}
-                  pct={0}
+                  pct={m.xpPct}
                   size={30}
                 />
                 <span className="min-w-0 flex-1 truncate font-body text-xs text-text-body">

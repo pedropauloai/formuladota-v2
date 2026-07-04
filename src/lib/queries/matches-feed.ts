@@ -3,6 +3,7 @@
 // tem RLS restrita, as RPCs (SECURITY DEFINER) expõem só o preview público.
 
 import { createClient } from "@/lib/supabase/server";
+import { xpProgress } from "@/lib/levels";
 
 export interface LivePlayer {
   userId: string | null;
@@ -10,6 +11,8 @@ export interface LivePlayer {
   name: string;
   avatar: string | null;
   level: number;
+  /** Progresso 0..1 do nível atual — pro anel de XP preencher. */
+  xpPct: number;
   /** MMR atual da temporada (pra medalha do rank). null = sem MMR. */
   mmr: number | null;
   /** Jogador banido (behavior_status='banned') — marca pública no card. */
@@ -38,6 +41,8 @@ export interface HistoryPlayer {
   name: string;
   avatar: string | null;
   level: number;
+  /** Progresso 0..1 do nível atual — pro anel de XP preencher. */
+  xpPct: number;
   /** MMR atual da temporada (pra medalha do rank). null = sem MMR. */
   mmr: number | null;
   /** Jogador banido (behavior_status='banned') — marca pública no card. */
@@ -72,6 +77,7 @@ export async function getLiveMatches(): Promise<LiveMatch[]> {
       name: string;
       avatar: string | null;
       level: number | null;
+      total_xp?: number | null;
       mmr: number | null;
       banned?: boolean;
     }[];
@@ -86,6 +92,7 @@ export async function getLiveMatches(): Promise<LiveMatch[]> {
       name: p.name,
       avatar: p.avatar,
       level: p.level ?? 1,
+      xpPct: xpProgress(p.total_xp ?? 0).pct,
       mmr: p.mmr ?? null,
       banned: Boolean(p.banned),
     }));
@@ -136,6 +143,7 @@ export async function getRecentMatches(limit = 20, offset = 0): Promise<HistoryM
       name: string;
       avatar: string | null;
       level: number | null;
+      total_xp?: number | null;
       mmr: number | null;
       banned?: boolean;
     }[];
@@ -162,6 +170,7 @@ export async function getRecentMatches(limit = 20, offset = 0): Promise<HistoryM
       name: p.name,
       avatar: p.avatar,
       level: p.level ?? 1,
+      xpPct: xpProgress(p.total_xp ?? 0).pct,
       mmr: p.mmr ?? null,
       banned: Boolean(p.banned),
     })),

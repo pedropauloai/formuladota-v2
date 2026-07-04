@@ -32,7 +32,7 @@ function PlayerChip({ player, isMvp }: { player: HistoryPlayer; isMvp?: boolean 
           alt={player.name}
           fallback={player.name.slice(0, 2).toUpperCase()}
           level={player.level}
-          pct={0}
+          pct={player.xpPct}
           size={44}
         />
         {/* Herói — badge secundário no canto superior direito. */}
@@ -195,7 +195,7 @@ function LiveTeam({ players, align }: { players: LivePlayer[]; align: "end" | "s
             alt={p.name}
             fallback={p.name.slice(0, 2).toUpperCase()}
             level={p.level}
-            pct={0}
+            pct={p.xpPct}
             size={36}
           />
           {p.banned && <BannedMark />}
