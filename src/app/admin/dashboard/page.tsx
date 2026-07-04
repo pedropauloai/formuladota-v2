@@ -300,6 +300,10 @@ export default async function AdminDashboardPage(props: {
       .join(" + ") || brl(0);
   const totalSubs = [...subsByTier.values()].reduce((a, b) => a + b, 0);
 
+  // Fichas / ranked-com-pro / split saem da vista com a flag OFF (fora de
+  // prioridade). As views SQL continuam existindo — só a UI condiciona.
+  const rankedOn = featureFlags.ranked_com_pro;
+
   const posthogUrl = "https://us.posthog.com/project/497134";
 
   return (
@@ -322,22 +326,28 @@ export default async function AdminDashboardPage(props: {
         </div>
       </header>
 
-      {/* ── Receita ── */}
+      {/* ── Receita ── (fichas/split só com ranked-com-pro ON) */}
       <KpiSection title="Receita">
-        <KpiCard label="Fichas (período)" value={brl(data.fichasRevenueBrl)} icon={Coins} />
+        {rankedOn && (
+          <KpiCard label="Fichas (período)" value={brl(data.fichasRevenueBrl)} icon={Coins} />
+        )}
         <KpiCard
           label="MRR assinaturas"
           value={mrrLabel}
           sub={`${totalSubs} assinantes ativos · Plus ${subsByTier.get("plus") ?? 0} · Premium ${subsByTier.get("premium") ?? 0}`}
           icon={CreditCard}
         />
-        <KpiCard
-          label="Repassado aos PROs"
-          value={brl(data.proShareBrl)}
-          sub={`de ${brl(data.splitTotalBrl)} com split`}
-          icon={Percent}
-        />
-        <KpiCard label="Split plataforma" value={brl(data.platformShareBrl)} icon={Percent} />
+        {rankedOn && (
+          <>
+            <KpiCard
+              label="Repassado aos PROs"
+              value={brl(data.proShareBrl)}
+              sub={`de ${brl(data.splitTotalBrl)} com split`}
+              icon={Percent}
+            />
+            <KpiCard label="Split plataforma" value={brl(data.platformShareBrl)} icon={Percent} />
+          </>
+        )}
       </KpiSection>
 
       {/* ── Gráficos ── */}
@@ -367,7 +377,8 @@ export default async function AdminDashboardPage(props: {
           </ChartCard>
           {[...data.revenueSeries.entries()].map(([currency, points]) => (
             <ChartCard key={currency} title={`Receita mensal (${currency})`}>
-              <RevenueBarChart data={points} currency={currency} />
+              {/* fichas só entram no gráfico com ranked-com-pro ON */}
+              <RevenueBarChart data={points} currency={currency} showFichas={rankedOn} />
             </ChartCard>
           ))}
           {data.revenueSeries.size === 0 && (
@@ -380,16 +391,18 @@ export default async function AdminDashboardPage(props: {
         </div>
       </section>
 
-      {/* ── Fichas (estoque circulando) ── */}
-      <KpiSection title="Fichas">
-        <KpiCard label="Fichas vendidas" value={data.fichasVendidas} icon={Coins} />
-        <KpiCard
-          label="Fichas consumidas"
-          value={data.fichasConsumidas}
-          sub="via PTs realizadas"
-          icon={Activity}
-        />
-      </KpiSection>
+      {/* ── Fichas (estoque circulando) — só com ranked-com-pro ON ── */}
+      {rankedOn && (
+        <KpiSection title="Fichas">
+          <KpiCard label="Fichas vendidas" value={data.fichasVendidas} icon={Coins} />
+          <KpiCard
+            label="Fichas consumidas"
+            value={data.fichasConsumidas}
+            sub="via PTs realizadas"
+            icon={Activity}
+          />
+        </KpiSection>
+      )}
 
       {/* ── Atividade ── */}
       <KpiSection title="Atividade">

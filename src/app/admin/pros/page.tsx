@@ -10,6 +10,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getFeatureFlags } from "@/lib/queries/feature-flags";
 import { getAdminProsData } from "./admin-pros-data";
 import { AdminProsMasterDetail } from "./admin-pros-master-detail";
 import { QueueRealtimeListener } from "@/components/queue/realtime-listener";
@@ -29,6 +30,10 @@ export default async function AdminProsPage() {
     .eq("id", user.id)
     .single();
   if (!profile?.is_admin) redirect("/dashboard");
+
+  // ranked-com-pro fora de prioridade: com a flag OFF a rota some (redirect).
+  const { ranked_com_pro } = await getFeatureFlags();
+  if (!ranked_com_pro) redirect("/admin/dashboard");
 
   const initial = await getAdminProsData();
 

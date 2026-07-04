@@ -14,8 +14,10 @@
 
 import type { Metadata } from "next";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
+import { getFeatureFlags } from "@/lib/queries/feature-flags";
 import { PackageGrid } from "@/components/catalog/package-grid";
 import type { CoachInfo } from "@/components/catalog/package-card";
 import type { Database, Tables } from "@/types/database";
@@ -107,6 +109,10 @@ export async function loadPackagesWithCoaches(
 }
 
 export default async function PacotesPage() {
+  // Pacotes de fichas = mundo ranked-com-pro (fora de prioridade). Flag OFF → some.
+  const { ranked_com_pro } = await getFeatureFlags();
+  if (!ranked_com_pro) redirect("/");
+
   const supabase = await createClient();
   const packagesWithCoach = await loadPackagesWithCoaches(supabase);
   const t = await getTranslations("billing");

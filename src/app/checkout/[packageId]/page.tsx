@@ -4,9 +4,10 @@
 // cria purchase pendente + chama Mercado Pago para gerar o PIX.
 
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
+import { getFeatureFlags } from "@/lib/queries/feature-flags";
 import { CheckoutClient } from "@/components/checkout/checkout-client";
 import { ClientShell } from "@/components/client-shell/shell";
 
@@ -23,6 +24,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function CheckoutPage({ params }: PageProps) {
+  // Checkout de fichas = mundo ranked-com-pro (fora de prioridade). Flag OFF → some.
+  const { ranked_com_pro } = await getFeatureFlags();
+  if (!ranked_com_pro) redirect("/");
+
   const { packageId } = await params;
   const t = await getTranslations("billing");
 

@@ -91,8 +91,17 @@ export interface RevenuePoint {
   assinaturas: number;
 }
 
-/** Receita mensal empilhada (fichas + assinaturas) — UMA moeda por gráfico. */
-export function RevenueBarChart({ data, currency }: { data: RevenuePoint[]; currency: string }) {
+/** Receita mensal empilhada — UMA moeda por gráfico. `showFichas` controla a série
+ *  de fichas (fora de vista com ranked-com-pro OFF). */
+export function RevenueBarChart({
+  data,
+  currency,
+  showFichas = true,
+}: {
+  data: RevenuePoint[];
+  currency: string;
+  showFichas?: boolean;
+}) {
   return (
     <ResponsiveContainer width="100%" height={220}>
       <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -8 }}>
@@ -105,7 +114,9 @@ export function RevenueBarChart({ data, currency }: { data: RevenuePoint[]; curr
           formatter={(value, name) => [`${currency} ${Number(value).toFixed(2)}`, String(name)]}
         />
         <Legend wrapperStyle={{ fontSize: 12, color: TEXT }} />
-        <Bar dataKey="fichas" name="Fichas" stackId="r" fill={PLAY} radius={[0, 0, 0, 0]} />
+        {showFichas && (
+          <Bar dataKey="fichas" name="Fichas" stackId="r" fill={PLAY} radius={[0, 0, 0, 0]} />
+        )}
         <Bar
           dataKey="assinaturas"
           name="Assinaturas"
