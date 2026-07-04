@@ -16,6 +16,10 @@ export const config = {
     // Sem isso o middleware gateava o service worker e o manifest pra visitante deslogado
     // (redirect 307 → "/"), e o navegador NUNCA oferecia "instalar o app" (manifest/SW
     // inacessíveis = critério de instalabilidade falha).
-    "/((?!_next/static|_next/image|favicon.ico|sounds/|icons/|sw.js|manifest.webmanifest|.*\\.(?:svg|png|jpg|jpeg|gif|webp|webm|mp3|ogg|wav|ico|webmanifest)$).*)",
+    //
+    // SEO (2026-07-04): incluído `html` na exclusão. O arquivo de verificação do Google
+    // Search Console (public/google*.html) era gateado e redirecionado pra home →
+    // verificação do GSC falhava. Arquivos .html em public/ são estáticos por definição.
+    "/((?!_next/static|_next/image|favicon.ico|sounds/|icons/|sw.js|manifest.webmanifest|.*\\.(?:svg|png|jpg|jpeg|gif|webp|webm|mp3|ogg|wav|ico|webmanifest|html)$).*)",
   ],
 };
