@@ -23,6 +23,7 @@ import {
   isTestMode,
 } from "@/lib/mercadopago/client";
 import { sendSubscriptionCancelledEmail } from "@/lib/resend";
+import { getStripe, stripePriceIdFor } from "@/lib/stripe/client";
 import { isGameRegion, type GameRegion } from "@/lib/regions";
 import {
   TIER_PRICES,
@@ -72,12 +73,34 @@ export async function createSubscription(tierInput?: string): Promise<void> {
     await supabase.from("subscriptions").delete().eq("id", existing.id);
   }
 
-  if (providerForRegion(region) === "stripe") {
-    // FASE 4: Stripe Checkout Session (LATAM USD / EU EUR). Até lá, aviso claro.
-    redirect("/assinatura?error=stripe_soon");
-  }
-
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://formuladota.com";
+
+  if (providerForRegion(region) === "stripe") {
+    // LATAM (USD) / EU (EUR) — Stripe Checkout Session (mode: subscription).
+    // A linha em `subscriptions` nasce no webhook checkout.session.completed
+    // (metadata user_id+tier), não aqui — evita linha pendente órfã se o user
+    // abandonar o checkout.
+    let checkoutUrl: string | null = null;
+    try {
+      const stripe = getStripe();
+      const session = await stripe.checkout.sessions.create({
+        mode: "subscription",
+        line_items: [{ price: stripePriceIdFor(region, tier), quantity: 1 }],
+        success_url: `${siteUrl}/assinatura?success=1`,
+        cancel_url: `${siteUrl}/assinatura`,
+        customer_email: user.email ?? undefined,
+        client_reference_id: user.id,
+        subscription_data: { metadata: { user_id: user.id, tier } },
+        metadata: { user_id: user.id, tier },
+      });
+      checkoutUrl = session.url;
+    } catch (err) {
+      console.error("[subscription] stripe checkout falhou:", err);
+    }
+    // redirect() lança NEXT_REDIRECT — precisa ficar FORA do try/catch.
+    if (!checkoutUrl) redirect("/assinatura?error=payment_failed");
+    redirect(checkoutUrl);
+  }
   const price = TIER_PRICES[region][tier];
 
   const result = await createPreapproval({
@@ -135,13 +158,36 @@ export async function cancelSubscription(): Promise<void> {
   // Busca assinatura ativa do user
   const { data: subscription, error: fetchError } = await supabase
     .from("subscriptions")
-    .select("id, mp_preapproval_id, status, next_payment_date, user_id")
+    .select(
+      "id, mp_preapproval_id, status, next_payment_date, user_id, provider, stripe_customer_id"
+    )
     .eq("user_id", user.id)
     .eq("status", "authorized")
     .maybeSingle();
 
   if (fetchError || !subscription) {
     redirect("/assinatura?error=not_found");
+  }
+
+  // Stripe (LATAM/EU): gerenciar/cancelar é no Customer Portal do Stripe —
+  // cancelamento lá volta pra nós via webhook customer.subscription.updated/deleted.
+  if (subscription.provider === "stripe") {
+    if (!subscription.stripe_customer_id) {
+      redirect("/assinatura?error=invalid_state");
+    }
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://formuladota.com";
+    let portalUrl: string | null = null;
+    try {
+      const portal = await getStripe().billingPortal.sessions.create({
+        customer: subscription.stripe_customer_id,
+        return_url: `${siteUrl}/assinatura`,
+      });
+      portalUrl = portal.url;
+    } catch (err) {
+      console.error("[subscription] stripe portal falhou:", err);
+    }
+    if (!portalUrl) redirect("/assinatura?error=cancel_failed");
+    redirect(portalUrl);
   }
 
   if (!subscription.mp_preapproval_id) {

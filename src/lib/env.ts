@@ -32,6 +32,13 @@ const serverSchema = z.object({
   // Stratz GraphQL (Phase 7)
   STRATZ_API_KEY: optional,
   OPENDOTA_API_KEY: optional,
+  // Stripe (FASE 4 2026-07-04 — assinaturas LATAM USD / EU EUR; BR segue no MP)
+  STRIPE_SECRET_KEY: optional,        // sk_test_... (teste) ou sk_live_...
+  STRIPE_WEBHOOK_SECRET: optional,    // whsec_... (stripe listen local ou endpoint dashboard)
+  STRIPE_PRICE_PLUS_USD: optional,    // price_... criados por scripts/stripe-setup.ts
+  STRIPE_PRICE_PREMIUM_USD: optional,
+  STRIPE_PRICE_PLUS_EUR: optional,
+  STRIPE_PRICE_PREMIUM_EUR: optional,
   // Segredo do cron de finalização automática (pg_cron → /api/cron/finalize-matches).
   CRON_SECRET: optional,
   RESEND_API_KEY: optional,
