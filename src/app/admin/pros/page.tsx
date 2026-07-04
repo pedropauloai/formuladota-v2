@@ -12,6 +12,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getAdminProsData } from "./admin-pros-data";
 import { AdminProsMasterDetail } from "./admin-pros-master-detail";
+import { QueueRealtimeListener } from "@/components/queue/realtime-listener";
 
 export const metadata = { title: "PROs — Admin FORMULADOTA" };
 
@@ -31,5 +32,11 @@ export default async function AdminProsPage() {
 
   const initial = await getAdminProsData();
 
-  return <AdminProsMasterDetail initial={initial} />;
+  return (
+    <>
+      {/* Realtime da fila de coach — escopado (saiu do layout raiz por perf). */}
+      <QueueRealtimeListener />
+      <AdminProsMasterDetail initial={initial} />
+    </>
+  );
 }

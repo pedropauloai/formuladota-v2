@@ -4,7 +4,10 @@
 // quando algum evento (insert/update/delete) dispara. UI atualiza sem
 // precisar de revalidate periódico.
 //
-// Montado uma vez no root layout — listener compartilhado pra todas rotas.
+// ESCOPO (perf 2026-07-03): montar SÓ nas rotas que exibem a fila de coach
+// (/ranked-com-pro, /admin/pros) — NUNCA no layout raiz. No raiz, cada evento
+// de fila de QUALQUER PRO disparava router.refresh() (re-render SSR completo)
+// em TODOS os usuários online, em qualquer rota. Fan-out O(usuários × eventos).
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";

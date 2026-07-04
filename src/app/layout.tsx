@@ -19,7 +19,6 @@ import "@/styles/globals.css";
 import { SoundProvider } from "@/components/layout/sound-provider";
 // StickyQueueBanner REMOVIDO (Pedro 2026-05-26) — substituído por QueueStatusPill
 // que vive dentro da topbar (sem forçar scroll de página).
-import { QueueRealtimeListener } from "@/components/queue/realtime-listener";
 import { RealtimeAuthSync } from "@/components/client-shell/realtime-auth-sync";
 // V2.5-F6: ToastProvider — sistema de toasts bottom-center custom (DF6.4)
 // Único sistema de toast do app (sonner removido 2026-06-02 — migração completa).
@@ -136,13 +135,13 @@ export default async function RootLayout({
         {/* Fundo premium global ESTÁTICO (Pedro 2026-07-01) — substitui o preto chapado.
             Neutro de marca + mesh de luz brand + vinheta + grão. Vale pra todas as rotas. */}
         <PremiumBackdrop />
-        {/* Realtime listener (client) — sem UI, escuta changes em queue.
-            (Pílula "Na fila" foi movida pra topbar via QueueStatusPill — não
-            é mais renderizada aqui pra não forçar scroll de página.) */}
         {/* Seta o token de auth na conexão de realtime — sem isso a RLS de
             postgres_changes não entrega eventos cross-usuário (só com F5). */}
         <RealtimeAuthSync />
-        <QueueRealtimeListener />
+        {/* QueueRealtimeListener saiu do layout raiz (perf 2026-07-03): escutava
+            coach_queue_entries SEM filtro e dava router.refresh() em TODOS os
+            usuários online a cada evento de fila de QUALQUER PRO. Agora monta
+            só nas rotas que dependem da fila (/ranked-com-pro, /admin/pros). */}
         <ServiceWorkerRegister />
         {/* Pedro 2026-05-24: filosofia "tudo é client" — Header/Footer globais
             removidos (tasks #63-#68). Toda rota usa ClientShell (sistema A

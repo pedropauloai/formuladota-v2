@@ -22,6 +22,7 @@ import { getMyQueueStatus } from "@/lib/queries/queue";
 import { getPreviewModeActive } from "@/lib/auth/preview-mode";
 import { getFeatureFlags } from "@/lib/queries/feature-flags";
 import { getProCockpitData } from "@/app/pro/cockpit-data";
+import { QueueRealtimeListener } from "@/components/queue/realtime-listener";
 import { getCareerStats } from "@/lib/queries/career";
 import { getHeroById } from "@/lib/queries/heroes";
 import type { SignatureHero } from "@/components/dota/hero-video-backdrop";
@@ -138,6 +139,9 @@ export default async function RankedComProPage() {
          hideBottomBar removido 2026-05-26 — Pedro quer bottom-bar GLOBAL
          (igual mini-perfil): JOGAR DOTA aparece em todas as rotas. */
     >
+      {/* Realtime da fila de coach — escopado a esta rota (saiu do layout raiz
+          por perf: refresh global em todo evento de fila afetava o app inteiro). */}
+      <QueueRealtimeListener />
       <DashboardCenter
         persona={persona}
         viewerUserId={user.id}
