@@ -78,18 +78,22 @@ export type CreatePreapprovalInput = z.infer<typeof createPreapprovalInputSchema
 
 // Shape interno processado
 export interface MpPreapprovalData {
-  id: string;                  // mp_preapproval_id salvo no DB
-  initPoint: string;           // URL produção — redirect do user
-  sandboxInitPoint: string;    // URL sandbox — usar em TEST- mode
-  status: string;              // 'pending' inicialmente
+  id: string;                   // mp_preapproval_id salvo no DB
+  initPoint: string;            // URL produção — redirect do user
+  sandboxInitPoint?: string;    // URL sandbox — só existe em TEST- mode (ver abaixo)
+  status: string;               // 'pending' inicialmente
 }
 
-// Schema Zod para a resposta bruta da API MP /preapproval
+// Schema Zod para a resposta bruta da API MP /preapproval.
+// sandbox_init_point é OPCIONAL: a API de PRODUÇÃO (token APP_USR-) NÃO retorna
+// esse campo — só a sandbox (TEST-). Exigi-lo obrigatório fazia o preapproval
+// de produção (criado com sucesso) ser rejeitado pelo Zod → o usuário via
+// "payment_failed" mesmo com a assinatura pendente criada no MP. (Bug prod 04/07.)
 export const mpPreapprovalApiResponseSchema = z.object({
   id: z.string(),
   status: z.string(),
   init_point: z.string(),
-  sandbox_init_point: z.string(),
+  sandbox_init_point: z.string().optional(),
   next_payment_date: z.string().optional(),
   payer_email: z.string().optional(),
 });

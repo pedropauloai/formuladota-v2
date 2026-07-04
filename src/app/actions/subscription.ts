@@ -133,10 +133,11 @@ export async function createSubscription(tierInput?: string): Promise<void> {
     redirect("/planos?error=db_failed");
   }
 
-  // Usar sandbox_init_point em modo de teste (TOKEN começa com TEST-)
-  const redirectUrl = isTestMode()
-    ? result.data.sandboxInitPoint
-    : result.data.initPoint;
+  // Usar sandbox_init_point em modo de teste (TOKEN começa com TEST-). Em
+  // produção o MP não retorna sandbox_init_point → cai no init_point normal.
+  const redirectUrl =
+    (isTestMode() ? result.data.sandboxInitPoint : result.data.initPoint) ??
+    result.data.initPoint;
 
   redirect(redirectUrl);
 }

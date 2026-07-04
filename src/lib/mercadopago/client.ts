@@ -132,7 +132,12 @@ export async function createPixPayment(
 
   const validated = mpPaymentApiResponseSchema.safeParse(json);
   if (!validated.success) {
-    console.error("[mercadopago] createPixPayment resposta inesperada:", json);
+    console.error(
+      "[mercadopago] createPixPayment resposta inesperada:",
+      JSON.stringify(validated.error.flatten()),
+      "payload:",
+      json
+    );
     return { success: false, error: "Resposta inesperada do Mercado Pago." };
   }
 
@@ -211,7 +216,12 @@ export async function createPreapproval(
 
   const validated = mpPreapprovalApiResponseSchema.safeParse(json);
   if (!validated.success) {
-    console.error("[mercadopago] createPreapproval resposta inesperada:", json);
+    console.error(
+      "[mercadopago] createPreapproval resposta inesperada:",
+      JSON.stringify(validated.error.flatten()),
+      "payload:",
+      json
+    );
     return { success: false, error: "Resposta inesperada ao criar assinatura." };
   }
 
@@ -220,6 +230,7 @@ export async function createPreapproval(
     data: {
       id: validated.data.id,
       initPoint: validated.data.init_point,
+      // Só a sandbox retorna sandbox_init_point; em produção fica undefined.
       sandboxInitPoint: validated.data.sandbox_init_point,
       status: validated.data.status,
     },
@@ -279,6 +290,12 @@ export async function getPaymentDetail(paymentId: string): Promise<MpResult<MpPa
 
   const validated = mpPaymentDetailSchema.safeParse(json);
   if (!validated.success) {
+    console.error(
+      "[mercadopago] getPaymentDetail resposta inesperada:",
+      JSON.stringify(validated.error.flatten()),
+      "payload:",
+      json
+    );
     return { success: false, error: "Resposta inesperada ao buscar pagamento." };
   }
 
@@ -308,6 +325,12 @@ export async function getPreapprovalDetail(
 
   const validated = mpPreapprovalDetailSchema.safeParse(json);
   if (!validated.success) {
+    console.error(
+      "[mercadopago] getPreapprovalDetail resposta inesperada:",
+      JSON.stringify(validated.error.flatten()),
+      "payload:",
+      json
+    );
     return { success: false, error: "Resposta inesperada ao buscar assinatura." };
   }
 
@@ -337,6 +360,12 @@ export async function getAuthorizedPaymentDetail(
 
   const validated = mpAuthorizedPaymentDetailSchema.safeParse(json);
   if (!validated.success) {
+    console.error(
+      "[mercadopago] getAuthorizedPaymentDetail resposta inesperada:",
+      JSON.stringify(validated.error.flatten()),
+      "payload:",
+      json
+    );
     return { success: false, error: "Resposta inesperada ao buscar cobrança recorrente." };
   }
 
