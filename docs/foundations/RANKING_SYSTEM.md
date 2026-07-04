@@ -92,6 +92,13 @@ por um número de API atrasado. Dois caminhos ao topo — ambos provam que a cul
 ### Calibração (posicionamento)
 - Início da season: **Descalibrado** (sem medalha visível) até ~**7 placements**.
 - **Semente:** veterano = MMR pós-decay da season anterior; novo/1ª vez = medalha Valve.
+- **Semeadura NO VÍNCULO Steam (2026-07-04, migrations 126/127 + `src/lib/queries/seed-season-mmr.ts`):**
+  a semente `seedMmrFromRankTier` existia mas nunca era chamada no vínculo — 42/81
+  usuários ficavam sem linha em `player_season_mmr` e a medalha FORMULADOTA saía como
+  placeholder (Arauto). Agora o callback do Steam busca o `career` (OpenDota) e semeia a
+  season ativa; os existentes foram backfillados. O **card de aceitar partida** também
+  voltou a carregar `rank_tier`/`leaderboard_rank`/`level`/`season_mmr` nas assignments da
+  proposta (a migration 112 os tinha dropado ao reescrever `try_form_match`).
 - **K alto (~50)** durante placements → converge rápido pro nível real; cai pra **K=25**
   (estável) após calibrar. (Incerteza alta no início → converge → estabiliza.)
 - Migra a calibração de GLOBAL (hoje em `profiles`, atrelada a fichas de PT) pra
