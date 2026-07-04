@@ -3386,6 +3386,53 @@ export type Database = {
       }
     }
     Views: {
+      admin_active_users_daily: {
+        Row: {
+          active_users: number | null
+          day: string | null
+          region: string | null
+        }
+        Relationships: []
+      }
+      admin_matches_daily: {
+        Row: {
+          day: string | null
+          matches_done: number | null
+          matches_total: number | null
+          region: string | null
+        }
+        Relationships: []
+      }
+      admin_revenue_monthly: {
+        Row: {
+          amount: number | null
+          currency: string | null
+          kind: string | null
+          month: string | null
+          provider: string | null
+          region: string | null
+        }
+        Relationships: []
+      }
+      admin_signups_daily: {
+        Row: {
+          day: string | null
+          region: string | null
+          signups: number | null
+        }
+        Relationships: []
+      }
+      admin_subs_by_tier_region: {
+        Row: {
+          currency: string | null
+          mrr: number | null
+          provider: string | null
+          region: string | null
+          subscribers: number | null
+          tier: string | null
+        }
+        Relationships: []
+      }
       bot_pool_status: {
         Row: {
           bots_busy: number | null
