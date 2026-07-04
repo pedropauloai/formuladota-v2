@@ -24,8 +24,8 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-// Revalida a cada 30s — histórico de honor pode mudar
-export const revalidate = 30;
+// SEM `export const revalidate`: a rota lê cookies (auth), é dinâmica — o Next
+// ignoraria o ISR declarado (valor removido pra não enganar; perf 2026-07-03).
 
 // ---------------------------------------------------------------------------
 // Helpers

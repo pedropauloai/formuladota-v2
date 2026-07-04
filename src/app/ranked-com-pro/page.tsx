@@ -35,7 +35,8 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export const revalidate = 30;
+// SEM `export const revalidate`: a rota lê cookies (auth), é dinâmica — o Next
+// ignoraria o ISR declarado (valor removido pra não enganar; perf 2026-07-03).
 
 export default async function RankedComProPage() {
   const supabase = await createClient();

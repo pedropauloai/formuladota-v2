@@ -9,7 +9,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ExternalLink, Clock, Ban } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getCurrentUser } from "@/lib/supabase/server";
 import { ClientShell } from "@/components/client-shell/shell";
 import { MatchDetail } from "@/components/match/match-detail";
 import { CopyMatchId } from "@/components/match/copy-match-id";
@@ -75,23 +75,50 @@ export default async function HistoricoPartidaPage({
     matchUuid = resolved.match_id;
   }
 
-  // Stats de TODOS os jogadores (público) — fonte de todas as abas.
-  const { data: playersData } = await supabase
-    .from("match_players")
-    .select(PLAYER_COLS)
-    .eq("match_id", matchUuid)
-    .order("team", { ascending: true })
-    .order("player_slot", { ascending: true });
+  // Após ter o matchUuid, tudo abaixo é independente → UM Promise.all em vez
+  // de ~4 round-trips em série (players, meta, details, viewer).
+  const [
+    { data: playersData },
+    { data: matchMeta },
+    { data: details },
+    viewer,
+  ] = await Promise.all([
+    // Stats de TODOS os jogadores (público) — fonte de todas as abas.
+    supabase
+      .from("match_players")
+      .select(PLAYER_COLS)
+      .eq("match_id", matchUuid)
+      .order("team", { ascending: true })
+      .order("player_slot", { ascending: true }),
+    // Meta da partida (best-effort: público pode não enxergar `matches`).
+    supabase
+      .from("matches")
+      .select("dota_match_id, duracao_min, radiant_win, radiant_score, dire_score, enriched_at")
+      .eq("id", matchUuid)
+      .maybeSingle(),
+    // Dados de nível-partida (público) — abas Teamfights/Objetivos/Draft.
+    mdTable
+      .select("teamfights, objectives, picks_bans, mvp_user_id")
+      .eq("match_id", matchUuid)
+      .maybeSingle(),
+    // Viewer (deduplicado por React.cache — o shell reaproveita).
+    getCurrentUser(),
+  ]);
 
   const rows = (playersData ?? []) as unknown as MatchPlayerRow[];
   if (rows.length === 0) notFound();
 
-  // Meta da partida (best-effort: público pode não enxergar `matches`).
-  const { data: matchMeta } = await supabase
-    .from("matches")
-    .select("dota_match_id, duracao_min, radiant_win, radiant_score, dire_score, enriched_at")
-    .eq("id", matchUuid)
-    .maybeSingle();
+  // Viewer é admin? (mostra o botão de reprocessar OpenDota — corrige abas vazias).
+  // Dispara já e resolve junto com o bloco de identidade abaixo.
+  const viewerAdminPromise: Promise<boolean> = (async () => {
+    if (!viewer) return false;
+    const { data: vp } = await supabase
+      .from("profiles")
+      .select("is_admin")
+      .eq("id", viewer.id)
+      .maybeSingle();
+    return vp?.is_admin === true;
+  })();
 
   // Identidade dos jogadores: nick (Discord>Steam), avatar, + NÍVEL da conta e
   // MMR FormulaDota (identidade viaja com o jogador, decisão Pedro 2026-07-02).
@@ -135,13 +162,7 @@ export default async function HistoricoPartidaPage({
     }
   }
 
-  // Viewer é admin? (mostra o botão de reprocessar OpenDota — corrige abas vazias).
-  const { data: { user: viewer } } = await supabase.auth.getUser();
-  let viewerIsAdmin = false;
-  if (viewer) {
-    const { data: vp } = await supabase.from("profiles").select("is_admin").eq("id", viewer.id).maybeSingle();
-    viewerIsAdmin = vp?.is_admin === true;
-  }
+  const viewerIsAdmin = await viewerAdminPromise;
 
   const { players, advantage, wards, series } = assembleMatch(rows, identityById);
 
@@ -162,11 +183,6 @@ export default async function HistoricoPartidaPage({
     };
   });
 
-  // Dados de nível-partida (público) — abas Teamfights/Objetivos/Draft.
-  const { data: details } = await mdTable
-    .select("teamfights, objectives, picks_bans, mvp_user_id")
-    .eq("match_id", matchUuid)
-    .maybeSingle();
   const objectives = parseObjectives(details?.objectives);
   const teamfights = parseTeamfights(details?.teamfights);
   const draft = parseDraft(details?.picks_bans);
