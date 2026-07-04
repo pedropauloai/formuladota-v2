@@ -65,7 +65,7 @@ export async function createSubscription(tierInput?: string): Promise<void> {
 
   if (existing?.status === "authorized") {
     // Já tem assinatura ativa — redireciona para página com estado atual
-    redirect("/assinatura?info=already_active");
+    redirect("/planos?info=already_active");
   }
 
   if (existing?.status === "pending") {
@@ -86,8 +86,8 @@ export async function createSubscription(tierInput?: string): Promise<void> {
       const session = await stripe.checkout.sessions.create({
         mode: "subscription",
         line_items: [{ price: stripePriceIdFor(region, tier), quantity: 1 }],
-        success_url: `${siteUrl}/assinatura?success=1`,
-        cancel_url: `${siteUrl}/assinatura`,
+        success_url: `${siteUrl}/planos?success=1`,
+        cancel_url: `${siteUrl}/planos`,
         customer_email: user.email ?? undefined,
         client_reference_id: user.id,
         subscription_data: { metadata: { user_id: user.id, tier } },
@@ -98,7 +98,7 @@ export async function createSubscription(tierInput?: string): Promise<void> {
       console.error("[subscription] stripe checkout falhou:", err);
     }
     // redirect() lança NEXT_REDIRECT — precisa ficar FORA do try/catch.
-    if (!checkoutUrl) redirect("/assinatura?error=payment_failed");
+    if (!checkoutUrl) redirect("/planos?error=payment_failed");
     redirect(checkoutUrl);
   }
   const price = TIER_PRICES[region][tier];
@@ -111,11 +111,11 @@ export async function createSubscription(tierInput?: string): Promise<void> {
     payerEmail: user.email ?? "",
     externalReference: `user-${user.id}`,
     transactionAmount: price.amount,
-    backUrl: `${siteUrl}/assinatura?success=1`,
+    backUrl: `${siteUrl}/planos?success=1`,
   });
 
   if (!result.success) {
-    redirect("/assinatura?error=payment_failed");
+    redirect("/planos?error=payment_failed");
   }
 
   // Inserir no DB com status 'pending' (webhook atualiza para 'authorized').
@@ -130,7 +130,7 @@ export async function createSubscription(tierInput?: string): Promise<void> {
 
   if (insertError) {
     console.error("[subscription] insert falhou:", insertError.message);
-    redirect("/assinatura?error=db_failed");
+    redirect("/planos?error=db_failed");
   }
 
   // Usar sandbox_init_point em modo de teste (TOKEN começa com TEST-)
@@ -166,39 +166,39 @@ export async function cancelSubscription(): Promise<void> {
     .maybeSingle();
 
   if (fetchError || !subscription) {
-    redirect("/assinatura?error=not_found");
+    redirect("/planos?error=not_found");
   }
 
   // Stripe (LATAM/EU): gerenciar/cancelar é no Customer Portal do Stripe —
   // cancelamento lá volta pra nós via webhook customer.subscription.updated/deleted.
   if (subscription.provider === "stripe") {
     if (!subscription.stripe_customer_id) {
-      redirect("/assinatura?error=invalid_state");
+      redirect("/planos?error=invalid_state");
     }
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://formuladota.com";
     let portalUrl: string | null = null;
     try {
       const portal = await getStripe().billingPortal.sessions.create({
         customer: subscription.stripe_customer_id,
-        return_url: `${siteUrl}/assinatura`,
+        return_url: `${siteUrl}/planos`,
       });
       portalUrl = portal.url;
     } catch (err) {
       console.error("[subscription] stripe portal falhou:", err);
     }
-    if (!portalUrl) redirect("/assinatura?error=cancel_failed");
+    if (!portalUrl) redirect("/planos?error=cancel_failed");
     redirect(portalUrl);
   }
 
   if (!subscription.mp_preapproval_id) {
-    redirect("/assinatura?error=invalid_state");
+    redirect("/planos?error=invalid_state");
   }
 
   // 1) Cancela no Mercado Pago
   const mpResult = await cancelPreapproval(subscription.mp_preapproval_id);
   if (!mpResult.success) {
     console.error("[subscription] cancelPreapproval MP falhou:", mpResult.error);
-    redirect("/assinatura?error=cancel_failed");
+    redirect("/planos?error=cancel_failed");
   }
 
   // 2) Atualiza DB local: status=cancelled + cancelled_at=now()
@@ -219,7 +219,7 @@ export async function cancelSubscription(): Promise<void> {
   // 3) Email de cancelamento (fire-and-forget)
   void sendCancelledEmailSafely(supabase, user.id, subscription.next_payment_date);
 
-  redirect("/assinatura?cancelled=1");
+  redirect("/planos?cancelled=1");
 }
 
 // ====================================================

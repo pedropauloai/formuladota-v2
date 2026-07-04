@@ -134,7 +134,7 @@ export async function sendSubscriptionCreatedEmail(
             Bem-vindo à comunidade FormulaDota. A renovação acontece automaticamente todo mês.
           </p>
           <p style="font-size:14px;line-height:1.5;color:#71717a;margin:0">
-            Para gerenciar ou encerrar sua adesão, acesse a página /assinatura no site.
+            Para gerenciar ou encerrar sua adesão, acesse a página /planos no site.
           </p>
         `),
       },
@@ -183,7 +183,7 @@ export async function sendSubscriptionRenewalEmail(
             Próxima cobrança: <strong style="color:#f4f4f5">${nextDate}</strong>.
           </p>
           <p style="font-size:14px;line-height:1.5;color:#71717a;margin:0">
-            Para gerenciar sua adesão, acesse /assinatura no site.
+            Para gerenciar sua adesão, acesse /planos no site.
           </p>
         `),
       },
@@ -232,7 +232,7 @@ export async function sendSubscriptionCancelledEmail(
           </p>
           <p style="font-size:14px;line-height:1.5;color:#71717a;margin:0">
             Continua sendo visitante dignificado da plataforma.
-            Quando quiser voltar, é só reativar em /assinatura.
+            Quando quiser voltar, é só reativar em /planos.
           </p>
         `),
       },

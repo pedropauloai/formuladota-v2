@@ -1,19 +1,38 @@
 "use client";
 
-// Client Component para /assinatura.
-// Gerencia estado local de loading e chama Server Actions.
-// UI: paleta dark/vermelho alinhada com brand FORMULADOTA.
+// Painel FUNCIONAL de assinatura Plus/Premium — vive DENTRO da /planos
+// (rota canônica, ClientShell). Fusão da antiga /assinatura (2026-07-04):
+// 5 estados (none/pending/authorized/cancelled_active/expired), cards de
+// tier com preço pela REGIÃO de jogo e ações assinar/cancelar/reativar.
 //
-// Voz: Mestre + Guardião — calma, sem urgência fabricada, sem manipulação.
-// Filosofia: adesão = compromisso mútuo. Visitante continua dignificado.
+// Voz: Mestre + Guardião — sem urgência fabricada. Visitante não vê este
+// painel (a página mostra a vitrine + CTA de login).
 
 import { useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import { Shield, CheckCircle, XCircle, Clock, AlertCircle, Crown, Check } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Shield,
+  CheckCircle,
+  XCircle,
+  Clock,
+  AlertCircle,
+  Crown,
+  Check,
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { createSubscription, cancelSubscription, reactivateSubscription } from "@/app/actions/subscription";
+import {
+  createSubscription,
+  cancelSubscription,
+  reactivateSubscription,
+} from "@/app/actions/subscription";
 import type { GameRegion } from "@/lib/regions";
 import {
   SUBSCRIPTION_TIERS,
@@ -23,18 +42,9 @@ import {
   isSubscriptionTier,
   type SubscriptionTier,
 } from "@/lib/subscriptions/tiers";
-import type { SubscriptionState } from "./page";
+import type { SubscriptionRow, SubscriptionState } from "@/lib/subscriptions/state";
 
-interface SubscriptionRow {
-  id: string;
-  status: string;
-  started_at: string | null;
-  next_payment_date: string | null;
-  cancelled_at: string | null;
-  tier: string | null;
-}
-
-interface AssinaturaClientProps {
+interface SubscriptionPanelProps {
   state: SubscriptionState;
   subscription: SubscriptionRow | null;
   region: GameRegion;
@@ -56,12 +66,12 @@ function formatDate(iso: string | null): string {
   });
 }
 
-export function AssinaturaClient({
+export function SubscriptionPanel({
   state,
   subscription,
   region,
   queryParams,
-}: AssinaturaClientProps) {
+}: SubscriptionPanelProps) {
   const t = useTranslations("billing");
   const [loading, setLoading] = useState<"subscribe" | "cancel" | "reactivate" | null>(null);
   // Tier da assinatura existente (pra reativar no mesmo tier) — default plus.
@@ -88,57 +98,43 @@ export function AssinaturaClient({
   };
 
   return (
-    <main className="min-h-screen bg-bg-deep px-4 py-12">
-      <div className="mx-auto max-w-2xl space-y-6">
-        {/* Cabeçalho */}
-        <div className="space-y-1">
-          <h1 className="font-display text-2xl font-bold tracking-tight text-white">
-            FORMULADOTA HUB
-          </h1>
-          <p className="text-sm text-zinc-500">
-            {t("subscriptionHeaderSubtitle")}
-          </p>
+    <div className="mx-auto max-w-5xl space-y-6">
+      {/* Banner de feedback pós-ação (retorno do MP/Stripe) */}
+      {queryParams.success && (
+        <div className="flex items-center gap-3 rounded-lg border border-green-800/40 bg-green-950/30 px-4 py-3 text-sm text-green-400">
+          <CheckCircle className="size-4 shrink-0" />
+          {t("bannerSuccess")}
         </div>
+      )}
+      {queryParams.cancelled && (
+        <div className="flex items-center gap-3 rounded-lg border border-zinc-700/40 bg-zinc-900/30 px-4 py-3 text-sm text-zinc-400">
+          <XCircle className="size-4 shrink-0" />
+          {t("bannerCancelled")}
+        </div>
+      )}
+      {queryParams.error && <ErrorBanner code={queryParams.error} />}
+      {queryParams.info === "already_active" && (
+        <div className="flex items-center gap-3 rounded-lg border border-zinc-700/40 bg-zinc-900/30 px-4 py-3 text-sm text-zinc-400">
+          <AlertCircle className="size-4 shrink-0" />
+          {t("bannerAlreadyActive")}
+        </div>
+      )}
 
-        {/* Banner de feedback pós-ação */}
-        {queryParams.success && (
-          <div className="flex items-center gap-3 rounded-lg border border-green-800/40 bg-green-950/30 px-4 py-3 text-sm text-green-400">
-            <CheckCircle className="size-4 shrink-0" />
-            {t("bannerSuccess")}
-          </div>
-        )}
-        {queryParams.cancelled && (
-          <div className="flex items-center gap-3 rounded-lg border border-zinc-700/40 bg-zinc-900/30 px-4 py-3 text-sm text-zinc-400">
-            <XCircle className="size-4 shrink-0" />
-            {t("bannerCancelled")}
-          </div>
-        )}
-        {queryParams.error && (
-          <ErrorBanner code={queryParams.error} />
-        )}
-        {queryParams.info === "already_active" && (
-          <div className="flex items-center gap-3 rounded-lg border border-zinc-700/40 bg-zinc-900/30 px-4 py-3 text-sm text-zinc-400">
-            <AlertCircle className="size-4 shrink-0" />
-            {t("bannerAlreadyActive")}
-          </div>
-        )}
-
-        {/* Sem assinatura (ou expirada): grade dos 2 tiers com preço da região.
-            Demais estados: card único de status. */}
-        {state === "none" || state === "expired" ? (
-          <TierGrid region={region} loading={loading} onSubscribe={handleSubscribe} />
-        ) : (
-          <SubscriptionStateCard
-            state={state}
-            subscription={subscription}
-            currentTier={currentTier}
-            loading={loading}
-            onCancel={handleCancel}
-            onReactivate={handleReactivate}
-          />
-        )}
-      </div>
-    </main>
+      {/* Sem assinatura (ou expirada): grade dos 2 tiers com preço da região.
+          Demais estados: card único de status. */}
+      {state === "none" || state === "expired" ? (
+        <TierGrid region={region} loading={loading} onSubscribe={handleSubscribe} />
+      ) : (
+        <SubscriptionStateCard
+          state={state}
+          subscription={subscription}
+          currentTier={currentTier}
+          loading={loading}
+          onCancel={handleCancel}
+          onReactivate={handleReactivate}
+        />
+      )}
+    </div>
   );
 }
 
@@ -215,7 +211,7 @@ function TierGrid({
 }
 
 // ====================================================
-// Sub-componente: Card principal de estado
+// Card único de estado (pending / authorized / cancelled_active)
 // ====================================================
 
 interface StateCardProps {
@@ -251,9 +247,7 @@ function SubscriptionStateCard({
               {t("pendingBadge")}
             </Badge>
           </div>
-          <CardDescription>
-            {t("pendingDescription")}
-          </CardDescription>
+          <CardDescription>{t("pendingDescription")}</CardDescription>
         </CardHeader>
         <CardContent>
           <Button
@@ -329,7 +323,7 @@ function SubscriptionStateCard({
     );
   }
 
-  // cancelled_active — adesão encerrada mas acesso ainda válido até next_payment_date
+  // cancelled_active — encerrada mas acesso ainda válido até next_payment_date
   return (
     <Card className="border-zinc-800 bg-bg-base">
       <CardHeader>
@@ -359,16 +353,14 @@ function SubscriptionStateCard({
         >
           {loading === "reactivate" ? t("redirecting") : t("reactivateCta")}
         </Button>
-        <p className="mt-3 text-center text-sm text-zinc-600">
-          {t("reactivateNote")}
-        </p>
+        <p className="mt-3 text-center text-sm text-zinc-600">{t("reactivateNote")}</p>
       </CardContent>
     </Card>
   );
 }
 
 // ====================================================
-// Sub-componente: Banner de erro
+// Banner de erro
 // ====================================================
 
 function ErrorBanner({ code }: { code: string }) {

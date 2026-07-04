@@ -37,6 +37,7 @@ const PUBLIC_PATHS = [
   "/torneios", // leitura pública: browse de torneios + brackets (ações pedem login)
   "/coaches", // /coaches/[slug] — perfis públicos de PROs
   "/planos", // vitrine dos planos de assinatura (Compendium) — conversão
+  "/assinatura", // redirect legado → /planos; público pra back_urls antigos do MP chegarem lá
   "/sitemap.xml", // SEO — rotas Next (app/sitemap.ts e app/robots.ts); gatear
   "/robots.txt", //  redirecionaria o crawler pra home e mataria a indexação
 ];
@@ -62,6 +63,8 @@ const BLOCKED_STATUS_PATHS = ["/suspended", "/banned"];
 // "user já vinculado em /vincular/steam → /perfil" é feita separadamente.
 // Nota (Pedro 2026-06-03): "/lobbies" saiu daqui — NAVEGAR salas é livre pra logado
 // (vitrine). Criar lobby (/criar-lobby) ainda exige Steam (o bot precisa convidar).
+// "/assinatura" saiu (2026-07-04): virou redirect permanente pra /planos
+// (pública) — gateá-la mandava retornos de pagamento pro /vincular/steam.
 const STEAM_REQUIRED_PATHS = [
   "/pacotes",
   "/checkout",
@@ -69,7 +72,6 @@ const STEAM_REQUIRED_PATHS = [
   "/perfil",
   "/me",
   "/dashboard",
-  "/assinatura",
   "/criar-lobby",
   "/ranking",
   "/admin",

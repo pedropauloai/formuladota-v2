@@ -49,6 +49,9 @@ conveniência, cosmético e acesso. A cultura é o produto.
 
 ## Provedores de pagamento
 
+- **Rota canônica de planos/assinatura = `/planos`** (dentro do ClientShell —
+  filosofia "tudo é client" 2026-05-24). `/assinatura` é redirect permanente de
+  compat (back_urls antigos do MP). Slugs: `/planos` | `/plans` | `/planes`.
 - **BR → Mercado Pago** (Pix Automático/preapproval, webhook validado em produção).
 - **LATAM/EU → Stripe** (Checkout Session + Customer Portal + webhook
   `/api/webhooks/stripe`). Setup one-off: `scripts/stripe-setup.ts`.

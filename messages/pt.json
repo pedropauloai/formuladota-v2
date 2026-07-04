@@ -48,7 +48,8 @@
       "criarSalas": "Criar salas sem limite",
       "seloGodlike": "Selo Godlike no perfil",
       "acessoAntecipado": "Acesso antecipado a novidades"
-    }
+    },
+    "loginToSubscribe": "Entrar com Discord pra assinar"
   },
   "compendium": {
     "metaTitle": "Compendium",

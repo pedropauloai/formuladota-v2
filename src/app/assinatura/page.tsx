@@ -1,116 +1,23 @@
-// /assinatura — Status e gerenciamento da adesão à comunidade FormulaDota.
-// Server Component: lê estado atual da subscription do DB.
-// Client Component (assinatura-client.tsx): botões com Server Actions.
+// /assinatura → /planos (redirect PERMANENTE de compatibilidade).
 //
-// Filosofia: adesão = compromisso mútuo (você + plataforma).
-// NÃO é paywall hostil — visitante continua dignificado sem adesão.
-//
-// 4 estados visuais:
-//   A) Sem adesão (visitante) — convite sem pressão, CTA "Adira quando estiver pronto"
-//   B) Pending — aguardando autorização Pix Automático
-//   C) Authorized — adesão ativa, renovação automática
-//   D) Cancelled + within period — encerrada mas acesso mantido até data
-//   E) Cancelled+expirado / sem subscription — visitante dignificado + CTA reativar
+// Fusão 2026-07-04: /assinatura duplicava a vitrine /planos FORA do
+// ClientShell (violação da filosofia "tudo é client", 2026-05-24). A rota
+// canônica é /planos. Este redirect fica porque assinaturas MP PENDENTES
+// antigas têm back_url apontando pra /assinatura?success=1 — preservamos os
+// query params (?success/?cancelled/?error/?info) no repasse.
 
-import type { Metadata } from "next";
-import { redirect } from "next/navigation";
-import { getTranslations } from "next-intl/server";
-import { createClient } from "@/lib/supabase/server";
-import { isGameRegion, type GameRegion } from "@/lib/regions";
-import { AssinaturaClient } from "./assinatura-client";
+import { permanentRedirect } from "next/navigation";
 
-export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations("billing");
-  return {
-    title: t("subscriptionMetaTitle"),
-    description: t("subscriptionMetaDescription"),
-  };
-}
-
-// Tipo mínimo da subscription para evitar over-fetch
-interface SubscriptionRow {
-  id: string;
-  status: string;
-  started_at: string | null;
-  next_payment_date: string | null;
-  cancelled_at: string | null;
-  tier: string | null;
-}
-
-export default async function AssinaturaPage({
+export default async function AssinaturaRedirect({
   searchParams,
 }: {
-  searchParams: Promise<{ success?: string; cancelled?: string; error?: string; info?: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) redirect("/login");
-
   const params = await searchParams;
-
-  // Assinatura mais recente + região do perfil (define moeda/provedor) em paralelo.
-  const [{ data: subscription, error }, { data: prof }] = await Promise.all([
-    supabase
-      .from("subscriptions")
-      .select("id, status, started_at, next_payment_date, cancelled_at, tier")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle(),
-    supabase.from("profiles").select("region").eq("id", user.id).maybeSingle(),
-  ]);
-
-  if (error) {
-    console.error("[/assinatura] erro ao buscar subscription:", error.message);
+  const qs = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (typeof value === "string") qs.set(key, value);
   }
-
-  const region: GameRegion = isGameRegion(prof?.region) ? prof.region : "BR";
-
-  // Determina estado visual
-  const state = resolveSubscriptionState((subscription as SubscriptionRow | null) ?? null);
-
-  return (
-    <AssinaturaClient
-      state={state}
-      subscription={subscription as SubscriptionRow | null}
-      region={region}
-      queryParams={{
-        success: params.success === "1",
-        cancelled: params.cancelled === "1",
-        error: params.error,
-        info: params.info,
-      }}
-    />
-  );
-}
-
-// Estado derivado para o Client Component — evita lógica de datas no client
-export type SubscriptionState =
-  | "none"            // Nunca assinou
-  | "pending"         // Preapproval criado, aguardando autorização MP
-  | "authorized"      // Ativa
-  | "cancelled_active" // Cancelada mas next_payment_date no futuro
-  | "expired";        // Cancelada/paused e expirada, ou null
-
-function resolveSubscriptionState(
-  subscription: SubscriptionRow | null
-): SubscriptionState {
-  if (!subscription) return "none";
-
-  if (subscription.status === "authorized") return "authorized";
-
-  if (subscription.status === "pending") return "pending";
-
-  if (
-    (subscription.status === "cancelled" || subscription.status === "paused") &&
-    subscription.next_payment_date &&
-    new Date(subscription.next_payment_date) > new Date()
-  ) {
-    return "cancelled_active";
-  }
-
-  return "expired";
+  const suffix = qs.size > 0 ? `?${qs.toString()}` : "";
+  permanentRedirect(`/planos${suffix}`);
 }

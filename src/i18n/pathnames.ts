@@ -23,7 +23,10 @@ export const SEGMENT_PT_TO_EN: Record<string, string> = {
   perfil: "profile",
   "criar-lobby": "create-lobby",
   partidas: "matches",
+  // /assinatura é REDIRECT legado pra /planos (fusão 2026-07-04) — o slug fica
+  // pra URLs antigas internalizarem e caírem no redirect.
   assinatura: "subscription",
+  planos: "plans",
   pacotes: "packages",
   doutrina: "doctrine",
   vincular: "link",
@@ -39,7 +42,8 @@ export const SEGMENT_PT_TO_ES: Record<string, string> = {
   perfil: "perfil",
   "criar-lobby": "crear-lobby",
   partidas: "partidas",
-  assinatura: "suscripcion",
+  assinatura: "suscripcion", // legado → redirect /planos
+  planos: "planes",
   pacotes: "paquetes",
   doutrina: "doctrina",
   vincular: "vincular",

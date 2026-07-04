@@ -48,7 +48,8 @@
       "criarSalas": "Unlimited room creation",
       "seloGodlike": "Godlike badge on profile",
       "acessoAntecipado": "Early access to new features"
-    }
+    },
+    "loginToSubscribe": "Sign in with Discord to subscribe"
   },
   "compendium": {
     "metaTitle": "Compendium",
