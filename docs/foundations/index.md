@@ -8,6 +8,7 @@
 ## Produto e posicionamento
 
 - [PHILOSOPHY.md](PHILOSOPHY.md) — Os 14 pilares filosóficos e a razão de existência do FORMULADOTA.
+- [INTERNATIONAL.md](INTERNATIONAL.md) — 3 regiões de jogo (BR/LATAM/EU, filas nunca se misturam), 3 idiomas (pt/en/es), tiers Plus/Premium, MP+Stripe. *Novo 2026-07-04.*
 - [POSITIONING.md](POSITIONING.md) — FormulaDota é cultura que usa Dota como terreno; público = jogadores que ainda se importam.
 - [PRODUCT_CORE.md](PRODUCT_CORE.md) — Identidade de marca (Mestre + Guardião), voz, hierarquia de feedback de eventos (HONOR e SKILL).
 
