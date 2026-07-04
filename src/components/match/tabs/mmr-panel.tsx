@@ -13,17 +13,19 @@ import { Loader2, TrendingUp, TrendingDown, Scale, Crown } from "lucide-react";
 import { getMatchMmrState, type MmrState, type MmrPlayerBreakdown } from "@/app/partida/mmr-actions";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
+import { RoleBadge } from "@/components/match/match-scoreboard";
 import { SocialIconsRow } from "@/components/profile/social-icons-row";
 import { mmrToDotaRank } from "@/components/queue/queue-helpers";
 import { mmrToTier } from "@/lib/mmr";
 
-// Rótulos legíveis dos componentes do perfScore (espelham PERF_COMPONENTS).
+// Rótulos legíveis dos componentes do perfScore (espelham PERF_PROFILES v3).
 const COMPONENT_LABEL: Record<string, string> = {
   teamfight_participation: "Presença em teamfight",
   hero_damage_per_min: "Dano a heróis",
   tower_damage: "Dano a torres",
   hero_healing_per_min: "Cura",
-  stuns_per_min: "Controle (stuns)",
+  stuns: "Controle (stuns)",
+  wards: "Visão (wards)",
   gold_per_min: "Economia (farm)",
 };
 
@@ -223,8 +225,10 @@ function PlayerCard({ p, pending, isMvp }: { p: MmrPlayerBreakdown; pending: boo
               </span>
             )}
           </p>
-          <p className="truncate font-display text-xs text-text-faded">
-            {p.heroName ?? "—"} · {p.won ? "Vitória" : "Derrota"}
+          {/* Herói + função (core/sup). W/L removido (redundante — já em outros lugares). */}
+          <p className="flex items-center gap-1.5 truncate font-display text-xs text-text-faded">
+            <RoleBadge role={p.role} />
+            {p.heroName ?? "—"}
           </p>
           {p.socialLinks && (
             <SocialIconsRow links={p.socialLinks} onlyLinked size={12} className="mt-1 flex items-center gap-2" />

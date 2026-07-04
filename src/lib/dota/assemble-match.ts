@@ -24,6 +24,7 @@ import {
 } from "@/lib/dota/match-build";
 import { parsePlayerWards, type Ward } from "@/lib/dota/match-vision";
 import { type PlayerSeries, colorFor } from "@/lib/dota/match-series";
+import { assignRolesByNetWorth } from "@/lib/mmr";
 
 export interface MatchPlayerRow {
   user_id: string | null;
@@ -91,6 +92,11 @@ export function assembleMatch(
   const radiantUnits = unitMap(rows, "radiant");
   const direUnits = unitMap(rows, "dire");
 
+  // Função por net worth (mesma detecção do perf score): os 2 menores de cada
+  // time = suporte. Injetada no view-model pra as abas exibirem o perfil de avaliação.
+  const roles = assignRolesByNetWorth(rows.map((r) => ({ team: r.team, netWorth: r.net_worth })));
+  const roleByIndex = new Map(rows.map((r, i) => [r, roles[i] ?? "core"] as const));
+
   const wards: Ward[] = [];
   const series: PlayerSeries[] = [];
 
@@ -129,6 +135,7 @@ export function assembleMatch(
       level: r.level, // nível do herói na partida
       accountLevel: id?.level ?? 1, // nível da conta (identidade)
       mmr: id?.mmr ?? null, // MMR FormulaDota (identidade)
+      role: roleByIndex.get(r) ?? "core", // função (core/support) por net worth
       kills: r.kills,
       deaths: r.deaths,
       assists: r.assists,

@@ -10,7 +10,7 @@ import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { UserHoverCard } from "@/components/profile/user-hover-card";
 import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
 import { mmrToDotaRank } from "@/components/queue/queue-helpers";
-import { mmrToTier } from "@/lib/mmr";
+import { mmrToTier, type PlayerRole } from "@/lib/mmr";
 
 export interface ScoreboardPlayer {
   userId: string | null;
@@ -25,6 +25,8 @@ export interface ScoreboardPlayer {
   accountLevel: number;
   /** MMR FormulaDota da temporada (identidade). null = sem MMR ainda. */
   mmr: number | null;
+  /** Função detectada por net worth (core/support) — perfil de avaliação do perf. */
+  role: PlayerRole;
   kills: number;
   deaths: number;
   assists: number;
@@ -36,7 +38,7 @@ export interface ScoreboardPlayer {
   heroDamage: number;
   towerDamage: number;
   heroHealing: number;
-  /** Participação em teamfights (0..1) — coluna CA. */
+  /** Participação em teamfights (0..1) — coluna "Lutas %". */
   teamfightPct: number | null;
   /** Delta de MMR desta partida (+/-). null = não ranqueado (ex.: pré-temporada). */
   mmrChange: number | null;
@@ -92,13 +94,39 @@ function ItemRow({ inventory, neutral }: { inventory: number[]; neutral: number 
 }
 
 // Cabeçalho de coluna — uppercase condensado, alinhado à direita pros números.
-function Th({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+// `title` vira tooltip nativo (ex.: "Lutas %" explica que é participação em teamfight).
+function Th({
+  children,
+  className = "",
+  title,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  title?: string;
+}) {
   return (
     <th
-      className={`px-2 py-2 text-right font-display text-[0.65rem] font-bold uppercase tracking-wide text-text-faded ${className}`}
+      title={title}
+      className={`px-2 py-2 text-right font-display text-[0.65rem] font-bold uppercase tracking-wide text-text-faded ${title ? "cursor-help" : ""} ${className}`}
     >
       {children}
     </th>
+  );
+}
+
+// Badge de FUNÇÃO (core/support) — detectada por net worth. Transparência: mostra
+// por qual perfil o jogador foi avaliado no perf score.
+export function RoleBadge({ role, className = "" }: { role: PlayerRole; className?: string }) {
+  const isSup = role === "support";
+  return (
+    <span
+      title={isSup ? "Suporte (pos 4/5) — avaliado no perfil de suporte" : "Core (pos 1/2/3) — avaliado no perfil de core"}
+      className={`inline-flex shrink-0 items-center rounded-sm px-1 py-0.5 font-display text-[0.55rem] font-bold uppercase tracking-wide ${
+        isSup ? "bg-brand-primary/15 text-brand-primary" : "bg-gold/15 text-gold"
+      } ${className}`}
+    >
+      {isSup ? "Sup" : "Core"}
+    </span>
   );
 }
 
@@ -157,11 +185,12 @@ function PlayerCell({ p, isMvp = false }: { p: ScoreboardPlayer; isMvp?: boolean
             </span>
           )}
         </span>
-        {/* Herói + MMR FormulaDota (identidade). */}
-        <span className="block truncate font-display text-[0.7rem] uppercase tracking-wide text-text-muted">
+        {/* Herói + função (core/sup) + MMR FormulaDota (identidade). */}
+        <span className="flex items-center gap-1.5 truncate font-display text-[0.7rem] uppercase tracking-wide text-text-muted">
+          <RoleBadge role={p.role} />
           {p.heroName}
           {p.mmr != null && (
-            <span className="ml-1.5 text-gold tabular-nums">{p.mmr} MMR</span>
+            <span className="ml-0.5 text-gold tabular-nums">{p.mmr} MMR</span>
           )}
         </span>
       </span>
@@ -266,7 +295,9 @@ function TeamTable({
               </th>
               <Th>K / D / A</Th>
               <Th>MMR</Th>
-              <Th>CA</Th>
+              <Th title="Participação em teamfights (métrica de maior peso do perf score)">
+                Lutas %
+              </Th>
               <Th>LH / DN</Th>
               <Th>GPM</Th>
               <Th>XPM</Th>

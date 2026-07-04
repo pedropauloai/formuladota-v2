@@ -40,6 +40,8 @@ export interface MmrPlayerBreakdown {
   heroImage: string | null;
   team: "radiant" | "dire";
   won: boolean;
+  /** Função detectada por net worth (core/support) — perfil de avaliação do perf. */
+  role: PlayerRole;
   /** Delta final gravado (autoritativo). null = ainda não aplicado. */
   delta: number | null;
   /** Score de desempenho 0..1 (recomputado dos dados da partida). */
@@ -182,6 +184,7 @@ export async function getMatchMmrState(dotaMatchId: string): Promise<MmrState> {
       heroImage: hero?.image_icon ?? null,
       team: p.team as "radiant" | "dire",
       won: Boolean(p.is_winner),
+      role,
       delta: typeof p.mmr_change === "number" ? p.mmr_change : null,
       perfScore,
       perfBonus,

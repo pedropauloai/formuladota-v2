@@ -4,6 +4,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { PlayerFull } from "@/lib/dota/match-stats";
+import { RoleBadge } from "@/components/match/match-scoreboard";
 
 export function fmtK(n: number): string {
   if (Math.abs(n) >= 1000) return `${(n / 1000).toFixed(1)}k`;
@@ -41,6 +42,7 @@ export function PlayerLabel({ p }: { p: PlayerFull }) {
         <span className="size-6 shrink-0 rounded-sm bg-bg-elevated" aria-hidden="true" />
       )}
       <span className="min-w-0 truncate font-body text-sm text-text-display">{p.name}</span>
+      <RoleBadge role={p.role} className="ml-0.5" />
     </span>
   );
   if (p.profileHref) {

@@ -53,19 +53,22 @@ export function BenchmarksPanel({ players }: { players: PlayerFull[] }) {
   const { radiant, dire } = splitTeams(players);
   return (
     <div className="space-y-5">
-      {(["radiant", "dire"] as const).map((team) => {
-        const list = team === "radiant" ? radiant : dire;
-        return (
-          <div key={team}>
-            <TeamHeader team={team} />
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-              {list.map((p, i) => (
-                <PlayerBench key={p.userId ?? `${team}-${i}`} p={p} />
-              ))}
+      {/* Espelha a aba MMR: Iluminados (Radiant) à esquerda, Temidos (Dire) à direita. */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {(["radiant", "dire"] as const).map((team) => {
+          const list = team === "radiant" ? radiant : dire;
+          return (
+            <div key={team}>
+              <TeamHeader team={team} />
+              <div className="space-y-3">
+                {list.map((p, i) => (
+                  <PlayerBench key={p.userId ?? `${team}-${i}`} p={p} />
+                ))}
+              </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
       <p className="font-body text-xs text-text-faded">
         Percentil = posição da métrica vs a base de partidas do OpenDota (100 = melhor).
       </p>
