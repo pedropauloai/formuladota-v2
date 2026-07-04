@@ -85,8 +85,22 @@ export class OpenDotaError extends Error {
  * Busca dados crus de uma partida na OpenDota.
  * Aceita matchId em qualquer formato (string ou number).
  */
+/**
+ * Garante que o match id é só dígitos antes de interpolar na URL da OpenDota.
+ * Fecha injeção de path/parâmetro (ex.: "123/../players/x", "1?api_key=") caso
+ * um caller passe input não validado. (Auditoria de segurança 2026-07-03)
+ */
+function assertNumericMatchId(matchId: string | number): string {
+  const id = String(matchId);
+  if (!/^\d+$/.test(id)) {
+    throw new OpenDotaError(`match id inválido (esperado só dígitos): ${id}`);
+  }
+  return id;
+}
+
 export async function fetchOpenDotaMatch(matchId: string | number): Promise<OpenDotaMatch> {
-  const url = `${OPENDOTA_BASE}/matches/${matchId}`;
+  const safeId = assertNumericMatchId(matchId);
+  const url = `${OPENDOTA_BASE}/matches/${safeId}`;
   const res = await fetch(url, {
     headers: { "Accept": "application/json" },
     // Forçar SSR sem cache do Next pra dados frescos
@@ -195,7 +209,8 @@ export async function validateOpendotaMatch(
   requireRanked: boolean = true
 ): Promise<ValidateMatchResult> {
   try {
-    const res = await fetch(`${OPENDOTA_BASE}/matches/${matchId}`, {
+    const safeId = assertNumericMatchId(matchId);
+    const res = await fetch(`${OPENDOTA_BASE}/matches/${safeId}`, {
       next: { revalidate: 0 }, // nunca cachear — precisa dados frescos
     });
 
@@ -307,7 +322,8 @@ export function isMatchParsed(match: OpenDotaMatch): boolean {
  */
 export async function requestOpenDotaParse(matchId: string | number): Promise<boolean> {
   try {
-    const res = await fetch(`${OPENDOTA_BASE}/request/${matchId}`, {
+    const safeId = assertNumericMatchId(matchId);
+    const res = await fetch(`${OPENDOTA_BASE}/request/${safeId}`, {
       method: "POST",
       headers: { Accept: "application/json" },
       cache: "no-store",

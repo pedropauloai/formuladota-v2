@@ -46,7 +46,7 @@
 - `EMAIL_FROM=onboarding@resend.dev` (placeholder Resend) até DNS ser configurado no AWS Route 53
 
 ### 6. OpenDota
-- API key **Premium ativa**: `a2bf5a74-61c9-4fb8-99e0-c7cf84e0604e`
+- API key **Premium ativa**: `<REDIGIDA na auditoria 2026-07-03>` (estava em texto claro e versionada no git — **ROTACIONAR** no dashboard OpenDota; o valor real vive só em `.env.local`)
 - Billing: $0.01/100 calls, sem rate limits, ciclo termina 31/05/2026 (Visa configurado)
 - Pode usar livremente em `lib/opendota.ts` quando implementar análise de match histórico
 

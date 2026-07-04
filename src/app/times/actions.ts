@@ -235,6 +235,23 @@ export async function kickMember(input: {
 export async function deleteTeam(teamId: string): Promise<TeamResult> {
   const t = await getTranslations("times");
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: t("errNotAuthenticated") };
+
+  // Auditoria 2026-07-03: confirma no código que o chamador é o capitão do time.
+  // Antes o DELETE dependia só da RLS (teams_delete_captain) e, sem linhas
+  // afetadas, retornava "sucesso" silencioso. RLS segue como segunda camada.
+  const { data: team } = await supabase
+    .from("teams")
+    .select("captain_id")
+    .eq("id", teamId)
+    .single();
+  if (!team || team.captain_id !== user.id) {
+    return { success: false, error: t("errDeleteTeam") };
+  }
+
   const { error } = await supabase.from("teams").delete().eq("id", teamId);
 
   if (error) {

@@ -10,6 +10,7 @@
 // job pg_cron, que lê do Supabase Vault). Sem segredo válido → 401.
 
 import { NextResponse } from "next/server";
+import { timingSafeEqual } from "node:crypto";
 import { requireServerEnv } from "@/lib/env";
 import { createServiceClient } from "@/lib/supabase/service";
 import { fetchOpenDotaMatch } from "@/lib/dota/opendota";
@@ -23,10 +24,20 @@ export const maxDuration = 60;
 // Trava de segurança: no máximo N lobbies por invocação (evita rodada longa demais).
 const MAX_PER_RUN = 10;
 
+/** Comparação em tempo constante de segredos (consistente com o resto do código). */
+function safeEqualSecret(a: string, b: string): boolean {
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.length !== bufB.length) return false;
+  return timingSafeEqual(bufA, bufB);
+}
+
 export async function POST(req: Request) {
   const expected = requireServerEnv("CRON_SECRET");
-  const auth = req.headers.get("authorization");
-  if (auth !== `Bearer ${expected}`) {
+  const authHeader = req.headers.get("authorization") ?? "";
+  const presented = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+  // Auditoria 2026-07-03: comparação em tempo constante (antes era `!==` direto).
+  if (!safeEqualSecret(presented, expected)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
