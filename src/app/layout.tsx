@@ -40,6 +40,8 @@ import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
 // PWA: registra o service worker (instalável + offline básico).
 import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
+// Vercel Speed Insights — real user performance monitoring (Web Vitals).
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 const siteTitle = "FORMULADOTA — HUB Dota 2 Brasil";
@@ -138,6 +140,7 @@ export default async function RootLayout({
         <RealtimeAuthSync />
         <QueueRealtimeListener />
         <ServiceWorkerRegister />
+        <SpeedInsights />
         {/* Pedro 2026-05-24: filosofia "tudo é client" — Header/Footer globais
             removidos (tasks #63-#68). Toda rota usa ClientShell (sistema A
             canônico — 3-col Dota 2 client real) ou é fullscreen splash (gates
