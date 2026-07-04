@@ -5,6 +5,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { getHeroBySlug } from "@/lib/queries/heroes";
+import type { SocialLinks } from "@/components/profile/social-icons-row";
 
 export type FriendStatus = "none" | "pending" | "friends" | "blocked" | "self";
 
@@ -35,6 +36,13 @@ export interface PublicMiniProfile {
   lastSeenAt: string | null;
   favoriteHeroes: PublicHeroRef[];
   friendStatus: FriendStatus;
+  /** MVPs + partidas na temporada ativa (destaque do hover). */
+  seasonMvps: number;
+  seasonMatches: number;
+  /** Posição predominante 1-5 (moda do rank de net worth). null = sem partidas. */
+  predominantPos: number | null;
+  /** Redes sociais vinculadas (ícones no hover). */
+  socialLinks: SocialLinks;
 }
 
 const STATUSES: FriendStatus[] = ["none", "pending", "friends", "blocked", "self"];
@@ -72,5 +80,10 @@ export async function getPublicMiniProfile(
       .slice(0, 3)
       .map((h) => ({ slug: h.slug, namePt: h.name_pt, portraitUrl: h.portrait_url })),
     friendStatus,
+    // Campos novos (migration 129) — tipos gerados podem estar defasados → cast.
+    seasonMvps: (r as { season_mvps?: number }).season_mvps ?? 0,
+    seasonMatches: (r as { season_matches?: number }).season_matches ?? 0,
+    predominantPos: (r as { predominant_pos?: number | null }).predominant_pos ?? null,
+    socialLinks: ((r as { social_links?: SocialLinks }).social_links ?? {}) as SocialLinks,
   };
 }

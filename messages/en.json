@@ -442,7 +442,8 @@
     "backToRanking": "← Back to ranking",
     "emptyTitle": "Season is just starting",
     "emptyDescription": "No official matches yet. Be one of the first — activate your subscription and create a lobby.",
-    "regionSelector": "Leaderboard region"
+    "regionSelector": "Leaderboard region",
+    "statMvps": "MVPs"
   },
   "meta": {
     "metaTitle": "Hero Meta — FORMULADOTA",
@@ -690,7 +691,8 @@
     "ratingAria": "Rating {rating} of 5",
     "strengths": "Strengths",
     "improvements": "To improve",
-    "immortalRankTitle": "#{position} on the season Immortal leaderboard"
+    "immortalRankTitle": "#{position} on the season Immortal leaderboard",
+    "statMvps": "MVPs"
   },
   "lobbies": {
     "browserTitle": "Dota Lobbies",

@@ -55,6 +55,8 @@ interface RankRow {
   vitorias: number;
   derrotas: number;
   partidas_total: number;
+  /** MVPs na temporada (match_details.mvp_user_id agregado). */
+  mvps: number;
   /** Redes sociais VINCULADAS (só as configuradas) — vitrine do jogador. */
   socialLinks?: SocialLinks;
 }
@@ -116,7 +118,7 @@ export default async function RankingPage(props: {
   // paralelo com a lista paginada mais abaixo (Promise.all).
   let top3Query = supabase
     .from("player_season_mmr")
-    .select("user_id, mmr, vitorias, derrotas, partidas_total")
+    .select("user_id, mmr, vitorias, derrotas, partidas_total, mvps")
     .eq("season_id", season.id)
     .eq("region", region)
     .order("mmr", { ascending: false })
@@ -127,7 +129,7 @@ export default async function RankingPage(props: {
   const offset = (page - 1) * PAGE_SIZE;
   let listQuery = supabase
     .from("player_season_mmr")
-    .select("user_id, mmr, vitorias, derrotas, partidas_total")
+    .select("user_id, mmr, vitorias, derrotas, partidas_total, mvps")
     .eq("season_id", season.id)
     .eq("region", region)
     .order("mmr", { ascending: false })
@@ -164,7 +166,7 @@ export default async function RankingPage(props: {
     }
     listQuery = supabase
       .from("player_season_mmr")
-      .select("user_id, mmr, vitorias, derrotas, partidas_total")
+      .select("user_id, mmr, vitorias, derrotas, partidas_total, mvps")
       .eq("season_id", season.id)
       .eq("region", region)
       .in("user_id", matchIds)
@@ -174,7 +176,7 @@ export default async function RankingPage(props: {
   if (banFilter) listQuery = listQuery.not("user_id", "in", banFilter);
   // Top 3 + lista em paralelo (as duas queries são independentes).
   const [{ data: top3 }, { data: list }] = await Promise.all([top3Query, listQuery]);
-  const rows: { user_id: string; mmr: number; vitorias: number; derrotas: number; partidas_total: number }[] =
+  const rows: { user_id: string; mmr: number; vitorias: number; derrotas: number; partidas_total: number; mvps: number }[] =
     list ?? [];
   const top3List: typeof rows = top3 ?? [];
 
@@ -390,7 +392,7 @@ function TopCard({ row, position }: { row: RankRow; position: number }) {
             </p>
           </div>
         </UserHoverCard>
-        <div className="flex items-center justify-between border-t border-border-subtle pt-3">
+        <div className="flex flex-col gap-3 border-t border-border-subtle pt-3">
           {/* Vitrine: só redes vinculadas (sem placeholders). */}
           <SocialIconsRow
             links={row.socialLinks}
@@ -398,9 +400,8 @@ function TopCard({ row, position }: { row: RankRow; position: number }) {
             size={16}
             className="flex items-center gap-2.5"
           />
-          <span className="font-display text-sm 2xl:text-base font-semibold text-text-body">
-            {t("winLoss", { wins: row.vitorias, losses: row.derrotas })}
-          </span>
+          {/* Pódio mostra as MESMAS stats da linha (Pedro 2026-07-04) — antes só V/D. */}
+          <RankStats row={row} className="justify-between" />
         </div>
       </CardContent>
     </Card>
@@ -441,10 +442,31 @@ function StatCol({
   );
 }
 
+// Bloco de stats reutilizado pela LINHA e pelo PÓDIO (Top 3) — o pódio mostra as
+// MESMAS estatísticas da linha (Pedro 2026-07-04), só muda o container visual.
+function RankStats({ row, className }: { row: RankRow; className?: string }) {
+  const t = useTranslations("ranking");
+  const winrate =
+    row.partidas_total > 0 ? Math.round((row.vitorias / row.partidas_total) * 100) : null;
+  return (
+    <div className={cn("flex items-center", className)}>
+      <StatCol value={row.mmr} label={t("statMmr")} tone="gold" />
+      <StatCol value={row.mvps} label={t("statMvps")} tone="gold" />
+      <StatCol value={row.partidas_total} label={t("statMatches")} className="hidden sm:block" />
+      <StatCol value={row.vitorias} label={t("statWins")} tone="win" className="hidden md:block" />
+      <StatCol value={row.derrotas} label={t("statLosses")} tone="loss" className="hidden md:block" />
+      <StatCol
+        value={winrate === null ? "—" : `${winrate}%`}
+        label={t("statWinrate")}
+        className="hidden lg:block"
+      />
+    </div>
+  );
+}
+
 function RankingRow({ row, position }: { row: RankRow; position: number }) {
   const t = useTranslations("ranking");
   const dotaRank = rankMedalFor(row.mmr, position);
-  const winrate = row.partidas_total > 0 ? Math.round((row.vitorias / row.partidas_total) * 100) : null;
 
   return (
     <li className="flex items-center gap-3 rounded-md border border-border-subtle bg-bg-base p-3 transition-colors hover:border-border-brand">
@@ -485,13 +507,8 @@ function RankingRow({ row, position }: { row: RankRow; position: number }) {
           className="flex shrink-0 items-center gap-2"
         />
       </div>
-      {/* Colunas de stats — preenchem o vazio da linha. Progressivas: MMR sempre;
-          Partidas/V/D só em telas maiores (sm/md); Winrate em lg+. */}
-      <StatCol value={row.mmr} label={t("statMmr")} tone="gold" />
-      <StatCol value={row.partidas_total} label={t("statMatches")} className="hidden sm:block" />
-      <StatCol value={row.vitorias} label={t("statWins")} tone="win" className="hidden md:block" />
-      <StatCol value={row.derrotas} label={t("statLosses")} tone="loss" className="hidden md:block" />
-      <StatCol value={winrate === null ? "—" : `${winrate}%`} label={t("statWinrate")} className="hidden lg:block" />
+      {/* Colunas de stats (MMR, MVPs, Partidas, V, D, Winrate) — as MESMAS do pódio. */}
+      <RankStats row={row} />
     </li>
   );
 }

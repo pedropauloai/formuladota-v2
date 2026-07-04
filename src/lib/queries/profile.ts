@@ -40,6 +40,7 @@ export interface ProfileForMe {
   partidas: number | null;
   vitorias: number | null;
   derrotas: number | null;
+  mvps: number | null;
   // Layout dos widgets do /me (sempre válido — fallback pra DEFAULT_LAYOUT)
   dashboardLayout: DashboardLayout;
   // Já registrou o nick oficial? (uso único do editor de nick)
@@ -81,12 +82,13 @@ export async function getProfileForMe(): Promise<ProfileForMe | null> {
     vitorias: number;
     derrotas: number;
     partidas_total: number;
+    mvps: number;
   } | null = null;
 
   if (season?.id) {
     const { data } = await supabase
       .from("player_season_mmr")
-      .select("mmr, vitorias, derrotas, partidas_total")
+      .select("mmr, vitorias, derrotas, partidas_total, mvps")
       .eq("user_id", user.id)
       .eq("season_id", season.id)
       .maybeSingle();
@@ -137,6 +139,7 @@ export async function getProfileForMe(): Promise<ProfileForMe | null> {
     partidas: mmrRow?.partidas_total ?? null,
     vitorias: mmrRow?.vitorias ?? null,
     derrotas: mmrRow?.derrotas ?? null,
+    mvps: mmrRow?.mvps ?? null,
     dashboardLayout: parseDashboardLayout(profile?.dashboard_layout),
     officialNickSet: profile?.official_nick_set ?? false,
     socialLinks: parseSocialLinks(profile?.social_links),
@@ -153,13 +156,20 @@ export async function getPublicProfile(
   userId: string
 ): Promise<ProfileForMe | null> {
   const supabase = await createClient();
-  const [{ data }, { data: idRow }] = await Promise.all([
+  const [{ data }, { data: idRow }, { data: mvpRow }] = await Promise.all([
     supabase.rpc("get_public_profile", { p_user_id: userId }),
     // social_links não vem no RPC legado → lê da view pública de identidade.
     supabase
       .from("public_player_identities")
       .select("social_links")
       .eq("id", userId)
+      .maybeSingle(),
+    // MVPs da season ativa (RPC legado não traz) — leitura pública de player_season_mmr.
+    supabase
+      .from("player_season_mmr")
+      .select("mvps, seasons!inner(active)")
+      .eq("user_id", userId)
+      .eq("seasons.active", true)
       .maybeSingle(),
   ]);
   const r = (data ?? [])[0];
@@ -198,6 +208,7 @@ export async function getPublicProfile(
     partidas: r.partidas_total ?? null,
     vitorias: r.vitorias ?? null,
     derrotas: r.derrotas ?? null,
+    mvps: (mvpRow as { mvps?: number } | null)?.mvps ?? null,
     dashboardLayout: parseDashboardLayout(null),
     officialNickSet: true, // perfil público não edita nick → trata como já definido
     socialLinks: parseSocialLinks(idRow?.social_links),

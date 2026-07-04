@@ -11,19 +11,21 @@ interface Props {
   vitorias: number | null;
   derrotas: number | null;
   mmr: number | null;
+  mvps: number | null;
 }
 
-export function ProfileStats({ partidas, vitorias, derrotas, mmr }: Props) {
+export function ProfileStats({ partidas, vitorias, derrotas, mmr, mvps }: Props) {
   const t = useTranslations("perfil");
   return (
     <section
       aria-label={t("playerStatsAria")}
-      className="grid grid-cols-2 lg:grid-cols-4 gap-4 p-6 border-y border-border-subtle"
+      className="grid grid-cols-2 lg:grid-cols-5 gap-4 p-6 border-y border-border-subtle"
     >
       <StatItem label={t("statPartidas")} value={partidas} />
       <StatItem label={t("statVitorias")} value={vitorias} />
       <StatItem label={t("statDerrotas")} value={derrotas} />
-      {/* MMR = número de valor/progresso → família GOLD (Pedro 2026-06-11) */}
+      {/* MVPs + MMR = números de valor/progresso → família GOLD (Pedro 2026-06-11) */}
+      <StatItem label={t("statMvps")} value={mvps} gold />
       <StatItem label={t("statMmr")} value={mmr} gold />
     </section>
   );

@@ -346,12 +346,19 @@ export default function MmrExplainerPage() {
               <Section icon={Swords} titulo="Desempenho é medido de verdade">
                 <p>
                   A gente não olha só o placar: cada partida traz o retrato completo do replay (dano,
-                  ouro, objetivos, cura, controle, presença em teamfight) por jogador. Cada métrica é
-                  comparada com a <strong className="text-text-display">média do seu herói</strong> —
-                  então um suporte é medido como suporte, um carry como carry.
+                  ouro, objetivos, cura, controle, visão, presença em teamfight) por jogador. Cada
+                  métrica é comparada com a <strong className="text-text-display">média do seu
+                  herói</strong> — justo entre heróis diferentes.
                 </p>
                 <p>
-                  O maior peso vai pra <strong className="text-text-display">presença em
+                  E o desempenho é pesado <strong className="text-text-display">pela sua
+                  função</strong>: a gente detecta core ou suporte pelo patrimônio e avalia cada um no
+                  que é o SEU trabalho. Suporte é medido por controle, cura e visão — não por dano a
+                  torre ou farm. Carry é medido por dano e economia. Ninguém é punido por fazer o papel
+                  certo.
+                </p>
+                <p>
+                  O maior peso, nos dois, vai pra <strong className="text-text-display">presença em
                   teamfight</strong>: no FormulaDota, quem decide a partida com o time vale mais que
                   quem enche o próprio patrimônio de longe. É a doutrina virando número —{" "}
                   <em>o coletivo vence</em>.

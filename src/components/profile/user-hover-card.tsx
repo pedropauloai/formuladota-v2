@@ -26,10 +26,13 @@ import {
   getPublicMiniProfile,
   type PublicMiniProfile,
 } from "@/actions/public-profile";
-import { MedalPair } from "@/components/ui/medal-pair";
-import { ValveCredential } from "@/components/profile/valve-credential";
+import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
+import { HonorRankMedal } from "@/components/ui/honor-rank-medal";
+import { SocialIconsRow } from "@/components/profile/social-icons-row";
+import { RoleIcon } from "@/components/match/match-scoreboard";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { computeRankBadges } from "@/lib/dota/rank-badges";
+import { mmrToTier } from "@/lib/mmr";
 import { formatLastSeen } from "@/lib/realtime/presence";
 import { openChatWith } from "@/lib/chat/open-chat";
 import { inviteToParty } from "@/actions/party";
@@ -120,18 +123,15 @@ function Body({ data, online }: { data: PublicMiniProfile; online?: boolean }) {
     seasonMmr: data.mmr,
     level: data.level,
   });
-  const dotaRank = badges.skillRank;
   const honorRank = badges.honorRank;
-  const seasonRank = badges.seasonRank;
-  const seasonStars = badges.seasonStars;
-  const dotaStars = badges.skillStars;
+  // Medalha FORMULADOTA (rank sazonal, Eixo 2) = o DESTAQUE do hover. Sem MMR de
+  // season → cai na medalha derivada do MMR (mesma pele). Valve fica só no perfil.
+  const seasonRank = badges.seasonRank ?? badges.skillRank;
+  const seasonStars = badges.seasonRank ? badges.seasonStars : mmrToTier(data.mmr ?? 0).stars;
 
   // Heróis já resolvidos no SERVIDOR (getPublicMiniProfile) — o catálogo
   // dota-heroes.json (75KB) não entra mais no bundle deste componente ubíquo.
   const heroes = data.favoriteHeroes;
-
-  const totalGames = (data.careerWins ?? 0) + (data.careerLosses ?? 0);
-  const winrate = totalGames > 0 ? Math.round(((data.careerWins ?? 0) / totalGames) * 100) : null;
 
   // Presença: online conhecido → "Online"; senão "Visto há Xh" (last_seen_at).
   const presence =
@@ -163,21 +163,18 @@ function Body({ data, online }: { data: PublicMiniProfile; online?: boolean }) {
             />
           )}
         </div>
-        {/* Medalhas do NOSSO sistema (rank sazonal + honra) ENTRE foto e nome —
-            MESMO padrão do perfil (skillInline=false: a Valve fica de fora, vira
-            credencial abaixo). A explicação de todos os eixos segue no showcase. */}
-        <MedalPair
-          dotaRank={dotaRank}
-          dotaStars={dotaStars}
-          honorRank={honorRank}
-          seasonRank={seasonRank}
-          seasonStars={seasonStars}
-          skillInline={false}
-          size="sm"
-          side="bottom"
-          align="start"
-          className="shrink-0 self-center"
-        />
+        {/* Medalha FORMULADOTA GRANDE = destaque do hover (a Valve saiu — vive só no
+            perfil). Honra menor ao lado. */}
+        <div className="flex shrink-0 items-center gap-1.5 self-center">
+          <DotaRankMedal
+            rank={seasonRank}
+            stars={seasonStars}
+            variant="formuladota"
+            size="lg"
+            tooltip={false}
+          />
+          <HonorRankMedal rank={honorRank} size="sm" tooltip={false} />
+        </div>
         <div className="min-w-0 flex-1">
           <p className="truncate font-display text-base font-semibold text-text-display">
             {data.name}
@@ -191,6 +188,13 @@ function Body({ data, online }: { data: PublicMiniProfile; online?: boolean }) {
               </>
             )}
           </p>
+          {/* Redes sociais vinculadas (só as configuradas). */}
+          <SocialIconsRow
+            links={data.socialLinks}
+            onlyLinked
+            size={14}
+            className="mt-1 flex items-center gap-2"
+          />
         </div>
       </div>
 
@@ -201,19 +205,30 @@ function Body({ data, online }: { data: PublicMiniProfile; online?: boolean }) {
         </p>
       )}
 
-      {/* Credencial Valve (dimmed) + winrate. As medalhas do nosso sistema (rank +
-          honra) já estão na identidade, entre foto e nome — aqui só a conta Valve
-          rebaixada, sem duplicar. */}
-      <div className="flex items-center justify-between gap-2">
-        <ValveCredential rank={dotaRank} stars={dotaStars} size="sm" />
-        {winrate !== null && (
-          <div className="text-right leading-tight">
-            <p className="font-display-condensed text-xl tabular-nums text-gold">{winrate}%</p>
-            <p className="font-display text-[0.65rem] uppercase tracking-wide text-text-faded">
-              {totalGames.toLocaleString("pt-BR")} partidas
-            </p>
-          </div>
-        )}
+      {/* Stats da TEMPORADA FormulaDota: MVPs · partidas · função predominante. */}
+      <div className="grid grid-cols-3 gap-2 rounded-sm border border-border-subtle bg-bg-elevated/40 p-2 text-center">
+        <div className="leading-tight">
+          <p className="font-display-condensed text-xl tabular-nums text-gold">{data.seasonMvps}</p>
+          <p className="font-display text-[0.6rem] uppercase tracking-wide text-text-faded">MVPs</p>
+        </div>
+        <div className="leading-tight">
+          <p className="font-display-condensed text-xl tabular-nums text-text-display">
+            {data.seasonMatches}
+          </p>
+          <p className="font-display text-[0.6rem] uppercase tracking-wide text-text-faded">
+            Partidas
+          </p>
+        </div>
+        <div className="flex flex-col items-center justify-center leading-tight">
+          {data.predominantPos ? (
+            <RoleIcon slot={data.predominantPos} size={22} />
+          ) : (
+            <span className="font-display-condensed text-xl text-text-faded">—</span>
+          )}
+          <p className="mt-0.5 font-display text-[0.6rem] uppercase tracking-wide text-text-faded">
+            Função
+          </p>
+        </div>
       </div>
 
       {/* Heróis de assinatura */}
