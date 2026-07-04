@@ -21,6 +21,12 @@ const FLAG_DEFS: FlagDef[] = [
     description:
       "Aba do topbar, card da sidebar, modalidade no menu Jogar e a rota /ranked-com-pro. Desligado = some pros usuários (você, admin, continua vendo).",
   },
+  {
+    key: "doctrine_quiz",
+    label: "Quiz de doutrina (gate de matchmaking)",
+    description:
+      "Ligado = buscar partida exige doutrina ou permissão (5 acertos = 1) e a rota /doutrina abre. Desligado = fila ABERTA (sem quiz) e /doutrina some.",
+  },
 ];
 
 export function FeatureFlagsPanel({ initial }: { initial: FeatureFlags }) {

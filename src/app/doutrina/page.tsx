@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
+import { getFeatureFlags } from "@/lib/queries/feature-flags";
 import { displayName, displayAvatar } from "@/lib/identity";
 import { DotaBackdrop } from "@/components/dota/dota-backdrop";
 import { RitualDoutrina } from "./RitualDoutrina";
@@ -19,6 +20,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function DoutrinaPage() {
+  // Quiz atrás de feature flag (Pedro 2026-07-04): OFF → o ritual some (redirect).
+  const { doctrine_quiz } = await getFeatureFlags();
+  if (!doctrine_quiz) redirect("/");
+
   const supabase = await createClient();
   const {
     data: { user },
