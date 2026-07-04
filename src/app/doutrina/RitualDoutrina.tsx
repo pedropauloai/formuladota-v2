@@ -20,6 +20,7 @@ import { DURATIONS, EASINGS } from "@/lib/motion/presets";
 import { cn } from "@/lib/utils";
 import { QUIZ_QUESTIONS } from "@/lib/quiz/questions";
 import type { QuizQuestion } from "@/lib/quiz/types";
+import { shuffleOptions, displayLetter } from "@/lib/quiz/shuffle";
 import {
   PILARES,
   ALL_LESSONS,
@@ -514,6 +515,11 @@ function QuestionView({
   const correctId = question.options.find((o) => o.correct)?.id;
   const gotIt = chosen != null && chosen === correctId;
   const answered = chosen != null;
+  // Alternativas embaralhadas (estável por questão) — remove o viés "resposta = B".
+  const shuffledOptions = useMemo(
+    () => shuffleOptions(question.options),
+    [question.id] // eslint-disable-line react-hooks/exhaustive-deps
+  );
 
   return (
     <article className="space-y-6">
@@ -534,7 +540,7 @@ function QuestionView({
       </header>
 
       <ul className="space-y-3" role="list">
-        {question.options.map((opt) => {
+        {shuffledOptions.map((opt, i) => {
           const isCorrect = opt.id === correctId;
           const isChosen = opt.id === chosen;
           const stateClass = !answered
@@ -570,7 +576,7 @@ function QuestionView({
                   ) : answered && isChosen ? (
                     <X size={14} />
                   ) : (
-                    opt.id
+                    displayLetter(i)
                   )}
                 </span>
                 <span className="font-body text-base leading-relaxed text-text-body">

@@ -8,13 +8,14 @@
 // A correção é validada NO SERVIDOR (recordDoctrineAnswer); o cliente nunca decide o que
 // conta. Ao receber permissions >= 1 do servidor, libera e chama onGranted.
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Check, X, ArrowRight, Loader2, ShieldQuestion, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { QUIZ_QUESTIONS } from "@/lib/quiz/questions";
 import type { QuizQuestion } from "@/lib/quiz/types";
+import { shuffleOptions, displayLetter } from "@/lib/quiz/shuffle";
 import { recordDoctrineAnswer, getDoctrineProgress } from "@/app/doutrina/actions";
 import { QUESTIONS_PER_PERMISSION } from "@/lib/quiz/permissions";
 
@@ -68,6 +69,12 @@ export function PermissionQuizModal({ open, modalidade, onClose, onGranted }: Pr
     (q) => q.id === pendingIds[0]
   );
   const correctId = current?.options.find((o) => o.correct)?.id;
+  // Alternativas embaralhadas (estável enquanto a MESMA questão está aberta —
+  // ao errar, a questão repete com a mesma ordem). Remove o viés "a resposta é B".
+  const shuffledOptions = useMemo(
+    () => (current ? shuffleOptions(current.options) : []),
+    [current?.id] // eslint-disable-line react-hooks/exhaustive-deps
+  );
   const gotIt = chosen != null && chosen === correctId;
   const answered = chosen != null;
 
@@ -180,7 +187,7 @@ export function PermissionQuizModal({ open, modalidade, onClose, onGranted }: Pr
             </h2>
 
             <ul className="space-y-2.5" role="list">
-              {current.options.map((opt) => {
+              {shuffledOptions.map((opt, i) => {
                 const isCorrect = opt.id === correctId;
                 const isChosen = opt.id === chosen;
                 const stateClass = !answered
@@ -216,7 +223,7 @@ export function PermissionQuizModal({ open, modalidade, onClose, onGranted }: Pr
                         ) : answered && isChosen ? (
                           <X size={12} />
                         ) : (
-                          opt.id
+                          displayLetter(i)
                         )}
                       </span>
                       <span className="font-body text-sm leading-relaxed text-text-body">
