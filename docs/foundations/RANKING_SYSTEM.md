@@ -43,6 +43,15 @@ isso: **4 eixos, cada um medindo UMA coisa**, sem redundância de significado.
   pondera stun/cura/visão (wards) e **não** usa torre nem gpm. `stuns` e `wards` vêm do
   replay parseado, normalizados (`normalizeStuns` 4s/min = teto; `normalizeWards`
   0,6/min = teto); ausentes saem da média. Testes em `src/lib/mmr.test.ts`.
+- **MVP por temporada (2026-07-04, migration 128):** `player_season_mmr.mvps` conta as
+  partidas em que o jogador teve o maior perfScore (`match_details.mvp_user_id`).
+  Exibido no hover, no /ranking (coluna) e no perfil.
+- **Recompute cronológico (2026-07-04, `scripts/recompute-season-mmr.ts`):** reaplica
+  todas as partidas da season em ordem, do seed limpo da medalha, com o modelo v3 por
+  função. Idempotente (o seed é o âncora). Rodado uma vez pra corrigir os deltas do v2.
+- **Placar/UI:** o ícone da POSIÇÃO específica (1-5, rank de net worth no time) aparece
+  em todas as abas de estatística; a aba MMR ordena por posição; a coluna "Lutas %" (ex
+  "CA") é participação em teamfight. O monograma "FD" nas medalhas foi removido.
 - **Um ladder só** pra toda a comunidade (não separa "povão" de "elite"). Lobby elite
   permanece **gate de ACESSO**, não sistema de rating paralelo.
 
