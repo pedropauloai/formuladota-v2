@@ -325,13 +325,12 @@ function TopCard({ row, position }: { row: RankRow; position: number }) {
   return (
     <Card
       variant="elevated"
-      className={
-        isChampion
-          ? "border-brand-primary shadow-[var(--glow-brand)]"
-          : undefined
-      }
+      className={cn(
+        "overflow-hidden",
+        isChampion ? "border-brand-primary shadow-[var(--glow-brand)]" : undefined
+      )}
     >
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-3 overflow-hidden">
         <div className="flex items-center justify-between">
           <Trophy
             size={20}
@@ -370,8 +369,9 @@ function TopCard({ row, position }: { row: RankRow; position: number }) {
             size={16}
             className="flex items-center gap-2.5"
           />
-          {/* Pódio mostra as MESMAS stats da linha (Pedro 2026-07-04) — antes só V/D. */}
-          <RankStats row={row} className="justify-between" />
+          {/* Pódio mostra as MESMAS stats da linha (Pedro 2026-07-04) — antes só V/D.
+              fluid: colunas dividem a largura do card (nunca vazam em nenhuma resolução). */}
+          <RankStats row={row} fluid />
         </div>
       </CardContent>
     </Card>
@@ -387,11 +387,15 @@ function StatCol({
   value,
   label,
   tone = "body",
+  fluid = false,
   className,
 }: {
   value: string | number;
   label: string;
   tone?: "gold" | "win" | "loss" | "body";
+  /** Pódio: colunas dividem a largura do card (flex-1) em vez de largura fixa —
+   *  nunca vazam, em nenhuma resolução. A linha (full-width) segue com largura fixa. */
+  fluid?: boolean;
   className?: string;
 }) {
   const toneClass =
@@ -403,8 +407,20 @@ function StatCol({
           ? "text-error"
           : "text-text-display";
   return (
-    <div className={cn("w-16 shrink-0 text-center 2xl:w-24", className)}>
-      <p className={cn("font-display-condensed text-2xl font-bold tabular-nums leading-none 2xl:text-3xl", toneClass)}>
+    <div
+      className={cn(
+        "text-center",
+        fluid ? "min-w-0 flex-1" : "w-16 shrink-0 2xl:w-24",
+        className
+      )}
+    >
+      <p
+        className={cn(
+          "font-display-condensed font-bold tabular-nums leading-none",
+          fluid ? "truncate text-xl 2xl:text-2xl" : "text-2xl 2xl:text-3xl",
+          toneClass
+        )}
+      >
         {value}
       </p>
       <p className="mt-1 font-display text-[0.7rem] uppercase tracking-wide text-text-faded 2xl:text-xs">{label}</p>
@@ -414,20 +430,31 @@ function StatCol({
 
 // Bloco de stats reutilizado pela LINHA e pelo PÓDIO (Top 3) — o pódio mostra as
 // MESMAS estatísticas da linha (Pedro 2026-07-04), só muda o container visual.
-function RankStats({ row, className }: { row: RankRow; className?: string }) {
+function RankStats({
+  row,
+  fluid = false,
+  className,
+}: {
+  row: RankRow;
+  fluid?: boolean;
+  className?: string;
+}) {
   const t = useTranslations("ranking");
   const winrate =
     row.partidas_total > 0 ? Math.round((row.vitorias / row.partidas_total) * 100) : null;
+  // fluid (pódio): container ocupa a largura toda do card e as colunas se dividem;
+  // as opcionais aparecem por breakpoint mas SEM largura fixa → nunca vazam.
   return (
-    <div className={cn("flex items-center", className)}>
-      <StatCol value={row.mmr} label={t("statMmr")} tone="gold" />
-      <StatCol value={row.mvps} label={t("statMvps")} tone="gold" />
-      <StatCol value={row.partidas_total} label={t("statMatches")} className="hidden sm:block" />
-      <StatCol value={row.vitorias} label={t("statWins")} tone="win" className="hidden md:block" />
-      <StatCol value={row.derrotas} label={t("statLosses")} tone="loss" className="hidden md:block" />
+    <div className={cn("flex items-center", fluid ? "w-full min-w-0" : undefined, className)}>
+      <StatCol value={row.mmr} label={t("statMmr")} tone="gold" fluid={fluid} />
+      <StatCol value={row.mvps} label={t("statMvps")} tone="gold" fluid={fluid} />
+      <StatCol value={row.partidas_total} label={t("statMatches")} fluid={fluid} className="hidden sm:block" />
+      <StatCol value={row.vitorias} label={t("statWins")} tone="win" fluid={fluid} className="hidden md:block" />
+      <StatCol value={row.derrotas} label={t("statLosses")} tone="loss" fluid={fluid} className="hidden md:block" />
       <StatCol
         value={winrate === null ? "—" : `${winrate}%`}
         label={t("statWinrate")}
+        fluid={fluid}
         className="hidden lg:block"
       />
     </div>

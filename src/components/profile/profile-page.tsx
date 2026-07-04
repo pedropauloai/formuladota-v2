@@ -235,7 +235,7 @@ export function ProfilePage({
                 seasonStars={seasonStars}
                 seasonLeaderboardNumber={seasonLeaderboardNumber}
                 skillInline={false}
-                size="md"
+                size="lg"
                 className="shrink-0"
               />
               <div className="flex-1 min-w-0">

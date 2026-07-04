@@ -22,9 +22,10 @@
 //
 // Click no ícone alterna abrir/fechar.
 // Avatar+nome no card retraído (e no header do painel) são Link → /me.
-// Painel só fecha pelo ícone (sem click-outside, sem X interno).
+// Painel fecha pelo ícone OU por clique-fora — EXCETO na rota principal ("/"),
+// onde fica travado aberto (lockedExpanded). Pedro 2026-07-04.
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Crown, LogIn, Users, ShieldCheck, TrendingUp } from "lucide-react";
@@ -124,6 +125,14 @@ export function MiniProfilePanel({
   const [expandedState, setExpanded] = useState(initialExpanded);
   const expanded = lockedExpanded || expandedState;
   const [, startTransition] = useTransition();
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  function collapse() {
+    setExpanded(false);
+    startTransition(() => {
+      void toggleSidebar();
+    });
+  }
 
   function handleToggle() {
     setExpanded((prev) => !prev);
@@ -131,6 +140,30 @@ export function MiniProfilePanel({
       void toggleSidebar();
     });
   }
+
+  // Clique-fora retrai o painel — mas NUNCA na rota principal (lockedExpanded) nem
+  // quando já está fechado. Ignora cliques em overlays portados (tooltips/menus/
+  // popovers Radix, toasts), que vivem fora da árvore do painel mas são interação
+  // dele. Pedro 2026-07-04.
+  useEffect(() => {
+    if (lockedExpanded || !expandedState) return;
+    function onPointerDown(e: PointerEvent) {
+      const root = rootRef.current;
+      const target = e.target as Node | null;
+      if (!root || (target && root.contains(target))) return;
+      if (
+        target instanceof Element &&
+        target.closest(
+          '[data-radix-popper-content-wrapper],[role="menu"],[role="dialog"],[role="listbox"],[data-sonner-toast]'
+        )
+      ) {
+        return;
+      }
+      collapse();
+    }
+    document.addEventListener("pointerdown", onPointerDown, true);
+    return () => document.removeEventListener("pointerdown", onPointerDown, true);
+  }, [expandedState, lockedExpanded]);
 
   // Visitante: card minimal com CTA entrar (não tem painel de amigos)
   if (isVisitor) {
@@ -142,7 +175,10 @@ export function MiniProfilePanel({
   }
 
   return (
-    <div className="pointer-events-auto fixed left-4 bottom-4 z-[var(--z-overlay)] hidden flex-col items-start sm:flex">
+    <div
+      ref={rootRef}
+      className="pointer-events-auto fixed left-4 bottom-4 z-[var(--z-overlay)] hidden flex-col items-start sm:flex"
+    >
       {/* Painel expandido — cresce A PARTIR do card retraído (conectado, sem gap).
           Quando expanded=true, borda inferior do painel + borda superior do card
           são planas, formando um único componente visual contínuo. */}
@@ -433,7 +469,7 @@ function ExpandedPanel({
             seasonRank={seasonRank}
             seasonStars={seasonStars}
             skillInline={false}
-            size="md"
+            size="lg"
             side="right"
             align="start"
             className="shrink-0 self-center"
