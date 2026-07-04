@@ -19,6 +19,7 @@ import { UserHoverCard } from "@/components/profile/user-hover-card";
 import { SocialIconsRow, type SocialLinks } from "@/components/profile/social-icons-row";
 import { DotaRankMedal, type DotaRank } from "@/components/ui/dota-rank-medal";
 import { mmrToTier, IMMORTAL_FLOOR, IMMORTAL_ELITE_TOP, IMMORTAL_LEADERBOARD_TOP } from "@/lib/mmr";
+import { GAME_REGIONS, REGION_LABELS, isGameRegion, type GameRegion } from "@/lib/regions";
 
 // Medalha do rank pro leaderboard de Imortais (estilo oficial Dota, Pedro 2026-07-02):
 // #1–#10 = medalha ESCURA (anel), #11–#30 = medalha VERMELHA; o resto segue o MMR.
@@ -75,12 +76,14 @@ function mmrToDotaRank(mmr: number | null): DotaRank {
 }
 
 export default async function RankingPage(props: {
-  searchParams: Promise<{ page?: string; q?: string }>;
+  searchParams: Promise<{ page?: string; q?: string; region?: string }>;
 }) {
   const t = await getTranslations("ranking");
   const params = await props.searchParams;
   const page = Math.max(1, parseInt(params.page ?? "1") || 1);
   const search = (params.q ?? "").trim().toLowerCase();
+  // Leaderboard por REGIÃO (migration 121). Default BR (comunidade original).
+  const region: GameRegion = isGameRegion(params.region) ? params.region : "BR";
 
   const supabase = await createClient();
 
@@ -115,6 +118,7 @@ export default async function RankingPage(props: {
     .from("player_season_mmr")
     .select("user_id, mmr, vitorias, derrotas, partidas_total")
     .eq("season_id", season.id)
+    .eq("region", region)
     .order("mmr", { ascending: false })
     .limit(3);
   if (banFilter) top3Query = top3Query.not("user_id", "in", banFilter);
@@ -125,6 +129,7 @@ export default async function RankingPage(props: {
     .from("player_season_mmr")
     .select("user_id, mmr, vitorias, derrotas, partidas_total")
     .eq("season_id", season.id)
+    .eq("region", region)
     .order("mmr", { ascending: false })
     .range(offset, offset + PAGE_SIZE - 1);
 
@@ -161,6 +166,7 @@ export default async function RankingPage(props: {
       .from("player_season_mmr")
       .select("user_id, mmr, vitorias, derrotas, partidas_total")
       .eq("season_id", season.id)
+      .eq("region", region)
       .in("user_id", matchIds)
       .order("mmr", { ascending: false });
   }
@@ -264,7 +270,30 @@ export default async function RankingPage(props: {
           <h2 className="font-display text-sm font-semibold uppercase tracking-widest text-text-faded">
             {search ? t("searchResultsFor", { query: search }) : t("top3")}
           </h2>
-          <SearchBar initialQuery={search} />
+          <div className="flex items-center gap-3">
+            {/* Seletor de região — leaderboards separados (BR nunca é LATAM). */}
+            <nav
+              aria-label={t("regionSelector")}
+              className="inline-flex items-center gap-0.5 rounded-sm border border-border-subtle bg-bg-base/60 p-0.5"
+            >
+              {GAME_REGIONS.map((r) => (
+                <Link
+                  key={r}
+                  href={r === "BR" ? "/ranking" : `/ranking?region=${r}`}
+                  aria-current={r === region ? "page" : undefined}
+                  className={[
+                    "rounded-[2px] px-2 py-0.5 font-display text-[11px] font-bold uppercase tracking-wide transition-colors",
+                    r === region
+                      ? "bg-brand-primary text-text-display"
+                      : "text-text-faded hover:text-text-body",
+                  ].join(" ")}
+                >
+                  {REGION_LABELS[r]}
+                </Link>
+              ))}
+            </nav>
+            <SearchBar initialQuery={search} />
+          </div>
         </div>
 
         {/* Top 3 cards — pódio (não repetido na lista abaixo) */}

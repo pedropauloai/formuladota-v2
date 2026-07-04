@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { Gamepad2, ShieldCheck, AlertCircle, ArrowRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { signInWithSteam } from "./actions";
+import { RegionPicker } from "./region-picker";
 import { DotaBackdrop } from "@/components/dota/dota-backdrop";
 import { Card } from "@/components/ui/card";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -67,11 +68,22 @@ export default async function VincularSteamPage({
     redirect("/login?error=login_required_for_steam");
   }
 
-  const { data: steamLink } = await supabase
-    .from("steam_links")
-    .select("steam_id_64, persona, avatar_url, verified_at")
-    .eq("user_id", user.id)
-    .maybeSingle();
+  // Steam link + escolha de região em paralelo (onboarding: região é escolha
+  // única — o picker some depois de confirmada; migration 121).
+  const [{ data: steamLink }, { data: profile }] = await Promise.all([
+    supabase
+      .from("steam_links")
+      .select("steam_id_64, persona, avatar_url, verified_at")
+      .eq("user_id", user.id)
+      .maybeSingle(),
+    supabase
+      .from("profiles")
+      .select("region_chosen")
+      .eq("id", user.id)
+      .maybeSingle(),
+  ]);
+  const regionChosen =
+    (profile as { region_chosen?: boolean } | null)?.region_chosen === true;
 
   const t = await getTranslations("account");
   const params = await searchParams;
@@ -101,6 +113,8 @@ export default async function VincularSteamPage({
         </header>
 
         {errorMessage && <ErrorBanner message={errorMessage} />}
+
+        {!regionChosen && <RegionPicker />}
 
         {steamLink ? (
           <LinkedState

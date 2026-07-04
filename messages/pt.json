@@ -441,7 +441,8 @@
     "noMatchDescription": "Temporada {season} — tente outro nickname ou volte ao ranking completo.",
     "backToRanking": "← Voltar ao ranking",
     "emptyTitle": "Temporada começando",
-    "emptyDescription": "Ainda sem partidas oficiais. Seja um dos primeiros — ative sua mensalidade e crie um lobby."
+    "emptyDescription": "Ainda sem partidas oficiais. Seja um dos primeiros — ative sua mensalidade e crie um lobby.",
+    "regionSelector": "Região do ranking"
   },
   "meta": {
     "metaTitle": "Meta de Heróis — FORMULADOTA",
@@ -1084,7 +1085,15 @@
     "errorTitle": "Algo quebrou.",
     "errorBody": "Encontramos um erro inesperado ao processar sua requisição. Você pode tentar novamente, ou voltar à home enquanto investigamos.",
     "errorIdLabel": "ID do erro",
-    "errorRetry": "Tentar novamente"
+    "errorRetry": "Tentar novamente",
+    "regionHeading": "Escolha sua região de jogo",
+    "regionBody": "Suas filas e partidas acontecem SÓ na sua região — comunidades não se misturam. A escolha é única: depois, mudança só falando com o suporte.",
+    "regionDescBR": "Servidores Brasil. Comunidade brasileira.",
+    "regionDescLATAM": "Servidores Peru/Chile. Comunidad hispana.",
+    "regionDescEU": "Servidores EU West/East. English community.",
+    "regionConfirm": "Confirmar região",
+    "regionLockNote": "Escolha única — mudança só via suporte.",
+    "regionSaveError": "Erro ao salvar a região."
   },
   "doutrina": {
     "metaTitle": "Ritual de Doutrinação — FORMULADOTA",

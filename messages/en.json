@@ -441,7 +441,8 @@
     "noMatchDescription": "Season {season} — try another nickname or return to the full ranking.",
     "backToRanking": "← Back to ranking",
     "emptyTitle": "Season is just starting",
-    "emptyDescription": "No official matches yet. Be one of the first — activate your subscription and create a lobby."
+    "emptyDescription": "No official matches yet. Be one of the first — activate your subscription and create a lobby.",
+    "regionSelector": "Leaderboard region"
   },
   "meta": {
     "metaTitle": "Hero Meta — FORMULADOTA",
@@ -1084,7 +1085,15 @@
     "errorTitle": "Something broke.",
     "errorBody": "We hit an unexpected error while processing your request. You can try again, or head back home while we investigate.",
     "errorIdLabel": "Error ID",
-    "errorRetry": "Try again"
+    "errorRetry": "Try again",
+    "regionHeading": "Choose your game region",
+    "regionBody": "Your queues and matches happen ONLY in your region — communities never mix. This choice is permanent: changing it later requires support.",
+    "regionDescBR": "Brazil servers. Comunidade brasileira.",
+    "regionDescLATAM": "Peru/Chile servers. Comunidad hispana.",
+    "regionDescEU": "EU West/East servers. English community.",
+    "regionConfirm": "Confirm region",
+    "regionLockNote": "One-time choice — changes only via support.",
+    "regionSaveError": "Failed to save region."
   },
   "doutrina": {
     "metaTitle": "Indoctrination Ritual — FORMULADOTA",

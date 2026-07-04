@@ -14,99 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      cosmetics: {
-        Row: {
-          active: boolean
-          asset_ref: Json
-          created_at: string
-          description: string | null
-          id: string
-          name: string
-          rarity: string
-          requirement: Json
-          season_id: string | null
-          slot: string
-          slug: string
-          sort_order: number
-          source: string
-        }
-        Insert: {
-          active?: boolean
-          asset_ref?: Json
-          created_at?: string
-          description?: string | null
-          id?: string
-          name: string
-          rarity?: string
-          requirement?: Json
-          season_id?: string | null
-          slot: string
-          slug: string
-          sort_order?: number
-          source?: string
-        }
-        Update: {
-          active?: boolean
-          asset_ref?: Json
-          created_at?: string
-          description?: string | null
-          id?: string
-          name?: string
-          rarity?: string
-          requirement?: Json
-          season_id?: string | null
-          slot?: string
-          slug?: string
-          sort_order?: number
-          source?: string
-        }
-        Relationships: []
-      }
-      user_cosmetics: {
-        Row: {
-          acquired_at: string
-          acquired_via: string
-          cosmetic_id: string
-          id: string
-          user_id: string
-        }
-        Insert: {
-          acquired_at?: string
-          acquired_via?: string
-          cosmetic_id: string
-          id?: string
-          user_id: string
-        }
-        Update: {
-          acquired_at?: string
-          acquired_via?: string
-          cosmetic_id?: string
-          id?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      user_equipped: {
-        Row: {
-          cosmetic_id: string
-          equipped_at: string
-          slot: string
-          user_id: string
-        }
-        Insert: {
-          cosmetic_id: string
-          equipped_at?: string
-          slot: string
-          user_id: string
-        }
-        Update: {
-          cosmetic_id?: string
-          equipped_at?: string
-          slot?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       admin_audit_log: {
         Row: {
           action: string
@@ -147,10 +54,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "admin_audit_log_admin_user_id_fkey"
+            columns: ["admin_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "admin_audit_log_target_user_id_fkey"
             columns: ["target_user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_audit_log_target_user_id_fkey"
+            columns: ["target_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
             referencedColumns: ["id"]
           },
         ]
@@ -189,10 +110,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "admin_notes_admin_user_id_fkey"
+            columns: ["admin_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "admin_notes_target_user_id_fkey"
             columns: ["target_user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_notes_target_user_id_fkey"
+            columns: ["target_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
             referencedColumns: ["id"]
           },
         ]
@@ -294,10 +229,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "behavior_status_log_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "behavior_status_log_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "behavior_status_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
             referencedColumns: ["id"]
           },
           {
@@ -413,6 +362,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "coach_queue_entries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
+            referencedColumns: ["id"]
+          },
         ]
       }
       coaches: {
@@ -464,6 +420,13 @@ export type Database = {
             columns: ["profile_id"]
             isOneToOne: true
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coaches_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "public_player_identities"
             referencedColumns: ["id"]
           },
         ]
@@ -524,7 +487,62 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "coaching_reviews_student_user_id_fkey"
+            columns: ["student_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      cosmetics: {
+        Row: {
+          active: boolean
+          asset_ref: Json
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          rarity: string
+          requirement: Json
+          season_id: string | null
+          slot: string
+          slug: string
+          sort_order: number
+          source: string
+        }
+        Insert: {
+          active?: boolean
+          asset_ref?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          rarity?: string
+          requirement?: Json
+          season_id?: string | null
+          slot: string
+          slug: string
+          sort_order?: number
+          source?: string
+        }
+        Update: {
+          active?: boolean
+          asset_ref?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          rarity?: string
+          requirement?: Json
+          season_id?: string | null
+          slot?: string
+          slug?: string
+          sort_order?: number
+          source?: string
+        }
+        Relationships: []
       }
       dm_conversations: {
         Row: {
@@ -563,8 +581,29 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "dm_conversations_last_sender_id_fkey"
+            columns: ["last_sender_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "dm_conversations_user_a_fkey"
             columns: ["user_a"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dm_conversations_user_a_fkey"
+            columns: ["user_a"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dm_conversations_user_b_fkey"
+            columns: ["user_b"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -573,7 +612,7 @@ export type Database = {
             foreignKeyName: "dm_conversations_user_b_fkey"
             columns: ["user_b"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "public_player_identities"
             referencedColumns: ["id"]
           },
         ]
@@ -615,6 +654,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "dm_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
+            referencedColumns: ["id"]
+          },
         ]
       }
       dm_reads: {
@@ -648,6 +694,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "dm_reads_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
+            referencedColumns: ["id"]
+          },
         ]
       }
       doctrine_versions: {
@@ -668,6 +721,27 @@ export type Database = {
           published_at?: string
           text_hash?: string
           version?: number
+        }
+        Relationships: []
+      }
+      feature_flags: {
+        Row: {
+          enabled: boolean
+          key: string
+          label: string | null
+          updated_at: string
+        }
+        Insert: {
+          enabled?: boolean
+          key: string
+          label?: string | null
+          updated_at?: string
+        }
+        Update: {
+          enabled?: boolean
+          key?: string
+          label?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -711,10 +785,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "ficha_ledger_admin_user_id_fkey"
+            columns: ["admin_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "ficha_ledger_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ficha_ledger_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
             referencedColumns: ["id"]
           },
         ]
@@ -753,10 +841,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "friendships_addressee_id_fkey"
+            columns: ["addressee_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "friendships_requester_id_fkey"
             columns: ["requester_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "friendships_requester_id_fkey"
+            columns: ["requester_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
             referencedColumns: ["id"]
           },
         ]
@@ -804,6 +906,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "honor_ledger_admin_user_id_fkey"
+            columns: ["admin_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "honor_ledger_season_id_fkey"
             columns: ["season_id"]
             isOneToOne: false
@@ -815,6 +924,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "honor_ledger_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
             referencedColumns: ["id"]
           },
         ]
@@ -859,6 +975,7 @@ export type Database = {
           mmr_target_min: number | null
           name: string
           password: string
+          region: string
           started_at: string | null
           status: string
           steam_lobby_id: string | null
@@ -879,6 +996,7 @@ export type Database = {
           mmr_target_min?: number | null
           name: string
           password: string
+          region?: string
           started_at?: string | null
           status?: string
           steam_lobby_id?: string | null
@@ -899,6 +1017,7 @@ export type Database = {
           mmr_target_min?: number | null
           name?: string
           password?: string
+          region?: string
           started_at?: string | null
           status?: string
           steam_lobby_id?: string | null
@@ -917,6 +1036,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lobbies_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
             referencedColumns: ["id"]
           },
         ]
@@ -952,10 +1078,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "lobby_invites_invitee_id_fkey"
+            columns: ["invitee_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "lobby_invites_inviter_id_fkey"
             columns: ["inviter_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lobby_invites_inviter_id_fkey"
+            columns: ["inviter_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
             referencedColumns: ["id"]
           },
           {
@@ -1004,6 +1144,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "lobby_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
+            referencedColumns: ["id"]
+          },
         ]
       }
       lobby_players: {
@@ -1046,40 +1193,56 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "lobby_players_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
+            referencedColumns: ["id"]
+          },
         ]
       }
       match_details: {
         Row: {
           chat: Json | null
+          dire_avg_mmr: number | null
           dota_match_id: string | null
           fetched_at: string
           game_mode: number | null
           lobby_type: number | null
           match_id: string
+          mvp_user_id: string | null
           objectives: Json | null
           picks_bans: Json | null
+          radiant_avg_mmr: number | null
           teamfights: Json | null
         }
         Insert: {
           chat?: Json | null
+          dire_avg_mmr?: number | null
           dota_match_id?: string | null
           fetched_at?: string
           game_mode?: number | null
           lobby_type?: number | null
           match_id: string
+          mvp_user_id?: string | null
           objectives?: Json | null
           picks_bans?: Json | null
+          radiant_avg_mmr?: number | null
           teamfights?: Json | null
         }
         Update: {
           chat?: Json | null
+          dire_avg_mmr?: number | null
           dota_match_id?: string | null
           fetched_at?: string
           game_mode?: number | null
           lobby_type?: number | null
           match_id?: string
+          mvp_user_id?: string | null
           objectives?: Json | null
           picks_bans?: Json | null
+          radiant_avg_mmr?: number | null
           teamfights?: Json | null
         }
         Relationships: [
@@ -1115,6 +1278,7 @@ export type Database = {
           leaver_status: number | null
           level: number | null
           match_id: string
+          mmr_change: number | null
           net_worth: number | null
           personaname: string | null
           player_slot: number
@@ -1148,6 +1312,7 @@ export type Database = {
           leaver_status?: number | null
           level?: number | null
           match_id: string
+          mmr_change?: number | null
           net_worth?: number | null
           personaname?: string | null
           player_slot: number
@@ -1181,6 +1346,7 @@ export type Database = {
           leaver_status?: number | null
           level?: number | null
           match_id?: string
+          mmr_change?: number | null
           net_worth?: number | null
           personaname?: string | null
           player_slot?: number
@@ -1207,6 +1373,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "match_players_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
+            referencedColumns: ["id"]
+          },
         ]
       }
       match_proposals: {
@@ -1219,6 +1392,7 @@ export type Database = {
           lobby_id: string | null
           match_size: number
           password: string | null
+          region: string
           status: string
           tier: string
         }
@@ -1231,6 +1405,7 @@ export type Database = {
           lobby_id?: string | null
           match_size?: number
           password?: string | null
+          region?: string
           status?: string
           tier?: string
         }
@@ -1243,6 +1418,7 @@ export type Database = {
           lobby_id?: string | null
           match_size?: number
           password?: string | null
+          region?: string
           status?: string
           tier?: string
         }
@@ -1267,6 +1443,7 @@ export type Database = {
           matched_lobby_id: string | null
           party_id: string | null
           proposal_id: string | null
+          queue_mmr: number | null
           region: string | null
           roles: Json | null
           status: Database["public"]["Enums"]["queue_status"] | null
@@ -1282,6 +1459,7 @@ export type Database = {
           matched_lobby_id?: string | null
           party_id?: string | null
           proposal_id?: string | null
+          queue_mmr?: number | null
           region?: string | null
           roles?: Json | null
           status?: Database["public"]["Enums"]["queue_status"] | null
@@ -1297,6 +1475,7 @@ export type Database = {
           matched_lobby_id?: string | null
           party_id?: string | null
           proposal_id?: string | null
+          queue_mmr?: number | null
           region?: string | null
           roles?: Json | null
           status?: Database["public"]["Enums"]["queue_status"] | null
@@ -1448,6 +1627,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "matches_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
+            referencedColumns: ["id"]
+          },
         ]
       }
       package_price_history: {
@@ -1487,6 +1673,13 @@ export type Database = {
             columns: ["changed_by_user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "package_price_history_changed_by_user_id_fkey"
+            columns: ["changed_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
             referencedColumns: ["id"]
           },
           {
@@ -1609,10 +1802,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "party_invites_invitee_id_fkey"
+            columns: ["invitee_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "party_invites_inviter_id_fkey"
             columns: ["inviter_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "party_invites_inviter_id_fkey"
+            columns: ["inviter_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
             referencedColumns: ["id"]
           },
           {
@@ -1690,35 +1897,57 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "party_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
+            referencedColumns: ["id"]
+          },
         ]
       }
       player_season_mmr: {
         Row: {
+          calibrated: boolean
           created_at: string
           derrotas: number
           last_match_at: string | null
+          leaderboard_rank: number | null
           mmr: number
           partidas_total: number
+          peak_mmr: number | null
+          placements_played: number
+          region: string
           season_id: number
           user_id: string
           vitorias: number
         }
         Insert: {
+          calibrated?: boolean
           created_at?: string
           derrotas?: number
           last_match_at?: string | null
+          leaderboard_rank?: number | null
           mmr?: number
           partidas_total?: number
+          peak_mmr?: number | null
+          placements_played?: number
+          region?: string
           season_id: number
           user_id: string
           vitorias?: number
         }
         Update: {
+          calibrated?: boolean
           created_at?: string
           derrotas?: number
           last_match_at?: string | null
+          leaderboard_rank?: number | null
           mmr?: number
           partidas_total?: number
+          peak_mmr?: number | null
+          placements_played?: number
+          region?: string
           season_id?: number
           user_id?: string
           vitorias?: number
@@ -1736,6 +1965,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_season_mmr_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
             referencedColumns: ["id"]
           },
         ]
@@ -1777,10 +2013,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "pro_audit_log_actor_user_id_fkey"
+            columns: ["actor_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "pro_audit_log_target_user_id_fkey"
             columns: ["target_user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pro_audit_log_target_user_id_fkey"
+            columns: ["target_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
             referencedColumns: ["id"]
           },
         ]
@@ -1828,10 +2078,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "pro_promotions_sponsor_user_id_fkey"
+            columns: ["sponsor_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "pro_promotions_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pro_promotions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
             referencedColumns: ["id"]
           },
         ]
@@ -1863,9 +2127,11 @@ export type Database = {
           mmr_atual: number | null
           mmr_inicial: number | null
           official_nick_set: boolean
-          social_links: Json
+          region: string
+          region_chosen: boolean
           role: string
           role_preferida: string | null
+          social_links: Json
           status_message: string | null
           steam_id: string | null
           suspended_until: string | null
@@ -1899,9 +2165,11 @@ export type Database = {
           mmr_atual?: number | null
           mmr_inicial?: number | null
           official_nick_set?: boolean
-          social_links?: Json
+          region?: string
+          region_chosen?: boolean
           role?: string
           role_preferida?: string | null
+          social_links?: Json
           status_message?: string | null
           steam_id?: string | null
           suspended_until?: string | null
@@ -1935,9 +2203,11 @@ export type Database = {
           mmr_atual?: number | null
           mmr_inicial?: number | null
           official_nick_set?: boolean
-          social_links?: Json
+          region?: string
+          region_chosen?: boolean
           role?: string
           role_preferida?: string | null
+          social_links?: Json
           status_message?: string | null
           steam_id?: string | null
           suspended_until?: string | null
@@ -2009,6 +2279,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchases_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
             referencedColumns: ["id"]
           },
         ]
@@ -2090,6 +2367,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "revenue_splits_pro_user_id_fkey"
+            columns: ["pro_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "revenue_splits_purchase_id_fkey"
             columns: ["purchase_id"]
             isOneToOne: false
@@ -2103,37 +2387,91 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "revenue_splits_sponsor_user_id_fkey"
+            columns: ["sponsor_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      season_achievements: {
+        Row: {
+          created_at: string
+          final_medal: string | null
+          final_mmr: number | null
+          final_stars: number | null
+          leaderboard_rank: number | null
+          season_id: number
+          title: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          final_medal?: string | null
+          final_mmr?: number | null
+          final_stars?: number | null
+          leaderboard_rank?: number | null
+          season_id: number
+          title?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          final_medal?: string | null
+          final_mmr?: number | null
+          final_stars?: number | null
+          leaderboard_rank?: number | null
+          season_id?: number
+          title?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "season_achievements_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
         ]
       }
       seasons: {
         Row: {
           active: boolean
+          beta: boolean
           created_at: string
           ended_at: string | null
           id: number
           name: string
           prize_pool: number
           prize_pool_currency: string
+          season_number: number | null
           started_at: string
         }
         Insert: {
           active?: boolean
+          beta?: boolean
           created_at?: string
           ended_at?: string | null
           id?: number
           name: string
           prize_pool?: number
           prize_pool_currency?: string
+          season_number?: number | null
           started_at?: string
         }
         Update: {
           active?: boolean
+          beta?: boolean
           created_at?: string
           ended_at?: string | null
           id?: number
           name?: string
           prize_pool?: number
           prize_pool_currency?: string
+          season_number?: number | null
           started_at?: string
         }
         Relationships: []
@@ -2187,6 +2525,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
+            referencedColumns: ["id"]
+          },
         ]
       }
       steam_links: {
@@ -2217,6 +2562,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: true
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "steam_links_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "public_player_identities"
             referencedColumns: ["id"]
           },
         ]
@@ -2267,6 +2619,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
             referencedColumns: ["id"]
           },
         ]
@@ -2613,6 +2972,95 @@ export type Database = {
           },
         ]
       }
+      user_cosmetics: {
+        Row: {
+          acquired_at: string
+          acquired_via: string
+          cosmetic_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          acquired_at?: string
+          acquired_via?: string
+          cosmetic_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          acquired_at?: string
+          acquired_via?: string
+          cosmetic_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_cosmetics_cosmetic_id_fkey"
+            columns: ["cosmetic_id"]
+            isOneToOne: false
+            referencedRelation: "cosmetics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_cosmetics_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_cosmetics_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_equipped: {
+        Row: {
+          cosmetic_id: string
+          equipped_at: string
+          slot: string
+          user_id: string
+        }
+        Insert: {
+          cosmetic_id: string
+          equipped_at?: string
+          slot: string
+          user_id: string
+        }
+        Update: {
+          cosmetic_id?: string
+          equipped_at?: string
+          slot?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_equipped_cosmetic_id_fkey"
+            columns: ["cosmetic_id"]
+            isOneToOne: false
+            referencedRelation: "cosmetics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_equipped_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_equipped_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_fichas: {
         Row: {
           balance: number
@@ -2635,6 +3083,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: true
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_fichas_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "public_player_identities"
             referencedColumns: ["id"]
           },
         ]
@@ -2702,6 +3157,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "user_signature_heroes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
+            referencedColumns: ["id"]
+          },
         ]
       }
       user_stats: {
@@ -2741,6 +3203,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: true
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_stats_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "public_player_identities"
             referencedColumns: ["id"]
           },
         ]
@@ -2796,6 +3265,7 @@ export type Database = {
       user_warnings: {
         Row: {
           antipattern_violated: number | null
+          dota_match_id: string | null
           id: string
           issued_at: string
           issued_by: string | null
@@ -2809,6 +3279,7 @@ export type Database = {
         }
         Insert: {
           antipattern_violated?: number | null
+          dota_match_id?: string | null
           id?: string
           issued_at?: string
           issued_by?: string | null
@@ -2822,6 +3293,7 @@ export type Database = {
         }
         Update: {
           antipattern_violated?: number | null
+          dota_match_id?: string | null
           id?: string
           issued_at?: string
           issued_by?: string | null
@@ -2842,10 +3314,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "user_warnings_issued_by_fkey"
+            columns: ["issued_by"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "user_warnings_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_warnings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
             referencedColumns: ["id"]
           },
         ]
@@ -2895,6 +3381,27 @@ export type Database = {
           bots_maintenance: number | null
           bots_offline: number | null
           bots_total: number | null
+        }
+        Relationships: []
+      }
+      public_player_identities: {
+        Row: {
+          avatar_url: string | null
+          id: string | null
+          social_links: Json | null
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          id?: string | null
+          social_links?: Json | null
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          id?: string | null
+          social_links?: Json | null
+          username?: string | null
         }
         Relationships: []
       }
@@ -2963,18 +3470,6 @@ export type Database = {
       }
     }
     Functions: {
-      equip_cosmetic: {
-        Args: { p_cosmetic_id: string }
-        Returns: undefined
-      }
-      unequip_slot: {
-        Args: { p_slot: string }
-        Returns: undefined
-      }
-      grant_cosmetic: {
-        Args: { p_cosmetic_id: string; p_user_id: string; p_via?: string }
-        Returns: undefined
-      }
       _assign_team_roles: {
         Args: { p_members: Json; p_roles: string[]; p_team: string }
         Returns: Json
@@ -2983,7 +3478,14 @@ export type Database = {
       accept_party_invite: { Args: { p_invite: string }; Returns: string }
       accept_team_invite: { Args: { p_invite_id: string }; Returns: undefined }
       apply_match_mmr: {
-        Args: { p_match_id: string; p_results: Json; p_season_id: number }
+        Args: {
+          p_dire_avg?: number
+          p_match_id: string
+          p_mvp_user_id?: string
+          p_radiant_avg?: number
+          p_results: Json
+          p_season_id: number
+        }
         Returns: number
       }
       available_match_permissions: { Args: { p_uid: string }; Returns: number }
@@ -3009,10 +3511,12 @@ export type Database = {
         Args: { p_coach_id: string; p_reason: string }
         Returns: number
       }
+      community_counters: { Args: never; Returns: Json }
       confirm_match_proposal: { Args: { p_id: string }; Returns: string }
       consume_match_permission: { Args: never; Returns: undefined }
       consume_pt_fichas: { Args: { p_match_id: string }; Returns: undefined }
       create_party: { Args: never; Returns: string }
+      credit_ficha_purchase: { Args: { p_purchase_id: string }; Returns: Json }
       decline_match_proposal: { Args: { p_id: string }; Returns: undefined }
       dm_get_or_create_conversation: {
         Args: { p_other: string }
@@ -3034,7 +3538,10 @@ export type Database = {
         Returns: undefined
       }
       enter_party_queue: { Args: { p_game_modes: string[] }; Returns: Json }
+      equip_cosmetic: { Args: { p_cosmetic_id: string }; Returns: undefined }
       expire_match_proposals: { Args: never; Returns: undefined }
+      fd_tier_for_level: { Args: { p_level: number }; Returns: string }
+      fd_tier_rank: { Args: { p_tier: string }; Returns: number }
       get_honor_score: { Args: { p_user_id: string }; Returns: number }
       get_honor_tier: { Args: { p_score: number }; Returns: string }
       get_max_price_for_pro: { Args: { p_user_id: string }; Returns: number }
@@ -3128,11 +3635,18 @@ export type Database = {
           user_id: string
         }[]
       }
+      grant_cosmetic: {
+        Args: { p_cosmetic_id: string; p_user_id: string; p_via?: string }
+        Returns: undefined
+      }
       grant_doctrine_question_xp: { Args: never; Returns: Json }
       has_accepted_doctrine: { Args: { p_user_id: string }; Returns: boolean }
       has_active_subscription: { Args: never; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
       is_coach: { Args: never; Returns: boolean }
+      is_in_active_match: { Args: { p_user: string }; Returns: boolean }
+      is_party_leader: { Args: { p_party: string }; Returns: boolean }
+      is_party_member: { Args: { p_party: string }; Returns: boolean }
       is_pro_first_sale: { Args: { p_pro_user_id: string }; Returns: boolean }
       is_user_active: { Args: { p_user_id: string }; Returns: boolean }
       join_coach_queue: { Args: { p_coach_id: string }; Returns: Json }
@@ -3140,6 +3654,8 @@ export type Database = {
       leave_coach_queue: { Args: { p_entry_id: string }; Returns: Json }
       leave_party: { Args: never; Returns: undefined }
       leave_party_queue: { Args: never; Returns: undefined }
+      live_matches: { Args: never; Returns: Json }
+      match_bans: { Args: { p_dota_match_id: string }; Returns: Json }
       mmr_to_tier: {
         Args: { p_mmr: number }
         Returns: {
@@ -3175,10 +3691,16 @@ export type Database = {
         }[]
       }
       queue_liveness_tick: { Args: never; Returns: undefined }
+      queue_mmr_for: { Args: { p_user: string }; Returns: number }
+      recent_matches: {
+        Args: { p_limit?: number; p_offset?: number }
+        Returns: Json
+      }
       recompute_queue_live_stats: { Args: never; Returns: undefined }
       release_bot: { Args: { p_account_name: string }; Returns: undefined }
       reserve_bot_for_lobby: { Args: { p_lobby_id: string }; Returns: string }
       reset_dormant_behavior: { Args: never; Returns: number }
+      rotate_seasons: { Args: never; Returns: Json }
       seed_fake_pro: {
         Args: {
           p_fila_aberta?: boolean
@@ -3204,6 +3726,8 @@ export type Database = {
       }
       transfer_party_leader: { Args: { p_user: string }; Returns: undefined }
       try_form_match: { Args: { p_match_size?: number }; Returns: string }
+      unequip_slot: { Args: { p_slot: string }; Returns: undefined }
+      wall_of_shame: { Args: never; Returns: Json }
     }
     Enums: {
       ficha_source:

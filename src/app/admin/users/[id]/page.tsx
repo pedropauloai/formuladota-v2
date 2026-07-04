@@ -135,7 +135,7 @@ export default async function AdminUserDetailPage({
       behavior_status, calibration_status, created_at,
       mmr_atual, doctrine_version, doctrine_accepted_at,
       banned_at, banned_reason,
-      match_permissions_consumed, doctrine_quiz_progress
+      match_permissions_consumed, doctrine_quiz_progress, region
     `)
     .eq("id", id)
     .single();
@@ -329,6 +329,7 @@ export default async function AdminUserDetailPage({
               isBanned={isBanned}
               isAdmin={Boolean(profile.is_admin)}
               role={profile.role ?? "player"}
+              region={(profile as { region?: string }).region ?? "BR"}
             />
           </div>
         </div>

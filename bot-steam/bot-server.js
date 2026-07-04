@@ -69,6 +69,10 @@ const SO_UPDATE_MULTIPLE = 26;
 const LOBBY_SO_TYPE = 2004;
 
 const GAME_MODE_MAP = { all_pick: 22, captains_mode: 2, random_draft: 3, single_draft: 4 };
+// Região da partida (lobbies.region) -> servidor Valve (enum ServerRegion do dota2-user):
+// BR=Brazil(10), LATAM=Peru(15; Chile=14 alternativa), EU=Europe/EU West(3).
+// Espelho de src/lib/regions.ts (REGION_TO_DOTA_SERVER) — manter em sincronia.
+const REGION_TO_DOTA_SERVER = { BR: 10, LATAM: 15, EU: 3 };
 const LEAGUE_ID = Number(process.env.DOTA_LEAGUE_ID) || 18406; // ticket da liga FormulaDota
 const RE_STEAMID64 = /^7656\d{13}$/;
 
@@ -373,7 +377,7 @@ async function loop() {
 
     const { data: lobbies, error } = await supabase
       .from("lobbies")
-      .select("id, password, game_mode, status, steam_lobby_id, created_at")
+      .select("id, password, game_mode, status, steam_lobby_id, created_at, region")
       .eq("status", "open")
       .is("steam_lobby_id", null)
       .order("created_at", { ascending: true })
@@ -438,7 +442,9 @@ async function processarLobby(lobby) {
     gameName: `FORMULADOTA ${String(lobby.id).slice(0, 8)}`,
     gameMode: GAME_MODE_MAP[lobby.game_mode] || 22,
     doPlayerDraft: false, // Player Draft via GC não sobe a partida; draft fica no site (decisão Pedro)
-    serverRegion: 10, // Brasil
+    // Servidor Valve pela REGIÃO da partida (lobbies.region, migration 121).
+    // Enum ServerRegion do dota2-user: Brazil=10, Peru=15 (LATAM), Europe=3 (EU West).
+    serverRegion: REGION_TO_DOTA_SERVER[lobby.region] || 10,
     visibility: 0, // público
     allchat: true,
     allowSpectating: true,

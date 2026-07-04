@@ -22,6 +22,7 @@ import {
   grantAchievement,
   swapSteamLink,
   updateUsernameAdmin,
+  updateUserRegionAdmin,
   setSeasonMmrAdmin,
   setBanStatusAdmin,
   setUserAccessAdmin,
@@ -32,6 +33,7 @@ import {
   revokeCoachStatus,
 } from "@/app/actions/pro-management";
 import { saveAdminNotes } from "@/app/admin/users/notes-actions";
+import { GAME_REGIONS, REGION_LABELS } from "@/lib/regions";
 
 // ─── Modal base reutilizável ─────────────────────────────────────────────────
 
@@ -864,6 +866,7 @@ export function EditUserModal({
   isBanned,
   isAdmin,
   role,
+  region: initialRegion,
 }: {
   targetUserId: string;
   username: string;
@@ -871,11 +874,13 @@ export function EditUserModal({
   isBanned: boolean;
   isAdmin: boolean;
   role: string;
+  region?: string;
 }) {
   const [open, setOpen] = useState(false);
 
   // Estado por seção
   const [nick, setNick] = useState(username);
+  const [regionVal, setRegionVal] = useState(initialRegion ?? "BR");
   const [mmr, setMmr] = useState(seasonMmr != null ? String(seasonMmr) : "");
   const [mmrReason, setMmrReason] = useState("");
   const [banReason, setBanReason] = useState("");
@@ -936,6 +941,38 @@ export function EditUserModal({
                 pending={busy === "nick" && pending}
                 disabled={!nick.trim() || nick.trim() === username}
                 onClick={() => run("nick", () => updateUsernameAdmin(targetUserId, nick), "Nome atualizado.")}
+              />
+            </div>
+          </EditSection>
+
+          {/* REGIÃO DE JOGO — escolha única do user no onboarding; troca SÓ aqui.
+              Filas nunca se misturam (BR não é LATAM). */}
+          <EditSection title="Região de jogo">
+            <div className="flex gap-2">
+              {GAME_REGIONS.map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => setRegionVal(r)}
+                  aria-pressed={regionVal === r}
+                  className={`rounded-md border px-3 py-1.5 font-sans text-sm font-semibold uppercase tracking-widest transition-colors ${
+                    regionVal === r
+                      ? "border-brand-primary bg-brand-primary/20 text-brand-primary"
+                      : "border-border-subtle text-text-faded hover:text-text-body"
+                  }`}
+                >
+                  {REGION_LABELS[r]}
+                </button>
+              ))}
+            </div>
+            <div className="mt-3 flex items-center justify-between gap-3">
+              {msg.region ? <StatusMsg type={msg.region.type} msg={msg.region.text} /> : <span />}
+              <SaveBtn
+                pending={busy === "region" && pending}
+                disabled={regionVal === (initialRegion ?? "BR")}
+                onClick={() =>
+                  run("region", () => updateUserRegionAdmin(targetUserId, regionVal), "Região atualizada.")
+                }
               />
             </div>
           </EditSection>

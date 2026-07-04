@@ -11,6 +11,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
+import { isGameRegion } from "@/lib/regions";
 
 // ====================================================
 // Helpers internos
@@ -515,6 +516,55 @@ export async function updateUsernameAdmin(
   revalidatePath("/admin/users");
   revalidatePath("/ranking");
   revalidatePath(`/perfil/u/${targetUserId}`);
+  return { success: true };
+}
+
+// ── Região de jogo ───────────────────────────────────────────────────────────
+// A região é escolha ÚNICA do usuário no onboarding (migration 121); mudança
+// posterior é SÓ por aqui. Sincroniza o snapshot em player_season_mmr (o
+// leaderboard filtra por ele).
+export async function updateUserRegionAdmin(
+  targetUserId: string,
+  region: string
+): Promise<EditResult> {
+  if (!isGameRegion(region)) {
+    return { success: false, error: "Região inválida (BR, LATAM ou EU)." };
+  }
+
+  const adminCheck = await requireAdmin();
+  if (!adminCheck.ok) return { success: false, error: adminCheck.error };
+
+  const service = createServiceClient();
+  const { data: before } = await service
+    .from("profiles")
+    .select("region")
+    .eq("id", targetUserId)
+    .maybeSingle();
+
+  const { error } = await service
+    .from("profiles")
+    .update({ region, region_chosen: true } as never)
+    .eq("id", targetUserId);
+  if (error) return { success: false, error: "Erro ao atualizar a região: " + error.message };
+
+  // Snapshot do leaderboard acompanha (todas as seasons — histórico segue o dono).
+  await service
+    .from("player_season_mmr")
+    .update({ region } as never)
+    .eq("user_id", targetUserId);
+
+  await insertAuditLog(service, {
+    actorId: adminCheck.adminId,
+    targetUserId,
+    action: "admin_edit_region",
+    reason: "Mudança de região via admin",
+    payloadBefore: { region: (before as { region?: string } | null)?.region ?? null },
+    payloadAfter: { region },
+  });
+
+  revalidatePath(`/admin/users/${targetUserId}`);
+  revalidatePath("/admin/users");
+  revalidatePath("/ranking");
   return { success: true };
 }
 

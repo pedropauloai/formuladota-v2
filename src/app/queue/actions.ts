@@ -143,7 +143,6 @@ export async function enterQueue(input: {
   roles: QueueRole[];
   /** Modos selecionados (multi). Uma linha por user com o array → casar remove de todas. */
   gameModes?: QueueGameMode[];
-  region?: string;
 }): Promise<QueueResult> {
   const supabase = await createClient();
   const {
@@ -233,12 +232,13 @@ export async function enterQueue(input: {
   // coluna nova fora dos tipos gerados → cast no insert.
   const modes =
     input.gameModes && input.gameModes.length ? input.gameModes : (["all_pick"] as QueueGameMode[]);
+  // region NÃO vai no insert: o trigger trg_set_queue_region (migration 121)
+  // SEMPRE grava a região do perfil — cliente não escolhe região de fila.
   const insertRow = {
     user_id: user.id,
     roles: input.roles,
     game_mode: modes[0],
     game_modes: modes,
-    region: input.region ?? "brasil",
     status: "waiting",
   };
   const { data, error } = await supabase
