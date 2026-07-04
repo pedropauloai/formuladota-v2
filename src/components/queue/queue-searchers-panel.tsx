@@ -22,7 +22,6 @@ import {
   getQueueSearchers,
   type QueueSearcher,
   type QueueRole,
-  type QueueGameMode,
 } from "@/app/queue/actions";
 import { HonorRankMedal } from "@/components/ui/honor-rank-medal";
 import { UserHoverCard } from "@/components/profile/user-hover-card";

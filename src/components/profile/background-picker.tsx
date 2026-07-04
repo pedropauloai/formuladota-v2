@@ -31,14 +31,11 @@ export function BackgroundPicker() {
   const t = useTranslations("perfil");
   const router = useRouter();
   const { toast } = useToast();
-  const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
   const [options, setOptions] = useState<ProfileThemeOption[] | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null); // null = fundo limpo
   const [initialId, setInitialId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-
-  useEffect(() => setMounted(true), []);
 
   const load = useCallback(async () => {
     const opts = await getProfileThemeOptions();
@@ -92,8 +89,9 @@ export function BackgroundPicker() {
         {t("changeBackground")}
       </Button>
 
-      {mounted &&
-        open &&
+      {/* `open` só vira true com clique (client) — portal nunca roda no SSR,
+          então o guard `mounted` era redundante (removido, lint 2026-07-03). */}
+      {open &&
         createPortal(
           <div className="fixed inset-0 z-[var(--z-takeover)]">
             {/* Camada de PREVIEW fullscreen (fundo escolhido + overlay de leitura). */}
