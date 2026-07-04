@@ -1027,7 +1027,21 @@
     "expiresAt": "Expires at {time}",
     "expiresFallback": "1 hour",
     "generatingPix": "Generating PIX",
-    "backToPackages": "Back to packages"
+    "backToPackages": "Back to packages",
+    "tierPlusName": "FORMULADOTA Plus",
+    "tierPremiumName": "FORMULADOTA Premium",
+    "tierPremiumBadge": "Top tier",
+    "perMonth": "/month",
+    "benefitCreateLobbies": "Create community lobbies",
+    "benefitXpBoost": "Double XP on the season pass",
+    "benefitCosmetics": "Subscriber-exclusive cosmetics",
+    "benefitFlair": "Subscriber flair on profile and leaderboard",
+    "benefitAllPlus": "Everything in Plus",
+    "benefitEliteLobby": "Access to the Immortal elite lobby (requires Valve Immortal + Mystic lv30)",
+    "benefitXpBoostMax": "Maximum XP boost on the pass",
+    "benefitCosmeticsGodlike": "Godlike-tier cosmetics",
+    "benefitProAccess": "PRO priority and replay analysis",
+    "errorStripeSoon": "International payments (Stripe) are coming soon to your region. Hang tight."
   },
   "account": {
     "steamLinkMetaTitle": "Link Steam — FORMULADOTA",

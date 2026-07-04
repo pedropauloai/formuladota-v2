@@ -543,14 +543,14 @@ export async function updateUserRegionAdmin(
 
   const { error } = await service
     .from("profiles")
-    .update({ region, region_chosen: true } as never)
+    .update({ region, region_chosen: true })
     .eq("id", targetUserId);
   if (error) return { success: false, error: "Erro ao atualizar a região: " + error.message };
 
   // Snapshot do leaderboard acompanha (todas as seasons — histórico segue o dono).
   await service
     .from("player_season_mmr")
-    .update({ region } as never)
+    .update({ region })
     .eq("user_id", targetUserId);
 
   await insertAuditLog(service, {

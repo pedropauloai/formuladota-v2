@@ -1,16 +1,16 @@
 "use server";
 
-// Server Actions: gerenciamento da assinatura mensal HUB (R$47/mês via MP Pix Automático).
+// Server Actions: assinaturas Plus/Premium (Pedro 2026-07-04, FASE 3).
 //
-// Fluxo createSubscription:
-//   1. Verifica user autenticado
+// Modelo freemium matchmaking: FREE = jogar; pagos = Plus e Premium, preço
+// pela REGIÃO de jogo do perfil (BR = Mercado Pago Pix Automático; LATAM/EU
+// = Stripe, FASE 4). Config canônica: src/lib/subscriptions/tiers.ts.
+//
+// Fluxo createSubscription(tier):
+//   1. Verifica user autenticado + região do perfil
 //   2. Verifica se já tem assinatura ativa (bloqueia dupla assinatura)
-//   3. Cria preapproval no MP → retorna init_point
-//   4. Insere subscription no DB com status 'pending'
-//   5. Redireciona user para init_point (sandbox ou produção)
-//
-// Após autorização: MP dispara webhook → handler em /api/webhooks/mercadopago
-// atualiza status para 'authorized' + envia email.
+//   3. BR: cria preapproval no MP → init_point; grava tier+provider no DB
+//   4. Webhook /api/webhooks/mercadopago atualiza status → 'authorized'
 //
 // Cancel flow híbrido: cancela no MP imediatamente, mas next_payment_date não muda.
 // Helper has_active_subscription() retorna true até next_payment_date mesmo cancelado.
@@ -23,12 +23,20 @@ import {
   isTestMode,
 } from "@/lib/mercadopago/client";
 import { sendSubscriptionCancelledEmail } from "@/lib/resend";
+import { isGameRegion, type GameRegion } from "@/lib/regions";
+import {
+  TIER_PRICES,
+  isSubscriptionTier,
+  providerForRegion,
+  type SubscriptionTier,
+} from "@/lib/subscriptions/tiers";
 
 // ====================================================
-// createSubscription — inicia assinatura PIX Automático
+// createSubscription — inicia assinatura do tier
 // ====================================================
 
-export async function createSubscription(): Promise<void> {
+export async function createSubscription(tierInput?: string): Promise<void> {
+  const tier: SubscriptionTier = isSubscriptionTier(tierInput) ? tierInput : "plus";
   const supabase = await createClient();
   const {
     data: { user },
@@ -37,6 +45,14 @@ export async function createSubscription(): Promise<void> {
   if (!user) {
     redirect("/");
   }
+
+  // Região de jogo do perfil decide moeda e provedor (BR=MP, LATAM/EU=Stripe).
+  const { data: prof } = await supabase
+    .from("profiles")
+    .select("region")
+    .eq("id", user.id)
+    .maybeSingle();
+  const region: GameRegion = isGameRegion(prof?.region) ? prof.region : "BR";
 
   // Verifica se já tem assinatura ativa ou pendente (não duplicar)
   const { data: existing } = await supabase
@@ -52,20 +68,26 @@ export async function createSubscription(): Promise<void> {
   }
 
   if (existing?.status === "pending") {
-    // Tem preapproval pendente de autorização — mas pode ter expirado
-    // V1: criar novo preapproval (o MP vai retornar erro se ainda ativo — ignoramos e criamos novo)
-    // Deletar o pending antigo antes de criar novo
+    // Preapproval pendente pode ter expirado — deleta e cria novo.
     await supabase.from("subscriptions").delete().eq("id", existing.id);
   }
 
+  if (providerForRegion(region) === "stripe") {
+    // FASE 4: Stripe Checkout Session (LATAM USD / EU EUR). Até lá, aviso claro.
+    redirect("/assinatura?error=stripe_soon");
+  }
+
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://formuladota.com";
-  const price = Number(process.env.HUB_PRICE_BRL ?? "47");
+  const price = TIER_PRICES[region][tier];
 
   const result = await createPreapproval({
-    reason: "FORMULADOTA HUB — Mensalidade",
+    reason:
+      tier === "premium"
+        ? "FORMULADOTA Premium — Mensalidade"
+        : "FORMULADOTA Plus — Mensalidade",
     payerEmail: user.email ?? "",
     externalReference: `user-${user.id}`,
-    transactionAmount: price,
+    transactionAmount: price.amount,
     backUrl: `${siteUrl}/assinatura?success=1`,
   });
 
@@ -73,11 +95,14 @@ export async function createSubscription(): Promise<void> {
     redirect("/assinatura?error=payment_failed");
   }
 
-  // Inserir no DB com status 'pending' (webhook atualiza para 'authorized')
+  // Inserir no DB com status 'pending' (webhook atualiza para 'authorized').
+  // tier/provider ficam na linha — o webhook nunca os toca (só status/datas).
   const { error: insertError } = await supabase.from("subscriptions").insert({
     user_id: user.id,
     mp_preapproval_id: result.data.id,
     status: "pending",
+    tier,
+    provider: "mp",
   });
 
   if (insertError) {
@@ -155,7 +180,7 @@ export async function cancelSubscription(): Promise<void> {
 // reactivateSubscription — recria assinatura após cancel
 // ====================================================
 
-export async function reactivateSubscription(): Promise<void> {
+export async function reactivateSubscription(tierInput?: string): Promise<void> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -174,7 +199,7 @@ export async function reactivateSubscription(): Promise<void> {
     .in("status", ["cancelled", "paused"]);
 
   // Delega para createSubscription (mesmo fluxo, DB limpo)
-  await createSubscription();
+  await createSubscription(tierInput);
 }
 
 // ====================================================

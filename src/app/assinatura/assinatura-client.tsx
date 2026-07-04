@@ -8,12 +8,21 @@
 // Filosofia: adesão = compromisso mútuo. Visitante continua dignificado.
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
-import { Shield, CheckCircle, XCircle, Clock, AlertCircle } from "lucide-react";
+import { useTranslations, useLocale } from "next-intl";
+import { Shield, CheckCircle, XCircle, Clock, AlertCircle, Crown, Check } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { createSubscription, cancelSubscription, reactivateSubscription } from "@/app/actions/subscription";
+import type { GameRegion } from "@/lib/regions";
+import {
+  SUBSCRIPTION_TIERS,
+  TIER_PRICES,
+  TIER_BENEFIT_KEYS,
+  formatTierPrice,
+  isSubscriptionTier,
+  type SubscriptionTier,
+} from "@/lib/subscriptions/tiers";
 import type { SubscriptionState } from "./page";
 
 interface SubscriptionRow {
@@ -22,11 +31,13 @@ interface SubscriptionRow {
   started_at: string | null;
   next_payment_date: string | null;
   cancelled_at: string | null;
+  tier: string | null;
 }
 
 interface AssinaturaClientProps {
   state: SubscriptionState;
   subscription: SubscriptionRow | null;
+  region: GameRegion;
   queryParams: {
     success: boolean;
     cancelled: boolean;
@@ -48,14 +59,19 @@ function formatDate(iso: string | null): string {
 export function AssinaturaClient({
   state,
   subscription,
+  region,
   queryParams,
 }: AssinaturaClientProps) {
   const t = useTranslations("billing");
   const [loading, setLoading] = useState<"subscribe" | "cancel" | "reactivate" | null>(null);
+  // Tier da assinatura existente (pra reativar no mesmo tier) — default plus.
+  const currentTier: SubscriptionTier = isSubscriptionTier(subscription?.tier)
+    ? subscription.tier
+    : "plus";
 
-  const handleSubscribe = async () => {
+  const handleSubscribe = async (tier: SubscriptionTier) => {
     setLoading("subscribe");
-    await createSubscription();
+    await createSubscription(tier);
     setLoading(null);
   };
 
@@ -67,7 +83,7 @@ export function AssinaturaClient({
 
   const handleReactivate = async () => {
     setLoading("reactivate");
-    await reactivateSubscription();
+    await reactivateSubscription(currentTier);
     setLoading(null);
   };
 
@@ -107,20 +123,94 @@ export function AssinaturaClient({
           </div>
         )}
 
-        {/* Card principal — estado da assinatura */}
-        <SubscriptionStateCard
-          state={state}
-          subscription={subscription}
-          loading={loading}
-          onSubscribe={handleSubscribe}
-          onCancel={handleCancel}
-          onReactivate={handleReactivate}
-        />
-
-        {/* Informações do plano */}
-        <PlanInfoCard />
+        {/* Sem assinatura (ou expirada): grade dos 2 tiers com preço da região.
+            Demais estados: card único de status. */}
+        {state === "none" || state === "expired" ? (
+          <TierGrid region={region} loading={loading} onSubscribe={handleSubscribe} />
+        ) : (
+          <SubscriptionStateCard
+            state={state}
+            subscription={subscription}
+            currentTier={currentTier}
+            loading={loading}
+            onCancel={handleCancel}
+            onReactivate={handleReactivate}
+          />
+        )}
       </div>
     </main>
+  );
+}
+
+// ====================================================
+// Grade dos 2 tiers (Plus / Premium) — preço pela região de jogo
+// ====================================================
+
+function TierGrid({
+  region,
+  loading,
+  onSubscribe,
+}: {
+  region: GameRegion;
+  loading: string | null;
+  onSubscribe: (tier: SubscriptionTier) => Promise<void>;
+}) {
+  const t = useTranslations("billing");
+  const locale = useLocale();
+
+  return (
+    <div className="grid gap-4 md:grid-cols-2">
+      {SUBSCRIPTION_TIERS.map((tier) => {
+        const premium = tier === "premium";
+        const price = formatTierPrice(TIER_PRICES[region][tier], locale);
+        return (
+          <Card
+            key={tier}
+            className={premium ? "border-brand-primary/60 bg-bg-base" : "border-zinc-800 bg-bg-base"}
+          >
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-white">
+                  {premium ? (
+                    <Crown className="size-5 text-brand-primary" aria-hidden="true" />
+                  ) : (
+                    <Shield className="size-5 text-zinc-400" aria-hidden="true" />
+                  )}
+                  {t(premium ? "tierPremiumName" : "tierPlusName")}
+                </CardTitle>
+                {premium && (
+                  <Badge className="border-brand-primary/50 bg-brand-primary/15 text-brand-primary">
+                    {t("tierPremiumBadge")}
+                  </Badge>
+                )}
+              </div>
+              <CardDescription>
+                <span className="font-display text-2xl font-bold text-text-display">{price}</span>
+                <span className="ml-1 text-zinc-500">{t("perMonth")}</span>
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <ul className="space-y-2 text-sm text-zinc-400">
+                {TIER_BENEFIT_KEYS[tier].map((key) => (
+                  <li key={key} className="flex items-start gap-2">
+                    <Check className="mt-0.5 size-3.5 shrink-0 text-brand-primary" aria-hidden="true" />
+                    <span>{t(key)}</span>
+                  </li>
+                ))}
+              </ul>
+              <Button
+                onClick={() => onSubscribe(tier)}
+                disabled={loading !== null}
+                className="w-full bg-red-700 text-white hover:bg-red-600 focus-visible:ring-red-600/50"
+                size="lg"
+              >
+                {loading === "subscribe" ? t("redirecting") : t("subscribeCta")}
+              </Button>
+            </CardContent>
+          </Card>
+        );
+      })}
+    </div>
   );
 }
 
@@ -131,8 +221,8 @@ export function AssinaturaClient({
 interface StateCardProps {
   state: SubscriptionState;
   subscription: SubscriptionRow | null;
+  currentTier: SubscriptionTier;
   loading: "subscribe" | "cancel" | "reactivate" | null;
-  onSubscribe: () => Promise<void>;
   onCancel: () => Promise<void>;
   onReactivate: () => Promise<void>;
 }
@@ -140,45 +230,13 @@ interface StateCardProps {
 function SubscriptionStateCard({
   state,
   subscription,
+  currentTier,
   loading,
-  onSubscribe,
   onCancel,
   onReactivate,
 }: StateCardProps) {
   const t = useTranslations("billing");
-  if (state === "none" || state === "expired") {
-    return (
-      <Card className="border-zinc-800 bg-bg-base">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2 text-white">
-              <Shield className="size-5 text-zinc-500" />
-              {t("visitorTitle")}
-            </CardTitle>
-            <Badge variant="outline" className="border-zinc-700 text-zinc-500">
-              {t("visitorBadge")}
-            </Badge>
-          </div>
-          <CardDescription>
-            {t("visitorDescription")}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button
-            onClick={onSubscribe}
-            disabled={loading !== null}
-            className="w-full bg-red-700 text-white hover:bg-red-600 focus-visible:ring-red-600/50"
-            size="lg"
-          >
-            {loading === "subscribe" ? t("redirecting") : t("subscribeCta")}
-          </Button>
-          <p className="mt-3 text-center text-sm text-zinc-600">
-            {t("pixAutomaticNote")}
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
+  const tierName = t(currentTier === "premium" ? "tierPremiumName" : "tierPlusName");
 
   if (state === "pending") {
     return (
@@ -199,13 +257,13 @@ function SubscriptionStateCard({
         </CardHeader>
         <CardContent>
           <Button
-            onClick={onSubscribe}
+            onClick={onReactivate}
             disabled={loading !== null}
             variant="ghost"
             className="w-full border-red-800 text-red-400 hover:bg-red-950/30"
             size="lg"
           >
-            {loading === "subscribe" ? t("redirecting") : t("pendingResendCta")}
+            {loading !== null ? t("redirecting") : t("pendingResendCta")}
           </Button>
         </CardContent>
       </Card>
@@ -236,11 +294,7 @@ function SubscriptionStateCard({
           <div className="rounded-md border border-zinc-800 bg-zinc-900/30 p-3 text-sm text-zinc-400">
             <div className="flex justify-between">
               <span>{t("detailsSubscriptionLabel")}</span>
-              <span className="text-zinc-200">{t("detailsPlanName")}</span>
-            </div>
-            <div className="mt-1 flex justify-between">
-              <span>{t("detailsValueLabel")}</span>
-              <span className="text-zinc-200">{t("detailsValueAmount")}</span>
+              <span className="text-zinc-200">{tierName}</span>
             </div>
             <div className="mt-1 flex justify-between">
               <span>{t("detailsNextRenewalLabel")}</span>
@@ -314,40 +368,6 @@ function SubscriptionStateCard({
 }
 
 // ====================================================
-// Sub-componente: Informações do plano
-// ====================================================
-
-function PlanInfoCard() {
-  const t = useTranslations("billing");
-  const benefits = [
-    t("benefitLobbies"),
-    t("benefitSeasons"),
-    t("benefitDiscordBadge"),
-    t("benefitEarlyAccess"),
-  ];
-  return (
-    <Card className="border-zinc-800 bg-bg-base">
-      <CardHeader>
-        <CardTitle className="text-sm text-zinc-400">{t("planInfoTitle")}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ul className="space-y-2 text-sm text-zinc-500">
-          {benefits.map((item) => (
-            <li key={item} className="flex items-start gap-2">
-              <Shield className="mt-0.5 size-3.5 shrink-0 text-red-700" />
-              <span>{item}</span>
-            </li>
-          ))}
-        </ul>
-        <p className="mt-4 text-sm text-zinc-700">
-          {t("planInfoCoachingNote")}
-        </p>
-      </CardContent>
-    </Card>
-  );
-}
-
-// ====================================================
 // Sub-componente: Banner de erro
 // ====================================================
 
@@ -359,6 +379,7 @@ function ErrorBanner({ code }: { code: string }) {
     cancel_failed: t("errorCancelFailed"),
     not_found: t("errorNotFound"),
     invalid_state: t("errorInvalidState"),
+    stripe_soon: t("errorStripeSoon"),
   };
 
   return (

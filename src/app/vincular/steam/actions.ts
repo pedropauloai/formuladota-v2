@@ -66,7 +66,7 @@ export async function chooseRegion(
   // não afeta linha nenhuma e devolvemos erro (mudança só via admin).
   const { data, error } = await service
     .from("profiles")
-    .update({ region, region_chosen: true } as never)
+    .update({ region, region_chosen: true })
     .eq("id", user.id)
     .eq("region_chosen", false)
     .select("id");

@@ -2582,8 +2582,12 @@ export type Database = {
           mp_preapproval_id: string | null
           next_payment_date: string | null
           payment_method_id: string | null
+          provider: string
           started_at: string | null
           status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          tier: string
           updated_at: string
           user_id: string
         }
@@ -2595,8 +2599,12 @@ export type Database = {
           mp_preapproval_id?: string | null
           next_payment_date?: string | null
           payment_method_id?: string | null
+          provider?: string
           started_at?: string | null
           status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          tier?: string
           updated_at?: string
           user_id: string
         }
@@ -2608,8 +2616,12 @@ export type Database = {
           mp_preapproval_id?: string | null
           next_payment_date?: string | null
           payment_method_id?: string | null
+          provider?: string
           started_at?: string | null
           status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          tier?: string
           updated_at?: string
           user_id?: string
         }
@@ -3477,6 +3489,7 @@ export type Database = {
       accept_match_proposal: { Args: { p_id: string }; Returns: string }
       accept_party_invite: { Args: { p_invite: string }; Returns: string }
       accept_team_invite: { Args: { p_invite_id: string }; Returns: undefined }
+      active_subscription_tier: { Args: never; Returns: string }
       apply_match_mmr: {
         Args: {
           p_dire_avg?: number
@@ -3642,6 +3655,7 @@ export type Database = {
       grant_doctrine_question_xp: { Args: never; Returns: Json }
       has_accepted_doctrine: { Args: { p_user_id: string }; Returns: boolean }
       has_active_subscription: { Args: never; Returns: boolean }
+      has_subscription_tier: { Args: { p_tier: string }; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
       is_coach: { Args: never; Returns: boolean }
       is_in_active_match: { Args: { p_user: string }; Returns: boolean }

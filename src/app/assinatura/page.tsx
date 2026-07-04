@@ -16,6 +16,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
+import { isGameRegion, type GameRegion } from "@/lib/regions";
 import { AssinaturaClient } from "./assinatura-client";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -33,6 +34,7 @@ interface SubscriptionRow {
   started_at: string | null;
   next_payment_date: string | null;
   cancelled_at: string | null;
+  tier: string | null;
 }
 
 export default async function AssinaturaPage({
@@ -49,26 +51,32 @@ export default async function AssinaturaPage({
 
   const params = await searchParams;
 
-  // Busca assinatura mais recente do user (pode ser null se nunca assinou)
-  const { data: subscription, error } = await supabase
-    .from("subscriptions")
-    .select("id, status, started_at, next_payment_date, cancelled_at")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  // Assinatura mais recente + região do perfil (define moeda/provedor) em paralelo.
+  const [{ data: subscription, error }, { data: prof }] = await Promise.all([
+    supabase
+      .from("subscriptions")
+      .select("id, status, started_at, next_payment_date, cancelled_at, tier")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    supabase.from("profiles").select("region").eq("id", user.id).maybeSingle(),
+  ]);
 
   if (error) {
     console.error("[/assinatura] erro ao buscar subscription:", error.message);
   }
 
+  const region: GameRegion = isGameRegion(prof?.region) ? prof.region : "BR";
+
   // Determina estado visual
-  const state = resolveSubscriptionState(subscription ?? null);
+  const state = resolveSubscriptionState((subscription as SubscriptionRow | null) ?? null);
 
   return (
     <AssinaturaClient
       state={state}
       subscription={subscription as SubscriptionRow | null}
+      region={region}
       queryParams={{
         success: params.success === "1",
         cancelled: params.cancelled === "1",
