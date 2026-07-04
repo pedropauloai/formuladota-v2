@@ -81,8 +81,10 @@ export async function validateSteamCallback(
   }
 
   const text = await response.text();
-  // Steam responde "ns:http://specs.openid.net/auth/2.0\nis_valid:true\n"
-  if (!text.includes("is_valid:true")) {
+  // Steam responde "ns:http://specs.openid.net/auth/2.0\nis_valid:true\n".
+  // Auditoria 2026-07-03: casar a LINHA exata (^is_valid:true$) em vez de substring,
+  // para não aceitar corpo forjado tipo "is_valid:truefoo".
+  if (!/^is_valid:true\s*$/m.test(text)) {
     throw new Error("Steam OpenID assinatura inválida (possível spoofing)");
   }
 

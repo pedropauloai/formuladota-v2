@@ -20,8 +20,20 @@
  * Documentação: docs/foundations/SOUND_SYSTEM.md
  */
 
-import { Howl, Howler } from "howler";
 import { toHowlerSprite, type SoundId } from "./sprite-map";
+import type { Howl as HowlType } from "howler";
+
+// Auditoria de performance 2026-07-03: howler (~30KB gz) carregado sob demanda
+// (dynamic import) em vez de import estático — antes entrava no bundle de
+// first-load de TODA rota via SoundProvider no layout raiz, mesmo em páginas sem
+// som. Agora só baixa quando o sprite realmente inicializa (pós-mount/gesto).
+let howlerMod: typeof import("howler") | null = null;
+async function loadHowler(): Promise<typeof import("howler")> {
+  if (!howlerMod) {
+    howlerMod = await import("howler");
+  }
+  return howlerMod;
+}
 
 /** Layer de volume — cada layer tem token CSS e volume independente */
 export type SoundLayer = "interaction" | "ambient" | "reward";
@@ -77,7 +89,7 @@ const STORAGE_KEYS = {
 
 class HowlerSoundManager implements ISoundManager {
   /** Instância Howl com o sprite sheet de 6 SFX */
-  private sprite: Howl | null = null;
+  private sprite: HowlType | null = null;
   /** Mute global — true = nenhum som é reproduzido */
   private muted = false;
   /** Volumes por layer (0.0-1.0) */
@@ -123,9 +135,12 @@ class HowlerSoundManager implements ISoundManager {
    */
   init(): void {
     this.initialized = true;
-    // Resume AudioContext do Howler se estiver suspended (mobile/iOS)
-    if (Howler.ctx && Howler.ctx.state === "suspended") {
-      void Howler.ctx.resume();
+    // Resume AudioContext do Howler se estiver suspended (mobile/iOS).
+    // Se o howler ainda não foi carregado (dynamic import), não há contexto a
+    // resumir — no-op silencioso; o contexto sobe no loadSprite().
+    const H = howlerMod?.Howler;
+    if (H?.ctx && H.ctx.state === "suspended") {
+      void H.ctx.resume();
     }
   }
 
@@ -139,6 +154,7 @@ class HowlerSoundManager implements ISoundManager {
    * Formato src: WebM primeiro (melhor compressão), MP3 como fallback.
    */
   async loadSprite(webmUrl: string, mp3Url: string): Promise<void> {
+    const { Howl } = await loadHowler();
     return new Promise((resolve) => {
       this.sprite = new Howl({
         src: [webmUrl, mp3Url],

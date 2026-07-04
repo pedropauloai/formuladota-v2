@@ -357,6 +357,11 @@ export async function enrichMatchFromOpenDota(
   matchId: string,
   dotaMatchId: string
 ): Promise<ActionResult<{ playersInserted: number }>> {
+  // Auditoria 2026-07-03: dota_match_id deve ser só dígitos (evita injeção de
+  // path/parâmetro na URL da OpenDota). Defesa extra à guarda em opendota.ts.
+  if (!/^\d{6,15}$/.test(dotaMatchId)) {
+    return { success: false, error: "dota_match_id inválido." };
+  }
   const supabase = await createClient();
   const {
     data: { user },
@@ -558,6 +563,11 @@ export async function reprocessMatchOpenDota(
   matchId: string,
   dotaMatchId: string
 ): Promise<ActionResult<{ updated: number; parsed: boolean }>> {
+  // Auditoria 2026-07-03: valida dota_match_id (só dígitos) antes de qualquer
+  // fetch à OpenDota. Defesa extra à guarda em opendota.ts.
+  if (!/^\d{6,15}$/.test(dotaMatchId)) {
+    return { success: false, error: "dota_match_id inválido." };
+  }
   const supabase = await createClient();
   const {
     data: { user },

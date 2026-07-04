@@ -40,6 +40,12 @@ import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
 // PWA: registra o service worker (instalável + offline básico).
 import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
+// Analytics (2026-07-03) — três camadas, todas gratuitas e gated por env:
+//   1. Vercel Analytics — pageviews/países, ativar Web Analytics no dashboard Vercel
+//   2. GA4 — obrigatório pra conversões do Google Ads (NEXT_PUBLIC_GA_MEASUREMENT_ID)
+//   3. PostHog — funil/retenção, init em src/instrumentation-client.ts (NEXT_PUBLIC_POSTHOG_KEY)
+import { Analytics } from "@vercel/analytics/next";
+import { GoogleAnalytics } from "@next/third-parties/google";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 const siteTitle = "FORMULADOTA — HUB Dota 2 Brasil";
@@ -150,6 +156,13 @@ export default async function RootLayout({
         </SoundProvider>
         </MotionProvider>
         </NextIntlClientProvider>
+        {/* Analytics — fora dos providers (não dependem de i18n/motion/sound).
+            Vercel Analytics: no-op local, ativa em produção após habilitar no dashboard.
+            GA4: só renderiza se a env existir (deploy seguro sem key). */}
+        <Analytics />
+        {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ? (
+          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
+        ) : null}
       </body>
     </html>
   );

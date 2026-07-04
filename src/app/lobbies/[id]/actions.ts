@@ -236,6 +236,32 @@ export async function cancelLobby(formData: FormData): Promise<void> {
   if (typeof lobbyId !== "string") return;
 
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  // Auditoria 2026-07-03: exige que o chamador seja o líder do lobby (ou admin).
+  // Antes o DELETE era disparado sem checagem no código, dependendo só da RLS —
+  // além de risco de defesa-em-profundidade, retornava "sucesso" silencioso.
+  const { data: lobby } = await supabase
+    .from("lobbies")
+    .select("created_by")
+    .eq("id", lobbyId)
+    .single();
+  if (!lobby) redirect("/ranked-com-pro?play=lobbies-list");
+
+  let allowed = lobby.created_by === user.id;
+  if (!allowed) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("is_admin")
+      .eq("id", user.id)
+      .single();
+    allowed = profile?.is_admin === true;
+  }
+  if (!allowed) redirect(`/lobbies/${lobbyId}`);
+
   await supabase.from("lobbies").delete().eq("id", lobbyId);
 
   redirect("/ranked-com-pro?play=lobbies-list");
