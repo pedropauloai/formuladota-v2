@@ -212,14 +212,6 @@ export async function enterQueue(input: {
     };
   }
 
-  // Já estava na fila? (re-entrada/troca de função NÃO cobra outra permissão)
-  const { data: prevWaiting } = await supabase
-    .from("match_queue")
-    .select("id")
-    .eq("user_id", user.id)
-    .eq("status", "waiting")
-    .maybeSingle();
-
   // Cancela entries waiting anteriores antes de criar nova (idempotência)
   await supabase
     .from("match_queue")
@@ -260,11 +252,9 @@ export async function enterQueue(input: {
     return { success: false, error: "Erro ao entrar na fila." };
   }
 
-  // Consome 1 permissão só em entrada NOVA (não em troca de função). Doutrinado = ilimitado
-  // (a função consume_match_permission ignora doutrinado).
-  if (!prevWaiting) {
-    await supabase.rpc("consume_match_permission");
-  }
+  // NÃO consome permissão aqui: buscar exige ter permissão (RLS), mas o consumo
+  // acontece na FORMAÇÃO da partida (confirm_match_proposal, migration 125) —
+  // antes era consumida na entrada e sumia quando o usuário cancelava a busca.
 
   // Tenta FECHAR uma partida agora mesmo (auto ao juntar X). A função é SECURITY DEFINER
   // no banco: forma os 2 times por role e marca a fila como matched. Os demais jogadores
