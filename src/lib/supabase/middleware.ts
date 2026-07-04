@@ -2,7 +2,13 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { publicEnv } from "@/lib/env";
 import { DOCTRINE_VERSION } from "@/lib/doctrine";
-import { type Locale, LOCALE_COOKIE, isLocale } from "@/i18n/config";
+import {
+  type Locale,
+  LOCALE_COOKIE,
+  isLocale,
+  localeFromAcceptLanguage,
+  localeFromCountry,
+} from "@/i18n/config";
 import { internalizePath, localizePath, localeFromPath } from "@/i18n/pathnames";
 
 type CookieToSet = { name: string; value: string; options: CookieOptions };
@@ -31,6 +37,8 @@ const PUBLIC_PATHS = [
   "/torneios", // leitura pública: browse de torneios + brackets (ações pedem login)
   "/coaches", // /coaches/[slug] — perfis públicos de PROs
   "/planos", // vitrine dos planos de assinatura (Compendium) — conversão
+  "/sitemap.xml", // SEO — rotas Next (app/sitemap.ts e app/robots.ts); gatear
+  "/robots.txt", //  redirecionaria o crawler pra home e mataria a indexação
 ];
 
 // Login: rota que dispara o Discord OAuth. NUNCA gateada (senão loop infinito).
@@ -86,15 +94,14 @@ function isPublicPath(pathname: string): boolean {
   return isPathInList(pathname, PUBLIC_PATHS) || isPublicPlayerProfile(pathname);
 }
 
-// --- i18n: prefixo de URL /en (localePrefix "as-needed") ------------------
-// PT (padrão) = sem prefixo. EN = /en/... . NÃO usamos o middleware do next-intl
-// (exigiria mover tudo pra app/[locale]/). Aqui resolvemos o locale, rodamos a
-// auth no path SEM prefixo, localizamos os redirects e, no fim, reescrevemos
-// /en/x → /x pra que a estrutura de pastas plana sirva a página.
+// --- i18n: slugs traduzidos (sem prefixo de rota) --------------------------
+// NÃO usamos o middleware do next-intl (exigiria mover tudo pra app/[locale]/).
+// Aqui resolvemos o locale, rodamos a auth no path interno (canônico PT),
+// localizamos os redirects e, no fim, reescrevemos slug traduzido → interno
+// (/tournaments|/torneos → /torneios) pra servir a estrutura de pastas plana.
 //
-// A URL é a AUTORIDADE do idioma: /en/* = en, qualquer outra rota = pt (padrão).
-// (Sem auto-redirect por cookie/idioma do navegador — o usuário escolhe EN pelo
-// seletor, que navega pra /en. Mantém o comportamento previsível e sem loops.)
+// Slug exclusivo de um idioma é AUTORIDADE; rota compartilhada resolve por
+// cookie → Accept-Language → país (ver src/i18n/config.ts).
 
 // Refresh da sessão Supabase + enforcement de cultura + i18n.
 // Chamado a partir de src/proxy.ts.
@@ -103,15 +110,21 @@ export async function updateSession(request: NextRequest) {
   // Path "interno" (canônico PT, sem slug traduzido) — TODA a auth opera sobre ele.
   const pathname = internalizePath(rawPath);
 
-  // Idioma: slug exclusivo de um idioma manda (/tournaments = en, /torneios = pt);
-  // rota compartilhada (/, /dashboard, /ranking) usa o cookie NEXT_LOCALE.
+  // Idioma: slug exclusivo de um idioma manda (/tournaments = en, /torneios = pt,
+  // /torneos = es). Rota compartilhada/ambígua: cookie NEXT_LOCALE (escolha manual
+  // SEMPRE vence) → Accept-Language (pt*→pt, es*→es, resto→en) →
+  // x-vercel-ip-country (BR→pt, América hispânica→es) → en.
   const slugLocale = localeFromPath(rawPath);
   let locale: Locale;
+  const cookie = request.cookies.get(LOCALE_COOKIE)?.value;
   if (slugLocale) {
     locale = slugLocale;
+  } else if (isLocale(cookie)) {
+    locale = cookie;
   } else {
-    const cookie = request.cookies.get(LOCALE_COOKIE)?.value;
-    locale = isLocale(cookie) ? cookie : "pt";
+    locale =
+      localeFromAcceptLanguage(request.headers.get("accept-language")) ??
+      localeFromCountry(request.headers.get("x-vercel-ip-country"));
   }
 
   // Header com o locale resolvido — lido por src/i18n/request.ts (next-intl).

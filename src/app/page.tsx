@@ -11,6 +11,7 @@
 // manifesto, princípios, footer custom) pelo HUB.
 
 import { getTranslations } from "next-intl/server";
+import { languageAlternates } from "@/lib/seo";
 import { getCurrentUser } from "@/lib/supabase/server";
 import { ClientShell } from "@/components/client-shell/shell";
 import { HubCenter } from "@/components/client-shell/hub-center";
@@ -22,6 +23,7 @@ export async function generateMetadata() {
   return {
     title: t("homeMetaTitle"),
     description: t("homeMetaDescription"),
+    alternates: languageAlternates("/"),
   };
 }
 

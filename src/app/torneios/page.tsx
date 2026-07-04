@@ -7,6 +7,7 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Trophy, Calendar, Users, Award } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { languageAlternates } from "@/lib/seo";
 import { ClientShell } from "@/components/client-shell/shell";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
@@ -17,6 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: t("metaTitle"),
     description: t("metaDescription"),
+    alternates: languageAlternates("/torneios"),
   };
 }
 

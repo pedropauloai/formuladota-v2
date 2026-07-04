@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
+import { languageAlternates } from "@/lib/seo";
 import { ClientShell } from "@/components/client-shell/shell";
 import {
   FrontierHero,
@@ -27,6 +28,7 @@ export async function generateMetadata() {
   return {
     title: t("metaTitle"),
     description: t("metaDescription"),
+    alternates: languageAlternates("/metodologia"),
   };
 }
 

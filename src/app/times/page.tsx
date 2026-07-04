@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Swords } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { languageAlternates } from "@/lib/seo";
 import { ClientShell } from "@/components/client-shell/shell";
 import { Button } from "@/components/ui/button";
 import { signInWithDiscord } from "@/app/login/actions";
@@ -15,6 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: t("metaTitle"),
     description: t("metaDescription"),
+    alternates: languageAlternates("/times"),
   };
 }
 
