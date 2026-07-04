@@ -7,17 +7,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTransition } from "react";
 import { GAME_REGIONS, REGION_LABELS } from "@/lib/regions";
-
-export const PERIODS = ["this_month", "last_month", "30d", "90d", "custom"] as const;
-export type Period = (typeof PERIODS)[number];
-
-const PERIOD_LABELS: Record<Period, string> = {
-  this_month: "Este mês",
-  last_month: "Mês passado",
-  "30d": "Últimos 30 dias",
-  "90d": "Últimos 90 dias",
-  custom: "Personalizado",
-};
+import { PERIODS, PERIOD_LABELS, type Period } from "./period";
 
 const BTN =
   "rounded-[2px] px-2.5 py-1 font-display text-[12px] font-bold uppercase tracking-wide transition-colors disabled:opacity-50";

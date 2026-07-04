@@ -30,7 +30,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { getFeatureFlags } from "@/lib/queries/feature-flags";
 import { isGameRegion } from "@/lib/regions";
 import { FeatureFlagsPanel } from "./feature-flags-panel";
-import { PeriodRegionFilter, type Period, PERIODS } from "./period-filter";
+import { PeriodRegionFilter } from "./period-filter";
+import { PERIODS, type Period } from "./period";
 import { DailyAreaChart, RevenueBarChart, type RevenuePoint } from "./charts";
 
 export const metadata = { title: "Admin Dashboard — FORMULADOTA" };
