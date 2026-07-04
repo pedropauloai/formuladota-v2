@@ -78,7 +78,7 @@ export default async function MePage({ searchParams }: PageProps) {
   // Medalhas via FONTE ÚNICA (computeRankBadges): SKILL = rank Valve real; HONRA =
   // nível com gate pela skill. O SEASON é computado no ProfilePage (de profile.mmr,
   // o MMR da temporada) com a mesma conversão canônica.
-  const { level } = xpProgress(levelRow.data?.total_xp_earned ?? 0);
+  const { level, pct: xpPct } = xpProgress(levelRow.data?.total_xp_earned ?? 0);
   const badges = computeRankBadges({
     careerRankTier: career?.rankTier ?? null,
     careerLeaderboardRank: career?.leaderboardRank ?? null,
@@ -117,6 +117,8 @@ export default async function MePage({ searchParams }: PageProps) {
         activeTab={activeTab}
         dotaRank={dotaRank}
         honorRank={honorRank}
+        level={level}
+        xpPct={xpPct}
         editing={editing}
         career={career}
         coachingReviews={coachingReviews}

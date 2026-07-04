@@ -7,7 +7,7 @@
 import { useState } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { Camera, X } from "lucide-react";
-import { UserAvatar } from "@/components/ui/avatar";
+import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { AvatarUpload } from "./avatar-upload";
 import { PortraitEditor } from "./inline-edit-controls";
 
@@ -16,7 +16,9 @@ interface Props {
   avatarSrc?: string;
   avatarAlt: string;
   fallback: string;
-  ringColor: "brand" | null;
+  /** Nível da conta (badge no anel) + progresso de XP no nível (0-1, preenche o anel). */
+  level: number;
+  xpPct: number;
   userId: string;
   initialAvatar: string | null;
   initialPortrait: string | null;
@@ -27,7 +29,8 @@ export function AvatarPortraitEdit({
   avatarSrc,
   avatarAlt,
   fallback,
-  ringColor,
+  level,
+  xpPct,
   userId,
   initialAvatar,
   initialPortrait,
@@ -37,12 +40,14 @@ export function AvatarPortraitEdit({
 
   return (
     <div className="relative shrink-0">
-      <UserAvatar
-        src={avatarSrc}
+      {/* Identidade canônica: anel de XP + nível (não mais avatar solto). */}
+      <XpAvatarRing
+        src={avatarSrc ?? null}
         alt={avatarAlt}
         fallback={fallback}
-        size="xl"
-        ringColor={ringColor}
+        level={level}
+        pct={xpPct}
+        size={72}
       />
 
       {editing && (

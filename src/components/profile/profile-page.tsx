@@ -67,6 +67,9 @@ interface Props {
   activeTab: ProfileTab;
   dotaRank: DotaRank;
   honorRank: HonorRank;
+  /** Nível da conta + progresso de XP no nível (0-1) — anel de XP do header. */
+  level: number;
+  xpPct?: number;
   editing: boolean;
   /** Stats de carreira OpenDota (cache 24h) — null = sem Steam/sem dados. */
   career: CareerStats | null;
@@ -94,6 +97,8 @@ export function ProfilePage({
   activeTab,
   dotaRank,
   honorRank,
+  level,
+  xpPct = 0,
   editing,
   career,
   coachingReviews,
@@ -106,7 +111,6 @@ export function ProfilePage({
   immortalRank = null,
 }: Props) {
   const t = useTranslations("perfil");
-  const ranqueado = profile.mmr !== null;
   // Rank FormulaDota (Eixo 2, sazonal) — 3º selo, só quando há MMR de temporada.
   // Leaderboard de Imortais (estilo oficial Dota): #1–#10 medalha ESCURA (anel),
   // #11–#30 medalha VERMELHA, ambas com a POSIÇÃO (#N) gravada na placa.
@@ -212,7 +216,8 @@ export function ProfilePage({
                 avatarSrc={profile.avatarUrl ?? undefined}
                 avatarAlt={t("avatarAlt", { name: profile.username ?? t("anonymous") })}
                 fallback={(profile.username ?? "??").slice(0, 2).toUpperCase()}
-                ringColor={ranqueado ? "brand" : null}
+                level={level}
+                xpPct={xpPct}
                 userId={profile.userId}
                 initialAvatar={profile.avatarUrl}
                 initialPortrait={profile.heroPortraitSlug}

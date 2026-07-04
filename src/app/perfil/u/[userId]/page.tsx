@@ -86,7 +86,7 @@ export default async function PublicProfilePage(props: PageProps) {
   }
 
   // Medalhas via FONTE ÚNICA (computeRankBadges) — igual ao /me, mini-perfil e hover.
-  const { level } = xpProgress(levelRow.data?.total_xp_earned ?? 0);
+  const { level, pct: xpPct } = xpProgress(levelRow.data?.total_xp_earned ?? 0);
   const badges = computeRankBadges({
     careerRankTier: career?.rankTier ?? null,
     careerLeaderboardRank: career?.leaderboardRank ?? null,
@@ -122,6 +122,8 @@ export default async function PublicProfilePage(props: PageProps) {
         activeTab={activeTab}
         dotaRank={dotaRank}
         honorRank={honorRank}
+        level={level}
+        xpPct={xpPct}
         editing={false}
         career={career}
         coachingReviews={[]} // coaching é privado do aluno — não exposto no público
