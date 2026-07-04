@@ -27,7 +27,7 @@
 // - immersive: background fullscreen, sidebars como overlays flutuantes
 //   (espelha cliente Dota 2 — usado em /dashboard)
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getCurrentUser } from "@/lib/supabase/server";
 import { getMyFichaBalance } from "@/lib/queries/fichas";
 import { getProsWithQueues } from "@/lib/queries/pros";
 import { getFichaPackage } from "@/lib/queries/packages";
@@ -95,9 +95,9 @@ export async function ClientShell({
   hideBottomBar,
 }: ClientShellProps) {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // getCurrentUser é deduplicado por request (React.cache) — se a page já
+  // validou o user, o shell reaproveita sem novo round-trip ao Auth.
+  const user = await getCurrentUser();
 
   // Visitante deslogado: shell tolera user === null sem redirect (task #63).
   // Fetches privados (profile, steam, fichas, fila, etc.) ficam null/0/[].

@@ -4,6 +4,7 @@
 // Regra de visibilidade na app: uma feature "escondida" (flag off) ainda aparece
 // pro ADMIN (pra testar) — a checagem `flag || isAdmin` fica em cada call site.
 
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 
 export type FeatureFlagKey = "ranked_com_pro";
@@ -17,7 +18,8 @@ const DEFAULTS: FeatureFlags = {
   ranked_com_pro: false,
 };
 
-export async function getFeatureFlags(): Promise<FeatureFlags> {
+// React.cache: page e ClientShell chamam no mesmo request — 1 query só.
+export const getFeatureFlags = cache(async (): Promise<FeatureFlags> => {
   const supabase = await createClient();
   // Tabela nova (migration 102) fora dos tipos gerados → cast cirúrgico.
   const ff = supabase.from("feature_flags" as never) as unknown as {
@@ -31,4 +33,4 @@ export async function getFeatureFlags(): Promise<FeatureFlags> {
     }
   }
   return flags;
-}
+});
