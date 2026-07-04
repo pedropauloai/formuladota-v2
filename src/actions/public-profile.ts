@@ -4,8 +4,18 @@
 // (migration 064, SECURITY DEFINER) — só o subconjunto público + status de amizade.
 
 import { createClient } from "@/lib/supabase/server";
+import { getHeroBySlug } from "@/lib/queries/heroes";
 
 export type FriendStatus = "none" | "pending" | "friends" | "blocked" | "self";
+
+/** Herói de assinatura JÁ resolvido no servidor (nome + retrato).
+ *  Evita importar o catálogo dota-heroes.json (75KB) no bundle client do
+ *  UserHoverCard — que é montado em praticamente toda rota autenticada. */
+export interface PublicHeroRef {
+  slug: string;
+  namePt: string;
+  portraitUrl: string;
+}
 
 export interface PublicMiniProfile {
   userId: string;
@@ -23,7 +33,7 @@ export interface PublicMiniProfile {
   /** Recado do perfil (status_message) e presença (último visto). */
   statusMessage: string | null;
   lastSeenAt: string | null;
-  favoriteHeroes: string[];
+  favoriteHeroes: PublicHeroRef[];
   friendStatus: FriendStatus;
 }
 
@@ -56,9 +66,11 @@ export async function getPublicMiniProfile(
     careerLosses: r.career_losses,
     statusMessage: r.status_message,
     lastSeenAt: r.last_seen_at,
-    favoriteHeroes: Array.isArray(r.favorite_heroes)
-      ? (r.favorite_heroes as string[])
-      : [],
+    favoriteHeroes: (Array.isArray(r.favorite_heroes) ? (r.favorite_heroes as string[]) : [])
+      .map((slug) => getHeroBySlug(slug))
+      .filter((h): h is NonNullable<typeof h> => h !== null)
+      .slice(0, 3)
+      .map((h) => ({ slug: h.slug, namePt: h.name_pt, portraitUrl: h.portrait_url })),
     friendStatus,
   };
 }
