@@ -98,14 +98,30 @@ function assertNumericMatchId(matchId: string | number): string {
   return id;
 }
 
+/**
+ * Retry com backoff exponencial pra 429 (rate limit do free tier: 60 req/min)
+ * e 5xx transitórios. 404 e demais 4xx NÃO são retentados (significado real:
+ * partida indexando / id inválido). Máx 2 retries (1s, 3s) pra caber no
+ * maxDuration do cron sem estourar.
+ */
+async function fetchOpenDotaWithRetry(url: string): Promise<Response> {
+  const delaysMs = [1000, 3000];
+  for (let attempt = 0; ; attempt++) {
+    const res = await fetch(url, {
+      headers: { Accept: "application/json" },
+      // Forçar SSR sem cache do Next pra dados frescos
+      cache: "no-store",
+    });
+    const retriable = res.status === 429 || res.status >= 500;
+    if (res.ok || !retriable || attempt >= delaysMs.length) return res;
+    await new Promise((r) => setTimeout(r, delaysMs[attempt]));
+  }
+}
+
 export async function fetchOpenDotaMatch(matchId: string | number): Promise<OpenDotaMatch> {
   const safeId = assertNumericMatchId(matchId);
   const url = `${OPENDOTA_BASE}/matches/${safeId}`;
-  const res = await fetch(url, {
-    headers: { "Accept": "application/json" },
-    // Forçar SSR sem cache do Next pra dados frescos
-    cache: "no-store",
-  });
+  const res = await fetchOpenDotaWithRetry(url);
   if (!res.ok) {
     throw new OpenDotaError(`OpenDota retornou ${res.status} pra match ${matchId}`, res.status);
   }

@@ -29,6 +29,8 @@ export function CommunityCountersBar({
   useEffect(() => {
     let alive = true;
     const refresh = async () => {
+      // Aba oculta não paga poll — refetch imediato ao voltar (onWake abaixo).
+      if (document.visibilityState === "hidden") return;
       try {
         const c = await getCommunityCounters();
         if (alive) setCounters(c);
@@ -37,8 +39,15 @@ export function CommunityCountersBar({
       }
     };
     const pollId = setInterval(refresh, POLL_MS);
+    // Ao voltar pra aba, atualiza na hora (mesmo padrão onWake do play-menu).
+    const onWake = () => {
+      if (document.visibilityState === "visible") void refresh();
+    };
+    document.addEventListener("visibilitychange", onWake);
 
-    // Heartbeat próprio (garante last_seen_at fresco → o próprio user conta como online).
+    // Heartbeat próprio (garante last_seen_at fresco → o próprio user conta como
+    // online). ÚNICA fonte de heartbeat do app (o de presence.ts foi removido —
+    // era escrita duplicada em profiles a cada 60s).
     let beatId: ReturnType<typeof setInterval> | null = null;
     if (isLoggedIn) {
       const beat = () => void updateLastSeen().catch(() => {});
@@ -48,6 +57,7 @@ export function CommunityCountersBar({
     return () => {
       alive = false;
       clearInterval(pollId);
+      document.removeEventListener("visibilitychange", onWake);
       if (beatId) clearInterval(beatId);
     };
   }, [isLoggedIn]);

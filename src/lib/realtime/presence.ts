@@ -9,12 +9,12 @@
 //   - Pitfall 2: cleanup obrigatório com supabase.removeChannel
 //   - Pitfall 3: presenceState retorna arrays — flatten pra Record<key, payload>
 //
-// Heartbeat 60s (D-37): atualiza profiles.last_seen_at pra fallback
-// "visto há Xh" quando user offline.
+// Heartbeat de last_seen_at: REMOVIDO daqui (perf 2026-07-03). O topbar
+// (CommunityCountersBar, sempre montado) já pinga updateLastSeen a cada 60s —
+// manter outro aqui dobrava as escritas em profiles pra todo usuário logado.
 
 import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { updateLastSeen } from "@/actions/profile";
 
 export type PresenceStatus = "online" | "in-queue" | "in-match";
 
@@ -23,9 +23,6 @@ export interface UserPresencePayload {
   status: PresenceStatus;
   joinedAt: string; // ISO timestamp
 }
-
-/** Intervalo de heartbeat pra last_seen_at (60s — D-37). */
-const HEARTBEAT_MS = 60 * 1000;
 
 /**
  * Hook de presence channel.
@@ -71,19 +68,7 @@ export function usePresenceChannel(
         }
       });
 
-    // Heartbeat 60s pra last_seen_at (D-37) — best-effort
-    const heartbeat = async () => {
-      try {
-        await updateLastSeen();
-      } catch {
-        // silent — heartbeat é best-effort
-      }
-    };
-    void heartbeat(); // imediato
-    const intervalId = setInterval(() => void heartbeat(), HEARTBEAT_MS);
-
     return () => {
-      clearInterval(intervalId);
       // Pitfall 2: cleanup obrigatório
       void supabase.removeChannel(channel);
     };

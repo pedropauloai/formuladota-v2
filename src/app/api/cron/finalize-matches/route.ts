@@ -56,20 +56,26 @@ export async function POST(req: Request) {
   }
 
   const results: Array<Record<string, unknown>> = [];
+  // Partidas buscadas neste ciclo (dota_match_id → od) — o MESMO objeto serve
+  // pro precheck, pra finalização e pra fase de MMR. Antes cada fase re-buscava
+  // a mesma partida (até 3x por match/min), encostando no free tier (60 req/min).
+  const fetchedThisRun = new Map<string, Awaited<ReturnType<typeof fetchOpenDotaMatch>>>();
   for (const lobby of lobbies ?? []) {
     const dotaMatchId = String(lobby.dota_match_id);
     // Pré-checa se a partida JÁ terminou na OpenDota (10 jogadores presentes).
     // fetchOpenDotaMatch lança se 404 (indexando) ou != 10 players (ao vivo) →
     // tratamos como "ainda não" e seguimos (sem criar linha de match prematura).
+    let od;
     try {
-      await fetchOpenDotaMatch(dotaMatchId);
+      od = await fetchOpenDotaMatch(dotaMatchId);
+      fetchedThisRun.set(dotaMatchId, od);
     } catch {
       results.push({ dotaMatchId, status: "aguardando" });
       continue;
     }
-    // Terminou → finaliza (idempotente).
+    // Terminou → finaliza (idempotente), reaproveitando o od do precheck.
     try {
-      const res = await finalizeMatchmakingLobby(supabase, lobby.id);
+      const res = await finalizeMatchmakingLobby(supabase, lobby.id, od);
       results.push({ dotaMatchId, status: res.success ? "finalizada" : "erro", detail: res.error ?? res.alreadyDone });
     } catch (e) {
       results.push({ dotaMatchId, status: "erro", detail: e instanceof Error ? e.message : "?" });
@@ -79,9 +85,10 @@ export async function POST(req: Request) {
   // Fase B: aplica o MMR das partidas já finalizadas cujo replay JÁ foi parseado
   // (ou por fallback). Separado da finalização pra não atrasar a liberação dos
   // jogadores — o MMR usa o desempenho completo (presença em teamfight etc.).
+  // Partidas recém-finalizadas NESTE ciclo reusam o od já buscado (zero re-fetch).
   let mmr: Awaited<ReturnType<typeof finalizePendingMmr>> | null = null;
   try {
-    mmr = await finalizePendingMmr(supabase);
+    mmr = await finalizePendingMmr(supabase, { prefetched: fetchedThisRun });
   } catch (e) {
     mmr = { applied: 0, waitingParse: 0, results: [{ error: e instanceof Error ? e.message : "?" }] };
   }

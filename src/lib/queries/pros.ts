@@ -1,6 +1,7 @@
 // Queries de leitura sobre PROs (coaches estendidos com fila/headline).
 // Server-only — usa createClient SSR.
 
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { getSteamIdentityMap, resolveIdentity } from "@/lib/queries/identities";
 
@@ -67,7 +68,8 @@ export interface ProRecentStats {
  * Sem hard cap: cliente pode jogar quantas PTs quiser desde que tenha ficha
  * — algoritmo apenas reordena pra distribuir vagas com justiça temporal.
  */
-export async function getProsWithQueues(): Promise<ProWithQueue[]> {
+// React.cache: home e ClientShell chamam no mesmo request (~6 queries cada) — roda 1x só.
+export const getProsWithQueues = cache(async (): Promise<ProWithQueue[]> => {
   const pros = await getProsLiveStatus();
   if (pros.length === 0) return [];
 
@@ -136,7 +138,7 @@ export async function getProsWithQueues(): Promise<ProWithQueue[]> {
       }),
     };
   });
-}
+});
 
 /**
  * Estatísticas recentes de um PRO (hoje) pra exibir no card.

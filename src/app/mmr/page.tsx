@@ -138,7 +138,7 @@ export default function MmrExplainerPage() {
               à direita no desktop; fade à esquerda garante leitura do texto. */}
           <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[62%] lg:block">
             <Image
-              src="/images/mmr/matchmaking.png"
+              src="/images/mmr/matchmaking.webp"
               alt=""
               fill
               priority

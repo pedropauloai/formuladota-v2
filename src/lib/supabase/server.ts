@@ -1,12 +1,16 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { cache } from "react";
 import { publicEnv } from "@/lib/env";
 
 type CookieToSet = { name: string; value: string; options: CookieOptions };
 
 // Cliente Supabase para Server Components, Route Handlers e Server Actions.
 // Persiste sessão via cookies HttpOnly (gerenciados pelo Next).
-export async function createClient() {
+//
+// React.cache = memoização POR REQUEST: dentro do mesmo render (page + shell +
+// helpers), chamadas repetidas devolvem a mesma instância em vez de recriar.
+export const createClient = cache(async () => {
   const cookieStore = await cookies();
 
   return createServerClient(
@@ -30,4 +34,15 @@ export async function createClient() {
       },
     }
   );
-}
+});
+
+// Usuário autenticado do request atual, deduplicado por React.cache.
+// auth.getUser() valida o JWT contra o servidor de Auth (round-trip de rede
+// REAL) — sem cache, middleware + page + shell pagavam 3x no mesmo request.
+export const getCurrentUser = cache(async () => {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  return user;
+});

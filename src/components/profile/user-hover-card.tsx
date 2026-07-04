@@ -31,7 +31,6 @@ import { ValveCredential } from "@/components/profile/valve-credential";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { computeRankBadges } from "@/lib/dota/rank-badges";
 import { formatLastSeen } from "@/lib/realtime/presence";
-import { getHeroBySlug } from "@/lib/queries/heroes";
 import { openChatWith } from "@/lib/chat/open-chat";
 import { inviteToParty } from "@/actions/party";
 
@@ -127,10 +126,9 @@ function Body({ data, online }: { data: PublicMiniProfile; online?: boolean }) {
   const seasonStars = badges.seasonStars;
   const dotaStars = badges.skillStars;
 
-  const heroes = data.favoriteHeroes
-    .map((slug) => getHeroBySlug(slug))
-    .filter((h): h is NonNullable<typeof h> => h !== null)
-    .slice(0, 3);
+  // Heróis já resolvidos no SERVIDOR (getPublicMiniProfile) — o catálogo
+  // dota-heroes.json (75KB) não entra mais no bundle deste componente ubíquo.
+  const heroes = data.favoriteHeroes;
 
   const totalGames = (data.careerWins ?? 0) + (data.careerLosses ?? 0);
   const winrate = totalGames > 0 ? Math.round(((data.careerWins ?? 0) / totalGames) * 100) : null;
@@ -227,9 +225,9 @@ function Body({ data, online }: { data: PublicMiniProfile; online?: boolean }) {
           {heroes.map((h) => (
             <Image
               key={h.slug}
-              src={h.portrait_url}
-              alt={h.name_pt}
-              title={h.name_pt}
+              src={h.portraitUrl}
+              alt={h.namePt}
+              title={h.namePt}
               width={28}
               height={28}
               className="size-7 rounded-sm object-cover"

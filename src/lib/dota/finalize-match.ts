@@ -44,7 +44,10 @@ export interface FinalizeResult {
 
 export async function finalizeMatchmakingLobby(
   supabase: SupabaseClient,
-  lobbyId: string
+  lobbyId: string,
+  // Partida já buscada pelo caller (ex.: pré-checagem do cron) — evita 2º fetch
+  // idêntico na OpenDota no mesmo ciclo (free tier = 60 req/min).
+  prefetchedOd?: OpenDotaMatch
 ): Promise<FinalizeResult> {
   // 1) Lobby + dota_match_id (gravado pelo bot ao criar a sala de liga).
   const { data: lobby } = await supabase
@@ -92,12 +95,17 @@ export async function finalizeMatchmakingLobby(
     matchId = (created as { id: string }).id;
   }
 
-  // 3) OpenDota → normaliza jogadores.
-  let od;
-  try {
-    od = await fetchOpenDotaMatch(dotaMatchId);
-  } catch (e) {
-    return { success: false, error: "OpenDota: " + (e instanceof Error ? e.message : "erro") };
+  // 3) OpenDota → normaliza jogadores. Reusa o objeto pré-buscado se for da
+  // MESMA partida (guarda contra caller passar od de outro match por engano).
+  let od: OpenDotaMatch;
+  if (prefetchedOd && String(prefetchedOd.match_id) === dotaMatchId) {
+    od = prefetchedOd;
+  } else {
+    try {
+      od = await fetchOpenDotaMatch(dotaMatchId);
+    } catch (e) {
+      return { success: false, error: "OpenDota: " + (e instanceof Error ? e.message : "erro") };
+    }
   }
   const normalized = normalizePlayers(od);
 
@@ -218,7 +226,12 @@ export async function finalizeMatchmakingLobby(
  */
 export async function finalizePendingMmr(
   supabase: SupabaseClient,
-  opts?: { fallbackMs?: number; limit?: number }
+  opts?: {
+    fallbackMs?: number;
+    limit?: number;
+    /** Partidas já buscadas neste ciclo (dota_match_id → od) — evita re-fetch. */
+    prefetched?: Map<string, OpenDotaMatch>;
+  }
 ): Promise<{ applied: number; waitingParse: number; results: Array<Record<string, unknown>> }> {
   const fallbackMs = opts?.fallbackMs ?? PARSE_FALLBACK_MS;
   const { data: pending } = await supabase
@@ -237,11 +250,16 @@ export async function finalizePendingMmr(
   for (const m of pending ?? []) {
     const dotaMatchId = String(m.dota_match_id);
     let od: OpenDotaMatch;
-    try {
-      od = await fetchOpenDotaMatch(dotaMatchId);
-    } catch {
-      results.push({ dotaMatchId, status: "indisponivel" });
-      continue;
+    const prefetched = opts?.prefetched?.get(dotaMatchId);
+    if (prefetched) {
+      od = prefetched;
+    } else {
+      try {
+        od = await fetchOpenDotaMatch(dotaMatchId);
+      } catch {
+        results.push({ dotaMatchId, status: "indisponivel" });
+        continue;
+      }
     }
 
     const parsed = isMatchParsed(od);
@@ -275,32 +293,44 @@ export async function finalizePendingMmr(
 }
 
 /** Atualiza match_players (raw_opendota + benchmarks + colunas) a partir do od
- *  parseado, casando por player_slot. Sem auth (uso interno cron/service). */
-async function updatePlayersFromOd(
+ *  parseado, casando por player_slot. Sem auth (uso interno cron/service).
+ *
+ *  UM upsert em lote (10 linhas, conflito em match_id+player_slot) em vez de
+ *  10 UPDATEs sequenciais — 1 round-trip ao Postgres por partida (perf 2026-07-03).
+ *  user_id/is_pro ficam FORA do payload de propósito: no caminho de conflito o
+ *  Postgres só sobrescreve colunas presentes, preservando o mapeamento de membro.
+ *  Exportado: o reprocesso do admin (admin/pros/actions) usa o mesmo lote. */
+export async function updatePlayersFromOd(
   supabase: SupabaseClient,
   matchId: string,
   od: OpenDotaMatch
 ): Promise<void> {
-  for (const p of normalizePlayers(od)) {
-    await supabase
-      .from("match_players")
-      .update({
-        gold_per_min: p.gold_per_min,
-        xp_per_min: p.xp_per_min,
-        last_hits: p.last_hits,
-        denies: p.denies,
-        net_worth: p.net_worth,
-        level: p.level,
-        hero_damage: p.hero_damage,
-        hero_healing: p.hero_healing,
-        tower_damage: p.tower_damage,
-        items: p.items,
-        benchmarks: p.benchmarks,
-        raw_opendota: p.raw_opendota as unknown as Record<string, unknown>,
-      } as never)
-      .eq("match_id", matchId)
-      .eq("player_slot", p.player_slot);
-  }
+  const rows = normalizePlayers(od).map((p) => ({
+    match_id: matchId,
+    player_slot: p.player_slot,
+    steam_account_id: p.steam_account_id,
+    team: p.team,
+    is_winner: p.is_winner,
+    hero_id: p.hero_id,
+    kills: p.kills,
+    deaths: p.deaths,
+    assists: p.assists,
+    gold_per_min: p.gold_per_min,
+    xp_per_min: p.xp_per_min,
+    last_hits: p.last_hits,
+    denies: p.denies,
+    net_worth: p.net_worth,
+    level: p.level,
+    hero_damage: p.hero_damage,
+    hero_healing: p.hero_healing,
+    tower_damage: p.tower_damage,
+    items: p.items,
+    benchmarks: p.benchmarks,
+    raw_opendota: p.raw_opendota as unknown as Record<string, unknown>,
+  }));
+  await supabase
+    .from("match_players")
+    .upsert(rows as never, { onConflict: "match_id,player_slot" });
 }
 
 // Fecha o lobby (completed) → getQueueStatus deixa de redirecionar os 10 pra a rota da

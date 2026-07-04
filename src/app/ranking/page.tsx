@@ -84,13 +84,18 @@ export default async function RankingPage(props: {
 
   const supabase = await createClient();
 
-  // Busca season ativa (started_at/ended_at alimentam o countdown do banner)
-  const { data: season } = await supabase
-    .from("seasons")
-    .select("id, name, started_at, ended_at")
-    .eq("active", true)
-    .limit(1)
-    .single();
+  // Season ativa + Mural em PARALELO (independentes — perf 2026-07-03).
+  // Banidos NÃO aparecem no ranking (Pedro 2026-07-02). RPC pública (DEFINER) do
+  // Mural — user_warnings tem RLS restrita, então essa é a via legível pra todos.
+  const [{ data: season }, { data: punished }] = await Promise.all([
+    supabase
+      .from("seasons")
+      .select("id, name, started_at, ended_at")
+      .eq("active", true)
+      .limit(1)
+      .single(),
+    supabase.rpc("wall_of_shame"),
+  ]);
 
   if (!season) {
     return (
@@ -99,16 +104,13 @@ export default async function RankingPage(props: {
       </ClientShell>
     );
   }
-
-  // Banidos NÃO aparecem no ranking (Pedro 2026-07-02). RPC pública (DEFINER) do
-  // Mural — user_warnings tem RLS restrita, então essa é a via legível pra todos.
-  const { data: punished } = await supabase.rpc("wall_of_shame");
   const bannedIds = ((punished ?? []) as { user_id: string; status: string }[])
     .filter((p) => p.status === "banned")
     .map((p) => p.user_id);
   const banFilter = bannedIds.length ? `(${bannedIds.join(",")})` : null;
 
-  // Top 3 sempre visível (não paginado)
+  // Top 3 sempre visível (não paginado). NÃO é awaited aqui — resolve em
+  // paralelo com a lista paginada mais abaixo (Promise.all).
   let top3Query = supabase
     .from("player_season_mmr")
     .select("user_id, mmr, vitorias, derrotas, partidas_total")
@@ -116,7 +118,6 @@ export default async function RankingPage(props: {
     .order("mmr", { ascending: false })
     .limit(3);
   if (banFilter) top3Query = top3Query.not("user_id", "in", banFilter);
-  const { data: top3 } = await top3Query;
 
   // Lista paginada (offset)
   const offset = (page - 1) * PAGE_SIZE;
@@ -165,7 +166,8 @@ export default async function RankingPage(props: {
   }
 
   if (banFilter) listQuery = listQuery.not("user_id", "in", banFilter);
-  const { data: list } = await listQuery;
+  // Top 3 + lista em paralelo (as duas queries são independentes).
+  const [{ data: top3 }, { data: list }] = await Promise.all([top3Query, listQuery]);
   const rows: { user_id: string; mmr: number; vitorias: number; derrotas: number; partidas_total: number }[] =
     list ?? [];
   const top3List: typeof rows = top3 ?? [];
@@ -209,7 +211,7 @@ export default async function RankingPage(props: {
             coluna em qualquer resolução (responsivo). Ocupa o topo; o overlay escurece
             progressivamente pro fundo sólido embaixo (sem borda dura). */}
         <Image
-          src="/images/ranking/season-header.png"
+          src="/images/ranking/season-header.webp"
           alt=""
           width={1920}
           height={622}

@@ -11,7 +11,7 @@
 // manifesto, princípios, footer custom) pelo HUB.
 
 import { getTranslations } from "next-intl/server";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/supabase/server";
 import { ClientShell } from "@/components/client-shell/shell";
 import { HubCenter } from "@/components/client-shell/hub-center";
 import { getProsWithQueues } from "@/lib/queries/pros";
@@ -25,14 +25,12 @@ export async function generateMetadata() {
   };
 }
 
-// Revalida a cada 30s — presença de jogadores pode mudar
-export const revalidate = 30;
+// SEM `export const revalidate`: a rota lê cookies (getUser/shell), então o Next
+// a marca como DINÂMICA e ignoraria o ISR declarado — o valor só enganava.
 
 export default async function HomePage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Deduplicado por request (React.cache) — o ClientShell reaproveita.
+  const user = await getCurrentUser();
   const isVisitor = user === null;
 
   // A capa-tese só precisa do pulso da comunidade (PROs em fila) — leve.

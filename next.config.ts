@@ -7,6 +7,11 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 const config: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false, // H6 — remove "X-Powered-By: Next.js" (disclosure de stack)
+  experimental: {
+    // Tree-shaking modular dos ícones (usados em quase todo componente) —
+    // sem isso o barrel do lucide-react incha os bundles client.
+    optimizePackageImports: ["lucide-react"],
+  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "cdn.discordapp.com" },
