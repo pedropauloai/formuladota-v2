@@ -96,6 +96,14 @@ export function assembleMatch(
   // time = suporte. Injetada no view-model pra as abas exibirem o perfil de avaliação.
   const roles = assignRolesByNetWorth(rows.map((r) => ({ team: r.team, netWorth: r.net_worth })));
   const roleByIndex = new Map(rows.map((r, i) => [r, roles[i] ?? "core"] as const));
+  // Posição 1-5 (rank de net worth DENTRO do time; 1 = maior NW) → ícone da role.
+  const posByRow = new Map<MatchPlayerRow, number>();
+  for (const team of ["radiant", "dire"] as const) {
+    rows
+      .filter((r) => r.team === team)
+      .sort((a, b) => b.net_worth - a.net_worth)
+      .forEach((r, i) => posByRow.set(r, i + 1));
+  }
 
   const wards: Ward[] = [];
   const series: PlayerSeries[] = [];
@@ -136,6 +144,7 @@ export function assembleMatch(
       accountLevel: id?.level ?? 1, // nível da conta (identidade)
       mmr: id?.mmr ?? null, // MMR FormulaDota (identidade)
       role: roleByIndex.get(r) ?? "core", // função (core/support) por net worth
+      positionSlot: posByRow.get(r) ?? 1, // posição 1-5 (ícone da role específica)
       kills: r.kills,
       deaths: r.deaths,
       assists: r.assists,

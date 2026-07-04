@@ -27,6 +27,8 @@ export interface ScoreboardPlayer {
   mmr: number | null;
   /** Função detectada por net worth (core/support) — perfil de avaliação do perf. */
   role: PlayerRole;
+  /** Posição 1-5 (rank de net worth no time) — ícone da role específica. */
+  positionSlot: number;
   kills: number;
   deaths: number;
   assists: number;
@@ -114,19 +116,27 @@ function Th({
   );
 }
 
-// Badge de FUNÇÃO (core/support) — detectada por net worth. Transparência: mostra
-// por qual perfil o jogador foi avaliado no perf score.
-export function RoleBadge({ role, className = "" }: { role: PlayerRole; className?: string }) {
-  const isSup = role === "support";
+// Ícone da POSIÇÃO específica (1-5 pela ordem de net worth no time) — a role que o
+// jogador estava jogando. Pos 1-3 = core, 4-5 = suporte (mesmo corte do perf score).
+const POSITION_LABEL: Record<number, string> = {
+  1: "Posição 1 (safelane / carry)",
+  2: "Posição 2 (meio)",
+  3: "Posição 3 (offlane)",
+  4: "Posição 4 (suporte)",
+  5: "Posição 5 (suporte dedicado)",
+};
+export function RoleIcon({ slot, className = "", size = 16 }: { slot: number; className?: string; size?: number }) {
+  const s = Math.min(5, Math.max(1, slot));
   return (
-    <span
-      title={isSup ? "Suporte (pos 4/5) — avaliado no perfil de suporte" : "Core (pos 1/2/3) — avaliado no perfil de core"}
-      className={`inline-flex shrink-0 items-center rounded-sm px-1 py-0.5 font-display text-[0.55rem] font-bold uppercase tracking-wide ${
-        isSup ? "bg-brand-primary/15 text-brand-primary" : "bg-gold/15 text-gold"
-      } ${className}`}
-    >
-      {isSup ? "Sup" : "Core"}
-    </span>
+    <Image
+      src={`/dota/positions/pos-${s}.png`}
+      alt={POSITION_LABEL[s] ?? `Posição ${s}`}
+      title={POSITION_LABEL[s] ?? `Posição ${s}`}
+      width={size}
+      height={size}
+      unoptimized
+      className={`shrink-0 object-contain ${className}`}
+    />
   );
 }
 
@@ -185,9 +195,9 @@ function PlayerCell({ p, isMvp = false }: { p: ScoreboardPlayer; isMvp?: boolean
             </span>
           )}
         </span>
-        {/* Herói + função (core/sup) + MMR FormulaDota (identidade). */}
+        {/* Herói + ícone da posição (role específica) + MMR FormulaDota (identidade). */}
         <span className="flex items-center gap-1.5 truncate font-display text-[0.7rem] uppercase tracking-wide text-text-muted">
-          <RoleBadge role={p.role} />
+          <RoleIcon slot={p.positionSlot} size={15} />
           {p.heroName}
           {p.mmr != null && (
             <span className="ml-0.5 text-gold tabular-nums">{p.mmr} MMR</span>

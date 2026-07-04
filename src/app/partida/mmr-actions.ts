@@ -42,6 +42,8 @@ export interface MmrPlayerBreakdown {
   won: boolean;
   /** Função detectada por net worth (core/support) — perfil de avaliação do perf. */
   role: PlayerRole;
+  /** Posição 1-5 (rank de net worth no time) — ícone da role + ordenação. */
+  positionSlot: number;
   /** Delta final gravado (autoritativo). null = ainda não aplicado. */
   delta: number | null;
   /** Score de desempenho 0..1 (recomputado dos dados da partida). */
@@ -142,6 +144,17 @@ export async function getMatchMmrState(dotaMatchId: string): Promise<MmrState> {
   allRows.forEach((p, i) => {
     if (p.user_id) roleOf.set(p.user_id, rolesArr[i] ?? "core");
   });
+  // Posição 1-5 (rank de net worth no time; 1 = maior NW) — ícone + ordenação.
+  const posOf = new Map<string, number>();
+  for (const team of ["radiant", "dire"] as const) {
+    allRows
+      .filter((p) => p.team === team)
+      .map((p) => ({ p, nw: (rawOf(p)?.net_worth as number | undefined) ?? 0 }))
+      .sort((a, b) => b.nw - a.nw)
+      .forEach((x, i) => {
+        if (x.p.user_id) posOf.set(x.p.user_id, i + 1);
+      });
+  }
   let matchDurationMin = 0;
   for (const p of allRows) {
     const d = (p.raw_opendota as Record<string, unknown> | null)?.duration;
@@ -185,6 +198,7 @@ export async function getMatchMmrState(dotaMatchId: string): Promise<MmrState> {
       team: p.team as "radiant" | "dire",
       won: Boolean(p.is_winner),
       role,
+      positionSlot: posOf.get(p.user_id) ?? 1,
       delta: typeof p.mmr_change === "number" ? p.mmr_change : null,
       perfScore,
       perfBonus,
@@ -192,8 +206,10 @@ export async function getMatchMmrState(dotaMatchId: string): Promise<MmrState> {
     };
   });
 
-  // Ordena: maior ganho primeiro (dentro de cada time o painel agrupa).
-  players.sort((a, b) => (b.delta ?? 0) - (a.delta ?? 0));
+  // Ordena por POSIÇÃO (1→5), não por delta (Pedro 2026-07-04): agrupa cores e
+  // suportes de forma consistente — os cards de sup e core têm tamanhos diferentes,
+  // então ordenar por posição fica visualmente organizado. O painel separa por time.
+  players.sort((a, b) => a.positionSlot - b.positionSlot);
 
   return {
     applied,

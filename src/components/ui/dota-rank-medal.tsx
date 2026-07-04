@@ -583,15 +583,8 @@ export function DotaRankMedal({
               </span>
             </>
           )}
-          {/* Monograma FD — só em md+ (em sm poluiria); assina a pele de marca. */}
-          {isFd && size !== "sm" && (
-            <span
-              className="absolute -bottom-1 -right-1 rounded-sm bg-brand-primary px-1 font-display-condensed text-[9px] font-bold uppercase leading-tight tracking-wide text-white shadow-sm"
-              aria-hidden="true"
-            >
-              FD
-            </span>
-          )}
+          {/* Monograma FD removido (Pedro 2026-07-04): a própria pele da medalha já
+              assina a marca — o selo "FD" embaixo era redundante e poluía. */}
         </div>
       </MaybeTooltip>
 
