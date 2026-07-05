@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
+import { Headphones } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
+import { serverEnv } from "@/lib/env";
 import { ClientShell } from "@/components/client-shell/shell";
 import { MatchPasswordCard } from "./match-password-card";
 import { MatchRoomStatus } from "@/components/match/match-room-status";
@@ -102,6 +104,35 @@ export default async function PartidaPage({
     .select("user_id, team, role")
     .eq("lobby_id", lobbyUuid);
   const raw: RawPlayer[] = playersData ?? [];
+
+  // Canais de voz dinâmicos por time (migration 147 — fora dos tipos gerados; cast).
+  const voiceQ = supabase.from("lobbies") as unknown as {
+    select: (c: string) => {
+      eq: (c: string, v: string) => {
+        maybeSingle: () => PromiseLike<{
+          data: { iluminados_voice_id: string | null; temidos_voice_id: string | null } | null;
+        }>;
+      };
+    };
+  };
+  const { data: voiceRow } = await voiceQ
+    .select("iluminados_voice_id, temidos_voice_id")
+    .eq("id", lobbyUuid)
+    .maybeSingle();
+
+  // Link do canal de voz do TIME do viewer (Pedro 2026-07-05): botão que leva direto
+  // pro canal certo. Só quando a partida está no ar e o bot já criou as salas.
+  const viewerTeam = user ? raw.find((p) => p.user_id === user.id)?.team ?? null : null;
+  const guildId = serverEnv.DISCORD_GUILD_ID ?? null;
+  const teamVoiceId =
+    viewerTeam === "radiant"
+      ? voiceRow?.iluminados_voice_id ?? null
+      : viewerTeam === "dire"
+        ? voiceRow?.temidos_voice_id ?? null
+        : null;
+  const teamVoiceUrl =
+    teamVoiceId && guildId ? `https://discord.com/channels/${guildId}/${teamVoiceId}` : null;
+  const viewerTeamLabel = viewerTeam === "radiant" ? "Iluminados" : "Temidos";
 
   // Identidade (Steam) + nível/XP + rank Valve, tudo em batch (sem N+1). steam_links,
   // user_levels e user_stats_extended têm SELECT público; profiles é fallback de nome.
@@ -217,6 +248,23 @@ export default async function PartidaPage({
               botError={(lobby.bot_error as string | null) ?? null}
             />
           </div>
+        )}
+
+        {/* Canal de voz do SEU time — leva direto ao canal certo no Discord. */}
+        {teamVoiceUrl && lobby.status === "in_progress" && (
+          <a
+            href={teamVoiceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`mb-4 flex items-center justify-center gap-2 rounded-sm border-2 px-4 py-3 font-display text-sm font-bold uppercase tracking-wide transition-all hover:brightness-110 ${
+              viewerTeam === "radiant"
+                ? "border-[#00C466] bg-[#00C466]/10 text-[#00C466]"
+                : "border-brand-primary bg-brand-primary/10 text-brand-primary"
+            }`}
+          >
+            <Headphones size={16} aria-hidden="true" />
+            Entrar na voz do seu time — {viewerTeamLabel}
+          </a>
         )}
 
         <div className="mb-6">

@@ -17,6 +17,7 @@ import { fetchOpenDotaMatch } from "@/lib/dota/opendota";
 import { finalizeMatchmakingLobby, finalizePendingMmr } from "@/lib/dota/finalize-match";
 import { syncChangelogToDiscord } from "@/lib/changelog/discord-sync";
 import { syncMatchResultsToDiscord, syncFormedMatchesToDiscord } from "@/lib/dota/results-discord";
+import { ensureTeamVoiceRooms, teardownTeamVoiceRooms } from "@/lib/dota/team-voice";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -118,6 +119,18 @@ export async function POST(req: Request) {
     console.error("[cron] posts de partida→discord falharam:", e instanceof Error ? e.message : e);
   }
 
+  // Salas de voz dinâmicas por time: cria ao formar, apaga ao finalizar. Isolado.
+  let teamVoice: { created: number; removed: number } = { created: 0, removed: 0 };
+  try {
+    const [c, d] = await Promise.all([
+      ensureTeamVoiceRooms(supabase),
+      teardownTeamVoiceRooms(supabase),
+    ]);
+    teamVoice = { created: c.created, removed: d.removed };
+  } catch (e) {
+    console.error("[cron] salas de voz de time falharam:", e instanceof Error ? e.message : e);
+  }
+
   return NextResponse.json({
     ok: true,
     checked: (lobbies ?? []).length,
@@ -126,5 +139,6 @@ export async function POST(req: Request) {
     mmr,
     changelog,
     matchPosts,
+    teamVoice,
   });
 }

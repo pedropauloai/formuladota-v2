@@ -10,6 +10,86 @@ import { ChannelType, type Guild, type VoiceChannel } from "discord.js";
 import { ensureGeneralRoom } from "./general-room.js";
 import { moveUsers } from "./move-users.js";
 
+/** Acha a categoria 🔊丨VOZ (ou a do env DISCORD_VOICE_CATEGORY_ID) pra criar as salas de time. */
+function vozCategoryId(guild: Guild): string | undefined {
+  const fromEnv = process.env.DISCORD_VOICE_CATEGORY_ID;
+  if (fromEnv) return fromEnv;
+  const cat = guild.channels.cache.find(
+    (c) => c.type === ChannelType.GuildCategory && c.name.includes("VOZ"),
+  );
+  return cat?.id;
+}
+
+/** Acha o canal de voz 🌍丨Geral (destino ao apagar as salas de time). */
+function geralVoiceId(guild: Guild): string | null {
+  const ch = guild.channels.cache.find(
+    (c) => c.type === ChannelType.GuildVoice && c.name.includes("Geral"),
+  );
+  return ch?.id ?? null;
+}
+
+/**
+ * Cria as DUAS salas de voz da partida (Iluminados/Temidos), move cada time pra
+ * sua sala (best-effort — só quem já está em voz) e devolve os IDs.
+ */
+export async function createTeamRooms(
+  guild: Guild,
+  matchId: string,
+  radiantDiscordIds: string[],
+  direDiscordIds: string[],
+): Promise<{ iluminadosId: string; temidosId: string }> {
+  const parent = vozCategoryId(guild);
+  const tag = matchId.slice(-4);
+
+  const iluminados = await guild.channels.create({
+    name: `🟢丨Iluminados #${tag}`,
+    type: ChannelType.GuildVoice,
+    userLimit: 5,
+    parent,
+  });
+  const temidos = await guild.channels.create({
+    name: `🔴丨Temidos #${tag}`,
+    type: ChannelType.GuildVoice,
+    userLimit: 5,
+    parent,
+  });
+  console.log(`[team-rooms] criadas Iluminados(${iluminados.id}) + Temidos(${temidos.id}) p/ ${matchId}`);
+
+  const [mv1, mv2] = await Promise.all([
+    moveUsers(guild, radiantDiscordIds, iluminados.id),
+    moveUsers(guild, direDiscordIds, temidos.id),
+  ]);
+  console.log(`[team-rooms] movidos ${mv1}+${mv2} jogadores.`);
+
+  return { iluminadosId: iluminados.id, temidosId: temidos.id };
+}
+
+/**
+ * Apaga as salas de time: move quem ainda estiver nelas pro 🌍丨Geral e deleta.
+ * Retorna quantas foram apagadas. Idempotente (ignora canal inexistente).
+ */
+export async function destroyTeamRooms(guild: Guild, channelIds: string[]): Promise<number> {
+  const geral = geralVoiceId(guild);
+  let deleted = 0;
+  for (const id of channelIds) {
+    const ch = guild.channels.cache.get(id) as VoiceChannel | undefined;
+    if (!ch) continue;
+    const members = [...ch.members.values()];
+    if (members.length > 0 && geral) {
+      await Promise.all(
+        members.map((m) =>
+          m.voice.setChannel(geral).catch((e: unknown) =>
+            console.error(`[team-rooms] mover ${m.user.tag}→Geral:`, (e as Error).message),
+          ),
+        ),
+      );
+    }
+    await ch.delete("Partida finalizada — sala de time removida.").catch(() => {});
+    deleted++;
+  }
+  return deleted;
+}
+
 /**
  * Cria um voice channel temporário para a partida.
  * Move os usuários informados para o canal criado.
