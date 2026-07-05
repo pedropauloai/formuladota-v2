@@ -10,6 +10,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ExternalLink, Clock, Ban } from "lucide-react";
 import { createClient, getCurrentUser } from "@/lib/supabase/server";
+import { getAssignedPositionsByDotaMatchId } from "@/lib/queries/assigned-roles";
 import { ClientShell } from "@/components/client-shell/shell";
 import { MatchDetail } from "@/components/match/match-detail";
 import { CopyMatchId } from "@/components/match/copy-match-id";
@@ -171,7 +172,11 @@ export default async function HistoricoPartidaPage({
 
   const viewerIsAdmin = await viewerAdminPromise;
 
-  const { players, advantage, wards, series } = assembleMatch(rows, identityById);
+  // Posições ATRIBUÍDAS no matchmaking (fonte correta da role, não net worth). O `id`
+  // da URL é canônico = dota_match_id; matchMeta é preferido quando o público o enxerga.
+  const valveMatchId = matchMeta?.dota_match_id ?? id;
+  const assignedPos = await getAssignedPositionsByDotaMatchId(supabase, valveMatchId);
+  const { players, advantage, wards, series } = assembleMatch(rows, identityById, assignedPos);
 
   // Mapa de calor de posição por jogador (lane_pos → minimapa). Aba "Presença".
   const heatmaps: PlayerHeatmap[] = rows.map((r) => {

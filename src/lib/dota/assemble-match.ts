@@ -24,7 +24,7 @@ import {
 } from "@/lib/dota/match-build";
 import { parsePlayerWards, type Ward } from "@/lib/dota/match-vision";
 import { type PlayerSeries, colorFor } from "@/lib/dota/match-series";
-import { assignRolesByNetWorth } from "@/lib/mmr";
+import { assignRolesByNetWorth, positionToRole, type PlayerRole } from "@/lib/mmr";
 
 export interface MatchPlayerRow {
   user_id: string | null;
@@ -89,23 +89,31 @@ export interface MatchView {
 
 export function assembleMatch(
   rows: MatchPlayerRow[],
-  identityById: Map<string, Identity>
+  identityById: Map<string, Identity>,
+  /** Posições 1-5 ATRIBUÍDAS no matchmaking (lobby_players.role), por user_id.
+   *  Fonte CORRETA da role — net worth é só fallback pra quem não tem atribuição. */
+  assignedPos: Map<string, number> = new Map()
 ): MatchView {
   const radiantUnits = unitMap(rows, "radiant");
   const direUnits = unitMap(rows, "dire");
 
-  // Função por net worth (mesma detecção do perf score): os 2 menores de cada
-  // time = suporte. Injetada no view-model pra as abas exibirem o perfil de avaliação.
-  const roles = assignRolesByNetWorth(rows.map((r) => ({ team: r.team, netWorth: r.net_worth })));
-  const roleByIndex = new Map(rows.map((r, i) => [r, roles[i] ?? "core"] as const));
-  // Posição 1-5 (rank de net worth DENTRO do time; 1 = maior NW) → ícone da role.
-  const posByRow = new Map<MatchPlayerRow, number>();
+  // FALLBACK por net worth (usado só quando não há role atribuída).
+  const nwRoles = assignRolesByNetWorth(rows.map((r) => ({ team: r.team, netWorth: r.net_worth })));
+  const nwPos = new Map<MatchPlayerRow, number>();
   for (const team of ["radiant", "dire"] as const) {
     rows
       .filter((r) => r.team === team)
       .sort((a, b) => b.net_worth - a.net_worth)
-      .forEach((r, i) => posByRow.set(r, i + 1));
+      .forEach((r, i) => nwPos.set(r, i + 1));
   }
+  // Função/posição = role ATRIBUÍDA (assignedPos) quando existe; senão fallback NW.
+  const roleByIndex = new Map<MatchPlayerRow, PlayerRole>();
+  const posByRow = new Map<MatchPlayerRow, number>();
+  rows.forEach((r, i) => {
+    const assigned = r.user_id ? assignedPos.get(r.user_id) : undefined;
+    posByRow.set(r, assigned ?? nwPos.get(r) ?? 1);
+    roleByIndex.set(r, assigned ? positionToRole(assigned) : nwRoles[i] ?? "core");
+  });
 
   const wards: Ward[] = [];
   const series: PlayerSeries[] = [];

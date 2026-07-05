@@ -137,10 +137,27 @@ export function normalizeWards(
   return Math.min(1, Math.max(0, wardsTotal) / (durationMin * WARDS_PER_MIN_CAP));
 }
 
+// FONTE CORRETA da função/posição = a role ATRIBUÍDA no matchmaking
+// (lobby_players.role), NÃO o net worth (Pedro 2026-07-05). O patrimônio não define a
+// role: um offlane pode ter mais NW que o mid, um mid mais que o carry, etc. O
+// net worth só serve de FALLBACK pra partida sem atribuição (jogador externo/legado).
+export const ASSIGNED_ROLE_TO_POSITION: Record<string, number> = {
+  safelane: 1, // carry / pos 1
+  midlane: 2, // mid / pos 2
+  offlane: 3, // offlane / pos 3
+  support: 4, // suporte / pos 4
+  support_dedicated: 5, // hard support / pos 5
+};
+
+/** Posição 1-5 → função de avaliação (pos 4/5 = support; 1/2/3 = core). */
+export function positionToRole(pos: number): PlayerRole {
+  return pos >= 4 ? "support" : "core";
+}
+
 /**
- * FUNÇÃO por net worth: em cada time, os 2 de MENOR net worth = SUPPORT (pos 4/5),
- * o resto CORE. Baseline até o lane_role parseado refinar. Retorna um array de
- * roles alinhado ao input (mesma ordem).
+ * FALLBACK por net worth (usar SÓ quando não há role atribuída): em cada time, os 2
+ * de MENOR net worth = SUPPORT (pos 4/5), o resto CORE. Retorna um array de roles
+ * alinhado ao input (mesma ordem).
  */
 export function assignRolesByNetWorth(
   players: ReadonlyArray<{ team: string; netWorth: number | null | undefined }>

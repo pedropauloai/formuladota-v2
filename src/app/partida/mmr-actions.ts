@@ -10,11 +10,13 @@ import { createClient } from "@/lib/supabase/server";
 import { getIdentityMap } from "@/lib/queries/identities";
 import { getHeroById } from "@/lib/queries/heroes";
 import { xpProgress } from "@/lib/levels";
+import { getAssignedPositionsByDotaMatchId } from "@/lib/queries/assigned-roles";
 import {
   computePerfScore,
   perfComponents,
   PERF_SWING,
   assignRolesByNetWorth,
+  positionToRole,
   normalizeStuns,
   normalizeWards,
   type PlayerRole,
@@ -81,16 +83,23 @@ export async function getMatchMmrState(dotaMatchId: string): Promise<MmrState> {
     select: (q: string) => {
       eq: (c: string, v: string) => {
         maybeSingle: () => PromiseLike<{
-          data: { match_id?: string; radiant_avg_mmr?: number | null; dire_avg_mmr?: number | null } | null;
+          data: {
+            match_id?: string;
+            dota_match_id?: string | null;
+            radiant_avg_mmr?: number | null;
+            dire_avg_mmr?: number | null;
+          } | null;
         }>;
       };
     };
   })
-    .select("match_id, radiant_avg_mmr, dire_avg_mmr")
+    .select("match_id, dota_match_id, radiant_avg_mmr, dire_avg_mmr")
     .eq(isUuid ? "match_id" : "dota_match_id", dotaMatchId)
     .maybeSingle();
 
   const matchUuid = isUuid ? dotaMatchId : md?.match_id;
+  // dota_match_id REAL (Valve) — pra achar a sala e as roles atribuídas.
+  const valveMatchId = isUuid ? (md?.dota_match_id ?? null) : dotaMatchId;
   if (!matchUuid) return { applied: false, found: false, radiantAvg: null, direAvg: null, players: [] };
   const radiantAvg = md?.radiant_avg_mmr ?? null;
   const direAvg = md?.dire_avg_mmr ?? null;
@@ -132,32 +141,38 @@ export async function getMatchMmrState(dotaMatchId: string): Promise<MmrState> {
   const xpOf = new Map((levels ?? []).map((l) => [l.user_id, xpProgress(l.total_xp_earned ?? 0)]));
   const seasonMmrOf = new Map((seasonRows ?? []).map((r) => [r.user_id, r.mmr ?? null]));
 
-  // FUNÇÃO por net worth (v3) — usa os 10 jogadores da partida (inclui não-plataforma)
-  // pra ranquear, depois lê a função de cada jogador da plataforma pelo perfil certo.
+  // FUNÇÃO/POSIÇÃO = role ATRIBUÍDA no matchmaking (lobby_players.role), NÃO net worth
+  // (Pedro 2026-07-05). Net worth só como fallback pra jogador sem atribuição.
   const rawOf = (p: { raw_opendota: unknown }) =>
     p.raw_opendota as Record<string, unknown> | null;
   const allRows = rows ?? [];
-  const rolesArr = assignRolesByNetWorth(
+  const assignedPos = await getAssignedPositionsByDotaMatchId(supabase, valveMatchId);
+  const nwRoles = assignRolesByNetWorth(
     allRows.map((p) => {
       const nw = (p.raw_opendota as Record<string, unknown> | null)?.net_worth;
       return { team: p.team, netWorth: typeof nw === "number" ? nw : null };
     })
   );
-  const roleOf = new Map<string, PlayerRole>();
-  allRows.forEach((p, i) => {
-    if (p.user_id) roleOf.set(p.user_id, rolesArr[i] ?? "core");
-  });
-  // Posição 1-5 (rank de net worth no time; 1 = maior NW) — ícone + ordenação.
-  const posOf = new Map<string, number>();
+  // Fallback de posição por rank de net worth no time (1 = maior NW).
+  const nwPosOf = new Map<string, number>();
   for (const team of ["radiant", "dire"] as const) {
     allRows
       .filter((p) => p.team === team)
       .map((p) => ({ p, nw: (rawOf(p)?.net_worth as number | undefined) ?? 0 }))
       .sort((a, b) => b.nw - a.nw)
       .forEach((x, i) => {
-        if (x.p.user_id) posOf.set(x.p.user_id, i + 1);
+        if (x.p.user_id) nwPosOf.set(x.p.user_id, i + 1);
       });
   }
+  const roleOf = new Map<string, PlayerRole>();
+  const posOf = new Map<string, number>();
+  allRows.forEach((p, i) => {
+    if (!p.user_id) return;
+    const assigned = assignedPos.get(p.user_id);
+    const pos = assigned ?? nwPosOf.get(p.user_id) ?? 1;
+    posOf.set(p.user_id, pos);
+    roleOf.set(p.user_id, assigned ? positionToRole(assigned) : nwRoles[i] ?? "core");
+  });
   let matchDurationMin = 0;
   for (const p of allRows) {
     const d = (p.raw_opendota as Record<string, unknown> | null)?.duration;

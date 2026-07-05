@@ -8,6 +8,7 @@
 // try/catch pra que falha de MMR não quebre a confirmação da partida.
 
 import type { createClient } from "@/lib/supabase/server";
+import { getAssignedPositionsByDotaMatchId } from "@/lib/queries/assigned-roles";
 import {
   calculateMmrDelta,
   computePerfScore,
@@ -15,6 +16,7 @@ import {
   seedMmrFromRankTier,
   applySeasonDecay,
   assignRolesByNetWorth,
+  positionToRole,
   normalizeStuns,
   normalizeWards,
   type PlayerRole,
@@ -133,9 +135,8 @@ export async function applyMatchMmr(
     radiantWon,
   });
 
-  // FUNÇÃO por net worth (v3): usa os 10 jogadores (não só os da plataforma) — o
-  // net worth de um sup só faz sentido comparado ao time inteiro. Depois cada
-  // jogador da plataforma é avaliado no perfil da SUA função (core vs support).
+  // FUNÇÃO = role ATRIBUÍDA no matchmaking (lobby_players.role), NÃO net worth
+  // (Pedro 2026-07-05). Net worth é só fallback pra jogador sem atribuição.
   const rawOf = (p: (typeof platform)[number] | (typeof allPlayers)[number]) =>
     p.raw_opendota as Record<string, unknown> | null;
   const nwOf = (p: (typeof allPlayers)[number]) => {
@@ -143,12 +144,24 @@ export async function applyMatchMmr(
     return typeof nw === "number" ? nw : null;
   };
   const allPlayers = players ?? [];
-  const rolesArr = assignRolesByNetWorth(
+  // dota_match_id via match_details (público) → posições atribuídas na sala.
+  const { data: md } = await supabase
+    .from("match_details")
+    .select("dota_match_id")
+    .eq("match_id", matchId)
+    .maybeSingle();
+  const assignedPos = await getAssignedPositionsByDotaMatchId(
+    supabase,
+    (md as { dota_match_id?: string | null } | null)?.dota_match_id ?? null
+  );
+  const nwRoles = assignRolesByNetWorth(
     allPlayers.map((p) => ({ team: p.team, netWorth: nwOf(p) }))
   );
   const roleOf = new Map<string, PlayerRole>();
   allPlayers.forEach((p, i) => {
-    if (p.user_id) roleOf.set(p.user_id, rolesArr[i] ?? "core");
+    if (!p.user_id) return;
+    const pos = assignedPos.get(p.user_id);
+    roleOf.set(p.user_id, pos ? positionToRole(pos) : nwRoles[i] ?? "core");
   });
   // Duração da partida (mesma pra todos) — pra normalizar stuns/wards por minuto.
   let matchDurationMin = 0;

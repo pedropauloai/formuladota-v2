@@ -29,12 +29,34 @@ import {
   computePerfScore,
   modulateMmrDelta,
   assignRolesByNetWorth,
+  positionToRole,
+  ASSIGNED_ROLE_TO_POSITION,
   normalizeStuns,
   normalizeWards,
   seedMmrFromRankTier,
   STARTING_MMR,
   type PlayerRole,
 } from "../src/lib/mmr";
+
+// Posições ATRIBUÍDAS no matchmaking (lobby_players.role) por user_id, via dota_match_id.
+// Inline aqui (não usa @/lib/queries/assigned-roles) porque o tsx do script não resolve
+// o alias @/ — mesma lógica, importando só de ../src/lib/mmr.
+async function assignedPositionsFor(dotaMatchId: string | null): Promise<Map<string, number>> {
+  const out = new Map<string, number>();
+  if (!dotaMatchId) return out;
+  const { data: lobby } = await sb
+    .from("lobbies")
+    .select("id")
+    .eq("dota_match_id", dotaMatchId)
+    .maybeSingle();
+  if (!lobby?.id) return out;
+  const { data } = await sb.from("lobby_players").select("user_id, role").eq("lobby_id", lobby.id);
+  for (const r of (data ?? []) as Array<{ user_id: string; role: string | null }>) {
+    const pos = r.role ? ASSIGNED_ROLE_TO_POSITION[r.role] : undefined;
+    if (pos && r.user_id) out.set(r.user_id, pos);
+  }
+  return out;
+}
 
 // --- env (.env.local do projeto) --------------------------------------------
 const envPath = path.resolve("C:/Users/ADM/projects/formuladota-v2/.env.local");
@@ -76,7 +98,7 @@ async function main() {
   // Partidas em ordem cronológica.
   const { data: matches } = await sb
     .from("matches")
-    .select("id, created_at")
+    .select("id, created_at, dota_match_id")
     .order("created_at", { ascending: true });
   const matchIds = (matches ?? []).map((m) => m.id);
   if (matchIds.length === 0) {
@@ -165,13 +187,18 @@ async function main() {
       radiantWon,
     });
 
-    // Roles pelos 10 (net worth) + duração pra normalizar stuns/wards.
-    const rolesArr = assignRolesByNetWorth(
+    // FUNÇÃO = role ATRIBUÍDA no matchmaking (lobby_players.role); net worth só fallback.
+    const assignedPos = await assignedPositionsFor(
+      (m as { dota_match_id?: string | null }).dota_match_id ?? null
+    );
+    const nwRoles = assignRolesByNetWorth(
       players.map((p) => ({ team: p.team, netWorth: num(p.raw_opendota?.net_worth) }))
     );
     const roleOf = new Map<string, PlayerRole>();
     players.forEach((p, i) => {
-      if (p.user_id) roleOf.set(p.user_id, rolesArr[i] ?? "core");
+      if (!p.user_id) return;
+      const pos = assignedPos.get(p.user_id);
+      roleOf.set(p.user_id, pos ? positionToRole(pos) : nwRoles[i] ?? "core");
     });
     let durMin = 0;
     for (const p of players) {
