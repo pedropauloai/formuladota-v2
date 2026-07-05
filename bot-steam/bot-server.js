@@ -80,6 +80,22 @@ const REGION_TO_DOTA_SERVER = { BR: 10, LATAM: 15, EU: 3 };
 const LEAGUE_ID = Number(process.env.DOTA_LEAGUE_ID) || 18406; // ticket da liga FormulaDota
 const RE_STEAMID64 = /^7656\d{13}$/;
 
+// LOCK POR SLOT (Pedro 2026-07-05): a role é definida no matchmaking; o bot NÃO
+// posiciona, mas MOVE PRO POOL quem entra no time/slot errado — assim cada um só fica
+// no slot da sua função (1-5). Kill-switch: BOT_LOCK_SLOTS="false" desliga.
+const BOT_LOCK_SLOTS = process.env.BOT_LOCK_SLOTS !== "false";
+// role atribuída (lobby_players.role) → slot 0-4 no time (slot 0 = pos 1 = topo).
+const ROLE_TO_LOBBY_SLOT = {
+  safelane: 0, // pos 1 / carry
+  midlane: 1, // pos 2 / mid
+  offlane: 2, // pos 3
+  support: 3, // pos 4
+  support_dedicated: 4, // pos 5
+};
+// time atribuído (lobby_players.team) → GC team (0=Radiant, 1=Dire).
+const TEAM_TO_GC = { radiant: 0, dire: 1 };
+const SLOT_KICK_COOLDOWN_MS = 2500; // não re-kicka o mesmo accountId antes disso (anti-flood)
+
 // Cronômetro de espera dos convidados entrarem no lobby Steam (mesma regra do spike).
 const EXPIRA_MIN = 10; // minutos até descartar se não completar
 const TICK_MS = 60000; // 1 min (baixe pra testar rápido)
@@ -151,6 +167,49 @@ client.on("receivedFromGC", (appid, msgType, payload) => {
   }
 });
 
+// LOCK POR SLOT — a role vem do matchmaking (jobAtivo.slotByAccountId). O bot NÃO
+// posiciona ninguém; se um jogador entra num time/slot DIFERENTE do atribuído, ele é
+// movido pro pool (jogadores de fora) → só consegue ficar no slot da sua função (1-5).
+// Ignora quem está no pool/spectator (ainda não escolheu) e não-roster. Rate-limit por
+// accountId evita floodar o GC. Não roda após o launch nem com BOT_LOCK_SLOTS off.
+function enforceSlots(lobby, botId) {
+  if (!BOT_LOCK_SLOTS || !jobAtivo || jobAtivo.launched) return;
+  const gab = jobAtivo.slotByAccountId;
+  if (!gab || gab.size === 0) return;
+  const now = Date.now();
+  for (const m of lobby.allMembers || []) {
+    if (!m || String(m.id) === botId) continue;
+    const team = Number(m.team);
+    if (team !== 0 && team !== 1) continue; // só quem está EM time (pool/spec: ignora)
+    let accId;
+    try {
+      accId = Number(BigInt(String(m.id)) & 0xffffffffn);
+    } catch {
+      continue;
+    }
+    const want = gab.get(accId);
+    if (!want) continue; // não-roster: não é o escopo deste lock
+    const slot = Number(m.slot);
+    if (team === want.team && slot === want.slot) continue; // já está certo
+    // Time/slot errado → move pro pool (com cooldown por jogador pra não floodar o GC).
+    const last = jobAtivo.lastSlotKick.get(accId) || 0;
+    if (now - last < SLOT_KICK_COOLDOWN_MS) continue;
+    jobAtivo.lastSlotKick.set(accId, now);
+    try {
+      dota2.sendRawBuffer(
+        MSG_KICK_FROM_TEAM,
+        Buffer.from(LobbyKickFromTeam.encode(LobbyKickFromTeam.create({ accountId: accId })).finish())
+      );
+      console.log(
+        `[BOT][slots] accountId ${accId} em time/slot errado (t${team} s${slot}, ` +
+          `esperado t${want.team} s${want.slot}) → movido pro pool.`
+      );
+    } catch (e) {
+      console.log("[BOT][slots] erro no kick:", e.message);
+    }
+  }
+}
+
 function capturaLobby(lobby) {
   if (!lobby || !jobAtivo) return;
   if (lobby.lobbyId) jobAtivo.steamLobbyId = String(lobby.lobbyId);
@@ -182,6 +241,9 @@ function capturaLobby(lobby) {
 
   // Membros atuais (sem o bot) — usado pro reconvite e pro descarte (kick de todos).
   jobAtivo.membros = (lobby.allMembers || []).filter((m) => String(m.id) !== botId);
+
+  // LOCK POR SLOT: quem entrou no time/slot errado vai pro pool (não posiciona à força).
+  enforceSlots(lobby, botId);
 
   // Anuncia no chat cada jogador NOVO (cita o nome) e dispara a contagem no 1º que entra.
   for (const m of jobAtivo.membros) {
@@ -496,6 +558,8 @@ async function processarLobby(lobby) {
     serverSteamId: null, // servidor da partida (pro GetRealtimeStats ao vivo)
     invited: [], // SteamIDs convidados (pro reconvite por minuto)
     membros: [], // membros atuais no lobby Steam (sem o bot)
+    slotByAccountId: new Map(), // gabarito accountId → {team, slot} (lock por slot)
+    lastSlotKick: new Map(), // accountId → ts do último kick (anti-flood)
     anunciados: new Set(), // SteamIDs já citados no chat
     cronometro: null,
     minutosRestantes: EXPIRA_MIN,
@@ -508,20 +572,40 @@ async function processarLobby(lobby) {
   // Fonte da verdade do vínculo Steam = tabela `steam_links` (coluna steam_id_64),
   // gravada pelo callback /auth/steam/callback. A coluna profiles.steam_id é LEGADA
   // e nunca é preenchida — ler dela deixava steamIds vazio e o bot não convidava ninguém.
-  const { data: lps } = await supabase.from("lobby_players").select("user_id").eq("lobby_id", lobby.id);
+  // Busca role + team (pro lock por slot) além do user_id.
+  const { data: lps } = await supabase
+    .from("lobby_players")
+    .select("user_id, team, role")
+    .eq("lobby_id", lobby.id);
   const userIds = (lps || []).map((p) => p.user_id);
   let steamIds = [];
+  const steamByUser = new Map();
   if (userIds.length) {
     const { data: links } = await supabase
       .from("steam_links")
       .select("user_id, steam_id_64")
       .in("user_id", userIds);
-    steamIds = (links || [])
-      .map((l) => l.steam_id_64)
-      .filter((s) => typeof s === "string" && RE_STEAMID64.test(s));
+    for (const l of links || []) {
+      if (typeof l.steam_id_64 === "string" && RE_STEAMID64.test(l.steam_id_64)) {
+        steamByUser.set(l.user_id, l.steam_id_64);
+      }
+    }
+    steamIds = [...steamByUser.values()];
   }
   jobAtivo.expectedPlayers = steamIds.length;
   jobAtivo.invited = steamIds;
+
+  // Mapa accountId (32 bits) → { team GC, slot 0-4 } a partir da role atribuída.
+  // É o gabarito do lock por slot: quem estiver fora disso vai pro pool.
+  jobAtivo.slotByAccountId = new Map();
+  for (const p of lps || []) {
+    const s64 = steamByUser.get(p.user_id);
+    const slot = ROLE_TO_LOBBY_SLOT[p.role];
+    const gcTeam = TEAM_TO_GC[p.team];
+    if (!s64 || slot === undefined || gcTeam === undefined) continue;
+    const accId = Number(BigInt(s64) & 0xffffffffn);
+    jobAtivo.slotByAccountId.set(accId, { team: gcTeam, slot });
+  }
   console.log(`[BOT] Jogadores na partida: ${userIds.length} | SteamIDs válidos p/ convite: ${steamIds.length}`);
 
   // Sai de qualquer lobby anterior e cria o novo (com a senha do site).
