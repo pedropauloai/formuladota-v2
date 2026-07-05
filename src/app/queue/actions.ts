@@ -9,7 +9,6 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { xpProgress } from "@/lib/levels";
-import { assertUsersInCmVoice } from "@/lib/discord/voice-gate";
 import type { Database } from "@/types/database";
 
 // Quantos jogadores estão buscando partida AGORA (match_queue waiting, TODOS os usuários).
@@ -136,7 +135,7 @@ export type QueueResult =
   | {
       success: false;
       error: string;
-      code?: "need_permission" | "in_match" | "no_rank" | "rate_limited" | "not_in_voice";
+      code?: "need_permission" | "in_match" | "no_rank" | "rate_limited";
     };
 
 // Rate limit anti-spam: no máximo 1 entrada na fila a cada N ms por usuário. Barra o
@@ -203,18 +202,9 @@ export async function enterQueue(input: {
     };
   }
 
-  // GATE DE VOZ — SÓ CAPTAINS MODE (Pedro 2026-07-05): CM exige estar no canal de voz
-  // 🎙 Buscando (CM). All Pick/livre não exige. Fail-open (bot offline não bloqueia).
-  if ((input.gameModes ?? []).includes("captains_mode")) {
-    const voice = await assertUsersInCmVoice([user.id]);
-    if (!voice.ok) {
-      return {
-        success: false,
-        code: "not_in_voice",
-        error: "Pra buscar Captains Mode, entre no canal de voz 🎙 Buscando (CM) do Discord — CM exige comunicação por voz.",
-      };
-    }
-  }
+  // Voz é OPCIONAL (Pedro 2026-07-05): removido o gate de voz (inclusive do CM). Voz é
+  // comunicação, não anti-anonimato. O incentivo é o canal de voz por time + o botão na
+  // página da partida (fácil e opcional), não uma trava na fila.
 
   // Em grupo? A fila solo racharia a party — o líder busca pelo painel do grupo
   // (enterPartyQueue, migration 076). Bloqueia a fila solo de qualquer membro.

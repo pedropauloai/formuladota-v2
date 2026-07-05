@@ -7,7 +7,6 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { assertUsersInCmVoice } from "@/lib/discord/voice-gate";
 import { getSteamIdentityMap, resolveIdentity } from "@/lib/queries/identities";
 import {
   getMyParty,
@@ -170,7 +169,7 @@ export type PartyQueueResult =
       success: false;
       error: string;
       /** Gate de doutrina (migration 124): quem precisa responder o quiz. */
-      code?: "need_permission" | "not_in_voice";
+      code?: "need_permission";
       /** true quando quem precisa é o PRÓPRIO caller (abre o pop-up de quiz). */
       selfNeeds?: boolean;
     };
@@ -186,28 +185,8 @@ export async function enterPartyQueue(gameModes: string[]): Promise<PartyQueueRe
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Não autenticado" };
 
-  // GATE DE VOZ — SÓ CAPTAINS MODE (Pedro 2026-07-05): TODOS os membros precisam estar
-  // no canal 🎙 Buscando (CM). All Pick/livre não exige. Fail-open (bot offline não bloqueia).
-  const { data: myPm } = modes.includes("captains_mode")
-    ? await supabase.from("party_members").select("party_id").eq("user_id", user.id).maybeSingle()
-    : { data: null };
-  if (myPm) {
-    const { data: members } = await supabase
-      .from("party_members")
-      .select("user_id")
-      .eq("party_id", myPm.party_id);
-    const memberIds = (members ?? []).map((m) => m.user_id);
-    const voice = await assertUsersInCmVoice(memberIds);
-    if (!voice.ok) {
-      const quem =
-        voice.missingNames.length > 0 ? voice.missingNames.join(", ") : "Alguém do grupo";
-      return {
-        success: false,
-        code: "not_in_voice",
-        error: `${quem} não está no canal de voz 🎙 Buscando (CM) do Discord. No Captains Mode, todos do grupo precisam entrar lá pra buscar.`,
-      };
-    }
-  }
+  // Voz é OPCIONAL (Pedro 2026-07-05): gate de voz removido (inclusive CM). O incentivo
+  // é o canal de voz por time + o botão na página da partida, não uma trava na fila.
 
   const { data, error } = await supabase.rpc("enter_party_queue", {
     p_game_modes: modes,

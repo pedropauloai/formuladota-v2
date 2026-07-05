@@ -48,7 +48,6 @@ import { QueueSearchersPanel } from "@/components/queue/queue-searchers-panel";
 import { ShaderSmoke } from "@/components/ui/shader-smoke";
 import type { SmokeAsset } from "@/lib/cosmetics";
 import { PermissionQuizModal } from "@/components/quiz/permission-quiz-modal";
-import { VoiceGateModal } from "@/components/queue/voice-gate-modal";
 import { setPlayMenuState, type PlayMenuState } from "@/lib/play-menu-preference";
 import { ROLES, GAME_MODES } from "@/lib/queue/constants";
 import {
@@ -120,8 +119,6 @@ export function PlayMenu({
     );
   const [error, setError] = useState<string | null>(null);
   const [showQuiz, setShowQuiz] = useState(false);
-  // Gate de voz: mensagem do modal central quando não está no canal 🎧 Buscando Partida.
-  const [voiceGate, setVoiceGate] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [searching, setSearching] = useState(false);
   const [elapsed, setElapsed] = useState(0); // segundos da busca atual (contador na bottom-bar)
@@ -314,11 +311,6 @@ export function PlayMenu({
             setShowQuiz(true);
             return;
           }
-          // Gate de voz: alguém do grupo não está no canal → modal central com link.
-          if (pres.code === "not_in_voice") {
-            setVoiceGate(pres.error);
-            return;
-          }
           setError(pres.error);
           return;
         }
@@ -337,11 +329,6 @@ export function PlayMenu({
       if (!res.success) {
         if (res.code === "need_permission") {
           setShowQuiz(true);
-          return;
-        }
-        // Gate de voz: não está no canal 🎧 Buscando Partida → modal central com link.
-        if (res.code === "not_in_voice") {
-          setVoiceGate(res.error);
           return;
         }
         // Servidor barrou: já está em partida (estado do client estava defasado) →
@@ -733,15 +720,6 @@ export function PlayMenu({
         }}
       />
 
-      <VoiceGateModal
-        open={voiceGate !== null}
-        message={voiceGate ?? ""}
-        onClose={() => setVoiceGate(null)}
-        onRetry={() => {
-          setVoiceGate(null);
-          handleBuscar();
-        }}
-      />
     </>
   );
 }
