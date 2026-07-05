@@ -12,6 +12,12 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* `hero:` — tamanho "hero" da capa (HubCenter) só quando a tela é larga E
+   ALTA de verdade (>=1536x940). O breakpoint 2xl é só por largura, então
+   1080p com 125% de escala (1536x864) recebia o tamanho de 1920 e criava
+   scroll. Gatilhando por altura tambem, telas curtas ficam no layout compacto. */
+@custom-variant hero (@media (min-width: 1536px) and (min-height: 940px));
+
 /* FORMULADOTA — Design System V2.5 AAA Game Client
    Paleta canônica: preto Dota 2 + vermelho brand + off-white.
    Tokens consumidos via @theme (Tailwind v4 transforma em utilities automaticamente).
