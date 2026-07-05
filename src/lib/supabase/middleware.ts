@@ -173,9 +173,22 @@ export async function updateSession(request: NextRequest) {
   );
 
   // IMPORTANTE: getUser() força refresh do cookie de sessão.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  //
+  // RESILIÊNCIA (fix do "site caiu" 2026-07-05): quando várias requests/abas batem
+  // juntas com o JWT expirado, o refresh do token pode falhar com
+  // "Too many concurrent token refresh requests" (AuthApiError 409). Sem tratamento,
+  // a exceção subia e a PÁGINA do usuário dava 500 (afetava só a sessão dele). Como a
+  // sessão AINDA existe (o token só não pôde renovar naquele instante), a resposta
+  // correta é NÃO derrubar nem expulsar: deixa a request passar com os cookies atuais
+  // — a próxima request renova. RLS + auth no server component seguem protegendo.
+  let user: Awaited<ReturnType<typeof supabase.auth.getUser>>["data"]["user"] = null;
+  try {
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+  } catch (err) {
+    console.error("[middleware] auth.getUser falhou (refresh transitório?):", err);
+    return allow();
+  }
 
   // Rotas de fluxo de auth/webhook nunca são bloqueadas — preserva callback OAuth + webhooks externos.
   // /login também passa livre (é onde o visitante dispara o OAuth — gateá-la seria loop).
