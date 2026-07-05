@@ -206,7 +206,7 @@ export async function enterPartyQueue(gameModes: string[]): Promise<PartyQueueRe
       return {
         success: false,
         code: "not_in_voice",
-        error: `${quem} não está no canal de voz 🎧 Buscando Partida do Discord. Todos do grupo precisam entrar lá pra buscar. ${voice.inviteUrl}`,
+        error: `${quem} não está no canal de voz 🎧 Buscando Partida do Discord. Todos do grupo precisam entrar lá pra buscar.`,
       };
     }
   }

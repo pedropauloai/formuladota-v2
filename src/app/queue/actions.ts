@@ -210,7 +210,7 @@ export async function enterQueue(input: {
     return {
       success: false,
       code: "not_in_voice",
-      error: `Entre no canal de voz 🎧 Buscando Partida do Discord pra procurar partida — aqui ninguém joga anônimo. ${voice.inviteUrl}`,
+      error: "Entre no canal de voz 🎧 Buscando Partida do Discord pra procurar partida — aqui ninguém joga anônimo.",
     };
   }
 

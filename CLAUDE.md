@@ -14,6 +14,7 @@
 - **Pricing**: ficha de vaga = **R$ 10 fixo** (pricing descentralizado por PRO foi REVERTIDO em 2026-06-02, migration 041). Split 85/10/5. Mudança de preço = aprovação Pedro.
 - **Gates de acesso**: criar sala = assinatura ativa; entrar em lobby = nível 6 (doutrinado) OU ≥1 permissão de partida; lobby elite = assinatura + Imortal Valve + Místico nv30. Lógica centralizada em `src/lib/` e enforced por RLS/funções SQL.
 - **Maintainability**: Pedro é não-dev. Código deve ser legível, comentários em português onde não-óbvio
+- **Novidades (LEI, Pedro 2026-07-05)**: SEMPRE que shipar algo visível/relevante pro jogador, adicionar 1 entrada em `changelog_entries` (`published=true`, `body_md` em voz didática de jogador — o que mudou e por quê). Ela aparece no `/novidades` na hora e espelha sozinha no Discord (canal 🆕丨atualizacoes) via cron. **Curadoria (LEI):** NADA de segurança/RLS/auditoria/jargão de dev vaza pro público. `category` ∈ novidade|melhoria|correcao|balanceamento. Detalhes e como fazer: memória `project_changelog_novidades`.
 
 ### Estado atual — sistema de partidas & placar (atualizado 2026-06-30)
 - **URL canônica de uma partida = `dota_match_id`** (ID real da Valve, ex `8873698944`), tanto AO VIVO quanto no HISTÓRICO. NÃO usar UUID interno nem `steam_lobby_id` na URL gerada.
