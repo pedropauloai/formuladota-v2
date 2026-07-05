@@ -84,22 +84,29 @@ export interface PerfComponent {
   source: "benchmark" | "direct";
 }
 
+// v4 (Pedro 2026-07-05): REMOVIDO o `stuns`. Era um sinal ABSOLUTO (não-benchmark):
+// herói sem stun (SF, Sniper) recebia `stuns = 0` REAL, que entrava na média e PUXAVA
+// a nota — punia estruturalmente quem não pode dar stun. Como não existe benchmark de
+// stun por herói na OpenDota, não dá pra torná-lo justo por herói; o "controle" já é
+// capturado indiretamente pelo teamfight_participation. As demais métricas benchmark
+// (dano/torre/cura/farm) SÃO por herói (percentil OpenDota), então são justas — inclusive
+// a cura, que conta ITENS (Greaves/Vlad's) e compara o jogador a OUTROS do mesmo herói.
+// `wards` fica SÓ no suporte (warding é trabalho do sup — justo cobrar).
 export const PERF_PROFILES: Record<PlayerRole, ReadonlyArray<PerfComponent>> = {
   core: [
     { key: "teamfight_participation", weight: 3, source: "direct" }, // jogar junto (domina)
     { key: "hero_damage_per_min", weight: 2, source: "benchmark" },  // combate
     { key: "tower_damage", weight: 2, source: "benchmark" },         // objetivos / fechar
-    { key: "hero_healing_per_min", weight: 1, source: "benchmark" }, // utility eventual
+    { key: "hero_healing_per_min", weight: 1, source: "benchmark" }, // utility eventual (itens)
     { key: "gold_per_min", weight: 1, source: "benchmark" },         // farm importa, não domina
-    { key: "stuns", weight: 1, source: "direct" },                   // controle
   ],
   support: [
     { key: "teamfight_participation", weight: 3, source: "direct" }, // jogar junto (domina)
-    { key: "stuns", weight: 2, source: "direct" },                   // controle = trabalho do sup
-    { key: "hero_healing_per_min", weight: 2, source: "benchmark" }, // cura/utility
+    { key: "hero_healing_per_min", weight: 2, source: "benchmark" }, // cura/utility (itens+skills)
+    { key: "wards", weight: 2, source: "direct" },                   // visão = trabalho do sup
     { key: "hero_damage_per_min", weight: 1, source: "benchmark" },  // combate secundário
-    { key: "wards", weight: 1, source: "direct" },                   // visão (só no sup)
-    // SEM tower_damage e SEM gold_per_min: não é o trabalho do suporte, punia injustamente.
+    // SEM stuns (punia herói sem stun), SEM tower_damage e SEM gold_per_min (não é o
+    // trabalho do suporte).
   ],
 };
 

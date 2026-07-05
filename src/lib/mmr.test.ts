@@ -79,6 +79,11 @@ describe("PERF_PROFILES (v3) — sem componente fantasma", () => {
     expect(keys).not.toContain("tower_damage");
     expect(keys).not.toContain("gold_per_min");
   });
+  it("v4: NENHUM perfil usa stuns (punia herói sem stun)", () => {
+    for (const role of ["core", "support"] as const) {
+      expect(PERF_PROFILES[role].map((c) => c.key)).not.toContain("stuns");
+    }
+  });
 });
 
 describe("computePerfScore — v3 não pune suporte", () => {
@@ -120,14 +125,14 @@ describe("perfComponents — breakdown exibido", () => {
     const comps = perfComponents(
       "support",
       bench({ hero_healing_per_min: 0.7 }),
-      { teamfightParticipation: 0.5, stuns: 0.4, wards: null }
+      { teamfightParticipation: 0.5, stuns: 0.4, wards: 0.4 }
     );
     const byKey = Object.fromEntries(comps.map((c) => [c.key, c]));
     expect(byKey.teamfight_participation).toEqual({ key: "teamfight_participation", value: 0.5, weight: 3 });
-    expect(byKey.stuns).toEqual({ key: "stuns", value: 0.4, weight: 2 });
+    expect(byKey.wards).toEqual({ key: "wards", value: 0.4, weight: 2 }); // wards agora peso 2 no sup
     expect(byKey.hero_healing_per_min).toEqual({ key: "hero_healing_per_min", value: 0.7, weight: 2 });
-    // wards ausente e hero_damage ausente → não aparecem
-    expect(byKey.wards).toBeUndefined();
+    // stuns REMOVIDO (v4); hero_damage ausente (sem benchmark passado) → não aparecem
+    expect(byKey.stuns).toBeUndefined();
     expect(byKey.hero_damage_per_min).toBeUndefined();
   });
 });

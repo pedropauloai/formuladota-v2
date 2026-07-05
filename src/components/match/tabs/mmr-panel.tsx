@@ -15,18 +15,48 @@ import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
 import { RoleIcon } from "@/components/match/match-scoreboard";
 import { SocialIconsRow } from "@/components/profile/social-icons-row";
+import { Tooltip } from "@/components/ui/tooltip";
 import { mmrToDotaRank } from "@/components/queue/queue-helpers";
 import { mmrToTier } from "@/lib/mmr";
 
-// Rótulos legíveis dos componentes do perfScore (espelham PERF_PROFILES v3).
+// Rótulos legíveis dos componentes do perfScore (espelham PERF_PROFILES v4).
 const COMPONENT_LABEL: Record<string, string> = {
   teamfight_participation: "Presença em teamfight",
   hero_damage_per_min: "Dano a heróis",
   tower_damage: "Dano a torres",
   hero_healing_per_min: "Cura",
-  stuns: "Controle (stuns)",
   wards: "Visão (wards)",
   gold_per_min: "Economia (farm)",
+};
+
+// Transparência: DE ONDE vem e COMO cada métrica é coletada (mostrado no tooltip da
+// barra). "Benchmark por herói" = percentil vs. outros do MESMO herói (justo entre
+// funções); "Replay" = valor direto do replay parseado da partida (OpenDota).
+const METRIC_INFO: Record<string, { source: string; how: string }> = {
+  teamfight_participation: {
+    source: "Replay parseado (OpenDota)",
+    how: "Fração das teamfights em que você teve kill, morte, assist, dano ou cura no intervalo da luta. É o que MAIS pesa.",
+  },
+  hero_damage_per_min: {
+    source: "Benchmark por herói (OpenDota)",
+    how: "Seu dano a heróis por minuto comparado a OUTROS jogadores deste MESMO herói (percentil).",
+  },
+  tower_damage: {
+    source: "Benchmark por herói (OpenDota)",
+    how: "Seu dano a torres comparado a outros do mesmo herói (percentil).",
+  },
+  hero_healing_per_min: {
+    source: "Benchmark por herói (OpenDota)",
+    how: "Cura por minuto — de HABILIDADES e de ITENS (Greaves, Vlad's, Mekansm…) — comparada a outros do mesmo herói (percentil).",
+  },
+  gold_per_min: {
+    source: "Benchmark por herói (OpenDota)",
+    how: "Seu ouro por minuto (farm) comparado a outros do mesmo herói (percentil).",
+  },
+  wards: {
+    source: "Replay parseado (OpenDota)",
+    how: "Observers + sentries plantadas por minuto (visão). Avaliado só no suporte — é o trabalho dele.",
+  },
 };
 
 const POLL_MS = 7000;
@@ -85,6 +115,14 @@ export function MmrPanel({ dotaMatchId }: { dotaMatchId: string }) {
           até <strong className="text-gold">±{Math.round(20 / 2)}</strong>). O que mais pesa no
           desempenho é <strong className="text-text-display">estar nas lutas com o time</strong>.
           Cada partida mexe no máximo <strong className="text-gold">±30</strong>.
+        </p>
+        <p className="mt-2 text-[0.8rem] text-text-faded">
+          As barras de desempenho vêm dos{" "}
+          <strong className="text-text-muted">benchmarks POR HERÓI da OpenDota</strong> (você é
+          comparado a outros jogadores do MESMO herói — justo entre funções) e do{" "}
+          <strong className="text-text-muted">replay parseado</strong> da partida.{" "}
+          <span className="text-text-muted">Passe o mouse em cada barra</span> pra ver a fonte e
+          como é medida.
         </p>
       </div>
 
@@ -259,12 +297,36 @@ function PlayerCard({ p, pending, isMvp }: { p: MmrPlayerBreakdown; pending: boo
       {/* Desempenho SEMPRE exposto (barras de componentes). */}
       {p.components.length > 0 ? (
         <ul className="mt-3 space-y-1 border-t border-border-subtle/50 pt-2.5">
-          {p.components.map((c) => (
+          {p.components.map((c) => {
+            const info = METRIC_INFO[c.key];
+            return (
             <li key={c.key} className="flex items-center gap-2">
-              <span className="w-36 shrink-0 font-body text-[0.7rem] text-text-muted">
-                {COMPONENT_LABEL[c.key] ?? c.key}
-                <span className="ml-1 text-text-faded">·{c.weight}x</span>
-              </span>
+              <Tooltip
+                side="top"
+                align="start"
+                content={
+                  info ? (
+                    <span className="block max-w-[16rem] text-left">
+                      <span className="font-display text-[0.65rem] font-bold uppercase tracking-wide text-gold">
+                        {info.source}
+                      </span>
+                      <span className="mt-1 block font-body text-xs leading-snug text-text-body">
+                        {info.how}
+                      </span>
+                      <span className="mt-1 block font-body text-[0.65rem] text-text-faded">
+                        Peso {c.weight}x no perfil da sua função.
+                      </span>
+                    </span>
+                  ) : (
+                    c.key
+                  )
+                }
+              >
+                <span className="w-36 shrink-0 cursor-help font-body text-[0.7rem] text-text-muted underline decoration-dotted decoration-text-faded/50 underline-offset-2">
+                  {COMPONENT_LABEL[c.key] ?? c.key}
+                  <span className="ml-1 text-text-faded">·{c.weight}x</span>
+                </span>
+              </Tooltip>
               <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-bg-deep">
                 <span
                   className="block h-full rounded-full bg-brand-primary"
@@ -275,7 +337,8 @@ function PlayerCard({ p, pending, isMvp }: { p: MmrPlayerBreakdown; pending: boo
                 {Math.round(c.value * 100)}%
               </span>
             </li>
-          ))}
+            );
+          })}
         </ul>
       ) : (
         <p className="mt-2 border-t border-border-subtle/50 pt-2 font-body text-[0.7rem] text-text-faded">
