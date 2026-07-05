@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/server";
 import { ClientShell } from "@/components/client-shell/shell";
 import { MatchPasswordCard } from "./match-password-card";
 import { MatchRoomStatus } from "@/components/match/match-room-status";
+import { LiveMatchTelemetry } from "@/components/match/live-match-telemetry";
+import { getLiveMatchStats } from "@/app/partida/live-actions";
 import { DiscardMatchButton } from "@/components/match/discard-match-button";
 import { FinalizeMatchButton } from "@/components/match/finalize-match-button";
 import { UserHoverCard } from "@/components/profile/user-hover-card";
@@ -168,6 +170,10 @@ export default async function PartidaPage({
           ROLE_ORDER.indexOf(a.role ?? "z") - ROLE_ORDER.indexOf(b.role ?? "z")
       );
 
+  // Telemetria ao vivo (heróis + net worth/KDA) — só quando a partida está em andamento.
+  const liveInitial =
+    lobby.status === "in_progress" ? await getLiveMatchStats(lobbyUuid) : null;
+
   return (
     <ClientShell currentRoute={`/partida/${id}`}>
       <div className="mx-auto w-full max-w-5xl px-4 py-8">
@@ -193,6 +199,13 @@ export default async function PartidaPage({
             </div>
           )}
         </header>
+
+        {/* Telemetria AO VIVO (heróis + net worth/KDA em tempo real) — partida em andamento. */}
+        {lobby.status === "in_progress" && (
+          <div className="mb-4">
+            <LiveMatchTelemetry lobbyUuid={lobbyUuid} initial={liveInitial} />
+          </div>
+        )}
 
         {/* Enquanto o bot não criou a sala no Dota (status 'open' sem dota_match_id)
             OU deu erro: faixa de status com auto-refresh. Some quando a partida vai

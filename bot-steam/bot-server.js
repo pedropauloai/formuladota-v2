@@ -37,6 +37,10 @@ const REFRESH_TOKEN = process.env.STEAM_REFRESH_TOKEN || "";
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const POLL_MS = Number(process.env.BOT_POLL_MS) || 5000;
+// Telemetria AO VIVO (GetRealtimeStats): chave da Steam WebAPI + intervalo do poll.
+// Sem a chave, a telemetria ao vivo fica desligada (o resto do bot funciona igual).
+const STEAM_WEB_API_KEY = process.env.STEAM_WEB_API_KEY || "";
+const LIVE_POLL_MS = Number(process.env.BOT_LIVE_POLL_MS) || 8000;
 
 // Login: refresh token (headless/Railway) OU usuário+senha (local com Steam Guard).
 if (!REFRESH_TOKEN && (!USERNAME || !PASSWORD)) {
@@ -151,6 +155,12 @@ function capturaLobby(lobby) {
   if (!lobby || !jobAtivo) return;
   if (lobby.lobbyId) jobAtivo.steamLobbyId = String(lobby.lobbyId);
   if (lobby.matchId && String(lobby.matchId) !== "0") jobAtivo.matchId = String(lobby.matchId);
+
+  // server_steam_id do servidor da partida (aparece no SO cache após o lançamento) —
+  // é o que o GetRealtimeStats exige pra telemetria AO VIVO (mesmos campos do spike).
+  const sid =
+    lobby.serverId || lobby.serverSteamId || lobby.gameServerSteamId || lobby.serverSteamID;
+  if (sid && String(sid) !== "0") jobAtivo.serverSteamId = String(sid);
 
   const botId = client.steamID ? client.steamID.toString() : "";
 
@@ -346,8 +356,89 @@ dota2.on("connectedToGC", () => {
     dota2.sendRawBuffer(MSG_LEAVE_LOBBY, Buffer.from(LobbyLeave.encode(LobbyLeave.create({})).finish()));
   } catch (e) {}
   setInterval(loop, POLL_MS);
+  if (STEAM_WEB_API_KEY) {
+    setInterval(pollLiveStats, LIVE_POLL_MS);
+    console.log(`[BOT] Telemetria ao vivo LIGADA (GetRealtimeStats a cada ${LIVE_POLL_MS / 1000}s).`);
+  } else {
+    console.log("[BOT] Telemetria ao vivo DESLIGADA (defina STEAM_WEB_API_KEY no .env pra ligar).");
+  }
   console.log(`[BOT] Aguardando partidas (consultando o Supabase a cada ${POLL_MS / 1000}s)...`);
 });
+
+// ---- Telemetria AO VIVO (GetRealtimeStats) — independente do jobAtivo -----------
+// Enquanto houver partidas in_progress com server_steam_id, busca o snapshot na Steam
+// WebAPI (delay DotaTV) e grava lobbies.live_stats. O site só LÊ e desenha os heróis.
+let liveStatsBusy = false;
+async function pollLiveStats() {
+  if (liveStatsBusy || !STEAM_WEB_API_KEY) return;
+  liveStatsBusy = true;
+  try {
+    const { data: lives } = await supabase
+      .from("lobbies")
+      .select("id, server_steam_id")
+      .eq("status", "in_progress")
+      .not("server_steam_id", "is", null);
+    for (const lob of lives || []) {
+      try {
+        const snap = await fetchRealtime(lob.server_steam_id);
+        if (snap) {
+          await supabase
+            .from("lobbies")
+            .update({ live_stats: snap, live_stats_at: new Date().toISOString() })
+            .eq("id", lob.id);
+        }
+      } catch (e) {
+        // HTTP 500/rede = partida ainda não no ar ou delay do DotaTV — tenta no próximo tick.
+      }
+      await wait(400); // espaça as chamadas à Valve (rate limit)
+    }
+  } catch (e) {
+    console.error("[BOT][live] erro no poll:", e.message);
+  } finally {
+    liveStatsBusy = false;
+  }
+}
+
+async function fetchRealtime(serverSteamId) {
+  const url =
+    `https://api.steampowered.com/IDOTA2MatchStats_570/GetRealtimeStats/v1/` +
+    `?key=${STEAM_WEB_API_KEY}&server_steam_id=${serverSteamId}`;
+  const r = await fetch(url);
+  if (!r.ok) return null;
+  const d = await r.json();
+  return normalizeRealtime(d);
+}
+
+// Normaliza o payload cru da Valve pro shape mínimo que o site desenha (times +
+// jogadores com hero_id/level/K-D-A/net_worth). team_number 2=radiant, 3=dire.
+function normalizeRealtime(d) {
+  const m = d && d.match ? d.match : {};
+  const out = {
+    game_time: Number(m.game_time || 0),
+    match_id: String(m.matchid || m.match_id || ""),
+    radiant: null,
+    dire: null,
+  };
+  for (const team of (d && d.teams) || []) {
+    const side = team.team_number === 2 ? "radiant" : team.team_number === 3 ? "dire" : null;
+    if (!side) continue;
+    out[side] = {
+      net_worth: Number(team.net_worth || 0),
+      score: Number(team.score || 0),
+      players: (team.players || []).map((p) => ({
+        account_id: p.accountid != null ? String(p.accountid) : null,
+        hero_id: Number(p.heroid || 0),
+        level: Number(p.level || 0),
+        k: Number(p.kill_count || 0),
+        d: Number(p.death_count || 0),
+        a: Number(p.assists_count || 0),
+        net_worth: Number(p.net_worth || 0),
+      })),
+    };
+  }
+  if (!out.radiant && !out.dire) return null; // partida ainda não no ar
+  return out;
+}
 
 dota2.on("disconnectedFromGC", (reason) => {
   console.log(`[BOT] GC desconectou (motivo ${reason}). Tentando reconectar...`);
@@ -402,6 +493,7 @@ async function processarLobby(lobby) {
     launched: false,
     steamLobbyId: null,
     matchId: null,
+    serverSteamId: null, // servidor da partida (pro GetRealtimeStats ao vivo)
     invited: [], // SteamIDs convidados (pro reconvite por minuto)
     membros: [], // membros atuais no lobby Steam (sem o bot)
     anunciados: new Set(), // SteamIDs já citados no chat
@@ -530,8 +622,9 @@ async function lancarEFechar(job) {
   } catch (e) {
     console.log("[BOT] erro no launch:", e.message);
   }
-  await wait(4000); // espera o match_id aparecer no SO
+  await wait(6000); // espera o match_id E o server_steam_id aparecerem no SO cache
   const matchId = job.matchId || null;
+  const serverSteamId = job.serverSteamId || null; // pro GetRealtimeStats (telemetria ao vivo)
   try {
     dota2.sendRawBuffer(MSG_ABANDON, Buffer.from(Abandon.encode(Abandon.create({})).finish()));
     console.log("[BOT] bot abandonou o portão de loading (a partida sobe sem ele).");
@@ -541,14 +634,16 @@ async function lancarEFechar(job) {
   } catch (e) {}
 
   try {
-    await supabase
-      .from("lobbies")
-      .update({ status: "in_progress", dota_match_id: matchId })
-      .eq("id", job.dbLobbyId);
+    const upd = { status: "in_progress", dota_match_id: matchId };
+    if (serverSteamId) upd.server_steam_id = serverSteamId; // habilita o poller ao vivo
+    await supabase.from("lobbies").update(upd).eq("id", job.dbLobbyId);
   } catch (e) {
     console.error("[BOT] erro ao gravar match_id:", e.message);
   }
-  console.log(`[BOT] ✅ Partida ${job.dbLobbyId} LANÇADA. match_id=${matchId}. Liberando pro próximo.`);
+  console.log(
+    `[BOT] ✅ Partida ${job.dbLobbyId} LANÇADA. match_id=${matchId}. ` +
+      `server_steam_id=${serverSteamId || "(não capturado)"}. Liberando pro próximo.`
+  );
   jobAtivo = null; // libera o polling pro próximo job
 }
 
