@@ -21,6 +21,7 @@ import {
   RotateCcw,
   Trophy,
   Compass,
+  ArrowRight,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
@@ -51,7 +52,31 @@ export function HubCenter({ isVisitor, prosOnlineCount, showRankedComPro = false
   const ctaLabel = showRankedComPro ? t("ctaPlay") : t("ctaMmr");
 
   return (
-    <section className="mx-auto flex min-h-full w-full max-w-6xl flex-col justify-center gap-5 px-6 py-6 2xl:gap-8 2xl:px-10 2xl:py-10">
+    <>
+      {/* Vídeo de fundo — montagem oficial do Dota 2 (cdn Steam) atrás da capa, com
+          camada escura por cima pra o texto ganhar destaque (Pedro 2026-07-05). */}
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden="true">
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          className="h-full w-full object-cover"
+        >
+          <source
+            src="https://cdn.steamstatic.com/apps/dota2/videos/dota_react/homepage/dota_montage_webm.webm"
+            type="video/webm"
+          />
+          <source
+            src="https://cdn.steamstatic.com/apps/dota2/videos/dota_react/homepage/dota_montage_02.mp4"
+            type="video/mp4"
+          />
+        </video>
+        <div className="absolute inset-0 bg-gradient-to-br from-bg-deep/90 via-bg-deep/72 to-bg-deep/92" />
+      </div>
+
+      <section className="relative z-[1] mx-auto flex min-h-full w-full max-w-6xl flex-col justify-center gap-5 px-6 py-6 2xl:gap-8 2xl:px-10 2xl:py-10">
       {/* TESE — headline gigante + subtítulo */}
       <header className="space-y-3 2xl:space-y-5">
         <p className="font-display text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary 2xl:text-base">
@@ -131,7 +156,7 @@ export function HubCenter({ isVisitor, prosOnlineCount, showRankedComPro = false
           </span>{" "}
           {t("doctrineBody")}{" "}
           <Link
-            href="/codigo-de-conduta"
+            href="/metodologia"
             className="font-bold text-brand-primary transition-colors hover:text-text-display"
           >
             {t("doctrineLink")}
@@ -163,9 +188,10 @@ export function HubCenter({ isVisitor, prosOnlineCount, showRankedComPro = false
         )}
         <Link
           href="/manifesto"
-          className="font-display text-sm font-semibold text-brand-primary transition-colors hover:text-text-display 2xl:text-base"
+          className="inline-flex items-center gap-2 rounded-md border-2 border-brand-primary/50 bg-brand-primary/10 px-5 py-2.5 font-display text-sm font-bold uppercase tracking-wide text-brand-primary transition-all hover:border-brand-primary hover:bg-brand-primary/20 2xl:text-base"
         >
           {t("whyLink")}
+          <ArrowRight size={16} aria-hidden="true" />
         </Link>
         {/* Pulso de PROs online — só quando a feature "Ranked com PRO" está ligada
             (com ela off, "0 PROs online" não faz sentido). Pedro 2026-07-02. */}
@@ -179,5 +205,6 @@ export function HubCenter({ isVisitor, prosOnlineCount, showRankedComPro = false
         )}
       </div>
     </section>
+    </>
   );
 }

@@ -482,7 +482,7 @@ export function PlayMenu({
         // Interface ÚNICA: painel "quem está findando" (retrátil) + contador. Fumaça
         // por SHADER atrás (ShaderSmoke) enquanto busca — flagship premium tier-1.
         <div
-          className="pointer-events-auto relative w-[340px] max-w-[calc(100vw-2rem)]"
+          className="pointer-events-auto relative w-[268px] xl:w-[308px] 2xl:w-[328px] max-w-[calc(100vw-2rem)]"
           style={{ marginRight: "2.5rem" }}
         >
           <ShaderSmoke
@@ -491,9 +491,10 @@ export function PlayMenu({
             intensity={1.3}
             speed={1.8}
             // Tamanho FIXO (não muda ao expandir/retrair) via inline style — invade até
-            // ~meio da tela pra esquerda, emanando da base direita. Pedro 2026-07-01.
+            // ~meio da tela pra esquerda, emanando da base direita e ENCOSTANDO na lateral
+            // (right negativo compensa o respiro de 2.5rem do card). Pedro 2026-07-05.
             className=""
-            style={{ left: "-780px", right: "0", bottom: "-2rem", height: "680px" }}
+            style={{ left: "-780px", right: "-2.5rem", bottom: "-2rem", height: "680px" }}
           />
           <div className="relative z-[1] w-full overflow-hidden rounded-md border-2 border-play-primary bg-bg-deep/70 backdrop-blur-md shadow-lg shadow-[var(--color-play-primary-glow)]">
           {searchPanelOpen && (
@@ -553,7 +554,7 @@ export function PlayMenu({
           type="button"
           onClick={() => router.push(`/partida/${activeMatchId}`)}
           style={{ marginRight: "2.5rem" }}
-          className="pointer-events-auto group relative flex h-11 w-[340px] max-w-[calc(100vw-2rem)] items-center justify-center gap-3 overflow-hidden rounded-md border-2 border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover font-display text-lg font-bold uppercase tracking-[0.25em] text-text-display shadow-lg shadow-[var(--color-play-primary-glow)] transition-all hover:scale-[1.02] xl:h-12 xl:text-xl"
+          className="pointer-events-auto group relative flex h-11 w-[268px] xl:w-[308px] 2xl:w-[328px] max-w-[calc(100vw-2rem)] items-center justify-center gap-3 overflow-hidden rounded-md border-2 border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover font-display text-lg font-bold uppercase tracking-[0.25em] text-text-display shadow-lg shadow-[var(--color-play-primary-glow)] transition-all hover:scale-[1.02] xl:h-12 xl:text-xl"
         >
           <ArrowLeft size={22} aria-hidden="true" />
           <span>{t("backToMatch")}</span>
@@ -570,7 +571,7 @@ export function PlayMenu({
           // Largura FIXA (340px) igual à pílula de busca + respiro de 2.5rem → botão e
           // pílula ocupam o MESMO lugar, sem pulo ao trocar de estado (Pedro 2026-07-05).
           style={{ marginRight: "2.5rem" }}
-          className="pointer-events-auto group relative flex h-11 w-[340px] max-w-[calc(100vw-2rem)] items-center justify-center gap-3 overflow-hidden rounded-md border-2 border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover font-display text-lg font-bold uppercase tracking-[0.25em] text-text-display shadow-lg shadow-[var(--color-play-primary-glow)] transition-all hover:scale-[1.02] xl:h-12 xl:text-xl"
+          className="pointer-events-auto group relative flex h-11 w-[268px] xl:w-[308px] 2xl:w-[328px] max-w-[calc(100vw-2rem)] items-center justify-center gap-3 overflow-hidden rounded-md border-2 border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover font-display text-lg font-bold uppercase tracking-[0.25em] text-text-display shadow-lg shadow-[var(--color-play-primary-glow)] transition-all hover:scale-[1.02] xl:h-12 xl:text-xl"
         >
           {hasSala ? <ArrowLeft size={22} aria-hidden="true" /> : <Play size={22} aria-hidden="true" />}
           <span>{hasSala ? t("backToRoom") : t("play")}</span>

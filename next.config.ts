@@ -47,7 +47,7 @@ const config: NextConfig = {
       "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.opendota.com https://api.stratz.com",
       "worker-src 'self' blob:",
       "manifest-src 'self'",
-      "media-src 'self'",
+      "media-src 'self' https://*.steamstatic.com", // vídeo de fundo (montagem oficial do Dota 2)
       "frame-ancestors 'none'", // H2 — anti-clickjacking (equivale a X-Frame-Options: DENY)
       "base-uri 'self'",
       "form-action 'self'",
