@@ -34,7 +34,10 @@ const serverSchema = z.object({
   // Fail-open: sem estas envs, o gate NÃO bloqueia ninguém.
   DISCORD_BOT_API_URL: optional,
   DISCORD_BOT_API_KEY: optional,      // = INTERNAL_API_KEY do bot Discord (header x-api-key)
-  DISCORD_QUEUE_VOICE_CHANNEL_ID: optional, // ID do 🎧丨Buscando Partida (impresso pelo setup-channels)
+  DISCORD_QUEUE_VOICE_CHANNEL_ID: optional, // 🎧丨Buscando Partida (geral, NÃO é gate — hangout)
+  // Gate de voz só do CAPTAINS MODE (Pedro 2026-07-05): canal de voz próprio, obrigatório
+  // só pra quem busca CM. All Pick/livre não exige voz. Sem esta env, o gate é no-op.
+  DISCORD_QUEUE_VOICE_CM_CHANNEL_ID: optional, // 🎙丨Buscando (CM)
   // Stratz GraphQL (Phase 7)
   STRATZ_API_KEY: optional,
   OPENDOTA_API_KEY: optional,

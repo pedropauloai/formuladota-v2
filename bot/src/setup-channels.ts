@@ -66,7 +66,8 @@ const STRUCTURE: { category: string; channels: Ch[] }[] = [
   {
     category: "🔊丨VOZ",
     channels: [
-      { name: "🎧丨Buscando Partida", access: "voice" },
+      { name: "🎧丨Buscando Partida", access: "voice" }, // geral (All Pick/livre) — NÃO é gate
+      { name: "🎙丨Buscando (CM)", access: "voice" }, // gate obrigatório só do Captains Mode
       { name: "🌍丨Geral", access: "voice" },
     ],
   },

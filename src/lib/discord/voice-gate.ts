@@ -1,11 +1,12 @@
 import "server-only";
 
-// Gate de voz do matchmaking (anti-anonimato): só entra na fila quem está no canal
-// de voz 🎧丨Buscando Partida do Discord — e, em grupo, TODOS os membros.
+// Gate de voz do CAPTAINS MODE (Pedro 2026-07-05): só o CM exige estar no canal de
+// voz 🎙丨Buscando (CM) — e, em grupo, TODOS os membros. All Pick/livre NÃO exige voz.
+// (Anti-anonimato é garantido pela IDENTIDADE, não pela voz; voz = comunicação, que
+// só é essencial no CM. Reavaliado com feedback de usuários + atrito no internacional.)
 //
-// FAIL-OPEN por decisão do Pedro: se as envs do bot Discord não estiverem setadas,
-// ou o bot estiver offline, o gate NÃO bloqueia ninguém (a fila continua funcionando).
-// A prova de presença lê o voiceState cache do bot (rota /api/voice/presence).
+// FAIL-OPEN: se as envs do bot Discord não estiverem setadas, ou o bot estiver
+// offline, o gate NÃO bloqueia ninguém. Presença lida via bot /api/voice/presence.
 
 import { serverEnv } from "@/lib/env";
 import { createServiceClient } from "@/lib/supabase/service";
@@ -16,7 +17,7 @@ export const DISCORD_INVITE_URL = "https://discord.com/invite/USntaFRS6x";
 function gateConfig(): { url: string; key: string; channelId: string } | null {
   const url = serverEnv.DISCORD_BOT_API_URL;
   const key = serverEnv.DISCORD_BOT_API_KEY;
-  const channelId = serverEnv.DISCORD_QUEUE_VOICE_CHANNEL_ID;
+  const channelId = serverEnv.DISCORD_QUEUE_VOICE_CM_CHANNEL_ID;
   if (!url || !key || !channelId) return null;
   return { url, key, channelId };
 }
@@ -58,7 +59,7 @@ export interface VoiceGateResult {
  * Garante que TODOS os userIds estão no canal de voz da fila. Resolve o snowflake
  * do Discord + o nome de cada um via service client (RLS-safe). Fail-open.
  */
-export async function assertUsersInQueueVoice(userIds: string[]): Promise<VoiceGateResult> {
+export async function assertUsersInCmVoice(userIds: string[]): Promise<VoiceGateResult> {
   const base: VoiceGateResult = { ok: true, inviteUrl: DISCORD_INVITE_URL, missingNames: [] };
   if (!isVoiceGateEnabled() || userIds.length === 0) return base;
 

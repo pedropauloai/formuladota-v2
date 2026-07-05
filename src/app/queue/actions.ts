@@ -9,7 +9,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { xpProgress } from "@/lib/levels";
-import { assertUsersInQueueVoice } from "@/lib/discord/voice-gate";
+import { assertUsersInCmVoice } from "@/lib/discord/voice-gate";
 import type { Database } from "@/types/database";
 
 // Quantos jogadores estão buscando partida AGORA (match_queue waiting, TODOS os usuários).
@@ -203,15 +203,17 @@ export async function enterQueue(input: {
     };
   }
 
-  // GATE DE VOZ (anti-anonimato): só busca quem está no canal 🎧 Buscando Partida
-  // do Discord. Fail-open (bot offline / não configurado não bloqueia).
-  const voice = await assertUsersInQueueVoice([user.id]);
-  if (!voice.ok) {
-    return {
-      success: false,
-      code: "not_in_voice",
-      error: "Entre no canal de voz 🎧 Buscando Partida do Discord pra procurar partida — aqui ninguém joga anônimo.",
-    };
+  // GATE DE VOZ — SÓ CAPTAINS MODE (Pedro 2026-07-05): CM exige estar no canal de voz
+  // 🎙 Buscando (CM). All Pick/livre não exige. Fail-open (bot offline não bloqueia).
+  if ((input.gameModes ?? []).includes("captains_mode")) {
+    const voice = await assertUsersInCmVoice([user.id]);
+    if (!voice.ok) {
+      return {
+        success: false,
+        code: "not_in_voice",
+        error: "Pra buscar Captains Mode, entre no canal de voz 🎙 Buscando (CM) do Discord — CM exige comunicação por voz.",
+      };
+    }
   }
 
   // Em grupo? A fila solo racharia a party — o líder busca pelo painel do grupo

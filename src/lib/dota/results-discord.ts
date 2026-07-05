@@ -50,6 +50,37 @@ async function postWebhook(url: string, payload: unknown): Promise<boolean> {
   }
 }
 
+// Posta o card do placar como ANEXO (multipart) — renderiza grande e sem recompressão
+// do embed. Busca o PNG do og:image e sobe junto. flags:4 = SUPPRESS_EMBEDS.
+async function postCardAttachment(
+  url: string,
+  dotaMatchId: string,
+  opts: { content: string },
+): Promise<boolean> {
+  try {
+    const img = await fetch(`${BASE}/partida/historico/${dotaMatchId}/opengraph-image`, {
+      cache: "no-store",
+    });
+    if (!img.ok) return false;
+    const buf = await img.arrayBuffer();
+    const form = new FormData();
+    form.append(
+      "payload_json",
+      JSON.stringify({
+        username: BRAND_USERNAME,
+        avatar_url: BRAND_AVATAR_URL,
+        content: opts.content,
+        flags: 4,
+      }),
+    );
+    form.append("files[0]", new Blob([buf], { type: "image/png" }), `placar-${dotaMatchId}.png`);
+    const res = await fetch(url, { method: "POST", body: form });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
 // ============================ 📊 RESULTADOS ============================
 
 export async function syncMatchResultsToDiscord(
@@ -76,26 +107,18 @@ export async function syncMatchResultsToDiscord(
       card?.radiantWin == null
         ? ""
         : card.radiantWin
-          ? "🟢 **Iluminados** venceram"
-          : "🔴 **Temidos** venceram";
+          ? "— 🟢 **Iluminados** venceram"
+          : "— 🔴 **Temidos** venceram";
     const scoreLine = card
-      ? `Iluminados **${card.radiantScore}** — **${card.direScore}** Temidos`
-      : "";
+      ? `Iluminados **${card.radiantScore}** : **${card.direScore}** Temidos ${winnerText}`
+      : "Partida finalizada";
+    const link = `${BASE}/partida/historico/${dotaMatchId}`;
 
-    const ok = await postWebhook(webhook, {
-      username: BRAND_USERNAME,
-      avatar_url: BRAND_AVATAR_URL,
-      embeds: [
-        {
-          author: { name: "FORMULADOTA · Resultado" },
-          title: `Partida ${dotaMatchId}`,
-          url: `${BASE}/partida/historico/${dotaMatchId}`,
-          description: [scoreLine, winnerText].filter(Boolean).join("\n"),
-          color: card?.radiantWin === false ? 0xc42121 : 0x00c466,
-          image: { url: `${BASE}/partida/historico/${dotaMatchId}/opengraph-image` },
-          footer: { text: "Ver placar completo em formuladota.com" },
-        },
-      ],
+    // Posta o CARD como ANEXO (grande e em resolução cheia — melhor que embed.image,
+    // que o Discord encolhe/recomprime). flags:4 = SUPPRESS_EMBEDS (o link no texto
+    // NÃO desdobra, já que a imagem é o anexo).
+    const ok = await postCardAttachment(webhook, dotaMatchId, {
+      content: `${scoreLine}\n📊 Placar completo: ${link}`,
     });
 
     if (!ok) continue;

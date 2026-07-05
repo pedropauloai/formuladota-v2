@@ -44,14 +44,14 @@ export function VoiceGateModal({ open, message, onClose, onRetry }: Props) {
         </div>
 
         <h2 className="mb-2 font-display-condensed text-2xl uppercase leading-none text-text-display">
-          Entre na voz pra buscar
+          Captains Mode exige voz
         </h2>
         <p className="mb-4 font-body text-sm leading-relaxed text-text-muted">{message}</p>
 
         {/* Destaque do canal */}
         <div className="mb-5 inline-flex items-center gap-2 rounded-sm border border-border-subtle bg-bg-elevated/50 px-3 py-1.5">
           <Headphones size={14} className="text-text-faded" aria-hidden="true" />
-          <span className="font-display text-sm font-semibold text-text-body">Buscando Partida</span>
+          <span className="font-display text-sm font-semibold text-text-body">Buscando (CM)</span>
         </div>
 
         <div className="flex flex-col gap-2">
