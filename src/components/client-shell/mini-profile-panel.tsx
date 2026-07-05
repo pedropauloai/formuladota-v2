@@ -473,7 +473,10 @@ function ExpandedPanel({
             seasonRank={seasonRank}
             seasonStars={seasonStars}
             skillInline={false}
-            size="lg"
+            // md (48px) em vez de lg (72px): 2 medalhas passam de ~150px pra ~102px
+            // na linha do header, devolvendo ~48px pro nick (12-14 chars visíveis em
+            // vez de ~6) sem alargar o painel — mantém a simetria de respiro. Pedro 2026-07-05.
+            size="md"
             side="right"
             align="start"
             className="shrink-0 self-center"
