@@ -15,6 +15,7 @@ import { requireServerEnv } from "@/lib/env";
 import { createServiceClient } from "@/lib/supabase/service";
 import { fetchOpenDotaMatch } from "@/lib/dota/opendota";
 import { finalizeMatchmakingLobby, finalizePendingMmr } from "@/lib/dota/finalize-match";
+import { syncChangelogToDiscord } from "@/lib/changelog/discord-sync";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -93,11 +94,22 @@ export async function POST(req: Request) {
     mmr = { applied: 0, waitingParse: 0, results: [{ error: e instanceof Error ? e.message : "?" }] };
   }
 
+  // Espelho /novidades → Discord (canal 🆕 atualizações). Isolado: qualquer
+  // falha aqui NÃO afeta a finalização de partidas. No-op sem a env do webhook.
+  let changelog: Awaited<ReturnType<typeof syncChangelogToDiscord>> | null = null;
+  try {
+    changelog = await syncChangelogToDiscord(supabase);
+  } catch (e) {
+    changelog = { posted: 0, skipped: 0 };
+    console.error("[cron] sync changelog→discord falhou:", e instanceof Error ? e.message : e);
+  }
+
   return NextResponse.json({
     ok: true,
     checked: (lobbies ?? []).length,
     finalized: results.filter((r) => r.status === "finalizada").length,
     results,
     mmr,
+    changelog,
   });
 }

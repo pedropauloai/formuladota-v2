@@ -41,6 +41,9 @@ const serverSchema = z.object({
   STRIPE_PRICE_PREMIUM_EUR: optional,
   // Segredo do cron de finalização automática (pg_cron → /api/cron/finalize-matches).
   CRON_SECRET: optional,
+  // Webhook do canal 🆕 atualizações (Discord) — espelha /novidades. Opcional:
+  // sem ele o espelho é no-op (só o site). URL vem do setup-channels.ts.
+  CHANGELOG_DISCORD_WEBHOOK_URL: optional,
   RESEND_API_KEY: optional,
   EMAIL_FROM: z.preprocess(
     (v) => (v === "" ? undefined : v),
