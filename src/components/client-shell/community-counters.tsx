@@ -12,6 +12,8 @@ import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { getCommunityCounters, type CommunityCounters } from "@/actions/community";
 import { updateLastSeen } from "@/actions/profile";
+import { getOnlinePlayers } from "@/actions/topbar-hovers";
+import { PlayersHover } from "@/components/topbar/players-hover";
 
 const POLL_MS = 45_000;
 const HEARTBEAT_MS = 60_000;
@@ -63,6 +65,7 @@ export function CommunityCountersBar({
   }, [isLoggedIn]);
 
   return (
+    <PlayersHover load={getOnlinePlayers} title={t("onlineTitle")} emptyText={t("onlineEmpty")}>
     <Link
       href="/mural"
       aria-label={t("communityStatsAria", {
@@ -89,5 +92,6 @@ export function CommunityCountersBar({
         </span>
       </span>
     </Link>
+    </PlayersHover>
   );
 }

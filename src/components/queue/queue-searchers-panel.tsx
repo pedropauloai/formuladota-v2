@@ -90,6 +90,24 @@ export function QueueSearchersPanel({
   const channelId = useId();
   const aliveRef = useRef(true);
   const wrapRef = useRef<HTMLDivElement>(null);
+  // Ponte de hover: fecha com atraso ao sair do gatilho; se o mouse entra no popover,
+  // cancela o fechamento (senão o gap entre botão e popover fecha antes de chegar).
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cancelClose = () => {
+    if (closeTimer.current) {
+      clearTimeout(closeTimer.current);
+      closeTimer.current = null;
+    }
+  };
+  const scheduleClose = () => {
+    cancelClose();
+    closeTimer.current = setTimeout(() => {
+      if (!pinnedRef.current) setOpen(false);
+    }, 180);
+  };
+  // pinnedRef pra o timeout ler o valor atual sem recriar o handler.
+  const pinnedRef = useRef(false);
+  pinnedRef.current = pinned;
 
   useEffect(() => {
     aliveRef.current = true;
@@ -202,10 +220,11 @@ export function QueueSearchersPanel({
         <div ref={wrapRef} className="relative">
           <button
             type="button"
-            onMouseEnter={() => setOpen(true)}
-            onMouseLeave={() => {
-              if (!pinned) setOpen(false);
+            onMouseEnter={() => {
+              cancelClose();
+              setOpen(true);
             }}
+            onMouseLeave={scheduleClose}
             onClick={() => {
               setPinned((p) => !p);
               setOpen(true);
@@ -220,7 +239,11 @@ export function QueueSearchersPanel({
           </button>
 
           {showPopover && (
-            <div className="absolute left-0 right-0 top-full z-[var(--z-system)] mt-1 max-h-72 overflow-y-auto rounded-[var(--radius-md)] border border-border-strong bg-bg-base p-2 shadow-[var(--shadow-cinematic)]">
+            <div
+              onMouseEnter={cancelClose}
+              onMouseLeave={scheduleClose}
+              className="absolute left-0 right-0 top-full z-[var(--z-system)] mt-1 max-h-72 overflow-y-auto rounded-[var(--radius-md)] border border-border-strong bg-bg-base p-2 shadow-[var(--shadow-cinematic)]"
+            >
               <ul className="space-y-1">
                 {visible.slice(0, LIST_MAX).map((s) => (
                   <SearcherRow key={s.userId} s={s} />
