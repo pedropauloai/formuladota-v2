@@ -30,6 +30,11 @@ const CATEGORY_STYLE: Record<string, Style> = {
 
 const MAX_PER_RUN = 5;
 
+// Identidade oficial no Discord (override do webhook por mensagem). URL DIRETA no
+// www (o apex faz 307 e o Discord não segue redirect de avatar de forma confiável).
+const BRAND_USERNAME = "FORMULADOTA";
+const BRAND_AVATAR_URL = "https://www.formuladota.com/brand/formuladota-mark.png";
+
 export async function syncChangelogToDiscord(
   supabase: SupabaseClient,
 ): Promise<{ posted: number; skipped: number }> {
@@ -66,6 +71,8 @@ export async function syncChangelogToDiscord(
   for (const entry of pending) {
     const style = CATEGORY_STYLE[entry.category] ?? DEFAULT_STYLE;
     const payload = {
+      username: BRAND_USERNAME,
+      avatar_url: BRAND_AVATAR_URL,
       embeds: [
         {
           author: { name: `FORMULADOTA · ${style.label}` },
