@@ -282,18 +282,22 @@ export function QueueSearchersPanel({
         // desmarca com o mesmo toque). Selecionada = destaque + check; carente (nudge)
         // = dourada; disponível = neutra. Re-fila na hora (mantém o tempo).
         <>
-          <div className="mt-2 flex flex-wrap items-center gap-1.5">
-            <span className="mr-0.5 font-display text-[0.7rem] font-bold uppercase tracking-wide text-play-primary">
+          {/* Funções EMPILHADAS (uma por linha). Cada função mostra 2 VAGAS (pontos):
+              preenchidas por quem topa a função, vazias = falta gente. Cheia (2/2) =
+              check verde; faltando = dourado. Clique = marca/desmarca (re-fila na hora). */}
+          <div className="mt-2 flex flex-col gap-1">
+            <span className="mb-0.5 font-display text-[0.7rem] font-bold uppercase tracking-wide text-play-primary">
               {t("searchersYouOffer")}
             </span>
             {ROLES.map((r) => {
               const on = myRoleSet.has(r.id);
-              const scarce = offers[r.id] < ROLE_TARGET;
-              const cls = on
-                ? "border-play-primary/50 bg-play-primary/15 text-play-primary"
-                : scarce
-                  ? "border-gold/40 bg-gold/10 text-gold hover:bg-gold/20"
-                  : "border-border-subtle bg-bg-elevated text-text-muted hover:border-play-primary/40";
+              const covered = offers[r.id];
+              const isFull = covered >= ROLE_TARGET;
+              const rowCls = on
+                ? "border-play-primary/50 bg-play-primary/10"
+                : isFull
+                  ? "border-border-subtle bg-bg-elevated/50 hover:border-play-primary/40"
+                  : "border-gold/45 bg-gold/[0.07] hover:bg-gold/15";
               return (
                 <button
                   key={r.id}
@@ -301,16 +305,48 @@ export function QueueSearchersPanel({
                   onClick={() => onToggleRole(r.id)}
                   aria-pressed={on}
                   title={t(r.key)}
-                  className={`flex items-center gap-1 rounded-sm border px-1.5 py-0.5 font-display text-[0.7rem] font-semibold uppercase tracking-wide transition-colors ${cls}`}
+                  className={`flex w-full items-center gap-2 rounded-sm border px-2 py-1.5 transition-colors ${rowCls}`}
                 >
-                  <Image src={`/dota/positions/pos-${r.pos}.png`} alt="" width={14} height={14} className="size-3.5 shrink-0 object-contain" aria-hidden="true" />
-                  <span className="truncate">{t(r.key)}</span>
-                  {on && <Check size={11} aria-hidden="true" />}
+                  <Image
+                    src={`/dota/positions/pos-${r.pos}.png`}
+                    alt=""
+                    width={16}
+                    height={16}
+                    className="size-4 shrink-0 object-contain"
+                    aria-hidden="true"
+                  />
+                  <span
+                    className={`flex-1 text-left font-display text-[0.72rem] font-semibold uppercase tracking-wide ${
+                      on ? "text-play-primary" : isFull ? "text-text-muted" : "text-gold"
+                    }`}
+                  >
+                    {t(r.key)}
+                  </span>
+                  {/* Vagas: 2 pontos — cheio verde / falta dourado / vazio contornado. */}
+                  <span className="flex items-center gap-1" aria-hidden="true">
+                    {Array.from({ length: ROLE_TARGET }).map((_, i) => (
+                      <span
+                        key={i}
+                        className={`size-2 rounded-full ${
+                          i < covered
+                            ? isFull
+                              ? "bg-success"
+                              : "bg-gold"
+                            : "border border-text-faded/50"
+                        }`}
+                      />
+                    ))}
+                  </span>
+                  {isFull ? (
+                    <Check size={14} className="shrink-0 text-success" aria-hidden="true" />
+                  ) : (
+                    <span className="w-4 shrink-0" aria-hidden="true" />
+                  )}
                 </button>
               );
             })}
           </div>
-          <p className="mt-1 font-body text-[0.7rem] text-text-faded">{t("searchersToggleHint")}</p>
+          <p className="mt-1.5 font-body text-[0.7rem] text-text-faded">{t("searchersToggleHint")}</p>
         </>
       ) : (
         // CONTEXTO DE MENU — só informativo: funções carentes (a seleção é na lista abaixo).
