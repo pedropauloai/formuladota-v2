@@ -179,11 +179,6 @@ export default async function Image({ params }: { params: Promise<{ id: string }
           <div style={{ display: "flex", width: 1, background: "#22252B" }} />
           {column(card.dire, "dire", rWin)}
         </div>
-
-        {/* Rodapé */}
-        <div style={{ display: "flex", justifyContent: "center", marginTop: 8, fontSize: 14, color: C.faded }}>
-          formuladota.com/partida/historico/{card.dotaMatchId}
-        </div>
       </div>
     ),
     { ...size, fonts },
