@@ -16,6 +16,7 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { fetchOpenDotaMatch } from "@/lib/dota/opendota";
 import { finalizeMatchmakingLobby, finalizePendingMmr } from "@/lib/dota/finalize-match";
 import { syncChangelogToDiscord } from "@/lib/changelog/discord-sync";
+import { syncMatchResultsToDiscord, syncFormedMatchesToDiscord } from "@/lib/dota/results-discord";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -104,6 +105,19 @@ export async function POST(req: Request) {
     console.error("[cron] sync changelog→discord falhou:", e instanceof Error ? e.message : e);
   }
 
+  // Posts de partida no Discord: 📊 resultados (placar) + 🔎 fila (partida formada).
+  // Isolados — falha aqui NÃO afeta a finalização. No-op sem as envs dos webhooks.
+  let matchPosts: { results: number; formed: number } = { results: 0, formed: 0 };
+  try {
+    const [r, f] = await Promise.all([
+      syncMatchResultsToDiscord(supabase),
+      syncFormedMatchesToDiscord(supabase),
+    ]);
+    matchPosts = { results: r.posted, formed: f.posted };
+  } catch (e) {
+    console.error("[cron] posts de partida→discord falharam:", e instanceof Error ? e.message : e);
+  }
+
   return NextResponse.json({
     ok: true,
     checked: (lobbies ?? []).length,
@@ -111,5 +125,6 @@ export async function POST(req: Request) {
     results,
     mmr,
     changelog,
+    matchPosts,
   });
 }

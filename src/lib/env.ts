@@ -50,6 +50,10 @@ const serverSchema = z.object({
   // Webhook do canal 🆕 atualizações (Discord) — espelha /novidades. Opcional:
   // sem ele o espelho é no-op (só o site). URL vem do setup-channels.ts.
   CHANGELOG_DISCORD_WEBHOOK_URL: optional,
+  // Webhooks dos canais 📊 resultados e 🔎 fila — postam placar/partida-formada.
+  // Opcionais: sem eles, o post é no-op. URLs vêm do setup-channels.ts.
+  RESULTS_DISCORD_WEBHOOK_URL: optional,
+  QUEUE_DISCORD_WEBHOOK_URL: optional,
   RESEND_API_KEY: optional,
   EMAIL_FROM: z.preprocess(
     (v) => (v === "" ? undefined : v),
