@@ -259,7 +259,7 @@ function RankingCard({
                     r.mmr >= IMMORTAL_FLOOR && i + 1 <= IMMORTAL_LEADERBOARD_TOP ? i + 1 : undefined
                   }
                   variant="formuladota"
-                  size="sm"
+                  size="md"
                   tooltip={false}
                   glow={r.mmr >= IMMORTAL_FLOOR}
                   className="shrink-0"
