@@ -253,29 +253,72 @@ client.once("ready", async () => {
     if (welcomeChannel) await seedIfEmpty(welcomeChannel, WELCOME_CONTENT);
     if (doutrinaChannel) await seedIfEmpty(doutrinaChannel, DOUTRINA_CONTENT);
 
-    // 6) Arquiva o que sobrou (fora da estrutura) — não apaga.
+    // 6) Trata o que sobrou (fora da estrutura).
+    //   Default: ARQUIVA (não apaga) — mas o Discord limita 50 canais por categoria,
+    //   então espalha em 🗄丨ARQUIVO, 🗄丨ARQUIVO 2, ... conforme enche.
+    //   Modo SETUP_PRUNE=true: APAGA de vez (use só depois de conferir o arquivo!).
+    const PRUNE = process.env.SETUP_PRUNE === "true";
+    const CATEGORY_MAX = 50;
     const leftovers = [...guild.channels.cache.values()].filter(
       (c) => c.type !== ChannelType.GuildCategory && !managedIds.has(c.id),
     );
-    if (leftovers.length > 0) {
-      const archive =
-        (guild.channels.cache.find(
-          (c) => c.type === ChannelType.GuildCategory && c.name === "🗄丨ARQUIVO",
-        ) as CategoryChannel | undefined) ??
-        (await guild.channels.create({
-          name: "🗄丨ARQUIVO",
-          type: ChannelType.GuildCategory,
-          position: STRUCTURE.length + 1,
-          permissionOverwrites: [
-            { id: guild.roles.everyone.id, deny: [PermissionFlagsBits.ViewChannel] },
-          ],
-        }));
+
+    if (leftovers.length > 0 && PRUNE) {
       for (const ch of leftovers) {
         try {
-          await (ch as GuildChannel).setParent(archive.id, { lockPermissions: true });
-          console.log(`[setup] arquivado (fora da estrutura): ${ch.name}`);
+          await (ch as GuildChannel).delete("setup-channels PRUNE — fora da estrutura");
+          console.log(`[setup] APAGADO: ${ch.name}`);
         } catch (e) {
-          console.log(`[setup] não consegui arquivar ${ch.name}: ${(e as Error).message}`);
+          console.log(`[setup] não consegui apagar ${ch.name}: ${(e as Error).message}`);
+        }
+      }
+    } else if (leftovers.length > 0) {
+      let archiveIdx = 0;
+      let archive: CategoryChannel | null = null;
+      let countInArchive = 0;
+
+      const nextArchive = async (): Promise<CategoryChannel> => {
+        archiveIdx++;
+        const name = archiveIdx === 1 ? "🗄丨ARQUIVO" : `🗄丨ARQUIVO ${archiveIdx}`;
+        const existing = guild.channels.cache.find(
+          (c) => c.type === ChannelType.GuildCategory && c.name === name,
+        ) as CategoryChannel | undefined;
+        const cat =
+          existing ??
+          (await guild.channels.create({
+            name,
+            type: ChannelType.GuildCategory,
+            permissionOverwrites: [
+              { id: guild.roles.everyone.id, deny: [PermissionFlagsBits.ViewChannel] },
+            ],
+          }));
+        // Quantos filhos já tem (importa em re-runs / categoria pré-existente).
+        countInArchive = guild.channels.cache.filter((c) => c.parentId === cat.id).size;
+        return cat;
+      };
+
+      archive = await nextArchive();
+      for (const ch of leftovers) {
+        if (countInArchive >= CATEGORY_MAX) archive = await nextArchive();
+        try {
+          await (ch as GuildChannel).setParent(archive.id, { lockPermissions: true });
+          countInArchive++;
+          console.log(`[setup] arquivado: ${ch.name}`);
+        } catch (e) {
+          const msg = (e as Error).message;
+          // Encheu inesperadamente → abre a próxima categoria e tenta 1x.
+          if (msg.includes("CHANNEL_PARENT_MAX_CHANNELS")) {
+            archive = await nextArchive();
+            try {
+              await (ch as GuildChannel).setParent(archive.id, { lockPermissions: true });
+              countInArchive++;
+              console.log(`[setup] arquivado: ${ch.name}`);
+            } catch (e2) {
+              console.log(`[setup] não consegui arquivar ${ch.name}: ${(e2 as Error).message}`);
+            }
+          } else {
+            console.log(`[setup] não consegui arquivar ${ch.name}: ${msg}`);
+          }
         }
       }
     }
@@ -292,7 +335,10 @@ client.once("ready", async () => {
       "\n   → 🆕丨atualizacoes é o webhook do changelog: coloque em CHANGELOG_DISCORD_WEBHOOK_URL (Vercel).",
     );
     console.log(
-      "\n[setup] Confira a categoria 🗄丨ARQUIVO e apague manualmente no Discord se quiser.",
+      "\n[setup] Confira as categorias 🗄丨ARQUIVO (ocultas) — arraste de volta o que quiser MANTER.",
+    );
+    console.log(
+      "[setup] Pra APAGAR de vez tudo que sobrou: rode com  SETUP_PRUNE=true  (destrutivo!).",
     );
     console.log("=================================================================\n");
 
