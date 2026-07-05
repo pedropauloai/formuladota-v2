@@ -12,7 +12,6 @@ import {
   BookOpen,
   History,
   Trophy,
-  CalendarClock,
   Gavel,
 } from "lucide-react";
 import { getTranslations } from "next-intl/server";
@@ -70,16 +69,12 @@ export async function DashboardRightSidebar({ floating, showRankedComPro = false
         title={t("sidebar.rankingTitle")}
         cta={t("sidebar.rankingCta")}
         empty={t("sidebar.rankingEmpty")}
+        seasonSubtitle={
+          season
+            ? `${season.name} · ${t("sidebar.seasonDaysLeft", { days: season.daysLeft })}`
+            : null
+        }
       />
-
-      {season && (
-        <SeasonCard
-          name={season.name}
-          daysLeftLabel={t("sidebar.seasonDaysLeft", { days: season.daysLeft })}
-          title={t("sidebar.seasonTitle")}
-          cta={t("sidebar.seasonCta")}
-        />
-      )}
 
       <MuralCard
         bans={bans}
@@ -112,12 +107,28 @@ export async function DashboardRightSidebar({ floating, showRankedComPro = false
 /* ------------------------------------------------------------------ */
 /* Card: Últimas partidas — tira de heróis + placar, linka pro histórico. */
 /* ------------------------------------------------------------------ */
-function CardHeader({ icon: Icon, title }: { icon: typeof History; title: string }) {
+function CardHeader({
+  icon: Icon,
+  title,
+  subtitle,
+}: {
+  icon: typeof History;
+  title: string;
+  /** Linha secundária opcional (ex.: contagem da temporada no card de ranking). */
+  subtitle?: string | null;
+}) {
   return (
-    <p className="flex items-center gap-2 border-b border-border-subtle px-3 py-2 font-display text-sm text-text-display">
-      <Icon size={14} className="text-brand-primary" aria-hidden="true" />
-      {title}
-    </p>
+    <div className="border-b border-border-subtle px-3 py-2">
+      <p className="flex items-center gap-2 font-display text-sm text-text-display">
+        <Icon size={14} className="text-brand-primary" aria-hidden="true" />
+        {title}
+      </p>
+      {subtitle && (
+        <p className="mt-0.5 pl-6 font-display text-xs font-bold uppercase tracking-wide text-gold">
+          {subtitle}
+        </p>
+      )}
+    </div>
   );
 }
 
@@ -222,15 +233,19 @@ function RankingCard({
   title,
   cta,
   empty,
+  seasonSubtitle,
 }: {
   rows: SidebarRankRow[];
   title: string;
   cta: string;
   empty: string;
+  /** Nome da temporada + contagem regressiva — dobrado aqui (o ranking É o placar
+   *  da season), no lugar do antigo card separado de "Temporada". */
+  seasonSubtitle?: string | null;
 }) {
   return (
     <article className="rounded-md border border-border-subtle bg-bg-elevated/80 backdrop-blur-sm overflow-hidden">
-      <CardHeader icon={Trophy} title={title} />
+      <CardHeader icon={Trophy} title={title} subtitle={seasonSubtitle} />
       {rows.length === 0 ? (
         <p className="px-3 py-4 text-center font-body text-sm text-text-faded">{empty}</p>
       ) : (
@@ -274,35 +289,6 @@ function RankingCard({
         </ul>
       )}
       <CardCta href="/ranking" label={cta} />
-    </article>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/* Card: Temporada — nome + contagem regressiva pro fim.                 */
-/* ------------------------------------------------------------------ */
-function SeasonCard({
-  name,
-  daysLeftLabel,
-  title,
-  cta,
-}: {
-  name: string;
-  daysLeftLabel: string;
-  title: string;
-  cta: string;
-}) {
-  return (
-    <article className="rounded-md border border-border-subtle bg-bg-elevated/80 backdrop-blur-sm overflow-hidden">
-      <CardHeader icon={CalendarClock} title={title} />
-      <div className="px-3 py-3">
-        <p className="font-display text-base leading-tight text-text-display">{name}</p>
-        <p className="mt-1 font-display text-sm font-bold uppercase tracking-wide text-gold">
-          {daysLeftLabel}
-        </p>
-      </div>
-      {/* CTA leva pro guia do MMR (ponto de entrada pro /mmr, Pedro 2026-07-02). */}
-      <CardCta href="/mmr" label={cta} />
     </article>
   );
 }
