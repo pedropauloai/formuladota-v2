@@ -1,7 +1,7 @@
 // /mmr — página DIDÁTICA de como funciona o MMR FormulaDota (Pedro 2026-07-02:
 // "é o que mais me perguntam"). Layout AMPLO (usa o canvas todo) + ilustrações.
 // Server component, conteúdo estático. Escala espelha src/lib/mmr.ts (bandas oficiais
-// do Dota, teto 7000). PT-BR (i18n EN é follow-up).
+// do Dota; Imortal 5620+, topo por POSIÇÃO, sem teto). PT-BR (i18n EN é follow-up).
 
 import type { Metadata } from "next";
 import Image from "next/image";
@@ -288,7 +288,7 @@ export default function MmrExplainerPage() {
           </div>
 
           {/* ─── Como sobe/desce — texto + ILUSTRAÇÃO (performance) ─── */}
-          <div className="grid items-center gap-10 border-t border-border-subtle pt-12 lg:grid-cols-2">
+          <div className="grid items-center gap-10 border-t border-border-subtle pt-12 lg:grid-cols-[1fr_1.3fr]">
             <Section icon={TrendingUp} titulo="Como o MMR sobe e desce">
               <p>Cada partida move o seu MMR por dois fatores:</p>
               <ul className="ml-1 space-y-2">
@@ -309,7 +309,7 @@ export default function MmrExplainerPage() {
                     <strong className="text-text-display">Desempenho:</strong> o quanto você
                     contribuiu ajusta o valor — e o que pesa mais é{" "}
                     <strong className="text-text-display">estar nas lutas com o time</strong>, além de
-                    dano, objetivos, cura e controle. Farmar sozinho e fugir das brigas{" "}
+                    dano, objetivos, cura e visão. Farmar sozinho e fugir das brigas{" "}
                     <em>não</em> engorda a nota. Jogar bem numa derrota faz você perder menos —{" "}
                     <em>ou você ganha, ou você aprende</em>.
                   </span>
@@ -322,26 +322,38 @@ export default function MmrExplainerPage() {
                 <span className="text-error">−</span> vermelho).
               </p>
             </Section>
-            <Image
-              src="/images/mmr/performance.png"
-              alt="Painel de performance de uma partida"
-              width={900}
-              height={560}
-              unoptimized
-              className="h-auto w-full"
-            />
+            <figure className="relative overflow-hidden rounded-[var(--radius-lg)] border border-brand-primary/35 bg-gradient-to-br from-brand-primary/10 via-bg-elevated/50 to-bg-base p-2.5 shadow-[var(--shadow-cinematic),0_0_50px_-12px_var(--color-brand-primary-glow)]">
+              <span
+                className="pointer-events-none absolute inset-0 rounded-[var(--radius-lg)] ring-1 ring-inset ring-brand-primary/15"
+                aria-hidden="true"
+              />
+              <Image
+                src="/images/mmr/performance.png"
+                alt="Painel de performance de uma partida"
+                width={1100}
+                height={686}
+                unoptimized
+                className="h-auto w-full rounded-[var(--radius-md)]"
+              />
+            </figure>
           </div>
 
           {/* ─── Desempenho detalhado — ILUSTRAÇÃO (graphs) + texto ─── */}
-          <div className="grid items-center gap-10 border-t border-border-subtle pt-12 lg:grid-cols-2">
-            <Image
-              src="/images/mmr/graphs-player-damage.png"
-              alt="Gráfico de dano por jogador ao longo da partida"
-              width={900}
-              height={560}
-              unoptimized
-              className="order-2 h-auto w-full lg:order-1"
-            />
+          <div className="grid items-center gap-10 border-t border-border-subtle pt-12 lg:grid-cols-[1.3fr_1fr]">
+            <figure className="relative order-2 overflow-hidden rounded-[var(--radius-lg)] border border-brand-primary/35 bg-gradient-to-bl from-brand-primary/10 via-bg-elevated/50 to-bg-base p-2.5 shadow-[var(--shadow-cinematic),0_0_50px_-12px_var(--color-brand-primary-glow)] lg:order-1">
+              <span
+                className="pointer-events-none absolute inset-0 rounded-[var(--radius-lg)] ring-1 ring-inset ring-brand-primary/15"
+                aria-hidden="true"
+              />
+              <Image
+                src="/images/mmr/graphs-player-damage.png"
+                alt="Gráfico de dano por jogador ao longo da partida"
+                width={1100}
+                height={686}
+                unoptimized
+                className="h-auto w-full rounded-[var(--radius-md)]"
+              />
+            </figure>
             <div className="order-1 lg:order-2">
               <Section icon={Swords} titulo="Desempenho é medido de verdade">
                 <p>
@@ -352,10 +364,14 @@ export default function MmrExplainerPage() {
                 </p>
                 <p>
                   E o desempenho é pesado <strong className="text-text-display">pela sua
-                  função</strong>: a gente detecta core ou suporte pelo patrimônio e avalia cada um no
-                  que é o SEU trabalho. Suporte é medido por controle, cura e visão — não por dano a
-                  torre ou farm. Carry é medido por dano e economia. Ninguém é punido por fazer o papel
-                  certo.
+                  função</strong> — e a função vem da{" "}
+                  <strong className="text-text-display">vaga que você pegou no matchmaking</strong>,
+                  não do patrimônio. Quando a partida forma, cada jogador já entra com a função
+                  definida (carry, meio, offlane, suporte…), e a gente avalia cada um no que é o SEU
+                  trabalho. Suporte é medido por <strong className="text-text-display">presença nas
+                  lutas, cura e visão</strong> — não por dano a torre ou farm. Core é medido por{" "}
+                  <strong className="text-text-display">dano, objetivos e economia</strong>. Ninguém é
+                  punido por fazer o papel certo.
                 </p>
                 <p>
                   O maior peso, nos dois, vai pra <strong className="text-text-display">presença em
