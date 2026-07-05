@@ -9,6 +9,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { xpProgress } from "@/lib/levels";
+import { assertUsersInQueueVoice } from "@/lib/discord/voice-gate";
 import type { Database } from "@/types/database";
 
 // Quantos jogadores estão buscando partida AGORA (match_queue waiting, TODOS os usuários).
@@ -135,7 +136,7 @@ export type QueueResult =
   | {
       success: false;
       error: string;
-      code?: "need_permission" | "in_match" | "no_rank" | "rate_limited";
+      code?: "need_permission" | "in_match" | "no_rank" | "rate_limited" | "not_in_voice";
     };
 
 // Rate limit anti-spam: no máximo 1 entrada na fila a cada N ms por usuário. Barra o
@@ -199,6 +200,17 @@ export async function enterQueue(input: {
       success: false,
       error: "Você já está em partida. Termine a atual antes de buscar outra.",
       code: "in_match",
+    };
+  }
+
+  // GATE DE VOZ (anti-anonimato): só busca quem está no canal 🎧 Buscando Partida
+  // do Discord. Fail-open (bot offline / não configurado não bloqueia).
+  const voice = await assertUsersInQueueVoice([user.id]);
+  if (!voice.ok) {
+    return {
+      success: false,
+      code: "not_in_voice",
+      error: `Entre no canal de voz 🎧 Buscando Partida do Discord pra procurar partida — aqui ninguém joga anônimo. ${voice.inviteUrl}`,
     };
   }
 

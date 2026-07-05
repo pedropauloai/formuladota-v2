@@ -5,6 +5,7 @@ import express from "express";
 import { requireApiKey } from "./middleware/auth.js";
 import { generalRoomRouter } from "./routes/general-room.js";
 import { matchRoomRouter } from "./routes/match-room.js";
+import { voiceRouter } from "./routes/voice.js";
 import { discordClient } from "../discord/client.js";
 
 const app = express();
@@ -27,6 +28,7 @@ app.get("/health", (_req, res) => {
 // Rotas protegidas
 app.use("/api/general-room", requireApiKey, generalRoomRouter);
 app.use("/api/match-room", requireApiKey, matchRoomRouter);
+app.use("/api/voice", requireApiKey, voiceRouter);
 
 // Rota não encontrada
 app.use((_req, res) => {

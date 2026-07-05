@@ -7,6 +7,7 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { assertUsersInQueueVoice } from "@/lib/discord/voice-gate";
 import { getSteamIdentityMap, resolveIdentity } from "@/lib/queries/identities";
 import {
   getMyParty,
@@ -169,7 +170,7 @@ export type PartyQueueResult =
       success: false;
       error: string;
       /** Gate de doutrina (migration 124): quem precisa responder o quiz. */
-      code?: "need_permission";
+      code?: "need_permission" | "not_in_voice";
       /** true quando quem precisa é o PRÓPRIO caller (abre o pop-up de quiz). */
       selfNeeds?: boolean;
     };
@@ -184,6 +185,31 @@ export async function enterPartyQueue(gameModes: string[]): Promise<PartyQueueRe
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Não autenticado" };
+
+  // GATE DE VOZ (anti-anonimato): TODOS os membros do grupo precisam estar no canal
+  // 🎧 Buscando Partida do Discord. Fail-open (bot offline não bloqueia).
+  const { data: myPm } = await supabase
+    .from("party_members")
+    .select("party_id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (myPm) {
+    const { data: members } = await supabase
+      .from("party_members")
+      .select("user_id")
+      .eq("party_id", myPm.party_id);
+    const memberIds = (members ?? []).map((m) => m.user_id);
+    const voice = await assertUsersInQueueVoice(memberIds);
+    if (!voice.ok) {
+      const quem =
+        voice.missingNames.length > 0 ? voice.missingNames.join(", ") : "Alguém do grupo";
+      return {
+        success: false,
+        code: "not_in_voice",
+        error: `${quem} não está no canal de voz 🎧 Buscando Partida do Discord. Todos do grupo precisam entrar lá pra buscar. ${voice.inviteUrl}`,
+      };
+    }
+  }
 
   const { data, error } = await supabase.rpc("enter_party_queue", {
     p_game_modes: modes,

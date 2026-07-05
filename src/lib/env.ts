@@ -29,6 +29,12 @@ const serverSchema = z.object({
   // Bot Steam (Phase 5)
   BOT_API_URL: optional,
   BOT_API_KEY: optional,
+  // Bot DISCORD (voz) — serviço Railway SEPARADO do bot Steam. Usado pelo gate de
+  // fila (checar presença no canal de voz) e pelas salas dinâmicas de time.
+  // Fail-open: sem estas envs, o gate NÃO bloqueia ninguém.
+  DISCORD_BOT_API_URL: optional,
+  DISCORD_BOT_API_KEY: optional,      // = INTERNAL_API_KEY do bot Discord (header x-api-key)
+  DISCORD_QUEUE_VOICE_CHANNEL_ID: optional, // ID do 🎧丨Buscando Partida (impresso pelo setup-channels)
   // Stratz GraphQL (Phase 7)
   STRATZ_API_KEY: optional,
   OPENDOTA_API_KEY: optional,
