@@ -20,6 +20,19 @@
       "chat_reaction": "Reacciones"
     }
   },
+  "novidades": {
+    "metaTitle": "Novedades — FORMULADOTA",
+    "title": "Novedades",
+    "subtitle": "Qué cambió en FORMULADOTA. Cada actualización aparece aquí, de la más reciente a la más antigua.",
+    "all": "Todo",
+    "empty": "Nada por aquí todavía. Vuelve tras la próxima actualización.",
+    "cat": {
+      "novidade": "Novedad",
+      "melhoria": "Mejora",
+      "correcao": "Corrección",
+      "balanceamento": "Balance"
+    }
+  },
   "planos": {
     "metaTitle": "Planes",
     "eyebrow": "Compendium",
@@ -155,6 +168,7 @@
     "collection": "Colección",
     "compendium": "Compendium",
     "plans": "Planes",
+    "news": "Novedades",
     "firstRule": "La primera regla",
     "firstRuleBody": "Nunca es culpa del otro. La responsabilidad siempre es tuya, el 100% de las veces.",
     "prosPanel": "Panel de PROs",

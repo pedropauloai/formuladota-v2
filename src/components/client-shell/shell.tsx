@@ -45,6 +45,7 @@ import { computeRankBadges } from "@/lib/dota/rank-badges";
 import { DashboardTopBar } from "./top-bar";
 import { getCommunityCounters } from "@/actions/community";
 import { getFeatureFlags } from "@/lib/queries/feature-flags";
+import { getUnreadChangelogCount } from "@/lib/queries/changelog";
 import { displayName, displayAvatar } from "@/lib/identity";
 import { MiniProfilePanel } from "./mini-profile-panel";
 import { LobbyInviteListener } from "./lobby-invite-listener";
@@ -121,6 +122,7 @@ export async function ClientShell({
     equipped,
     communityCounters,
     featureFlags,
+    changelogUnread,
   ] = await Promise.all([
     isVisitor ? Promise.resolve(null) : fetchPrivateData(supabase, user.id),
     getProsWithQueues(),
@@ -151,6 +153,8 @@ export async function ClientShell({
     getCommunityCounters(),
     // Feature flags (ex.: ranked_com_pro) — liga/desliga entradas da feature.
     getFeatureFlags(),
+    // Novidades não-lidas (badge do sino no topbar) — 0 pra visitante.
+    isVisitor ? Promise.resolve(0) : getUnreadChangelogCount(),
   ]);
 
   const profile = privateData?.profile ?? null;
@@ -249,6 +253,7 @@ export async function ClientShell({
             myQueues={myQueues}
             communityCounters={communityCounters}
             showRankedComPro={showRankedComPro}
+            changelogUnread={changelogUnread}
           />
         </div>
 
@@ -367,6 +372,7 @@ export async function ClientShell({
         myQueues={myQueues}
         communityCounters={communityCounters}
         showRankedComPro={showRankedComPro}
+        changelogUnread={changelogUnread}
       />
 
       {/* Grid columns — sidebar lateral REMOVIDA 2026-05-26 (refator pra fidelidade Dota 2).

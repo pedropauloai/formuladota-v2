@@ -31,6 +31,7 @@ import {
   Palette,
   ScrollText,
   Crown,
+  Bell,
 } from "lucide-react";
 import { signInWithDiscord } from "@/app/login/actions";
 import { togglePreviewMode } from "@/lib/auth/preview-mode";
@@ -85,6 +86,8 @@ interface Props {
   communityCounters: CommunityCounters;
   /** Feature flag: mostra a aba "Subir MMR / Ranked com PRO". Off = esconde. */
   showRankedComPro: boolean;
+  /** Novidades publicadas depois da última visita do user (badge do sino). */
+  changelogUnread: number;
 }
 
 export function DashboardTopBar({
@@ -99,6 +102,7 @@ export function DashboardTopBar({
   myQueues,
   communityCounters,
   showRankedComPro,
+  changelogUnread,
 }: Props) {
   const t = useTranslations();
   const inQueue = myQueues.length > 0;
@@ -253,6 +257,7 @@ export function DashboardTopBar({
         {/* Atalhos do Compendium — só ícone + tooltip no hover (Pedro 2026-07-01). */}
         {!isVisitor && (
           <div className="hidden sm:flex items-center gap-0.5">
+            <ChangelogBell unread={changelogUnread} label={t("shell.news")} />
             <TopBarIconTip icon={Palette} label={t("shell.collection")} href="/colecao" />
             <TopBarIconTip icon={ScrollText} label={t("shell.compendium")} href="/compendium" />
             <TopBarIconTip icon={Crown} label={t("shell.plans")} href="/planos" />
@@ -385,6 +390,28 @@ function TopBarTab({
     >
       {label}
     </Link>
+  );
+}
+
+// Sino de novidades — ícone + badge vermelho com nº de não-lidas. Leva a /novidades,
+// onde a visita zera o contador (mark_changelog_seen). Badge some quando unread=0.
+function ChangelogBell({ unread, label }: { unread: number; label: string }) {
+  const has = unread > 0;
+  return (
+    <Tooltip content={label} side="bottom" focusable={false}>
+      <Link
+        href="/novidades"
+        aria-label={has ? `${label} (${unread})` : label}
+        className="relative flex size-8 items-center justify-center rounded-md text-white/60 hover:bg-white/5 hover:text-white transition-colors"
+      >
+        <Bell size={16} aria-hidden="true" />
+        {has && (
+          <span className="absolute -right-0.5 -top-0.5 flex min-w-4 items-center justify-center rounded-full bg-brand-primary px-1 font-display text-[0.6rem] font-bold leading-4 text-text-display">
+            {unread > 9 ? "9+" : unread}
+          </span>
+        )}
+      </Link>
+    </Tooltip>
   );
 }
 
