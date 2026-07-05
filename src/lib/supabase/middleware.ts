@@ -36,6 +36,8 @@ const PUBLIC_PATHS = [
   "/times", // leitura pública: browse de times + perfis (ações pedem login)
   "/torneios", // leitura pública: browse de torneios + brackets (ações pedem login)
   "/coaches", // /coaches/[slug] — perfis públicos de PROs
+  "/partida/historico", // placar pós-jogo PÚBLICO (dados públicos, anti-anonimato) —
+  //                        precisa ser aberto pro Discord/redes desdobrarem o og:image do link
   "/planos", // vitrine dos planos de assinatura (Compendium) — conversão
   "/assinatura", // redirect legado → /planos; público pra back_urls antigos do MP chegarem lá
   "/sitemap.xml", // SEO — rotas Next (app/sitemap.ts e app/robots.ts); gatear
