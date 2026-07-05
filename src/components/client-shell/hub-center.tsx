@@ -172,6 +172,9 @@ export function HubCenter({ isVisitor, prosOnlineCount, showRankedComPro = false
               type="submit"
               variant="cinematic"
               size="lg"
+              // Compacto em telas com coluna central estreita (laptop/escala);
+              // volta ao tamanhão hero só no 2xl (1920). Evita quebra/scroll.
+              className="h-12 px-6 text-base 2xl:h-16 2xl:px-12 2xl:text-xl"
               aria-label={t("ctaLogin")}
             >
               <Swords size={20} aria-hidden="true" />
@@ -180,7 +183,11 @@ export function HubCenter({ isVisitor, prosOnlineCount, showRankedComPro = false
           </form>
         ) : (
           <Link href={ctaHref} aria-label={ctaLabel}>
-            <Button variant="cinematic" size="lg">
+            <Button
+              variant="cinematic"
+              size="lg"
+              className="h-12 px-6 text-base 2xl:h-16 2xl:px-12 2xl:text-xl"
+            >
               <Swords size={20} aria-hidden="true" />
               {ctaLabel}
             </Button>
