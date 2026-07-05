@@ -20,6 +20,10 @@ const serverSchema = z.object({
   MP_WEBHOOK_SECRET: optional,      // secret pra HMAC validation x-signature header
   MP_PREAPPROVAL_PLAN_ID: optional, // opcional — plan_id se Pedro criar plano fixo via MCP
   HUB_PRICE_BRL: optional,          // mensalidade R$ (default 47, validado em call site)
+  // Feature flag server-side (Pedro 2026-07-05): mantém o MP vivo no BR (Pix) como
+  // rede de segurança. Ausente/"true" = MP ligado no BR; "false" = BR passa pro Stripe.
+  // Lido por resolvePaymentProvider() — NÃO gateia os webhooks (esses processam sempre).
+  PAYMENTS_MP_ENABLED: optional,    // "true" (default) | "false"
   // Steam Web API key (Phase 3): server-only. Validada cirurgicamente via
   // requireServerEnv("STEAM_WEB_API_KEY") em src/lib/steam.ts.
   STEAM_WEB_API_KEY: optional,
@@ -36,6 +40,8 @@ const serverSchema = z.object({
   STRIPE_PRICE_PREMIUM_USD: optional,
   STRIPE_PRICE_PLUS_EUR: optional,
   STRIPE_PRICE_PREMIUM_EUR: optional,
+  STRIPE_PRICE_PLUS_BRL: optional,    // BR quando PAYMENTS_MP_ENABLED=false (Stripe cobra o BR)
+  STRIPE_PRICE_PREMIUM_BRL: optional,
   // Segredo do cron de finalização automática (pg_cron → /api/cron/finalize-matches).
   CRON_SECRET: optional,
   RESEND_API_KEY: optional,

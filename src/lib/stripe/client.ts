@@ -18,11 +18,17 @@ export function getStripe(): Stripe {
   return singleton;
 }
 
-// Price ID (env) da dupla região × tier. LATAM cobra USD; EU cobra EUR.
+// Price ID (env) da dupla região × tier. EU=EUR; LATAM=USD; BR=BRL (usado só quando
+// PAYMENTS_MP_ENABLED=false roteia o BR pro Stripe — senão o BR fica no Mercado Pago).
 export function stripePriceIdFor(region: GameRegion, tier: SubscriptionTier): string {
   if (region === "EU") {
     return requireServerEnv(
       tier === "premium" ? "STRIPE_PRICE_PREMIUM_EUR" : "STRIPE_PRICE_PLUS_EUR"
+    );
+  }
+  if (region === "BR") {
+    return requireServerEnv(
+      tier === "premium" ? "STRIPE_PRICE_PREMIUM_BRL" : "STRIPE_PRICE_PLUS_BRL"
     );
   }
   return requireServerEnv(
@@ -36,8 +42,10 @@ export function tierFromStripePriceId(priceId: string): SubscriptionTier | null 
   const candidates: Array<[string, SubscriptionTier]> = [
     ["STRIPE_PRICE_PLUS_USD", "plus"],
     ["STRIPE_PRICE_PLUS_EUR", "plus"],
+    ["STRIPE_PRICE_PLUS_BRL", "plus"],
     ["STRIPE_PRICE_PREMIUM_USD", "premium"],
     ["STRIPE_PRICE_PREMIUM_EUR", "premium"],
+    ["STRIPE_PRICE_PREMIUM_BRL", "premium"],
   ];
   for (const [envKey, tier] of candidates) {
     if (process.env[envKey] === priceId) return tier;

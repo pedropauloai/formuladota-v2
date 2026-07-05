@@ -42,7 +42,10 @@ export const TIER_PRICES: Record<GameRegion, Record<SubscriptionTier, TierPrice>
   },
 };
 
-// Provedor de pagamento por região: BR = Mercado Pago (Pix), resto = Stripe.
+// Provedor de pagamento BASE por região: BR = Mercado Pago (Pix), resto = Stripe.
+// PURO (sem env) — pode rodar no client. Para a decisão EFETIVA no server (com a flag
+// PAYMENTS_MP_ENABLED que pode rotear o BR pro Stripe), use `resolvePaymentProvider`
+// de "@/lib/subscriptions/payment-provider" — ele delega a este e aplica a flag.
 export function providerForRegion(region: GameRegion): "mp" | "stripe" {
   return region === "BR" ? "mp" : "stripe";
 }

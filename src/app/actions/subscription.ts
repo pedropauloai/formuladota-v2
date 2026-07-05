@@ -28,9 +28,9 @@ import { isGameRegion, type GameRegion } from "@/lib/regions";
 import {
   TIER_PRICES,
   isSubscriptionTier,
-  providerForRegion,
   type SubscriptionTier,
 } from "@/lib/subscriptions/tiers";
+import { resolvePaymentProvider } from "@/lib/subscriptions/payment-provider";
 
 // ====================================================
 // createSubscription — inicia assinatura do tier
@@ -75,11 +75,19 @@ export async function createSubscription(tierInput?: string): Promise<void> {
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://formuladota.com";
 
-  if (providerForRegion(region) === "stripe") {
-    // LATAM (USD) / EU (EUR) — Stripe Checkout Session (mode: subscription).
+  // Provedor EFETIVO (flag-aware): LATAM/EU sempre Stripe; BR = MP quando
+  // PAYMENTS_MP_ENABLED, senão Stripe (BRL). Webhooks processam sempre, à parte.
+  if (resolvePaymentProvider(region) === "stripe") {
+    // Stripe Checkout Session (mode: subscription) — cartão recorrente via Stripe
+    // Billing. LATAM cobra USD, EU cobra EUR, BR cobra BRL (quando roteado pro Stripe).
     // A linha em `subscriptions` nasce no webhook checkout.session.completed
     // (metadata user_id+tier), não aqui — evita linha pendente órfã se o user
     // abandonar o checkout.
+    //
+    // NOTA (Pix Stripe): Pix é método AVULSO (não recorrente) — não entra no
+    // `mode: subscription`. O Pix-BR via Stripe (pagamento avulso concedendo 30 dias)
+    // é um fluxo separado a habilitar quando o Pix da Stripe (invite-only p/ conta BR)
+    // estiver liberado. Até lá o Pix-BR fica no Mercado Pago (flag ligada).
     let checkoutUrl: string | null = null;
     try {
       const stripe = getStripe();

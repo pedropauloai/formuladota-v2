@@ -7,8 +7,9 @@
 // Saída: as 4 linhas STRIPE_PRICE_* pra colar na Vercel/.env.local.
 //
 // Preços (decisão Pedro — mudança exige aprovação dele):
-//   Plus:    US$ 4,99 (LATAM) · € 6,99 (EU)
-//   Premium: US$ 17,99 (LATAM) · € 19,99 (EU)
+//   Plus:    R$ 27,90 (BR) · US$ 4,99 (LATAM) · € 6,99 (EU)
+//   Premium: R$ 97,90 (BR) · US$ 17,99 (LATAM) · € 19,99 (EU)
+// O BR só cobra via Stripe quando PAYMENTS_MP_ENABLED=false; senão fica no MP (Pix).
 
 import Stripe from "stripe";
 
@@ -26,6 +27,8 @@ const PRODUCTS = [
 
 // unit_amount em CENTAVOS (Stripe), diferente do MP (reais float).
 const PRICES = [
+  { tier: "plus", currency: "brl", unitAmount: 2790, envKey: "STRIPE_PRICE_PLUS_BRL" },
+  { tier: "premium", currency: "brl", unitAmount: 9790, envKey: "STRIPE_PRICE_PREMIUM_BRL" },
   { tier: "plus", currency: "usd", unitAmount: 499, envKey: "STRIPE_PRICE_PLUS_USD" },
   { tier: "premium", currency: "usd", unitAmount: 1799, envKey: "STRIPE_PRICE_PREMIUM_USD" },
   { tier: "plus", currency: "eur", unitAmount: 699, envKey: "STRIPE_PRICE_PLUS_EUR" },
