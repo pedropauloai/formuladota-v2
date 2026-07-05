@@ -6,6 +6,7 @@
 // via RLS, público degrada sem quebrar. Vitória e placar (soma de kills por time =
 // placar real do Dota) são derivados dos próprios jogadores.
 
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ExternalLink, Clock, Ban } from "lucide-react";
@@ -31,6 +32,24 @@ import { parsePlayerHeatmap, type PlayerHeatmap } from "@/lib/dota/match-heatmap
 import { getHeroById } from "@/lib/queries/heroes";
 
 export const dynamic = "force-dynamic";
+
+// OG tags pro desdobramento no Discord/redes. A imagem rica (card do placar) vem
+// automática do opengraph-image.tsx co-localizado; aqui só título + descrição.
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const title = `Partida ${id} · FORMULADOTA`;
+  const description = "Placar completo: heróis, funções, KDA, MMR e medalhas da partida.";
+  return {
+    title,
+    description,
+    openGraph: { title, description, type: "website" },
+    twitter: { card: "summary_large_image", title, description },
+  };
+}
 
 const PLAYER_COLS =
   "user_id, team, player_slot, is_winner, hero_id, personaname, kills, deaths, assists, " +
