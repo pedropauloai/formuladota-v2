@@ -107,7 +107,9 @@ export function QueueSearchersPanel({
   };
   // pinnedRef pra o timeout ler o valor atual sem recriar o handler.
   const pinnedRef = useRef(false);
-  pinnedRef.current = pinned;
+  useEffect(() => {
+    pinnedRef.current = pinned;
+  }, [pinned]);
 
   useEffect(() => {
     aliveRef.current = true;
