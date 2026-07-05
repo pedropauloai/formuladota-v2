@@ -61,7 +61,10 @@ async function postCardAttachment(
     const img = await fetch(`${BASE}/partida/historico/${dotaMatchId}/opengraph-image`, {
       cache: "no-store",
     });
-    if (!img.ok) return false;
+    if (!img.ok) {
+      console.error("[results] og:image fetch não-ok:", img.status, dotaMatchId);
+      return false;
+    }
     const buf = await img.arrayBuffer();
     const form = new FormData();
     form.append(
@@ -75,8 +78,12 @@ async function postCardAttachment(
     );
     form.append("files[0]", new Blob([buf], { type: "image/png" }), `placar-${dotaMatchId}.png`);
     const res = await fetch(url, { method: "POST", body: form });
+    if (!res.ok) {
+      console.error("[results] webhook anexo falhou:", res.status, await res.text().catch(() => ""));
+    }
     return res.ok;
-  } catch {
+  } catch (e) {
+    console.error("[results] postCardAttachment exceção:", e instanceof Error ? e.message : e);
     return false;
   }
 }
