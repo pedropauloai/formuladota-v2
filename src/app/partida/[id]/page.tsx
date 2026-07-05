@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { ClientShell } from "@/components/client-shell/shell";
 import { MatchPasswordCard } from "./match-password-card";
+import { MatchRoomStatus } from "@/components/match/match-room-status";
 import { DiscardMatchButton } from "@/components/match/discard-match-button";
 import { FinalizeMatchButton } from "@/components/match/finalize-match-button";
 import { UserHoverCard } from "@/components/profile/user-hover-card";
@@ -65,7 +66,7 @@ export default async function PartidaPage({
   // steam_lobby_id). Resolve por ele primeiro; cai pra steam_lobby_id (legado) e,
   // se o param tem cara de UUID, pro id interno.
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
-  const cols = "id, name, password, status, game_mode, tier, created_by, dota_match_id";
+  const cols = "id, name, password, status, game_mode, tier, created_by, dota_match_id, bot_error";
   let { data: lobby } = await supabase
     .from("lobbies")
     .select(cols)
@@ -192,6 +193,18 @@ export default async function PartidaPage({
             </div>
           )}
         </header>
+
+        {/* Enquanto o bot não criou a sala no Dota (status 'open' sem dota_match_id)
+            OU deu erro: faixa de status com auto-refresh. Some quando a partida vai
+            ao ar. Fix do "travou por completo" (2026-07-04). */}
+        {(lobby.bot_error || (lobby.status === "open" && !lobby.dota_match_id)) && (
+          <div className="mb-4">
+            <MatchRoomStatus
+              lobbyId={lobbyUuid}
+              botError={(lobby.bot_error as string | null) ?? null}
+            />
+          </div>
+        )}
 
         <div className="mb-6">
           <MatchPasswordCard password={lobby.password as string} />

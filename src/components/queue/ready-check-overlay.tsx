@@ -10,7 +10,7 @@
 
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Loader2, Swords, X } from "lucide-react";
+import { ArrowRight, Check, Loader2, Swords, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useSound } from "@/lib/sound/hooks";
 import {
@@ -79,6 +79,7 @@ export function ReadyCheckOverlay({
   const [pending, startTransition] = useTransition();
   // Lobby confirmado: aguardando o bot Steam gravar o steam_lobby_id pra montar a URL.
   const [confirmedLobby, setConfirmedLobby] = useState<string | null>(null);
+  const [confirmedAt, setConfirmedAt] = useState(0);
   const soundedFor = useRef<string | null>(null);
 
   // userId do viewer (pra saber se EU já aceitei).
@@ -92,29 +93,51 @@ export function ReadyCheckOverlay({
   const goToMatch = useCallback((lobbyId: string) => {
     setProposal(null);
     setConfirmedLobby(lobbyId);
+    setConfirmedAt(Date.now());
   }, []);
+
+  // Escape imediato: leva pra sala interna agora (a página mostra "aguardando o
+  // bot" com auto-refresh). Garante que o usuário NUNCA fica preso no spinner.
+  const goToRoomNow = useCallback(() => {
+    if (!confirmedLobby) return;
+    router.push(`/partida/${confirmedLobby}`);
+    setConfirmedLobby(null);
+  }, [confirmedLobby, router]);
 
   // Aguarda o bot gravar o dota_match_id (o ID real da Valve, gravado junto com o
   // steam_lobby_id ao criar o lobby) e redireciona pra URL canônica
-  // /partida/[dota_match_id]. Janela de ~30s (tempo de carga do Dota); no timeout
-  // cai pro id interno (a página resolve dota_match_id, steam_lobby_id e UUID).
+  // /partida/[dota_match_id]. Janela de ~120s (o bot Steam leva ~80s pra criar +
+  // lançar a sala); no timeout cai pro id interno (a página resolve dota_match_id,
+  // steam_lobby_id e UUID, e mostra "aguardando o bot" com auto-refresh).
+  //
+  // RESILIÊNCIA (fix do "travou por completo" 2026-07-04): o poll NUNCA morre por
+  // erro — uma falha transitória (rede/cold start da serverless) só agenda a próxima
+  // tentativa. Antes, um único erro parava o loop e o overlay ficava preso pra sempre.
   useEffect(() => {
     if (!confirmedLobby) return;
     let alive = true;
     let tries = 0;
+    const MAX_TRIES = 100; // ~120s (0.8s + 99×1.2s)
     const poll = async () => {
       tries += 1;
-      const { routeId } = await getMatchRouteId(confirmedLobby);
-      if (!alive) return;
-      if (routeId) {
-        router.push(`/partida/${routeId}`);
-        setConfirmedLobby(null); // dispensa o takeover "criando lobby" ao navegar
-      } else if (tries >= 27) {
-        router.push(`/partida/${confirmedLobby}`); // fallback: id interno
-        setConfirmedLobby(null);
-      } else {
-        timer = setTimeout(poll, 1100);
+      try {
+        const { routeId } = await getMatchRouteId(confirmedLobby);
+        if (!alive) return;
+        if (routeId) {
+          router.push(`/partida/${routeId}`);
+          setConfirmedLobby(null); // dispensa o takeover "criando lobby" ao navegar
+          return;
+        }
+      } catch {
+        // Falha transitória — NÃO mata o loop; segue tentando.
       }
+      if (!alive) return;
+      if (tries >= MAX_TRIES) {
+        router.push(`/partida/${confirmedLobby}`); // fallback: sala interna (tela decente)
+        setConfirmedLobby(null);
+        return;
+      }
+      timer = setTimeout(poll, 1200);
     };
     let timer = setTimeout(poll, 800);
     return () => {
@@ -156,12 +179,13 @@ export function ReadyCheckOverlay({
     };
   }, [userId, goToMatch]);
 
-  // Contador (tick 250ms) enquanto há proposta pendente.
+  // Contador (tick 250ms) enquanto há proposta pendente OU aguardando o lobby
+  // (pro estado "criando lobby" saber quando exibir o aviso de demora).
   useEffect(() => {
-    if (!proposal) return;
+    if (!proposal && !confirmedLobby) return;
     const iv = setInterval(() => setNow(Date.now()), 250);
     return () => clearInterval(iv);
-  }, [proposal]);
+  }, [proposal, confirmedLobby]);
 
   // Som "partida encontrada" ao aparecer uma proposta nova.
   useEffect(() => {
@@ -171,16 +195,35 @@ export function ReadyCheckOverlay({
     }
   }, [proposal, play]);
 
-  // Partida aceita pelos 10 → aguardando o bot criar o lobby Steam.
+  // Partida aceita pelos 10 → aguardando o bot criar o lobby Steam. SEMPRE com uma
+  // saída ("Ir pra sala agora") pra nunca prender o usuário (fix do "travou").
   if (confirmedLobby) {
+    const waitedS = Math.floor((now - confirmedAt) / 1000);
+    const slow = waitedS >= 15;
     return (
       <div className="pointer-events-auto fixed inset-0 z-[var(--z-takeover)] flex items-center justify-center bg-bg-deep/90 p-4 backdrop-blur-sm">
-        <div className="flex flex-col items-center gap-4 rounded-md border-2 border-play-primary bg-bg-base px-10 py-8 shadow-[var(--shadow-cinematic)]">
+        <div className="flex max-w-sm flex-col items-center gap-4 rounded-md border-2 border-play-primary bg-bg-base px-10 py-8 text-center shadow-[var(--shadow-cinematic)]">
           <Loader2 size={36} className="animate-spin text-play-primary" aria-hidden="true" />
           <p className="font-display text-lg font-bold uppercase tracking-wide text-text-display">
             Partida aceita!
           </p>
-          <p className="font-body text-sm text-text-muted">Criando o lobby no Dota 2…</p>
+          <p className="font-body text-sm text-text-muted">
+            Criando o lobby no Dota 2…{slow ? ` (${waitedS}s)` : ""}
+          </p>
+          {slow && (
+            <p className="font-body text-xs text-text-faded">
+              O bot está montando a sala — isso pode levar até ~1 min. Você já pode
+              entrar na sala e acompanhar por lá.
+            </p>
+          )}
+          <button
+            type="button"
+            onClick={goToRoomNow}
+            className="mt-1 flex items-center gap-2 rounded-md border border-play-primary/60 bg-play-primary/10 px-4 py-2 font-display text-sm font-bold uppercase tracking-wide text-play-primary transition-colors hover:bg-play-primary/20"
+          >
+            Ir pra sala agora
+            <ArrowRight size={15} aria-hidden="true" />
+          </button>
         </div>
       </div>
     );
