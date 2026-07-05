@@ -27,6 +27,12 @@ const FLAG_DEFS: FlagDef[] = [
     description:
       "Ligado = buscar partida exige doutrina ou permissão (5 acertos = 1) e a rota /doutrina abre. Desligado = fila ABERTA (sem quiz) e /doutrina some.",
   },
+  {
+    key: "match_dodge_penalty",
+    label: "Cooldown de recusa (5 min)",
+    description:
+      "Ligado = quem recusa OU não aceita uma partida encontrada leva 5 min de cooldown de fila. Desligado = sem penalidade (ideal pra testar sem travar). Só afeta cooldowns NOVOS.",
+  },
 ];
 
 export function FeatureFlagsPanel({ initial }: { initial: FeatureFlags }) {

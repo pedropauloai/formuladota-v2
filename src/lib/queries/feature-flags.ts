@@ -7,18 +7,22 @@
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 
-export type FeatureFlagKey = "ranked_com_pro" | "doctrine_quiz";
+export type FeatureFlagKey = "ranked_com_pro" | "doctrine_quiz" | "match_dodge_penalty";
 
 export interface FeatureFlags {
   ranked_com_pro: boolean;
   /** Quiz de doutrina como gate do matchmaking. OFF = fila aberta + /doutrina some. */
   doctrine_quiz: boolean;
+  /** Cooldown de 5 min ao recusar/não aceitar partida. OFF = sem penalidade (gate no
+   *  ponto de escrita em SQL, migration 141). */
+  match_dodge_penalty: boolean;
 }
 
 // Defaults quando a linha não existe / erro de leitura (falha fechada: feature off).
 const DEFAULTS: FeatureFlags = {
   ranked_com_pro: false,
   doctrine_quiz: false,
+  match_dodge_penalty: false,
 };
 
 // React.cache: page e ClientShell chamam no mesmo request — 1 query só.
