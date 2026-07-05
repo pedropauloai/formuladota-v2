@@ -132,7 +132,15 @@ export async function getQueueSearchers(): Promise<QueueSearcher[]> {
 
 export type QueueResult =
   | { success: true; queueId: string; matchedLobbyId?: string | null }
-  | { success: false; error: string; code?: "need_permission" | "in_match" | "no_rank" };
+  | {
+      success: false;
+      error: string;
+      code?: "need_permission" | "in_match" | "no_rank" | "rate_limited";
+    };
+
+// Rate limit anti-spam: no máximo 1 entrada na fila a cada N ms por usuário. Barra o
+// padrão de entra-e-sai em rajada (que só pesa o matchmaker/DB); o custo real é ENTRAR.
+const QUEUE_RATE_LIMIT_MS = 4000;
 
 // Tamanho da partida (X): a fila FORMA a partida ao juntar este número de jogadores.
 // Produção (Pedro 2026-06-28): 10 — exige composição completa das 5 funções (2 cada).
@@ -221,6 +229,26 @@ export async function enterQueue(input: {
     return {
       success: false,
       error: `Em cooldown de fila por ~${mins} min (você recusou ou ignorou uma partida).`,
+    };
+  }
+
+  // Rate limit (anti-spam de entra-e-sai): checa o joined_at mais recente do user
+  // (qualquer status). Dentro da janela → recusa antes de fazer qualquer escrita.
+  const { data: lastEntry } = await supabase
+    .from("match_queue")
+    .select("joined_at")
+    .eq("user_id", user.id)
+    .order("joined_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (
+    lastEntry?.joined_at &&
+    Date.now() - new Date(lastEntry.joined_at).getTime() < QUEUE_RATE_LIMIT_MS
+  ) {
+    return {
+      success: false,
+      error: "Aguarde alguns segundos antes de buscar de novo.",
+      code: "rate_limited",
     };
   }
 

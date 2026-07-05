@@ -16,7 +16,6 @@ import {
   PromoveCoachModal,
   RevokeCoachModal,
   CoachNotesModal,
-  SwapSteamModal,
   EditUserModal,
 } from "./user-modals";
 import {
@@ -356,14 +355,8 @@ export default async function AdminUserDetailPage({
                 : t("notLinked")
             }
           />
-          {/* Troca manual do vínculo Steam (exceção anti-smurf — só com comprovação). */}
-          <div className="mt-2">
-            <SwapSteamModal
-              targetUserId={id}
-              username={profile.username ?? t("noName")}
-              currentSteamId={steamLink?.steam_id_64 ?? null}
-            />
-          </div>
+          {/* Troca manual do vínculo Steam agora vive dentro do modal "Editar dados"
+              (seção Steam ID), reusando swapSteamLink — sem botão duplicado aqui. */}
           <InfoRow
             label={t("signupLabel")}
             value={new Date(profile.created_at).toLocaleString("pt-BR")}
