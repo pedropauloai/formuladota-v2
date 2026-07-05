@@ -330,6 +330,7 @@ export default async function AdminUserDetailPage({
               isAdmin={Boolean(profile.is_admin)}
               role={profile.role ?? "player"}
               region={(profile as { region?: string }).region ?? "BR"}
+              steamId64={steamLink?.steam_id_64 ?? null}
             />
           </div>
         </div>

@@ -867,6 +867,7 @@ export function EditUserModal({
   isAdmin,
   role,
   region: initialRegion,
+  steamId64: initialSteamId64 = null,
 }: {
   targetUserId: string;
   username: string;
@@ -875,12 +876,16 @@ export function EditUserModal({
   isAdmin: boolean;
   role: string;
   region?: string;
+  /** SteamID64 atual (steam_links) — pra editar o vínculo aqui no mesmo modal. */
+  steamId64?: string | null;
 }) {
   const [open, setOpen] = useState(false);
 
   // Estado por seção
   const [nick, setNick] = useState(username);
   const [regionVal, setRegionVal] = useState(initialRegion ?? "BR");
+  const [steamIdVal, setSteamIdVal] = useState("");
+  const [steamReason, setSteamReason] = useState("");
   const [mmr, setMmr] = useState(seasonMmr != null ? String(seasonMmr) : "");
   const [mmrReason, setMmrReason] = useState("");
   const [banReason, setBanReason] = useState("");
@@ -941,6 +946,44 @@ export function EditUserModal({
                 pending={busy === "nick" && pending}
                 disabled={!nick.trim() || nick.trim() === username}
                 onClick={() => run("nick", () => updateUsernameAdmin(targetUserId, nick), "Nome atualizado.")}
+              />
+            </div>
+          </EditSection>
+
+          {/* STEAM ID (steam_id_64) — reaproveita swapSteamLink (mesma ação do botão
+              "Trocar Steam"): valida 17 dígitos, BLOQUEIA se o Steam já é de outro
+              (anti-smurf), zera persona/avatar pra re-sincronizar e registra no audit.
+              O motivo é obrigatório (é exceção anti-smurf, exige comprovação). */}
+          <EditSection title="Steam ID (SteamID64)">
+            <p className="mb-2 font-body text-xs text-text-faded">
+              {initialSteamId64 ? `Atual: ${initialSteamId64}` : "Nenhuma conta vinculada hoje."}
+            </p>
+            <input
+              value={steamIdVal}
+              onChange={(e) => setSteamIdVal(e.target.value)}
+              placeholder="Novo SteamID64 (17 dígitos, 7656119…)"
+              inputMode="numeric"
+              className={TEXT_INPUT_CLS}
+            />
+            <input
+              value={steamReason}
+              onChange={(e) => setSteamReason(e.target.value)}
+              placeholder="Motivo / comprovação (obrigatório)"
+              className={`${TEXT_INPUT_CLS} mt-2`}
+              maxLength={200}
+            />
+            <div className="mt-3 flex items-center justify-between gap-3">
+              {msg.steam ? <StatusMsg type={msg.steam.type} msg={msg.steam.text} /> : <span />}
+              <SaveBtn
+                pending={busy === "steam" && pending}
+                disabled={!steamIdVal.trim() || !steamReason.trim()}
+                onClick={() =>
+                  run(
+                    "steam",
+                    () => swapSteamLink(targetUserId, steamIdVal, steamReason),
+                    "Vínculo Steam atualizado — re-sincroniza no próximo acesso do jogador."
+                  )
+                }
               />
             </div>
           </EditSection>
