@@ -82,8 +82,13 @@ const RE_STEAMID64 = /^7656\d{13}$/;
 
 // LOCK POR SLOT (Pedro 2026-07-05): a role é definida no matchmaking; o bot NÃO
 // posiciona, mas MOVE PRO POOL quem entra no time/slot errado — assim cada um só fica
-// no slot da sua função (1-5). Kill-switch: BOT_LOCK_SLOTS="false" desliga.
-const BOT_LOCK_SLOTS = process.env.BOT_LOCK_SLOTS !== "false";
+// no slot da sua função (1-5).
+// DESLIGADO POR PADRÃO (Pedro 2026-07-05): a abordagem de "chutar quem não está no
+// slot exato" causava LOOP INFINITO DE KICK — o jogador entra no time certo mas o Dota
+// o coloca num slot livre qualquer (ele não escolhe o slot), e o bot chutava sem parar,
+// impedindo qualquer um de ficar. O slot dentro do time é cosmético (heróis são livres).
+// Opt-in: BOT_LOCK_SLOTS="true" religa (NÃO recomendado sem trocar kick→SetTeamSlot).
+const BOT_LOCK_SLOTS = process.env.BOT_LOCK_SLOTS === "true";
 // role atribuída (lobby_players.role) → slot 0-4 no time (slot 0 = pos 1 = topo).
 const ROLE_TO_LOBBY_SLOT = {
   safelane: 0, // pos 1 / carry
