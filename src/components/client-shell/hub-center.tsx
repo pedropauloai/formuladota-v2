@@ -76,13 +76,13 @@ export function HubCenter({ isVisitor, prosOnlineCount, showRankedComPro = false
         <div className="absolute inset-0 bg-gradient-to-br from-bg-deep/90 via-bg-deep/72 to-bg-deep/92" />
       </div>
 
-      <section className="relative z-[1] mx-auto flex min-h-full w-full max-w-6xl flex-col justify-center gap-5 px-6 py-6 2xl:gap-8 2xl:px-10 2xl:py-10">
+      <section className="relative z-[1] mx-auto flex min-h-full w-full max-w-6xl flex-col justify-center gap-3 px-6 py-4 xl:gap-4 2xl:gap-6 2xl:px-10 2xl:py-8">
       {/* TESE — headline gigante + subtítulo */}
-      <header className="space-y-3 2xl:space-y-5">
+      <header className="space-y-2 2xl:space-y-4">
         <p className="font-display text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary 2xl:text-base">
           {t("eyebrow")}
         </p>
-        <h1 className="font-display text-4xl font-bold uppercase leading-[0.92] tracking-tight text-text-display sm:text-5xl 2xl:text-8xl">
+        <h1 className="font-display text-4xl font-bold uppercase leading-[0.9] tracking-tight text-text-display sm:text-5xl 2xl:text-7xl">
           {t("headlineLead")}{" "}
           <span
             className="text-brand-primary"
@@ -91,19 +91,19 @@ export function HubCenter({ isVisitor, prosOnlineCount, showRankedComPro = false
             {t("headlineEmphasis")}
           </span>
         </h1>
-        <p className="max-w-3xl font-display text-base font-semibold leading-snug text-text-body xl:text-lg 2xl:text-2xl">
+        <p className="max-w-3xl font-display text-sm font-semibold leading-snug text-text-body xl:text-base 2xl:text-xl">
           {t("subtitle")}
         </p>
       </header>
 
       {/* 3 PILARES — falha da Valve → resposta FORMULADOTA */}
-      <div className="grid gap-4 sm:grid-cols-3 2xl:gap-6">
+      <div className="grid gap-3 sm:grid-cols-3 2xl:gap-4">
         {PILLARS.map((p) => {
           const Icon = p.icon;
           return (
             <div
               key={p.id}
-              className="flex flex-col rounded-lg border border-border-subtle bg-bg-base/60 p-4 2xl:p-6"
+              className="flex flex-col rounded-lg border border-border-subtle bg-bg-base/60 p-3 2xl:p-5"
             >
               {/* Na Valve (problema) */}
               <div className="flex items-center gap-1.5 text-text-faded">
@@ -120,7 +120,7 @@ export function HubCenter({ isVisitor, prosOnlineCount, showRankedComPro = false
               <ArrowDown
                 size={16}
                 aria-hidden="true"
-                className="my-2 text-brand-primary 2xl:my-3"
+                className="my-1.5 text-brand-primary 2xl:my-2"
               />
 
               {/* No FORMULADOTA (resposta) */}
@@ -134,7 +134,7 @@ export function HubCenter({ isVisitor, prosOnlineCount, showRankedComPro = false
                   {t(`pillar${p.id}Solution`)}
                 </p>
               </div>
-              <p className="mt-1.5 font-body text-xs leading-snug text-text-muted 2xl:mt-2.5 2xl:text-sm">
+              <p className="mt-1 font-body text-xs leading-snug text-text-muted 2xl:mt-2 2xl:text-sm">
                 {t(`pillar${p.id}Line`)}
               </p>
             </div>
@@ -144,7 +144,7 @@ export function HubCenter({ isVisitor, prosOnlineCount, showRankedComPro = false
 
       {/* DOUTRINA — a outra metade da tese: o sistema é justo (os 3 pilares) E
           os jogadores jogam alinhados pelos fundamentos (Pedro 2026-06-19). */}
-      <div className="flex items-start gap-3 rounded-lg border border-brand-primary/30 bg-brand-primary/[0.06] px-4 py-3 2xl:items-center 2xl:py-4">
+      <div className="flex items-start gap-3 rounded-lg border border-brand-primary/30 bg-brand-primary/[0.06] px-4 py-2.5 2xl:items-center 2xl:py-3">
         <Compass
           size={20}
           aria-hidden="true"
@@ -188,7 +188,7 @@ export function HubCenter({ isVisitor, prosOnlineCount, showRankedComPro = false
         )}
         <Link
           href="/manifesto"
-          className="inline-flex items-center gap-2 rounded-md border-2 border-brand-primary/50 bg-brand-primary/10 px-5 py-2.5 font-display text-sm font-bold uppercase tracking-wide text-brand-primary transition-all hover:border-brand-primary hover:bg-brand-primary/20 2xl:text-base"
+          className="inline-flex items-center gap-2 rounded-md border-2 border-brand-primary/50 bg-brand-primary/10 px-4 py-2 font-display text-sm font-bold uppercase tracking-wide text-brand-primary transition-all hover:border-brand-primary hover:bg-brand-primary/20 2xl:text-base"
         >
           {t("whyLink")}
           <ArrowRight size={16} aria-hidden="true" />
