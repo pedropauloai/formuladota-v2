@@ -275,7 +275,11 @@ function CollapsedCard({
 }) {
   const t = useTranslations("shell");
   const name = persona ?? t("anon");
-  const baseCls = `flex w-[340px] xl:w-[380px] items-center gap-2 border border-brand-primary/30 bg-bg-deep/90 backdrop-blur-md px-3 py-2 shadow-lg shadow-black/60 transition-colors ${
+  // Largura casada com o respiro da right-sidebar (12px): pl do main (360/380 em
+  // xl/2xl) − 16px (âncora left-4) − 12px (gap alvo) = 332/352. Deixa o espaçamento
+  // conteúdo↔mini igual ao conteúdo↔cards (Pedro 2026-07-05). Piso ~314px pelos 4
+  // slots de grupo — por isso o lg fica em 332 (não encolhe mais).
+  const baseCls = `flex w-[332px] 2xl:w-[352px] items-center gap-2 border border-brand-primary/30 bg-bg-deep/90 backdrop-blur-md px-3 py-2 shadow-lg shadow-black/60 transition-colors ${
     connectedTop ? "rounded-b-md rounded-t-none border-t-0" : "rounded-md"
   }`;
   // Foto de perfil (40px). Sem nome/tag no card retraído (Pedro 2026-06-30): os
@@ -428,7 +432,7 @@ function ExpandedPanel({
   return (
     <aside
       aria-label={t("miniProfileAria")}
-      className="flex w-[340px] xl:w-[380px] flex-col gap-3 rounded-t-md rounded-b-none border border-b-0 border-brand-primary/40 bg-bg-deep/95 backdrop-blur-xl p-4 shadow-2xl shadow-black/80 h-[calc(100dvh-152px)] xl:h-[calc(100dvh-168px)] overflow-hidden animate-in slide-in-from-bottom-4 fade-in duration-200"
+      className="flex w-[332px] 2xl:w-[352px] flex-col gap-3 rounded-t-md rounded-b-none border border-b-0 border-brand-primary/40 bg-bg-deep/95 backdrop-blur-xl p-4 shadow-2xl shadow-black/80 h-[calc(100dvh-152px)] xl:h-[calc(100dvh-168px)] overflow-hidden animate-in slide-in-from-bottom-4 fade-in duration-200"
     >
       {/* Header — avatar + nome = Link pra /me */}
       <header>
