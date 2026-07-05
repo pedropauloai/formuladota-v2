@@ -2,7 +2,8 @@
  * setup-channels.ts — Estrutura ENXUTA do servidor Discord FORMULADOTA (v2, 2026-07-05).
  * ==================================================================================
  * Roda na SUA máquina (o token fica local), quantas vezes quiser (é re-executável):
- *     cd bot && npm install && npx tsx src/setup-channels.ts
+ *     cd bot && pnpm install && pnpm exec tsx src/setup-channels.ts
+ *   (o bot usa pnpm — NÃO rode `npm install` aqui, corrompe o node_modules pnpm)
  *
  * O que faz (RECONCILIA — não aborta se já existe):
  *  1. Garante cada categoria + canal da estrutura NOVA (cria o que falta, reaproveita
