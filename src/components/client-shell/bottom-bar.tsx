@@ -51,8 +51,9 @@ export function DashboardBottomBar({
 
   return (
     <>
-      {/* Card de busca encosta na LATERAL direita (sem padding-right), com respiro só do
-          FUNDO (padding-bottom). O respiro lateral do botão "Jogar Dota" vive no botão. */}
+      {/* Botão "Jogar Dota", pílula de busca e "Na fila" têm a MESMA largura (340px) e o
+          MESMO respiro lateral (2.5rem) → ocupam o mesmo lugar, sem pulo (Pedro 2026-07-05).
+          O respiro do fundo vem do container (padding-bottom). */}
       <div
         className="relative z-[var(--z-overlay)] flex h-20 shrink-0 items-end justify-end xl:h-24 2xl:h-28 pointer-events-none"
         style={{ paddingBottom: "1.25rem" }}
@@ -100,8 +101,10 @@ function Cta({
   onStatusClick,
 }: CtaProps) {
   const t = useTranslations("shell");
+  // Mesma largura (340px) e altura da pílula de busca + botão Jogar Dota → tudo
+  // ocupa o mesmo lugar, sem pulo entre estados (Pedro 2026-07-05).
   const base =
-    "pointer-events-auto group relative flex h-11 items-center gap-3 overflow-hidden rounded-md border-2 px-8 font-display text-lg font-bold uppercase tracking-[0.25em] shadow-lg transition-all hover:scale-[1.02] xl:h-12 xl:px-12 xl:text-xl 2xl:h-14 2xl:px-16 2xl:text-2xl 2xl:tracking-[0.3em]";
+    "pointer-events-auto group relative flex h-11 w-[340px] max-w-[calc(100vw-2rem)] items-center justify-center gap-3 overflow-hidden rounded-md border-2 font-display text-lg font-bold uppercase tracking-[0.25em] shadow-lg transition-all hover:scale-[1.02] xl:h-12 xl:text-xl";
   const shine = (
     <span
       className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform [transition-duration:var(--motion-duration-hero)] group-hover:translate-x-full"
@@ -115,6 +118,7 @@ function Cta({
       <button
         type="button"
         onClick={onStatusClick}
+        style={{ marginRight: "2.5rem" }}
         className={`${base} border-emerald-500 bg-gradient-to-b from-emerald-600 to-emerald-700 text-white shadow-emerald-500/40 hover:shadow-emerald-500/60`}
       >
         <Hourglass size={22} aria-hidden="true" />

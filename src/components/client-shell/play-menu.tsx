@@ -481,7 +481,10 @@ export function PlayMenu({
       {phase === "button" && searching && (
         // Interface ÚNICA: painel "quem está findando" (retrátil) + contador. Fumaça
         // por SHADER atrás (ShaderSmoke) enquanto busca — flagship premium tier-1.
-        <div className="pointer-events-auto relative w-[340px] max-w-[calc(100vw-2rem)]">
+        <div
+          className="pointer-events-auto relative w-[340px] max-w-[calc(100vw-2rem)]"
+          style={{ marginRight: "2.5rem" }}
+        >
           <ShaderSmoke
             mid={smokeTheme?.mid ?? "#00C466"}
             hot={smokeTheme?.hot ?? "#e0b64e"}
@@ -549,7 +552,8 @@ export function PlayMenu({
         <button
           type="button"
           onClick={() => router.push(`/partida/${activeMatchId}`)}
-          className="pointer-events-auto group relative flex h-11 items-center gap-3 overflow-hidden rounded-md border-2 border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover px-8 font-display text-lg font-bold uppercase tracking-[0.25em] text-text-display shadow-lg shadow-[var(--color-play-primary-glow)] transition-all hover:scale-[1.02] xl:h-12 xl:px-12 xl:text-xl 2xl:h-14 2xl:px-16 2xl:text-2xl"
+          style={{ marginRight: "2.5rem" }}
+          className="pointer-events-auto group relative flex h-11 w-[340px] max-w-[calc(100vw-2rem)] items-center justify-center gap-3 overflow-hidden rounded-md border-2 border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover font-display text-lg font-bold uppercase tracking-[0.25em] text-text-display shadow-lg shadow-[var(--color-play-primary-glow)] transition-all hover:scale-[1.02] xl:h-12 xl:text-xl"
         >
           <ArrowLeft size={22} aria-hidden="true" />
           <span>{t("backToMatch")}</span>
@@ -563,11 +567,10 @@ export function PlayMenu({
         <button
           type="button"
           onClick={() => setPhase("expanded")}
-          // Respiro lateral do botão (o card de busca encosta na direita; o botão, não).
-          // O respiro do fundo vem do container. Inline pra não depender do JIT do
-          // Tailwind. Fiel ao dota 2 menu.png. Pedro 2026-07-01.
+          // Largura FIXA (340px) igual à pílula de busca + respiro de 2.5rem → botão e
+          // pílula ocupam o MESMO lugar, sem pulo ao trocar de estado (Pedro 2026-07-05).
           style={{ marginRight: "2.5rem" }}
-          className="pointer-events-auto group relative flex h-11 items-center gap-3 overflow-hidden rounded-md border-2 border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover px-8 font-display text-lg font-bold uppercase tracking-[0.25em] text-text-display shadow-lg shadow-[var(--color-play-primary-glow)] transition-all hover:scale-[1.02] xl:h-12 xl:px-12 xl:text-xl 2xl:h-14 2xl:px-16 2xl:text-2xl"
+          className="pointer-events-auto group relative flex h-11 w-[340px] max-w-[calc(100vw-2rem)] items-center justify-center gap-3 overflow-hidden rounded-md border-2 border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover font-display text-lg font-bold uppercase tracking-[0.25em] text-text-display shadow-lg shadow-[var(--color-play-primary-glow)] transition-all hover:scale-[1.02] xl:h-12 xl:text-xl"
         >
           {hasSala ? <ArrowLeft size={22} aria-hidden="true" /> : <Play size={22} aria-hidden="true" />}
           <span>{hasSala ? t("backToRoom") : t("play")}</span>
