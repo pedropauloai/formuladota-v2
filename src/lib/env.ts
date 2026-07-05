@@ -14,9 +14,6 @@ const serverSchema = z.object({
   DISCORD_CLIENT_SECRET: optional,
   DISCORD_BOT_TOKEN: optional,
   DISCORD_GUILD_ID: optional,
-  // AbacatePay — PIX avulso/fichas (coexiste com MP)
-  ABACATEPAY_API_KEY: optional,
-  ABACATEPAY_WEBHOOK_SECRET: optional,
   // Mercado Pago (Phase 4 — assinatura mensal Pix Automático)
   MP_ACCESS_TOKEN: optional,        // production APP_USR-... ou sandbox TEST-...
   MP_PUBLIC_KEY: optional,          // public key pra frontend (se necessário)

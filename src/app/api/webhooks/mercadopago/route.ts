@@ -6,7 +6,7 @@
 //   - subscription_preapproval           → mudança de status da assinatura
 //   - subscription_authorized_payment    → cobrança mensal recorrente confirmada
 //
-// DIFERENÇA CRÍTICA vs AbacatePay:
+// PARTICULARIDADES do webhook MP:
 //   - Webhook MP envia payload shallow (só data.id) — handler faz GET para detalhes
 //   - HMAC: assina manifest de headers (não raw body), digest HEX (não base64)
 //   - Header: x-signature (não x-webhook-signature)

@@ -1,11 +1,10 @@
 // Mercado Pago — Zod schemas e tipos TypeScript.
 // Cobre: PIX avulso (POST /v1/payments) + preapproval (POST /preapproval) + webhook events.
 //
-// Diferenças críticas vs AbacatePay:
-//   - amount em REAIS float (ex: 47.00) — AbacatePay usava centavos int (ex: 4700)
+// Particularidades do MP a lembrar:
+//   - amount em REAIS float (ex: 47.00), não centavos
 //   - qr_code_base64 SEM prefixo data URI — concatenar `data:image/png;base64,` ao renderizar
-//   - webhook: HMAC-SHA256 HEX sobre manifest (não sobre raw body como AbacatePay)
-//   - webhook: header `x-signature` (não `x-webhook-signature`)
+//   - webhook: HMAC-SHA256 HEX sobre manifest (não sobre raw body); header `x-signature`
 
 import { z } from "zod";
 

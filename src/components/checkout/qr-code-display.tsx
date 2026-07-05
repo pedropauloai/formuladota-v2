@@ -1,7 +1,7 @@
 "use client";
 
 // Exibe QR Code PIX inline (PNG base64) + botão para copiar o código texto.
-// brCodeBase64 é uma data URL "data:image/png;base64,..." retornada pela AbacatePay.
+// brCodeBase64 é uma data URL "data:image/png;base64,..." (PNG do QR Pix do provedor).
 
 import { Copy, Check } from "lucide-react";
 import { useState } from "react";

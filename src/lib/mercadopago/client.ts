@@ -5,7 +5,7 @@
 //
 // NENHUM SDK MP é necessário — fetch nativo é suficiente e evita deps desnecessárias.
 //
-// DIFERENÇAS CRÍTICAS vs AbacatePay (ler antes de modificar):
+// PARTICULARIDADES do MP (ler antes de modificar):
 //   1. Amount em REAIS float (47.00), não centavos int (4700)
 //   2. qr_code_base64 sem prefixo data URI — função adiciona ao retornar
 //   3. Webhook HMAC: digest HEX sobre manifest de headers (não sobre raw body em base64)
@@ -66,7 +66,7 @@ function buildHeaders(idempotencyKey?: string): Record<string, string> {
  *   - envia statement_descriptor + additional_info.items (quality_checklist MP [REQUIRED])
  *   - X-Idempotency-Key = idempotencyKey ?? externalReference (retry não duplica payment)
  *   - retorna qrCodeBase64 CRU (caller concatena o prefixo data URI ao renderizar)
- * DIFERENÇA vs AbacatePay: `amount` em reais (10.00), não centavos (1000).
+ *   - `amount` em reais (10.00), não centavos (1000)
  */
 export async function createPixPayment(
   input: CreatePixPaymentInput
@@ -379,9 +379,7 @@ export async function getAuthorizedPaymentDetail(
 /**
  * Valida a assinatura HMAC-SHA256 do webhook Mercado Pago.
  *
- * DIFERENÇA vs AbacatePay:
- *   - AbacatePay: assina raw body inteiro, digest base64, header x-webhook-signature
- *   - Mercado Pago: assina manifest de headers, digest HEX, header x-signature
+ * MP: assina manifest de headers, digest HEX, header x-signature.
  *
  * Manifest: `id:{data.id};request-id:{x-request-id};ts:{ts};`
  * Fonte: https://www.mercadopago.com.mx/developers/en/docs/your-integrations/notifications/webhooks
@@ -424,7 +422,7 @@ export function verifyMpWebhookSignature(
   const expected = crypto
     .createHmac("sha256", secret)
     .update(Buffer.from(manifest, "utf8"))
-    .digest("hex"); // HEX — não base64 (diferente do AbacatePay)
+    .digest("hex"); // HEX — não base64
 
   // timingSafeEqual previne timing attacks (per C8)
   try {

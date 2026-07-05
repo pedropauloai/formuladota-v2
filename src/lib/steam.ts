@@ -134,8 +134,8 @@ export async function fetchSteamPersona(
     );
   }
 
-  // Único cast permitido neste módulo — replica pattern de src/lib/abacatepay.ts:65
-  // (Steam Web API tem schema estável + acessamos por chaves; lookup já valida).
+  // Único cast permitido neste módulo (Steam Web API tem schema estável +
+  // acessamos por chaves; o lookup já valida).
   const data = (await response.json()) as SummariesResponse;
   const player = data.response.players[0];
 
@@ -154,8 +154,8 @@ export async function fetchSteamPersona(
 // Confere CSRF state, valida assinatura, busca persona — tudo em sequência.
 // Mantém o GET handler em /auth/steam/callback enxuto (≤ 50 linhas).
 //
-// Compara state com `crypto.timingSafeEqual` (mesma técnica do HMAC do
-// AbacatePay em src/lib/abacatepay.ts:112) — mitiga timing attacks.
+// Compara state com `crypto.timingSafeEqual` (mesma técnica usada no HMAC
+// dos webhooks) — mitiga timing attacks.
 //
 // Retorna SteamProfile em sucesso. Throws com mensagem específica em qualquer
 // falha — caller faz redirect com `?error=...` apropriado.

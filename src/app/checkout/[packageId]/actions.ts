@@ -1,7 +1,6 @@
 "use server";
 
 // Server Action: cria purchase pendente + chama Mercado Pago para gerar PIX.
-// Migrado de AbacatePay → MP em Phase 4 (2026-05-02).
 // RLS na tabela purchases (migration 004) valida aceite doutrina + status ativo automaticamente.
 
 import { z } from "zod";
