@@ -36,6 +36,14 @@ interface MedalPairProps {
    * no showcase do hover. Pedro 2026-07-02.
    */
   skillInline?: boolean
+  /**
+   * Exibe a medalha de HONRA (nível) INLINE no par. @default true.
+   * `false` (mini-perfil): a honra sai do par porque JÁ está representada pelo
+   * nível (anel do avatar + card de progresso) — a medalha de honra é literalmente
+   * `getGatedTierForLevel(nível)`, então mostrar as duas é redundante. Fica só o
+   * rank sazonal (MMR). A honra segue no showcase do hover. Pedro 2026-07-05.
+   */
+  honorInline?: boolean
   /** Tamanho repassado às medalhas. @default "md" */
   size?: "sm" | "md" | "lg" | "xl"
   /** Glow nas medalhas de topo (Imortal/Místico). @default true */
@@ -55,6 +63,7 @@ export function MedalPair({
   seasonStars,
   seasonLeaderboardNumber,
   skillInline = true,
+  honorInline = true,
   size = "md",
   glow = true,
   side = "top",
@@ -111,12 +120,14 @@ export function MedalPair({
           }
         />
       )}
-      <HonorRankMedal
-        rank={honorRank}
-        size={size}
-        tooltip={false}
-        glow={glow && honorRank === "mistico"}
-      />
+      {honorInline && (
+        <HonorRankMedal
+          rank={honorRank}
+          size={size}
+          tooltip={false}
+          glow={glow && honorRank === "mistico"}
+        />
+      )}
     </Tooltip>
   )
 }

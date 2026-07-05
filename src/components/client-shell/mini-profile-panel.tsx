@@ -473,10 +473,12 @@ function ExpandedPanel({
             seasonRank={seasonRank}
             seasonStars={seasonStars}
             skillInline={false}
-            // md (48px) em vez de lg (72px): 2 medalhas passam de ~150px pra ~102px
-            // na linha do header, devolvendo ~48px pro nick (12-14 chars visíveis em
-            // vez de ~6) sem alargar o painel — mantém a simetria de respiro. Pedro 2026-07-05.
-            size="md"
+            // Só o rank sazonal (MMR) inline. A honra sai do par: já está no nível
+            // (anel do avatar + card de progresso) — mostrar as duas é redundante.
+            // Com 1 medalha só, cabe voltar pro lg (72px) e o nick ainda tem ~15+
+            // chars. A honra segue no showcase do hover. Pedro 2026-07-05.
+            honorInline={false}
+            size="lg"
             side="right"
             align="start"
             className="shrink-0 self-center"
