@@ -25,7 +25,7 @@ import { DotaRankMedal, type DotaRank } from "@/components/ui/dota-rank-medal";
 export const metadata: Metadata = {
   title: "Como funciona o MMR — FORMULADOTA",
   description:
-    "Seu MMR FormulaDota, explicado: importado da sua medalha Valve, escala oficial do Dota, desempenho que premia jogar em equipe (não farm egoísta) e leaderboard de Imortais por posição.",
+    "Seu MMR FormulaDota, explicado: importado da sua medalha Valve, escala oficial do Dota, desempenho que mede a eficiência com que você extrai patrimônio e impacto pro time, e leaderboard de Imortais por posição.",
 };
 
 // Escala (espelha TIER_BANDS de src/lib/mmr.ts). Imortal no topo = por POSIÇÃO.
@@ -306,12 +306,11 @@ export default function MmrExplainerPage() {
                     aria-hidden="true"
                   />
                   <span>
-                    <strong className="text-text-display">Desempenho:</strong> o quanto você
-                    contribuiu ajusta o valor — e o que pesa mais é{" "}
-                    <strong className="text-text-display">estar nas lutas com o time</strong>, além de
-                    dano, objetivos, cura e visão. Farmar sozinho e fugir das brigas{" "}
-                    <em>não</em> engorda a nota. Jogar bem numa derrota faz você perder menos —{" "}
-                    <em>ou você ganha, ou você aprende</em>.
+                    <strong className="text-text-display">Desempenho:</strong> a gente mede a{" "}
+                    <strong className="text-text-display">eficiência</strong> com que você gerou
+                    patrimônio e impacto pro time — dano, objetivos, cura, visão e presença nas
+                    decisões, cada um no peso da sua função. Jogar bem numa derrota faz você perder
+                    menos — <em>ou você ganha, ou você aprende</em>.
                   </span>
                 </li>
               </ul>
@@ -322,36 +321,31 @@ export default function MmrExplainerPage() {
                 <span className="text-error">−</span> vermelho).
               </p>
             </Section>
-            <figure className="relative overflow-hidden rounded-[var(--radius-lg)] border border-brand-primary/35 bg-gradient-to-br from-brand-primary/10 via-bg-elevated/50 to-bg-base p-2.5 shadow-[var(--shadow-cinematic),0_0_50px_-12px_var(--color-brand-primary-glow)]">
-              <span
-                className="pointer-events-none absolute inset-0 rounded-[var(--radius-lg)] ring-1 ring-inset ring-brand-primary/15"
-                aria-hidden="true"
-              />
+            <figure className="relative">
+              {/* PNG sem borda (Pedro 2026-07-05): destaque só pelo glow da marca +
+                  profundidade, que aparecem no fundo escuro sem "emoldurar" a imagem. */}
               <Image
                 src="/images/mmr/performance.png"
                 alt="Painel de performance de uma partida"
                 width={1100}
                 height={686}
                 unoptimized
-                className="h-auto w-full rounded-[var(--radius-md)]"
+                className="h-auto w-full [filter:drop-shadow(0_14px_34px_rgba(0,0,0,0.55))_drop-shadow(0_0_30px_var(--color-brand-primary-glow))]"
               />
             </figure>
           </div>
 
           {/* ─── Desempenho detalhado — ILUSTRAÇÃO (graphs) + texto ─── */}
           <div className="grid items-center gap-10 border-t border-border-subtle pt-12 lg:grid-cols-[1.3fr_1fr]">
-            <figure className="relative order-2 overflow-hidden rounded-[var(--radius-lg)] border border-brand-primary/35 bg-gradient-to-bl from-brand-primary/10 via-bg-elevated/50 to-bg-base p-2.5 shadow-[var(--shadow-cinematic),0_0_50px_-12px_var(--color-brand-primary-glow)] lg:order-1">
-              <span
-                className="pointer-events-none absolute inset-0 rounded-[var(--radius-lg)] ring-1 ring-inset ring-brand-primary/15"
-                aria-hidden="true"
-              />
+            <figure className="relative order-2 lg:order-1">
+              {/* PNG sem borda (Pedro 2026-07-05): destaque só pelo glow + profundidade. */}
               <Image
                 src="/images/mmr/graphs-player-damage.png"
                 alt="Gráfico de dano por jogador ao longo da partida"
                 width={1100}
                 height={686}
                 unoptimized
-                className="h-auto w-full rounded-[var(--radius-md)]"
+                className="h-auto w-full [filter:drop-shadow(0_14px_34px_rgba(0,0,0,0.55))_drop-shadow(0_0_30px_var(--color-brand-primary-glow))]"
               />
             </figure>
             <div className="order-1 lg:order-2">
@@ -363,21 +357,23 @@ export default function MmrExplainerPage() {
                   herói</strong> — justo entre heróis diferentes.
                 </p>
                 <p>
-                  E o desempenho é pesado <strong className="text-text-display">pela sua
-                  função</strong> — e a função vem da{" "}
-                  <strong className="text-text-display">vaga que você pegou no matchmaking</strong>,
-                  não do patrimônio. Quando a partida forma, cada jogador já entra com a função
-                  definida (carry, meio, offlane, suporte…), e a gente avalia cada um no que é o SEU
-                  trabalho. Suporte é medido por <strong className="text-text-display">presença nas
-                  lutas, cura e visão</strong> — não por dano a torre ou farm. Core é medido por{" "}
-                  <strong className="text-text-display">dano, objetivos e economia</strong>. Ninguém é
-                  punido por fazer o papel certo.
+                  E cada métrica é pesada <strong className="text-text-display">pela sua
+                  função</strong> — que vem da{" "}
+                  <strong className="text-text-display">vaga que você pegou no matchmaking</strong>.
+                  Assim que a partida forma, você já entra com a função definida (carry, meio,
+                  offlane, suporte…), e a gente avalia cada um no que é o SEU trabalho: um core pela{" "}
+                  <strong className="text-text-display">economia, dano e objetivos</strong> que gera;
+                  um suporte pela <strong className="text-text-display">visão, cura e presença</strong>{" "}
+                  que destrava o time. Cada função extrai valor de um jeito — e é nesse jeito que ela
+                  é medida.
                 </p>
                 <p>
-                  O maior peso, nos dois, vai pra <strong className="text-text-display">presença em
-                  teamfight</strong>: no FormulaDota, quem decide a partida com o time vale mais que
-                  quem enche o próprio patrimônio de longe. É a doutrina virando número —{" "}
-                  <em>o coletivo vence</em>.
+                  A Fórmula é uma só, pra todo herói e toda função:{" "}
+                  <strong className="text-text-display">extrair o máximo de patrimônio no menor
+                  tempo</strong>. E patrimônio vira ranking quando <strong className="text-text-display">vira
+                  impacto</strong>: estar nas <strong className="text-text-display">decisões</strong> —
+                  objetivos e as lutas que definem o jogo — é onde o maior patrimônio da partida troca
+                  de mãos. Extrair rápido e transformar em vitória: é a doutrina virando número.
                 </p>
                 <p className="text-text-muted">
                   Esse retrato modula o seu MMR e você o revê no placar pós-jogo, aba por aba.
