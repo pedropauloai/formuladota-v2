@@ -8,6 +8,9 @@
 .secrets-tmp.md
 .cowork/
 
+# Notas internas de decisão (negócio/estratégia) — ficam locais, fora do repo
+DECISAO-*.md
+
 # Dependencies
 node_modules/
 .pnp
