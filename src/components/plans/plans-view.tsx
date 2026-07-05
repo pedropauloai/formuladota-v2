@@ -30,9 +30,18 @@ export interface PlansViewProps {
   isLoggedIn: boolean;
   /** Tier da assinatura ATIVA (gerência fica no card de status acima). */
   activeTier: SubscriptionTier | null;
+  /** Provedor efetivo do user logado (flag-aware): stripe = checkout embutido; mp = redirect. */
+  provider?: "mp" | "stripe";
+  /** Região de jogo do user logado (habilita Pix só no BR). */
+  region?: string;
 }
 
-export async function PlansView({ isLoggedIn, activeTier }: PlansViewProps) {
+export async function PlansView({
+  isLoggedIn,
+  activeTier,
+  provider = "mp",
+  region = "BR",
+}: PlansViewProps) {
   const t = await getTranslations("planos");
   return (
     <div className="mx-auto max-w-5xl space-y-8">
@@ -50,7 +59,15 @@ export async function PlansView({ isLoggedIn, activeTier }: PlansViewProps) {
 
       <div className="grid items-start gap-4 md:grid-cols-3">
         {PLANS.map((p) => (
-          <PlanCard key={p.id} plan={p} t={t} isLoggedIn={isLoggedIn} activeTier={activeTier} />
+          <PlanCard
+            key={p.id}
+            plan={p}
+            t={t}
+            isLoggedIn={isLoggedIn}
+            activeTier={activeTier}
+            provider={provider}
+            region={region}
+          />
         ))}
       </div>
     </div>
@@ -62,11 +79,15 @@ function PlanCard({
   t,
   isLoggedIn,
   activeTier,
+  provider,
+  region,
 }: {
   plan: Plan;
   t: Translator;
   isLoggedIn: boolean;
   activeTier: SubscriptionTier | null;
+  provider: "mp" | "stripe";
+  region: string;
 }) {
   const s = PLAN_STYLE[plan.id];
   const isFree = plan.priceMonthly === 0;
@@ -136,6 +157,8 @@ function PlanCard({
           tier={tier}
           isLoggedIn={isLoggedIn}
           activeTier={activeTier}
+          provider={provider}
+          region={region}
         />
       </div>
     </div>
@@ -151,12 +174,16 @@ function PlanCta({
   tier,
   isLoggedIn,
   activeTier,
+  provider,
+  region,
 }: {
   plan: Plan;
   t: Translator;
   tier: SubscriptionTier | undefined;
   isLoggedIn: boolean;
   activeTier: SubscriptionTier | null;
+  provider: "mp" | "stripe";
+  region: string;
 }) {
   const buttonCls = cn(
     "block rounded-sm border-2 py-2 text-center font-display text-[13px] font-bold uppercase tracking-wide transition-colors",
@@ -201,5 +228,12 @@ function PlanCta({
     );
   }
 
-  return <SubscribeButton tier={tier} className={buttonCls} />;
+  return (
+    <SubscribeButton
+      tier={tier}
+      className={buttonCls}
+      provider={provider}
+      region={region}
+    />
+  );
 }

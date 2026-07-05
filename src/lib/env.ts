@@ -55,6 +55,12 @@ const publicSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
   NEXT_PUBLIC_SITE_URL: z.string().url().default("http://localhost:3000"),
+  // Publishable key do Stripe (pk_...) — usada pelo checkout EMBUTIDO (Payment
+  // Element / Embedded Checkout). Opcional: sem ela o embutido cai no redirect.
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.preprocess(
+    (v) => (v === "" ? undefined : v),
+    z.string().min(1).optional()
+  ),
 });
 
 const isServer = typeof window === "undefined";
@@ -63,6 +69,7 @@ const parsedPublic = publicSchema.safeParse({
   NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
   NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
 });
 
 if (!parsedPublic.success) {

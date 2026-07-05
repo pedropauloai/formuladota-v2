@@ -1,24 +1,53 @@
 "use client";
 
-// Botão REAL de assinar dos cards da vitrine /planos (fix 04/07 pós-fusão:
-// os cards originais da PlansView são a única vitrine — este botão os conecta
-// ao fluxo createSubscription; a duplicata TierGrid foi removida).
+// Botão REAL de assinar dos cards da vitrine /planos.
+//   - provider "stripe" → checkout EMBUTIDO (modal, sem redirect) — cartão + Pix.
+//   - provider "mp"     → fluxo Mercado Pago atual (createSubscription, redirect).
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { createSubscription } from "@/app/actions/subscription";
+import { EmbeddedCheckoutModal } from "./embedded-checkout";
 import type { SubscriptionTier } from "@/lib/subscriptions/tiers";
 
 export function SubscribeButton({
   tier,
   className,
+  provider,
+  region,
 }: {
   tier: SubscriptionTier;
   className?: string;
+  /** Provedor efetivo (resolvido no server pela flag). */
+  provider: "mp" | "stripe";
+  /** Região de jogo (habilita Pix só no BR no checkout embutido). */
+  region: string;
 }) {
   const t = useTranslations("planos");
   const tb = useTranslations("billing");
   const [pending, startTransition] = useTransition();
+  const [open, setOpen] = useState(false);
+
+  if (provider === "stripe") {
+    return (
+      <>
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className={`${className ?? ""} w-full`}
+        >
+          {t("subscribe")}
+        </button>
+        {open && (
+          <EmbeddedCheckoutModal
+            tier={tier}
+            region={region}
+            onClose={() => setOpen(false)}
+          />
+        )}
+      </>
+    );
+  }
 
   return (
     <button

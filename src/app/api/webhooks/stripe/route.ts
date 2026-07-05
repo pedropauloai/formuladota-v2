@@ -53,6 +53,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       case "checkout.session.completed":
         await handleCheckoutCompleted(supabase, event.data.object);
         break;
+      case "checkout.session.async_payment_succeeded":
+        // Pix é assíncrono: confirma quando o banco liquida (não no completed).
+        await handlePixOneTime(supabase, event.data.object);
+        break;
       case "invoice.paid":
         await handleInvoicePaid(supabase, event.data.object);
         break;
@@ -105,6 +109,13 @@ async function handleCheckoutCompleted(
   supabase: Service,
   session: Stripe.Checkout.Session
 ): Promise<void> {
+  // Pix (pagamento AVULSO, mode: payment) concede 30 dias. Se já pago no completed
+  // (raro pro Pix, comum pro cartão avulso), concede aqui; senão o
+  // async_payment_succeeded cuida. Idempotente por session.id.
+  if (session.mode === "payment" && session.metadata?.kind === "pix_30d") {
+    if (session.payment_status === "paid") await handlePixOneTime(supabase, session);
+    return;
+  }
   if (session.mode !== "subscription") return;
 
   const userId = session.metadata?.user_id ?? session.client_reference_id;
@@ -148,6 +159,51 @@ async function handleCheckoutCompleted(
     payment_method_id: "card",
   });
   if (error) throw new Error(`insert subscription (stripe) falhou: ${error.message}`);
+}
+
+// ====================================================
+// Pix AVULSO (30 dias) — pagamento único via Stripe (mode: payment). Concede acesso
+// por 30 dias com renovação MANUAL (o Pix não é recorrente). Idempotente por session.id
+// (guardado em stripe_subscription_id — namespace Stripe, sem colisão com sub real).
+// ====================================================
+async function handlePixOneTime(
+  supabase: Service,
+  session: Stripe.Checkout.Session
+): Promise<void> {
+  if (session.metadata?.kind !== "pix_30d") return;
+  const userId = session.metadata?.user_id;
+  const tier = session.metadata?.tier === "premium" ? "premium" : "plus";
+  if (!userId) {
+    console.error("[webhook/stripe] pix sem user_id:", session.id);
+    return;
+  }
+
+  // Idempotência: esta sessão já concedeu? (retry do Stripe / completed + async).
+  const { data: existing } = await supabase
+    .from("subscriptions")
+    .select("id")
+    .eq("stripe_subscription_id", session.id)
+    .maybeSingle();
+  if (existing) return;
+
+  await supabase
+    .from("subscriptions")
+    .delete()
+    .eq("user_id", userId)
+    .in("status", ["pending", "cancelled"]);
+
+  const next = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+  const { error } = await supabase.from("subscriptions").insert({
+    user_id: userId,
+    provider: "stripe",
+    stripe_subscription_id: session.id, // chave de idempotência (não é sub recorrente)
+    tier,
+    status: "authorized",
+    started_at: new Date().toISOString(),
+    next_payment_date: next,
+    payment_method_id: "pix",
+  });
+  if (error) throw new Error(`insert pix 30d falhou: ${error.message}`);
 }
 
 // ====================================================
