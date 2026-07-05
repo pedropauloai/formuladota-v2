@@ -34,8 +34,10 @@ float noise(vec2 p){
   return mix(mix(a,b,u.x), mix(c,d,u.x), u.y);
 }
 float fbm(vec2 p){
+  // 4 oitavas (era 5) — 1 a menos corta ~20% do custo de ruído em CADA chamada de fbm
+  // (e há ~5 por pixel no domain warp). Visualmente quase idêntico numa fumaça suave.
   float v = 0.0, amp = 0.5;
-  for(int i=0;i<5;i++){ v += amp*noise(p); p *= 2.03; amp *= 0.5; }
+  for(int i=0;i<4;i++){ v += amp*noise(p); p *= 2.03; amp *= 0.5; }
   return v;
 }
 void main(){
@@ -68,7 +70,7 @@ void main(){
   //     partindo da DIREITA-baixo pra ESQUERDA-cima, com cintilação ---
   float emberCore = 0.0;
   float emberHalo = 0.0;
-  for (int i = 0; i < 30; i++) {
+  for (int i = 0; i < 18; i++) {   // 18 faíscas (era 30) — menos loop por pixel, visual mantido
     float fi = float(i);
     float sx = hash(vec2(fi, 7.13));
     float sy = hash(vec2(fi, 4.9));
@@ -145,13 +147,18 @@ export function ShaderSmoke({
     if (!gl) return; // sem WebGL → fallback transparente
     const glc = gl;
 
-    const dpr = Math.min(window.devicePixelRatio || 1, 1.75);
+    // DPR travado em 1× (era 1.75): a fumaça é um efeito SUAVE/borrado — renderizar em
+    // resolução nativa (retina) não muda o visual e triplicava os pixels a sombrear em
+    // telas de alta densidade. Perf primeiro (Pedro 2026-07-05).
+    const dpr = Math.min(window.devicePixelRatio || 1, 1);
+    const FRAME_MS = 1000 / 30; // alvo 30fps — corta ~metade do custo de GPU vs 60fps
     let uRes: WebGLUniformLocation | null = null;
     let uTime: WebGLUniformLocation | null = null;
     let ready = false;
     let running = false;
     let raf = 0;
     let disposed = false;
+    let lastDraw = 0;
     const start = performance.now();
 
     function resize() {
@@ -211,10 +218,15 @@ export function ShaderSmoke({
 
     function frame() {
       if (!running || disposed) return;
-      glc.clear(glc.COLOR_BUFFER_BIT);
-      if (uTime) glc.uniform1f(uTime, ((performance.now() - start) / 1000) * speed);
-      glc.drawArrays(glc.TRIANGLES, 0, 3);
       raf = requestAnimationFrame(frame);
+      // Throttle: agenda o próximo RAF sempre, mas só DESENHA se passou o intervalo de
+      // ~30fps. Em telas de 60/120Hz isso pula frames e alivia a GPU sem travar o loop.
+      const now = performance.now();
+      if (now - lastDraw < FRAME_MS) return;
+      lastDraw = now;
+      glc.clear(glc.COLOR_BUFFER_BIT);
+      if (uTime) glc.uniform1f(uTime, ((now - start) / 1000) * speed);
+      glc.drawArrays(glc.TRIANGLES, 0, 3);
     }
     function startLoop() {
       if (running || !ready || disposed) return;
