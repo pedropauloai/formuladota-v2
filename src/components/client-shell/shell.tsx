@@ -42,6 +42,7 @@ import { getEquippedForUser } from "@/lib/queries/cosmetics";
 import { xpProgress } from "@/lib/levels";
 import { getPlayMenuState } from "@/lib/play-menu-preference";
 import { computeRankBadges } from "@/lib/dota/rank-badges";
+import { rankMedalFor, leaderboardNumberFor } from "@/components/ui/season-rank-medal";
 import { DashboardTopBar } from "./top-bar";
 import { getCommunityCounters } from "@/actions/community";
 import { getFeatureFlags } from "@/lib/queries/feature-flags";
@@ -182,7 +183,20 @@ export async function ClientShell({
   });
   const miniDotaRank = miniBadges.skillRank;
   const miniSkillStars = miniBadges.skillStars;
-  const miniSeasonRank = miniBadges.seasonRank;
+  // Medalha de SEASON = IDÊNTICA à do /ranking: resolve a variante de leaderboard
+  // (top10 escura / top30 vermelha com #N) pela COLOCAÇÃO real na season, não só pelo
+  // MMR. Sem posição conhecida → cai na base (Pedro 2026-07-06). Fonte única:
+  // rankMedalFor/leaderboardNumberFor (as mesmas do SeasonRankMedal).
+  const miniSeasonPosition = privateData?.seasonPosition ?? null;
+  const miniSeasonMmr = privateData?.seasonMmr ?? null;
+  const miniSeasonRank =
+    miniSeasonMmr != null
+      ? rankMedalFor(miniSeasonMmr, miniSeasonPosition ?? 9999)
+      : miniBadges.seasonRank;
+  const miniSeasonLeaderboardNumber =
+    miniSeasonMmr != null
+      ? leaderboardNumberFor(miniSeasonMmr, miniSeasonPosition ?? 9999)
+      : undefined;
   const miniSeasonStars = miniBadges.seasonStars;
   const miniHonorRank = miniBadges.honorRank;
 
@@ -305,6 +319,7 @@ export async function ClientShell({
             honorRank={miniHonorRank}
             seasonRank={miniSeasonRank}
             seasonStars={miniSeasonStars}
+            seasonLeaderboardNumber={miniSeasonLeaderboardNumber}
             initialExpanded={sidebarExpanded}
             lockedExpanded={currentRoute === "/"}
             currentUserId={user?.id ?? null}
@@ -426,6 +441,7 @@ export async function ClientShell({
           dotaRank={miniDotaRank}
           honorRank={miniHonorRank}
           seasonRank={miniSeasonRank}
+          seasonLeaderboardNumber={miniSeasonLeaderboardNumber}
           initialExpanded={sidebarExpanded}
           lockedExpanded={currentRoute === "/"}
           currentUserId={user?.id ?? null}
@@ -488,6 +504,7 @@ async function fetchPrivateData(
     { data: levelRow },
     { data: careerRow },
     { data: seasonMmrRow },
+    { data: posRows },
   ] = await Promise.all([
     supabase
       .from("profiles")
@@ -531,6 +548,9 @@ async function fetchPrivateData(
       .eq("user_id", userId)
       .eq("seasons.active", true)
       .maybeSingle(),
+    // Colocação 1-based na season ativa — pra numerar a medalha (#N) dos Imortais no
+    // mini-perfil, IGUAL ao /ranking e ao hover-card. Mesma regra (row_number por MMR).
+    supabase.rpc("season_positions" as never, { p_ids: [userId] } as never),
   ]);
 
   // Nível + barra de XP derivados do XP total (espelho da curva no client).
@@ -565,5 +585,7 @@ async function fetchPrivateData(
     careerRankTier,
     careerLeaderboardRank,
     seasonMmr: (seasonMmrRow as { mmr?: number } | null)?.mmr ?? null,
+    seasonPosition:
+      ((posRows ?? []) as { user_id: string; pos: number }[])[0]?.pos ?? null,
   };
 }

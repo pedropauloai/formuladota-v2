@@ -65,6 +65,8 @@ interface Props {
   seasonRank?: DotaRank;
   /** Estrelas (1-5) da medalha SEASON — igual ao /me. */
   seasonStars?: number;
+  /** Número (#N) na placa da medalha SEASON — só top-30 Imortal, igual ao /ranking. */
+  seasonLeaderboardNumber?: number;
   /** Estado inicial do cookie sidebar_expanded — passado do shell SSR. */
   initialExpanded: boolean;
   /**
@@ -104,6 +106,7 @@ export function MiniProfilePanel({
   honorRank,
   seasonRank,
   seasonStars,
+  seasonLeaderboardNumber,
   initialExpanded,
   lockedExpanded = false,
   currentUserId,
@@ -195,6 +198,7 @@ export function MiniProfilePanel({
           honorRank={honorRank}
           seasonRank={seasonRank}
           seasonStars={seasonStars}
+          seasonLeaderboardNumber={seasonLeaderboardNumber}
           currentUserId={currentUserId}
           initialFriends={initialFriends}
           initialPending={initialPending}
@@ -402,6 +406,7 @@ function ExpandedPanel({
   honorRank,
   seasonRank,
   seasonStars,
+  seasonLeaderboardNumber,
   currentUserId,
   initialFriends,
   initialPending,
@@ -420,6 +425,7 @@ function ExpandedPanel({
   honorRank: HonorRank;
   seasonRank?: DotaRank;
   seasonStars?: number;
+  seasonLeaderboardNumber?: number;
   currentUserId: string | null;
   initialFriends: FriendListEntry[];
   initialPending: FriendListEntry[];
@@ -472,6 +478,7 @@ function ExpandedPanel({
             honorRank={honorRank}
             seasonRank={seasonRank}
             seasonStars={seasonStars}
+            seasonLeaderboardNumber={seasonLeaderboardNumber}
             skillInline={false}
             // Só o rank sazonal (MMR) inline. A honra sai do par: já está no nível
             // (anel do avatar + card de progresso) — mostrar as duas é redundante.

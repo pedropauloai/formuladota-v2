@@ -84,12 +84,28 @@ export default async function RankingPage(props: {
     .map((p) => p.user_id);
   const banFilter = bannedIds.length ? `(${bannedIds.join(",")})` : null;
 
+  // ELEGIBILIDADE (Pedro 2026-07-06): só aparece no ranking quem tem STEAM vinculado E
+  // MEDALHA pública (career.rankTier via Stratz). Conta sem Steam ou sem medalha não
+  // entra. As queries abaixo são restringidas com .in(eligibleIds).
+  const [{ data: steamRows }, { data: careerRows }] = await Promise.all([
+    supabase.from("steam_links").select("user_id"),
+    supabase.from("user_stats_extended").select("user_id, career"),
+  ]);
+  const steamSet = new Set((steamRows ?? []).map((r) => r.user_id as string));
+  const eligibleIds = (careerRows ?? [])
+    .filter((r) => {
+      const rt = (r.career as { rankTier?: number | null } | null)?.rankTier;
+      return typeof rt === "number" && rt > 0 && steamSet.has(r.user_id as string);
+    })
+    .map((r) => r.user_id as string);
+
   // Top 3 sempre visível (não paginado). NÃO é awaited aqui — resolve em
   // paralelo com a lista paginada mais abaixo (Promise.all).
   let top3Query = supabase
     .from("player_season_mmr")
     .select("user_id, mmr, vitorias, derrotas, partidas_total, mvps")
     .eq("season_id", season.id)
+    .in("user_id", eligibleIds)
     .order("mmr", { ascending: false })
     .limit(3);
   if (banFilter) top3Query = top3Query.not("user_id", "in", banFilter);
@@ -100,6 +116,7 @@ export default async function RankingPage(props: {
     .from("player_season_mmr")
     .select("user_id, mmr, vitorias, derrotas, partidas_total, mvps")
     .eq("season_id", season.id)
+    .in("user_id", eligibleIds)
     .order("mmr", { ascending: false })
     .range(offset, offset + PAGE_SIZE - 1);
 
@@ -119,12 +136,14 @@ export default async function RankingPage(props: {
           .ilike("persona", `%${search}%`)
           .limit(50),
       ]);
+    // Só busca entre elegíveis (Steam + medalha) — mesma regra do ranking.
+    const eligibleSet = new Set(eligibleIds);
     const matchIds = [
       ...new Set([
         ...(matchingProfiles ?? []).map((p) => p.id),
         ...(matchingSteam ?? []).map((s) => s.user_id),
       ]),
-    ];
+    ].filter((id) => eligibleSet.has(id as string));
     if (matchIds.length === 0) {
       return (
         <ClientShell currentRoute="/ranking">
