@@ -45,6 +45,8 @@ export interface HistoryPlayer {
   xpPct: number;
   /** MMR atual da temporada (pra medalha do rank). null = sem MMR. */
   mmr: number | null;
+  /** Colocação 1-based na season — pra medalha de leaderboard (#N) IGUAL ao /ranking. */
+  position: number | null;
   /** Jogador banido (behavior_status='banned') — marca pública no card. */
   banned: boolean;
 }
@@ -108,6 +110,20 @@ export async function getLiveMatches(): Promise<LiveMatch[]> {
   });
 }
 
+/** Colocação 1-based na season ativa por user_id (RPC season_positions, migration 150) —
+ *  mesma regra do /ranking, pra a medalha de leaderboard (#N) bater no feed. */
+async function seasonPositions(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  ids: string[]
+): Promise<Record<string, number>> {
+  if (ids.length === 0) return {};
+  const { data } = await supabase.rpc("season_positions" as never, { p_ids: ids } as never);
+  const rows = (data ?? []) as { user_id: string; pos: number }[];
+  const out: Record<string, number> = {};
+  for (const r of rows) out[r.user_id] = r.pos;
+  return out;
+}
+
 /** Média (arredondada) do MMR dos jogadores de um time; null se ninguém tem MMR. */
 function teamAvg(
   players: { team: string; mmr: number | null }[],
@@ -148,6 +164,13 @@ export async function getRecentMatches(limit = 20, offset = 0): Promise<HistoryM
       banned?: boolean;
     }[];
   }[];
+  // Posições da season (1 chamada) pra medalha de leaderboard idêntica ao /ranking.
+  const allIds = [
+    ...new Set(
+      rows.flatMap((r) => (r.players ?? []).map((p) => p.user_id).filter((u): u is string => Boolean(u)))
+    ),
+  ];
+  const posMap = await seasonPositions(supabase, allIds);
   return rows.map((r) => ({
     dotaMatchId: r.dota_match_id,
     radiantWin: r.radiant_win,
@@ -172,6 +195,7 @@ export async function getRecentMatches(limit = 20, offset = 0): Promise<HistoryM
       level: p.level ?? 1,
       xpPct: xpProgress(p.total_xp ?? 0).pct,
       mmr: p.mmr ?? null,
+      position: p.user_id ? posMap[p.user_id] ?? null : null,
       banned: Boolean(p.banned),
     })),
   }));

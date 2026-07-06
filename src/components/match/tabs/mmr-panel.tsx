@@ -9,7 +9,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Loader2, TrendingUp, TrendingDown, Scale, Flame } from "lucide-react";
+import { Loader2, TrendingUp, TrendingDown, Scale } from "lucide-react";
 import { getMatchMmrState, type MmrState, type MmrPlayerBreakdown } from "@/app/partida/mmr-actions";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { MvpBadge } from "@/components/ui/mvp-badge";
@@ -230,9 +230,6 @@ function PlayerCard({ p, pending, isMvp }: { p: MmrPlayerBreakdown; pending: boo
               />
             </span>
           )}
-          {/* MVP — selo "MVP" (SVG, sem WebGL). O card já tem a borda dourada + badge
-              "MVP" como destaque; o selo marca o avatar igual ao feed. */}
-          {isMvp && <MvpBadge />}
         </span>
 
         {p.seasonMmr != null && (
@@ -249,11 +246,8 @@ function PlayerCard({ p, pending, isMvp }: { p: MmrPlayerBreakdown; pending: boo
         <div className="min-w-0 flex-1">
           <p className="flex items-center gap-1.5 truncate font-body text-sm font-semibold text-text-display">
             {p.name}
-            {isMvp && (
-              <span className="inline-flex items-center gap-0.5 rounded-sm bg-gold/15 px-1 py-0.5 font-display text-[0.6rem] font-bold uppercase tracking-wide text-gold">
-                <Flame className="size-2.5" aria-hidden="true" /> MVP
-              </span>
-            )}
+            {/* MVP — selo SVG único, ao lado do nome (não sobre a foto). */}
+            {isMvp && <MvpBadge inline width={30} />}
           </p>
           {/* Herói + ícone da posição. W/L removido (redundante — já em outros lugares). */}
           <p className="flex items-center gap-1.5 truncate font-display text-xs text-text-faded">

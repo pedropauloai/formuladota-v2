@@ -4,7 +4,6 @@
 // disponíveis em match_players. Denso e compacto por decisão de design (cliente real).
 
 import Image from "next/image";
-import { Flame } from "lucide-react";
 import { itemImageUrl } from "@/lib/queries/items";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { MvpBadge } from "@/components/ui/mvp-badge";
@@ -166,7 +165,7 @@ function PlayerCell({ p, isMvp = false }: { p: ScoreboardPlayer; isMvp?: boolean
         </span>
       </span>
       {/* Identidade: avatar com anel de XP + NÍVEL da conta (não o do herói).
-          MVP → coroa dourada (SVG, sem WebGL) no topo do avatar. */}
+          O selo de MVP NÃO fica sobre a foto — vai ao lado do nome (abaixo). */}
       <span className="relative isolate shrink-0">
         <XpAvatarRing
           src={p.avatar ?? undefined}
@@ -176,7 +175,6 @@ function PlayerCell({ p, isMvp = false }: { p: ScoreboardPlayer; isMvp?: boolean
           pct={p.accountXpPct}
           size={32}
         />
-        {isMvp && <MvpBadge width={26} />}
       </span>
       {/* Medalha do RANK FormulaDota (representa o MMR) — entre a foto e o nome. */}
       {p.mmr != null && (
@@ -193,14 +191,8 @@ function PlayerCell({ p, isMvp = false }: { p: ScoreboardPlayer; isMvp?: boolean
       <span className="min-w-0">
         <span className="flex items-center gap-1.5 truncate font-body text-sm font-medium text-text-display">
           {p.name}
-          {isMvp && (
-            <span
-              className="inline-flex shrink-0 items-center gap-0.5 rounded-sm bg-gold/15 px-1 py-0.5 font-display text-[0.6rem] font-bold uppercase tracking-wide text-gold"
-              title="MVP da partida"
-            >
-              <Flame className="size-2.5" aria-hidden="true" /> MVP
-            </span>
-          )}
+          {/* MVP — selo SVG único, ao lado do nome (não sobre a foto). */}
+          {isMvp && <MvpBadge inline width={30} />}
         </span>
         {/* Herói + ícone da posição (role específica) + MMR FormulaDota (identidade). */}
         <span className="flex items-center gap-1.5 truncate font-display text-[0.7rem] uppercase tracking-wide text-text-muted">

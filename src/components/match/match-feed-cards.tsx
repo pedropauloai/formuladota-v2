@@ -8,9 +8,7 @@ import { Clock, Radio, Ban } from "lucide-react";
 import { getHeroById } from "@/lib/queries/heroes";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { MvpBadge } from "@/components/ui/mvp-badge";
-import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
-import { mmrToDotaRank } from "@/components/queue/queue-helpers";
-import { mmrToTier } from "@/lib/mmr";
+import { SeasonRankMedal } from "@/components/ui/season-rank-medal";
 import type { HistoryMatch, HistoryPlayer, LiveMatch, LivePlayer } from "@/lib/queries/matches-feed";
 
 // Chip de jogador: o AVATAR + NÍVEL da conta são o destaque (identidade = o produto;
@@ -52,14 +50,13 @@ function PlayerChip({ player, isMvp }: { player: HistoryPlayer; isMvp?: boolean 
         {/* MVP — selo "MVP" (SVG vermelho+dourado, sem WebGL) no topo do avatar. */}
         {isMvp && <MvpBadge />}
       </span>
-      {/* Medalha do rank FormulaDota (representa o MMR atual). */}
+      {/* Medalha do rank FormulaDota — MESMA do /ranking: variante de leaderboard
+          (top10 escura / top30 vermelha com #N) resolvida pela colocação na season. */}
       {player.mmr != null && (
-        <DotaRankMedal
-          rank={mmrToDotaRank(player.mmr)}
-          stars={mmrToTier(player.mmr).stars}
-          variant="formuladota"
+        <SeasonRankMedal
+          mmr={player.mmr}
+          position={player.position}
           size="sm"
-          tooltip={false}
           className="mt-1"
         />
       )}
