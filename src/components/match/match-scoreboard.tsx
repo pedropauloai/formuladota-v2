@@ -7,7 +7,7 @@ import Image from "next/image";
 import { Flame } from "lucide-react";
 import { itemImageUrl } from "@/lib/queries/items";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
-import { MvpAura } from "@/components/ui/mvp-aura";
+import { MvpFlame } from "@/components/ui/mvp-flame";
 import { UserHoverCard } from "@/components/profile/user-hover-card";
 import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
 import { mmrToDotaRank } from "@/components/queue/queue-helpers";
@@ -168,8 +168,8 @@ function PlayerCell({ p, isMvp = false }: { p: ScoreboardPlayer; isMvp?: boolean
       {/* Identidade: avatar com anel de XP + NÍVEL da conta (não o do herói).
           MVP → aura dourada viva ATRÁS do avatar (maior desempenho da partida). */}
       <span className="relative isolate shrink-0">
-        {/* MVP — aura dourada ATRÁS do avatar (o perfil fica nítido por cima). */}
-        {isMvp && <MvpAura />}
+        {/* MVP — chama dourada (shader) ATRÁS do avatar (o perfil fica nítido por cima). */}
+        {isMvp && <MvpFlame />}
         <span className="relative z-10 block">
           <XpAvatarRing
             src={p.avatar ?? undefined}

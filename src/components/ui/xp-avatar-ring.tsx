@@ -71,23 +71,31 @@ export function XpAvatarRing({
         : "border-brand-primary"
       : null;
 
-  // Geometria: container = avatar + folga pra borda. SVG cobre o container.
+  // Geometria CONCÊNTRICA (Pedro 2026-07-06 — corrigir "arestas bugadas"): o avatar, a
+  // folga e o anel compartilham o MESMO centro de curvatura, então os cantos são
+  // paralelos (offset uniforme) e não há descompasso avatar-quadrado × anel-redondo.
   const stroke = 3;
-  const pad = stroke + 3; // folga entre avatar e borda
+  const gap = 3;               // folga entre o avatar e o anel
+  const avatarR = 4;           // raio do avatar (quadrado suave, estilo Steam/Dota)
+  const pad = gap + stroke;    // inset do avatar dentro do box
   const box = size + pad * 2;
-  const rx = 6; // canto arredondado do quadrado (rounded-sm vibe)
+  const inset = stroke / 2;    // linha central do stroke, a stroke/2 da borda do box
+  // Raio do anel = raio do avatar + distância até a linha central do stroke → concêntrico.
+  const rx = avatarR + (pad - inset);
   const clamped = Math.max(0, Math.min(1, pct));
 
-  // Caminho do anel: começa no CENTRO-INFERIOR (onde fica o badge de level) e dá a
-  // volta no sentido horário (baixo → esquerda → topo → direita → volta ao centro),
-  // pra a barra de XP nascer do número do level. Pedro 2026-06-03.
-  const L = stroke / 2;
-  const T = stroke / 2;
-  const R = box - stroke / 2;
-  const B = box - stroke / 2;
+  // Caminho do anel: um GAP no CENTRO-INFERIOR (onde fica o badge de level) "quebra" o
+  // anel — estilo Dota, e ELIMINA a emenda de dois caps no meio da base (a aresta
+  // bugada). O path vai da ponta ESQUERDA do gap, dá a volta e termina na ponta DIREITA;
+  // as pontas (linecap round) ficam limpas. A barra de XP nasce do badge e cresce.
+  const L = inset;
+  const T = inset;
+  const R = box - inset;
+  const B = box - inset;
   const cx = box / 2;
+  const gapHalf = Math.max(9, Math.min(16, size * 0.18)); // meia-largura do gap do badge
   const ringPath = [
-    `M ${cx} ${B}`,
+    `M ${cx - gapHalf} ${B}`,
     `L ${L + rx} ${B}`,
     `A ${rx} ${rx} 0 0 1 ${L} ${B - rx}`,
     `L ${L} ${T + rx}`,
@@ -96,7 +104,7 @@ export function XpAvatarRing({
     `A ${rx} ${rx} 0 0 1 ${R} ${T + rx}`,
     `L ${R} ${B - rx}`,
     `A ${rx} ${rx} 0 0 1 ${R - rx} ${B}`,
-    `L ${cx} ${B}`,
+    `L ${cx + gapHalf} ${B}`,
   ].join(" ");
 
   return (
@@ -167,6 +175,8 @@ export function XpAvatarRing({
           fill="none"
           stroke="currentColor"
           strokeWidth={stroke}
+          strokeLinecap="round"
+          strokeLinejoin="round"
           className="opacity-15"
         />
         {/* Progresso (cor do tier via currentColor) — nasce no centro-inferior, horário */}
@@ -176,6 +186,7 @@ export function XpAvatarRing({
           stroke="currentColor"
           strokeWidth={stroke}
           strokeLinecap="round"
+          strokeLinejoin="round"
           pathLength={1}
           strokeDasharray={1}
           strokeDashoffset={1 - clamped}
@@ -188,10 +199,11 @@ export function XpAvatarRing({
         />
       </svg>
 
-      {/* Avatar quadrado */}
+      {/* Avatar quadrado — raio CONCÊNTRICO ao anel (avatarR), pra os cantos ficarem
+          paralelos à borda do anel (sem descompasso). */}
       <div
-        className="absolute overflow-hidden rounded-sm bg-bg-surface"
-        style={{ inset: pad }}
+        className="absolute overflow-hidden bg-bg-surface"
+        style={{ inset: pad, borderRadius: avatarR }}
       >
         {src ? (
           // eslint-disable-next-line @next/next/no-img-element

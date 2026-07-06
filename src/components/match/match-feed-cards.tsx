@@ -7,7 +7,7 @@ import { Link } from "@/i18n/navigation";
 import { Clock, Radio, Ban } from "lucide-react";
 import { getHeroById } from "@/lib/queries/heroes";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
-import { MvpAura } from "@/components/ui/mvp-aura";
+import { MvpFlame } from "@/components/ui/mvp-flame";
 import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
 import { mmrToDotaRank } from "@/components/queue/queue-helpers";
 import { mmrToTier } from "@/lib/mmr";
@@ -25,8 +25,8 @@ function PlayerChip({ player, isMvp }: { player: HistoryPlayer; isMvp?: boolean 
       title={`${player.name}${isMvp ? " · MVP" : ""}${player.banned ? " · BANIDO" : ""}${hero ? ` · ${hero.name_pt}` : ""}`}
     >
       <span className={`relative isolate ${player.banned ? "opacity-90" : ""}`}>
-        {/* MVP — aura dourada viva ATRÁS do avatar (o perfil fica nítido por cima). */}
-        {isMvp && <MvpAura />}
+        {/* MVP — chama dourada (shader) ATRÁS do avatar (o perfil fica nítido por cima). */}
+        {isMvp && <MvpFlame />}
         {/* Avatar + anel de XP com o NÍVEL da conta (identidade, sempre com o jogador). */}
         <span className="relative z-10 block">
           <XpAvatarRing

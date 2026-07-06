@@ -12,7 +12,7 @@ import Image from "next/image";
 import { Loader2, TrendingUp, TrendingDown, Scale, Flame } from "lucide-react";
 import { getMatchMmrState, type MmrState, type MmrPlayerBreakdown } from "@/app/partida/mmr-actions";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
-import { MvpAura } from "@/components/ui/mvp-aura";
+import { MvpFlame } from "@/components/ui/mvp-flame";
 import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
 import { RoleIcon } from "@/components/match/match-scoreboard";
 import { SocialIconsRow } from "@/components/profile/social-icons-row";
@@ -209,8 +209,8 @@ function PlayerCard({ p, pending, isMvp }: { p: MmrPlayerBreakdown; pending: boo
       {/* Identidade completa + delta. */}
       <div className="flex items-center gap-2.5">
         <span className="relative isolate shrink-0">
-          {/* MVP — aura dourada ATRÁS do avatar (o perfil fica nítido por cima). */}
-          {isMvp && <MvpAura />}
+          {/* MVP — chama dourada (shader) ATRÁS do avatar (o perfil fica nítido por cima). */}
+          {isMvp && <MvpFlame />}
           <span className="relative z-10 block">
             <XpAvatarRing
               src={p.avatar ?? undefined}
