@@ -12,7 +12,7 @@ import Image from "next/image";
 import { Loader2, TrendingUp, TrendingDown, Scale, Flame } from "lucide-react";
 import { getMatchMmrState, type MmrState, type MmrPlayerBreakdown } from "@/app/partida/mmr-actions";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
-import { MvpFlame } from "@/components/ui/mvp-flame";
+import { MvpCrown } from "@/components/ui/mvp-crown";
 import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
 import { RoleIcon } from "@/components/match/match-scoreboard";
 import { SocialIconsRow } from "@/components/profile/social-icons-row";
@@ -209,8 +209,6 @@ function PlayerCard({ p, pending, isMvp }: { p: MmrPlayerBreakdown; pending: boo
       {/* Identidade completa + delta. */}
       <div className="flex items-center gap-2.5">
         <span className="relative isolate shrink-0">
-          {/* MVP — chama dourada ATRÁS de tudo (-z-10, contida pelo isolate). */}
-          {isMvp && <MvpFlame />}
           <XpAvatarRing
             src={p.avatar ?? undefined}
             alt={p.name}
@@ -232,6 +230,9 @@ function PlayerCard({ p, pending, isMvp }: { p: MmrPlayerBreakdown; pending: boo
               />
             </span>
           )}
+          {/* MVP — coroa dourada (SVG, sem WebGL). O card já tem a borda dourada + badge
+              "MVP" como destaque; a coroa marca o avatar igual ao feed. */}
+          {isMvp && <MvpCrown />}
         </span>
 
         {p.seasonMmr != null && (

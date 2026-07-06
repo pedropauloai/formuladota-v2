@@ -7,7 +7,7 @@ import Image from "next/image";
 import { Flame } from "lucide-react";
 import { itemImageUrl } from "@/lib/queries/items";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
-import { MvpFlame } from "@/components/ui/mvp-flame";
+import { MvpCrown } from "@/components/ui/mvp-crown";
 import { UserHoverCard } from "@/components/profile/user-hover-card";
 import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
 import { mmrToDotaRank } from "@/components/queue/queue-helpers";
@@ -166,10 +166,8 @@ function PlayerCell({ p, isMvp = false }: { p: ScoreboardPlayer; isMvp?: boolean
         </span>
       </span>
       {/* Identidade: avatar com anel de XP + NÍVEL da conta (não o do herói).
-          MVP → aura dourada viva ATRÁS do avatar (maior desempenho da partida). */}
+          MVP → coroa dourada (SVG, sem WebGL) no topo do avatar. */}
       <span className="relative isolate shrink-0">
-        {/* MVP — chama dourada ATRÁS de tudo (-z-10, contida pelo isolate). */}
-        {isMvp && <MvpFlame />}
         <XpAvatarRing
           src={p.avatar ?? undefined}
           alt={p.name}
@@ -178,6 +176,7 @@ function PlayerCell({ p, isMvp = false }: { p: ScoreboardPlayer; isMvp?: boolean
           pct={p.accountXpPct}
           size={32}
         />
+        {isMvp && <MvpCrown size={16} />}
       </span>
       {/* Medalha do RANK FormulaDota (representa o MMR) — entre a foto e o nome. */}
       {p.mmr != null && (

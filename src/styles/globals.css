@@ -456,51 +456,11 @@
 }
 
 /* ---------------------------------------------------------------------------
- * MVP — AURA DOURADA VIVA (partículas + brasa + labareda) sobre o avatar do
- * maior desempenho da partida. Substitui o antigo ícone de coroa (Pedro
- * 2026-07-06: "não um SVG patético"). CSS puro (os consumidores podem ser Server
- * Components). BARATO: anima só opacity/transform (compositor da GPU) — escala pra
- * várias instâncias no feed. Fallback reduced-motion = glow estático (sem partícula).
- * Cores 100% tokens gold (var(--color-gold*)).
+ * MVP — a marca do MVP é a COROA dourada (SVG, MvpCrown) no topo do avatar. Os
+ * keyframes de chama/brasa (fd-mvp-*) foram REMOVIDOS junto com o MvpFlame WebGL
+ * (Pedro 2026-07-06: "voltar pro SVG, tirar o efeito WebGL"). Restou só a flutuação
+ * leve da coroa, abaixo.
  * ------------------------------------------------------------------------- */
-
-/* Glow dourado pulsante — SÓ opacidade (sem scale): o box-shadow fica sempre
-   alinhado à borda do avatar e nunca invade o anel de XP. */
-@keyframes fd-mvp-glow {
-  0%, 100% { opacity: 0.65; }
-  50%      { opacity: 1; }
-}
-.fd-mvp-glow {
-  animation: fd-mvp-glow 2200ms var(--motion-ease-soft-landing, ease-in-out) infinite;
-}
-
-/* Labareda na base — lambe por baixo do avatar, tremula rápido (fogo). */
-@keyframes fd-mvp-flame {
-  0%, 100% { opacity: 0.5;  transform: translateX(-50%) scaleY(0.82); }
-  50%      { opacity: 0.9;  transform: translateX(-50%) scaleY(1.18); }
-}
-.fd-mvp-flame {
-  animation: fd-mvp-flame 1300ms ease-in-out infinite;
-}
-
-/* Brasa/partícula subindo — nasce embaixo, sobe, deriva de lado e some cintilando.
- * Variação por partícula via custom props inline (--fd-ember-*). */
-@keyframes fd-mvp-ember {
-  0%   { opacity: 0;    transform: translate(0, 0) scale(0.5); }
-  18%  { opacity: 1;    transform: translate(calc(var(--fd-ember-dx, 0px) * 0.3), -20%) scale(1); }
-  75%  { opacity: 0.85; }
-  100% { opacity: 0;    transform: translate(var(--fd-ember-dx, 0px), -150%) scale(0.7); }
-}
-.fd-mvp-ember {
-  animation: fd-mvp-ember var(--fd-ember-dur, 2600ms) linear infinite;
-  animation-delay: var(--fd-ember-delay, 0ms);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .fd-mvp-glow  { animation: none; opacity: 0.72; transform: none; }
-  .fd-mvp-flame { animation: none; opacity: 0.5; transform: translateX(-50%); }
-  .fd-mvp-ember { animation: none; opacity: 0; }
-}
 
 /* Flutuação delicada da COROA do MVP (MvpCrown) — sobe/desce ~1.5px e balança o tilt de
  * leve. SÓ transform (compositor da GPU), barato pra várias no feed. A translação base
