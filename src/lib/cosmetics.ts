@@ -57,10 +57,12 @@ export function profileThemeThumbCss(css: string | null): string | null {
 // isto é só a "pele" viva ao redor. Novos efeitos = 1 entrada no registry, sem tocar
 // no XpAvatarRing. É o que gera variação premium (e receita, via compendium).
 export const RING_EFFECT_IDS = [
-  "ember", // brasas douradas subindo (épico)
-  "inferno", // chamas vermelhas intensas (lendário)
-  "pulse", // energia verde girando (raro)
-  "aurora", // véu dourado ondulando (lendário)
+  "ember", // moldura elétrica dourada (épico)
+  "inferno", // moldura elétrica vermelha intensa (lendário)
+  "pulse", // moldura elétrica verde (raro)
+  "aurora", // moldura elétrica dourado-clara (lendário)
+  "electric", // moldura elétrica AZUL ciano — arco elétrico (épico)
+  "arcane", // moldura elétrica ROXO arcano (lendário)
 ] as const;
 export type RingEffectId = (typeof RING_EFFECT_IDS)[number];
 

@@ -60,9 +60,10 @@ A identidade visual tem DUAS leis complementares — não confundir:
 1. **ESTRUTURA, LAYOUT e DENSIDADE = cliente Dota 2 real.** Sistema A: coluna esquerda de identidade+amigos, top tabs, sidebar direita contextual, bottom-bar com [JOGAR DOTA] verde. Denso e compacto, NÃO arejado estilo SaaS. Referência canônica: `docs/foundations/DOTA2_CLIENT_REFERENCE.md` (catálogo das 9 imagens na raiz). NÃO é Riot/Valorant minimalista.
 2. **PELE (cores, materiais, tipografia) = brand FormulaDota**, definida EXCLUSIVAMENTE pelos tokens em `src/styles/tokens/raw.css` + `semantic.css`: vermelho `#C42121` (ExitLag), verde play/success `#00C466` (GamersClub), neutros escuros ExitLag (`#0B0C0F`/`#111317`), dourado pra números/destaques (família gold), Ubuntu (body) + Teko condensed (nav, títulos, números). Radius 2px (quase reto). Essas referências (ExitLag/GamersClub) foram escolha INTENCIONAL do Pedro — não "corrigir" pra outra paleta.
 
-PROIBIDO (causam regressão visual):
-- Paleta cyberpunk cyan `#00F0FF` / roxo `#A855F7` — era do portfólio pedropauloai, NÃO pertence a este projeto. Se encontrar, migrar pra tokens.
-- Cores/durations/z-index hardcoded em componentes — sempre via tokens semânticos (regras C14-C20 em `docs/foundations/DESIGN_LANGUAGE.md`).
+Base de marca (identidade-âncora): vermelho/verde/dourado/neutros ExitLag. **Nenhuma cor é PROIBIDA** (Pedro 2026-07-06: "não há nada proibido") — ciano/azul elétrico, roxo etc. são livres como ACENTO premium (ex.: molduras elétricas cosméticas), desde que a base da marca continue sendo a identidade dominante. A antiga regra "cyan/roxo proibido" (vazamento do portfólio) foi revogada.
+
+Evitar (não por veto de cor, mas por consistência):
+- Cores/durations/z-index hardcoded em componentes de UI GERAL — sempre via tokens semânticos (regras C14-C20 em `docs/foundations/DESIGN_LANGUAGE.md`). (Exceção: cores de efeito/cosmético específicas podem ser literais quando não há token, ex.: azul elétrico de uma skin.)
 - Avatares `rounded-full` — avatar de usuário é SEMPRE quadrado `rounded-sm` (padrão Steam/Dota). Dots de presença podem ser redondos.
 
 Demais regras:

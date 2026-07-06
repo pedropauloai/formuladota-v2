@@ -27,6 +27,8 @@ const EFFECT_COLOR: Record<RingEffectId, string> = {
   inferno: "var(--color-brand-primary)",
   pulse: "var(--color-play-primary)",
   aurora: "var(--color-gold-bright)",
+  electric: "#2ad4ff", // azul ciano elétrico (ref do Pedro — nada proibido)
+  arcane: "#a855f7", // roxo arcano
 };
 
 interface Props {

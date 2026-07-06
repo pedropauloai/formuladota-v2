@@ -502,3 +502,23 @@
   .fd-mvp-ember { animation: none; opacity: 0; }
 }
 
+/* ---------------------------------------------------------------------------
+ * CHISPA elétrica (ElectricBorder) — ponto de luz que cintila ao longo da moldura.
+ * Cada chispa tem animation-delay próprio (fase diferente) = estática elétrica viva.
+ * Só opacity/scale (compositor). Nítida (o brilho vem do drop-shadow do SVG-pai).
+ * ------------------------------------------------------------------------- */
+@keyframes fd-spark {
+  0%, 100% { opacity: 0;   transform: scale(0.4); }
+  8%       { opacity: 1;   transform: scale(1.15); }
+  22%      { opacity: 0.5; transform: scale(0.9); }
+  40%      { opacity: 0;   transform: scale(0.4); }
+}
+.fd-spark {
+  animation: fd-spark 1.6s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fd-spark { animation: none; opacity: 0.85; }
+}
+
