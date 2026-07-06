@@ -123,22 +123,32 @@ export function XpAvatarRing({
     `L ${cx + gapHalf} ${B}`,
   ].join(" ");
 
-  // BRILHO NA PONTA do progresso (Pedro 2026-07-06): um ponto de luz na posição atual
-  // do preenchimento de XP, com faísca/neon SUTIL — indica "seu progresso está aqui".
-  // NÃO é moldura no contorno inteiro (isso ficou "carnaval"). Calcula a posição real
-  // ao longo do path via getPointAtLength (client-only). A cor é a do efeito equipado
-  // (cosmético) ou a do tier.
+  // BRILHO + RASTRO do progresso (Pedro 2026-07-06): amostra N pontos ao longo da barra
+  // PREENCHIDA (0..clamped) via getPointAtLength (client-only) e passa pro shader WebGL,
+  // que desenha um cometa de energia correndo pela barra + o brilho na ponta + fagulhas.
+  // Normalizado 0..1 (÷box) pro shader. NÃO é SVG (Pedro: "quero webgl").
   const progressRef = useRef<SVGPathElement>(null);
-  const [tip, setTip] = useState<{ x: number; y: number } | null>(null);
+  const N_PTS = 24; // 25 pontos — suave e dentro do limite de uniforms do WebGL
+  const [glow, setGlow] = useState<{
+    pts: Float32Array;
+    tip: [number, number];
+    count: number;
+  } | null>(null);
   useEffect(() => {
     const p = progressRef.current;
     if (!p || clamped <= 0) {
-      setTip(null);
+      setGlow(null);
       return;
     }
-    const len = p.getTotalLength();
-    const at = p.getPointAtLength(clamped * len);
-    setTip({ x: at.x, y: at.y });
+    const total = p.getTotalLength();
+    const count = N_PTS + 1;
+    const pts = new Float32Array(count * 2);
+    for (let i = 0; i <= N_PTS; i++) {
+      const at = p.getPointAtLength((i / N_PTS) * clamped * total);
+      pts[i * 2] = at.x / box;
+      pts[i * 2 + 1] = at.y / box;
+    }
+    setGlow({ pts, tip: [pts[N_PTS * 2] ?? 0, pts[N_PTS * 2 + 1] ?? 0], count });
   }, [clamped, box, rx, ringPath]);
 
   return (
@@ -196,15 +206,16 @@ export function XpAvatarRing({
         />
       </svg>
 
-      {/* BRILHO NA PONTA do progresso — SHADER WebGL (núcleo de energia + fagulhas). Fora
-          do SVG, posicionado na coordenada real da ponta (tip). Marca "seu progresso está
-          aqui" com luxo. Cor do efeito equipado (cosmético) ou dourado default. */}
-      {tip && !glowOff && (
+      {/* RASTRO + BRILHO do progresso — SHADER WebGL cobrindo o avatar. Cometa de energia
+          correndo pela barra preenchida + ponta com fagulhas. Cor do efeito equipado
+          (cosmético) ou dourado default. */}
+      {glow && !glowOff && (
         <ProgressTipGlow
-          size={Math.max(20, Math.round(size * 0.62))}
+          box={box}
           color={effectColor ?? DEFAULT_TIP_COLOR}
-          cx={tip.x}
-          cy={tip.y}
+          pts={glow.pts}
+          tip={glow.tip}
+          count={glow.count}
         />
       )}
 

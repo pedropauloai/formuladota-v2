@@ -1,60 +1,91 @@
 "use client";
 
-// ProgressTipGlow — brilho LUXUOSO na ponta da barra de XP, via SHADER WebGL (Pedro
-// 2026-07-06: "não quero svg. quero webgl"). Um núcleo de energia pulsante + faíscas
-// procedurais emanando + bloom — animado, na cor do efeito equipado ou do tier. Marca
-// "seu progresso está aqui" com classe. Posicionado (via style) na coordenada real da
-// ponta, calculada pelo XpAvatarRing.
+// ProgressTipGlow — RASTRO + brilho da barra de XP, via SHADER WebGL (Pedro 2026-07-06:
+// "quero webgl", + "rastro na barra", "núcleo menor", "mais fagulhas"). Um canvas cobre
+// o avatar; o shader recebe os pontos da barra PREENCHIDA e desenha:
+//   • um cometa de energia correndo pela barra (o rastro), em loop;
+//   • um brilho pulsante na PONTA com núcleo pequeno branco;
+//   • fagulhas procedurais emanando da ponta.
+// Cor = efeito equipado (cosmético) ou dourado. Marca "seu progresso está aqui" com luxo.
 //
-// Infra robusta copiada do MvpFlame/ShaderSmoke (skill premium-fx §4): preserveDrawing-
-// Buffer, sem loseContext no cleanup, recuperação de context-loss, dpr=1, throttle 30fps,
-// reduced-motion (→ some), guarda global de contextos WebGL (listas não estouram o teto;
-// acima do limite cai num glow CSS mínimo — NÃO svg).
+// Infra robusta (skill premium-fx §4): preserveDrawingBuffer, sem loseContext no cleanup,
+// context-loss recovery, throttle 30fps, reduced-motion, guarda global de contextos (em
+// listas cai num glow CSS mínimo — NÃO svg). Os pontos vivem numa ref e são reenviados
+// como uniform a cada frame → o rastro acompanha o progresso sem recriar o contexto.
 
 import { useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "@/lib/particles/hooks";
 
 const VERT = `attribute vec2 a; void main(){ gl_Position = vec4(a, 0.0, 1.0); }`;
 
-// Faísca de energia: núcleo brilhante pulsante + fagulhas emanando radialmente + bloom.
+const MAX_PTS = 25;
+
+// Rastro (cometa) ao longo da barra + ponta com fagulhas. u_pts: pontos normalizados
+// (0..1, y no sentido DOM). u_tip: a ponta. u_count: nº de pontos válidos.
 const FRAG = `
 precision highp float;
 uniform vec2 u_res;
 uniform float u_time;
 uniform vec3 u_color;
+uniform int u_count;
+uniform vec2 u_tip;
+uniform vec2 u_pts[${MAX_PTS}];
 
 float hash(vec2 p){ p = fract(p * vec2(123.34, 345.45)); p += dot(p, p + 34.345); return fract(p.x * p.y); }
 
+float segDist(vec2 p, vec2 a, vec2 b, out float h){
+  vec2 pa = p - a, ba = b - a;
+  float dd = dot(ba, ba);
+  h = dd > 0.0 ? clamp(dot(pa, ba) / dd, 0.0, 1.0) : 0.0;
+  return length(pa - ba * h);
+}
+
 void main(){
-  vec2 uv = gl_FragCoord.xy / u_res.xy;
-  vec2 c = uv - 0.5;
-  float d = length(c);
+  vec2 uv = vec2(gl_FragCoord.x / u_res.x, 1.0 - gl_FragCoord.y / u_res.y);
   float t = u_time;
 
-  // --- núcleo de energia: glow radial nítido, pulsando ---
-  float pulse = 0.82 + 0.18 * sin(t * 7.0);
-  float core = pow(smoothstep(0.5, 0.0, d), 2.6) * pulse;
-  // ponto quase branco no centro
-  float hot = pow(smoothstep(0.16, 0.0, d), 2.0);
+  // distância à barra (polilinha) + fração percorrida (0 no início, 1 na ponta).
+  float best = 1e9;
+  float bestT = 0.0;
+  for (int i = 0; i < ${MAX_PTS - 1}; i++) {
+    if (i + 1 > u_count - 1) break;
+    float h;
+    float d = segDist(uv, u_pts[i], u_pts[i + 1], h);
+    if (d < best) { best = d; bestT = (float(i) + h) / float(u_count - 1); }
+  }
+  float onLine = smoothstep(0.03, 0.0, best);
 
-  // --- fagulhas emanando radialmente (cintilam e somem) ---
+  // COMETA correndo pela barra (o rastro): cabeça brilhante + cauda decaindo pra trás.
+  float pulse = fract(t * 0.4);
+  float dHead = bestT - pulse;
+  float head = exp(-abs(dHead) * 20.0);
+  float tail = dHead < 0.0 ? exp(dHead * 6.0) : 0.0;
+  float comet = (head + tail * 0.55) * onLine;
+
+  // BRILHO NA PONTA — glow pulsante na cor + NÚCLEO pequeno branco.
+  float dTip = distance(uv, u_tip);
+  float tipPulse = 0.82 + 0.18 * sin(t * 7.0);
+  float tipGlow = pow(smoothstep(0.12, 0.0, dTip), 2.4) * tipPulse;
+  float tipCore = pow(smoothstep(0.022, 0.0, dTip), 2.0);   // núcleo MENOR
+
+  // FAGULHAS da ponta (mais delas), emanando e cintilando.
   float spark = 0.0;
-  for (int i = 0; i < 12; i++) {
+  for (int i = 0; i < 18; i++) {
     float fi = float(i);
     float ang = hash(vec2(fi, 1.3)) * 6.2832;
-    float sp = 0.35 + hash(vec2(fi, 2.7)) * 0.55;
+    float sp = 0.35 + hash(vec2(fi, 2.7)) * 0.6;
     float pr = fract(hash(vec2(fi, 4.1)) + t * sp);
-    vec2 pos = vec2(cos(ang), sin(ang)) * pr * 0.46;
-    float dd = distance(c, pos);
+    vec2 pos = u_tip + vec2(cos(ang), sin(ang)) * pr * 0.24;
+    float dd = distance(uv, pos);
     float life = (1.0 - pr) * smoothstep(0.0, 0.1, pr);
-    float flick = 0.6 + 0.4 * sin(t * 11.0 + fi * 5.0);
-    spark += smoothstep(0.018, 0.0, dd) * life * flick;
+    float fl = 0.55 + 0.45 * sin(t * 12.0 + fi * 5.0);
+    spark += smoothstep(0.013, 0.0, dd) * life * fl;
   }
 
-  vec3 col = u_color * core * 2.0;
-  col += vec3(1.0) * hot * 1.6;                 // centro branco
-  col += (u_color + vec3(0.45)) * spark * 1.8;  // fagulhas quase brancas
-  float alpha = clamp(core + hot + spark, 0.0, 1.0);
+  vec3 col = u_color * (comet * 1.5 + tipGlow * 1.5 + onLine * 0.22);
+  col += vec3(1.0) * tipCore * 1.4;               // núcleo branco pequeno
+  col += (u_color + vec3(0.45)) * spark * 1.9;    // fagulhas quase brancas
+  float alpha = clamp(comet + tipGlow + tipCore + spark + onLine * 0.22, 0.0, 1.0);
   gl_FragColor = vec4(col, alpha);
 }
 `;
@@ -69,19 +100,27 @@ let liveContexts = 0;
 const MAX_WEBGL = 10;
 
 interface Props {
-  /** Diâmetro do glow em px. */
-  size: number;
-  /** Cor da energia (HEX — ex "#c8aa6e"). */
+  /** Lado do quadrado do avatar-container (px) — o canvas cobre isto. */
+  box: number;
+  /** Cor da energia (HEX). */
   color: string;
-  /** Posição do CENTRO no container-pai (px). */
-  cx: number;
-  cy: number;
+  /** Pontos da barra preenchida, normalizados 0..1 (flat [x0,y0,...]). */
+  pts: Float32Array;
+  /** Ponta (fim do progresso), normalizada 0..1. */
+  tip: [number, number];
+  /** Nº de pontos válidos em `pts`. */
+  count: number;
 }
 
-export function ProgressTipGlow({ size, color, cx, cy }: Props) {
+export function ProgressTipGlow({ box, color, pts, tip, count }: Props) {
   const prefersReducedMotion = useReducedMotion();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [cssFallback, setCssFallback] = useState(false);
+
+  // Geometria da barra numa ref → reenviada como uniform a cada frame (o rastro
+  // acompanha o progresso sem recriar o contexto WebGL).
+  const geomRef = useRef({ pts, tip, count });
+  geomRef.current = { pts, tip, count };
 
   useEffect(() => {
     if (prefersReducedMotion) return;
@@ -106,10 +145,13 @@ export function ProgressTipGlow({ size, color, cx, cy }: Props) {
     liveContexts += 1;
     let counted = true;
 
-    const dpr = Math.min(window.devicePixelRatio || 1, 2); // glow pequeno: 2x fica nítido
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const FRAME_MS = 1000 / 30;
     let uRes: WebGLUniformLocation | null = null;
     let uTime: WebGLUniformLocation | null = null;
+    let uPts: WebGLUniformLocation | null = null;
+    let uTip: WebGLUniformLocation | null = null;
+    let uCount: WebGLUniformLocation | null = null;
     let ready = false;
     let running = false;
     let raf = 0;
@@ -158,10 +200,13 @@ export function ProgressTipGlow({ size, color, cx, cy }: Props) {
       glc.enableVertexAttribArray(loc);
       glc.vertexAttribPointer(loc, 2, glc.FLOAT, false, 0, 0);
       glc.enable(glc.BLEND);
-      glc.blendFunc(glc.SRC_ALPHA, glc.ONE);   // aditivo → luz que soma (glow)
+      glc.blendFunc(glc.SRC_ALPHA, glc.ONE); // aditivo → luz que soma
       glc.clearColor(0, 0, 0, 0);
       uRes = glc.getUniformLocation(prog, "u_res");
       uTime = glc.getUniformLocation(prog, "u_time");
+      uPts = glc.getUniformLocation(prog, "u_pts");
+      uTip = glc.getUniformLocation(prog, "u_tip");
+      uCount = glc.getUniformLocation(prog, "u_count");
       glc.uniform3fv(glc.getUniformLocation(prog, "u_color"), hexToRgb(color));
       resize();
       return true;
@@ -173,8 +218,12 @@ export function ProgressTipGlow({ size, color, cx, cy }: Props) {
       const now = performance.now();
       if (now - lastDraw < FRAME_MS) return;
       lastDraw = now;
+      const g = geomRef.current;
       glc.clear(glc.COLOR_BUFFER_BIT);
       if (uTime) glc.uniform1f(uTime, (now - start) / 1000);
+      if (uCount) glc.uniform1i(uCount, g.count);
+      if (uTip) glc.uniform2f(uTip, g.tip[0], g.tip[1]);
+      if (uPts && g.pts.length) glc.uniform2fv(uPts, g.pts.subarray(0, MAX_PTS * 2));
       glc.drawArrays(glc.TRIANGLES, 0, 3);
     }
     function startLoop() {
@@ -221,27 +270,22 @@ export function ProgressTipGlow({ size, color, cx, cy }: Props) {
         liveContexts -= 1;
         counted = false;
       }
-      // NÃO loseContext() (mataria o contexto no re-mount → canvas branco).
     };
   }, [prefersReducedMotion, color]);
 
-  const style: React.CSSProperties = {
-    left: cx,
-    top: cy,
-    width: size,
-    height: size,
-    transform: "translate(-50%, -50%)",
-  };
-
-  // Fallback (reduced-motion / sem WebGL / acima do teto): um glow CSS mínimo — NÃO svg.
+  // Fallback (reduced-motion / sem WebGL / acima do teto): glow CSS mínimo na ponta.
   if (prefersReducedMotion || cssFallback) {
     return (
       <span
         aria-hidden="true"
         className="pointer-events-none absolute rounded-full"
         style={{
-          ...style,
-          background: `radial-gradient(circle, #fff 0%, ${color} 35%, transparent 70%)`,
+          left: tip[0] * box,
+          top: tip[1] * box,
+          width: Math.max(10, box * 0.14),
+          height: Math.max(10, box * 0.14),
+          transform: "translate(-50%, -50%)",
+          background: `radial-gradient(circle, #fff 0%, ${color} 40%, transparent 70%)`,
           boxShadow: `0 0 6px 1px ${color}`,
         }}
       />
@@ -249,7 +293,7 @@ export function ProgressTipGlow({ size, color, cx, cy }: Props) {
   }
 
   return (
-    <span aria-hidden="true" className="pointer-events-none absolute z-10" style={style}>
+    <span aria-hidden="true" className="pointer-events-none absolute inset-0 z-10">
       <canvas ref={canvasRef} className="block h-full w-full" />
     </span>
   );
