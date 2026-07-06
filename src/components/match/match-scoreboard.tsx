@@ -167,16 +167,19 @@ function PlayerCell({ p, isMvp = false }: { p: ScoreboardPlayer; isMvp?: boolean
       </span>
       {/* Identidade: avatar com anel de XP + NÍVEL da conta (não o do herói).
           MVP → aura dourada viva ATRÁS do avatar (maior desempenho da partida). */}
-      <span className="relative shrink-0">
-        <XpAvatarRing
-          src={p.avatar ?? undefined}
-          alt={p.name}
-          fallback={p.name.slice(0, 2).toUpperCase()}
-          level={p.accountLevel}
-          pct={p.accountXpPct}
-          size={32}
-        />
+      <span className="relative isolate shrink-0">
+        {/* MVP — aura dourada ATRÁS do avatar (o perfil fica nítido por cima). */}
         {isMvp && <MvpAura />}
+        <span className="relative z-10 block">
+          <XpAvatarRing
+            src={p.avatar ?? undefined}
+            alt={p.name}
+            fallback={p.name.slice(0, 2).toUpperCase()}
+            level={p.accountLevel}
+            pct={p.accountXpPct}
+            size={32}
+          />
+        </span>
       </span>
       {/* Medalha do RANK FormulaDota (representa o MMR) — entre a foto e o nome. */}
       {p.mmr != null && (

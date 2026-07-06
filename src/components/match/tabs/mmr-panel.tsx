@@ -208,17 +208,19 @@ function PlayerCard({ p, pending, isMvp }: { p: MmrPlayerBreakdown; pending: boo
     >
       {/* Identidade completa + delta. */}
       <div className="flex items-center gap-2.5">
-        <span className="relative shrink-0">
-          <XpAvatarRing
-            src={p.avatar ?? undefined}
-            alt={p.name}
-            fallback={p.name.slice(0, 2).toUpperCase()}
-            level={p.level}
-            pct={p.xpPct}
-            size={40}
-          />
-          {/* MVP — aura dourada viva SOBRE o avatar (blend screen soma luz, não cobre). */}
+        <span className="relative isolate shrink-0">
+          {/* MVP — aura dourada ATRÁS do avatar (o perfil fica nítido por cima). */}
           {isMvp && <MvpAura />}
+          <span className="relative z-10 block">
+            <XpAvatarRing
+              src={p.avatar ?? undefined}
+              alt={p.name}
+              fallback={p.name.slice(0, 2).toUpperCase()}
+              level={p.level}
+              pct={p.xpPct}
+              size={40}
+            />
+          </span>
           {/* Herói — badge no canto. */}
           {p.heroImage && (
             <span className="absolute -right-1 -top-1 rounded-sm">

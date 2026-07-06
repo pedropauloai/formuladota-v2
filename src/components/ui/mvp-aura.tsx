@@ -1,14 +1,14 @@
 // MvpAura — destaque do MVP da partida (maior desempenho). Aura DOURADA viva ao
-// redor do avatar: anel de luz pulsante + labareda na base + brasas/partículas
-// subindo. Substitui o antigo ícone de coroa (Pedro 2026-07-06: "não um SVG patético,
-// quero partículas douradas / uma chama"). O reconhecimento do jogador é o produto —
-// por isso o MVP aparece com destaque em TODO lugar que mostra o placar.
+// redor do avatar: halo pulsante + labareda na base + brasas/partículas subindo.
+// Substitui o antigo ícone de coroa (Pedro 2026-07-06: "não um SVG patético, quero
+// partículas douradas / uma chama"). O reconhecimento do jogador é o produto — por
+// isso o MVP aparece com destaque em TODO lugar que mostra o placar.
 //
-// COMO EMITE LUZ: a camada usa `mix-blend-mode: screen` → em vez de COBRIR o avatar,
-// SOMA a luz dourada (o escuro do avatar clareia pro dourado, o claro fica). Por isso
-// fica em FRENTE (pointer-events-none) sem esconder a foto: brilha as bordas e as
-// faíscas aparecem por cima, como fogo de verdade. Cai como camada absoluta que cobre
-// o avatar-pai + folga (-inset-2).
+// CAMADA DE TRÁS: a aura fica ATRÁS do avatar (o perfil precisa ficar ACIMA do efeito
+// — Pedro 2026-07-06). O avatar renderiza nítido por cima; o que aparece é o brilho
+// dourado vazando pelas bordas + as faíscas que sobem além do topo. Cai como camada
+// absoluta cobrindo o avatar-pai + folga (-inset-2). O container consumidor deve ser
+// `relative isolate` e o avatar deve ter um z acima (z-10).
 //
 // SSR-safe: sem hooks/estado — animações e o fallback de prefers-reduced-motion vivem
 // no CSS (globals.css, classes fd-mvp-*). Cores 100% via tokens gold. Barato (só
@@ -45,26 +45,25 @@ export function MvpAura({ className }: Props) {
   return (
     <span
       aria-hidden="true"
-      className={cn("pointer-events-none absolute -inset-2", className)}
-      style={{ mixBlendMode: "screen" }}
+      className={cn("pointer-events-none absolute -inset-2 z-0", className)}
     >
       {/* Halo externo suave — brilho ambiente que vaza pra fora do avatar. */}
       <span
         className="fd-mvp-glow absolute -inset-1 rounded-md"
         style={{
           background:
-            "radial-gradient(circle at 50% 52%, var(--color-gold) 0%, transparent 66%)",
-          opacity: 0.5,
+            "radial-gradient(circle at 50% 52%, var(--color-gold-bright) 0%, var(--color-gold) 34%, transparent 68%)",
+          opacity: 0.55,
           filter: "blur(7px)",
         }}
       />
-      {/* Anel dourado BRILHANTE hugando a borda do avatar (transparente no centro pra
-          não lavar a foto). É o que dá o "highlight" visível mesmo parado. */}
+      {/* Anel dourado hugando a borda do avatar — o "highlight" visível mesmo parado
+          (fica ATRÁS do avatar, então só a parte que extravasa a borda aparece). */}
       <span
         className="fd-mvp-glow absolute inset-0 rounded-md"
         style={{
           background:
-            "radial-gradient(circle at 50% 50%, transparent 42%, var(--color-gold-bright) 57%, var(--color-gold) 66%, transparent 84%)",
+            "radial-gradient(circle at 50% 50%, transparent 40%, var(--color-gold-bright) 54%, var(--color-gold) 64%, transparent 82%)",
           filter: "blur(2px)",
         }}
       />

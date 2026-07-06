@@ -24,18 +24,20 @@ function PlayerChip({ player, isMvp }: { player: HistoryPlayer; isMvp?: boolean 
       className="flex w-16 shrink-0 flex-col items-center gap-0.5"
       title={`${player.name}${isMvp ? " · MVP" : ""}${player.banned ? " · BANIDO" : ""}${hero ? ` · ${hero.name_pt}` : ""}`}
     >
-      <span className={`relative ${player.banned ? "opacity-90" : ""}`}>
-        {/* Avatar + anel de XP com o NÍVEL da conta (identidade, sempre com o jogador). */}
-        <XpAvatarRing
-          src={player.avatar ?? undefined}
-          alt={player.name}
-          fallback={player.name.slice(0, 2).toUpperCase()}
-          level={player.level}
-          pct={player.xpPct}
-          size={44}
-        />
-        {/* MVP — aura dourada viva SOBRE o avatar (blend screen soma luz, não cobre). */}
+      <span className={`relative isolate ${player.banned ? "opacity-90" : ""}`}>
+        {/* MVP — aura dourada viva ATRÁS do avatar (o perfil fica nítido por cima). */}
         {isMvp && <MvpAura />}
+        {/* Avatar + anel de XP com o NÍVEL da conta (identidade, sempre com o jogador). */}
+        <span className="relative z-10 block">
+          <XpAvatarRing
+            src={player.avatar ?? undefined}
+            alt={player.name}
+            fallback={player.name.slice(0, 2).toUpperCase()}
+            level={player.level}
+            pct={player.xpPct}
+            size={44}
+          />
+        </span>
         {/* Herói — badge secundário no canto superior direito. */}
         {hero && (
           <span className="absolute -right-1 top-0 rounded-sm">
