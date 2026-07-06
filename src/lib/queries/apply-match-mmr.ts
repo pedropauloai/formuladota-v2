@@ -15,6 +15,7 @@ import {
   computeImpact,
   blendPerf,
   modulateMmrDelta,
+  composeMatchDelta,
   seedMmrFromRankTier,
   applySeasonDecay,
   assignRolesByNetWorth,
@@ -22,9 +23,6 @@ import {
   normalizeWards,
   type PlayerRole,
   CALIBRATION_MATCHES,
-  CALIBRATION_MULTIPLIER,
-  MAX_MATCH_DELTA,
-  MVP_BONUS,
   STARTING_MMR,
 } from "@/lib/mmr";
 
@@ -220,24 +218,55 @@ export async function applyMatchMmr(
     }
   }
 
+  // STREAK (sequência de vitórias/derrotas seguidas) INCLUINDO esta partida — pro bônus
+  // anti-boosted que quebra o teto. Mini-replay cronológico do histórico do jogador.
+  const streakOf = new Map<string, number>();
+  {
+    const { data: hist } = await supabase
+      .from("match_players")
+      .select("user_id, is_winner, match_id, matches!inner(created_at)")
+      .in("user_id", userIds);
+    type H = {
+      user_id: string;
+      is_winner: boolean | null;
+      match_id: string;
+      matches: { created_at: string } | { created_at: string }[];
+    };
+    const createdAt = (h: H) =>
+      Array.isArray(h.matches) ? h.matches[0]?.created_at ?? "" : h.matches.created_at;
+    const rowsByUser = new Map<string, H[]>();
+    for (const h of (hist ?? []) as unknown as H[]) {
+      (rowsByUser.get(h.user_id) ?? rowsByUser.set(h.user_id, []).get(h.user_id)!).push(h);
+    }
+    for (const [uid, rows] of rowsByUser) {
+      rows.sort((a, b) => createdAt(a).localeCompare(createdAt(b)));
+      let streak = 0;
+      let last: boolean | null = null;
+      for (const r of rows) {
+        const w = Boolean(r.is_winner);
+        streak = w === last ? streak + 1 : 1;
+        last = w;
+        if (r.match_id === matchId) break; // streak nesta partida
+      }
+      streakOf.set(uid, streak);
+    }
+  }
+
   const results = platform.map((p) => {
     const base = p.team === "radiant" ? radiantDelta : direDelta;
     const won = Boolean(p.is_winner);
     const perf = perfOf.get(p.user_id) ?? 0.5;
-    let delta = modulateMmrDelta(base, perf, won);
-    // Calibração: multiplicador (hoje 1 — não infla mais).
-    if (isCalibrating(p.user_id)) delta *= CALIBRATION_MULTIPLIER;
-    // MVP ganha +MVP_BONUS sem furar o teto de ±30 (mantém o sinal do resultado:
-    // MVP vencedor ganha mais; MVP perdedor perde menos, nunca vira ganho).
-    if (p.user_id === mvpUserId) {
-      delta = won
-        ? Math.min(MAX_MATCH_DELTA, delta + MVP_BONUS)
-        : Math.min(-1, delta + MVP_BONUS);
-    }
+    // Delta final: desempenho (modulateMmrDelta) → MVP + calibração + streak + teto.
+    const delta = composeMatchDelta({
+      baseModulated: modulateMmrDelta(base, perf, won),
+      won,
+      isMvp: p.user_id === mvpUserId,
+      calibrating: isCalibrating(p.user_id),
+      streakLen: streakOf.get(p.user_id) ?? 1,
+    });
     return {
       user_id: p.user_id,
-      // Piso 0; sem teto superior (acima do Imortal o rank é por POSIÇÃO). O ±30/partida
-      // (+ bônus de MVP dentro do teto) já evita swing absurdo.
+      // Piso 0; sem teto superior (acima do Imortal o rank é por POSIÇÃO).
       new_mmr: Math.max(0, getMmr(p.user_id) + delta),
       delta, // gravado em match_players.mmr_change (aparece no histórico)
       won,

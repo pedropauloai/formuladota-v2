@@ -30,14 +30,14 @@ import {
   computeImpact,
   blendPerf,
   modulateMmrDelta,
+  composeMatchDelta,
   assignRolesByNetWorth,
   positionToRole,
   ASSIGNED_ROLE_TO_POSITION,
   normalizeWards,
   seedMmrFromRankTier,
   STARTING_MMR,
-  MAX_MATCH_DELTA,
-  MVP_BONUS,
+  CALIBRATION_MATCHES,
   type PlayerRole,
 } from "../src/lib/mmr";
 
@@ -136,13 +136,17 @@ async function main() {
   // Estado do replay.
   const current = new Map<string, number>();
   const seedOf = new Map<string, number>();
-  const stat = new Map<string, { w: number; l: number; games: number; peak: number; mvps: number }>();
+  // streak/lastWon rastreiam a sequência (anti-boosted); games controla a calibração.
+  const stat = new Map<
+    string,
+    { w: number; l: number; games: number; peak: number; mvps: number; streak: number; lastWon: boolean | null }
+  >();
   const seedFor = (uid: string, rankTier: number | null): number => {
     if (seedOf.has(uid)) return seedOf.get(uid)!;
     const s = seedMmrFromRankTier(rankTier ?? rankTierOf.get(uid) ?? null) ?? STARTING_MMR;
     seedOf.set(uid, s);
     current.set(uid, s);
-    stat.set(uid, { w: 0, l: 0, games: 0, peak: s, mvps: 0 });
+    stat.set(uid, { w: 0, l: 0, games: 0, peak: s, mvps: 0, streak: 0, lastWon: null });
     return s;
   };
 
@@ -246,19 +250,26 @@ async function main() {
       }
     }
 
-    // 2ª passada: deltas (Elo modulado) + bônus de MVP dentro do teto de ±30.
+    // 2ª passada: delta final = desempenho → MVP + calibração + streak + teto
+    // (composeMatchDelta, mesma fonte do apply). O replay é cronológico, então a
+    // streak e a calibração saem direto do estado acumulado.
     for (const p of platform) {
       const won = Boolean(p.is_winner);
       const base = p.team === "radiant" ? radiantDelta : direDelta;
-      let delta = modulateMmrDelta(base, perfByUser.get(p.user_id)!, won); // calib mult=1
-      if (p.user_id === mvpUser) {
-        delta = won
-          ? Math.min(MAX_MATCH_DELTA, delta + MVP_BONUS)
-          : Math.min(-1, delta + MVP_BONUS);
-      }
+      const s = stat.get(p.user_id)!;
+      const streakLen = won === s.lastWon ? s.streak + 1 : 1; // inclui esta partida
+      const calibrating = s.games < CALIBRATION_MATCHES; // games ANTES desta
+      const delta = composeMatchDelta({
+        baseModulated: modulateMmrDelta(base, perfByUser.get(p.user_id)!, won),
+        won,
+        isMvp: p.user_id === mvpUser,
+        calibrating,
+        streakLen,
+      });
       const newMmr = Math.max(0, current.get(p.user_id)! + delta);
       current.set(p.user_id, newMmr);
-      const s = stat.get(p.user_id)!;
+      s.streak = streakLen;
+      s.lastWon = won;
       s.games += 1;
       if (won) s.w += 1;
       else s.l += 1;

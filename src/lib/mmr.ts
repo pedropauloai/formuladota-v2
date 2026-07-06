@@ -351,10 +351,77 @@ export function mmrToTier(mmr: number): TierInfo {
 
 /** Nº de placements até calibrar (medalha revelada; antes disso = descalibrado). */
 export const CALIBRATION_MATCHES = 10;
-/** Multiplicador na calibração. 1 = SEM dobrar (Pedro 2026-07-02: o "dobro" inflava
- *  o MMR e o afastava da medalha real). Calibração só controla quando a medalha é
- *  revelada, não infla mais o swing. */
-export const CALIBRATION_MULTIPLIER = 1;
+/** Multiplicador na calibração (placements amplificadas). Sistema anti-boosted (Pedro
+ *  2026-07-06): as ~10 primeiras partidas movem MAIS MMR (±30 × 1.8 ≈ ±54) — o boosted
+ *  despenca rápido e o legítimo sobe rápido, convergindo pro MMR real em poucos jogos.
+ *  Antes era 1 (desligado). */
+export const CALIBRATION_MULTIPLIER = 1.8;
+
+// =====================================================================
+// SISTEMA ANTI-BOOSTED (Pedro 2026-07-06 — aprovado). A medalha Valve NÃO é confiável
+// (tem Imortal comprado que é Ancião real). 3 alavancas empurram cada um pro MMR real:
+//   1) DESCONTO PROGRESSIVO na semente de entrada (abaixo).
+//   2) CALIBRAÇÃO amplificada (CALIBRATION_MULTIPLIER acima).
+//   3) BÔNUS DE SEQUÊNCIA (streak) que quebra o teto (abaixo).
+// =====================================================================
+
+/** Teto de variação por partida quando amplificado (calibração OU streak). Sem
+ *  amplificação segue o MAX_MATCH_DELTA (±30). */
+export const MAX_MATCH_DELTA_BOOSTED = 55;
+/** Sequência mínima (vitórias/derrotas seguidas) pra começar o bônus. */
+export const STREAK_MIN = 3;
+/** MMR extra por partida a mais na sequência, a partir da STREAK_MIN. */
+export const STREAK_STEP = 6;
+/** Teto do bônus de sequência (evita inflar/deflar sem fim). */
+export const STREAK_MAX_BONUS = 24;
+
+/** Fator de RETENÇÃO da semente por medalha (1 − desconto). O boosting se concentra no
+ *  TOPO, então quanto mais alta a medalha, MAIOR o corte na entrada — o jogador prova
+ *  seu valor. Índice = medalha 1 (Arauto) … 8 (Imortal). */
+const SEED_RETENTION: Record<number, number> = {
+  1: 0.90, // Arauto   −10%
+  2: 0.88, // Guardião −12%
+  3: 0.86, // Cruzado  −14%
+  4: 0.83, // Arcano   −17%
+  5: 0.80, // Lenda    −20%
+  6: 0.75, // Ancião   −25%
+  7: 0.70, // Divino   −30%
+  8: 0.65, // Imortal  −35%
+};
+
+/**
+ * Bônus de sequência: a partir de STREAK_MIN vitórias/derrotas SEGUIDAS, cada partida
+ * a mais na sequência soma STREAK_STEP (até STREAK_MAX_BONUS). Retorna >= 0 (o sinal é
+ * aplicado pelo caller conforme won). streakLen inclui a partida atual.
+ */
+export function streakBonus(streakLen: number): number {
+  if (streakLen < STREAK_MIN) return 0;
+  return Math.min(STREAK_MAX_BONUS, (streakLen - (STREAK_MIN - 1)) * STREAK_STEP);
+}
+
+/**
+ * Compõe o delta FINAL de uma partida a partir do delta já modulado por desempenho
+ * (modulateMmrDelta, ±30). Aplica, em ordem: bônus de MVP → amplificação de calibração
+ * → bônus de sequência → teto (±30 normal, ±MAX_MATCH_DELTA_BOOSTED se amplificado).
+ * Nunca cruza o zero (vencedor ≥1, perdedor ≤−1). Fonte ÚNICA usada por apply + replay.
+ */
+export function composeMatchDelta(input: {
+  baseModulated: number; // saída de modulateMmrDelta (±30, com sinal do resultado)
+  won: boolean;
+  isMvp: boolean;
+  calibrating: boolean;
+  streakLen: number; // comprimento da sequência INCLUINDO esta partida
+}): number {
+  let delta = input.baseModulated;
+  if (input.isMvp) delta += MVP_BONUS; // favorece o MVP nos dois sinais
+  if (input.calibrating) delta *= CALIBRATION_MULTIPLIER;
+  const sb = streakBonus(input.streakLen);
+  if (sb > 0) delta += input.won ? sb : -sb;
+  const boosted = input.calibrating || sb > 0;
+  const cap = boosted ? MAX_MATCH_DELTA_BOOSTED : MAX_MATCH_DELTA;
+  const rounded = Math.round(delta);
+  return input.won ? Math.max(1, Math.min(cap, rounded)) : Math.min(-1, Math.max(-cap, rounded));
+}
 
 /**
  * Semente de MMR a partir da medalha Valve (rank_tier OpenDota: dezena = medalha
@@ -366,11 +433,22 @@ export function seedMmrFromRankTier(rankTier: number | null | undefined): number
   if (rankTier == null || rankTier <= 0) return null;
   const medal = Math.floor(rankTier / 10);
   const stars = rankTier % 10;
-  // Imortal = PISO real da escala (5620), não 6000 — o topo (até 7000) é conquistado
-  // jogando, não semeado. Distribui os 80 (medalha×10+estrela) da API dentro de 0–5620.
-  if (medal >= 8) return 5620;
-  const band = TIER_BANDS.find((b) => b.tier === medal);
-  if (!band) return null;
-  // Meio da estrela dentro da banda (starStep por medalha: 154 até Ancião, 200 no Divino).
-  return band.min + Math.max(0, Math.min(5, stars) - 1) * band.starStep + Math.round(band.starStep / 2);
+  // MMR "cru" da medalha (meio da estrela na banda; Imortal = piso 5620).
+  const raw =
+    medal >= 8
+      ? 5620
+      : (() => {
+          const band = TIER_BANDS.find((b) => b.tier === medal);
+          if (!band) return null;
+          return (
+            band.min +
+            Math.max(0, Math.min(5, stars) - 1) * band.starStep +
+            Math.round(band.starStep / 2)
+          );
+        })();
+  if (raw == null) return null;
+  // DESCONTO PROGRESSIVO de entrada (anti-boosted): entra abaixo da medalha e sobe
+  // provando. Corte maior no topo (onde o boosting concentra). Ver SEED_RETENTION.
+  const retention = SEED_RETENTION[Math.max(1, Math.min(8, medal))] ?? 1;
+  return Math.round(raw * retention);
 }
