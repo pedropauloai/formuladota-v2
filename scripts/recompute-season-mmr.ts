@@ -27,14 +27,17 @@ import { createClient } from "@supabase/supabase-js";
 import {
   calculateMmrDelta,
   computePerfScore,
+  computeImpact,
+  blendPerf,
   modulateMmrDelta,
   assignRolesByNetWorth,
   positionToRole,
   ASSIGNED_ROLE_TO_POSITION,
-  normalizeStuns,
   normalizeWards,
   seedMmrFromRankTier,
   STARTING_MMR,
+  MAX_MATCH_DELTA,
+  MVP_BONUS,
   type PlayerRole,
 } from "../src/lib/mmr";
 
@@ -209,26 +212,50 @@ async function main() {
       }
     }
 
+    // Impacto absoluto: patrimônio + K+A normalizados na partida INTEIRA (v5).
+    const nwOf = (p: MP) => num(p.raw_opendota?.net_worth) ?? 0;
+    const kaOf = (p: MP) => (num(p.raw_opendota?.kills) ?? 0) + (num(p.raw_opendota?.assists) ?? 0);
+    const maxNetWorth = Math.max(1, ...players.map(nwOf));
+    const maxKa = Math.max(1, ...players.map(kaOf));
+
+    // 1ª passada: nota final (execução-por-função + impacto) + MVP.
     let mvpUser: string | null = null;
     let mvpPerf = -1;
+    const perfByUser = new Map<string, number>();
     for (const p of platform) {
       const role = roleOf.get(p.user_id) ?? "core";
       const raw = p.raw_opendota;
       const obs = num(raw?.obs_placed);
       const sen = num(raw?.sen_placed);
       const wardsTotal = obs == null && sen == null ? null : (obs ?? 0) + (sen ?? 0);
-      const perf = computePerfScore(role, p.benchmarks as Record<string, { pct?: number | null }> | null, {
+      const rolePerf = computePerfScore(role, p.benchmarks as Record<string, { pct?: number | null }> | null, {
         teamfightParticipation: num(raw?.teamfight_participation),
-        stuns: normalizeStuns(num(raw?.stuns), durMin),
         wards: normalizeWards(wardsTotal, durMin),
       });
+      const impact = computeImpact({
+        netWorth: nwOf(p),
+        killsPlusAssists: kaOf(p),
+        maxNetWorth,
+        maxKa,
+      });
+      const perf = blendPerf(rolePerf, impact);
+      perfByUser.set(p.user_id, perf);
       if (perf > mvpPerf) {
         mvpPerf = perf;
         mvpUser = p.user_id;
       }
+    }
+
+    // 2ª passada: deltas (Elo modulado) + bônus de MVP dentro do teto de ±30.
+    for (const p of platform) {
       const won = Boolean(p.is_winner);
       const base = p.team === "radiant" ? radiantDelta : direDelta;
-      const delta = modulateMmrDelta(base, perf, won); // calib mult=1 → sem dobrar
+      let delta = modulateMmrDelta(base, perfByUser.get(p.user_id)!, won); // calib mult=1
+      if (p.user_id === mvpUser) {
+        delta = won
+          ? Math.min(MAX_MATCH_DELTA, delta + MVP_BONUS)
+          : Math.min(-1, delta + MVP_BONUS);
+      }
       const newMmr = Math.max(0, current.get(p.user_id)! + delta);
       current.set(p.user_id, newMmr);
       const s = stat.get(p.user_id)!;

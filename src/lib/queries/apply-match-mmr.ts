@@ -12,16 +12,19 @@ import { getAssignedPositionsByDotaMatchId } from "@/lib/queries/assigned-roles"
 import {
   calculateMmrDelta,
   computePerfScore,
+  computeImpact,
+  blendPerf,
   modulateMmrDelta,
   seedMmrFromRankTier,
   applySeasonDecay,
   assignRolesByNetWorth,
   positionToRole,
-  normalizeStuns,
   normalizeWards,
   type PlayerRole,
   CALIBRATION_MATCHES,
   CALIBRATION_MULTIPLIER,
+  MAX_MATCH_DELTA,
+  MVP_BONUS,
   STARTING_MMR,
 } from "@/lib/mmr";
 
@@ -173,39 +176,68 @@ export async function applyMatchMmr(
     }
   }
 
-  // MVP = maior perfScore da partida inteira (Pedro 2026-07-03). Guardamos o perf de
-  // cada jogador pra escolher o melhor depois do map.
+  // Impacto absoluto (patrimônio + K+A) normalizado na partida INTEIRA — reflete quem
+  // decidiu de fato, INDEPENDENTE da função. Metade da nota final (v5, Pedro 2026-07-06).
+  const kaOf = (p: (typeof allPlayers)[number]) => {
+    const r = rawOf(p);
+    const k = typeof r?.kills === "number" ? r.kills : 0;
+    const a = typeof r?.assists === "number" ? r.assists : 0;
+    return k + a;
+  };
+  const maxNetWorth = Math.max(1, ...allPlayers.map((p) => nwOf(p) ?? 0));
+  const maxKa = Math.max(1, ...allPlayers.map((p) => kaOf(p)));
+
+  // MVP = maior NOTA FINAL (execução-por-função + impacto). Um suporte PODE ser MVP
+  // quando de fato teve mais impacto (alta participação em kills) que o core — como
+  // acontece no Dota. Não é bloqueio ao suporte; é exigir impacto real (Pedro 2026-07-06).
   let mvpUserId: string | null = null;
   let mvpPerf = -1;
-  const results = platform.map((p) => {
-    const base = p.team === "radiant" ? radiantDelta : direDelta;
-    const won = Boolean(p.is_winner);
+  const perfOf = new Map<string, number>();
+  for (const p of platform) {
     const role = roleOf.get(p.user_id) ?? "core";
     const raw = rawOf(p);
     // Sinais "direct" do replay parseado (ausentes se não parseada → saem da média):
-    //   teamfight_participation (0..1), stuns (seg) e wards (obs+sen), normalizados.
+    //   teamfight_participation (0..1) e wards (obs+sen), normalizados.
     const tfp = raw?.teamfight_participation;
-    const stunsSec = typeof raw?.stuns === "number" ? raw.stuns : null;
     const obs = typeof raw?.obs_placed === "number" ? raw.obs_placed : null;
     const sen = typeof raw?.sen_placed === "number" ? raw.sen_placed : null;
     const wardsTotal = obs == null && sen == null ? null : (obs ?? 0) + (sen ?? 0);
-    const perf = computePerfScore(role, p.benchmarks as PerfBenchmarks | null, {
+    const rolePerf = computePerfScore(role, p.benchmarks as PerfBenchmarks | null, {
       teamfightParticipation: typeof tfp === "number" ? tfp : null,
-      stuns: normalizeStuns(stunsSec, matchDurationMin),
       wards: normalizeWards(wardsTotal, matchDurationMin),
     });
+    const impact = computeImpact({
+      netWorth: nwOf(p),
+      killsPlusAssists: kaOf(p),
+      maxNetWorth,
+      maxKa,
+    });
+    const perf = blendPerf(rolePerf, impact);
+    perfOf.set(p.user_id, perf);
     if (perf > mvpPerf) {
       mvpPerf = perf;
       mvpUserId = p.user_id;
     }
+  }
+
+  const results = platform.map((p) => {
+    const base = p.team === "radiant" ? radiantDelta : direDelta;
+    const won = Boolean(p.is_winner);
+    const perf = perfOf.get(p.user_id) ?? 0.5;
     let delta = modulateMmrDelta(base, perf, won);
-    // Calibração: delta vale o DOBRO (converge rápido pro nível real).
+    // Calibração: multiplicador (hoje 1 — não infla mais).
     if (isCalibrating(p.user_id)) delta *= CALIBRATION_MULTIPLIER;
+    // MVP ganha +MVP_BONUS sem furar o teto de ±30 (mantém o sinal do resultado:
+    // MVP vencedor ganha mais; MVP perdedor perde menos, nunca vira ganho).
+    if (p.user_id === mvpUserId) {
+      delta = won
+        ? Math.min(MAX_MATCH_DELTA, delta + MVP_BONUS)
+        : Math.min(-1, delta + MVP_BONUS);
+    }
     return {
       user_id: p.user_id,
-      // Sem teto superior (Pedro 2026-07-02): acima do Imortal o rank é por POSIÇÃO
-      // (leaderboard), não pelo número — então travar em 7000 só punia. Piso 0; o
-      // ±30/partida já evita swing absurdo.
+      // Piso 0; sem teto superior (acima do Imortal o rank é por POSIÇÃO). O ±30/partida
+      // (+ bônus de MVP dentro do teto) já evita swing absurdo.
       new_mmr: Math.max(0, getMmr(p.user_id) + delta),
       delta, // gravado em match_players.mmr_change (aparece no histórico)
       won,

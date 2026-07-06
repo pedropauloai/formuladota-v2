@@ -236,6 +236,44 @@ export function computePerfScore(
   return weightSum === 0 ? 0.5 : weighted / weightSum;
 }
 
+// =====================================================================
+// v5 (Pedro 2026-07-06): IMPACTO ABSOLUTO na nota de desempenho.
+// O percentil-por-função (v4) deixava o SUPORTE saturar a nota (cura/wards batem
+// ~1.0 fazendo o feijão-com-arroz) enquanto o CORE dominante raramente cravava
+// 0.9 em dano/torre/gpm juntos. Resultado comprovado nos dados: suporte 0/2/25
+// virou MVP na frente de um carry 21/0/7 (o dobro de patrimônio), e o core que
+// MAIS causou dano perdeu MAIS que o suporte apagado. Corrige ancorando METADE da
+// nota no IMPACTO real (patrimônio + participação em kills) — a doutrina da corrida
+// patrimonial. nota = (1-w)·execução-por-função + w·impacto, w=0.5.
+// =====================================================================
+
+/** Peso do impacto absoluto na nota final. 0.5 = metade execução, metade impacto. */
+export const IMPACT_WEIGHT = 0.5;
+
+/** Bônus de MMR pro MVP da partida (o teto de ±MAX_MATCH_DELTA continua valendo). */
+export const MVP_BONUS = 2;
+
+/**
+ * Impacto absoluto 0..1 do jogador: metade patrimônio, metade participação em kills
+ * (K+A), cada um normalizado pelo MAIOR da partida inteira. Reflete "quem de fato
+ * decidiu": o carry dominante satura, o suporte apagado fica baixo. Independe da função.
+ */
+export function computeImpact(input: {
+  netWorth: number | null | undefined;
+  killsPlusAssists: number | null | undefined;
+  maxNetWorth: number;
+  maxKa: number;
+}): number {
+  const nw = input.maxNetWorth > 0 ? Math.max(0, input.netWorth ?? 0) / input.maxNetWorth : 0;
+  const ka = input.maxKa > 0 ? Math.max(0, input.killsPlusAssists ?? 0) / input.maxKa : 0;
+  return Math.min(1, 0.5 * nw + 0.5 * ka);
+}
+
+/** Nota final = blend execução-por-função (rolePerf) + impacto absoluto (0..1). */
+export function blendPerf(rolePerf: number, impact: number, impactWeight = IMPACT_WEIGHT): number {
+  return Math.max(0, Math.min(1, (1 - impactWeight) * rolePerf + impactWeight * impact));
+}
+
 /**
  * Modula o delta Elo base pelo desempenho (ADITIVO, centrado em 0.5):
  *   bônus = PERF_SWING × (perfScore − 0.5)   → +10 (ótimo) … −10 (péssimo)
