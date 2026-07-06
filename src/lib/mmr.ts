@@ -50,11 +50,14 @@ export function calculateMmrDelta(input: {
 }
 
 /**
- * Decay aplicado ao reset de season (-30%).
- * decayedMmr = floor(currentMmr * 0.7) but minimum STARTING_MMR (1000).
+ * Decay UNIFORME aplicado ao reset de season (Pedro 2026-07-06: -20%, mesmo fator do
+ * reset de entrada — RESET_RETENTION). Multiplicar todo mundo pelo MESMO fator preserva
+ * a posição no ranking (quem era 1º continua 1º, só com menos MMR) e mantém a sensação
+ * de reconquistar o Imortal a cada temporada. Piso STARTING_MMR (1000).
+ * NOTA: RESET_RETENTION é declarado adiante no arquivo; 0.8 inline evita a ordem de init.
  */
 export function applySeasonDecay(currentMmr: number): number {
-  return Math.max(STARTING_MMR, Math.floor(currentMmr * 0.7));
+  return Math.max(STARTING_MMR, Math.floor(currentMmr * 0.8));
 }
 
 // =====================================================================
@@ -375,21 +378,12 @@ export const STREAK_STEP = 6;
 /** Teto do bônus de sequência (evita inflar/deflar sem fim). */
 export const STREAK_MAX_BONUS = 24;
 
-/** Fator de RETENÇÃO da semente por medalha (1 − desconto). O boosting se concentra no
- *  TOPO, então quanto mais alta a medalha, MAIOR o corte na entrada — o jogador prova
- *  seu valor. Índice = medalha 1 (Arauto) … 8 (Imortal). Suavizado (Pedro 2026-07-06:
- *  −35% pegou pesado; Imortal deve cair só pra ~5000, "não tão distante"). Imortal 0.89
- *  → 5620×0.89 ≈ 5000. A calibração amplificada + streak fazem o resto da convergência. */
-const SEED_RETENTION: Record<number, number> = {
-  1: 0.96, // Arauto   −4%
-  2: 0.95, // Guardião −5%
-  3: 0.94, // Cruzado  −6%
-  4: 0.93, // Arcano   −7%
-  5: 0.92, // Lenda    −8%
-  6: 0.91, // Ancião   −9%
-  7: 0.90, // Divino   −10%
-  8: 0.89, // Imortal  −11% → ~5000
-};
+/** Fator de RETENÇÃO do reset — UNIFORME pra todos (Pedro 2026-07-06). O % diferente por
+ *  medalha (progressivo) mudava as POSIÇÕES relativas — errado: quem era 1º tem que
+ *  continuar 1º, só com menos MMR. Multiplicar todo mundo pelo MESMO fator preserva a
+ *  ordem e não zera o fundo. 0.80 = −20% (Imortal 5620 → ~4496 ≈ −1k). Todo mundo
+ *  reconquista o Imortal a cada temporada; a calibração + streak fazem a convergência. */
+export const RESET_RETENTION = 0.8;
 
 /**
  * Bônus de sequência: a partir de STREAK_MIN vitórias/derrotas SEGUIDAS, cada partida
@@ -449,8 +443,7 @@ export function seedMmrFromRankTier(rankTier: number | null | undefined): number
           );
         })();
   if (raw == null) return null;
-  // DESCONTO PROGRESSIVO de entrada (anti-boosted): entra abaixo da medalha e sobe
-  // provando. Corte maior no topo (onde o boosting concentra). Ver SEED_RETENTION.
-  const retention = SEED_RETENTION[Math.max(1, Math.min(8, medal))] ?? 1;
-  return Math.round(raw * retention);
+  // RESET uniforme de entrada (anti-boosted): entra abaixo da medalha e sobe provando.
+  // Mesmo fator pra todos → preserva a ordem (ver RESET_RETENTION).
+  return Math.round(raw * RESET_RETENTION);
 }
