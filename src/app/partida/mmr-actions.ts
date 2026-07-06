@@ -13,6 +13,8 @@ import { xpProgress } from "@/lib/levels";
 import { getAssignedPositionsByDotaMatchId } from "@/lib/queries/assigned-roles";
 import {
   computePerfScore,
+  computeImpact,
+  blendPerf,
   perfComponents,
   PERF_SWING,
   assignRolesByNetWorth,
@@ -51,9 +53,16 @@ export interface MmrPlayerBreakdown {
   positionSlot: number;
   /** Delta final gravado (autoritativo). null = ainda não aplicado. */
   delta: number | null;
-  /** Score de desempenho 0..1 (recomputado dos dados da partida). */
+  /** NOTA final 0..1 (v5) = blend execução-por-função + impacto absoluto. É o que
+   *  moveu o MMR e define o MVP. */
   perfScore: number;
-  /** Ajuste de desempenho derivado (parte do delta que veio do perfScore). */
+  /** Execução-por-função pura 0..1 (média das barras de componente) — a metade
+   *  "fez o trabalho da função" da nota. */
+  rolePerf: number;
+  /** Impacto absoluto 0..1 (patrimônio + participação em kills) — a metade "quem
+   *  decidiu a partida" da nota. */
+  impact: number;
+  /** Ajuste de desempenho derivado da NOTA (parte do delta que veio do desempenho). */
   perfBonus: number;
   components: MmrComponent[];
 }
@@ -68,6 +77,9 @@ export interface MmrState {
    *  gravado (partida anterior à migration 113). */
   radiantAvg: number | null;
   direAvg: number | null;
+  /** MVP AUTORITATIVO (gravado em match_details pelo motor) — maior NOTA v5. Fonte
+   *  única: NÃO recalcular por perfScore no cliente (isso dava MVP errado). */
+  mvpUserId: string | null;
   players: MmrPlayerBreakdown[];
 }
 
@@ -88,21 +100,25 @@ export async function getMatchMmrState(dotaMatchId: string): Promise<MmrState> {
             dota_match_id?: string | null;
             radiant_avg_mmr?: number | null;
             dire_avg_mmr?: number | null;
+            mvp_user_id?: string | null;
           } | null;
         }>;
       };
     };
   })
-    .select("match_id, dota_match_id, radiant_avg_mmr, dire_avg_mmr")
+    .select("match_id, dota_match_id, radiant_avg_mmr, dire_avg_mmr, mvp_user_id")
     .eq(isUuid ? "match_id" : "dota_match_id", dotaMatchId)
     .maybeSingle();
 
   const matchUuid = isUuid ? dotaMatchId : md?.match_id;
   // dota_match_id REAL (Valve) — pra achar a sala e as roles atribuídas.
   const valveMatchId = isUuid ? (md?.dota_match_id ?? null) : dotaMatchId;
-  if (!matchUuid) return { applied: false, found: false, radiantAvg: null, direAvg: null, players: [] };
+  if (!matchUuid)
+    return { applied: false, found: false, radiantAvg: null, direAvg: null, mvpUserId: null, players: [] };
   const radiantAvg = md?.radiant_avg_mmr ?? null;
   const direAvg = md?.dire_avg_mmr ?? null;
+  // MVP AUTORITATIVO gravado pelo motor (maior nota v5) — fonte única.
+  const mvpUserId = md?.mvp_user_id ?? null;
 
   const { data: rows } = await supabase
     .from("match_players")
@@ -113,7 +129,7 @@ export async function getMatchMmrState(dotaMatchId: string): Promise<MmrState> {
     (r): r is typeof r & { user_id: string } => Boolean(r.user_id)
   );
   if (platform.length === 0) {
-    return { applied: false, found: (rows ?? []).length > 0, radiantAvg, direAvg, players: [] };
+    return { applied: false, found: (rows ?? []).length > 0, radiantAvg, direAvg, mvpUserId, players: [] };
   }
 
   // "Aplicado" = algum jogador da plataforma já tem mmr_change gravado (leitura
@@ -182,6 +198,21 @@ export async function getMatchMmrState(dotaMatchId: string): Promise<MmrState> {
     }
   }
 
+  // Máximos da partida INTEIRA (patrimônio + K+A) — normalizadores do impacto absoluto.
+  // Espelha apply-match-mmr.ts: o impacto compara CADA jogador ao maior da partida.
+  const nwOf = (p: { raw_opendota: unknown }) => {
+    const nw = (p.raw_opendota as Record<string, unknown> | null)?.net_worth;
+    return typeof nw === "number" ? nw : 0;
+  };
+  const kaOf = (p: { raw_opendota: unknown }) => {
+    const r = p.raw_opendota as Record<string, unknown> | null;
+    const k = typeof r?.kills === "number" ? r.kills : 0;
+    const a = typeof r?.assists === "number" ? r.assists : 0;
+    return k + a;
+  };
+  const maxNetWorth = Math.max(1, ...allRows.map(nwOf));
+  const maxKa = Math.max(1, ...allRows.map(kaOf));
+
   const players: MmrPlayerBreakdown[] = platform.map((p) => {
     const bench = (p.benchmarks ?? null) as Record<string, { pct?: number | null }> | null;
     const role = roleOf.get(p.user_id) ?? "core";
@@ -196,7 +227,15 @@ export async function getMatchMmrState(dotaMatchId: string): Promise<MmrState> {
       stuns: normalizeStuns(stunsSec, matchDurationMin),
       wards: normalizeWards(wardsTotal, matchDurationMin),
     };
-    const perfScore = computePerfScore(role, bench, extras);
+    // NOTA v5 = blend(execução-por-função, impacto). É o que moveu o MMR e define o MVP.
+    const rolePerf = computePerfScore(role, bench, extras);
+    const impact = computeImpact({
+      netWorth: nwOf(p),
+      killsPlusAssists: kaOf(p),
+      maxNetWorth,
+      maxKa,
+    });
+    const perfScore = blendPerf(rolePerf, impact);
     const perfBonus = Math.round(PERF_SWING * (perfScore - 0.5));
 
     // Componentes presentes do perfil da função — pra exibir de onde veio o desempenho.
@@ -220,6 +259,8 @@ export async function getMatchMmrState(dotaMatchId: string): Promise<MmrState> {
       positionSlot: posOf.get(p.user_id) ?? 1,
       delta: typeof p.mmr_change === "number" ? p.mmr_change : null,
       perfScore,
+      rolePerf,
+      impact,
       perfBonus,
       components,
     };
@@ -235,6 +276,7 @@ export async function getMatchMmrState(dotaMatchId: string): Promise<MmrState> {
     found: true,
     radiantAvg,
     direAvg,
+    mvpUserId,
     players,
   };
 }

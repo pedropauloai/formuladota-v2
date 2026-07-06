@@ -4,9 +4,10 @@
 // disponíveis em match_players. Denso e compacto por decisão de design (cliente real).
 
 import Image from "next/image";
-import { Crown } from "lucide-react";
+import { Flame } from "lucide-react";
 import { itemImageUrl } from "@/lib/queries/items";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
+import { MvpAura } from "@/components/ui/mvp-aura";
 import { UserHoverCard } from "@/components/profile/user-hover-card";
 import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
 import { mmrToDotaRank } from "@/components/queue/queue-helpers";
@@ -164,15 +165,19 @@ function PlayerCell({ p, isMvp = false }: { p: ScoreboardPlayer; isMvp?: boolean
           {p.level}
         </span>
       </span>
-      {/* Identidade: avatar com anel de XP + NÍVEL da conta (não o do herói). */}
-      <XpAvatarRing
-        src={p.avatar ?? undefined}
-        alt={p.name}
-        fallback={p.name.slice(0, 2).toUpperCase()}
-        level={p.accountLevel}
-        pct={p.accountXpPct}
-        size={32}
-      />
+      {/* Identidade: avatar com anel de XP + NÍVEL da conta (não o do herói).
+          MVP → aura dourada viva ATRÁS do avatar (maior desempenho da partida). */}
+      <span className="relative shrink-0">
+        <XpAvatarRing
+          src={p.avatar ?? undefined}
+          alt={p.name}
+          fallback={p.name.slice(0, 2).toUpperCase()}
+          level={p.accountLevel}
+          pct={p.accountXpPct}
+          size={32}
+        />
+        {isMvp && <MvpAura />}
+      </span>
       {/* Medalha do RANK FormulaDota (representa o MMR) — entre a foto e o nome. */}
       {p.mmr != null && (
         <DotaRankMedal
@@ -193,7 +198,7 @@ function PlayerCell({ p, isMvp = false }: { p: ScoreboardPlayer; isMvp?: boolean
               className="inline-flex shrink-0 items-center gap-0.5 rounded-sm bg-gold/15 px-1 py-0.5 font-display text-[0.6rem] font-bold uppercase tracking-wide text-gold"
               title="MVP da partida"
             >
-              <Crown className="size-2.5" aria-hidden="true" /> MVP
+              <Flame className="size-2.5" aria-hidden="true" /> MVP
             </span>
           )}
         </span>

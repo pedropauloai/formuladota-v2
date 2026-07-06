@@ -242,21 +242,37 @@ export function computePerfScore(
 // ~1.0 fazendo o feijão-com-arroz) enquanto o CORE dominante raramente cravava
 // 0.9 em dano/torre/gpm juntos. Resultado comprovado nos dados: suporte 0/2/25
 // virou MVP na frente de um carry 21/0/7 (o dobro de patrimônio), e o core que
-// MAIS causou dano perdeu MAIS que o suporte apagado. Corrige ancorando METADE da
-// nota no IMPACTO real (patrimônio + participação em kills) — a doutrina da corrida
-// patrimonial. nota = (1-w)·execução-por-função + w·impacto, w=0.5.
+// MAIS causou dano perdeu MAIS que o suporte apagado. Corrige ancorando a MAIOR
+// parte da nota no IMPACTO real (patrimônio + participação em kills) — a doutrina
+// da corrida patrimonial. nota = (1-w)·execução-por-função + w·impacto.
+//
+// v5.1 (Pedro 2026-07-06): calibragem PRÓ-PATRIMÔNIO. Dados provaram que a 50/50 um
+// suporte "modelo" (Silencer 1/10/15, presença de teamfight 0.76, 15 wards) ainda
+// perdia MENOS que um core de maior patrimônio e MAIOR dano da partida (Underlord
+// 5/5/8, 42k de dano) — porque a execução-por-função do suporte SATURA e a metade
+// impacto (50/50) não bastava pra virar. Dois ajustes:
+//   1) IMPACT_WEIGHT 0.5 → 0.6 (impacto pesa MAIS que execução).
+//   2) Dentro do impacto, PATRIMÔNIO pesa mais que K+A (0.65/0.35). Motivo: os
+//      assists MEIO QUE contam a presença em luta DE NOVO (o suporte pega assist
+//      justamente por estar na luta, e isso já é premiado no teamfight_participation,
+//      o maior peso da execução). Patrimônio é o sinal LIMPO da corrida de ouro.
 // =====================================================================
 
-/** Peso do impacto absoluto na nota final. 0.5 = metade execução, metade impacto. */
-export const IMPACT_WEIGHT = 0.5;
+/** Peso do impacto absoluto na nota final. 0.6 = impacto pesa mais que execução (0.4). */
+export const IMPACT_WEIGHT = 0.6;
+
+/** Peso do PATRIMÔNIO dentro do impacto (o resto, 0.35, é a participação em kills). */
+export const PATRIMONY_WEIGHT = 0.65;
 
 /** Bônus de MMR pro MVP da partida (o teto de ±MAX_MATCH_DELTA continua valendo). */
 export const MVP_BONUS = 2;
 
 /**
- * Impacto absoluto 0..1 do jogador: metade patrimônio, metade participação em kills
- * (K+A), cada um normalizado pelo MAIOR da partida inteira. Reflete "quem de fato
- * decidiu": o carry dominante satura, o suporte apagado fica baixo. Independe da função.
+ * Impacto absoluto 0..1 do jogador: PATRIMÔNIO (peso PATRIMONY_WEIGHT) + participação
+ * em kills (K+A), cada um normalizado pelo MAIOR da partida inteira. Reflete "quem de
+ * fato decidiu": o carry dominante satura, o suporte apagado fica baixo. Independe da
+ * função. O patrimônio domina (corrida de ouro) porque K+A já é meio-refletido na
+ * execução via teamfight_participation.
  */
 export function computeImpact(input: {
   netWorth: number | null | undefined;
@@ -266,7 +282,7 @@ export function computeImpact(input: {
 }): number {
   const nw = input.maxNetWorth > 0 ? Math.max(0, input.netWorth ?? 0) / input.maxNetWorth : 0;
   const ka = input.maxKa > 0 ? Math.max(0, input.killsPlusAssists ?? 0) / input.maxKa : 0;
-  return Math.min(1, 0.5 * nw + 0.5 * ka);
+  return Math.min(1, PATRIMONY_WEIGHT * nw + (1 - PATRIMONY_WEIGHT) * ka);
 }
 
 /** Nota final = blend execução-por-função (rolePerf) + impacto absoluto (0..1). */

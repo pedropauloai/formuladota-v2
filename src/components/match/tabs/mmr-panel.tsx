@@ -9,9 +9,10 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Loader2, TrendingUp, TrendingDown, Scale, Crown } from "lucide-react";
+import { Loader2, TrendingUp, TrendingDown, Scale, Flame } from "lucide-react";
 import { getMatchMmrState, type MmrState, type MmrPlayerBreakdown } from "@/app/partida/mmr-actions";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
+import { MvpAura } from "@/components/ui/mvp-aura";
 import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
 import { RoleIcon } from "@/components/match/match-scoreboard";
 import { SocialIconsRow } from "@/components/profile/social-icons-row";
@@ -102,7 +103,10 @@ export function MmrPanel({ dotaMatchId }: { dotaMatchId: string }) {
     );
   }
 
-  const mvpUserId = mvpOf(state);
+  // MVP AUTORITATIVO gravado pelo motor (maior nota v5). NÃO recalcular no cliente:
+  // antes recalculávamos por perfScore (execução pura) e dava MVP DIFERENTE do resto
+  // do app (feed/placar), que já usam match_details.mvp_user_id. Pedro 2026-07-06.
+  const mvpUserId = state.mvpUserId;
 
   return (
     <div className="space-y-6">
@@ -112,17 +116,20 @@ export function MmrPanel({ dotaMatchId }: { dotaMatchId: string }) {
           O seu MMR muda por <strong className="text-text-display">dois fatores</strong>:{" "}
           <strong className="text-text-display">Resultado</strong> (Elo — vitória sobe, derrota
           desce; é a base) e <strong className="text-text-display">Desempenho</strong> (ajuste de
-          até <strong className="text-gold">±{Math.round(20 / 2)}</strong>). O que mais pesa no
-          desempenho é <strong className="text-text-display">estar nas lutas com o time</strong>.
-          Cada partida mexe no máximo <strong className="text-gold">±30</strong>.
+          até <strong className="text-gold">±{Math.round(20 / 2)}</strong>). Cada partida mexe no
+          máximo <strong className="text-gold">±30</strong>.
         </p>
         <p className="mt-2 text-[0.8rem] text-text-faded">
-          As barras de desempenho vêm dos{" "}
-          <strong className="text-text-muted">benchmarks POR HERÓI da OpenDota</strong> (você é
-          comparado a outros jogadores do MESMO herói — justo entre funções) e do{" "}
-          <strong className="text-text-muted">replay parseado</strong> da partida.{" "}
-          <span className="text-text-muted">Passe o mouse em cada barra</span> pra ver a fonte e
-          como é medida.
+          A nota de desempenho junta duas metades:{" "}
+          <strong className="text-text-muted">Execução por função</strong> (40% — você é comparado
+          a outros do MESMO herói nos benchmarks da OpenDota, justo entre funções; o que mais pesa
+          aqui é <span className="text-text-muted">estar nas lutas com o time</span>) e{" "}
+          <strong className="text-gold">Impacto</strong> (60% —{" "}
+          <strong className="text-text-muted">patrimônio</strong> na corrida de ouro + participação
+          em kills, comparado ao maior da partida). É o impacto que garante que quem{" "}
+          <span className="text-text-muted">de fato decidiu o jogo</span> seja reconhecido — inclusive
+          o MVP. <span className="text-text-muted">Passe o mouse em cada barra</span> pra ver a
+          fonte.
         </p>
       </div>
 
@@ -155,14 +162,6 @@ export function MmrPanel({ dotaMatchId }: { dotaMatchId: string }) {
       </div>
     </div>
   );
-}
-
-/** MVP = maior perfScore da partida (só quando aplicado). Mesmo critério do backend. */
-function mvpOf(state: MmrState): string | null {
-  if (!state.applied) return null;
-  let best: MmrPlayerBreakdown | null = null;
-  for (const p of state.players) if (p.perfScore > (best?.perfScore ?? -1)) best = p;
-  return best?.userId ?? null;
 }
 
 /** Quem venceu (radiant?) a partir dos jogadores da plataforma. */
@@ -218,6 +217,8 @@ function PlayerCard({ p, pending, isMvp }: { p: MmrPlayerBreakdown; pending: boo
             pct={p.xpPct}
             size={40}
           />
+          {/* MVP — aura dourada viva SOBRE o avatar (blend screen soma luz, não cobre). */}
+          {isMvp && <MvpAura />}
           {/* Herói — badge no canto. */}
           {p.heroImage && (
             <span className="absolute -right-1 -top-1 rounded-sm">
@@ -229,16 +230,6 @@ function PlayerCard({ p, pending, isMvp }: { p: MmrPlayerBreakdown; pending: boo
                 unoptimized
                 className="size-5 rounded-sm object-cover"
               />
-            </span>
-          )}
-          {/* MVP — coroa dourada sobre o avatar. */}
-          {isMvp && (
-            <span
-              className="absolute -left-1.5 -top-1.5 flex size-[18px] items-center justify-center rounded-full border border-bg-deep bg-gold text-bg-deep shadow"
-              title="MVP da partida"
-              aria-label="MVP da partida"
-            >
-              <Crown className="size-3" strokeWidth={2.5} aria-hidden="true" />
             </span>
           )}
         </span>
@@ -259,7 +250,7 @@ function PlayerCard({ p, pending, isMvp }: { p: MmrPlayerBreakdown; pending: boo
             {p.name}
             {isMvp && (
               <span className="inline-flex items-center gap-0.5 rounded-sm bg-gold/15 px-1 py-0.5 font-display text-[0.6rem] font-bold uppercase tracking-wide text-gold">
-                <Crown className="size-2.5" aria-hidden="true" /> MVP
+                <Flame className="size-2.5" aria-hidden="true" /> MVP
               </span>
             )}
           </p>
@@ -294,9 +285,48 @@ function PlayerCard({ p, pending, isMvp }: { p: MmrPlayerBreakdown; pending: boo
         </div>
       </div>
 
-      {/* Desempenho SEMPRE exposto (barras de componentes). */}
+      {/* IMPACTO (60% da nota) — patrimônio na corrida de ouro + participação em kills,
+          comparado ao maior da partida. Barra em GOLD pra separar da execução. */}
+      <div className="mt-3 flex items-center gap-2 border-t border-border-subtle/50 pt-2.5">
+        <Tooltip
+          side="top"
+          align="start"
+          content={
+            <span className="block max-w-[16rem] text-left">
+              <span className="font-display text-[0.65rem] font-bold uppercase tracking-wide text-gold">
+                Impacto absoluto · 60% da nota
+              </span>
+              <span className="mt-1 block font-body text-xs leading-snug text-text-body">
+                Patrimônio (ouro acumulado — a corrida de ouro pesa mais) + participação em kills
+                (K+A), cada um comparado ao MAIOR da partida. É o que reconhece quem de fato decidiu
+                o jogo, seja core ou suporte.
+              </span>
+            </span>
+          }
+        >
+          <span className="w-36 shrink-0 cursor-help font-display text-[0.7rem] font-bold uppercase tracking-wide text-gold underline decoration-dotted decoration-gold/40 underline-offset-2">
+            Impacto
+            <span className="ml-1 font-body font-normal normal-case text-text-faded">·60%</span>
+          </span>
+        </Tooltip>
+        <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-bg-deep">
+          <span
+            className="block h-full rounded-full bg-gold"
+            style={{ width: `${Math.round(p.impact * 100)}%` }}
+          />
+        </span>
+        <span className="w-8 shrink-0 text-right font-mono text-[0.7rem] tabular-nums text-gold">
+          {Math.round(p.impact * 100)}%
+        </span>
+      </div>
+
+      {/* EXECUÇÃO POR FUNÇÃO (40% da nota) — barras de componentes por herói/replay. */}
       {p.components.length > 0 ? (
-        <ul className="mt-3 space-y-1 border-t border-border-subtle/50 pt-2.5">
+        <>
+          <p className="mb-1 mt-2 font-display text-[0.6rem] font-bold uppercase tracking-wide text-text-faded">
+            Execução por função · 40%
+          </p>
+          <ul className="space-y-1">
           {p.components.map((c) => {
             const info = METRIC_INFO[c.key];
             return (
@@ -339,9 +369,10 @@ function PlayerCard({ p, pending, isMvp }: { p: MmrPlayerBreakdown; pending: boo
             </li>
             );
           })}
-        </ul>
+          </ul>
+        </>
       ) : (
-        <p className="mt-2 border-t border-border-subtle/50 pt-2 font-body text-[0.7rem] text-text-faded">
+        <p className="mt-2 font-body text-[0.7rem] text-text-faded">
           Estatísticas detalhadas do replay ainda não disponíveis.
         </p>
       )}

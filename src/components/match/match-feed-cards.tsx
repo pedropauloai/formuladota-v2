@@ -4,9 +4,10 @@
 
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
-import { Clock, Radio, Ban, Crown } from "lucide-react";
+import { Clock, Radio, Ban } from "lucide-react";
 import { getHeroById } from "@/lib/queries/heroes";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
+import { MvpAura } from "@/components/ui/mvp-aura";
 import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
 import { mmrToDotaRank } from "@/components/queue/queue-helpers";
 import { mmrToTier } from "@/lib/mmr";
@@ -24,8 +25,6 @@ function PlayerChip({ player, isMvp }: { player: HistoryPlayer; isMvp?: boolean 
       title={`${player.name}${isMvp ? " · MVP" : ""}${player.banned ? " · BANIDO" : ""}${hero ? ` · ${hero.name_pt}` : ""}`}
     >
       <span className={`relative ${player.banned ? "opacity-90" : ""}`}>
-        {/* MVP — coroa dourada sobre o avatar (maior desempenho da partida). */}
-        {isMvp && <MvpMark />}
         {/* Avatar + anel de XP com o NÍVEL da conta (identidade, sempre com o jogador). */}
         <XpAvatarRing
           src={player.avatar ?? undefined}
@@ -35,6 +34,8 @@ function PlayerChip({ player, isMvp }: { player: HistoryPlayer; isMvp?: boolean 
           pct={player.xpPct}
           size={44}
         />
+        {/* MVP — aura dourada viva SOBRE o avatar (blend screen soma luz, não cobre). */}
+        {isMvp && <MvpAura />}
         {/* Herói — badge secundário no canto superior direito. */}
         {hero && (
           <span className="absolute -right-1 top-0 rounded-sm">
@@ -80,19 +81,6 @@ function PlayerChip({ player, isMvp }: { player: HistoryPlayer; isMvp?: boolean 
       ) : (
         <span className="text-xs leading-none text-text-faded">—</span>
       )}
-    </span>
-  );
-}
-
-/** Coroa de MVP sobre o avatar (topo, centralizada) — maior desempenho da partida. */
-function MvpMark() {
-  return (
-    <span
-      className="absolute -top-2 left-1/2 z-10 flex size-[18px] -translate-x-1/2 items-center justify-center rounded-full border border-bg-deep bg-gold text-bg-deep shadow"
-      title="MVP da partida"
-      aria-label="MVP da partida"
-    >
-      <Crown className="size-3" strokeWidth={2.5} aria-hidden="true" />
     </span>
   );
 }
