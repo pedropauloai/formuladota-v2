@@ -3,7 +3,7 @@
 // Faz só o toggle de aba no cliente; todo o parsing é feito no servidor e chega
 // como view-model serializável. Cada painel é presentational.
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import type { PlayerFull, AdvantageSeries } from "@/lib/dota/match-stats";
 import type { PlayerSeries } from "@/lib/dota/match-series";
 import type { Ward } from "@/lib/dota/match-vision";
@@ -76,27 +76,49 @@ export function MatchDetail({
   const [tab, setTab] = useState<Tab>("Visão geral");
   const { radiant, dire } = splitTeams(players);
 
+  // Indicador que DESLIZA sob a aba ativa (micro-fx §3.4: "indicador que desliza, não
+  // pisca"). Mede posição/largura da aba ativa e anima left/width. Reage a troca de aba
+  // e a resize. Em vez da borda "pular" entre abas, a barrinha vermelha corre até ela.
+  const tabsRef = useRef<HTMLDivElement>(null);
+  const [ind, setInd] = useState<{ left: number; width: number }>({ left: 0, width: 0 });
+  useEffect(() => {
+    const container = tabsRef.current;
+    const el = container?.querySelector<HTMLElement>(`[data-tab="${CSS.escape(tab)}"]`);
+    if (!el) return;
+    const measure = () => setInd({ left: el.offsetLeft, width: el.offsetWidth });
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    if (container) ro.observe(container);
+    return () => ro.disconnect();
+  }, [tab]);
+
   return (
     <div>
       {/* Barra de abas. */}
-      <div className="mb-5 flex gap-1 overflow-x-auto border-b border-border-subtle">
+      <div ref={tabsRef} className="relative mb-5 flex gap-1 overflow-x-auto border-b border-border-subtle">
         {TABS.map((t) => {
           const active = t === tab;
           return (
             <button
               key={t}
               type="button"
+              data-tab={t}
               onClick={() => setTab(t)}
-              className={`shrink-0 border-b-2 px-3 py-2 font-display text-sm font-bold uppercase tracking-wide transition-colors ${
-                active
-                  ? "border-brand-primary text-text-display"
-                  : "border-transparent text-text-muted hover:text-text-display"
+              className={`shrink-0 px-3 py-2 font-display text-sm font-bold uppercase tracking-wide transition-colors ${
+                active ? "text-text-display" : "text-text-muted hover:text-text-display"
               }`}
             >
               {t}
             </button>
           );
         })}
+        {/* Indicador deslizante — corre sob a aba ativa. */}
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute bottom-0 h-0.5 bg-brand-primary transition-[left,width] duration-300 ease-out"
+          style={{ left: ind.left, width: ind.width }}
+        />
       </div>
 
       {/* Painel ativo. */}

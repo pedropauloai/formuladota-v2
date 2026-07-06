@@ -19,6 +19,7 @@
 
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
+import { CountUp } from "@/components/ui/count-up";
 import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
 import { Tooltip } from "@/components/ui/tooltip";
 import { HeroFace } from "@/components/dota/hero-face";
@@ -95,7 +96,11 @@ export function CareerIdentityInline({
       >
         <div>
           <p className="font-display-condensed text-3xl leading-none tabular-nums text-gold">
-            {winratePct !== null ? `${winratePct}%` : "—"}
+            {winratePct !== null ? (
+              <CountUp value={winratePct} from={0} format={(n) => `${n}%`} />
+            ) : (
+              "—"
+            )}
             <span className="ml-1.5 text-sm uppercase tracking-wide text-gold-muted">
               {t("winrate")}
             </span>
