@@ -53,20 +53,19 @@ void main(){
     float d = segDist(uv, u_pts[i], u_pts[i + 1], h);
     if (d < best) { best = d; bestT = (float(i) + h) / float(u_count - 1); }
   }
-  float onLine = smoothstep(0.03, 0.0, best);
+  float onLine = smoothstep(0.028, 0.0, best);
 
-  // COMETA correndo pela barra (o rastro): cabeça brilhante + cauda decaindo pra trás.
-  float pulse = fract(t * 0.4);
-  float dHead = bestT - pulse;
-  float head = exp(-abs(dHead) * 20.0);
-  float tail = dHead < 0.0 ? exp(dHead * 6.0) : 0.0;
-  float comet = (head + tail * 0.55) * onLine;
+  // CALDA que SOBRA do núcleo (Pedro 2026-07-06): a partir da ponta, uma cauda curta
+  // decai pra trás ao longo da barra — NÃO corre pela barra. Leve cintilação viva.
+  float fromTip = 1.0 - bestT;                          // 0 na ponta, cresce pra trás
+  float shimmer = 0.85 + 0.15 * sin(t * 5.0 - fromTip * 14.0);
+  float tail = exp(-fromTip * 8.5) * onLine * shimmer;  // cauda curta e sutil
 
   // BRILHO NA PONTA — glow pulsante na cor + NÚCLEO pequeno branco.
   float dTip = distance(uv, u_tip);
   float tipPulse = 0.82 + 0.18 * sin(t * 7.0);
-  float tipGlow = pow(smoothstep(0.12, 0.0, dTip), 2.4) * tipPulse;
-  float tipCore = pow(smoothstep(0.022, 0.0, dTip), 2.0);   // núcleo MENOR
+  float tipGlow = pow(smoothstep(0.11, 0.0, dTip), 2.4) * tipPulse;
+  float tipCore = pow(smoothstep(0.02, 0.0, dTip), 2.0);   // núcleo MENOR
 
   // FAGULHAS da ponta (mais delas), emanando e cintilando.
   float spark = 0.0;
@@ -82,10 +81,10 @@ void main(){
     spark += smoothstep(0.013, 0.0, dd) * life * fl;
   }
 
-  vec3 col = u_color * (comet * 1.5 + tipGlow * 1.5 + onLine * 0.22);
+  vec3 col = u_color * (tail * 1.5 + tipGlow * 1.5 + onLine * 0.18);
   col += vec3(1.0) * tipCore * 1.4;               // núcleo branco pequeno
   col += (u_color + vec3(0.45)) * spark * 1.9;    // fagulhas quase brancas
-  float alpha = clamp(comet + tipGlow + tipCore + spark + onLine * 0.22, 0.0, 1.0);
+  float alpha = clamp(tail + tipGlow + tipCore + spark + onLine * 0.18, 0.0, 1.0);
   gl_FragColor = vec4(col, alpha);
 }
 `;
