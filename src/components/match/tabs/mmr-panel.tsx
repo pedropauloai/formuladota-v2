@@ -12,7 +12,7 @@ import Image from "next/image";
 import { Loader2, TrendingUp, TrendingDown, Scale, Flame } from "lucide-react";
 import { getMatchMmrState, type MmrState, type MmrPlayerBreakdown } from "@/app/partida/mmr-actions";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
-import { MvpCrown } from "@/components/ui/mvp-crown";
+import { MvpBadge } from "@/components/ui/mvp-badge";
 import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
 import { RoleIcon } from "@/components/match/match-scoreboard";
 import { SocialIconsRow } from "@/components/profile/social-icons-row";
@@ -230,9 +230,9 @@ function PlayerCard({ p, pending, isMvp }: { p: MmrPlayerBreakdown; pending: boo
               />
             </span>
           )}
-          {/* MVP — coroa dourada (SVG, sem WebGL). O card já tem a borda dourada + badge
-              "MVP" como destaque; a coroa marca o avatar igual ao feed. */}
-          {isMvp && <MvpCrown />}
+          {/* MVP — selo "MVP" (SVG, sem WebGL). O card já tem a borda dourada + badge
+              "MVP" como destaque; o selo marca o avatar igual ao feed. */}
+          {isMvp && <MvpBadge />}
         </span>
 
         {p.seasonMmr != null && (

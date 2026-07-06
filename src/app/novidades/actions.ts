@@ -12,8 +12,13 @@ export async function markChangelogSeen(): Promise<void> {
   if (!user) return;
   // RPC SECURITY DEFINER (migration 143) — atualiza profiles.changelog_seen_at
   // da própria linha (id = auth.uid()), driblando a RLS por coluna de profiles.
-  const rpc = supabase.rpc as unknown as (fn: string) => PromiseLike<{ error: unknown }>;
-  await rpc("mark_changelog_seen");
+  // IMPORTANTE: castar o OBJETO (não o método) pra PRESERVAR o `this` binding. Extrair
+  // `const rpc = supabase.rpc` desanexa o método → `this` undefined → "reading 'rest'"
+  // e quebra o /novidades (bug em produção 2026-07-05→06).
+  const sb = supabase as unknown as {
+    rpc: (fn: string) => PromiseLike<{ error: unknown }>;
+  };
+  await sb.rpc("mark_changelog_seen");
   // O contador do sino (changelogUnread) é calculado no render server-side do shell.
   // Sem revalidar, a topbar fica com a contagem CONGELADA e o badge "+9" nunca zera
   // (o update no banco não re-renderiza o RSC). Revalida o layout → shell recalcula → 0.

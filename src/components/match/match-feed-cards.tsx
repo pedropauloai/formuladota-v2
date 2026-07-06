@@ -7,7 +7,7 @@ import { Link } from "@/i18n/navigation";
 import { Clock, Radio, Ban } from "lucide-react";
 import { getHeroById } from "@/lib/queries/heroes";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
-import { MvpCrown } from "@/components/ui/mvp-crown";
+import { MvpBadge } from "@/components/ui/mvp-badge";
 import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
 import { mmrToDotaRank } from "@/components/queue/queue-helpers";
 import { mmrToTier } from "@/lib/mmr";
@@ -49,8 +49,8 @@ function PlayerChip({ player, isMvp }: { player: HistoryPlayer; isMvp?: boolean 
         )}
         {/* Marca de BANIDO — accountability pública (Mural da Vergonha). */}
         {player.banned && <BannedMark />}
-        {/* MVP — coroa dourada (PNG estático, sem WebGL) pousada no topo do avatar. */}
-        {isMvp && <MvpCrown />}
+        {/* MVP — selo "MVP" (SVG vermelho+dourado, sem WebGL) no topo do avatar. */}
+        {isMvp && <MvpBadge />}
       </span>
       {/* Medalha do rank FormulaDota (representa o MMR atual). */}
       {player.mmr != null && (

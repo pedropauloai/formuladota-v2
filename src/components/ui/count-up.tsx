@@ -18,11 +18,21 @@ interface Props {
   /** Duração da contagem (ms). */
   durationMs?: number;
   className?: string;
-  /** Formata o número exibido (default: pt-BR com separador de milhar). */
-  format?: (n: number) => string;
+  /** Texto ANTES do número (ex. "+", "R$ "). String serializável — pode vir de Server
+   *  Component (função NÃO pode: quebra o RSC → não usar `format`). */
+  prefix?: string;
+  /** Texto DEPOIS do número (ex. "%", " XP"). String serializável. */
+  suffix?: string;
 }
 
-export function CountUp({ value, from, durationMs = 900, className, format }: Props) {
+export function CountUp({
+  value,
+  from,
+  durationMs = 900,
+  className,
+  prefix = "",
+  suffix = "",
+}: Props) {
   const reduced = useReducedMotion();
   const [display, setDisplay] = useState(from ?? value);
   const fromRef = useRef(from ?? value);
@@ -51,6 +61,11 @@ export function CountUp({ value, from, durationMs = 900, className, format }: Pr
     return () => cancelAnimationFrame(rafRef.current);
   }, [value, durationMs, reduced]);
 
-  const fmt = format ?? ((n: number) => n.toLocaleString("pt-BR"));
-  return <span className={className}>{fmt(display)}</span>;
+  return (
+    <span className={className}>
+      {prefix}
+      {display.toLocaleString("pt-BR")}
+      {suffix}
+    </span>
+  );
 }

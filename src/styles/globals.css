@@ -456,18 +456,18 @@
 }
 
 /* ---------------------------------------------------------------------------
- * MVP — a marca do MVP é a COROA dourada (SVG, MvpCrown) no topo do avatar. Os
- * keyframes de chama/brasa (fd-mvp-*) foram REMOVIDOS junto com o MvpFlame WebGL
- * (Pedro 2026-07-06: "voltar pro SVG, tirar o efeito WebGL"). Restou só a flutuação
- * leve da coroa, abaixo.
+ * MVP — a marca do MVP é o SELO "MVP" (SVG vermelho+dourado, MvpBadge) na parte
+ * inferior do avatar, acima do LVL. Os keyframes de chama/brasa (fd-mvp-*) foram
+ * REMOVIDOS junto com o MvpFlame WebGL (Pedro 2026-07-06). Restou só a flutuação leve
+ * do selo, abaixo.
  * ------------------------------------------------------------------------- */
 
-/* Flutuação delicada da COROA do MVP (MvpCrown) — sobe/desce ~1.5px e balança o tilt de
- * leve. SÓ transform (compositor da GPU), barato pra várias no feed. A translação base
- * (-translate-x-1/2 -translate-y-[62%]) fica no elemento; aqui só o offset relativo. */
-@keyframes fd-crown-float {
-  0%, 100% { transform: translate(-50%, -62%) rotate(0deg); }
-  50%      { transform: translate(-50%, calc(-62% - 1.5px)) rotate(-2deg); }
+/* Flutuação delicada do SELO do MVP (MvpBadge) — sobe/desce ~1.5px e balança o tilt de
+ * leve. SÓ transform (compositor da GPU), barato pra várias no feed. Aplicada no span
+ * INTERNO, então NÃO interfere no posicionamento (que fica no span externo). */
+@keyframes fd-badge-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-1.5px) rotate(-2deg); }
 }
 
 /* ---------------------------------------------------------------------------

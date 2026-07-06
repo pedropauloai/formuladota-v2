@@ -7,7 +7,7 @@ import Image from "next/image";
 import { Flame } from "lucide-react";
 import { itemImageUrl } from "@/lib/queries/items";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
-import { MvpCrown } from "@/components/ui/mvp-crown";
+import { MvpBadge } from "@/components/ui/mvp-badge";
 import { UserHoverCard } from "@/components/profile/user-hover-card";
 import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
 import { mmrToDotaRank } from "@/components/queue/queue-helpers";
@@ -176,7 +176,7 @@ function PlayerCell({ p, isMvp = false }: { p: ScoreboardPlayer; isMvp?: boolean
           pct={p.accountXpPct}
           size={32}
         />
-        {isMvp && <MvpCrown size={16} />}
+        {isMvp && <MvpBadge width={26} />}
       </span>
       {/* Medalha do RANK FormulaDota (representa o MMR) — entre a foto e o nome. */}
       {p.mmr != null && (

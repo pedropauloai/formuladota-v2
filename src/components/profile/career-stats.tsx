@@ -97,7 +97,7 @@ export function CareerIdentityInline({
         <div>
           <p className="font-display-condensed text-3xl leading-none tabular-nums text-gold">
             {winratePct !== null ? (
-              <CountUp value={winratePct} from={0} format={(n) => `${n}%`} />
+              <CountUp value={winratePct} from={0} suffix="%" />
             ) : (
               "—"
             )}

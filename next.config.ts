@@ -39,12 +39,16 @@ const config: NextConfig = {
       // Next.js (App Router/RSC) injeta scripts/styles inline sem nonce → precisa
       // 'unsafe-inline'. Não há script externo no app (verificado). Endurecimento
       // futuro: CSP baseada em nonce via middleware.
-      "script-src 'self' 'unsafe-inline'",
-      "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob: https://*.steamstatic.com https://cdn.discordapp.com https://*.supabase.co",
-      "font-src 'self' data:",
-      // REST + Realtime (wss) do Supabase, e fetches de dados Dota.
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.opendota.com https://api.stratz.com",
+      // Scripts de terceiros LEGÍTIMOS (analytics, gated por env, configurados 2026-07-03):
+      // PostHog (us-assets), Google Analytics (@next/third-parties), Vercel Analytics/
+      // Speed Insights (va.vercel-scripts.com) e Vercel Toolbar (vercel.live). Sem estes,
+      // a CSP bloqueava os scripts e enchia o console de erros (Pedro 2026-07-06).
+      "script-src 'self' 'unsafe-inline' https://us-assets.i.posthog.com https://www.googletagmanager.com https://va.vercel-scripts.com https://vercel.live",
+      "style-src 'self' 'unsafe-inline' https://vercel.live",
+      "img-src 'self' data: blob: https://*.steamstatic.com https://cdn.discordapp.com https://*.supabase.co https://*.google-analytics.com https://us.i.posthog.com https://vercel.live https://vercel.com",
+      "font-src 'self' data: https://vercel.live",
+      // REST + Realtime (wss) do Supabase, dados Dota, e os beacons dos analytics acima.
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.opendota.com https://api.stratz.com https://us.i.posthog.com https://us-assets.i.posthog.com https://*.google-analytics.com https://www.googletagmanager.com https://va.vercel-scripts.com https://vercel.live wss://ws-us3.pusher.com",
       "worker-src 'self' blob:",
       "manifest-src 'self'",
       "media-src 'self' https://*.steamstatic.com", // vídeo de fundo (montagem oficial do Dota 2)
