@@ -10,11 +10,11 @@
 // for passado, ele dita o glow (tier específico ou 'none'=sem glow); senão, fallback =
 // tier do próprio nível (comportamento histórico). `frame` desenha a moldura equipada.
 
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { TIER_CONFIG, getTierForLevel, type Tier } from "@/lib/levels";
 import { useReducedMotion } from "@/lib/particles/hooks";
 import type { RingAsset, FrameAsset, RingEffectId } from "@/lib/cosmetics";
-import { ElectricBorder } from "@/components/ui/electric-border";
 import { cn } from "@/lib/utils";
 
 const TIER_ORDER: Tier[] = ["novato", "aprendiz", "piloto", "as", "lendario", "mistico"];
@@ -121,6 +121,30 @@ export function XpAvatarRing({
     `L ${cx + gapHalf} ${B}`,
   ].join(" ");
 
+  // BRILHO NA PONTA do progresso (Pedro 2026-07-06): um ponto de luz na posição atual
+  // do preenchimento de XP, com faísca/neon SUTIL — indica "seu progresso está aqui".
+  // NÃO é moldura no contorno inteiro (isso ficou "carnaval"). Calcula a posição real
+  // ao longo do path via getPointAtLength (client-only). A cor é a do efeito equipado
+  // (cosmético) ou a do tier.
+  const progressRef = useRef<SVGPathElement>(null);
+  const [tip, setTip] = useState<{ x: number; y: number } | null>(null);
+  useEffect(() => {
+    const p = progressRef.current;
+    if (!p || clamped <= 0) {
+      setTip(null);
+      return;
+    }
+    const len = p.getTotalLength();
+    const at = p.getPointAtLength(clamped * len);
+    setTip({ x: at.x, y: at.y });
+  }, [clamped, box, rx, ringPath]);
+  // 3 faíscas minúsculas ao redor da ponta (offsets fixos), cintilando fora de fase.
+  const TIP_SPARKS = [
+    { dx: 2, dy: -1.5 },
+    { dx: -1.5, dy: -2 },
+    { dx: 1, dy: 2 },
+  ];
+
   return (
     <div
       className={cn("relative isolate shrink-0", cfg.color)}
@@ -138,11 +162,6 @@ export function XpAvatarRing({
           )}
         />
       )}
-      {/* COSMÉTICO DE ANEL: moldura ELÉTRICA no contorno (neon + faíscas na borda,
-          ref avatar-frame-eletric). Só quando um efeito está equipado — senão o próprio
-          stroke da barra carrega a cor do tier. */}
-      {effectColor && <ElectricBorder box={box} rx={rx} color={effectColor} />}
-
       {/* Borda-progresso */}
       <svg
         className={cn("absolute inset-0", cfg.color)}
@@ -151,6 +170,7 @@ export function XpAvatarRing({
         viewBox={`0 0 ${box} ${box}`}
         fill="none"
         aria-hidden="true"
+        style={{ overflow: "visible" }}
       >
         {/* Track neutro */}
         <path
@@ -162,11 +182,12 @@ export function XpAvatarRing({
           strokeLinejoin="round"
           className="opacity-15"
         />
-        {/* Progresso (cor do tier via currentColor) — nasce no centro-inferior, horário */}
+        {/* Progresso (cor do efeito equipado, ou do tier) — nasce no centro-inferior. */}
         <path
+          ref={progressRef}
           d={ringPath}
           fill="none"
-          stroke="currentColor"
+          stroke={effectColor ?? "currentColor"}
           strokeWidth={stroke}
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -175,11 +196,32 @@ export function XpAvatarRing({
           strokeDashoffset={1 - clamped}
           style={{
             transition: "stroke-dashoffset 700ms cubic-bezier(0.22,1,0.36,1)",
-            filter: glowOff
-              ? "none"
-              : `drop-shadow(0 0 ${4 + intensity * 1.5}px currentColor)`,
           }}
         />
+        {/* BRILHO NA PONTA — ponto de luz na posição atual do progresso, com faísca sutil.
+            Núcleo quase branco + halo neon na cor (drop-shadow apertado). */}
+        {tip && !glowOff && (
+          <g
+            style={{
+              filter: `drop-shadow(0 0 2px ${effectColor ?? "currentColor"}) drop-shadow(0 0 5px ${effectColor ?? "currentColor"})`,
+            }}
+          >
+            <circle cx={tip.x} cy={tip.y} r={stroke * 0.72} fill={effectColor ?? "currentColor"} />
+            <circle cx={tip.x} cy={tip.y} r={stroke * 0.4} fill="#fff" />
+            {!prefersReducedMotion &&
+              TIP_SPARKS.map((s, i) => (
+                <circle
+                  key={i}
+                  cx={tip.x + s.dx}
+                  cy={tip.y + s.dy}
+                  r={0.8}
+                  fill="#fff"
+                  className="fd-spark"
+                  style={{ animationDelay: `${i * 420}ms` }}
+                />
+              ))}
+          </g>
+        )}
       </svg>
 
       {/* Avatar quadrado — raio CONCÊNTRICO ao anel (avatarR), pra os cantos ficarem
