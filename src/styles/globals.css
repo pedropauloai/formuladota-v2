@@ -464,10 +464,11 @@
  * Cores 100% tokens gold (var(--color-gold*)).
  * ------------------------------------------------------------------------- */
 
-/* Halo dourado pulsante (additivo via mix-blend screen no container). */
+/* Glow dourado pulsante — SÓ opacidade (sem scale): o box-shadow fica sempre
+   alinhado à borda do avatar e nunca invade o anel de XP. */
 @keyframes fd-mvp-glow {
-  0%, 100% { opacity: 0.72; transform: scale(0.97); }
-  50%      { opacity: 1;    transform: scale(1.05); }
+  0%, 100% { opacity: 0.65; }
+  50%      { opacity: 1; }
 }
 .fd-mvp-glow {
   animation: fd-mvp-glow 2200ms var(--motion-ease-soft-landing, ease-in-out) infinite;
