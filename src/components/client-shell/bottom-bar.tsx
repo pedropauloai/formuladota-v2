@@ -104,7 +104,7 @@ function Cta({
   // Mesma largura (340px) e altura da pílula de busca + botão Jogar Dota → tudo
   // ocupa o mesmo lugar, sem pulo entre estados (Pedro 2026-07-05).
   const base =
-    "pointer-events-auto group relative flex h-11 w-[268px] xl:w-[308px] 2xl:w-[328px] max-w-[calc(100vw-2rem)] items-center justify-center gap-3 overflow-hidden rounded-md border-2 font-display text-lg font-bold uppercase tracking-[0.25em] shadow-lg transition-all hover:scale-[1.02] xl:h-12 xl:text-xl";
+    "pointer-events-auto group relative flex h-11 w-[268px] xl:w-[308px] 2xl:w-[328px] max-w-[calc(100vw-2rem)] items-center justify-center gap-3 overflow-hidden rounded-md border-2 font-display text-lg font-bold uppercase tracking-[0.25em] shadow-lg transition-[transform,box-shadow,border-color,background-color] duration-150 ease-out hover:scale-[1.02] active:scale-[0.98] xl:h-12 xl:text-xl";
   const shine = (
     <span
       className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform [transition-duration:var(--motion-duration-hero)] group-hover:translate-x-full"

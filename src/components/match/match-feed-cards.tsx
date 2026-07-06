@@ -125,7 +125,7 @@ export function HistoryMatchCard({ match }: { match: HistoryMatch }) {
   return (
     <Link
       href={`/partida/historico/${match.dotaMatchId}`}
-      className="block rounded-[var(--radius-md)] border border-border-subtle bg-bg-deep/70 p-3 backdrop-blur-sm transition-colors hover:border-border-brand"
+      className="block rounded-[var(--radius-md)] border border-border-subtle bg-bg-deep/70 p-3 backdrop-blur-sm transition-[transform,border-color,box-shadow] duration-150 ease-out hover:-translate-y-0.5 hover:border-border-brand hover:shadow-lg active:translate-y-0"
     >
       <div className="flex items-center justify-between gap-3">
         {/* Iluminados */}
@@ -200,7 +200,7 @@ export function LiveMatchCard({ match }: { match: LiveMatch }) {
   return (
     <Link
       href={`/partida/${match.dotaMatchId}`}
-      className="block rounded-[var(--radius-md)] border border-play-primary/40 bg-bg-deep/70 p-3 backdrop-blur-sm transition-colors hover:border-play-primary"
+      className="block rounded-[var(--radius-md)] border border-play-primary/40 bg-bg-deep/70 p-3 backdrop-blur-sm transition-[transform,border-color,box-shadow] duration-150 ease-out hover:-translate-y-0.5 hover:border-play-primary hover:shadow-lg active:translate-y-0"
     >
       <div className="mb-2 flex items-center justify-center gap-2">
         <span className="relative flex size-2" aria-hidden="true">
