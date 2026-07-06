@@ -377,16 +377,18 @@ export const STREAK_MAX_BONUS = 24;
 
 /** Fator de RETENÇÃO da semente por medalha (1 − desconto). O boosting se concentra no
  *  TOPO, então quanto mais alta a medalha, MAIOR o corte na entrada — o jogador prova
- *  seu valor. Índice = medalha 1 (Arauto) … 8 (Imortal). */
+ *  seu valor. Índice = medalha 1 (Arauto) … 8 (Imortal). Suavizado (Pedro 2026-07-06:
+ *  −35% pegou pesado; Imortal deve cair só pra ~5000, "não tão distante"). Imortal 0.89
+ *  → 5620×0.89 ≈ 5000. A calibração amplificada + streak fazem o resto da convergência. */
 const SEED_RETENTION: Record<number, number> = {
-  1: 0.90, // Arauto   −10%
-  2: 0.88, // Guardião −12%
-  3: 0.86, // Cruzado  −14%
-  4: 0.83, // Arcano   −17%
-  5: 0.80, // Lenda    −20%
-  6: 0.75, // Ancião   −25%
-  7: 0.70, // Divino   −30%
-  8: 0.65, // Imortal  −35%
+  1: 0.96, // Arauto   −4%
+  2: 0.95, // Guardião −5%
+  3: 0.94, // Cruzado  −6%
+  4: 0.93, // Arcano   −7%
+  5: 0.92, // Lenda    −8%
+  6: 0.91, // Ancião   −9%
+  7: 0.90, // Divino   −10%
+  8: 0.89, // Imortal  −11% → ~5000
 };
 
 /**

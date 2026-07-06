@@ -30,6 +30,8 @@ uniform vec3 u_color;
 uniform int u_count;
 uniform vec2 u_tip;
 uniform vec2 u_pts[${MAX_PTS}];
+uniform float u_scale;   // box→canvas: o canvas tem FOLGA além do avatar pras fagulhas
+uniform float u_offset;  //   vazarem sem corte. coord_canvas = coord_box*u_scale + u_offset
 
 float hash(vec2 p){ p = fract(p * vec2(123.34, 345.45)); p += dot(p, p + 34.345); return fract(p.x * p.y); }
 
@@ -43,6 +45,7 @@ float segDist(vec2 p, vec2 a, vec2 b, out float h){
 void main(){
   vec2 uv = vec2(gl_FragCoord.x / u_res.x, 1.0 - gl_FragCoord.y / u_res.y);
   float t = u_time;
+  vec2 tip = u_tip * u_scale + u_offset;   // ponta remapeada pro canvas (com folga)
 
   // distância à barra (polilinha) + fração percorrida (0 no início, 1 na ponta).
   float best = 1e9;
@@ -50,35 +53,37 @@ void main(){
   for (int i = 0; i < ${MAX_PTS - 1}; i++) {
     if (i + 1 > u_count - 1) break;
     float h;
-    float d = segDist(uv, u_pts[i], u_pts[i + 1], h);
+    float d = segDist(uv, u_pts[i] * u_scale + u_offset, u_pts[i + 1] * u_scale + u_offset, h);
     if (d < best) { best = d; bestT = (float(i) + h) / float(u_count - 1); }
   }
-  float onLine = smoothstep(0.028, 0.0, best);
+  float onLine = smoothstep(0.026, 0.0, best);
 
-  // CALDA que SOBRA do núcleo (Pedro 2026-07-06): a partir da ponta, uma cauda curta
-  // decai pra trás ao longo da barra — NÃO corre pela barra. Leve cintilação viva.
+  // CALDA que SOBRA do núcleo (Pedro 2026-07-06): a partir da ponta, uma cauda que decai
+  // pra trás ao longo da barra — dá "peso" de progresso. Mais LONGA (decai devagar), mas
+  // sem cobrir a barra inteira. Leve cintilação viva.
   float fromTip = 1.0 - bestT;                          // 0 na ponta, cresce pra trás
-  float shimmer = 0.85 + 0.15 * sin(t * 5.0 - fromTip * 14.0);
-  float tail = exp(-fromTip * 8.5) * onLine * shimmer;  // cauda curta e sutil
+  float shimmer = 0.85 + 0.15 * sin(t * 5.0 - fromTip * 12.0);
+  float tail = exp(-fromTip * 4.2) * onLine * shimmer;  // cauda mais longa e harmônica
 
   // BRILHO NA PONTA — glow pulsante na cor + NÚCLEO pequeno branco.
-  float dTip = distance(uv, u_tip);
+  float dTip = distance(uv, tip);
   float tipPulse = 0.82 + 0.18 * sin(t * 7.0);
-  float tipGlow = pow(smoothstep(0.11, 0.0, dTip), 2.4) * tipPulse;
-  float tipCore = pow(smoothstep(0.02, 0.0, dTip), 2.0);   // núcleo MENOR
+  float tipGlow = pow(smoothstep(0.10, 0.0, dTip), 2.4) * tipPulse;
+  float tipCore = pow(smoothstep(0.018, 0.0, dTip), 2.0);   // núcleo MENOR
 
-  // FAGULHAS da ponta (mais delas), emanando e cintilando.
+  // FAGULHAS da ponta (mais delas), emanando e cintilando. Vazam além da barra (o canvas
+  // tem folga via u_scale/u_offset), então não ficam cortadas.
   float spark = 0.0;
-  for (int i = 0; i < 18; i++) {
+  for (int i = 0; i < 20; i++) {
     float fi = float(i);
     float ang = hash(vec2(fi, 1.3)) * 6.2832;
     float sp = 0.35 + hash(vec2(fi, 2.7)) * 0.6;
     float pr = fract(hash(vec2(fi, 4.1)) + t * sp);
-    vec2 pos = u_tip + vec2(cos(ang), sin(ang)) * pr * 0.24;
+    vec2 pos = tip + vec2(cos(ang), sin(ang)) * pr * 0.22;
     float dd = distance(uv, pos);
     float life = (1.0 - pr) * smoothstep(0.0, 0.1, pr);
     float fl = 0.55 + 0.45 * sin(t * 12.0 + fi * 5.0);
-    spark += smoothstep(0.013, 0.0, dd) * life * fl;
+    spark += smoothstep(0.012, 0.0, dd) * life * fl;
   }
 
   vec3 col = u_color * (tail * 1.5 + tipGlow * 1.5 + onLine * 0.18);
@@ -115,6 +120,13 @@ export function ProgressTipGlow({ box, color, pts, tip, count }: Props) {
   const prefersReducedMotion = useReducedMotion();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [cssFallback, setCssFallback] = useState(false);
+
+  // O canvas é MAIOR que o avatar (folga = margin) pras fagulhas vazarem sem corte.
+  // As coords (0..1 no box) são remapeadas no shader por u_scale/u_offset.
+  const margin = Math.round(box * 0.28);
+  const canvasSide = box + margin * 2;
+  const uScale = box / canvasSide;
+  const uOffset = margin / canvasSide;
 
   // Geometria da barra numa ref → reenviada como uniform a cada frame (o rastro
   // acompanha o progresso sem recriar o contexto WebGL).
@@ -207,6 +219,9 @@ export function ProgressTipGlow({ box, color, pts, tip, count }: Props) {
       uTip = glc.getUniformLocation(prog, "u_tip");
       uCount = glc.getUniformLocation(prog, "u_count");
       glc.uniform3fv(glc.getUniformLocation(prog, "u_color"), hexToRgb(color));
+      // Remapeamento box→canvas (folga pras fagulhas) — constante, seta 1x.
+      glc.uniform1f(glc.getUniformLocation(prog, "u_scale"), uScale);
+      glc.uniform1f(glc.getUniformLocation(prog, "u_offset"), uOffset);
       resize();
       return true;
     }
@@ -270,7 +285,7 @@ export function ProgressTipGlow({ box, color, pts, tip, count }: Props) {
         counted = false;
       }
     };
-  }, [prefersReducedMotion, color]);
+  }, [prefersReducedMotion, color, uScale, uOffset]);
 
   // Fallback (reduced-motion / sem WebGL / acima do teto): glow CSS mínimo na ponta.
   if (prefersReducedMotion || cssFallback) {
@@ -291,8 +306,13 @@ export function ProgressTipGlow({ box, color, pts, tip, count }: Props) {
     );
   }
 
+  // Canvas com FOLGA (margin) além do avatar → as fagulhas da ponta vazam sem corte.
   return (
-    <span aria-hidden="true" className="pointer-events-none absolute inset-0 z-10">
+    <span
+      aria-hidden="true"
+      className="pointer-events-none absolute z-10"
+      style={{ inset: -margin }}
+    >
       <canvas ref={canvasRef} className="block h-full w-full" />
     </span>
   );
