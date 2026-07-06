@@ -42,6 +42,8 @@ export interface MmrPlayerBreakdown {
   xpPct: number;
   /** MMR atual da temporada → medalha do rank. null = sem MMR. */
   seasonMmr: number | null;
+  /** Colocação 1-based na season → medalha de leaderboard (#N) igual ao /ranking. */
+  seasonPosition: number | null;
   socialLinks?: SocialLinks;
   heroName: string | null;
   heroImage: string | null;
@@ -143,7 +145,7 @@ export async function getMatchMmrState(dotaMatchId: string): Promise<MmrState> {
     .select("id")
     .eq("active", true)
     .maybeSingle();
-  const [identity, { data: levels }, { data: seasonRows }] = await Promise.all([
+  const [identity, { data: levels }, { data: seasonRows }, { data: posRows }] = await Promise.all([
     getIdentityMap(supabase, userIds),
     supabase.from("user_levels").select("user_id, total_xp_earned").in("user_id", userIds),
     activeSeason
@@ -153,9 +155,14 @@ export async function getMatchMmrState(dotaMatchId: string): Promise<MmrState> {
           .eq("season_id", activeSeason.id)
           .in("user_id", userIds)
       : Promise.resolve({ data: [] as { user_id: string; mmr: number | null }[] }),
+    // Colocação na season → medalha de leaderboard (#N) igual ao /ranking.
+    supabase.rpc("season_positions" as never, { p_ids: userIds } as never),
   ]);
   const xpOf = new Map((levels ?? []).map((l) => [l.user_id, xpProgress(l.total_xp_earned ?? 0)]));
   const seasonMmrOf = new Map((seasonRows ?? []).map((r) => [r.user_id, r.mmr ?? null]));
+  const seasonPosOf = new Map(
+    ((posRows ?? []) as { user_id: string; pos: number }[]).map((r) => [r.user_id, r.pos])
+  );
 
   // FUNÇÃO/POSIÇÃO = role ATRIBUÍDA no matchmaking (lobby_players.role), NÃO net worth
   // (Pedro 2026-07-05). Net worth só como fallback pra jogador sem atribuição.
@@ -250,6 +257,7 @@ export async function getMatchMmrState(dotaMatchId: string): Promise<MmrState> {
       level: xpOf.get(p.user_id)?.level ?? 1,
       xpPct: xpOf.get(p.user_id)?.pct ?? 0,
       seasonMmr: seasonMmrOf.get(p.user_id) ?? null,
+      seasonPosition: seasonPosOf.get(p.user_id) ?? null,
       socialLinks: ident?.socialLinks,
       heroName: hero?.name_pt ?? null,
       heroImage: hero?.image_icon ?? null,

@@ -13,12 +13,10 @@ import { Loader2, TrendingUp, TrendingDown, Scale } from "lucide-react";
 import { getMatchMmrState, type MmrState, type MmrPlayerBreakdown } from "@/app/partida/mmr-actions";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { MvpBadge } from "@/components/ui/mvp-badge";
-import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
+import { SeasonRankMedal } from "@/components/ui/season-rank-medal";
 import { RoleIcon } from "@/components/match/match-scoreboard";
 import { SocialIconsRow } from "@/components/profile/social-icons-row";
 import { Tooltip } from "@/components/ui/tooltip";
-import { mmrToDotaRank } from "@/components/queue/queue-helpers";
-import { mmrToTier } from "@/lib/mmr";
 
 // Rótulos legíveis dos componentes do perfScore (espelham PERF_PROFILES v4).
 const COMPONENT_LABEL: Record<string, string> = {
@@ -233,12 +231,10 @@ function PlayerCard({ p, pending, isMvp }: { p: MmrPlayerBreakdown; pending: boo
         </span>
 
         {p.seasonMmr != null && (
-          <DotaRankMedal
-            rank={mmrToDotaRank(p.seasonMmr)}
-            stars={mmrToTier(p.seasonMmr).stars}
-            variant="formuladota"
+          <SeasonRankMedal
+            mmr={p.seasonMmr}
+            position={p.seasonPosition}
             size="sm"
-            tooltip={false}
             className="shrink-0"
           />
         )}

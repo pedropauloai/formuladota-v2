@@ -8,9 +8,8 @@ import { itemImageUrl } from "@/lib/queries/items";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { MvpBadge } from "@/components/ui/mvp-badge";
 import { UserHoverCard } from "@/components/profile/user-hover-card";
-import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
-import { mmrToDotaRank } from "@/components/queue/queue-helpers";
-import { mmrToTier, type PlayerRole } from "@/lib/mmr";
+import { SeasonRankMedal } from "@/components/ui/season-rank-medal";
+import { type PlayerRole } from "@/lib/mmr";
 
 export interface ScoreboardPlayer {
   userId: string | null;
@@ -27,6 +26,8 @@ export interface ScoreboardPlayer {
   accountXpPct: number;
   /** MMR FormulaDota da temporada (identidade). null = sem MMR ainda. */
   mmr: number | null;
+  /** Colocação 1-based na season — medalha de leaderboard (#N) igual ao /ranking. */
+  position: number | null;
   /** Função detectada por net worth (core/support) — perfil de avaliação do perf. */
   role: PlayerRole;
   /** Posição 1-5 (rank de net worth no time) — ícone da role específica. */
@@ -176,17 +177,10 @@ function PlayerCell({ p, isMvp = false }: { p: ScoreboardPlayer; isMvp?: boolean
           size={32}
         />
       </span>
-      {/* Medalha do RANK FormulaDota (representa o MMR) — entre a foto e o nome. */}
+      {/* Medalha do RANK FormulaDota — MESMA do /ranking (variante de leaderboard + #N
+          pela colocação na season), entre a foto e o nome. */}
       {p.mmr != null && (
-        <DotaRankMedal
-          rank={mmrToDotaRank(p.mmr)}
-          stars={mmrToTier(p.mmr).stars}
-          variant="formuladota"
-          size="md"
-          tooltip={false}
-          glow={p.mmr >= 5620}
-          className="shrink-0"
-        />
+        <SeasonRankMedal mmr={p.mmr} position={p.position} size="md" className="shrink-0" />
       )}
       <span className="min-w-0">
         <span className="flex items-center gap-1.5 truncate font-body text-sm font-medium text-text-display">

@@ -151,7 +151,7 @@ export default async function HistoricoPartidaPage({
       .select("id")
       .eq("active", true)
       .maybeSingle();
-    const [{ data: links }, { data: profs }, { data: levels }, { data: mmrs }] =
+    const [{ data: links }, { data: profs }, { data: levels }, { data: mmrs }, { data: posRows }] =
       await Promise.all([
         supabase.from("steam_links").select("user_id, persona, avatar_url").in("user_id", userIds),
         // View pública (Discord-first) em vez de `profiles` direto: a RLS de profiles
@@ -162,9 +162,15 @@ export default async function HistoricoPartidaPage({
         season?.id
           ? supabase.from("player_season_mmr").select("user_id, mmr").eq("season_id", season.id).in("user_id", userIds)
           : Promise.resolve({ data: [] as { user_id: string; mmr: number }[] }),
+        // Colocação na season (RPC season_positions) — pra medalha de leaderboard (#N)
+        // idêntica ao /ranking no placar. Cast só nos args (não desanexar o método).
+        supabase.rpc("season_positions" as never, { p_ids: userIds } as never),
       ]);
     const xpBy = new Map((levels ?? []).map((l) => [l.user_id, xpProgress(l.total_xp_earned ?? 0)]));
     const mmrBy = new Map((mmrs ?? []).map((m) => [m.user_id, m.mmr]));
+    const posBy = new Map(
+      ((posRows ?? []) as { user_id: string; pos: number }[]).map((p) => [p.user_id, p.pos])
+    );
     for (const l of links ?? []) {
       identityById.set(l.user_id, { persona: l.persona, avatar_url: l.avatar_url, username: null });
     }
@@ -185,6 +191,7 @@ export default async function HistoricoPartidaPage({
         level: xp?.level ?? 1,
         xpPct: xp?.pct ?? 0,
         mmr: mmrBy.get(uid) ?? null,
+        position: posBy.get(uid) ?? null,
       });
     }
   }

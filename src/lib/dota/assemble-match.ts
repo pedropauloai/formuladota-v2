@@ -63,6 +63,8 @@ export interface Identity {
   xpPct?: number | null;
   /** MMR FormulaDota da temporada ativa (identidade). */
   mmr?: number | null;
+  /** Colocação 1-based na season — pra medalha de leaderboard (#N) igual ao /ranking. */
+  position?: number | null;
 }
 
 // Slot dentro do time (0..4) — alinha as duas metades pra matriz de abates.
@@ -155,6 +157,7 @@ export function assembleMatch(
       accountXpPct: id?.xpPct ?? 0, // progresso do nível → anel de XP
 
       mmr: id?.mmr ?? null, // MMR FormulaDota (identidade)
+      position: id?.position ?? null, // colocação na season (medalha de leaderboard #N)
       role: roleByIndex.get(r) ?? "core", // função (core/support) por net worth
       positionSlot: posByRow.get(r) ?? 1, // posição 1-5 (ícone da role específica)
       kills: r.kills,
