@@ -298,6 +298,7 @@ function CollapsedCard({
       size={40}
       ringVariant={ringVariant}
       frame={frame}
+      premiumEffect
     />
   );
   return (
@@ -456,6 +457,7 @@ function ExpandedPanel({
             size={52}
             ringVariant={ringVariant}
             frame={frame}
+            premiumEffect
           />
           <div className="flex-1 min-w-0">
             <p className="font-display text-lg font-semibold text-text-display truncate">

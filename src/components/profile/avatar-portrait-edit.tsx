@@ -48,6 +48,7 @@ export function AvatarPortraitEdit({
         level={level}
         pct={xpPct}
         size={72}
+        premiumEffect
       />
 
       {editing && (

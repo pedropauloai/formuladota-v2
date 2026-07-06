@@ -50,14 +50,16 @@ export function calculateMmrDelta(input: {
 }
 
 /**
- * Decay UNIFORME aplicado ao reset de season (Pedro 2026-07-06: -20%, mesmo fator do
- * reset de entrada — RESET_RETENTION). Multiplicar todo mundo pelo MESMO fator preserva
- * a posição no ranking (quem era 1º continua 1º, só com menos MMR) e mantém a sensação
- * de reconquistar o Imortal a cada temporada. Piso STARTING_MMR (1000).
- * NOTA: RESET_RETENTION é declarado adiante no arquivo; 0.8 inline evita a ordem de init.
+ * Decay UNIFORME aplicado SÓ na VIRADA de temporada (Pedro 2026-07-06: -20%). É AQUI —
+ * e só aqui — que mora o "reconquistar o Imortal": na virada, todo mundo cai o MESMO
+ * fator (preserva a posição: quem era 1º continua 1º, só com menos MMR) e passa a
+ * temporada reconquistando. Durante a temporada NÃO há reset — o seed é puro (a medalha
+ * Valve manda), pra ninguém ver o MMR cair no meio da temporada e reclamar. Piso
+ * STARTING_MMR (1000). RESET_RETENTION é lido em runtime (fora da TDZ), sem problema de
+ * ordem de init.
  */
 export function applySeasonDecay(currentMmr: number): number {
-  return Math.max(STARTING_MMR, Math.floor(currentMmr * 0.8));
+  return Math.max(STARTING_MMR, Math.floor(currentMmr * RESET_RETENTION));
 }
 
 // =====================================================================
@@ -354,18 +356,21 @@ export function mmrToTier(mmr: number): TierInfo {
 
 /** Nº de placements até calibrar (medalha revelada; antes disso = descalibrado). */
 export const CALIBRATION_MATCHES = 10;
-/** Multiplicador na calibração (placements amplificadas). Sistema anti-boosted (Pedro
- *  2026-07-06): as ~10 primeiras partidas movem MAIS MMR (±30 × 1.8 ≈ ±54) — o boosted
- *  despenca rápido e o legítimo sobe rápido, convergindo pro MMR real em poucos jogos.
- *  Antes era 1 (desligado). */
-export const CALIBRATION_MULTIPLIER = 1.8;
+/** Multiplicador na calibração. DESLIGADO (=1) por decisão do Pedro (2026-07-06): num
+ *  ecossistema pequeno e zero-sum (pra um time ganhar, o outro perde), amplificar as 10
+ *  primeiras partidas PUNE azar de matchmaking, não falta de skill — o Imortal legítimo
+ *  que cai numa partida com/contra boostados perde ×1.8 injustamente. A convergência pro
+ *  MMR real fica por conta do SEED da medalha Valve (já começa perto) + do STREAK
+ *  individual (mérito ao longo de várias partidas). Ver docs/foundations/RANKING_SYSTEM. */
+export const CALIBRATION_MULTIPLIER = 1;
 
 // =====================================================================
-// SISTEMA ANTI-BOOSTED (Pedro 2026-07-06 — aprovado). A medalha Valve NÃO é confiável
-// (tem Imortal comprado que é Ancião real). 3 alavancas empurram cada um pro MMR real:
-//   1) DESCONTO PROGRESSIVO na semente de entrada (abaixo).
-//   2) CALIBRAÇÃO amplificada (CALIBRATION_MULTIPLIER acima).
-//   3) BÔNUS DE SEQUÊNCIA (streak) que quebra o teto (abaixo).
+// SISTEMA ANTI-BOOSTED (Pedro 2026-07-06). A medalha Valve NÃO é 100% confiável (tem
+// Imortal comprado que é Ancião real), mas as alavancas amplificadas puniam AZAR de
+// matchmaking num ecossistema pequeno e zero-sum. Ficou UMA alavanca, individual e justa:
+//   • BÔNUS DE SEQUÊNCIA (streak): mérito ao longo de várias partidas SEGUIDAS (abaixo).
+// Desligadas (davam variância injusta): desconto na semente de entrada (seed agora é puro)
+// e calibração amplificada (CALIBRATION_MULTIPLIER = 1). O reset −20% vale só na VIRADA.
 // =====================================================================
 
 /** Teto de variação por partida quando amplificado (calibração OU streak). Sem
@@ -378,11 +383,12 @@ export const STREAK_STEP = 6;
 /** Teto do bônus de sequência (evita inflar/deflar sem fim). */
 export const STREAK_MAX_BONUS = 24;
 
-/** Fator de RETENÇÃO do reset — UNIFORME pra todos (Pedro 2026-07-06). O % diferente por
- *  medalha (progressivo) mudava as POSIÇÕES relativas — errado: quem era 1º tem que
- *  continuar 1º, só com menos MMR. Multiplicar todo mundo pelo MESMO fator preserva a
- *  ordem e não zera o fundo. 0.80 = −20% (Imortal 5620 → ~4496 ≈ −1k). Todo mundo
- *  reconquista o Imortal a cada temporada; a calibração + streak fazem a convergência. */
+/** Fator de RETENÇÃO do reset de VIRADA de temporada — UNIFORME pra todos (Pedro
+ *  2026-07-06). Aplicado SÓ na virada (applySeasonDecay), NUNCA durante a temporada. O %
+ *  diferente por medalha (progressivo) mudava as POSIÇÕES relativas — errado: quem era 1º
+ *  tem que continuar 1º, só com menos MMR. Mesmo fator pra todos preserva a ordem e não
+ *  zera o fundo. 0.80 = −20% (Imortal 5620 → ~4496 ≈ −1k). O seed de ENTRADA na temporada
+ *  é PURO (medalha Valve cheia) — sem retenção — pra ninguém ver o MMR cair no meio. */
 export const RESET_RETENTION = 0.8;
 
 /**
@@ -443,7 +449,8 @@ export function seedMmrFromRankTier(rankTier: number | null | undefined): number
           );
         })();
   if (raw == null) return null;
-  // RESET uniforme de entrada (anti-boosted): entra abaixo da medalha e sobe provando.
-  // Mesmo fator pra todos → preserva a ordem (ver RESET_RETENTION).
-  return Math.round(raw * RESET_RETENTION);
+  // Seed PURO da medalha Valve — sem retenção durante a temporada (Pedro 2026-07-06). O
+  // reset (−20%) mora só na VIRADA (applySeasonDecay), pra ninguém ver o MMR cair no meio
+  // da temporada. Imortal entra em ~5620 e defende; o streak individual faz o ajuste fino.
+  return raw;
 }

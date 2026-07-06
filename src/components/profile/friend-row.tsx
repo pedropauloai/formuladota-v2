@@ -92,7 +92,9 @@ export function FriendRow({ friend, presenceStatus, currentLobbyId = null }: Pro
         online={isOnline}
         className="flex min-w-0 flex-1 items-center gap-2"
       >
-        {/* Avatar com anel de XP + badge de nível + dot de presença. */}
+        {/* Avatar com anel de XP + badge de nível. O dot de presença foi REMOVIDO
+            (Pedro 2026-07-06) — o status (online/jogando/na fila) já vem na StatusLine
+            abaixo do nome e na opacidade da linha; o pontinho era redundante. */}
         <span className="relative shrink-0">
           <XpAvatarRing
             src={friend.friendAvatarUrl ?? undefined}
@@ -101,12 +103,6 @@ export function FriendRow({ friend, presenceStatus, currentLobbyId = null }: Pro
             level={friend.friendLevel}
             pct={friend.friendXpPct}
             size={28}
-          />
-          <span
-            className={`absolute right-0 top-0 size-2.5 rounded-full border-2 border-bg-deep ${
-              isOnline ? "bg-success" : "bg-text-faded"
-            }`}
-            aria-hidden="true"
           />
         </span>
         <div className="flex-1 min-w-0">

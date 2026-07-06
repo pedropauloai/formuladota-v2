@@ -18,8 +18,6 @@ import type { RingAsset, FrameAsset, RingEffectId } from "@/lib/cosmetics";
 import { ProgressTipGlow } from "@/components/ui/progress-tip-glow";
 import { cn } from "@/lib/utils";
 
-const TIER_ORDER: Tier[] = ["novato", "aprendiz", "piloto", "as", "lendario", "mistico"];
-
 // Cor (HEX — WebGL precisa) do brilho de progresso por efeito de anel equipado
 // (cosmético). Nada proibido (Pedro 2026-07-06): ciano/roxo livres como acento premium.
 const EFFECT_COLOR: Record<RingEffectId, string> = {
@@ -50,6 +48,14 @@ interface Props {
   ringVariant?: RingAsset | null;
   /** Cosmético de moldura equipado. null/undefined/none = sem moldura. */
   frame?: FrameAsset | null;
+  /**
+   * Liga o BRILHO WebGL na ponta da barra (fagulhas + calda). Cada instância é 1 contexto
+   * WebGL — caro e limitado pelo navegador (~10-16 por página). Por isso é OPT-IN: só nos
+   * avatares de DESTAQUE (mini-perfil próprio, /me), onde há 1-2 na tela. Em LISTAS
+   * (feed, ranking, fila, hover) fica desligado → a barra ainda mostra a cor do cosmético,
+   * só sem o glow animado, e nada de "carrega em uns e noutros não" nem travar o navegador.
+   */
+  premiumEffect?: boolean;
 }
 
 export function XpAvatarRing({
@@ -62,6 +68,7 @@ export function XpAvatarRing({
   size = 44,
   ringVariant,
   frame,
+  premiumEffect = false,
 }: Props) {
   const t = useTranslations("ui");
   const prefersReducedMotion = useReducedMotion();
@@ -72,8 +79,6 @@ export function XpAvatarRing({
   const visualTier: Tier =
     ringVariant?.kind === "tier" ? ringVariant.tier : resolvedTier;
   const cfg = TIER_CONFIG[visualTier];
-
-  const intensity = glowOff ? 0 : Math.max(0, TIER_ORDER.indexOf(visualTier));
 
   // Cosmético de EFEITO equipado (moldura elétrica no contorno) → a cor da corrente.
   // null = sem efeito rico (usa o glow/neon por tier no próprio stroke da barra).
@@ -136,7 +141,7 @@ export function XpAvatarRing({
   } | null>(null);
   useEffect(() => {
     const p = progressRef.current;
-    if (!p || clamped <= 0) {
+    if (!premiumEffect || !p || clamped <= 0) {
       setGlow(null);
       return;
     }
@@ -149,7 +154,7 @@ export function XpAvatarRing({
       pts[i * 2 + 1] = at.y / box;
     }
     setGlow({ pts, tip: [pts[N_PTS * 2] ?? 0, pts[N_PTS * 2 + 1] ?? 0], count });
-  }, [clamped, box, rx, ringPath]);
+  }, [premiumEffect, clamped, box, rx, ringPath]);
 
   return (
     <div
@@ -209,7 +214,7 @@ export function XpAvatarRing({
       {/* RASTRO + BRILHO do progresso — SHADER WebGL cobrindo o avatar. Cometa de energia
           correndo pela barra preenchida + ponta com fagulhas. Cor do efeito equipado
           (cosmético) ou dourado default. */}
-      {glow && !glowOff && (
+      {premiumEffect && glow && !glowOff && (
         <ProgressTipGlow
           box={box}
           color={effectColor ?? DEFAULT_TIP_COLOR}
