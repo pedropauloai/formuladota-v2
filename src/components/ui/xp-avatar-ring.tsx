@@ -15,21 +15,23 @@ import { useTranslations } from "next-intl";
 import { TIER_CONFIG, getTierForLevel, type Tier } from "@/lib/levels";
 import { useReducedMotion } from "@/lib/particles/hooks";
 import type { RingAsset, FrameAsset, RingEffectId } from "@/lib/cosmetics";
+import { ProgressTipGlow } from "@/components/ui/progress-tip-glow";
 import { cn } from "@/lib/utils";
 
 const TIER_ORDER: Tier[] = ["novato", "aprendiz", "piloto", "as", "lendario", "mistico"];
 
-// Cor da corrente elétrica por efeito de anel equipado (cosmético). Cores da MARCA
-// (nunca ciano/cyberpunk). O efeito é uma moldura elétrica-neon no contorno (ref do
-// Pedro: avatar-frame-eletric), não um glow atrás.
+// Cor (HEX — WebGL precisa) do brilho de progresso por efeito de anel equipado
+// (cosmético). Nada proibido (Pedro 2026-07-06): ciano/roxo livres como acento premium.
 const EFFECT_COLOR: Record<RingEffectId, string> = {
-  ember: "var(--color-gold)",
-  inferno: "var(--color-brand-primary)",
-  pulse: "var(--color-play-primary)",
-  aurora: "var(--color-gold-bright)",
-  electric: "#2ad4ff", // azul ciano elétrico (ref do Pedro — nada proibido)
+  ember: "#c8aa6e", // dourado
+  inferno: "#C42121", // vermelho da marca
+  pulse: "#00C466", // verde play
+  aurora: "#e3cf9e", // dourado claro
+  electric: "#2ad4ff", // azul ciano elétrico (ref do Pedro)
   arcane: "#a855f7", // roxo arcano
 };
+/** Cor default do brilho de progresso (sem cosmético) — dourado de destaque da marca. */
+const DEFAULT_TIP_COLOR = "#c8aa6e";
 
 interface Props {
   src?: string | null;
@@ -138,12 +140,6 @@ export function XpAvatarRing({
     const at = p.getPointAtLength(clamped * len);
     setTip({ x: at.x, y: at.y });
   }, [clamped, box, rx, ringPath]);
-  // 3 faíscas minúsculas ao redor da ponta (offsets fixos), cintilando fora de fase.
-  const TIP_SPARKS = [
-    { dx: 2, dy: -1.5 },
-    { dx: -1.5, dy: -2 },
-    { dx: 1, dy: 2 },
-  ];
 
   return (
     <div
@@ -198,31 +194,19 @@ export function XpAvatarRing({
             transition: "stroke-dashoffset 700ms cubic-bezier(0.22,1,0.36,1)",
           }}
         />
-        {/* BRILHO NA PONTA — ponto de luz na posição atual do progresso, com faísca sutil.
-            Núcleo quase branco + halo neon na cor (drop-shadow apertado). */}
-        {tip && !glowOff && (
-          <g
-            style={{
-              filter: `drop-shadow(0 0 2px ${effectColor ?? "currentColor"}) drop-shadow(0 0 5px ${effectColor ?? "currentColor"})`,
-            }}
-          >
-            <circle cx={tip.x} cy={tip.y} r={stroke * 0.72} fill={effectColor ?? "currentColor"} />
-            <circle cx={tip.x} cy={tip.y} r={stroke * 0.4} fill="#fff" />
-            {!prefersReducedMotion &&
-              TIP_SPARKS.map((s, i) => (
-                <circle
-                  key={i}
-                  cx={tip.x + s.dx}
-                  cy={tip.y + s.dy}
-                  r={0.8}
-                  fill="#fff"
-                  className="fd-spark"
-                  style={{ animationDelay: `${i * 420}ms` }}
-                />
-              ))}
-          </g>
-        )}
       </svg>
+
+      {/* BRILHO NA PONTA do progresso — SHADER WebGL (núcleo de energia + fagulhas). Fora
+          do SVG, posicionado na coordenada real da ponta (tip). Marca "seu progresso está
+          aqui" com luxo. Cor do efeito equipado (cosmético) ou dourado default. */}
+      {tip && !glowOff && (
+        <ProgressTipGlow
+          size={Math.max(20, Math.round(size * 0.62))}
+          color={effectColor ?? DEFAULT_TIP_COLOR}
+          cx={tip.x}
+          cy={tip.y}
+        />
+      )}
 
       {/* Avatar quadrado — raio CONCÊNTRICO ao anel (avatarR), pra os cantos ficarem
           paralelos à borda do anel (sem descompasso). */}
