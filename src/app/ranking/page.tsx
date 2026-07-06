@@ -289,9 +289,11 @@ export default async function RankingPage(props: {
           })}
         </ol>
 
-        {/* Pagination */}
-        {!search && listHydrated.length === PAGE_SIZE && (
-          <Pagination currentPage={page} />
+        {/* Pagination — aparece se há pra onde ir: página > 1 (voltar) OU lista cheia
+            (avançar). Antes só renderizava com lista CHEIA → na última página sumia
+            inteira e não dava pra VOLTAR (Pedro 2026-07-06). */}
+        {!search && (page > 1 || listHydrated.length === PAGE_SIZE) && (
+          <Pagination currentPage={page} hasNext={listHydrated.length === PAGE_SIZE} />
         )}
 
         {listHydrated.length === 0 && !search && top3Hydrated.length === 0 && (
@@ -517,7 +519,7 @@ function SearchBar({ initialQuery }: { initialQuery: string }) {
 // ----------------------------------------------------------------
 // Pagination — Anterior / Próxima via querystring
 // ----------------------------------------------------------------
-function Pagination({ currentPage }: { currentPage: number }) {
+function Pagination({ currentPage, hasNext }: { currentPage: number; hasNext: boolean }) {
   const t = useTranslations("ranking");
   return (
     <nav className="mt-8 flex items-center justify-center gap-4">
@@ -532,12 +534,16 @@ function Pagination({ currentPage }: { currentPage: number }) {
       <span className="font-mono text-sm 2xl:text-base text-text-display">
         {t("pageLabel", { page: currentPage })}
       </span>
-      <Link
-        href={`/ranking?page=${currentPage + 1}`}
-        className="font-display text-sm uppercase tracking-widest text-text-muted hover:text-text-display transition-colors"
-      >
-        {t("nextPage")}
-      </Link>
+      {/* "Próxima" só quando a lista veio CHEIA (pode haver mais) — senão levava a uma
+          página vazia (Pedro 2026-07-06). */}
+      {hasNext && (
+        <Link
+          href={`/ranking?page=${currentPage + 1}`}
+          className="font-display text-sm uppercase tracking-widest text-text-muted hover:text-text-display transition-colors"
+        >
+          {t("nextPage")}
+        </Link>
+      )}
     </nav>
   );
 }

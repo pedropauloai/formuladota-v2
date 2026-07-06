@@ -7,7 +7,7 @@ import { Link } from "@/i18n/navigation";
 import { Clock, Radio, Ban } from "lucide-react";
 import { getHeroById } from "@/lib/queries/heroes";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
-import { MvpFlame } from "@/components/ui/mvp-flame";
+import { MvpCrown } from "@/components/ui/mvp-crown";
 import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
 import { mmrToDotaRank } from "@/components/queue/queue-helpers";
 import { mmrToTier } from "@/lib/mmr";
@@ -25,8 +25,6 @@ function PlayerChip({ player, isMvp }: { player: HistoryPlayer; isMvp?: boolean 
       title={`${player.name}${isMvp ? " · MVP" : ""}${player.banned ? " · BANIDO" : ""}${hero ? ` · ${hero.name_pt}` : ""}`}
     >
       <span className={`relative isolate ${player.banned ? "opacity-90" : ""}`}>
-        {/* MVP — chama dourada (shader) ATRÁS de tudo (-z-10, contida pelo isolate). */}
-        {isMvp && <MvpFlame />}
         {/* Avatar + anel de XP com o NÍVEL da conta (identidade, sempre com o jogador). */}
         <XpAvatarRing
           src={player.avatar ?? undefined}
@@ -51,6 +49,8 @@ function PlayerChip({ player, isMvp }: { player: HistoryPlayer; isMvp?: boolean 
         )}
         {/* Marca de BANIDO — accountability pública (Mural da Vergonha). */}
         {player.banned && <BannedMark />}
+        {/* MVP — coroa dourada (PNG estático, sem WebGL) pousada no topo do avatar. */}
+        {isMvp && <MvpCrown />}
       </span>
       {/* Medalha do rank FormulaDota (representa o MMR atual). */}
       {player.mmr != null && (

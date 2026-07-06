@@ -502,6 +502,14 @@
   .fd-mvp-ember { animation: none; opacity: 0; }
 }
 
+/* Flutuação delicada da COROA do MVP (MvpCrown) — sobe/desce ~1.5px e balança o tilt de
+ * leve. SÓ transform (compositor da GPU), barato pra várias no feed. A translação base
+ * (-translate-x-1/2 -translate-y-[62%]) fica no elemento; aqui só o offset relativo. */
+@keyframes fd-crown-float {
+  0%, 100% { transform: translate(-50%, -62%) rotate(0deg); }
+  50%      { transform: translate(-50%, calc(-62% - 1.5px)) rotate(-2deg); }
+}
+
 /* ---------------------------------------------------------------------------
  * CHISPA elétrica (ElectricBorder) — ponto de luz que cintila ao longo da moldura.
  * Cada chispa tem animation-delay próprio (fase diferente) = estática elétrica viva.
