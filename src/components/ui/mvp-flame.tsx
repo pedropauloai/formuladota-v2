@@ -52,53 +52,39 @@ void main(){
   float d = length(c);                     // distância do centro
   float t = u_time;
 
-  // --- fogo procedural: ruído torcido (domain warp) fluindo PRA CIMA ---
-  vec2 p = vec2(uv.x * aspect, uv.y) * 3.1;
-  p.y -= t * 2.0;                          // sobe (fogo)
-  vec2 q = vec2(fbm(p), fbm(p + vec2(3.1, 1.7)));
-  vec2 r = vec2(fbm(p + 1.7*q + vec2(1.7, 9.2)), fbm(p + 1.7*q + vec2(8.3, 2.8)));
-  float n = fbm(p + 1.7*r);
+  // NADA de fumaça (a fbm com cor escura virava um borrão CINZA — bug 2026-07-06).
+  // O destaque do MVP é SUTIL e nítido: brasa dourada leve na base + fagulhas subindo.
+  vec3 col = vec3(0.0);
+  float alpha = 0.0;
 
-  // --- COROA de fogo FORA do avatar (o avatar ~0.5 do raio; começa fora dele) ---
-  float inner = smoothstep(0.40, 0.52, d);           // 0 sob o avatar, 1 fora
-  float outer = 1.0 - smoothstep(0.70, 0.98, d);     // some antes da borda do canvas
-  float ring = inner * outer;
-  // línguas: deixa o fogo subir MAIS alto no topo (uv.y grande) = labaredas acima
-  float up = 0.55 + 0.85 * smoothstep(0.30, 1.0, uv.y);
-  // base de brasa mais densa embaixo
-  float base = 0.85 + 0.5 * (1.0 - uv.y);
-  float shape = ring * up * base;
+  // Brasa quente lambendo por BAIXO/bordas do avatar — glow dourado sutil, respirando.
+  float coroa = smoothstep(0.42, 0.5, d) * (1.0 - smoothstep(0.62, 0.9, d)); // anel fino fora
+  float embaixo = smoothstep(0.62, 0.0, uv.y);          // concentra na base
+  float breathe = 0.75 + 0.25 * sin(t * 3.0);
+  float glow = coroa * (0.22 + 0.78 * embaixo) * breathe;
+  col += u_mid * glow * 0.85;
+  alpha += glow * 0.45;
 
-  float flame = pow(clamp(n * shape * 1.5, 0.0, 1.0), 1.35);
-
-  // --- ramp de cor fogo dourado + bloom ---
-  vec3 col = mix(u_mid * 0.18, u_mid, smoothstep(0.04, 0.42, flame));
-  col = mix(col, u_hot, smoothstep(0.38, 0.8, flame));
-  col += u_hot * pow(flame, 2.3) * 1.4;             // fake bloom (partes densas emitem luz)
-  float alpha = flame;
-
-  // --- faíscas/brasas subindo (núcleo quase branco + halo, cintilando) ---
+  // FAGULHAS douradas subindo (núcleo pequeno quase branco + halo mínimo), FORA do avatar.
   float emberCore = 0.0, emberHalo = 0.0;
-  for (int i = 0; i < 14; i++) {
+  for (int i = 0; i < 16; i++) {
     float fi = float(i);
     float sx = hash(vec2(fi, 7.13));
-    float sp = 0.45 + hash(vec2(fi, 3.7)) * 0.7;
-    float ph = hash(vec2(fi, 9.1));
-    float pr = fract(ph + t * sp * 0.5);                  // progresso 0->1
-    float x = 0.06 + sx * 0.88;                           // espalhadas na largura
-    float y = 0.02 + pr * 0.98;                           // sobem
+    float sp = 0.4 + hash(vec2(fi, 3.7)) * 0.7;
+    float pr = fract(hash(vec2(fi, 9.1)) + t * sp * 0.45);   // progresso 0->1
+    float x = 0.05 + sx * 0.9;
+    float y = pr;                                            // sobem de baixo a cima
     vec2 pos = vec2((x - 0.5) * aspect, y - 0.5);
     float dd = distance(c, pos);
     float life = (1.0 - pr) * smoothstep(0.0, 0.08, pr);
-    float flick = 0.6 + 0.4 * sin(t * 9.0 + fi * 5.0);
-    // faíscas só FORA do avatar (não sobre o rosto)
-    float edge = smoothstep(0.40, 0.52, length(vec2((x-0.5)*aspect, y-0.5)));
-    emberCore += smoothstep(0.007, 0.0, dd) * life * flick * edge;
-    emberHalo += smoothstep(0.018, 0.0, dd) * life * edge;
+    float flick = 0.6 + 0.4 * sin(t * 10.0 + fi * 5.0);
+    float edge = smoothstep(0.42, 0.52, length(vec2((x - 0.5) * aspect, y - 0.5)));
+    emberCore += smoothstep(0.006, 0.0, dd) * life * flick * edge;
+    emberHalo += smoothstep(0.014, 0.0, dd) * life * edge;
   }
-  col += (u_hot + vec3(0.5)) * emberCore * 2.2;           // núcleo quase branco
-  col += u_hot * emberHalo * 0.85;
-  alpha += emberCore * 1.7 + emberHalo * 0.4;
+  col += (u_hot + vec3(0.4)) * emberCore * 2.0;           // núcleo quase branco
+  col += u_mid * emberHalo * 0.7;
+  alpha += emberCore * 1.5 + emberHalo * 0.3;
 
   gl_FragColor = vec4(col, clamp(alpha, 0.0, 1.0));
 }
