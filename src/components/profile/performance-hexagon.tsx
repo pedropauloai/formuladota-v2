@@ -68,7 +68,9 @@ export function PerformanceHexagon({
         );
       })}
 
-      {/* Séries (preenchidas + contorno). */}
+      {/* Séries (preenchidas + contorno). strokeLinejoin round evita picos afiados
+          quando um eixo é baixo ao lado de um alto; drop-shadow sutil = o polígono
+          "emite" na cor da série. */}
       {series.map((s) => (
         <polygon
           key={s.name}
@@ -77,6 +79,8 @@ export function PerformanceHexagon({
           fillOpacity="0.18"
           stroke={s.color}
           strokeWidth="1.5"
+          strokeLinejoin="round"
+          style={{ filter: `drop-shadow(0 0 3px ${s.color})` }}
         />
       ))}
       {/* Vértices de cada série. */}
