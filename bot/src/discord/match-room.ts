@@ -6,9 +6,30 @@
 // Cada match tem seu próprio canal temporário identificado pelo channelId
 // (salvo no DB como voice_channel_id_discord).
 
-import { ChannelType, type Guild, type VoiceChannel } from "discord.js";
+import {
+  ChannelType,
+  PermissionFlagsBits,
+  type Guild,
+  type OverwriteResolvable,
+  type VoiceChannel,
+} from "discord.js";
 import { ensureGeneralRoom } from "./general-room.js";
 import { moveUsers } from "./move-users.js";
+
+/**
+ * Permissões pra deixar a sala de voz PRIVADA do time: @everyone NÃO conecta,
+ * só os discord_id dos jogadores daquele time. Evita que estranhos entrem e
+ * atrapalhem a partida (Pedro 2026-07-06). Por overwrite (não por cargo): some
+ * junto com o canal no teardown — zero cargo órfão pra limpar. IDs de quem não
+ * está no servidor são ignorados pelo Discord (sem erro).
+ */
+function privateVoiceOverwrites(guild: Guild, memberIds: string[]): OverwriteResolvable[] {
+  const uniq = [...new Set(memberIds)];
+  return [
+    { id: guild.roles.everyone.id, deny: [PermissionFlagsBits.Connect] },
+    ...uniq.map((id) => ({ id, allow: [PermissionFlagsBits.Connect] })),
+  ];
+}
 
 /** Acha a categoria 🔊丨VOZ (ou a do env DISCORD_VOICE_CATEGORY_ID) pra criar as salas de time. */
 function vozCategoryId(guild: Guild): string | undefined {
@@ -46,12 +67,14 @@ export async function createTeamRooms(
     type: ChannelType.GuildVoice,
     userLimit: 5,
     parent,
+    permissionOverwrites: privateVoiceOverwrites(guild, radiantDiscordIds),
   });
   const temidos = await guild.channels.create({
     name: `🔴丨Temidos #${tag}`,
     type: ChannelType.GuildVoice,
     userLimit: 5,
     parent,
+    permissionOverwrites: privateVoiceOverwrites(guild, direDiscordIds),
   });
   console.log(`[team-rooms] criadas Iluminados(${iluminados.id}) + Temidos(${temidos.id}) p/ ${matchId}`);
 
