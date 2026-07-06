@@ -290,7 +290,7 @@ export default function MmrExplainerPage() {
           {/* ─── Como sobe/desce — texto + ILUSTRAÇÃO (performance) ─── */}
           <div className="grid items-center gap-10 border-t border-border-subtle pt-12 lg:grid-cols-[1fr_1.3fr]">
             <Section icon={TrendingUp} titulo="Como o MMR sobe e desce">
-              <p>Cada partida move o seu MMR por dois fatores:</p>
+              <p>Cada partida move o seu MMR por dois fatores — mais um empurrão quando você embala:</p>
               <ul className="ml-1 space-y-2">
                 <li className="flex gap-2">
                   <Swords className="mt-0.5 size-4 shrink-0 text-brand-primary" aria-hidden="true" />
@@ -313,11 +313,23 @@ export default function MmrExplainerPage() {
                     menos — <em>ou você ganha, ou você aprende</em>.
                   </span>
                 </li>
+                <li className="flex gap-2">
+                  <TrendingUp
+                    className="mt-0.5 size-4 shrink-0 text-brand-primary"
+                    aria-hidden="true"
+                  />
+                  <span>
+                    <strong className="text-text-display">Sequência (embalo):</strong> emendar
+                    vitórias — ou derrotas — seguidas dá um bônus a mais, pra quem está no lugar
+                    errado sair dele mais rápido. É o que mede a sua constância.
+                  </span>
+                </li>
               </ul>
               <p>
                 Pra não ter swing maluco, cada partida mexe no máximo{" "}
-                <strong className="text-gold">±30 MMR</strong>. A variação exata aparece no placar e
-                no seu histórico (<span className="text-play-primary">+</span> verde /{" "}
+                <strong className="text-gold">±30 MMR</strong> — um pouco mais quando você está numa
+                sequência. A variação exata aparece no placar e no seu histórico (
+                <span className="text-play-primary">+</span> verde /{" "}
                 <span className="text-error">−</span> vermelho).
               </p>
             </Section>
@@ -432,8 +444,11 @@ export default function MmrExplainerPage() {
               <Section icon={RotateCcw} titulo="Temporadas">
                 <p>
                   A cada temporada (2 meses) o ranking reabre com um{" "}
-                  <strong className="text-text-display">soft reset</strong> (−30%): você recalibra
-                  perto de onde parou. É o que mantém o topo <em>alcançável</em> a cada ciclo.
+                  <strong className="text-text-display">reset de −20%</strong>, igual pra todos:
+                  você começa perto de onde parou e <strong className="text-text-display">reconquista o
+                  Imortal</strong> jogando. Durante a temporada o MMR{" "}
+                  <strong className="text-text-display">não cai do nada</strong> — o reset só acontece
+                  na virada. É o que mantém o topo <em>alcançável</em> a cada ciclo.
                 </p>
               </Section>
             </div>
