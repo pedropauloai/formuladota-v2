@@ -35,6 +35,8 @@ const PUBLIC_PATHS = [
   "/meta", // leitura pública: meta de heróis (OpenDota) — vitrine de valor
   "/times", // leitura pública: browse de times + perfis (ações pedem login)
   "/torneios", // leitura pública: browse de torneios + brackets (ações pedem login)
+  "/partidas", // leitura pública: feed de partidas (placares públicos, anti-anonimato) —
+  //              vitrine igual /ranking; ações (jogar) pedem login. Pedro 2026-07-06.
   "/coaches", // /coaches/[slug] — perfis públicos de PROs
   "/partida/historico", // placar pós-jogo PÚBLICO (dados públicos, anti-anonimato) —
   //                        precisa ser aberto pro Discord/redes desdobrarem o og:image do link
@@ -70,7 +72,8 @@ const BLOCKED_STATUS_PATHS = ["/suspended", "/banned"];
 const STEAM_REQUIRED_PATHS = [
   "/pacotes",
   "/checkout",
-  "/partidas",
+  // "/partidas" saiu (Pedro 2026-07-06): virou rota PÚBLICA (vitrine) — não pode exigir
+  // Steam nem login. Ver PUBLIC_PATHS.
   "/perfil",
   "/me",
   "/dashboard",
