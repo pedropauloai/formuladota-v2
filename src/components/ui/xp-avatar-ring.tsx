@@ -13,12 +13,21 @@
 import { useTranslations } from "next-intl";
 import { TIER_CONFIG, getTierForLevel, type Tier } from "@/lib/levels";
 import { useReducedMotion } from "@/lib/particles/hooks";
-import type { RingAsset, FrameAsset } from "@/lib/cosmetics";
+import type { RingAsset, FrameAsset, RingEffectId } from "@/lib/cosmetics";
+import { ElectricBorder } from "@/components/ui/electric-border";
 import { cn } from "@/lib/utils";
 
-// Intensidade do glow por tier — o anel "ganha vida" conforme sobe (Novato sem
-// glow → Místico no máximo). aura = aprendiz+ ; halos girando = ás+.
 const TIER_ORDER: Tier[] = ["novato", "aprendiz", "piloto", "as", "lendario", "mistico"];
+
+// Cor da corrente elétrica por efeito de anel equipado (cosmético). Cores da MARCA
+// (nunca ciano/cyberpunk). O efeito é uma moldura elétrica-neon no contorno (ref do
+// Pedro: avatar-frame-eletric), não um glow atrás.
+const EFFECT_COLOR: Record<RingEffectId, string> = {
+  ember: "var(--color-gold)",
+  inferno: "var(--color-brand-primary)",
+  pulse: "var(--color-play-primary)",
+  aurora: "var(--color-gold-bright)",
+};
 
 interface Props {
   src?: string | null;
@@ -61,8 +70,11 @@ export function XpAvatarRing({
   const cfg = TIER_CONFIG[visualTier];
 
   const intensity = glowOff ? 0 : Math.max(0, TIER_ORDER.indexOf(visualTier));
-  const hasAura = intensity >= 1;
-  const hasHalo = intensity >= 3 && !prefersReducedMotion;
+
+  // Cosmético de EFEITO equipado (moldura elétrica no contorno) → a cor da corrente.
+  // null = sem efeito rico (usa o glow/neon por tier no próprio stroke da barra).
+  const effectColor =
+    ringVariant?.kind === "effect" ? EFFECT_COLOR[ringVariant.effect] : null;
 
   const frameColor =
     frame && frame.kind !== "none"
@@ -109,7 +121,7 @@ export function XpAvatarRing({
 
   return (
     <div
-      className={cn("relative shrink-0", cfg.color)}
+      className={cn("relative isolate shrink-0", cfg.color)}
       style={{ width: box, height: box }}
       aria-label={t("xpRingAria", { level, pct: Math.round(clamped * 100) })}
     >
@@ -124,41 +136,10 @@ export function XpAvatarRing({
           )}
         />
       )}
-      {/* Aura pulsante na cor do tier — brilho vivo atrás do anel. */}
-      {hasAura && (
-        <span
-          aria-hidden="true"
-          className={cn(
-            "pointer-events-none absolute -inset-1.5 rounded-md bg-[radial-gradient(circle,currentColor_0%,transparent_68%)]",
-            intensity >= 4 ? "opacity-60" : "opacity-40",
-            !prefersReducedMotion && "animate-pulse"
-          )}
-          style={{ filter: `blur(${intensity >= 3 ? 8 : 5}px)` }}
-        />
-      )}
-      {/* Dois halos de luz girando em sentidos opostos (ás+) — energia viva. */}
-      {hasHalo && (
-        <>
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute -inset-1.5 rounded-md opacity-70 animate-spin [animation-duration:6s]"
-            style={{
-              background:
-                "conic-gradient(from 0deg, transparent 0deg, currentColor 30deg, transparent 80deg, transparent 180deg, currentColor 210deg, transparent 260deg)",
-              filter: "blur(4px)",
-            }}
-          />
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute -inset-2 rounded-md opacity-40 animate-spin [animation-duration:10s] [animation-direction:reverse]"
-            style={{
-              background:
-                "conic-gradient(from 140deg, transparent 0deg, currentColor 50deg, transparent 110deg)",
-              filter: "blur(6px)",
-            }}
-          />
-        </>
-      )}
+      {/* COSMÉTICO DE ANEL: moldura ELÉTRICA no contorno (neon + faíscas na borda,
+          ref avatar-frame-eletric). Só quando um efeito está equipado — senão o próprio
+          stroke da barra carrega a cor do tier. */}
+      {effectColor && <ElectricBorder box={box} rx={rx} color={effectColor} />}
 
       {/* Borda-progresso */}
       <svg

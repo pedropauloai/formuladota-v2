@@ -50,7 +50,24 @@ export function profileThemeThumbCss(css: string | null): string | null {
 }
 
 // asset_ref (config que o front usa pra renderizar) — shapes por slot.
-export type RingAsset = { kind: "tier"; tier: Tier } | { kind: "none" };
+//
+// EFEITOS do anel (slot `ring`) — a camada cosmética plugável ATRÁS do avatar
+// (Pedro 2026-07-06). Cada id é um MÓDULO de efeito no registry
+// (src/components/ui/avatar-effect-layer.tsx). O anel de progresso (SVG) é intacto;
+// isto é só a "pele" viva ao redor. Novos efeitos = 1 entrada no registry, sem tocar
+// no XpAvatarRing. É o que gera variação premium (e receita, via compendium).
+export const RING_EFFECT_IDS = [
+  "ember", // brasas douradas subindo (épico)
+  "inferno", // chamas vermelhas intensas (lendário)
+  "pulse", // energia verde girando (raro)
+  "aurora", // véu dourado ondulando (lendário)
+] as const;
+export type RingEffectId = (typeof RING_EFFECT_IDS)[number];
+
+export type RingAsset =
+  | { kind: "tier"; tier: Tier } // legado/default: glow na cor do tier
+  | { kind: "effect"; effect: RingEffectId } // efeito cosmético rico plugável
+  | { kind: "none" };
 export type SmokeAsset = { mid: string; hot: string };
 export type FrameAsset =
   | { kind: "none" }
@@ -150,6 +167,14 @@ export const RARITY_META: Record<
 // --- Type guards / parsers de asset_ref por slot -----------------------------
 
 export function asRingAsset(ref: Record<string, unknown>): RingAsset {
+  // Efeito rico plugável — valida o id contra o registry conhecido.
+  if (
+    ref.kind === "effect" &&
+    typeof ref.effect === "string" &&
+    (RING_EFFECT_IDS as readonly string[]).includes(ref.effect)
+  ) {
+    return { kind: "effect", effect: ref.effect as RingEffectId };
+  }
   // Valida o tier contra a lista conhecida — asset_ref malformado ({tier:'garbage'})
   // não pode virar um tier inválido (TIER_CONFIG[tier] undefined crasharia o ring).
   if (
