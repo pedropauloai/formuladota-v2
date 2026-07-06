@@ -25,19 +25,17 @@ function PlayerChip({ player, isMvp }: { player: HistoryPlayer; isMvp?: boolean 
       title={`${player.name}${isMvp ? " · MVP" : ""}${player.banned ? " · BANIDO" : ""}${hero ? ` · ${hero.name_pt}` : ""}`}
     >
       <span className={`relative isolate ${player.banned ? "opacity-90" : ""}`}>
-        {/* MVP — chama dourada (shader) ATRÁS do avatar (o perfil fica nítido por cima). */}
+        {/* MVP — chama dourada (shader) ATRÁS de tudo (-z-10, contida pelo isolate). */}
         {isMvp && <MvpFlame />}
         {/* Avatar + anel de XP com o NÍVEL da conta (identidade, sempre com o jogador). */}
-        <span className="relative z-10 block">
-          <XpAvatarRing
-            src={player.avatar ?? undefined}
-            alt={player.name}
-            fallback={player.name.slice(0, 2).toUpperCase()}
-            level={player.level}
-            pct={player.xpPct}
-            size={44}
-          />
-        </span>
+        <XpAvatarRing
+          src={player.avatar ?? undefined}
+          alt={player.name}
+          fallback={player.name.slice(0, 2).toUpperCase()}
+          level={player.level}
+          pct={player.xpPct}
+          size={44}
+        />
         {/* Herói — badge secundário no canto superior direito. */}
         {hero && (
           <span className="absolute -right-1 top-0 rounded-sm">

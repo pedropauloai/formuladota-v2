@@ -297,7 +297,10 @@ export function MvpFlame({ spread = 22, mid = "#c8aa6e", hot = "#f0e6cf" }: Prop
   return (
     <span
       aria-hidden="true"
-      className="pointer-events-none absolute z-0"
+      // -z-10 (dentro do wrapper `isolate` do consumidor): fica ATRÁS do avatar E do
+      // badge do herói, sem precisar elevar o avatar (que tampava o herói). Contido
+      // pelo isolate, não vaza pro card.
+      className="pointer-events-none absolute -z-10"
       style={{ inset: -spread }}
     >
       {glow}

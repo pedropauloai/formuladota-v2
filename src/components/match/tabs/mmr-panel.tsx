@@ -209,18 +209,16 @@ function PlayerCard({ p, pending, isMvp }: { p: MmrPlayerBreakdown; pending: boo
       {/* Identidade completa + delta. */}
       <div className="flex items-center gap-2.5">
         <span className="relative isolate shrink-0">
-          {/* MVP — chama dourada (shader) ATRÁS do avatar (o perfil fica nítido por cima). */}
+          {/* MVP — chama dourada ATRÁS de tudo (-z-10, contida pelo isolate). */}
           {isMvp && <MvpFlame />}
-          <span className="relative z-10 block">
-            <XpAvatarRing
-              src={p.avatar ?? undefined}
-              alt={p.name}
-              fallback={p.name.slice(0, 2).toUpperCase()}
-              level={p.level}
-              pct={p.xpPct}
-              size={40}
-            />
-          </span>
+          <XpAvatarRing
+            src={p.avatar ?? undefined}
+            alt={p.name}
+            fallback={p.name.slice(0, 2).toUpperCase()}
+            level={p.level}
+            pct={p.xpPct}
+            size={40}
+          />
           {/* Herói — badge no canto. */}
           {p.heroImage && (
             <span className="absolute -right-1 -top-1 rounded-sm">
