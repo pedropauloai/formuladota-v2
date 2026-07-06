@@ -102,7 +102,7 @@ export async function POST(req: Request) {
   try {
     changelog = await syncChangelogToDiscord(supabase);
   } catch (e) {
-    changelog = { posted: 0, skipped: 0 };
+    changelog = { posted: 0, edited: 0, deleted: 0, skipped: 0 };
     console.error("[cron] sync changelog→discord falhou:", e instanceof Error ? e.message : e);
   }
 
