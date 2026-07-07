@@ -3,9 +3,14 @@
 #
 # Fonte: scripts/sound/dota-sfx/<id>.mp3 (sons da Valve, categoria Sounds_ui).
 # Saída: public/sounds/ui-sprite.{mp3,webm} + imprime o SPRITE_MAP pra colar
-#        em src/lib/sound/sprite-map.ts (offsets determinísticos por slots fixos).
+#        em src/lib/sound/sprite-map.ts.
 #
-# Requer: ffmpeg no PATH (não precisa de ffprobe/audiosprite).
+# Os offsets são CALCULADOS automaticamente a partir da duração real de cada mp3
+# (via ffmpeg): cada slot = duração + MARGIN, com GAP de silêncio entre eles.
+# Assim, ao trocar um som por outro de duração diferente, é só rodar de novo —
+# nunca precisa recalcular offset à mão.
+#
+# Requer: ffmpeg no PATH (usa a duração impressa no stderr; não precisa ffprobe).
 # Uso:    bash scripts/sound/build-sound-sprite.sh
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -13,31 +18,31 @@ REPO="$(cd "$HERE/../.." && pwd)"
 RAW="$HERE/dota-sfx"
 OUT="$REPO/public/sounds"
 
-# id | start_ms | dur_ms — slots com folga >= 150ms; sons não se sobrepõem.
-ROWS=(
-  "hover|0|90"
-  "click|200|130"
-  "confirm|400|760"
-  "error|1300|210"
-  "notification|1650|190"
-  "reward|2000|2040"
-  "match_found|4200|2750"
-  "queue_start|7100|2730"
-  "queue_stop|10000|1540"
-  "ready_accept|11700|3520"
-  "quiz_correct|15400|2110"
-  "coins|17700|1630"
-  "treasure|19500|3420"
-  "objective|23100|3040"
-  "stinger|26300|1510"
-)
+MARGIN=40   # ms de folga no fim de cada som (evita corte)
+GAP=150     # ms de silêncio entre sons
 
-inputs=(); filter=""; labels=""; i=0
-for row in "${ROWS[@]}"; do
-  IFS='|' read -r id start dur <<< "$row"
+# ORDEM dos IDs no sprite (a mesma lista de src/lib/sound/sprite-map.ts).
+IDS=(hover click confirm error notification reward \
+     match_found queue_start queue_stop ready_accept \
+     quiz_correct objective coins treasure stinger)
+
+# Lê a duração (ms) de um mp3 a partir do "Duration: HH:MM:SS.ss" do ffmpeg.
+dur_ms() {
+  local d; d=$(ffmpeg -i "$1" 2>&1 | grep -o 'Duration: [0-9:.]*' | head -1 | sed 's/Duration: //')
+  local h=${d%%:*}; local rest=${d#*:}; local m=${rest%%:*}; local s=${rest#*:}
+  awk -v h="$h" -v m="$m" -v s="$s" 'BEGIN{printf "%d", (h*3600+m*60+s)*1000}'
+}
+
+inputs=(); filter=""; labels=""; i=0; start=0
+declare -a MAP_LINES
+for id in "${IDS[@]}"; do
+  real=$(dur_ms "$RAW/$id.mp3")
+  slot=$((real + MARGIN))
   inputs+=(-i "$RAW/$id.mp3")
   filter+="[$i]adelay=${start}:all=1[a$i];"
   labels+="[a$i]"
+  MAP_LINES+=("  $id: { start: $start, duration: $slot },")
+  start=$((start + slot + GAP))
   i=$((i+1))
 done
 filter+="${labels}amix=inputs=${i}:normalize=0[out]"
@@ -55,7 +60,4 @@ ffmpeg -y -hide_banner -loglevel error "${inputs[@]}" \
 ls -la "$OUT/ui-sprite.mp3" "$OUT/ui-sprite.webm"
 
 echo "=== cole em src/lib/sound/sprite-map.ts (SPRITE_MAP) ==="
-for row in "${ROWS[@]}"; do
-  IFS='|' read -r id s d <<< "$row"
-  echo "  $id: { start: $s, duration: $d },"
-done
+printf '%s\n' "${MAP_LINES[@]}"

@@ -34,7 +34,7 @@ mudam; nenhum componente precisa ser tocado). Ver `docs/foundations/SOUND_SYSTEM
 | error        | `Ui_ui_general_deny.mp3`    | interaction | erro/bloqueio; quiz errado (o "deny" do Dota) |
 | notification | `Ui_ui_msg_received_team.mp3`| interaction | mensagem/aviso (chat, banners, toasts info) |
 | reward       | `Ui_levelup.mp3`            | **reward**  | conquista genérica; ganhou permissão; takeover |
-| match_found  | `Ui_ui_findmatch_found_01.mp3`| **reward** | ready check "PARTIDA ENCONTRADA" |
+| match_found  | `Ui_stingers_match_ready.mp3`| **reward** | ready check "PARTIDA ENCONTRADA" — o stinger clássico do aceite (subcategoria `stingers`) |
 | queue_start  | `Ui_ui_findmatch_search_01.mp3`| interaction| entrou na fila |
 | queue_stop   | `Ui_ui_findmatch_quit_01.mp3`| interaction | saiu da fila |
 | ready_accept | `Ui_ready_check_yes.mp3`    | interaction | aceitou a partida |
