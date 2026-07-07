@@ -11,6 +11,7 @@ import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { ShaderSmoke } from "@/components/ui/shader-smoke";
 import { equipCosmetic, unequipSlot } from "@/actions/cosmetics";
 import { useToast } from "@/components/ui/toast";
+import { useSound } from "@/lib/sound/hooks";
 import {
   RARITY_META,
   asRingAsset,
@@ -99,6 +100,7 @@ export function CosmeticCard({
   const router = useRouter();
   const { toast } = useToast();
   const t = useTranslations("colecao");
+  const play = useSound();
   const [pending, start] = useTransition();
   const rarity = RARITY_META[item.rarity];
 
@@ -112,6 +114,8 @@ export function CosmeticCard({
         toast({ type: "error", title: res.error ?? t("equipError") });
         return;
       }
+      // Equipou/desequipou com sucesso — som do baú do cliente Dota (treasure).
+      if (!item.equipped) play("treasure");
       router.refresh();
     });
   }

@@ -27,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm";
 import { joinCoachQueue, leaveCoachQueue } from "@/components/landing/actions";
 import { PermissionQuizModal } from "@/components/quiz/permission-quiz-modal";
+import { useSound } from "@/lib/sound/hooks";
 
 interface Props {
   coachId: string;
@@ -62,6 +63,7 @@ export function QueueActionButton({
   const router = useRouter();
   const confirm = useConfirm();
   const t = useTranslations("queue");
+  const play = useSound();
 
   // Optimistic state — espelha props mas user pode flip imediato pra UI
   // responder em 0ms. Sincroniza com server via realtime ou rollback.
@@ -74,6 +76,7 @@ export function QueueActionButton({
   function handleJoin() {
     setError(null);
     setOptimisticInQueue(true);
+    play("queue_start"); // som "procurando partida" do cliente Dota
     onJoinSuccess?.();
     startTransition(async () => {
       const res = await joinCoachQueue(coachId);
@@ -102,6 +105,7 @@ export function QueueActionButton({
     if (!ok) return;
     setError(null);
     setOptimisticInQueue(false);
+    play("queue_stop"); // som "saiu da fila" do cliente Dota
     startTransition(async () => {
       const res = await leaveCoachQueue(myEntryIdHere);
       if (!res.success) {

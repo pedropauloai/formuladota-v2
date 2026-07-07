@@ -189,11 +189,12 @@ export function ReadyCheckOverlay({
     return () => clearInterval(iv);
   }, [proposal, confirmedLobby]);
 
-  // Som "partida encontrada" ao aparecer uma proposta nova.
+  // Som "partida encontrada" ao aparecer uma proposta nova — o stinger real do
+  // cliente Dota (findmatch_found), reconhecível na hora pelo jogador.
   useEffect(() => {
     if (proposal && soundedFor.current !== proposal.id) {
       soundedFor.current = proposal.id;
-      play("reward");
+      play("match_found");
     }
   }, [proposal, play]);
 
@@ -246,6 +247,7 @@ export function ReadyCheckOverlay({
 
   function accept() {
     if (!proposal) return;
+    play("ready_accept"); // som "aceitei" do cliente Dota (ready_check_yes)
     const id = proposal.id;
     startTransition(async () => {
       const { lobbyId } = await acceptMatchProposal(id);

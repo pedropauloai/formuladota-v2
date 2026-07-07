@@ -18,6 +18,7 @@ import type { QuizQuestion } from "@/lib/quiz/types";
 import { shuffleOptions, displayLetter } from "@/lib/quiz/shuffle";
 import { recordDoctrineAnswer, getDoctrineProgress } from "@/app/doutrina/actions";
 import { QUESTIONS_PER_PERMISSION } from "@/lib/quiz/permissions";
+import { useSound } from "@/lib/sound/hooks";
 
 interface Props {
   open: boolean;
@@ -31,6 +32,7 @@ interface Props {
 export function PermissionQuizModal({ open, modalidade, onClose, onGranted }: Props) {
   const t = useTranslations("doutrina");
   const tq = useTranslations("quiz");
+  const play = useSound();
   const [loading, setLoading] = useState(true);
   const [pendingIds, setPendingIds] = useState<string[]>([]);
   const [answeredCount, setAnsweredCount] = useState(0);
@@ -101,12 +103,13 @@ export function PermissionQuizModal({ open, modalidade, onClose, onGranted }: Pr
       setPendingIds((prev) => prev.slice(1));
       if (res.permissions >= 1 || res.doctrinated) {
         setGranted(true);
+        play("reward"); // ganhou 1 permissão de partida — celebração
       }
     } else {
       // Falha de rede/servidor — só repete a questão.
       setPendingIds((prev) => prev);
     }
-  }, [current, chosen, correctId, saving]);
+  }, [current, chosen, correctId, saving, play]);
 
   if (!open) return null;
 
@@ -202,7 +205,11 @@ export function PermissionQuizModal({ open, modalidade, onClose, onGranted }: Pr
                     <button
                       type="button"
                       disabled={answered || saving}
-                      onClick={() => setChosen(opt.id)}
+                      onClick={() => {
+                        setChosen(opt.id);
+                        // Som imediato de acerto (ding do tutorial) ou erro (deny) do Dota
+                        play(isCorrect ? "quiz_correct" : "error");
+                      }}
                       className={cn(
                         "flex w-full items-start gap-3 rounded-[var(--radius-md)] border-2 p-3 text-left transition-colors disabled:cursor-default",
                         stateClass

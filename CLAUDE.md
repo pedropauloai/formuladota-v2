@@ -95,7 +95,8 @@ Demais regras:
 - Branches: `feat/`, `fix/`, `refactor/`, `docs/`, `chore/`
 - Conventional Commits: `feat:`, `fix:`, `refactor:`, `docs:`, `chore:`
 - NUNCA commitar `.env`, secrets, ou Supabase service role key
-- PR pra qualquer mudança — sem push direto na main
+- **Fluxo (Pedro 2026-07-07):** sempre trabalhar em branch (nunca commit direto na main) e abrir PR — pelo preview da Vercel + reversão de 1 clique. Pedro NÃO revisa PR (valida em produção), então **o Claude mescla o próprio PR** assim que `typecheck` + `lint` passam; não esperar review. EXCEÇÃO (aí sim aguardar aprovação do Pedro antes de mesclar): migrations, billing/pagamentos, mudança de preço, deps majores.
+- **Paralelismo entre sessões:** 1 pasta do projeto = 1 branch por vez (working tree único). Rodar 2 sessões simultâneas SÓ em pastas/clones diferentes, e evitando os mesmos arquivos. Nunca 2 sessões na mesma pasta. Worktree proibido pelo Pedro.
 
 ## Variáveis de Ambiente
 
