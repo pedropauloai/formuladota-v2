@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Gamepad2, ShieldCheck, AlertCircle, ArrowRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { countryToRegion } from "@/lib/regions";
 import { signInWithSteam } from "./actions";
 import { RegionPicker } from "./region-picker";
 import { DotaBackdrop } from "@/components/dota/dota-backdrop";
@@ -36,7 +38,9 @@ const ERROR_KEYS: Record<string, string> = {
   missing_code: "steamErrorMissingCode",
 };
 
-type SearchParams = Promise<{ error?: string; ok?: string }>;
+// debug_country: só em NÃO-produção — força o país pra testar a sugestão de região
+// localmente (x-vercel-ip-country só existe atrás da Vercel). Ignorado em produção.
+type SearchParams = Promise<{ error?: string; ok?: string; debug_country?: string }>;
 
 // Banner de erro — extraído pra manter VincularSteamPage ≤ 50 linhas (per C2).
 function ErrorBanner({ message }: { message: string }) {
@@ -87,6 +91,16 @@ export default async function VincularSteamPage({
 
   const t = await getTranslations("account");
   const params = await searchParams;
+
+  // Região SUGERIDA pelo IP (x-fd-country, repassado pelo middleware). Só o default
+  // pré-selecionado — o usuário confirma/troca no picker. Independente do idioma.
+  // Em dev/preview, ?debug_country=XX (ex.: RU) força o país pra testar sem Vercel.
+  const ipCountry = (await headers()).get("x-fd-country");
+  const country =
+    process.env.NODE_ENV !== "production" && params.debug_country
+      ? params.debug_country
+      : ipCountry;
+  const suggestedRegion = countryToRegion(country);
   const errorKey = params.error ? ERROR_KEYS[params.error] : undefined;
   const errorMessage = errorKey ? t(errorKey) : undefined;
 
@@ -114,7 +128,7 @@ export default async function VincularSteamPage({
 
         {errorMessage && <ErrorBanner message={errorMessage} />}
 
-        {!regionChosen && <RegionPicker />}
+        {!regionChosen && <RegionPicker suggestedRegion={suggestedRegion} />}
 
         {steamLink ? (
           <LinkedState

@@ -138,6 +138,14 @@ export async function updateSession(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-fd-locale", locale);
 
+  // País do IP (x-vercel-ip-country) repassado como x-fd-country pro onboarding
+  // SUGERIR a região de jogo (countryToRegion). É um EIXO INDEPENDENTE do idioma:
+  // só expomos o país cru; quem decide região é o onboarding, não a lógica de locale.
+  requestHeaders.set(
+    "x-fd-country",
+    request.headers.get("x-vercel-ip-country") ?? ""
+  );
+
   // Redirects de auth → no slug do idioma atual (ex.: en → /profile, /code-of-conduct).
   const localizedUrl = (path: string) =>
     new URL(localizePath(path, locale), request.url);

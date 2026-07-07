@@ -12,14 +12,16 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { chooseRegion } from "./actions";
 
-export function RegionPicker() {
+export function RegionPicker({ suggestedRegion }: { suggestedRegion: GameRegion }) {
   const t = useTranslations("account");
-  const [selected, setSelected] = useState<GameRegion | null>(null);
+  // Pré-seleção vinda do IP (SUGESTÃO). O usuário continua podendo trocar antes de
+  // confirmar — o IP só chuta o default, quem decide é o jogador (override).
+  const [selected, setSelected] = useState<GameRegion>(suggestedRegion);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   function confirm() {
-    if (!selected || pending) return;
+    if (pending) return;
     setError(null);
     startTransition(async () => {
       const res = await chooseRegion(selected);
@@ -84,7 +86,7 @@ export function RegionPicker() {
         variant="primary"
         size="lg"
         className="w-full"
-        disabled={!selected || pending}
+        disabled={pending}
         onClick={confirm}
       >
         {t("regionConfirm")}
