@@ -26,22 +26,24 @@ import { TeamfightsPanel } from "@/components/match/tabs/teamfights-panel";
 import { ObjectivesPanel } from "@/components/match/tabs/objectives-panel";
 import { DraftPanel } from "@/components/match/tabs/draft-panel";
 import { MmrPanel } from "@/components/match/tabs/mmr-panel";
+import { useTranslations } from "next-intl";
 
+// id = chave estável (lógica/data-tab, não muda com idioma); labelKey = chave i18n.
 const TABS = [
-  "Visão geral",
-  "MMR",
-  "Performance",
-  "Gráficos",
-  "Builds",
-  "Combate",
-  "Mapas",
-  "Presença",
-  "Teamfights",
-  "Objetivos",
-  "Draft",
-  "Benchmarks",
+  { id: "overview", labelKey: "tabOverview" },
+  { id: "mmr", labelKey: "tabMmr" },
+  { id: "performance", labelKey: "tabPerformance" },
+  { id: "graphs", labelKey: "tabGraphs" },
+  { id: "builds", labelKey: "tabBuilds" },
+  { id: "combat", labelKey: "tabCombat" },
+  { id: "maps", labelKey: "tabMaps" },
+  { id: "presence", labelKey: "tabPresence" },
+  { id: "teamfights", labelKey: "tabTeamfights" },
+  { id: "objectives", labelKey: "tabObjectives" },
+  { id: "draft", labelKey: "tabDraft" },
+  { id: "benchmarks", labelKey: "tabBenchmarks" },
 ] as const;
-type Tab = (typeof TABS)[number];
+type Tab = (typeof TABS)[number]["id"];
 
 export interface MatchDetailData {
   players: PlayerFull[];
@@ -73,7 +75,8 @@ export function MatchDetail({
   mvpUserId,
   heatmaps,
 }: MatchDetailData) {
-  const [tab, setTab] = useState<Tab>("Visão geral");
+  const t = useTranslations("scoreboard");
+  const [tab, setTab] = useState<Tab>("overview");
   const { radiant, dire } = splitTeams(players);
 
   // Indicador que DESLIZA sob a aba ativa (micro-fx §3.4: "indicador que desliza, não
@@ -97,19 +100,19 @@ export function MatchDetail({
     <div>
       {/* Barra de abas. */}
       <div ref={tabsRef} className="relative mb-5 flex gap-1 overflow-x-auto border-b border-border-subtle">
-        {TABS.map((t) => {
-          const active = t === tab;
+        {TABS.map((tabDef) => {
+          const active = tabDef.id === tab;
           return (
             <button
-              key={t}
+              key={tabDef.id}
               type="button"
-              data-tab={t}
-              onClick={() => setTab(t)}
+              data-tab={tabDef.id}
+              onClick={() => setTab(tabDef.id)}
               className={`shrink-0 px-3 py-2 font-display text-sm font-bold uppercase tracking-wide transition-colors ${
                 active ? "text-text-display" : "text-text-muted hover:text-text-display"
               }`}
             >
-              {t}
+              {t(tabDef.labelKey)}
             </button>
           );
         })}
@@ -122,20 +125,20 @@ export function MatchDetail({
       </div>
 
       {/* Painel ativo. */}
-      {tab === "Visão geral" && (
+      {tab === "overview" && (
         <MatchScoreboard radiant={radiant} dire={dire} radiantWin={radiantWin} mvpUserId={mvpUserId} />
       )}
-      {tab === "MMR" && <MmrPanel dotaMatchId={dotaMatchId} />}
-      {tab === "Performance" && <PerformancePanel players={players} />}
-      {tab === "Gráficos" && <GraphsPanel series={series} advantage={advantage} />}
-      {tab === "Builds" && <BuildsPanel players={players} />}
-      {tab === "Combate" && <CombatPanel players={players} />}
-      {tab === "Mapas" && <MapsPanel players={players} wards={wards} />}
-      {tab === "Presença" && <HeatmapPanel heatmaps={heatmaps} />}
-      {tab === "Teamfights" && <TeamfightsPanel teamfights={teamfights} />}
-      {tab === "Objetivos" && <ObjectivesPanel objectives={objectives} />}
-      {tab === "Draft" && <DraftPanel radiant={draft.radiant} dire={draft.dire} />}
-      {tab === "Benchmarks" && <BenchmarksPanel players={players} />}
+      {tab === "mmr" && <MmrPanel dotaMatchId={dotaMatchId} />}
+      {tab === "performance" && <PerformancePanel players={players} />}
+      {tab === "graphs" && <GraphsPanel series={series} advantage={advantage} />}
+      {tab === "builds" && <BuildsPanel players={players} />}
+      {tab === "combat" && <CombatPanel players={players} />}
+      {tab === "maps" && <MapsPanel players={players} wards={wards} />}
+      {tab === "presence" && <HeatmapPanel heatmaps={heatmaps} />}
+      {tab === "teamfights" && <TeamfightsPanel teamfights={teamfights} />}
+      {tab === "objectives" && <ObjectivesPanel objectives={objectives} />}
+      {tab === "draft" && <DraftPanel radiant={draft.radiant} dire={draft.dire} />}
+      {tab === "benchmarks" && <BenchmarksPanel players={players} />}
     </div>
   );
 }

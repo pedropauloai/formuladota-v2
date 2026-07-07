@@ -3828,6 +3828,18 @@
     "pos3": "Posición 3 (offlane)",
     "pos4": "Posición 4 (soporte)",
     "pos5": "Posición 5 (soporte duro)",
-    "posN": "Posición {n}"
+    "posN": "Posición {n}",
+    "tabOverview": "Resumen",
+    "tabMmr": "MMR",
+    "tabPerformance": "Rendimiento",
+    "tabGraphs": "Gráficos",
+    "tabBuilds": "Builds",
+    "tabCombat": "Combate",
+    "tabMaps": "Mapas",
+    "tabPresence": "Presencia",
+    "tabTeamfights": "Teamfights",
+    "tabObjectives": "Objetivos",
+    "tabDraft": "Draft",
+    "tabBenchmarks": "Benchmarks"
   }
 }
