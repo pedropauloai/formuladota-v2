@@ -1,14 +1,16 @@
 // Aba Draft — ordem de escolhas (e banimentos, se houver) por time.
 
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import type { DraftPick } from "@/lib/dota/match-objectives";
 import { TeamHeader } from "@/components/match/shared";
 
 function PickRow({ p }: { p: DraftPick }) {
+  const t = useTranslations("scoreboard");
   return (
     <li
       className={`flex items-center gap-2.5 px-2 py-1.5 ${p.isPick ? "" : "opacity-50"}`}
-      title={p.isPick ? "Escolha" : "Banimento"}
+      title={p.isPick ? t("draftPick") : t("draftBanFull")}
     >
       <span className="w-6 shrink-0 text-right font-mono text-xs tabular-nums text-text-faded">
         {p.order + 1}
@@ -27,13 +29,14 @@ function PickRow({ p }: { p: DraftPick }) {
       )}
       <span className="font-body text-sm text-text-display">{p.heroName}</span>
       {!p.isPick && (
-        <span className="font-display text-[0.65rem] uppercase tracking-wide text-error">Ban</span>
+        <span className="font-display text-[0.65rem] uppercase tracking-wide text-error">{t("draftBan")}</span>
       )}
     </li>
   );
 }
 
 function TeamDraft({ picks, team }: { picks: DraftPick[]; team: "radiant" | "dire" }) {
+  const t = useTranslations("scoreboard");
   return (
     <div className="rounded-[var(--radius-lg)] border border-border-subtle bg-bg-elevated/40 p-3">
       <TeamHeader team={team} />
@@ -44,7 +47,7 @@ function TeamDraft({ picks, team }: { picks: DraftPick[]; team: "radiant" | "dir
           ))}
         </ul>
       ) : (
-        <p className="font-body text-sm text-text-faded">Sem dados de draft.</p>
+        <p className="font-body text-sm text-text-faded">{t("draftEmpty")}</p>
       )}
     </div>
   );
@@ -57,10 +60,11 @@ export function DraftPanel({
   radiant: DraftPick[];
   dire: DraftPick[];
 }) {
+  const t = useTranslations("scoreboard");
   if (!radiant.length && !dire.length) {
     return (
       <p className="font-body text-sm text-text-faded">
-        Esta partida não tem dados de draft (modo sem picks/bans registrados).
+        {t("draftEmptyLong")}
       </p>
     );
   }

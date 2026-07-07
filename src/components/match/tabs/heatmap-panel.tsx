@@ -7,6 +7,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import type { PlayerHeatmap, HeatCell } from "@/lib/dota/match-heatmap";
 
 const SIZE = 512; // resolução interna do canvas (CSS escala pra 100%)
@@ -45,6 +46,7 @@ function drawHeatmap(canvas: HTMLCanvasElement, cells: HeatCell[]) {
 }
 
 export function HeatmapPanel({ heatmaps }: { heatmaps: PlayerHeatmap[] }) {
+  const t = useTranslations("scoreboard");
   const withData = heatmaps.filter((h) => h.hasData);
   const [slot, setSlot] = useState<number | null>(withData[0]?.slot ?? null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -58,8 +60,7 @@ export function HeatmapPanel({ heatmaps }: { heatmaps: PlayerHeatmap[] }) {
   if (withData.length === 0) {
     return (
       <p className="py-16 text-center font-body text-sm text-text-muted">
-        Mapa de calor indisponível — depende do replay parseado pela OpenDota. Se a partida é
-        recente, tente reprocessar em alguns minutos.
+        {t("heatUnavailable")}
       </p>
     );
   }
@@ -73,7 +74,7 @@ export function HeatmapPanel({ heatmaps }: { heatmaps: PlayerHeatmap[] }) {
       <div className="relative aspect-square w-full max-w-[460px] shrink-0 overflow-hidden rounded-[var(--radius-lg)] border border-border-subtle">
         <Image
           src="/dota/minimap/minimap.jpg"
-          alt="Minimapa do Dota 2"
+          alt={t("minimapAlt")}
           fill
           unoptimized
           className="object-cover opacity-70"
@@ -90,30 +91,30 @@ export function HeatmapPanel({ heatmaps }: { heatmaps: PlayerHeatmap[] }) {
       <div className="flex min-w-0 flex-1 flex-col gap-4">
         <div>
           <p className="mb-2 font-display text-xs font-bold uppercase tracking-wide text-text-faded">
-            Escolha o jogador
+            {t("heatPickPlayer")}
           </p>
           <div className="grid gap-3 sm:grid-cols-2">
-            <PlayerColumn title="Iluminados" tone={RADIANT} players={radiant} slot={slot} onPick={setSlot} />
-            <PlayerColumn title="Temidos" tone={DIRE} players={dire} slot={slot} onPick={setSlot} />
+            <PlayerColumn title={t("teamRadiant")} tone={RADIANT} players={radiant} slot={slot} onPick={setSlot} />
+            <PlayerColumn title={t("teamDire")} tone={DIRE} players={dire} slot={slot} onPick={setSlot} />
           </div>
         </div>
 
         {/* Legenda do gradiente. */}
         <div className="flex items-center gap-2 font-body text-xs text-text-faded">
-          <span>Menos presente</span>
+          <span>{t("heatLess")}</span>
           <span
             className="h-2 flex-1 rounded-full"
             style={{ background: "linear-gradient(90deg, rgba(0,200,40,.7), rgba(255,200,40,.85), rgba(255,40,30,.95))" }}
           />
-          <span>Mais presente</span>
+          <span>{t("heatMore")}</span>
         </div>
 
         <p className="max-w-md font-body text-xs leading-relaxed text-text-faded">
-          Cada mancha mostra onde{" "}
-          <strong className="text-text-muted">{selected?.playerName ?? "o jogador"}</strong> ({selected?.heroName})
-          mais esteve no mapa durante a <strong className="text-text-muted">fase de rota</strong> — o
-          mesmo dado que o STRATZ usa. Regiões quentes = mais tempo ali (a rota costuma ser a mais
-          quente); o rastro fino mostra a movimentação.
+          {t.rich("heatDesc", {
+            name: selected?.playerName ?? t("heatPlayerFallback"),
+            hero: selected?.heroName ?? "",
+            strong: (chunks) => <strong className="text-text-muted">{chunks}</strong>,
+          })}
         </p>
       </div>
     </div>

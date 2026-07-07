@@ -2,17 +2,18 @@
 // e a matriz "quem matou quem" (assinatura do OpenDota).
 
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import type { PlayerFull } from "@/lib/dota/match-stats";
 import { StatTable, splitTeams, fmtK, type StatColumn } from "@/components/match/shared";
 
 const COLUMNS: StatColumn[] = [
-  { label: "Dano heróis", render: (p) => fmtK(p.combat.heroDamage), accent: "text-brand-primary" },
-  { label: "Dano recebido", render: (p) => fmtK(p.combat.damageTaken) },
-  { label: "Cura", render: (p) => fmtK(p.combat.heroHealing), accent: "text-[#00C466]" },
-  { label: "Maior hit", render: (p) => fmtK(p.combat.maxHeroHit) },
-  { label: "Hits em heróis", render: (p) => p.combat.heroHits },
-  { label: "Multi-kill", render: (p) => (p.combat.bestMultiKill > 1 ? `${p.combat.bestMultiKill}x` : "—") },
-  { label: "Streak", render: (p) => (p.combat.bestKillStreak > 2 ? p.combat.bestKillStreak : "—") },
+  { labelKey: "colCombatHeroDmg", render: (p) => fmtK(p.combat.heroDamage), accent: "text-brand-primary" },
+  { labelKey: "colCombatDmgTaken", render: (p) => fmtK(p.combat.damageTaken) },
+  { labelKey: "colCombatHealing", render: (p) => fmtK(p.combat.heroHealing), accent: "text-[#00C466]" },
+  { labelKey: "colCombatMaxHit", render: (p) => fmtK(p.combat.maxHeroHit) },
+  { labelKey: "colCombatHeroHits", render: (p) => p.combat.heroHits },
+  { labelKey: "colCombatMultiKill", render: (p) => (p.combat.bestMultiKill > 1 ? `${p.combat.bestMultiKill}x` : "—") },
+  { labelKey: "colCombatStreak", render: (p) => (p.combat.bestKillStreak > 2 ? p.combat.bestKillStreak : "—") },
 ];
 
 function HeroIconCell({ p }: { p: PlayerFull }) {
@@ -85,17 +86,20 @@ function KillMatrix({
 }
 
 export function CombatPanel({ players }: { players: PlayerFull[] }) {
+  const t = useTranslations("scoreboard");
   const { radiant, dire } = splitTeams(players);
+  const rad = t("teamRadiant");
+  const dir = t("teamDire");
   return (
     <div className="space-y-6">
       <StatTable players={players} columns={COLUMNS} />
       <section className="rounded-[var(--radius-lg)] border border-border-subtle bg-bg-elevated/40 p-4">
         <h3 className="mb-3 font-display text-base font-bold uppercase tracking-wide text-text-display">
-          Abates — quem matou quem
+          {t("killMatrixTitle")}
         </h3>
         <div className="flex flex-wrap gap-x-10 gap-y-6">
-          <KillMatrix attackers={radiant} victims={dire} title="Iluminados sobre Temidos" />
-          <KillMatrix attackers={dire} victims={radiant} title="Temidos sobre Iluminados" />
+          <KillMatrix attackers={radiant} victims={dire} title={t("combatOver", { a: rad, b: dir })} />
+          <KillMatrix attackers={dire} victims={radiant} title={t("combatOver", { a: dir, b: rad })} />
         </div>
       </section>
     </div>

@@ -2,6 +2,7 @@
 // itens importantes (com timing) · item neutro.
 
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import type { PlayerFull, BuildPurchase, BuildSkill } from "@/lib/dota/match-stats";
 import { splitTeams, mmss, PlayerLabel, TeamHeader } from "@/components/match/shared";
 
@@ -94,6 +95,8 @@ function PlayerRow({ p }: { p: PlayerFull }) {
 }
 
 function TeamBuilds({ players, team }: { players: PlayerFull[]; team: "radiant" | "dire" }) {
+  const t = useTranslations("scoreboard");
+  const headers = ["colPlayer", "colBuildSkills", "colBuildBoots", "colBuildKeyItems", "colBuildNeutral"];
   return (
     <div>
       <TeamHeader team={team} />
@@ -101,12 +104,12 @@ function TeamBuilds({ players, team }: { players: PlayerFull[]; team: "radiant" 
         <table className="w-full min-w-[720px] border-collapse">
           <thead>
             <tr className="border-b border-border-subtle/60 text-left">
-              {["Jogador", "Build de skills", "Botas", "Itens importantes", "Neutro"].map((h) => (
+              {headers.map((h) => (
                 <th
                   key={h}
                   className="px-3 py-2 font-display text-[0.62rem] font-bold uppercase tracking-wide text-text-faded"
                 >
-                  {h}
+                  {t(h)}
                 </th>
               ))}
             </tr>
