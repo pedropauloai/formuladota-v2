@@ -1,6 +1,7 @@
 // Aba Objetivos — timeline de torres, barracas, roshan e first blood.
 
 import { Castle, Swords, Crown, Droplet, Shield } from "lucide-react";
+import { useTranslations } from "next-intl";
 import type { ObjectiveEvent } from "@/lib/dota/match-objectives";
 
 const ICON = {
@@ -17,15 +18,12 @@ function teamColor(team: "radiant" | "dire" | null): string {
   return "text-text-muted";
 }
 
-function teamLabel(team: "radiant" | "dire" | null): string {
-  if (team === "radiant") return "Iluminados";
-  if (team === "dire") return "Temidos";
-  return "";
-}
-
 export function ObjectivesPanel({ objectives }: { objectives: ObjectiveEvent[] }) {
+  const t = useTranslations("scoreboard");
+  const teamLabel = (team: "radiant" | "dire" | null): string =>
+    team === "radiant" ? t("teamRadiant") : team === "dire" ? t("teamDire") : "";
   if (!objectives.length) {
-    return <p className="font-body text-sm text-text-faded">Sem objetivos registrados.</p>;
+    return <p className="font-body text-sm text-text-faded">{t("objectivesEmpty")}</p>;
   }
   return (
     <ol className="relative space-y-1 border-l border-border-subtle pl-4">

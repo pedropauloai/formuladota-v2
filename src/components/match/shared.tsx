@@ -1,8 +1,12 @@
+"use client";
+
 // Blocos compartilhados pelos painéis do placar (presentational, sem estado).
-// Mantém os painéis enxutos e a aparência consistente entre abas.
+// Mantém os painéis enxutos e a aparência consistente entre abas. Client porque
+// os painéis rodam no cliente (dentro de match-detail) e usam useTranslations.
 
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import type { PlayerFull } from "@/lib/dota/match-stats";
 import { RoleIcon } from "@/components/match/match-scoreboard";
 
@@ -26,6 +30,8 @@ export function mmss(totalSeconds: number): string {
 
 // Rótulo compacto do jogador: ícone do herói (quadrado) + nome (linka pro perfil).
 export function PlayerLabel({ p }: { p: PlayerFull }) {
+  const t = useTranslations("scoreboard");
+  const posLabel = t(`pos${Math.min(5, Math.max(1, p.positionSlot))}`);
   const inner = (
     <span className="flex min-w-0 items-center gap-2">
       {p.heroIcon ? (
@@ -41,7 +47,7 @@ export function PlayerLabel({ p }: { p: PlayerFull }) {
       ) : (
         <span className="size-6 shrink-0 rounded-sm bg-bg-elevated" aria-hidden="true" />
       )}
-      <RoleIcon slot={p.positionSlot} size={15} className="ml-0.5" />
+      <RoleIcon slot={p.positionSlot} size={15} className="ml-0.5" label={posLabel} />
       <span className="min-w-0 truncate font-body text-sm text-text-display">{p.name}</span>
     </span>
   );
@@ -57,6 +63,7 @@ export function PlayerLabel({ p }: { p: PlayerFull }) {
 
 // Cabeçalho de time (Iluminados/Temidos) com faixa de cor.
 export function TeamHeader({ team }: { team: "radiant" | "dire" }) {
+  const t = useTranslations("scoreboard");
   const isRadiant = team === "radiant";
   return (
     <h3
@@ -64,7 +71,7 @@ export function TeamHeader({ team }: { team: "radiant" | "dire" }) {
         isRadiant ? "text-[#00C466]" : "text-brand-primary"
       }`}
     >
-      {isRadiant ? "Iluminados" : "Temidos"}
+      {isRadiant ? t("teamRadiant") : t("teamDire")}
     </h3>
   );
 }
@@ -101,7 +108,8 @@ export function splitTeams(players: PlayerFull[]) {
 }
 
 export interface StatColumn {
-  label: string;
+  /** Chave i18n no namespace `scoreboard` (ex.: "colPerfTeamfight"). */
+  labelKey: string;
   render: (p: PlayerFull) => React.ReactNode;
   accent?: string;
 }
@@ -115,6 +123,7 @@ export function StatTable({
   players: PlayerFull[];
   columns: StatColumn[];
 }) {
+  const t = useTranslations("scoreboard");
   const { radiant, dire } = splitTeams(players);
   return (
     <div className="space-y-5">
@@ -128,10 +137,10 @@ export function StatTable({
                 <thead>
                   <tr className="border-b border-border-subtle/60">
                     <th className="px-3 py-2 text-left font-display text-[0.62rem] font-bold uppercase tracking-wide text-text-faded">
-                      Jogador
+                      {t("colPlayer")}
                     </th>
                     {columns.map((c) => (
-                      <ThNum key={c.label}>{c.label}</ThNum>
+                      <ThNum key={c.labelKey}>{t(c.labelKey)}</ThNum>
                     ))}
                   </tr>
                 </thead>
@@ -142,7 +151,7 @@ export function StatTable({
                         <PlayerLabel p={p} />
                       </td>
                       {columns.map((c) => (
-                        <TdNum key={c.label} accent={c.accent}>
+                        <TdNum key={c.labelKey} accent={c.accent}>
                           {c.render(p)}
                         </TdNum>
                       ))}

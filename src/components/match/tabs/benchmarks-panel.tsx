@@ -1,6 +1,7 @@
 // Aba Benchmarks — percentis de cada jogador (GPM/XPM/LH/dano…) vs a base de
 // partidas do OpenDota. Barra preenchida pelo percentil; cor por faixa.
 
+import { useTranslations } from "next-intl";
 import type { PlayerFull, BenchRow } from "@/lib/dota/match-stats";
 import { splitTeams, fmtK, PlayerLabel, TeamHeader } from "@/components/match/shared";
 
@@ -50,6 +51,7 @@ function PlayerBench({ p }: { p: PlayerFull }) {
 }
 
 export function BenchmarksPanel({ players }: { players: PlayerFull[] }) {
+  const t = useTranslations("scoreboard");
   const { radiant, dire } = splitTeams(players);
   return (
     <div className="space-y-5">
@@ -70,7 +72,7 @@ export function BenchmarksPanel({ players }: { players: PlayerFull[] }) {
         })}
       </div>
       <p className="font-body text-xs text-text-faded">
-        Percentil = posição da métrica vs a base de partidas do OpenDota (100 = melhor).
+        {t("benchNote")}
       </p>
     </div>
   );

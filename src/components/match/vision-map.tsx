@@ -6,14 +6,16 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import type { Ward } from "@/lib/dota/match-vision";
 
 const RADIANT = "#00C466";
 const DIRE = "#C42121";
 
 function WardDot({ w }: { w: Ward }) {
+  const t = useTranslations("scoreboard");
   const color = w.team === "radiant" ? RADIANT : DIRE;
-  const title = `${w.isObs ? "Observadora" : "Sentinela"} · ${w.heroName} · ${w.placedMin}min`;
+  const title = `${w.isObs ? t("wardObserver") : t("wardSentry")} · ${w.heroName} · ${w.placedMin}min`;
   return (
     <span
       className="absolute -translate-x-1/2 -translate-y-1/2"
@@ -58,6 +60,7 @@ function FilterChip({
 }
 
 export function VisionMap({ wards }: { wards: Ward[] }) {
+  const t = useTranslations("scoreboard");
   const [showObs, setShowObs] = useState(true);
   const [showSen, setShowSen] = useState(true);
   const [showRadiant, setShowRadiant] = useState(true);
@@ -78,7 +81,7 @@ export function VisionMap({ wards }: { wards: Ward[] }) {
       <div className="relative aspect-square w-full max-w-[460px] shrink-0 overflow-hidden rounded-[var(--radius-lg)] border border-border-subtle">
         <Image
           src="/dota/minimap/minimap.jpg"
-          alt="Minimapa do Dota 2"
+          alt={t("minimapAlt")}
           fill
           unoptimized
           className="object-cover"
@@ -93,25 +96,23 @@ export function VisionMap({ wards }: { wards: Ward[] }) {
         <div className="flex flex-wrap gap-2">
           <FilterChip active={showObs} onClick={() => setShowObs((v) => !v)}>
             <span className="size-2.5 rounded-full bg-text-muted" />
-            Observadoras ({obsCount})
+            {t("wardObsPlural", { count: obsCount })}
           </FilterChip>
           <FilterChip active={showSen} onClick={() => setShowSen((v) => !v)}>
             <span className="size-2.5 rotate-45 border-2 border-text-muted" />
-            Sentinelas ({senCount})
+            {t("wardSenPlural", { count: senCount })}
           </FilterChip>
           <FilterChip active={showRadiant} onClick={() => setShowRadiant((v) => !v)}>
             <span className="size-2.5 rounded-full" style={{ backgroundColor: RADIANT }} />
-            Iluminados
+            {t("teamRadiant")}
           </FilterChip>
           <FilterChip active={showDire} onClick={() => setShowDire((v) => !v)}>
             <span className="size-2.5 rounded-full" style={{ backgroundColor: DIRE }} />
-            Temidos
+            {t("teamDire")}
           </FilterChip>
         </div>
         <p className="max-w-xs font-body text-xs text-text-faded">
-          Cada marcador é um ward plantado, na posição real do mapa. Passe o mouse pra ver herói,
-          tipo e minuto. Círculo cheio = observadora (dá visão); losango = sentinela (revela/nega
-          visão).
+          {t("visionMapNote")}
         </p>
       </div>
     </div>
