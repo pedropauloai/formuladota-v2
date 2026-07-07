@@ -20,7 +20,7 @@
  * Documentação: docs/foundations/SOUND_SYSTEM.md
  */
 
-import { toHowlerSprite, type SoundId } from "./sprite-map";
+import { toHowlerSprite, REWARD_LAYER_IDS, type SoundId } from "./sprite-map";
 import type { Howl as HowlType } from "howler";
 
 // Auditoria de performance 2026-07-03: howler (~30KB gz) carregado sob demanda
@@ -180,8 +180,9 @@ class HowlerSoundManager implements ISoundManager {
   play(id: SoundId, opts?: PlayOptions): void {
     if (this.muted || !this.initialized || !this.sprite) return;
 
-    // reward usa layer reward (0.8), demais usam interaction (0.6)
-    const layer: SoundLayer = id === "reward" ? "reward" : "interaction";
+    // Celebrações/marcos (match_found, reward, coins, treasure, objective,
+    // stinger) usam o layer reward (0.8); os demais usam interaction (0.6).
+    const layer: SoundLayer = REWARD_LAYER_IDS.has(id) ? "reward" : "interaction";
     const volume = opts?.volume ?? this.volumes[layer];
 
     try {

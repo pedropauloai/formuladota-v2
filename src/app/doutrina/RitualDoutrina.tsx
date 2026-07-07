@@ -30,6 +30,7 @@ import {
   type QuizLesson,
 } from "@/lib/quiz/lessons";
 import { recordDoctrineAnswer } from "./actions";
+import { useSound } from "@/lib/sound/hooks";
 
 const TOTAL = QUIZ_QUESTIONS.length;
 const QUESTION_BY_ID = new Map(QUIZ_QUESTIONS.map((q) => [q.id, q]));
@@ -88,6 +89,7 @@ export function RitualDoutrina({
   // Fila de ids da licao atual ainda nao dominados (re-enfileira ao errar).
   const [queue, setQueue] = useState<string[]>([]);
   const [chosen, setChosen] = useState<string | null>(null);
+  const play = useSound();
 
   const done = correctIds.size;
   const pct = Math.round((done / TOTAL) * 100);
@@ -127,6 +129,9 @@ export function RitualDoutrina({
   function answer(optionId: string) {
     if (chosen) return;
     setChosen(optionId);
+    // Som imediato do cliente Dota: ding (tutorial) no acerto, deny no erro.
+    const isCorrect = current?.options.find((o) => o.correct)?.id === optionId;
+    play(isCorrect ? "quiz_correct" : "error");
   }
 
   async function advance() {
@@ -155,8 +160,10 @@ export function RitualDoutrina({
         : correctIds;
       if (newCorrect.size >= TOTAL) {
         setView("complete");
+        play("stinger"); // virou doutrinado — fanfarra do cliente Dota
       } else {
         setView("trail");
+        play("objective"); // lição concluída — som de objetivo do tutorial
       }
     } else {
       setQueue(nextQueue);
