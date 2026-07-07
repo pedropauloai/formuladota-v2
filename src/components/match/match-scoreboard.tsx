@@ -1,9 +1,13 @@
+"use client";
+
 // Placar pós-jogo de uma partida FormulaDota — estilo cliente Dota 2 / Dotabuff.
-// Server component puro (sem interatividade): recebe os jogadores já resolvidos
-// (identidade + herói + itens) e renderiza os dois times com TODAS as estatísticas
-// disponíveis em match_players. Denso e compacto por decisão de design (cliente real).
+// Recebe os jogadores já resolvidos (identidade + herói + itens) e renderiza os dois
+// times com TODAS as estatísticas de match_players. Denso e compacto por decisão de
+// design (cliente real). É client component porque o pai (match-detail) é client — os
+// rótulos vêm do i18n via useTranslations (hook client).
 
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { itemImageUrl } from "@/lib/queries/items";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { MvpBadge } from "@/components/ui/mvp-badge";
@@ -128,13 +132,26 @@ const POSITION_LABEL: Record<number, string> = {
   4: "Posição 4 (suporte)",
   5: "Posição 5 (suporte dedicado)",
 };
-export function RoleIcon({ slot, className = "", size = 16 }: { slot: number; className?: string; size?: number }) {
+export function RoleIcon({
+  slot,
+  className = "",
+  size = 16,
+  label,
+}: {
+  slot: number;
+  className?: string;
+  size?: number;
+  /** Rótulo (alt/title) já traduzido. Consumidores fora do placar podem omitir
+      — cai no fallback PT de POSITION_LABEL até serem ligados ao i18n. */
+  label?: string;
+}) {
   const s = Math.min(5, Math.max(1, slot));
+  const text = label ?? POSITION_LABEL[s] ?? `Posição ${s}`;
   return (
     <Image
       src={`/dota/positions/pos-${s}.png`}
-      alt={POSITION_LABEL[s] ?? `Posição ${s}`}
-      title={POSITION_LABEL[s] ?? `Posição ${s}`}
+      alt={text}
+      title={text}
       width={size}
       height={size}
       unoptimized
@@ -143,7 +160,16 @@ export function RoleIcon({ slot, className = "", size = 16 }: { slot: number; cl
   );
 }
 
-function PlayerCell({ p, isMvp = false }: { p: ScoreboardPlayer; isMvp?: boolean }) {
+function PlayerCell({
+  p,
+  isMvp = false,
+  posLabel,
+}: {
+  p: ScoreboardPlayer;
+  isMvp?: boolean;
+  /** Rótulo da posição já traduzido (pos1..pos5). */
+  posLabel?: string;
+}) {
   const inner = (
     <span className="flex items-center gap-2.5">
       {/* Herói: imagem OFICIAL do CDN (landscape) + nível do herói na partida. */}
@@ -190,7 +216,7 @@ function PlayerCell({ p, isMvp = false }: { p: ScoreboardPlayer; isMvp?: boolean
         </span>
         {/* Herói + ícone da posição (role específica) + MMR FormulaDota (identidade). */}
         <span className="flex items-center gap-1.5 truncate font-display text-[0.7rem] uppercase tracking-wide text-text-muted">
-          <RoleIcon slot={p.positionSlot} size={15} />
+          <RoleIcon slot={p.positionSlot} size={15} label={posLabel} />
           {p.heroName}
           {p.mmr != null && (
             <span className="ml-0.5 text-gold tabular-nums">{p.mmr} MMR</span>
@@ -258,6 +284,7 @@ function TeamTable({
   players: ScoreboardPlayer[];
   mvpUserId: string | null;
 }) {
+  const t = useTranslations("scoreboard");
   const maxNw = Math.max(1, ...players.map((p) => p.netWorth));
   const tot = players.reduce(
     (a, p) => ({
@@ -285,7 +312,7 @@ function TeamTable({
               won ? "bg-play-primary/15 text-play-primary" : "bg-error/15 text-error"
             }`}
           >
-            {won ? "Vitória" : "Derrota"}
+            {won ? t("won") : t("lost")}
           </span>
         )}
       </header>
@@ -294,22 +321,20 @@ function TeamTable({
           <thead>
             <tr className="border-b border-border-subtle/60">
               <th className="px-3 py-2 text-left font-display text-[0.65rem] font-bold uppercase tracking-wide text-text-faded">
-                Jogador
+                {t("colPlayer")}
               </th>
-              <Th>K / D / A</Th>
-              <Th>MMR</Th>
-              <Th title="Participação em teamfights (métrica de maior peso do perf score)">
-                Lutas %
-              </Th>
-              <Th>LH / DN</Th>
-              <Th>GPM</Th>
-              <Th>XPM</Th>
-              <Th>Patrim.</Th>
-              <Th>Dano</Th>
-              <Th>Torres</Th>
-              <Th>Cura</Th>
+              <Th>{t("colKda")}</Th>
+              <Th>{t("colMmr")}</Th>
+              <Th title={t("colFightsTitle")}>{t("colFights")}</Th>
+              <Th>{t("colLhDn")}</Th>
+              <Th>{t("colGpm")}</Th>
+              <Th>{t("colXpm")}</Th>
+              <Th>{t("colNetWorth")}</Th>
+              <Th>{t("colDamage")}</Th>
+              <Th>{t("colTowers")}</Th>
+              <Th>{t("colHealing")}</Th>
               <th className="px-3 py-2 text-left font-display text-[0.65rem] font-bold uppercase tracking-wide text-text-faded">
-                Itens
+                {t("colItems")}
               </th>
             </tr>
           </thead>
@@ -317,7 +342,11 @@ function TeamTable({
             {players.map((p, i) => (
               <tr key={p.userId ?? `${title}-${i}`} className="hover:bg-bg-surface/40">
                 <td className="px-3 py-2.5">
-                  <PlayerCell p={p} isMvp={p.userId != null && p.userId === mvpUserId} />
+                  <PlayerCell
+                    p={p}
+                    isMvp={p.userId != null && p.userId === mvpUserId}
+                    posLabel={t(`pos${Math.min(5, Math.max(1, p.positionSlot))}`)}
+                  />
                 </td>
                 <td className="px-2 py-2.5 text-right font-display text-sm font-bold tabular-nums text-text-display">
                   <span className="text-play-primary">{p.kills}</span>
@@ -359,7 +388,7 @@ function TeamTable({
             {/* Totais do time. */}
             <tr className="border-t border-border-subtle bg-bg-surface/30 font-bold">
               <td className="px-3 py-2 font-display text-xs uppercase tracking-wide text-text-muted">
-                Totais
+                {t("totals")}
               </td>
               <td className="px-2 py-2 text-right font-display text-sm tabular-nums text-text-display">
                 {tot.k} / {tot.d} / {tot.as}
@@ -403,17 +432,18 @@ export function MatchScoreboard({
   radiantWin: boolean | null;
   mvpUserId?: string | null;
 }) {
+  const t = useTranslations("scoreboard");
   return (
     <div className="space-y-4">
       <TeamTable
-        title="Iluminados"
+        title={t("teamRadiant")}
         accent="text-[#00C466]"
         won={radiantWin == null ? null : radiantWin}
         players={radiant}
         mvpUserId={mvpUserId}
       />
       <TeamTable
-        title="Temidos"
+        title={t("teamDire")}
         accent="text-brand-primary"
         won={radiantWin == null ? null : !radiantWin}
         players={dire}

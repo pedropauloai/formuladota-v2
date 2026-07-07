@@ -3803,5 +3803,31 @@
       "lendario": "Lendário",
       "imortal-da-formula": "Immortal de la Fórmula"
     }
+  },
+  "scoreboard": {
+    "teamRadiant": "Radiant",
+    "teamDire": "Dire",
+    "won": "Victoria",
+    "lost": "Derrota",
+    "colPlayer": "Jugador",
+    "colKda": "K / D / A",
+    "colMmr": "MMR",
+    "colFights": "Peleas %",
+    "colFightsTitle": "Participación en peleas de equipo (métrica de mayor peso en el perf score)",
+    "colLhDn": "LH / DN",
+    "colGpm": "GPM",
+    "colXpm": "XPM",
+    "colNetWorth": "Patrim.",
+    "colDamage": "Daño",
+    "colTowers": "Torres",
+    "colHealing": "Curación",
+    "colItems": "Objetos",
+    "totals": "Totales",
+    "pos1": "Posición 1 (línea segura / carry)",
+    "pos2": "Posición 2 (medio)",
+    "pos3": "Posición 3 (offlane)",
+    "pos4": "Posición 4 (soporte)",
+    "pos5": "Posición 5 (soporte duro)",
+    "posN": "Posición {n}"
   }
 }

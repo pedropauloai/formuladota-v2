@@ -3803,5 +3803,31 @@
       "lendario": "Legendary",
       "imortal-da-formula": "Immortal of the Formula"
     }
+  },
+  "scoreboard": {
+    "teamRadiant": "Radiant",
+    "teamDire": "Dire",
+    "won": "Victory",
+    "lost": "Defeat",
+    "colPlayer": "Player",
+    "colKda": "K / D / A",
+    "colMmr": "MMR",
+    "colFights": "Fights %",
+    "colFightsTitle": "Teamfight participation (highest-weight metric in the perf score)",
+    "colLhDn": "LH / DN",
+    "colGpm": "GPM",
+    "colXpm": "XPM",
+    "colNetWorth": "Net Worth",
+    "colDamage": "Damage",
+    "colTowers": "Towers",
+    "colHealing": "Healing",
+    "colItems": "Items",
+    "totals": "Totals",
+    "pos1": "Position 1 (safelane / carry)",
+    "pos2": "Position 2 (mid)",
+    "pos3": "Position 3 (offlane)",
+    "pos4": "Position 4 (support)",
+    "pos5": "Position 5 (hard support)",
+    "posN": "Position {n}"
   }
 }

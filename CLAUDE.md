@@ -8,6 +8,7 @@
 
 ### Constraints
 - **Marca (LEI de copy)**: o nome é **FORMULADOTA** — sempre em CAIXA ALTA, **sem acento**, sem espaço (nunca "Fórmula Dota", "Formula Dota" nem "formuladota"). É **MASCULINO**: "**o/do/no** FORMULADOTA", NUNCA "a/da/na FORMULADOTA". ("da comunidade FORMULADOTA" é válido — quem é feminino ali é *comunidade*.) Fonte: `docs/foundations/PRODUCT_CORE.md` (regras B1/B2 + glossário de marca).
+- **i18n (LEI de dialeto, Pedro 2026-07-07)**: app trilíngue PT/EN/ES via `next-intl` (`messages/{pt,en,es}.json`, paridade de chaves obrigatória). Todo termo de Dota 2 usa o **dialeto OFICIAL do cliente da Valve naquele idioma** (fonte: dotawiki de cada idioma) — NUNCA tradução literal nem Spanglish. Ex.: Radiant/Dire → EN "Radiant/Dire", PT "Iluminados/Temidos", ES "Radiant/Dire" (o cliente ES não traduz nomes próprios, mas traduz Queue→Cola, ranks→Heraldo/…/Inmortal, Support→Soporte). Vale pra qualquer idioma futuro (russo). Confirmar o termo na dotawiki antes de gravar. Detalhes: memória `reference_i18n_dialeto_oficial_valve`.
 - **Tech Stack**: Next.js 16 (App Router) + React 19 + TypeScript + Tailwind v4 + Supabase + Discord OAuth + Mercado Pago (PIX) + bot Discord (Discord.js) + bot Steam/Dota GC (node-steam-user)
 - **Deploy**: web em **formuladota.com** (Vercel, git-connected — push na `main` = deploy). **Os dois bots (`bot/` Discord e `bot-steam/` Steam/GC) têm deploy AUTOMÁTICO no Railway** (git-connected) ao dar push na `main` — NÃO precisa redeploy manual.
 - **Persona**: jogador Dota 2 brasileiro comprometido, de qualquer bracket

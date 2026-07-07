@@ -3803,5 +3803,31 @@
       "lendario": "Lendário",
       "imortal-da-formula": "Imortal da Fórmula"
     }
+  },
+  "scoreboard": {
+    "teamRadiant": "Iluminados",
+    "teamDire": "Temidos",
+    "won": "Vitória",
+    "lost": "Derrota",
+    "colPlayer": "Jogador",
+    "colKda": "K / D / A",
+    "colMmr": "MMR",
+    "colFights": "Lutas %",
+    "colFightsTitle": "Participação em teamfights (métrica de maior peso do perf score)",
+    "colLhDn": "LH / DN",
+    "colGpm": "GPM",
+    "colXpm": "XPM",
+    "colNetWorth": "Patrim.",
+    "colDamage": "Dano",
+    "colTowers": "Torres",
+    "colHealing": "Cura",
+    "colItems": "Itens",
+    "totals": "Totais",
+    "pos1": "Posição 1 (safelane / carry)",
+    "pos2": "Posição 2 (meio)",
+    "pos3": "Posição 3 (offlane)",
+    "pos4": "Posição 4 (suporte)",
+    "pos5": "Posição 5 (suporte dedicado)",
+    "posN": "Posição {n}"
   }
 }
