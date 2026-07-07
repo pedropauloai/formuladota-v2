@@ -9,6 +9,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { Loader2, TrendingUp, TrendingDown, Scale } from "lucide-react";
 import { getMatchMmrState, type MmrState, type MmrPlayerBreakdown } from "@/app/partida/mmr-actions";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
@@ -18,49 +19,33 @@ import { RoleIcon } from "@/components/match/match-scoreboard";
 import { SocialIconsRow } from "@/components/profile/social-icons-row";
 import { Tooltip } from "@/components/ui/tooltip";
 
-// Rótulos legíveis dos componentes do perfScore (espelham PERF_PROFILES v4).
-const COMPONENT_LABEL: Record<string, string> = {
-  teamfight_participation: "Presença em teamfight",
-  hero_damage_per_min: "Dano a heróis",
-  tower_damage: "Dano a torres",
-  hero_healing_per_min: "Cura",
-  wards: "Visão (wards)",
-  gold_per_min: "Economia (farm)",
+// Chaves i18n (namespace "scoreboard") dos rótulos legíveis dos componentes do
+// perfScore (espelham PERF_PROFILES v4). Resolvidas via t() no render.
+const COMPONENT_KEY: Record<string, string> = {
+  teamfight_participation: "compTeamfight",
+  hero_damage_per_min: "compHeroDamage",
+  tower_damage: "compTowerDamage",
+  hero_healing_per_min: "compHealing",
+  wards: "compWards",
+  gold_per_min: "compGold",
 };
 
-// Transparência: DE ONDE vem e COMO cada métrica é coletada (mostrado no tooltip da
-// barra). "Benchmark por herói" = percentil vs. outros do MESMO herói (justo entre
-// funções); "Replay" = valor direto do replay parseado da partida (OpenDota).
-const METRIC_INFO: Record<string, { source: string; how: string }> = {
-  teamfight_participation: {
-    source: "Replay parseado (OpenDota)",
-    how: "Fração das teamfights em que você teve kill, morte, assist, dano ou cura no intervalo da luta. É o que MAIS pesa.",
-  },
-  hero_damage_per_min: {
-    source: "Benchmark por herói (OpenDota)",
-    how: "Seu dano a heróis por minuto comparado a OUTROS jogadores deste MESMO herói (percentil).",
-  },
-  tower_damage: {
-    source: "Benchmark por herói (OpenDota)",
-    how: "Seu dano a torres comparado a outros do mesmo herói (percentil).",
-  },
-  hero_healing_per_min: {
-    source: "Benchmark por herói (OpenDota)",
-    how: "Cura por minuto — de HABILIDADES e de ITENS (Greaves, Vlad's, Mekansm…) — comparada a outros do mesmo herói (percentil).",
-  },
-  gold_per_min: {
-    source: "Benchmark por herói (OpenDota)",
-    how: "Seu ouro por minuto (farm) comparado a outros do mesmo herói (percentil).",
-  },
-  wards: {
-    source: "Replay parseado (OpenDota)",
-    how: "Observers + sentries plantadas por minuto (visão). Avaliado só no suporte — é o trabalho dele.",
-  },
+// Transparência: DE ONDE vem e COMO cada métrica é coletada (tooltip da barra).
+// "srcBenchmark" = percentil vs. outros do MESMO herói (justo entre funções);
+// "srcReplay" = valor direto do replay parseado (OpenDota). Guardamos as CHAVES i18n.
+const METRIC_KEYS: Record<string, { source: string; how: string }> = {
+  teamfight_participation: { source: "srcReplay", how: "howTeamfight" },
+  hero_damage_per_min: { source: "srcBenchmark", how: "howHeroDamage" },
+  tower_damage: { source: "srcBenchmark", how: "howTowerDamage" },
+  hero_healing_per_min: { source: "srcBenchmark", how: "howHealing" },
+  gold_per_min: { source: "srcBenchmark", how: "howGold" },
+  wards: { source: "srcReplay", how: "howWards" },
 };
 
 const POLL_MS = 7000;
 
 export function MmrPanel({ dotaMatchId }: { dotaMatchId: string }) {
+  const t = useTranslations("scoreboard");
   const [state, setState] = useState<MmrState | null>(null);
 
   useEffect(() => {
@@ -88,7 +73,7 @@ export function MmrPanel({ dotaMatchId }: { dotaMatchId: string }) {
   if (!state) {
     return (
       <div className="flex items-center justify-center gap-2 py-16 font-display text-sm text-text-muted">
-        <Loader2 className="size-4 animate-spin" /> Carregando…
+        <Loader2 className="size-4 animate-spin" /> {t("mmrLoading")}
       </div>
     );
   }
@@ -96,7 +81,7 @@ export function MmrPanel({ dotaMatchId }: { dotaMatchId: string }) {
   if (!state.found || state.players.length === 0) {
     return (
       <p className="py-16 text-center font-body text-sm text-text-muted">
-        Nenhum jogador da liga nesta partida — sem variação de MMR pra mostrar.
+        {t("mmrNoLeaguePlayers")}
       </p>
     );
   }
@@ -111,23 +96,18 @@ export function MmrPanel({ dotaMatchId }: { dotaMatchId: string }) {
       {/* Explicação do modelo (transparência do cálculo). */}
       <div className="rounded-[var(--radius-md)] border border-border-subtle bg-bg-elevated/40 p-4 font-body text-sm leading-relaxed text-text-muted">
         <p>
-          O seu MMR muda por <strong className="text-text-display">dois fatores</strong>:{" "}
-          <strong className="text-text-display">Resultado</strong> (Elo — vitória sobe, derrota
-          desce; é a base) e <strong className="text-text-display">Desempenho</strong> (ajuste de
-          até <strong className="text-gold">±{Math.round(20 / 2)}</strong>). Cada partida mexe no
-          máximo <strong className="text-gold">±30</strong>.
+          {t.rich("mmrIntro", {
+            half: Math.round(20 / 2),
+            strong: (c) => <strong className="text-text-display">{c}</strong>,
+            gold: (c) => <strong className="text-gold">{c}</strong>,
+          })}
         </p>
         <p className="mt-2 text-[0.8rem] text-text-faded">
-          A nota de desempenho junta duas metades:{" "}
-          <strong className="text-text-muted">Execução por função</strong> (40% — você é comparado
-          a outros do MESMO herói nos benchmarks da OpenDota, justo entre funções; o que mais pesa
-          aqui é <span className="text-text-muted">estar nas lutas com o time</span>) e{" "}
-          <strong className="text-gold">Impacto</strong> (60% —{" "}
-          <strong className="text-text-muted">patrimônio</strong> na corrida de ouro + participação
-          em kills, comparado ao maior da partida). É o impacto que garante que quem{" "}
-          <span className="text-text-muted">de fato decidiu o jogo</span> seja reconhecido — inclusive
-          o MVP. <span className="text-text-muted">Passe o mouse em cada barra</span> pra ver a
-          fonte.
+          {t.rich("mmrPerfExplain", {
+            strong: (c) => <strong className="text-text-muted">{c}</strong>,
+            gold: (c) => <strong className="text-gold">{c}</strong>,
+            muted: (c) => <span className="text-text-muted">{c}</span>,
+          })}
         </p>
       </div>
 
@@ -144,19 +124,18 @@ export function MmrPanel({ dotaMatchId }: { dotaMatchId: string }) {
           <Loader2 className="size-5 shrink-0 animate-spin text-brand-primary" />
           <div className="font-body text-sm text-text-body">
             <p className="font-display font-bold uppercase tracking-wide text-text-display">
-              Calculando o MMR…
+              {t("mmrCalculating")}
             </p>
             <p className="mt-0.5 text-text-muted">
-              Aguardando o replay ser processado pela OpenDota (leva alguns minutos). Esta aba
-              atualiza sozinha quando os dados chegarem — não precisa recarregar.
+              {t("mmrCalculatingBody")}
             </p>
           </div>
         </div>
       )}
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <TeamColumn title="Iluminados" players={state.players.filter((p) => p.team === "radiant")} pending={!state.applied} mvpUserId={mvpUserId} />
-        <TeamColumn title="Temidos" players={state.players.filter((p) => p.team === "dire")} pending={!state.applied} mvpUserId={mvpUserId} />
+        <TeamColumn title={t("teamRadiant")} players={state.players.filter((p) => p.team === "radiant")} pending={!state.applied} mvpUserId={mvpUserId} />
+        <TeamColumn title={t("teamDire")} players={state.players.filter((p) => p.team === "dire")} pending={!state.applied} mvpUserId={mvpUserId} />
       </div>
     </div>
   );
@@ -195,8 +174,10 @@ function TeamColumn({
 }
 
 function PlayerCard({ p, pending, isMvp }: { p: MmrPlayerBreakdown; pending: boolean; isMvp: boolean }) {
+  const t = useTranslations("scoreboard");
   const positive = (p.delta ?? 0) >= 0;
   const perfPct = Math.round(p.perfScore * 100);
+  const posLabel = t(`pos${Math.min(5, Math.max(1, p.positionSlot))}`);
 
   return (
     <li
@@ -247,7 +228,7 @@ function PlayerCard({ p, pending, isMvp }: { p: MmrPlayerBreakdown; pending: boo
           </p>
           {/* Herói + ícone da posição. W/L removido (redundante — já em outros lugares). */}
           <p className="flex items-center gap-1.5 truncate font-display text-xs text-text-faded">
-            <RoleIcon slot={p.positionSlot} size={14} />
+            <RoleIcon slot={p.positionSlot} size={14} label={posLabel} />
             {p.heroName ?? "—"}
           </p>
           {p.socialLinks && (
@@ -271,7 +252,7 @@ function PlayerCard({ p, pending, isMvp }: { p: MmrPlayerBreakdown; pending: boo
             </span>
           )}
           <p className="font-display text-[0.65rem] uppercase tracking-wide text-text-faded">
-            desemp. <span className="text-gold">{perfPct}%</span>
+            {t("mmrPerfAbbr")} <span className="text-gold">{perfPct}%</span>
           </p>
         </div>
       </div>
@@ -285,18 +266,16 @@ function PlayerCard({ p, pending, isMvp }: { p: MmrPlayerBreakdown; pending: boo
           content={
             <span className="block max-w-[16rem] text-left">
               <span className="font-display text-[0.65rem] font-bold uppercase tracking-wide text-gold">
-                Impacto absoluto · 60% da nota
+                {t("mmrImpactTooltipTitle")}
               </span>
               <span className="mt-1 block font-body text-xs leading-snug text-text-body">
-                Patrimônio (ouro acumulado — a corrida de ouro pesa mais) + participação em kills
-                (K+A), cada um comparado ao MAIOR da partida. É o que reconhece quem de fato decidiu
-                o jogo, seja core ou suporte.
+                {t("mmrImpactTooltipBody")}
               </span>
             </span>
           }
         >
           <span className="w-36 shrink-0 cursor-help font-display text-[0.7rem] font-bold uppercase tracking-wide text-gold underline decoration-dotted decoration-gold/40 underline-offset-2">
-            Impacto
+            {t("mmrImpactLabel")}
             <span className="ml-1 font-body font-normal normal-case text-text-faded">·60%</span>
           </span>
         </Tooltip>
@@ -315,11 +294,12 @@ function PlayerCard({ p, pending, isMvp }: { p: MmrPlayerBreakdown; pending: boo
       {p.components.length > 0 ? (
         <>
           <p className="mb-1 mt-2 font-display text-[0.6rem] font-bold uppercase tracking-wide text-text-faded">
-            Execução por função · 40%
+            {t("mmrExecTitle")}
           </p>
           <ul className="space-y-1">
           {p.components.map((c) => {
-            const info = METRIC_INFO[c.key];
+            const info = METRIC_KEYS[c.key];
+            const label = COMPONENT_KEY[c.key];
             return (
             <li key={c.key} className="flex items-center gap-2">
               <Tooltip
@@ -329,13 +309,13 @@ function PlayerCard({ p, pending, isMvp }: { p: MmrPlayerBreakdown; pending: boo
                   info ? (
                     <span className="block max-w-[16rem] text-left">
                       <span className="font-display text-[0.65rem] font-bold uppercase tracking-wide text-gold">
-                        {info.source}
+                        {t(info.source)}
                       </span>
                       <span className="mt-1 block font-body text-xs leading-snug text-text-body">
-                        {info.how}
+                        {t(info.how)}
                       </span>
                       <span className="mt-1 block font-body text-[0.65rem] text-text-faded">
-                        Peso {c.weight}x no perfil da sua função.
+                        {t("mmrWeightNote", { weight: c.weight })}
                       </span>
                     </span>
                   ) : (
@@ -344,7 +324,7 @@ function PlayerCard({ p, pending, isMvp }: { p: MmrPlayerBreakdown; pending: boo
                 }
               >
                 <span className="w-36 shrink-0 cursor-help font-body text-[0.7rem] text-text-muted underline decoration-dotted decoration-text-faded/50 underline-offset-2">
-                  {COMPONENT_LABEL[c.key] ?? c.key}
+                  {label ? t(label) : c.key}
                   <span className="ml-1 text-text-faded">·{c.weight}x</span>
                 </span>
               </Tooltip>
@@ -364,7 +344,7 @@ function PlayerCard({ p, pending, isMvp }: { p: MmrPlayerBreakdown; pending: boo
         </>
       ) : (
         <p className="mt-2 font-body text-[0.7rem] text-text-faded">
-          Estatísticas detalhadas do replay ainda não disponíveis.
+          {t("mmrNoDetailedStats")}
         </p>
       )}
     </li>
@@ -385,9 +365,10 @@ function TeamBalanceCard({
   direAvg: number;
   radiantWon: boolean | null;
 }) {
+  const t = useTranslations("scoreboard");
   const diff = Math.abs(radiantAvg - direAvg);
   const favRadiant = radiantAvg >= direAvg;
-  const favName = favRadiant ? "Iluminados" : "Temidos";
+  const favName = favRadiant ? t("teamRadiant") : t("teamDire");
   const favAvg = favRadiant ? radiantAvg : direAvg;
   const undAvg = favRadiant ? direAvg : radiantAvg;
   const favChance = Math.round((1 / (1 + Math.pow(10, (undAvg - favAvg) / 400))) * 100);
@@ -398,37 +379,36 @@ function TeamBalanceCard({
     <div className="rounded-[var(--radius-md)] border border-border-subtle bg-bg-elevated/40 p-4">
       <p className="flex items-center gap-2 font-display text-sm font-bold uppercase tracking-wide text-text-display">
         <Scale className="size-4 text-brand-primary" aria-hidden="true" />
-        Equilíbrio da partida
+        {t("mmrBalanceTitle")}
       </p>
       <div className="mt-3 flex items-center gap-3 font-display-condensed">
         <span className="flex-1 text-right">
-          <span className="block text-xs uppercase tracking-wide text-text-faded">Iluminados</span>
+          <span className="block text-xs uppercase tracking-wide text-text-faded">{t("teamRadiant")}</span>
           <span className="text-2xl font-bold tabular-nums text-text-display">{radiantAvg}</span>
         </span>
-        <span className="font-body text-xs text-text-faded">MMR médio</span>
+        <span className="font-body text-xs text-text-faded">{t("mmrAvgLabel")}</span>
         <span className="flex-1">
-          <span className="block text-xs uppercase tracking-wide text-text-faded">Temidos</span>
+          <span className="block text-xs uppercase tracking-wide text-text-faded">{t("teamDire")}</span>
           <span className="text-2xl font-bold tabular-nums text-text-display">{direAvg}</span>
         </span>
       </div>
       <p className="mt-3 font-body text-sm leading-relaxed text-text-muted">
         {parelho ? (
-          <>
-            Os times estavam <strong className="text-text-display">parelhos</strong> (diferença de{" "}
-            {diff} de MMR) — o resultado (Elo) valeu o padrão pros dois lados; o que separou os
-            deltas foi o <strong className="text-text-display">desempenho</strong> de cada um.
-          </>
+          t.rich("mmrBalanceEven", {
+            diff,
+            strong: (c) => <strong className="text-text-display">{c}</strong>,
+          })
         ) : (
           <>
-            Os <strong className="text-text-display">{favName}</strong> eram os{" "}
-            <strong className="text-text-display">favoritos</strong> — {favAvg} contra {undAvg} de
-            MMR médio (chance esperada de vitória ~<strong className="text-gold">{favChance}%</strong>
-            ).{" "}
-            {favWon == null
-              ? null
-              : favWon
-                ? "Como o favorito venceu (o esperado), a vitória valeu MENOS pra eles e a derrota puniu MENOS a zebra."
-                : "Como a ZEBRA venceu (o inesperado), a vitória valeu MAIS pra ela e o favorito perdeu MAIS."}
+            {t.rich("mmrBalanceFav", {
+              favName,
+              favAvg,
+              undAvg,
+              favChance,
+              strong: (c) => <strong className="text-text-display">{c}</strong>,
+              gold: (c) => <strong className="text-gold">{c}</strong>,
+            })}
+            {favWon == null ? null : favWon ? t("mmrFavWon") : t("mmrUnderdogWon")}
           </>
         )}
       </p>

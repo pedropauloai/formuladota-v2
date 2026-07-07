@@ -10,6 +10,7 @@
 
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { ArrowRight, Check, Loader2, Swords, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useSound } from "@/lib/sound/hooks";
@@ -72,6 +73,7 @@ export function ReadyCheckOverlay({
   smokeTheme?: SmokeAsset | null;
 }) {
   const router = useRouter();
+  const t = useTranslations("readyCheck");
   const play = useSound();
   const [userId, setUserId] = useState<string | null>(null);
   const [proposal, setProposal] = useState<MatchProposal | null>(null);
@@ -205,15 +207,14 @@ export function ReadyCheckOverlay({
         <div className="flex max-w-sm flex-col items-center gap-4 rounded-md border-2 border-play-primary bg-bg-base px-10 py-8 text-center shadow-[var(--shadow-cinematic)]">
           <Loader2 size={36} className="animate-spin text-play-primary" aria-hidden="true" />
           <p className="font-display text-lg font-bold uppercase tracking-wide text-text-display">
-            Partida aceita!
+            {t("matchAccepted")}
           </p>
           <p className="font-body text-sm text-text-muted">
-            Criando o lobby no Dota 2…{slow ? ` (${waitedS}s)` : ""}
+            {t("creatingLobby")}{slow ? ` (${waitedS}s)` : ""}
           </p>
           {slow && (
             <p className="font-body text-xs text-text-faded">
-              O bot está montando a sala — isso pode levar até ~1 min. Você já pode
-              entrar na sala e acompanhar por lá.
+              {t("botBuilding")}
             </p>
           )}
           <button
@@ -221,7 +222,7 @@ export function ReadyCheckOverlay({
             onClick={goToRoomNow}
             className="mt-1 flex items-center gap-2 rounded-md border border-play-primary/60 bg-play-primary/10 px-4 py-2 font-display text-sm font-bold uppercase tracking-wide text-play-primary transition-colors hover:bg-play-primary/20"
           >
-            Ir pra sala agora
+            {t("goToRoomNow")}
             <ArrowRight size={15} aria-hidden="true" />
           </button>
         </div>
@@ -294,7 +295,7 @@ export function ReadyCheckOverlay({
           <div className="mb-4 flex items-center justify-between">
             <span className="flex items-center gap-2 font-display text-xl font-bold uppercase tracking-wide text-text-display">
               <Swords size={20} className="text-play-primary" aria-hidden="true" />
-              Partida encontrada
+              {t("matchFound")}
             </span>
             <span className="font-display text-2xl font-bold tabular-nums text-play-primary">
               {secondsLeft}s
@@ -302,20 +303,20 @@ export function ReadyCheckOverlay({
           </div>
 
           <p className="mb-4 font-display text-sm font-semibold uppercase tracking-wide text-gold">
-            {acceptedCount}/{total} aceitaram
+            {t("accepted", { accepted: acceptedCount, total })}
           </p>
 
           {/* Os 10, por time. */}
           <div className="mb-5 grid grid-cols-2 gap-4">
-            <TeamList title="Iluminados" accent="text-[#00C466]" members={radiant} meId={userId} />
-            <TeamList title="Temidos" accent="text-brand-primary" members={dire} meId={userId} />
+            <TeamList title={t("teamRadiant")} accent="text-[#00C466]" members={radiant} meId={userId} />
+            <TeamList title={t("teamDire")} accent="text-brand-primary" members={dire} meId={userId} />
           </div>
 
           {/* Ações. */}
           {iAccepted ? (
             <div className="flex items-center justify-center gap-2 rounded-md border border-play-primary/40 bg-play-primary/10 px-4 py-3 font-display text-sm font-bold uppercase tracking-wide text-play-primary">
               <Check size={16} aria-hidden="true" />
-              Você aceitou — aguardando os outros…
+              {t("youAccepted")}
             </div>
           ) : (
             <div className="flex gap-3">
@@ -326,13 +327,13 @@ export function ReadyCheckOverlay({
                 className="flex flex-1 items-center justify-center gap-2 rounded-md border border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover px-4 py-3 font-display text-base font-bold uppercase tracking-[0.15em] text-text-display transition-all hover:brightness-110 disabled:opacity-60"
               >
                 {pending ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} aria-hidden="true" />}
-                Aceitar
+                {t("accept")}
               </button>
               <button
                 type="button"
                 onClick={decline}
                 disabled={pending}
-                aria-label="Recusar"
+                aria-label={t("decline")}
                 className="flex items-center justify-center rounded-md border border-border-strong px-4 text-text-muted transition-colors hover:border-error/60 hover:text-error disabled:opacity-60"
               >
                 <X size={20} aria-hidden="true" />
@@ -341,7 +342,7 @@ export function ReadyCheckOverlay({
           )}
           {!iAccepted && (
             <p className="mt-2 text-center font-body text-xs text-text-faded">
-              Recusar (ou ignorar) gera um cooldown curto de fila.
+              {t("declineHint")}
             </p>
           )}
         </div>
@@ -361,6 +362,7 @@ function TeamList({
   members: ProposalMember[];
   meId: string | null;
 }) {
+  const t = useTranslations("readyCheck");
   return (
     <div>
       <p className={`mb-2 font-display text-xs font-bold uppercase tracking-wide ${accent}`}>
@@ -402,7 +404,7 @@ function TeamList({
                   size={30}
                 />
                 <span className="min-w-0 flex-1 truncate font-body text-xs text-text-body">
-                  {m.userId === meId ? "Você" : m.name}
+                  {m.userId === meId ? t("you") : m.name}
                 </span>
               </UserHoverCard>
               {/* Par de medalhas SKILL + HONRA. */}

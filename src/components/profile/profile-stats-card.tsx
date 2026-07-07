@@ -4,6 +4,7 @@
 // 6 métricas, com toggle pra ligar/desligar cada um.
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { WidgetShell } from "./widgets/widget-shell";
 import { PerformanceHexagon, type HexSeries } from "./performance-hexagon";
 
@@ -18,7 +19,6 @@ export interface StatBlock {
   avgHeroDamage: number;
 }
 
-const AXES = ["Vitórias", "KDA", "GPM", "XPM", "Last hits", "Dano"];
 const GENERAL_COLOR = "#E8B94A"; // dourado — conta geral
 const FDOTA_COLOR = "#00C466"; // verde — FormulaDota
 
@@ -50,6 +50,16 @@ export function ProfileStatsCard({
 }) {
   const [showGeneral, setShowGeneral] = useState(true);
   const [showFdota, setShowFdota] = useState(true);
+  const t = useTranslations("profileExtra");
+
+  const AXES = [
+    t("axisWins"),
+    t("axisKda"),
+    t("axisGpm"),
+    t("axisXpm"),
+    t("axisLastHits"),
+    t("axisDamage"),
+  ];
 
   const series: HexSeries[] = [];
   if (general && showGeneral) {
@@ -60,7 +70,7 @@ export function ProfileStatsCard({
   }
 
   return (
-    <WidgetShell title="Performance" editing={editing}>
+    <WidgetShell title={t("performance")} editing={editing}>
       <div className="flex h-full flex-col">
         <div className="min-h-0 flex-1">
           <PerformanceHexagon labels={AXES} series={series} />
@@ -70,7 +80,7 @@ export function ProfileStatsCard({
         <div className="mt-1 flex shrink-0 flex-wrap items-center justify-center gap-2 border-t border-border-subtle pt-2">
           {general && (
             <ToggleChip
-              label="Conta geral"
+              label={t("generalAccount")}
               sub={`${fmt(general.matches)} · ${winratePct(general)}%`}
               color={GENERAL_COLOR}
               on={showGeneral}
@@ -87,7 +97,7 @@ export function ProfileStatsCard({
             />
           )}
           {!general && !fdota && (
-            <span className="font-body text-xs text-text-faded">Sem dados de performance.</span>
+            <span className="font-body text-xs text-text-faded">{t("noPerformanceData")}</span>
           )}
         </div>
       </div>

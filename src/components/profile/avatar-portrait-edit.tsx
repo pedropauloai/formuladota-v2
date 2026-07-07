@@ -5,6 +5,7 @@
 // era recortado pelo overflow-hidden dos cards/header.
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { Camera, X } from "lucide-react";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
@@ -37,6 +38,7 @@ export function AvatarPortraitEdit({
 }: Props) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
+  const t = useTranslations("profileExtra");
 
   return (
     <div className="relative shrink-0">
@@ -55,7 +57,7 @@ export function AvatarPortraitEdit({
         <button
           type="button"
           onClick={() => setOpen(true)}
-          aria-label="Editar imagem de perfil"
+          aria-label={t("editProfileImage")}
           className="absolute -bottom-1 -right-1 flex size-8 items-center justify-center rounded-sm border border-border-strong bg-bg-deep text-text-muted shadow-md transition-colors hover:text-text-display"
         >
           <Camera className="size-4" />
@@ -74,12 +76,12 @@ export function AvatarPortraitEdit({
           >
             <header className="mb-4 flex items-center justify-between">
               <h3 className="font-display text-base font-bold uppercase tracking-wide text-text-display">
-                Imagem de perfil
+                {t("profileImage")}
               </h3>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                aria-label="Fechar"
+                aria-label={t("close")}
                 className="text-text-muted transition-colors hover:text-text-display"
               >
                 <X className="size-4" />

@@ -5,6 +5,7 @@
 // Abrir DM de qualquer lugar via evento global openChatWith.
 
 import { useCallback, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { MessageCircle, X, Plus, Users, Home, ChevronDown } from "lucide-react";
 import { UserAvatar } from "@/components/ui/avatar";
 import {
@@ -38,6 +39,7 @@ interface DmTab {
 }
 
 export function ChatBar({ currentUserId, party, lobbyId, initialInbox, friends }: Props) {
+  const t = useTranslations("chat");
   const [expanded, setExpanded] = useState(false);
   const [openDms, setOpenDms] = useState<DmTab[]>([]);
   const [activeTab, setActiveTab] = useState<string | null>(null);
@@ -54,8 +56,8 @@ export function ChatBar({ currentUserId, party, lobbyId, initialInbox, friends }
 
   // Abas disponíveis: Grupo, Sala, e uma por DM aberta.
   const tabs: { id: string; label: string; avatar?: string | null; closable?: boolean }[] = [];
-  if (partyId) tabs.push({ id: "party", label: "Grupo" });
-  if (lobbyId) tabs.push({ id: "lobby", label: "Sala" });
+  if (partyId) tabs.push({ id: "party", label: t("tabParty") });
+  if (lobbyId) tabs.push({ id: "lobby", label: t("tabLobby") });
   for (const d of openDms) tabs.push({ id: `dm:${d.userId}`, label: d.name, avatar: d.avatar, closable: true });
 
   const validActive = tabs.find((t) => t.id === activeTab)?.id ?? tabs[0]?.id ?? null;
@@ -98,9 +100,9 @@ export function ChatBar({ currentUserId, party, lobbyId, initialInbox, friends }
 
   usePartyMessages(partyId, (m) => {
     if (m.senderId === currentUserId) return;
-    alertIncoming("party", `${nameById[m.senderId] ?? "Alguém"} no grupo`, m.body);
+    alertIncoming("party", t("partyMsgTitle", { name: nameById[m.senderId] ?? t("someone") }), m.body);
   });
-  useLobbyMessages(lobbyId, () => alertIncoming("lobby", "Nova mensagem na sala"));
+  useLobbyMessages(lobbyId, () => alertIncoming("lobby", t("newLobbyMsg")));
   useDmInboxSignal(true, (senderId) => {
     void fetchDmInbox().then((data) => {
       setInbox(data);
@@ -118,7 +120,7 @@ export function ChatBar({ currentUserId, party, lobbyId, initialInbox, friends }
       }
       alertIncoming(
         `dm:${senderId}`,
-        conv?.otherName ?? "Nova mensagem",
+        conv?.otherName ?? t("newMessage"),
         conv?.lastPreview ?? undefined
       );
     });
@@ -149,7 +151,7 @@ export function ChatBar({ currentUserId, party, lobbyId, initialInbox, friends }
             <div className="flex flex-1 items-center gap-1 overflow-x-auto">
               {tabs.length === 0 && (
                 <span className="px-2 py-1 font-display text-[12px] text-text-faded">
-                  Nenhuma conversa. Abra uma no +
+                  {t("noConversations")}
                 </span>
               )}
               {tabs.map((tab) => (
@@ -167,7 +169,7 @@ export function ChatBar({ currentUserId, party, lobbyId, initialInbox, friends }
             <button
               type="button"
               onClick={() => setPickerOpen((v) => !v)}
-              aria-label="Nova conversa"
+              aria-label={t("newConversation")}
               className={`shrink-0 rounded-sm p-1.5 transition-colors ${
                 pickerOpen ? "text-brand-primary" : "text-text-faded hover:text-text-display"
               }`}
@@ -177,7 +179,7 @@ export function ChatBar({ currentUserId, party, lobbyId, initialInbox, friends }
             <button
               type="button"
               onClick={() => setExpanded(false)}
-              aria-label="Retrair chat"
+              aria-label={t("collapseChat")}
               className="shrink-0 rounded-sm p-1.5 text-text-faded hover:text-text-display transition-colors"
             >
               <ChevronDown size={15} aria-hidden="true" />
@@ -200,7 +202,7 @@ export function ChatBar({ currentUserId, party, lobbyId, initialInbox, friends }
             <DmTabBody userId={validActive.slice(3)} openDms={openDms} currentUserId={currentUserId} />
           ) : (
             <p className="px-4 py-10 text-center font-display text-[13px] text-text-faded">
-              Abra uma conversa no +
+              {t("openConversationHint")}
             </p>
           )}
         </div>
@@ -217,7 +219,7 @@ export function ChatBar({ currentUserId, party, lobbyId, initialInbox, friends }
         }`}
       >
         <MessageCircle size={16} aria-hidden="true" />
-        <span className="uppercase tracking-wide">Chat</span>
+        <span className="uppercase tracking-wide">{t("chat")}</span>
         {totalUnread > 0 && !expanded && (
           <span className="flex min-w-5 h-5 items-center justify-center rounded-full bg-brand-primary px-1 font-display text-[11px] font-bold tabular-nums text-text-display">
             {totalUnread > 9 ? "9+" : totalUnread}
@@ -258,6 +260,7 @@ function TabButton({
   onClick: () => void;
   onClose?: () => void;
 }) {
+  const t = useTranslations("chat");
   return (
     <span
       className={`flex shrink-0 items-center gap-1 rounded-sm border px-2 py-1 font-display text-[12px] font-semibold transition-colors ${
@@ -276,7 +279,7 @@ function TabButton({
         </span>
       )}
       {onClose && (
-        <button type="button" onClick={onClose} aria-label={`Fechar ${label}`} className="text-text-faded hover:text-error">
+        <button type="button" onClick={onClose} aria-label={t("closeTab", { label })} className="text-text-faded hover:text-error">
           <X size={12} aria-hidden="true" />
         </button>
       )}
@@ -295,6 +298,7 @@ function DmPicker({
   openUserIds: Set<string>;
   onPick: (d: OpenChatDetail) => void;
 }) {
+  const t = useTranslations("chat");
   // Conversas recentes + amigos (sem duplicar quem já está aberto).
   const recentIds = new Set(inbox.map((c) => c.otherUserId));
   const extraFriends = friends.filter((f) => !recentIds.has(f.friendUserId));
@@ -303,7 +307,7 @@ function DmPicker({
     <div className="max-h-[292px] overflow-y-auto">
       {inbox.length === 0 && extraFriends.length === 0 && (
         <p className="px-4 py-8 text-center font-display text-[13px] text-text-faded">
-          Adicione amigos pra conversar.
+          {t("addFriendsToChat")}
         </p>
       )}
       {inbox.map((c) => (
@@ -320,11 +324,11 @@ function DmPicker({
       {extraFriends.map((f) => (
         <PickRow
           key={f.friendUserId}
-          name={f.friendUsername ?? "Amigo"}
+          name={f.friendUsername ?? t("friend")}
           avatar={f.friendAvatarUrl}
           open={openUserIds.has(f.friendUserId)}
           onClick={() =>
-            onPick({ userId: f.friendUserId, name: f.friendUsername ?? "Amigo", avatar: f.friendAvatarUrl })
+            onPick({ userId: f.friendUserId, name: f.friendUsername ?? t("friend"), avatar: f.friendAvatarUrl })
           }
         />
       ))}
@@ -347,6 +351,7 @@ function PickRow({
   open: boolean;
   onClick: () => void;
 }) {
+  const t = useTranslations("chat");
   return (
     <button
       type="button"
@@ -358,7 +363,7 @@ function PickRow({
         <span className="block truncate font-display text-[13px] font-semibold text-text-display">{name}</span>
         {hint && <span className="block truncate font-sans text-[12px] text-text-faded">{hint}</span>}
       </span>
-      {open && <span className="font-display text-[11px] text-text-faded">aberta</span>}
+      {open && <span className="font-display text-[11px] text-text-faded">{t("open")}</span>}
       {!!unread && unread > 0 && (
         <span className="flex min-w-5 h-5 items-center justify-center rounded-full bg-brand-primary px-1 font-display text-[11px] font-bold tabular-nums text-text-display">
           {unread > 9 ? "9+" : unread}
