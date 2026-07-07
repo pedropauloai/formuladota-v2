@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Gamepad2, ShieldCheck, AlertCircle, ArrowRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { countryToRegion } from "@/lib/regions";
 import { signInWithSteam } from "./actions";
 import { RegionPicker } from "./region-picker";
 import { DotaBackdrop } from "@/components/dota/dota-backdrop";
@@ -85,6 +87,10 @@ export default async function VincularSteamPage({
   const regionChosen =
     (profile as { region_chosen?: boolean } | null)?.region_chosen === true;
 
+  // Região SUGERIDA pelo IP (x-fd-country, repassado pelo middleware). Só o default
+  // pré-selecionado — o usuário confirma/troca no picker. Independente do idioma.
+  const suggestedRegion = countryToRegion((await headers()).get("x-fd-country"));
+
   const t = await getTranslations("account");
   const params = await searchParams;
   const errorKey = params.error ? ERROR_KEYS[params.error] : undefined;
@@ -114,7 +120,7 @@ export default async function VincularSteamPage({
 
         {errorMessage && <ErrorBanner message={errorMessage} />}
 
-        {!regionChosen && <RegionPicker />}
+        {!regionChosen && <RegionPicker suggestedRegion={suggestedRegion} />}
 
         {steamLink ? (
           <LinkedState
