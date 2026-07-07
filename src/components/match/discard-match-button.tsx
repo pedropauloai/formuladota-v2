@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Trash2 } from "lucide-react";
 import { discardMatch } from "@/app/partida/actions";
 
@@ -17,6 +18,7 @@ export function DiscardMatchButton({
   lobbyId: string;
   redirectTo?: string | null;
 }) {
+  const t = useTranslations("scoreboard");
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +36,7 @@ export function DiscardMatchButton({
         if (redirectTo) router.push(redirectTo);
         else router.refresh();
       } else {
-        setError(res.error ?? "Erro.");
+        setError(res.error ?? t("errorShort"));
         setConfirming(false);
       }
     });
@@ -53,7 +55,7 @@ export function DiscardMatchButton({
         }`}
       >
         <Trash2 size={15} aria-hidden="true" />
-        {confirming ? "Confirmar descarte?" : "Descartar partida"}
+        {confirming ? t("discardConfirm") : t("discardMatch")}
       </button>
       {error && <p className="font-mono text-xs text-error">{error}</p>}
     </div>

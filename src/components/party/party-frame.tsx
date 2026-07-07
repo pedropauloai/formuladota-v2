@@ -7,6 +7,7 @@
 // DOTA) — qualquer membro que buscar coloca todos na fila.
 
 import { useEffect, useRef, useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { Plus, Crown, UserMinus, LogOut, Check, Users } from "lucide-react";
 import { UserAvatar } from "@/components/ui/avatar";
 import { usePartyRealtime } from "@/lib/realtime/use-party-realtime";
@@ -31,6 +32,7 @@ interface Props {
 const MAX_OTHERS = 4; // você + 4 = grupo de 5
 
 export function PartyFrame({ currentUserId, initialParty, friends }: Props) {
+  const t = useTranslations("party");
   const [party, setParty] = useState<PartyView | null>(initialParty);
   const [openMenu, setOpenMenu] = useState<string | null>(null); // slot index / "leave"
   const [, startTransition] = useTransition();
@@ -64,8 +66,8 @@ export function PartyFrame({ currentUserId, initialParty, friends }: Props) {
       {inQueue && (
         <span
           className="flex size-2.5 shrink-0 rounded-full bg-play-primary animate-pulse"
-          title="Buscando em grupo"
-          aria-label="Buscando em grupo"
+          title={t("searchingInGroup")}
+          aria-label={t("searchingInGroup")}
         />
       )}
       {Array.from({ length: MAX_OTHERS }).map((_, i) => {
@@ -111,8 +113,8 @@ export function PartyFrame({ currentUserId, initialParty, friends }: Props) {
         <button
           type="button"
           onClick={() => startTransition(() => void leaveParty())}
-          title="Sair do grupo"
-          aria-label="Sair do grupo"
+          title={t("leaveGroup")}
+          aria-label={t("leaveGroup")}
           className="flex size-6 shrink-0 items-center justify-center rounded-sm text-text-faded transition-colors hover:text-error"
         >
           <LogOut size={14} aria-hidden="true" />
@@ -142,6 +144,7 @@ function MemberSlot({
   onKick: () => void;
   onTransfer: () => void;
 }) {
+  const t = useTranslations("party");
   const ref = useRef<HTMLDivElement>(null);
   useClickOutside(ref, open, onToggle);
 
@@ -165,7 +168,7 @@ function MemberSlot({
           <Crown
             size={10}
             className="absolute -right-1 -top-1 text-gold drop-shadow"
-            aria-label="Líder"
+            aria-label={t("leader")}
           />
         )}
       </button>
@@ -179,14 +182,14 @@ function MemberSlot({
             onClick={onTransfer}
             className="flex w-full items-center gap-2 px-3 py-2 text-left font-display text-[13px] text-text-body hover:bg-bg-elevated transition-colors"
           >
-            <Crown size={14} className="text-gold" aria-hidden="true" /> Passar liderança
+            <Crown size={14} className="text-gold" aria-hidden="true" /> {t("transferLeader")}
           </button>
           <button
             type="button"
             onClick={onKick}
             className="flex w-full items-center gap-2 px-3 py-2 text-left font-display text-[13px] text-error hover:bg-error/10 transition-colors"
           >
-            <UserMinus size={14} aria-hidden="true" /> Expulsar
+            <UserMinus size={14} aria-hidden="true" /> {t("kick")}
           </button>
         </div>
       )}
@@ -206,6 +209,7 @@ function EmptySlot({
   friends: FriendListEntry[];
   onClose: () => void;
 }) {
+  const t = useTranslations("party");
   const ref = useRef<HTMLDivElement>(null);
   useClickOutside(ref, open, onClose);
   const [invited, setInvited] = useState<Set<string>>(new Set());
@@ -230,8 +234,8 @@ function EmptySlot({
       <button
         type="button"
         onClick={onToggle}
-        aria-label="Convidar pro grupo"
-        title="Convidar pro grupo"
+        aria-label={t("inviteToGroup")}
+        title={t("inviteToGroup")}
         className={`flex size-10 items-center justify-center rounded-sm border border-dashed transition-colors ${
           open
             ? "border-brand-primary bg-brand-primary/5 text-brand-primary"
@@ -243,12 +247,12 @@ function EmptySlot({
       {open && (
         <div className="absolute bottom-full left-1/2 z-[var(--z-system)] mb-2 -translate-x-1/2 w-56 overflow-hidden rounded-md border border-border-strong bg-bg-deep shadow-2xl shadow-black/70">
           <p className="flex items-center gap-1.5 border-b border-border-subtle px-3 py-2 font-display text-[12px] font-bold uppercase tracking-wide text-text-muted">
-            <Users size={13} aria-hidden="true" /> Convidar amigo
+            <Users size={13} aria-hidden="true" /> {t("inviteFriend")}
           </p>
           <div className="max-h-56 overflow-y-auto">
             {friends.length === 0 ? (
               <p className="px-3 py-4 text-center font-display text-[12px] text-text-faded">
-                Nenhum amigo disponível.
+                {t("noFriendsAvailable")}
               </p>
             ) : (
               friends.map((f) => {
@@ -263,12 +267,12 @@ function EmptySlot({
                   >
                     <UserAvatar
                       src={f.friendAvatarUrl ?? undefined}
-                      alt={f.friendUsername ?? "Amigo"}
+                      alt={f.friendUsername ?? t("friend")}
                       fallback={(f.friendUsername ?? "??").slice(0, 2).toUpperCase()}
                       size="sm"
                     />
                     <span className="flex-1 truncate font-display text-[13px] text-text-body">
-                      {f.friendUsername ?? "Amigo"}
+                      {f.friendUsername ?? t("friend")}
                     </span>
                     {done ? (
                       <Check size={14} className="text-brand-primary" aria-hidden="true" />

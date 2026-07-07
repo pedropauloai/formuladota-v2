@@ -3,8 +3,12 @@
 //   LiveMatchCard    → "acontecendo agora": jogadores por time + AO VIVO (sem herói).
 
 import Image from "next/image";
+import { getTranslations, getLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Clock, Radio, Ban } from "lucide-react";
+
+// locale next-intl (pt/en/es) → tag BCP-47 pra formatação de data por idioma.
+const DATE_LOCALE: Record<string, string> = { pt: "pt-BR", en: "en-US", es: "es-ES" };
 import { getHeroById } from "@/lib/queries/heroes";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { MvpBadge } from "@/components/ui/mvp-badge";
@@ -83,12 +87,13 @@ function PlayerChip({ player, isMvp }: { player: HistoryPlayer; isMvp?: boolean 
 }
 
 /** Selo de BANIDO sobre o avatar (canto inferior esquerdo, longe do herói). */
-function BannedMark() {
+async function BannedMark() {
+  const t = await getTranslations("scoreboard");
   return (
     <span
       className="absolute -bottom-0.5 -left-1 flex size-[18px] items-center justify-center rounded-sm border border-bg-deep bg-error text-bg-deep shadow"
-      title="Banido"
-      aria-label="Banido"
+      title={t("feedBanned")}
+      aria-label={t("feedBanned")}
     >
       <Ban className="size-3" strokeWidth={3} aria-hidden="true" />
     </span>
@@ -96,27 +101,29 @@ function BannedMark() {
 }
 
 /** Barra central com a média de MMR de cada time (favorito destacado em dourado). */
-function TeamAvgRow({ radiantAvg, direAvg }: { radiantAvg: number | null; direAvg: number | null }) {
+async function TeamAvgRow({ radiantAvg, direAvg }: { radiantAvg: number | null; direAvg: number | null }) {
   if (radiantAvg == null || direAvg == null) return null;
+  const t = await getTranslations("scoreboard");
   const rFav = radiantAvg >= direAvg;
   return (
     <div
       className="mt-1 flex items-center justify-center gap-1.5 font-mono text-[0.65rem] tabular-nums text-text-faded"
-      title="MMR médio de cada time"
+      title={t("feedAvgMmrTitle")}
     >
       <span className={rFav ? "font-bold text-gold" : ""}>{radiantAvg}</span>
-      <span className="uppercase tracking-wide">méd</span>
+      <span className="uppercase tracking-wide">{t("feedAvg")}</span>
       <span className={!rFav ? "font-bold text-gold" : ""}>{direAvg}</span>
     </div>
   );
 }
 
-export function HistoryMatchCard({ match }: { match: HistoryMatch }) {
+export async function HistoryMatchCard({ match }: { match: HistoryMatch }) {
+  const locale = await getLocale();
   const radiant = match.players.filter((p) => p.team === "radiant");
   const dire = match.players.filter((p) => p.team === "dire");
   const radiantWin = match.radiantWin;
   const dateStr = match.date
-    ? new Date(match.date).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })
+    ? new Date(match.date).toLocaleDateString(DATE_LOCALE[locale] ?? "en-US", { day: "2-digit", month: "2-digit" })
     : null;
 
   return (
@@ -166,7 +173,8 @@ export function HistoryMatchCard({ match }: { match: HistoryMatch }) {
   );
 }
 
-function LiveTeam({ players, align }: { players: LivePlayer[]; align: "end" | "start" }) {
+async function LiveTeam({ players, align }: { players: LivePlayer[]; align: "end" | "start" }) {
+  const t = await getTranslations("scoreboard");
   return (
     <div
       className={`flex flex-1 flex-wrap items-center gap-2 ${
@@ -174,7 +182,7 @@ function LiveTeam({ players, align }: { players: LivePlayer[]; align: "end" | "s
       }`}
     >
       {players.map((p, i) => (
-        <span key={i} className="relative" title={`${p.name}${p.banned ? " · BANIDO" : ""}`}>
+        <span key={i} className="relative" title={`${p.name}${p.banned ? t("feedBannedSuffix") : ""}`}>
           <XpAvatarRing
             src={p.avatar ?? undefined}
             alt={p.name}
@@ -190,7 +198,8 @@ function LiveTeam({ players, align }: { players: LivePlayer[]; align: "end" | "s
   );
 }
 
-export function LiveMatchCard({ match }: { match: LiveMatch }) {
+export async function LiveMatchCard({ match }: { match: LiveMatch }) {
+  const t = await getTranslations("scoreboard");
   const radiant = match.players.filter((p) => p.team === "radiant");
   const dire = match.players.filter((p) => p.team === "dire");
 
@@ -205,7 +214,7 @@ export function LiveMatchCard({ match }: { match: LiveMatch }) {
           <span className="relative inline-flex size-2 rounded-full bg-play-primary" />
         </span>
         <span className="font-display text-xs font-bold uppercase tracking-[0.2em] text-play-primary">
-          Ao vivo
+          {t("liveNow")}
         </span>
         <Radio size={12} className="text-play-primary/80" aria-hidden="true" />
       </div>

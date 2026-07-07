@@ -3,9 +3,11 @@
 // rever a partida DENTRO do próprio Dota 2 (Assistir → buscar por ID).
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Copy, Check } from "lucide-react";
 
 export function CopyMatchId({ matchId }: { matchId: string }) {
+  const t = useTranslations("scoreboard");
   const [copied, setCopied] = useState(false);
 
   const copy = async () => {
@@ -22,7 +24,7 @@ export function CopyMatchId({ matchId }: { matchId: string }) {
     <button
       type="button"
       onClick={copy}
-      title="Copiar ID da partida (pra assistir dentro do Dota 2)"
+      title={t("copyMatchIdTitle")}
       className="inline-flex items-center gap-1.5 rounded-sm bg-bg-surface px-2 py-1 font-mono text-xs tabular-nums text-text-muted transition-colors hover:text-text-display"
     >
       <span className="normal-case text-text-faded">ID</span>
@@ -32,7 +34,7 @@ export function CopyMatchId({ matchId }: { matchId: string }) {
       ) : (
         <Copy className="size-3.5" />
       )}
-      {copied && <span className="normal-case text-[#00C466]">Copiado!</span>}
+      {copied && <span className="normal-case text-[#00C466]">{t("copyMatchIdCopied")}</span>}
     </button>
   );
 }

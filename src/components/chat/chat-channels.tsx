@@ -6,6 +6,7 @@
 //   - DmChannelPanel     → dm_messages (conversa 1-1)
 
 import { useEffect, useRef, useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { Send } from "lucide-react";
 import {
   fetchPartyMessages,
@@ -43,6 +44,7 @@ function MessageList({
   currentUserId: string;
   emptyHint: string;
 }) {
+  const t = useTranslations("chat");
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (ref.current) ref.current.scrollTop = ref.current.scrollHeight;
@@ -63,7 +65,7 @@ function MessageList({
             return (
               <p key={m.id} className="font-sans text-[13px] leading-snug break-words">
                 <span className={`font-display font-semibold ${mine ? "text-brand-primary" : "text-text-display"}`}>
-                  {mine ? "Você" : m.senderName}:
+                  {mine ? t("you") : m.senderName}:
                 </span>{" "}
                 <span className="text-text-body">{m.body}</span>{" "}
                 <span className="text-[10px] text-text-faded tabular-nums">{timeLabel(m.createdAt)}</span>
@@ -77,6 +79,7 @@ function MessageList({
 }
 
 function Composer({ onSend, placeholder }: { onSend: (body: string) => void; placeholder: string }) {
+  const t = useTranslations("chat");
   const [draft, setDraft] = useState("");
   function submit() {
     const body = draft.trim();
@@ -103,7 +106,7 @@ function Composer({ onSend, placeholder }: { onSend: (body: string) => void; pla
       <button
         type="submit"
         disabled={!draft.trim()}
-        aria-label="Enviar"
+        aria-label={t("send")}
         className="rounded border border-brand-primary bg-brand-primary/15 p-1.5 text-brand-primary hover:bg-brand-primary/25 transition-colors disabled:opacity-40"
       >
         <Send size={15} aria-hidden="true" />
@@ -120,6 +123,7 @@ export function PartyChannelPanel({
   partyId: string;
   currentUserId: string;
 }) {
+  const t = useTranslations("chat");
   const [messages, setMessages] = useState<ChatLineData[]>([]);
   const [, startTransition] = useTransition();
 
@@ -155,9 +159,9 @@ export function PartyChannelPanel({
 
   return (
     <>
-      <MessageList messages={messages} currentUserId={currentUserId} emptyHint="Chat do grupo — só vocês veem." />
+      <MessageList messages={messages} currentUserId={currentUserId} emptyHint={t("partyEmpty")} />
       <Composer
-        placeholder="Mensagem pro grupo..."
+        placeholder={t("partyPlaceholder")}
         onSend={(body) => startTransition(() => void sendPartyMessage(body))}
       />
     </>
@@ -172,6 +176,7 @@ export function LobbyChannelPanel({
   lobbyId: string;
   currentUserId: string;
 }) {
+  const t = useTranslations("chat");
   const [messages, setMessages] = useState<ChatLineData[]>([]);
   const [, startTransition] = useTransition();
 
@@ -204,9 +209,9 @@ export function LobbyChannelPanel({
 
   return (
     <>
-      <MessageList messages={messages} currentUserId={currentUserId} emptyHint="Chat da sala." />
+      <MessageList messages={messages} currentUserId={currentUserId} emptyHint={t("lobbyEmpty")} />
       <Composer
-        placeholder="Mensagem pra sala..."
+        placeholder={t("lobbyPlaceholder")}
         onSend={(body) => startTransition(() => void sendLobbyMessage({ lobbyId, body }))}
       />
     </>
@@ -223,6 +228,7 @@ export function DmChannelPanel({
   otherName: string;
   currentUserId: string;
 }) {
+  const t = useTranslations("chat");
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatLineData[]>([]);
   const [errored, setErrored] = useState(false);
@@ -231,7 +237,7 @@ export function DmChannelPanel({
   const toLine = (m: { id: string; senderId: string; body: string; createdAt: string }): ChatLineData => ({
     id: m.id,
     senderId: m.senderId,
-    senderName: m.senderId === currentUserId ? "Você" : otherName,
+    senderName: m.senderId === currentUserId ? t("you") : otherName,
     body: m.body,
     createdAt: m.createdAt,
   });
@@ -271,15 +277,15 @@ export function DmChannelPanel({
   if (errored) {
     return (
       <div className="flex h-[292px] items-center justify-center px-4 text-center font-display text-[13px] text-text-faded">
-        Só dá pra conversar com amigos aceitos.
+        {t("dmError")}
       </div>
     );
   }
 
   return (
     <>
-      <MessageList messages={messages} currentUserId={currentUserId} emptyHint={`Diga oi pra ${otherName}.`} />
-      <Composer placeholder={`Mensagem para ${otherName}...`} onSend={send} />
+      <MessageList messages={messages} currentUserId={currentUserId} emptyHint={t("dmEmpty", { name: otherName })} />
+      <Composer placeholder={t("dmPlaceholder", { name: otherName })} onSend={send} />
     </>
   );
 }

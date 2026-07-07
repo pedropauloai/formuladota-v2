@@ -2,6 +2,8 @@
 // sobrepostas (ex: Conta geral STRATZ + partidas FormulaDota). Cada série traz
 // valores 0..1 por eixo + cor. Os rótulos dos eixos são compartilhados.
 
+import { useTranslations } from "next-intl";
+
 export interface HexSeries {
   name: string;
   color: string;
@@ -39,6 +41,7 @@ export function PerformanceHexagon({
   labels: string[];
   series: HexSeries[];
 }) {
+  const t = useTranslations("profileExtra");
   const n = labels.length;
   const rings = [0.25, 0.5, 0.75, 1].map((f) =>
     Array.from({ length: n }, (_, i) =>
@@ -49,7 +52,7 @@ export function PerformanceHexagon({
   );
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" role="img" aria-label="Hexágono de performance">
+    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" role="img" aria-label={t("performanceHexagon")}>
       {/* Grade. */}
       {rings.map((pts, i) => (
         <polygon

@@ -5,10 +5,12 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Flag, Loader2 } from "lucide-react";
 import { finalizeLobbyMatch } from "@/app/partida/finalize-actions";
 
 export function FinalizeMatchButton({ lobbyId }: { lobbyId: string }) {
+  const t = useTranslations("scoreboard");
   const router = useRouter();
   const [pending, start] = useTransition();
   const [msg, setMsg] = useState<string | null>(null);
@@ -18,10 +20,10 @@ export function FinalizeMatchButton({ lobbyId }: { lobbyId: string }) {
     start(async () => {
       const res = await finalizeLobbyMatch(lobbyId);
       if (res.success) {
-        setMsg("Partida finalizada!");
+        setMsg(t("matchFinalized"));
         router.refresh();
       } else {
-        setMsg(res.error ?? "Falhou.");
+        setMsg(res.error ?? t("failedShort"));
       }
     });
   }
@@ -35,7 +37,7 @@ export function FinalizeMatchButton({ lobbyId }: { lobbyId: string }) {
         className="inline-flex items-center gap-2 rounded-md border border-play-primary bg-play-primary/15 px-3 py-2 font-display text-sm font-bold uppercase tracking-wide text-play-primary transition-colors hover:bg-play-primary/25 disabled:opacity-60"
       >
         {pending ? <Loader2 size={15} className="animate-spin" /> : <Flag size={15} aria-hidden="true" />}
-        Finalizar partida
+        {t("finalizeMatch")}
       </button>
       {msg && <span className="font-display text-xs font-semibold text-text-muted">{msg}</span>}
     </div>

@@ -3,6 +3,7 @@
 // fim de cada temporada). Vazio até a 1ª temporada fechar. Server component.
 // Ver docs/foundations/RANKING_SYSTEM.md (o prestígio acumula: "fui Imortal na S2").
 
+import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { DotaRankMedal, type DotaRank } from "@/components/ui/dota-rank-medal";
 import { Trophy } from "lucide-react";
@@ -17,6 +18,7 @@ interface AchievementRow {
 
 export async function SeasonHistoryMural({ userId }: { userId: string }) {
   const supabase = await createClient();
+  const t = await getTranslations("profileExtra");
 
   const { data: achievements } = await supabase
     .from("season_achievements")
@@ -44,7 +46,7 @@ export async function SeasonHistoryMural({ userId }: { userId: string }) {
     <section className="rounded-[var(--radius-lg)] border border-border-subtle bg-bg-elevated/40 p-4">
       <h3 className="mb-3 flex items-center gap-2 font-display text-sm font-bold uppercase tracking-wide text-text-display">
         <Trophy size={15} className="text-gold" aria-hidden="true" />
-        Histórico de temporadas
+        {t("seasonHistory")}
       </h3>
       <ul className="space-y-2">
         {sorted.map((a) => {
@@ -63,7 +65,7 @@ export async function SeasonHistoryMural({ userId }: { userId: string }) {
               )}
               <span className="min-w-0 flex-1">
                 <span className="block truncate font-body text-sm text-text-body">
-                  {s?.name ?? "Temporada"}
+                  {s?.name ?? t("season")}
                 </span>
                 {a.title && (
                   <span className="block font-display text-xs font-bold uppercase tracking-wide text-gold-bright">
@@ -73,7 +75,7 @@ export async function SeasonHistoryMural({ userId }: { userId: string }) {
               </span>
               {a.leaderboard_rank != null && (
                 <span className="shrink-0 rounded-sm border border-border-gold bg-gold/10 px-2 py-0.5 font-display-condensed text-sm uppercase tracking-wider text-gold-bright">
-                  Top {a.leaderboard_rank}
+                  {t("top", { n: a.leaderboard_rank })}
                 </span>
               )}
             </li>

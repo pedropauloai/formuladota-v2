@@ -1,14 +1,18 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { ShieldX, Ban, Clock, ExternalLink, Swords, UserRound } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { ClientShell } from "@/components/client-shell/shell";
 import { getWallOfShame, type WallEntry } from "@/lib/queries/wall-of-shame";
 import { SteamIcon } from "@/components/profile/social-icons-row";
 
-export const metadata: Metadata = {
-  title: "Mural da Vergonha — FORMULADOTA",
-  description: "Registro público de quebras de conduta na comunidade FormulaDota.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("pgMisc");
+  return {
+    title: t("mural_metaTitle"),
+    description: t("mural_metaDescription"),
+  };
+}
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +20,7 @@ export const dynamic = "force-dynamic";
 // registrado com o princípio/anti-padrão violado. Contraponto do leaderboard —
 // accountability nos dois extremos. Coerente com o anti-anonimato.
 export default async function MuralPage() {
-  const entries = await getWallOfShame();
+  const [entries, t] = await Promise.all([getWallOfShame(), getTranslations("pgMisc")]);
 
   return (
     <ClientShell currentRoute="/mural">
@@ -24,14 +28,13 @@ export default async function MuralPage() {
         <header className="mb-6">
           <p className="flex items-center gap-2 font-display text-xs font-bold uppercase tracking-[0.2em] text-brand-primary">
             <ShieldX className="size-4" aria-hidden="true" />
-            Conduta
+            {t("mural_kicker")}
           </p>
           <h1 className="mt-1 font-display text-3xl font-bold text-text-display">
-            Mural da Vergonha
+            {t("mural_title")}
           </h1>
           <p className="mt-2 max-w-2xl font-body text-sm leading-relaxed text-text-muted">
-            Aqui não existe anonimato. Quem quebra as regras da comunidade fica registrado —
-            com o princípio ou anti-padrão que violou. A responsabilidade é sempre sua.
+            {t("mural_intro")}
           </p>
         </header>
 
@@ -39,10 +42,10 @@ export default async function MuralPage() {
           <div className="rounded-[var(--radius-lg)] border border-border-subtle bg-bg-elevated/40 px-6 py-12 text-center">
             <ShieldX className="mx-auto mb-3 size-8 text-text-faded" aria-hidden="true" />
             <p className="font-display text-sm font-bold uppercase tracking-wide text-text-muted">
-              Mural limpo
+              {t("mural_emptyTitle")}
             </p>
             <p className="mt-1 font-body text-sm text-text-faded">
-              Nenhuma quebra de conduta registrada. Que continue assim.
+              {t("mural_emptyBody")}
             </p>
           </div>
         ) : (
@@ -66,14 +69,14 @@ export default async function MuralPage() {
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                       <span className="font-display text-base font-bold text-text-display">
-                        {e.username ?? "Jogador"}
+                        {e.username ?? t("mural_playerFallback")}
                       </span>
                       <span
                         className={`rounded-sm px-1.5 py-0.5 font-display text-[0.65rem] font-bold uppercase tracking-wide ${
                           banned ? "bg-error/15 text-error" : "bg-gold/15 text-gold"
                         }`}
                       >
-                        {banned ? "Banido" : "Suspenso"}
+                        {banned ? t("mural_badgeBanned") : t("mural_badgeSuspended")}
                       </span>
                     </div>
                     {(e.principle || e.antipattern) && (
@@ -93,7 +96,9 @@ export default async function MuralPage() {
                           })
                         : "—"}
                       {!banned && e.suspendedUntil
-                        ? ` · até ${new Date(e.suspendedUntil).toLocaleDateString("pt-BR")}`
+                        ? ` ${t("mural_suspendedUntil", {
+                            date: new Date(e.suspendedUntil).toLocaleDateString("pt-BR"),
+                          })}`
                         : ""}
                     </p>
                     <VerifyLinks entry={e} />
@@ -110,14 +115,15 @@ export default async function MuralPage() {
 
 // Links de verificação (anti-anonimato: identidade pública e checável por qualquer um).
 // Perfil FormulaDota (interno) + Steam + Stratz + OpenDota + a partida onde puniu.
-function VerifyLinks({ entry }: { entry: WallEntry }) {
+async function VerifyLinks({ entry }: { entry: WallEntry }) {
+  const t = await getTranslations("pgMisc");
   const cls =
     "inline-flex items-center gap-1 rounded-sm border border-border-subtle bg-bg-elevated/60 px-2 py-1 font-display text-[0.7rem] font-semibold uppercase tracking-wide text-text-muted transition-colors hover:border-brand-primary/50 hover:text-text-display";
   return (
     <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
       <Link href={`/perfil/u/${entry.userId}`} className={cls}>
         <UserRound size={12} aria-hidden="true" />
-        Perfil
+        {t("mural_linkProfile")}
       </Link>
       {entry.steamId64 && (
         <a
@@ -156,7 +162,7 @@ function VerifyLinks({ entry }: { entry: WallEntry }) {
       {entry.dotaMatchId && (
         <Link href={`/partida/historico/${entry.dotaMatchId}`} className={cls}>
           <Swords size={12} aria-hidden="true" />
-          Partida {entry.dotaMatchId}
+          {t("mural_linkMatch", { id: entry.dotaMatchId })}
         </Link>
       )}
     </div>

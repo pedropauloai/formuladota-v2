@@ -6,6 +6,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { Radio } from "lucide-react";
 import { getLiveMatchStats, type LiveMatchT, type LiveTeamT } from "@/app/partida/live-actions";
 
@@ -21,6 +22,7 @@ export function LiveMatchTelemetry({
   lobbyUuid: string;
   initial: LiveMatchT | null;
 }) {
+  const t = useTranslations("scoreboard");
   const [live, setLive] = useState<LiveMatchT | null>(initial);
 
   // Poll resiliente (nunca morre em erro) — mesma filosofia do resto do fluxo.
@@ -50,18 +52,18 @@ export function LiveMatchTelemetry({
       <header className="mb-3 flex items-center justify-between">
         <span className="flex items-center gap-2 font-display text-sm font-bold uppercase tracking-wide text-play-primary">
           <Radio size={15} className="animate-pulse" aria-hidden="true" />
-          Ao vivo {live.stale && <span className="text-text-faded">(pausado)</span>}
+          {t("liveNow")} {live.stale && <span className="text-text-faded">{t("livePaused")}</span>}
         </span>
         <span className="font-display-condensed text-lg tabular-nums text-text-display">
           {mmss(live.gameTime)}
         </span>
       </header>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <LiveTeam title="Iluminados" accent="text-[#00C466]" team={live.radiant} />
-        <LiveTeam title="Temidos" accent="text-brand-primary" team={live.dire} />
+        <LiveTeam title={t("teamRadiant")} accent="text-[#00C466]" team={live.radiant} />
+        <LiveTeam title={t("teamDire")} accent="text-brand-primary" team={live.dire} />
       </div>
       <p className="mt-3 text-center font-body text-[0.65rem] text-text-faded">
-        Atualiza sozinho · delay do DotaTV (~2-3 min, anti-cheat da Valve)
+        {t("liveAutoUpdate")}
       </p>
     </section>
   );
@@ -80,11 +82,12 @@ function LiveTeam({
   accent: string;
   team: LiveTeamT | null;
 }) {
+  const t = useTranslations("scoreboard");
   if (!team) {
     return (
       <div className="rounded-sm border border-border-subtle bg-bg-surface p-3">
         <p className={`font-display text-sm font-bold uppercase tracking-wide ${accent}`}>{title}</p>
-        <p className="mt-2 font-body text-sm text-text-faded">Sem dados ainda.</p>
+        <p className="mt-2 font-body text-sm text-text-faded">{t("liveNoData")}</p>
       </div>
     );
   }
@@ -115,10 +118,10 @@ function LiveTeam({
               <span className="h-[17px] w-[30px] shrink-0 rounded-sm bg-bg-elevated" aria-hidden="true" />
             )}
             <span className="min-w-0 flex-1 truncate font-body text-xs text-text-body">
-              {p.nick ?? p.heroName ?? "Jogador"}
+              {p.nick ?? p.heroName ?? t("colPlayer")}
             </span>
             <span className="shrink-0 font-display text-[0.6rem] uppercase text-text-faded">
-              nv {p.level}
+              {t("liveLvl")} {p.level}
             </span>
             <span className="w-14 shrink-0 text-right font-mono text-xs tabular-nums text-text-muted">
               {p.k}/{p.d}/{p.a}

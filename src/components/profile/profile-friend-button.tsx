@@ -6,6 +6,7 @@
 // (aceitar/recusar) / friends ("Amigos" → hover vira "Remover" com confirmação).
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { UserPlus, Clock, Check, X, UserMinus, Loader2 } from "lucide-react";
 import {
   sendFriendRequest,
@@ -29,6 +30,7 @@ export function ProfileFriendButton({ targetUserId, friendshipId, initial }: Pro
   const [state, setState] = useState<ProfileFriendState>(initial);
   const [confirming, setConfirming] = useState(false);
   const [pending, startTransition] = useTransition();
+  const t = useTranslations("profileExtra");
 
   function run(fn: () => Promise<unknown>, next: ProfileFriendState) {
     startTransition(async () => {
@@ -51,7 +53,7 @@ export function ProfileFriendButton({ targetUserId, friendshipId, initial }: Pro
         className={`${BTN} border-brand-primary bg-brand-primary/15 text-brand-primary hover:bg-brand-primary/25`}
       >
         {pending ? <Loader2 size={15} className="animate-spin" aria-hidden /> : <UserPlus size={15} aria-hidden />}
-        Adicionar amigo
+        {t("addFriend")}
       </button>
     );
   }
@@ -59,12 +61,12 @@ export function ProfileFriendButton({ targetUserId, friendshipId, initial }: Pro
   if (state === "pending_out") {
     return (
       <span className={`${BTN} border-border-subtle bg-bg-elevated text-text-muted`}>
-        <Clock size={15} aria-hidden /> Pedido enviado
+        <Clock size={15} aria-hidden /> {t("requestSent")}
         {friendshipId && (
           <button
             type="button"
             disabled={pending}
-            aria-label="Cancelar pedido"
+            aria-label={t("cancelRequest")}
             onClick={() => run(() => removeFriend(friendshipId), "none")}
             className="ml-1 text-text-faded hover:text-error"
           >
@@ -84,7 +86,7 @@ export function ProfileFriendButton({ targetUserId, friendshipId, initial }: Pro
           onClick={() => friendshipId && run(() => acceptFriendRequest(friendshipId), "friends")}
           className={`${BTN} border-success/60 bg-success/10 text-success hover:bg-success/20`}
         >
-          <Check size={15} aria-hidden /> Aceitar
+          <Check size={15} aria-hidden /> {t("accept")}
         </button>
         <button
           type="button"
@@ -92,7 +94,7 @@ export function ProfileFriendButton({ targetUserId, friendshipId, initial }: Pro
           onClick={() => friendshipId && run(() => rejectFriendRequest(friendshipId), "none")}
           className={`${BTN} border-border-subtle bg-bg-elevated text-text-muted hover:text-text-body`}
         >
-          <X size={15} aria-hidden /> Recusar
+          <X size={15} aria-hidden /> {t("decline")}
         </button>
       </div>
     );
@@ -109,12 +111,12 @@ export function ProfileFriendButton({ targetUserId, friendshipId, initial }: Pro
           className={`${BTN} border-error/60 text-error hover:bg-error/10`}
         >
           {pending ? <Loader2 size={15} className="animate-spin" aria-hidden /> : <UserMinus size={15} aria-hidden />}
-          Remover amigo
+          {t("removeFriend")}
         </button>
         <button
           type="button"
           onClick={() => setConfirming(false)}
-          aria-label="Cancelar"
+          aria-label={t("cancel")}
           className="p-1 text-text-faded hover:text-text-display"
         >
           <X size={16} aria-hidden />
@@ -130,8 +132,8 @@ export function ProfileFriendButton({ targetUserId, friendshipId, initial }: Pro
     >
       <Check size={15} className="group-hover:hidden" aria-hidden />
       <UserMinus size={15} className="hidden group-hover:inline" aria-hidden />
-      <span className="group-hover:hidden">Amigos</span>
-      <span className="hidden group-hover:inline">Remover</span>
+      <span className="group-hover:hidden">{t("friends")}</span>
+      <span className="hidden group-hover:inline">{t("remove")}</span>
     </button>
   );
 }

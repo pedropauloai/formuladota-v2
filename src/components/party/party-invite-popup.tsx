@@ -5,6 +5,7 @@
 // detalhado (RPC party_invites_detailed traz o preview dos membros).
 
 import { useEffect, useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { Users, X, Loader2, Check } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { UserAvatar } from "@/components/ui/avatar";
@@ -21,6 +22,7 @@ interface Props {
 }
 
 export function PartyInvitePopup({ userId, initialInvites }: Props) {
+  const t = useTranslations("party");
   const [invites, setInvites] = useState<PartyInviteDetailed[]>(initialInvites);
   const [busy, setBusy] = useState(false);
   const [, startTransition] = useTransition();
@@ -78,7 +80,7 @@ export function PartyInvitePopup({ userId, initialInvites }: Props) {
         {/* Cabeçalho */}
         <div className="flex flex-col items-center gap-3 border-b border-border-subtle px-6 pt-6 pb-5">
           <span className="flex items-center gap-1.5 font-display text-[12px] font-bold uppercase tracking-[0.15em] text-brand-primary">
-            <Users size={14} aria-hidden="true" /> Convite de grupo
+            <Users size={14} aria-hidden="true" /> {t("groupInvite")}
           </span>
           <UserAvatar
             src={invite.inviterAvatar ?? undefined}
@@ -88,15 +90,19 @@ export function PartyInvitePopup({ userId, initialInvites }: Props) {
             ringColor="brand"
           />
           <p className="text-center font-display text-base text-text-body">
-            <span className="font-bold text-text-display">{invite.inviterName}</span> te
-            chamou pro grupo
+            {t.rich("invitedYou", {
+              name: invite.inviterName,
+              b: (chunks) => (
+                <span className="font-bold text-text-display">{chunks}</span>
+              ),
+            })}
           </p>
         </div>
 
         {/* Preview do grupo */}
         <div className="px-6 py-4">
           <p className="mb-2 font-display text-[11px] font-semibold uppercase tracking-wide text-text-faded">
-            No grupo ({invite.members.length}/5)
+            {t("inGroup", { count: invite.members.length })}
           </p>
           <div className="flex flex-wrap gap-2">
             {invite.members.map((m) => (
@@ -137,7 +143,7 @@ export function PartyInvitePopup({ userId, initialInvites }: Props) {
             ) : (
               <Check size={16} aria-hidden="true" />
             )}
-            Entrar
+            {t("join")}
           </button>
           <button
             type="button"
@@ -145,7 +151,7 @@ export function PartyInvitePopup({ userId, initialInvites }: Props) {
             disabled={busy}
             className="flex flex-1 items-center justify-center gap-2 rounded-md border border-border-subtle bg-bg-elevated px-4 py-2.5 font-display text-sm font-bold uppercase tracking-wide text-text-muted transition-colors hover:text-text-body hover:border-border-strong disabled:opacity-60"
           >
-            <X size={16} aria-hidden="true" /> Recusar
+            <X size={16} aria-hidden="true" /> {t("decline")}
           </button>
         </div>
       </div>
