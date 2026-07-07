@@ -5,6 +5,7 @@
 // Pedro 2026-07-03.
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { RefreshCw, Loader2, Check, AlertCircle } from "lucide-react";
 import { reprocessMatchOpenDota } from "@/app/admin/pros/actions";
 
@@ -15,6 +16,7 @@ export function ReprocessMatchButton({
   matchId: string;
   dotaMatchId: string;
 }) {
+  const t = useTranslations("scoreboard");
   const [state, setState] = useState<"idle" | "ok" | "error">("idle");
   const [msg, setMsg] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -41,7 +43,7 @@ export function ReprocessMatchButton({
         onClick={run}
         disabled={pending}
         className="inline-flex items-center gap-1.5 rounded-sm border border-border-subtle bg-bg-surface px-2 py-1 font-display text-xs uppercase tracking-wide text-text-muted transition-colors hover:border-brand-primary/50 hover:text-text-display disabled:opacity-50"
-        title="Re-buscar dados da OpenDota (corrige abas vazias quando o replay foi parseado depois do enrich)"
+        title={t("reprocessTitle")}
       >
         {pending ? <Loader2 className="size-3 animate-spin" /> : <RefreshCw className="size-3" />}
         Reprocessar OpenDota

@@ -9,6 +9,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Loader2, AlertTriangle } from "lucide-react";
 import { getMatchRouteId } from "@/app/queue/ready-check-actions";
 
@@ -19,6 +20,7 @@ export function MatchRoomStatus({
   lobbyId: string;
   botError: string | null;
 }) {
+  const t = useTranslations("scoreboard");
   const router = useRouter();
 
   // Poll resiliente do dota_match_id — quando o bot grava, navega pra URL canônica.
@@ -57,11 +59,11 @@ export function MatchRoomStatus({
         <AlertTriangle size={18} className="mt-0.5 shrink-0 text-error" aria-hidden="true" />
         <div className="min-w-0">
           <p className="font-display text-sm font-bold uppercase tracking-wide text-error">
-            Falha ao criar a sala no Dota
+            {t("roomStatusError")}
           </p>
           <p className="mt-0.5 break-words font-body text-sm text-text-muted">{botError}</p>
           <p className="mt-1 font-body text-xs text-text-faded">
-            Avise o suporte no Discord pra resolver.
+            {t("roomStatusErrorHelp")}
           </p>
         </div>
       </div>
@@ -73,10 +75,10 @@ export function MatchRoomStatus({
       <Loader2 size={18} className="shrink-0 animate-spin text-gold" aria-hidden="true" />
       <div className="min-w-0">
         <p className="font-display text-sm font-bold uppercase tracking-wide text-gold">
-          Aguardando o bot criar a sala no Dota 2…
+          {t("roomStatusWaiting")}
         </p>
         <p className="mt-0.5 font-body text-xs text-text-faded">
-          Pode levar até ~1 min. A página atualiza sozinha quando a sala ficar pronta.
+          {t("roomStatusWaitingBody")}
         </p>
       </div>
     </div>

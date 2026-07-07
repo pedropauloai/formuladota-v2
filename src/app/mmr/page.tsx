@@ -4,6 +4,7 @@
 // do Dota; Imortal 5620+, topo por POSIÇÃO, sem teto). PT-BR (i18n EN é follow-up).
 
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import {
@@ -22,49 +23,32 @@ import {
 import { ClientShell } from "@/components/client-shell/shell";
 import { DotaRankMedal, type DotaRank } from "@/components/ui/dota-rank-medal";
 
-export const metadata: Metadata = {
-  title: "Como funciona o MMR — FORMULADOTA",
-  description:
-    "Seu MMR FormulaDota, explicado: importado da sua medalha Valve, escala oficial do Dota, desempenho que mede a eficiência com que você extrai patrimônio e impacto pro time, e leaderboard de Imortais por posição.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("pgMisc");
+  return {
+    title: t("mmr_metaTitle"),
+    description: t("mmr_metaDescription"),
+  };
+}
 
 // Escala (espelha TIER_BANDS de src/lib/mmr.ts). Imortal no topo = por POSIÇÃO.
-const LADDER: { rank: DotaRank; nome: string; faixa: string; estrelas: string }[] = [
-  { rank: "immortal", nome: "Imortal", faixa: "5620+", estrelas: "por posição (#N)" },
-  { rank: "divine", nome: "Divino", faixa: "4620 – 5619", estrelas: "~200 / estrela" },
-  { rank: "ancient", nome: "Ancião", faixa: "3850 – 4619", estrelas: "~154 / estrela" },
-  { rank: "legend", nome: "Lenda", faixa: "3080 – 3849", estrelas: "~154 / estrela" },
-  { rank: "archon", nome: "Arconte", faixa: "2310 – 3079", estrelas: "~154 / estrela" },
-  { rank: "crusader", nome: "Cruzado", faixa: "1540 – 2309", estrelas: "~154 / estrela" },
-  { rank: "guardian", nome: "Guardião", faixa: "770 – 1539", estrelas: "~154 / estrela" },
-  { rank: "herald", nome: "Arauto", faixa: "0 – 769", estrelas: "~154 / estrela" },
+// nomeKey/estrelasKey resolvem por idioma (namespace pgMisc) no render.
+const LADDER: { rank: DotaRank; nomeKey: string; faixa: string; estrelasKey: string }[] = [
+  { rank: "immortal", nomeKey: "mmr_rankImmortal", faixa: "5620+", estrelasKey: "mmr_starsByPosition" },
+  { rank: "divine", nomeKey: "mmr_rankDivine", faixa: "4620 – 5619", estrelasKey: "mmr_stars200" },
+  { rank: "ancient", nomeKey: "mmr_rankAncient", faixa: "3850 – 4619", estrelasKey: "mmr_stars154" },
+  { rank: "legend", nomeKey: "mmr_rankLegend", faixa: "3080 – 3849", estrelasKey: "mmr_stars154" },
+  { rank: "archon", nomeKey: "mmr_rankArchon", faixa: "2310 – 3079", estrelasKey: "mmr_stars154" },
+  { rank: "crusader", nomeKey: "mmr_rankCrusader", faixa: "1540 – 2309", estrelasKey: "mmr_stars154" },
+  { rank: "guardian", nomeKey: "mmr_rankGuardian", faixa: "770 – 1539", estrelasKey: "mmr_stars154" },
+  { rank: "herald", nomeKey: "mmr_rankHerald", faixa: "0 – 769", estrelasKey: "mmr_stars154" },
 ];
 
 const TLDR = [
-  {
-    icon: Fingerprint,
-    titulo: "Vem da sua medalha",
-    texto:
-      "Você entra no MMR que a sua medalha Valve representa. A gente não te faz começar do zero — importa o seu nível real.",
-  },
-  {
-    icon: TrendingUp,
-    titulo: "Sobe jogando",
-    texto:
-      "Cada partida ajusta seu MMR pelo resultado (Elo) e pelo seu desempenho. Ganhar de quem é mais forte vale mais.",
-  },
-  {
-    icon: RotateCcw,
-    titulo: "Reseta por temporada",
-    texto:
-      "A cada temporada o topo é reaberto. Ninguém fica sentado no lugar pra sempre — todo ciclo é uma nova corrida.",
-  },
-  {
-    icon: ShieldCheck,
-    titulo: "Sem inflação",
-    texto:
-      "Escala oficial do Dota. Imortal começa em 5620 e o topo é por POSIÇÃO (leaderboard) — sem teto que trava, sem inflação.",
-  },
+  { icon: Fingerprint, titleKey: "mmr_tldr1Title", textKey: "mmr_tldr1Text" },
+  { icon: TrendingUp, titleKey: "mmr_tldr2Title", textKey: "mmr_tldr2Text" },
+  { icon: RotateCcw, titleKey: "mmr_tldr3Title", textKey: "mmr_tldr3Text" },
+  { icon: ShieldCheck, titleKey: "mmr_tldr4Title", textKey: "mmr_tldr4Text" },
 ];
 
 function Section({
@@ -126,7 +110,19 @@ function ImmortalTier({
   );
 }
 
-export default function MmrExplainerPage() {
+// Mapeamento das tags ricas usadas nas strings i18n (namespace pgMisc) → elementos
+// estilizados. disp = destaque claro, red = vermelho de marca, gold = dourado.
+const richTags = {
+  disp: (chunks: React.ReactNode) => <strong className="text-text-display">{chunks}</strong>,
+  red: (chunks: React.ReactNode) => <strong className="text-brand-primary">{chunks}</strong>,
+  gold: (chunks: React.ReactNode) => <strong className="text-gold">{chunks}</strong>,
+  em: (chunks: React.ReactNode) => <em>{chunks}</em>,
+  plus: (chunks: React.ReactNode) => <span className="text-play-primary">{chunks}</span>,
+  minus: (chunks: React.ReactNode) => <span className="text-error">{chunks}</span>,
+};
+
+export default async function MmrExplainerPage() {
+  const t = await getTranslations("pgMisc");
   return (
     <ClientShell currentRoute="/mmr">
       <div className="w-full pb-16">
@@ -150,15 +146,13 @@ export default function MmrExplainerPage() {
           </div>
           <div className="relative mx-auto w-full max-w-6xl px-6 py-16 xl:px-10 xl:py-24">
             <p className="font-display text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
-              Ranking · Guia
+              {t("mmr_heroKicker")}
             </p>
             <h1 className="mt-3 max-w-4xl font-display text-5xl font-bold uppercase tracking-tight text-text-display drop-shadow-lg md:text-6xl">
-              Como funciona o MMR
+              {t("mmr_heroTitle")}
             </h1>
             <p className="mt-5 max-w-xl font-body text-lg leading-8 text-text-muted 2xl:text-xl 2xl:leading-9">
-              O MMR FormulaDota é o número que mede o seu nível dentro da liga. Ele nasce da sua
-              medalha real do Dota, sobe e desce nas partidas, reseta a cada temporada — e no topo,
-              vira uma corrida por posição. Aqui está tudo, do resumo ao detalhe.
+              {t("mmr_heroBody")}
             </p>
           </div>
         </header>
@@ -168,34 +162,23 @@ export default function MmrExplainerPage() {
           <div className="mt-4 mb-16 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {TLDR.map((c) => (
               <div
-                key={c.titulo}
+                key={c.titleKey}
                 className="rounded-[var(--radius-md)] border border-border-subtle bg-bg-elevated/50 p-6 backdrop-blur-sm"
               >
                 <c.icon className="size-7 text-brand-primary" aria-hidden="true" />
                 <p className="mt-4 font-display text-lg font-bold uppercase tracking-wide text-text-display">
-                  {c.titulo}
+                  {t(c.titleKey)}
                 </p>
-                <p className="mt-2 font-body text-base leading-7 text-text-muted">{c.texto}</p>
+                <p className="mt-2 font-body text-base leading-7 text-text-muted">{t(c.textKey)}</p>
               </div>
             ))}
           </div>
 
           {/* ─── A escala (2 colunas: texto + ladder) ─── */}
           <div className="grid gap-10 border-t border-border-subtle pt-12 lg:grid-cols-[1fr_1.1fr]">
-            <Section icon={Trophy} titulo="A escala das medalhas">
-              <p>
-                Usamos a <strong className="text-text-display">mesma escala oficial do Dota</strong>:
-                8 medalhas, de Arauto a Imortal. Abaixo do Imortal, cada medalha tem{" "}
-                <strong className="text-text-display">5 estrelas</strong> — cada estrela vale ~154 MMR
-                (e ~200 no Divino). No <strong className="text-brand-primary">Imortal</strong> não há
-                teto: o rank é por <strong className="text-text-display">posição</strong>.
-              </p>
-              <p className="text-text-muted">
-                No seu perfil você vê a medalha <strong className="text-text-display">Valve</strong>{" "}
-                (oficial do Dota, o legado) e a{" "}
-                <strong className="text-brand-primary">FormulaDota</strong> (o rank da temporada, na
-                mesma escala, com a nossa pele).
-              </p>
+            <Section icon={Trophy} titulo={t("mmr_secScaleTitle")}>
+              <p>{t.rich("mmr_secScaleP1", richTags)}</p>
+              <p className="text-text-muted">{t.rich("mmr_secScaleP2", richTags)}</p>
             </Section>
             <div className="overflow-hidden rounded-[var(--radius-md)] border border-border-subtle">
               {LADDER.map((tier, i) => (
@@ -217,9 +200,9 @@ export default function MmrExplainerPage() {
                     glow={tier.rank === "immortal"}
                   />
                   <span className="flex-1 font-display text-lg font-bold uppercase tracking-wide text-text-display">
-                    {tier.nome}
+                    {t(tier.nomeKey)}
                     <span className="ml-2 font-body text-xs font-normal normal-case text-text-faded">
-                      {tier.estrelas}
+                      {t(tier.estrelasKey)}
                     </span>
                   </span>
                   <span className="font-mono text-sm tabular-nums text-gold">{tier.faixa} MMR</span>
@@ -230,57 +213,35 @@ export default function MmrExplainerPage() {
 
           {/* ─── De onde vem ─── */}
           <div className="border-t border-border-subtle pt-12">
-            <Section icon={Fingerprint} titulo="De onde vem o seu MMR">
+            <Section icon={Fingerprint} titulo={t("mmr_secOriginTitle")}>
               <div className="grid gap-6 lg:grid-cols-2">
-                <p>
-                  Quando você joga sua primeira partida na liga, a gente{" "}
-                  <strong className="text-text-display">importa o seu nível real</strong> a partir da
-                  sua medalha Valve — você já entra no valor que aquela medalha representa (um Divino
-                  3 entra mais alto que um Divino 1). Nada de “começar do zero e calibrar”: a sua
-                  medalha JÁ é a prova do seu nível.
-                </p>
-                <p>
-                  Isso é parte do <strong className="text-text-display">anti-anonimato</strong>: a
-                  medalha pública é a sua identidade competitiva. Sem ela, não dá pra confirmar quem
-                  você é — por isso perfil privado não entra na fila.
-                </p>
+                <p>{t.rich("mmr_secOriginP1", richTags)}</p>
+                <p>{t.rich("mmr_secOriginP2", richTags)}</p>
               </div>
             </Section>
           </div>
 
           {/* ─── Com quem você joga (matchmaking por skill) ─── */}
           <div className="border-t border-border-subtle pt-12">
-            <Section icon={Scale} titulo="Com quem você joga">
-              <p>
-                A fila te junta com <strong className="text-text-display">gente do seu nível</strong>.
-                Ela começa procurando jogadores <strong className="text-text-display">bem perto do seu
-                MMR</strong> e vai <strong className="text-text-display">abrindo aos poucos</strong> se
-                você esperar — assim ninguém fica preso na fila em horário vazio, mas o padrão é
-                partida equilibrada. Você não cai num jogo com alguém muito acima ou muito abaixo de
-                você.
-              </p>
+            <Section icon={Scale} titulo={t("mmr_secMatchTitle")}>
+              <p>{t.rich("mmr_secMatchP1", richTags)}</p>
               <div className="mt-2 grid gap-4 lg:grid-cols-2">
                 <div className="rounded-[var(--radius-md)] border border-border-subtle bg-bg-elevated/40 p-5">
                   <p className="flex items-center gap-2 font-display text-lg font-bold uppercase tracking-wide text-text-display">
                     <Scale className="size-5 text-brand-primary" aria-hidden="true" />
-                    Times equilibrados
+                    {t("mmr_cardBalancedTitle")}
                   </p>
                   <p className="mt-2 font-body text-base leading-7 text-text-muted">
-                    Os dois lados são montados pra ter a{" "}
-                    <strong className="text-text-display">média de MMR parecida</strong> — jogo justo
-                    dos dois lados. É por isso que, quando há diferença, ganhar de um time mais forte
-                    vale mais no cálculo (logo abaixo).
+                    {t.rich("mmr_cardBalancedBody", richTags)}
                   </p>
                 </div>
                 <div className="rounded-[var(--radius-md)] border border-border-subtle bg-bg-elevated/40 p-5">
                   <p className="flex items-center gap-2 font-display text-lg font-bold uppercase tracking-wide text-text-display">
                     <Users className="size-5 text-brand-primary" aria-hidden="true" />
-                    Grupo tem limite
+                    {t("mmr_cardGroupTitle")}
                   </p>
                   <p className="mt-2 font-body text-base leading-7 text-text-muted">
-                    Se você chama amigos, a diferença de nível dentro do grupo não pode passar de{" "}
-                    <strong className="text-gold">2800 de MMR</strong>. Senão daria pra “carregar”
-                    alguém e furar o equilíbrio — é o mesmo limite do Dota.
+                    {t.rich("mmr_cardGroupBody", richTags)}
                   </p>
                 </div>
               </div>
@@ -289,56 +250,36 @@ export default function MmrExplainerPage() {
 
           {/* ─── Como sobe/desce — texto + ILUSTRAÇÃO (performance) ─── */}
           <div className="grid items-center gap-10 border-t border-border-subtle pt-12 lg:grid-cols-[1fr_1.3fr]">
-            <Section icon={TrendingUp} titulo="Como o MMR sobe e desce">
-              <p>Cada partida move o seu MMR por dois fatores — mais um empurrão quando você embala:</p>
+            <Section icon={TrendingUp} titulo={t("mmr_secRiseTitle")}>
+              <p>{t("mmr_secRiseIntro")}</p>
               <ul className="ml-1 space-y-2">
                 <li className="flex gap-2">
                   <Swords className="mt-0.5 size-4 shrink-0 text-brand-primary" aria-hidden="true" />
-                  <span>
-                    <strong className="text-text-display">Resultado (Elo, base 25):</strong> vitória
-                    sobe, derrota desce. Ganhar de um time <em>mais forte</em> vale mais; ganhar de
-                    quem era mais fraco vale menos.
-                  </span>
+                  <span>{t.rich("mmr_secRiseLi1", richTags)}</span>
                 </li>
                 <li className="flex gap-2">
                   <TrendingUp
                     className="mt-0.5 size-4 shrink-0 text-brand-primary"
                     aria-hidden="true"
                   />
-                  <span>
-                    <strong className="text-text-display">Desempenho:</strong> a gente mede a{" "}
-                    <strong className="text-text-display">eficiência</strong> com que você gerou
-                    patrimônio e impacto pro time — dano, objetivos, cura, visão e presença nas
-                    decisões, cada um no peso da sua função. Jogar bem numa derrota faz você perder
-                    menos — <em>ou você ganha, ou você aprende</em>.
-                  </span>
+                  <span>{t.rich("mmr_secRiseLi2", richTags)}</span>
                 </li>
                 <li className="flex gap-2">
                   <TrendingUp
                     className="mt-0.5 size-4 shrink-0 text-brand-primary"
                     aria-hidden="true"
                   />
-                  <span>
-                    <strong className="text-text-display">Sequência (embalo):</strong> emendar
-                    vitórias — ou derrotas — seguidas dá um bônus a mais, pra quem está no lugar
-                    errado sair dele mais rápido. É o que mede a sua constância.
-                  </span>
+                  <span>{t.rich("mmr_secRiseLi3", richTags)}</span>
                 </li>
               </ul>
-              <p>
-                Pra não ter swing maluco, cada partida mexe no máximo{" "}
-                <strong className="text-gold">±30 MMR</strong> — um pouco mais quando você está numa
-                sequência. A variação exata aparece no placar e no seu histórico (
-                <span className="text-play-primary">+</span> verde /{" "}
-                <span className="text-error">−</span> vermelho).
-              </p>
+              <p>{t.rich("mmr_secRiseP", richTags)}</p>
             </Section>
             <figure className="relative">
               {/* PNG sem borda (Pedro 2026-07-05): destaque só pelo glow da marca +
                   profundidade, que aparecem no fundo escuro sem "emoldurar" a imagem. */}
               <Image
                 src="/images/mmr/performance.png"
-                alt="Painel de performance de uma partida"
+                alt={t("mmr_riseImgAlt")}
                 width={1100}
                 height={686}
                 unoptimized
@@ -353,7 +294,7 @@ export default function MmrExplainerPage() {
               {/* PNG sem borda (Pedro 2026-07-05): destaque só pelo glow + profundidade. */}
               <Image
                 src="/images/mmr/graphs-player-damage.png"
-                alt="Gráfico de dano por jogador ao longo da partida"
+                alt={t("mmr_perfImgAlt")}
                 width={1100}
                 height={686}
                 unoptimized
@@ -361,35 +302,11 @@ export default function MmrExplainerPage() {
               />
             </figure>
             <div className="order-1 lg:order-2">
-              <Section icon={Swords} titulo="Desempenho é medido de verdade">
-                <p>
-                  A gente não olha só o placar: cada partida traz o retrato completo do replay (dano,
-                  ouro, objetivos, cura, controle, visão, presença em teamfight) por jogador. Cada
-                  métrica é comparada com a <strong className="text-text-display">média do seu
-                  herói</strong> — justo entre heróis diferentes.
-                </p>
-                <p>
-                  E cada métrica é pesada <strong className="text-text-display">pela sua
-                  função</strong> — que vem da{" "}
-                  <strong className="text-text-display">vaga que você pegou no matchmaking</strong>.
-                  Assim que a partida forma, você já entra com a função definida (carry, meio,
-                  offlane, suporte…), e a gente avalia cada um no que é o SEU trabalho: um core pela{" "}
-                  <strong className="text-text-display">economia, dano e objetivos</strong> que gera;
-                  um suporte pela <strong className="text-text-display">visão, cura e presença</strong>{" "}
-                  que destrava o time. Cada função extrai valor de um jeito — e é nesse jeito que ela
-                  é medida.
-                </p>
-                <p>
-                  A Fórmula é uma só, pra todo herói e toda função:{" "}
-                  <strong className="text-text-display">extrair o máximo de patrimônio no menor
-                  tempo</strong>. E patrimônio vira ranking quando <strong className="text-text-display">vira
-                  impacto</strong>: estar nas <strong className="text-text-display">decisões</strong> —
-                  objetivos e as lutas que definem o jogo — é onde o maior patrimônio da partida troca
-                  de mãos. Extrair rápido e transformar em vitória: é a doutrina virando número.
-                </p>
-                <p className="text-text-muted">
-                  Esse retrato modula o seu MMR e você o revê no placar pós-jogo, aba por aba.
-                </p>
+              <Section icon={Swords} titulo={t("mmr_secPerfTitle")}>
+                <p>{t.rich("mmr_secPerfP1", richTags)}</p>
+                <p>{t.rich("mmr_secPerfP2", richTags)}</p>
+                <p>{t.rich("mmr_secPerfP3", richTags)}</p>
+                <p className="text-text-muted">{t("mmr_secPerfP4")}</p>
               </Section>
             </div>
           </div>
@@ -399,38 +316,31 @@ export default function MmrExplainerPage() {
             <div className="p-6 md:p-9">
               <h2 className="flex items-center gap-2.5 font-display text-2xl font-bold uppercase tracking-wide text-text-display 2xl:text-3xl">
                 <Crown className="size-6 text-brand-primary 2xl:size-7" aria-hidden="true" />
-                No topo, vale a POSIÇÃO
+                {t("mmr_topTitle")}
               </h2>
               <div className="mt-4 space-y-4 font-body text-base leading-8 text-text-body 2xl:text-lg 2xl:leading-9">
-                <p>
-                  Acima de <strong className="text-gold">5620</strong> (piso do Imortal), o número
-                  para de importar sozinho — o que vale é o seu{" "}
-                  <strong className="text-text-display">lugar no leaderboard</strong> da temporada:
-                  Imortal <strong className="text-text-display">#1</strong>, #2, #3… Um ranking
-                  global, sem teto inflacionado, onde ser o melhor é ser o{" "}
-                  <strong className="text-text-display">#1 de verdade</strong>.
-                </p>
+                <p>{t.rich("mmr_topP", richTags)}</p>
               </div>
               {/* As 3 medalhas de Imortal, da base ao topo — cada faixa tem a sua. */}
               <div className="mt-8 grid gap-5 sm:grid-cols-3">
                 <ImmortalTier
                   rank="immortal"
-                  titulo="Imortal"
-                  faixa="5620+ · fora do top 30"
-                  desc="A medalha padrão de todo Imortal da liga."
+                  titulo={t("mmr_tier1Title")}
+                  faixa={t("mmr_tier1Faixa")}
+                  desc={t("mmr_tier1Desc")}
                 />
                 <ImmortalTier
                   rank="immortal-top-100"
-                  titulo="Top 30 – 11"
-                  faixa="a elite da temporada"
-                  desc="A medalha vermelha, com a sua posição gravada dentro dela."
+                  titulo={t("mmr_tier2Title")}
+                  faixa={t("mmr_tier2Faixa")}
+                  desc={t("mmr_tier2Desc")}
                   leaderboardNumber={23}
                 />
                 <ImmortalTier
                   rank="immortal-leaderboard"
-                  titulo="Top 10 – 1"
-                  faixa="o cume do leaderboard"
-                  desc="A medalha oficial de leaderboard — do #1 ao #10, com o número dentro."
+                  titulo={t("mmr_tier3Title")}
+                  faixa={t("mmr_tier3Faixa")}
+                  desc={t("mmr_tier3Desc")}
                   leaderboardNumber={1}
                   highlight
                 />
@@ -441,34 +351,18 @@ export default function MmrExplainerPage() {
           {/* ─── Temporadas / Místico / Gate — 3 cards ─── */}
           <div className="mt-12 grid gap-4 border-t border-border-subtle pt-12 lg:grid-cols-3">
             <div className="rounded-[var(--radius-md)] border border-border-subtle bg-bg-elevated/40 p-5">
-              <Section icon={RotateCcw} titulo="Temporadas">
-                <p>
-                  A cada temporada (2 meses) o ranking reabre com um{" "}
-                  <strong className="text-text-display">reset de −20%</strong>, igual pra todos:
-                  você começa perto de onde parou e <strong className="text-text-display">reconquista o
-                  Imortal</strong> jogando. Durante a temporada o MMR{" "}
-                  <strong className="text-text-display">não cai do nada</strong> — o reset só acontece
-                  na virada. É o que mantém o topo <em>alcançável</em> a cada ciclo.
-                </p>
+              <Section icon={RotateCcw} titulo={t("mmr_secSeasonsTitle")}>
+                <p>{t.rich("mmr_secSeasonsP", richTags)}</p>
               </Section>
             </div>
             <div className="rounded-[var(--radius-md)] border border-border-subtle bg-bg-elevated/40 p-5">
-              <Section icon={Trophy} titulo="Místico = Imortal">
-                <p>
-                  O topo do seu <strong className="text-text-display">Nível</strong> (Novato →
-                  Místico) exige o Imortal. É a promessa da metodologia: seguir a Fórmula → chegar no
-                  Imortal.
-                </p>
+              <Section icon={Trophy} titulo={t("mmr_secMysticTitle")}>
+                <p>{t.rich("mmr_secMysticP", richTags)}</p>
               </Section>
             </div>
             <div className="rounded-[var(--radius-md)] border border-border-subtle bg-bg-elevated/40 p-5">
-              <Section icon={Lock} titulo="Perfil público">
-                <p>
-                  Pra entrar na fila, seu perfil do Dota precisa estar{" "}
-                  <strong className="text-text-display">público e calibrado</strong> — é assim que
-                  lemos sua medalha. Mantém a liga <strong className="text-text-display">limpa de
-                  smurfs</strong>.
-                </p>
+              <Section icon={Lock} titulo={t("mmr_secPublicTitle")}>
+                <p>{t.rich("mmr_secPublicP", richTags)}</p>
               </Section>
             </div>
           </div>
@@ -476,14 +370,14 @@ export default function MmrExplainerPage() {
           {/* ─── CTA final ─── */}
           <div className="mt-12 flex flex-col items-center gap-4 rounded-[var(--radius-lg)] border border-border-subtle bg-bg-elevated/30 p-8 text-center">
             <p className="font-display text-xl font-bold uppercase tracking-wide text-text-display">
-              Pronto pra subir?
+              {t("mmr_ctaTitle")}
             </p>
             <Link
               href="/ranking"
               className="group inline-flex items-center gap-2 rounded-md border-2 border-brand-primary bg-brand-primary/15 px-6 py-3 font-display text-lg font-bold uppercase tracking-wide text-text-display transition-all hover:scale-[1.02] hover:bg-brand-primary/25"
             >
               <Trophy className="size-5 text-brand-primary" aria-hidden="true" />
-              Ver o ranking da temporada
+              {t("mmr_ctaButton")}
               <ArrowRight className="size-5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
             </Link>
           </div>

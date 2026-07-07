@@ -5,6 +5,7 @@
 
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { ProfileView } from "@/components/profile/profile-view";
 
@@ -28,7 +29,8 @@ async function resolveHandle(handle: string) {
 export async function generateMetadata(props: PageProps): Promise<Metadata> {
   const { handle } = await props.params;
   const row = await resolveHandle(handle);
-  return { title: row?.username ?? "Perfil — FORMULADOTA" };
+  const t = await getTranslations("pgProfile");
+  return { title: row?.username ?? t("metaTitleFallback") };
 }
 
 export default async function ProfileByHandlePage(props: PageProps) {

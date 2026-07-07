@@ -8,6 +8,7 @@
 
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getTranslations, getLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ExternalLink, Clock, Ban } from "lucide-react";
 import { createClient, getCurrentUser } from "@/lib/supabase/server";
@@ -41,8 +42,9 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const title = `Partida ${id} · FORMULADOTA`;
-  const description = "Placar completo: heróis, funções, KDA, MMR e medalhas da partida.";
+  const t = await getTranslations("scoreboard");
+  const title = t("histMetaTitle", { id });
+  const description = t("histMetaDescription");
   return {
     title,
     description,
@@ -62,6 +64,9 @@ export default async function HistoricoPartidaPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const t = await getTranslations("scoreboard");
+  const locale = await getLocale();
+  const dateLocale = { pt: "pt-BR", en: "en-US", es: "es-ES" }[locale] ?? "en-US";
   const supabase = await createClient();
 
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
@@ -213,7 +218,7 @@ export default async function HistoricoPartidaPage({
       userId: r.user_id,
       slot: r.player_slot,
       team: r.team,
-      playerName: ident?.username ?? ident?.persona ?? r.personaname ?? "Jogador",
+      playerName: ident?.username ?? ident?.persona ?? r.personaname ?? t("colPlayer"),
       heroName: hero?.name_pt ?? `Herói ${r.hero_id}`,
       heroIcon: hero?.image_icon ?? null,
       cells,
@@ -241,7 +246,7 @@ export default async function HistoricoPartidaPage({
   // Banimentos ligados a ESTA partida (público — accountability no placar).
   const matchBans = dotaMatchId ? await getMatchBans(dotaMatchId) : [];
   const dateStr = matchMeta?.enriched_at
-    ? new Date(matchMeta.enriched_at).toLocaleDateString("pt-BR", {
+    ? new Date(matchMeta.enriched_at).toLocaleDateString(dateLocale, {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
@@ -256,7 +261,7 @@ export default async function HistoricoPartidaPage({
           className="mb-5 inline-flex items-center gap-1.5 font-display text-xs uppercase tracking-wide text-text-muted transition-colors hover:text-text-display"
         >
           <ArrowLeft className="size-3.5" />
-          Voltar
+          {t("histBack")}
         </Link>
 
         <header className="mb-6 overflow-hidden rounded-[var(--radius-lg)] border border-border-subtle bg-bg-elevated/40">
@@ -265,7 +270,7 @@ export default async function HistoricoPartidaPage({
             {/* Iluminados (esquerda). */}
             <div className="flex-1 text-right">
               <p className="font-display text-xl font-bold uppercase tracking-wide text-[#00C466] sm:text-2xl">
-                Iluminados
+                {t("teamRadiant")}
               </p>
               {radiantWin != null && (
                 <p
@@ -273,7 +278,7 @@ export default async function HistoricoPartidaPage({
                     radiantWin ? "text-[#00C466]" : "text-text-faded"
                   }`}
                 >
-                  {radiantWin ? "Vitória" : "Derrota"}
+                  {radiantWin ? t("won") : t("lost")}
                 </p>
               )}
             </div>
@@ -300,7 +305,7 @@ export default async function HistoricoPartidaPage({
             {/* Temidos (direita). */}
             <div className="flex-1 text-left">
               <p className="font-display text-xl font-bold uppercase tracking-wide text-brand-primary sm:text-2xl">
-                Temidos
+                {t("teamDire")}
               </p>
               {radiantWin != null && (
                 <p
@@ -308,7 +313,7 @@ export default async function HistoricoPartidaPage({
                     radiantWin === false ? "text-brand-primary" : "text-text-faded"
                   }`}
                 >
-                  {radiantWin === false ? "Vitória" : "Derrota"}
+                  {radiantWin === false ? t("won") : t("lost")}
                 </p>
               )}
             </div>
@@ -316,7 +321,7 @@ export default async function HistoricoPartidaPage({
 
           {/* Barra de metadados. */}
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-border-subtle bg-bg-surface/40 px-4 py-2 font-display text-xs uppercase tracking-wide text-text-muted sm:px-8">
-            <span>Partida FormulaDota</span>
+            <span>{t("histMatchLabel")}</span>
             {dateStr && <span className="text-text-faded">{dateStr}</span>}
             {dotaMatchId && <CopyMatchId matchId={dotaMatchId} />}
             {viewerIsAdmin && (
@@ -341,9 +346,7 @@ export default async function HistoricoPartidaPage({
           <div className="mb-6 rounded-[var(--radius-md)] border border-error/40 bg-error/5 p-4">
             <p className="flex items-center gap-2 font-display text-xs font-bold uppercase tracking-[0.15em] text-error">
               <Ban className="size-4" aria-hidden="true" />
-              {matchBans.length === 1
-                ? "Jogador banido nesta partida"
-                : "Jogadores banidos nesta partida"}
+              {t("histBansTitle", { count: matchBans.length })}
             </p>
             <ul className="mt-2 space-y-1.5">
               {matchBans.map((b) => (
@@ -352,7 +355,7 @@ export default async function HistoricoPartidaPage({
                     href={`/perfil/u/${b.userId}`}
                     className="font-display font-bold text-text-display hover:text-brand-primary"
                   >
-                    {b.username ?? "Jogador"}
+                    {b.username ?? t("colPlayer")}
                   </Link>
                   {b.antipattern && (
                     <span className="ml-2 font-display text-xs font-semibold uppercase tracking-wide text-error/90">
