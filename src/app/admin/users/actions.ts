@@ -547,11 +547,8 @@ export async function updateUserRegionAdmin(
     .eq("id", targetUserId);
   if (error) return { success: false, error: "Erro ao atualizar a região: " + error.message };
 
-  // Snapshot do leaderboard acompanha (todas as seasons — histórico segue o dono).
-  await service
-    .from("player_season_mmr")
-    .update({ region })
-    .eq("user_id", targetUserId);
+  // (Antes sincronizava player_season_mmr.region — coluna removida na migration 153:
+  //  o ranking é GLOBAL, não por região. profiles.region é a fonte da verdade da fila.)
 
   await insertAuditLog(service, {
     actorId: adminCheck.adminId,
