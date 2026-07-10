@@ -81,3 +81,13 @@ bot-steam/dist/
 
 # Logs de teste do Playwright MCP
 .playwright-mcp/
+
+# Graphify (grafo do repo pra consulta). Versionamos SÓ os artefatos leves e
+# consultáveis (GRAPH_REPORT.md + graph.json + manifest.json). O resto é pesado
+# e/ou regenerável (`graphify update .`): cache de parse, a viz interativa de 3 MB
+# e os arquivos internos de análise/labels.
+graphify-out/cache/
+graphify-out/graph.html
+graphify-out/.graphify_analysis.json
+graphify-out/.graphify_labels.json
+graphify-out/.graphify_labels.json.sig
