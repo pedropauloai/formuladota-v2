@@ -123,3 +123,38 @@ export async function getMatchRouteId(
     .maybeSingle();
   return { routeId: data?.dota_match_id ?? null };
 }
+
+/** Status da fila do bot pra um lobby que aguarda criação (migration 156). */
+export interface LobbyQueueStatus {
+  /** O lobby ainda aguarda o bot? false = já criado / não aplicável. */
+  inQueue: boolean;
+  /** O bot está montando ESTE lobby agora (é a vez dele)? */
+  creatingNow: boolean;
+  /** Posição na fila (1 = criando agora / próximo). */
+  position: number;
+  /** Quantos lobbies estão na frente do meu. */
+  ahead: number;
+  /** Instante estimado (pior caso) em que o bot chega no meu lobby. null = agora. */
+  estReadyAt: string | null;
+}
+
+/**
+ * Posição do lobby na fila do bot Steam único. Como só há 1 conta Steam, partidas
+ * simultâneas são serializadas; isto expõe quanto falta pro jogador não esperar às
+ * cegas. Estimativa é PIOR CASO (cada lobby pode segurar o bot por até 10 min).
+ */
+export async function getLobbyQueueStatus(lobbyId: string): Promise<LobbyQueueStatus> {
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("get_lobby_queue_status", { p_lobby_id: lobbyId });
+  const d = (data ?? {}) as Record<string, unknown>;
+  if (d.in_queue !== true) {
+    return { inQueue: false, creatingNow: false, position: 0, ahead: 0, estReadyAt: null };
+  }
+  return {
+    inQueue: true,
+    creatingNow: d.creating_now === true,
+    position: typeof d.position === "number" ? d.position : 1,
+    ahead: typeof d.ahead === "number" ? d.ahead : 0,
+    estReadyAt: typeof d.est_ready_at === "string" ? d.est_ready_at : null,
+  };
+}
