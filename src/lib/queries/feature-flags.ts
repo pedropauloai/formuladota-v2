@@ -7,7 +7,11 @@
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 
-export type FeatureFlagKey = "ranked_com_pro" | "doctrine_quiz" | "match_dodge_penalty";
+export type FeatureFlagKey =
+  | "ranked_com_pro"
+  | "doctrine_quiz"
+  | "match_dodge_penalty"
+  | "matchmaking_mmr_range";
 
 export interface FeatureFlags {
   ranked_com_pro: boolean;
@@ -16,13 +20,19 @@ export interface FeatureFlags {
   /** Cooldown de 5 min ao recusar/não aceitar partida. OFF = sem penalidade (gate no
    *  ponto de escrita em SQL, migration 141). */
   match_dodge_penalty: boolean;
+  /** Faixa de MMR no matchmaking. ON = janela adaptativa + trava de spread de grupo.
+   *  OFF = modo liquidez (qualquer 10 da região, ainda balanceado por MMR). Gate em SQL,
+   *  migration 154. Default ON = comportamento atual. */
+  matchmaking_mmr_range: boolean;
 }
 
 // Defaults quando a linha não existe / erro de leitura (falha fechada: feature off).
+// matchmaking_mmr_range é a exceção: default ON = mantém a faixa (comportamento atual).
 const DEFAULTS: FeatureFlags = {
   ranked_com_pro: false,
   doctrine_quiz: false,
   match_dodge_penalty: false,
+  matchmaking_mmr_range: true,
 };
 
 // React.cache: page e ClientShell chamam no mesmo request — 1 query só.
