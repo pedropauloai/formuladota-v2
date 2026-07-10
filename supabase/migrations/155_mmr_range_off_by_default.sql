@@ -1,0 +1,11 @@
+-- 155_mmr_range_off_by_default.sql — MODO LIQUIDEZ vira o padrão — Pedro 2026-07-10.
+--
+-- A 154 criou a flag `matchmaking_mmr_range` LIGADA (deploy neutro). Pedro decidiu que o
+-- padrão do Brasil passa a ser o MODO LIQUIDEZ: se juntou 10 jogadores no mesmo modo e
+-- região, tem jogo — sem filtro de faixa de MMR nem trava de spread de grupo. Os times
+-- continuam equilibrados por soma de MMR e respeitando as funções escolhidas.
+--
+-- Só flipa o VALOR da flag. O helper mmr_range_enabled() e as funções try_form_match /
+-- enter_party_queue (154) não mudam — a trava continua disponível, é só religar no admin
+-- quando fizer sentido (ex.: Europa, onde sobra gente na fila). TODO: flag por região.
+update public.feature_flags set enabled = false where key = 'matchmaking_mmr_range';
