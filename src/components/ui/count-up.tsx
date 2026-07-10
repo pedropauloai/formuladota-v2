@@ -40,7 +40,8 @@ export function CountUp({
 
   useEffect(() => {
     if (reduced) {
-      setDisplay(value);
+      // Sem animação: mantém a base sincronizada (ref em effect = ok). O valor exibido
+      // vem direto de `value` no render (ver `shown`), sem setState em effect.
       fromRef.current = value;
       return;
     }
@@ -61,10 +62,13 @@ export function CountUp({
     return () => cancelAnimationFrame(rafRef.current);
   }, [value, durationMs, reduced]);
 
+  // Reduced-motion mostra o valor final direto (derivado no render, sem passar por state).
+  const shown = reduced ? value : display;
+
   return (
     <span className={className}>
       {prefix}
-      {display.toLocaleString("pt-BR")}
+      {shown.toLocaleString("pt-BR")}
       {suffix}
     </span>
   );

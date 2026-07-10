@@ -33,6 +33,12 @@ const FLAG_DEFS: FlagDef[] = [
     description:
       "Ligado = quem recusa OU não aceita uma partida encontrada leva 5 min de cooldown de fila. Desligado = sem penalidade (ideal pra testar sem travar). Só afeta cooldowns NOVOS.",
   },
+  {
+    key: "matchmaking_mmr_range",
+    label: "Faixa de MMR no matchmaking",
+    description:
+      "Ligado = só pareia quem está dentro da janela de MMR (abre em ±600 e cresce +200 a cada 30s até ±2800) e bloqueia grupo com variação interna > 2800. Desligado = MODO LIQUIDEZ: qualquer 10 da região formam partida, ainda balanceada por MMR nos 2 times e com as funções escolhidas — ideal pro Brasil enquanto a fila é magra.",
+  },
 ];
 
 export function FeatureFlagsPanel({ initial }: { initial: FeatureFlags }) {

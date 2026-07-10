@@ -490,3 +490,21 @@
   .fd-spark { animation: none; opacity: 0.85; }
 }
 
+/* ---------------------------------------------------------------------------
+ * MARQUEE vertical — auto-scroll contínuo e lento pra listas (ex.: card "Top do
+ * ranking" na right-sidebar). A lista é DUPLICADA no markup; anima de 0 a -50%
+ * (fim da 1ª cópia) → o loop não "pula", só reinicia idêntico. Só transform
+ * (compositor da GPU). Pausa no hover via hover:[animation-play-state:paused].
+ * ------------------------------------------------------------------------- */
+@keyframes fd-marquee-y {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-50%); }
+}
+.fd-marquee-y {
+  animation: fd-marquee-y var(--motion-duration-marquee) linear infinite;
+}
+/* Acessibilidade (obrigatório): sem movimento → lista estática no topo. */
+@media (prefers-reduced-motion: reduce) {
+  .fd-marquee-y { animation: none; }
+}
+
