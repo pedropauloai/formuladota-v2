@@ -243,31 +243,15 @@ function RankingCard({
    *  da season), no lugar do antigo card separado de "Temporada". */
   seasonSubtitle?: string | null;
 }) {
-  // Auto-scroll só quando há linhas suficientes pra transbordar a janela (~5 cabem em
-  // 200px). Com poucas, a lista fica estática — rolar 2-3 linhas ficaria estranho.
-  const scrolls = rows.length > 5;
-
   return (
     <article className="rounded-md border border-border-subtle bg-bg-elevated/80 backdrop-blur-sm overflow-hidden">
       <CardHeader icon={Trophy} title={title} subtitle={seasonSubtitle} />
       {rows.length === 0 ? (
         <p className="px-3 py-4 text-center font-body text-sm text-text-faded">{empty}</p>
-      ) : scrolls ? (
-        // Janela com max-height + fade sutil no topo/base; a lista (duplicada) rola em
-        // loop via CSS (.fd-marquee-y). group-hover pausa → Server Component puro.
-        <div className="group relative max-h-[200px] overflow-hidden [mask-image:linear-gradient(to_bottom,transparent,#000_12%,#000_88%,transparent)] [-webkit-mask-image:linear-gradient(to_bottom,transparent,#000_12%,#000_88%,transparent)]">
-          <ul className="fd-marquee-y divide-y divide-border-subtle/40 group-hover:[animation-play-state:paused]">
-            {rows.map((r, i) => (
-              <RankRow key={r.userId} r={r} index={i} />
-            ))}
-            {/* 2ª cópia (aria-hidden) — o translateY -50% para exatamente aqui: loop sem pulo. */}
-            {rows.map((r, i) => (
-              <RankRow key={`${r.userId}-dup`} r={r} index={i} ariaHidden />
-            ))}
-          </ul>
-        </div>
       ) : (
-        <ul className="divide-y divide-border-subtle/40">
+        // Janela com altura fixa: o usuário rola a lista à vontade (scrollbar fina
+        // vermelha global). ~5 linhas visíveis; o resto do top 15 vem ao rolar.
+        <ul className="max-h-[200px] divide-y divide-border-subtle/40 overflow-y-auto">
           {rows.map((r, i) => (
             <RankRow key={r.userId} r={r} index={i} />
           ))}
@@ -278,15 +262,14 @@ function RankingCard({
   );
 }
 
-// Uma linha do ranking (avatar+anel de XP, medalha, nick, MMR). Extraída pra poder
-// duplicar no marquee sem repetir markup. `index` = posição real (0-based) no top.
-function RankRow({ r, index, ariaHidden }: { r: SidebarRankRow; index: number; ariaHidden?: boolean }) {
+// Uma linha do ranking (avatar+anel de XP, medalha, nick, MMR). Extraída só pra
+// legibilidade. `index` = posição real (0-based) no top.
+function RankRow({ r, index }: { r: SidebarRankRow; index: number }) {
   const pos = index + 1;
   return (
-    <li aria-hidden={ariaHidden || undefined}>
+    <li>
       <Link
         href={`/perfil/u/${r.userId}`}
-        tabIndex={ariaHidden ? -1 : undefined}
         className="flex items-center gap-2 px-3 py-2 transition-colors hover:bg-bg-elevated"
       >
         <span className="w-4 shrink-0 text-center font-display text-sm font-bold tabular-nums text-text-faded">
