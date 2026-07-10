@@ -129,15 +129,21 @@ export function ProgressTipGlow({ box, color, pts, tip, count }: Props) {
   const uOffset = margin / canvasSide;
 
   // Geometria da barra numa ref → reenviada como uniform a cada frame (o rastro
-  // acompanha o progresso sem recriar o contexto WebGL).
+  // acompanha o progresso sem recriar o contexto WebGL). Sincronizada em effect (refs
+  // não podem ser escritas durante o render — regra react-hooks/refs).
   const geomRef = useRef({ pts, tip, count });
-  geomRef.current = { pts, tip, count };
+  useEffect(() => {
+    geomRef.current = { pts, tip, count };
+  });
 
   useEffect(() => {
     if (prefersReducedMotion) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     if (liveContexts >= MAX_WEBGL) {
+      // Acima do teto de contextos WebGL → glow CSS mínimo. Detecção só possível aqui
+      // (o contador é runtime), logo o setState em effect é intencional.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCssFallback(true);
       return;
     }
@@ -149,6 +155,8 @@ export function ProgressTipGlow({ box, color, pts, tip, count }: Props) {
       preserveDrawingBuffer: true,
     });
     if (!gl) {
+      // WebGL indisponível → glow CSS mínimo. getContext só roda em effect, então o
+      // setState aqui é a única forma de detectar e cair no fallback.
       setCssFallback(true);
       return;
     }
