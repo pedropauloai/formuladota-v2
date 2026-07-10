@@ -60,19 +60,20 @@ export async function getSidebarData(): Promise<SidebarData> {
   const seasonRow = seasonRes.data;
   const nextStart = nextSeasonRes.data?.started_at ?? null;
 
-  // Top 3 por MMR da season ativa.
-  const top3Res = seasonRow
+  // Top 15 por MMR da season ativa (mais linhas pro card ter o que rolar; o card
+  // faz auto-scroll vertical sutil — ver RankingCard em right-sidebar.tsx).
+  const topRes = seasonRow
     ? await supabase
         .from("player_season_mmr")
         .select("user_id, mmr")
         .eq("season_id", seasonRow.id)
         .order("mmr", { ascending: false })
-        .limit(3)
+        .limit(15)
     : { data: [] as { user_id: string; mmr: number }[] };
-  const top3 = top3Res.data ?? [];
+  const topRows = topRes.data ?? [];
 
   // Identidade via FONTE ÚNICA (getIdentityMap): Discord-first pra qualquer viewer.
-  const ids = top3.map((r) => r.user_id);
+  const ids = topRows.map((r) => r.user_id);
   const [identityMap, levelsRes] = await Promise.all([
     getIdentityMap(supabase, ids),
     ids.length > 0
@@ -84,7 +85,7 @@ export async function getSidebarData(): Promise<SidebarData> {
   const xpMap = new Map(
     (levelsRes.data ?? []).map((l) => [l.user_id, xpProgress(l.total_xp_earned ?? 0)])
   );
-  const topRanking: SidebarRankRow[] = top3.map((r) => {
+  const topRanking: SidebarRankRow[] = topRows.map((r) => {
     const ident = identityMap.get(r.user_id);
     const xp = xpMap.get(r.user_id);
     return {

@@ -164,6 +164,9 @@ html[data-theme="fd-dark"] {
   --motion-duration-hero:       500ms;
   /* Transições cinematográficas — loading, page transitions */
   --motion-duration-cinematic:  1000ms;
+  /* Marquee — auto-scroll contínuo e lento (ex.: lista do card "Top do ranking").
+   * Bem devagar de propósito: presença, não distração. */
+  --motion-duration-marquee:    28s;
 
   /* -------------------------------------------------------
    * GRUPO 10 — MOTION: EASINGS NOMEADOS
