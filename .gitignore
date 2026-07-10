@@ -76,8 +76,10 @@ bot-steam/dist/
 /*.jpg
 /*.jpeg
 
-# Config local do Claude Code (inclui worktrees pesados)
-.claude/
+# Config local do Claude Code (inclui worktrees pesados). Ignora tudo em .claude/
+# EXCETO as skills do projeto (versionadas pra rodar em qualquer clone/sessão).
+.claude/*
+!.claude/skills/
 
 # Logs de teste do Playwright MCP
 .playwright-mcp/
