@@ -32,6 +32,9 @@ const {
 // ---- Config / env -------------------------------------------------
 const USERNAME = process.env.STEAM_BOT_USERNAME;
 const PASSWORD = process.env.STEAM_BOT_PASSWORD;
+// Identidade estável na tabela `bots` (fila visível pro jogador). No Railway o login é
+// por refresh token e STEAM_BOT_USERNAME pode faltar → cai no seed 'main' (migration 017).
+const BOT_ID = process.env.STEAM_BOT_USERNAME || "main";
 const SHARED_SECRET = process.env.STEAM_BOT_SHARED_SECRET || "";
 const REFRESH_TOKEN = process.env.STEAM_REFRESH_TOKEN || "";
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -141,6 +144,47 @@ let chatJoinPedido = false; // já pedi pra entrar no chat deste lobby?
 
 function wait(ms) {
   return new Promise((r) => setTimeout(r, ms));
+}
+
+// ---- Estado do bot na tabela `bots` (fila visível pro jogador, migration 156) -----
+// O site lê isso via get_lobby_queue_status pra mostrar "bot ocupado, sua partida em
+// X:XX". Melhor esforço: falha aqui NUNCA atrapalha a criação da partida.
+async function marcarBotOcupado(dbLobbyId) {
+  try {
+    const now = new Date().toISOString();
+    await supabase.from("bots").upsert(
+      {
+        account_name: BOT_ID,
+        display_name: "FORMULADOTA Bot",
+        status: "busy",
+        current_lobby_id: dbLobbyId,
+        claimed_at: now,
+        last_heartbeat_at: now,
+      },
+      { onConflict: "account_name" }
+    );
+  } catch (e) {
+    console.error("[BOT] erro ao marcar ocupado:", e.message);
+  }
+}
+async function marcarBotLivre() {
+  try {
+    await supabase
+      .from("bots")
+      .update({ status: "idle", current_lobby_id: null, last_heartbeat_at: new Date().toISOString() })
+      .eq("account_name", BOT_ID);
+  } catch (e) {}
+}
+// Heartbeat: mantém last_heartbeat_at fresco enquanto o bot processa um lobby. Se o
+// worker reinicia no meio, o heartbeat "envelhece" e a RPC deixa de contar o bot como
+// ocupado (auto-recuperação), sem travar a fila.
+async function baterHeartbeat() {
+  try {
+    await supabase
+      .from("bots")
+      .update({ last_heartbeat_at: new Date().toISOString() })
+      .eq("account_name", BOT_ID);
+  } catch (e) {}
 }
 
 // ---- Olhos do bot: lê o SO cache do lobby (id, match_id, membros) --
@@ -321,6 +365,7 @@ function iniciarCronometro(job) {
           .update({ status: "cancelled", bot_error: `timeout ${EXPIRA_MIN}min sem completar` })
           .eq("id", job.dbLobbyId);
       } catch (e) {}
+      await marcarBotLivre();
       jobAtivo = null;
       return;
     }
@@ -422,6 +467,7 @@ dota2.on("connectedToGC", () => {
   try {
     dota2.sendRawBuffer(MSG_LEAVE_LOBBY, Buffer.from(LobbyLeave.encode(LobbyLeave.create({})).finish()));
   } catch (e) {}
+  marcarBotLivre(); // limpa estado 'busy' stale de um crash/restart anterior
   setInterval(loop, POLL_MS);
   if (STEAM_WEB_API_KEY) {
     setInterval(pollLiveStats, LIVE_POLL_MS);
@@ -528,7 +574,10 @@ async function loop() {
         console.log("[BOT] partida descartada no painel — finalizando o lobby Steam.");
         const job = jobAtivo;
         await descartarLobbySteam(job);
+        await marcarBotLivre();
         jobAtivo = null;
+      } else {
+        await baterHeartbeat(); // mantém a fila do site sabendo que o bot segue vivo/ocupado
       }
       return; // 1 lobby por vez (bot único)
     }
@@ -571,6 +620,7 @@ async function processarLobby(lobby) {
   };
   chatChannelId = null;
   chatJoinPedido = false;
+  await marcarBotOcupado(lobby.id); // fila do site: "bot ocupado" a partir de agora
   console.log(`\n[BOT] === Nova partida ${lobby.id} === senha=${lobby.password} modo=${lobby.game_mode}`);
 
   // Busca os jogadores e seus SteamIDs.
@@ -687,7 +737,7 @@ async function processarLobby(lobby) {
   await wait(1500);
   const updLobby = {
     steam_lobby_id: jobAtivo.steamLobbyId || "created",
-    bot_account_name: USERNAME,
+    bot_account_name: BOT_ID,
   };
   if (jobAtivo.matchId) updLobby.dota_match_id = jobAtivo.matchId;
   await supabase.from("lobbies").update(updLobby).eq("id", lobby.id);
@@ -733,6 +783,7 @@ async function lancarEFechar(job) {
     `[BOT] ✅ Partida ${job.dbLobbyId} LANÇADA. match_id=${matchId}. ` +
       `server_steam_id=${serverSteamId || "(não capturado)"}. Liberando pro próximo.`
   );
+  await marcarBotLivre();
   jobAtivo = null; // libera o polling pro próximo job
 }
 
@@ -740,6 +791,7 @@ async function falhar(dbLobbyId, motivo) {
   try {
     await supabase.from("lobbies").update({ status: "bot_unavailable", bot_error: motivo }).eq("id", dbLobbyId);
   } catch (e) {}
+  await marcarBotLivre();
   jobAtivo = null;
 }
 
