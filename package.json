@@ -13,7 +13,10 @@
     "db:gen-types": "supabase gen types typescript --project-id $SUPABASE_PROJECT_ID --schema public > src/types/database.ts",
     "gen:heroes": "npx tsx scripts/gen-heroes.ts",
     "gen:items": "npx tsx scripts/gen-items.ts",
-    "gen:abilities": "npx tsx scripts/gen-abilities.ts"
+    "gen:abilities": "npx tsx scripts/gen-abilities.ts",
+    "cf:build": "opennextjs-cloudflare build",
+    "cf:preview": "opennextjs-cloudflare preview",
+    "cf:deploy": "opennextjs-cloudflare deploy"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
@@ -27,18 +30,16 @@
     "@tsparticles/engine": "^4.0.5",
     "@tsparticles/react": "^4.0.5",
     "@tsparticles/slim": "^4.0.5",
-    "@vercel/analytics": "^2.0.1",
-    "@vercel/speed-insights": "^2.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "howler": "^2.2.4",
     "lucide-react": "^0.456.0",
     "motion": "^12.40.0",
-    "next": "16.2.4",
+    "next": "16.4.5",
     "next-intl": "^4.13.0",
     "posthog-js": "^1.240.0",
-    "react": "19.0.0",
-    "react-dom": "19.0.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
     "react-grid-layout": "^2.2.3",
     "recharts": "^3.9.2",
     "resend": "^6.12.2",
@@ -51,18 +52,29 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",
+    "@opennextjs/cloudflare": "1.20.16",
     "@tailwindcss/postcss": "^4.0.0-beta.6",
     "@types/howler": "^2.2.13",
     "@types/node": "^22.9.0",
     "@types/pg": "^8.20.0",
-    "@types/react": "19.0.0",
-    "@types/react-dom": "19.0.0",
+    "@types/react": "19.2.7",
+    "@types/react-dom": "19.2.3",
     "eslint": "^9.15.0",
-    "eslint-config-next": "16.2.4",
+    "eslint-config-next": "16.4.5",
     "pg": "^8.20.0",
     "postcss": "^8.4.49",
     "tailwindcss": "^4.0.0-beta.6",
     "typescript": "^5.6.3",
-    "vitest": "^4.1.9"
+    "vitest": "^4.1.9",
+    "wrangler": "4.151.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "workerd"
+    ],
+    "ignoredBuiltDependencies": [
+      "@swc/core"
+    ]
   }
 }

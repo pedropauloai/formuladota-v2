@@ -93,3 +93,9 @@ graphify-out/graph.html
 graphify-out/.graphify_analysis.json
 graphify-out/.graphify_labels.json
 graphify-out/.graphify_labels.json.sig
+
+# Cloudflare (OpenNext e Wrangler)
+.open-next
+.wrangler
+.dev.vars
+.env.producao

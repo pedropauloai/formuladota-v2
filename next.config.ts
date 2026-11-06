@@ -13,6 +13,9 @@ const config: NextConfig = {
     optimizePackageImports: ["lucide-react"],
   },
   images: {
+    // Na Cloudflare a otimização gasta transformações do Images (5 mil por mês no grátis,
+    // depois a imagem quebra); as fontes já são CDNs, então servimos direto da origem.
+    unoptimized: true,
     remotePatterns: [
       { protocol: "https", hostname: "cdn.discordapp.com" },
       { protocol: "https", hostname: "*.supabase.co" },
@@ -90,10 +93,10 @@ const config: NextConfig = {
         // mas o callback é forçado pro www (NEXT_PUBLIC_SITE_URL), o cookie não viaja
         // entre domínios e o exchangeCodeForSession falha. Forçar www ANTES de qualquer
         // fluxo de auth garante cookie + callback no mesmo domínio.
-        // OBS: só funciona se o apex (formuladota.com) estiver apontado pro app na Vercel.
+        // OBS: só funciona se o apex (formuladota.com.br) estiver ligado ao Worker na Cloudflare.
         source: "/:path*",
-        has: [{ type: "host", value: "formuladota.com" }],
-        destination: "https://www.formuladota.com/:path*",
+        has: [{ type: "host", value: "formuladota.com.br" }],
+        destination: "https://www.formuladota.com.br/:path*",
         permanent: true,
       },
     ];

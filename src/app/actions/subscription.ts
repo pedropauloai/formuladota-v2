@@ -73,7 +73,7 @@ export async function createSubscription(tierInput?: string): Promise<void> {
     await supabase.from("subscriptions").delete().eq("id", existing.id);
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://formuladota.com";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.formuladota.com.br";
 
   if (providerForRegion(region) === "stripe") {
     // LATAM (USD) / EU (EUR) — Stripe Checkout Session (mode: subscription).
@@ -176,7 +176,7 @@ export async function cancelSubscription(): Promise<void> {
     if (!subscription.stripe_customer_id) {
       redirect("/planos?error=invalid_state");
     }
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://formuladota.com";
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.formuladota.com.br";
     let portalUrl: string | null = null;
     try {
       const portal = await getStripe().billingPortal.sessions.create({

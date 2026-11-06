@@ -11,8 +11,8 @@ import { mmrToDotaRank } from "@/lib/dota/rank-badges";
 import type { DotaRank } from "@/components/ui/dota-rank-medal";
 
 const BRAND_USERNAME = "FORMULADOTA";
-const BRAND_AVATAR_URL = "https://www.formuladota.com/brand/formuladota-mark.png";
-const BASE = "https://www.formuladota.com";
+const BRAND_AVATAR_URL = "https://www.formuladota.com.br/brand/formuladota-mark.png";
+const BASE = "https://www.formuladota.com.br";
 const MAX_PER_RUN = 4;
 
 const RANK_PT: Record<DotaRank, string> = {
@@ -206,7 +206,7 @@ export async function syncFormedMatchesToDiscord(
           author: { name: "FORMULADOTA · Fila" },
           title: "⚔️ Partida formada",
           url: `${BASE}/partida/${lobby.dota_match_id}`,
-          description: `Acompanhe ao vivo em [formuladota.com](${BASE}/partida/${lobby.dota_match_id})`,
+          description: `Acompanhe ao vivo em [formuladota.com.br](${BASE}/partida/${lobby.dota_match_id})`,
           color: 0xe6b800,
           fields: [
             { name: "🟢 Iluminados", value: fmt("radiant"), inline: true },

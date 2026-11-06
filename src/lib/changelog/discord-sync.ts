@@ -45,7 +45,7 @@ const MAX_PER_RUN = 5;
 // Identidade oficial no Discord (override do webhook por mensagem). URL DIRETA no
 // www (o apex faz 307 e o Discord não segue redirect de avatar de forma confiável).
 const BRAND_USERNAME = "FORMULADOTA";
-const BRAND_AVATAR_URL = "https://www.formuladota.com/brand/formuladota-mark.png";
+const BRAND_AVATAR_URL = "https://www.formuladota.com.br/brand/formuladota-mark.png";
 
 /** Corpo do embed (comum a POST e EDIT). No PATCH o Discord ignora username/avatar. */
 function buildEmbeds(entry: Row, site: string | undefined) {
@@ -58,7 +58,7 @@ function buildEmbeds(entry: Row, site: string | undefined) {
       url: `${site}/novidades`,
       color: style.color,
       timestamp: entry.published_at,
-      footer: { text: "Veja tudo em formuladota.com/novidades" },
+      footer: { text: "Veja tudo em formuladota.com.br/novidades" },
     },
   ];
 }
