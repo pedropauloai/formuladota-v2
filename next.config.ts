@@ -87,6 +87,12 @@ const config: NextConfig = {
 
   async redirects() {
     return [
+      // Caminhos do site antigo que seguem nas descrições do YouTube. Temporários (307):
+      // se uma página de verdade nascer num deles, basta tirar a linha daqui.
+      { source: "/tinker", destination: "/", permanent: false },
+      { source: "/tinker-no-ti", destination: "/", permanent: false },
+      { source: "/rankedpt", destination: "/ranked-com-pro", permanent: false },
+      { source: "/liga", destination: "/torneios", permanent: false },
       {
         // apex -> www (308). RAIZ do error=exchange_failed: o cookie PKCE do OAuth é
         // gravado no domínio de ENTRADA; se o usuário começa em formuladota.com (apex)
