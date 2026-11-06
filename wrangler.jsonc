@@ -1,0 +1,21 @@
+// O app na Cloudflare Workers pelo OpenNext (plano Workers Paid da conta).
+// Build e deploy no WSL (no Windows o empacotamento falha por link simbólico):
+//   pnpm cf:build && pnpm cf:deploy
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "formuladota",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-10-20",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  // Sem isso o esbuild põe __name() nas funções e scripts inline quebram no navegador.
+  "keep_names": false,
+  "workers_dev": true,
+  // O canônico é o www; o next.config manda o apex para ele (308).
+  "routes": [
+    { "pattern": "www.formuladota.com.br", "custom_domain": true },
+    { "pattern": "formuladota.com.br", "custom_domain": true }
+  ],
+  "observability": { "enabled": true },
+  "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
+  "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "formuladota" }]
+}

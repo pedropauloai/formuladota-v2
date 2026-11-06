@@ -39,14 +39,9 @@ import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
 // PWA: registra o service worker (instalável + offline básico).
 import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
-// Analytics (2026-07-03) — três camadas, todas gratuitas e gated por env:
-//   1. Vercel Analytics — pageviews/países, ativar Web Analytics no dashboard Vercel
-//   2. GA4 — obrigatório pra conversões do Google Ads (NEXT_PUBLIC_GA_MEASUREMENT_ID)
-//   3. PostHog — funil/retenção, init em src/instrumentation-client.ts (NEXT_PUBLIC_POSTHOG_KEY)
-import { Analytics } from "@vercel/analytics/next";
-// Speed Insights (2026-07-04) — Web Vitals de usuários reais no dashboard Vercel.
-// Aplicado direto na main (PRs #129/#130 do vercel[bot] fechados — branches defasados).
-import { SpeedInsights } from "@vercel/speed-insights/next";
+// Analytics, as duas gated por env (o app roda na Cloudflare, então os da Vercel saíram):
+//   1. GA4, obrigatório pra conversões do Google Ads (NEXT_PUBLIC_GA_MEASUREMENT_ID)
+//   2. PostHog, funil/retenção, init em src/instrumentation-client.ts (NEXT_PUBLIC_POSTHOG_KEY)
 import { GoogleAnalytics } from "@next/third-parties/google";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
@@ -158,11 +153,8 @@ export default async function RootLayout({
         </SoundProvider>
         </MotionProvider>
         </NextIntlClientProvider>
-        {/* Analytics — fora dos providers (não dependem de i18n/motion/sound).
-            Vercel Analytics: no-op local, ativa em produção após habilitar no dashboard.
+        {/* Analytics fora dos providers (não dependem de i18n/motion/sound).
             GA4: só renderiza se a env existir (deploy seguro sem key). */}
-        <Analytics />
-        <SpeedInsights />
         {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ? (
           <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
         ) : null}

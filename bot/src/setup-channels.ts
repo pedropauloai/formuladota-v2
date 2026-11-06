@@ -183,7 +183,7 @@ const WELCOME_CONTENT = [
     "- 🆕丨atualizacoes — tudo que muda no app aparece aqui, no estilo das notas de patch do Dota.",
     "- 🎧丨Buscando Partida — entre nesse canal de voz pra procurar partida. **Sem anonimato: joga quem dá a cara.**",
     "",
-    "🌐 App: https://formuladota.com",
+    "🌐 App: https://www.formuladota.com.br",
   ].join("\n"),
 ];
 
@@ -207,7 +207,7 @@ const DOUTRINA_CONTENT = [
     "- **Consistência** — vitória é hábito, não sorte. Processo repetível > lampejo de gênio.",
     "- **Identidade** — nome público, reputação atrelada. Aqui todo mundo dá a cara.",
     "",
-    "📖 Leia o Código de Conduta completo: https://formuladota.com/codigo-de-conduta",
+    "📖 Leia o Código de Conduta completo: https://www.formuladota.com.br/codigo-de-conduta",
   ].join("\n"),
 ];
 

@@ -11,7 +11,7 @@ export const alt = "Placar da partida — FORMULADOTA";
 export const size = { width: 1000, height: 440 };
 export const contentType = "image/png";
 
-const BASE = "https://www.formuladota.com";
+const BASE = "https://www.formuladota.com.br";
 const C = {
   bg: "#0B0C0F",
   panel: "#111317",
