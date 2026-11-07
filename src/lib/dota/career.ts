@@ -229,7 +229,11 @@ async function runStratzCount(
 // ---------------------------------------------------------------------------
 
 async function fetchJson<T>(path: string): Promise<T> {
-  const res = await fetch(`${OPENDOTA_BASE}${path}`, {
+  const url = new URL(`${OPENDOTA_BASE}${path}`);
+  // Na Cloudflare a saída é por IP compartilhado: sem a chave o OpenDota devolve 429.
+  const apiKey = serverEnv.OPENDOTA_API_KEY;
+  if (apiKey) url.searchParams.set("api_key", apiKey);
+  const res = await fetch(url, {
     headers: { Accept: "application/json" },
     // Cache fica no Supabase (TTL 24h) — aqui sempre dado fresco
     cache: "no-store",

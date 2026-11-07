@@ -13,6 +13,7 @@ import type { Json } from "@/types/database";
 const OWNER_COACH_SLUG = "pedro-paulo";
 const TINKER_HERO_ID = 34;
 const REFRESH_EVERY_MS = 6 * 60 * 60 * 1000;
+const RETRY_EVERY_MINUTES = 10;
 
 export interface OwnerProof {
   avatarUrl: string | null;
@@ -68,10 +69,14 @@ export const getOwnerProof = cache(async (): Promise<OwnerProof | null> => {
 });
 
 /** Chamado pelo cron: renova o cache de carreira do dono quando passou de 6 horas. */
-export async function refreshOwnerCareer(now = Date.now()): Promise<"fresco" | "renovado" | "sem_dono" | "falhou"> {
+export async function refreshOwnerCareer(now = Date.now()): Promise<"fresco" | "aguardando" | "renovado" | "sem_dono" | "falhou"> {
+  // Falha (429, OpenDota fora do ar) não vira tentativa a cada minuto: o cache vencido só tenta
+  // de novo nos minutos múltiplos de 10.
+  const minute = new Date(now).getUTCMinutes();
   const owner = await findOwner();
   if (!owner?.steamId64) return "sem_dono";
   if (owner.career && now - new Date(owner.career.syncedAt).getTime() < REFRESH_EVERY_MS) return "fresco";
+  if (minute % RETRY_EVERY_MINUTES !== 0) return "aguardando";
   const stats = await fetchCareerStats(steam64To32(owner.steamId64));
   if (!stats) return "falhou";
   const { error } = await createServiceClient()
