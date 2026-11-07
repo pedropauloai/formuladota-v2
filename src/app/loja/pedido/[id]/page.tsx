@@ -32,19 +32,19 @@ export default async function PedidoPage({ params }: { params: Promise<{ id: str
   return (
     <ClientShell currentRoute="/loja" hideRightSidebar>
       <div className="mx-auto max-w-2xl space-y-6 px-4 py-8 md:py-12">
-        {order.isTest && (
-          <p className="inline-block rounded-sm border border-warning/60 px-2 py-0.5 font-display text-xs uppercase tracking-wide text-warning">
-            {t("orderTest")}
-          </p>
-        )}
-        <header className="space-y-2">
-          <StatusLine order={order} t={t} />
+        <header className="space-y-3">
           <h1 className="font-display text-2xl uppercase tracking-tight text-text-display md:text-3xl">
             {order.productTitle}
           </h1>
           <p className="text-sm text-text-muted">
             {order.variantLabel} · <span className="tabular-nums text-gold">{formatBRL(order.amountCents)}</span>
           </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <StatusPill order={order} t={t} />
+            {order.isTest && (
+              <span className="rounded-sm border border-warning/60 px-2 py-0.5 text-xs text-warning">{t("orderTest")}</span>
+            )}
+          </div>
         </header>
         <StatusBody order={order} t={t} />
         {order.status === "pendente" && <OrderPoller orderId={order.id} />}
@@ -53,20 +53,20 @@ export default async function PedidoPage({ params }: { params: Promise<{ id: str
   );
 }
 
-function StatusLine({ order, t }: { order: PublicOrder; t: Translator }) {
+function StatusPill({ order, t }: { order: PublicOrder; t: Translator }) {
   const map = {
-    pendente: { icon: <Clock size={16} aria-hidden="true" />, text: t("statusPendente"), cls: "text-warning" },
-    pago: { icon: <CheckCircle2 size={16} aria-hidden="true" />, text: t("statusPago"), cls: "text-success" },
-    em_revisao: { icon: <AlertTriangle size={16} aria-hidden="true" />, text: t("statusRevisao"), cls: "text-gold" },
-    expirado: { icon: <XCircle size={16} aria-hidden="true" />, text: t("statusExpirado"), cls: "text-text-muted" },
-    cancelado: { icon: <XCircle size={16} aria-hidden="true" />, text: t("statusCancelado"), cls: "text-text-muted" },
-    reembolsado: { icon: <RotateCcw size={16} aria-hidden="true" />, text: t("statusReembolsado"), cls: "text-text-muted" },
+    pendente: { icon: <Clock size={14} aria-hidden="true" />, text: t("statusPendente"), cls: "border-warning/60 text-warning" },
+    pago: { icon: <CheckCircle2 size={14} aria-hidden="true" />, text: t("statusPago"), cls: "border-success/60 text-success" },
+    em_revisao: { icon: <AlertTriangle size={14} aria-hidden="true" />, text: t("statusRevisao"), cls: "border-gold/60 text-gold" },
+    expirado: { icon: <XCircle size={14} aria-hidden="true" />, text: t("statusExpirado"), cls: "border-border-strong text-text-muted" },
+    cancelado: { icon: <XCircle size={14} aria-hidden="true" />, text: t("statusCancelado"), cls: "border-border-strong text-text-muted" },
+    reembolsado: { icon: <RotateCcw size={14} aria-hidden="true" />, text: t("statusReembolsado"), cls: "border-border-strong text-text-muted" },
   } as const;
   const s = map[order.status];
   return (
-    <p className={`flex items-center gap-2 font-display text-sm uppercase tracking-wide ${s.cls}`} aria-live="polite">
+    <span className={`inline-flex items-center gap-1.5 rounded-sm border px-2 py-0.5 text-sm ${s.cls}`} aria-live="polite">
       {s.icon} {s.text}
-    </p>
+    </span>
   );
 }
 

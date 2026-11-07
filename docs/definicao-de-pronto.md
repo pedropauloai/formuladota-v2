@@ -11,10 +11,10 @@ Denominador fechado: **13 critérios**.
 | # | Critério | Como se prova | Estado |
 |---|---|---|---|
 | 1 | O Pedro escolheu o catálogo e os preços entre as versões apresentadas | decisão escrita em `docs/loja/catalogo.md`, com data e a frase dele | não |
-| 2 | Os tipos do TypeScript fecham | `pnpm typecheck` sai com 0 | não |
-| 3 | O lint não acusa erro | `pnpm lint` sai com 0 | não |
-| 4 | Os testes passam, inclusive os da loja (assinatura do webhook, estado do pagamento, valor pago, origem da visita, aviso de venda) | `pnpm test` sai com 0 | não |
-| 5 | O build de produção fecha | `pnpm build` sai com 0 | não |
+| 2 | Os tipos do TypeScript fecham | `pnpm typecheck` sai com 0 | sim, 06/11/2026 (CI do PR 147) |
+| 3 | O lint não acusa erro | `pnpm lint` sai com 0 | sim, 06/11/2026 (CI do PR 147) |
+| 4 | Os testes passam, inclusive os da loja (assinatura do webhook, estado do pagamento, valor pago, origem da visita, aviso de venda) | `pnpm test` sai com 0 | sim, 06/11/2026 (CI do PR 147) |
+| 5 | O build de produção fecha | `pnpm build` sai com 0 | sim, 06/11/2026 (CI do PR 147) |
 | 6 | Uma compra de teste passa ponta a ponta no localhost: o Pix é gerado na página do pedido, e um pagamento aprovado no sandbox vira pedido `pago` no banco com aviso ao Pedro entregue no Discord | `pnpm loja:e2e` sai com 0 (o roteiro confere cada ponto e falha alto em qualquer um). O Pix de teste da API de Payments não se aprova sozinho no sandbox, então a aprovação é provada com cartão de teste na mesma referência do pedido, o mesmo objeto `payment` que o Checkout Pro gera | sim no localhost, 06/11/2026 (14 de 14 verificações) |
 | 7 | O webhook aceita notificação com assinatura certa e recusa a errada | `pnpm loja:e2e` envia as duas ao servidor local e confere 200 e 401 | sim no localhost, 06/11/2026 |
 | 8 | O cartão abre o Checkout Pro do Mercado Pago com o valor do pedido | `pnpm loja:e2e` cria a preferência no sandbox e confere que o navegador chega à página do Checkout Pro | sim no localhost, 06/11/2026 |

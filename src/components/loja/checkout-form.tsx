@@ -64,7 +64,7 @@ export function CheckoutForm({ slug, variants, formFields, defaultEmail }: Props
   return (
     <form id="loja-checkout" onSubmit={submit} noValidate className="space-y-5 rounded-md border border-border-strong bg-bg-base p-5">
       <fieldset className="space-y-2">
-        <legend className="font-display text-sm uppercase tracking-wide text-text-muted">{t("chooseOption")}</legend>
+        <legend className="text-sm font-medium text-text-body">{t("chooseOption")}</legend>
         {variants.map((v) => (
           <label
             key={v.id}
@@ -84,7 +84,7 @@ export function CheckoutForm({ slug, variants, formFields, defaultEmail }: Props
       </fieldset>
 
       <fieldset className="space-y-3">
-        <legend className="font-display text-sm uppercase tracking-wide text-text-muted">{t("yourData")}</legend>
+        <legend className="text-sm font-medium text-text-body">{t("yourData")}</legend>
         <Field name="name" label={t("name")} error={errors.name} autoComplete="name" />
         <Field name="email" label={t("email")} error={errors.email} type="email" autoComplete="email" defaultValue={defaultEmail} />
         <Field name="whatsapp" label={t("whatsapp")} hint={t("whatsappHint")} error={errors.whatsapp} type="tel" autoComplete="tel" inputMode="tel" />
@@ -109,7 +109,7 @@ export function CheckoutForm({ slug, variants, formFields, defaultEmail }: Props
       </fieldset>
 
       <fieldset className="space-y-2">
-        <legend className="font-display text-sm uppercase tracking-wide text-text-muted">{t("paymentMethod")}</legend>
+        <legend className="text-sm font-medium text-text-body">{t("paymentMethod")}</legend>
         <div className="grid grid-cols-2 gap-2">
           <MethodOption active={method === "pix"} onSelect={() => setMethod("pix")} icon={<QrCode size={18} aria-hidden="true" />} title={t("pix")} hint={t("pixHint")} />
           <MethodOption active={method === "cartao"} onSelect={() => setMethod("cartao")} icon={<CreditCard size={18} aria-hidden="true" />} title={t("card")} hint={t("cardHint")} />
