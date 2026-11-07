@@ -11,9 +11,9 @@
 | Jogar junto (duo fora da live, voz no Discord) | R$ 49 por partida | fora da live | até 5 por pedido |
 | Análise gravada completa (30 min de vídeo) | R$ 97 | gravada | |
 | Boost de MMR | R$ 99 a cada 100 MMR até 5.000; R$ 149 de 5.000 a 6.500 | fora da live | mínimo 100 MMR, teto 6.500 |
-| Curso de Tinker (pré-venda) | R$ 197 | digital | **pendente: o Pedro crava a data de entrega** |
+| Curso de Tinker | R$ 197 | digital | **backlog (07/11/2026): entra quando o Pedro avisar que está produzido** |
 
-Os sete primeiros estão no banco (migration 160, aplicada em produção em 07/11/2026, versão `20261107042805`) e no ar desde 07/11/2026, quando a flag `loja` foi ligada. O curso entra quando houver a data.
+Os sete primeiros estão no banco (migration 160, aplicada em produção em 07/11/2026, versão `20261107042805`) e no ar desde 07/11/2026, quando a flag `loja` foi ligada. O curso foi para o backlog (`.planning/BACKLOG.md`) em 07/11/2026: o Pedro ainda vai pensar em como produzir e avisa quando estiver pronto.
 
 ## Regras que saíram da decisão
 
