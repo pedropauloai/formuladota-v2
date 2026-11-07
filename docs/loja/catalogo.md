@@ -13,7 +13,7 @@
 | Boost de MMR | R$ 99 a cada 100 MMR até 5.000; R$ 149 de 5.000 a 6.500 | fora da live | mínimo 100 MMR, teto 6.500 |
 | Curso de Tinker (pré-venda) | R$ 197 | digital | **pendente: o Pedro crava a data de entrega** |
 
-Os sete primeiros estão no banco (migration 160, aplicada em produção em 07/11/2026, versão `20261107042805`), ativos e escondidos atrás da flag `loja`, que segue desligada. O curso entra quando houver a data.
+Os sete primeiros estão no banco (migration 160, aplicada em produção em 07/11/2026, versão `20261107042805`) e no ar desde 07/11/2026, quando a flag `loja` foi ligada. O curso entra quando houver a data.
 
 ## Regras que saíram da decisão
 
