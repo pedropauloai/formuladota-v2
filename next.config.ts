@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
+import { TRACKED_LINKS } from "./src/lib/loja/tracked-links";
 
 // next-intl: aponta pra config de request (resolução de idioma por cookie/header).
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
@@ -93,6 +94,9 @@ const config: NextConfig = {
       { source: "/tinker-no-ti", destination: "/", permanent: false },
       { source: "/rankedpt", destination: "/ranked-com-pro", permanent: false },
       { source: "/liga", destination: "/torneios", permanent: false },
+      // Atalhos da loja para bio e chat ("formuladota.com.br/ig"): levam à loja com a origem
+      // na URL, e o beacon de visita conta de qual rede a pessoa veio.
+      ...TRACKED_LINKS.map((link) => ({ source: link.shortPath, destination: link.target, permanent: false })),
       {
         // apex -> www (308). RAIZ do error=exchange_failed: o cookie PKCE do OAuth é
         // gravado no domínio de ENTRADA; se o usuário começa em formuladota.com (apex)

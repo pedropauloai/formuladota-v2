@@ -57,6 +57,10 @@ const serverSchema = z.object({
   // Opcionais: sem eles, o post é no-op. URLs vêm do setup-channels.ts.
   RESULTS_DISCORD_WEBHOOK_URL: optional,
   QUEUE_DISCORD_WEBHOOK_URL: optional,
+  // Loja (06/11/2026): aviso de venda ao Pedro. Sem o webhook, o aviso pelo Discord é no-op.
+  SALES_DISCORD_WEBHOOK_URL: optional,
+  PEDRO_DISCORD_USER_ID: optional,  // menção que faz o celular do Pedro tocar
+  STORE_NOTIFY_EMAIL: optional,     // e-mail que recebe o aviso de venda
   RESEND_API_KEY: optional,
   EMAIL_FROM: z.preprocess(
     (v) => (v === "" ? undefined : v),
