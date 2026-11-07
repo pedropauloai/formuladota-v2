@@ -16,7 +16,8 @@
     "gen:abilities": "npx tsx scripts/gen-abilities.ts",
     "cf:build": "opennextjs-cloudflare build",
     "cf:preview": "opennextjs-cloudflare preview",
-    "cf:deploy": "opennextjs-cloudflare deploy"
+    "cf:deploy": "opennextjs-cloudflare deploy && bash scripts/verificar-no-ar.sh",
+    "cf:verificar": "bash scripts/verificar-no-ar.sh"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
