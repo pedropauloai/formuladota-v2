@@ -51,6 +51,21 @@ describe("buildCheckoutSchema", () => {
     expect(buildCheckoutSchema([]).safeParse({ ...base, method: "boleto" }).success).toBe(false);
   });
 
+  it("aceita o ID da partida da Valve e recusa texto ou link", () => {
+    const schema = buildCheckoutSchema(["match_id"]);
+    expect(schema.parse({ ...base, match_id: " 9072459858 " })).toMatchObject({ match_id: "9072459858" });
+    expect(schema.safeParse({ ...base, match_id: "https://www.opendota.com/matches/9072459858" }).success).toBe(false);
+    expect(schema.safeParse({ ...base, match_id: "123" }).success).toBe(false);
+  });
+
+  it("quantidade é opcional, inteira e positiva", () => {
+    const schema = buildCheckoutSchema([]);
+    expect(schema.parse(base).quantity).toBeUndefined();
+    expect(schema.parse({ ...base, quantity: "3" }).quantity).toBe(3);
+    expect(schema.safeParse({ ...base, quantity: "0" }).success).toBe(false);
+    expect(schema.safeParse({ ...base, quantity: "1.5" }).success).toBe(false);
+  });
+
   it("ignora campo que o produto não pede", () => {
     const parsed = buildCheckoutSchema([]).parse({ ...base, senha: "nunca" }) as Record<string, unknown>;
     expect(parsed.senha).toBeUndefined();

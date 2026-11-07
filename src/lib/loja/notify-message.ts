@@ -24,6 +24,7 @@ const DETAIL_LABELS: Record<string, string> = {
   dota_id: "ID do Dota",
   mmr_atual: "MMR atual",
   mmr_alvo: "MMR alvo",
+  match_id: "ID da partida",
   observacoes: "Observações",
 };
 

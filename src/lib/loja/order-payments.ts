@@ -5,6 +5,7 @@
 import "server-only";
 import { after } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
+import { isTestMode } from "@/lib/mercadopago";
 import {
   PAYABLE_STATUSES,
   decideTransition,
@@ -156,6 +157,8 @@ export async function reconcilePendingStoreOrders(): Promise<{ checked: number; 
     .from("store_orders")
     .select("id")
     .eq("status", "pendente")
+    // Pedido de teste só existe no sandbox: a credencial de produção nunca o encontra, e vice-versa.
+    .eq("is_test", isTestMode())
     .gte("created_at", since)
     .order("checked_at", { ascending: true, nullsFirst: true })
     .limit(MAX_PER_RUN);

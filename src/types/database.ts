@@ -2712,6 +2712,7 @@ export type Database = {
           pix_qr_base64: string | null
           product_id: string
           product_title: string
+          quantity: number
           referrer_host: string | null
           status: string
           updated_at: string
@@ -2748,6 +2749,7 @@ export type Database = {
           pix_qr_base64?: string | null
           product_id: string
           product_title: string
+          quantity?: number
           referrer_host?: string | null
           status?: string
           updated_at?: string
@@ -2784,6 +2786,7 @@ export type Database = {
           pix_qr_base64?: string | null
           product_id?: string
           product_title?: string
+          quantity?: number
           referrer_host?: string | null
           status?: string
           updated_at?: string
@@ -2857,13 +2860,20 @@ export type Database = {
       store_products: {
         Row: {
           active: boolean
+          art: string | null
           created_at: string
           delivery_md: string
           description_md: string
           display_order: number
           form_fields: string[]
           id: string
+          is_test: boolean
           kind: string
+          max_quantity: number
+          mmr_tiers: Json | null
+          mode: string
+          monthly_capacity: number | null
+          price_unit: string
           requires_login: boolean
           slug: string
           summary: string
@@ -2872,13 +2882,20 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          art?: string | null
           created_at?: string
           delivery_md?: string
           description_md?: string
           display_order?: number
           form_fields?: string[]
           id?: string
+          is_test?: boolean
           kind?: string
+          max_quantity?: number
+          mmr_tiers?: Json | null
+          mode?: string
+          monthly_capacity?: number | null
+          price_unit?: string
           requires_login?: boolean
           slug: string
           summary?: string
@@ -2887,13 +2904,20 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          art?: string | null
           created_at?: string
           delivery_md?: string
           description_md?: string
           display_order?: number
           form_fields?: string[]
           id?: string
+          is_test?: boolean
           kind?: string
+          max_quantity?: number
+          mmr_tiers?: Json | null
+          mode?: string
+          monthly_capacity?: number | null
+          price_unit?: string
           requires_login?: boolean
           slug?: string
           summary?: string

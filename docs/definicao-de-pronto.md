@@ -10,18 +10,18 @@ Denominador fechado: **13 critérios**.
 
 | # | Critério | Como se prova | Estado |
 |---|---|---|---|
-| 1 | O Pedro escolheu o catálogo e os preços entre as versões apresentadas | decisão escrita em `docs/loja/catalogo.md`, com data e a frase dele | não |
+| 1 | O Pedro escolheu o catálogo e os preços entre as versões apresentadas | decisão escrita em `docs/loja/catalogo.md`, com data e a frase dele | sim, 07/11/2026 ("Versão B"); o curso de Tinker espera a data de entrega |
 | 2 | Os tipos do TypeScript fecham | `pnpm typecheck` sai com 0 | sim, 06/11/2026 (CI do PR 147) |
 | 3 | O lint não acusa erro | `pnpm lint` sai com 0 | sim, 06/11/2026 (CI do PR 147) |
 | 4 | Os testes passam, inclusive os da loja (assinatura do webhook, estado do pagamento, valor pago, origem da visita, aviso de venda) | `pnpm test` sai com 0 | sim, 06/11/2026 (CI do PR 147) |
 | 5 | O build de produção fecha | `pnpm build` sai com 0 | sim, 06/11/2026 (CI do PR 147) |
-| 6 | Uma compra de teste passa ponta a ponta no localhost: o Pix é gerado na página do pedido, e um pagamento aprovado no sandbox vira pedido `pago` no banco com aviso ao Pedro entregue no Discord | `pnpm loja:e2e` sai com 0 (o roteiro confere cada ponto e falha alto em qualquer um). O Pix de teste da API de Payments não se aprova sozinho no sandbox, então a aprovação é provada com cartão de teste na mesma referência do pedido, o mesmo objeto `payment` que o Checkout Pro gera | sim no localhost, 06/11/2026 (14 de 14 verificações) |
+| 6 | Uma compra de teste passa ponta a ponta no localhost: o Pix é gerado na página do pedido, e um pagamento aprovado no sandbox vira pedido `pago` no banco com aviso ao Pedro entregue no Discord | `pnpm loja:e2e` sai com 0 (o roteiro confere cada ponto e falha alto em qualquer um). O Pix de teste da API de Payments não se aprova sozinho no sandbox, então a aprovação é provada com cartão de teste na mesma referência do pedido, o mesmo objeto `payment` que o Checkout Pro gera | sim no localhost, 07/11/2026 (16 de 16 verificações, com pedido de 2 unidades cobrando o dobro) |
 | 7 | O webhook aceita notificação com assinatura certa e recusa a errada | `pnpm loja:e2e` envia as duas ao servidor local e confere 200 e 401 | sim no localhost, 06/11/2026 |
 | 8 | O cartão abre o Checkout Pro do Mercado Pago com o valor do pedido | `pnpm loja:e2e` cria a preferência no sandbox e confere que o navegador chega à página do Checkout Pro | sim no localhost, 06/11/2026 |
 | 9 | O site no domínio novo mostra a loja com todos os produtos ativos do catálogo | `bash scripts/loja/verificar-producao.sh` sai com 0 (requisição HTTP ao endereço real) | não |
 | 10 | Em produção, o checkout de um produto gera o Pix com a credencial real (sem pagar) | `bash scripts/loja/verificar-producao.sh` confere a página do produto; a geração do Pix fica registrada com captura de tela em `docs/loja/provas/` | não |
 | 11 | O webhook de produção do Mercado Pago aponta para o domínio novo e responde 200 | histórico de notificações da aplicação FormulaDota sem falha depois da troca, ou simulação do painel com 200 | não |
-| 12 | Uma visita com `?utm_source=instagram` aparece no banco e o painel `/admin/loja` mostra visitas, pedidos e receita por origem | `pnpm loja:e2e` confere a linha em `site_visits`; o painel é conferido em captura | não: a visita no banco passou (06/11/2026); a tela do painel pede o login Discord do Pedro e fica para a primeira vez que ele abrir |
+| 12 | Uma visita com `?utm_source=instagram` aparece no banco e o painel `/admin/loja` mostra visitas, pedidos e receita por origem | `pnpm loja:e2e` confere a linha em `site_visits`; o painel é conferido em captura | não: a visita no banco passou no localhost e no domínio real (06/11/2026, a de verificação foi apagada depois); a tela do painel pede o login Discord do Pedro e fica para a primeira vez que ele abrir |
 | 13 | O overlay por assinatura com dicas durante a partida está registrado no backlog, sem construir | entrada datada em `.planning/BACKLOG.md` | sim, 06/11/2026 |
 
 ### O que o percentual não significa
