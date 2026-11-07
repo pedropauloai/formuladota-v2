@@ -23,7 +23,8 @@ export const createPixPaymentInputSchema = z.object({
   payerFirstName: z.string().optional(),
   payerLastName: z.string().optional(),
   externalReference: z.string(),             // nosso purchase.id
-  notificationUrl: z.string().url(),
+  // Opcional: o Mercado Pago recusa endereço que não é público (localhost no dev).
+  notificationUrl: z.string().url().optional(),
   statementDescriptor: z.string().max(22),   // nome na fatura (ex: "FORMULADOTA")
   itemId: z.string(),
   itemTitle: z.string(),
@@ -127,8 +128,15 @@ export type MpWebhookPayload = z.infer<typeof mpWebhookPayloadSchema>;
 export const mpPaymentDetailSchema = z.object({
   id: z.number(),
   status: z.string(),                        // 'approved', 'pending', 'rejected', etc.
-  external_reference: z.string().optional(), // nosso purchase.id
+  external_reference: z.string().nullish(),  // nosso purchase.id (ou loja-<uuid> na loja)
   transaction_amount: z.number().optional(),
+  // Campos que a loja confere (moeda, valor e ambiente); opcionais pra não quebrar as fichas.
+  status_detail: z.string().nullish(),
+  currency_id: z.string().nullish(),
+  live_mode: z.boolean().nullish(),
+  payment_type_id: z.string().nullish(),
+  payment_method_id: z.string().nullish(),
+  date_approved: z.string().nullish(),
 });
 export type MpPaymentDetail = z.infer<typeof mpPaymentDetailSchema>;
 

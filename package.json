@@ -17,7 +17,8 @@
     "cf:build": "opennextjs-cloudflare build",
     "cf:preview": "opennextjs-cloudflare preview",
     "cf:deploy": "opennextjs-cloudflare deploy && bash scripts/verificar-no-ar.sh",
-    "cf:verificar": "bash scripts/verificar-no-ar.sh"
+    "cf:verificar": "bash scripts/verificar-no-ar.sh",
+    "loja:e2e": "node scripts/loja/e2e.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
@@ -63,6 +64,7 @@
     "eslint": "^9.15.0",
     "eslint-config-next": "16.4.5",
     "pg": "^8.20.0",
+    "playwright-core": "1.64.1",
     "postcss": "^8.4.49",
     "tailwindcss": "^4.0.0-beta.6",
     "typescript": "^5.6.3",

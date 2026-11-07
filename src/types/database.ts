@@ -262,6 +262,7 @@ export type Database = {
         Row: {
           account_name: string
           api_url: string | null
+          claimed_at: string | null
           created_at: string | null
           current_lobby_id: string | null
           display_name: string
@@ -272,6 +273,7 @@ export type Database = {
         Insert: {
           account_name: string
           api_url?: string | null
+          claimed_at?: string | null
           created_at?: string | null
           current_lobby_id?: string | null
           display_name?: string
@@ -282,6 +284,7 @@ export type Database = {
         Update: {
           account_name?: string
           api_url?: string | null
+          claimed_at?: string | null
           created_at?: string | null
           current_lobby_id?: string | null
           display_name?: string
@@ -298,6 +301,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      changelog_entries: {
+        Row: {
+          body_md: string
+          category: string
+          created_at: string
+          discord_message_id: string | null
+          discord_posted_at: string | null
+          id: string
+          published: boolean
+          published_at: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body_md?: string
+          category?: string
+          created_at?: string
+          discord_message_id?: string | null
+          discord_posted_at?: string | null
+          id?: string
+          published?: boolean
+          published_at?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          body_md?: string
+          category?: string
+          created_at?: string
+          discord_message_id?: string | null
+          discord_posted_at?: string | null
+          id?: string
+          published?: boolean
+          published_at?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       coach_queue_entries: {
         Row: {
@@ -967,18 +1009,25 @@ export type Database = {
           created_by: string
           dota_match_id: string | null
           ended_at: string | null
+          formed_discord_posted_at: string | null
           game_mode: string
           id: string
+          iluminados_voice_id: string | null
           league_id: number | null
+          live_stats: Json | null
+          live_stats_at: string | null
           max_players: number
           mmr_target_max: number | null
           mmr_target_min: number | null
           name: string
           password: string
           region: string
+          result_discord_posted_at: string | null
+          server_steam_id: string | null
           started_at: string | null
           status: string
           steam_lobby_id: string | null
+          temidos_voice_id: string | null
           tier: string
         }
         Insert: {
@@ -988,18 +1037,25 @@ export type Database = {
           created_by: string
           dota_match_id?: string | null
           ended_at?: string | null
+          formed_discord_posted_at?: string | null
           game_mode?: string
           id?: string
+          iluminados_voice_id?: string | null
           league_id?: number | null
+          live_stats?: Json | null
+          live_stats_at?: string | null
           max_players?: number
           mmr_target_max?: number | null
           mmr_target_min?: number | null
           name: string
           password: string
           region?: string
+          result_discord_posted_at?: string | null
+          server_steam_id?: string | null
           started_at?: string | null
           status?: string
           steam_lobby_id?: string | null
+          temidos_voice_id?: string | null
           tier?: string
         }
         Update: {
@@ -1009,18 +1065,25 @@ export type Database = {
           created_by?: string
           dota_match_id?: string | null
           ended_at?: string | null
+          formed_discord_posted_at?: string | null
           game_mode?: string
           id?: string
+          iluminados_voice_id?: string | null
           league_id?: number | null
+          live_stats?: Json | null
+          live_stats_at?: string | null
           max_players?: number
           mmr_target_max?: number | null
           mmr_target_min?: number | null
           name?: string
           password?: string
           region?: string
+          result_discord_posted_at?: string | null
+          server_steam_id?: string | null
           started_at?: string | null
           status?: string
           steam_lobby_id?: string | null
+          temidos_voice_id?: string | null
           tier?: string
         }
         Relationships: [
@@ -1914,10 +1977,10 @@ export type Database = {
           last_match_at: string | null
           leaderboard_rank: number | null
           mmr: number
+          mvps: number
           partidas_total: number
           peak_mmr: number | null
           placements_played: number
-          region: string
           season_id: number
           user_id: string
           vitorias: number
@@ -1929,10 +1992,10 @@ export type Database = {
           last_match_at?: string | null
           leaderboard_rank?: number | null
           mmr?: number
+          mvps?: number
           partidas_total?: number
           peak_mmr?: number | null
           placements_played?: number
-          region?: string
           season_id: number
           user_id: string
           vitorias?: number
@@ -1944,10 +2007,10 @@ export type Database = {
           last_match_at?: string | null
           leaderboard_rank?: number | null
           mmr?: number
+          mvps?: number
           partidas_total?: number
           peak_mmr?: number | null
           placements_played?: number
-          region?: string
           season_id?: number
           user_id?: string
           vitorias?: number
@@ -2109,6 +2172,7 @@ export type Database = {
           behavior_status: string
           calibration_partidas_completas: number | null
           calibration_status: string | null
+          changelog_seen_at: string | null
           created_at: string
           dashboard_layout: Json | null
           discord_id: string | null
@@ -2117,6 +2181,7 @@ export type Database = {
           doctrine_version: number
           email: string | null
           favorite_heroes: Json
+          handle: string | null
           hero_portrait_slug: string | null
           id: string
           is_admin: boolean
@@ -2147,6 +2212,7 @@ export type Database = {
           behavior_status?: string
           calibration_partidas_completas?: number | null
           calibration_status?: string | null
+          changelog_seen_at?: string | null
           created_at?: string
           dashboard_layout?: Json | null
           discord_id?: string | null
@@ -2155,6 +2221,7 @@ export type Database = {
           doctrine_version?: number
           email?: string | null
           favorite_heroes?: Json
+          handle?: string | null
           hero_portrait_slug?: string | null
           id: string
           is_admin?: boolean
@@ -2185,6 +2252,7 @@ export type Database = {
           behavior_status?: string
           calibration_partidas_completas?: number | null
           calibration_status?: string | null
+          changelog_seen_at?: string | null
           created_at?: string
           dashboard_layout?: Json | null
           discord_id?: string | null
@@ -2193,6 +2261,7 @@ export type Database = {
           doctrine_version?: number
           email?: string | null
           favorite_heroes?: Json
+          handle?: string | null
           hero_portrait_slug?: string | null
           id?: string
           is_admin?: boolean
@@ -2534,6 +2603,48 @@ export type Database = {
           },
         ]
       }
+      site_visits: {
+        Row: {
+          country: string | null
+          created_at: string
+          id: number
+          path: string
+          referrer_host: string | null
+          session_id: string
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string
+          id?: never
+          path: string
+          referrer_host?: string | null
+          session_id: string
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+        }
+        Update: {
+          country?: string | null
+          created_at?: string
+          id?: never
+          path?: string
+          referrer_host?: string | null
+          session_id?: string
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+        }
+        Relationships: []
+      }
       steam_links: {
         Row: {
           avatar_url: string | null
@@ -2572,6 +2683,221 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      store_orders: {
+        Row: {
+          amount_cents: number
+          buyer_email: string
+          buyer_name: string
+          buyer_whatsapp: string
+          checked_at: string | null
+          created_at: string
+          details: Json
+          fulfilled_at: string | null
+          gateway_payload: Json | null
+          id: string
+          is_test: boolean
+          landing_path: string | null
+          mp_payment_id: string | null
+          mp_preference_id: string | null
+          notified_at: string | null
+          paid_amount_cents: number | null
+          paid_at: string | null
+          payment_method: string
+          pix_copia_e_cola: string | null
+          pix_expires_at: string | null
+          pix_qr_base64: string | null
+          product_id: string
+          product_title: string
+          referrer_host: string | null
+          status: string
+          updated_at: string
+          user_id: string | null
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
+          variant_id: string
+          variant_label: string
+        }
+        Insert: {
+          amount_cents: number
+          buyer_email: string
+          buyer_name: string
+          buyer_whatsapp: string
+          checked_at?: string | null
+          created_at?: string
+          details?: Json
+          fulfilled_at?: string | null
+          gateway_payload?: Json | null
+          id?: string
+          is_test?: boolean
+          landing_path?: string | null
+          mp_payment_id?: string | null
+          mp_preference_id?: string | null
+          notified_at?: string | null
+          paid_amount_cents?: number | null
+          paid_at?: string | null
+          payment_method: string
+          pix_copia_e_cola?: string | null
+          pix_expires_at?: string | null
+          pix_qr_base64?: string | null
+          product_id: string
+          product_title: string
+          referrer_host?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+          variant_id: string
+          variant_label: string
+        }
+        Update: {
+          amount_cents?: number
+          buyer_email?: string
+          buyer_name?: string
+          buyer_whatsapp?: string
+          checked_at?: string | null
+          created_at?: string
+          details?: Json
+          fulfilled_at?: string | null
+          gateway_payload?: Json | null
+          id?: string
+          is_test?: boolean
+          landing_path?: string | null
+          mp_payment_id?: string | null
+          mp_preference_id?: string | null
+          notified_at?: string | null
+          paid_amount_cents?: number | null
+          paid_at?: string | null
+          payment_method?: string
+          pix_copia_e_cola?: string | null
+          pix_expires_at?: string | null
+          pix_qr_base64?: string | null
+          product_id?: string
+          product_title?: string
+          referrer_host?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+          variant_id?: string
+          variant_label?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_orders_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "store_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_orders_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "store_product_variants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      store_product_variants: {
+        Row: {
+          active: boolean
+          created_at: string
+          display_order: number
+          id: string
+          label: string
+          price_cents: number
+          product_id: string
+          slug: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          display_order?: number
+          id?: string
+          label: string
+          price_cents: number
+          product_id: string
+          slug: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          display_order?: number
+          id?: string
+          label?: string
+          price_cents?: number
+          product_id?: string
+          slug?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_product_variants_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "store_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      store_products: {
+        Row: {
+          active: boolean
+          created_at: string
+          delivery_md: string
+          description_md: string
+          display_order: number
+          form_fields: string[]
+          id: string
+          kind: string
+          requires_login: boolean
+          slug: string
+          summary: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          delivery_md?: string
+          description_md?: string
+          display_order?: number
+          form_fields?: string[]
+          id?: string
+          kind?: string
+          requires_login?: boolean
+          slug: string
+          summary?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          delivery_md?: string
+          description_md?: string
+          display_order?: number
+          form_fields?: string[]
+          id?: string
+          kind?: string
+          requires_login?: boolean
+          slug?: string
+          summary?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       subscriptions: {
         Row: {
@@ -3446,18 +3772,21 @@ export type Database = {
       public_player_identities: {
         Row: {
           avatar_url: string | null
+          handle: string | null
           id: string | null
           social_links: Json | null
           username: string | null
         }
         Insert: {
           avatar_url?: string | null
+          handle?: string | null
           id?: string | null
           social_links?: Json | null
           username?: string | null
         }
         Update: {
           avatar_url?: string | null
+          handle?: string | null
           id?: string | null
           social_links?: Json | null
           username?: string | null
@@ -3533,6 +3862,10 @@ export type Database = {
         Args: { p_members: Json; p_roles: string[]; p_team: string }
         Returns: Json
       }
+      _match_roles_bt: {
+        Args: { p_members: Json; p_roles: string[]; p_team: string }
+        Returns: Json
+      }
       accept_match_proposal: { Args: { p_id: string }; Returns: string }
       accept_party_invite: { Args: { p_invite: string }; Returns: string }
       accept_team_invite: { Args: { p_invite_id: string }; Returns: undefined }
@@ -3593,6 +3926,7 @@ export type Database = {
           unread_count: number
         }[]
       }
+      dodge_penalty_enabled: { Args: never; Returns: boolean }
       ensure_player_season_mmr: {
         Args: { p_user_id: string }
         Returns: undefined
@@ -3604,6 +3938,7 @@ export type Database = {
       fd_tier_rank: { Args: { p_tier: string }; Returns: number }
       get_honor_score: { Args: { p_user_id: string }; Returns: number }
       get_honor_tier: { Args: { p_score: number }; Returns: string }
+      get_lobby_queue_status: { Args: { p_lobby_id: string }; Returns: Json }
       get_max_price_for_pro: { Args: { p_user_id: string }; Returns: number }
       get_pro_revenue_summary: {
         Args: { p_pro_user_id: string; p_since?: string }
@@ -3647,9 +3982,15 @@ export type Database = {
           level: number
           mmr: number
           name: string
+          predominant_pos: number
           rank_tier: number
+          season_matches: number
+          season_mvps: number
+          season_position: number
+          social_links: Json
           status_message: string
           steam_id_64: string
+          total_xp: number
           user_id: string
         }[]
       }
@@ -3682,8 +4023,10 @@ export type Database = {
           honor_score: number
           joined_at: string
           level: number
+          mmr: number
           name: string
           roles: Json
+          total_xp: number
           user_id: string
         }[]
       }
@@ -3716,7 +4059,9 @@ export type Database = {
       leave_party: { Args: never; Returns: undefined }
       leave_party_queue: { Args: never; Returns: undefined }
       live_matches: { Args: never; Returns: Json }
+      mark_changelog_seen: { Args: never; Returns: undefined }
       match_bans: { Args: { p_dota_match_id: string }; Returns: Json }
+      mmr_range_enabled: { Args: never; Returns: boolean }
       mmr_to_tier: {
         Args: { p_mmr: number }
         Returns: {
@@ -3740,6 +4085,17 @@ export type Database = {
           roles: Json
         }[]
       }
+      online_players: {
+        Args: never
+        Returns: {
+          avatar: string
+          level: number
+          mmr: number
+          name: string
+          season_pos: number
+          user_id: string
+        }[]
+      }
       party_invites_detailed: {
         Args: never
         Returns: {
@@ -3753,6 +4109,7 @@ export type Database = {
       }
       queue_liveness_tick: { Args: never; Returns: undefined }
       queue_mmr_for: { Args: { p_user: string }; Returns: number }
+      quiz_enabled: { Args: never; Returns: boolean }
       recent_matches: {
         Args: { p_limit?: number; p_offset?: number }
         Returns: Json
@@ -3762,6 +4119,13 @@ export type Database = {
       reserve_bot_for_lobby: { Args: { p_lobby_id: string }; Returns: string }
       reset_dormant_behavior: { Args: never; Returns: number }
       rotate_seasons: { Args: never; Returns: Json }
+      season_positions: {
+        Args: { p_ids: string[] }
+        Returns: {
+          pos: number
+          user_id: string
+        }[]
+      }
       seed_fake_pro: {
         Args: {
           p_fila_aberta?: boolean
@@ -3785,6 +4149,7 @@ export type Database = {
         Args: { p_email?: string; p_username: string }
         Returns: string
       }
+      slugify_handle: { Args: { input: string }; Returns: string }
       transfer_party_leader: { Args: { p_user: string }; Returns: undefined }
       try_form_match: { Args: { p_match_size?: number }; Returns: string }
       unequip_slot: { Args: { p_slot: string }; Returns: undefined }
@@ -3826,12 +4191,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -3855,11 +4220,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -3880,11 +4245,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -3905,11 +4270,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -3922,11 +4287,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }

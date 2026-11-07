@@ -24,6 +24,9 @@ import {
   getAuthorizedPaymentDetail,
 } from "@/lib/mercadopago/client";
 import { mpWebhookPayloadSchema } from "@/lib/mercadopago/types";
+import { parseStoreReference } from "@/lib/loja/refs";
+import { applyStorePayment } from "@/lib/loja/order-payments";
+import { toSnapshot } from "@/lib/loja/mercadopago";
 import {
   sendSubscriptionCreatedEmail,
   sendSubscriptionRenewalEmail,
@@ -115,6 +118,14 @@ async function handlePaymentEvent(
   }
 
   const payment = result.data;
+
+  // Pedido da loja ("loja-<uuid>"): regra própria, inclusive estorno e Pix vencido. O resto
+  // segue o fluxo das fichas sem mudança. Erro de banco sobe e vira 500 (retry do MP).
+  const storeOrderId = parseStoreReference(payment.external_reference);
+  if (storeOrderId) {
+    await applyStorePayment(storeOrderId, toSnapshot(payment));
+    return;
+  }
 
   // Só processa pagamentos aprovados (terminal — não retentar).
   if (payment.status !== "approved") return;

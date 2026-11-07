@@ -11,7 +11,8 @@ export type FeatureFlagKey =
   | "ranked_com_pro"
   | "doctrine_quiz"
   | "match_dodge_penalty"
-  | "matchmaking_mmr_range";
+  | "matchmaking_mmr_range"
+  | "loja";
 
 export interface FeatureFlags {
   ranked_com_pro: boolean;
@@ -24,6 +25,8 @@ export interface FeatureFlags {
    *  OFF = modo liquidez (qualquer 10 da região, ainda balanceado por MMR). Gate em SQL,
    *  migration 154. Default ON = comportamento atual. */
   matchmaking_mmr_range: boolean;
+  /** Loja do site (migration 158). OFF = /loja some para todos, inclusive admin. */
+  loja: boolean;
 }
 
 // Defaults quando a linha não existe / erro de leitura (falha fechada: feature off).
@@ -33,6 +36,7 @@ const DEFAULTS: FeatureFlags = {
   doctrine_quiz: false,
   match_dodge_penalty: false,
   matchmaking_mmr_range: true,
+  loja: false,
 };
 
 // React.cache: page e ClientShell chamam no mesmo request — 1 query só.

@@ -43,6 +43,8 @@ import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register"
 //   1. GA4, obrigatório pra conversões do Google Ads (NEXT_PUBLIC_GA_MEASUREMENT_ID)
 //   2. PostHog, funil/retenção, init em src/instrumentation-client.ts (NEXT_PUBLIC_POSTHOG_KEY)
 import { GoogleAnalytics } from "@next/third-parties/google";
+// Visita por origem (UTM) gravada no próprio banco: o número do checkpoint da loja.
+import { VisitBeacon } from "@/components/analytics/visit-beacon";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 const siteTitle = "FORMULADOTA — HUB Dota 2 Brasil";
@@ -158,6 +160,7 @@ export default async function RootLayout({
         {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ? (
           <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
         ) : null}
+        <VisitBeacon />
       </body>
     </html>
   );

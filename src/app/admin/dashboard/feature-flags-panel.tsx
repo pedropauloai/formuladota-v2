@@ -39,6 +39,12 @@ const FLAG_DEFS: FlagDef[] = [
     description:
       "Ligado = só pareia quem está dentro da janela de MMR (abre em ±600 e cresce +200 a cada 30s até ±2800) e bloqueia grupo com variação interna > 2800. Desligado = MODO LIQUIDEZ: qualquer 10 da região formam partida, ainda balanceada por MMR nos 2 times e com as funções escolhidas — ideal pro Brasil enquanto a fila é magra.",
   },
+  {
+    key: "loja",
+    label: "Loja do site",
+    description:
+      "Ligado = /loja e as páginas de produto abrem para todos, com checkout pelo Mercado Pago. Desligado = a vitrine some para todos, inclusive admin; página de pedido já feito continua abrindo.",
+  },
 ];
 
 export function FeatureFlagsPanel({ initial }: { initial: FeatureFlags }) {

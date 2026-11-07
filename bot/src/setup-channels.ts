@@ -73,7 +73,11 @@ const STRUCTURE: { category: string; channels: Ch[] }[] = [
   },
   {
     category: "🛠丨ADMIN",
-    channels: [{ name: "🤖丨bot-logs", access: "hidden" }],
+    // 💰丨vendas: aviso de venda da loja do site (webhook criado por scripts/loja/criar-canal-vendas.mjs).
+    channels: [
+      { name: "🤖丨bot-logs", access: "hidden" },
+      { name: "💰丨vendas", access: "hidden" },
+    ],
   },
 ];
 
