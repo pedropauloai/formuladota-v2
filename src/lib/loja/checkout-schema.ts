@@ -3,7 +3,7 @@
 
 import { z } from "zod";
 
-export const FORM_FIELDS = ["discord", "dota_id", "mmr_atual", "mmr_alvo", "observacoes"] as const;
+export const FORM_FIELDS = ["discord", "dota_id", "mmr_atual", "mmr_alvo", "match_id", "observacoes"] as const;
 export type FormField = (typeof FORM_FIELDS)[number];
 
 export const PAYMENT_METHODS = ["pix", "cartao"] as const;
@@ -34,11 +34,15 @@ const FIELD_SCHEMAS: Record<FormField, z.ZodTypeAny> = {
   dota_id: z.string().trim().regex(/^\d{5,17}$/, "O ID do Dota tem só números (o ID de amigo do perfil)."),
   mmr_atual: mmr,
   mmr_alvo: mmr,
+  // ID da partida da Valve: hoje com 10 dígitos.
+  match_id: z.string().trim().regex(/^\d{8,12}$/, "O ID da partida tem só números (fica no histórico de partidas do Dota)."),
   observacoes: z.string().trim().max(500, "Use até 500 caracteres.").optional(),
 };
 
 const baseShape = {
   variantId: z.string().uuid("Escolha uma opção."),
+  // O limite de cada produto (store_products.max_quantity) é conferido na hora de dar o preço.
+  quantity: z.coerce.number().int("Escolha a quantidade.").min(1, "Escolha a quantidade.").max(20).optional(),
   method: z.enum(PAYMENT_METHODS, { errorMap: () => ({ message: "Escolha Pix ou cartão." }) }),
   name: z.string().trim().min(2, "Informe o seu nome.").max(120),
   email: z.string().trim().toLowerCase().email("Confira o e-mail.").max(254),

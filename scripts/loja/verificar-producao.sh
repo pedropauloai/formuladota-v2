@@ -40,14 +40,16 @@ hook="$($C -s -o /dev/null -w '%{http_code}' --max-time 30 -X POST -H 'Content-T
 [ "$hook" = "401" ] && ok "webhook no ar e recusa notificação sem assinatura" || erro "webhook respondeu $hook"
 
 if [ "$flag" = "on" ]; then
-  produtos="$(rest 'store_products?select=slug,title&active=eq.true&order=display_order')"
+  produtos="$(rest 'store_products?select=slug,title&active=eq.true&is_test=eq.false&order=display_order')"
   vitrine="$($C -fsSL --max-time 30 "$SITE/loja" || true)"
   [ -n "$vitrine" ] && ok "vitrine /loja responde" || erro "vitrine /loja não respondeu"
+  printf '%s' "$vitrine" | grep -q 'data-loja-prova' && ok "vitrine mostra a credencial ao vivo do Pedro" || erro "vitrine sem a credencial do Pedro"
   while IFS=$'\t' read -r slug title; do
     [ -z "$slug" ] && continue
     printf '%s' "$vitrine" | grep -qF "$title" && ok "vitrine mostra: $title" || erro "vitrine não mostra: $title"
     pagina="$($C -fsSL --max-time 30 "$SITE/loja/$slug" || true)"
-    printf '%s' "$pagina" | grep -q 'id="loja-checkout"' && ok "checkout de $slug no ar" || erro "checkout de $slug não apareceu"
+    # Produto com as vagas do mês esgotadas troca o formulário pelo aviso de reabertura.
+    printf '%s' "$pagina" | grep -qE 'id="loja-checkout"|data-loja-esgotado' && ok "checkout de $slug no ar" || erro "checkout de $slug não apareceu"
   done < <(printf '%s' "$produtos" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{for(const p of JSON.parse(s))console.log(p.slug+'\t'+p.title)})")
 else
   loja="$($C -s -o /dev/null -w '%{http_code}' --max-time 30 "$SITE/loja")"

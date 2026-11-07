@@ -28,6 +28,19 @@ Cada uma com o porquê em uma linha.
 - `site_visits`: uma linha por sessão de navegador, com caminho, `utm_*`, domínio de origem e país (cabeçalho da Cloudflare). Sem IP, sem e-mail, sem nada que identifique a pessoa.
 - RLS ligada em todas. Catálogo ativo tem leitura pública; pedido e visita só pelo service role, e o comprador logado lê os próprios pedidos.
 
+### Catálogo da versão B (migration `160_loja_catalogo.sql`, 07/11/2026)
+
+Decisão e preços em [catalogo.md](catalogo.md). Colunas novas em `store_products`:
+
+- `mode` (`live`, `gravado`, `fora_da_live`, `agendado`, `digital`): a seção da vitrine e a etiqueta do card.
+- `art`: arte oficial da Valve (`item:<nome>`, `hero:<nome>` ou `medalhas`), por hotlink do CDN.
+- `price_unit` (`por partida`, `a cada 100 MMR`) e `max_quantity`: produto por partida vende até 5 num pedido; `store_orders.quantity` guarda quantas.
+- `monthly_capacity`: vagas do mês (mentoria 8, acompanhamento 3), contadas em `src/lib/loja/capacity.ts` (mês de São Paulo; pago e em conferência ocupam; pendente segura 30 minutos).
+- `mmr_tiers`: faixas do boost; o preço sai ponto a ponto em `src/lib/loja/pricing.ts`, a mesma conta no formulário e no servidor.
+- `is_test`: o produto do teste de ponta a ponta nunca aparece com a credencial de produção.
+
+A prova da primeira dobra (medalha, posição no ranking e números de Tinker do Pedro) lê o cache de carreira do perfil dele; o cron de cada minuto renova o cache quando passa de 6 horas (`src/lib/loja/owner-proof.ts`). Para ver a vitrine no `next dev` com a flag desligada, `LOJA_PREVIA_LOCAL=1`: o build de produção ignora.
+
 ## Fluxos
 
 **Compra com Pix.** `/loja/[slug]` envia a ação `criarPedido`: valida com Zod contra os campos do produto, lê preço do banco, grava `pendente` com a origem do cookie, cria o Pix (`external_reference = loja-<id>`, `notification_url` só quando o site é https) e leva a `/loja/pedido/[id]`, que mostra QR e copia e cola e consulta o status a cada 4 segundos.
@@ -66,7 +79,7 @@ Cada uma com o porquê em uma linha.
 
 ## Testes
 
-- Unitários (Vitest): transição de status do pagamento, conferência de valor, roteamento por `external_reference`, leitura de UTM e de domínio de origem, montagem do aviso de venda, validação do formulário por produto.
+- Unitários (Vitest): transição de status do pagamento, conferência de valor, roteamento por `external_reference`, leitura de UTM e de domínio de origem, montagem do aviso de venda, validação do formulário por produto, preço do boost por faixa, quantidade, vagas do mês e medalha por MMR.
 - `pnpm loja:e2e`: o roteiro dos critérios 6, 7, 8 e 12 do DoD.
 - `scripts/loja/verificar-producao.sh`: requisição HTTP ao domínio real, critérios 9 e 10.
 

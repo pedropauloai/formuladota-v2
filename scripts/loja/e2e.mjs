@@ -69,6 +69,11 @@ async function setupProduct() {
         summary: "Produto usado só pelo teste de ponta a ponta.",
         delivery_md: "Teste de ponta a ponta: nada é entregue.",
         form_fields: ["discord", "observacoes"],
+        // Só aparece com a credencial de teste: a vitrine de produção nunca mostra.
+        is_test: true,
+        // Quantidade e vaga do mês passam pelo mesmo caminho da mentoria e da vaga na party.
+        max_quantity: 3,
+        monthly_capacity: 1000,
         active: true,
         display_order: 999,
       },
@@ -92,7 +97,7 @@ async function cleanup(setup) {
   await db.from("feature_flags").update({ enabled: setup.flagWas }).eq("key", "loja");
 }
 
-async function fillCheckout(page, method) {
+async function fillCheckout(page, method, quantity = 1) {
   await page.goto(`${BASE}/loja/${SLUG}`);
   // Tudo dentro do formulário de compra: o cabeçalho do site tem o próprio botão de enviar (login).
   const form = page.locator("#loja-checkout");
@@ -101,6 +106,7 @@ async function fillCheckout(page, method) {
   await form.locator('input[name="whatsapp"]').fill("(31) 99999-8888");
   await form.locator('input[name="discord"]').fill(`e2e_${RUN}`);
   await form.locator('textarea[name="observacoes"]').fill(`execução ${RUN}`);
+  for (let i = 1; i < quantity; i += 1) await form.getByRole("button", { name: "Aumentar" }).click();
   if (method === "cartao") await form.getByRole("button", { name: /Cartão/ }).click();
   await form.locator('input[name="aceite"]').check();
   await form.locator('button[type="submit"]').click();
@@ -199,13 +205,14 @@ async function run() {
     check("visita com UTM gravada em site_visits (critério 12)", !!visit);
     check("visita do localhost marcada como teste (fora da conta do painel)", visit?.is_test === true);
 
-    await fillCheckout(page, "pix");
+    await fillCheckout(page, "pix", 2);
     await expectLeave(page, /\/loja\/pedido\/[0-9a-f-]{36}/);
     const pixOrderId = page.url().split("/").pop();
     check("Pix gerado na página do pedido (critério 6)", await page.getByText("Copiar código Pix").isVisible());
     const pixOrder = await orderRow(pixOrderId);
     check("pedido Pix pendente com o pagamento do Mercado Pago", pixOrder?.status === "pendente" && !!pixOrder.mp_payment_id && pixOrder.is_test);
     check("pedido herdou a origem da visita", pixOrder?.utm_source === "instagram" && pixOrder?.utm_campaign === campaign);
+    check("quantidade 2 cobra o dobro no pedido", pixOrder?.quantity === 2 && pixOrder?.amount_cents === 200, `${pixOrder?.quantity} x, ${pixOrder?.amount_cents} centavos`);
 
     await fillCheckout(page, "cartao");
     await expectLeave(page, /mercadopago\.com/);

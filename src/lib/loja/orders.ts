@@ -1,6 +1,7 @@
-// Criação do pedido da loja: valida contra o produto do banco, grava pendente e abre o pagamento.
-// Escreve com service role porque o checkout aceita visitante (serviço se compra sem login) e a
-// tabela não tem política de escrita para o cliente: o preço e o status nunca vêm do navegador.
+// Criação do pedido da loja: valida contra o produto do banco, confere as vagas do mês, grava
+// pendente e abre o pagamento. Escreve com service role porque o checkout aceita visitante
+// (serviço se compra sem login) e a tabela não tem política de escrita para o cliente: o preço
+// e o status nunca vêm do navegador.
 
 import "server-only";
 import { createServiceClient } from "@/lib/supabase/service";
@@ -11,6 +12,8 @@ import { buildCheckoutSchema, detailsFrom, fieldErrors, type CheckoutInput } fro
 import { toStoreReference } from "./refs";
 import { centsToReais } from "./money";
 import { createCardPreference } from "./mercadopago";
+import { priceOrder } from "./pricing";
+import { getSlots } from "./slots";
 import type { Origin } from "./attribution";
 
 export type CreateOrderResult =
@@ -24,6 +27,16 @@ export interface CreateOrderArgs {
   origin: Origin | null;
 }
 
+/** O que foi vendido, já com o preço final: o mesmo valor vai para o pedido e para o Mercado Pago. */
+interface PricedOrder {
+  product: StoreProduct;
+  variant: StoreVariant;
+  input: CheckoutInput;
+  amountCents: number;
+  quantity: number;
+  label: string;
+}
+
 function siteUrl(): string {
   return publicEnv.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
 }
@@ -32,6 +45,20 @@ function siteUrl(): string {
 function notificationUrl(): string | undefined {
   const url = siteUrl();
   return url.startsWith("https://") ? `${url}/api/webhooks/mercadopago` : undefined;
+}
+
+const numberOrUndefined = (value: unknown) => (typeof value === "number" ? value : undefined);
+
+const REOPEN_FORMAT = new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "long", timeZone: "America/Sao_Paulo" });
+
+/** Mensagem de vaga esgotada, ou null quando ainda cabe o pedido. */
+async function soldOutMessage(product: StoreProduct, quantity: number): Promise<string | null> {
+  if (product.monthlyCapacity === null) return null;
+  const slots = await getSlots([product]);
+  const info = slots?.get(product.id);
+  if (!info) return "Não deu para conferir as vagas agora. Tente de novo em instantes.";
+  if (info.left >= quantity) return null;
+  return `As vagas deste mês acabaram. Abrem de novo em ${REOPEN_FORMAT.format(new Date(info.reopensAt))}.`;
 }
 
 export async function createStoreOrder(args: CreateOrderArgs): Promise<CreateOrderResult> {
@@ -48,28 +75,34 @@ export async function createStoreOrder(args: CreateOrderArgs): Promise<CreateOrd
   if (!variant) {
     return { ok: false, error: "Esta opção saiu de venda.", fieldErrors: { variantId: "Escolha outra opção." } };
   }
-  const orderId = await insertOrder(product, variant, parsed.data, args);
+  const data = parsed.data as Record<string, unknown>;
+  const price = priceOrder(product, variant, {
+    quantity: numberOrUndefined(data.quantity),
+    mmr_atual: numberOrUndefined(data.mmr_atual),
+    mmr_alvo: numberOrUndefined(data.mmr_alvo),
+  });
+  if (!price.ok) return { ok: false, error: "Confira os campos destacados.", fieldErrors: { [price.field]: price.message } };
+  const soldOut = await soldOutMessage(product, price.quantity);
+  if (soldOut) return { ok: false, error: soldOut };
+
+  const order: PricedOrder = { product, variant, input: parsed.data, amountCents: price.amountCents, quantity: price.quantity, label: price.label };
+  const orderId = await insertOrder(order, args);
   if (!orderId) return { ok: false, error: "Não deu para registrar o pedido. Tente de novo em instantes." };
-  return parsed.data.method === "pix"
-    ? startPix(orderId, product, variant, parsed.data)
-    : startCard(orderId, product, variant, parsed.data);
+  return parsed.data.method === "pix" ? startPix(orderId, order) : startCard(orderId, order);
 }
 
-async function insertOrder(
-  product: StoreProduct,
-  variant: StoreVariant,
-  input: CheckoutInput,
-  args: CreateOrderArgs
-): Promise<string | null> {
+async function insertOrder(order: PricedOrder, args: CreateOrderArgs): Promise<string | null> {
   const origin = args.origin ?? {};
+  const { product, variant, input } = order;
   const { data, error } = await createServiceClient()
     .from("store_orders")
     .insert({
       product_id: product.id,
       variant_id: variant.id,
       product_title: product.title,
-      variant_label: variant.label,
-      amount_cents: variant.priceCents,
+      variant_label: order.label,
+      amount_cents: order.amountCents,
+      quantity: order.quantity,
       user_id: args.userId,
       buyer_name: input.name,
       buyer_email: input.email,
@@ -108,19 +141,19 @@ function splitName(name: string): { first: string; last?: string } {
   return { first, last: rest.join(" ") || undefined };
 }
 
-async function startPix(orderId: string, product: StoreProduct, variant: StoreVariant, input: CheckoutInput): Promise<CreateOrderResult> {
-  const { first, last } = splitName(input.name);
+async function startPix(orderId: string, order: PricedOrder): Promise<CreateOrderResult> {
+  const { first, last } = splitName(order.input.name);
   const pix = await createPixPayment({
-    amount: centsToReais(variant.priceCents),
-    description: `FORMULADOTA: ${product.title} (${variant.label})`.slice(0, 200),
-    payerEmail: input.email,
+    amount: centsToReais(order.amountCents),
+    description: `FORMULADOTA: ${order.product.title} (${order.label})`.slice(0, 200),
+    payerEmail: order.input.email,
     payerFirstName: first,
     payerLastName: last,
     externalReference: toStoreReference(orderId),
     notificationUrl: notificationUrl(),
     statementDescriptor: "FORMULADOTA",
-    itemId: variant.id,
-    itemTitle: `${product.title}: ${variant.label}`,
+    itemId: order.variant.id,
+    itemTitle: `${order.product.title}: ${order.label}`,
     itemCategoryId: "services",
     idempotencyKey: `loja-pix-${orderId}`,
   });
@@ -142,14 +175,14 @@ async function startPix(orderId: string, product: StoreProduct, variant: StoreVa
   return { ok: true, orderId, redirectUrl: `/loja/pedido/${orderId}` };
 }
 
-async function startCard(orderId: string, product: StoreProduct, variant: StoreVariant, input: CheckoutInput): Promise<CreateOrderResult> {
+async function startCard(orderId: string, order: PricedOrder): Promise<CreateOrderResult> {
   const preference = await createCardPreference({
     orderRef: toStoreReference(orderId),
-    itemId: variant.id,
-    title: `${product.title}: ${variant.label}`,
-    description: product.summary || product.title,
-    amountCents: variant.priceCents,
-    payer: { name: input.name, email: input.email, whatsapp: input.whatsapp },
+    itemId: order.variant.id,
+    title: `${order.product.title}: ${order.label}`,
+    description: order.product.summary || order.product.title,
+    amountCents: order.amountCents,
+    payer: { name: order.input.name, email: order.input.email, whatsapp: order.input.whatsapp },
     returnUrl: `${siteUrl()}/loja/pedido/${orderId}`,
     notificationUrl: notificationUrl(),
   });
