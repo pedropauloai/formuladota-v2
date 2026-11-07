@@ -290,3 +290,9 @@ Diretórios: `.planning/phases/{NN}-{slug}/`.
 - Sistema de amigos + chat real-time WebSocket
 - Notificações push
 - Premium mobile responsive
+
+---
+
+## Backlog
+
+Ideias registradas sem construir, com data e condição para entrar: ver [BACKLOG.md](BACKLOG.md).

@@ -62,7 +62,7 @@ export function CheckoutForm({ slug, variants, formFields, defaultEmail }: Props
   }
 
   return (
-    <form onSubmit={submit} noValidate className="space-y-5 rounded-md border border-border-strong bg-bg-base p-5">
+    <form id="loja-checkout" onSubmit={submit} noValidate className="space-y-5 rounded-md border border-border-strong bg-bg-base p-5">
       <fieldset className="space-y-2">
         <legend className="font-display text-sm uppercase tracking-wide text-text-muted">{t("chooseOption")}</legend>
         {variants.map((v) => (

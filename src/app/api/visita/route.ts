@@ -40,7 +40,9 @@ export async function POST(request: Request): Promise<Response> {
   if (!allowRequest("visita", clientIp(request.headers), 30, 60_000)) {
     return new NextResponse(null, { status: 429 });
   }
-  if (BOT_UA.test(request.headers.get("user-agent") ?? "")) return new NextResponse(null, { status: 204 });
+  if (BOT_UA.test(request.headers.get("user-agent") ?? "")) {
+    return new NextResponse(null, { status: 204, headers: { "x-visita": "ignorada" } });
+  }
   const parsed = bodySchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return new NextResponse(null, { status: 400 });
 
@@ -66,7 +68,7 @@ export async function POST(request: Request): Promise<Response> {
     );
   if (error) console.error("[visita] gravar falhou:", error.message);
 
-  const response = new NextResponse(null, { status: 204 });
+  const response = new NextResponse(null, { status: 204, headers: { "x-visita": error ? "falhou" : "gravada" } });
   response.cookies.set(ORIGIN_COOKIE, serializeOrigin(origin), {
     path: "/",
     maxAge: ORIGIN_MAX_AGE_S,
