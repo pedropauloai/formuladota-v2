@@ -48,7 +48,8 @@ export default async function AdminLojaPage({ searchParams }: { searchParams: Se
   const from = period.from().toISOString();
   const supabase = await createClient();
   const [visits, orders, t] = await Promise.all([
-    supabase.from("site_visits").select("utm_source, referrer_host").gte("created_at", from).limit(50000),
+    // Visita de teste (localhost) nunca entra na conta, como o pedido de teste.
+    supabase.from("site_visits").select("utm_source, referrer_host").eq("is_test", false).gte("created_at", from).limit(50000),
     supabase
       .from("store_orders")
       .select("id, created_at, product_title, variant_label, buyer_name, buyer_whatsapp, amount_cents, payment_method, status, utm_source, referrer_host, is_test, notified_at, fulfilled_at")

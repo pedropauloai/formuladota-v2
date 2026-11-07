@@ -2608,6 +2608,7 @@ export type Database = {
           country: string | null
           created_at: string
           id: number
+          is_test: boolean
           path: string
           referrer_host: string | null
           session_id: string
@@ -2621,6 +2622,7 @@ export type Database = {
           country?: string | null
           created_at?: string
           id?: never
+          is_test?: boolean
           path: string
           referrer_host?: string | null
           session_id: string
@@ -2634,6 +2636,7 @@ export type Database = {
           country?: string | null
           created_at?: string
           id?: never
+          is_test?: boolean
           path?: string
           referrer_host?: string | null
           session_id?: string

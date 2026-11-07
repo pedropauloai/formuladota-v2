@@ -195,8 +195,9 @@ async function run() {
     await page.goto(`${BASE}/loja?utm_source=instagram&utm_medium=bio&utm_campaign=${campaign}`);
     const beaconResponse = await beacon;
     check("beacon de visita gravou", beaconResponse.headers()["x-visita"] === "gravada", beaconResponse.headers()["x-visita"]);
-    const visit = await waitFor(async () => (await db.from("site_visits").select("id").eq("utm_campaign", campaign).maybeSingle()).data, 15_000);
+    const visit = await waitFor(async () => (await db.from("site_visits").select("id, is_test").eq("utm_campaign", campaign).maybeSingle()).data, 15_000);
     check("visita com UTM gravada em site_visits (critério 12)", !!visit);
+    check("visita do localhost marcada como teste (fora da conta do painel)", visit?.is_test === true);
 
     await fillCheckout(page, "pix");
     await expectLeave(page, /\/loja\/pedido\/[0-9a-f-]{36}/);
