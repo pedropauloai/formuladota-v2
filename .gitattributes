@@ -1,0 +1,2 @@
+# Scripts de shell rodam no bash (WSL, CI): quebra de linha Unix mesmo em checkout no Windows.
+*.sh text eol=lf
