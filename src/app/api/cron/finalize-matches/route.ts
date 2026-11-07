@@ -18,6 +18,7 @@ import { finalizeMatchmakingLobby, finalizePendingMmr } from "@/lib/dota/finaliz
 import { syncChangelogToDiscord } from "@/lib/changelog/discord-sync";
 import { syncMatchResultsToDiscord, syncFormedMatchesToDiscord } from "@/lib/dota/results-discord";
 import { ensureTeamVoiceRooms, teardownTeamVoiceRooms } from "@/lib/dota/team-voice";
+import { reconcilePendingStoreOrders } from "@/lib/loja/order-payments";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -131,7 +132,16 @@ export async function POST(req: Request) {
     console.error("[cron] salas de voz de time falharam:", e instanceof Error ? e.message : e);
   }
 
+  // Loja: concilia pedidos pendentes com o Mercado Pago (rede de segurança do webhook). Isolado.
+  let loja: Awaited<ReturnType<typeof reconcilePendingStoreOrders>> | null = null;
+  try {
+    loja = await reconcilePendingStoreOrders();
+  } catch (e) {
+    console.error("[cron] conciliação da loja falhou:", e instanceof Error ? e.message : e);
+  }
+
   return NextResponse.json({
+    loja,
     ok: true,
     checked: (lobbies ?? []).length,
     finalized: results.filter((r) => r.status === "finalizada").length,

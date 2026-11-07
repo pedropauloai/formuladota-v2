@@ -41,9 +41,13 @@ export type Transition =
 const REFUNDED = new Set(["refunded", "charged_back"]);
 const NOTHING: Transition = { kind: "nada" };
 
+// Aprovado tarde (Pix pago depois de vencer, cartão que saiu da análise) ainda é venda: dinheiro
+// recebido nunca fica sem pedido pago e sem aviso.
+export const PAYABLE_STATUSES: readonly StoreOrderStatus[] = ["pendente", "expirado", "cancelado"];
+
 function decideApproved(order: OrderForDecision, payment: PaymentSnapshot): Transition {
-  // Só pedido pendente muda: pago, revisado ou reembolsado não volta por notificação repetida.
-  if (order.status !== "pendente") return NOTHING;
+  // Pago, revisado ou reembolsado não volta por notificação repetida.
+  if (!PAYABLE_STATUSES.includes(order.status)) return NOTHING;
   if (payment.currency && payment.currency !== "BRL") {
     return { kind: "revisar", reason: "moeda", paidAmountCents: payment.amountCents };
   }

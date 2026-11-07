@@ -40,6 +40,11 @@ describe("decideTransition", () => {
     expect(decideTransition(order(), payment({ currency: "USD" }))).toMatchObject({ kind: "revisar", reason: "moeda" });
   });
 
+  it("pagamento aprovado depois de o pedido vencer ou ser cancelado ainda paga", () => {
+    expect(decideTransition(order({ status: "expirado" }), payment())).toEqual({ kind: "pagar", paidAmountCents: 9990 });
+    expect(decideTransition(order({ status: "cancelado" }), payment())).toEqual({ kind: "pagar", paidAmountCents: 9990 });
+  });
+
   it("notificação repetida de pedido já pago não faz nada", () => {
     expect(decideTransition(order({ status: "pago" }), payment())).toEqual({ kind: "nada" });
   });

@@ -62,6 +62,8 @@ export async function POST(request: Request): Promise<Response> {
         utm_term: current.utm_term ?? null,
         referrer_host: current.referrer_host ?? null,
         country: request.headers.get("cf-ipcountry")?.slice(0, 2) ?? null,
+        // Fora do domínio de produção (localhost, teste de ponta a ponta) a visita não conta no painel.
+        is_test: !publicEnv.NEXT_PUBLIC_SITE_URL.startsWith("https://"),
       },
       // A mesma sessão volta com UTM nova: a visita não duplica, só o cookie muda.
       { onConflict: "session_id", ignoreDuplicates: true }
