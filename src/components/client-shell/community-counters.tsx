@@ -72,7 +72,8 @@ export function CommunityCountersBar({
         online: counters.online,
         banned: counters.banned,
       })}
-      className="hidden md:flex flex-col justify-center gap-0.5 rounded-md px-2 py-0.5 leading-none text-text-faded transition-colors hover:bg-white/5 hover:text-text-muted"
+      // text-muted a 75%: o text-faded ficava abaixo de 4,5:1 sobre a barra (texto de 11px).
+      className="hidden md:flex flex-col justify-center gap-0.5 rounded-md px-2 py-0.5 leading-none text-text-muted/75 transition-colors hover:bg-white/5 hover:text-text-muted"
     >
       {/* Online — ponto verde pulsante + total */}
       <span className="flex items-center gap-1.5">
