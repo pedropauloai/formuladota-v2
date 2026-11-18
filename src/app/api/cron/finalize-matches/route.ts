@@ -19,7 +19,7 @@ import { syncChangelogToDiscord } from "@/lib/changelog/discord-sync";
 import { syncMatchResultsToDiscord, syncFormedMatchesToDiscord } from "@/lib/dota/results-discord";
 import { ensureTeamVoiceRooms, teardownTeamVoiceRooms } from "@/lib/dota/team-voice";
 import { reconcilePendingStoreOrders } from "@/lib/loja/order-payments";
-import { refreshOwnerCareer } from "@/lib/loja/owner-proof";
+import { refreshOwnerProof } from "@/lib/loja/owner-proof";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -142,9 +142,9 @@ export async function POST(req: Request) {
   }
 
   // Loja: renova a medalha e os números do Pedro mostrados na vitrine (no máximo a cada 6 h). Isolado.
-  let lojaProva: Awaited<ReturnType<typeof refreshOwnerCareer>> | null = null;
+  let lojaProva: Awaited<ReturnType<typeof refreshOwnerProof>> | null = null;
   try {
-    lojaProva = await refreshOwnerCareer();
+    lojaProva = await refreshOwnerProof();
   } catch (e) {
     console.error("[cron] prova da vitrine falhou:", e instanceof Error ? e.message : e);
   }

@@ -2816,6 +2816,24 @@ export type Database = {
           },
         ]
       }
+      store_owner_proof: {
+        Row: {
+          data: Json
+          id: number
+          refreshed_at: string
+        }
+        Insert: {
+          data: Json
+          id?: number
+          refreshed_at?: string
+        }
+        Update: {
+          data?: Json
+          id?: number
+          refreshed_at?: string
+        }
+        Relationships: []
+      }
       store_product_variants: {
         Row: {
           active: boolean

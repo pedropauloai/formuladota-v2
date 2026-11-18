@@ -4215,13 +4215,8 @@
     "ownerRole": "Profissional de Tinker e criador do FORMULADOTA",
     "credentialLabel": "Credencial do Pedro no Dota",
     "credentialRank": "Imortal, posição no ranking da Valve",
-    "credentialTinkerGames": "partidas de Tinker",
-    "credentialTinkerWinRate": "de vitórias com Tinker",
-    "credentialTotalGames": "partidas registradas",
     "credentialSubscribersValue": "14 mil",
     "credentialSubscribers": "inscritos no YouTube",
-    "credentialSource": "Dados do STRATZ e do OpenDota, atualizados em {date}.",
-    "credentialVerify": "Conferir no OpenDota",
     "modeLive": "Na live",
     "modeRecorded": "Gravada",
     "modeOffStream": "Fora da live",
@@ -4252,6 +4247,16 @@
     "payPixNoPrice": "Gerar Pix",
     "payCardNoPrice": "Pagar com cartão",
     "trustLabel": "Garantias da compra",
-    "boostLegend": "Seu boost"
+    "boostLegend": "Seu boost",
+    "careerYears": "+15 anos",
+    "careerYearsLabel": "de Dota, desde o Dota 1",
+    "careerHours": "+30 mil",
+    "careerHoursLabel": "horas jogadas",
+    "careerMatches": "+5.000",
+    "careerMatchesLabel": "partidas de Tinker",
+    "careerWinRate": "65%",
+    "careerWinRateLabel": "de vitórias na média",
+    "careerBelowImmortal": "+90%",
+    "careerBelowImmortalLabel": "de vitórias abaixo de Imortal"
   }
 }
