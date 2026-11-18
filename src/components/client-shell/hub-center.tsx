@@ -23,6 +23,7 @@ import {
   Compass,
   ArrowRight,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { signInWithDiscord } from "@/app/login/actions";
@@ -44,8 +45,24 @@ const PILLARS = [
   { id: "Regiao", icon: Trophy },
 ] as const;
 
+// O vídeo de fundo são 24 MB da CDN da Valve: não toca para quem pediu menos movimento ou
+// economia de dados, e só entra depois da hidratação, sem disputar banda com o resto da página.
+function useBackgroundVideo(): boolean {
+  const [allowed, setAllowed] = useState(false);
+  useEffect(() => {
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
+    const update = () => setAllowed(!reduceMotion.matches && connection?.saveData !== true);
+    update();
+    reduceMotion.addEventListener("change", update);
+    return () => reduceMotion.removeEventListener("change", update);
+  }, []);
+  return allowed;
+}
+
 export function HubCenter({ isVisitor, prosOnlineCount, showRankedComPro = false }: HubCenterProps) {
   const t = useTranslations("capa");
+  const showVideo = useBackgroundVideo();
   // CTA de ação (logado): "Subir MMR" quando a feature está on; senão o guia do MMR
   // (/mmr) — vitrine didática do sistema (Pedro 2026-07-02).
   const ctaHref = showRankedComPro ? "/ranked-com-pro" : "/mmr";
@@ -56,6 +73,7 @@ export function HubCenter({ isVisitor, prosOnlineCount, showRankedComPro = false
       {/* Vídeo de fundo — montagem oficial do Dota 2 (cdn Steam) atrás da capa, com
           camada escura por cima pra o texto ganhar destaque (Pedro 2026-07-05). */}
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden="true">
+        {showVideo && (
         <video
           autoPlay
           muted
@@ -73,6 +91,7 @@ export function HubCenter({ isVisitor, prosOnlineCount, showRankedComPro = false
             type="video/mp4"
           />
         </video>
+        )}
         <div className="absolute inset-0 bg-gradient-to-br from-bg-deep/90 via-bg-deep/72 to-bg-deep/92" />
       </div>
 
