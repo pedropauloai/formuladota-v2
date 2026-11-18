@@ -23,7 +23,6 @@ import { forwardRef, type HTMLAttributes } from "react";
 import { m } from "motion/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
-import { useSound } from "@/lib/sound/hooks";
 import { useMotionSafeBool } from "@/lib/motion/hooks";
 
 // ---------------------------------------------------------------------------
@@ -97,16 +96,11 @@ interface CardProps
 // ---------------------------------------------------------------------------
 const Card = forwardRef<HTMLDivElement, CardProps>(
   ({ className, variant = "flat", onMouseEnter, children, ...props }, ref) => {
-    // Hook de som — retorna callback estável, no-op se muted (C16)
-    const play = useSound();
     // Hook de motion — false quando prefers-reduced-motion está ativo
     const motionSafe = useMotionSafeBool();
 
-    // Handler de mouseEnter: acoplamento sound + interação (C20)
+    // Hover sem som: no cliente do Dota, card comum não soa ao passar o mouse (Pedro, 18/11/2026).
     const handleMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
-      if (variant === "interactive") {
-        play("hover");
-      }
       onMouseEnter?.(e);
     };
 
