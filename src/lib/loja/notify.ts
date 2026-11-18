@@ -5,6 +5,7 @@ import "server-only";
 import { createServiceClient } from "@/lib/supabase/service";
 import { publicEnv } from "@/lib/env";
 import { buildDiscordSalePayload, buildSaleEmail, type SaleInfo } from "./notify-message";
+import { bookingLine } from "./agenda";
 
 const TIMEOUT_MS = 8000;
 
@@ -21,6 +22,15 @@ async function loadSale(orderId: string): Promise<SaleInfo | null> {
     return null;
   }
   if (data.status !== "pago" && data.status !== "em_revisao") return null;
+  const { data: bookings } = await createServiceClient()
+    .from("store_bookings")
+    .select("kind, starts_at, ends_at, seats")
+    .eq("order_id", orderId)
+    .neq("status", "cancelado")
+    .order("starts_at", { ascending: true });
+  const schedule = (bookings ?? []).map((b) =>
+    b.kind === "live" ? `live de ${bookingLine(b.starts_at, b.ends_at)} (${b.seats} vaga${b.seats > 1 ? "s" : ""})` : bookingLine(b.starts_at, b.ends_at)
+  );
   return {
     orderId: data.id,
     productTitle: data.product_title,
@@ -35,6 +45,7 @@ async function loadSale(orderId: string): Promise<SaleInfo | null> {
     origin: { utm_source: data.utm_source, utm_medium: data.utm_medium, utm_campaign: data.utm_campaign, referrer_host: data.referrer_host },
     isTest: data.is_test,
     adminUrl: `${publicEnv.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "")}/admin/loja?pedido=${data.id}`,
+    schedule,
   };
 }
 
@@ -94,4 +105,29 @@ export async function sendSaleNotification(orderId: string): Promise<void> {
     .update({ notified_at: new Date().toISOString() })
     .eq("id", orderId);
   if (error) console.error("[loja/aviso] marcar aviso entregue falhou:", error.message);
+}
+
+/** Aviso curto de agenda ao Pedro (sessão marcada depois da compra, remarcação), no canal de vendas. */
+export async function sendAgendaEvent(text: string, orderId: string, isTest: boolean): Promise<void> {
+  const url = process.env.SALES_DISCORD_WEBHOOK_URL;
+  if (!url) return;
+  const pedro = process.env.PEDRO_DISCORD_USER_ID;
+  const mention = pedro && /^\d{5,25}$/.test(pedro) ? `<@${pedro}> ` : "";
+  const adminUrl = `${publicEnv.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "")}/admin/loja/agenda`;
+  // Nome do comprador vai como texto: nada de formatação nem menção injetada.
+  const safe = text.replace(/([\`*_~|>@])/g, "\$1");
+  try {
+    const response = await fetch(`${url}?wait=true`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        content: `${mention}${isTest ? "[TESTE] " : ""}agenda: ${safe}\n${adminUrl} (pedido ${orderId})`.slice(0, 2000),
+        allowed_mentions: { parse: [], users: mention && pedro ? [pedro] : [] },
+      }),
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    });
+    if (!response.ok) console.error("[loja/agenda] Discord recusou: HTTP", response.status);
+  } catch (err) {
+    console.error("[loja/agenda] Discord falhou:", err);
+  }
 }

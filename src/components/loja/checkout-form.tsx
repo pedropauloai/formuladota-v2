@@ -16,6 +16,16 @@ import { criarPedido } from "@/app/loja/actions";
 import type { StoreVariant } from "@/lib/loja/catalog";
 import type { FormField, PaymentMethod } from "@/lib/loja/checkout-schema";
 import { BoostCalculator, quoteFor } from "./boost-calculator";
+import { SlotPicker } from "./slot-picker";
+import { LivePicker } from "./live-picker";
+import type { Interval, WeeklyWindow } from "@/lib/loja/agenda";
+import type { LiveOption } from "@/lib/loja/agenda-server";
+
+/** O que o produto pede de agenda: horário (com a duração por sessão ou por partida) ou uma live. */
+export type CheckoutBooking =
+  | { mode: "agenda"; windows: WeeklyWindow[]; busy: Interval[]; sessionMinutes: number; perQuantity: boolean }
+  | { mode: "live"; lives: LiveOption[] }
+  | null;
 
 interface Props {
   slug: string;
@@ -24,6 +34,7 @@ interface Props {
   maxQuantity: number;
   priceUnit: string;
   mmrTiers: MmrTier[] | null;
+  booking: CheckoutBooking;
   defaultEmail: string;
 }
 
@@ -33,12 +44,14 @@ const FIELD_LABEL: Record<FormField, string> = {
   mmr_atual: "mmrAtual",
   mmr_alvo: "mmrAlvo",
   match_id: "matchId",
+  match_ids: "matchIds",
   observacoes: "observacoes",
 };
 
 const FIELD_HINT: Partial<Record<FormField, string>> = {
   dota_id: "dotaIdHint",
   match_id: "matchIdHint",
+  match_ids: "matchIdsHint",
 };
 
 const NUMERIC_FIELDS: ReadonlySet<FormField> = new Set(["dota_id", "mmr_atual", "mmr_alvo", "match_id"]);
@@ -46,13 +59,15 @@ const NUMERIC_FIELDS: ReadonlySet<FormField> = new Set(["dota_id", "mmr_atual", 
 const inputCls =
   "mt-1 w-full rounded-sm border border-border-strong bg-bg-deep px-3 py-2 text-sm text-text-display placeholder:text-text-faded focus:border-brand-primary focus:outline-none";
 
-export function CheckoutForm({ slug, variants, formFields, maxQuantity, priceUnit, mmrTiers, defaultEmail }: Props) {
+export function CheckoutForm({ slug, variants, formFields, maxQuantity, priceUnit, mmrTiers, booking, defaultEmail }: Props) {
   const t = useTranslations("loja");
   const router = useRouter();
   const [variantId, setVariantId] = useState(variants[0]?.id ?? "");
   const [quantity, setQuantity] = useState(1);
   const [mmrFrom, setMmrFrom] = useState("");
   const [mmrTo, setMmrTo] = useState("");
+  const [slotStart, setSlotStart] = useState<string | null>(null);
+  const [liveId, setLiveId] = useState<string | null>(null);
   const [method, setMethod] = useState<PaymentMethod>("pix");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -99,12 +114,28 @@ export function CheckoutForm({ slug, variants, formFields, maxQuantity, priceUni
           <QuantityStepper
             value={quantity}
             max={maxQuantity}
-            onChange={setQuantity}
+            onChange={(next) => {
+              setQuantity(next);
+              // Mais partidas, bloco maior: o horário escolhido pode não caber mais.
+              if (booking?.mode === "agenda" && booking.perQuantity) setSlotStart(null);
+            }}
             summary={`${quantityLabel(quantity, priceUnit, selected.label)} · ${formatPrice(selected.priceCents * quantity)}`}
             error={errors.quantity}
           />
         )
       )}
+
+      {booking?.mode === "agenda" && (
+        <SlotPicker
+          windows={booking.windows}
+          busy={booking.busy}
+          durationMinutes={booking.sessionMinutes * (booking.perQuantity ? quantity : 1)}
+          value={slotStart}
+          onChange={setSlotStart}
+          error={errors.slot_start}
+        />
+      )}
+      {booking?.mode === "live" && <LivePicker lives={booking.lives} value={liveId} onChange={setLiveId} error={errors.live_id} />}
 
       <fieldset className="space-y-3">
         <legend className="text-sm font-medium text-text-body">{t("yourData")}</legend>

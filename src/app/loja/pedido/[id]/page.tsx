@@ -11,6 +11,7 @@ import { ClientShell } from "@/components/client-shell/shell";
 import { MiniMarkdown } from "@/components/changelog/mini-markdown";
 import { PixPanel } from "@/components/loja/pix-panel";
 import { OrderPoller } from "@/components/loja/order-poller";
+import { OrderDelivery, OrderSchedule } from "@/components/loja/order-schedule";
 import { reconcileStoreOrder } from "@/lib/loja/order-payments";
 import { getPublicOrder, type PublicOrder } from "@/lib/loja/public-order";
 import { isUuid } from "@/lib/loja/refs";
@@ -47,6 +48,8 @@ export default async function PedidoPage({ params }: { params: Promise<{ id: str
           </div>
         </header>
         <StatusBody order={order} t={t} />
+        <OrderSchedule order={order} />
+        <OrderDelivery order={order} />
         {order.status === "pendente" && <OrderPoller orderId={order.id} />}
       </div>
     </ClientShell>

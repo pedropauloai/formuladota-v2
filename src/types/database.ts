@@ -2687,6 +2687,157 @@ export type Database = {
           },
         ]
       }
+      store_availability: {
+        Row: {
+          created_at: string
+          end_time: string
+          id: string
+          start_time: string
+          weekday: number
+        }
+        Insert: {
+          created_at?: string
+          end_time: string
+          id?: string
+          start_time: string
+          weekday: number
+        }
+        Update: {
+          created_at?: string
+          end_time?: string
+          id?: string
+          start_time?: string
+          weekday?: number
+        }
+        Relationships: []
+      }
+      store_blocked_periods: {
+        Row: {
+          created_at: string
+          ends_at: string
+          id: string
+          reason: string
+          starts_at: string
+        }
+        Insert: {
+          created_at?: string
+          ends_at: string
+          id?: string
+          reason?: string
+          starts_at: string
+        }
+        Update: {
+          created_at?: string
+          ends_at?: string
+          id?: string
+          reason?: string
+          starts_at?: string
+        }
+        Relationships: []
+      }
+      store_bookings: {
+        Row: {
+          created_at: string
+          ends_at: string
+          hold_until: string | null
+          id: string
+          is_test: boolean
+          kind: string
+          live_session_id: string | null
+          order_id: string
+          product_id: string
+          seats: number
+          starts_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          ends_at: string
+          hold_until?: string | null
+          id?: string
+          is_test?: boolean
+          kind: string
+          live_session_id?: string | null
+          order_id: string
+          product_id: string
+          seats?: number
+          starts_at: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          ends_at?: string
+          hold_until?: string | null
+          id?: string
+          is_test?: boolean
+          kind?: string
+          live_session_id?: string | null
+          order_id?: string
+          product_id?: string
+          seats?: number
+          starts_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_bookings_live_session_id_fkey"
+            columns: ["live_session_id"]
+            isOneToOne: false
+            referencedRelation: "store_live_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_bookings_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "store_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_bookings_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "store_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      store_live_sessions: {
+        Row: {
+          created_at: string
+          ends_at: string
+          id: string
+          notes: string
+          party_seats: number
+          replay_seats: number
+          starts_at: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          ends_at: string
+          id?: string
+          notes?: string
+          party_seats?: number
+          replay_seats?: number
+          starts_at: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          ends_at?: string
+          id?: string
+          notes?: string
+          party_seats?: number
+          replay_seats?: number
+          starts_at?: string
+          status?: string
+        }
+        Relationships: []
+      }
       store_orders: {
         Row: {
           amount_cents: number
@@ -2695,6 +2846,8 @@ export type Database = {
           buyer_whatsapp: string
           checked_at: string | null
           created_at: string
+          delivery_note: string | null
+          delivery_url: string | null
           details: Json
           fulfilled_at: string | null
           gateway_payload: Json | null
@@ -2732,6 +2885,8 @@ export type Database = {
           buyer_whatsapp: string
           checked_at?: string | null
           created_at?: string
+          delivery_note?: string | null
+          delivery_url?: string | null
           details?: Json
           fulfilled_at?: string | null
           gateway_payload?: Json | null
@@ -2769,6 +2924,8 @@ export type Database = {
           buyer_whatsapp?: string
           checked_at?: string | null
           created_at?: string
+          delivery_note?: string | null
+          delivery_url?: string | null
           details?: Json
           fulfilled_at?: string | null
           gateway_payload?: Json | null
@@ -2879,6 +3036,7 @@ export type Database = {
         Row: {
           active: boolean
           art: string | null
+          booking_mode: string
           created_at: string
           delivery_md: string
           description_md: string
@@ -2887,12 +3045,15 @@ export type Database = {
           id: string
           is_test: boolean
           kind: string
+          live_seat: string | null
           max_quantity: number
           mmr_tiers: Json | null
           mode: string
           monthly_capacity: number | null
           price_unit: string
           requires_login: boolean
+          session_minutes: number | null
+          sessions_per_order: number
           slug: string
           summary: string
           title: string
@@ -2901,6 +3062,7 @@ export type Database = {
         Insert: {
           active?: boolean
           art?: string | null
+          booking_mode?: string
           created_at?: string
           delivery_md?: string
           description_md?: string
@@ -2909,12 +3071,15 @@ export type Database = {
           id?: string
           is_test?: boolean
           kind?: string
+          live_seat?: string | null
           max_quantity?: number
           mmr_tiers?: Json | null
           mode?: string
           monthly_capacity?: number | null
           price_unit?: string
           requires_login?: boolean
+          session_minutes?: number | null
+          sessions_per_order?: number
           slug: string
           summary?: string
           title: string
@@ -2923,6 +3088,7 @@ export type Database = {
         Update: {
           active?: boolean
           art?: string | null
+          booking_mode?: string
           created_at?: string
           delivery_md?: string
           description_md?: string
@@ -2931,12 +3097,15 @@ export type Database = {
           id?: string
           is_test?: boolean
           kind?: string
+          live_seat?: string | null
           max_quantity?: number
           mmr_tiers?: Json | null
           mode?: string
           monthly_capacity?: number | null
           price_unit?: string
           requires_login?: boolean
+          session_minutes?: number | null
+          sessions_per_order?: number
           slug?: string
           summary?: string
           title?: string
@@ -4195,6 +4364,32 @@ export type Database = {
         Returns: string
       }
       slugify_handle: { Args: { input: string }; Returns: string }
+      store_remarcar_agenda: {
+        Args: { p_booking_id: string; p_ends: string; p_starts: string }
+        Returns: string
+      }
+      store_reservar_agenda: {
+        Args: {
+          p_ends: string
+          p_hold_until: string
+          p_is_test: boolean
+          p_order_id: string
+          p_product_id: string
+          p_starts: string
+        }
+        Returns: string
+      }
+      store_reservar_live: {
+        Args: {
+          p_hold_until: string
+          p_is_test: boolean
+          p_live_id: string
+          p_order_id: string
+          p_product_id: string
+          p_seats: number
+        }
+        Returns: string
+      }
       transfer_party_leader: { Args: { p_user: string }; Returns: undefined }
       try_form_match: { Args: { p_match_size?: number }; Returns: string }
       unequip_slot: { Args: { p_slot: string }; Returns: undefined }

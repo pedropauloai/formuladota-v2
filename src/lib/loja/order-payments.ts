@@ -17,6 +17,7 @@ import {
 import { getPaymentSnapshot, searchPaymentsByReference } from "./mercadopago";
 import { toStoreReference } from "./refs";
 import { sendSaleNotification } from "./notify";
+import { confirmOrderBookings, releaseOrderBookings } from "./agenda-server";
 
 const RECONCILE_EVERY_MS = 3000;
 
@@ -103,7 +104,12 @@ export async function applyStorePayment(orderId: string, payment: PaymentSnapsho
   );
   const changed = await applyTransition(orderId, transition, payment);
   if (!changed) return "nada";
-  if (transition.kind === "pagar" || transition.kind === "revisar") scheduleNotification(orderId);
+  if (transition.kind === "pagar" || transition.kind === "revisar") {
+    // O horário segurado vira confirmado antes do aviso, que já sai com ele.
+    await confirmOrderBookings(orderId);
+    scheduleNotification(orderId);
+  }
+  if (transition.kind === "expirar" || transition.kind === "reembolsar") await releaseOrderBookings(orderId);
   return transition.kind;
 }
 

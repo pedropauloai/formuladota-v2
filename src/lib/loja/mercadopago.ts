@@ -26,6 +26,8 @@ export interface CardPreferenceInput {
   payer: { name: string; email: string; whatsapp: string };
   returnUrl: string;
   notificationUrl?: string;
+  /** Prazo para pagar, em minutos; produto com horário segura a agenda só por esse tempo. */
+  ttlMinutes?: number;
 }
 
 const preferenceResponseSchema = z.object({
@@ -70,7 +72,7 @@ export function buildPreferenceBody(input: CardPreferenceInput, now: Date) {
     payment_methods: { excluded_payment_types: [{ id: "ticket" }, { id: "atm" }] },
     expires: true,
     expiration_date_from: now.toISOString(),
-    expiration_date_to: new Date(now.getTime() + PREFERENCE_TTL_MS).toISOString(),
+    expiration_date_to: new Date(now.getTime() + (input.ttlMinutes ? input.ttlMinutes * 60_000 : PREFERENCE_TTL_MS)).toISOString(),
     metadata: { pedido: input.orderRef },
   };
 }

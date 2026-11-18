@@ -9,7 +9,7 @@ import { ArrowDown, ArrowLeft, LogIn } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { ClientShell } from "@/components/client-shell/shell";
 import { MiniMarkdown } from "@/components/changelog/mini-markdown";
-import { CheckoutForm } from "@/components/loja/checkout-form";
+import { CheckoutForm, type CheckoutBooking } from "@/components/loja/checkout-form";
 import { ItemArt } from "@/components/loja/item-art";
 import { ModeTag } from "@/components/loja/mode-tag";
 import { SlotsMeter } from "@/components/loja/slots-meter";
@@ -19,6 +19,8 @@ import { getFeatureFlags } from "@/lib/queries/feature-flags";
 import { getActiveProduct } from "@/lib/loja/catalog";
 import { getSlots } from "@/lib/loja/slots";
 import { lojaPreviaLocal } from "@/lib/loja/preview";
+import { getAgendaData, getUpcomingLives } from "@/lib/loja/agenda-server";
+import type { StoreProduct } from "@/lib/loja/catalog";
 import { formatPrice } from "@/lib/loja/money";
 import { mdBullets } from "@/lib/loja/text";
 
@@ -49,6 +51,16 @@ function DeliverySteps({ md }: { md: string }) {
   );
 }
 
+/** Agenda do produto para o formulário: horários livres, lives com vaga, ou nada. */
+async function bookingFor(product: StoreProduct): Promise<CheckoutBooking> {
+  if (product.bookingMode === "agenda") {
+    const agenda = await getAgendaData(product, 1);
+    return { mode: "agenda", windows: agenda.windows, busy: agenda.busy, sessionMinutes: product.sessionMinutes ?? 60, perQuantity: product.maxQuantity > 1 };
+  }
+  if (product.bookingMode === "live") return { mode: "live", lives: await getUpcomingLives(product) };
+  return null;
+}
+
 export default async function ProdutoPage({ params }: Params) {
   const { slug } = await params;
   const { loja } = await getFeatureFlags();
@@ -57,7 +69,13 @@ export default async function ProdutoPage({ params }: Params) {
   if (!product) notFound();
 
   const supabase = await createClient();
-  const [{ data: { user } }, slotMap, t] = await Promise.all([supabase.auth.getUser(), getSlots([product]), getTranslations("loja")]);
+  const [{ data: { user } }, slotMap, booking, t] = await Promise.all([
+    supabase.auth.getUser(),
+    getSlots([product]),
+    bookingFor(product),
+    getTranslations("loja"),
+  ]);
+  const noLive = booking?.mode === "live" && booking.lives.length === 0;
   const slots = slotMap?.get(product.id);
   const needsLogin = product.requiresLogin && !user;
 
@@ -96,7 +114,7 @@ export default async function ProdutoPage({ params }: Params) {
           )}
         </article>
 
-        <aside id="comprar" className="scroll-mt-24 self-start lg:sticky lg:top-6">
+        <aside id="comprar" className="min-w-0 scroll-mt-24 self-start lg:sticky lg:top-6">
           {needsLogin ? (
             <div className="space-y-4 rounded-md border border-border-strong bg-bg-base p-5">
               <p className="text-sm text-text-body">{t("loginRequired")}</p>
@@ -109,6 +127,11 @@ export default async function ProdutoPage({ params }: Params) {
             </div>
           ) : slots?.left === 0 ? (
             <SoldOutPanel slots={slots} />
+          ) : noLive ? (
+            <div data-loja-esgotado className="space-y-2 rounded-md border border-border-strong bg-bg-base p-5">
+              <p className="font-display text-2xl uppercase leading-none tracking-wide text-text-display">{t("noLiveTitle")}</p>
+              <p className="text-sm text-text-muted">{t("noLiveText")}</p>
+            </div>
           ) : (
             <CheckoutForm
               slug={product.slug}
@@ -117,6 +140,7 @@ export default async function ProdutoPage({ params }: Params) {
               maxQuantity={product.maxQuantity}
               priceUnit={product.priceUnit}
               mmrTiers={product.mmrTiers}
+              booking={booking}
               defaultEmail={user?.email ?? ""}
             />
           )}
