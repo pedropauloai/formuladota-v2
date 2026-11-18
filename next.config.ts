@@ -48,13 +48,16 @@ const config: NextConfig = {
       // saíram com a mudança para a Cloudflare.
       "script-src 'self' 'unsafe-inline' https://us-assets.i.posthog.com https://www.googletagmanager.com https://static.cloudflareinsights.com",
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob: https://*.steamstatic.com https://cdn.discordapp.com https://*.supabase.co https://*.google-analytics.com https://us.i.posthog.com",
+      // upload.wikimedia.org: foto do Grubby no /manifesto (bloqueada antes, aparecia quebrada).
+      "img-src 'self' data: blob: https://*.steamstatic.com https://cdn.discordapp.com https://*.supabase.co https://*.google-analytics.com https://us.i.posthog.com https://upload.wikimedia.org",
       "font-src 'self' data:",
       // REST + Realtime (wss) do Supabase, dados Dota, e os beacons dos analytics acima.
       "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.opendota.com https://api.stratz.com https://us.i.posthog.com https://us-assets.i.posthog.com https://*.google-analytics.com https://www.googletagmanager.com https://cloudflareinsights.com",
       "worker-src 'self' blob:",
       "manifest-src 'self'",
       "media-src 'self' https://*.steamstatic.com", // vídeo de fundo (montagem oficial do Dota 2)
+      // Vídeo do YouTube (modo sem cookie) no /manifesto: sem frame-src valia o default-src 'self' e o vídeo não abria.
+      "frame-src https://www.youtube-nocookie.com",
       "frame-ancestors 'none'", // H2 — anti-clickjacking (equivale a X-Frame-Options: DENY)
       "base-uri 'self'",
       "form-action 'self'",

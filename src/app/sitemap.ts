@@ -21,6 +21,8 @@ const PUBLIC_ROUTES: { path: string; priority: number }[] = [
   { path: "/meta", priority: 0.6 },
   { path: "/mmr", priority: 0.6 },
   { path: "/partidas", priority: 0.5 },
+  { path: "/mural", priority: 0.3 },
+  { path: "/novidades", priority: 0.4 },
   { path: "/codigo-de-conduta", priority: 0.4 },
 ];
 

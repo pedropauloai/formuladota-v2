@@ -73,6 +73,12 @@ export async function signInWithDiscordTo(next?: string, retry?: boolean) {
   await startDiscordOAuth(next, retry);
 }
 
+// Botão "Entrar" das páginas só de membros: o formulário manda a rota de volta em "next".
+export async function signInWithDiscordReturning(formData: FormData) {
+  const next = formData.get("next");
+  await startDiscordOAuth(typeof next === "string" ? next : undefined);
+}
+
 export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();
