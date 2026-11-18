@@ -2,6 +2,7 @@
 // todos com a flag "loja" desligada, inclusive admin (flag autoritativa).
 
 import type { Metadata } from "next";
+import { pagePreview } from "@/lib/seo";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { ArrowUpRight } from "lucide-react";
@@ -27,7 +28,7 @@ const SECTIONS: Array<{ key: string; modes: StoreMode[]; featured?: boolean }> =
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("loja");
-  return { title: t("metaTitle"), description: t("metaDescription"), alternates: { canonical: "/loja" } };
+  return pagePreview({ title: t("metaTitle"), description: t("metaDescription"), path: "/loja" });
 }
 
 async function redirectHomeKeepingUtm(searchParams: Promise<Record<string, string | string[] | undefined>>): Promise<never> {

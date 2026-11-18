@@ -36,7 +36,8 @@ import { PremiumBackdrop } from "@/components/layout/premium-backdrop";
 import { MotionProvider } from "@/components/layout/motion-provider";
 // i18n (next-intl) — provider client recebe locale + mensagens do request config.
 import { NextIntlClientProvider } from "next-intl";
-import { getLocale } from "next-intl/server";
+import { getLocale, getMessages } from "next-intl/server";
+import { clientMessages } from "@/i18n/client-messages";
 // PWA: registra o service worker (instalável + offline básico).
 import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
 // Analytics, as duas gated por env (o app roda na Cloudflare, então os da Vercel saíram):
@@ -47,9 +48,9 @@ import { GoogleAnalytics } from "@next/third-parties/google";
 import { VisitBeacon } from "@/components/analytics/visit-beacon";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-const siteTitle = "FORMULADOTA — HUB Dota 2 Brasil";
+const siteTitle = "FORMULADOTA | Dota 2 Brasil";
 const siteDescription =
-  "FORMULADOTA: o HUB Dota 2 brasileiro. Lobbies in-house, ranking por temporadas, doutrina cultural. Comunidade alinhada culturalmente, integrada a Discord e Steam.";
+  "O FORMULADOTA é a comunidade competitiva de Dota 2 do Brasil: ranking por temporadas, doutrina cultural e identidade real, integrada ao Discord e à Steam.";
 
 export const metadata: Metadata = {
   title: siteTitle,
@@ -61,13 +62,13 @@ export const metadata: Metadata = {
     siteName: "FORMULADOTA",
     title: siteTitle,
     description: siteDescription,
-    url: siteUrl,
+    // Sem url aqui: a página sem prévia própria não deve dizer que é a home (pagePreview em src/lib/seo.ts).
     images: [
       {
         url: "/brand/og-hero.png",
         width: 1200,
         height: 630,
-        alt: "FORMULADOTA — HUB Dota 2 Brasil",
+        alt: "FORMULADOTA",
       },
     ],
   },
@@ -104,6 +105,8 @@ export default async function RootLayout({
 }) {
   // Idioma resolvido por cookie/Accept-Language (ver src/i18n/request.ts).
   const locale = await getLocale();
+  // O navegador recebe só os textos que algum componente dele usa (src/i18n/client-messages.ts).
+  const messages = clientMessages(await getMessages());
   return (
     /* data-theme="fd-dark" — V2.5 token layer.
      * Arquitetura suporta data-theme="radiant" / "dire" no futuro
@@ -115,7 +118,7 @@ export default async function RootLayout({
       data-theme="fd-dark"
     >
       <body className="min-h-screen flex flex-col font-body bg-[#0b0c0f]">
-        <NextIntlClientProvider>
+        <NextIntlClientProvider messages={messages}>
         {/* V2.5-F4: MotionProvider — LazyMotion domAnimation (~10kb vs ~45kb full bundle).
             Cobre: animate, initial, exit, whileHover, whileTap, whileFocus, variants, AnimatePresence.
             strict={true} no provider garante zero carregamento acidental do bundle completo. */}

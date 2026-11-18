@@ -29,6 +29,38 @@ export function languageAlternates(internalPath: string): Metadata["alternates"]
   };
 }
 
+const DEFAULT_PREVIEW_IMAGE = { url: "/brand/og-hero.png", width: 1200, height: 630, alt: "FORMULADOTA" };
+
+interface PreviewInput {
+  title: string;
+  description?: string;
+  /** Caminho público da página, ex. "/loja/mentoria". */
+  path: string;
+  alternates?: Metadata["alternates"];
+}
+
+/**
+ * Metadados com prévia própria (WhatsApp, Discord, Instagram): título, descrição e endereço da
+ * página. Sem isto a página herda o og:title, a descrição e o og:url da home, do layout.
+ */
+export function pagePreview({ title, description, path, alternates }: PreviewInput): Metadata {
+  return {
+    title,
+    description,
+    alternates: { ...alternates, canonical: path },
+    openGraph: {
+      type: "website",
+      siteName: "FORMULADOTA",
+      // Sem og:locale: a mesma URL sai em pt, en ou es conforme o visitante.
+      title,
+      description,
+      url: SITE_URL + path,
+      images: [DEFAULT_PREVIEW_IMAGE],
+    },
+    twitter: { card: "summary_large_image", title, description, images: [DEFAULT_PREVIEW_IMAGE.url] },
+  };
+}
+
 /** Variantes localizadas de um path interno — usado pelo sitemap. */
 export function localizedUrls(internalPath: string): Record<string, string> {
   return {

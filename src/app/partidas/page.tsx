@@ -7,6 +7,7 @@
 // superado pelos pivôs; o saldo de fichas hoje vive no mini-perfil.
 
 import type { Metadata } from "next";
+import { pagePreview } from "@/lib/seo";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Radio, History, Swords } from "lucide-react";
@@ -20,7 +21,7 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("matchesFeed");
-  return { title: t("metaTitle") };
+  return pagePreview({ title: t("metaTitle"), path: "/partidas" });
 }
 
 const PAGE_SIZE = 20;

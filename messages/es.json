@@ -34,7 +34,7 @@
     }
   },
   "planos": {
-    "metaTitle": "Planes",
+    "metaTitle": "Planes | FORMULADOTA",
     "eyebrow": "Compendium",
     "title": "Elige tu plan",
     "subtitle": "Todos juegan y suben de nivel gratis. Los planes aceleran el Compendium y desbloquean cosméticos exclusivos de la temporada.",
@@ -422,7 +422,7 @@
     "errRegisterTournament": "Error al registrarse en el torneo."
   },
   "matchesFeed": {
-    "metaTitle": "Partidas — FORMULADOTA",
+    "metaTitle": "Partidas | FORMULADOTA",
     "eyebrow": "Comunidad",
     "title": "Partidas",
     "subtitle": "Lo que está pasando ahora mismo, más el historial completo de partidas de liga.",
@@ -438,8 +438,8 @@
     "pageLabel": "Página {page}"
   },
   "ranking": {
-    "metaTitle": "Ranking — FORMULADOTA",
-    "metaDescription": "Ranking de la temporada actual del hub de Dota 2 FORMULADOTA.",
+    "metaTitle": "Ranking | FORMULADOTA",
+    "metaDescription": "Ranking de Dota 2 de la temporada actual de FORMULADOTA.",
     "eyebrow": "Ranking · Temporada",
     "subtitle": "Clasificación de jugadores por MMR de la temporada actual. Top 3 destacado, el resto paginado.",
     "top3": "Top 3",
@@ -451,7 +451,7 @@
     "statWins": "Victorias",
     "statLosses": "Derrotas",
     "statWinrate": "Winrate",
-    "matchesRecord": "{partidas} partidas — {wins}V/{losses}D",
+    "matchesRecord": "{matches} partidas — {wins}V/{losses}D",
     "searchPlaceholder": "Buscar por nickname...",
     "searchButton": "Buscar",
     "prevPage": "← Anterior",
@@ -466,7 +466,7 @@
     "statMvps": "MVPs"
   },
   "meta": {
-    "metaTitle": "Meta de héroes — FORMULADOTA",
+    "metaTitle": "Meta de héroes | FORMULADOTA",
     "metaDescription": "Win rate y pick rate de héroes de Dota 2 por rol, en MMR Inmortal.",
     "eyebrow": "Meta · Inmortal",
     "title": "Héroes",
@@ -528,7 +528,7 @@
     "signatureHeroesSource": "· fuente: STRATZ/OpenDota · sincronizado {date}",
     "mostPlayedHeroes": "Heroes más jugados",
     "heroNumber": "Hero #{id}",
-    "heroRecord": "{wins}V / {losses}D en {partidas}",
+    "heroRecord": "{wins}V / {losses}D en {matches}",
     "badgesEarned": "Insignias obtenidas",
     "noBadgesTitle": "Aún sin insignias",
     "noBadgesDesc": "Juega partidas y demuestra buena conducta para ganar insignias.",
@@ -1834,8 +1834,8 @@
     "ctaBackHome": "← volver al inicio"
   },
   "manifesto": {
-    "metaTitle": "Por qué FormulaDota — no eres tú, es el sistema",
-    "metaDescription": "El entorno competitivo oficial de Dota 2 tiene tres fallas estructurales: anonimato, una cima cerrada y un ranking fragmentado. FormulaDota construye el entorno que falta — identidad real, temporadas que se reinician y un único ranking.",
+    "metaTitle": "Por qué FORMULADOTA | No eres tú, es el sistema",
+    "metaDescription": "El entorno competitivo oficial de Dota 2 tiene tres fallas estructurales: anonimato, una cima cerrada y un ranking fragmentado. FORMULADOTA construye el entorno que falta: identidad real, temporadas que se reinician y un único ranking.",
     "heroEyebrow": "Por qué FormulaDota",
     "heroTitle": "No eres tú. <red>Es el sistema.</red>",
     "heroSubtitle": "El Dota es uno de los mejores juegos del mundo. Lo que está roto es el entorno competitivo de Valve — y hasta las leyendas se están yendo.",
@@ -1875,7 +1875,7 @@
     "ctaDoctrine": "Explorar la doctrina →"
   },
   "metodologia": {
-    "metaTitle": "Metodología — La Fórmula del Dota de Carrera",
+    "metaTitle": "Metodología | La Fórmula del Dota de Carrera",
     "metaDescription": "La teoría detrás de la Fórmula: por qué el Dota es una carrera, por qué el net worth a lo largo del tiempo es el KPI universal, y por qué la metodología funciona más allá del juego.",
     "skipToContent": "Saltar al contenido",
     "heroEyebrow": "Metodología · v1",
@@ -3356,8 +3356,8 @@
     "noUsersFound": "No se encontraron usuarios con estos filtros.",
     "bannedTag": "BANEADO",
     "viewDetails": "Ver detalles",
-    "homeMetaTitle": "FORMULADOTA — no eres tú, es el sistema",
-    "homeMetaDescription": "El entorno competitivo de Valve está roto — anonimato, un top cerrado, regiones aisladas. FormulaDota es la respuesta: identidad real, temporadas y un ranking único.",
+    "homeMetaTitle": "FORMULADOTA | No eres tú, es el sistema",
+    "homeMetaDescription": "El entorno competitivo de Valve está roto: anonimato, un top cerrado, regiones aisladas. FORMULADOTA es la respuesta: identidad real, temporadas y un ranking único.",
     "usersBreadcrumb": "Usuarios",
     "adminUserEyebrow": "Admin / Usuario",
     "proActive": "PRO Activo",
@@ -4040,8 +4040,8 @@
     "metaTitleFallback": "Perfil — FORMULADOTA"
   },
   "pgMisc": {
-    "mmr_metaTitle": "Cómo funciona el MMR — FORMULADOTA",
-    "mmr_metaDescription": "Tu MMR de FormulaDota, explicado: importado de tu medalla de Valve, la escala oficial de Dota, el desempeño que mide con qué eficiencia extraes patrimonio e impacto para tu equipo, y una clasificación de Inmortales por posición.",
+    "mmr_metaTitle": "Cómo funciona el MMR | FORMULADOTA",
+    "mmr_metaDescription": "Tu MMR de FORMULADOTA, explicado: importado de tu medalla de Valve, la escala oficial de Dota, el desempeño que mide con qué eficiencia extraes patrimonio e impacto para tu equipo, y una clasificación de Inmortales por posición.",
     "mmr_heroKicker": "Ranking · Guía",
     "mmr_heroTitle": "Cómo funciona el MMR",
     "mmr_heroBody": "El MMR de FormulaDota es el número que mide tu nivel dentro de la liga. Nace de tu medalla real de Dota, sube y baja en las partidas, se reinicia cada temporada — y en la cima, se convierte en una carrera por posición. Aquí está todo, del resumen al detalle.",

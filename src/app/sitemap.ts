@@ -5,10 +5,13 @@
 
 import type { MetadataRoute } from "next";
 import { SITE_URL, localizedUrls } from "@/lib/seo";
+import { getActiveProducts } from "@/lib/loja/catalog";
 
-// Espelho de PUBLIC_PATHS (src/lib/supabase/middleware.ts) — manter em sincronia.
+// Espelho de PUBLIC_PATHS (src/lib/supabase/middleware.ts), só com as páginas que existem.
+// /privacidade e /cookies saíram: davam 404 (a página de privacidade espera o texto do Pedro).
 const PUBLIC_ROUTES: { path: string; priority: number }[] = [
   { path: "/", priority: 1 },
+  { path: "/loja", priority: 0.9 },
   { path: "/manifesto", priority: 0.9 },
   { path: "/metodologia", priority: 0.8 },
   { path: "/planos", priority: 0.8 },
@@ -17,13 +20,23 @@ const PUBLIC_ROUTES: { path: string; priority: number }[] = [
   { path: "/times", priority: 0.6 },
   { path: "/meta", priority: 0.6 },
   { path: "/mmr", priority: 0.6 },
+  { path: "/partidas", priority: 0.5 },
   { path: "/codigo-de-conduta", priority: 0.4 },
-  { path: "/privacidade", priority: 0.2 },
-  { path: "/cookies", priority: 0.2 },
 ];
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  return PUBLIC_ROUTES.map(({ path, priority }) => ({
+async function productPaths(): Promise<string[]> {
+  try {
+    return (await getActiveProducts()).map((p) => `/loja/${p.slug}`);
+  } catch (err) {
+    // Sem os produtos o sitemap sai com as rotas fixas, em vez de dar erro ao robô.
+    console.error("[sitemap] produtos da loja:", err instanceof Error ? err.message : err);
+    return [];
+  }
+}
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const routes = [...PUBLIC_ROUTES, ...(await productPaths()).map((path) => ({ path, priority: 0.8 }))];
+  return routes.map(({ path, priority }) => ({
     url: SITE_URL + path,
     changeFrequency: "weekly",
     priority,

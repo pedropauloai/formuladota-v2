@@ -11,7 +11,7 @@
 // manifesto, princípios, footer custom) pelo HUB.
 
 import { getTranslations } from "next-intl/server";
-import { languageAlternates } from "@/lib/seo";
+import { languageAlternates, pagePreview } from "@/lib/seo";
 import { getCurrentUser } from "@/lib/supabase/server";
 import { ClientShell } from "@/components/client-shell/shell";
 import { HubCenter } from "@/components/client-shell/hub-center";
@@ -20,11 +20,12 @@ import { getFeatureFlags } from "@/lib/queries/feature-flags";
 
 export async function generateMetadata() {
   const t = await getTranslations("misc2");
-  return {
+  return pagePreview({
     title: t("homeMetaTitle"),
     description: t("homeMetaDescription"),
+    path: "/",
     alternates: languageAlternates("/"),
-  };
+  });
 }
 
 // SEM `export const revalidate`: a rota lê cookies (getUser/shell), então o Next

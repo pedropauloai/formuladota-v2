@@ -6,6 +6,7 @@
 // META = padrão objetivo: só o dado, ordenado por win rate.
 
 import type { Metadata } from "next";
+import { pagePreview } from "@/lib/seo";
 import { getTranslations } from "next-intl/server";
 import { BarChart3 } from "lucide-react";
 import { ClientShell } from "@/components/client-shell/shell";
@@ -22,7 +23,7 @@ import {
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("meta");
-  return { title: t("metaTitle"), description: t("metaDescription") };
+  return pagePreview({ title: t("metaTitle"), description: t("metaDescription"), path: "/meta" });
 }
 
 const VALID_POSITIONS: MetaPosition[] = ["all", "1", "2", "3", "4", "5"];

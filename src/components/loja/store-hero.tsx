@@ -2,11 +2,10 @@
 // Pedro), com o render oficial do Tinker ao fundo no desktop. No celular o render não baixa: a
 // <picture> só pede o arquivo (cerca de 1 MB) a partir de 1024 px.
 
-import { ShieldCheck, KeyRound } from "lucide-react";
+import { CalendarCheck, KeyRound, ShieldCheck } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { heroRender } from "@/components/frontier/assets";
 import type { OwnerProof } from "@/lib/loja/owner-proof";
-import { BrandGlyph } from "./brand-glyph";
 import { OwnerCredential } from "./owner-credential";
 
 const BLANK_PIXEL = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
@@ -47,7 +46,7 @@ export function StoreHero({ proof }: { proof: OwnerProof | null }) {
           <p className="max-w-xl text-base leading-relaxed text-text-body md:text-lg">{t("heroSubtitle")}</p>
           <ul className="grid max-w-2xl gap-3 sm:grid-cols-3" aria-label={t("trustLabel")}>
             <TrustItem icon={<ShieldCheck size={17} aria-hidden="true" className="text-success" />} text={t("trustPayment")} />
-            <TrustItem icon={<BrandGlyph brand="whatsapp" size={17} />} text={t("trustContact")} />
+            <TrustItem icon={<CalendarCheck size={17} aria-hidden="true" className="text-success" />} text={t("trustContact")} />
             <TrustItem icon={<KeyRound size={17} aria-hidden="true" className="text-success" />} text={t("trustAccount")} />
           </ul>
         </div>

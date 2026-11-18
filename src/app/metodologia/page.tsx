@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { languageAlternates } from "@/lib/seo";
+import { languageAlternates, pagePreview } from "@/lib/seo";
 import { ClientShell } from "@/components/client-shell/shell";
 import {
   FrontierHero,
@@ -25,11 +25,12 @@ import {
 // scroll. Texto integralmente preservado; só a APRESENTAÇÃO visual mudou.
 export async function generateMetadata() {
   const t = await getTranslations("metodologia");
-  return {
+  return pagePreview({
     title: t("metaTitle"),
     description: t("metaDescription"),
+    path: "/metodologia",
     alternates: languageAlternates("/metodologia"),
-  };
+  });
 }
 
 // Distribuição de medalhas Valve. O NOME EXIBIDO da medalha vem do i18n

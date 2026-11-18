@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ClientShell } from "@/components/client-shell/shell";
 import { PlansView } from "@/components/plans/plans-view";
 import { SubscriptionPanel } from "@/components/plans/subscription-panel";
-import { languageAlternates } from "@/lib/seo";
+import { languageAlternates, pagePreview } from "@/lib/seo";
 import { isSubscriptionTier, type SubscriptionTier } from "@/lib/subscriptions/tiers";
 import {
   resolveSubscriptionState,
@@ -13,7 +13,7 @@ import {
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("planos");
-  return { title: t("metaTitle"), alternates: languageAlternates("/planos") };
+  return pagePreview({ title: t("metaTitle"), path: "/planos", alternates: languageAlternates("/planos") });
 }
 
 // Rota CANÔNICA de planos + assinatura (fusão 2026-07-04: /assinatura foi
