@@ -13,6 +13,8 @@ with aprovadas_visitante (assinatura, motivo) as (
     ('get_pros_live_status()',           'faixa de PROs ao vivo na home e em /coaches'),
     ('match_bans(text)',                 'banimentos da partida no placar público /partida/historico'),
     ('get_honor_score(uuid)',            'honra do PRO no perfil público /coaches/[slug]'),
+    ('get_queue_searchers()',            'contador "na fila" da barra do topo, também para visitante (quem busca partida é público)'),
+    ('get_public_mini_profile(uuid)',    'cartão do jogador ao passar o mouse no ranking e nas partidas, também para visitante'),
     ('is_admin()',                       'helper de RLS nas políticas de leitura pública (loja, coaches, pacotes, novidades); devolve false sem login'),
     ('is_party_member(uuid)',            'helper de RLS das políticas de leitura das tabelas de grupo (TO public); devolve false sem login')
 ),

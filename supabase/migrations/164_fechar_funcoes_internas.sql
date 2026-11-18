@@ -66,7 +66,6 @@ revoke execute on function
   public.accept_match_proposal(uuid),
   public.decline_match_proposal(uuid),
   public.get_lobby_queue_status(uuid),
-  public.get_queue_searchers(),
   public.is_in_active_match(uuid),
   public.try_form_match(integer),
   public.enter_party_queue(text[]),
@@ -88,7 +87,6 @@ revoke execute on function
   public.mark_changelog_seen(),
   public.grant_doctrine_question_xp(),
   public.get_public_profile(uuid),
-  public.get_public_mini_profile(uuid),
   public.reserve_bot_for_lobby(uuid),
   public.cancel_pro_waiting_entries(uuid, text),
   public.get_pro_revenue_summary(uuid, timestamp with time zone)
@@ -97,7 +95,6 @@ grant execute on function
   public.accept_match_proposal(uuid),
   public.decline_match_proposal(uuid),
   public.get_lobby_queue_status(uuid),
-  public.get_queue_searchers(),
   public.is_in_active_match(uuid),
   public.try_form_match(integer),
   public.enter_party_queue(text[]),
@@ -119,7 +116,6 @@ grant execute on function
   public.mark_changelog_seen(),
   public.grant_doctrine_question_xp(),
   public.get_public_profile(uuid),
-  public.get_public_mini_profile(uuid),
   public.reserve_bot_for_lobby(uuid),
   public.cancel_pro_waiting_entries(uuid, text),
   public.get_pro_revenue_summary(uuid, timestamp with time zone)
@@ -142,6 +138,7 @@ grant execute on function
 to authenticated, service_role;
 
 -- Seguem abertas a visitante só as leituras públicas e os helpers de RLS de leitura (lista aprovada e motivos em scripts/seguranca/funcoes-abertas.sql).
+-- get_queue_searchers e get_public_mini_profile ficam abertas: o contador da fila e o cartão do jogador aparecem para visitante, e o dado é público (anti-anonimato).
 
 -- try_form_match: só quem está buscando partida (ou admin e servidor) dispara a formação; antes qualquer logado puxava a fila dos outros.
 create or replace function public.try_form_match(p_match_size integer default 10)
