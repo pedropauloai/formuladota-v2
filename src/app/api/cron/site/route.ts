@@ -1,0 +1,33 @@
+// Cron do site (pg_cron a cada minuto, job "site-jobs"): tudo que não é partida.
+// - Loja: concilia pedidos pendentes com o Mercado Pago (rede de segurança do webhook) e renova
+//   a credencial da vitrine (no máximo a cada 6 h).
+// - Meta de heróis: renova o cache da /meta (no máximo a cada 6 h).
+// - Novidades: espelha /novidades no canal do Discord.
+// Separado do cron de partidas para que pausar aquele job (bots parados) não pause a loja.
+// Alguma tarefa falhou → 500, e o aviso no Discord sai pelo estado em cron_task_status.
+
+import { NextResponse } from "next/server";
+import { createServiceClient } from "@/lib/supabase/service";
+import { isCronAuthorized } from "@/lib/cron/auth";
+import { finishCronRun, runTask } from "@/lib/cron/tasks";
+import { reconcilePendingStoreOrders } from "@/lib/loja/order-payments";
+import { refreshOwnerProof } from "@/lib/loja/owner-proof";
+import { refreshPositionStats } from "@/lib/dota/meta-cache";
+import { syncChangelogToDiscord } from "@/lib/changelog/discord-sync";
+
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
+export async function POST(req: Request) {
+  if (!isCronAuthorized(req)) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+  const waitingForRetry = (value: string) => value === "aguardando";
+  const outcomes = await Promise.all([
+    runTask("loja-conciliacao", () => reconcilePendingStoreOrders()),
+    runTask("loja-credencial", () => refreshOwnerProof(), { isNeutral: waitingForRetry }),
+    runTask("meta", () => refreshPositionStats(), { isNeutral: waitingForRetry }),
+    runTask("novidades-discord", () => syncChangelogToDiscord(createServiceClient())),
+  ]);
+  return finishCronRun(outcomes);
+}

@@ -1,14 +1,12 @@
 // Agregação do meta de heróis — lógica PURA (sem fetch, sem UI).
-// Combina metadata do OpenDota (nome/face/atributo) com os números POR POSIÇÃO
-// da Stratz, e produz linhas prontas pra tabela filtradas por função.
+// Combina o catálogo estático de heróis (nome/face/atributo, src/data/dota-heroes.json) com os
+// números POR POSIÇÃO da Stratz, e produz linhas prontas pra tabela filtradas por função.
 //
 // Filosofia FormulaDota: META = padrão objetivo (o que mais se repete e vence).
 // Sem curadoria — só o dado, ordenado por win rate. O dado fala por si.
 // Filtro só por FUNÇÃO (como o dota2protracker) — atributo é só info na linha.
 
-import type { OpenDotaHeroStat } from "./opendota";
 import type { PositionStat } from "./stratz-meta";
-import { heroFaceUrl } from "./hero-assets";
 
 /** Função/posição: todas, ou pos 1 (Carry) ... pos 5 (Hard Support). */
 export type MetaPosition = "all" | "1" | "2" | "3" | "4" | "5";
@@ -41,26 +39,36 @@ function normalizeAttr(primaryAttr: string): HeroAttr {
   if (primaryAttr === "str" || primaryAttr === "agi" || primaryAttr === "int") {
     return primaryAttr;
   }
-  return "uni"; // "all" da OpenDota = Universal
+  return "uni"; // "all" (OpenDota) ou "uni" (catálogo) = Universal
 }
 
-interface HeroMeta {
+/** O que a tabela precisa saber de cada herói. */
+export interface HeroMetaSource {
+  id: number;
   name: string;
+  /** URL da face quadrada (minimapa) oficial. */
   face: string;
   attr: HeroAttr;
 }
 
-function buildMetaMap(heroes: OpenDotaHeroStat[]): Map<number, HeroMeta> {
-  return new Map(
-    heroes.map((h) => [
-      h.id,
-      {
-        name: h.localized_name,
-        face: heroFaceUrl(h.icon),
-        attr: normalizeAttr(h.primary_attr),
-      },
-    ])
-  );
+/** Linha do catálogo estático de heróis (src/data/dota-heroes.json) que o meta usa. */
+interface CatalogHero {
+  id: number;
+  name_en: string;
+  primary_attr: string;
+  image_icon: string;
+}
+
+/**
+ * Converte o catálogo estático no que a tabela usa. Antes isto vinha do /heroStats da OpenDota
+ * a cada visita, e o 429 dela derrubava a /meta inteira (revisão de 18/11/2026).
+ */
+export function heroSourcesFromCatalog(heroes: CatalogHero[]): HeroMetaSource[] {
+  return heroes.map((h) => ({ id: h.id, name: h.name_en, face: h.image_icon, attr: normalizeAttr(h.primary_attr) }));
+}
+
+function buildMetaMap(heroes: HeroMetaSource[]): Map<number, HeroMetaSource> {
+  return new Map(heroes.map((h) => [h.id, h]));
 }
 
 /** Soma matches/wins por herói, filtrando a posição selecionada (ou todas). */
@@ -84,7 +92,7 @@ function aggregateByHero(
  * rate decrescente. pickRate = participação do herói no total de picks da função.
  */
 export function buildMetaRows(
-  heroes: OpenDotaHeroStat[],
+  heroes: HeroMetaSource[],
   stats: PositionStat[],
   position: MetaPosition
 ): MetaResult {

@@ -1,6 +1,6 @@
 // OpenDota API client — fetch + normalize de match data.
 //
-// Free tier sem chave: 60 req/min, suficiente pro MVP.
+// Toda chamada passa por openDotaFetch (opendota-fetch.ts): chave, limite de tempo e nova tentativa.
 // Endpoint: https://api.opendota.com/api/matches/{match_id}
 //
 // Convenções OpenDota:
@@ -10,7 +10,9 @@
 //   - player.win: 1 ou 0 (já calculado pela API)
 //   - itens: item_0..item_5 (inventário) + backpack_0..2 + item_neutral
 
-export const OPENDOTA_BASE = "https://api.opendota.com/api";
+import { OpenDotaError, openDotaFetch } from "./opendota-fetch";
+
+export { OPENDOTA_BASE, OpenDotaError, isOpenDotaPending } from "./opendota-fetch";
 
 export interface OpenDotaPlayer {
   account_id: number | null; // null se anônimo
@@ -74,17 +76,6 @@ export interface OpenDotaMatch {
 /** lobby_type oficial Valve pra partida ranked de matchmaking. */
 export const LOBBY_TYPE_RANKED = 7;
 
-export class OpenDotaError extends Error {
-  constructor(message: string, public status?: number) {
-    super(message);
-    this.name = "OpenDotaError";
-  }
-}
-
-/**
- * Busca dados crus de uma partida na OpenDota.
- * Aceita matchId em qualquer formato (string ou number).
- */
 /**
  * Garante que o match id é só dígitos antes de interpolar na URL da OpenDota.
  * Fecha injeção de path/parâmetro (ex.: "123/../players/x", "1?api_key=") caso
@@ -93,41 +84,25 @@ export class OpenDotaError extends Error {
 function assertNumericMatchId(matchId: string | number): string {
   const id = String(matchId);
   if (!/^\d+$/.test(id)) {
-    throw new OpenDotaError(`match id inválido (esperado só dígitos): ${id}`);
+    throw new OpenDotaError(`match id inválido (esperado só dígitos): ${id}`, undefined, "invalida");
   }
   return id;
 }
 
 /**
- * Retry com backoff exponencial pra 429 (rate limit do free tier: 60 req/min)
- * e 5xx transitórios. 404 e demais 4xx NÃO são retentados (significado real:
- * partida indexando / id inválido). Máx 2 retries (1s, 3s) pra caber no
- * maxDuration do cron sem estourar.
+ * Busca dados crus de uma partida na OpenDota. 404 (indexando) e resposta sem os 10
+ * jogadores (ainda ao vivo) lançam OpenDotaError de "ainda não" (isOpenDotaPending).
  */
-async function fetchOpenDotaWithRetry(url: string): Promise<Response> {
-  const delaysMs = [1000, 3000];
-  for (let attempt = 0; ; attempt++) {
-    const res = await fetch(url, {
-      headers: { Accept: "application/json" },
-      // Forçar SSR sem cache do Next pra dados frescos
-      cache: "no-store",
-    });
-    const retriable = res.status === 429 || res.status >= 500;
-    if (res.ok || !retriable || attempt >= delaysMs.length) return res;
-    await new Promise((r) => setTimeout(r, delaysMs[attempt]));
-  }
-}
-
 export async function fetchOpenDotaMatch(matchId: string | number): Promise<OpenDotaMatch> {
   const safeId = assertNumericMatchId(matchId);
-  const url = `${OPENDOTA_BASE}/matches/${safeId}`;
-  const res = await fetchOpenDotaWithRetry(url);
-  if (!res.ok) {
-    throw new OpenDotaError(`OpenDota retornou ${res.status} pra match ${matchId}`, res.status);
-  }
+  const res = await openDotaFetch(`/matches/${safeId}`);
   const data = (await res.json()) as OpenDotaMatch;
   if (!data.players || data.players.length !== 10) {
-    throw new OpenDotaError(`Match ${matchId} sem 10 jogadores na resposta (got ${data.players?.length ?? 0})`);
+    throw new OpenDotaError(
+      `Match ${matchId} sem 10 jogadores na resposta (got ${data.players?.length ?? 0})`,
+      undefined,
+      "incompleta"
+    );
   }
   return data;
 }
@@ -226,12 +201,11 @@ export async function validateOpendotaMatch(
 ): Promise<ValidateMatchResult> {
   try {
     const safeId = assertNumericMatchId(matchId);
-    const res = await fetch(`${OPENDOTA_BASE}/matches/${safeId}`, {
-      next: { revalidate: 0 }, // nunca cachear — precisa dados frescos
-    });
-
-    if (!res.ok) {
-      if (res.status === 404) {
+    let res: Response;
+    try {
+      res = await openDotaFetch(`/matches/${safeId}`);
+    } catch (err) {
+      if (err instanceof OpenDotaError && err.kind === "indexando") {
         return {
           valid: false,
           reason:
@@ -240,7 +214,7 @@ export async function validateOpendotaMatch(
       }
       return {
         valid: false,
-        reason: `OpenDota API retornou erro ${res.status}. Tente novamente em instantes.`,
+        reason: `OpenDota API retornou erro ${err instanceof OpenDotaError ? err.status ?? "de rede" : "?"}. Tente novamente em instantes.`,
       };
     }
 
@@ -339,12 +313,8 @@ export function isMatchParsed(match: OpenDotaMatch): boolean {
 export async function requestOpenDotaParse(matchId: string | number): Promise<boolean> {
   try {
     const safeId = assertNumericMatchId(matchId);
-    const res = await fetch(`${OPENDOTA_BASE}/request/${safeId}`, {
-      method: "POST",
-      headers: { Accept: "application/json" },
-      cache: "no-store",
-    });
-    return res.ok;
+    await openDotaFetch(`/request/${safeId}`, { method: "POST" });
+    return true;
   } catch {
     return false;
   }
@@ -388,45 +358,4 @@ export function normalizePlayers(match: OpenDotaMatch): NormalizedPlayer[] {
       raw_opendota: p,
     };
   });
-}
-
-// =====================================================================
-// META DE HERÓIS (aba /meta) — estatísticas AGREGADAS da OpenDota.
-// /heroStats traz pick/win por bracket (campos "1_pick".."8_win") +
-// pro_pick/pro_win/pro_ban. Diferente de /matches/{id}, aqui CACHEAMOS:
-// o meta muda devagar e cache de 1h derruba o consumo a ~zero (free tier
-// = 60 req/min) e protege contra instabilidade da API.
-// =====================================================================
-
-export interface OpenDotaHeroStat {
-  id: number;
-  name: string;
-  localized_name: string;
-  /** "str" | "agi" | "int" | "all" (all = Universal). */
-  primary_attr: string;
-  attack_type: string;
-  roles: string[];
-  /** Path relativo no CDN Valve (ex: "/apps/dota2/.../antimage.png?"). */
-  img: string;
-  icon: string;
-  pro_pick?: number;
-  pro_win?: number;
-  pro_ban?: number;
-  // Campos por bracket ("1_pick".."8_pick" e "1_win".."8_win") — acessados
-  // por índice (chaves numéricas com underscore não dá pra tipar nominalmente).
-  [key: string]: unknown;
-}
-
-const HERO_STATS_URL = `${OPENDOTA_BASE}/heroStats`;
-
-/** Busca estatísticas agregadas de todos os heróis (cache de 1h). */
-export async function fetchHeroStats(): Promise<OpenDotaHeroStat[]> {
-  const res = await fetch(HERO_STATS_URL, {
-    headers: { Accept: "application/json" },
-    next: { revalidate: 3600 },
-  });
-  if (!res.ok) {
-    throw new OpenDotaError(`OpenDota /heroStats retornou ${res.status}`, res.status);
-  }
-  return (await res.json()) as OpenDotaHeroStat[];
 }

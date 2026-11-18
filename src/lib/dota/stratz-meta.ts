@@ -7,10 +7,9 @@
 // Usamos heroStats.winWeek (não stats): só o winWeek aceita o enum granular
 // bracketIds:[IMMORTAL] + positionIds. Uma query com 5 aliases (um por posição)
 // soma as últimas semanas (≈ patch atual). Auth = Bearer + User-Agent "STRATZ_API"
-// (sem o UA a Stratz devolve 403). Cache 6h via unstable_cache (meta muda devagar;
-// sem migration).
+// (sem o UA a Stratz devolve 403). O resultado fica guardado na tabela dota_meta_cache
+// (meta-cache.ts): o cache do Next não guarda nada na Cloudflare.
 
-import { unstable_cache } from "next/cache";
 import { serverEnv } from "@/lib/env";
 
 export interface PositionStat {
@@ -21,7 +20,7 @@ export interface PositionStat {
 }
 
 const STRATZ_ENDPOINT = "https://api.stratz.com/graphql";
-const META_REVALIDATE_SECONDS = 6 * 3600;
+const STRATZ_TIMEOUT_MS = 15_000;
 const POSITIONS = [1, 2, 3, 4, 5] as const;
 // RankBracket granular da Stratz — IMMORTAL isola o topo (≈7000+ MMR).
 const IMMORTAL_BRACKET = "IMMORTAL";
@@ -42,7 +41,8 @@ function buildQuery(): string {
   return `{ heroStats { ${aliases} } }`;
 }
 
-async function queryStratz(): Promise<PositionStat[]> {
+/** Busca na Stratz os números por posição no Imortal. Lança em qualquer falha. */
+export async function queryPositionStats(): Promise<PositionStat[]> {
   const token = serverEnv.STRATZ_API_KEY;
   if (!token) throw new Error("STRATZ_API_KEY ausente");
 
@@ -54,6 +54,8 @@ async function queryStratz(): Promise<PositionStat[]> {
       "User-Agent": "STRATZ_API",
     },
     body: JSON.stringify({ query: buildQuery() }),
+    cache: "no-store",
+    signal: AbortSignal.timeout(STRATZ_TIMEOUT_MS),
   });
   if (!res.ok) throw new Error(`Stratz HTTP ${res.status}`);
 
@@ -83,11 +85,4 @@ async function queryStratz(): Promise<PositionStat[]> {
     }
   }
   return out;
-}
-
-/** Stats por posição no MMR Imortal (cacheados 6h). */
-export function fetchPositionStats(): Promise<PositionStat[]> {
-  return unstable_cache(queryStratz, ["hero-meta-positions-immortal"], {
-    revalidate: META_REVALIDATE_SECONDS,
-  })();
 }

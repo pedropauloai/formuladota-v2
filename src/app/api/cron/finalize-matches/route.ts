@@ -6,48 +6,42 @@
 // ao vivo/indexando, a OpenDota não devolve os 10 jogadores → pulamos e tentamos no
 // próximo ciclo. Assim ninguém fica preso em partida "pra sempre".
 //
-// Auth: header Authorization: Bearer <CRON_SECRET> (mesmo segredo no Vercel e no
-// job pg_cron, que lê do Supabase Vault). Sem segredo válido → 401.
+// Só tarefas de partida moram aqui. Loja, meta e novidades ficam no cron do site
+// (/api/cron/site), para que pausar este job não pause a loja.
+//
+// Auth: header Authorization: Bearer <CRON_SECRET> (o job pg_cron lê do Supabase Vault).
+// Alguma tarefa falhou → 500, e o aviso no Discord sai pelo estado em cron_task_status.
 
 import { NextResponse } from "next/server";
-import { timingSafeEqual } from "node:crypto";
-import { requireServerEnv } from "@/lib/env";
 import { createServiceClient } from "@/lib/supabase/service";
-import { fetchOpenDotaMatch } from "@/lib/dota/opendota";
+import { fetchOpenDotaMatch, isOpenDotaPending } from "@/lib/dota/opendota";
 import { finalizeMatchmakingLobby, finalizePendingMmr } from "@/lib/dota/finalize-match";
-import { syncChangelogToDiscord } from "@/lib/changelog/discord-sync";
 import { syncMatchResultsToDiscord, syncFormedMatchesToDiscord } from "@/lib/dota/results-discord";
 import { ensureTeamVoiceRooms, teardownTeamVoiceRooms } from "@/lib/dota/team-voice";
-import { reconcilePendingStoreOrders } from "@/lib/loja/order-payments";
-import { refreshOwnerProof } from "@/lib/loja/owner-proof";
+import { isCronAuthorized } from "@/lib/cron/auth";
+import { finishCronRun, runTask } from "@/lib/cron/tasks";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
-// Poucos lobbies por ciclo; margem pra o enrich (OpenDota) de cada um.
-export const maxDuration = 60;
 
 // Trava de segurança: no máximo N lobbies por invocação (evita rodada longa demais).
 const MAX_PER_RUN = 10;
 
-/** Comparação em tempo constante de segredos (consistente com o resto do código). */
-function safeEqualSecret(a: string, b: string): boolean {
-  const bufA = Buffer.from(a);
-  const bufB = Buffer.from(b);
-  if (bufA.length !== bufB.length) return false;
-  return timingSafeEqual(bufA, bufB);
+type FetchedMatches = Map<string, Awaited<ReturnType<typeof fetchOpenDotaMatch>>>;
+type ServiceClient = ReturnType<typeof createServiceClient>;
+
+interface LobbyRun {
+  checked: number;
+  finalized: number;
+  results: Array<Record<string, unknown>>;
+  /** Falhas de verdade (OpenDota bloqueada, fora do ar, erro ao gravar); "ainda não" não conta. */
+  failures: string[];
 }
 
-export async function POST(req: Request) {
-  const expected = requireServerEnv("CRON_SECRET");
-  const authHeader = req.headers.get("authorization") ?? "";
-  const presented = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
-  // Auditoria 2026-07-03: comparação em tempo constante (antes era `!==` direto).
-  if (!safeEqualSecret(presented, expected)) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  }
-
-  const supabase = createServiceClient();
-
+async function finalizeInProgressLobbies(
+  supabase: ServiceClient,
+  fetchedThisRun: FetchedMatches
+): Promise<LobbyRun> {
   // Lobbies em andamento que já têm o ID real da Valve (o bot já lançou a partida).
   const { data: lobbies, error } = await supabase
     .from("lobbies")
@@ -56,109 +50,70 @@ export async function POST(req: Request) {
     .not("dota_match_id", "is", null)
     .order("created_at", { ascending: true })
     .limit(MAX_PER_RUN);
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
+  if (error) throw new Error(`listar lobbies em andamento falhou: ${error.message}`);
 
-  const results: Array<Record<string, unknown>> = [];
-  // Partidas buscadas neste ciclo (dota_match_id → od) — o MESMO objeto serve
-  // pro precheck, pra finalização e pra fase de MMR. Antes cada fase re-buscava
-  // a mesma partida (até 3x por match/min), encostando no free tier (60 req/min).
-  const fetchedThisRun = new Map<string, Awaited<ReturnType<typeof fetchOpenDotaMatch>>>();
+  const run: LobbyRun = { checked: lobbies?.length ?? 0, finalized: 0, results: [], failures: [] };
   for (const lobby of lobbies ?? []) {
     const dotaMatchId = String(lobby.dota_match_id);
     // Pré-checa se a partida JÁ terminou na OpenDota (10 jogadores presentes).
-    // fetchOpenDotaMatch lança se 404 (indexando) ou != 10 players (ao vivo) →
-    // tratamos como "ainda não" e seguimos (sem criar linha de match prematura).
     let od;
     try {
       od = await fetchOpenDotaMatch(dotaMatchId);
       fetchedThisRun.set(dotaMatchId, od);
-    } catch {
-      results.push({ dotaMatchId, status: "aguardando" });
+    } catch (e) {
+      const detail = e instanceof Error ? e.message : String(e);
+      // 404 (indexando) ou sem os 10 jogadores (ao vivo): só "ainda não". 429 e 5xx são falha.
+      if (isOpenDotaPending(e)) {
+        run.results.push({ dotaMatchId, status: "aguardando" });
+      } else {
+        run.results.push({ dotaMatchId, status: "falha", detail });
+        run.failures.push(`${dotaMatchId}: ${detail}`);
+      }
       continue;
     }
     // Terminou → finaliza (idempotente), reaproveitando o od do precheck.
     try {
       const res = await finalizeMatchmakingLobby(supabase, lobby.id, od);
-      results.push({ dotaMatchId, status: res.success ? "finalizada" : "erro", detail: res.error ?? res.alreadyDone });
+      if (res.success) run.finalized += 1;
+      else run.failures.push(`${dotaMatchId}: ${res.error ?? "erro ao finalizar"}`);
+      run.results.push({ dotaMatchId, status: res.success ? "finalizada" : "erro", detail: res.error ?? res.alreadyDone });
     } catch (e) {
-      results.push({ dotaMatchId, status: "erro", detail: e instanceof Error ? e.message : "?" });
+      const detail = e instanceof Error ? e.message : "?";
+      run.failures.push(`${dotaMatchId}: ${detail}`);
+      run.results.push({ dotaMatchId, status: "erro", detail });
     }
   }
+  return run;
+}
 
-  // Fase B: aplica o MMR das partidas já finalizadas cujo replay JÁ foi parseado
-  // (ou por fallback). Separado da finalização pra não atrasar a liberação dos
-  // jogadores — o MMR usa o desempenho completo (presença em teamfight etc.).
-  // Partidas recém-finalizadas NESTE ciclo reusam o od já buscado (zero re-fetch).
-  let mmr: Awaited<ReturnType<typeof finalizePendingMmr>> | null = null;
-  try {
-    mmr = await finalizePendingMmr(supabase, { prefetched: fetchedThisRun });
-  } catch (e) {
-    mmr = { applied: 0, waitingParse: 0, results: [{ error: e instanceof Error ? e.message : "?" }] };
+export async function POST(req: Request) {
+  if (!isCronAuthorized(req)) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
+  const supabase = createServiceClient();
 
-  // Espelho /novidades → Discord (canal 🆕 atualizações). Isolado: qualquer
-  // falha aqui NÃO afeta a finalização de partidas. No-op sem a env do webhook.
-  let changelog: Awaited<ReturnType<typeof syncChangelogToDiscord>> | null = null;
-  try {
-    changelog = await syncChangelogToDiscord(supabase);
-  } catch (e) {
-    changelog = { posted: 0, edited: 0, deleted: 0, skipped: 0 };
-    console.error("[cron] sync changelog→discord falhou:", e instanceof Error ? e.message : e);
-  }
-
-  // Posts de partida no Discord: 📊 resultados (placar) + 🔎 fila (partida formada).
-  // Isolados — falha aqui NÃO afeta a finalização. No-op sem as envs dos webhooks.
-  let matchPosts: { results: number; formed: number } = { results: 0, formed: 0 };
-  try {
-    const [r, f] = await Promise.all([
-      syncMatchResultsToDiscord(supabase),
-      syncFormedMatchesToDiscord(supabase),
-    ]);
-    matchPosts = { results: r.posted, formed: f.posted };
-  } catch (e) {
-    console.error("[cron] posts de partida→discord falharam:", e instanceof Error ? e.message : e);
-  }
-
-  // Salas de voz dinâmicas por time: cria ao formar, apaga ao finalizar. Isolado.
-  let teamVoice: { created: number; removed: number } = { created: 0, removed: 0 };
-  try {
-    const [c, d] = await Promise.all([
-      ensureTeamVoiceRooms(supabase),
-      teardownTeamVoiceRooms(supabase),
-    ]);
-    teamVoice = { created: c.created, removed: d.removed };
-  } catch (e) {
-    console.error("[cron] salas de voz de time falharam:", e instanceof Error ? e.message : e);
-  }
-
-  // Loja: concilia pedidos pendentes com o Mercado Pago (rede de segurança do webhook). Isolado.
-  let loja: Awaited<ReturnType<typeof reconcilePendingStoreOrders>> | null = null;
-  try {
-    loja = await reconcilePendingStoreOrders();
-  } catch (e) {
-    console.error("[cron] conciliação da loja falhou:", e instanceof Error ? e.message : e);
-  }
-
-  // Loja: renova a medalha e os números do Pedro mostrados na vitrine (no máximo a cada 6 h). Isolado.
-  let lojaProva: Awaited<ReturnType<typeof refreshOwnerProof>> | null = null;
-  try {
-    lojaProva = await refreshOwnerProof();
-  } catch (e) {
-    console.error("[cron] prova da vitrine falhou:", e instanceof Error ? e.message : e);
-  }
-
-  return NextResponse.json({
-    loja,
-    lojaProva,
-    ok: true,
-    checked: (lobbies ?? []).length,
-    finalized: results.filter((r) => r.status === "finalizada").length,
-    results,
-    mmr,
-    changelog,
-    matchPosts,
-    teamVoice,
+  // Partidas buscadas neste ciclo (dota_match_id → od): o MESMO objeto serve pro precheck,
+  // pra finalização e pra fase de MMR, sem buscar a mesma partida duas vezes.
+  const fetchedThisRun: FetchedMatches = new Map();
+  const partidas = await runTask("partidas", () => finalizeInProgressLobbies(supabase, fetchedThisRun), {
+    failureOf: (run) => (run.failures.length > 0 ? run.failures.join("; ") : null),
   });
+
+  // Fase B: aplica o MMR das partidas finalizadas cujo replay já foi parseado (ou por fallback).
+  // Separado da finalização pra não atrasar a liberação dos jogadores.
+  const mmr = await runTask("mmr", () => finalizePendingMmr(supabase, { prefetched: fetchedThisRun }));
+
+  // Posts de partida no Discord (resultados e partida formada) e salas de voz por time.
+  const [posts, voz] = await Promise.all([
+    runTask("posts-discord", async () => {
+      const [r, f] = await Promise.all([syncMatchResultsToDiscord(supabase), syncFormedMatchesToDiscord(supabase)]);
+      return { results: r.posted, formed: f.posted };
+    }),
+    runTask("voz-times", async () => {
+      const [c, d] = await Promise.all([ensureTeamVoiceRooms(supabase), teardownTeamVoiceRooms(supabase)]);
+      return { created: c.created, removed: d.removed };
+    }),
+  ]);
+
+  return finishCronRun([partidas, mmr, posts, voz]);
 }

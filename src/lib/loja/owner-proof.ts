@@ -5,8 +5,8 @@
 import "server-only";
 import { cache } from "react";
 import { createServiceClient } from "@/lib/supabase/service";
-import { serverEnv } from "@/lib/env";
-import { OPENDOTA_BASE, steam64To32 } from "@/lib/dota/opendota";
+import { steam64To32 } from "@/lib/dota/opendota";
+import { openDotaJson } from "@/lib/dota/opendota-fetch";
 import type { Json } from "@/types/database";
 import { buildOwnerProofData, parseOwnerProofData, type OwnerProofData } from "./owner-proof-data";
 
@@ -54,34 +54,23 @@ export const getOwnerProof = cache(async (): Promise<OwnerProof | null> => {
   }
 });
 
-async function fetchJson(url: string): Promise<unknown> {
-  const res = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
-  if (!res.ok) throw new Error(`${new URL(url).host} respondeu ${res.status}`);
-  return res.json();
-}
-
 async function fetchOwnerData(accountId: number, now: Date): Promise<OwnerProofData> {
-  const url = new URL(`${OPENDOTA_BASE}/players/${accountId}`);
-  // Na Cloudflare a saída é por IP compartilhado: sem a chave o OpenDota devolve 429.
-  if (serverEnv.OPENDOTA_API_KEY) url.searchParams.set("api_key", serverEnv.OPENDOTA_API_KEY);
-  return buildOwnerProofData(await fetchJson(url.toString()), now);
+  return buildOwnerProofData(await openDotaJson<unknown>(`/players/${accountId}`, { timeoutMs: FETCH_TIMEOUT_MS }), now);
 }
 
-/** Chamado pelo cron: renova a prova quando passou de 6 horas; com falha, tenta a cada 10 minutos. */
-export async function refreshOwnerProof(now = new Date()): Promise<"fresco" | "aguardando" | "renovado" | "sem_dono" | "falhou"> {
+/**
+ * Chamado pelo cron do site: renova a prova quando passou de 6 horas; com falha, tenta a cada
+ * 10 minutos. A falha lança, para o cron marcar a tarefa e avisar se ela persistir.
+ */
+export async function refreshOwnerProof(now = new Date()): Promise<"fresco" | "aguardando" | "renovado" | "sem_dono"> {
   const [owner, current] = await Promise.all([findOwner(), readProof()]);
   if (!owner?.accountId) return "sem_dono";
   if (current && now.getTime() - new Date(current.syncedAt).getTime() < REFRESH_EVERY_MS) return "fresco";
   if (now.getUTCMinutes() % RETRY_EVERY_MINUTES !== 0) return "aguardando";
-  try {
-    const data = await fetchOwnerData(owner.accountId, now);
-    const { error } = await createServiceClient()
-      .from("store_owner_proof")
-      .upsert({ id: 1, data: data as unknown as Json, refreshed_at: now.toISOString() }, { onConflict: "id" });
-    if (error) throw new Error(error.message);
-    return "renovado";
-  } catch (err) {
-    console.error("[loja] renovar prova do dono:", err instanceof Error ? err.message : err);
-    return "falhou";
-  }
+  const data = await fetchOwnerData(owner.accountId, now);
+  const { error } = await createServiceClient()
+    .from("store_owner_proof")
+    .upsert({ id: 1, data: data as unknown as Json, refreshed_at: now.toISOString() }, { onConflict: "id" });
+  if (error) throw new Error(`gravar store_owner_proof falhou: ${error.message}`);
+  return "renovado";
 }

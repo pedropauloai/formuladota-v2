@@ -586,6 +586,30 @@ export type Database = {
         }
         Relationships: []
       }
+      cron_task_status: {
+        Row: {
+          alerted: boolean
+          failing_since: string | null
+          last_error: string | null
+          task: string
+          updated_at: string
+        }
+        Insert: {
+          alerted?: boolean
+          failing_since?: string | null
+          last_error?: string | null
+          task: string
+          updated_at?: string
+        }
+        Update: {
+          alerted?: boolean
+          failing_since?: string | null
+          last_error?: string | null
+          task?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       dm_conversations: {
         Row: {
           created_at: string
@@ -763,6 +787,30 @@ export type Database = {
           published_at?: string
           text_hash?: string
           version?: number
+        }
+        Relationships: []
+      }
+      dota_meta_cache: {
+        Row: {
+          data: Json
+          key: string
+          last_attempt_at: string | null
+          last_error: string | null
+          refreshed_at: string
+        }
+        Insert: {
+          data: Json
+          key: string
+          last_attempt_at?: string | null
+          last_error?: string | null
+          refreshed_at?: string
+        }
+        Update: {
+          data?: Json
+          key?: string
+          last_attempt_at?: string | null
+          last_error?: string | null
+          refreshed_at?: string
         }
         Relationships: []
       }
