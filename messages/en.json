@@ -242,6 +242,8 @@
     "roomSettings": "Room settings",
     "gameModeLabel": "Game mode",
     "searchMatch": "Find Match",
+    "queuePausedTitle": "Matchmaking paused",
+    "queuePausedText": "The bot that creates the lobby in Dota is offline. Matchmaking returns as soon as it is back.",
     "searching": "Searching",
     "cancelSearch": "Cancel search",
     "cancelFailed": "Couldn't leave the queue. Try again.",

@@ -242,6 +242,8 @@
     "roomSettings": "Configurações da sala",
     "gameModeLabel": "Modo de jogo",
     "searchMatch": "Buscar Partida",
+    "queuePausedTitle": "Busca pausada",
+    "queuePausedText": "O bot que cria a sala no Dota está fora do ar. A busca de partida volta quando ele voltar.",
     "searching": "Buscando",
     "cancelSearch": "Cancelar busca",
     "cancelFailed": "Não foi possível sair da fila. Tente de novo.",

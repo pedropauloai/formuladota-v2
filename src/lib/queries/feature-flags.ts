@@ -12,7 +12,8 @@ export type FeatureFlagKey =
   | "doctrine_quiz"
   | "match_dodge_penalty"
   | "matchmaking_mmr_range"
-  | "loja";
+  | "loja"
+  | "fila_competitiva";
 
 export interface FeatureFlags {
   ranked_com_pro: boolean;
@@ -27,6 +28,9 @@ export interface FeatureFlags {
   matchmaking_mmr_range: boolean;
   /** Loja do site (migration 158). OFF = /loja some para todos, inclusive admin. */
   loja: boolean;
+  /** Fila competitiva (migration 166). OFF = busca pausada para todos: sem o bot da Steam
+   *  no ar a partida formada nunca vira sala. Religar quando o bot voltar. */
+  fila_competitiva: boolean;
 }
 
 // Defaults quando a linha não existe / erro de leitura (falha fechada: feature off).
@@ -37,6 +41,7 @@ const DEFAULTS: FeatureFlags = {
   match_dodge_penalty: false,
   matchmaking_mmr_range: true,
   loja: false,
+  fila_competitiva: false,
 };
 
 // React.cache: page e ClientShell chamam no mesmo request — 1 query só.

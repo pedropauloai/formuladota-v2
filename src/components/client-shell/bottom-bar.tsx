@@ -35,6 +35,8 @@ interface Props {
   smokeTheme?: SmokeAsset | null;
   /** Feature flag: mostra a modalidade "Ranked com PRO" no menu Jogar. */
   showRankedComPro: boolean;
+  /** Flag fila_competitiva desligada: o menu Jogar avisa que a busca está pausada. */
+  queuePaused: boolean;
 }
 
 export function DashboardBottomBar({
@@ -44,6 +46,7 @@ export function DashboardBottomBar({
   inParty,
   smokeTheme = null,
   showRankedComPro,
+  queuePaused,
 }: Props) {
   const [statusModalOpen, setStatusModalOpen] = useState(false);
 
@@ -65,6 +68,7 @@ export function DashboardBottomBar({
           inParty={inParty}
           smokeTheme={smokeTheme}
           showRankedComPro={showRankedComPro}
+          queuePaused={queuePaused}
           onStatusClick={() => setStatusModalOpen(true)}
         />
       </div>
@@ -88,6 +92,7 @@ interface CtaProps {
   inParty: boolean;
   smokeTheme: SmokeAsset | null;
   showRankedComPro: boolean;
+  queuePaused: boolean;
   onStatusClick: () => void;
 }
 
@@ -98,6 +103,7 @@ function Cta({
   inParty,
   smokeTheme,
   showRankedComPro,
+  queuePaused,
   onStatusClick,
 }: CtaProps) {
   const t = useTranslations("shell");
@@ -136,6 +142,7 @@ function Cta({
       inParty={inParty}
       smokeTheme={smokeTheme}
       showRankedComPro={showRankedComPro}
+      queuePaused={queuePaused}
     />
   );
 }

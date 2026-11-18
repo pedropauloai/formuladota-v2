@@ -223,6 +223,8 @@ export async function ClientShell({
   const showRankedComPro = featureFlags.ranked_com_pro;
   // Flag loja: mesma regra autoritativa. Desligada, a aba "Loja" some do topbar para todos.
   const showLoja = featureFlags.loja;
+  // Flag fila_competitiva: desligada, o menu Jogar avisa que a busca está pausada (sem bot no ar).
+  const queuePaused = !featureFlags.fila_competitiva;
   // Persona/avatar: null pra visitante (LeftSidebar mostra VisitorCard).
   // Identidade canônica via lib/identity (anti-anonimato: Steam > Discord, nunca vazio).
   const identitySrc = {
@@ -365,6 +367,7 @@ export async function ClientShell({
               inParty={myParty !== null}
             smokeTheme={smokeTheme}
               showRankedComPro={showRankedComPro}
+              queuePaused={queuePaused}
             />
           </div>
         )}
@@ -486,6 +489,7 @@ export async function ClientShell({
             inParty={myParty !== null}
             smokeTheme={smokeTheme}
             showRankedComPro={showRankedComPro}
+            queuePaused={queuePaused}
           />
         </div>
       )}

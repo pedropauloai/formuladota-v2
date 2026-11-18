@@ -8,6 +8,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getSteamIdentityMap, resolveIdentity } from "@/lib/queries/identities";
+import { getFeatureFlags } from "@/lib/queries/feature-flags";
 import {
   getMyParty,
   getMyPartyInvites,
@@ -184,6 +185,11 @@ export async function enterPartyQueue(gameModes: string[]): Promise<PartyQueueRe
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Não autenticado" };
+
+  // Fila pausada (flag fila_competitiva): sem o bot da Steam, a partida formada não vira sala.
+  if (!(await getFeatureFlags()).fila_competitiva) {
+    return { success: false, error: "A busca de partida está pausada: o bot que cria a sala no Dota está fora do ar." };
+  }
 
   // Voz é OPCIONAL (Pedro 2026-07-05): gate de voz removido (inclusive CM). O incentivo
   // é o canal de voz por time + o botão na página da partida, não uma trava na fila.
