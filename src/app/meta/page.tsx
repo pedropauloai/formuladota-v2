@@ -1,19 +1,18 @@
 // Página /meta — estatísticas de heróis do Dota 2 POR FUNÇÃO (pos 1-5).
 // Server Component no padrão denso do cliente Dota 2.
 //
-// "Comprar, não construir": metadata (nome/ícone/atributo) vem do OpenDota e os
-// números por posição vêm da Stratz (heroStats.stats), ambos cacheados — sem
-// reconstruir pipeline de dados e sem migration. META = padrão objetivo: só o
-// dado, ordenado por win rate.
+// "Comprar, não construir": nome/ícone/atributo vêm do catálogo estático de heróis e os
+// números por posição vêm da Stratz, guardados no banco pelo cron (dota_meta_cache).
+// META = padrão objetivo: só o dado, ordenado por win rate.
 
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { BarChart3 } from "lucide-react";
 import { ClientShell } from "@/components/client-shell/shell";
 import { EmptyState } from "@/components/ui/empty-state";
-import { fetchHeroStats } from "@/lib/dota/opendota";
-import { fetchPositionStats } from "@/lib/dota/stratz-meta";
-import { buildMetaRows, type MetaPosition } from "@/lib/dota/hero-meta";
+import heroesCatalog from "@/data/dota-heroes.json";
+import { getPositionStats } from "@/lib/dota/meta-cache";
+import { buildMetaRows, heroSourcesFromCatalog, type MetaPosition } from "@/lib/dota/hero-meta";
 import {
   MetaFilters,
   MetaTable,
@@ -67,12 +66,10 @@ async function MetaContent({ state }: { state: MetaFilterState }) {
 
   let result;
   try {
-    const [heroes, posStats] = await Promise.all([
-      fetchHeroStats(),
-      fetchPositionStats(),
-    ]);
-    result = buildMetaRows(heroes, posStats, state.position);
-  } catch {
+    const { stats } = await getPositionStats();
+    result = buildMetaRows(heroSourcesFromCatalog(heroesCatalog), stats, state.position);
+  } catch (err) {
+    console.error("[meta] carregar o meta:", err instanceof Error ? err.message : err);
     return (
       <>
         <MetaFilters state={state} />

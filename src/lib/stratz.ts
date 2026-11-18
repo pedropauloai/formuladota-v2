@@ -6,6 +6,7 @@
 // premium = sem limit). Se ambos falham, retorna null — caller renderiza placeholder.
 
 import { serverEnv } from "@/lib/env";
+import { openDotaJson } from "@/lib/dota/opendota-fetch";
 
 export interface PlayerStatsExtended {
   source: "stratz" | "opendota";
@@ -102,7 +103,9 @@ async function fetchFromStratz(
       "User-Agent": "STRATZ_API",
     },
     body: JSON.stringify({ query, variables: { id: accountId } }),
-    next: { revalidate: 3600 },
+    // O cache do Next não guarda nada na Cloudflare: quem guarda é o user_stats_extended.
+    cache: "no-store",
+    signal: AbortSignal.timeout(8_000),
   });
 
   if (!res.ok) {
@@ -177,31 +180,8 @@ async function fetchFromStratz(
 async function fetchFromOpenDota(
   accountId: number
 ): Promise<PlayerStatsExtended | null> {
-  const apiKey = serverEnv.OPENDOTA_API_KEY;
-  const baseUrl = "https://api.opendota.com/api";
-  const auth = apiKey ? `?api_key=${apiKey}` : "";
-
-  // Endpoint /players/{id} retorna stats agregados, /players/{id}/heroes top heróis
-  const [playerRes, heroesRes, recentRes] = await Promise.all([
-    fetch(`${baseUrl}/players/${accountId}${auth}`, {
-      next: { revalidate: 3600 },
-    }),
-    fetch(`${baseUrl}/players/${accountId}/heroes${auth}`, {
-      next: { revalidate: 3600 },
-    }),
-    fetch(`${baseUrl}/players/${accountId}/recentMatches${auth}`, {
-      next: { revalidate: 3600 },
-    }),
-  ]);
-
-  if (!playerRes.ok) return null;
-
-  const heroes = (await heroesRes.json()) as Array<{
-    hero_id: number;
-    games: number;
-    win: number;
-  }>;
-  const recent = (await recentRes.json()) as Array<{
+  type HeroRow = { hero_id: number; games: number; win: number };
+  type RecentRow = {
     kills: number;
     deaths: number;
     assists: number;
@@ -209,7 +189,21 @@ async function fetchFromOpenDota(
     xp_per_min: number;
     last_hits: number;
     hero_damage: number;
-  }>;
+  };
+  // /players/{id} confirma que a conta existe; /heroes e /recentMatches dão as médias.
+  let heroes: HeroRow[];
+  let recent: RecentRow[];
+  try {
+    const [, heroRows, recentRows] = await Promise.all([
+      openDotaJson<unknown>(`/players/${accountId}`),
+      openDotaJson<HeroRow[]>(`/players/${accountId}/heroes`),
+      openDotaJson<RecentRow[]>(`/players/${accountId}/recentMatches`),
+    ]);
+    heroes = heroRows;
+    recent = recentRows;
+  } catch {
+    return null;
+  }
 
   // Agrega: total matches/wins de heroes (mais confiável que player.win_count
   // que pode estar desatualizado pra contas privadas)

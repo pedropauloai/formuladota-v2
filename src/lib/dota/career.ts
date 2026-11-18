@@ -31,7 +31,7 @@
 // qualquer falha de rede/API retorna null e o caller decide o que fazer.
 
 import { serverEnv } from "@/lib/env";
-import { OPENDOTA_BASE, OpenDotaError } from "./opendota";
+import { openDotaJson } from "./opendota-fetch";
 
 // ---------------------------------------------------------------------------
 // Tipos públicos (contrato com a UI)
@@ -229,19 +229,8 @@ async function runStratzCount(
 // ---------------------------------------------------------------------------
 
 async function fetchJson<T>(path: string): Promise<T> {
-  const url = new URL(`${OPENDOTA_BASE}${path}`);
-  // Na Cloudflare a saída é por IP compartilhado: sem a chave o OpenDota devolve 429.
-  const apiKey = serverEnv.OPENDOTA_API_KEY;
-  if (apiKey) url.searchParams.set("api_key", apiKey);
-  const res = await fetch(url, {
-    headers: { Accept: "application/json" },
-    // Cache fica no Supabase (TTL 24h) — aqui sempre dado fresco
-    cache: "no-store",
-  });
-  if (!res.ok) {
-    throw new OpenDotaError(`OpenDota retornou ${res.status} pra ${path}`, res.status);
-  }
-  return (await res.json()) as T;
+  // Cache fica no Supabase (TTL 24h): aqui sempre dado fresco, com chave e limite de tempo.
+  return openDotaJson<T>(path);
 }
 
 /** Top 5 heróis por jogos, normalizados. */
