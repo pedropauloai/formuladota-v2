@@ -114,7 +114,7 @@ export default async function RootLayout({
      * Space Grotesk + Teko via @fontsource-variable carregam font-face
      * automaticamente — não precisa expor CSS var no html className. */
     <html
-      lang={locale}
+      lang={locale === "pt" ? "pt-BR" : locale}
       data-theme="fd-dark"
     >
       <body className="min-h-screen flex flex-col font-body bg-[#0b0c0f]">
