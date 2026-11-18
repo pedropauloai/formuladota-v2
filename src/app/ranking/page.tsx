@@ -3,6 +3,7 @@
 // Refatorado para Design System V2.5: primitives + tokens semânticos.
 
 import type { Metadata } from "next";
+import { pagePreview } from "@/lib/seo";
 import { useTranslations } from "next-intl";
 import { getTranslations } from "next-intl/server";
 import Image from "next/image";
@@ -24,10 +25,7 @@ import { cn } from "@/lib/utils";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("ranking");
-  return {
-    title: t("metaTitle"),
-    description: t("metaDescription"),
-  };
+  return pagePreview({ title: t("metaTitle"), description: t("metaDescription"), path: "/ranking" });
 }
 
 interface RankRow {

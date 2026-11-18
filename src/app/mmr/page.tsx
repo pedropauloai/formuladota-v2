@@ -4,6 +4,7 @@
 // do Dota; Imortal 5620+, topo por POSIÇÃO, sem teto). PT-BR (i18n EN é follow-up).
 
 import type { Metadata } from "next";
+import { pagePreview } from "@/lib/seo";
 import { getTranslations } from "next-intl/server";
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
@@ -25,10 +26,7 @@ import { DotaRankMedal, type DotaRank } from "@/components/ui/dota-rank-medal";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("pgMisc");
-  return {
-    title: t("mmr_metaTitle"),
-    description: t("mmr_metaDescription"),
-  };
+  return pagePreview({ title: t("mmr_metaTitle"), description: t("mmr_metaDescription"), path: "/mmr" });
 }
 
 // Escala (espelha TIER_BANDS de src/lib/mmr.ts). Imortal no topo = por POSIÇÃO.

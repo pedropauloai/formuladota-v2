@@ -32,6 +32,14 @@ for p in /ranking /codigo-de-conduta; do confere "$p" 200 "$(status "$U$p")"; do
 # Links antigos que seguem nas descrições do YouTube (next.config.ts).
 confere "/tinker" "307 $U/" "$(destino "$U/tinker")"
 confere "/rankedpt" "307 $U/ranked-com-pro" "$(destino "$U/rankedpt")"
+# Prévia do placar que o Discord desdobra: o Worker não tem disco, e fonte lida do disco dava 500.
+confere "imagem do placar" "200 image/png" "$(curl $R -s -o /dev/null --max-time 30 -w '%{http_code} %{content_type}' "$U/partida/historico/8883379496/opengraph-image")"
+# Prévia própria da loja: og:url da página, não da home.
+if curl $R -fsSL --max-time 30 "$U/loja" | grep -q "property=\"og:url\" content=\"$U/loja\""; then confere "prévia da /loja" sim sim; else confere "prévia da /loja" sim nao; fi
+# Arquivo com hash no nome guardado pelo navegador por um ano (public/_headers).
+chunk=$(curl $R -fsSL --max-time 30 "$U/" | grep -o '/_next/static/[^"]*\.js' | head -1)
+cc=$(curl $R -s -o /dev/null -D - --max-time 20 "$U$chunk" | tr -d '\r' | grep -i '^cache-control:' | head -1)
+case "$cc" in *immutable*) confere "cache dos arquivos do build" sim sim ;; *) confere "cache dos arquivos do build" sim "nao ($chunk: $cc)" ;; esac
 # O login vai ao Discord pelo Supabase e precisa voltar para este domínio.
 retorno=$(printf '%s' "$U/auth/callback" | sed 's/:/%3A/g; s#/#%2F#g')
 if destino "$U/login" | grep -q "redirect_to=$retorno"; then confere "login volta ao domínio" sim sim; else confere "login volta ao domínio" sim nao; fi

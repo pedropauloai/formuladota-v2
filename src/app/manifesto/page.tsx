@@ -7,6 +7,7 @@
 // Layout cinematográfico "New Frontiers" (igual /metodologia e /codigo-de-conduta).
 
 import { getTranslations } from "next-intl/server";
+import { pagePreview } from "@/lib/seo";
 import { Link } from "@/i18n/navigation";
 import { Swords, ShieldOff, Lock, Globe, Fingerprint, RotateCcw, Trophy } from "lucide-react";
 import { ClientShell } from "@/components/client-shell/shell";
@@ -23,10 +24,7 @@ import { signInWithDiscord } from "@/app/login/actions";
 
 export async function generateMetadata() {
   const t = await getTranslations("manifesto");
-  return {
-    title: t("metaTitle"),
-    description: t("metaDescription"),
-  };
+  return pagePreview({ title: t("metaTitle"), description: t("metaDescription"), path: "/manifesto" });
 }
 
 // Cada par: a falha da Valve (o que ela produz) × a resposta do FORMULADOTA.

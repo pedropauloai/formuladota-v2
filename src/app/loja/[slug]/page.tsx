@@ -3,6 +3,7 @@
 // pelo aviso de quando as vagas abrem.
 
 import type { Metadata } from "next";
+import { pagePreview } from "@/lib/seo";
 import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { ArrowDown, ArrowLeft, LogIn } from "lucide-react";
@@ -31,7 +32,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const product = await getActiveProduct(slug);
   const t = await getTranslations("loja");
   if (!product) return { title: t("metaTitle") };
-  return { title: `${product.title} | ${t("metaTitle")}`, description: product.summary, alternates: { canonical: `/loja/${slug}` } };
+  return pagePreview({ title: `${product.title} | ${t("metaTitle")}`, description: product.summary, path: `/loja/${slug}` });
 }
 
 function DeliverySteps({ md }: { md: string }) {

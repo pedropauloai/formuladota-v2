@@ -3,8 +3,8 @@
 // Também é a imagem usada no embed do canal 📊 resultados.
 
 import { ImageResponse } from "next/og";
-import { readFile } from "node:fs/promises";
 import { getMatchCardData, type MatchCardPlayer } from "@/lib/dota/match-card";
+import { UBUNTU_400_WOFF_BASE64, UBUNTU_700_WOFF_BASE64 } from "./_fonts/ubuntu";
 
 export const runtime = "nodejs";
 export const alt = "Placar da partida — FORMULADOTA";
@@ -104,11 +104,9 @@ function column(players: MatchCardPlayer[], side: "radiant" | "dire", win: boole
 
 export default async function Image({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [card, ubuntu400, ubuntu700] = await Promise.all([
-    getMatchCardData(id),
-    readFile(new URL("./_fonts/ubuntu-400.woff", import.meta.url)),
-    readFile(new URL("./_fonts/ubuntu-700.woff", import.meta.url)),
-  ]);
+  const card = await getMatchCardData(id);
+  const ubuntu400 = Buffer.from(UBUNTU_400_WOFF_BASE64, "base64");
+  const ubuntu700 = Buffer.from(UBUNTU_700_WOFF_BASE64, "base64");
 
   const fonts = [
     { name: "Ubuntu", data: ubuntu400, weight: 400 as const, style: "normal" as const },

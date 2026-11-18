@@ -1,0 +1,20 @@
+# Cabeçalhos dos arquivos estáticos servidos pela Cloudflare (Workers com static assets).
+# Sem isto tudo saía com max-age=0, e o navegador perguntava de novo por uns 20 arquivos a cada página.
+
+# Nome com hash, que muda a cada build: o navegador guarda por um ano.
+/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Imagens, ícones e sons sem hash: um dia, e mais uma semana usando o antigo enquanto confere o novo.
+/icons/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+/images/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+/medals/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+/dota/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+/brand/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+/sounds/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800

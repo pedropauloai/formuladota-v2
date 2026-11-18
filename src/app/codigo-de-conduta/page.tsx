@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { languageAlternates } from "@/lib/seo";
+import { languageAlternates, pagePreview } from "@/lib/seo";
 import { ANTIPATTERNS, PRINCIPLES } from "@/lib/doctrine";
 import { ClientShell } from "@/components/client-shell/shell";
 import {
@@ -21,11 +21,12 @@ import {
 // scroll, background oficial Dota 2. Texto integralmente preservado.
 export async function generateMetadata() {
   const t = await getTranslations("conduta");
-  return {
+  return pagePreview({
     title: t("metaTitle"),
     description: t("metaDescription"),
+    path: "/codigo-de-conduta",
     alternates: languageAlternates("/codigo-de-conduta"),
-  };
+  });
 }
 
 export default async function CodigoDeCondutaPage() {
