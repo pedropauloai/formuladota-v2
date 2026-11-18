@@ -1,6 +1,6 @@
-// A prova da primeira dobra: a medalha do Pedro com a posição no ranking impressa na placa, como
-// no jogo, e os números de Tinker. Tudo vem do cache de carreira (STRATZ e OpenDota), com a data
-// e o link para conferir; "14 mil inscritos" vem do perfil profissional (fonte da verdade).
+// A credencial da primeira dobra: a carreira do Pedro (anos, horas, partidas de Tinker e vitórias),
+// como ele declara, e a medalha com a posição no ranking impressa na placa, como no jogo, que o
+// cron renova pela conta atual.
 
 import { useFormatter, useTranslations } from "next-intl";
 import Image from "next/image";
@@ -13,10 +13,10 @@ function MedalWithRank({ rankTier, leaderboardRank }: { rankTier: number | null;
   const image = !immortal ? null : showRank ? (leaderboardRank <= 100 ? "immortal-top-100" : "immortal-leaderboard") : "immortal";
   if (!image) return null;
   return (
-    <span className="relative inline-block size-28 shrink-0 md:size-32" aria-hidden="true">
-      <Image src={`/icons/dota-ranks/${image}.png`} alt="" width={128} height={128} className="size-full object-contain drop-shadow-[0_0_18px_var(--color-brand-primary-glow)]" />
+    <span className="relative inline-block size-24 shrink-0 md:size-28" aria-hidden="true">
+      <Image src={`/icons/dota-ranks/${image}.png`} alt="" width={112} height={112} className="size-full object-contain drop-shadow-[0_0_18px_var(--color-brand-primary-glow)]" />
       {showRank && (
-        <span className="absolute inset-x-0 top-[78%] flex h-[14%] items-center justify-center font-display text-[15px] leading-none tracking-wide text-gold-cream md:text-[17px]">
+        <span className="absolute inset-x-0 top-[78%] flex h-[14%] items-center justify-center font-display text-[14px] leading-none tracking-wide text-gold-cream md:text-[16px]">
           {leaderboardRank}
         </span>
       )}
@@ -24,11 +24,14 @@ function MedalWithRank({ rankTier, leaderboardRank }: { rankTier: number | null;
   );
 }
 
-function Stat({ value, label }: { value: string; label: string }) {
+function Stat({ value, label, icon }: { value: string; label: string; icon?: React.ReactNode }) {
   return (
     <div className="min-w-0 border-l border-border-strong pl-3">
       <dt className="sr-only">{label}</dt>
-      <dd className="font-display text-2xl leading-none tabular-nums text-text-display md:text-3xl">{value}</dd>
+      <dd className="flex items-center gap-2 font-display text-2xl leading-none tabular-nums text-text-display md:text-[28px]">
+        {icon}
+        {value}
+      </dd>
       <dd className="mt-1 text-xs leading-snug text-text-muted">{label}</dd>
     </div>
   );
@@ -37,8 +40,6 @@ function Stat({ value, label }: { value: string; label: string }) {
 export function OwnerCredential({ proof }: { proof: OwnerProof }) {
   const t = useTranslations("loja");
   const format = useFormatter();
-  const winRate = proof.tinkerGames ? (100 * (proof.tinkerWins ?? 0)) / proof.tinkerGames : null;
-  const synced = new Date(proof.syncedAt);
   return (
     <section data-loja-prova aria-label={t("credentialLabel")} className="relative rounded-md border border-border-gold/40 bg-bg-deep/85 p-5 backdrop-blur-sm md:p-6">
       <div className="flex items-center gap-3">
@@ -60,27 +61,13 @@ export function OwnerCredential({ proof }: { proof: OwnerProof }) {
       </div>
 
       <dl className="mt-5 grid grid-cols-2 gap-x-4 gap-y-4">
-        {proof.tinkerGames !== null && <Stat value={format.number(proof.tinkerGames)} label={t("credentialTinkerGames")} />}
-        {winRate !== null && <Stat value={`${format.number(winRate, { maximumFractionDigits: 1 })}%`} label={t("credentialTinkerWinRate")} />}
-        <Stat value={format.number(proof.totalGames)} label={t("credentialTotalGames")} />
-        <div className="min-w-0 border-l border-border-strong pl-3">
-          <dt className="sr-only">{t("credentialSubscribers")}</dt>
-          <dd className="flex items-center gap-2 font-display text-2xl leading-none text-text-display md:text-3xl">
-            <BrandGlyph brand="youtube" size={18} />
-            {t("credentialSubscribersValue")}
-          </dd>
-          <dd className="mt-1 text-xs leading-snug text-text-muted">{t("credentialSubscribers")}</dd>
-        </div>
+        <Stat value={t("careerYears")} label={t("careerYearsLabel")} />
+        <Stat value={t("careerHours")} label={t("careerHoursLabel")} />
+        <Stat value={t("careerMatches")} label={t("careerMatchesLabel")} />
+        <Stat value={t("careerWinRate")} label={t("careerWinRateLabel")} />
+        <Stat value={t("careerBelowImmortal")} label={t("careerBelowImmortalLabel")} />
+        <Stat value={t("credentialSubscribersValue")} label={t("credentialSubscribers")} icon={<BrandGlyph brand="youtube" size={18} />} />
       </dl>
-
-      <p className="mt-5 text-[11px] leading-relaxed text-text-faded">
-        {t("credentialSource", { date: format.dateTime(synced, { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" }) })}{" "}
-        {proof.accountId !== null && (
-          <a href={`https://www.opendota.com/players/${proof.accountId}`} target="_blank" rel="noopener noreferrer" className="underline decoration-border-strong underline-offset-2 hover:text-text-body">
-            {t("credentialVerify")}
-          </a>
-        )}
-      </p>
     </section>
   );
 }
