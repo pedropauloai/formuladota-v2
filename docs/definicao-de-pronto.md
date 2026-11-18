@@ -30,3 +30,15 @@ Denominador fechado: **13 critérios**.
 - Não cobre cartão real com desafio do banco (3DS): o sandbox do Checkout Pro não pede o desafio, e o primeiro cartão real é a prova.
 - Não cobre o e-mail ao comprador enquanto o domínio `formuladota.com.br` não estiver verificado no Resend: até lá o aviso de venda chega ao Pedro pelo Discord e pelo e-mail da conta do Resend.
 - O checkpoint de 27/11/2026 (receita do canal somando todas as fontes) usa o painel do critério 12, mas a decisão de manter ou mudar o canal é do Pedro e fica fora deste DoD.
+
+## Agenda da loja (frente aberta em 18/11/2026)
+
+Escopo: o comprador escolhe o horário (ou a live) na própria compra, sem WhatsApp, e o Pedro controla a agenda no painel. Spec: [docs/loja/agenda.md](loja/agenda.md). Denominador fechado: **5 critérios**.
+
+| # | Critério | Como se prova | Estado |
+|---|---|---|---|
+| A1 | Produto com horário segura o horário na compra e confirma no pagamento | `pnpm loja:e2e` confere reserva, duração, confirmação e a página do pedido | sim no localhost, 18/11/2026 (21 de 21) |
+| A2 | Dois compradores nunca ficam com horários sobrepostos | duas chamadas de `store_reservar_agenda` no mesmo intervalo: a segunda volta nula | sim, 18/11/2026 (banco de produção, reservas de teste canceladas depois) |
+| A3 | Os horários oferecidos respeitam disponibilidade, ocupação, antecedência de 12 h e janela de 21 dias | `pnpm test` (`src/lib/loja/agenda.test.ts`) | sim, 18/11/2026 |
+| A4 | O comprador baixa o horário para a agenda do celular | `pnpm loja:e2e` baixa o `.ics` da página do pedido | sim no localhost, 18/11/2026 |
+| A5 | O Pedro marca live, ajusta disponibilidade e vê os horários vendidos no painel | captura de `/admin/loja/agenda` logado como admin | não: o painel pede o login Discord do Pedro |

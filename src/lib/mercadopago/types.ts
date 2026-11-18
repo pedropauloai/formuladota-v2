@@ -31,6 +31,8 @@ export const createPixPaymentInputSchema = z.object({
   itemCategoryId: z.string(),                // ex: "services"
   // Opcional: default = externalReference (purchase.id evita duplicatas em retry)
   idempotencyKey: z.string().optional(),
+  // Vencimento do Pix em minutos (default 24 h); o Mercado Pago aceita de 30 min a 30 dias.
+  expiresInMinutes: z.number().int().min(30).max(43200).optional(),
 });
 export type CreatePixPaymentInput = z.infer<typeof createPixPaymentInputSchema>;
 

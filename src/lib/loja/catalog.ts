@@ -11,6 +11,9 @@ import { parseMmrTiers, type MmrTier } from "./pricing";
 export const STORE_MODES = ["live", "gravado", "fora_da_live", "agendado", "digital"] as const;
 export type StoreMode = (typeof STORE_MODES)[number];
 
+/** Como o produto usa a agenda: horário da agenda do Pedro, vaga numa live ou nenhum. */
+export type BookingMode = "nenhum" | "agenda" | "live";
+
 export interface StoreVariant {
   id: string;
   slug: string;
@@ -39,6 +42,13 @@ export interface StoreProduct {
   monthlyCapacity: number | null;
   /** Faixas de preço do boost; null = preço fixo da opção. */
   mmrTiers: MmrTier[] | null;
+  bookingMode: BookingMode;
+  /** Duração de uma sessão (ou de uma partida, no jogar junto), em minutos. */
+  sessionMinutes: number | null;
+  /** Sessões por pedido (o acompanhamento tem 4). */
+  sessionsPerOrder: number;
+  /** Que vaga da live o produto ocupa. */
+  liveSeat: "party" | "replay" | null;
   variants: StoreVariant[];
   /** Menor preço entre as opções: o "a partir de" do card. */
   fromPriceCents: number;
@@ -46,7 +56,7 @@ export interface StoreProduct {
 
 const SELECT =
   "id, slug, kind, title, summary, description_md, delivery_md, form_fields, requires_login, display_order, " +
-  "mode, art, price_unit, max_quantity, monthly_capacity, mmr_tiers, is_test, " +
+  "mode, art, price_unit, max_quantity, monthly_capacity, mmr_tiers, is_test, booking_mode, session_minutes, sessions_per_order, live_seat, " +
   "store_product_variants (id, slug, label, price_cents, active, display_order)";
 
 interface ProductRow {
@@ -67,6 +77,10 @@ interface ProductRow {
   monthly_capacity: number | null;
   mmr_tiers: unknown;
   is_test: boolean;
+  booking_mode: string;
+  session_minutes: number | null;
+  sessions_per_order: number;
+  live_seat: string | null;
   store_product_variants: Array<{ id: string; slug: string; label: string; price_cents: number; active: boolean; display_order: number }>;
 }
 
@@ -97,6 +111,10 @@ function toProduct(row: ProductRow): StoreProduct | null {
     maxQuantity: row.max_quantity,
     monthlyCapacity: row.monthly_capacity,
     mmrTiers: row.mmr_tiers == null ? null : parseMmrTiers(row.mmr_tiers),
+    bookingMode: row.booking_mode === "agenda" || row.booking_mode === "live" ? row.booking_mode : "nenhum",
+    sessionMinutes: row.session_minutes,
+    sessionsPerOrder: row.sessions_per_order,
+    liveSeat: row.live_seat === "party" || row.live_seat === "replay" ? row.live_seat : null,
     variants,
     fromPriceCents: Math.min(...variants.map((v) => v.priceCents)),
   };

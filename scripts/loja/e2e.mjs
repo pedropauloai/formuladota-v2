@@ -73,6 +73,9 @@ async function setupProduct() {
         is_test: true,
         // Quantidade e vaga do mês passam pelo mesmo caminho da mentoria e da vaga na party.
         max_quantity: 3,
+        // Agenda: cada partida ocupa 30 minutos; o teste escolhe o primeiro horário livre.
+        booking_mode: "agenda",
+        session_minutes: 30,
         monthly_capacity: 1000,
         active: true,
         display_order: 999,
@@ -93,6 +96,8 @@ async function setupProduct() {
 
 async function cleanup(setup) {
   if (!setup) return;
+  // Horário de teste nunca fica ocupando a agenda de teste das próximas execuções.
+  await db.from("store_bookings").update({ status: "cancelado" }).eq("product_id", setup.productId).eq("is_test", true).in("status", ["reservado", "confirmado"]);
   await db.from("store_products").update({ active: false }).eq("id", setup.productId);
   await db.from("feature_flags").update({ enabled: setup.flagWas }).eq("key", "loja");
 }
@@ -107,6 +112,8 @@ async function fillCheckout(page, method, quantity = 1) {
   await form.locator('input[name="discord"]').fill(`e2e_${RUN}`);
   await form.locator('textarea[name="observacoes"]').fill(`execução ${RUN}`);
   for (let i = 1; i < quantity; i += 1) await form.getByRole("button", { name: "Aumentar" }).click();
+  // Primeiro horário livre do primeiro dia da agenda.
+  await form.locator('[role="radiogroup"] [role="radio"]').first().click();
   if (method === "cartao") await form.getByRole("button", { name: /Cartão/ }).click();
   await form.locator('input[name="aceite"]').check();
   await form.locator('button[type="submit"]').click();
@@ -213,6 +220,9 @@ async function run() {
     check("pedido Pix pendente com o pagamento do Mercado Pago", pixOrder?.status === "pendente" && !!pixOrder.mp_payment_id && pixOrder.is_test);
     check("pedido herdou a origem da visita", pixOrder?.utm_source === "instagram" && pixOrder?.utm_campaign === campaign);
     check("quantidade 2 cobra o dobro no pedido", pixOrder?.quantity === 2 && pixOrder?.amount_cents === 200, `${pixOrder?.quantity} x, ${pixOrder?.amount_cents} centavos`);
+    const { data: pixBooking } = await db.from("store_bookings").select("status, is_test, hold_until, starts_at, ends_at").eq("order_id", pixOrderId).single();
+    check("horário segurado enquanto o Pix não cai", pixBooking?.status === "reservado" && pixBooking?.is_test && !!pixBooking?.hold_until);
+    check("duas partidas seguram 60 minutos", Date.parse(pixBooking?.ends_at) - Date.parse(pixBooking?.starts_at) === 60 * 60_000);
 
     await fillCheckout(page, "cartao");
     await expectLeave(page, /mercadopago\.com/);
@@ -235,8 +245,15 @@ async function run() {
     check("aviso de venda marcado como entregue", !!notified);
     check("mensagem [TESTE] no canal de vendas do Discord (critério 6)", !!(await discordMessageFor(cardOrder.id)));
 
+    const { data: cardBooking } = await db.from("store_bookings").select("status, hold_until").eq("order_id", cardOrder.id).single();
+    check("pagamento aprovado confirma o horário", cardBooking?.status === "confirmado" && cardBooking?.hold_until === null);
+
     await page.goto(`${BASE}/loja/pedido/${cardOrder.id}`);
     check("página do pedido mostra o pagamento confirmado", await page.getByText("Pagamento confirmado").isVisible());
+    check("página do pedido mostra o horário confirmado", await page.getByText("Confirmado", { exact: true }).isVisible());
+    const ics = await fetch(`${BASE}/loja/pedido/${cardOrder.id}/agenda`);
+    const icsText = await ics.text();
+    check("arquivo de agenda (.ics) com o horário", ics.status === 200 && (ics.headers.get("content-type") ?? "").includes("text/calendar") && icsText.includes("BEGIN:VEVENT"));
   } finally {
     await browser?.close().catch(() => undefined);
     await cleanup(setup).catch((err) => console.error("limpeza falhou:", err.message));

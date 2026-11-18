@@ -89,7 +89,7 @@ export async function createPixPayment(
     notification_url: parsed.data.notificationUrl,
     statement_descriptor: parsed.data.statementDescriptor,
     // Expiração explícita: 24h (igual ao default MP pra PIX; range: 30min → 30 dias)
-    date_of_expiration: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    date_of_expiration: new Date(Date.now() + (parsed.data.expiresInMinutes ?? 24 * 60) * 60 * 1000).toISOString(),
     additional_info: {
       items: [
         {

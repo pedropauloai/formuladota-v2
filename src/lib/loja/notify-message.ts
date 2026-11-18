@@ -17,6 +17,8 @@ export interface SaleInfo {
   origin: { utm_source?: string | null; utm_medium?: string | null; utm_campaign?: string | null; referrer_host?: string | null };
   isTest: boolean;
   adminUrl: string;
+  /** Horários marcados (ou a live), já em texto: "qui., 20/11, 19:00 às 20:30". */
+  schedule?: string[];
 }
 
 const DETAIL_LABELS: Record<string, string> = {
@@ -25,6 +27,7 @@ const DETAIL_LABELS: Record<string, string> = {
   mmr_atual: "MMR atual",
   mmr_alvo: "MMR alvo",
   match_id: "ID da partida",
+  match_ids: "IDs das partidas",
   observacoes: "Observações",
 };
 
@@ -68,6 +71,7 @@ export function buildDiscordSalePayload(sale: SaleInfo, pedroUserId?: string) {
     { name: "E-mail", value: plain(sale.buyerEmail), inline: true },
     { name: "Meio", value: sale.method === "pix" ? "Pix" : "Cartão", inline: true },
     { name: "Origem", value: plain(originText(sale.origin)), inline: true },
+    ...(sale.schedule?.length ? [{ name: "Horário", value: sale.schedule.join("\n"), inline: false }] : []),
     ...Object.entries(sale.details).map(([key, value]) => ({
       name: DETAIL_LABELS[key] ?? key,
       value: plain(String(value)),
@@ -99,6 +103,7 @@ export function buildSaleEmail(sale: SaleInfo): { subject: string; text: string 
     `E-mail: ${sale.buyerEmail}`,
     `Meio: ${sale.method === "pix" ? "Pix" : "Cartão"}`,
     `Origem: ${originText(sale.origin)}`,
+    ...(sale.schedule ?? []).map((line) => `Horário: ${line}`),
     ...Object.entries(sale.details).map(([key, value]) => `${DETAIL_LABELS[key] ?? key}: ${value}`),
     "",
     `Pedido no painel: ${sale.adminUrl}`,

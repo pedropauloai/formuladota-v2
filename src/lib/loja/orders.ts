@@ -14,6 +14,8 @@ import { centsToReais } from "./money";
 import { createCardPreference } from "./mercadopago";
 import { priceOrder } from "./pricing";
 import { getSlots } from "./slots";
+import { AGENDA } from "./agenda";
+import { HOLD_MS, reserveBooking, type BookingChoice } from "./agenda-server";
 import type { Origin } from "./attribution";
 
 export type CreateOrderResult =
@@ -35,6 +37,8 @@ interface PricedOrder {
   amountCents: number;
   quantity: number;
   label: string;
+  /** Prazo para pagar quando o pedido segura horário na agenda; sem horário, o padrão de 24 h. */
+  paymentMinutes?: number;
 }
 
 function siteUrl(): string {
@@ -61,6 +65,34 @@ async function soldOutMessage(product: StoreProduct, quantity: number): Promise<
   return `As vagas deste mês acabaram. Abrem de novo em ${REOPEN_FORMAT.format(new Date(info.reopensAt))}.`;
 }
 
+type ChoiceResult = BookingChoice | { error: string; field: "slot_start" | "live_id" } | null;
+
+/** O horário (ou a live) que o produto exige; erro no campo quando faltou escolher. */
+function bookingChoice(product: StoreProduct, data: Record<string, unknown>): ChoiceResult {
+  if (product.bookingMode === "agenda") {
+    const start = typeof data.slot_start === "string" ? data.slot_start : null;
+    return start ? { kind: "agenda", start: new Date(start).toISOString() } : { error: "Escolha o dia e o horário.", field: "slot_start" };
+  }
+  if (product.bookingMode === "live") {
+    const liveId = typeof data.live_id === "string" ? data.live_id : null;
+    return liveId ? { kind: "live", liveId } : { error: "Escolha a live.", field: "live_id" };
+  }
+  return null;
+}
+
+/** Segura o horário enquanto a pessoa paga; com falha, cancela o pedido e devolve a mensagem. */
+async function holdBooking(orderId: string, order: PricedOrder, choice: BookingChoice): Promise<string | null> {
+  try {
+    const problem = await reserveBooking(orderId, order.product, choice, order.quantity, new Date(Date.now() + HOLD_MS));
+    if (problem) await cancelOrder(orderId);
+    return problem;
+  } catch (err) {
+    console.error("[loja] reservar horário falhou:", err instanceof Error ? err.message : err);
+    await cancelOrder(orderId);
+    return "Não deu para reservar o horário agora. Tente de novo em instantes.";
+  }
+}
+
 export async function createStoreOrder(args: CreateOrderArgs): Promise<CreateOrderResult> {
   const product = await getActiveProduct(args.slug);
   if (!product) return { ok: false, error: "Este produto não está à venda agora." };
@@ -82,12 +114,21 @@ export async function createStoreOrder(args: CreateOrderArgs): Promise<CreateOrd
     mmr_alvo: numberOrUndefined(data.mmr_alvo),
   });
   if (!price.ok) return { ok: false, error: "Confira os campos destacados.", fieldErrors: { [price.field]: price.message } };
+  const choice = bookingChoice(product, data);
+  if (choice && "error" in choice) return { ok: false, error: choice.error, fieldErrors: { [choice.field]: choice.error } };
   const soldOut = await soldOutMessage(product, price.quantity);
   if (soldOut) return { ok: false, error: soldOut };
 
-  const order: PricedOrder = { product, variant, input: parsed.data, amountCents: price.amountCents, quantity: price.quantity, label: price.label };
+  const order: PricedOrder = {
+    product, variant, input: parsed.data, amountCents: price.amountCents, quantity: price.quantity, label: price.label,
+    paymentMinutes: choice ? AGENDA.paymentMinutes : undefined,
+  };
   const orderId = await insertOrder(order, args);
   if (!orderId) return { ok: false, error: "Não deu para registrar o pedido. Tente de novo em instantes." };
+  if (choice) {
+    const problem = await holdBooking(orderId, order, choice);
+    if (problem) return { ok: false, error: problem, fieldErrors: { [choice.kind === "agenda" ? "slot_start" : "live_id"]: problem } };
+  }
   return parsed.data.method === "pix" ? startPix(orderId, order) : startCard(orderId, order);
 }
 
@@ -156,6 +197,7 @@ async function startPix(orderId: string, order: PricedOrder): Promise<CreateOrde
     itemTitle: `${order.product.title}: ${order.label}`,
     itemCategoryId: "services",
     idempotencyKey: `loja-pix-${orderId}`,
+    expiresInMinutes: order.paymentMinutes,
   });
   if (!pix.success) {
     await cancelOrder(orderId);
@@ -185,6 +227,7 @@ async function startCard(orderId: string, order: PricedOrder): Promise<CreateOrd
     payer: { name: order.input.name, email: order.input.email, whatsapp: order.input.whatsapp },
     returnUrl: `${siteUrl()}/loja/pedido/${orderId}`,
     notificationUrl: notificationUrl(),
+    ttlMinutes: order.paymentMinutes,
   });
   if (!preference.success) {
     await cancelOrder(orderId);
