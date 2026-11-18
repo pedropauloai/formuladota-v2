@@ -35,6 +35,7 @@ const PUBLIC_PATHS = [
   "/meta", // leitura pública: meta de heróis (OpenDota) — vitrine de valor
   "/times", // leitura pública: browse de times + perfis (ações pedem login)
   "/torneios", // leitura pública: browse de torneios + brackets (ações pedem login)
+  "/mural", // Mural da Vergonha: público por desenho (anti-anonimato); o card da barra lateral já é aberto
   "/partidas", // leitura pública: feed de partidas (placares públicos, anti-anonimato) —
   //              vitrine igual /ranking; ações (jogar) pedem login. Pedro 2026-07-06.
   "/coaches", // /coaches/[slug] — perfis públicos de PROs

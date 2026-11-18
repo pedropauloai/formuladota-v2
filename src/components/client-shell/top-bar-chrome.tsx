@@ -25,9 +25,9 @@ export function plateClass(kind: PlateKind, tone: PlateTone = "neutral"): string
   );
 }
 
-export function LogoPlate({ label }: { label: string }) {
+export function LogoPlate({ label, href = "/dashboard" }: { label: string; href?: string }) {
   return (
-    <Link href="/dashboard" aria-label={label} className={styles.logo}>
+    <Link href={href} aria-label={label} className={styles.logo}>
       <span aria-hidden="true" className={styles.logoFrame} />
       <span aria-hidden="true" className={styles.logoFace}>
         <span className={styles.logoEmber} />

@@ -139,7 +139,8 @@ export function DashboardTopBar({
           </>
         )}
 
-        <LogoPlate label={t("topbar.homeAria")} />
+        {/* Visitante vai para a home; o /dashboard o mandaria para lá com um desvio a mais. */}
+        <LogoPlate label={t("topbar.homeAria")} href={isVisitor ? "/" : "/dashboard"} />
 
         <nav
           aria-label={t("topbar.mainNavAria")}

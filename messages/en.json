@@ -3983,7 +3983,37 @@
     "histMetaTitle": "Match {id} · FORMULADOTA",
     "histMetaDescription": "Full scoreboard: heroes, roles, KDA, MMR and match medals."
   },
-  "chat": "Chat",
+  "chat": {
+    "chat": "Chat",
+    "tabParty": "Party",
+    "tabLobby": "Lobby",
+    "partyMsgTitle": "{name} in party",
+    "someone": "Someone",
+    "newLobbyMsg": "New lobby message",
+    "newMessage": "New message",
+    "noConversations": "No open conversations",
+    "newConversation": "New conversation",
+    "collapseChat": "Collapse chat",
+    "openConversationHint": "Tap + to chat with a friend or pick up a conversation.",
+    "closeTab": "Close {label}",
+    "addFriendsToChat": "Add friends to chat here.",
+    "friend": "Friend",
+    "open": "open",
+    "send": "Send",
+    "you": "You",
+    "partyEmpty": "No party messages yet.",
+    "partyPlaceholder": "Message the party",
+    "lobbyEmpty": "No lobby messages yet.",
+    "lobbyPlaceholder": "Message the lobby",
+    "dmError": "Couldn't open the conversation. Try again.",
+    "dmEmpty": "No messages with {name} yet.",
+    "dmPlaceholder": "Message {name}"
+  },
+  "memberOnly": {
+    "profileTitle": "Player profile",
+    "profileText": "Profiles are open to community members. Sign in with Discord and you'll come right back to this profile.",
+    "enter": "Sign in with Discord"
+  },
   "party": {
     "searchingInGroup": "Searching as a group",
     "leaveGroup": "Leave party",

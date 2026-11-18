@@ -3983,7 +3983,37 @@
     "histMetaTitle": "Partida {id} · FORMULADOTA",
     "histMetaDescription": "Placar completo: heróis, funções, KDA, MMR e medalhas da partida."
   },
-  "chat": "Chat",
+  "chat": {
+    "chat": "Chat",
+    "tabParty": "Grupo",
+    "tabLobby": "Sala",
+    "partyMsgTitle": "{name} no grupo",
+    "someone": "Alguém",
+    "newLobbyMsg": "Mensagem nova na sala",
+    "newMessage": "Mensagem nova",
+    "noConversations": "Nenhuma conversa aberta",
+    "newConversation": "Nova conversa",
+    "collapseChat": "Recolher o chat",
+    "openConversationHint": "Toque no + para conversar com um amigo ou retomar uma conversa.",
+    "closeTab": "Fechar {label}",
+    "addFriendsToChat": "Adicione amigos para conversar por aqui.",
+    "friend": "Amigo",
+    "open": "aberta",
+    "send": "Enviar",
+    "you": "Você",
+    "partyEmpty": "Nenhuma mensagem no grupo ainda.",
+    "partyPlaceholder": "Mensagem para o grupo",
+    "lobbyEmpty": "Nenhuma mensagem na sala ainda.",
+    "lobbyPlaceholder": "Mensagem para a sala",
+    "dmError": "Não deu para abrir a conversa. Tente de novo.",
+    "dmEmpty": "Nenhuma mensagem com {name} ainda.",
+    "dmPlaceholder": "Mensagem para {name}"
+  },
+  "memberOnly": {
+    "profileTitle": "Perfil de jogador",
+    "profileText": "Os perfis ficam abertos para quem é da comunidade. Entre com o Discord e você volta direto para este perfil.",
+    "enter": "Entrar com Discord"
+  },
   "party": {
     "searchingInGroup": "Buscando em grupo",
     "leaveGroup": "Sair do grupo",

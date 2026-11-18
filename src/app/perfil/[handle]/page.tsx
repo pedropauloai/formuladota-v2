@@ -8,6 +8,7 @@ import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { ProfileView } from "@/components/profile/profile-view";
+import { MemberOnly } from "@/components/auth/member-only";
 
 interface PageProps {
   params: Promise<{ handle: string }>;
@@ -41,7 +42,8 @@ export default async function ProfileByHandlePage(props: PageProps) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/"); // perfis são públicos PRA MEMBROS (logados)
+  // Perfis são públicos PRA MEMBROS: o visitante vê o convite para entrar, que traz de volta aqui.
+  if (!user) return <MemberOnly next={`/perfil/${handle}`} currentRoute={`/perfil/${handle}`} />;
 
   const row = await resolveHandle(handle);
   if (!row) notFound();
