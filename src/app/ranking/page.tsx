@@ -237,11 +237,9 @@ export default async function RankingPage(props: {
                 variant="hero"
                 seasonNumber={season.id}
                 seasonName={season.name}
-                endsAt={
-                  season.ended_at
-                    ? new Date(season.ended_at)
-                    : new Date(new Date(season.started_at).getTime() + 90 * 24 * 60 * 60 * 1000)
-                }
+                // Só conta o tempo com data de fim marcada e ainda por vir. Antes, sem data, a
+                // pré-temporada ganhava um fim inventado (+90 dias) e aparecia como encerrada.
+                endsAt={season.ended_at && new Date(season.ended_at) > new Date() ? new Date(season.ended_at) : null}
               />
             </div>
           </div>

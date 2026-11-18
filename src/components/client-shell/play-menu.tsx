@@ -80,6 +80,8 @@ interface Props {
   smokeTheme?: SmokeAsset | null;
   /** Feature flag: mostra a modalidade "Ranked com PRO" no drawer. @default false */
   showRankedComPro?: boolean;
+  /** Flag fila_competitiva desligada: busca pausada, sem o bot da Steam no ar. @default false */
+  queuePaused?: boolean;
 }
 
 export function PlayMenu({
@@ -88,6 +90,7 @@ export function PlayMenu({
   inParty = false,
   smokeTheme = null,
   showRankedComPro = false,
+  queuePaused = false,
 }: Props) {
   const router = useRouter();
   const t = useTranslations("playMenu");
@@ -288,6 +291,8 @@ export function PlayMenu({
   }
 
   function handleBuscar() {
+    // Busca pausada: o servidor recusa de qualquer jeito; aqui só evita a ida e volta.
+    if (queuePaused) return;
     if (isVisitor) {
       void signInWithDiscord();
       return;
@@ -633,6 +638,7 @@ export function PlayMenu({
               onPro={() => router.push("/ranked-com-pro")}
               loadingSalas={loadingSalas}
               showRankedComPro={showRankedComPro}
+              queuePaused={queuePaused}
             />
           )}
 
@@ -747,6 +753,7 @@ function MenuView({
   onPro,
   loadingSalas,
   showRankedComPro,
+  queuePaused,
 }: {
   active: Modalidade;
   setActive: (m: Modalidade) => void;
@@ -764,6 +771,7 @@ function MenuView({
   onPro: () => void;
   loadingSalas: boolean;
   showRankedComPro: boolean;
+  queuePaused: boolean;
 }) {
   const t = useTranslations("playMenu");
 
@@ -874,6 +882,12 @@ function MenuView({
 
       {active === "competitiva" && (
         <div className="border-t border-border-subtle p-3 space-y-1.5">
+          {queuePaused && (
+            <div role="status" className="rounded border border-gold/40 bg-gold/5 px-2.5 py-2">
+              <p className="font-display text-sm font-bold uppercase tracking-wider text-gold">{t("queuePausedTitle")}</p>
+              <p className="mt-0.5 text-sm text-text-body">{t("queuePausedText")}</p>
+            </div>
+          )}
           {error && (
             <p className="rounded border border-error/30 bg-error/5 px-2.5 py-1.5 font-mono text-sm text-error">{error}</p>
           )}
@@ -884,7 +898,7 @@ function MenuView({
           <button
             type="button"
             onClick={onBuscar}
-            disabled={pending}
+            disabled={pending || queuePaused}
             className="flex h-11 w-full items-center justify-center gap-3 rounded-md border-2 border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover px-8 font-display text-lg font-bold uppercase tracking-[0.25em] text-text-display shadow-lg shadow-[var(--color-play-primary-glow)] transition-all hover:brightness-110 disabled:opacity-60 xl:h-12 xl:text-xl"
           >
             {pending ? <Loader2 size={22} className="animate-spin" /> : <Play size={22} aria-hidden="true" />}

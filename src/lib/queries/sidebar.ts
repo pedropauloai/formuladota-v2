@@ -21,7 +21,8 @@ export interface SidebarRankRow {
 export interface SidebarSeason {
   name: string;
   /** Dias restantes até o fim da temporada (>= 0). */
-  daysLeft: number;
+  /** Dias até o fim; null quando não há fim por vir. */
+  daysLeft: number | null;
   /** É pré-temporada (beta)? */
   beta: boolean;
 }
@@ -109,7 +110,8 @@ export async function getSidebarData(): Promise<SidebarData> {
       : nextStart
         ? new Date(nextStart).getTime()
         : new Date(seasonRow.started_at).getTime() + SEASON_LEN_MS;
-    const daysLeft = Math.max(0, Math.ceil((end - Date.now()) / DAY_MS));
+    // Fim já passado sem temporada nova no lugar: não há prazo para contar (antes ficava "Último dia" para sempre).
+    const daysLeft = end > Date.now() ? Math.ceil((end - Date.now()) / DAY_MS) : null;
     season = { name: seasonRow.name, daysLeft, beta: Boolean(seasonRow.beta) };
   }
 

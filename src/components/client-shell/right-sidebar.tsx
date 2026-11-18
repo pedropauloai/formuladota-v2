@@ -71,7 +71,9 @@ export async function DashboardRightSidebar({ floating, showRankedComPro = false
         empty={t("sidebar.rankingEmpty")}
         seasonSubtitle={
           season
-            ? `${season.name} · ${t("sidebar.seasonDaysLeft", { days: season.daysLeft })}`
+            ? season.daysLeft === null
+              ? season.name
+              : `${season.name} · ${t("sidebar.seasonDaysLeft", { days: season.daysLeft })}`
             : null
         }
       />

@@ -39,8 +39,8 @@ export interface SeasonBannerProps {
   seasonNumber: number;
   /** Nome temático da season (ex: "Despertar"). */
   seasonName: string;
-  /** Data/hora de encerramento da season (UTC). */
-  endsAt: Date;
+  /** Data/hora de encerramento da season (UTC). Sem data marcada: mostra só o nome, sem contagem. */
+  endsAt?: Date | null;
   /**
    * "strip" (padrão): faixa full-width com borda inferior.
    * "hero": embutido no header-imagem — sem faixa/borda própria, transparente e
@@ -162,11 +162,12 @@ export function SeasonBanner({
   const milestonesFired = useRef<Set<string>>(new Set());
 
   const [remaining, setRemaining] = useState<TimeRemaining | null>(
-    () => calcTimeRemaining(endsAt)
+    () => (endsAt ? calcTimeRemaining(endsAt) : null)
   );
 
   // Recalcula countdown e verifica milestones a cada minuto
   const tick = useCallback(() => {
+    if (!endsAt) return;
     const next = calcTimeRemaining(endsAt);
     setRemaining(next);
 
@@ -217,10 +218,14 @@ export function SeasonBanner({
         ease: EASINGS.softLanding,
       }}
       role="banner"
-      aria-label={t("seasonBannerAria", {
-        label: seasonLabel,
-        ends: remaining ? t("daysCount", { count: remaining.days }) : t("soon"),
-      })}
+      aria-label={
+        endsAt
+          ? t("seasonBannerAria", {
+              label: seasonLabel,
+              ends: remaining ? t("daysCount", { count: remaining.days }) : t("soon"),
+            })
+          : seasonLabel
+      }
     >
       {/* Ícone de season */}
       <Trophy
@@ -238,6 +243,9 @@ export function SeasonBanner({
         {seasonLabel}
       </span>
 
+      {/* Sem data de fim marcada: só o nome, sem contagem nem "encerrada". */}
+      {endsAt && (
+      <>
       {/* Separador • com pulse atmospheric */}
       {motionSafe ? (
         <m.span
@@ -259,6 +267,8 @@ export function SeasonBanner({
         <span className="text-sm text-text-muted">
           {t("seasonEnded", { next: seasonNumber + 1 })}
         </span>
+      )}
+      </>
       )}
     </m.div>
   );

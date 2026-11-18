@@ -10,6 +10,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { xpProgress } from "@/lib/levels";
 import type { Database } from "@/types/database";
+import { getFeatureFlags } from "@/lib/queries/feature-flags";
 
 // Quantos jogadores estão buscando partida AGORA (match_queue waiting, TODOS os usuários).
 // Usa service client porque match_queue tem RLS self (queue_select_self) — com o cookie
@@ -135,7 +136,7 @@ export type QueueResult =
   | {
       success: false;
       error: string;
-      code?: "need_permission" | "in_match" | "no_rank" | "rate_limited";
+      code?: "need_permission" | "in_match" | "no_rank" | "rate_limited" | "queue_paused";
     };
 
 // Rate limit anti-spam: no máximo 1 entrada na fila a cada N ms por usuário. Barra o
@@ -172,6 +173,11 @@ export async function enterQueue(input: {
 
   if (input.roles.length === 0) {
     return { success: false, error: "Selecione pelo menos 1 função." };
+  }
+
+  // Fila pausada (flag fila_competitiva): sem o bot da Steam, a partida formada não vira sala.
+  if (!(await getFeatureFlags()).fila_competitiva) {
+    return { success: false, error: "A busca de partida está pausada: o bot que cria a sala no Dota está fora do ar.", code: "queue_paused" };
   }
 
   // GATE anti-smurf: precisa de medalha Valve LEGÍVEL (perfil Dota público +

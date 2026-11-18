@@ -45,24 +45,36 @@ const PILLARS = [
   { id: "Regiao", icon: Trophy },
 ] as const;
 
-// O vídeo de fundo são 24 MB da CDN da Valve: não toca para quem pediu menos movimento ou
-// economia de dados, e só entra depois da hidratação, sem disputar banda com o resto da página.
-function useBackgroundVideo(): boolean {
-  const [allowed, setAllowed] = useState(false);
+// Fundo da capa: o vídeo são 24 MB da CDN da Valve, então só o computador toca. Celular e
+// quem pediu menos movimento ficam com a imagem oficial do mesmo vídeo (170 KB); quem pediu
+// economia de dados fica só com a camada escura. Decide depois da hidratação.
+const MONTAGE_POSTER = "https://cdn.steamstatic.com/apps/dota2/videos/dota_react/homepage/dota_montage_02.jpg";
+type Backdrop = "nada" | "imagem" | "video";
+
+function useBackdrop(): Backdrop {
+  const [backdrop, setBackdrop] = useState<Backdrop>("nada");
   useEffect(() => {
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const phone = window.matchMedia("(max-width: 767px)");
     const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
-    const update = () => setAllowed(!reduceMotion.matches && connection?.saveData !== true);
+    const update = () => {
+      if (connection?.saveData === true) setBackdrop("nada");
+      else setBackdrop(reduceMotion.matches || phone.matches ? "imagem" : "video");
+    };
     update();
     reduceMotion.addEventListener("change", update);
-    return () => reduceMotion.removeEventListener("change", update);
+    phone.addEventListener("change", update);
+    return () => {
+      reduceMotion.removeEventListener("change", update);
+      phone.removeEventListener("change", update);
+    };
   }, []);
-  return allowed;
+  return backdrop;
 }
 
 export function HubCenter({ isVisitor, prosOnlineCount, showRankedComPro = false }: HubCenterProps) {
   const t = useTranslations("capa");
-  const showVideo = useBackgroundVideo();
+  const backdrop = useBackdrop();
   // CTA de ação (logado): "Subir MMR" quando a feature está on; senão o guia do MMR
   // (/mmr) — vitrine didática do sistema (Pedro 2026-07-02).
   const ctaHref = showRankedComPro ? "/ranked-com-pro" : "/mmr";
@@ -73,13 +85,17 @@ export function HubCenter({ isVisitor, prosOnlineCount, showRankedComPro = false
       {/* Vídeo de fundo — montagem oficial do Dota 2 (cdn Steam) atrás da capa, com
           camada escura por cima pra o texto ganhar destaque (Pedro 2026-07-05). */}
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden="true">
-        {showVideo && (
+        {backdrop === "imagem" && (
+          <div className="h-full w-full bg-cover bg-center" style={{ backgroundImage: `url(${MONTAGE_POSTER})` }} />
+        )}
+        {backdrop === "video" && (
         <video
           autoPlay
           muted
           loop
           playsInline
           preload="auto"
+          poster={MONTAGE_POSTER}
           className="h-full w-full object-cover"
         >
           <source
