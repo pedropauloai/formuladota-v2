@@ -256,6 +256,7 @@ Glow e assinatura AAA — usada com criterio. Inventario de uso permitido:
 2. Botao PLAY/Entrar Fila em estado idle (pulse sutil) e hover.
 3. Tier badge Immortal no perfil.
 4. Ambient do AmbientLayer (nao em elementos de UI direta).
+5. Logo na placa do topbar: halo vermelho que respira devagar e fagulhas, como o logo do cliente do Dota 2 (pedido do Pedro, 18/11/2026). Para com `prefers-reduced-motion`.
 
 Proibido: glow em todos os botoes, glow em texto ordinario, glow em bordas de cards comuns.
 

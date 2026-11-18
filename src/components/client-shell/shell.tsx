@@ -221,6 +221,8 @@ export async function ClientShell({
   // Pra testar, o admin reativa no painel de flags. Controla topbar, sidebar, menu
   // Jogar e a rota /ranked-com-pro.
   const showRankedComPro = featureFlags.ranked_com_pro;
+  // Flag loja: mesma regra autoritativa. Desligada, a aba "Loja" some do topbar para todos.
+  const showLoja = featureFlags.loja;
   // Persona/avatar: null pra visitante (LeftSidebar mostra VisitorCard).
   // Identidade canônica via lib/identity (anti-anonimato: Steam > Discord, nunca vazio).
   const identitySrc = {
@@ -267,6 +269,7 @@ export async function ClientShell({
             myQueues={myQueues}
             communityCounters={communityCounters}
             showRankedComPro={showRankedComPro}
+            showLoja={showLoja}
             changelogUnread={changelogUnread}
           />
         </div>
@@ -387,6 +390,7 @@ export async function ClientShell({
         myQueues={myQueues}
         communityCounters={communityCounters}
         showRankedComPro={showRankedComPro}
+        showLoja={showLoja}
         changelogUnread={changelogUnread}
       />
 

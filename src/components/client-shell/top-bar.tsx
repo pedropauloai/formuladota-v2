@@ -1,27 +1,17 @@
-// Top Bar — réplica do header do Dota 2 client (M2 reformulado 2026-05-26).
-// Esquerda: settings + logo branca + tabs principais + tabs contextuais
-// Centro: status PROs online em tempo real
-// Direita: badge CONDUTA (brand cinematic) + (ENTRAR se visitante / Logout se logado)
+// Top Bar: réplica da barra superior do cliente do Dota 2 com a pele do FORMULADOTA.
+// Ref: "dota 2 menu.png" (medidas em docs/foundations/DOTA2_CLIENT_REFERENCE.md).
 //
-// Tabs principais (visíveis por role):
-//   - SUBIR MMR   → sempre visível (visitante/user/admin) — jornada principal
-//   - Ranking, Times, Torneios → todo usuário logado (admin incluído)
-//   - PRO (se isPro), ADMIN (se isAdmin) → tabs contextuais
+// Esquerda: engrenagem + placa do logo (desce abaixo da barra, com brilho) + abas em placas
+// chanfradas. Centro: status da fila ou PROs online. Direita: contadores da comunidade +
+// atalhos em placas (Planos na placa dourada, no lugar do Dota Plus) + CONDUTA e ENTRAR em
+// placas vermelhas.
 //
-// JOGAR é implícito — clique no logo FORMULADOTA leva pra /dashboard.
-// Ref: docs/foundations/DOTA2_CLIENT_REFERENCE.md #2.
-//
-// CTA dominante na direita (2026-05-26): "CONDUTA" → /codigo-de-conduta.
-// Mensagem institucional sempre visível (filosofia, manifesto). Substitui
-// "SUBIR DE MMR" cinematic que virou tab simples na nav principal.
-//
-// VISITANTE DESLOGADO: vê CONDUTA + ENTRAR lado a lado na direita. Tabs
-// PRO/ADMIN/Progresso/etc são filtrados naturalmente por role.
+// Abas principais: visíveis para todos, inclusive visitante (Pedro 2026-06-18). "Subir MMR"
+// e "Loja" obedecem às flags ranked_com_pro e loja, que são autoritativas (top-bar-tabs.ts).
+// Abas contextuais: PRO (isPro) e ADMIN (isAdmin). JOGAR é o logo, que leva a /dashboard.
 
-import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import {
-  Settings,
   LogIn,
   Shield,
   Eye,
@@ -32,6 +22,7 @@ import {
   ScrollText,
   Crown,
   Bell,
+  type LucideIcon,
 } from "lucide-react";
 import { signInWithDiscord } from "@/app/login/actions";
 import { togglePreviewMode } from "@/lib/auth/preview-mode";
@@ -45,6 +36,15 @@ import type { MyQueueEntry } from "@/lib/queries/queue";
 import type { CommunityCounters } from "@/actions/community";
 import { useTranslations } from "next-intl";
 import { SettingsPopup } from "./settings-popup";
+import { principalTabDefs } from "./top-bar-tabs";
+import {
+  LogoPlate,
+  PlateIconLink,
+  PlateTab,
+  plateClass,
+  topBarEndcap,
+  topBarSkin,
+} from "./top-bar-chrome";
 
 type TopBarTabDef = {
   href: string;
@@ -52,17 +52,6 @@ type TopBarTabDef = {
   /** Prefixo usado pra match active state. Omitido = usa href. */
   matchPrefix?: string;
 };
-
-// Defs das tabs principais (label resolvido por i18n no render). SUBIR MMR sempre
-// + ecossistema competitivo (ranking/times/torneios), visível pra todos.
-const PRINCIPAL_TAB_DEFS = [
-  { href: "/ranked-com-pro", key: "subirMmr" },
-  { href: "/meta", key: "meta" },
-  { href: "/ranking", key: "ranking" },
-  { href: "/partidas", key: "partidas" },
-  { href: "/times", key: "times" },
-  { href: "/torneios", key: "torneios" },
-] as const;
 
 interface Props {
   currentRoute?: string;
@@ -86,6 +75,8 @@ interface Props {
   communityCounters: CommunityCounters;
   /** Feature flag: mostra a aba "Subir MMR / Ranked com PRO". Off = esconde. */
   showRankedComPro: boolean;
+  /** Feature flag loja: mostra a aba "Loja". Off = esconde para todos. */
+  showLoja: boolean;
   /** Novidades publicadas depois da última visita do user (badge do sino). */
   changelogUnread: number;
 }
@@ -102,19 +93,14 @@ export function DashboardTopBar({
   myQueues,
   communityCounters,
   showRankedComPro,
+  showLoja,
   changelogUnread,
 }: Props) {
   const t = useTranslations();
   const inQueue = myQueues.length > 0;
-  // Nav principal visível pra TODOS — inclusive visitante (Pedro 2026-06-18):
-  // mostra a amplitude do produto antes do login. Label traduzido (PT/EN).
-  // A aba "Subir MMR" (/ranked-com-pro) some quando a feature flag está off.
-  const principalTabs: TopBarTabDef[] = PRINCIPAL_TAB_DEFS.filter(
-    (d) => showRankedComPro || d.href !== "/ranked-com-pro"
-  ).map((d) => ({
-    href: d.href,
-    label: t(`nav.${d.key}`),
-  }));
+  const principalTabs: TopBarTabDef[] = principalTabDefs({ showRankedComPro, showLoja }).map(
+    (d) => ({ href: d.href, label: t(`nav.${d.key}`) })
+  );
 
   const contextualTabs: TopBarTabDef[] = [];
   if (isPro) {
@@ -128,21 +114,19 @@ export function DashboardTopBar({
     });
   }
 
-  const isActive = (t: TopBarTabDef) =>
-    currentRoute?.startsWith(t.matchPrefix ?? t.href) ?? false;
+  const isActive = (tab: TopBarTabDef) =>
+    currentRoute?.startsWith(tab.matchPrefix ?? tab.href) ?? false;
 
   return (
     <header
       className={cn(
-        "relative z-[var(--z-overlay)] flex h-12 shrink-0 items-center justify-between px-4 xl:h-14 xl:px-6",
-        // Glassmorphism — mesma cor do bg-deep (conteúdo) com leve transparência + blur
-        "bg-bg-deep/75 backdrop-blur-xl",
-        // Border accent brand — única "régua" visual marcando fim do header
-        "border-b border-brand-primary/60",
+        topBarSkin,
+        // Sem padding à direita: a última placa encosta na borda da tela, como no cliente.
+        "relative z-[var(--z-overlay)] flex h-12 shrink-0 items-center justify-between gap-2 pl-3 xl:h-14 xl:gap-3 xl:pl-5",
       )}
     >
-      {/* Esquerda — hambúrguer (mobile) + settings + logo + tabs */}
-      <div className="flex items-center gap-2 xl:gap-4">
+      {/* Esquerda: hambúrguer (mobile) + engrenagem + placa do logo + abas em placas */}
+      <div className="flex h-full shrink-0 items-center gap-1.5 xl:gap-2">
         <MobileNav
           principalTabs={principalTabs}
           contextualTabs={contextualTabs}
@@ -151,79 +135,46 @@ export function DashboardTopBar({
         {!isVisitor && (
           <>
             <SettingsPopup />
-            <div
-              className="h-5 w-px bg-white/15 xl:h-6 xl:mx-1"
-              aria-hidden="true"
-            />
+            <div className="h-5 w-px bg-text-display/15 xl:h-6" aria-hidden="true" />
           </>
         )}
 
-        <Link
-          href="/dashboard"
-          aria-label="FORMULADOTA — dashboard"
-          className="shrink-0"
-        >
-          <Image
-            src="/brand/logo-horizontal-white.png"
-            alt="FORMULADOTA"
-            width={1933}
-            height={400}
-            priority
-            className="h-7 w-auto xl:h-9"
-          />
-        </Link>
-
-        <div
-          className="h-5 w-px bg-white/15 xl:h-6 xl:mx-1"
-          aria-hidden="true"
-        />
+        <LogoPlate label={t("topbar.homeAria")} />
 
         <nav
           aria-label={t("topbar.mainNavAria")}
-          className="hidden lg:flex items-center gap-1"
+          className="hidden h-full items-stretch gap-1 lg:flex"
         >
-          {principalTabs.map((t) => (
-            <TopBarTab
-              key={t.href}
-              href={t.href}
-              label={t.label}
-              active={isActive(t)}
-            />
+          {principalTabs.map((tab) => (
+            <PlateTab key={tab.href} href={tab.href} label={tab.label} active={isActive(tab)} />
           ))}
         </nav>
 
         {contextualTabs.length > 0 && (
-          <>
-            <div
-              className="hidden lg:block h-5 w-px bg-white/15 xl:h-6 xl:mx-1"
-              aria-hidden="true"
-            />
-            <nav
-              aria-label={t("topbar.contextNavAria")}
-              className="hidden lg:flex items-center gap-1"
-            >
-              {contextualTabs.map((t) => (
-                <TopBarTab
-                  key={t.href}
-                  href={t.href}
-                  label={t.label}
-                  active={isActive(t)}
-                />
-              ))}
-            </nav>
-          </>
+          <nav
+            aria-label={t("topbar.contextNavAria")}
+            className="ml-2 hidden h-full items-stretch gap-1 lg:flex"
+          >
+            {contextualTabs.map((tab) => (
+              <PlateTab key={tab.href} href={tab.href} label={tab.label} active={isActive(tab)} />
+            ))}
+          </nav>
         )}
       </div>
 
-      {/* Centro — XOR:
-            - Em fila → pílula "Na fila · 2º · sair" (Pedro 2026-05-26)
-            - Fora de fila → status "X PROs online"
-          A pílula de fila substitui a de PROs porque a info mais relevante no
-          momento é o estado atual do user, não a quantidade de PROs disponíveis. */}
+      {/* Centro: em fila mostra a pílula "Na fila" (Pedro 2026-05-26); fora dela, quem
+          busca partida e os PROs online. O estado do user vem antes da contagem de PROs.
+          Fora da fila as pílulas ocupam a sobra da barra numa linha só: a que não cabe
+          quebra para uma segunda linha escondida, em vez de passar por cima das abas. */}
       {inQueue ? (
-        <QueueStatusPill queues={myQueues} />
+        <div className="flex min-w-0 flex-1 justify-center">
+          <QueueStatusPill queues={myQueues} />
+        </div>
       ) : (
-        <div className="hidden xl:flex items-center gap-2">
+        <div className="hidden h-8 min-w-0 flex-1 flex-wrap items-center justify-center gap-x-2 gap-y-10 overflow-hidden xl:flex">
+          {/* Item vazio na primeira linha: assim até a primeira pílula quebra (e some) quando
+              não cabe, em vez de aparecer cortada. A margem negativa anula o espaço do gap. */}
+          <span aria-hidden="true" className="-mr-2 h-0 w-0" />
           {/* Jogadores buscando partida agora (match_queue, tempo real via polling). */}
           <MatchQueuePill />
           {prosOnlineCount > 0 && (
@@ -249,25 +200,27 @@ export function DashboardTopBar({
         </div>
       )}
 
-      {/* Direita — indicadores comunidade + CONDUTA + (Entrar/Logout) + PreviewToggle */}
-      <div className="flex items-center gap-1.5 xl:gap-2">
-        {/* Online + banidos EMPILHADOS num só bloco sutil, clicável → /mural. */}
+      {/* Direita: contadores da comunidade + preview do admin + placas de atalho e chamadas */}
+      <div className="flex h-full shrink-0 items-center gap-1.5 xl:gap-2">
+        {/* Online + banidos empilhados num só bloco sutil, clicável para /mural. */}
         <CommunityCountersBar initial={communityCounters} isLoggedIn={!isVisitor} />
         {realIsAdmin && <PreviewModeToggle previewActive={previewActive} />}
-        {/* Atalhos do Compendium — só ícone + tooltip no hover (Pedro 2026-07-01). */}
-        {!isVisitor && (
-          <div className="hidden sm:flex items-center gap-0.5">
-            <ChangelogBell unread={changelogUnread} label={t("shell.news")} />
-            <TopBarIconTip icon={Palette} label={t("shell.collection")} href="/colecao" />
-            <TopBarIconTip icon={ScrollText} label={t("shell.compendium")} href="/compendium" />
-            <TopBarIconTip icon={Crown} label={t("shell.plans")} href="/planos" />
+        <div className={cn(topBarEndcap, "flex h-full items-stretch gap-1")}>
+          {/* Atalhos do Compendium: só ícone, com o nome no hover (Pedro 2026-07-01). */}
+          {!isVisitor && (
+            <div className="hidden h-full items-stretch gap-1 sm:flex">
+              <ChangelogBell unread={changelogUnread} label={t("shell.news")} />
+              <TopBarIconTip icon={Palette} label={t("shell.collection")} href="/colecao" />
+              <TopBarIconTip icon={ScrollText} label={t("shell.compendium")} href="/compendium" />
+              <TopBarIconTip icon={Crown} label={t("shell.plans")} href="/planos" tone="gold" />
+            </div>
+          )}
+          {/* Conduta fica fora no mobile (vive na gaveta MobileNav) para caber na barra. */}
+          <div className="hidden h-full sm:flex">
+            <CondutaBadge />
           </div>
-        )}
-        {/* Conduta: escondida no mobile (vive na gaveta MobileNav) pra não estourar o topbar. */}
-        <div className="hidden sm:block">
-          <CondutaBadge />
+          {isVisitor && <EntrarBadge />}
         </div>
-        {isVisitor && <EntrarBadge />}
       </div>
     </header>
   );
@@ -286,17 +239,18 @@ function PreviewModeToggle({ previewActive }: { previewActive: boolean }) {
             : "border-white/15 bg-white/5 text-white/60 hover:border-white/30 hover:text-white"
         }`}
       >
+        {/* Rótulo longo só a partir de 2400px: abaixo disso a barra do admin não cabe inteira. */}
         {previewActive ? (
           <>
             <EyeOff size={11} aria-hidden="true" />
-            <span className="hidden xl:inline">{t("previewBack")}</span>
-            <span className="xl:hidden">Admin</span>
+            <span className="hidden min-[150rem]:inline">{t("previewBack")}</span>
+            <span className="min-[150rem]:hidden">Admin</span>
           </>
         ) : (
           <>
             <Eye size={11} aria-hidden="true" />
-            <span className="hidden xl:inline">{t("previewAsUser")}</span>
-            <span className="xl:hidden">User</span>
+            <span className="hidden min-[150rem]:inline">{t("previewAsUser")}</span>
+            <span className="min-[150rem]:hidden">User</span>
           </>
         )}
       </button>
@@ -304,11 +258,13 @@ function PreviewModeToggle({ previewActive }: { previewActive: boolean }) {
   );
 }
 
+// Texto das chamadas vermelhas: Ubuntu caixa-alta espaçada, como os botões grandes do cliente.
+const CTA_TEXT =
+  "font-display text-sm font-bold uppercase tracking-[0.12em] xl:tracking-[0.15em] 2xl:tracking-[0.2em]";
+
 function CondutaBadge() {
-  // CTA institucional sempre visível — manifesto/filosofia da plataforma.
-  // Estética cinematic brand (vermelho + glow) — antes ocupada pelo SUBIR MMR.
-  // Conduta é gate cultural: lido por todos antes de jogar a primeira PT.
-  // Hover educacional: accountability é princípio (link já é focável → focusable off).
+  // CTA institucional sempre visível: manifesto e filosofia da plataforma, lido antes da
+  // primeira PT. Placa vermelha da marca. O link já é focável, então o tooltip não é.
   const t = useTranslations();
   return (
     <Tooltip
@@ -316,21 +272,12 @@ function CondutaBadge() {
       side="bottom"
       align="end"
       focusable={false}
+      className="h-full"
     >
       <Link
         href="/codigo-de-conduta"
         aria-label={t("nav.conduta")}
-        className={cn(
-          "group inline-flex items-center gap-1.5 rounded-md",
-          "px-2.5 py-1 xl:px-3 xl:py-1.5",
-          "border-2 border-brand-primary",
-          "bg-gradient-to-b from-brand-primary to-brand-primary-hover",
-          "font-display text-sm xl:text-sm font-bold uppercase",
-          "tracking-[0.15em] xl:tracking-[0.2em] text-text-display",
-          "shadow-[0_0_12px_var(--color-brand-primary-glow)]",
-          "hover:shadow-[0_0_24px_var(--color-brand-primary-glow)]",
-          "hover:brightness-110 transition-all",
-        )}
+        className={cn(plateClass("cta", "brand"), CTA_TEXT)}
       >
         <Shield size={12} aria-hidden="true" />
         <span>{t("nav.conduta")}</span>
@@ -340,25 +287,14 @@ function CondutaBadge() {
 }
 
 function EntrarBadge() {
-  // CTA Discord OAuth pra visitante — estética cinematic igual ao CondutaBadge
-  // pra consistência visual; aparece AO LADO da Conduta.
+  // Entrada pelo Discord para visitante: mesma placa vermelha da Conduta, ao lado dela.
   const t = useTranslations("nav");
   return (
-    <form action={signInWithDiscord}>
+    <form action={signInWithDiscord} className="flex h-full">
       <button
         type="submit"
         aria-label="Entrar com Discord"
-        className={cn(
-          "group inline-flex items-center gap-1.5 rounded-md",
-          "px-2.5 py-1 xl:px-3 xl:py-1.5",
-          "border-2 border-brand-primary",
-          "bg-gradient-to-b from-brand-primary to-brand-primary-hover",
-          "font-display text-sm xl:text-sm font-bold uppercase",
-          "tracking-[0.15em] xl:tracking-[0.2em] text-text-display",
-          "shadow-[0_0_12px_var(--color-brand-primary-glow)]",
-          "hover:shadow-[0_0_24px_var(--color-brand-primary-glow)]",
-          "hover:brightness-110 transition-all"
-        )}
+        className={cn(plateClass("cta", "brand"), CTA_TEXT)}
       >
         <LogIn size={12} aria-hidden="true" />
         <span>{t("entrar")}</span>
@@ -367,73 +303,38 @@ function EntrarBadge() {
   );
 }
 
-function TopBarTab({
-  href,
-  label,
-  active,
-}: {
-  href: string;
-  label: string;
-  active?: boolean;
-}) {
-  return (
-    <Link
-      href={href}
-      aria-current={active ? "page" : undefined}
-      /* Teko condensed na nav (liberada 2026-06-11) — feel Dota 2/GamersClub.
-         text-lg porque condensed tem x-height baixo: 18px Teko ≈ 14px Ubuntu. */
-      className={`rounded-md px-2.5 py-1 font-display-condensed text-lg leading-none font-medium uppercase tracking-[0.08em] transition-colors xl:px-3 xl:tracking-[0.12em] ${
-        active
-          ? "bg-brand-primary/15 text-text-display border-b-2 border-brand-primary rounded-b-none"
-          : "text-text-body hover:bg-bg-elevated hover:text-text-display"
-      }`}
-    >
-      {label}
-    </Link>
-  );
-}
-
-// Sino de novidades — ícone + badge vermelho com nº de não-lidas. Leva a /novidades,
-// onde a visita zera o contador (mark_changelog_seen). Badge some quando unread=0.
+// Sino de novidades: ícone + selo vermelho com o nº de não-lidas. Leva a /novidades,
+// onde a visita zera o contador (mark_changelog_seen). O selo some quando unread=0.
 function ChangelogBell({ unread, label }: { unread: number; label: string }) {
   const has = unread > 0;
   return (
-    <Tooltip content={label} side="bottom" focusable={false}>
-      <Link
-        href="/novidades"
-        aria-label={has ? `${label} (${unread})` : label}
-        className="relative flex size-8 items-center justify-center rounded-md text-white/60 hover:bg-white/5 hover:text-white transition-colors"
-      >
-        <Bell size={16} aria-hidden="true" />
+    <Tooltip content={label} side="bottom" focusable={false} className="h-full">
+      <PlateIconLink href="/novidades" label={has ? `${label} (${unread})` : label} icon={Bell}>
         {has && (
-          <span className="absolute -right-0.5 -top-0.5 flex min-w-4 items-center justify-center rounded-full bg-brand-primary px-1 font-display text-[0.6rem] font-bold leading-4 text-text-display">
+          <span className="absolute right-1 top-2 flex min-w-4 items-center justify-center rounded-full bg-brand-primary px-1 font-display text-[0.6rem] font-bold leading-4 text-text-display xl:top-2.5">
             {unread > 9 ? "9+" : unread}
           </span>
         )}
-      </Link>
+      </PlateIconLink>
     </Tooltip>
   );
 }
 
-// Ícone de atalho no topbar — só ícone, label aparece no hover (Tooltip).
+// Atalho no topbar: só o ícone na placa, com o nome no hover (Tooltip).
 function TopBarIconTip({
-  icon: Icon,
+  icon,
   label,
   href,
+  tone,
 }: {
-  icon: typeof Settings;
+  icon: LucideIcon;
   label: string;
   href: string;
+  tone?: "neutral" | "gold";
 }) {
   return (
-    <Tooltip content={label} side="bottom" focusable={false}>
-      <Link
-        href={href}
-        aria-label={label}
-        className="flex size-8 items-center justify-center rounded-md text-white/60 hover:bg-white/5 hover:text-white transition-colors"
-      >
-        <Icon size={16} aria-hidden="true" />
-      </Link>
+    <Tooltip content={label} side="bottom" focusable={false} className="h-full">
+      <PlateIconLink href={href} label={label} icon={icon} tone={tone} />
     </Tooltip>
   );
 }

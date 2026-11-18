@@ -7,12 +7,14 @@
 // 80-96px bottom-bar) pra transição sem "pulo" de layout quando os dados chegam.
 
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
+import topBarStyles from "./top-bar.module.css";
 
 export function ShellSkeleton() {
   return (
     <div className="relative h-screen overflow-hidden" aria-busy="true">
-      {/* Topbar — mesma régua visual do DashboardTopBar */}
-      <header className="flex h-12 shrink-0 items-center justify-between border-b border-brand-primary/60 bg-bg-deep/75 px-4 backdrop-blur-xl xl:h-14 xl:px-6">
+      {/* Topbar com a mesma pele do DashboardTopBar, para não piscar quando os dados chegam */}
+      <header className={cn(topBarStyles.bar, "flex h-12 shrink-0 items-center justify-between px-4 xl:h-14 xl:px-6")}>
         <div className="flex items-center gap-4">
           <Skeleton className="h-6 w-28" />
           <div className="hidden md:flex items-center gap-3">

@@ -1,0 +1,407 @@
+/*
+ * Pele do topbar no molde da barra superior do cliente do Dota 2 (ref. "dota 2 menu.png",
+ * medidas em docs/foundations/DOTA2_CLIENT_REFERENCE.md): barra opaca, placas chanfradas
+ * separadas por sulcos diagonais, placa do logo que desce abaixo da barra e logo com brilho.
+ * A forma vem da referência; toda cor sai dos tokens semânticos.
+ */
+
+.bar {
+  /* Sulco diagonal: na referência a aresta avança ~30px em 80px de altura (cerca de 20 graus). */
+  --plate-skew: -20deg;
+  --plate-top: color-mix(in oklab, var(--color-bg-elevated), var(--color-text-display) 7%);
+  --plate-bottom: var(--color-bg-base);
+  --plate-edge: color-mix(in oklab, var(--color-text-display) 9%, transparent);
+  --plate-rim: color-mix(in oklab, var(--color-text-display) 16%, var(--color-bg-base));
+  /* Quanto a placa do logo desce abaixo da barra (17px a 1440p na referência). */
+  --logo-hang: 6px;
+  /* Ombros da placa do logo: quanto saem para os lados e quanto afinam até a base. */
+  --logo-shoulder: 0.5rem;
+  --logo-face-inset: 0.375rem;
+
+  background: linear-gradient(to bottom, var(--color-bg-base), var(--color-bg-deep));
+  border-bottom: 1px solid color-mix(in oklab, var(--color-brand-primary) 60%, transparent);
+  box-shadow: var(--shadow-elevated);
+  /* Corta só na horizontal (placa da ponta passa da borda); a placa do logo segue descendo. */
+  overflow-x: clip;
+}
+
+@media (min-width: 80rem) {
+  .bar {
+    --logo-hang: 10px;
+    --logo-shoulder: 0.875rem;
+    --logo-face-inset: 0.5rem;
+  }
+}
+
+/* ---------- Placas chanfradas (abas, ícones e botões da direita) ---------- */
+
+.plate {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  height: 100%;
+  color: var(--color-text-muted);
+  /* Texto gravado na placa: sombra escura de 1px por baixo, como as abas do cliente. */
+  text-shadow: 0 1px 1px color-mix(in oklab, var(--color-bg-deep) 85%, transparent);
+  transition: color var(--motion-duration-micro) var(--motion-ease-snappy);
+}
+
+/* A placa é o pseudo-elemento inclinado; o texto fica reto por cima dela. */
+.plate::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  transform: skewX(var(--plate-skew));
+  background: linear-gradient(to bottom, var(--plate-top), var(--plate-bottom));
+  box-shadow:
+    inset 1px 0 0 var(--plate-edge),
+    inset 0 1px 0 var(--plate-edge);
+  transition:
+    filter var(--motion-duration-micro) var(--motion-ease-snappy),
+    box-shadow var(--motion-duration-micro) var(--motion-ease-snappy);
+}
+
+.plate:hover {
+  color: var(--color-text-display);
+}
+
+.plate:hover::before {
+  filter: brightness(1.3);
+}
+
+/* Aba da página atual: texto claro e a placa acesa por baixo com o vermelho da marca. */
+.plate[aria-current="page"] {
+  color: var(--color-text-display);
+}
+
+.plate[aria-current="page"]::before {
+  background:
+    linear-gradient(to top, color-mix(in oklab, var(--color-brand-primary) 40%, transparent), transparent 75%),
+    linear-gradient(to bottom, var(--plate-top), var(--plate-bottom));
+  box-shadow:
+    inset 0 -2px 0 var(--color-brand-primary),
+    inset 1px 0 0 var(--plate-edge),
+    inset 0 1px 0 var(--plate-edge);
+}
+
+/* Foco segue a forma da placa; anel claro porque o vermelho sobre a placa fica abaixo de 3:1. */
+.plate:focus-visible {
+  outline: none;
+}
+
+.plate:focus-visible::before {
+  box-shadow: inset 0 0 0 2px var(--color-text-display);
+}
+
+/* Até 1536px a barra divide espaço com a fila, os contadores e os atalhos: placas justas.
+   Entre 1024 e 1279px a barra do usuário logado está no limite, então tudo encolhe mais. */
+.tab {
+  padding-inline: 0.5rem;
+}
+
+@media (min-width: 80rem) {
+  .tab {
+    padding-inline: 0.625rem;
+  }
+}
+
+@media (min-width: 96rem) {
+  .tab {
+    padding-inline: 0.75rem;
+  }
+}
+
+/* Telas largas: abas de largura parecida, como no cliente. O piso é baixo em 1920 porque a
+   barra do admin leva 8 abas e o seletor de visualização; em monitor ultralargo, abas largas. */
+@media (min-width: 112.5rem) {
+  .tab {
+    min-width: 5.5rem;
+    padding-inline: 1rem;
+  }
+}
+
+@media (min-width: 150rem) {
+  .tab {
+    min-width: 8rem;
+    padding-inline: 1.5rem;
+  }
+}
+
+.icon {
+  width: 2rem;
+}
+
+@media (min-width: 80rem) {
+  .icon {
+    width: 2.25rem;
+  }
+}
+
+@media (min-width: 96rem) {
+  .icon {
+    width: 2.5rem;
+  }
+}
+
+/* Placa dourada: assinatura (Planos), no lugar da placa do Dota Plus. */
+.gold {
+  color: var(--color-gold-bright);
+}
+
+.gold::before {
+  background: linear-gradient(
+    to bottom,
+    color-mix(in oklab, var(--color-gold) 34%, var(--plate-bottom)),
+    color-mix(in oklab, var(--color-gold) 10%, var(--plate-bottom))
+  );
+}
+
+.gold:hover {
+  color: var(--color-gold-cream);
+}
+
+/* Placa vermelha: chamada da marca (Conduta, Entrar). */
+.brand {
+  color: var(--color-text-display);
+  padding-inline: 0.75rem;
+}
+
+.brand::before {
+  background: linear-gradient(to bottom, var(--color-brand-primary), var(--color-brand-primary-hover));
+  box-shadow:
+    inset 1px 0 0 color-mix(in oklab, var(--color-text-display) 22%, transparent),
+    inset 0 1px 0 color-mix(in oklab, var(--color-text-display) 22%, transparent);
+}
+
+.brand:hover::before {
+  filter: brightness(1.12);
+  box-shadow:
+    inset 1px 0 0 color-mix(in oklab, var(--color-text-display) 22%, transparent),
+    inset 0 1px 0 color-mix(in oklab, var(--color-text-display) 22%, transparent),
+    var(--glow-brand);
+}
+
+@media (min-width: 96rem) {
+  .brand {
+    padding-inline: 1rem;
+  }
+}
+
+@media (min-width: 150rem) {
+  .brand {
+    padding-inline: 1.5rem;
+  }
+}
+
+/* A última placa da barra encosta na borda da tela, como a placa de sair do cliente. */
+.endcap > :last-child .plate::before,
+.endcap > .plate:last-child::before {
+  right: -1.5rem;
+}
+
+/* ---------- Placa do logo ---------- */
+
+.logo {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-start;
+  height: calc(100% + var(--logo-hang));
+  padding-inline: 0.5rem;
+  margin-inline: var(--logo-shoulder);
+}
+
+@media (min-width: 80rem) {
+  .logo {
+    padding-inline: 0.75rem;
+  }
+}
+
+@media (min-width: 96rem) {
+  .logo {
+    padding-inline: 1rem;
+  }
+}
+
+.logo:focus-visible {
+  outline: none;
+}
+
+/* Ombros: moldura escura mais larga, de lados chanfrados, que acaba logo abaixo da barra. */
+.logoFrame {
+  position: absolute;
+  z-index: -2;
+  top: 0;
+  bottom: calc(var(--logo-hang) - 4px);
+  left: calc(var(--logo-shoulder) * -1);
+  right: calc(var(--logo-shoulder) * -1);
+  clip-path: polygon(0 0, 100% 0, calc(100% - var(--logo-shoulder)) 100%, var(--logo-shoulder) 100%);
+  background: linear-gradient(to bottom, var(--color-bg-elevated), var(--color-bg-deep));
+}
+
+/* Face: trapézio mais claro que desce abaixo da barra, com aresta clara e base acesa.
+   A aresta é o fundo da face aparecendo em volta da camada interna (::before). */
+.logoFace {
+  --rim: 1px;
+  --rim-top: 0px;
+  --rim-base: 2px;
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    calc(100% - var(--logo-face-inset)) 100%,
+    var(--logo-face-inset) 100%
+  );
+  background: linear-gradient(to top, var(--color-brand-primary) 0 var(--rim-base), var(--plate-rim) var(--rim-base));
+}
+
+.logoFace::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  clip-path: polygon(
+    var(--rim) var(--rim-top),
+    calc(100% - var(--rim)) var(--rim-top),
+    calc(100% - var(--logo-face-inset) - var(--rim)) calc(100% - var(--rim-base)),
+    calc(var(--logo-face-inset) + var(--rim)) calc(100% - var(--rim-base))
+  );
+  background: linear-gradient(to bottom, var(--plate-top), var(--plate-bottom));
+}
+
+/* Foco do logo: a aresta inteira vira um anel claro de 2px no formato da placa. */
+.logo:focus-visible .logoFace {
+  --rim: 2px;
+  --rim-top: 2px;
+  --rim-base: 2px;
+  background: var(--color-text-display);
+}
+
+/* Brasa atrás do logo: respira devagar, como o brilho do logo do cliente. */
+.logoEmber {
+  position: absolute;
+  inset: 8% 4% 0;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in oklab, var(--color-brand-primary) 58%, transparent),
+    transparent
+  );
+  opacity: 0.6;
+  animation: ember-breath calc(var(--motion-duration-cinematic) * 3.6) var(--motion-ease-soft-landing)
+    infinite alternate;
+  transition: filter var(--motion-duration-standard) var(--motion-ease-soft-landing);
+}
+
+.logo:hover .logoEmber {
+  filter: brightness(1.45);
+}
+
+.logoImage {
+  position: relative;
+  filter:
+    drop-shadow(0 0 1px color-mix(in oklab, var(--color-brand-primary) 85%, transparent))
+    drop-shadow(0 0 7px color-mix(in oklab, var(--color-brand-primary) 55%, transparent));
+  transition: filter var(--motion-duration-standard) var(--motion-ease-soft-landing);
+}
+
+.logo:hover .logoImage {
+  filter:
+    brightness(1.08)
+    drop-shadow(0 0 1px var(--color-brand-primary))
+    drop-shadow(0 0 10px color-mix(in oklab, var(--color-brand-primary) 75%, transparent));
+}
+
+/* Fagulhas que sobem do logo, como as brasas do logo do cliente. Posições e atrasos fixos. */
+.sparks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.spark {
+  position: absolute;
+  bottom: 26%;
+  width: 2px;
+  height: 2px;
+  border-radius: var(--radius-full);
+  background: color-mix(in oklab, var(--color-brand-primary) 50%, var(--color-gold-bright));
+  box-shadow: 0 0 4px var(--color-brand-primary);
+  opacity: 0;
+  animation: spark-rise calc(var(--motion-duration-cinematic) * 3.2) var(--motion-ease-soft-landing) infinite;
+}
+
+.spark:nth-child(1) {
+  left: 22%;
+  animation-delay: calc(var(--motion-duration-cinematic) * 0.3);
+}
+
+.spark:nth-child(2) {
+  left: 51%;
+  animation-delay: calc(var(--motion-duration-cinematic) * 1.4);
+}
+
+.spark:nth-child(3) {
+  left: 78%;
+  animation-delay: calc(var(--motion-duration-cinematic) * 2.3);
+}
+
+@keyframes ember-breath {
+  from {
+    opacity: 0.45;
+  }
+  to {
+    opacity: 0.9;
+  }
+}
+
+@keyframes spark-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(1);
+  }
+  15% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 0.55;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-18px) scale(0.5);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logoEmber {
+    animation: none;
+    opacity: 0.7;
+  }
+
+  .sparks {
+    display: none;
+  }
+
+  .plate,
+  .plate::before,
+  .logoEmber,
+  .logoImage {
+    transition: none;
+  }
+}
+
+/* Alto contraste do Windows apaga sombras e fundos: volta o contorno nativo no foco. */
+@media (forced-colors: active) {
+  .plate:focus-visible,
+  .logo:focus-visible {
+    outline: 2px solid CanvasText;
+    outline-offset: -2px;
+  }
+}

@@ -36,10 +36,10 @@ Ubuntu+Teko, dourado pra números), definida em `src/styles/tokens/`. Replicar a
 estrutura do Dota 2 com a pele FormulaDota é o objetivo; copiar a paleta marrom da
 Valve NÃO é.
 
-**Gap conhecido deste doc:** ele cataloga estrutura mas ainda não tem a seção
-"Medidas de densidade" (alturas de linha da friends list, tamanhos de fonte da nav,
-paddings dos painéis, amostrados das imagens). Adicionar na Fase 1 do plano visual —
-sem essas medidas, agentes copiam a estrutura e inventam a escala.
+**Gap conhecido deste doc:** a barra superior já tem medidas (seção "Medidas da barra
+superior", abaixo). Faltam as do resto: alturas de linha da friends list, paddings dos
+painéis, sidebars e bottom-bar, amostrados das imagens. Sem essas medidas, agentes
+copiam a estrutura e inventam a escala.
 
 ---
 
@@ -187,6 +187,24 @@ em [[feedback-dota2-client-canonical]], `src/components/client-shell/shell.tsx` 
 - **Mostra:** Hero section do site dota2.com (não do client).
 - **Quando referenciar:** apenas pra inspiração da landing FORMULADOTA quando precisar
   espelhar pesos visuais de marketing oficial Valve. **Não confundir com client UI**.
+
+---
+
+## Medidas da barra superior (amostradas em 18/11/2026)
+
+Fonte: `dota 2 menu.png` (2561x1438, cliente a 1440p). Para 1080p, multiplicar por 0,75.
+
+| Elemento | Medida no cliente | Como o FORMULADOTA aplica |
+|---|---|---|
+| Altura da barra | 80px (60px a 1080p), opaca, metal escuro | 48px no celular, 56px a partir de 1280px; fundo opaco em gradiente `bg-base` para `bg-deep` |
+| Sulco entre placas | diagonal "/" que avança ~30px em 80px (cerca de 20 graus), ~3px de largura | placas com `skewX(-20deg)` e 4px de vão |
+| Placa do logo | trapézio de 208px no topo e 190px na base, desce ~17px abaixo da barra; ombros de 280px que acabam ~5px abaixo | face que desce 6px (10px a partir de 1280px), ombros mais largos, base acesa em vermelho |
+| Brilho do logo | logo em brasa com halo e fagulhas | halo vermelho da marca que respira devagar, 3 fagulhas; tudo para com `prefers-reduced-motion` |
+| Abas | ~200px cada, caixa-alta com espaçamento largo, ativa mais clara | placas do tamanho do texto até 1800px (piso de 88px a partir dele, 128px a partir de 2400px); ativa com base vermelha |
+| Direita | moeda em dourado, ícones em placas, placa dourada (Dota Plus), placa vermelha de sair encostada na borda | ícones em placas, Planos na placa dourada, CONDUTA e ENTRAR em placas vermelhas, a última encostada na borda |
+| Faixa de aviso | ~30px centralizada sob a barra | ainda não aplicada (pílulas de fila e PROs seguem dentro da barra) |
+
+Código: `src/components/client-shell/top-bar.tsx`, `top-bar-chrome.tsx` e `top-bar.module.css`.
 
 ---
 

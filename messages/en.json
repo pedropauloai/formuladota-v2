@@ -108,11 +108,13 @@
     "times": "Teams",
     "torneios": "Tournaments",
     "meta": "Meta",
+    "loja": "Store",
     "conduta": "Conduct",
     "entrar": "Sign in",
     "jogarDota": "Play Dota"
   },
   "topbar": {
+    "homeAria": "Go to the FORMULADOTA dashboard",
     "settings": "Settings",
     "myProfile": "My profile",
     "signOut": "Sign out",
