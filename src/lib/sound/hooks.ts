@@ -93,6 +93,26 @@ export function useVolume(layer: SoundLayer): {
 }
 
 /**
+ * Volume geral dos efeitos (0.0-1.0), o controle das configurações. Persiste em localStorage.
+ */
+export function useMasterVolume(): {
+  volume: number;
+  setVolume: (value: number) => void;
+} {
+  const [volume, setVolumeState] = useState<number>(() => {
+    if (typeof window === "undefined") return 1;
+    return getSoundManager().getMasterVolume();
+  });
+
+  const setVolume = useCallback((value: number) => {
+    getSoundManager().setMasterVolume(value);
+    setVolumeState(Math.max(0, Math.min(1, value)));
+  }, []);
+
+  return { volume, setVolume };
+}
+
+/**
  * Hook de primeiro gesto — mobile autoplay gate.
  *
  * Retorna true após o usuário realizar o primeiro click ou touchstart.

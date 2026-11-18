@@ -49,30 +49,8 @@ export function LogoPlate({ label }: { label: string }) {
   );
 }
 
-export function PlateTab({
-  href,
-  label,
-  active,
-}: {
-  href: string;
-  label: string;
-  active: boolean;
-}) {
-  return (
-    <Link
-      href={href}
-      aria-current={active ? "page" : undefined}
-      // Teko na nav (2026-06-11): 18px de Teko equivalem a uns 14px de Ubuntu pela altura-x baixa.
-      // Entre 1024 e 1279px cai para 16px para as abas caberem ao lado dos atalhos do logado.
-      className={cn(
-        plateClass("tab"),
-        "font-display-condensed text-base leading-none font-medium uppercase tracking-[0.08em] xl:text-lg xl:tracking-[0.12em] 2xl:tracking-[0.14em]",
-      )}
-    >
-      {label}
-    </Link>
-  );
-}
+// A aba roda no navegador para tocar o som de troca de aba (plate-tab.tsx).
+export { PlateTab } from "./plate-tab";
 
 export function PlateIconLink({
   href,

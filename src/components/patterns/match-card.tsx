@@ -190,10 +190,6 @@ export function MatchCard({
   const play = useSound();
   const motionSafe = useMotionSafeBool();
 
-  // Handler de hover — acoplamento sound + interação (C20)
-  const handleMouseEnter = () => {
-    if (onClick) play("hover");
-  };
 
   // Handler de click — som confirm + callback (C20)
   const handleClick = () => {
@@ -220,7 +216,6 @@ export function MatchCard({
       aria-label={ariaLabel}
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
-      onMouseEnter={handleMouseEnter}
       onClick={handleClick}
       onKeyDown={(e) => {
         // Acessibilidade: Enter/Space disparam click (C5)

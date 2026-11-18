@@ -4,7 +4,7 @@
 // absoluto preso ao contexto de empilhamento do topbar — na home o miniperfil da
 // coluna esquerda ficava POR CIMA dele. Virou um MODAL CENTRAL (estilo o menu de
 // configurações do próprio Dota 2): renderizado num portal com backdrop, então
-// nada da página cobre. Agrupa idioma + atalho pro perfil + sair.
+// nada da página cobre. Agrupa idioma, efeitos sonoros, atalho pro perfil e sair.
 
 import { useState } from "react";
 import { Settings, User, LogOut } from "lucide-react";
@@ -14,6 +14,7 @@ import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 import { signOut } from "@/app/login/actions";
 import { cn } from "@/lib/utils";
 import { Dialog } from "@/components/ui/dialog";
+import { SoundSettings } from "./sound-settings";
 
 export function SettingsPopup() {
   const t = useTranslations();
@@ -43,6 +44,9 @@ export function SettingsPopup() {
           </p>
           <LanguageSwitcher />
         </div>
+
+        {/* Efeitos sonoros: liga/desliga e volume (Pedro 18/11/2026) */}
+        <SoundSettings />
 
         {/* Ações — perfil + sair */}
         <div className="mt-[var(--space-4)] flex flex-col gap-1 border-t border-border-subtle pt-[var(--space-4)]">

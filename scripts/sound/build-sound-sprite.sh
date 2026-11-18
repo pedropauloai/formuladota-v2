@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Reconstrói o sprite de UI do FORMULADOTA a partir dos SFX do cliente Dota 2.
 #
-# Fonte: scripts/sound/dota-sfx/<id>.mp3 (sons da Valve, categoria Sounds_ui).
+# Fonte: scripts/sound/dota-sfx/<id>.flac (ou .wav/.mp3), extraídos do próprio jogo
+# (pak01_dir.vpk da instalação do Dota 2). Mapa arquivo -> evento em src/lib/sound/CREDITS.md.
 # Saída: public/sounds/ui-sprite.{mp3,webm} + imprime o SPRITE_MAP pra colar
 #        em src/lib/sound/sprite-map.ts.
 #
@@ -22,11 +23,21 @@ MARGIN=40   # ms de folga no fim de cada som (evita corte)
 GAP=150     # ms de silêncio entre sons
 
 # ORDEM dos IDs no sprite (a mesma lista de src/lib/sound/sprite-map.ts).
-IDS=(hover click confirm error notification reward \
+IDS=(hover click tab confirm error notification reward \
      match_found queue_start queue_stop ready_accept \
      quiz_correct objective coins treasure stinger)
 
-# Lê a duração (ms) de um mp3 a partir do "Duration: HH:MM:SS.ss" do ffmpeg.
+# Fonte de cada id: o primeiro que existir entre .flac (sem perda), .wav e .mp3.
+src_of() {
+  local ext
+  for ext in flac wav mp3; do
+    if [ -f "$RAW/$1.$ext" ]; then echo "$RAW/$1.$ext"; return; fi
+  done
+  echo "faltou a fonte de $1 em $RAW" >&2
+  exit 1
+}
+
+# Lê a duração (ms) de um arquivo de áudio a partir do "Duration: HH:MM:SS.ss" do ffmpeg.
 dur_ms() {
   local d; d=$(ffmpeg -i "$1" 2>&1 | grep -o 'Duration: [0-9:.]*' | head -1 | sed 's/Duration: //')
   local h=${d%%:*}; local rest=${d#*:}; local m=${rest%%:*}; local s=${rest#*:}
@@ -36,9 +47,10 @@ dur_ms() {
 inputs=(); filter=""; labels=""; i=0; start=0
 declare -a MAP_LINES
 for id in "${IDS[@]}"; do
-  real=$(dur_ms "$RAW/$id.mp3")
+  src=$(src_of "$id")
+  real=$(dur_ms "$src")
   slot=$((real + MARGIN))
-  inputs+=(-i "$RAW/$id.mp3")
+  inputs+=(-i "$src")
   filter+="[$i]adelay=${start}:all=1[a$i];"
   labels+="[a$i]"
   MAP_LINES+=("  $id: { start: $start, duration: $slot },")

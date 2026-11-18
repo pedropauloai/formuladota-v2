@@ -116,6 +116,10 @@
   "topbar": {
     "homeAria": "Go to the FORMULADOTA dashboard",
     "settings": "Settings",
+    "soundEffects": "Sound effects",
+    "soundOn": "On",
+    "soundOff": "Off",
+    "soundVolume": "Effects volume",
     "myProfile": "My profile",
     "signOut": "Sign out",
     "close": "Close",

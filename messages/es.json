@@ -116,6 +116,10 @@
   "topbar": {
     "homeAria": "Ir al panel del FORMULADOTA",
     "settings": "Ajustes",
+    "soundEffects": "Efectos de sonido",
+    "soundOn": "Activados",
+    "soundOff": "Desactivados",
+    "soundVolume": "Volumen de los efectos",
     "myProfile": "Mi perfil",
     "signOut": "Cerrar sesión",
     "close": "Cerrar",

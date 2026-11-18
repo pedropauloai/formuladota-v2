@@ -16,6 +16,7 @@
  * Persistência localStorage:
  *   - fd-sound-muted         — boolean, mute global
  *   - fd-sound-volume-{layer} — number 0.0-1.0 por layer
+ *   - fd-sound-volume-master — number 0.0-1.0, volume geral dos efeitos (configurações)
  *
  * Documentação: docs/foundations/SOUND_SYSTEM.md
  */
@@ -59,6 +60,10 @@ export interface ISoundManager {
   setVolume(layer: SoundLayer, value: number): void;
   /** Retorna volume atual de um layer */
   getVolume(layer: SoundLayer): number;
+  /** Volume geral dos efeitos (0.0-1.0), multiplicado pelo volume do layer; persiste */
+  setMasterVolume(value: number): void;
+  /** Retorna o volume geral dos efeitos */
+  getMasterVolume(): number;
   /** Carrega o sprite WebM+MP3. Chamado pelo SoundProvider no mount. */
   loadSprite(webmUrl: string, mp3Url: string): Promise<void>;
   /**
@@ -85,7 +90,13 @@ const DEFAULT_VOLUMES: Record<SoundLayer, number> = {
 const STORAGE_KEYS = {
   muted:  "fd-sound-muted",
   volume: (layer: SoundLayer) => `fd-sound-volume-${layer}`,
+  master: "fd-sound-volume-master",
 } as const;
+
+/** Volume que de fato toca: o do layer (ou o pedido) vezes o geral, sempre entre 0 e 1. */
+export function effectiveVolume(layerVolume: number, master: number): number {
+  return Math.max(0, Math.min(1, layerVolume * master));
+}
 
 class HowlerSoundManager implements ISoundManager {
   /** Instância Howl com o sprite sheet de 6 SFX */
@@ -94,6 +105,8 @@ class HowlerSoundManager implements ISoundManager {
   private muted = false;
   /** Volumes por layer (0.0-1.0) */
   private volumes: Record<SoundLayer, number> = { ...DEFAULT_VOLUMES };
+  /** Volume geral dos efeitos (0.0-1.0), controlado nas configurações */
+  private master = 1;
   /** true após primeiro gesto do usuário — mobile autoplay gate */
   private initialized = false;
 
@@ -110,6 +123,11 @@ class HowlerSoundManager implements ISoundManager {
       const muted = localStorage.getItem(STORAGE_KEYS.muted);
       if (muted !== null) {
         this.muted = muted === "true";
+      }
+
+      const master = localStorage.getItem(STORAGE_KEYS.master);
+      if (master !== null && !isNaN(parseFloat(master))) {
+        this.master = Math.max(0, Math.min(1, parseFloat(master)));
       }
 
       // Restaurar volume de cada layer
@@ -183,7 +201,8 @@ class HowlerSoundManager implements ISoundManager {
     // Celebrações/marcos (match_found, reward, coins, treasure, objective,
     // stinger) usam o layer reward (0.8); os demais usam interaction (0.6).
     const layer: SoundLayer = REWARD_LAYER_IDS.has(id) ? "reward" : "interaction";
-    const volume = opts?.volume ?? this.volumes[layer];
+    const volume = effectiveVolume(opts?.volume ?? this.volumes[layer], this.master);
+    if (volume === 0) return;
 
     try {
       const soundId = this.sprite.play(id);
@@ -221,6 +240,19 @@ class HowlerSoundManager implements ISoundManager {
 
   getVolume(layer: SoundLayer): number {
     return this.volumes[layer];
+  }
+
+  setMasterVolume(value: number): void {
+    this.master = Math.max(0, Math.min(1, value));
+    try {
+      localStorage.setItem(STORAGE_KEYS.master, String(this.master));
+    } catch {
+      // localStorage indisponível — silencioso
+    }
+  }
+
+  getMasterVolume(): number {
+    return this.master;
   }
 }
 

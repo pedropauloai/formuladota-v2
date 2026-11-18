@@ -187,12 +187,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     // Botão efetivamente bloqueado (disabled ou loading)
     const isBlocked = disabled ?? loading;
 
-    // Handler de hover: dispara som "hover" apenas quando ativo
+    // Hover sem som: no cliente do Dota, botão comum só soa ao clicar (o som de hover é só
+    // das cartas de herói). O estalo em todo hover incomodava (Pedro, 18/11/2026).
     const handleMouseEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
-      // Disabled e loading são silenciosos — PRODUCT_CORE § 7 "Estado: Disabled"
-      if (!isBlocked) {
-        play("hover");
-      }
       onMouseEnter?.(e);
     };
 

@@ -1,13 +1,14 @@
 /**
  * Sprite map FormulaDota — SFX de UI do cliente Dota 2 (Valve).
  *
- * FONTE DOS SONS: cliente oficial de Dota 2 da Valve (categoria Sounds_ui da
- * dota2 wiki). Escolha INTENCIONAL de Pedro (2026-07-07) — usar os sons reais
- * do jogo traz familiaridade imediata ao jogador de Dota 2 na plataforma.
- * Ver src/lib/sound/CREDITS.md para o mapeamento arquivo→evento e a nota de uso.
+ * FONTE DOS SONS: os arquivos do próprio cliente do Dota 2 (pak01_dir.vpk da instalação),
+ * extraídos sem perda em 18/11/2026. Cada id usa o som que o cliente toca no mesmo momento:
+ * o nome do evento sai do código do jogo (client.dll) ou dos estilos do menu (Panorama).
+ * Escolha de Pedro (07/07/2026): os sons reais do jogo dão familiaridade ao jogador.
+ * Ver src/lib/sound/CREDITS.md para o mapeamento arquivo → evento e a nota de uso.
  *
  * Offsets em ms [start, duration]. Sincronizado com public/sounds/ui-sprite.{webm,mp3}.
- * O sprite é gerado por scripts/build-sound-sprite.sh (ffmpeg puro, offsets
+ * O sprite é gerado por scripts/sound/build-sound-sprite.sh (ffmpeg puro, offsets
  * determinísticos por layout de slots fixos). NÃO editar offsets à mão —
  * regerar o sprite e colar os valores do script.
  *
@@ -18,17 +19,18 @@
  */
 
 export type SoundId =
-  // --- Interaction base (roteados automaticamente por Button/Card/Dialog/Toast) ---
-  | "hover" //         buttonrollover — hover de botão/card
-  | "click" //         buttonclick — click de botão/card
+  // --- Interação (click roteado automaticamente por Button/Card/Dialog/Toast) ---
+  | "hover" //         panorama_rollover_micro_01 (ui_rollover_micro) — reservado: no Dota, botão comum não toca som no hover
+  | "click" //         panorama_generic_button_click_01 (ui_generic_button_click) — clique de botão/card
+  | "tab" //           panorama_topmenu_select_01 (ui_topmenu_select) — troca de aba no topo
   | "confirm" //       quickbuy_confirm — ação confirmada com sucesso
-  | "error" //         ui_general_deny — erro/bloqueio (o "deny" clássico do Dota)
-  | "notification" //  ui_msg_received_team — mensagem/aviso chegando
+  | "error" //         deny_general — erro/bloqueio (o "deny" do Dota)
+  | "notification" //  panorama_chat_message_rec_01 (ui_chat_msg_rec) — mensagem/aviso chegando
   | "reward" //        levelup — conquista genérica (toasts de sucesso, takeover)
   // --- Fila & partida (momentos-âncora de familiaridade) ---
-  | "match_found" //   ui_findmatch_found_01 — ready check "PARTIDA ENCONTRADA"
-  | "queue_start" //   ui_findmatch_search_01 — entrou na fila
-  | "queue_stop" //    ui_findmatch_quit_01 — saiu da fila
+  | "match_found" //   stingers/match_ready — ready check "PARTIDA ENCONTRADA"
+  | "queue_start" //   menu/matchmaking_find (ui.matchmaking_find) — entrou na fila
+  | "queue_stop" //    menu/matchmaking_cancel (ui.matchmaking_cancel) — saiu da fila
   | "ready_accept" //  ready_check_yes — aceitou a partida
   // --- Quiz de doutrina (estilo Duolingo) ---
   | "quiz_correct" //  tutorial_ui_ding_01 — acertou a questão
@@ -51,21 +53,22 @@ export interface SpriteEntry {
  * Valores gerados por scripts/build-sound-sprite.sh.
  */
 export const SPRITE_MAP: Record<SoundId, SpriteEntry> = {
-  hover: { start: 0, duration: 90 },
-  click: { start: 240, duration: 120 },
-  confirm: { start: 510, duration: 760 },
-  error: { start: 1420, duration: 210 },
-  notification: { start: 1780, duration: 190 },
-  reward: { start: 2120, duration: 2040 },
-  match_found: { start: 4310, duration: 3720 },
-  queue_start: { start: 8180, duration: 2730 },
-  queue_stop: { start: 11060, duration: 1540 },
-  ready_accept: { start: 12750, duration: 3520 },
-  quiz_correct: { start: 16420, duration: 2110 },
-  objective: { start: 18680, duration: 3040 },
-  coins: { start: 21870, duration: 1630 },
-  treasure: { start: 23650, duration: 3420 },
-  stinger: { start: 27220, duration: 1510 },
+  hover: { start: 0, duration: 380 },
+  click: { start: 530, duration: 560 },
+  tab: { start: 1240, duration: 750 },
+  confirm: { start: 2140, duration: 760 },
+  error: { start: 3050, duration: 170 },
+  notification: { start: 3370, duration: 350 },
+  reward: { start: 3870, duration: 2040 },
+  match_found: { start: 6060, duration: 3760 },
+  queue_start: { start: 9970, duration: 1940 },
+  queue_stop: { start: 12060, duration: 2010 },
+  ready_accept: { start: 14220, duration: 3520 },
+  quiz_correct: { start: 17890, duration: 2110 },
+  objective: { start: 20150, duration: 3040 },
+  coins: { start: 23340, duration: 1630 },
+  treasure: { start: 25120, duration: 3420 },
+  stinger: { start: 28690, duration: 1510 },
 };
 
 /**

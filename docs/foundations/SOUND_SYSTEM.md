@@ -48,7 +48,7 @@ O sistema de som FORMULADOTA organiza todos os sons em 8 categorias canonicas. N
 
 | Categoria | Role | Duracao | Volume Layer | Quando Dispara | Exemplo de Timbre |
 |-----------|------|---------|--------------|----------------|-------------------|
-| **hover** | Micro-feedback de presenca sobre elemento clicavel | 50-150ms | `--volume-interaction` (0.6) | `mouseenter` em botoes, cards interativos, links de navegacao | Breath sutil de ar, swoosh curtissimo (nao clique, nao beep — presenca) |
+| **hover** | Micro-feedback de presenca sobre elemento clicavel | 50-150ms | `--volume-interaction` (0.6) | So em carta de heroi, como no cliente do Dota. Botoes, cards e links ficam mudos no hover (18/11/2026) | Breath sutil de ar, swoosh curtissimo (nao clique, nao beep — presenca) |
 | **click** | Confirmacao de acao iniciada | 80-200ms | `--volume-interaction` (0.6) | `mousedown` em botoes primarios, secundarios e cards clicaveis | Tap solido com transient nitido, sem reverb longo — seco, preciso |
 | **confirm** | Feedback de sucesso de acao completada | 300-500ms | `--volume-interaction` (0.6) | Acao completada com sucesso: salvar perfil, aceitar partida, entrar na fila | Chime curto ascendente, dois ou tres tons em sequencia breve — resolucao positiva |
 | **error** | Sinal de falha sem alarmar | 200-400ms | `--volume-interaction` (0.6) | Falha de validacao, erro de rede, acao bloqueada | Tom descendente suave, dissonante mas nao agressivo — aviso, nao pericope |
@@ -61,7 +61,7 @@ O sistema de som FORMULADOTA organiza todos os sons em 8 categorias canonicas. N
 
 Cada categoria tem restrições de timbre que garantem coesao do conjunto:
 
-**hover**: O som mais discreto do sistema. Deve ser imperceptivel em volume baixo, confortavel em volume medio. Se alguem comentar "esse site bipa no hover", o hover esta errado. O alvo e subconsciente — o usuario sente que a interface respondeu sem processar conscientemente que ouviu algo. Nao deve ter click (isso e para a categoria click). Nao deve ter pitch reconhecivel (isso distrai).
+**hover**: Medido no cliente do Dota em 18/11/2026: dos sons declarados nos estilos do menu, 8 de 440 tocam no hover, todos em cartas especiais (heroi, recompensa). O Pedro achou o hover em todo botao incomodo. Por isso botoes, cards e links nao tocam som no hover. Quando houver carta de heroi, vale o resto deste paragrafo. O som mais discreto do sistema. Deve ser imperceptivel em volume baixo, confortavel em volume medio. Se alguem comentar "esse site bipa no hover", o hover esta errado. O alvo e subconsciente — o usuario sente que a interface respondeu sem processar conscientemente que ouviu algo. Nao deve ter click (isso e para a categoria click). Nao deve ter pitch reconhecivel (isso distrai).
 
 **click**: Deve soar definitivo. Um transient seco e preferivel a qualquer som com cauda longa. Analogia: o click mecanico de um interruptor de qualidade alta, nao o clique plastico de um mouse barato. O usuario deve sentir que "acionou algo" de forma tangivel.
 
@@ -168,7 +168,7 @@ const { play } = useSound()
 
 ### DSL de coupling automatico
 
-O objetivo final do sistema e que Pedro (nao-dev) nunca precise lembrar de adicionar som manualmente. O componente `<Button>` deve disparar `useSound('hover')` e `useSound('click')` automaticamente, sem necessidade de prop adicional.
+O objetivo final do sistema e que Pedro (nao-dev) nunca precise lembrar de adicionar som manualmente. O componente `<Button>` dispara `useSound('click')` automaticamente, sem necessidade de prop adicional. O hover saiu em 18/11/2026 (ver categoria hover). As abas do topo tocam `tab`, o som de troca de aba do cliente do Dota.
 
 ```tsx
 // src/components/ui/button.tsx — implementacao alvo DF6.1
