@@ -4,7 +4,7 @@
 
 Plataforma web (com desktop e mobile no horizonte) que funciona como uma máquina de doutrinação e conversão de mentalidade: o jogador aprende a **Fórmula** (a doutrina competitiva), prova que absorveu, e só então destrava jogar em lobbies com a comunidade — subindo num ranking próprio, com identidade pública e reputação atrelada.
 
-Produção: **[formuladota.com](https://formuladota.com)**
+Produção: **[www.formuladota.com.br](https://www.formuladota.com.br)** (o formuladota.com foi perdido em 10/2026)
 
 ## Como funciona (o loop)
 

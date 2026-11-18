@@ -6,7 +6,7 @@ description: Publica uma novidade (patch note) do FORMULADOTA em changelog_entri
 # /novidade — publicar patch note do FORMULADOTA
 
 Redige e publica UMA entrada em `changelog_entries` (prod Supabase). O site `/novidades`
-lê na hora; o cron `finalize-matches` (1x/min) espelha no canal Discord 🆕丨atualizacoes
+lê na hora; o cron do site (job `site-jobs`, 1x/min) espelha no canal Discord 🆕丨atualizacoes
 sozinho. Você NÃO posta no Discord manualmente, o espelho é automático.
 
 **Quando usar:** sempre que algo visível/relevante pro jogador foi shipado (feature nova,
@@ -69,7 +69,7 @@ Se o Pedro quiser datar diferente (retroativo), some `published_at => '<timestam
 
 ### 7. Confirme
 Diga ao Pedro que já está no `/novidades` e que o Discord espelha no próximo ciclo do
-cron (~1 min). Se ele quiser conferir, o link é `formuladota.com/novidades`.
+cron (~1 min). Se ele quiser conferir, o link é `www.formuladota.com.br/novidades`.
 
 ## Depois de publicado (referência rápida)
 - **Corrigir texto:** edite `body_md`/`title` da linha (o trigger bumpa `updated_at` → o
@@ -79,7 +79,7 @@ cron (~1 min). Se ele quiser conferir, o link é `formuladota.com/novidades`.
 
 ## Contexto técnico (não precisa mexer, só pra entender)
 - Tabela: migration `143_changelog.sql`. Espelho: `src/lib/changelog/discord-sync.ts`
-  (roda dentro do cron `src/app/api/cron/finalize-matches/route.ts`).
+  (roda dentro do cron `src/app/api/cron/site/route.ts`).
 - Só `published=true` aparece pro público (RLS). Rascunho (`published=false`) fica
   invisível até aprovar.
 - Env do webhook: `CHANGELOG_DISCORD_WEBHOOK_URL` (sem ela o espelho é no-op, só o site).

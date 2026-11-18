@@ -1,8 +1,8 @@
 // Feature flags — interruptores de funcionalidade lidos do banco (tabela
 // feature_flags, migration 102). Leitura pública. O admin liga/desliga pelo painel.
 //
-// Regra de visibilidade na app: uma feature "escondida" (flag off) ainda aparece
-// pro ADMIN (pra testar) — a checagem `flag || isAdmin` fica em cada call site.
+// Flag é autoritativa: desligada, a feature some para todos, inclusive o admin (nada de
+// `flag || isAdmin`). Para testar, o admin religa a flag no painel.
 
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
