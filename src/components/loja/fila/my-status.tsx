@@ -5,7 +5,7 @@
 
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { CheckCircle2, Gamepad2, Hourglass, Loader2, XCircle } from "lucide-react";
+import { CheckCircle2, Gamepad2, Hourglass, Loader2, LogOut, XCircle } from "lucide-react";
 import { PixPanel } from "@/components/loja/pix-panel";
 import { cn } from "@/lib/utils";
 import { plate } from "@/components/v2";
@@ -52,12 +52,13 @@ function LeaveButton({ bookingId, onChanged }: { bookingId: string; onChanged: (
     });
   };
   return (
-    <div className="pt-1">
-      <button type="button" data-fila-sair disabled={pending} onClick={leave} className="text-xs text-text-muted underline underline-offset-2 hover:text-text-display disabled:opacity-60">
-        {t("leave")}
+    <div className="pt-2">
+      {/* Placa de metal pequena, como o "sair do grupo" do cliente: à mão, sem competir com a vez. */}
+      <button type="button" data-fila-sair disabled={pending} onClick={leave} className={plate({ kind: "ghost", small: true })}>
+        <LogOut size={14} aria-hidden="true" /> {t("leave")}
       </button>
       {error && (
-        <p role="alert" className="mt-1 text-xs text-error">
+        <p role="alert" className="mt-2 text-xs text-error">
           {error}
         </p>
       )}
@@ -89,12 +90,14 @@ function WaitingCard({ entry, onChanged }: { entry: MyQueueEntry; onChanged: () 
 function FinishedCard({ entry }: { entry: MyQueueEntry }) {
   const t = useTranslations("fila");
   const done = entry.state === "concluido";
+  const left = entry.exit === "saiu";
+  const Icon = done ? CheckCircle2 : left ? LogOut : XCircle;
   return (
     <section data-fila-vez={entry.state} className="flex items-start gap-3 rounded-md border border-border-strong bg-bg-base p-5">
-      {done ? <CheckCircle2 size={22} className="shrink-0 text-play-primary" aria-hidden="true" /> : <XCircle size={22} className="shrink-0 text-text-muted" aria-hidden="true" />}
+      <Icon size={22} className={cn("shrink-0", done ? "text-play-primary" : "text-text-muted")} aria-hidden="true" />
       <div className="space-y-1">
-        <p className="font-display-condensed text-[1.7rem] uppercase leading-none text-text-display">{done ? t("doneTitle") : entry.exit === "saiu" ? t("leftTitle") : t("removedText")}</p>
-        {entry.exit === "saiu" && <p className="text-sm text-text-muted">{t("leftText")}</p>}
+        <p className="font-display-condensed text-[1.7rem] uppercase leading-none text-text-display">{done ? t("doneTitle") : left ? t("leftTitle") : t("removedText")}</p>
+        {left && <p className="text-sm text-text-muted">{t("leftText")}</p>}
         {done && <p className="text-sm text-text-muted">{t("doneText", { count: entry.played })}</p>}
       </div>
     </section>
