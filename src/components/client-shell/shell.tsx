@@ -47,6 +47,7 @@ import { DashboardTopBar } from "./top-bar";
 import { getCommunityCounters } from "@/actions/community";
 import { getFeatureFlags } from "@/lib/queries/feature-flags";
 import { getUnreadChangelogCount } from "@/lib/queries/changelog";
+import { isLiveOnAir } from "@/lib/loja/fila/server";
 import { displayName, displayAvatar } from "@/lib/identity";
 import { MiniProfilePanel } from "./mini-profile-panel";
 import { LobbyInviteListener } from "./lobby-invite-listener";
@@ -124,6 +125,7 @@ export async function ClientShell({
     communityCounters,
     featureFlags,
     changelogUnread,
+    liveOnAir,
   ] = await Promise.all([
     isVisitor ? Promise.resolve(null) : fetchPrivateData(supabase, user.id),
     getProsWithQueues(),
@@ -156,6 +158,8 @@ export async function ClientShell({
     getFeatureFlags(),
     // Novidades não-lidas (badge do sino no topbar) — 0 pra visitante.
     isVisitor ? Promise.resolve(0) : getUnreadChangelogCount(),
+    // Live do Pedro no ar (fila da party): ponto na aba Loja e no botão verde.
+    isLiveOnAir(),
   ]);
 
   const profile = privateData?.profile ?? null;
@@ -225,6 +229,8 @@ export async function ClientShell({
   const showLoja = featureFlags.loja;
   // Flag fila_competitiva: desligada, o menu Jogar avisa que a busca está pausada (sem bot no ar).
   const queuePaused = !featureFlags.fila_competitiva;
+  // Live no ar só conta com a loja aberta: a fila da party mora nela.
+  const lojaLive = showLoja && liveOnAir;
   // Persona/avatar: null pra visitante (LeftSidebar mostra VisitorCard).
   // Identidade canônica via lib/identity (anti-anonimato: Steam > Discord, nunca vazio).
   const identitySrc = {
@@ -272,6 +278,7 @@ export async function ClientShell({
             communityCounters={communityCounters}
             showRankedComPro={showRankedComPro}
             showLoja={showLoja}
+            lojaLive={lojaLive}
             changelogUnread={changelogUnread}
           />
         </div>
@@ -368,6 +375,8 @@ export async function ClientShell({
             smokeTheme={smokeTheme}
               showRankedComPro={showRankedComPro}
               queuePaused={queuePaused}
+              showLoja={showLoja}
+              liveOnAir={lojaLive}
             />
           </div>
         )}
@@ -394,6 +403,7 @@ export async function ClientShell({
         communityCounters={communityCounters}
         showRankedComPro={showRankedComPro}
         showLoja={showLoja}
+        lojaLive={lojaLive}
         changelogUnread={changelogUnread}
       />
 
@@ -490,6 +500,8 @@ export async function ClientShell({
             smokeTheme={smokeTheme}
             showRankedComPro={showRankedComPro}
             queuePaused={queuePaused}
+            showLoja={showLoja}
+            liveOnAir={lojaLive}
           />
         </div>
       )}

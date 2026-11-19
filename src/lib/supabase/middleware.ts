@@ -45,6 +45,7 @@ const PUBLIC_PATHS = [
   "/planos", // vitrine dos planos de assinatura (Compendium) — conversão
   "/assinatura", // redirect legado → /planos; público pra back_urls antigos do MP chegarem lá
   "/loja", // loja (06/11/2026): vitrine, produto e página do pedido abertos; serviço compra sem login
+  "/party", // fila da party ao vivo (19/11/2026): a live e a fila abertas a todos; comprar pede login e Steam
   "/sitemap.xml", // SEO — rotas Next (app/sitemap.ts e app/robots.ts); gatear
   "/robots.txt", //  redirecionaria o crawler pra home e mataria a indexação
 ];
@@ -55,7 +56,8 @@ const LOGIN_PATHS = ["/login"];
 // /api/cron: jobs sistêmicos (sem sessão) — têm auth próprio (CRON_SECRET). Sem
 // isso o middleware redirecionava (307) e o pg_net nunca chegava na rota.
 // /api/visita: beacon de visita da medição por origem, chamado também por visitante deslogado.
-const AUTH_FLOW_PATHS = ["/auth", "/api/auth", "/api/webhooks", "/api/cron", "/api/visita"];
+// /api/party: fila da party para os overlays da live (sem sessão) e a vez de quem está logado (401 sem login).
+const AUTH_FLOW_PATHS = ["/auth", "/api/auth", "/api/webhooks", "/api/cron", "/api/visita", "/api/party"];
 
 // Pedro 2026-06-03: o gate de "jogar" deixou de ser "doutrina 100% completa" e virou
 // PERMISSAO (5 acertos = 1 permissao), aplicada na RLS + pop-up de perguntas no fluxo de

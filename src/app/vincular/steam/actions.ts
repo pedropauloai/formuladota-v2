@@ -6,8 +6,9 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
-import { getSteamRedirectUrl } from "@/lib/steam";
+import { getSteamRedirectUrl, STEAM_NEXT_COOKIE } from "@/lib/steam";
 import { isGameRegion } from "@/lib/regions";
+import { safeInternalPath } from "@/lib/safe-next";
 
 // Server Action invocada via <form action={signInWithSteam}>.
 // 1. Confere user logado (Discord auth via Supabase).
@@ -20,7 +21,7 @@ import { isGameRegion } from "@/lib/regions";
 // Steam vai redirecionar de volta pra /auth/steam/callback?state=<csrf>... após
 // user autorizar. O callback lê o cookie, compara via timingSafeEqual e
 // só então persiste — sem cookie ou state divergente, redirect ?error=csrf.
-export async function signInWithSteam(): Promise<void> {
+export async function signInWithSteam(formData?: FormData): Promise<void> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -40,6 +41,11 @@ export async function signInWithSteam(): Promise<void> {
     maxAge: 300, // 5 minutos — janela do flow OpenID
     path: "/",
   });
+  // Volta para onde a pessoa estava (a fila da party manda vincular e quer ela de volta lá).
+  const next = safeInternalPath(formData?.get("next"));
+  if (next) {
+    jar.set(STEAM_NEXT_COOKIE, next, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", maxAge: 600, path: "/" });
+  }
 
   const steamUrl = getSteamRedirectUrl(state);
   redirect(steamUrl);

@@ -2802,45 +2802,63 @@ export type Database = {
       }
       store_bookings: {
         Row: {
+          called_at: string | null
           created_at: string
           ends_at: string
+          finished_at: string | null
           hold_until: string | null
           id: string
           is_test: boolean
           kind: string
           live_session_id: string | null
+          matches_played: number
+          no_shows: number
           order_id: string
           product_id: string
+          queue_state: string | null
+          queued_at: string | null
           seats: number
           starts_at: string
           status: string
           updated_at: string
         }
         Insert: {
+          called_at?: string | null
           created_at?: string
           ends_at: string
+          finished_at?: string | null
           hold_until?: string | null
           id?: string
           is_test?: boolean
           kind: string
           live_session_id?: string | null
+          matches_played?: number
+          no_shows?: number
           order_id: string
           product_id: string
+          queue_state?: string | null
+          queued_at?: string | null
           seats?: number
           starts_at: string
           status?: string
           updated_at?: string
         }
         Update: {
+          called_at?: string | null
           created_at?: string
           ends_at?: string
+          finished_at?: string | null
           hold_until?: string | null
           id?: string
           is_test?: boolean
           kind?: string
           live_session_id?: string | null
+          matches_played?: number
+          no_shows?: number
           order_id?: string
           product_id?: string
+          queue_state?: string | null
+          queued_at?: string | null
           seats?: number
           starts_at?: string
           status?: string
@@ -2875,31 +2893,46 @@ export type Database = {
           created_at: string
           ends_at: string
           id: string
+          is_test: boolean
           notes: string
+          off_air_at: string | null
+          on_air_at: string | null
           party_seats: number
           replay_seats: number
+          seats_per_match: number
           starts_at: string
           status: string
+          youtube_video_id: string | null
         }
         Insert: {
           created_at?: string
           ends_at: string
           id?: string
+          is_test?: boolean
           notes?: string
+          off_air_at?: string | null
+          on_air_at?: string | null
           party_seats?: number
           replay_seats?: number
+          seats_per_match?: number
           starts_at: string
           status?: string
+          youtube_video_id?: string | null
         }
         Update: {
           created_at?: string
           ends_at?: string
           id?: string
+          is_test?: boolean
           notes?: string
+          off_air_at?: string | null
+          on_air_at?: string | null
           party_seats?: number
           replay_seats?: number
+          seats_per_match?: number
           starts_at?: string
           status?: string
+          youtube_video_id?: string | null
         }
         Relationships: []
       }
@@ -2908,7 +2941,7 @@ export type Database = {
           amount_cents: number
           buyer_email: string
           buyer_name: string
-          buyer_whatsapp: string
+          buyer_whatsapp: string | null
           checked_at: string | null
           created_at: string
           delivery_note: string | null
@@ -2947,7 +2980,7 @@ export type Database = {
           amount_cents: number
           buyer_email: string
           buyer_name: string
-          buyer_whatsapp: string
+          buyer_whatsapp?: string | null
           checked_at?: string | null
           created_at?: string
           delivery_note?: string | null
@@ -2986,7 +3019,7 @@ export type Database = {
           amount_cents?: number
           buyer_email?: string
           buyer_name?: string
-          buyer_whatsapp?: string
+          buyer_whatsapp?: string | null
           checked_at?: string | null
           created_at?: string
           delivery_note?: string | null
@@ -4383,6 +4416,32 @@ export type Database = {
           user_id: string
         }[]
       }
+      party_fila_abrir_live: {
+        Args: {
+          p_is_test: boolean
+          p_party_seats: number
+          p_seats_per_match: number
+          p_youtube_video_id: string
+        }
+        Returns: string
+      }
+      party_fila_ausente: { Args: { p_booking_id: string }; Returns: boolean }
+      party_fila_chamar: {
+        Args: { p_booking_id?: string; p_live_id: string }
+        Returns: string
+      }
+      party_fila_encerrar_live: {
+        Args: { p_live_id: string }
+        Returns: boolean
+      }
+      party_fila_jogou: { Args: { p_booking_id: string }; Returns: string }
+      party_fila_live_atual: { Args: { p_is_test: boolean }; Returns: string }
+      party_fila_ocupacao: { Args: { p_live_id: string }; Returns: number }
+      party_fila_partida_terminou: {
+        Args: { p_live_id: string }
+        Returns: number
+      }
+      party_fila_remover: { Args: { p_booking_id: string }; Returns: boolean }
       party_invites_detailed: {
         Args: never
         Returns: {
@@ -4457,6 +4516,16 @@ export type Database = {
           p_order_id: string
           p_product_id: string
           p_starts: string
+        }
+        Returns: string
+      }
+      store_reservar_fila: {
+        Args: {
+          p_hold_until: string
+          p_is_test: boolean
+          p_order_id: string
+          p_product_id: string
+          p_seats: number
         }
         Returns: string
       }

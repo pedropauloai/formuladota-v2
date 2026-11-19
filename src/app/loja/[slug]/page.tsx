@@ -21,6 +21,7 @@ import { getActiveProduct } from "@/lib/loja/catalog";
 import { getSlots } from "@/lib/loja/slots";
 import { lojaPreviaLocal } from "@/lib/loja/preview";
 import { getAgendaData, getUpcomingLives } from "@/lib/loja/agenda-server";
+import { isLiveOnAir } from "@/lib/loja/fila/server";
 import type { StoreProduct } from "@/lib/loja/catalog";
 import { mdBullets } from "@/lib/loja/text";
 import { cn } from "@/lib/utils";
@@ -76,6 +77,8 @@ export default async function ProdutoPage({ params, searchParams }: PageProps) {
   if (!loja && !lojaPreviaLocal()) redirect("/");
   const product = await getActiveProduct(slug);
   if (!product) notFound();
+  // Com a live no ar, a vaga na party se compra na fila (esta página só reserva live futura).
+  if (product.liveSeat === "party" && (await isLiveOnAir())) redirect("/party");
 
   const supabase = await createClient();
   const [{ data: { user } }, slotMap, booking, t] = await Promise.all([

@@ -39,6 +39,7 @@ export function PartyBuyPanel({
   summary,
   priceCents,
   maxQuantity,
+  queueHref,
 }: {
   slug: string;
   /** Nome do produto no catálogo ("Vaga na party da live"). */
@@ -46,6 +47,8 @@ export function PartyBuyPanel({
   summary: string;
   priceCents: number;
   maxQuantity: number;
+  /** Com a live no ar (aberta pelo Pedro no painel), a vaga se compra na fila: /party. */
+  queueHref?: string;
 }) {
   const t = useTranslations("loja");
   const play = useSound();
@@ -55,6 +58,7 @@ export function PartyBuyPanel({
     play("click");
     setQuantity(n);
   };
+  const buyHref = queueHref ?? `/loja/${slug}${quantity > 1 ? `?qtd=${quantity}` : ""}#comprar`;
   return (
     <div className="flex h-full flex-col gap-6">
       <div className="space-y-2">
@@ -91,7 +95,7 @@ export function PartyBuyPanel({
 
       <div className="mt-auto space-y-3">
         <Link
-          href={`/loja/${slug}${quantity > 1 ? `?qtd=${quantity}` : ""}#comprar`}
+          href={buyHref}
           onClick={() => play("click")}
           className={plate({ kind: "cta", large: true, block: true })}
         >

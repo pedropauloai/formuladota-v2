@@ -15,6 +15,7 @@ import { getActiveProducts } from "@/lib/loja/catalog";
 import { getSlots, type SlotInfo } from "@/lib/loja/slots";
 import { getOwnerProof } from "@/lib/loja/owner-proof";
 import { getUpcomingLives } from "@/lib/loja/agenda-server";
+import { isLiveOnAir } from "@/lib/loja/fila/server";
 import { lojaPreviaLocal } from "@/lib/loja/preview";
 import { cn } from "@/lib/utils";
 import { Panel, plate, v2Page } from "@/components/v2";
@@ -46,7 +47,12 @@ export default async function LojaPage({ searchParams }: { searchParams: Promise
   if (!loja && !lojaPreviaLocal()) await redirectHomeKeepingUtm(searchParams);
   const [products, proof, t] = await Promise.all([getActiveProducts(), getOwnerProof(), getTranslations("loja")]);
   const party = products.find((p) => p.liveSeat === "party") ?? null;
-  const [slotMap, lives] = await Promise.all([getSlots(products), party ? getUpcomingLives(party).catch(() => []) : Promise.resolve([])]);
+  const [slotMap, lives, onAir] = await Promise.all([
+    getSlots(products),
+    party ? getUpcomingLives(party).catch(() => []) : Promise.resolve([]),
+    // Live aberta pelo Pedro no painel: a vaga se compra direto na fila.
+    party ? isLiveOnAir().catch(() => false) : Promise.resolve(false),
+  ]);
   const slots = slotMap ?? new Map<string, SlotInfo>();
   const rest = products.filter((p) => p.id !== party?.id);
 
@@ -59,7 +65,14 @@ export default async function LojaPage({ searchParams }: { searchParams: Promise
           <StoreStage proof={proof} nextLive={lives[0] ?? null} />
           {party ? (
             <Panel as="aside" tone="gold" shadow="gold" wrapperClassName="h-full" className="h-full p-5 md:p-6">
-              <PartyBuyPanel slug={party.slug} title={party.title} summary={party.summary} priceCents={party.fromPriceCents} maxQuantity={party.maxQuantity} />
+              <PartyBuyPanel
+                slug={party.slug}
+                title={party.title}
+                summary={party.summary}
+                priceCents={party.fromPriceCents}
+                maxQuantity={party.maxQuantity}
+                queueHref={onAir ? "/party" : undefined}
+              />
             </Panel>
           ) : (
             <h1 className="sr-only">{t("metaTitle")}</h1>
