@@ -3,6 +3,9 @@
 
 export type QueueState = "aguardando" | "na_party";
 
+/** Vaga paga (pedido da loja) ou entrada do Battlepass, sem pagamento (migration 192). */
+export type QueueSource = "pedido" | "battlepass";
+
 export interface QueueEntry {
   /** ID da reserva (store_bookings): vai para o JSON público e não identifica ninguém. */
   id: string;
@@ -14,6 +17,9 @@ export interface QueueEntry {
   played: number;
   queuedAt: string;
   calledAt: string | null;
+  /** Última vez na party do PPA (jogou ou não apareceu): o revezamento ordena por ela; null = nunca jogou. */
+  lastTurnAt?: string | null;
+  source?: QueueSource;
 }
 
 /** No ar, a próxima marcada, ou a fila aberta: sem live, a vaga vende para a próxima (migration 177). */
@@ -48,6 +54,8 @@ export interface PublicEntry {
   avatarUrl: string | null;
   matches: number;
   played: number;
+  /** Tem o Battlepass ativo: o selo ao lado do nome. */
+  battlepass: boolean;
 }
 
 export interface PublicQueuedEntry extends PublicEntry {
@@ -95,6 +103,7 @@ export interface MyQueueEntry {
   noShows: number;
   calledAt: string | null;
   exit: QueueExit | null;
+  source?: QueueSource;
 }
 
 export interface MyPendingOrder {
@@ -108,6 +117,8 @@ export interface MyPendingOrder {
 export interface MyQueue {
   entries: MyQueueEntry[];
   pending: MyPendingOrder | null;
+  /** Quem olha tem o Battlepass ativo: entra na fila sem pagar. */
+  battlepass?: boolean;
 }
 
 /** O que a página da fila recebe a cada consulta: a fila pública e, com login, a vez da pessoa. */
@@ -126,14 +137,20 @@ export const remainingMatches = (entry: Pick<QueueEntry, "matches" | "played">):
 
 const time = (iso: string | null): number => (iso ? Date.parse(iso) : 0);
 
-/** A party primeiro (na ordem em que o Pedro chamou), depois a fila na ordem do pagamento. */
+/** Quem nunca esteve na party do PPA vem antes de todos no revezamento. */
+const turnTime = (entry: QueueEntry): number => (entry.lastTurnAt ? Date.parse(entry.lastTurnAt) : Number.NEGATIVE_INFINITY);
+
+/**
+ * A party primeiro (na ordem em que o Pedro chamou), depois a fila pelo revezamento: a última vez na
+ * party do PPA, quem nunca jogou na frente, e o empate pela hora em que entrou (party_fila_chamar faz igual).
+ */
 export function orderEntries(entries: readonly QueueEntry[]): QueueEntry[] {
   const party = entries
     .filter((e) => e.state === "na_party")
     .sort((a, b) => time(a.calledAt) - time(b.calledAt) || time(a.queuedAt) - time(b.queuedAt));
   const waiting = entries
     .filter((e) => e.state === "aguardando")
-    .sort((a, b) => time(a.queuedAt) - time(b.queuedAt) || a.id.localeCompare(b.id));
+    .sort((a, b) => turnTime(a) - turnTime(b) || time(a.queuedAt) - time(b.queuedAt) || a.id.localeCompare(b.id));
   return [...party, ...waiting];
 }
 
@@ -199,11 +216,16 @@ export function queuePositions(snapshot: QueueSnapshot): Map<string, { position:
 const FALLBACK_NAME = "Jogador";
 
 /** JSON público da fila: o nome sai da identidade pública, e o id de usuário nunca sai do servidor. */
-export function toPublicQueue(snapshot: QueueSnapshot, identity: (userId: string | null) => PublicIdentity | undefined, now = new Date()): PublicQueue {
+export function toPublicQueue(
+  snapshot: QueueSnapshot,
+  identity: (userId: string | null) => PublicIdentity | undefined,
+  now = new Date(),
+  isMember: (userId: string | null) => boolean = () => false
+): PublicQueue {
   const positions = queuePositions(snapshot);
   const publicEntry = (e: QueueEntry): PublicEntry => {
     const who = identity(e.userId);
-    return { id: e.id, name: who?.name || FALLBACK_NAME, avatarUrl: who?.avatarUrl ?? null, matches: e.matches, played: e.played };
+    return { id: e.id, name: who?.name || FALLBACK_NAME, avatarUrl: who?.avatarUrl ?? null, matches: e.matches, played: e.played, battlepass: isMember(e.userId) };
   };
   const live = snapshot.live;
   return {

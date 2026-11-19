@@ -2908,15 +2908,17 @@ export type Database = {
           live_session_id: string | null
           matches_played: number
           no_shows: number
-          order_id: string
+          order_id: string | null
           product_id: string
           queue_exit: string | null
           queue_state: string | null
           queued_at: string | null
           seats: number
+          source: string
           starts_at: string
           status: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           called_at?: string | null
@@ -2930,15 +2932,17 @@ export type Database = {
           live_session_id?: string | null
           matches_played?: number
           no_shows?: number
-          order_id: string
+          order_id?: string | null
           product_id: string
           queue_exit?: string | null
           queue_state?: string | null
           queued_at?: string | null
           seats?: number
+          source?: string
           starts_at: string
           status?: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           called_at?: string | null
@@ -2952,15 +2956,17 @@ export type Database = {
           live_session_id?: string | null
           matches_played?: number
           no_shows?: number
-          order_id?: string
+          order_id?: string | null
           product_id?: string
           queue_exit?: string | null
           queue_state?: string | null
           queued_at?: string | null
           seats?: number
+          source?: string
           starts_at?: string
           status?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -2982,6 +2988,20 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "store_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_bookings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_bookings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
             referencedColumns: ["id"]
           },
         ]
@@ -4668,17 +4688,31 @@ export type Database = {
         Args: { p_live_id: string }
         Returns: boolean
       }
+      party_fila_entrar_battlepass: {
+        Args: { p_is_test: boolean; p_user_id: string }
+        Returns: string
+      }
       party_fila_jogou: { Args: { p_booking_id: string }; Returns: string }
       party_fila_live_atual: { Args: { p_is_test: boolean }; Returns: string }
       party_fila_ocupacao: { Args: { p_live_id: string }; Returns: number }
       party_fila_partida_terminou: {
-        Args: { p_expected_count: number; p_live_id: string }
+        Args: {
+          p_confirmed?: string[]
+          p_dota_match_id?: number
+          p_expected_count: number
+          p_live_id: string
+          p_played_at?: string
+        }
         Returns: number
       }
       party_fila_remover: { Args: { p_booking_id: string }; Returns: boolean }
       party_fila_sair: {
         Args: { p_booking_id: string; p_user_id: string }
         Returns: boolean
+      }
+      party_fila_vez: {
+        Args: { p_is_test: boolean; p_user_id: string }
+        Returns: string
       }
       party_invites_detailed: {
         Args: never

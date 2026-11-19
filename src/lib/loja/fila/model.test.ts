@@ -120,7 +120,7 @@ describe("toPublicQueue", () => {
 
 describe("partySeatsView (lugares livres da party, iguais aos dos overlays)", () => {
   const publicLive = { status: "ao_vivo" as const, startsAt: null, onAirAt: null, queueSize: 8, seatsPerMatch: 4, youtubeVideoId: null, matchesDone: 0 };
-  const member = (id: string) => ({ id, name: id, avatarUrl: null, matches: 1, played: 0 });
+  const member = (id: string) => ({ id, name: id, avatarUrl: null, matches: 1, played: 0, battlepass: false });
   const waiting = (id: string, matchesUntilTurn: number, position: number) => ({ ...member(id), position, matchesUntilTurn });
   const queueOf = (party: number, turns: number[], seatsOpenNow: number): PublicQueue => ({
     live: { ...publicLive, seatsOpen: seatsOpenNow },
@@ -146,5 +146,38 @@ describe("partySeatsView (lugares livres da party, iguais aos dos overlays)", ()
   it("fora da live, quem já espera tem dono dos primeiros lugares da próxima party", () => {
     const offAir = { ...queueOf(0, [0, 0], 18), live: { ...publicLive, status: "fila" as const, seatsOpen: 18 } };
     expect(partySeatsView(offAir)).toEqual({ free: 4, reserved: 2, forSale: 2, closed: 0 });
+  });
+});
+
+describe("revezamento (Battlepass, migration 192)", () => {
+  it("quem jogou há mais tempo vem primeiro; quem nunca jogou vai na frente de todos", () => {
+    const ordered = orderEntries([
+      entry("recente", { lastTurnAt: "2026-11-19T15:00:00.000Z", queuedAt: "2026-11-19T10:00:00.000Z" }),
+      entry("antigo", { lastTurnAt: "2026-11-17T15:00:00.000Z", queuedAt: "2026-11-19T12:00:00.000Z" }),
+      entry("novo", { lastTurnAt: null, queuedAt: "2026-11-19T14:00:00.000Z" }),
+    ]);
+    expect(ordered.map((e) => e.id)).toEqual(["novo", "antigo", "recente"]);
+  });
+
+  it("empate no revezamento: quem entrou antes na fila", () => {
+    const ordered = orderEntries([
+      entry("b", { queuedAt: "2026-11-19T12:00:00.000Z" }),
+      entry("a", { queuedAt: "2026-11-19T11:00:00.000Z" }),
+    ]);
+    expect(ordered.map((e) => e.id)).toEqual(["a", "b"]);
+  });
+
+  it("a party continua na ordem da chamada, sem revezamento", () => {
+    const ordered = orderEntries([
+      entry("p2", { state: "na_party", calledAt: "2026-11-19T16:05:00.000Z", lastTurnAt: null }),
+      entry("p1", { state: "na_party", calledAt: "2026-11-19T16:01:00.000Z", lastTurnAt: "2026-11-19T15:00:00.000Z" }),
+    ]);
+    expect(ordered.map((e) => e.id)).toEqual(["p1", "p2"]);
+  });
+
+  it("o JSON público leva o selo só de quem tem o Battlepass, sem o id de usuário", () => {
+    const body = toPublicQueue({ live, entries: [entry("a"), entry("b")] }, () => ({ name: "X", avatarUrl: null }), new Date(), (id) => id === "user-a");
+    expect(body.queue.map((e) => e.battlepass)).toEqual([true, false]);
+    expect(JSON.stringify(body)).not.toContain("user-a");
   });
 });

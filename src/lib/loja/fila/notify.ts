@@ -18,14 +18,16 @@ interface ExitInfo {
 async function loadExit(bookingId: string): Promise<ExitInfo | null> {
   const { data, error } = await createServiceClient()
     .from("store_bookings")
-    .select("seats, matches_played, is_test, store_orders!inner (id, buyer_name, amount_cents, quantity)")
+    .select("seats, matches_played, is_test, source, store_orders (id, buyer_name, amount_cents, quantity)")
     .eq("id", bookingId)
     .maybeSingle();
   if (error || !data) {
     console.error("[fila/aviso] reserva não encontrada:", bookingId, error?.message);
     return null;
   }
-  const order = data.store_orders;
+  // Quem entrou pelo Battlepass não pagou a vaga: não há nada a devolver.
+  const order = data.source === "battlepass" ? null : data.store_orders;
+  if (!order) return null;
   const perMatch = Math.round(order.amount_cents / Math.max(1, order.quantity));
   return { name: order.buyer_name, refundCents: perMatch * Math.max(0, data.seats - data.matches_played), orderId: order.id, isTest: data.is_test };
 }

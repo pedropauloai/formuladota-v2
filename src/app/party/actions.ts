@@ -1,7 +1,8 @@
 "use server";
 
-// Ações da página da fila: garantir a vaga na party (Pix na página ou cartão no Mercado Pago) e
-// sair da fila enquanto espera. O resto da página só lê (rotas /api/party/fila e /minha).
+// Ações da página da fila: garantir a vaga na party (Pix na página ou cartão no Mercado Pago), entrar
+// sem pagar com o Battlepass e sair da fila enquanto espera. O resto da página só lê (rotas
+// /api/party/fila e /minha).
 
 import { cookies, headers } from "next/headers";
 import { after } from "next/server";
@@ -15,6 +16,9 @@ import { PAYMENT_METHODS } from "@/lib/loja/checkout-schema";
 import { buySeat, type BuySeatResult } from "@/lib/loja/fila/purchase";
 import { queueOps } from "@/lib/loja/fila/admin";
 import { sendQueueExitNotice } from "@/lib/loja/fila/notify";
+import { getViewerSteam } from "@/lib/loja/fila/server";
+import { hasActiveBattlepass } from "@/lib/battlepass/server";
+import { enterQueueWithBattlepass } from "@/lib/battlepass/fila";
 
 export type GarantirVagaResult = BuySeatResult | { ok: false; error: "login" | "muitas" };
 
@@ -40,6 +44,29 @@ export async function garantirVaga(quantity: number, method: string): Promise<Ga
   } catch (err) {
     console.error("[fila] garantir vaga falhou:", err instanceof Error ? err.message : err);
     return { ok: false, error: "pagamento" };
+  }
+}
+
+export type EntrarBattlepassResult = { ok: true } | { ok: false; error: "login" | "muitas" | "fechada" | "steam" | "semBattlepass" | "entrar" };
+
+/** Assinante do Battlepass entra na fila sem pagar (uma entrada por vez; a fila anda pelo revezamento). */
+export async function entrarComBattlepass(): Promise<EntrarBattlepassResult> {
+  const { loja } = await getFeatureFlags();
+  if (!loja && !lojaPreviaLocal()) return { ok: false, error: "fechada" };
+  if (!allowRequest("fila-battlepass-ip", clientIp(await headers()), 60, 10 * 60_000)) return { ok: false, error: "muitas" };
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "login" };
+  if (!allowRequest("fila-battlepass", user.id, 10, 10 * 60_000)) return { ok: false, error: "muitas" };
+  try {
+    if (!(await getViewerSteam(user.id))) return { ok: false, error: "steam" };
+    if (!(await hasActiveBattlepass(user.id))) return { ok: false, error: "semBattlepass" };
+    return (await enterQueueWithBattlepass(user.id)) ? { ok: true } : { ok: false, error: "entrar" };
+  } catch (err) {
+    console.error("[fila] entrar com o Battlepass falhou:", err instanceof Error ? err.message : err);
+    return { ok: false, error: "entrar" };
   }
 }
 

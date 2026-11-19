@@ -1,4 +1,4 @@
--- Teste de regressão das regras do Battlepass (migration 190). Usa dois jogadores reais, grava
+-- Teste de regressão das regras do Battlepass (migrations 190, 192 e 193). Usa dois jogadores reais, grava
 -- assinaturas e pagamentos de teste e termina SEMPRE num erro proposital (RESULTADO: ...), então a
 -- transação inteira volta e nada fica gravado.
 -- PASSA quando todos os itens do RESULTADO dizem "=ok"; cada "=FALHOU" é uma regressão.
@@ -12,6 +12,10 @@ declare
   p1 uuid;
   p2 uuid;
   p3 uuid;
+  live uuid;
+  b1 uuid;
+  b2 uuid;
+  b3 uuid;
   st text;
   n int;
   ok boolean;
@@ -177,6 +181,60 @@ begin
   select ultima into t1 from public.party_ultima_vez(array[u, u2], true) where user_id = u;
   select count(*) into n from public.party_ultima_vez(array[u, u2], true) where user_id = u2;
   r := array_append(r, ('K_ultima_vez=' || case when t1 > now() - interval '2 hours' and n = 0 then 'ok' else 'FALHOU' end)::text);
+
+  -- N a R. A fila da party com o Battlepass (migration 192), numa live de teste.
+  update public.store_live_sessions set status = 'encerrada' where is_test and status = 'ao_vivo';
+  update public.store_bookings set queue_state = 'removido' where is_test and queue_state in ('aguardando', 'na_party');
+  delete from public.party_participacoes where is_test and user_id in (u, u2);
+  -- u2 volta a ter Battlepass ativo (Pix de M); u não tem (pediu reembolso em H).
+  live := public.party_fila_abrir_live(true, 2, 1, null);
+  insert into public.steam_links (user_id, steam_id_64, persona)
+    values (u2, '7656119' || lpad((floor(random() * 1e10))::bigint::text, 10, '0'), 'Teste BP')
+    on conflict (user_id) do nothing;
+  insert into public.steam_links (user_id, steam_id_64, persona)
+    values (u, '7656119' || lpad((floor(random() * 1e10))::bigint::text, 10, '0'), 'Teste BP 2')
+    on conflict (user_id) do nothing;
+
+  -- N. Assinante entra sem pagar; sem Battlepass não entra; tocar de novo devolve a mesma entrada.
+  b1 := public.party_fila_entrar_battlepass(u2, true);
+  b2 := public.party_fila_entrar_battlepass(u2, true);
+  b3 := public.party_fila_entrar_battlepass(u, true);
+  select queue_state into st from public.store_bookings where id = b1;
+  r := array_append(r, ('N_assinante_entra_sem_pagar=' || case when b1 is not null and b1 = b2 and b3 is null and st = 'aguardando' then 'ok'
+    else 'FALHOU(' || coalesce(st, 'null') || ')' end)::text);
+
+  -- R. A entrada do assinante não ocupa a lotação que limita a vaga paga.
+  select public.party_fila_ocupacao(live) into n;
+  r := array_append(r, ('R_assinante_fora_da_lotacao=' || case when n = 0 then 'ok' else 'FALHOU(' || n || ')' end)::text);
+
+  -- O. Revezamento: quem jogou há mais tempo é chamado antes de quem jogou agora há pouco.
+  --    u ganha uma entrada paga (sem Battlepass), e a última vez de u2 fica mais recente que a de u.
+  select p.id, pv.id into p1, p2 from public.store_products p join public.store_product_variants pv on pv.product_id = p.id where p.slug = 'vaga-na-party' limit 1;
+  insert into public.store_orders (product_id, variant_id, product_title, variant_label, amount_cents, quantity, user_id, buyer_name, buyer_email, buyer_whatsapp, payment_method, status, is_test)
+    values (p1, p2, 'Vaga na party da live', 'Por partida', 2500, 1, u, 'Teste BP', 'teste.bp@formuladota.com.br', null, 'pix', 'pago', true) returning id into p3;
+  b3 := public.store_reservar_fila(p3, p1, 1, null, true);
+  insert into public.party_participacoes (user_id, kind, dota_match_id, played_at, is_test) values (u2, 'jogou', 11, now() - interval '1 hour', true);
+  insert into public.party_participacoes (user_id, kind, dota_match_id, played_at, is_test) values (u, 'jogou', 12, now() - interval '3 days', true);
+  b2 := public.party_fila_chamar(live, null);
+  select user_id into s1 from public.store_bookings where id = b2;
+  r := array_append(r, ('O_revezamento_chama_quem_jogou_ha_mais_tempo=' || case when b2 = b3 and s1 = u then 'ok' else 'FALHOU' end)::text);
+
+  -- P. Não apareceu: a vez conta como gasta (u vai para o fim do revezamento).
+  ok := public.party_fila_ausente(b3);
+  select max(played_at) into t1 from public.party_participacoes where user_id = u and is_test and kind = 'nao_apareceu';
+  b2 := public.party_fila_chamar(live, null);
+  r := array_append(r, ('P_nao_apareceu_vai_para_o_fim=' || case when ok and t1 > now() - interval '1 minute' and b2 = b1 then 'ok' else 'FALHOU' end)::text);
+
+  -- Q. Partida terminou com o ID: grava a participação de quem estava na party, com a hora da partida.
+  select match_count into n from public.store_live_sessions where id = live;
+  n := public.party_fila_partida_terminou(live, n, 8873698944, now() - interval '5 minutes', array[u2]);
+  select count(*) into total from public.party_participacoes where user_id = u2 and is_test and dota_match_id = 8873698944 and confirmed;
+  select queue_state into st from public.store_bookings where id = b1;
+  r := array_append(r, ('Q_partida_registrada=' || case when n = 1 and total = 1 and st = 'concluido' then 'ok' else 'FALHOU(' || n || ' ' || total || ' ' || coalesce(st, 'null') || ')' end)::text);
+  -- Depois de jogar, o assinante entra de novo.
+  b2 := public.party_fila_entrar_battlepass(u2, true);
+  r := array_append(r, ('Q_assinante_entra_de_novo=' || case when b2 is not null and b2 <> b1 then 'ok' else 'FALHOU' end)::text);
+  perform public.party_fila_encerrar_live(live);
 
   -- L. Logado não grava participação (a vez na fila não se forja pelo navegador).
   set local role authenticated;
