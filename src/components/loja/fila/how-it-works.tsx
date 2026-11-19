@@ -2,13 +2,14 @@
 // (não aparecer na hora e a live acabar antes da vez). Desenhado no servidor.
 
 import { useTranslations } from "next-intl";
+import { Panel } from "@/components/v2";
 
 export function HowItWorks() {
   const t = useTranslations("fila");
   const steps = [t("how1"), t("how2"), t("how3")];
   return (
-    <section className="space-y-4 rounded-md border border-border-subtle bg-bg-base/70 p-4 md:p-5">
-      <h2 className="font-display text-xl uppercase leading-none tracking-wide text-text-display">{t("howTitle")}</h2>
+    <Panel as="section" className="space-y-4 p-4 md:p-5">
+      <h2 className="font-display-condensed text-[1.9rem] uppercase leading-none text-text-display">{t("howTitle")}</h2>
       <ol className="space-y-3">
         {steps.map((step, i) => (
           <li key={step} className="flex items-start gap-3">
@@ -23,6 +24,6 @@ export function HowItWorks() {
         <li>{t("rulesNoShow")}</li>
         <li>{t("rulesCarry")}</li>
       </ul>
-    </section>
+    </Panel>
   );
 }

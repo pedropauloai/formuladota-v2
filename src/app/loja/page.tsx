@@ -26,7 +26,9 @@ import { ServiceRows } from "@/components/loja/service-rows";
 import { BrandGlyph } from "@/components/loja/brand-glyph";
 
 const YOUTUBE_CHANNEL = "https://www.youtube.com/@formuladota";
-const WRAP = "mx-auto w-full max-w-[1320px] px-4 md:px-8 2xl:max-w-[1500px]";
+// 1152 px até 2600 px de tela: a coluna de amigos (sobreposta, aberta por padrão para quem está logado)
+// não cobre o palco. Acima disso, a página já cresce pelo zoom da tela alta.
+const WRAP = "mx-auto w-full max-w-6xl px-4 md:px-8 min-[2600px]:max-w-[1500px]";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("loja");
@@ -61,7 +63,7 @@ export default async function LojaPage({ searchParams }: { searchParams: Promise
       <div className={cn(v2Page, "relative overflow-x-clip pb-24")}>
         <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-[640px] bg-[radial-gradient(55%_65%_at_35%_0%,var(--color-brand-primary-glow),transparent_72%)]" />
 
-        <section className={cn(WRAP, "relative grid grid-cols-[minmax(0,1fr)] gap-4 pt-6 md:pt-8 lg:grid-cols-[minmax(0,1fr)_minmax(340px,380px)] 2xl:grid-cols-[minmax(0,1fr)_420px] 2xl:gap-5")}>
+        <section className={cn(WRAP, "relative grid grid-cols-[minmax(0,1fr)] gap-4 pt-6 md:pt-8 lg:grid-cols-[minmax(0,1fr)_340px] 2xl:gap-5 min-[2600px]:grid-cols-[minmax(0,1fr)_420px]")}>
           <StoreStage proof={proof} nextLive={lives[0] ?? null} />
           {party ? (
             <Panel as="aside" tone="gold" shadow="gold" wrapperClassName="h-full" className="h-full p-5 md:p-6">

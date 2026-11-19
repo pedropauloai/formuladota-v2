@@ -396,6 +396,13 @@
       0 0 14px var(--fd-raw-gold-glow);
   }
 
+  /* Quem já está na party: aresta verde fina, a cor de quem está no jogo. */
+  .slotMember {
+    box-shadow:
+      inset 0 0 0 1px color-mix(in oklab, var(--color-play-primary) 60%, transparent),
+      0 2px 6px var(--shade);
+  }
+
   .slotOpen {
     color: var(--color-text-faded);
     background:

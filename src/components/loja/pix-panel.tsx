@@ -5,6 +5,8 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Copy, Check } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { panel, plate } from "@/components/v2";
 
 interface PixPanelProps {
   copiaECola: string;
@@ -33,7 +35,7 @@ export function PixPanel({ copiaECola, qrDataUrl, expiresAt, qrDesktopOnly = fal
     : null;
 
   return (
-    <section className="space-y-4 rounded-md border border-border-strong bg-bg-base p-5">
+    <section className={cn(panel("neutral"), "space-y-4 p-5")}>
       <p className="text-sm text-text-body">{t("pixScan")}</p>
       {qrDataUrl && (
         // Imagem do QR gerada pelo Mercado Pago: data URL, sem otimização do next/image.
@@ -44,11 +46,7 @@ export function PixPanel({ copiaECola, qrDataUrl, expiresAt, qrDesktopOnly = fal
         <code className="block max-h-24 overflow-y-auto break-all rounded-sm border border-border-subtle bg-bg-deep p-3 text-xs text-text-body">
           {copiaECola}
         </code>
-        <button
-          type="button"
-          onClick={copy}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-sm bg-success px-4 py-3 font-display uppercase tracking-widest text-bg-deep hover:opacity-90"
-        >
+        <button type="button" onClick={copy} className={plate({ kind: "cta", block: true })}>
           {copied ? <Check size={16} aria-hidden="true" /> : <Copy size={16} aria-hidden="true" />}
           {copied ? t("pixCopied") : t("pixCopy")}
         </button>

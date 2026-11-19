@@ -4,6 +4,8 @@
 // encontrada do próprio Dota, vibração no celular e o aviso no título da aba (quem está noutra
 // aba vê). O navegador só toca som depois de um toque na página, e a compra já foi um toque.
 
+import { cn } from "@/lib/utils";
+import { panel, plate } from "@/components/v2";
 import { useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { Gamepad2 } from "lucide-react";
@@ -44,9 +46,9 @@ export function TurnAlert({ dotaId, onClose }: { dotaId: string | null; onClose:
       data-fila-aviso
       className="fixed inset-0 z-[var(--z-system)] flex items-center justify-center bg-black/75 p-4"
     >
-      <div className="w-full max-w-sm space-y-4 rounded-md border-2 border-play-primary bg-bg-deep p-6 text-center shadow-2xl shadow-[var(--color-play-primary-glow)]">
+      <div className={cn(panel("neutral"), "w-full max-w-sm space-y-4 p-6 text-center shadow-[inset_0_0_0_2px_var(--color-play-primary),0_0_40px_var(--color-play-primary-glow)] [--cut:14px]")}>
         <Gamepad2 size={40} className="mx-auto text-play-primary" aria-hidden="true" />
-        <p id="fila-vez-titulo" className="font-display text-4xl uppercase leading-none tracking-wide text-play-primary">
+        <p id="fila-vez-titulo" className="font-display-condensed text-[2.8rem] uppercase leading-none text-play-primary [text-shadow:0_0_18px_var(--color-play-primary-glow)]">
           {title}
         </p>
         <p id="fila-vez-texto" className="text-base leading-relaxed text-text-body">
@@ -57,7 +59,7 @@ export function TurnAlert({ dotaId, onClose }: { dotaId: string | null; onClose:
           ref={button}
           type="button"
           onClick={onClose}
-          className="w-full rounded-sm bg-play-primary px-4 py-3 font-display text-lg uppercase tracking-widest text-bg-deep hover:bg-play-primary-hover"
+          className={plate({ kind: "cta", block: true })}
         >
           {t("gotIt")}
         </button>

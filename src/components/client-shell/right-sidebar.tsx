@@ -15,6 +15,8 @@ import {
   Gavel,
 } from "lucide-react";
 import { getTranslations } from "next-intl/server";
+import { cn } from "@/lib/utils";
+import { panel } from "@/components/v2";
 import { getSidebarData, type SidebarRankRow } from "@/lib/queries/sidebar";
 import type { HistoryMatch } from "@/lib/queries/matches-feed";
 import type { WallEntry } from "@/lib/queries/wall-of-shame";
@@ -88,8 +90,8 @@ export async function DashboardRightSidebar({ floating, showRankedComPro = false
         suspendedLabel={t("sidebar.suspended")}
       />
 
-      <article className="rounded-md border border-border-subtle bg-bg-elevated/80 backdrop-blur-sm overflow-hidden">
-        <p className="border-b border-border-subtle px-3 py-2 font-display text-sm text-text-display">
+      <article className={cn(panel("neutral"), "overflow-hidden")}>
+        <p className="border-b border-border-subtle px-3 py-2 font-display-condensed text-lg uppercase leading-none tracking-[0.06em] text-text-display">
           {t("community")}
         </p>
         <div className="space-y-1 p-2">
@@ -121,7 +123,7 @@ function CardHeader({
 }) {
   return (
     <div className="border-b border-border-subtle px-3 py-2">
-      <p className="flex items-center gap-2 font-display text-sm text-text-display">
+      <p className="flex items-center gap-2 font-display-condensed text-lg uppercase leading-none tracking-[0.06em] text-text-display">
         <Icon size={14} className="text-brand-primary" aria-hidden="true" />
         {title}
       </p>
@@ -182,7 +184,7 @@ function RecentMatchesCard({
   empty: string;
 }) {
   return (
-    <article className="rounded-md border border-border-subtle bg-bg-elevated/80 backdrop-blur-sm overflow-hidden">
+    <article className={cn(panel("neutral"), "overflow-hidden")}>
       <CardHeader icon={History} title={title} />
       {matches.length === 0 ? (
         <p className="px-3 py-4 text-center font-body text-sm text-text-faded">{empty}</p>
@@ -246,7 +248,7 @@ function RankingCard({
   seasonSubtitle?: string | null;
 }) {
   return (
-    <article className="rounded-md border border-border-subtle bg-bg-elevated/80 backdrop-blur-sm overflow-hidden">
+    <article className={cn(panel("neutral"), "overflow-hidden")}>
       <CardHeader icon={Trophy} title={title} subtitle={seasonSubtitle} />
       {rows.length === 0 ? (
         <p className="px-3 py-4 text-center font-body text-sm text-text-faded">{empty}</p>
@@ -325,8 +327,8 @@ function MuralCard({
   suspendedLabel: string;
 }) {
   return (
-    <article className="rounded-md border border-error/30 bg-error/5 backdrop-blur-sm overflow-hidden">
-      <p className="flex items-center gap-2 border-b border-error/25 px-3 py-2 font-display text-sm text-error">
+    <article className={cn(panel("live"), "overflow-hidden")}>
+      <p className="flex items-center gap-2 border-b border-error/25 px-3 py-2 font-display-condensed text-lg uppercase leading-none tracking-[0.06em] text-error">
         <Gavel size={14} aria-hidden="true" />
         {title}
       </p>
@@ -381,7 +383,7 @@ function NewsCard({
   cta: string;
 }) {
   return (
-    <article className="rounded-md border border-border-subtle bg-bg-elevated/80 overflow-hidden backdrop-blur-sm">
+    <article className={cn(panel("neutral"), "overflow-hidden")}>
       <div
         className="relative h-32 overflow-hidden"
         style={{

@@ -4431,6 +4431,8 @@
       "quantidade": "Elige de 1 a 5 partidas.",
       "pagamento": "Mercado Pago no abrió el pago ahora. Inténtalo de nuevo en un momento.",
       "muitas": "Demasiados intentos seguidos. Espera unos minutos e inténtalo de nuevo."
-    }
+    },
+    "stageStartingTitle": "El directo está empezando",
+    "stageStartingText": "La transmisión aparece aquí en cuanto esté en vivo. Los lugares ya están abiertos."
   }
 }
