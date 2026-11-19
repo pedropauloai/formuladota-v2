@@ -226,6 +226,23 @@
       "banned": "Banned",
       "suspended": "Suspended",
       "vs": "vs"
+    },
+    "enqueteLiga": {
+      "question": "Would you play the FORMULADOTA League?",
+      "answers": {
+        "sim": "Yes",
+        "talvez": "Maybe",
+        "nao": "No"
+      },
+      "simCount": "{count, plural, =0 {people said Yes} one {person said Yes} other {people said Yes}}",
+      "goal": "The league comes back with {meta} interested players.",
+      "progress": "{sim} of {meta}",
+      "adminTotals": "Admin only: Maybe {talvez} · No {nao}",
+      "errors": {
+        "fechada": "This poll is closed.",
+        "limite": "Too many votes in a row. Wait a moment and try again.",
+        "falhou": "Couldn't save your vote. Try again."
+      }
     }
   },
   "hoverCard": {

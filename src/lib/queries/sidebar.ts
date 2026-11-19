@@ -37,7 +37,8 @@ export interface SidebarData {
 const DAY_MS = 86_400_000;
 const SEASON_LEN_MS = 90 * DAY_MS; // fallback só se não houver ended_at NEM próxima season
 
-export async function getSidebarData(): Promise<SidebarData> {
+/** ranking: false quando outro card ocupa o lugar do Top do ranking (enquete da Liga): pula as consultas dele. */
+export async function getSidebarData({ ranking = true }: { ranking?: boolean } = {}): Promise<SidebarData> {
   const supabase = await createClient();
 
   // Season ativa (nome + janela pro countdown) + a PRÓXIMA agendada (define o fim
@@ -63,7 +64,7 @@ export async function getSidebarData(): Promise<SidebarData> {
 
   // Top 15 por MMR da season ativa (mais linhas pro card ter o que rolar; o card
   // faz auto-scroll vertical sutil — ver RankingCard em right-sidebar.tsx).
-  const topRes = seasonRow
+  const topRes = seasonRow && ranking
     ? await supabase
         .from("player_season_mmr")
         .select("user_id, mmr")
