@@ -61,7 +61,7 @@ Cada uma com o porquê em uma linha.
 | `concluido` | jogou todas as partidas compradas |
 | `removido` | o Pedro tirou da fila, ou o pedido foi cancelado ou reembolsado |
 
-"Não apareceu" devolve a pessoa ao fim da fila (`queued_at` novo, `no_shows` + 1), sem perder a vaga. Encerrar a live devolve quem estava na party para a frente da fila.
+"Não apareceu" devolve a pessoa ao fim da fila (`queued_at` novo, `no_shows` + 1), sem perder a vaga. Encerrar a live devolve quem estava na party para a fila, na ordem do revezamento: quem não chegou a jogar fica na frente, e quem jogou a partida que acabou volta atrás de quem nunca jogou.
 
 Toda saída guarda o motivo em `queue_exit` (migration 175): `saiu` (a própria pessoa, só enquanto espera), `tirado` (o Pedro) ou `cancelado` (pedido cancelado ou reembolsado).
 

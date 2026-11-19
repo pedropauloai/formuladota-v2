@@ -124,8 +124,9 @@ async function buyFreedSeat(buyers, pages, loser) {
   await button.click();
   check("quem tinha ficado sem compra a vaga que voltou", (await outcome(pages[loser])) === "pix");
   const payment = await pay(buyers[loser]);
-  await pages[loser].locator("[data-fila-posicao='2']").waitFor({ timeout: 20_000 });
-  check("a compra nova entra no fim da fila", true);
+  // Revezamento (migration 192): quem nunca jogou entra na frente de quem não apareceu.
+  await pages[loser].locator("[data-fila-posicao='1']").waitFor({ timeout: 20_000 });
+  check("a compra nova, de quem nunca jogou, entra na frente de quem não apareceu", true);
   await pause();
   return payment;
 }
@@ -152,18 +153,20 @@ async function endOfLive(state, buyers, pages, w2) {
   await snap(pages[w2], "6-jogou");
   await pause();
   await db.rpc("party_fila_encerrar_live", { p_live_id: state.liveId });
-  await pages[0].locator("[data-fila-posicao='1']").waitFor({ timeout: 15_000 });
-  check("live encerrada: quem estava na party volta para a frente da fila", true);
+  // Ana jogou a primeira partida agora: no revezamento, volta atrás de quem nunca jogou.
+  await pages[0].locator("[data-fila-posicao='2']").waitFor({ timeout: 15_000 });
+  check("live encerrada: quem estava na party volta para a fila, atrás de quem nunca jogou", true);
   await snap(pages[0], "7-live-encerrada");
   await pause();
   state.liveId = await openTestLive(5, 2);
+  await call(state.liveId);
   await call(state.liveId);
   await pages[0].locator("[data-fila-aviso]").waitFor({ timeout: 15_000 });
   await pages[0].getByRole("button", { name: "Entendi" }).click();
   const anaBooking = await bookingOf((await latestOrder(buyers[0])).id);
   await db.rpc("party_fila_jogou", { p_booking_id: anaBooking.id });
   await pages[0].getByText("2 partidas jogadas.").waitFor({ timeout: 15_000 });
-  check("na live seguinte, Ana é chamada primeiro e termina as 2 partidas", true);
+  check("na live seguinte, Ana volta para a party e termina as 2 partidas", true);
   await pause();
 }
 
@@ -205,7 +208,8 @@ async function run() {
     await endOfLive(state, buyers, pages, w2);
     const body = await fetch(`${BASE}/api/party/fila`).then((r) => r.json());
     const raw = JSON.stringify(body);
-    check("no fim, a fila pública mostra só quem ainda espera, sem dado pessoal", body.queue.length === 1 && !/whatsapp|email|user_?id|steam_?id/i.test(raw));
+    // No fim, quem nunca jogou já está na party (as duas chamadas da live nova), e ninguém espera.
+    check("no fim, a fila pública mostra só quem ainda joga, sem dado pessoal", body.queue.length === 0 && body.party.length === 1 && !/whatsapp|email|user_?id|steam_?id/i.test(raw));
   } finally {
     if (camera) {
       const path = await camera.video()?.path();
