@@ -18,6 +18,8 @@ export interface OrderBooking {
   endsAt: string;
   status: string;
   seats: number;
+  /** Vaga comprada fora da live, na fila aberta: não tem data, joga na próxima live. */
+  queue: boolean;
 }
 
 export type AgendaActionResult = { ok: true } | { ok: false; error: string };
@@ -25,7 +27,7 @@ export type AgendaActionResult = { ok: true } | { ok: false; error: string };
 export async function getOrderBookings(orderId: string): Promise<OrderBooking[]> {
   const { data, error } = await createServiceClient()
     .from("store_bookings")
-    .select("id, kind, starts_at, ends_at, status, seats")
+    .select("id, kind, starts_at, ends_at, status, seats, store_live_sessions (status)")
     .eq("order_id", orderId)
     .neq("status", "cancelado")
     .order("starts_at", { ascending: true });
@@ -37,6 +39,7 @@ export async function getOrderBookings(orderId: string): Promise<OrderBooking[]>
     endsAt: b.ends_at,
     status: b.status,
     seats: b.seats,
+    queue: b.store_live_sessions?.status === "fila",
   }));
 }
 

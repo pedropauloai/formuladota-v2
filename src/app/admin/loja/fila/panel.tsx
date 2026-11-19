@@ -51,11 +51,14 @@ function LiveControls({ data, busy, act }: { data: AdminQueue; busy: boolean; ac
   const [perMatch, setPerMatch] = useState(live?.seatsPerMatch ?? 4);
   const [youtube, setYoutube] = useState(live?.youtubeVideoId ? `https://youtu.be/${live.youtubeVideoId}` : "");
   const open = live ? Math.max(0, live.queueSize - live.occupied) : 0;
+  const openQueue = live?.status === "fila";
+  const hint = onAir
+    ? `Vagas abertas agora: ${open} (cada partida jogada devolve uma).`
+    : openQueue
+      ? `A fila está aberta: a vaga vende agora para a próxima live (${open} vaga${open === 1 ? "" : "s"} aberta${open === 1 ? "" : "s"}). Abrir a live mostra o vídeo na página e começa a chamar a fila.`
+      : "Abrir a live mostra o vídeo na página da fila e libera a venda na hora.";
   return (
-    <Section
-      title={onAir ? `Ao vivo desde ${TIME.format(new Date(live.onAirAt ?? live.startsAt))}` : "Live fora do ar"}
-      hint={onAir ? `Vagas abertas agora: ${open} (cada partida jogada devolve uma).` : "Abrir a live mostra o vídeo na página da fila e libera a venda na hora."}
-    >
+    <Section title={onAir ? `Ao vivo desde ${TIME.format(new Date(live.onAirAt ?? live.startsAt))}` : openQueue ? "Live fora do ar, fila aberta" : "Live fora do ar"} hint={hint}>
       <div className="grid gap-3 sm:grid-cols-2">
         <NumberField label="Tamanho da fila (partidas)" value={size} min={0} max={100} onChange={setSize} />
         <NumberField label="Lugares na party por partida" value={perMatch} min={1} max={4} onChange={setPerMatch} />
@@ -96,7 +99,14 @@ function LiveControls({ data, busy, act }: { data: AdminQueue; busy: boolean; ac
             </button>
           </>
         ) : (
-          <button type="button" disabled={busy} className={PRIMARY} onClick={() => act("Live aberta", () => abrirLive(size, perMatch, youtube))}>Abrir a live</button>
+          <>
+            <button type="button" disabled={busy} className={PRIMARY} onClick={() => act("Live aberta", () => abrirLive(size, perMatch, youtube))}>Abrir a live</button>
+            {live && (
+              <button type="button" disabled={busy} className={SECONDARY} onClick={() => act("Fila atualizada", () => ajustarVagas(live.id, size, perMatch, ""))}>
+                Salvar o tamanho da fila
+              </button>
+            )}
+          </>
         )}
       </div>
     </Section>
@@ -164,7 +174,7 @@ export function AdminQueuePanel({ data }: { data: AdminQueue }) {
         ) : (
           <ul className="divide-y divide-border-subtle">
             {waiting.map((e) => (
-              <WaitingRow key={e.id} entry={e} busy={busy || !onAir} act={act} callThis={(id) => chamarProximo(live?.id ?? "", id)} remove={tirarDaFila} />
+              <WaitingRow key={e.id} entry={e} busy={busy} canCall={onAir} act={act} callThis={(id) => chamarProximo(live?.id ?? "", id)} remove={tirarDaFila} />
             ))}
           </ul>
         )}

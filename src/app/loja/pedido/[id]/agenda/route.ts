@@ -13,7 +13,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   if (!order) return new Response("Pedido não encontrado.", { status: 404 });
   const url = `${publicEnv.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "")}/loja/pedido/${order.id}`;
   const events = order.bookings
-    .filter((b) => b.status === "confirmado" || b.status === "concluido")
+    // A vaga da fila aberta não tem data de live: não vira evento na agenda.
+    .filter((b) => !b.queue && (b.status === "confirmado" || b.status === "concluido"))
     .map((b) => ({
       uid: b.id,
       start: b.startsAt,

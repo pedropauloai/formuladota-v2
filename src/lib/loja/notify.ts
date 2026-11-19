@@ -24,13 +24,16 @@ async function loadSale(orderId: string): Promise<SaleInfo | null> {
   if (data.status !== "pago" && data.status !== "em_revisao") return null;
   const { data: bookings } = await createServiceClient()
     .from("store_bookings")
-    .select("kind, starts_at, ends_at, seats")
+    .select("kind, starts_at, ends_at, seats, store_live_sessions (status)")
     .eq("order_id", orderId)
     .neq("status", "cancelado")
     .order("starts_at", { ascending: true });
-  const schedule = (bookings ?? []).map((b) =>
-    b.kind === "live" ? `live de ${bookingLine(b.starts_at, b.ends_at)} (${b.seats} vaga${b.seats > 1 ? "s" : ""})` : bookingLine(b.starts_at, b.ends_at)
-  );
+  const schedule = (bookings ?? []).map((b) => {
+    const seats = `${b.seats} vaga${b.seats > 1 ? "s" : ""}`;
+    // Comprou fora da live: a vaga é na fila aberta, sem data de live.
+    if (b.store_live_sessions?.status === "fila") return `fila da party, para a próxima live (${seats})`;
+    return b.kind === "live" ? `live de ${bookingLine(b.starts_at, b.ends_at)} (${seats})` : bookingLine(b.starts_at, b.ends_at);
+  });
   return {
     orderId: data.id,
     productTitle: data.product_title,

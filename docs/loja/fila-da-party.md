@@ -6,7 +6,13 @@ Frente 1 do [plano v3](plano-v3.md), aberta em 19/11/2026. O plano manda sobre e
 
 Quem assiste à live abre `/party`, vê a live, quem está na party do Pedro agora, a fila e as vagas abertas, e garante a vaga com Pix em dois toques: "Garantir minha vaga" e "Copiar código Pix". Depois de pagar, a pessoa vê a própria posição andar e é avisada, com o som de partida encontrada do jogo, quando o Pedro a chama para a party. O Pedro opera a fila em `/admin/loja/fila`, e os overlays da live leem `/api/party/fila`.
 
-## Para o Pedro, durante a live
+A vaga vende sempre, com ou sem live (decisão técnica 16). Fora da live, a compra entra na fila aberta, e a pessoa joga na próxima live que o Pedro abrir, na ordem do pagamento: serve para quem vê um vídeo ou o VOD e quer chegar na live com o lugar garantido.
+
+## Para o Pedro
+
+Fora da live a fila fica aberta sozinha: a página vende a vaga para a próxima live, e quem compra aparece no painel com "comprou fora da live". O "Tamanho da fila" é um número só, dentro e fora da live (começa em 20 partidas); "Salvar o tamanho da fila" muda sem abrir a live. Fora da live dá para tirar alguém da fila, mas não chamar.
+
+Durante a live:
 
 1. Abra `/admin/loja/fila` e toque em "Abrir a live". A página mostra sozinha a live da Twitch quando o canal está no ar; o link da live do YouTube (opcional) é a reserva para quando a Twitch estiver fora do ar. A live marcada no painel da agenda para perto da hora vira a live no ar, com as reservas dela.
 2. "Tamanho da fila" é quantas partidas você aceita esperando ao mesmo tempo; cada partida jogada abre uma vaga de novo. "Lugares na party" vai de 1 a 4.
@@ -34,11 +40,13 @@ Cada uma com o porquê em uma linha.
 12. **Uma vaga por pessoa na party** (migration 176): quem comprou duas vezes ocupa um lugar só, e a segunda compra espera a primeira terminar. Antes, "Completar a party" chamava as duas e "Partida terminou" descontava duas partidas de quem jogou uma.
 13. **"Partida terminou" com valor esperado** (`store_live_sessions.match_count`): o painel manda quantas partidas já tinham terminado; o segundo toque, ou a requisição repetida, não desconta de novo. Não existe "Jogou" por linha, para a mesma partida não ser contada por dois botões.
 14. **Freio de abuso por pessoa, não por IP**, na compra, na saída e na consulta da vez: na operadora de celular muita gente sai pelo mesmo IP (CGNAT), e o limite por IP congelaria a fila de quem está na live. O freio por IP fica largo. Um Pix pendente por pessoa: tocar de novo devolve o mesmo Pix.
-15. **A compra antiga em `/loja/vaga-na-party` leva sempre para `/party`**, que vende para a live no ar ou para a próxima marcada, com login e Steam. Antes, a página vendia sem login, e a vaga entrava na fila sem ID do Dota nem aviso de vez para quem comprou.
+15. **A compra antiga em `/loja/vaga-na-party` leva sempre para `/party`**, que vende para a live no ar, para a próxima marcada ou na fila aberta, com login e Steam. Antes, a página vendia sem login, e a vaga entrava na fila sem ID do Dota nem aviso de vez para quem comprou.
+16. **A vaga vende sempre, com ou sem live** (migration 177, pedido do Pedro em 19/11/2026: "não precisa de ter live marcada... as vendas podem acontecer sempre"). Sem live no ar nem marcada, a compra entra na fila aberta: uma linha fixa de `store_live_sessions` com `status = 'fila'` em cada ambiente, com a data no passado de propósito, para a fila de qualquer live incluir quem comprou fora. A fila aberta conta todo mundo que espera, a live que o Pedro abre herda o tamanho dela, e o tamanho é um número só (mudar na live muda a fila aberta também). Antes, a página só vendia com live no ar ou marcada, e quem via um vídeo ou o VOD não tinha como garantir o lugar.
 
 ## Limite conhecido
 
 - Abrir uma live mais de 3 horas antes de uma live marcada cria uma live nova; enquanto ela estiver no ar, as reservas feitas para a marcada ficam fora da fila (não se perdem: voltam quando a marcada chega, ou passam para a live seguinte). Com uma live por dia, o caso não acontece.
+- Quem comprou fora da live não recebe aviso quando a live começa: a página só toca o som de partida encontrada se estiver aberta. Chamado e fora da página, a pessoa volta para o fim da fila sem perder a vaga ("Não apareceu").
 
 ## Estados da vez
 
@@ -76,23 +84,33 @@ Com a flag `fila_competitiva` desligada (e a `loja` ligada), o botão verde da b
 - `store_orders.buyer_whatsapp` passa a aceitar nulo.
 - Funções (só service role): `store_reservar_fila`, `party_fila_abrir_live`, `party_fila_encerrar_live`, `party_fila_chamar`, `party_fila_jogou`, `party_fila_partida_terminou`, `party_fila_ausente`, `party_fila_remover`.
 
+## Banco (migration 177, fila aberta)
+
+- `store_live_sessions.status` aceita `fila`, uma linha por ambiente (`store_live_sessions_uma_fila`), criada pela migration com 20 partidas e 4 lugares. Não apague nem encerre essa linha: sem ela, a página volta a vender só com live.
+- `party_fila_live_atual` cai na fila aberta sem live no ar nem marcada. `party_fila_ocupacao` conta todo mundo que espera quando a live é a fila aberta, e a reserva ainda sem pagamento da fila aberta ocupa vaga na live. `store_reservar_fila` aceita a fila aberta. `party_fila_abrir_live` nunca adota a fila aberta e herda o tamanho dela.
+- No JSON público, a fila aberta vem com `live.status = "fila"` e `live.startsAt = null`.
+
 ## Testes
 
-- `scripts/seguranca/fila-da-party.sql`: regras do banco das migrations 174 a 176 (vermelho antes de cada uma, verde depois); `funcoes-abertas.sql` segue vazio.
+- `scripts/seguranca/fila-da-party.sql`: regras do banco das migrations 174 a 177 (vermelho antes de cada uma, verde depois); `funcoes-abertas.sql` segue vazio.
 - Vitest: estimativa de partidas até a vez, ordem da fila, JSON público sem dado pessoal, botão da barra inferior.
-- `pnpm loja:e2e`: compra da vaga pela fila até a posição, a chamada e o aviso na tela em tempo real (`e2e-fila.mjs`), e as saídas com cinco compradores ao mesmo tempo (`e2e-fila-saidas.mjs`): disputa pela última vaga, compra de 2 partidas, não apareceu, saiu da fila, reembolso, partida terminou tocado duas vezes, live encerrada com gente na party e a fila passando para a live seguinte. `FILA_VIDEO=<pasta>` grava a simulação em vídeo.
+- `pnpm loja:e2e`: compra da vaga fora da live, na fila aberta, até a posição, a live que abre com quem comprou fora, a chamada e o aviso na tela em tempo real (`e2e-fila.mjs`), e as saídas com cinco compradores ao mesmo tempo (`e2e-fila-saidas.mjs`): disputa pela última vaga, compra de 2 partidas, não apareceu, saiu da fila, reembolso, partida terminou tocado duas vezes, live encerrada com gente na party e a fila passando para a live seguinte. `FILA_VIDEO=<pasta>` grava a simulação em vídeo.
 
 ## Teste de 14 dias
 
 Critério proposto pelo agente no plano v3 e registrado em 19/11/2026, quando o Pedro delegou as decisões da frente ("liberdade total"); o número não foi escolhido por ele, e ele pode mudar.
 
-- **Começa** no primeiro dia em que o Pedro abrir a fila numa live (a primeira live real com `status = 'ao_vivo'`) e **termina 14 dias depois**.
+- **Começa** na primeira live real aberta no painel ou na primeira vaga vendida fora da live, o que vier antes (desde a decisão 16, a venda não espera a live), e **termina 14 dias depois**.
 - **Passa** com 15 vagas vendidas ou mais. **Falha** com menos de 5. Entre 5 e 14, ajustar a oferta e a chamada da live antes de decidir.
 - **Vaga** é partida paga: a soma de `quantity` dos pedidos pagos da vaga na party, sem teste.
 
 ```sql
 with inicio as (
-  select min(on_air_at) as t from public.store_live_sessions where not is_test and on_air_at is not null
+  select least(
+    (select min(on_air_at) from public.store_live_sessions where not is_test and on_air_at is not null),
+    (select min(o.paid_at) from public.store_orders o join public.store_products p on p.id = o.product_id
+      where p.slug = 'vaga-na-party' and o.status = 'pago' and not o.is_test and o.paid_at >= '2026-11-19')
+  ) as t
 )
 select coalesce(sum(o.quantity), 0) as vagas
   from public.store_orders o

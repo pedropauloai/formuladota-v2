@@ -28,6 +28,8 @@ export interface AdminQueueEntry {
   dotaFriendId: string | null;
   /** Comprou numa live anterior e passou para esta. */
   carriedOver: boolean;
+  /** Comprou fora da live, na fila aberta. */
+  boughtOffline: boolean;
 }
 
 export interface AdminFinishedEntry {
@@ -83,7 +85,10 @@ async function readDetails(ids: string[], userIds: string[]) {
   const supabase = createServiceClient();
   const [bookings, steam] = await Promise.all([
     ids.length
-      ? supabase.from("store_bookings").select("id, no_shows, live_session_id, store_orders (buyer_name, details)").in("id", ids)
+      ? supabase
+          .from("store_bookings")
+          .select("id, no_shows, live_session_id, store_orders (buyer_name, details), store_live_sessions (status)")
+          .in("id", ids)
       : Promise.resolve({ data: [], error: null }),
     userIds.length ? supabase.from("steam_links").select("user_id, steam_id_64, persona").in("user_id", userIds) : Promise.resolve({ data: [], error: null }),
   ]);
@@ -108,6 +113,7 @@ export async function getAdminQueue(): Promise<AdminQueue> {
     const steam = e.userId ? details.steam.get(e.userId) : undefined;
     const who = e.userId ? identities.get(e.userId) : undefined;
     const booking = details.booking.get(e.id);
+    const boughtOffline = booking?.store_live_sessions?.status === "fila";
     return {
       id: e.id,
       state: e.state,
@@ -123,7 +129,8 @@ export async function getAdminQueue(): Promise<AdminQueue> {
       steamPersona: steam?.persona ?? null,
       steamProfileUrl: steam ? `https://steamcommunity.com/profiles/${steam.steam_id_64}` : null,
       dotaFriendId: steam ? String(steam64To32(steam.steam_id_64)) : orderDotaId(booking?.store_orders?.details),
-      carriedOver: !!snapshot.live && !!booking && booking.live_session_id !== snapshot.live.id,
+      carriedOver: !!snapshot.live && !!booking && !boughtOffline && booking.live_session_id !== snapshot.live.id,
+      boughtOffline,
     };
   });
   const finished = finishedRows.map((r): AdminFinishedEntry => {
@@ -153,12 +160,25 @@ async function rpc<T>(name: string, args: Record<string, unknown>): Promise<T> {
   return data;
 }
 
+/** Um tamanho só: o que o Pedro põe na live vale também para a fila aberta, fora dela. */
+async function mirrorToOpenQueue(isTest: boolean, queueSize: number, seatsPerMatch: number): Promise<void> {
+  const { error } = await createServiceClient()
+    .from("store_live_sessions")
+    .update({ party_seats: queueSize, seats_per_match: seatsPerMatch })
+    .eq("status", "fila")
+    .eq("is_test", isTest);
+  if (error) throw new Error(`mudar o tamanho da fila aberta falhou: ${error.message}`);
+}
+
 /** Operações da fila. Cada uma devolve o que o banco respondeu (null/false = nada mudou). */
 export const queueOps = {
-  open: (queueSize: number, seatsPerMatch: number, youtubeVideoId: string | null) =>
-    rpc<string | null>("party_fila_abrir_live", {
+  open: async (queueSize: number, seatsPerMatch: number, youtubeVideoId: string | null) => {
+    const liveId = await rpc<string | null>("party_fila_abrir_live", {
       p_is_test: isTestMode(), p_party_seats: queueSize, p_seats_per_match: seatsPerMatch, p_youtube_video_id: youtubeVideoId,
-    }),
+    });
+    if (liveId) await mirrorToOpenQueue(isTestMode(), queueSize, seatsPerMatch);
+    return liveId;
+  },
   close: (liveId: string) => rpc<boolean>("party_fila_encerrar_live", { p_live_id: liveId }),
   call: (liveId: string, bookingId: string | null) => rpc<string | null>("party_fila_chamar", { p_live_id: liveId, p_booking_id: bookingId }),
   played: (bookingId: string) => rpc<string | null>("party_fila_jogou", { p_booking_id: bookingId }),
@@ -171,14 +191,23 @@ export const queueOps = {
   leave: (bookingId: string, userId: string) => rpc<boolean>("party_fila_sair", { p_booking_id: bookingId, p_user_id: userId }),
 };
 
-/** Muda o tamanho da fila, os lugares por partida e o vídeo da live (sem mexer em quem já pagou). */
+/**
+ * Muda o tamanho da fila, os lugares por partida e o vídeo da live (sem mexer em quem já pagou).
+ * Vale para a fila aberta também, que não guarda vídeo: o vídeo é de uma transmissão.
+ */
 export async function resizeLive(liveId: string, queueSize: number, seatsPerMatch: number, youtubeVideoId?: string): Promise<void> {
-  const { error } = await createServiceClient()
+  const supabase = createServiceClient();
+  const { data: live, error: readError } = await supabase.from("store_live_sessions").select("status, is_test").eq("id", liveId).maybeSingle();
+  if (readError) throw new Error(`ler a live falhou: ${readError.message}`);
+  if (!live) return;
+  const video = youtubeVideoId && live.status !== "fila" ? { youtube_video_id: youtubeVideoId } : {};
+  const { error } = await supabase
     .from("store_live_sessions")
-    .update({ party_seats: queueSize, seats_per_match: seatsPerMatch, ...(youtubeVideoId ? { youtube_video_id: youtubeVideoId } : {}) })
+    .update({ party_seats: queueSize, seats_per_match: seatsPerMatch, ...video })
     .eq("id", liveId)
-    .in("status", ["marcada", "ao_vivo"]);
+    .in("status", ["marcada", "ao_vivo", "fila"]);
   if (error) throw new Error(`mudar as vagas da live falhou: ${error.message}`);
+  if (live.status === "ao_vivo") await mirrorToOpenQueue(live.is_test, queueSize, seatsPerMatch);
 }
 
 const STALE_ON_AIR_MS = 12 * 60 * 60 * 1000;
