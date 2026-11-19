@@ -8,7 +8,9 @@ import { z } from "zod";
 import { isAdminUser, queueOps, resizeLive } from "@/lib/loja/fila/admin";
 import { parseYoutubeVideoId } from "@/lib/loja/fila/youtube";
 import { parseMatchId } from "@/lib/battlepass/partida";
-import { ppaLastMatch, resolveMatch } from "@/lib/battlepass/partida-server";
+import { currentPartyAccounts, partyLastMatch, resolveMatch } from "@/lib/battlepass/partida-server";
+import { isTestMode } from "@/lib/mercadopago";
+import { createServiceClient } from "@/lib/supabase/service";
 
 export type FilaAdminResult = { ok: true; message?: string } | { ok: false; error: string };
 
@@ -78,15 +80,32 @@ export async function completarParty(liveId: string): Promise<FilaAdminResult> {
 
 type MatchData = { matchId: string; playedAt: string; confirmedUserIds: string[] };
 
-/** A partida pelo ID que o PPA colou: conferida na OpenDota, ou só com o ID quando a OpenDota ainda não tem. */
-async function matchFromInput(input: string): Promise<{ match: MatchData; note: string } | { error: string }> {
-  const resolved = await resolveMatch(input);
+const BR_TIME = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
+/** Folga para partida que começou um pouco antes de o PPA abrir a live no painel. */
+const BEFORE_LIVE_MS = 30 * 60 * 1000;
+
+async function liveOnAirAt(liveId: string): Promise<number | null> {
+  const { data } = await createServiceClient().from("store_live_sessions").select("on_air_at").eq("id", liveId).maybeSingle();
+  return data?.on_air_at ? Date.parse(data.on_air_at) : null;
+}
+
+/**
+ * A partida pelo ID que o PPA colou: conferida na OpenDota, ou só com o ID quando a OpenDota ainda
+ * não tem. O time sai da conta do PPA ou, numa smurf, de quem está na party. Partida que acabou
+ * antes de a live abrir é recusada: é ID trocado (de outra partida da conta principal, por exemplo).
+ */
+async function matchFromInput(input: string, liveId: string): Promise<{ match: MatchData; note: string } | { error: string }> {
+  const [partyAccounts, onAirAt] = await Promise.all([currentPartyAccounts(isTestMode()), liveOnAirAt(liveId)]);
+  const resolved = await resolveMatch(input, partyAccounts);
+  if (resolved.ok && onAirAt && Date.parse(resolved.playedAt) < onAirAt - BEFORE_LIVE_MS) {
+    return { error: `Essa partida terminou em ${BR_TIME.format(new Date(resolved.playedAt))}, antes de a live abrir. Confira o ID (use "Achar a partida da party").` };
+  }
   if (resolved.ok) {
     const hidden = resolved.hidden ? `, ${resolved.hidden} com o perfil do Dota privado` : "";
     return { match: resolved, note: `Partida registrada: ${resolved.confirmedUserIds.length} do site conferido(s) no time do PPA${hidden}.` };
   }
   if (resolved.reason === "id_invalido") return { error: "Esse ID não é de uma partida do Dota. Cole o número ou o link da OpenDota." };
-  if (resolved.reason === "sem_ppa") return { error: "O PPA não está nessa partida. Confira o ID." };
+  if (resolved.reason === "sem_ppa") return { error: "Nem o PPA nem ninguém da party está nessa partida. Confira o ID." };
   const matchId = parseMatchId(input);
   if (!matchId) return { error: "Esse ID não é de uma partida do Dota." };
   // OpenDota processando ou fora do ar: a vez conta com a hora de agora, sem a conferência.
@@ -104,7 +123,7 @@ export async function partidaTerminou(liveId: string, matchesDone: number, match
     let match: MatchData | undefined;
     let note: string | undefined;
     if (matchInput.trim()) {
-      const found = await matchFromInput(matchInput);
+      const found = await matchFromInput(matchInput, liveId);
       if ("error" in found) return { ok: false, error: found.error };
       ({ match, note } = found);
     }
@@ -123,8 +142,8 @@ export type UltimaPartidaResult = { ok: true; matchId: string; endedAt: string }
 /** A última partida do PPA na OpenDota, para o painel preencher o ID com um toque. */
 export async function ultimaPartidaDoPPA(): Promise<UltimaPartidaResult> {
   if (!(await isAdminUser())) return { ok: false, error: "Só o admin opera a fila." };
-  const last = await ppaLastMatch();
-  return last ? { ok: true, ...last } : { ok: false, error: "A OpenDota não respondeu agora. Cole o ID da partida." };
+  const last = await partyLastMatch(await currentPartyAccounts(isTestMode()));
+  return last ? { ok: true, ...last } : { ok: false, error: "A OpenDota não achou a partida da party. Cole o ID da partida." };
 }
 
 export async function naoApareceu(bookingId: string): Promise<FilaAdminResult> {

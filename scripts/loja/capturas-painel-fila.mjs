@@ -37,6 +37,13 @@ async function fillQueue(liveId) {
   }
   await db.rpc("party_fila_chamar", { p_live_id: liveId, p_booking_id: null });
   await db.rpc("party_fila_chamar", { p_live_id: liveId, p_booking_id: null });
+  // Uma partida registrada com ID, para o histórico aparecer (um conferido, um sem conferência).
+  const { data: party } = await db.from("store_bookings").select("user_id").eq("is_test", true).eq("queue_state", "na_party");
+  await db.rpc("party_fila_partida_terminou", {
+    p_live_id: liveId, p_expected_count: 0, p_dota_match_id: 9097240074, p_played_at: new Date().toISOString(), p_confirmed: (party ?? []).slice(0, 1).map((b) => b.user_id),
+  });
+  await db.rpc("party_fila_chamar", { p_live_id: liveId, p_booking_id: null });
+  await db.rpc("party_fila_chamar", { p_live_id: liveId, p_booking_id: null });
   return users;
 }
 

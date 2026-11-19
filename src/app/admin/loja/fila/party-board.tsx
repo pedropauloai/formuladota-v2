@@ -74,7 +74,7 @@ function MatchRegister({ liveId, matchesDone, busy, act }: { liveId: string; mat
     const last = await ultimaPartidaDoPPA();
     if (last.ok) {
       setMatchId(last.matchId);
-      setHint(`Última partida do PPA, terminou às ${TIME.format(new Date(last.endedAt))}.`);
+      setHint(`Partida da party, terminou às ${TIME.format(new Date(last.endedAt))}. Confira e toque em "Partida terminou".`);
     } else setHint(last.error);
   };
   return (
@@ -88,7 +88,7 @@ function MatchRegister({ liveId, matchesDone, busy, act }: { liveId: string; mat
         data-fila-partida-id
         className="min-w-56 flex-1 rounded-sm border border-border-strong bg-bg-deep px-3 py-2 font-mono text-sm text-text-display"
       />
-      <button type="button" disabled={busy} className={SECONDARY} onClick={fillLast}>Última do PPA</button>
+      <button type="button" disabled={busy} className={SECONDARY} onClick={fillLast}>Achar a partida da party</button>
       <button type="button" disabled={busy} className={PRIMARY} onClick={register} data-fila-partida-terminou>
         Partida {matchesDone + 1} terminou <Kbd>T</Kbd>
       </button>
