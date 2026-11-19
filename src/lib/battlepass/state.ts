@@ -11,6 +11,8 @@ export interface SubscriptionLike {
   provider: string;
   tier: string;
   nextPaymentDate: string | null;
+  /** Hora do cancelamento: no reembolso o acesso termina nela (o fim do período fica igual a ela). */
+  cancelledAt?: string | null;
 }
 
 export interface PaymentLike {
@@ -41,6 +43,8 @@ export function accessEndsAt(sub: SubscriptionLike): number {
 export function isBattlepassActive(sub: SubscriptionLike | null, now: Date): boolean {
   if (!sub || sub.tier !== "battlepass") return false;
   if (sub.status !== "authorized" && sub.status !== "cancelled") return false;
+  // Reembolso: o período acaba na hora do cancelamento, sem depender do relógio do servidor bater com o do banco.
+  if (sub.status === "cancelled" && sub.cancelledAt && sub.nextPaymentDate && time(sub.nextPaymentDate) <= time(sub.cancelledAt)) return false;
   const end = accessEndsAt(sub);
   return Number.isFinite(end) && end > now.getTime();
 }

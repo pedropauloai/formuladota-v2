@@ -20,7 +20,7 @@ const {
   env, db, BASE, checker, waitFor, startServer, stopServer, createTestBuyer, buyerContext, deleteTestUsers, sandboxRefund,
   discordContentWith, webhook, sleep, acquireTestLock, releaseTestLock, resetTestQueue, openTestLive,
 } = comum;
-const { chromium } = await import("playwright");
+const { chromium } = await import("playwright-core");
 
 const run = randomUUID().slice(0, 8);
 const { results, check } = checker();
@@ -74,8 +74,10 @@ async function pixFlow(browser, buyer) {
 
   const paid = await sandboxApprove(`battlepass-pix-${first.id}`, 120, buyer.email);
   check("pix: pagamento aprovado no sandbox", paid.status === "approved", paid.status);
+  // O Mercado Pago avisa o site do pagamento (em produção, pela notification_url do Pix).
+  check("pix: webhook do pagamento responde 200", (await webhook(paid.id, env.MP_WEBHOOK_SECRET)) === 200);
   const activated = await waitFor(async () => ((await panelState(page)) === "ativo" ? true : null), 60_000, 2000);
-  check("pix: a página vira ativa sozinha (conferência com o Mercado Pago)", activated === true);
+  check("pix: a página vira ativa sozinha (consulta o estado a cada 3 s)", activated === true);
   const until1 = await page.locator("[data-bp-estado]").first().getAttribute("data-bp-ate");
   check("pix: vale 30 dias", !!until1 && near(until1, Date.now() + 30 * DAY), until1 ?? "");
   check("pix: não renova sozinho", (await page.locator("[data-bp-estado]").first().getAttribute("data-bp-renova")) === "false");
@@ -95,6 +97,7 @@ async function pixFlow(browser, buyer) {
   const second = (await paymentsOf(buyer.id)).find((p) => p.status === "pendente");
   const paid2 = await sandboxApprove(`battlepass-pix-${second.id}`, 120, buyer.email);
   check("pix: segundo pagamento aprovado", paid2.status === "approved", paid2.status);
+  await webhook(paid2.id, env.MP_WEBHOOK_SECRET);
   const extended = await waitFor(async () => {
     const [row] = await subOf(buyer.id);
     return row && near(row.next_payment_date, Date.parse(until1) + 30 * DAY, 60_000) ? row : null;
@@ -119,7 +122,9 @@ async function queueFlow(browser, subscriber, admin) {
     const live = await openTestLive(4, 1);
     const context = await buyerContext(browser, subscriber, { desktop: true });
     const page = await context.newPage();
-    await page.goto(`${BASE}/party`, { waitUntil: "networkidle" });
+    await page.goto(`${BASE}/party`, { waitUntil: "domcontentloaded" });
+    await page.locator("[data-fila-battlepass]").first().waitFor({ timeout: 30_000 });
+    await page.waitForTimeout(3000);
     await page.locator("[data-fila-battlepass]").first().click();
     const entry = await waitFor(async () => {
       const { data } = await db.from("store_bookings").select("*").eq("user_id", subscriber.id).eq("is_test", true).in("queue_state", ["aguardando", "na_party"]);
@@ -134,7 +139,7 @@ async function queueFlow(browser, subscriber, admin) {
     await db.from("profiles").update({ is_admin: true }).eq("id", admin.id);
     const adminContext = await buyerContext(browser, admin, { desktop: true });
     const panel = await adminContext.newPage();
-    await panel.goto(`${BASE}/admin/loja/fila`, { waitUntil: "networkidle" });
+    await panel.goto(`${BASE}/admin/loja/fila`, { waitUntil: "domcontentloaded" });
     await panel.getByRole("button", { name: "Chamar o próximo" }).click();
     const called = await waitFor(async () => {
       const { data } = await db.from("store_bookings").select("queue_state").eq("id", entry.id).single();
@@ -156,7 +161,10 @@ async function queueFlow(browser, subscriber, admin) {
     check("fila: quem jogou sai da party como concluído", after?.queue_state === "concluido");
 
     // Depois de jogar, o assinante entra de novo.
-    await page.reload({ waitUntil: "networkidle" });
+    // Depois de jogar a página mostra o botão de novo; clica até a entrada nova aparecer (a página hidrata em segundos).
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.locator("[data-fila-battlepass]").first().waitFor({ timeout: 30_000 });
+    await page.waitForTimeout(3000);
     await page.locator("[data-fila-battlepass]").first().click();
     const again = await waitFor(async () => {
       const { data } = await db.from("store_bookings").select("id").eq("user_id", subscriber.id).eq("is_test", true).eq("queue_state", "aguardando");
@@ -184,10 +192,15 @@ async function refundFlow(browser, buyer, paidPayments) {
     const state = await panelState(page).catch(() => null);
     return state === "encerrado" || state === "nenhum" ? state : null;
   }, 30_000, 1000);
+  if (!ended) {
+    const shot = "C:/Users/ADM/AppData/Local/Temp/claude/9b2c8ecbfe292d1e/3e49488a-43ab-4e18-b1ae-5f178b99933c/scratchpad/garantia-falhou.png";
+    await page.screenshot({ path: shot, fullPage: false }).catch(() => {});
+    console.log("diagnóstico:", await panelState(page).catch(() => "?"), JSON.stringify((await paymentsOf(buyer.id)).map((p) => [p.status, p.paid_at])), await page.locator("[role=alert]").allTextContents().catch(() => []));
+  }
   check("garantia: a página encerra o acesso", !!ended, ended ?? "");
   const refunded = (await paymentsOf(buyer.id)).filter((p) => p.status === "reembolso_pedido");
   check("garantia: os dois pagamentos marcados para devolver", refunded.length === 2);
-  const refundNotice = await discordContentWith("R$ 240,00");
+  const refundNotice = await discordContentWith("240,00 no Mercado Pago");
   check("garantia: aviso ao Pedro com o valor a devolver", !!refundNotice && refundNotice.content.includes("garantia"));
 
   // O Pedro devolve no Mercado Pago: o webhook marca devolvido.
@@ -241,7 +254,7 @@ async function cleanup(ids) {
 }
 
 const server = await startServer();
-const browser = await chromium.launch();
+const browser = await chromium.launch({ channel: "chrome", headless: true });
 const created = [];
 let failed = null;
 try {

@@ -50,7 +50,7 @@ export interface PaymentRow {
 export const OPEN_STATUSES = ["pending", "authorized", "paused"] as const;
 
 export function toSubscriptionLike(row: SubscriptionRow): SubscriptionLike {
-  return { id: row.id, status: row.status, provider: row.provider, tier: row.tier, nextPaymentDate: row.next_payment_date };
+  return { id: row.id, status: row.status, provider: row.provider, tier: row.tier, nextPaymentDate: row.next_payment_date, cancelledAt: row.cancelled_at };
 }
 
 /** A assinatura do Battlepass que vale para a pessoa: a de pé, ou a mais recente. */

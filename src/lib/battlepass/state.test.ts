@@ -35,6 +35,11 @@ describe("Battlepass ativo", () => {
     expect(isBattlepassActive(sub({ provider: "mp", status: "cancelled", nextPaymentDate: days(-1) }), now)).toBe(false);
   });
 
+  it("reembolso encerra na hora do cancelamento, mesmo com o relógio do servidor atrasado", () => {
+    expect(isBattlepassActive(sub({ status: "cancelled", nextPaymentDate: days(0.0001), cancelledAt: days(0.0001) }), now)).toBe(false);
+    expect(isBattlepassActive(sub({ status: "cancelled", provider: "mp", nextPaymentDate: days(10), cancelledAt: days(-1) }), now)).toBe(true);
+  });
+
   it("não vale para outro tier, pausado ou pendente", () => {
     expect(isBattlepassActive(sub({ tier: "premium" }), now)).toBe(false);
     expect(isBattlepassActive(sub({ status: "paused" }), now)).toBe(false);

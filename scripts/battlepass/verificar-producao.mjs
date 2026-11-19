@@ -8,7 +8,7 @@
 import { randomBytes, randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
-import { chromium } from "playwright";
+import { chromium } from "playwright-core";
 
 const SITE = process.env.BATTLEPASS_SITE ?? "https://www.formuladota.com.br";
 const need = ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY", "MP_ACCESS_TOKEN"];
@@ -55,7 +55,7 @@ const password = randomBytes(18).toString("base64url");
 const { data: created, error } = await db.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: { full_name: `Verificador BP ${run}` } });
 if (error) throw new Error(`jogador de teste: ${error.message}`);
 const userId = created.user.id;
-const browser = await chromium.launch();
+const browser = await chromium.launch({ channel: process.env.CHROME_CHANNEL ?? "chrome", headless: true });
 try {
   const context = await browser.newContext({ locale: "pt-BR", viewport: { width: 1920, height: 1080 } });
   await context.addCookies([{ name: "NEXT_LOCALE", value: "pt", domain: new URL(SITE).hostname, path: "/" }, ...(await sessionCookies(email, password))]);

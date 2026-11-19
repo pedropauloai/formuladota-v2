@@ -101,7 +101,7 @@ export function buildAdminView(subs: readonly AdminSubscriptionRow[], payments: 
     .filter((s) => s.status !== "cancelled" || paidBySub.has(s.id))
     .map((s): AdminMember => {
       const active = isBattlepassActive(
-        { id: s.id, status: s.status, provider: s.provider, tier: s.tier, nextPaymentDate: s.next_payment_date },
+        { id: s.id, status: s.status, provider: s.provider, tier: s.tier, nextPaymentDate: s.next_payment_date, cancelledAt: s.cancelled_at },
         now
       );
       const paid = paidBySub.get(s.id) ?? { cents: 0, count: 0 };
