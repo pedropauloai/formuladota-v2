@@ -65,9 +65,9 @@ export function LiveStage({ live }: { live: PublicLive | null }) {
   const youtube = live?.status === "ao_vivo" && live.youtubeVideoId ? live.youtubeVideoId : null;
   return (
     <div className={lift("dark")}>
-      <div className={cn(panel("live"), "aspect-video w-full [--cut:0px]")}>
+      <div className={cn(panel("live"), "aspect-video w-full")}>
         {youtube ? (
-          <div className="absolute inset-[2px] bg-black">
+          <div className="absolute inset-0 bg-black">
             <iframe
               src={youtubeEmbedUrl(youtube)}
               title={t("videoTitle")}
@@ -79,7 +79,7 @@ export function LiveStage({ live }: { live: PublicLive | null }) {
             <OnAirSeal />
           </div>
         ) : (
-          <TwitchLive channel={OWNER.twitchChannel} title={tl("stageTwitchTitle")} className="absolute inset-[2px]">
+          <TwitchLive channel={OWNER.twitchChannel} title={tl("stageTwitchTitle")} className="absolute inset-0">
             <OffAirCover live={live} />
           </TwitchLive>
         )}

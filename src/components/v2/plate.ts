@@ -39,7 +39,7 @@ export function plate({ kind, tone = "neutral", large, small, block }: PlateOpti
 export type PanelTone = "neutral" | "gold" | "live" | "shine";
 export type PanelLift = "none" | "dark" | "gold";
 
-/** Painel de canto chanfrado. O corte vem da variável --cut (12 px se não mudar). */
+/** Painel reto de metal: aresta clara no alto; o tom muda a aresta (ouro, ao vivo, destaque). */
 export function panel(tone: PanelTone = "neutral"): string {
   return cn(
     styles.panel,
@@ -49,7 +49,7 @@ export function panel(tone: PanelTone = "neutral"): string {
   );
 }
 
-/** Sombra do painel: fica no invólucro, porque o recorte do painel corta a própria sombra. */
+/** Sombra do painel no invólucro: a mesma para painel e para cartão que é link. */
 export function lift(kind: PanelLift = "dark"): string {
   if (kind === "none") return "";
   return (kind === "gold" ? styles.liftGold : styles.liftDark) ?? "";

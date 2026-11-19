@@ -1,9 +1,17 @@
 /*
  * Design 2.0: a pele do cliente do Dota 2 levada da barra superior (PR 155) para o conteúdo.
- * Placa inclinada para chamada, etiqueta e aba; painel de canto chanfrado; preço em ouro;
+ * Placa inclinada para chamada, etiqueta e aba; painel reto de metal; preço em ouro;
  * brasas e brilho. A forma vem do cliente; toda cor sai dos tokens semânticos.
  * Catálogo vivo em /admin/design.
  */
+
+/* Ângulo do feixe de luz que corre a borda do painel de destaque. Registrado para poder ser
+   animado; fica fora da camada porque o registro vale para a página toda. */
+@property --beam-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
 
 /* Na camada components do Tailwind: as classes utilitárias (px-0, min-h-8...) ajustam a peça. */
 @layer components {
@@ -18,6 +26,8 @@
     --white-hi: color-mix(in oklab, var(--color-text-display) 38%, transparent);
     --white-lo: color-mix(in oklab, var(--color-text-display) 14%, transparent);
     --shade: color-mix(in oklab, var(--color-bg-deep) 70%, transparent);
+    /* Saída forte: o toque responde na hora e assenta devagar. */
+    --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
   }
 
   /* Tela de 1440 de altura (3440x1440, 2560x1440): a página cresce na proporção da altura, como a
@@ -28,66 +38,71 @@
     }
   }
 
-  /* ---------- Painel de canto chanfrado: a aresta é o fundo aparecendo em volta da face ---------- */
+  /* ---------- Painel reto: metal escuro com aresta clara no alto ---------- */
 
+  /* A aresta é um gradiente na borda (border-box) e a face fica por dentro (padding-box): o painel
+     não recorta nada, então sombra, brilho e conteúdo nunca são cortados. */
   .panel {
-    --cut: 12px;
     position: relative;
     isolation: isolate;
-    clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
-    background: linear-gradient(to bottom, color-mix(in oklab, var(--rim), var(--color-text-display) 8%), var(--rim));
-  }
-
-  .panel::before {
-    content: "";
-    position: absolute;
-    inset: 1px;
-    z-index: -1;
-    /* 0,6 px a menos no corte: a aresta diagonal fica com a mesma espessura das retas. */
-    clip-path: polygon(
-      calc(var(--cut) - 0.6px) 0,
-      100% 0,
-      100% calc(100% - var(--cut) + 0.6px),
-      calc(100% - var(--cut) + 0.6px) 100%,
-      0 100%,
-      0 calc(var(--cut) - 0.6px)
-    );
-    background: linear-gradient(to bottom, var(--plate-top), var(--plate-bottom) 65%);
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    background:
+      linear-gradient(to bottom, var(--plate-top), var(--plate-bottom) 65%) padding-box,
+      linear-gradient(to bottom, color-mix(in oklab, var(--rim), var(--color-text-display) 8%), var(--rim)) border-box;
+    box-shadow: inset 0 1px 0 var(--plate-edge);
   }
 
   .panelGold {
-    background: linear-gradient(to bottom, var(--color-gold-bright), var(--color-gold-muted));
-  }
-
-  .panelGold::before {
     background:
-      radial-gradient(120% 70% at 50% 0%, color-mix(in oklab, var(--color-gold) 16%, transparent), transparent 70%),
-      linear-gradient(to bottom, var(--plate-top), var(--plate-bottom) 65%);
+      radial-gradient(120% 70% at 50% 0%, color-mix(in oklab, var(--color-gold) 16%, transparent), transparent 70%) padding-box,
+      linear-gradient(to bottom, var(--plate-top), var(--plate-bottom) 65%) padding-box,
+      linear-gradient(to bottom, var(--color-gold-bright), var(--color-gold-muted)) border-box;
+    box-shadow: inset 0 1px 0 color-mix(in oklab, var(--color-gold-bright) 30%, transparent);
   }
 
   .panelLive {
-    background: linear-gradient(to bottom, var(--color-brand-primary), var(--color-brand-primary-deep));
+    background:
+      linear-gradient(to bottom, var(--plate-top), var(--plate-bottom) 65%) padding-box,
+      linear-gradient(to bottom, var(--color-brand-primary), var(--color-brand-primary-deep)) border-box;
   }
 
-  /* Aresta dourada com um brilho que corre a borda, como o brilho de raridade dos itens. */
+  /* Destaque: aresta dourada com um feixe de luz que dá a volta, como o brilho de raridade. */
   .panelShine {
     background:
-      linear-gradient(115deg, transparent 38%, var(--color-gold-cream) 50%, transparent 62%) 0 0 / 300% 100%,
-      linear-gradient(to bottom, var(--color-gold-bright), var(--color-gold-muted));
-    animation: rim-sweep 7s var(--motion-ease-cinematic) infinite;
+      linear-gradient(to bottom, var(--plate-top), var(--plate-bottom) 65%) padding-box,
+      linear-gradient(to bottom, var(--color-gold-bright), var(--color-gold-muted)) border-box;
   }
 
-  @keyframes rim-sweep {
-    0%,
-    55% {
-      background-position: 130% 0, 0 0;
-    }
-    100% {
-      background-position: -30% 0, 0 0;
+  .panelShine::after {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    z-index: 1;
+    padding: 1px;
+    border-radius: inherit;
+    pointer-events: none;
+    background: conic-gradient(
+      from var(--beam-angle),
+      transparent 0 70%,
+      var(--color-gold-bright) 82%,
+      var(--color-gold-cream) 86%,
+      transparent 94%
+    );
+    /* Só a moldura de 1 px aparece: a máscara tira o miolo. */
+    -webkit-mask: linear-gradient(black 0 0) content-box, linear-gradient(black 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(black 0 0) content-box exclude, linear-gradient(black 0 0);
+    animation: beam-spin 6s linear infinite;
+  }
+
+  @keyframes beam-spin {
+    to {
+      --beam-angle: 360deg;
     }
   }
 
-  /* Sombra que segue o recorte: fica no invólucro, porque o recorte corta a sombra do painel. */
+  /* Sombra do painel no invólucro (lift): a mesma API para painel e cartão que é link. */
   .liftDark {
     filter: drop-shadow(0 10px 28px color-mix(in oklab, var(--color-bg-deep) 85%, transparent));
   }
@@ -150,10 +165,17 @@
     pointer-events: none;
   }
 
-  /* Chamada principal: a placa verde do JOGAR DOTA, com um brilho que passa de tempos em tempos.
+  /* Chamada principal: a placa verde do JOGAR DOTA, inteira, com uma faixa de luz que cruza a
+     placa de tempos em tempos. A cor vem das variáveis --cta-*, que a chamada da marca troca.
      No celular cabe em 320 px (menos espaço entre letras e laterais menores). */
   .cta {
-    min-height: 3.25rem;
+    --cta-top: var(--color-play-primary);
+    --cta-bottom: var(--color-play-primary-hover);
+    --cta-glow: 0 0 18px var(--color-play-primary-glow);
+    --cta-glow-hover: var(--glow-play);
+    /* Altura da placa: a ponta inclinada avança 0,182 vezes isso para cada lado. */
+    --plate-h: 3.25rem;
+    min-height: var(--plate-h);
     padding-inline: 1.5rem;
     font-family: var(--font-display);
     font-weight: 700;
@@ -161,7 +183,7 @@
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--color-text-display);
-    overflow: hidden;
+    transition: transform 160ms var(--ease-out-strong);
   }
 
   @media (min-width: 40rem) {
@@ -172,15 +194,30 @@
     }
   }
 
+  /* Apertar encolhe de leve: o botão responde ao toque. */
+  .cta:active {
+    transform: scale(0.97);
+  }
+
   .cta::before {
     background:
+      linear-gradient(
+          100deg,
+          transparent 44%,
+          color-mix(in oklab, var(--color-text-display) 55%, transparent) 50%,
+          transparent 56%
+        )
+        no-repeat,
       linear-gradient(to bottom, var(--white-lo), transparent 48%),
-      linear-gradient(to bottom, var(--color-play-primary), var(--color-play-primary-hover));
+      linear-gradient(to bottom, var(--cta-top), var(--cta-bottom));
+    background-size: 250% 100%, auto, auto;
+    background-position: 100% 0, 0 0, 0 0;
     box-shadow:
       inset 1px 0 0 var(--white-hi),
       inset 0 1px 0 var(--white-hi),
       inset 0 -2px 0 var(--shade),
-      0 0 18px var(--color-play-primary-glow);
+      var(--cta-glow);
+    animation: plate-sheen 3.2s var(--motion-ease-cinematic) infinite;
   }
 
   .cta:hover::before {
@@ -189,33 +226,23 @@
       inset 1px 0 0 var(--white-hi),
       inset 0 1px 0 var(--white-hi),
       inset 0 -2px 0 var(--shade),
-      var(--glow-play);
+      var(--cta-glow-hover);
   }
 
-  .cta::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    transform: skewX(var(--plate-skew)) translateX(-140%);
-    background: linear-gradient(100deg, transparent 30%, var(--white-hi) 50%, transparent 70%);
-    animation: cta-sheen 5.5s var(--motion-ease-cinematic) infinite;
-    pointer-events: none;
-  }
-
-  @keyframes cta-sheen {
+  /* A faixa espera fora da placa, à esquerda, e cruza até sair pela direita. */
+  @keyframes plate-sheen {
     0%,
-    62% {
-      transform: skewX(var(--plate-skew)) translateX(-140%);
+    65% {
+      background-position: 100% 0, 0 0, 0 0;
     }
     100% {
-      transform: skewX(var(--plate-skew)) translateX(140%);
+      background-position: 0% 0, 0 0, 0 0;
     }
   }
 
   @media (min-width: 48rem) {
     .large {
-      min-height: 3.75rem;
+      --plate-h: 3.75rem;
       padding-inline: 2.5rem;
       font-size: 1.1875rem;
     }
@@ -226,27 +253,23 @@
     width: 100%;
   }
 
-  /* Chamada da marca: placa vermelha. */
-  .brand::before {
-    background:
-      linear-gradient(to bottom, var(--white-lo), transparent 48%),
-      linear-gradient(to bottom, var(--color-brand-primary), var(--color-brand-primary-hover));
-    box-shadow:
-      inset 1px 0 0 var(--white-hi),
-      inset 0 1px 0 var(--white-hi),
-      inset 0 -2px 0 var(--shade);
+  /* Na largura toda, a placa inclinada cabe na caixa: as pontas alinham com a coluna. */
+  .block::before {
+    inset-inline: calc(var(--plate-h, 2.5rem) * 0.182);
   }
 
-  .brand:hover::before {
-    box-shadow:
-      inset 1px 0 0 var(--white-hi),
-      inset 0 1px 0 var(--white-hi),
-      var(--glow-brand);
+  /* Chamada da marca: placa vermelha. */
+  .brand {
+    --cta-top: var(--color-brand-primary);
+    --cta-bottom: var(--color-brand-primary-hover);
+    --cta-glow: 0 0 0 transparent;
+    --cta-glow-hover: var(--glow-brand);
   }
 
   /* Chamada discreta: placa de metal, para ver detalhes. */
   .ghost {
-    min-height: 2.5rem;
+    --plate-h: 2.5rem;
+    min-height: var(--plate-h);
     padding-inline: 1.25rem;
     font-family: var(--font-display);
     font-weight: 700;
@@ -261,7 +284,8 @@
   }
 
   .small {
-    min-height: 2.25rem;
+    --plate-h: 2.25rem;
+    min-height: var(--plate-h);
     padding-inline: 0.85rem;
     font-size: 0.7rem;
   }
@@ -494,7 +518,9 @@
   /* ---------- Menos movimento quando o sistema pede ---------- */
 
   @media (prefers-reduced-motion: reduce) {
-    .panelShine,
+    .panelShine::after,
+    .cta,
+    .cta::before,
     .cta::after,
     .liveDot::after,
     .slotYou,
