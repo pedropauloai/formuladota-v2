@@ -6,7 +6,7 @@
 
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { LogIn, Minus, Plus } from "lucide-react";
+import { CalendarClock, LogIn, Minus, Plus } from "lucide-react";
 import { useSound } from "@/lib/sound/hooks";
 import { formatPrice } from "@/lib/loja/money";
 import { garantirVaga } from "@/app/party/actions";
@@ -144,6 +144,16 @@ function PurchaseError({ error }: { error: string | null }) {
   );
 }
 
+/** Fila sem venda agora: a caixa diz quando abre, no lugar do botão. */
+function ClosedNote({ text }: { text: string }) {
+  return (
+    <p className="flex items-start gap-3 rounded-sm border border-border-subtle bg-bg-deep/60 p-3 text-sm leading-relaxed text-text-muted">
+      <CalendarClock size={18} className="mt-0.5 shrink-0 text-gold" aria-hidden="true" />
+      {text}
+    </p>
+  );
+}
+
 interface PurchaseProps {
   live: PublicLive | null;
   viewer: FilaViewer;
@@ -155,9 +165,9 @@ interface PurchaseProps {
 
 function Purchase({ live, viewer, offer, initialQuantity, onBought, state }: PurchaseProps) {
   const t = useTranslations("fila");
-  if (!offer.onSale) return <p className="text-sm text-text-muted">{t("errors.fechada")}</p>;
+  if (!offer.onSale) return <ClosedNote text={t("errors.fechada")} />;
   // Sem fila aberta (a Twitch pode estar no ar): as vagas abrem quando o Pedro abrir a fila.
-  if (!live) return <p className="text-sm leading-relaxed text-text-muted">{t("closedText")}</p>;
+  if (!live) return <ClosedNote text={t("closedText")} />;
   // Esgotado vem antes do login: o botão de entrar prometeria uma vaga que não existe agora. Com a
   // compra da própria pessoa em andamento, o formulário fica: a vaga contada pode ser a dela.
   if (live.seatsOpen === 0 && !state.buying) {
