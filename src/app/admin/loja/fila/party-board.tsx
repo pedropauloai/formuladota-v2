@@ -8,7 +8,7 @@ import { useState } from "react";
 import { UserPlus } from "lucide-react";
 import { UserAvatar } from "@/components/ui/avatar";
 import type { AdminQueue, AdminQueueEntry } from "@/lib/loja/fila/admin";
-import { chamarProximo, completarParty, naoApareceu, partidaTerminou, ultimaPartidaDoPPA } from "./actions";
+import { chamarProximo, completarParty, naoApareceu, partidaTerminou, tirarDaParty, ultimaPartidaDoPPA } from "./actions";
 import { CopyId, Kbd, MatchesStepper, OriginBadge, PRIMARY, SECONDARY, type RowAction } from "./rows";
 
 const TIME = new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
@@ -29,17 +29,33 @@ function SeatCard({ entry, busy, act, onSelect }: { entry: AdminQueueEntry; busy
       {entry.dotaFriendId && <CopyId id={entry.dotaFriendId} large />}
       <p className="text-xs text-play-primary">partida {Math.min(entry.played + 1, entry.matches)} de {entry.matches}</p>
       <MatchesStepper entry={entry} busy={busy} act={act} />
-      <button
-        type="button"
-        disabled={busy}
-        className={`${SECONDARY} w-full`}
-        onClick={(e) => {
-          e.stopPropagation();
-          act("Não apareceu", () => naoApareceu(entry.id));
-        }}
-      >
-        Não apareceu
-      </button>
+      <div className="grid w-full gap-1.5">
+        <button
+          type="button"
+          disabled={busy}
+          className={`${SECONDARY} w-full`}
+          title="Volta para a fila no mesmo lugar, sem falta: use para trocar de jogador"
+          onClick={(e) => {
+            e.stopPropagation();
+            act(`${entry.name} voltou para a fila`, () => tirarDaParty(entry.id));
+          }}
+          data-fila-tirar-da-party
+        >
+          Tirar da party
+        </button>
+        <button
+          type="button"
+          disabled={busy}
+          className="w-full py-1 text-xs text-warning underline-offset-2 hover:underline disabled:opacity-40"
+          title="Conta a vez e manda para o fim da fila"
+          onClick={(e) => {
+            e.stopPropagation();
+            act("Não apareceu", () => naoApareceu(entry.id));
+          }}
+        >
+          Não apareceu
+        </button>
+      </div>
     </div>
   );
 }

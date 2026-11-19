@@ -6,7 +6,7 @@
 import { ExternalLink, X } from "lucide-react";
 import { UserAvatar } from "@/components/ui/avatar";
 import type { AdminQueueEntry } from "@/lib/loja/fila/admin";
-import { chamarProximo, naoApareceu, tirarDaFila } from "./actions";
+import { chamarProximo, naoApareceu, tirarDaFila, tirarDaParty } from "./actions";
 import { CopyId, DANGER, MatchesStepper, OriginBadge, SECONDARY, since, type RowAction } from "./rows";
 
 const DAY_TIME = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
@@ -69,27 +69,28 @@ export function EntryDetail({ entry, liveId, onAir, busy, act, onClose }: {
       </div>
       <div className="flex flex-wrap gap-2">
         {inParty ? (
-          <button type="button" disabled={busy} className={SECONDARY} onClick={() => act("Não apareceu", () => naoApareceu(entry.id))}>Não apareceu</button>
+          <>
+            <button type="button" disabled={busy} className={SECONDARY} onClick={() => act(`${entry.name} voltou para a fila`, () => tirarDaParty(entry.id))}>Tirar da party (sem falta)</button>
+            <button type="button" disabled={busy} className={SECONDARY} onClick={() => act("Não apareceu", () => naoApareceu(entry.id))}>Não apareceu</button>
+          </>
         ) : (
           <button type="button" disabled={busy || !onAir || !liveId} className={SECONDARY} onClick={() => liveId && act("Chamado", () => chamarProximo(liveId, entry.id))}>
             Chamar agora, fora da ordem
           </button>
         )}
-        {!inParty && (
-          <button
-            type="button"
-            disabled={busy}
-            className={DANGER}
-            onClick={() => {
-              if (window.confirm(`Tirar ${entry.name} da fila? O reembolso, se houver, é à parte, no Mercado Pago.`)) {
-                act("Tirado da fila", () => tirarDaFila(entry.id));
-                onClose();
-              }
-            }}
-          >
-            Tirar da fila
-          </button>
-        )}
+        <button
+          type="button"
+          disabled={busy}
+          className={DANGER}
+          onClick={() => {
+            if (window.confirm(`Tirar ${entry.name} da fila? O reembolso, se houver, é à parte, no Mercado Pago.`)) {
+              act("Tirado da fila", () => tirarDaFila(entry.id));
+              onClose();
+            }
+          }}
+        >
+          Tirar da fila
+        </button>
       </div>
     </aside>
   );

@@ -115,6 +115,9 @@ export function AdminQueuePanel({ data, history }: { data: AdminQueue; history: 
   // Quem saiu da fila enquanto estava aberto no detalhe some sozinho na próxima atualização.
   const selected = data.entries.find((e) => e.id === selectedId) ?? null;
   const toggle = (id: string) => setSelectedId((cur) => (cur === id ? null : id));
+  const partyCount = data.entries.length - waiting.length;
+  // Troca de jogador: com lugar livre na party, qualquer um da fila entra com um clique.
+  const putInParty = onAir && live && partyCount < live.seatsPerMatch ? (id: string) => act("Na party", () => chamarProximo(live.id, id)) : null;
   const detail = selected && (
     <EntryDetail entry={selected} liveId={live?.id ?? null} onAir={onAir} busy={busy} act={act} onClose={() => setSelectedId(null)} />
   );
@@ -125,7 +128,7 @@ export function AdminQueuePanel({ data, history }: { data: AdminQueue; history: 
       <div className="grid items-start gap-4 xl:max-[2199px]:grid-cols-[minmax(0,1fr)_400px] min-[2200px]:grid-cols-[minmax(0,1fr)_400px_400px]">
         <div className="min-w-0 space-y-4">
           <PartyBoard data={data} busy={busy} act={act} onSelect={toggle} />
-          <QueueTable entries={waiting} selectedId={selectedId} busy={busy} act={act} onSelect={toggle} />
+          <QueueTable entries={waiting} selectedId={selectedId} busy={busy} act={act} onSelect={toggle} onPutInParty={putInParty} />
           <MatchHistory items={history} />
         </div>
         {wide && (

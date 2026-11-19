@@ -6,7 +6,7 @@
 import { randomUUID } from "node:crypto";
 import { chromium } from "playwright-core";
 import {
-  BASE, acquireTestLock, buyerContext, checker, createTestBuyer, db, deleteTestUsers, openStoreFlag,
+  BASE, acquireTestLock, buyerContext, checker, createTestBuyer, db, deleteTestUsers, openStoreFlag, openTestLive,
   releaseTestLock, resetTestQueue, restoreStoreFlag, startServer, stopServer, waitFor,
 } from "./e2e-comum.mjs";
 
@@ -46,6 +46,21 @@ async function adjust(page, player, bookingId) {
   check("uma partida a menos pelo painel", minus?.seats === 2);
 }
 
+/** Troca de jogador: com a live no ar, "Pôr na party" pela linha da fila e "Tirar da party" pelo cartão. */
+async function swap(page, player, bookingId) {
+  await page.reload();
+  const row = page.locator("[data-fila-linha]", { hasText: player.name });
+  await row.locator("[data-fila-por-na-party]").click();
+  const seat = page.locator("[data-fila-lugar='ocupado']", { hasText: player.name });
+  await seat.waitFor({ timeout: 20_000 });
+  const inParty = (await db.from("store_bookings").select("queue_state").eq("id", bookingId).single()).data;
+  check("pôr na party pela linha da fila", inParty?.queue_state === "na_party");
+  await seat.locator("[data-fila-tirar-da-party]").click();
+  await row.waitFor({ timeout: 20_000 });
+  const back = (await db.from("store_bookings").select("queue_state, no_shows, called_at").eq("id", bookingId).single()).data;
+  check("tirar da party devolve para a fila sem falta", back?.queue_state === "aguardando" && back.no_shows === 0 && back.called_at === null);
+}
+
 async function run() {
   const server = await startServer();
   const state = { users: [] };
@@ -66,12 +81,15 @@ async function run() {
     const booking = await giveCourtesy(adminPage, player);
     check("cortesia não ocupa vaga à venda", (await seatsOpen()) === before, `${before} vagas`);
     await adjust(adminPage, player, booking.id);
+    state.liveId = await openTestLive(20, 2);
+    await swap(adminPage, player, booking.id);
     const playerPage = await (await buyerContext(browser, player)).newPage();
     await playerPage.goto(`${BASE}/party`);
     await playerPage.locator("[data-fila-posicao='1']").waitFor({ timeout: 30_000 });
     check("o jogador vê a própria posição na /party", true);
   } finally {
     await browser?.close().catch(() => undefined);
+    if (state.liveId) await db.rpc("party_fila_encerrar_live", { p_live_id: state.liveId });
     await db.from("store_bookings").update({ queue_state: "removido" }).eq("is_test", true).in("queue_state", ["aguardando", "na_party"]);
     // O admin de teste perde o acesso antes de ser apagado, mesmo se a exclusão falhar.
     if (state.users.length) await db.from("profiles").update({ is_admin: false }).in("id", state.users);

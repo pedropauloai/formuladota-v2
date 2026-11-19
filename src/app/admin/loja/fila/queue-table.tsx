@@ -8,7 +8,7 @@ import { Search } from "lucide-react";
 import { UserAvatar } from "@/components/ui/avatar";
 import type { AdminQueueEntry } from "@/lib/loja/fila/admin";
 import { cn } from "@/lib/utils";
-import { CopyId, MatchesStepper, OriginBadge, originOf, since, type RowAction } from "./rows";
+import { CopyId, MatchesStepper, OriginBadge, SECONDARY, originOf, since, type RowAction } from "./rows";
 
 type Filter = "todos" | "pedido" | "battlepass" | "cortesia";
 const FILTERS: { key: Filter; label: string }[] = [
@@ -25,7 +25,17 @@ function matches(entry: AdminQueueEntry, query: string, filter: Filter): boolean
   return [entry.name, entry.steamPersona ?? "", entry.dotaFriendId ?? ""].some((v) => v.toLowerCase().includes(q));
 }
 
-function Row({ entry, selected, busy, act, onSelect }: { entry: AdminQueueEntry; selected: boolean; busy: boolean; act: RowAction; onSelect: (id: string) => void }) {
+interface RowProps {
+  entry: AdminQueueEntry;
+  selected: boolean;
+  busy: boolean;
+  act: RowAction;
+  onSelect: (id: string) => void;
+  /** Põe esta pessoa na party agora (fora da ordem); null sem live no ar ou com a party cheia. */
+  onPutInParty: ((id: string) => void) | null;
+}
+
+function Row({ entry, selected, busy, act, onSelect, onPutInParty }: RowProps) {
   return (
     <tr
       onClick={() => onSelect(entry.id)}
@@ -49,17 +59,33 @@ function Row({ entry, selected, busy, act, onSelect }: { entry: AdminQueueEntry;
       <td className="py-2"><MatchesStepper entry={entry} busy={busy} act={act} /></td>
       <td className="py-2 text-xs text-text-muted">{entry.lastTurnAt ? since(entry.lastTurnAt) : <span className="text-play-primary">nunca jogou</span>}</td>
       <td className="py-2 text-xs text-text-muted">{since(entry.queuedAt)}</td>
-      <td className="py-2 pr-2 text-right">{entry.dotaFriendId && <CopyId id={entry.dotaFriendId} />}</td>
+      <td className="py-2 text-right">{entry.dotaFriendId && <CopyId id={entry.dotaFriendId} />}</td>
+      <td className="py-2 pl-3 pr-2 text-right">
+        <button
+          type="button"
+          disabled={busy || !onPutInParty}
+          title={onPutInParty ? "Põe na party agora, fora da ordem" : "Só com a live no ar e lugar livre na party"}
+          className={`${SECONDARY} whitespace-nowrap px-2 py-1 text-xs`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onPutInParty?.(entry.id);
+          }}
+          data-fila-por-na-party
+        >
+          Pôr na party
+        </button>
+      </td>
     </tr>
   );
 }
 
-export function QueueTable({ entries, selectedId, busy, act, onSelect }: {
+export function QueueTable({ entries, selectedId, busy, act, onSelect, onPutInParty }: {
   entries: AdminQueueEntry[];
   selectedId: string | null;
   busy: boolean;
   act: RowAction;
   onSelect: (id: string) => void;
+  onPutInParty: ((id: string) => void) | null;
 }) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("todos");
@@ -93,7 +119,7 @@ export function QueueTable({ entries, selectedId, busy, act, onSelect }: {
         <p className="py-6 text-center text-sm text-text-muted">{entries.length === 0 ? "Ninguém esperando." : "Ninguém com esse filtro."}</p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[760px] border-collapse text-left">
+          <table className="w-full min-w-[860px] border-collapse text-left">
             <thead>
               <tr className="border-b border-border-strong text-[0.7rem] uppercase tracking-wide text-text-faded">
                 <th className="py-2 pl-2 text-right font-medium">#</th>
@@ -102,11 +128,12 @@ export function QueueTable({ entries, selectedId, busy, act, onSelect }: {
                 <th className="py-2 font-medium">Partidas</th>
                 <th className="py-2 font-medium">Última vez na party</th>
                 <th className="py-2 font-medium">Na fila</th>
-                <th className="py-2 pr-2 text-right font-medium">ID do Dota</th>
+                <th className="py-2 text-right font-medium">ID do Dota</th>
+                <th className="py-2 pr-2 text-right font-medium"><span className="sr-only">Ação</span></th>
               </tr>
             </thead>
             <tbody>
-              {shown.map((e) => <Row key={e.id} entry={e} selected={e.id === selectedId} busy={busy} act={act} onSelect={onSelect} />)}
+              {shown.map((e) => <Row key={e.id} entry={e} selected={e.id === selectedId} busy={busy} act={act} onSelect={onSelect} onPutInParty={onPutInParty} />)}
             </tbody>
           </table>
         </div>
