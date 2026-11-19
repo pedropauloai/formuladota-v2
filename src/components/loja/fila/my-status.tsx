@@ -67,7 +67,7 @@ function LeaveButton({ bookingId, onChanged }: { bookingId: string; onChanged: (
   );
 }
 
-function WaitingCard({ entry, onChanged }: { entry: MyQueueEntry; onChanged: () => Promise<void> }) {
+function WaitingCard({ entry, onAir, onChanged }: { entry: MyQueueEntry; onAir: boolean; onChanged: () => Promise<void> }) {
   const t = useTranslations("fila");
   const next = entry.matchesUntilTurn === 0 || entry.position === 1;
   return (
@@ -81,7 +81,8 @@ function WaitingCard({ entry, onChanged }: { entry: MyQueueEntry; onChanged: () 
         </p>
       )}
       <p className="text-sm text-text-body">{next ? t("waitingNext") : t("waitingIn", { count: entry.matchesUntilTurn ?? 0 })}</p>
-      <p className="text-xs leading-relaxed text-text-muted">{t("waitingHint")}</p>
+      {/* Comprou fora da live: a fila só anda quando a live começar. */}
+      <p className="text-xs leading-relaxed text-text-muted">{t(onAir ? "waitingHint" : "waitingHintOffAir")}</p>
       {entry.noShows > 0 && <p className="rounded-sm border border-warning/40 bg-warning/10 p-2 text-xs text-text-body">{t("noShowNote")}</p>}
       <LeaveButton bookingId={entry.id} onChanged={onChanged} />
     </section>
@@ -105,9 +106,17 @@ function FinishedCard({ entry }: { entry: MyQueueEntry }) {
   );
 }
 
-export function MyEntryCard({ entry, dotaId, onChanged }: { entry: MyQueueEntry; dotaId: string | null; onChanged: () => Promise<void> }) {
+interface MyEntryCardProps {
+  entry: MyQueueEntry;
+  dotaId: string | null;
+  /** Live no ar: quem espera deixa o Dota aberto; fora dela, espera a live começar. */
+  onAir: boolean;
+  onChanged: () => Promise<void>;
+}
+
+export function MyEntryCard({ entry, dotaId, onAir, onChanged }: MyEntryCardProps) {
   if (entry.state === "na_party") return <CalledCard entry={entry} dotaId={dotaId} />;
-  if (entry.state === "aguardando") return <WaitingCard entry={entry} onChanged={onChanged} />;
+  if (entry.state === "aguardando") return <WaitingCard entry={entry} onAir={onAir} onChanged={onChanged} />;
   return <FinishedCard entry={entry} />;
 }
 

@@ -87,11 +87,13 @@ interface BuyFormProps {
   max: number;
   priceCents: number;
   initialQuantity: number;
+  /** Fila aberta sem live: a nota diz que a fila anda quando a live começar. */
+  openQueue: boolean;
   onBought: () => Promise<void>;
   state: PurchaseState;
 }
 
-function BuyForm({ max, priceCents, initialQuantity, onBought, state }: BuyFormProps) {
+function BuyForm({ max, priceCents, initialQuantity, openQueue, onBought, state }: BuyFormProps) {
   const t = useTranslations("fila");
   const play = useSound();
   const [quantity, setQuantity] = useState(initialQuantity);
@@ -132,7 +134,7 @@ function BuyForm({ max, priceCents, initialQuantity, onBought, state }: BuyFormP
       <button type="button" data-fila-comprar="cartao" disabled={pending} onClick={() => buy("cartao")} className="w-full text-center text-sm text-text-muted underline-offset-2 hover:text-text-display hover:underline">
         {t("buyCard")}
       </button>
-      <p className="text-xs leading-relaxed text-text-muted">{t("buyNote")}</p>
+      <p className="text-xs leading-relaxed text-text-muted">{t(openQueue ? "buyNoteOpenQueue" : "buyNote")}</p>
     </div>
   );
 }
@@ -168,8 +170,9 @@ interface PurchaseProps {
 function Purchase({ live, viewer, offer, initialQuantity, onBought, state }: PurchaseProps) {
   const t = useTranslations("fila");
   if (!offer.onSale) return <ClosedNote text={t("errors.fechada")} />;
-  // Sem fila aberta (a Twitch pode estar no ar): as vagas abrem quando o Pedro abrir a fila.
+  // Sem nenhuma fila (a fila aberta saiu do banco): as vagas abrem quando o Pedro abrir a live.
   if (!live) return <ClosedNote text={t("closedText")} />;
+  const openQueue = live.status === "fila";
   // Esgotado vem antes do login: o botão de entrar prometeria uma vaga que não existe agora. Com a
   // compra da própria pessoa em andamento, o formulário fica: a vaga contada pode ser a dela.
   if (live.seatsOpen === 0 && !state.buying) {
@@ -178,7 +181,7 @@ function Purchase({ live, viewer, offer, initialQuantity, onBought, state }: Pur
         <button type="button" disabled className={plate({ kind: "ghost", block: true })}>
           {t("soldOut")}
         </button>
-        <p className="text-xs leading-relaxed text-text-muted">{t("soldOutText")}</p>
+        <p className="text-xs leading-relaxed text-text-muted">{t(openQueue ? "soldOutTextOpenQueue" : "soldOutText")}</p>
       </div>
     );
   }
@@ -189,6 +192,7 @@ function Purchase({ live, viewer, offer, initialQuantity, onBought, state }: Pur
       max={Math.min(offer.maxQuantity, live.seatsOpen)}
       priceCents={offer.priceCents}
       initialQuantity={initialQuantity}
+      openQueue={openQueue}
       onBought={onBought}
       state={state}
     />
@@ -217,9 +221,12 @@ export function BuyBox({ view, viewer, offer, initialQuantity, onBought }: BuyBo
   const [error, setError] = useState<string | null>(null);
   const state: PurchaseState = { buying, setBuying, error, setError };
   return (
-    <Panel tone="gold" shadow="gold" className="space-y-4 p-4 md:p-5">
+    <Panel tone="gold" shadow="gold" data-fila-live={live?.status ?? "fechada"} className="space-y-4 p-4 md:p-5">
       <SeatsLine live={live} priceCents={offer.priceCents} />
-      {mine && visibleEntries(mine.entries).map((entry) => <MyEntryCard key={entry.id} entry={entry} dotaId={viewer.dotaId} onChanged={onBought} />)}
+      {mine &&
+        visibleEntries(mine.entries).map((entry) => (
+          <MyEntryCard key={entry.id} entry={entry} dotaId={viewer.dotaId} onAir={live?.status === "ao_vivo"} onChanged={onBought} />
+        ))}
       {mine?.pending && <PendingPayment pending={mine.pending} />}
       {/* Cartão em análise ou recusado não trava a compra: o Pix continua disponível. */}
       {mine?.pending?.pix ? null : <Purchase live={live} viewer={viewer} offer={offer} initialQuantity={initialQuantity} onBought={onBought} state={state} />}

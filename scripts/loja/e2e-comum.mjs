@@ -187,6 +187,9 @@ export async function buyerContext(browser, buyer, options = {}) {
 /** Fila de teste limpa: reservas de teste fora da fila e nenhuma live de teste no ar. */
 export async function resetTestQueue() {
   await db.from("store_bookings").update({ queue_state: "removido" }).eq("is_test", true).in("queue_state", ["aguardando", "na_party"]);
+  // Pix de teste abandonado segura a vaga por 10 minutos, e a fila aberta conta essa reserva: vence agora.
+  const now = new Date().toISOString();
+  await db.from("store_bookings").update({ hold_until: now }).eq("is_test", true).eq("kind", "live").eq("status", "reservado").gt("hold_until", now);
   const { data: open } = await db.from("store_live_sessions").select("id").eq("is_test", true).eq("status", "ao_vivo");
   for (const live of open ?? []) await db.rpc("party_fila_encerrar_live", { p_live_id: live.id });
 }

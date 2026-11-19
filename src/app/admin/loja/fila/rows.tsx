@@ -9,6 +9,8 @@ import type { AdminFinishedEntry, AdminQueueEntry } from "@/lib/loja/fila/admin"
 import { formatBRL } from "@/lib/loja/money";
 
 const TIME = new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
+// Com a fila aberta fora da live, a compra pode ser de outro dia: a hora vem com o dia.
+const PAID_AT = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
 
 export type RowAction = (label: string, action: () => Promise<{ ok: boolean; error?: string }>) => void;
 
@@ -57,6 +59,7 @@ function Identity({ entry }: { entry: AdminQueueEntry }) {
           )}
           {entry.noShows > 0 && <span className="text-warning">não apareceu {entry.noShows}x</span>}
           {entry.carriedOver && <span className="text-gold">de live anterior</span>}
+          {entry.boughtOffline && <span className="text-gold">comprou fora da live</span>}
         </p>
       </div>
     </div>
@@ -80,9 +83,11 @@ export function PartyRow({ entry, busy, act, noShow }: {
   );
 }
 
-export function WaitingRow({ entry, busy, act, callThis, remove }: {
+export function WaitingRow({ entry, busy, canCall, act, callThis, remove }: {
   entry: AdminQueueEntry;
   busy: boolean;
+  /** Só com a live no ar dá para chamar; tirar da fila vale sempre. */
+  canCall: boolean;
   act: RowAction;
   callThis: (id: string) => Promise<{ ok: boolean; error?: string }>;
   remove: (id: string) => Promise<{ ok: boolean; error?: string }>;
@@ -95,9 +100,9 @@ export function WaitingRow({ entry, busy, act, callThis, remove }: {
       </div>
       <div className="flex shrink-0 flex-wrap items-center gap-2">
         <span className="text-xs text-text-muted">
-          {entry.matches} partida{entry.matches > 1 ? "s" : ""} · pagou {TIME.format(new Date(entry.queuedAt))}
+          {entry.matches} partida{entry.matches > 1 ? "s" : ""} · pagou {PAID_AT.format(new Date(entry.queuedAt))}
         </span>
-        <button type="button" disabled={busy} className={SECONDARY} onClick={() => act("Chamar agora", () => callThis(entry.id))}>Chamar agora</button>
+        <button type="button" disabled={busy || !canCall} className={SECONDARY} onClick={() => act("Chamar agora", () => callThis(entry.id))}>Chamar agora</button>
         <button
           type="button"
           disabled={busy}
