@@ -4437,6 +4437,7 @@
       "pagamento": "Mercado Pago didn't open the payment right now. Try again in a moment.",
       "muitas": "Too many attempts in a row. Wait a few minutes and try again.",
       "sair": "Couldn't leave the queue right now. If Pedro already called you, talk to him on stream."
-    }
+    },
+    "closedText": "The queue opens when Pedro opens spots on stream. This page updates by itself."
   }
 }

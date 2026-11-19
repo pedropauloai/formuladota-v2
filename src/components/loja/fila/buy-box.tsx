@@ -84,10 +84,18 @@ interface PurchaseState {
   setError: (error: string | null) => void;
 }
 
-function BuyForm({ max, priceCents, onBought, state }: { max: number; priceCents: number; onBought: () => Promise<void>; state: PurchaseState }) {
+interface BuyFormProps {
+  max: number;
+  priceCents: number;
+  initialQuantity: number;
+  onBought: () => Promise<void>;
+  state: PurchaseState;
+}
+
+function BuyForm({ max, priceCents, initialQuantity, onBought, state }: BuyFormProps) {
   const t = useTranslations("fila");
   const play = useSound();
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState(initialQuantity);
   const [, startTransition] = useTransition();
   const count = Math.max(1, Math.min(quantity, max));
   const pending = state.buying;
@@ -142,14 +150,16 @@ interface PurchaseProps {
   live: PublicLive | null;
   viewer: FilaViewer;
   offer: FilaOffer;
+  initialQuantity: number;
   onBought: () => Promise<void>;
   state: PurchaseState;
 }
 
-function Purchase({ live, viewer, offer, onBought, state }: PurchaseProps) {
+function Purchase({ live, viewer, offer, initialQuantity, onBought, state }: PurchaseProps) {
   const t = useTranslations("fila");
   if (!offer.onSale) return <p className="text-sm text-text-muted">{t("errors.fechada")}</p>;
-  if (!live) return null;
+  // Sem fila aberta (a Twitch pode estar no ar): as vagas abrem quando o Pedro abrir a fila.
+  if (!live) return <p className="text-sm leading-relaxed text-text-muted">{t("closedText")}</p>;
   // Esgotado vem antes do login: o botão de entrar prometeria uma vaga que não existe agora. Com a
   // compra da própria pessoa em andamento, o formulário fica: a vaga contada pode ser a dela.
   if (live.seatsOpen === 0 && !state.buying) {
@@ -164,7 +174,15 @@ function Purchase({ live, viewer, offer, onBought, state }: PurchaseProps) {
   }
   if (!viewer.loggedIn) return <Gate href="/login?next=%2Fparty" label={t("loginCta")} text={t("loginText")} />;
   if (!viewer.hasSteam) return <Gate href="/vincular/steam?next=%2Fparty" label={t("steamCta")} text={t("steamText")} />;
-  return <BuyForm max={Math.min(offer.maxQuantity, live.seatsOpen)} priceCents={offer.priceCents} onBought={onBought} state={state} />;
+  return (
+    <BuyForm
+      max={Math.min(offer.maxQuantity, live.seatsOpen)}
+      priceCents={offer.priceCents}
+      initialQuantity={initialQuantity}
+      onBought={onBought}
+      state={state}
+    />
+  );
 }
 
 /** As entradas que a pessoa vê: as ativas; sem nenhuma, só a última que terminou. */
@@ -174,7 +192,15 @@ function visibleEntries(entries: MyQueueEntry[]): MyQueueEntry[] {
   return entries.slice(-1);
 }
 
-export function BuyBox({ view, viewer, offer, onBought }: { view: QueueView; viewer: FilaViewer; offer: FilaOffer; onBought: () => Promise<void> }) {
+interface BuyBoxProps {
+  view: QueueView;
+  viewer: FilaViewer;
+  offer: FilaOffer;
+  initialQuantity: number;
+  onBought: () => Promise<void>;
+}
+
+export function BuyBox({ view, viewer, offer, initialQuantity, onBought }: BuyBoxProps) {
   const live = view.queue.live;
   const mine = view.mine;
   const [buying, setBuying] = useState(false);
@@ -186,7 +212,7 @@ export function BuyBox({ view, viewer, offer, onBought }: { view: QueueView; vie
       {mine && visibleEntries(mine.entries).map((entry) => <MyEntryCard key={entry.id} entry={entry} dotaId={viewer.dotaId} onChanged={onBought} />)}
       {mine?.pending && <PendingPayment pending={mine.pending} />}
       {/* Cartão em análise ou recusado não trava a compra: o Pix continua disponível. */}
-      {mine?.pending?.pix ? null : <Purchase live={live} viewer={viewer} offer={offer} onBought={onBought} state={state} />}
+      {mine?.pending?.pix ? null : <Purchase live={live} viewer={viewer} offer={offer} initialQuantity={initialQuantity} onBought={onBought} state={state} />}
       <div id="fila-erro">
         <PurchaseError error={mine?.pending?.pix ? null : error} />
       </div>

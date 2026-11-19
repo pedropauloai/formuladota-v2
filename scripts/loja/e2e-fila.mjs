@@ -91,6 +91,11 @@ async function checkShell(page) {
   if (flag?.enabled) check("com a busca no ar, o botão verde continua JOGAR DOTA", (await cta.count()) === 0);
   else check("com a busca pausada, o botão verde leva para a fila", (await cta.getAttribute("href"))?.endsWith("/party") === true);
   check("aba Loja com o ponto de ao vivo", (await page.locator("[data-aba-ao-vivo]").count()) > 0);
+  const withQty = await fetch(`${BASE}/loja/vaga-na-party?qtd=2`, { redirect: "manual" });
+  check("a quantidade escolhida na vitrine segue para a fila", (withQty.headers.get("location") ?? "").endsWith("/party?qtd=2"));
+  await page.goto(`${BASE}/party?qtd=2`);
+  await page.locator("[data-fila-comprar='pix']").waitFor({ timeout: 30_000 });
+  check("a fila abre com as 2 partidas e o total", (await page.locator("[data-fila-comprar='pix']").innerText()).includes("50"));
   const product = await fetch(`${BASE}/loja/vaga-na-party`, { redirect: "manual" });
   check("produto da vaga na loja leva para a fila", product.status >= 300 && product.status < 400 && (product.headers.get("location") ?? "").endsWith("/party"), `${product.status}`);
 }

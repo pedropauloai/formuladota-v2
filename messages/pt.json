@@ -4437,6 +4437,7 @@
       "pagamento": "O Mercado Pago não abriu o pagamento agora. Tente de novo em instantes.",
       "muitas": "Muitas tentativas seguidas. Espere alguns minutos e tente de novo.",
       "sair": "Não deu para sair da fila agora. Se o Pedro já chamou você, fale com ele na live."
-    }
+    },
+    "closedText": "A fila abre quando o Pedro abrir as vagas na live. Esta página atualiza sozinha."
   }
 }

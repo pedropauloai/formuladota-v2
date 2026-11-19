@@ -4437,6 +4437,7 @@
       "pagamento": "Mercado Pago no abrió el pago ahora. Inténtalo de nuevo en un momento.",
       "muitas": "Demasiados intentos seguidos. Espera unos minutos e inténtalo de nuevo.",
       "sair": "No se pudo salir de la cola ahora. Si Pedro ya te llamó, háblale en el directo."
-    }
+    },
+    "closedText": "La cola se abre cuando Pedro abra los cupos en el directo. Esta página se actualiza sola."
   }
 }

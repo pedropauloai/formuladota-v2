@@ -78,7 +78,10 @@ export default async function ProdutoPage({ params, searchParams }: PageProps) {
   if (!product) notFound();
   // A vaga na party se compra na fila, que já vende para a live no ar ou para a próxima marcada,
   // com login e Steam (o Pedro convida pela Steam, e a pessoa vê a própria vez).
-  if (product.liveSeat === "party") redirect("/party");
+  if (product.liveSeat === "party") {
+    const qtd = quantityFrom(query.qtd);
+    redirect(qtd > 1 ? `/party?qtd=${qtd}` : "/party");
+  }
 
   const supabase = await createClient();
   const [{ data: { user } }, slotMap, booking, t] = await Promise.all([
