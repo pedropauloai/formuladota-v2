@@ -2,6 +2,7 @@
 // o atalho para o Discord onde a sessão acontece e, com o pedido pago, marcar a próxima sessão ou
 // remarcar. Também mostra a entrega dos produtos sem horário (análise gravada).
 
+import { panel } from "@/components/v2";
 import { getLocale, getTranslations } from "next-intl/server";
 import { CalendarClock, CalendarPlus, ExternalLink, Radio } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -36,8 +37,8 @@ export async function OrderSchedule({ order }: { order: PublicOrder }) {
   const statusText: Record<string, string> = { reservado: t("bookingReserved"), confirmado: t("bookingConfirmed"), concluido: t("bookingDone") };
 
   return (
-    <section className="space-y-4 rounded-md border border-border-strong bg-bg-base p-5" aria-labelledby="pedido-horario">
-      <h2 id="pedido-horario" className="font-display text-xl uppercase tracking-wide text-text-display">
+    <section className={cn(panel("neutral"), "space-y-4 p-5")} aria-labelledby="pedido-horario">
+      <h2 id="pedido-horario" className="font-display-condensed text-[1.8rem] uppercase leading-none text-text-display">
         {t("orderScheduleTitle")}
         <span className="ml-2 align-middle font-body text-xs normal-case tracking-normal text-text-faded">{t("agendaTimezone")}</span>
       </h2>
@@ -90,8 +91,8 @@ export async function OrderDelivery({ order }: { order: PublicOrder }) {
   if (order.status !== "pago" || order.bookingMode !== "nenhum") return null;
   const t = await getTranslations("loja");
   return (
-    <section className="space-y-3 rounded-md border border-border-strong bg-bg-base p-5" aria-labelledby="pedido-entrega">
-      <h2 id="pedido-entrega" className="font-display text-xl uppercase tracking-wide text-text-display">{t("deliveryTitle")}</h2>
+    <section className={cn(panel("neutral"), "space-y-3 p-5")} aria-labelledby="pedido-entrega">
+      <h2 id="pedido-entrega" className="font-display-condensed text-[1.8rem] uppercase leading-none text-text-display">{t("deliveryTitle")}</h2>
       {order.delivery ? (
         <>
           {order.delivery.note && <p className="whitespace-pre-line text-sm text-text-body">{order.delivery.note}</p>}

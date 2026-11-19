@@ -16,6 +16,8 @@ import { reconcileStoreOrder } from "@/lib/loja/order-payments";
 import { getPublicOrder, type PublicOrder } from "@/lib/loja/public-order";
 import { isUuid } from "@/lib/loja/refs";
 import { formatBRL } from "@/lib/loja/money";
+import { cn } from "@/lib/utils";
+import { Price, panel, plate, v2Page } from "@/components/v2";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
@@ -32,18 +34,17 @@ export default async function PedidoPage({ params }: { params: Promise<{ id: str
 
   return (
     <ClientShell currentRoute="/loja" hideRightSidebar>
-      <div className="mx-auto max-w-2xl space-y-6 px-4 py-8 md:py-12">
+      <div className={cn(v2Page, "mx-auto max-w-2xl space-y-6 px-4 py-8 md:py-12")}>
         <header className="space-y-3">
-          <h1 className="font-display text-2xl uppercase tracking-tight text-text-display md:text-3xl">
-            {order.productTitle}
-          </h1>
-          <p className="text-sm text-text-muted">
-            {order.variantLabel} · <span className="tabular-nums text-gold">{formatBRL(order.amountCents)}</span>
+          <h1 className="font-display-condensed text-[2.6rem] uppercase leading-[0.85] text-text-display md:text-[3.2rem]">{order.productTitle}</h1>
+          <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm text-text-muted">
+            <span>{order.variantLabel}</span>
+            <Price cents={order.amountCents} className="text-[2.2rem]" />
           </p>
           <div className="flex flex-wrap items-center gap-2">
             <StatusPill order={order} t={t} />
             {order.isTest && (
-              <span className="rounded-sm border border-warning/60 px-2 py-0.5 text-xs text-warning">{t("orderTest")}</span>
+              <span className={cn(plate({ kind: "tag" }), "text-warning")}>{t("orderTest")}</span>
             )}
           </div>
         </header>
@@ -58,16 +59,16 @@ export default async function PedidoPage({ params }: { params: Promise<{ id: str
 
 function StatusPill({ order, t }: { order: PublicOrder; t: Translator }) {
   const map = {
-    pendente: { icon: <Clock size={14} aria-hidden="true" />, text: t("statusPendente"), cls: "border-warning/60 text-warning" },
-    pago: { icon: <CheckCircle2 size={14} aria-hidden="true" />, text: t("statusPago"), cls: "border-success/60 text-success" },
-    em_revisao: { icon: <AlertTriangle size={14} aria-hidden="true" />, text: t("statusRevisao"), cls: "border-gold/60 text-gold" },
-    expirado: { icon: <XCircle size={14} aria-hidden="true" />, text: t("statusExpirado"), cls: "border-border-strong text-text-muted" },
-    cancelado: { icon: <XCircle size={14} aria-hidden="true" />, text: t("statusCancelado"), cls: "border-border-strong text-text-muted" },
-    reembolsado: { icon: <RotateCcw size={14} aria-hidden="true" />, text: t("statusReembolsado"), cls: "border-border-strong text-text-muted" },
+    pendente: { icon: <Clock size={14} aria-hidden="true" />, text: t("statusPendente"), cls: "text-warning" },
+    pago: { icon: <CheckCircle2 size={14} aria-hidden="true" />, text: t("statusPago"), cls: "text-success" },
+    em_revisao: { icon: <AlertTriangle size={14} aria-hidden="true" />, text: t("statusRevisao"), cls: "text-gold" },
+    expirado: { icon: <XCircle size={14} aria-hidden="true" />, text: t("statusExpirado"), cls: "text-text-muted" },
+    cancelado: { icon: <XCircle size={14} aria-hidden="true" />, text: t("statusCancelado"), cls: "text-text-muted" },
+    reembolsado: { icon: <RotateCcw size={14} aria-hidden="true" />, text: t("statusReembolsado"), cls: "text-text-muted" },
   } as const;
   const s = map[order.status];
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-sm border px-2 py-0.5 text-sm ${s.cls}`} aria-live="polite">
+    <span className={cn(plate({ kind: "tag" }), "min-h-7 px-3 text-[0.75rem]", s.cls)} aria-live="polite">
       {s.icon} {s.text}
     </span>
   );
@@ -75,7 +76,7 @@ function StatusPill({ order, t }: { order: PublicOrder; t: Translator }) {
 
 function StatusBody({ order, t }: { order: PublicOrder; t: Translator }) {
   const again = order.productSlug ? (
-    <Link href={`/loja/${order.productSlug}`} className="inline-block rounded-sm bg-brand-primary px-4 py-2 font-display uppercase tracking-widest text-text-display hover:bg-brand-primary-hover">
+    <Link href={`/loja/${order.productSlug}`} className={plate({ kind: "brand" })}>
       {t("tryAgain")}
     </Link>
   ) : null;
@@ -88,7 +89,7 @@ function StatusBody({ order, t }: { order: PublicOrder; t: Translator }) {
       );
     case "pago":
       return (
-        <section className="space-y-3 rounded-md border border-success/40 bg-success/5 p-5">
+        <section className={cn(panel("neutral"), "space-y-3 p-5 shadow-[inset_0_0_0_1px_var(--color-success)]")}>
           <p className="text-sm text-text-display">{t("paidLead", { price: formatBRL(order.amountCents) })}</p>
           {order.deliveryMd && <MiniMarkdown source={order.deliveryMd} />}
         </section>

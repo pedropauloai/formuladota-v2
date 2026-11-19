@@ -4,6 +4,8 @@
 import { ArrowLeft } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { cn } from "@/lib/utils";
+import { panel } from "@/components/v2";
 import type { SlotInfo } from "@/lib/loja/slots";
 import { monthNames } from "./slots-meter";
 
@@ -11,8 +13,8 @@ export function SoldOutPanel({ slots }: { slots: SlotInfo }) {
   const t = useTranslations("loja");
   const { month, reopen } = monthNames(useLocale(), slots.reopensAt);
   return (
-    <div data-loja-esgotado className="space-y-3 rounded-md border border-border-strong bg-bg-base p-5">
-      <p className="font-display text-2xl uppercase leading-none tracking-wide text-text-display">{t("soldOutTitle", { month })}</p>
+    <div data-loja-esgotado className={cn(panel("neutral"), "space-y-3 p-5")}>
+      <p className="font-display-condensed text-[1.9rem] uppercase leading-none text-text-display">{t("soldOutTitle", { month })}</p>
       <p className="text-sm text-text-muted">{t("soldOutText", { reopen })}</p>
       <Link href="/loja" className="inline-flex items-center gap-1 text-sm text-text-body hover:text-text-display">
         <ArrowLeft size={14} aria-hidden="true" /> {t("soldOutBack")}
