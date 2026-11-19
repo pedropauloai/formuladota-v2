@@ -1,6 +1,5 @@
 // Catálogo vivo do design 2.0: cada peça como o site usa, para o Pedro conferir de olho e para
-// quem for construir uma tela nova copiar daqui. Aparece em /admin/design (no ar, só admin) e em
-// /design-2 (servidor local).
+// quem for construir uma tela nova copiar daqui. Aparece em /admin/design (no ar, só admin).
 
 import type { ReactNode } from "react";
 import { ArrowRight, Minus, Plus } from "lucide-react";
