@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 import { UserAvatar } from "@/components/ui/avatar";
 import { Panel, PartyLineup, plate } from "@/components/v2";
 import { OWNER } from "@/lib/loja/owner";
-import type { PublicEntry, PublicQueue, PublicQueuedEntry } from "@/lib/loja/fila/model";
+import { partySeatsView, type PublicEntry, type PublicQueue, type PublicQueuedEntry } from "@/lib/loja/fila/model";
 
 function initials(name: string): string {
   return name.trim().slice(0, 2).toUpperCase() || "?";
@@ -61,9 +61,13 @@ function PartyCard({ queue, mine }: { queue: PublicQueue; mine: ReadonlySet<stri
   const tl = useTranslations("loja");
   const onAir = queue.live?.status === "ao_vivo";
   const seats = Math.min(4, Math.max(1, queue.live?.seatsPerMatch ?? 4));
-  // Convida só com live no ar, vaga aberta e quem olha ainda fora da fila.
+  // Lugar livre que já é de quem está com a vez não aparece como vaga, e as vagas à venda não
+  // passam das vagas abertas da fila: o mesmo número dos overlays da live.
+  const view = queue.live ? partySeatsView(queue) : null;
+  const held = view ? [...Array<string>(view.reserved).fill(t("queueNext")), ...Array<string>(view.closed).fill(t("partySeatClosed"))] : [];
+  // Convida só com live no ar, vaga à venda na party e quem olha ainda fora da fila.
   const viewerIn = [...queue.party, ...queue.queue].some((e) => mine.has(e.id));
-  const invite = onAir && (queue.live?.seatsOpen ?? 0) > 0 && !viewerIn;
+  const invite = onAir && (view?.forSale ?? 0) > 0 && !viewerIn;
   return (
     <Card title={t("partyTitle")}>
       <PartyLineup
@@ -74,6 +78,7 @@ function PartyCard({ queue, mine }: { queue: PublicQueue; mine: ReadonlySet<stri
         ariaLabel={tl("partyAria", { nick: OWNER.nick })}
         seats={seats}
         invite={invite}
+        held={held}
         size={48}
         className="py-1"
       />

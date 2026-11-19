@@ -168,6 +168,26 @@ export function seatsOpen(live: Pick<QueueLive, "queueSize" | "occupied"> | null
   return live ? Math.max(0, live.queueSize - live.occupied) : 0;
 }
 
+/** Lugares livres da party, do jeito que a página e os overlays mostram (o mesmo número nos dois). */
+export interface PartySeatsView {
+  /** Lugares sem ninguém na party agora. */
+  free: number;
+  /** Livres que a fila já tem dono: quem está com a vez (0 partidas até entrar). */
+  reserved: number;
+  /** Livres à venda, até o limite das vagas abertas da fila. */
+  forSale: number;
+  /** Livres fora de venda: a fila chegou ao tamanho máximo. */
+  closed: number;
+}
+
+export function partySeatsView(queue: PublicQueue): PartySeatsView {
+  const seats = Math.min(4, Math.max(1, queue.live?.seatsPerMatch ?? 4));
+  const free = Math.max(0, seats - queue.party.length);
+  const reserved = Math.min(free, queue.queue.filter((e) => e.matchesUntilTurn === 0).length);
+  const forSale = Math.min(free - reserved, queue.live?.seatsOpen ?? 0);
+  return { free, reserved, forSale, closed: free - reserved - forSale };
+}
+
 /** Posição (1 = o próximo a ser chamado) e partidas até a vez de cada um que espera. */
 export function queuePositions(snapshot: QueueSnapshot): Map<string, { position: number; matchesUntilTurn: number }> {
   const party = snapshot.entries.filter((e) => e.state === "na_party");

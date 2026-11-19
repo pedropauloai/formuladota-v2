@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { matchesUntilTurn, orderEntries, queuePositions, seatsOpen, toPublicQueue, type QueueEntry, type QueueSnapshot } from "./model";
+import { matchesUntilTurn, orderEntries, partySeatsView, queuePositions, seatsOpen, toPublicQueue, type PublicQueue, type QueueEntry, type QueueSnapshot } from "./model";
 
 const entry = (id: string, over: Partial<QueueEntry> = {}): QueueEntry => ({
   id,
@@ -115,5 +115,36 @@ describe("toPublicQueue", () => {
     expect(body.live?.startsAt).toBeNull();
     expect(body.live?.seatsOpen).toBe(17);
     expect(body.queue[0]?.position).toBe(1);
+  });
+});
+
+describe("partySeatsView (lugares livres da party, iguais aos dos overlays)", () => {
+  const publicLive = { status: "ao_vivo" as const, startsAt: null, onAirAt: null, queueSize: 8, seatsPerMatch: 4, youtubeVideoId: null, matchesDone: 0 };
+  const member = (id: string) => ({ id, name: id, avatarUrl: null, matches: 1, played: 0 });
+  const waiting = (id: string, matchesUntilTurn: number, position: number) => ({ ...member(id), position, matchesUntilTurn });
+  const queueOf = (party: number, turns: number[], seatsOpenNow: number): PublicQueue => ({
+    live: { ...publicLive, seatsOpen: seatsOpenNow },
+    party: Array.from({ length: party }, (_, i) => member(`p${i}`)),
+    queue: turns.map((turn, i) => waiting(`q${i}`, turn, i + 1)),
+    updatedAt: "2026-11-19T16:00:00.000Z",
+  });
+
+  it("lugar livre de quem está com a vez não aparece como vaga", () => {
+    // 1 na party, 3 livres; 2 esperando com a vez agora: só 1 lugar à venda.
+    expect(partySeatsView(queueOf(1, [0, 0, 1], 5))).toEqual({ free: 3, reserved: 2, forSale: 1, closed: 0 });
+  });
+
+  it("as vagas à venda nunca passam das vagas abertas da fila", () => {
+    // 3 livres, ninguém esperando, mas a fila só tem 1 vaga aberta: 1 à venda e 2 esgotados.
+    expect(partySeatsView(queueOf(1, [], 1))).toEqual({ free: 3, reserved: 0, forSale: 1, closed: 2 });
+  });
+
+  it("party cheia: nenhum lugar livre", () => {
+    expect(partySeatsView(queueOf(4, [1, 1], 2))).toEqual({ free: 0, reserved: 0, forSale: 0, closed: 0 });
+  });
+
+  it("fora da live, quem já espera tem dono dos primeiros lugares da próxima party", () => {
+    const offAir = { ...queueOf(0, [0, 0], 18), live: { ...publicLive, status: "fila" as const, seatsOpen: 18 } };
+    expect(partySeatsView(offAir)).toEqual({ free: 4, reserved: 2, forSale: 2, closed: 0 });
   });
 });

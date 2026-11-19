@@ -42,6 +42,7 @@ Cada uma com o porquê em uma linha.
 14. **Freio de abuso por pessoa, não por IP**, na compra, na saída e na consulta da vez: na operadora de celular muita gente sai pelo mesmo IP (CGNAT), e o limite por IP congelaria a fila de quem está na live. O freio por IP fica largo. Um Pix pendente por pessoa: tocar de novo devolve o mesmo Pix.
 15. **A compra antiga em `/loja/vaga-na-party` leva sempre para `/party`**, que vende para a live no ar, para a próxima marcada ou na fila aberta, com login e Steam. Antes, a página vendia sem login, e a vaga entrava na fila sem ID do Dota nem aviso de vez para quem comprou.
 16. **A vaga vende sempre, com ou sem live** (migration 177, pedido do Pedro em 19/11/2026: "não precisa de ter live marcada... as vendas podem acontecer sempre"). Sem live no ar nem marcada, a compra entra na fila aberta: uma linha fixa de `store_live_sessions` com `status = 'fila'` em cada ambiente, com a data no passado de propósito, para a fila de qualquer live incluir quem comprou fora. A fila aberta conta todo mundo que espera, a live que o Pedro abre herda o tamanho dela, e o tamanho é um número só (mudar na live muda a fila aberta também). Antes, a página só vendia com live no ar ou marcada, e quem via um vídeo ou o VOD não tinha como garantir o lugar.
+17. **Os lugares livres da party mostram só o que está à venda de verdade** (`partySeatsView` em `model.ts`): o lugar livre de quem está com a vez aparece como "próximo", e os lugares à venda não passam das vagas abertas da fila. É a mesma conta dos overlays da live; antes, a página oferecia lugar que já era da fila.
 
 ## Limite conhecido
 
@@ -68,6 +69,7 @@ Toda saída guarda o motivo em `queue_exit` (migration 175): `saiu` (a própria 
 | `/party` (EN `/party`, ES `/grupo`) | pública com a flag `loja` ligada; comprar exige login e Steam vinculada |
 | `/api/party/fila` | pública, JSON sem dado pessoal, CORS aberto para os overlays |
 | `/admin/loja/fila` | admin |
+| `/fila` e `/qr` | atalhos com origem para o painel da loja: `/fila` no chat da live (`utm_medium=chat`), `/qr` no QR da tela (`utm_medium=qr`); lista em `src/lib/loja/tracked-links.ts` |
 
 ## Página do produto na loja
 
