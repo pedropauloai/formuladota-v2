@@ -60,7 +60,7 @@ const files = sourceFiles(SRC).map((path) => ({ path, text: readFileSync(path, "
 describe("chaves de texto usadas no código", () => {
   it("varre o código de verdade", () => {
     // Controle: o leitor acha as chamadas e confere chaves que existem.
-    const loja = files.find((f) => f.path.replace(/\\/g, "/").endsWith("components/loja/store-hero.tsx"));
+    const loja = files.find((f) => f.path.replace(/\\/g, "/").endsWith("components/loja/party-buy-panel.tsx"));
     expect(loja).toBeDefined();
     expect(missingKeys(loja!.path, loja!.text)).toEqual([]);
     expect(missingKeys("x.tsx", 'const t = useTranslations("loja"); t("naoExisteEssaChave");')).toHaveLength(1);
