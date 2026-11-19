@@ -21,6 +21,9 @@ const STEAM_ID_REGEX = /^https?:\/\/steamcommunity\.com\/openid\/id\/(\d+)$/;
 const STEAM_OPENID_URL = "https://steamcommunity.com/openid/login";
 const STEAM_API_BASE = "https://api.steampowered.com";
 
+/** Cookie com o caminho para voltar depois de vincular (ex.: a fila da party). */
+export const STEAM_NEXT_COOKIE = "steam_next";
+
 // Tipo público — consumido por Server Action e callback handler
 export type SteamProfile = {
   steamId64: string;

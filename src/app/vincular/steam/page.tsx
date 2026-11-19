@@ -6,6 +6,7 @@ import { Gamepad2, ShieldCheck, AlertCircle, ArrowRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { countryToRegion } from "@/lib/regions";
 import { signInWithSteam } from "./actions";
+import { safeInternalPath } from "@/lib/safe-next";
 import { RegionPicker } from "./region-picker";
 import { DotaBackdrop } from "@/components/dota/dota-backdrop";
 import { Card } from "@/components/ui/card";
@@ -41,7 +42,7 @@ const ERROR_KEYS: Record<string, string> = {
 
 // debug_country: só em NÃO-produção — força o país pra testar a sugestão de região
 // localmente (x-vercel-ip-country só existe atrás da Vercel). Ignorado em produção.
-type SearchParams = Promise<{ error?: string; ok?: string; debug_country?: string }>;
+type SearchParams = Promise<{ error?: string; ok?: string; debug_country?: string; next?: string }>;
 
 // Banner de erro — extraído pra manter VincularSteamPage ≤ 50 linhas (per C2).
 function ErrorBanner({ message }: { message: string }) {
@@ -138,7 +139,7 @@ export default async function VincularSteamPage({
             steamId64={steamLink.steam_id_64}
           />
         ) : (
-          <UnlinkedState />
+          <UnlinkedState next={safeInternalPath(params.next)} />
         )}
       </div>
     </main>
@@ -146,7 +147,7 @@ export default async function VincularSteamPage({
 }
 
 // Estado: SEM Steam vinculado — Card hero + CTA primary massivo (M3)
-async function UnlinkedState() {
+async function UnlinkedState({ next }: { next: string | null }) {
   const t = await getTranslations("account");
   return (
     <Card
@@ -167,6 +168,7 @@ async function UnlinkedState() {
         {t("steamConnectBody")}
       </p>
       <form action={signInWithSteam}>
+        {next && <input type="hidden" name="next" value={next} />}
         <Button type="submit" variant="primary" size="lg" className="w-full">
           <Gamepad2 className="h-5 w-5" aria-hidden="true" />
           {t("steamContinue")}

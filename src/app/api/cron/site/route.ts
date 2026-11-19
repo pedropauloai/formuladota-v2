@@ -3,6 +3,7 @@
 //   a credencial da vitrine (no máximo a cada 6 h).
 // - Meta de heróis: renova o cache da /meta (no máximo a cada 6 h).
 // - Novidades: espelha /novidades no canal do Discord.
+// - Fila da party: encerra a live esquecida aberta há mais de 12 horas.
 // Separado do cron de partidas para que pausar aquele job (bots parados) não pause a loja.
 // Alguma tarefa falhou → 500, e o aviso no Discord sai pelo estado em cron_task_status.
 
@@ -14,6 +15,7 @@ import { reconcilePendingStoreOrders } from "@/lib/loja/order-payments";
 import { refreshOwnerProof } from "@/lib/loja/owner-proof";
 import { refreshPositionStats } from "@/lib/dota/meta-cache";
 import { syncChangelogToDiscord } from "@/lib/changelog/discord-sync";
+import { closeStaleLives } from "@/lib/loja/fila/admin";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -28,6 +30,7 @@ export async function POST(req: Request) {
     runTask("loja-credencial", () => refreshOwnerProof(), { isNeutral: waitingForRetry }),
     runTask("meta", () => refreshPositionStats(), { isNeutral: waitingForRetry }),
     runTask("novidades-discord", () => syncChangelogToDiscord(createServiceClient())),
+    runTask("fila-da-party", () => closeStaleLives()),
   ]);
   return finishCronRun(outcomes);
 }

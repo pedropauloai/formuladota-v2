@@ -8,7 +8,17 @@ import { cn } from "@/lib/utils";
 import { useSound } from "@/lib/sound/hooks";
 import styles from "./top-bar.module.css";
 
-export function PlateTab({ href, label, active }: { href: string; label: string; active: boolean }) {
+interface PlateTabProps {
+  href: string;
+  label: string;
+  active: boolean;
+  /** Ponto vermelho de ao vivo (aba Loja com a live do Pedro no ar). */
+  live?: boolean;
+  /** Texto do ponto para leitor de tela ("ao vivo"). */
+  liveLabel?: string;
+}
+
+export function PlateTab({ href, label, active, live = false, liveLabel }: PlateTabProps) {
   const play = useSound();
   return (
     <Link
@@ -26,6 +36,12 @@ export function PlateTab({ href, label, active }: { href: string; label: string;
       )}
     >
       {label}
+      {live && (
+        <>
+          <span data-aba-ao-vivo className="ml-1.5 inline-block size-2 shrink-0 rounded-full bg-brand-primary shadow-[0_0_8px_var(--color-brand-primary-glow)] motion-safe:animate-pulse" aria-hidden="true" />
+          {liveLabel && <span className="sr-only">{` (${liveLabel})`}</span>}
+        </>
+      )}
     </Link>
   );
 }

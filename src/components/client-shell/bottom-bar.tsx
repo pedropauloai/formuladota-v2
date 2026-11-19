@@ -10,7 +10,8 @@
 // de MMR" / acoplado a ficha). Ficha/permissão são tratadas dentro de cada modalidade.
 
 import { useState } from "react";
-import { Hourglass } from "lucide-react";
+import { Hourglass, Play } from "lucide-react";
+import { Link } from "@/i18n/navigation";
 import type { ProLiveStatus } from "@/lib/queries/pros";
 import type { MyQueueEntry } from "@/lib/queries/queue";
 import type { PlayMenuState } from "@/lib/play-menu-preference";
@@ -19,6 +20,7 @@ import { QueueStatusModal } from "@/components/landing/queue-status-modal";
 import { useTranslations } from "next-intl";
 import { PlayMenu } from "./play-menu";
 import { ReadyCheckOverlay } from "@/components/queue/ready-check-overlay";
+import { bottomCta } from "./bottom-cta";
 
 interface Props {
   /** Visitante deslogado: o menu abre como vitrine, ações disparam login. */
@@ -37,6 +39,10 @@ interface Props {
   showRankedComPro: boolean;
   /** Flag fila_competitiva desligada: o menu Jogar avisa que a busca está pausada. */
   queuePaused: boolean;
+  /** Flag loja: com a busca pausada, o botão verde vira "Jogar com o Pedro" (fila da party). */
+  showLoja: boolean;
+  /** Live do Pedro no ar: o botão ganha o ponto vermelho de ao vivo. */
+  liveOnAir: boolean;
 }
 
 export function DashboardBottomBar({
@@ -47,6 +53,8 @@ export function DashboardBottomBar({
   smokeTheme = null,
   showRankedComPro,
   queuePaused,
+  showLoja,
+  liveOnAir,
 }: Props) {
   const [statusModalOpen, setStatusModalOpen] = useState(false);
 
@@ -69,6 +77,8 @@ export function DashboardBottomBar({
           smokeTheme={smokeTheme}
           showRankedComPro={showRankedComPro}
           queuePaused={queuePaused}
+          showLoja={showLoja}
+          liveOnAir={liveOnAir}
           onStatusClick={() => setStatusModalOpen(true)}
         />
       </div>
@@ -93,6 +103,8 @@ interface CtaProps {
   smokeTheme: SmokeAsset | null;
   showRankedComPro: boolean;
   queuePaused: boolean;
+  showLoja: boolean;
+  liveOnAir: boolean;
   onStatusClick: () => void;
 }
 
@@ -104,6 +116,8 @@ function Cta({
   smokeTheme,
   showRankedComPro,
   queuePaused,
+  showLoja,
+  liveOnAir,
   onStatusClick,
 }: CtaProps) {
   const t = useTranslations("shell");
@@ -118,8 +132,27 @@ function Cta({
     />
   );
 
+  const cta = bottomCta({ inQueue, queuePaused, showLoja });
+
+  // Busca pausada (sem o bot da Steam): o botão verde leva para a fila da party do Pedro.
+  if (cta === "jogar_com_o_pedro") {
+    return (
+      <Link
+        href="/party"
+        data-cta="jogar-com-o-pedro"
+        style={{ marginRight: "2.5rem" }}
+        className={`${base} border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover text-text-display shadow-[var(--color-play-primary-glow)]`}
+      >
+        <Play size={22} aria-hidden="true" />
+        <span className="truncate">{t("playWithPedro")}</span>
+        {liveOnAir && <span className="size-2.5 shrink-0 rounded-full bg-brand-primary shadow-[0_0_8px_var(--color-brand-primary-glow)] motion-safe:animate-pulse" aria-hidden="true" />}
+        {shine}
+      </Link>
+    );
+  }
+
   // Em fila do PRO — abre o status da fila.
-  if (inQueue) {
+  if (cta === "na_fila") {
     return (
       <button
         type="button"
