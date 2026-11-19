@@ -104,10 +104,10 @@ function BuyForm({ max, priceCents, onBought }: { max: number; priceCents: numbe
   return (
     <div id="fila-comprar" className="space-y-3">
       {max > 1 && <Stepper value={count} max={max} onChange={setQuantity} />}
-      <button type="button" disabled={pending} onClick={() => buy("pix")} className={`${CTA} bg-play-primary text-bg-deep hover:bg-play-primary-hover`}>
+      <button type="button" data-fila-comprar="pix" disabled={pending} onClick={() => buy("pix")} className={`${CTA} bg-play-primary text-bg-deep hover:bg-play-primary-hover`}>
         {pending ? t("buying") : t("buy", { price: formatPrice(priceCents * count) })}
       </button>
-      <button type="button" disabled={pending} onClick={() => buy("cartao")} className="w-full text-center text-sm text-text-muted underline-offset-2 hover:text-text-display hover:underline">
+      <button type="button" data-fila-comprar="cartao" disabled={pending} onClick={() => buy("cartao")} className="w-full text-center text-sm text-text-muted underline-offset-2 hover:text-text-display hover:underline">
         {t("buyCard")}
       </button>
       {error && (

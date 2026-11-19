@@ -40,11 +40,14 @@ export async function encerrarLive(liveId: string): Promise<FilaAdminResult> {
   return run("encerrar a live", async () => ((await queueOps.close(liveId)) ? null : "Essa live já não estava no ar."));
 }
 
-export async function ajustarVagas(liveId: string, size: number, perMatch: number): Promise<FilaAdminResult> {
+export async function ajustarVagas(liveId: string, size: number, perMatch: number, youtube: string): Promise<FilaAdminResult> {
   const parsed = z.object({ liveId: uuid, size: queueSize, perMatch: seatsPerMatch }).safeParse({ liveId, size, perMatch });
   if (!parsed.success) return { ok: false, error: "A fila vai de 0 a 100 partidas, e a party tem de 1 a 4 lugares." };
-  return run("mudar as vagas", async () => {
-    await resizeLive(liveId, size, perMatch);
+  // Campo vazio mantém o vídeo que já estava.
+  const videoId = youtube.trim() ? parseYoutubeVideoId(youtube) : undefined;
+  if (videoId === null) return { ok: false, error: "Esse link não é de um vídeo do YouTube. Cole o link da live ou deixe em branco." };
+  return run("mudar a live", async () => {
+    await resizeLive(liveId, size, perMatch, videoId);
     return null;
   });
 }

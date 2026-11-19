@@ -150,11 +150,11 @@ export const queueOps = {
   remove: (bookingId: string) => rpc<boolean>("party_fila_remover", { p_booking_id: bookingId }),
 };
 
-/** Muda o tamanho da fila e os lugares por partida da live (sem mexer em quem já pagou). */
-export async function resizeLive(liveId: string, queueSize: number, seatsPerMatch: number): Promise<void> {
+/** Muda o tamanho da fila, os lugares por partida e o vídeo da live (sem mexer em quem já pagou). */
+export async function resizeLive(liveId: string, queueSize: number, seatsPerMatch: number, youtubeVideoId?: string): Promise<void> {
   const { error } = await createServiceClient()
     .from("store_live_sessions")
-    .update({ party_seats: queueSize, seats_per_match: seatsPerMatch })
+    .update({ party_seats: queueSize, seats_per_match: seatsPerMatch, ...(youtubeVideoId ? { youtube_video_id: youtubeVideoId } : {}) })
     .eq("id", liveId)
     .in("status", ["marcada", "ao_vivo"]);
   if (error) throw new Error(`mudar as vagas da live falhou: ${error.message}`);

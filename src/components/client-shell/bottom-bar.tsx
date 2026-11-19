@@ -141,9 +141,10 @@ function Cta({
         href="/party"
         data-cta="jogar-com-o-pedro"
         style={{ marginRight: "2.5rem" }}
-        className={`${base} border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover text-text-display shadow-[var(--color-play-primary-glow)]`}
+        // "Jogar com o Pedro" é mais longo que "Jogar Dota": menos espaço entre letras na mesma largura.
+        className={`${base.replace("tracking-[0.25em]", "tracking-[0.1em]").replace("gap-3", "gap-2")} border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover text-text-display shadow-[var(--color-play-primary-glow)]`}
       >
-        <Play size={22} aria-hidden="true" />
+        <Play size={20} className="shrink-0" aria-hidden="true" />
         <span className="truncate">{t("playWithPedro")}</span>
         {liveOnAir && <span className="size-2.5 shrink-0 rounded-full bg-brand-primary shadow-[0_0_8px_var(--color-brand-primary-glow)] motion-safe:animate-pulse" aria-hidden="true" />}
         {shine}

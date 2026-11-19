@@ -48,7 +48,7 @@ function LiveControls({ data, busy, act }: { data: AdminQueue; busy: boolean; ac
   const onAir = live?.status === "ao_vivo";
   const [size, setSize] = useState(live?.queueSize ?? 8);
   const [perMatch, setPerMatch] = useState(live?.seatsPerMatch ?? 4);
-  const [youtube, setYoutube] = useState("");
+  const [youtube, setYoutube] = useState(live?.youtubeVideoId ? `https://youtu.be/${live.youtubeVideoId}` : "");
   const open = live ? Math.max(0, live.queueSize - live.occupied) : 0;
   return (
     <Section
@@ -59,19 +59,17 @@ function LiveControls({ data, busy, act }: { data: AdminQueue; busy: boolean; ac
         <NumberField label="Tamanho da fila (partidas)" value={size} min={0} max={100} onChange={setSize} />
         <NumberField label="Lugares na party por partida" value={perMatch} min={1} max={4} onChange={setPerMatch} />
       </div>
-      {!onAir && (
-        <input
-          type="url"
-          placeholder="Link da live no YouTube (opcional)"
-          value={youtube}
-          onChange={(e) => setYoutube(e.target.value)}
-          className="w-full rounded-sm border border-border-strong bg-bg-deep px-3 py-2 text-sm text-text-display"
-        />
-      )}
+      <input
+        type="url"
+        placeholder="Link da live no YouTube (opcional: sem ele, a página mostra a live do canal)"
+        value={youtube}
+        onChange={(e) => setYoutube(e.target.value)}
+        className="w-full rounded-sm border border-border-strong bg-bg-deep px-3 py-2 text-sm text-text-display"
+      />
       <div className="flex flex-wrap gap-2">
         {onAir ? (
           <>
-            <button type="button" disabled={busy} className={SECONDARY} onClick={() => act("Vagas salvas", () => ajustarVagas(live.id, size, perMatch))}>Salvar vagas</button>
+            <button type="button" disabled={busy} className={SECONDARY} onClick={() => act("Live atualizada", () => ajustarVagas(live.id, size, perMatch, youtube))}>Salvar</button>
             <button
               type="button"
               disabled={busy}
