@@ -27,6 +27,12 @@ import { mpWebhookPayloadSchema } from "@/lib/mercadopago/types";
 import { parseStoreReference } from "@/lib/loja/refs";
 import { applyStorePayment } from "@/lib/loja/order-payments";
 import { toSnapshot } from "@/lib/loja/mercadopago";
+import { parseBattlepassReference } from "@/lib/battlepass/refs";
+import {
+  handleBattlepassAuthorizedPayment,
+  handleBattlepassPayment,
+  handleBattlepassPreapproval,
+} from "@/lib/battlepass/reconcile";
 import {
   sendSubscriptionCreatedEmail,
   sendSubscriptionRenewalEmail,
@@ -119,6 +125,13 @@ async function handlePaymentEvent(
 
   const payment = result.data;
 
+  // Battlepass (Pix de 30 dias ou cobrança do cartão): regra própria em src/lib/battlepass.
+  const battlepassRef = parseBattlepassReference(payment.external_reference);
+  if (battlepassRef) {
+    await handleBattlepassPayment(battlepassRef, toSnapshot(payment));
+    return;
+  }
+
   // Pedido da loja ("loja-<uuid>"): regra própria, inclusive estorno e Pix vencido. O resto
   // segue o fluxo das fichas sem mudança. Erro de banco sobe e vira 500 (retry do MP).
   const storeOrderId = parseStoreReference(payment.external_reference);
@@ -162,6 +175,9 @@ async function handlePreapprovalEvent(
   supabase: ReturnType<typeof createServiceClient>,
   preapprovalId: string
 ): Promise<void> {
+  // Battlepass confere direto no Mercado Pago (erro sobe e vira 500/retry).
+  if (await handleBattlepassPreapproval(preapprovalId)) return;
+
   const result = await getPreapprovalDetail(preapprovalId);
   if (!result.success) {
     console.error("[webhook/mp] getPreapprovalDetail falhou:", result.error);
@@ -225,6 +241,9 @@ async function handleAuthorizedPaymentEvent(
   supabase: ReturnType<typeof createServiceClient>,
   authorizedPaymentId: string
 ): Promise<void> {
+  // Battlepass grava a cobrança no livro próprio (erro sobe e vira 500/retry).
+  if (await handleBattlepassAuthorizedPayment(authorizedPaymentId)) return;
+
   const result = await getAuthorizedPaymentDetail(authorizedPaymentId);
   if (!result.success) {
     console.error("[webhook/mp] getAuthorizedPaymentDetail falhou:", result.error);

@@ -2034,6 +2034,74 @@ export type Database = {
           },
         ]
       }
+      party_participacoes: {
+        Row: {
+          booking_id: string | null
+          confirmed: boolean
+          created_at: string
+          dota_match_id: number | null
+          id: string
+          is_test: boolean
+          kind: string
+          live_session_id: string | null
+          played_at: string
+          user_id: string
+        }
+        Insert: {
+          booking_id?: string | null
+          confirmed?: boolean
+          created_at?: string
+          dota_match_id?: number | null
+          id?: string
+          is_test?: boolean
+          kind?: string
+          live_session_id?: string | null
+          played_at: string
+          user_id: string
+        }
+        Update: {
+          booking_id?: string | null
+          confirmed?: boolean
+          created_at?: string
+          dota_match_id?: number | null
+          id?: string
+          is_test?: boolean
+          kind?: string
+          live_session_id?: string | null
+          played_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "party_participacoes_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "store_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "party_participacoes_live_session_id_fkey"
+            columns: ["live_session_id"]
+            isOneToOne: false
+            referencedRelation: "store_live_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "party_participacoes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "party_participacoes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       player_season_mmr: {
         Row: {
           calibrated: boolean
@@ -3244,11 +3312,107 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_payments: {
+        Row: {
+          amount_cents: number
+          checked_at: string | null
+          created_at: string
+          gateway_payload: Json | null
+          id: string
+          is_test: boolean
+          method: string
+          mp_authorized_payment_id: string | null
+          mp_payment_id: string | null
+          paid_amount_cents: number | null
+          paid_at: string | null
+          period_end: string | null
+          period_start: string | null
+          pix_copia_e_cola: string | null
+          pix_expires_at: string | null
+          pix_qr_base64: string | null
+          refund_requested_at: string | null
+          status: string
+          subscription_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_cents: number
+          checked_at?: string | null
+          created_at?: string
+          gateway_payload?: Json | null
+          id?: string
+          is_test?: boolean
+          method: string
+          mp_authorized_payment_id?: string | null
+          mp_payment_id?: string | null
+          paid_amount_cents?: number | null
+          paid_at?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          pix_copia_e_cola?: string | null
+          pix_expires_at?: string | null
+          pix_qr_base64?: string | null
+          refund_requested_at?: string | null
+          status?: string
+          subscription_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          checked_at?: string | null
+          created_at?: string
+          gateway_payload?: Json | null
+          id?: string
+          is_test?: boolean
+          method?: string
+          mp_authorized_payment_id?: string | null
+          mp_payment_id?: string | null
+          paid_amount_cents?: number | null
+          paid_at?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          pix_copia_e_cola?: string | null
+          pix_expires_at?: string | null
+          pix_qr_base64?: string | null
+          refund_requested_at?: string | null
+          status?: string
+          subscription_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_payments_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_payments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_payments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscriptions: {
         Row: {
           cancelled_at: string | null
+          checked_at: string | null
           created_at: string
           id: string
+          is_test: boolean
           mp_plan_id: string | null
           mp_preapproval_id: string | null
           next_payment_date: string | null
@@ -3264,8 +3428,10 @@ export type Database = {
         }
         Insert: {
           cancelled_at?: string | null
+          checked_at?: string | null
           created_at?: string
           id?: string
+          is_test?: boolean
           mp_plan_id?: string | null
           mp_preapproval_id?: string | null
           next_payment_date?: string | null
@@ -3281,8 +3447,10 @@ export type Database = {
         }
         Update: {
           cancelled_at?: string | null
+          checked_at?: string | null
           created_at?: string
           id?: string
+          is_test?: boolean
           mp_plan_id?: string | null
           mp_preapproval_id?: string | null
           next_payment_date?: string | null
@@ -4236,6 +4404,39 @@ export type Database = {
         }
         Returns: undefined
       }
+      battlepass_ativo: {
+        Args: { p_is_test: boolean; p_user_id: string }
+        Returns: boolean
+      }
+      battlepass_cartao_cobranca: {
+        Args: {
+          p_authorized_payment_id: string
+          p_gateway: Json
+          p_mp_payment_id: string
+          p_next_payment_date: string
+          p_paid_at: string
+          p_paid_cents: number
+          p_subscription_id: string
+        }
+        Returns: boolean
+      }
+      battlepass_membros: {
+        Args: { p_is_test: boolean; p_user_ids: string[] }
+        Returns: string[]
+      }
+      battlepass_pedir_reembolso: {
+        Args: { p_is_test: boolean; p_user_id: string }
+        Returns: number
+      }
+      battlepass_pix_confirmar: {
+        Args: {
+          p_gateway: Json
+          p_mp_payment_id: string
+          p_paid_cents: number
+          p_payment_id: string
+        }
+        Returns: string
+      }
       can_change_price: {
         Args: { p_package_id: string }
         Returns: {
@@ -4488,6 +4689,13 @@ export type Database = {
           inviter_name: string
           members: Json
           party_id: string
+        }[]
+      }
+      party_ultima_vez: {
+        Args: { p_is_test: boolean; p_user_ids: string[] }
+        Returns: {
+          ultima: string
+          user_id: string
         }[]
       }
       queue_liveness_tick: { Args: never; Returns: undefined }

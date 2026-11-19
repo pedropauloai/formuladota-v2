@@ -49,6 +49,7 @@ const TASK_LABELS: Record<string, string> = {
   "loja-credencial": "credencial da vitrine da loja",
   meta: "meta de heróis (/meta)",
   "novidades-discord": "espelho das novidades no Discord",
+  battlepass: "conferência do Battlepass com o Mercado Pago",
 };
 
 function alertText(task: string, kind: "falha" | "voltou", error: string | undefined, since: string | null): string {

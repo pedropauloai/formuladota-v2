@@ -4,6 +4,7 @@
 // - Meta de heróis: renova o cache da /meta (no máximo a cada 6 h).
 // - Novidades: espelha /novidades no canal do Discord.
 // - Fila da party: encerra a live esquecida aberta há mais de 12 horas.
+// - Battlepass: confere Pix pendente e cartão com o Mercado Pago (ativa e renova sem o webhook).
 // Separado do cron de partidas para que pausar aquele job (bots parados) não pause a loja.
 // Alguma tarefa falhou → 500, e o aviso no Discord sai pelo estado em cron_task_status.
 
@@ -16,6 +17,7 @@ import { refreshOwnerProof } from "@/lib/loja/owner-proof";
 import { refreshPositionStats } from "@/lib/dota/meta-cache";
 import { syncChangelogToDiscord } from "@/lib/changelog/discord-sync";
 import { closeStaleLives } from "@/lib/loja/fila/admin";
+import { reconcileBattlepass } from "@/lib/battlepass/reconcile";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -31,6 +33,7 @@ export async function POST(req: Request) {
     runTask("meta", () => refreshPositionStats(), { isNeutral: waitingForRetry }),
     runTask("novidades-discord", () => syncChangelogToDiscord(createServiceClient())),
     runTask("fila-da-party", () => closeStaleLives()),
+    runTask("battlepass", () => reconcileBattlepass()),
   ]);
   return finishCronRun(outcomes);
 }
