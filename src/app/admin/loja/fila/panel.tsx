@@ -8,11 +8,13 @@
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { AdminQueue } from "@/lib/loja/fila/admin";
+import type { HistoryMatch } from "@/lib/loja/fila/admin-history";
 import { cn } from "@/lib/utils";
 import { chamarProximo } from "./actions";
 import { AddToQueue } from "./add-to-queue";
 import { EntryDetail } from "./entry-detail";
 import { LiveControls } from "./live-controls";
+import { MatchHistory } from "./match-history";
 import { PartyBoard } from "./party-board";
 import { QueueTable } from "./queue-table";
 import { FinishedList, Kbd, type RowAction } from "./rows";
@@ -85,7 +87,7 @@ function useShortcuts(data: AdminQueue, busy: boolean, act: RowAction, close: ()
   }, [data, busy, act, close]);
 }
 
-export function AdminQueuePanel({ data }: { data: AdminQueue }) {
+export function AdminQueuePanel({ data, history }: { data: AdminQueue; history: HistoryMatch[] }) {
   const router = useRouter();
   const [busy, startTransition] = useTransition();
   const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null);
@@ -124,6 +126,7 @@ export function AdminQueuePanel({ data }: { data: AdminQueue }) {
         <div className="min-w-0 space-y-4">
           <PartyBoard data={data} busy={busy} act={act} onSelect={toggle} />
           <QueueTable entries={waiting} selectedId={selectedId} busy={busy} act={act} onSelect={toggle} />
+          <MatchHistory items={history} />
         </div>
         {wide && (
           <div className="sticky top-4 space-y-4">
