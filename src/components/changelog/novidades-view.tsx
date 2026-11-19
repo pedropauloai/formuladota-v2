@@ -11,6 +11,7 @@ import { MiniMarkdown } from "./mini-markdown";
 import { markChangelogSeen } from "@/app/novidades/actions";
 import type { ChangelogCategory, ChangelogEntry } from "@/lib/queries/changelog";
 import { cn } from "@/lib/utils";
+import { changelogDay, changelogMonthKey, changelogMonthLabel } from "@/lib/changelog/dates";
 
 const CATEGORY_META: Record<
   ChangelogCategory,
@@ -21,11 +22,6 @@ const CATEGORY_META: Record<
   correcao: { labelKey: "cat.correcao", icon: Bug, cls: "border-gold/40 bg-gold/10 text-gold" },
   balanceamento: { labelKey: "cat.balanceamento", icon: Scale, cls: "border-brand-primary/40 bg-brand-primary/10 text-brand-primary" },
 };
-
-function monthKey(iso: string): string {
-  const d = new Date(iso);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-}
 
 export function NovidadesView({ entries }: { entries: ChangelogEntry[] }) {
   const t = useTranslations("novidades");
@@ -40,22 +36,13 @@ export function NovidadesView({ entries }: { entries: ChangelogEntry[] }) {
   const months = useMemo(() => {
     const seen = new Map<string, string>();
     for (const e of entries) {
-      const k = monthKey(e.publishedAt);
-      if (!seen.has(k)) {
-        seen.set(
-          k,
-          new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" }).format(
-            new Date(e.publishedAt),
-          ),
-        );
-      }
+      const k = changelogMonthKey(e.publishedAt);
+      if (!seen.has(k)) seen.set(k, changelogMonthLabel(e.publishedAt, locale));
     }
     return Array.from(seen, ([key, label]) => ({ key, label }));
   }, [entries, locale]);
 
-  const visible = month === "all" ? entries : entries.filter((e) => monthKey(e.publishedAt) === month);
-
-  const dateFmt = new Intl.DateTimeFormat(locale, { day: "2-digit", month: "short", year: "numeric" });
+  const visible = month === "all" ? entries : entries.filter((e) => changelogMonthKey(e.publishedAt) === month);
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -108,7 +95,7 @@ export function NovidadesView({ entries }: { entries: ChangelogEntry[] }) {
                     dateTime={e.publishedAt}
                     className="font-display text-xs uppercase tracking-wide text-text-muted"
                   >
-                    {dateFmt.format(new Date(e.publishedAt))}
+                    {changelogDay(e.publishedAt, locale)}
                   </time>
                 </div>
                 <h2 className="mb-1 font-display-condensed text-2xl font-semibold leading-tight text-text-display">
