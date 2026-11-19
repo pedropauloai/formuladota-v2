@@ -78,23 +78,39 @@ function MessageList({
   );
 }
 
-function Composer({ onSend, placeholder }: { onSend: (body: string) => void; placeholder: string }) {
+// onSend devolve o aviso a mostrar quando a mensagem não saiu (null = enviada).
+function Composer({ onSend, placeholder }: { onSend: (body: string) => Promise<string | null>; placeholder: string }) {
   const t = useTranslations("chat");
   const [draft, setDraft] = useState("");
+  const [problem, setProblem] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
   function submit() {
     const body = draft.trim();
-    if (!body) return;
+    if (!body || pending) return;
     setDraft("");
-    onSend(body);
+    setProblem(null);
+    startTransition(async () => {
+      const result = await onSend(body);
+      if (!result) return;
+      // Devolve o texto ao campo para a pessoa não perder o que escreveu.
+      setDraft((current) => current || body);
+      setProblem(result);
+    });
   }
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        submit();
-      }}
-      className="flex items-center gap-2 border-t border-border-subtle p-2"
-    >
+    <div className="border-t border-border-subtle">
+      {problem && (
+        <p role="alert" className="px-2.5 pt-1.5 font-display text-[12px] text-error">
+          {problem}
+        </p>
+      )}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          submit();
+        }}
+        className="flex items-center gap-2 p-2"
+      >
       <input
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
@@ -111,7 +127,8 @@ function Composer({ onSend, placeholder }: { onSend: (body: string) => void; pla
       >
         <Send size={15} aria-hidden="true" />
       </button>
-    </form>
+      </form>
+    </div>
   );
 }
 
@@ -125,7 +142,6 @@ export function PartyChannelPanel({
 }) {
   const t = useTranslations("chat");
   const [messages, setMessages] = useState<ChatLineData[]>([]);
-  const [, startTransition] = useTransition();
 
   // Nome do remetente vem RESOLVIDO do servidor (fetchPartyMessages) — o payload
   // do realtime não traz nome, então re-busca (baixo volume), igual ao canal Sala.
@@ -162,7 +178,7 @@ export function PartyChannelPanel({
       <MessageList messages={messages} currentUserId={currentUserId} emptyHint={t("partyEmpty")} />
       <Composer
         placeholder={t("partyPlaceholder")}
-        onSend={(body) => startTransition(() => void sendPartyMessage(body))}
+        onSend={async (body) => ((await sendPartyMessage(body)).success ? null : t("sendError"))}
       />
     </>
   );
@@ -178,7 +194,6 @@ export function LobbyChannelPanel({
 }) {
   const t = useTranslations("chat");
   const [messages, setMessages] = useState<ChatLineData[]>([]);
-  const [, startTransition] = useTransition();
 
   const reload = () =>
     fetchLobbyMessages(lobbyId).then((msgs) =>
@@ -212,7 +227,7 @@ export function LobbyChannelPanel({
       <MessageList messages={messages} currentUserId={currentUserId} emptyHint={t("lobbyEmpty")} />
       <Composer
         placeholder={t("lobbyPlaceholder")}
-        onSend={(body) => startTransition(() => void sendLobbyMessage({ lobbyId, body }))}
+        onSend={async (body) => ((await sendLobbyMessage({ lobbyId, body })).success ? null : t("sendError"))}
       />
     </>
   );
@@ -231,8 +246,8 @@ export function DmChannelPanel({
   const t = useTranslations("chat");
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatLineData[]>([]);
-  const [errored, setErrored] = useState(false);
-  const [, startTransition] = useTransition();
+  // Aviso no lugar da conversa quando ela não abre (null = abriu ou ainda abrindo).
+  const [openProblem, setOpenProblem] = useState<string | null>(null);
 
   const toLine = (m: { id: string; senderId: string; body: string; createdAt: string }): ChatLineData => ({
     id: m.id,
@@ -250,7 +265,7 @@ export function DmChannelPanel({
         setConversationId(res.conversationId);
         setMessages(res.messages.map(toLine));
       } else {
-        setErrored(true);
+        setOpenProblem(res.code === "not_friends" ? t("dmNotFriends") : t("dmError"));
       }
     });
     return () => {
@@ -264,20 +279,18 @@ export function DmChannelPanel({
     if (conversationId && m.senderId !== currentUserId) void markConversationRead(conversationId);
   });
 
-  function send(body: string) {
-    if (!conversationId) return;
-    startTransition(async () => {
-      const res = await sendDirectMessage({ conversationId, body });
-      if (res.success) {
-        setMessages((prev) => (prev.some((x) => x.id === res.message.id) ? prev : [...prev, toLine(res.message)]));
-      }
-    });
+  async function send(body: string): Promise<string | null> {
+    if (!conversationId) return t("sendError");
+    const res = await sendDirectMessage({ conversationId, body });
+    if (!res.success) return res.code === "not_friends" ? t("dmNotFriends") : t("sendError");
+    setMessages((prev) => (prev.some((x) => x.id === res.message.id) ? prev : [...prev, toLine(res.message)]));
+    return null;
   }
 
-  if (errored) {
+  if (openProblem) {
     return (
       <div className="flex h-[292px] items-center justify-center px-4 text-center font-display text-[13px] text-text-faded">
-        {t("dmError")}
+        {openProblem}
       </div>
     );
   }

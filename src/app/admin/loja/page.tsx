@@ -48,8 +48,9 @@ export default async function AdminLojaPage({ searchParams }: { searchParams: Se
   const from = period.from().toISOString();
   const supabase = await createClient();
   const [visits, orders, t] = await Promise.all([
-    // Visita de teste (localhost) nunca entra na conta, como o pedido de teste.
-    supabase.from("site_visits").select("utm_source, referrer_host").eq("is_test", false).gte("created_at", from).limit(50000),
+    // Somadas no banco por origem (a API entrega no máximo 1000 linhas por consulta); a visita de
+    // teste (localhost) fica de fora, como o pedido de teste.
+    supabase.rpc("site_visits_by_origin", { p_from: from }),
     supabase
       .from("store_orders")
       .select("id, created_at, product_title, variant_label, buyer_name, buyer_whatsapp, amount_cents, payment_method, status, utm_source, referrer_host, is_test, notified_at, fulfilled_at")

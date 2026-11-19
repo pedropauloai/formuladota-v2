@@ -7,7 +7,7 @@
 // steam_links SELECT público (054) resolve a identidade do amigo.
 
 import type { createClient } from "@/lib/supabase/server";
-import { getSteamIdentityMap, resolveIdentity } from "@/lib/queries/identities";
+import { getIdentityMap } from "@/lib/queries/identities";
 import type { Database } from "@/types/database";
 
 type ServerClient = Awaited<ReturnType<typeof createClient>>;
@@ -40,20 +40,16 @@ export async function getDmInbox(supabase: ServerClient): Promise<DmInboxEntry[]
   if (rows.length === 0) return [];
 
   const otherIds = [...new Set(rows.map((r) => r.other_user_id).filter(Boolean))] as string[];
-  const [{ data: profiles }, steamMap] = await Promise.all([
-    supabase.from("profiles").select("id, username, avatar_url").in("id", otherIds),
-    getSteamIdentityMap(supabase, otherIds),
-  ]);
-  const profileById = new Map((profiles ?? []).map((p) => [p.id, p]));
+  // Nome pela identidade pública (Discord primeiro): profiles esconde os outros pela RLS.
+  const identities = await getIdentityMap(supabase, otherIds);
 
   return rows.map((r) => {
-    const p = profileById.get(r.other_user_id);
-    const ident = resolveIdentity(steamMap, r.other_user_id, p?.username, p?.avatar_url);
+    const ident = identities.get(r.other_user_id);
     return {
       conversationId: r.conversation_id,
       otherUserId: r.other_user_id,
-      otherName: ident.name,
-      otherAvatarUrl: ident.avatarUrl,
+      otherName: ident?.name ?? "",
+      otherAvatarUrl: ident?.avatarUrl ?? null,
       lastPreview: r.last_preview,
       lastMessageAt: r.last_message_at,
       lastSenderId: r.last_sender_id,

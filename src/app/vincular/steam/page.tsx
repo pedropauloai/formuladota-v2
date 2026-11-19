@@ -33,6 +33,7 @@ const ERROR_KEYS: Record<string, string> = {
   invalid_signature: "steamErrorInvalidSignature",
   persona_unavailable: "steamErrorPersonaUnavailable",
   db_failed: "steamErrorDbFailed",
+  steam_in_use: "steamErrorInUse",
   login_required_for_steam: "steamErrorLoginRequired",
   missing_state: "steamErrorMissingState",
   missing_code: "steamErrorMissingCode",

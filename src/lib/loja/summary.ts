@@ -5,6 +5,8 @@ import { sourceLabel } from "./attribution";
 export interface VisitRow {
   utm_source: string | null;
   referrer_host: string | null;
+  /** Visitas já somadas no banco (site_visits_by_origin); sem o campo, a linha vale uma visita. */
+  visits?: number;
 }
 
 export interface OrderRow {
@@ -38,7 +40,7 @@ function bucket(map: Map<string, OriginSummary>, source: string): OriginSummary 
 
 export function summarizeByOrigin(visits: VisitRow[], orders: OrderRow[]): OriginSummary[] {
   const map = new Map<string, OriginSummary>();
-  for (const visit of visits) bucket(map, sourceLabel(visit)).visits += 1;
+  for (const visit of visits) bucket(map, sourceLabel(visit)).visits += visit.visits ?? 1;
   for (const order of orders) {
     if (order.is_test) continue;
     const row = bucket(map, sourceLabel(order));

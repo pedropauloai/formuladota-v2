@@ -108,8 +108,8 @@ export function PartyFrame({ currentUserId, initialParty, friends }: Props) {
         );
       })}
 
-      {/* Sair do grupo — só quando há grupo (você + ≥1). */}
-      {party && others.length >= 0 && party.members.length > 1 && (
+      {/* Sair do grupo: também sozinho (o convite recusado deixa o líder num grupo de um). */}
+      {party && (
         <button
           type="button"
           onClick={() => startTransition(() => void leaveParty())}

@@ -5,10 +5,9 @@
 // Fontes (em batch, sem N+1):
 //   - steam_links.persona  → SELECT público (migration 054) — identidade
 //     canônica anti-anonimato, encontra QUALQUER jogador com Steam vinculada.
-//   - profiles.username    → best-effort: a RLS de profiles é restritiva
-//     (próprio/admin/coaches), então esse braço só acha coaches pra viewers
-//     comuns — e tudo pra admin. Sem service-role aqui (convenção do projeto:
-//     service client é só pra webhooks).
+//   - public_player_identities.username → nome do Discord, o que o site mostra no
+//     ranking e no cartão. A view pública fura a RLS de profiles só nas colunas de
+//     identidade; buscar em profiles achava só coaches para quem não é admin.
 //
 // Exclui: o próprio user e qualquer relação existente (amigo/pendente/blocked).
 
@@ -57,8 +56,8 @@ export async function searchPlayers(
       .ilike("persona", pattern)
       .limit(RESULT_LIMIT * 2),
     supabase
-      .from("profiles")
-      .select("id, username, avatar_url, avatar_custom_url")
+      .from("public_player_identities")
+      .select("id, username, avatar_url")
       .ilike("username", pattern)
       .limit(RESULT_LIMIT * 2),
     // RLS já filtra pras MINHAS friendships — qualquer status conta como "já existe".
@@ -88,7 +87,7 @@ export async function searchPlayers(
     byId.set(p.id, {
       ...existing,
       discordUsername: p.username,
-      discordAvatar: p.avatar_custom_url ?? p.avatar_url,
+      discordAvatar: p.avatar_url,
     });
   }
 

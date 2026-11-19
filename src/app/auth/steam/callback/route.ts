@@ -41,6 +41,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     );
 
     if (dbErr) {
+      // 23505: a Steam já está em outra conta (uma Steam vale para um jogador só).
+      if (dbErr.code === "23505") {
+        return NextResponse.redirect(`${origin}/vincular/steam?error=steam_in_use`);
+      }
       console.error("[steam/callback] upsert steam_links:", dbErr.message);
       return NextResponse.redirect(`${origin}/vincular/steam?error=db_failed`);
     }
