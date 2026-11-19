@@ -24,7 +24,7 @@ export function OwnerStrip({ proof }: { proof: OwnerProof | null }) {
     <Panel as="section" aria-label={t("credentialLabel")} data-loja-prova className="grid items-center gap-5 p-4 md:grid-cols-[auto_minmax(0,1fr)] md:gap-8 md:px-6">
       <div className="flex items-center gap-4">
         <Image src={OWNER.avatarLarge} alt="" width={512} height={512} className="size-20 rounded-sm object-cover shadow-[0_0_0_1px_var(--color-gold),0_0_16px_var(--fd-raw-gold-glow)]" />
-        <div className="min-w-0">
+        <div className="min-w-0 max-w-[15rem]">
           <p className="font-display-condensed text-[1.9rem] leading-none text-text-display">{OWNER.nick}</p>
           {proof?.leaderboardRank != null && (
             <p className="mt-1 font-display-condensed text-2xl leading-none text-gold">#{format.number(proof.leaderboardRank)}</p>
@@ -33,11 +33,11 @@ export function OwnerStrip({ proof }: { proof: OwnerProof | null }) {
         </div>
         {proof && <ImmortalMedal rankTier={proof.rankTier} rank={proof.leaderboardRank} size={84} />}
       </div>
-      <dl className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3 lg:grid-cols-5">
+      <dl className="grid grid-cols-2 gap-x-5 gap-y-3 sm:grid-cols-3 lg:grid-cols-5">
         {CAREER.map(([value, label]) => (
           <div key={label} className="border-l-2 border-border-strong pl-3">
             <dt className="sr-only">{t(label)}</dt>
-            <dd className="flex items-center gap-1.5 font-display-condensed text-[1.75rem] leading-none text-text-display">
+            <dd className="flex items-center gap-1.5 whitespace-nowrap font-display-condensed text-[1.6rem] leading-none text-text-display">
               {value === "credentialSubscribersValue" && <BrandGlyph brand="youtube" size={16} />}
               {t(value)}
             </dd>

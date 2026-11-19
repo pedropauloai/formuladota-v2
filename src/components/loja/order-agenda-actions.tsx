@@ -3,6 +3,8 @@
 // Na página do pedido pago: marcar a próxima sessão (acompanhamento, ou horário perdido) e remarcar
 // um horário confirmado com 24 horas de antecedência. O servidor confere tudo de novo.
 
+import { panel } from "@/components/v2";
+import { cn } from "@/lib/utils";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -46,8 +48,8 @@ function ScheduleNext({ orderId, windows, busy, durationMinutes, next }: Omit<Pr
   const [slot, setSlot] = useState<string | null>(null);
   const { error, pending, run } = useAgendaSubmit();
   return (
-    <section className="space-y-3 rounded-md border border-gold/40 bg-bg-base p-5">
-      <h2 className="font-display text-xl uppercase tracking-wide text-text-display">{t("scheduleNextTitle", { n: next.number, total: next.total })}</h2>
+    <section className={cn(panel("gold"), "space-y-3 p-5")}>
+      <h2 className="font-display-condensed text-[1.8rem] uppercase leading-none text-text-display">{t("scheduleNextTitle", { n: next.number, total: next.total })}</h2>
       <SlotPicker windows={windows} busy={busy} durationMinutes={durationMinutes} value={slot} onChange={setSlot} error={error ?? undefined} name="proxima_sessao" />
       <Button type="button" variant="primary" disabled={!slot} loading={pending} onClick={() => slot && run(() => agendarSessao(orderId, slot))} className="w-full">
         {t("scheduleConfirm")}

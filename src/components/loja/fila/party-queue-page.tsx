@@ -7,6 +7,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { formatPrice } from "@/lib/loja/money";
+import { cn } from "@/lib/utils";
+import { v2Page } from "@/components/v2";
 import type { MyEntryState, QueueView } from "@/lib/loja/fila/model";
 import { useQueueView } from "./use-queue-view";
 import { LiveStage } from "./live-stage";
@@ -48,12 +50,13 @@ export function PartyQueuePage({ initial, viewer, offer, initialQuantity, howItW
   const showAlert = !!alertId && view.mine?.entries.some((e) => e.id === alertId && e.state === "na_party");
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6 md:px-8 md:py-10">
+    <div className={cn(v2Page, "relative isolate mx-auto max-w-6xl overflow-x-clip px-4 py-6 md:px-8 md:py-10 min-[2600px]:max-w-[1500px]")}>
+      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[560px] bg-[radial-gradient(55%_65%_at_35%_0%,var(--color-brand-primary-glow),transparent_72%)]" />
       <header className="mb-5 space-y-2 md:mb-7">
-        <h1 className="font-display text-4xl uppercase leading-none tracking-tight text-text-display md:text-5xl">{headline}</h1>
+        <h1 className="font-display-condensed text-[3rem] uppercase leading-[0.85] text-text-display md:text-[4.2rem]">{headline}</h1>
         <p className="max-w-2xl text-base leading-relaxed text-text-body">{t("subhead", { price: formatPrice(offer.priceCents) })}</p>
       </header>
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_400px]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_400px]">
         <div className="min-w-0 lg:col-start-1 lg:row-start-1">
           <LiveStage live={live} />
         </div>

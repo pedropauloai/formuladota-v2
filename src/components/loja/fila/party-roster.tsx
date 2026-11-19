@@ -1,10 +1,15 @@
 "use client";
 
-// Quem está na party do Pedro agora e a fila com os próximos. Nome e avatar públicos (a página
-// recebe só isso do servidor); a linha de quem está olhando ganha a marca "você".
+// Quem está na party do Pedro agora e a fila com os próximos, no design 2.0. A party aparece como
+// a barra de grupo do cliente (o PPA, quem está jogando e as vagas); embaixo, a lista com a partida
+// de cada um. Nome e avatar públicos (a página recebe só isso do servidor); a linha de quem está
+// olhando ganha a marca "você".
 
 import { useTranslations } from "next-intl";
+import { cn } from "@/lib/utils";
 import { UserAvatar } from "@/components/ui/avatar";
+import { Panel, PartyLineup, plate } from "@/components/v2";
+import { OWNER } from "@/lib/loja/owner";
 import type { PublicEntry, PublicQueue, PublicQueuedEntry } from "@/lib/loja/fila/model";
 
 function initials(name: string): string {
@@ -20,7 +25,7 @@ function Who({ entry, mine, detail }: { entry: PublicEntry; mine: boolean; detai
       <span className="min-w-0 flex-1">
         <span className="flex min-w-0 items-center gap-2">
           <span className="truncate text-sm font-medium text-text-display">{entry.name}</span>
-          {mine && <span className="shrink-0 rounded-sm bg-gold/15 px-1.5 py-0.5 text-xs font-medium text-gold">{t("you")}</span>}
+          {mine && <span className={cn(plate({ kind: "tag", tone: "gold" }), "shrink-0")}>{t("you")}</span>}
         </span>
         <span className="block truncate text-xs text-text-muted">{detail}</span>
       </span>
@@ -30,13 +35,13 @@ function Who({ entry, mine, detail }: { entry: PublicEntry; mine: boolean; detai
 
 function Card({ title, aside, children }: { title: string; aside?: string; children: React.ReactNode }) {
   return (
-    <section className="space-y-3 rounded-md border border-border-strong bg-bg-base p-4 md:p-5">
-      <header className="flex items-baseline justify-between gap-3">
-        <h2 className="font-display text-xl uppercase leading-none tracking-wide text-text-display">{title}</h2>
+    <Panel as="section" className="h-full space-y-3 p-4 md:p-5" wrapperClassName="h-full">
+      <header className="flex items-baseline justify-between gap-3 border-b-2 border-brand-primary/70 pb-2">
+        <h2 className="font-display-condensed text-[1.9rem] uppercase leading-none text-text-display">{title}</h2>
         {aside && <span className="text-xs text-text-muted">{aside}</span>}
       </header>
       {children}
-    </section>
+    </Panel>
   );
 }
 
@@ -44,35 +49,58 @@ function QueueRow({ entry, mine }: { entry: PublicQueuedEntry; mine: boolean }) 
   const t = useTranslations("fila");
   const turn = entry.matchesUntilTurn === 0 ? t("queueNext") : t("queueIn", { count: entry.matchesUntilTurn });
   return (
-    <li className={`flex items-center gap-3 py-2 ${mine ? "-mx-2 rounded-sm bg-gold/5 px-2" : ""}`}>
-      <span className="w-6 shrink-0 text-right font-display text-lg leading-none tabular-nums text-text-muted">{entry.position}</span>
+    <li className={cn("flex items-center gap-3 py-2", mine && "-mx-2 rounded-sm bg-gold/5 px-2")}>
+      <span className="w-7 shrink-0 text-right font-display-condensed text-[1.6rem] leading-none text-gold">{entry.position}</span>
       <Who entry={entry} mine={mine} detail={`${turn} · ${t("queueMatches", { count: entry.matches })}`} />
     </li>
   );
 }
 
+function PartyCard({ queue, mine }: { queue: PublicQueue; mine: ReadonlySet<string> }) {
+  const t = useTranslations("fila");
+  const tl = useTranslations("loja");
+  const onAir = queue.live?.status === "ao_vivo";
+  const seats = Math.min(4, Math.max(1, queue.live?.seatsPerMatch ?? 4));
+  // Convida só com live no ar, vaga aberta e quem olha ainda fora da fila.
+  const viewerIn = [...queue.party, ...queue.queue].some((e) => mine.has(e.id));
+  const invite = onAir && (queue.live?.seatsOpen ?? 0) > 0 && !viewerIn;
+  return (
+    <Card title={t("partyTitle")}>
+      <PartyLineup
+        owner={{ avatarUrl: OWNER.avatar, label: OWNER.short }}
+        members={queue.party.map((e) => ({ label: e.name, avatarUrl: e.avatarUrl }))}
+        youLabel={tl("partyYou")}
+        openLabel={tl("partyOpen")}
+        ariaLabel={tl("partyAria", { nick: OWNER.nick })}
+        seats={seats}
+        invite={invite}
+        size={48}
+        className="py-1"
+      />
+      {queue.party.length === 0 ? (
+        <p className="text-sm text-text-muted">{onAir ? t("partyEmptyOnAir") : t("partyEmptyOff")}</p>
+      ) : (
+        <ul className="divide-y divide-border-subtle">
+          {queue.party.map((entry) => (
+            <li key={entry.id} className="flex items-center gap-3 py-2">
+              <Who
+                entry={entry}
+                mine={mine.has(entry.id)}
+                detail={<span className="text-play-primary">{t("partyMatch", { current: Math.min(entry.played + 1, entry.matches), total: entry.matches })}</span>}
+              />
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
+  );
+}
+
 export function PartyRoster({ queue, mine }: { queue: PublicQueue; mine: ReadonlySet<string> }) {
   const t = useTranslations("fila");
-  const onAir = queue.live?.status === "ao_vivo";
   return (
     <div className="grid gap-4 md:grid-cols-2">
-      <Card title={t("partyTitle")}>
-        {queue.party.length === 0 ? (
-          <p className="text-sm text-text-muted">{onAir ? t("partyEmptyOnAir") : t("partyEmptyOff")}</p>
-        ) : (
-          <ul className="divide-y divide-border-subtle">
-            {queue.party.map((entry) => (
-              <li key={entry.id} className="flex items-center gap-3 py-2">
-                <Who
-                  entry={entry}
-                  mine={mine.has(entry.id)}
-                  detail={<span className="text-play-primary">{t("partyMatch", { current: Math.min(entry.played + 1, entry.matches), total: entry.matches })}</span>}
-                />
-              </li>
-            ))}
-          </ul>
-        )}
-      </Card>
+      <PartyCard queue={queue} mine={mine} />
       <Card title={t("queueTitle")} aside={t("queueCount", { count: queue.queue.length })}>
         {queue.queue.length === 0 ? (
           <p className="text-sm text-text-muted">{t("queueEmpty")}</p>

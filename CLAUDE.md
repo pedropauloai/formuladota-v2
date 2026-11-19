@@ -71,6 +71,7 @@ Evitar (não por veto de cor, mas por consistência):
 - Avatares `rounded-full` — avatar de usuário é SEMPRE quadrado `rounded-sm` (padrão Steam/Dota). Dots de presença podem ser redondos.
 
 Demais regras:
+- **Design 2.0 (19/11/2026):** tela nova ou refeita usa o kit `src/components/v2` (placa, painel, preço, party, live da Twitch), o mesmo material da barra superior; catálogo vivo em `/admin/design`. O invólucro da página leva `v2Page` (tela de 1440 de altura cresce 1,33x) e `overflow-x-clip`. Página que se usa logado (fila, perfil) fica em 1152 px até 2600 px de tela, senão a coluna de amigos (sobreposta) cobre o começo.
 - Lucide icons (`lucide-react`) — NUNCA emojis em UI
 - shadcn/ui components base
 - Acessibilidade WCAG 2.1 AA

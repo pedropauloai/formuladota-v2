@@ -1,20 +1,18 @@
 "use client";
 
-// A live na tela da fila. A Twitch entra sozinha quando o canal está no ar (o próprio player avisa,
-// sem chave de API: src/components/v2/twitch-live.tsx). Fora do ar na Twitch: com a fila aberta, a
-// live do YouTube; sem fila aberta, a próxima live marcada (já dá para garantir a vaga nela) ou o
-// aviso de que as vagas abrem com a live. Horário sempre no fuso de Brasília: o servidor (UTC) e o
-// navegador desenham igual.
+// A live na tela da fila, no palco do design 2.0 (tela reta, borda vermelha de ao vivo). A live
+// da Twitch entra sozinha quando o canal está no ar (pedido do Pedro, 19/11); se o Pedro abriu a
+// live no painel com um vídeo do YouTube, vale o vídeo que ele escolheu. Fora do ar, o quadro real
+// da live com a próxima live marcada ou o aviso de que as vagas abrem com a live.
+// Horário sempre no fuso de Brasília: o servidor (UTC) e o navegador desenham igual.
 
 import { useLocale, useTranslations } from "next-intl";
 import { CalendarClock } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { TwitchLive } from "@/components/v2/twitch-live";
+import { LiveDot, TwitchLive, lift, panel, plate } from "@/components/v2";
+import { LIVE_FRAME, OWNER } from "@/lib/loja/owner";
 import type { PublicLive } from "@/lib/loja/fila/model";
 import { youtubeEmbedUrl } from "@/lib/loja/fila/youtube";
-
-/** Canal da live na Twitch (twitch.tv/formuladota). */
-const TWITCH_CHANNEL = "formuladota";
 
 const LOCALE_TAG: Record<string, string> = { pt: "pt-BR", en: "en-US", es: "es" };
 
@@ -29,61 +27,63 @@ export function formatLiveWhen(iso: string, locale: string): string {
   }).format(new Date(iso));
 }
 
-function YoutubeLive({ videoId, title }: { videoId: string | null; title: string }) {
-  return (
-    <iframe
-      src={youtubeEmbedUrl(videoId)}
-      title={title}
-      allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-      allowFullScreen
-      referrerPolicy="strict-origin-when-cross-origin"
-      className="size-full"
-    />
-  );
-}
-
-function OffAir({ next }: { next: string | null }) {
+function OnAirSeal() {
   const t = useTranslations("fila");
   return (
-    <div className="flex size-full flex-col items-center justify-center gap-3 bg-bg-base p-6 text-center">
-      <CalendarClock size={28} className="text-gold" aria-hidden="true" />
-      <p className="font-display text-2xl uppercase leading-none tracking-wide text-text-display md:text-3xl">
-        {next ? t("nextLive", { when: next }) : t("offAirTitle")}
-      </p>
-      <p className="max-w-md text-sm leading-relaxed text-text-muted">{next ? t("nextLiveText") : t("offAirText")}</p>
-    </div>
-  );
-}
-
-/** Selo de ao vivo: com a fila aberta, sempre; sem ela, quando a Twitch está no ar. */
-function LiveBadge({ queueOpen }: { queueOpen: boolean }) {
-  const t = useTranslations("fila");
-  return (
-    <span
-      className={cn(
-        "absolute left-3 top-3 items-center gap-1.5 rounded-sm bg-brand-primary px-2 py-1 font-display text-sm uppercase leading-none tracking-wider text-text-display",
-        queueOpen ? "inline-flex" : "hidden group-data-[live=true]/live:inline-flex",
-      )}
-    >
-      <span className="size-2 rounded-full bg-text-display motion-safe:animate-pulse" aria-hidden="true" />
+    <span className={cn(plate({ kind: "tag", tone: "live" }), "pointer-events-none absolute left-3 top-3 min-h-7 px-3 text-[0.75rem]")}>
+      <LiveDot />
       {t("onAir")}
     </span>
   );
 }
 
-export function LiveStage({ live }: { live: PublicLive | null }) {
+// Fora do ar: o quadro da live escurecido e, por cima, quando é a próxima live.
+function OffAirCover({ live }: { live: PublicLive | null }) {
   const t = useTranslations("fila");
   const locale = useLocale();
-  const queueOpen = live?.status === "ao_vivo";
   const next = live?.status === "marcada" ? formatLiveWhen(live.startsAt, locale) : null;
+  // Aberta no painel e a Twitch ainda sem sinal: a live está começando, e a fila já vende.
+  const starting = live?.status === "ao_vivo";
+  const title = starting ? t("stageStartingTitle") : next ? t("nextLive", { when: next }) : t("offAirTitle");
+  const text = starting ? t("stageStartingText") : next ? t("nextLiveText") : t("offAirText");
   return (
-    <TwitchLive
-      channel={TWITCH_CHANNEL}
-      title={t("videoTitle")}
-      overlay={<LiveBadge queueOpen={queueOpen} />}
-      className="aspect-video rounded-md border border-border-strong bg-black"
-    >
-      {queueOpen ? <YoutubeLive videoId={live.youtubeVideoId} title={t("videoTitle")} /> : <OffAir next={next} />}
-    </TwitchLive>
+    <>
+      {/* eslint-disable-next-line @next/next/no-img-element -- srcset próprio em 3 tamanhos; o next/image está sem otimização na Cloudflare */}
+      <img src={LIVE_FRAME.src} srcSet={LIVE_FRAME.srcSet} sizes="(min-width: 1024px) 66vw, 100vw" alt="" width={LIVE_FRAME.width} height={LIVE_FRAME.height} className="h-full w-full object-cover" />
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[radial-gradient(70%_70%_at_50%_50%,color-mix(in_oklab,var(--color-bg-deep)_88%,transparent),color-mix(in_oklab,var(--color-bg-deep)_55%,transparent))] p-6 text-center">
+        <CalendarClock size={28} className="text-gold" aria-hidden="true" />
+        <p className="font-display-condensed text-[2rem] uppercase leading-none text-text-display md:text-[2.6rem]">{title}</p>
+        <p className="max-w-md text-sm leading-relaxed text-text-body">{text}</p>
+      </div>
+    </>
+  );
+}
+
+export function LiveStage({ live }: { live: PublicLive | null }) {
+  const t = useTranslations("fila");
+  const tl = useTranslations("loja");
+  const youtube = live?.status === "ao_vivo" && live.youtubeVideoId ? live.youtubeVideoId : null;
+  return (
+    <div className={lift("dark")}>
+      <div className={cn(panel("live"), "aspect-video w-full [--cut:0px]")}>
+        {youtube ? (
+          <div className="absolute inset-[2px] bg-black">
+            <iframe
+              src={youtubeEmbedUrl(youtube)}
+              title={t("videoTitle")}
+              allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+              allowFullScreen
+              referrerPolicy="strict-origin-when-cross-origin"
+              className="size-full"
+            />
+            <OnAirSeal />
+          </div>
+        ) : (
+          <TwitchLive channel={OWNER.twitchChannel} title={tl("stageTwitchTitle")} className="absolute inset-[2px]">
+            <OffAirCover live={live} />
+          </TwitchLive>
+        )}
+      </div>
+    </div>
   );
 }

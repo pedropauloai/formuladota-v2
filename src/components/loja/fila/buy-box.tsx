@@ -11,6 +11,8 @@ import { useSound } from "@/lib/sound/hooks";
 import { formatPrice } from "@/lib/loja/money";
 import { garantirVaga } from "@/app/party/actions";
 import type { MyQueueEntry, PublicLive, QueueView } from "@/lib/loja/fila/model";
+import { Panel, Price, plate } from "@/components/v2";
+import { cn } from "@/lib/utils";
 import { MyEntryCard, PendingPayment } from "./my-status";
 
 export interface FilaViewer {
@@ -26,17 +28,13 @@ export interface FilaOffer {
   onSale: boolean;
 }
 
-const CTA = "inline-flex w-full items-center justify-center gap-2 rounded-sm px-4 py-3.5 font-display text-lg uppercase tracking-widest transition-colors disabled:opacity-60";
 
 function SeatsLine({ live, priceCents }: { live: PublicLive | null; priceCents: number }) {
   const t = useTranslations("fila");
   const open = live?.seatsOpen ?? 0;
   return (
     <div className="flex flex-wrap items-end justify-between gap-3">
-      <p className="flex items-baseline gap-2">
-        <span className="font-display text-4xl leading-none tabular-nums text-gold">{formatPrice(priceCents)}</span>
-        <span className="text-sm text-text-muted">{t("perMatch")}</span>
-      </p>
+      <Price cents={priceCents} unit={t("perMatch")} className="text-[2.8rem]" />
       {live && (
         <p data-fila-vagas={open} className={`text-sm font-medium ${open > 0 ? "text-play-primary" : "text-error"}`}>
           {t("seatsOpen", { count: open })}
@@ -49,7 +47,7 @@ function SeatsLine({ live, priceCents }: { live: PublicLive | null; priceCents: 
 function Gate({ href, label, text }: { href: string; label: string; text: string }) {
   return (
     <div className="space-y-3">
-      <a href={href} className={`${CTA} bg-brand-primary text-text-display hover:bg-brand-primary-hover`}>
+      <a href={href} className={plate({ kind: "brand", block: true })}>
         <LogIn size={18} aria-hidden="true" /> {label}
       </a>
       <p className="text-xs leading-relaxed text-text-muted">{text}</p>
@@ -59,7 +57,7 @@ function Gate({ href, label, text }: { href: string; label: string; text: string
 
 function Stepper({ value, max, onChange }: { value: number; max: number; onChange: (n: number) => void }) {
   const t = useTranslations("fila");
-  const button = "flex size-11 items-center justify-center rounded-sm border border-border-strong text-text-display disabled:opacity-40";
+  const button = cn(plate({ kind: "ghost" }), "size-11 px-0");
   return (
     <div className="flex items-center justify-between gap-3">
       <span className="text-sm text-text-body">{t("matchesLabel")}</span>
@@ -67,7 +65,7 @@ function Stepper({ value, max, onChange }: { value: number; max: number; onChang
         <button type="button" className={button} aria-label={t("fewer")} disabled={value <= 1} onClick={() => onChange(value - 1)}>
           <Minus size={16} aria-hidden="true" />
         </button>
-        <output aria-live="polite" className="w-8 text-center font-display text-2xl tabular-nums text-text-display">{value}</output>
+        <output aria-live="polite" className="w-8 text-center font-display-condensed text-[2.2rem] leading-none text-text-display">{value}</output>
         <button type="button" className={button} aria-label={t("more")} disabled={value >= max} onClick={() => onChange(value + 1)}>
           <Plus size={16} aria-hidden="true" />
         </button>
@@ -126,7 +124,7 @@ function BuyForm({ max, priceCents, initialQuantity, onBought, state }: BuyFormP
   return (
     <div id="fila-comprar" className="space-y-3">
       {max > 1 && <Stepper value={count} max={max} onChange={setQuantity} />}
-      <button type="button" data-fila-comprar="pix" disabled={pending} onClick={() => buy("pix")} className={`${CTA} bg-play-primary text-bg-deep hover:bg-play-primary-hover`}>
+      <button type="button" data-fila-comprar="pix" disabled={pending} onClick={() => buy("pix")} className={plate({ kind: "cta", large: true, block: true })}>
         {pending ? t("buying") : t("buy", { price: formatPrice(priceCents * count) })}
       </button>
       <button type="button" data-fila-comprar="cartao" disabled={pending} onClick={() => buy("cartao")} className="w-full text-center text-sm text-text-muted underline-offset-2 hover:text-text-display hover:underline">
@@ -165,7 +163,7 @@ function Purchase({ live, viewer, offer, initialQuantity, onBought, state }: Pur
   if (live.seatsOpen === 0 && !state.buying) {
     return (
       <div className="space-y-2">
-        <button type="button" disabled className={`${CTA} bg-bg-elevated text-text-muted`}>
+        <button type="button" disabled className={plate({ kind: "ghost", block: true })}>
           {t("soldOut")}
         </button>
         <p className="text-xs leading-relaxed text-text-muted">{t("soldOutText")}</p>
@@ -207,7 +205,7 @@ export function BuyBox({ view, viewer, offer, initialQuantity, onBought }: BuyBo
   const [error, setError] = useState<string | null>(null);
   const state: PurchaseState = { buying, setBuying, error, setError };
   return (
-    <div className="space-y-4 rounded-md border border-border-strong bg-bg-base p-4 md:p-5">
+    <Panel tone="gold" shadow="gold" className="space-y-4 p-4 md:p-5">
       <SeatsLine live={live} priceCents={offer.priceCents} />
       {mine && visibleEntries(mine.entries).map((entry) => <MyEntryCard key={entry.id} entry={entry} dotaId={viewer.dotaId} onChanged={onBought} />)}
       {mine?.pending && <PendingPayment pending={mine.pending} />}
@@ -216,6 +214,6 @@ export function BuyBox({ view, viewer, offer, initialQuantity, onBought }: BuyBo
       <div id="fila-erro">
         <PurchaseError error={mine?.pending?.pix ? null : error} />
       </div>
-    </div>
+    </Panel>
   );
 }
