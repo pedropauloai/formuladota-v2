@@ -8,7 +8,7 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { createPixPayment, isTestMode } from "@/lib/mercadopago";
 import { publicEnv } from "@/lib/env";
 import { getActiveProduct, type StoreProduct, type StoreVariant } from "./catalog";
-import { buildCheckoutSchema, detailsFrom, fieldErrors, type CheckoutInput } from "./checkout-schema";
+import { buildCheckoutSchema, detailsFrom, fieldErrors, type PaymentMethod } from "./checkout-schema";
 import { toStoreReference } from "./refs";
 import { centsToReais } from "./money";
 import { createCardPreference } from "./mercadopago";
@@ -29,16 +29,27 @@ export interface CreateOrderArgs {
   origin: Origin | null;
 }
 
-/** O que foi vendido, já com o preço final: o mesmo valor vai para o pedido e para o Mercado Pago. */
-interface PricedOrder {
+/** O que foi vendido, já com o preço final e o comprador: o mesmo valor vai para o pedido e para o Mercado Pago. */
+export interface PricedOrder {
   product: StoreProduct;
   variant: StoreVariant;
-  input: CheckoutInput;
   amountCents: number;
   quantity: number;
   label: string;
+  method: PaymentMethod;
+  /** WhatsApp null no pedido da fila da party: o Pedro convida pela Steam. */
+  buyer: { name: string; email: string; whatsapp: string | null };
+  /** Respostas do formulário do produto, ou o que a fila da party sabe pela Steam. */
+  details: Record<string, string | number>;
   /** Prazo para pagar quando o pedido segura horário na agenda; sem horário, o padrão de 24 h. */
   paymentMinutes?: number;
+}
+
+export interface OrderContext {
+  userId: string | null;
+  origin: Origin | null;
+  /** Para onde o Checkout Pro devolve o comprador; o padrão é a página do pedido. */
+  returnPath?: (orderId: string) => string;
 }
 
 function siteUrl(): string {
@@ -66,6 +77,12 @@ async function soldOutMessage(product: StoreProduct, quantity: number): Promise<
 }
 
 type ChoiceResult = BookingChoice | { error: string; field: "slot_start" | "live_id" } | null;
+
+/** Campo do formulário que mostra o erro da reserva. */
+function choiceField(choice: BookingChoice): string {
+  if (choice.kind === "agenda") return "slot_start";
+  return choice.kind === "live" ? "live_id" : "quantity";
+}
 
 /** O horário (ou a live) que o produto exige; erro no campo quando faltou escolher. */
 function bookingChoice(product: StoreProduct, data: Record<string, unknown>): ChoiceResult {
@@ -120,21 +137,29 @@ export async function createStoreOrder(args: CreateOrderArgs): Promise<CreateOrd
   if (soldOut) return { ok: false, error: soldOut };
 
   const order: PricedOrder = {
-    product, variant, input: parsed.data, amountCents: price.amountCents, quantity: price.quantity, label: price.label,
+    product, variant, amountCents: price.amountCents, quantity: price.quantity, label: price.label,
+    method: parsed.data.method,
+    buyer: { name: parsed.data.name, email: parsed.data.email, whatsapp: parsed.data.whatsapp },
+    details: detailsFrom(parsed.data as Record<string, unknown>, product.formFields),
     paymentMinutes: choice ? AGENDA.paymentMinutes : undefined,
   };
-  const orderId = await insertOrder(order, args);
+  return openStoreOrder(order, args, choice);
+}
+
+/** Grava o pedido, segura o horário (ou a vaga) e abre o pagamento. A fila da party entra por aqui também. */
+export async function openStoreOrder(order: PricedOrder, ctx: OrderContext, choice: BookingChoice | null): Promise<CreateOrderResult> {
+  const orderId = await insertOrder(order, ctx);
   if (!orderId) return { ok: false, error: "Não deu para registrar o pedido. Tente de novo em instantes." };
   if (choice) {
     const problem = await holdBooking(orderId, order, choice);
-    if (problem) return { ok: false, error: problem, fieldErrors: { [choice.kind === "agenda" ? "slot_start" : "live_id"]: problem } };
+    if (problem) return { ok: false, error: problem, fieldErrors: { [choiceField(choice)]: problem } };
   }
-  return parsed.data.method === "pix" ? startPix(orderId, order) : startCard(orderId, order);
+  return order.method === "pix" ? startPix(orderId, order) : startCard(orderId, order, ctx);
 }
 
-async function insertOrder(order: PricedOrder, args: CreateOrderArgs): Promise<string | null> {
-  const origin = args.origin ?? {};
-  const { product, variant, input } = order;
+async function insertOrder(order: PricedOrder, ctx: OrderContext): Promise<string | null> {
+  const origin = ctx.origin ?? {};
+  const { product, variant, buyer } = order;
   const { data, error } = await createServiceClient()
     .from("store_orders")
     .insert({
@@ -144,12 +169,12 @@ async function insertOrder(order: PricedOrder, args: CreateOrderArgs): Promise<s
       variant_label: order.label,
       amount_cents: order.amountCents,
       quantity: order.quantity,
-      user_id: args.userId,
-      buyer_name: input.name,
-      buyer_email: input.email,
-      buyer_whatsapp: input.whatsapp,
-      details: detailsFrom(input as Record<string, unknown>, product.formFields),
-      payment_method: input.method,
+      user_id: ctx.userId,
+      buyer_name: buyer.name,
+      buyer_email: buyer.email,
+      buyer_whatsapp: buyer.whatsapp,
+      details: order.details,
+      payment_method: order.method,
       utm_source: origin.utm_source ?? null,
       utm_medium: origin.utm_medium ?? null,
       utm_campaign: origin.utm_campaign ?? null,
@@ -183,11 +208,11 @@ function splitName(name: string): { first: string; last?: string } {
 }
 
 async function startPix(orderId: string, order: PricedOrder): Promise<CreateOrderResult> {
-  const { first, last } = splitName(order.input.name);
+  const { first, last } = splitName(order.buyer.name);
   const pix = await createPixPayment({
     amount: centsToReais(order.amountCents),
     description: `FORMULADOTA: ${order.product.title} (${order.label})`.slice(0, 200),
-    payerEmail: order.input.email,
+    payerEmail: order.buyer.email,
     payerFirstName: first,
     payerLastName: last,
     externalReference: toStoreReference(orderId),
@@ -217,15 +242,15 @@ async function startPix(orderId: string, order: PricedOrder): Promise<CreateOrde
   return { ok: true, orderId, redirectUrl: `/loja/pedido/${orderId}` };
 }
 
-async function startCard(orderId: string, order: PricedOrder): Promise<CreateOrderResult> {
+async function startCard(orderId: string, order: PricedOrder, ctx: OrderContext): Promise<CreateOrderResult> {
   const preference = await createCardPreference({
     orderRef: toStoreReference(orderId),
     itemId: order.variant.id,
     title: `${order.product.title}: ${order.label}`,
     description: order.product.summary || order.product.title,
     amountCents: order.amountCents,
-    payer: { name: order.input.name, email: order.input.email, whatsapp: order.input.whatsapp },
-    returnUrl: `${siteUrl()}/loja/pedido/${orderId}`,
+    payer: order.buyer,
+    returnUrl: `${siteUrl()}${ctx.returnPath ? ctx.returnPath(orderId) : `/loja/pedido/${orderId}`}`,
     notificationUrl: notificationUrl(),
     ttlMinutes: order.paymentMinutes,
   });

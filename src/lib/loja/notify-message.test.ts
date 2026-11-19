@@ -49,9 +49,20 @@ describe("buildDiscordSalePayload", () => {
 
 describe("whatsappLink", () => {
   it("abre a conversa com o primeiro nome e o produto", () => {
-    const link = decodeURIComponent(whatsappLink(sale));
+    const link = decodeURIComponent(whatsappLink(sale) ?? "");
     expect(link).toContain("Oi, Ana!");
     expect(link).toContain("Mentoria 1:1");
+  });
+
+  it("pedido da fila da party sem WhatsApp: sem link, e o aviso mostra a Steam", () => {
+    const fila: SaleInfo = { ...sale, productTitle: "Vaga na party da live", buyerWhatsapp: null, details: { dota_id: "123456789", steam: "https://steamcommunity.com/profiles/76561198000000000" } };
+    expect(whatsappLink(fila)).toBeNull();
+    const fields = buildDiscordSalePayload(fila).embeds[0]?.fields ?? [];
+    const names = fields.map((f) => f.name);
+    expect(names).not.toContain("WhatsApp");
+    expect(names).toContain("Steam");
+    expect(names).toContain("ID do Dota");
+    expect(buildSaleEmail(fila).text).not.toContain("WhatsApp");
   });
 });
 

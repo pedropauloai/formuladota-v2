@@ -30,7 +30,7 @@ interface OrderListRow {
   product_title: string;
   variant_label: string;
   buyer_name: string;
-  buyer_whatsapp: string;
+  buyer_whatsapp: string | null;
   amount_cents: number;
   payment_method: string;
   status: string;
@@ -39,6 +39,16 @@ interface OrderListRow {
   is_test: boolean;
   notified_at: string | null;
   fulfilled_at: string | null;
+}
+
+/** Nome do comprador com o atalho do WhatsApp; o pedido da fila da party não tem WhatsApp. */
+function BuyerName({ name, whatsapp }: { name: string; whatsapp: string | null }) {
+  if (!whatsapp) return <span className="text-text-display">{name}</span>;
+  return (
+    <a className="text-text-display underline-offset-2 hover:underline" href={whatsapp} target="_blank" rel="noreferrer">
+      {name}
+    </a>
+  );
 }
 
 export default async function AdminLojaPage({ searchParams }: { searchParams: SearchParams }) {
@@ -161,7 +171,7 @@ function OrdersTable({ orders, t }: { orders: OrderListRow[]; t: Translator }) {
                 <td className="whitespace-nowrap px-3 py-2">{date.format(new Date(o.created_at))}</td>
                 <td className="px-3 py-2">{o.product_title}<span className="block text-xs text-text-faded">{o.variant_label}{o.is_test ? " · teste" : ""}</span></td>
                 <td className="px-3 py-2">
-                  <a className="text-text-display underline-offset-2 hover:underline" href={whatsappLink({ buyerWhatsapp: o.buyer_whatsapp, buyerName: o.buyer_name, productTitle: o.product_title })} target="_blank" rel="noreferrer">{o.buyer_name}</a>
+                  <BuyerName name={o.buyer_name} whatsapp={whatsappLink({ buyerWhatsapp: o.buyer_whatsapp, buyerName: o.buyer_name, productTitle: o.product_title })} />
                 </td>
                 <td className="whitespace-nowrap px-3 py-2 tabular-nums">{formatBRL(o.amount_cents)}<span className="block text-xs text-text-faded">{o.payment_method === "pix" ? "Pix" : "Cartão"}</span></td>
                 <td className="px-3 py-2">{o.status}{(o.status === "pago" || o.status === "em_revisao") && !o.notified_at ? <span className="block text-xs text-warning">{t("adminNotNotified")}</span> : null}</td>
