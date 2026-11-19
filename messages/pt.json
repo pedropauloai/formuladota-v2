@@ -226,8 +226,7 @@
       "banned": "Banido",
       "suspended": "Suspenso",
       "vs": "vs"
-    },
-    "playWithPedro": "Jogar com o PPA"
+    }
   },
   "hoverCard": {
     "level": "Nível {level}",
@@ -301,7 +300,12 @@
     "proSubtitle": "Ranking oficial do Dota",
     "proDesc": "Entre na fila de um PRO. Ele organiza o grupo e vocês sobem MMR juntos no ranking oficial. Exige 1 ficha + 1 permissão.",
     "viewPros": "Ver PROs na fila",
-    "quizModalidade": "buscar partida"
+    "quizModalidade": "buscar partida",
+    "partyTitle": "Party do PPA",
+    "partySubtitle": "Uma vaga no time dele, na live",
+    "partySubtitleLive": "Ao vivo agora: entre na fila",
+    "partyDesc": "Você garante a vaga, entra na fila e o PPA convida você pelo ID do Dota quando chegar a sua vez.",
+    "partyCta": "Ver a fila da party"
   },
   "torneios": {
     "metaTitle": "Torneios — FORMULADOTA",

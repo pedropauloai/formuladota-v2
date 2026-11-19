@@ -17,7 +17,7 @@ export interface PlayMenuState {
   /** lobby aberto (view sala). */
   l: string | null;
   /** modalidade ativa no menu. */
-  a: "competitiva" | "salas" | "pro";
+  a: "competitiva" | "salas" | "pro" | "party";
   /** funções escolhidas na última busca — persistem entre sessões (Pedro 2026-07-01):
       o jogador não precisa remarcar toda vez que vai findar de novo. */
   r?: QueueRole[];

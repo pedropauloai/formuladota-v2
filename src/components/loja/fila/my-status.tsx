@@ -8,7 +8,7 @@ import { useTranslations } from "next-intl";
 import { CheckCircle2, Gamepad2, Hourglass, Loader2, LogOut, XCircle } from "lucide-react";
 import { PixPanel } from "@/components/loja/pix-panel";
 import { cn } from "@/lib/utils";
-import { plate } from "@/components/v2";
+import { CtaWarp, plate } from "@/components/v2";
 import { formatPrice } from "@/lib/loja/money";
 import type { MyPendingOrder, MyQueueEntry } from "@/lib/loja/fila/model";
 import { sairDaFila } from "@/app/party/actions";
@@ -30,6 +30,7 @@ function CalledCard({ entry, dotaId }: { entry: MyQueueEntry; dotaId: string | n
         href={OPEN_DOTA_URL}
         className={cn(plate({ kind: "cta" }), "hidden md:inline-flex")}
       >
+        <CtaWarp />
         {t("openDota")}
       </a>
     </section>

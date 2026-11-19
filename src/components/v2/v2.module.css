@@ -1,8 +1,8 @@
 /*
  * Design 2.0: a pele do cliente do Dota 2 levada da barra superior (PR 155) para o conteúdo.
- * Botão levemente arredondado (o verde com um feixe de luz na borda), etiqueta inclinada como as
- * placas da barra, painel reto de metal, preço em ouro, brasas e brilho. Toda cor sai dos tokens
- * semânticos. Catálogo vivo em /admin/design.
+ * Botão principal no molde do designcode.io (moldura de metal, linhas de luz, feixe na borda),
+ * botões de metal levemente arredondados, etiqueta inclinada como as placas da barra, painel
+ * reto de metal, preço em ouro, brasas e brilho. Catálogo vivo em /admin/design.
  */
 
 /* Ângulo do feixe de luz que corre a borda (botão principal e painel de destaque). Registrado
@@ -10,13 +10,6 @@
 @property --beam-angle {
   syntax: "<angle>";
   initial-value: 0deg;
-  inherits: false;
-}
-
-/* Deslocamento das linhas de velocidade do botão, que andam do centro para fora. */
-@property --warp-shift {
-  syntax: "<length>";
-  initial-value: 0px;
   inherits: false;
 }
 
@@ -164,121 +157,93 @@
     transform: scale(0.97);
   }
 
-  /* Chamada principal: o verde do JOGAR DOTA com um feixe de luz que dá a volta na borda sem
-     parar, e chama o olho também no celular. Com o mouse em cima ou no foco do teclado, linhas de
-     velocidade saem do centro (a ideia do botão do designcode.io, na cor da chamada). A cor vem
-     das variáveis --cta-*, que a chamada da marca troca. No celular cabe em 320 px. */
+  /* Chamada principal no molde do botão do designcode.io (referência do Pedro, 20/11/2026):
+     moldura de metal de 5 px, tela escura por dentro com linhas de luz (o canvas <CtaWarp />,
+     primeiro filho do botão), letra pequena e espaçada com brilho. Com o mouse, sobe 2 px e as
+     linhas aceleram; ao apertar, desce e encolhe. Em volta, o feixe de luz que o Pedro escolheu.
+     Na paleta da marca (o roxo da referência destoava): a luz é o verde de jogar e entrar, a
+     moldura é metal neutro; a chamada vermelha troca a luz para o vermelho da marca. */
   .cta {
-    --cta-top: var(--color-play-primary);
-    --cta-bottom: var(--color-play-primary-hover);
-    --cta-glow: var(--color-play-primary-glow);
+    --cta-light: var(--color-play-primary);
+    --cta-glow: var(--color-play-primary-hover);
+    --cta-ink: var(--color-text-display);
+    --cta-screen: color-mix(in oklab, var(--color-bg-deep), black 45%);
+    --cta-bezel: 5px;
+    --cta-radius: 14px;
     min-height: 3.25rem;
-    padding-inline: 1.5rem;
+    padding-inline: 1.25rem;
+    border: var(--cta-bezel) solid transparent;
+    border-radius: var(--cta-radius);
     font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 0.9375rem;
-    letter-spacing: 0.12em;
+    font-weight: 500;
+    font-size: 0.78rem;
+    letter-spacing: 0.28em;
     text-transform: uppercase;
-    color: var(--color-text-display);
+    color: var(--cta-ink);
+    text-shadow:
+      0 0 14px color-mix(in srgb, var(--cta-light) 55%, transparent),
+      0 1px 6px rgb(0 0 0 / 0.9);
     background:
-      linear-gradient(to bottom, var(--white-lo), transparent 48%),
-      linear-gradient(to bottom, var(--cta-top), var(--cta-bottom));
+      linear-gradient(var(--cta-screen), var(--cta-screen)) padding-box,
+      linear-gradient(to bottom, var(--white-lo) 0 1px, transparent 1px) border-box,
+      linear-gradient(
+          to bottom,
+          color-mix(in oklab, var(--color-bg-elevated), var(--color-text-display) 16%),
+          var(--color-bg-deep) 55%,
+          color-mix(in oklab, var(--color-bg-elevated), var(--color-text-display) 8%)
+        )
+        border-box;
     box-shadow:
-      inset 0 1px 0 var(--white-hi),
-      inset 0 -2px 0 var(--shade),
-      0 0 18px var(--cta-glow);
-  }
-
-  @media (min-width: 40rem) {
-    .cta {
-      padding-inline: 2rem;
-      font-size: 1.0625rem;
-      letter-spacing: 0.2em;
-    }
-  }
-
-  /* Linhas de velocidade: raios do centro, recortados em traços que andam para fora. O miolo
-     fica livre para o texto. Só aparecem no mouse e no foco; parado, o botão fica limpo. */
-  .cta::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    border-radius: inherit;
-    pointer-events: none;
-    background: repeating-conic-gradient(
-      from 0deg,
-      transparent 0deg 6deg,
-      color-mix(in oklab, var(--color-text-display) 60%, transparent) 6.5deg,
-      transparent 7deg
-    );
-    -webkit-mask:
-      radial-gradient(farthest-side, transparent 35%, black 100%),
-      repeating-radial-gradient(
-        circle,
-        transparent calc(var(--warp-shift) - 22px),
-        black calc(var(--warp-shift) - 14px),
-        transparent calc(var(--warp-shift) - 4px),
-        transparent var(--warp-shift)
-      );
-    -webkit-mask-composite: source-in;
-    mask:
-      radial-gradient(farthest-side, transparent 35%, black 100%),
-      repeating-radial-gradient(
-        circle,
-        transparent calc(var(--warp-shift) - 22px),
-        black calc(var(--warp-shift) - 14px),
-        transparent calc(var(--warp-shift) - 4px),
-        transparent var(--warp-shift)
-      );
-    mask-composite: intersect;
-    opacity: 0;
-    transition: opacity 200ms var(--ease-out-strong);
-  }
-
-  .cta:focus-visible::before {
-    opacity: 1;
-    animation: warp 0.5s linear infinite;
+      inset 0 2px 8px rgb(0 0 0 / 0.9),
+      0 22px 44px color-mix(in oklab, var(--color-bg-deep) 60%, transparent),
+      0 3px 10px rgb(0 0 0 / 0.35);
+    transition:
+      transform 0.3s cubic-bezier(0.34, 1.4, 0.5, 1),
+      box-shadow 0.3s ease;
   }
 
   /* Só onde existe mouse: no toque, o hover ficaria preso depois do clique. */
   @media (hover: hover) and (pointer: fine) {
     .cta:hover {
-      filter: brightness(1.08);
+      transform: translateY(-2px);
       box-shadow:
-        inset 0 1px 0 var(--white-hi),
-        inset 0 -2px 0 var(--shade),
-        0 0 28px 2px color-mix(in oklab, var(--cta-top) 45%, transparent);
-    }
-
-    .cta:hover::before {
-      opacity: 1;
-      animation: warp 0.5s linear infinite;
+        inset 0 2px 8px rgb(0 0 0 / 0.9),
+        0 28px 56px color-mix(in srgb, var(--cta-glow) 28%, transparent),
+        0 4px 12px rgb(0 0 0 / 0.4);
     }
   }
 
-  @keyframes warp {
-    to {
-      --warp-shift: 22px;
-    }
+  .cta:active {
+    transform: translateY(1px) scale(0.985);
   }
 
-  /* Feixe: um cometa com a cauda na cor do botão e a cabeça branca, dando a volta na borda. */
+  /* Tela das linhas de luz: a parte de dentro da moldura, atrás do texto. */
+  .ctaWarp {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    border-radius: calc(var(--cta-radius) - var(--cta-bezel));
+    pointer-events: none;
+  }
+
+  /* Feixe: um cometa de luz dando a volta na moldura, com a cauda na cor da luz. */
   .cta::after {
     content: "";
     position: absolute;
-    inset: -3px;
+    inset: calc(-1 * var(--cta-bezel) - 3px);
     z-index: -1;
     padding: 3px;
-    border-radius: calc(var(--radius-button) + 3px);
+    border-radius: calc(var(--cta-radius) + 3px);
     pointer-events: none;
     background: conic-gradient(
       from var(--beam-angle),
-      color-mix(in oklab, var(--cta-top) 25%, transparent) 0 46%,
-      var(--cta-top) 66%,
-      var(--color-text-display) 79% 85%,
-      var(--cta-top) 90%,
-      color-mix(in oklab, var(--cta-top) 25%, transparent) 97%
+      color-mix(in srgb, var(--cta-light) 20%, transparent) 0 46%,
+      var(--cta-light) 66%,
+      var(--cta-ink) 79% 85%,
+      var(--cta-light) 90%,
+      color-mix(in srgb, var(--cta-light) 20%, transparent) 97%
     );
     /* Só a moldura de 3 px aparece em volta do botão: a máscara tira o miolo. */
     -webkit-mask: linear-gradient(black 0 0) content-box, linear-gradient(black 0 0);
@@ -296,8 +261,8 @@
   @media (min-width: 48rem) {
     .large {
       min-height: 3.75rem;
-      padding-inline: 2.5rem;
-      font-size: 1.1875rem;
+      padding-inline: 1.75rem;
+      font-size: 0.875rem;
     }
   }
 
@@ -306,11 +271,10 @@
     width: 100%;
   }
 
-  /* Chamada da marca: vermelha, com as linhas de velocidade; o feixe é só da verde, a principal. */
+  /* Chamada da marca: a mesma moldura, com a luz vermelha; o feixe fica só na principal. */
   .brand {
-    --cta-top: var(--color-brand-primary);
-    --cta-bottom: var(--color-brand-primary-hover);
-    --cta-glow: transparent;
+    --cta-light: var(--color-brand-primary);
+    --cta-glow: var(--color-brand-primary);
   }
 
   .brand::after {
@@ -585,10 +549,7 @@
 
   @media (prefers-reduced-motion: reduce) {
     .panelShine::after,
-    .cta::before,
     .cta::after,
-    .cta:hover::before,
-    .cta:focus-visible::before,
     .liveDot::after,
     .slotYou,
     .ember {
@@ -600,7 +561,7 @@
     }
 
     .plate,
-    .cta::before {
+    .cta {
       transition: none;
     }
   }

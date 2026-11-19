@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils";
 import { useSound } from "@/lib/sound/hooks";
 import { signInWithDiscord } from "@/app/login/actions";
 import { BrandGlyph } from "@/components/loja/brand-glyph";
-import { Embers, HexBadge, Panel, plate, v2Page } from "@/components/v2";
+import { CtaWarp, Embers, HexBadge, Panel, plate, v2Page } from "@/components/v2";
 
 export interface HubCenterProps {
   /** True = visitante deslogado. Adapta só o CTA (login vs jogar). */
@@ -131,12 +131,14 @@ function Actions({ isVisitor, showRankedComPro, prosOnlineCount }: Required<HubC
       {isVisitor ? (
         <form action={signInWithDiscord}>
           <button type="submit" onClick={() => play("click")} className={cn(cta, "w-full sm:w-auto")}>
+            <CtaWarp />
             <BrandGlyph brand="discord" size={22} className="[&_path]:fill-current" />
             {t("ctaLogin")}
           </button>
         </form>
       ) : (
         <Link href={ctaHref} onClick={() => play("click")} className={cn(cta, "w-full sm:w-auto")}>
+          <CtaWarp />
           <Swords size={20} aria-hidden="true" />
           {ctaLabel}
         </Link>

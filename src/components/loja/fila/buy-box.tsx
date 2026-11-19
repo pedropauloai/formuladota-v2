@@ -11,7 +11,7 @@ import { useSound } from "@/lib/sound/hooks";
 import { formatPrice } from "@/lib/loja/money";
 import { garantirVaga } from "@/app/party/actions";
 import type { MyQueueEntry, PublicLive, QueueView } from "@/lib/loja/fila/model";
-import { Panel, Price, plate } from "@/components/v2";
+import { CtaWarp, Panel, Price, plate } from "@/components/v2";
 import { cn } from "@/lib/utils";
 import { MyEntryCard, PendingPayment } from "./my-status";
 
@@ -48,6 +48,7 @@ function Gate({ href, label, text }: { href: string; label: string; text: string
   return (
     <div className="space-y-3">
       <a href={href} className={plate({ kind: "brand", block: true })}>
+        <CtaWarp />
         <LogIn size={18} aria-hidden="true" /> {label}
       </a>
       <p className="text-xs leading-relaxed text-text-muted">{text}</p>
@@ -125,6 +126,7 @@ function BuyForm({ max, priceCents, initialQuantity, onBought, state }: BuyFormP
     <div id="fila-comprar" className="space-y-3">
       {max > 1 && <Stepper value={count} max={max} onChange={setQuantity} />}
       <button type="button" data-fila-comprar="pix" disabled={pending} onClick={() => buy("pix")} className={plate({ kind: "cta", large: true, block: true })}>
+        <CtaWarp />
         {pending ? t("buying") : t("buy", { price: formatPrice(priceCents * count) })}
       </button>
       <button type="button" data-fila-comprar="cartao" disabled={pending} onClick={() => buy("cartao")} className="w-full text-center text-sm text-text-muted underline-offset-2 hover:text-text-display hover:underline">

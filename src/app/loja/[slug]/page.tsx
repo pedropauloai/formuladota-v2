@@ -24,7 +24,7 @@ import { getAgendaData, getUpcomingLives } from "@/lib/loja/agenda-server";
 import type { StoreProduct } from "@/lib/loja/catalog";
 import { mdBullets } from "@/lib/loja/text";
 import { cn } from "@/lib/utils";
-import { Panel, Price, plate, v2Page } from "@/components/v2";
+import { CtaWarp, Panel, Price, plate, v2Page } from "@/components/v2";
 
 type Params = { params: Promise<{ slug: string }> };
 type PageProps = Params & { searchParams: Promise<Record<string, string | string[] | undefined>> };
@@ -131,6 +131,7 @@ export default async function ProdutoPage({ params, searchParams }: PageProps) {
             <Panel tone="gold" shadow="gold" className="space-y-4 p-5">
               <p className="text-sm text-text-body">{t("loginRequired")}</p>
               <a href={`/login?next=${encodeURIComponent(`/loja/${product.slug}`)}`} className={plate({ kind: "brand", block: true })}>
+                <CtaWarp />
                 <LogIn size={16} aria-hidden="true" /> {t("login")}
               </a>
             </Panel>

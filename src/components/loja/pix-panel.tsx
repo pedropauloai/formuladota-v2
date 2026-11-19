@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Copy, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { panel, plate } from "@/components/v2";
+import { CtaWarp, panel, plate } from "@/components/v2";
 
 interface PixPanelProps {
   copiaECola: string;
@@ -47,6 +47,7 @@ export function PixPanel({ copiaECola, qrDataUrl, expiresAt, qrDesktopOnly = fal
           {copiaECola}
         </code>
         <button type="button" onClick={copy} className={plate({ kind: "cta", block: true })}>
+          <CtaWarp />
           {copied ? <Check size={16} aria-hidden="true" /> : <Copy size={16} aria-hidden="true" />}
           {copied ? t("pixCopied") : t("pixCopy")}
         </button>

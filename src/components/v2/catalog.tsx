@@ -8,6 +8,7 @@ import { Embers, HexBadge, LiveDot, Panel, Price } from "./pieces";
 import { ImmortalMedal } from "./immortal-medal";
 import { PartyLineup } from "./party-lineup";
 import { lift, panel, plate, v2Page } from "./plate";
+import { CtaWarp } from "./cta-warp";
 
 const PPA = { avatarUrl: "/loja/ppa-avatar-256.webp", label: "PPA" };
 
@@ -32,17 +33,27 @@ function Plates() {
     <Section title="Botões e etiquetas" text="Botão levemente arredondado. O verde compra ou entra, com um feixe de luz na borda e linhas de velocidade no mouse; o vermelho é a marca; o metal leva a detalhes. A etiqueta mantém a placa inclinada da barra superior.">
       <div className="flex flex-wrap items-center gap-6">
         <a href="#placas" className={plate({ kind: "cta", large: true })}>
+          <CtaWarp />
           Garantir minha vaga
           <ArrowRight size={20} aria-hidden="true" />
         </a>
-        <a href="#placas" className={plate({ kind: "cta" })}>Comprar</a>
-        <a href="#placas" className={plate({ kind: "brand" })}>Entrar</a>
+        <a href="#placas" className={plate({ kind: "cta" })}>
+          <CtaWarp />
+          Comprar
+        </a>
+        <a href="#placas" className={plate({ kind: "brand" })}>
+          <CtaWarp />
+          Entrar
+        </a>
         <a href="#placas" className={plate({ kind: "ghost" })}>
           Ver detalhes
           <ArrowRight size={14} aria-hidden="true" />
         </a>
         <a href="#placas" className={plate({ kind: "ghost", small: true })}>Comprar</a>
-        <button type="button" disabled className={plate({ kind: "cta" })}>Esgotado</button>
+        <button type="button" disabled className={plate({ kind: "cta" })}>
+          <CtaWarp />
+          Esgotado
+        </button>
       </div>
       <div className="flex flex-wrap items-center gap-4">
         <span className={plate({ kind: "tag" })}>Fora da live</span>
