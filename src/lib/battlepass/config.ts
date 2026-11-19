@@ -12,6 +12,8 @@ export const BATTLEPASS = {
   cardGraceDays: 3,
   /** O Pix vence em 24 h, como o da loja; a página confere sozinha enquanto está aberta. */
   pixMinutes: 24 * 60,
+  /** Primeiro dia à venda em produção: o teste de 30 dias conta daqui (spec, "Teste de 30 dias"). */
+  onSaleSince: "2026-11-19T03:00:00Z",
 } as const;
 
 export const DAY_MS = 24 * 60 * 60 * 1000;
