@@ -11,13 +11,19 @@ function initials(name: string): string {
   return name.trim().slice(0, 2).toUpperCase() || "?";
 }
 
-function Who({ entry, mine }: { entry: PublicEntry; mine: boolean }) {
+/** Avatar e nome com a linha de detalhe embaixo: o nome fica com a largura toda do cartão. */
+function Who({ entry, mine, detail }: { entry: PublicEntry; mine: boolean; detail: React.ReactNode }) {
   const t = useTranslations("fila");
   return (
-    <span className="flex min-w-0 items-center gap-2.5">
+    <span className="flex min-w-0 flex-1 items-center gap-2.5">
       <UserAvatar src={entry.avatarUrl ?? undefined} alt={entry.name} fallback={initials(entry.name)} size="sm" />
-      <span className="truncate text-sm font-medium text-text-display">{entry.name}</span>
-      {mine && <span className="shrink-0 rounded-sm bg-gold/15 px-1.5 py-0.5 text-xs font-medium text-gold">{t("you")}</span>}
+      <span className="min-w-0 flex-1">
+        <span className="flex min-w-0 items-center gap-2">
+          <span className="truncate text-sm font-medium text-text-display">{entry.name}</span>
+          {mine && <span className="shrink-0 rounded-sm bg-gold/15 px-1.5 py-0.5 text-xs font-medium text-gold">{t("you")}</span>}
+        </span>
+        <span className="block truncate text-xs text-text-muted">{detail}</span>
+      </span>
     </span>
   );
 }
@@ -36,14 +42,11 @@ function Card({ title, aside, children }: { title: string; aside?: string; child
 
 function QueueRow({ entry, mine }: { entry: PublicQueuedEntry; mine: boolean }) {
   const t = useTranslations("fila");
+  const turn = entry.matchesUntilTurn === 0 ? t("queueNext") : t("queueIn", { count: entry.matchesUntilTurn });
   return (
-    <li className={`flex items-center gap-3 py-2 ${mine ? "rounded-sm bg-gold/5 px-2 -mx-2" : ""}`}>
+    <li className={`flex items-center gap-3 py-2 ${mine ? "-mx-2 rounded-sm bg-gold/5 px-2" : ""}`}>
       <span className="w-6 shrink-0 text-right font-display text-lg leading-none tabular-nums text-text-muted">{entry.position}</span>
-      <Who entry={entry} mine={mine} />
-      <span className="ml-auto shrink-0 text-right text-xs leading-tight text-text-muted">
-        <span className="block">{entry.matchesUntilTurn === 0 ? t("queueNext") : t("queueIn", { count: entry.matchesUntilTurn })}</span>
-        <span className="block text-text-faded">{t("queueMatches", { count: entry.matches })}</span>
-      </span>
+      <Who entry={entry} mine={mine} detail={`${turn} · ${t("queueMatches", { count: entry.matches })}`} />
     </li>
   );
 }
@@ -60,10 +63,11 @@ export function PartyRoster({ queue, mine }: { queue: PublicQueue; mine: Readonl
           <ul className="divide-y divide-border-subtle">
             {queue.party.map((entry) => (
               <li key={entry.id} className="flex items-center gap-3 py-2">
-                <Who entry={entry} mine={mine.has(entry.id)} />
-                <span className="ml-auto shrink-0 text-xs text-play-primary">
-                  {t("partyMatch", { current: Math.min(entry.played + 1, entry.matches), total: entry.matches })}
-                </span>
+                <Who
+                  entry={entry}
+                  mine={mine.has(entry.id)}
+                  detail={<span className="text-play-primary">{t("partyMatch", { current: Math.min(entry.played + 1, entry.matches), total: entry.matches })}</span>}
+                />
               </li>
             ))}
           </ul>

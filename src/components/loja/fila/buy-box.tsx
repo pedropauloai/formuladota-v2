@@ -124,8 +124,7 @@ function Purchase({ live, viewer, offer, onBought }: { live: PublicLive | null; 
   const t = useTranslations("fila");
   if (!offer.onSale) return <p className="text-sm text-text-muted">{t("errors.fechada")}</p>;
   if (!live) return null;
-  if (!viewer.loggedIn) return <Gate href="/login?next=%2Fparty" label={t("loginCta")} text={t("loginText")} />;
-  if (!viewer.hasSteam) return <Gate href="/vincular/steam?next=%2Fparty" label={t("steamCta")} text={t("steamText")} />;
+  // Esgotado vem antes do login: o botão de entrar prometeria uma vaga que não existe agora.
   if (live.seatsOpen === 0) {
     return (
       <div className="space-y-2">
@@ -136,6 +135,8 @@ function Purchase({ live, viewer, offer, onBought }: { live: PublicLive | null; 
       </div>
     );
   }
+  if (!viewer.loggedIn) return <Gate href="/login?next=%2Fparty" label={t("loginCta")} text={t("loginText")} />;
+  if (!viewer.hasSteam) return <Gate href="/vincular/steam?next=%2Fparty" label={t("steamCta")} text={t("steamText")} />;
   return <BuyForm max={Math.min(offer.maxQuantity, live.seatsOpen)} priceCents={offer.priceCents} onBought={onBought} />;
 }
 

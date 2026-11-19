@@ -36,6 +36,10 @@ confere "/rankedpt" "307 $U/ranked-com-pro" "$(destino "$U/rankedpt")"
 confere "imagem do placar" "200 image/png" "$(curl $R -s -o /dev/null --max-time 30 -w '%{http_code} %{content_type}' "$U/partida/historico/8883379496/opengraph-image")"
 # Prévia própria da loja: og:url da página, não da home.
 if curl $R -fsSL --max-time 30 "$U/loja" | grep -q "property=\"og:url\" content=\"$U/loja\""; then confere "prévia da /loja" sim sim; else confere "prévia da /loja" sim nao; fi
+# Fila da party (docs/loja/fila-da-party.md): a página nos dois slugs e o JSON que os overlays da live leem.
+for p in /party /grupo; do confere "$p" 200 "$(status "$U$p")"; done
+fila=$(curl $R -s -i --max-time 20 "$U/api/party/fila" | tr -d '\r')
+if printf '%s' "$fila" | grep -qi '^access-control-allow-origin: \*' && printf '%s' "$fila" | grep -q '"updatedAt"'; then confere "fila da party em JSON para os overlays" sim sim; else confere "fila da party em JSON para os overlays" sim nao; fi
 # Arquivo com hash no nome guardado pelo navegador por um ano (public/_headers).
 chunk=$(curl $R -fsSL --max-time 30 "$U/" | grep -o '/_next/static/[^"]*\.js' | head -1)
 cc=$(curl $R -s -o /dev/null -D - --max-time 20 "$U$chunk" | tr -d '\r' | grep -i '^cache-control:' | head -1)

@@ -142,7 +142,7 @@ function Cta({
         data-cta="jogar-com-o-pedro"
         style={{ marginRight: "2.5rem" }}
         // "Jogar com o Pedro" é mais longo que "Jogar Dota": menos espaço entre letras na mesma largura.
-        className={`${base.replace("tracking-[0.25em]", "tracking-[0.1em]").replace("gap-3", "gap-2")} border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover text-text-display shadow-[var(--color-play-primary-glow)]`}
+        className={`${base.replace("tracking-[0.25em]", "tracking-[0.06em] xl:tracking-[0.1em]").replace("gap-3", "gap-2").replace(" text-lg ", " text-base ")} border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover text-text-display shadow-[var(--color-play-primary-glow)]`}
       >
         <Play size={20} className="shrink-0" aria-hidden="true" />
         <span className="truncate">{t("playWithPedro")}</span>

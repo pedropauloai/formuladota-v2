@@ -6,6 +6,15 @@ Frente 1 do [plano v3](plano-v3.md), aberta em 19/11/2026. O plano manda sobre e
 
 Quem assiste à live abre `/party`, vê a live, quem está na party do Pedro agora, a fila e as vagas abertas, e garante a vaga com Pix em dois toques: "Garantir minha vaga" e "Copiar código Pix". Depois de pagar, a pessoa vê a própria posição andar e é avisada, com o som de partida encontrada do jogo, quando o Pedro a chama para a party. O Pedro opera a fila em `/admin/loja/fila`, e os overlays da live leem `/api/party/fila`.
 
+## Para o Pedro, durante a live
+
+1. Abra `/admin/loja/fila` e toque em "Abrir a live". Se quiser o vídeo certo na página, cole o link da live do YouTube (sem ele, a página mostra a transmissão ao vivo do canal). A live marcada no painel da agenda para perto da hora vira a live no ar, com as reservas dela.
+2. "Tamanho da fila" é quantas partidas você aceita esperando ao mesmo tempo; cada partida jogada abre uma vaga de novo. "Lugares na party" vai de 1 a 4.
+3. Quem paga aparece na fila na hora. "Chamar o próximo" (ou "Completar a party") avisa a pessoa na tela, com o som de partida encontrada; convide pelo ID do Dota, que o painel copia.
+4. Acabou a partida: "Partida terminou: todos jogaram". Quem comprou mais de uma partida continua na party até completar.
+5. Chamou e a pessoa não veio: "Não apareceu" manda para o fim da fila, sem perder a vaga. "Tirar" tira da fila sem devolver o dinheiro (o reembolso, se houver, é no Mercado Pago).
+6. No fim, "Encerrar a live". Quem não jogou continua na fila, na mesma posição, para a próxima live. Se esquecer, o cron encerra a live 12 horas depois de aberta.
+
 ## Decisões técnicas
 
 Cada uma com o porquê em uma linha.

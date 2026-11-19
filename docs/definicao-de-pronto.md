@@ -42,3 +42,16 @@ Escopo: o comprador escolhe o horário (ou a live) na própria compra, sem Whats
 | A3 | Os horários oferecidos respeitam disponibilidade, ocupação, antecedência de 12 h e janela de 21 dias | `pnpm test` (`src/lib/loja/agenda.test.ts`) | sim, 18/11/2026 |
 | A4 | O comprador baixa o horário para a agenda do celular | `pnpm loja:e2e` baixa o `.ics` da página do pedido | sim no localhost, 18/11/2026 |
 | A5 | O Pedro marca live, ajusta disponibilidade e vê os horários vendidos no painel | captura de `/admin/loja/agenda` logado como admin | não: o painel pede o login Discord do Pedro |
+
+## Fila da party ao vivo (frente aberta em 19/11/2026)
+
+Spec: [loja/fila-da-party.md](loja/fila-da-party.md). Critérios do [plano v3](loja/plano-v3.md), seção "Como cada frente prova que terminou".
+
+| # | Critério | Como se prova | Estado |
+|---|---|---|---|
+| F1 | As regras do banco seguram a fila: lotação, pagamento entra na fila, chamar, jogou, não apareceu, encerrar, uma live no ar, e nem logado nem visitante operam a fila | `scripts/seguranca/fila-da-party.sql` com todos os itens "=ok" (vermelho antes da migration 174), e `funcoes-abertas.sql` vazio | sim, 19/11/2026 (18 de 18, banco de produção, nada gravado) |
+| F2 | A compra da vaga pela fila vai até a posição: Pix na página com um toque, pagamento aprovado, posição na tela | `pnpm loja:e2e` (parte da fila) | sim no localhost, 19/11/2026 (23 de 23) |
+| F3 | A chamada do Pedro chega na tela de quem comprou em tempo real, com o aviso "Chegou a sua vez" | `pnpm loja:e2e` mede o tempo entre a chamada e o aviso (limite de 15 s) | sim no localhost, 19/11/2026 (cerca de 3 s) |
+| F4 | O endpoint dos overlays não leva dado pessoal além do nome público | `pnpm loja:e2e` procura id de usuário, e-mail e WhatsApp no JSON | sim no localhost, 19/11/2026 |
+| F5 | O site no ar tem a página da fila nos dois slugs e o JSON dos overlays | `pnpm cf:verificar` termina com `falhas: 0` | não |
+| F6 | O Pedro fez uma compra real de teste pela fila | pedido pago com `is_test = false` no painel `/admin/loja` | não |
