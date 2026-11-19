@@ -43,6 +43,9 @@ confere "/fila" "307 $U/party?utm_source=live&utm_medium=chat&utm_campaign=party
 confere "/qr" "307 $U/party?utm_source=live&utm_medium=qr&utm_campaign=party" "$(destino "$U/qr")"
 fila=$(curl $R -s -i --max-time 20 "$U/api/party/fila" | tr -d '\r')
 if printf '%s' "$fila" | grep -qi '^access-control-allow-origin: \*' && printf '%s' "$fila" | grep -q '"updatedAt"'; then confere "fila da party em JSON para os overlays" sim sim; else confere "fila da party em JSON para os overlays" sim nao; fi
+# Battlepass (docs/battlepass/spec.md): a mensalidade na /planos e o link curto da live.
+if curl $R -fsSL --max-time 30 "$U/planos" | grep -q "Battlepass FORMULADOTA"; then confere "Battlepass na /planos" sim sim; else confere "Battlepass na /planos" sim nao; fi
+confere "/battlepass" "307 $U/planos?utm_source=live&utm_medium=chat&utm_campaign=battlepass" "$(destino "$U/battlepass")"
 # Arquivo com hash no nome guardado pelo navegador por um ano (public/_headers).
 chunk=$(curl $R -fsSL --max-time 30 "$U/" | grep -o '/_next/static/[^"]*\.js' | head -1)
 cc=$(curl $R -s -o /dev/null -D - --max-time 20 "$U$chunk" | tr -d '\r' | grep -i '^cache-control:' | head -1)

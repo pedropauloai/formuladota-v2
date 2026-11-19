@@ -36,7 +36,6 @@ import {
 import {
   sendSubscriptionCreatedEmail,
   sendSubscriptionRenewalEmail,
-  sendSubscriptionCancelledEmail,
   sendPurchaseConfirmationEmail,
 } from "@/lib/resend";
 
@@ -386,6 +385,3 @@ async function sendSubscriptionRenewalSafely(
     console.error("[webhook/mp] email renewal falhou:", err);
   }
 }
-
-// Exporta sendSubscriptionCancelledEmail para uso em cancelSubscription server action
-export { sendSubscriptionCancelledEmail };

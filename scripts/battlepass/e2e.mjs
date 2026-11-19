@@ -2,9 +2,11 @@
 // is_test) e o canal de vendas do Discord (avisos [TESTE]). Falha alto no primeiro ponto errado.
 // Rodar: pnpm battlepass:e2e  (sobe o servidor na 3102, ou reaproveita com BATTLEPASS_E2E_PORT)
 //
-// O que prova (docs/definicao-de-pronto.md, B4 a B6):
+// O que prova (docs/definicao-de-pronto.md, B4 a B7):
 // - Pix de 30 dias: gera na página, o pagamento aprovado ativa por 30 dias, o segundo soma mais 30,
 //   a notificação repetida não soma de novo, e a garantia encerra o acesso e avisa o Pedro.
+// - Fila da party: o assinante entra sem pagar pela /party, o selo aparece no JSON público, o painel
+//   chama e registra a partida pela "Última do PPA", e a participação fica com a hora real da partida.
 // - Cartão: abre a assinatura de R$ 120 no Mercado Pago, o navegador chega ao checkout, a volta
 //   espera a primeira cobrança, e a assinatura abandonada é cancelada no Mercado Pago.
 // O sandbox só autoriza cartão com conta de comprador de teste do Mercado Pago: a primeira cobrança
@@ -14,7 +16,10 @@ import { randomUUID } from "node:crypto";
 
 process.env.LOJA_E2E_PORT ??= process.env.BATTLEPASS_E2E_PORT ?? "3102";
 const comum = await import("../loja/e2e-comum.mjs");
-const { env, db, BASE, checker, waitFor, startServer, stopServer, createTestBuyer, buyerContext, deleteTestUsers, sandboxRefund, discordContentWith, webhook, sleep } = comum;
+const {
+  env, db, BASE, checker, waitFor, startServer, stopServer, createTestBuyer, buyerContext, deleteTestUsers, sandboxRefund,
+  discordContentWith, webhook, sleep, acquireTestLock, releaseTestLock, resetTestQueue, openTestLive,
+} = comum;
 const { chromium } = await import("playwright");
 
 const run = randomUUID().slice(0, 8);
@@ -95,9 +100,84 @@ async function pixFlow(browser, buyer) {
     return row && near(row.next_payment_date, Date.parse(until1) + 30 * DAY, 60_000) ? row : null;
   }, 60_000, 2000);
   check("pix: segundo Pix soma 30 dias ao fim do primeiro", !!extended);
+  await context.close();
+  return [paid, paid2];
+}
 
+/** Última partida pública do PPA na OpenDota e a hora em que acabou. */
+async function ppaLastMatch() {
+  const recent = await fetch("https://api.opendota.com/api/players/1123609219/recentMatches").then((r) => r.json());
+  const last = Array.isArray(recent) ? recent[0] : null;
+  if (!last?.match_id) throw new Error("a OpenDota não devolveu a última partida do PPA");
+  return { matchId: String(last.match_id), endedAt: (last.start_time + last.duration) * 1000 };
+}
+
+async function queueFlow(browser, subscriber, admin) {
+  await acquireTestLock(run);
+  try {
+    await resetTestQueue();
+    const live = await openTestLive(4, 1);
+    const context = await buyerContext(browser, subscriber, { desktop: true });
+    const page = await context.newPage();
+    await page.goto(`${BASE}/party`, { waitUntil: "networkidle" });
+    await page.locator("[data-fila-battlepass]").first().click();
+    const entry = await waitFor(async () => {
+      const { data } = await db.from("store_bookings").select("*").eq("user_id", subscriber.id).eq("is_test", true).in("queue_state", ["aguardando", "na_party"]);
+      return data?.[0] ?? null;
+    }, 30_000, 1500);
+    check("fila: assinante entra pela /party sem pagar", entry?.source === "battlepass" && entry.order_id === null && entry.queue_state === "aguardando");
+    const publicQueue = await fetch(`${BASE}/api/party/fila`).then((r) => r.json());
+    const listed = publicQueue.queue?.find((e) => e.id === entry.id);
+    check("fila: o selo aparece no JSON público, sem id de usuário", listed?.battlepass === true && !JSON.stringify(publicQueue).includes(subscriber.id));
+
+    // O Pedro chama e registra a partida pelo painel (um admin de teste no lugar dele).
+    await db.from("profiles").update({ is_admin: true }).eq("id", admin.id);
+    const adminContext = await buyerContext(browser, admin, { desktop: true });
+    const panel = await adminContext.newPage();
+    await panel.goto(`${BASE}/admin/loja/fila`, { waitUntil: "networkidle" });
+    await panel.getByRole("button", { name: "Chamar o próximo" }).click();
+    const called = await waitFor(async () => {
+      const { data } = await db.from("store_bookings").select("queue_state").eq("id", entry.id).single();
+      return data?.queue_state === "na_party" ? true : null;
+    }, 30_000, 1000);
+    check("fila: o painel chama o assinante para a party", called === true);
+    const expected = await ppaLastMatch();
+    await panel.locator("[data-fila-partida-id]").waitFor({ timeout: 15_000 });
+    await panel.getByRole("button", { name: "Última do PPA" }).click();
+    await waitFor(async () => ((await panel.locator("[data-fila-partida-id]").inputValue()) === expected.matchId ? true : null), 20_000, 500);
+    await panel.locator("[data-fila-partida-terminou]").click();
+    const participation = await waitFor(async () => {
+      const { data } = await db.from("party_participacoes").select("*").eq("user_id", subscriber.id).eq("is_test", true).eq("dota_match_id", Number(expected.matchId));
+      return data?.[0] ?? null;
+    }, 45_000, 1500);
+    check("fila: a partida do PPA fica registrada pelo ID", !!participation && participation.kind === "jogou");
+    check("fila: com a hora em que a partida acabou na OpenDota", !!participation && Math.abs(Date.parse(participation.played_at) - expected.endedAt) < 60_000);
+    const { data: after } = await db.from("store_bookings").select("queue_state").eq("id", entry.id).single();
+    check("fila: quem jogou sai da party como concluído", after?.queue_state === "concluido");
+
+    // Depois de jogar, o assinante entra de novo.
+    await page.reload({ waitUntil: "networkidle" });
+    await page.locator("[data-fila-battlepass]").first().click();
+    const again = await waitFor(async () => {
+      const { data } = await db.from("store_bookings").select("id").eq("user_id", subscriber.id).eq("is_test", true).eq("queue_state", "aguardando");
+      return data?.[0] ?? null;
+    }, 30_000, 1500);
+    check("fila: o assinante entra de novo depois de jogar", !!again && again.id !== entry.id);
+    await adminContext.close();
+    await context.close();
+    await db.rpc("party_fila_encerrar_live", { p_live_id: live });
+  } finally {
+    await db.from("profiles").update({ is_admin: false }).eq("id", admin.id);
+    await resetTestQueue().catch(() => {});
+    await releaseTestLock(run);
+  }
+}
+
+async function refundFlow(browser, buyer, paidPayments) {
+  const context = await buyerContext(browser, buyer, { desktop: true });
+  const page = await context.newPage();
   // Garantia: devolve os dois pagamentos e encerra o acesso na hora.
-  await page.reload({ waitUntil: "networkidle" });
+  await page.goto(`${BASE}/planos`, { waitUntil: "networkidle" });
   await page.locator("[data-bp-reembolso]").first().click();
   await page.locator("[data-bp-reembolso-confirmar]").first().click();
   const ended = await waitFor(async () => {
@@ -111,7 +191,7 @@ async function pixFlow(browser, buyer) {
   check("garantia: aviso ao Pedro com o valor a devolver", !!refundNotice && refundNotice.content.includes("garantia"));
 
   // O Pedro devolve no Mercado Pago: o webhook marca devolvido.
-  for (const p of [paid, paid2]) {
+  for (const p of paidPayments) {
     await sandboxRefund(p.id);
     await webhook(p.id, env.MP_WEBHOOK_SECRET);
   }
@@ -169,7 +249,11 @@ try {
   created.push(pixBuyer.id);
   const cardBuyer = await createTestBuyer(`bp-cartao-${run}@formuladota.com.br`, `Teste BP Cartao ${run}`);
   created.push(cardBuyer.id);
-  await pixFlow(browser, pixBuyer);
+  const adminBuyer = await createTestBuyer(`bp-admin-${run}@formuladota.com.br`, `Teste BP Admin ${run}`);
+  created.push(adminBuyer.id);
+  const paidPayments = await pixFlow(browser, pixBuyer);
+  await queueFlow(browser, pixBuyer, adminBuyer);
+  await refundFlow(browser, pixBuyer, paidPayments);
   await cardFlow(browser, cardBuyer);
 } catch (err) {
   failed = err;

@@ -24,7 +24,7 @@ Conflito registrado, sem reabrir: a memória do projeto (`project_freemium_lowti
 
 1. **Party com o PPA sempre que quiser**, sem pagar a vaga. Ele entra na fila da `/party` com um toque e, depois de jogar, entra de novo. Uma entrada por vez.
 2. **Salas do site**, quando voltarem: criar sala e o lobby elite (que continua pedindo Imortal da Valve e Místico nível 30). Hoje as salas estão pausadas pela flag `fila_competitiva`; voltam quando a enquete chegar a 50 interessados.
-3. **Selo Battlepass** ao lado do nome na fila da party e no perfil.
+3. **Selo Battlepass** ao lado do nome na fila da party, na página e no JSON que os overlays da live leem. O selo no perfil e a moldura na coleção ficam para a próxima entrega (o perfil virou grade de widgets e pede um widget próprio).
 4. **Garantia de 7 dias**: desistiu em até 7 dias do primeiro pagamento, o dinheiro volta inteiro.
 
 Sem promessa de resultado (MMR, vitória): o que se vende é jogar com o PPA, não o resultado da partida.
@@ -110,4 +110,5 @@ Critérios em `docs/definicao-de-pronto.md`, seção "Battlepass FORMULADOTA".
 
 - Inglês e espanhol: as chaves existem nos três arquivos de texto (a paridade é regra do projeto), com tradução simples; o público do Battlepass é o brasileiro.
 - Stripe (LATAM e Europa) para o Battlepass.
-- Moldura cosmética do Battlepass na coleção: o selo vem antes.
+- Selo no perfil (widget próprio) e moldura cosmética do Battlepass na coleção: o selo da fila vem antes.
+- Webhook das assinaturas no painel do Mercado Pago: a tela pede o código no celular do Pedro, então a configuração não foi conferida. O Battlepass não depende dela: a volta do checkout e o cron do site conferem direto no Mercado Pago (no máximo a cada 10 minutos por cartão).

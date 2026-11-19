@@ -8,7 +8,7 @@ import { publicEnv } from "@/lib/env";
 import { getPaymentSnapshot, searchPaymentsByReference } from "@/lib/loja/mercadopago";
 import { orderPaymentsForDecision, type PaymentSnapshot } from "@/lib/loja/payment-state";
 import { BATTLEPASS } from "./config";
-import { closeRow } from "./card";
+import { CARD_CONFIRMING, closeRow } from "./card";
 import { notifyBattlepass } from "./notify";
 import { pixReference } from "./refs";
 import {
@@ -44,7 +44,7 @@ async function pixSubscriptionFor(userId: string): Promise<{ row: Pick<Subscript
     if (open.tier === "battlepass" && open.provider === "pix") return { row: open };
     if (active) return { error: "Seu Battlepass já está ativo." };
     // Cartão abandonado no checkout (ou plano antigo): cancela no Mercado Pago e sai do caminho.
-    await closeRow(open);
+    if (!(await closeRow(open))) return { error: CARD_CONFIRMING };
   }
   const { data, error } = await supabase
     .from("subscriptions")

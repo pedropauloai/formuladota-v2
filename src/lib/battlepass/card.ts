@@ -30,10 +30,21 @@ const backBaseUrl = () => {
   return site.startsWith("https://") ? site : PRODUCTION_URL;
 };
 
-/** Fecha a linha que sobrou (e a assinatura dela no Mercado Pago), para abrir outra. */
-export async function closeRow(row: SubscriptionRow): Promise<void> {
+export const CARD_CONFIRMING = "Seu cartão está sendo confirmado no Mercado Pago. Espere alguns minutos e confira esta página.";
+
+/**
+ * Fecha a linha que sobrou (e a assinatura dela no Mercado Pago), para abrir outra. Cartão que o
+ * Mercado Pago já autorizou não é fechado: a primeira cobrança pode estar a caminho. Devolve false
+ * nesse caso, para quem chamou avisar a pessoa em vez de abrir outra assinatura.
+ */
+export async function closeRow(row: SubscriptionRow): Promise<boolean> {
   // Linha que sobrou (cartão abandonado, Pix vencido, plano antigo): sai do caminho do índice.
   if (row.provider === "mp" && row.mp_preapproval_id && row.status !== "cancelled") {
+    const current = await getBattlepassPreapproval(row.mp_preapproval_id);
+    if (current.success && current.data.status === "authorized" && row.tier === "battlepass") {
+      await syncCardSubscription(row);
+      return false;
+    }
     const cancelled = await cancelBattlepassPreapproval(row.mp_preapproval_id);
     if (!cancelled.success) console.error("[battlepass] cancelar assinatura antiga no Mercado Pago falhou:", row.id);
   }
@@ -42,6 +53,7 @@ export async function closeRow(row: SubscriptionRow): Promise<void> {
     .update({ status: "cancelled", cancelled_at: new Date().toISOString(), updated_at: new Date().toISOString() })
     .eq("id", row.id);
   if (error) throw new Error(`fechar assinatura antiga falhou: ${error.message}`);
+  return true;
 }
 
 /** Abre a assinatura no cartão e devolve o checkout do Mercado Pago. */
@@ -50,7 +62,7 @@ export async function startCardSubscription(user: { id: string; email: string })
   if (open && isBattlepassActive(toSubscriptionLike(open), new Date())) {
     return { ok: false, error: "Seu Battlepass já está ativo." };
   }
-  if (open) await closeRow(open);
+  if (open && !(await closeRow(open))) return { ok: false, error: CARD_CONFIRMING };
 
   const supabase = createServiceClient();
   const { data: row, error } = await supabase
