@@ -6,6 +6,8 @@
 import { useTranslations } from "next-intl";
 import { CheckCircle2, Gamepad2, Hourglass, Loader2, XCircle } from "lucide-react";
 import { PixPanel } from "@/components/loja/pix-panel";
+import { cn } from "@/lib/utils";
+import { plate } from "@/components/v2";
 import { formatPrice } from "@/lib/loja/money";
 import type { MyPendingOrder, MyQueueEntry } from "@/lib/loja/fila/model";
 
@@ -16,7 +18,7 @@ function CalledCard({ entry, dotaId }: { entry: MyQueueEntry; dotaId: string | n
   const t = useTranslations("fila");
   return (
     <section data-fila-vez="na_party" className="space-y-3 rounded-md border-2 border-play-primary bg-play-primary/10 p-5">
-      <p className="flex items-center gap-2 font-display text-3xl uppercase leading-none tracking-wide text-play-primary">
+      <p className="flex items-center gap-2 font-display-condensed text-[2.2rem] uppercase leading-none text-play-primary">
         <Gamepad2 size={26} aria-hidden="true" /> {t("calledTitle")}
       </p>
       <p className="text-sm text-text-body">{t("calledText")}</p>
@@ -24,7 +26,7 @@ function CalledCard({ entry, dotaId }: { entry: MyQueueEntry; dotaId: string | n
       {dotaId && <p className="text-xs text-text-muted">{t("dotaId", { id: dotaId })}</p>}
       <a
         href={OPEN_DOTA_URL}
-        className="hidden items-center justify-center gap-2 rounded-sm bg-play-primary px-4 py-2.5 font-display uppercase tracking-widest text-bg-deep hover:bg-play-primary-hover md:inline-flex"
+        className={cn(plate({ kind: "cta" }), "hidden md:inline-flex")}
       >
         {t("openDota")}
       </a>
@@ -41,7 +43,7 @@ function WaitingCard({ entry }: { entry: MyQueueEntry }) {
         <Hourglass size={16} className="text-gold" aria-hidden="true" /> {t("waitingTitle")}
       </p>
       {entry.position !== null && (
-        <p data-fila-posicao={entry.position} className="font-display text-6xl leading-none tabular-nums text-gold">
+        <p data-fila-posicao={entry.position} className="font-display-condensed text-[4.6rem] leading-[0.85] text-gold [text-shadow:0_0_18px_var(--fd-raw-gold-glow)]">
           {t("waitingPosition", { position: entry.position })}
         </p>
       )}
@@ -59,7 +61,7 @@ function FinishedCard({ entry }: { entry: MyQueueEntry }) {
     <section data-fila-vez={entry.state} className="flex items-start gap-3 rounded-md border border-border-strong bg-bg-base p-5">
       {done ? <CheckCircle2 size={22} className="shrink-0 text-play-primary" aria-hidden="true" /> : <XCircle size={22} className="shrink-0 text-text-muted" aria-hidden="true" />}
       <div className="space-y-1">
-        <p className="font-display text-xl uppercase leading-none tracking-wide text-text-display">{done ? t("doneTitle") : t("removedText")}</p>
+        <p className="font-display-condensed text-[1.7rem] uppercase leading-none text-text-display">{done ? t("doneTitle") : t("removedText")}</p>
         {done && <p className="text-sm text-text-muted">{t("doneText", { count: entry.played })}</p>}
       </div>
     </section>
@@ -85,7 +87,7 @@ export function PendingPayment({ pending }: { pending: MyPendingOrder }) {
   return (
     <section data-fila-pix className="space-y-3">
       <div className="space-y-1">
-        <p className="font-display text-2xl uppercase leading-none tracking-wide text-text-display">{t("pixTitle", { price: formatPrice(pending.amountCents) })}</p>
+        <p className="font-display-condensed text-[2rem] uppercase leading-none text-text-display">{t("pixTitle", { price: formatPrice(pending.amountCents) })}</p>
         <p className="text-xs text-text-muted">{t("pixHold")}</p>
       </div>
       <PixPanel copiaECola={pending.pix.copiaECola} qrDataUrl={pending.pix.qrDataUrl} expiresAt={pending.pix.expiresAt} qrDesktopOnly />

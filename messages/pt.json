@@ -4431,6 +4431,8 @@
       "quantidade": "Escolha de 1 a 5 partidas.",
       "pagamento": "O Mercado Pago não abriu o pagamento agora. Tente de novo em instantes.",
       "muitas": "Muitas tentativas seguidas. Espere alguns minutos e tente de novo."
-    }
+    },
+    "stageStartingTitle": "A live está começando",
+    "stageStartingText": "A transmissão aparece aqui assim que entrar no ar. As vagas já estão abertas."
   }
 }

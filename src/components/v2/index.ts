@@ -3,6 +3,6 @@
 
 export { plate, panel, lift, v2Page, type PlateKind, type PlateOptions, type TagTone, type PanelTone, type PanelLift } from "./plate";
 export { Panel, Price, LiveDot, Embers, HexBadge } from "./pieces";
-export { PartyLineup, type PartyLineupProps } from "./party-lineup";
+export { PartyLineup, type PartyLineupProps, type PartySeat } from "./party-lineup";
 export { ImmortalMedal } from "./immortal-medal";
 export { TwitchLive } from "./twitch-live";
