@@ -84,4 +84,19 @@ Com a flag `fila_competitiva` desligada (e a `loja` ligada), o botão verde da b
 
 ## Teste de 14 dias
 
-A partir do primeiro dia no ar, com live todo dia. Critério proposto no plano, a confirmar com o Pedro antes de valer.
+Critério proposto pelo agente no plano v3 e registrado em 19/11/2026, quando o Pedro delegou as decisões da frente ("liberdade total"); o número não foi escolhido por ele, e ele pode mudar.
+
+- **Começa** no primeiro dia em que o Pedro abrir a fila numa live (a primeira live real com `status = 'ao_vivo'`) e **termina 14 dias depois**.
+- **Passa** com 15 vagas vendidas ou mais. **Falha** com menos de 5. Entre 5 e 14, ajustar a oferta e a chamada da live antes de decidir.
+- **Vaga** é partida paga: a soma de `quantity` dos pedidos pagos da vaga na party, sem teste.
+
+```sql
+with inicio as (
+  select min(on_air_at) as t from public.store_live_sessions where not is_test and on_air_at is not null
+)
+select coalesce(sum(o.quantity), 0) as vagas
+  from public.store_orders o
+  join public.store_products p on p.id = o.product_id, inicio
+ where p.slug = 'vaga-na-party' and o.status = 'pago' and not o.is_test
+   and o.paid_at >= inicio.t and o.paid_at < inicio.t + interval '14 days';
+```
