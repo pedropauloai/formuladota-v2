@@ -97,7 +97,8 @@ export function PartyBuyPanel({
         <Link
           href={buyHref}
           onClick={() => play("click")}
-          className={plate({ kind: "cta", large: true, block: true })}
+          // Painel de 340 px: letra 16 px e espaçamento menor para a chamada caber inteira.
+          className={cn(plate({ kind: "cta", block: true }), "px-3 text-base tracking-[0.14em]")}
         >
           {t("buyCta")}
           <ArrowRight size={20} aria-hidden="true" />
