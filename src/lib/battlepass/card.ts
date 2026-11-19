@@ -22,7 +22,13 @@ import { isBattlepassActive } from "./state";
 
 export type StartResult = { ok: true; url: string } | { ok: false; error: string };
 
-const siteUrl = () => publicEnv.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
+const PRODUCTION_URL = "https://www.formuladota.com.br";
+
+/** O Mercado Pago só aceita volta em https: no servidor local, a volta vai para o domínio real. */
+const backBaseUrl = () => {
+  const site = publicEnv.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
+  return site.startsWith("https://") ? site : PRODUCTION_URL;
+};
 
 /** Fecha a linha que sobrou (e a assinatura dela no Mercado Pago), para abrir outra. */
 export async function closeRow(row: SubscriptionRow): Promise<void> {
@@ -59,7 +65,7 @@ export async function startCardSubscription(user: { id: string; email: string })
   const preapproval = await createBattlepassPreapproval({
     subscriptionId: row.id,
     payerEmail: user.email,
-    backUrl: `${siteUrl()}/planos?assinatura=${row.id}`,
+    backUrl: `${backBaseUrl()}/planos?assinatura=${row.id}`,
   });
   const url = preapproval.success ? checkoutUrlOf(preapproval.data, isTestMode()) : null;
   if (!preapproval.success || !url) {

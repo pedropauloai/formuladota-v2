@@ -151,6 +151,17 @@ begin
   update public.subscriptions set next_payment_date = now() - interval '1 day' where id = s2;
   r := array_append(r, ('J_elite_com_battlepass=' || case when ok and not public.can_join_elite(u2) then 'ok' else 'FALHOU' end)::text);
 
+  -- M. Cartão cancelado ainda valendo (10 dias) e um Pix pago: o Pix soma depois do fim do cartão (193).
+  update public.subscriptions set status = 'cancelled', next_payment_date = now() + interval '10 days' where id = s2;
+  insert into public.subscriptions (user_id, status, tier, provider, is_test)
+  values (u2, 'pending', 'battlepass', 'pix', true) returning id into s1;
+  insert into public.subscription_payments (subscription_id, user_id, method, amount_cents, is_test)
+  values (s1, u2, 'pix', 12000, true) returning id into p3;
+  st := public.battlepass_pix_confirmar(p3, 'teste-mp-4', 12000, '{}'::jsonb);
+  select period_start into t1 from public.subscription_payments where id = p3;
+  r := array_append(r, ('M_pix_soma_depois_do_cartao=' || case when st = 'pago' and t1 between now() + interval '9 days' and now() + interval '11 days'
+    then 'ok' else 'FALHOU(' || coalesce(st, 'null') || ' ' || coalesce(t1::text, 'null') || ')' end)::text);
+
   -- K. Revezamento: a última vez conta jogou e "não apareceu"; a mesma partida não grava duas vezes.
   insert into public.party_participacoes (user_id, kind, dota_match_id, played_at, is_test)
   values (u, 'jogou', 1, now() - interval '2 days', true);
