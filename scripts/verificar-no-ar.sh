@@ -38,6 +38,9 @@ confere "imagem do placar" "200 image/png" "$(curl $R -s -o /dev/null --max-time
 if curl $R -fsSL --max-time 30 "$U/loja" | grep -q "property=\"og:url\" content=\"$U/loja\""; then confere "prévia da /loja" sim sim; else confere "prévia da /loja" sim nao; fi
 # Fila da party (docs/loja/fila-da-party.md): a página nos dois slugs e o JSON que os overlays da live leem.
 for p in /party /grupo; do confere "$p" 200 "$(status "$U$p")"; done
+# Atalhos da live com origem: o painel da loja separa o chat (/fila) do QR na tela (/qr).
+confere "/fila" "307 $U/party?utm_source=live&utm_medium=chat&utm_campaign=party" "$(destino "$U/fila")"
+confere "/qr" "307 $U/party?utm_source=live&utm_medium=qr&utm_campaign=party" "$(destino "$U/qr")"
 fila=$(curl $R -s -i --max-time 20 "$U/api/party/fila" | tr -d '\r')
 if printf '%s' "$fila" | grep -qi '^access-control-allow-origin: \*' && printf '%s' "$fila" | grep -q '"updatedAt"'; then confere "fila da party em JSON para os overlays" sim sim; else confere "fila da party em JSON para os overlays" sim nao; fi
 # Arquivo com hash no nome guardado pelo navegador por um ano (public/_headers).

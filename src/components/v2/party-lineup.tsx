@@ -3,7 +3,7 @@
 // textos vêm de quem usa (já traduzidos); aqui só a forma.
 
 import Image from "next/image";
-import { Plus, UserPlus } from "lucide-react";
+import { Hourglass, Plus, UserPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import styles from "./v2.module.css";
 
@@ -25,6 +25,11 @@ export interface PartyLineupProps {
   seats?: number;
   /** O primeiro lugar livre convida em verde ("Você"); sem vaga de verdade, todos ficam neutros. */
   invite?: boolean;
+  /**
+   * Lugares livres que não estão à venda, com o rótulo de cada um (a fila já tem dono para ele, ou
+   * a venda esgotou). Vêm logo depois de quem está na party, apagados e sem o "+".
+   */
+  held?: string[];
   /** Lado do quadrado em px. */
   size?: number;
   labels?: boolean;
@@ -38,9 +43,10 @@ function Avatar({ src, label, size }: { src: string | null; label: string; size:
   return <span className="font-display-condensed text-lg uppercase text-text-body">{label.slice(0, 2)}</span>;
 }
 
-export function PartyLineup({ owner, members = [], youLabel, openLabel, ariaLabel, seats = 4, invite = true, size = 52, labels = true, className }: PartyLineupProps) {
+export function PartyLineup({ owner, members = [], youLabel, openLabel, ariaLabel, seats = 4, invite = true, held = [], size = 52, labels = true, className }: PartyLineupProps) {
   const filled = members.slice(0, seats);
-  const open = Math.max(0, seats - filled.length);
+  const holds = held.slice(0, Math.max(0, seats - filled.length));
+  const open = Math.max(0, seats - filled.length - holds.length);
   return (
     <div role="img" aria-label={ariaLabel} className={cn("flex items-start gap-1.5 sm:gap-2", className)}>
       <div className="flex flex-col items-center gap-1.5" style={{ width: size }}>
@@ -55,6 +61,14 @@ export function PartyLineup({ owner, members = [], youLabel, openLabel, ariaLabe
             <Avatar src={m.avatarUrl} label={m.label} size={size} />
           </span>
           {labels && <span className={cn(LABEL, "text-text-body")}>{m.label}</span>}
+        </div>
+      ))}
+      {holds.map((label, i) => (
+        <div key={`h${i}`} className="flex flex-col items-center gap-1.5" style={{ width: size }}>
+          <span className={cn(styles.slot, styles.slotOpen, "opacity-60")} style={{ width: size }}>
+            <Hourglass size={Math.round(size * 0.3)} aria-hidden="true" />
+          </span>
+          {labels && <span className={cn(LABEL, "text-text-faded")}>{label}</span>}
         </div>
       ))}
       {Array.from({ length: open }, (_, i) => {

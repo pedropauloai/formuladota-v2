@@ -4398,6 +4398,7 @@
     "partyEmptyOnAir": "Ninguém na party ainda.",
     "partyEmptyOff": "A party abre quando a live começar.",
     "partyMatch": "partida {current} de {total}",
+    "partySeatClosed": "Esgotada",
     "queueTitle": "A fila",
     "queueCount": "{count, plural, =0 {ninguém esperando} one {# esperando} other {# esperando}}",
     "queueEmpty": "Fila vazia. Quem garantir a vaga agora é o próximo.",

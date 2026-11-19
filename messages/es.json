@@ -4398,6 +4398,7 @@
     "partyEmptyOnAir": "Nadie en el grupo todavía.",
     "partyEmptyOff": "El grupo se abre cuando empiece el directo.",
     "partyMatch": "partida {current} de {total}",
+    "partySeatClosed": "Agotado",
     "queueTitle": "La cola",
     "queueCount": "{count, plural, =0 {nadie esperando} one {# esperando} other {# esperando}}",
     "queueEmpty": "Cola vacía. Quien asegure un cupo ahora es el siguiente.",

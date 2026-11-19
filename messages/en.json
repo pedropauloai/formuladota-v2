@@ -4398,6 +4398,7 @@
     "partyEmptyOnAir": "Nobody in the party yet.",
     "partyEmptyOff": "The party opens when the stream starts.",
     "partyMatch": "match {current} of {total}",
+    "partySeatClosed": "Sold out",
     "queueTitle": "The queue",
     "queueCount": "{count, plural, =0 {nobody waiting} one {# waiting} other {# waiting}}",
     "queueEmpty": "Empty queue. Whoever gets a spot now is next.",
