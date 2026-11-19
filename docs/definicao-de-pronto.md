@@ -73,8 +73,8 @@ Escopo: a mensalidade de R$ 120, com party com o PPA sempre que quiser pelo reve
 | B5 | O Pix de 30 dias passa ponta a ponta no sandbox: gera o Pix na página, o pagamento aprovado ativa por 30 dias, um segundo pagamento soma mais 30, e o pedido de reembolso na garantia encerra o acesso e avisa o Pedro no Discord | `pnpm battlepass:e2e` sai com 0 | sim no localhost, 19/11/2026 (33 de 33) |
 | B6 | O assinante entra na fila da party sem pagar, e a fila segue o revezamento pela última vez na party (quem nunca jogou na frente, "não apareceu" vai para o fim) | `pnpm battlepass:e2e` e `pnpm test` (ordem da fila) | sim no localhost, 19/11/2026 (33 de 33; `loja:e2e` loja 21, fila 31, saídas 33 com o revezamento) |
 | B7 | O registro da partida pelo ID grava data e hora de quem jogou, com a conferência da OpenDota | `pnpm battlepass:e2e` registra uma partida pública real do PPA | sim no localhost, 19/11/2026 (partida real do PPA pela "Última do PPA") |
-| B8 | O site no ar mostra o Battlepass na `/planos` e o link `/battlepass` leva até ela | `pnpm cf:verificar` termina com `falhas: 0` | não |
-| B9 | Em produção, a compra abre o checkout do Mercado Pago com R$ 120 e o nome Battlepass FORMULADOTA (sem pagar) | `node scripts/battlepass/verificar-producao.mjs` cria a assinatura pendente com a credencial real, confere valor e nome, e cancela | não |
+| B8 | O site no ar mostra o Battlepass na `/planos` e o link `/battlepass` leva até ela | `pnpm cf:verificar` termina com `falhas: 0` | sim, 19/11/2026 (versão `de2f2372` da Cloudflare, `falhas: 0`) |
+| B9 | Em produção, a compra abre o checkout do Mercado Pago com R$ 120 e o nome Battlepass FORMULADOTA (sem pagar) | `node scripts/battlepass/verificar-producao.mjs` cria a assinatura pendente com a credencial real, confere valor e nome, e cancela | sim, 19/11/2026 (10 de 10 no domínio real; assinatura de verificação cancelada e jogador de teste apagado) |
 
 ### O que o percentual não significa
 
