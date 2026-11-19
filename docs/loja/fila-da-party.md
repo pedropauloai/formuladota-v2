@@ -8,7 +8,7 @@ Quem assiste à live abre `/party`, vê a live, quem está na party do Pedro ago
 
 ## Para o Pedro, durante a live
 
-1. Abra `/admin/loja/fila` e toque em "Abrir a live". Se quiser o vídeo certo na página, cole o link da live do YouTube (sem ele, a página mostra a transmissão ao vivo do canal). A live marcada no painel da agenda para perto da hora vira a live no ar, com as reservas dela.
+1. Abra `/admin/loja/fila` e toque em "Abrir a live". A página mostra sozinha a live da Twitch quando o canal está no ar; o link da live do YouTube (opcional) é a reserva para quando a Twitch estiver fora do ar. A live marcada no painel da agenda para perto da hora vira a live no ar, com as reservas dela.
 2. "Tamanho da fila" é quantas partidas você aceita esperando ao mesmo tempo; cada partida jogada abre uma vaga de novo. "Lugares na party" vai de 1 a 4.
 3. Quem paga aparece na fila na hora. "Chamar o próximo" (ou "Completar a party") avisa a pessoa na tela, com o som de partida encontrada; convide pelo ID do Dota, que o painel copia. Cada pessoa ocupa um lugar só na party, mesmo que tenha comprado duas vezes.
 4. Acabou a partida: "Partida N terminou: todos jogaram". O painel conta cada partida uma vez só, mesmo com dois toques. Quem comprou mais de uma partida continua na party até completar.
