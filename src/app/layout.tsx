@@ -46,6 +46,7 @@ import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register"
 import { GoogleAnalytics } from "@next/third-parties/google";
 // Visita por origem (UTM) gravada no próprio banco: o número do checkpoint da loja.
 import { VisitBeacon } from "@/components/analytics/visit-beacon";
+import { PrototipoBotao } from "@/components/v2/prototipo-botao";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 const siteTitle = "FORMULADOTA | Dota 2 Brasil";
@@ -164,6 +165,7 @@ export default async function RootLayout({
           <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
         ) : null}
         <VisitBeacon />
+        {process.env.NODE_ENV !== "production" && <PrototipoBotao />}
       </body>
     </html>
   );
