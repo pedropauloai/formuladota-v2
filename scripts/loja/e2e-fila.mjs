@@ -124,6 +124,8 @@ async function checkShell(page) {
   if (flag?.enabled) check("com a busca no ar, o botão verde continua JOGAR DOTA", (await cta.count()) === 0);
   else check("com a busca pausada, o botão verde leva para a fila", (await cta.getAttribute("href"))?.endsWith("/party") === true);
   check("aba Loja com o ponto de ao vivo", (await page.locator("[data-aba-ao-vivo]").count()) > 0);
+  const product = await fetch(`${BASE}/loja/vaga-na-party`, { redirect: "manual" });
+  check("produto da vaga leva para a fila com a live no ar", product.status >= 300 && product.status < 400 && (product.headers.get("location") ?? "").endsWith("/party"), `${product.status}`);
 }
 
 async function run() {

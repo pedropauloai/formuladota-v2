@@ -50,6 +50,10 @@ Cada uma com o porquê em uma linha.
 | `/api/party/fila` | pública, JSON sem dado pessoal, CORS aberto para os overlays |
 | `/admin/loja/fila` | admin |
 
+## Página do produto na loja
+
+Com a live no ar, `/loja/vaga-na-party` leva para `/party`: aquela página só reserva live futura e, durante a live, mostraria "Sem live marcada". Fora da live, a reserva antiga segue como estava.
+
 ## Barra inferior e aba Loja
 
 Com a flag `fila_competitiva` desligada (e a `loja` ligada), o botão verde da barra inferior vira "JOGAR COM O PEDRO" e leva a `/party`. A aba Loja ganha o ponto vermelho de ao vivo enquanto a live estiver no ar.
