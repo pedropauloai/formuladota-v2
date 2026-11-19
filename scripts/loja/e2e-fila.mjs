@@ -85,11 +85,17 @@ async function turnInRealTime(page, liveId, bookingId, buyer) {
 }
 
 async function checkShell(page) {
-  const { data: flag } = await db.from("feature_flags").select("enabled").eq("key", "fila_competitiva").single();
   await page.goto(`${BASE}/loja`);
-  const cta = page.locator("[data-cta='jogar-com-o-pedro']");
-  if (flag?.enabled) check("com a busca no ar, o botão verde continua JOGAR DOTA", (await cta.count()) === 0);
-  else check("com a busca pausada, o botão verde leva para a fila", (await cta.getAttribute("href"))?.endsWith("/party") === true);
+  // O botão verde é sempre o JOGAR DOTA (o Buscar partida fica no lugar, mesmo pausado); a
+  // party do PPA é uma modalidade dentro do menu dele.
+  const play = page.locator("[data-cta='jogar-dota']");
+  await play.waitFor({ timeout: 30_000 });
+  check("o botão verde da barra de baixo é o JOGAR DOTA", (await play.count()) === 1);
+  await play.click();
+  await page.locator("[data-modalidade='party']").click();
+  const party = page.locator("[data-cta='jogar-com-o-ppa']");
+  await party.waitFor({ timeout: 15_000 });
+  check("a party do PPA está no menu Jogar e leva para a fila", (await party.getAttribute("href"))?.endsWith("/party") === true);
   check("aba Loja com o ponto de ao vivo", (await page.locator("[data-aba-ao-vivo]").count()) > 0);
   const withQty = await fetch(`${BASE}/loja/vaga-na-party?qtd=2`, { redirect: "manual" });
   check("a quantidade escolhida na vitrine segue para a fila", (withQty.headers.get("location") ?? "").endsWith("/party?qtd=2"));

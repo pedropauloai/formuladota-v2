@@ -11,6 +11,8 @@ import styles from "./top-bar.module.css";
 export const topBarSkin = styles.bar;
 /** Grupo da direita: a última placa encosta na borda da tela. */
 export const topBarEndcap = styles.endcap;
+/** Menu principal: a primeira aba encaixa no ombro do logo. */
+export const topBarNavMain = styles.navMain ?? "";
 
 type PlateKind = "tab" | "icon" | "cta";
 type PlateTone = "neutral" | "gold" | "brand";

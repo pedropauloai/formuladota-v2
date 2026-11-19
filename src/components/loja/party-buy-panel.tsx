@@ -10,7 +10,7 @@ import { ArrowRight, Minus, Plus } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { formatPrice } from "@/lib/loja/money";
-import { Price, plate } from "@/components/v2";
+import { CtaWarp, Price, plate } from "@/components/v2";
 import { useSound } from "@/lib/sound/hooks";
 
 const STEPS = ["buyStep1", "buyStep2", "buyStep3"] as const;
@@ -97,9 +97,9 @@ export function PartyBuyPanel({
         <Link
           href={buyHref}
           onClick={() => play("click")}
-          // Painel de 340 px: letra 16 px e espaçamento menor para a chamada caber inteira.
-          className={cn(plate({ kind: "cta", block: true }), "px-3 text-base tracking-[0.14em]")}
+          className={plate({ kind: "cta", block: true })}
         >
+          <CtaWarp />
           {t("buyCta")}
           <ArrowRight size={20} aria-hidden="true" />
         </Link>

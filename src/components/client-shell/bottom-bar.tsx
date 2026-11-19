@@ -10,8 +10,7 @@
 // de MMR" / acoplado a ficha). Ficha/permissão são tratadas dentro de cada modalidade.
 
 import { useState } from "react";
-import { Hourglass, Play } from "lucide-react";
-import { Link } from "@/i18n/navigation";
+import { Hourglass } from "lucide-react";
 import type { ProLiveStatus } from "@/lib/queries/pros";
 import type { MyQueueEntry } from "@/lib/queries/queue";
 import type { PlayMenuState } from "@/lib/play-menu-preference";
@@ -39,9 +38,9 @@ interface Props {
   showRankedComPro: boolean;
   /** Flag fila_competitiva desligada: o menu Jogar avisa que a busca está pausada. */
   queuePaused: boolean;
-  /** Flag loja: com a busca pausada, o botão verde vira "Jogar com o Pedro" (fila da party). */
+  /** Flag loja: a party do PPA (fila da live) aparece como modalidade do menu Jogar. */
   showLoja: boolean;
-  /** Live do Pedro no ar: o botão ganha o ponto vermelho de ao vivo. */
+  /** Live do PPA no ar: o botão Jogar Dota ganha o ponto vermelho de ao vivo. */
   liveOnAir: boolean;
 }
 
@@ -132,25 +131,7 @@ function Cta({
     />
   );
 
-  const cta = bottomCta({ inQueue, queuePaused, showLoja });
-
-  // Busca pausada (sem o bot da Steam): o botão verde leva para a fila da party do Pedro.
-  if (cta === "jogar_com_o_pedro") {
-    return (
-      <Link
-        href="/party"
-        data-cta="jogar-com-o-pedro"
-        style={{ marginRight: "2.5rem" }}
-        // "Jogar com o Pedro" é mais longo que "Jogar Dota": menos espaço entre letras na mesma largura.
-        className={`${base.replace("tracking-[0.25em]", "tracking-[0.06em] xl:tracking-[0.1em]").replace("gap-3", "gap-2").replace(" text-lg ", " text-base ")} border-play-primary bg-gradient-to-b from-play-primary to-play-primary-hover text-text-display shadow-[var(--color-play-primary-glow)]`}
-      >
-        <Play size={20} className="shrink-0" aria-hidden="true" />
-        <span className="truncate">{t("playWithPedro")}</span>
-        {liveOnAir && <span className="size-2.5 shrink-0 rounded-full bg-brand-primary shadow-[0_0_8px_var(--color-brand-primary-glow)] motion-safe:animate-pulse" aria-hidden="true" />}
-        {shine}
-      </Link>
-    );
-  }
+  const cta = bottomCta({ inQueue });
 
   // Em fila do PRO — abre o status da fila.
   if (cta === "na_fila") {
@@ -168,7 +149,9 @@ function Cta({
     );
   }
 
-  // Visitante e usuário comum — PlayMenu (drawer full-height + estados persistidos).
+  // Visitante e usuário comum — PlayMenu (drawer full-height + estados persistidos). Com a
+  // busca pausada o menu continua no lugar (a estrutura fica pronta para a volta do bot), e
+  // a party do PPA entra como modalidade dele.
   return (
     <PlayMenu
       isVisitor={isVisitor}
@@ -177,6 +160,8 @@ function Cta({
       smokeTheme={smokeTheme}
       showRankedComPro={showRankedComPro}
       queuePaused={queuePaused}
+      showLoja={showLoja}
+      liveOnAir={liveOnAir}
     />
   );
 }

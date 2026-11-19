@@ -26,7 +26,9 @@ import {
   ArrowLeft,
   Check,
   ChevronUp,
+  Gamepad2,
 } from "lucide-react";
+import { Link } from "@/i18n/navigation";
 import { signInWithDiscord } from "@/app/login/actions";
 import {
   enterQueue,
@@ -60,7 +62,7 @@ import { LobbyRoom } from "@/app/lobbies/[id]/lobby-room";
 import { LobbiesContent } from "@/app/lobbies/lobbies-content";
 import { CriarLobbyForm } from "@/app/criar-lobby/criar-lobby-form";
 
-type Modalidade = "competitiva" | "salas" | "pro";
+type Modalidade = "competitiva" | "salas" | "pro" | "party";
 type View = "menu" | "lista" | "sala";
 
 // Já estamos numa página de partida? Guarda por PREFIXO (qualquer id: dota_match_id,
@@ -82,6 +84,10 @@ interface Props {
   showRankedComPro?: boolean;
   /** Flag fila_competitiva desligada: busca pausada, sem o bot da Steam no ar. @default false */
   queuePaused?: boolean;
+  /** Flag loja: a party do PPA (vaga na fila da live) entra como modalidade. @default false */
+  showLoja?: boolean;
+  /** Live do PPA no ar: o botão ganha o ponto vermelho e a party diz que está ao vivo. */
+  liveOnAir?: boolean;
 }
 
 export function PlayMenu({
@@ -91,6 +97,8 @@ export function PlayMenu({
   smokeTheme = null,
   showRankedComPro = false,
   queuePaused = false,
+  showLoja = false,
+  liveOnAir = false,
 }: Props) {
   const router = useRouter();
   const t = useTranslations("playMenu");
@@ -572,6 +580,7 @@ export function PlayMenu({
       {phase === "button" && !searching && !activeMatchId && (
         <button
           type="button"
+          data-cta="jogar-dota"
           onClick={() => setPhase("expanded")}
           // Largura FIXA (340px) igual à pílula de busca + respiro de 2.5rem → botão e
           // pílula ocupam o MESMO lugar, sem pulo ao trocar de estado (Pedro 2026-07-05).
@@ -580,6 +589,10 @@ export function PlayMenu({
         >
           {hasSala ? <ArrowLeft size={22} aria-hidden="true" /> : <Play size={22} aria-hidden="true" />}
           <span>{hasSala ? t("backToRoom") : t("play")}</span>
+          {/* Live do PPA no ar: o mesmo ponto vermelho da aba Loja. */}
+          {liveOnAir && !hasSala && (
+            <span className="size-2.5 shrink-0 rounded-full bg-brand-primary shadow-[0_0_8px_var(--color-brand-primary-glow)] motion-safe:animate-pulse" aria-hidden="true" />
+          )}
           <span
             className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform [transition-duration:var(--motion-duration-hero)] group-hover:translate-x-full"
             aria-hidden="true"
@@ -639,6 +652,8 @@ export function PlayMenu({
               loadingSalas={loadingSalas}
               showRankedComPro={showRankedComPro}
               queuePaused={queuePaused}
+              showLoja={showLoja}
+              liveOnAir={liveOnAir}
             />
           )}
 
@@ -754,6 +769,8 @@ function MenuView({
   loadingSalas,
   showRankedComPro,
   queuePaused,
+  showLoja,
+  liveOnAir,
 }: {
   active: Modalidade;
   setActive: (m: Modalidade) => void;
@@ -772,6 +789,8 @@ function MenuView({
   loadingSalas: boolean;
   showRankedComPro: boolean;
   queuePaused: boolean;
+  showLoja: boolean;
+  liveOnAir: boolean;
 }) {
   const t = useTranslations("playMenu");
 
@@ -876,6 +895,28 @@ function MenuView({
           </div>
         </Section>
 
+        {/* Party do PPA: a vaga na fila da live, vendida na loja. Some com a flag loja desligada. */}
+        {showLoja && (
+          <Section
+            name="party"
+            icon={Gamepad2}
+            title={t("partyTitle")}
+            subtitle={liveOnAir ? t("partySubtitleLive") : t("partySubtitle")}
+            active={active === "party"}
+            onToggle={() => setActive("party")}
+          >
+            <p className="mb-2.5 font-body text-sm leading-relaxed text-text-muted">{t("partyDesc")}</p>
+            <Link
+              href="/party"
+              data-cta="jogar-com-o-ppa"
+              className="flex w-full items-center justify-center gap-2 rounded-[var(--radius-md)] border border-play-primary/60 bg-play-primary/15 px-2.5 py-2 font-display text-sm font-bold uppercase tracking-wide text-play-primary transition-colors hover:bg-play-primary/25"
+            >
+              <Gamepad2 size={14} aria-hidden="true" />
+              {t("partyCta")}
+            </Link>
+          </Section>
+        )}
+
         {/* Ranked com PRO — some quando a feature flag está desligada. */}
         {showRankedComPro && (
           <Section icon={Crown} title={t("pro")} subtitle={t("proSubtitle")} active={active === "pro"} onToggle={() => setActive("pro")}>
@@ -927,6 +968,7 @@ function mmss(total: number): string {
 }
 
 function Section({
+  name,
   icon: Icon,
   title,
   subtitle,
@@ -934,6 +976,8 @@ function Section({
   onToggle,
   children,
 }: {
+  /** Nome da modalidade no atributo data-modalidade (o e2e abre a seção por ele). */
+  name?: Modalidade;
   icon: typeof Swords;
   title: string;
   subtitle: string;
@@ -943,7 +987,7 @@ function Section({
 }) {
   return (
     <section className={`overflow-hidden rounded-[var(--radius-md)] border ${active ? "border-brand-primary/40 bg-bg-elevated/60" : "border-border-subtle bg-bg-elevated/30"}`}>
-      <button type="button" onClick={onToggle} aria-expanded={active} className="flex w-full items-center gap-2.5 px-2.5 py-2.5 text-left transition-colors hover:bg-bg-elevated/80">
+      <button type="button" data-modalidade={name} onClick={onToggle} aria-expanded={active} className="flex w-full items-center gap-2.5 px-2.5 py-2.5 text-left transition-colors hover:bg-bg-elevated/80">
         <Icon size={16} className={active ? "text-brand-primary" : "text-text-muted"} aria-hidden="true" />
         <span className="flex-1 min-w-0">
           <span className="block font-display text-sm font-bold uppercase tracking-wide text-text-display">{title}</span>

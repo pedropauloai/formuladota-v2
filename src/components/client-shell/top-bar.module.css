@@ -12,6 +12,8 @@
   --plate-bottom: var(--color-bg-base);
   --plate-edge: color-mix(in oklab, var(--color-text-display) 9%, transparent);
   --plate-rim: color-mix(in oklab, var(--color-text-display) 16%, var(--color-bg-base));
+  /* Altura da barra (h-12, xl:h-14): base do encaixe da primeira aba no ombro do logo. */
+  --bar-h: 3rem;
   /* Quanto a placa do logo desce abaixo da barra (17px a 1440p na referência). */
   --logo-hang: 6px;
   /* Ombros da placa do logo: quanto saem para os lados e quanto afinam até a base. */
@@ -27,6 +29,7 @@
 
 @media (min-width: 80rem) {
   .bar {
+    --bar-h: 3.5rem;
     --logo-hang: 10px;
     --logo-shoulder: 0.875rem;
     --logo-face-inset: 0.5rem;
@@ -201,6 +204,32 @@
 .endcap > :last-child .plate::before,
 .endcap > .plate:last-child::before {
   right: -1.5rem;
+}
+
+/* ---------- Primeira aba encaixada no ombro do logo (Pedro, 20/11/2026) ---------- */
+
+/* O menu começa no canto de cima do ombro: a margem negativa desfaz o vão do flex. */
+.navMain {
+  margin-left: -0.375rem;
+}
+
+@media (min-width: 80rem) {
+  .navMain {
+    margin-left: -0.5rem;
+  }
+}
+
+/* O lado esquerdo segue a inclinação do ombro (o ombro anda 0,93 da sua largura na altura da
+   barra), a 4 px dele, o mesmo sulco das outras abas; o lado direito segue a inclinação de todas
+   (tan 20 graus vezes meia altura = 0,182 da altura). Recorte em vez de inclinar a placa. */
+.navMain > .plate:first-child::before {
+  --groove: 0.25rem;
+  --shoulder-run: calc(var(--logo-shoulder) * 0.93);
+  --skew-run: calc(var(--bar-h) * 0.182);
+  left: calc(var(--groove) - var(--shoulder-run));
+  right: calc(var(--skew-run) * -1);
+  transform: none;
+  clip-path: polygon(var(--shoulder-run) 0, 100% 0, calc(100% - 2 * var(--skew-run)) 100%, 0 100%);
 }
 
 /* ---------- Placa do logo ---------- */

@@ -17,7 +17,7 @@ import { getPublicOrder, type PublicOrder } from "@/lib/loja/public-order";
 import { isUuid } from "@/lib/loja/refs";
 import { formatBRL } from "@/lib/loja/money";
 import { cn } from "@/lib/utils";
-import { Price, panel, plate, v2Page } from "@/components/v2";
+import { CtaWarp, Price, panel, plate, v2Page } from "@/components/v2";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
@@ -77,6 +77,7 @@ function StatusPill({ order, t }: { order: PublicOrder; t: Translator }) {
 function StatusBody({ order, t }: { order: PublicOrder; t: Translator }) {
   const again = order.productSlug ? (
     <Link href={`/loja/${order.productSlug}`} className={plate({ kind: "brand" })}>
+      <CtaWarp />
       {t("tryAgain")}
     </Link>
   ) : null;

@@ -5,7 +5,7 @@
 // aba vê). O navegador só toca som depois de um toque na página, e a compra já foi um toque.
 
 import { cn } from "@/lib/utils";
-import { panel, plate } from "@/components/v2";
+import { CtaWarp, panel, plate } from "@/components/v2";
 import { useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { Gamepad2 } from "lucide-react";
@@ -61,6 +61,7 @@ export function TurnAlert({ dotaId, onClose }: { dotaId: string | null; onClose:
           onClick={onClose}
           className={plate({ kind: "cta", block: true })}
         >
+          <CtaWarp />
           {t("gotIt")}
         </button>
       </div>

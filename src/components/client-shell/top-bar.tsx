@@ -43,6 +43,7 @@ import {
   PlateTab,
   plateClass,
   topBarEndcap,
+  topBarNavMain,
   topBarSkin,
 } from "./top-bar-chrome";
 
@@ -147,9 +148,10 @@ export function DashboardTopBar({
         {/* Visitante vai para a home; o /dashboard o mandaria para lá com um desvio a mais. */}
         <LogoPlate label={t("topbar.homeAria")} href={isVisitor ? "/" : "/dashboard"} />
 
+        {/* A primeira aba encaixa no ombro do logo, com o mesmo sulco fino entre as abas. */}
         <nav
           aria-label={t("topbar.mainNavAria")}
-          className="hidden h-full items-stretch gap-1 lg:flex"
+          className={cn(topBarNavMain, "hidden h-full items-stretch gap-1 lg:flex")}
         >
           {principalTabs.map((tab) => (
             <PlateTab key={tab.href} href={tab.href} label={tab.label} active={isActive(tab)} live={tab.live} liveLabel={t("topbar.lojaLive")} />
