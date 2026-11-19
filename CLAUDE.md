@@ -89,6 +89,7 @@ Demais regras:
 - Idempotência: webhook duplicado não duplica saldo
 - Lib canônica: `src/lib/mercadopago/`
 - **Loja do site** (`/loja`, flag `loja`): spec em `docs/loja/spec.md`, prova em `pnpm loja:e2e` (sandbox + banco + Discord) e `bash scripts/loja/verificar-producao.sh` (domínio real). A aplicação FormulaDota do Mercado Pago não tem permissão na API de Orders: Pix pela API de Payments, cartão pelo Checkout Pro.
+- **Fila da party** (`/party`, ES `/grupo`): spec em `docs/loja/fila-da-party.md`. O Pedro abre e encerra a live em `/admin/loja/fila`; os overlays leem `/api/party/fila`. Live de teste é `is_test` (o site de produção nunca mostra), e o `pnpm loja:e2e` cria e apaga o próprio usuário de teste.
 - **Migration em produção: nunca `supabase db push`.** O histórico remoto usa versão por data e não casa com a numeração local (001 em diante), então o push reaplicaria tudo. Aplique o SQL da migration nova pela Management API e registre em `supabase_migrations.schema_migrations` com versão por data (modelo: a 158, versão `20261107001500`).
 
 ### Bots (Discord + Steam) — deploy automático no Railway

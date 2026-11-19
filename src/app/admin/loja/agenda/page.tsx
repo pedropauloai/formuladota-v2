@@ -24,7 +24,7 @@ interface BookingRow {
   seats: number;
   status: string;
   is_test: boolean;
-  store_orders: { id: string; buyer_name: string; buyer_email: string; buyer_whatsapp: string; product_title: string; details: Record<string, unknown> | null } | null;
+  store_orders: { id: string; buyer_name: string; buyer_email: string; buyer_whatsapp: string | null; product_title: string; details: Record<string, unknown> | null } | null;
 }
 
 function Section({ title, children, hint }: { title: string; children: React.ReactNode; hint?: string }) {
@@ -39,6 +39,17 @@ function Section({ title, children, hint }: { title: string; children: React.Rea
   );
 }
 
+/** Atalho do WhatsApp do comprador; o pedido da fila da party não tem WhatsApp. */
+function WhatsappLink({ href }: { href: string | null }) {
+  if (!href) return null;
+  return (
+    <>
+      {" · "}
+      <a href={href} target="_blank" rel="noopener noreferrer" className="underline">WhatsApp</a>
+    </>
+  );
+}
+
 async function loadAgenda() {
   const supabase = await createClient();
   const now = new Date().toISOString();
@@ -50,7 +61,7 @@ async function loadAgenda() {
       .gte("ends_at", now)
       .order("starts_at", { ascending: true })
       .limit(200),
-    supabase.from("store_live_sessions").select("id, starts_at, ends_at, party_seats, replay_seats, notes, status").eq("status", "marcada").gte("ends_at", now).order("starts_at"),
+    supabase.from("store_live_sessions").select("id, starts_at, ends_at, party_seats, replay_seats, notes, status").eq("status", "marcada").eq("is_test", false).gte("ends_at", now).order("starts_at"),
     supabase.from("store_availability").select("id, weekday, start_time, end_time").order("weekday").order("start_time"),
     supabase.from("store_blocked_periods").select("id, starts_at, ends_at, reason").gte("ends_at", now).order("starts_at"),
     supabase
@@ -97,8 +108,7 @@ export default async function AdminAgendaPage() {
                     {b.store_orders?.buyer_email}
                     {b.store_orders && (
                       <>
-                        {" · "}
-                        <a href={whatsappLink({ buyerWhatsapp: b.store_orders.buyer_whatsapp, buyerName: b.store_orders.buyer_name, productTitle: b.store_orders.product_title })} target="_blank" rel="noopener noreferrer" className="underline">WhatsApp</a>
+                        <WhatsappLink href={whatsappLink({ buyerWhatsapp: b.store_orders.buyer_whatsapp, buyerName: b.store_orders.buyer_name, productTitle: b.store_orders.product_title })} />
                         {typeof b.store_orders.details?.discord === "string" && ` · Discord ${b.store_orders.details.discord}`}
                         {typeof b.store_orders.details?.dota_id === "string" && ` · Dota ${b.store_orders.details.dota_id}`}
                       </>

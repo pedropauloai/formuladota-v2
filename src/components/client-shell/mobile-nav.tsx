@@ -13,7 +13,7 @@ import { useTranslations } from "next-intl";
 import { signOut, signInWithDiscord } from "@/app/login/actions";
 import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 
-type Tab = { href: string; label: string };
+type Tab = { href: string; label: string; live?: boolean };
 
 export function MobileNav({
   principalTabs,
@@ -70,6 +70,12 @@ export function MobileNav({
                   className="flex min-h-[44px] items-center rounded-sm px-3 font-display-condensed text-lg uppercase tracking-[0.08em] text-text-body hover:bg-bg-elevated hover:text-text-display transition-colors"
                 >
                   {tab.label}
+                  {tab.live && (
+                    <>
+                      <span className="ml-2 inline-block size-2 rounded-full bg-brand-primary motion-safe:animate-pulse" aria-hidden="true" />
+                      <span className="sr-only">{` (${t("topbar.lojaLive")})`}</span>
+                    </>
+                  )}
                 </Link>
               ))}
 

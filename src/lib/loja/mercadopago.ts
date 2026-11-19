@@ -23,7 +23,8 @@ export interface CardPreferenceInput {
   title: string;
   description: string;
   amountCents: number;
-  payer: { name: string; email: string; whatsapp: string };
+  /** WhatsApp null no pedido da fila da party. */
+  payer: { name: string; email: string; whatsapp: string | null };
   returnUrl: string;
   notificationUrl?: string;
   /** Prazo para pagar, em minutos; produto com horário segura a agenda só por esse tempo. */
@@ -38,13 +39,10 @@ const preferenceResponseSchema = z.object({
 
 function payerOf(payer: CardPreferenceInput["payer"]) {
   const [name = "", ...rest] = payer.name.trim().split(/\s+/);
+  const base = { name, surname: rest.join(" ") || name, email: payer.email };
+  if (!payer.whatsapp) return base;
   const national = payer.whatsapp.startsWith("55") ? payer.whatsapp.slice(2) : payer.whatsapp;
-  return {
-    name,
-    surname: rest.join(" ") || name,
-    email: payer.email,
-    phone: { area_code: national.slice(0, 2), number: national.slice(2) },
-  };
+  return { ...base, phone: { area_code: national.slice(0, 2), number: national.slice(2) } };
 }
 
 export function buildPreferenceBody(input: CardPreferenceInput, now: Date) {

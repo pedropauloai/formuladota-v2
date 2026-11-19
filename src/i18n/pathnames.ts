@@ -31,6 +31,8 @@ export const SEGMENT_PT_TO_EN: Record<string, string> = {
   doutrina: "doctrine",
   vincular: "link",
   privacidade: "privacy",
+  // Fila da party ao vivo: "party" é o termo do cliente do Dota em inglês e o que o jogador brasileiro fala.
+  party: "party",
 };
 
 export const SEGMENT_PT_TO_ES: Record<string, string> = {
@@ -48,6 +50,8 @@ export const SEGMENT_PT_TO_ES: Record<string, string> = {
   doutrina: "doctrina",
   vincular: "vincular",
   privacidade: "privacidad",
+  // O cliente do Dota em espanhol chama a party de "grupo".
+  party: "grupo",
 };
 
 const SEGMENT_MAPS: Partial<Record<Locale, Record<string, string>>> = {

@@ -36,7 +36,7 @@ export async function getBusyIntervals(now = new Date(), ignoreBookingId?: strin
   const from = now.toISOString();
   const [bookings, lives, blocks] = await Promise.all([
     supabase.from("store_bookings").select("id, starts_at, ends_at, status, hold_until").eq("kind", "agenda").eq("is_test", isTestMode()).in("status", ACTIVE).gte("ends_at", from),
-    supabase.from("store_live_sessions").select("starts_at, ends_at").eq("status", "marcada").gte("ends_at", from),
+    supabase.from("store_live_sessions").select("starts_at, ends_at").eq("status", "marcada").eq("is_test", isTestMode()).gte("ends_at", from),
     supabase.from("store_blocked_periods").select("starts_at, ends_at").gte("ends_at", from),
   ]);
   const failed = bookings.error ?? lives.error ?? blocks.error;
@@ -64,6 +64,7 @@ export async function getUpcomingLives(product: StoreProduct, now = new Date()):
     .from("store_live_sessions")
     .select("id, starts_at, ends_at, party_seats, replay_seats, notes")
     .eq("status", "marcada")
+    .eq("is_test", isTestMode())
     .gt("starts_at", now.toISOString())
     .order("starts_at", { ascending: true })
     .limit(20);
@@ -86,7 +87,8 @@ export async function getUpcomingLives(product: StoreProduct, now = new Date()):
     .filter((l) => l.seatsLeft > 0);
 }
 
-export type BookingChoice = { kind: "agenda"; start: string } | { kind: "live"; liveId: string };
+/** Horário da agenda, uma live escolhida, ou a fila da party (a live no ar, ou a próxima marcada). */
+export type BookingChoice = { kind: "agenda"; start: string } | { kind: "live"; liveId: string } | { kind: "fila" };
 
 /** Reserva o horário (ou a vaga na live) do pedido. Devolve a mensagem de erro, ou null quando reservou. */
 export async function reserveBooking(
@@ -100,6 +102,13 @@ export async function reserveBooking(
   const isTest = isTestMode();
   // O tipo gerado do banco marca o parâmetro como texto, mas a função aceita nulo (horário já confirmado).
   const hold = (holdUntil?.toISOString() ?? null) as string;
+  if (choice.kind === "fila") {
+    const { data, error } = await supabase.rpc("store_reservar_fila", {
+      p_order_id: orderId, p_product_id: product.id, p_seats: quantity, p_hold_until: hold, p_is_test: isTest,
+    });
+    if (error) throw new Error(`reservar vaga na fila falhou: ${error.message}`);
+    return data ? null : "As vagas da fila acabaram agora. Quando alguém jogar, abre de novo.";
+  }
   if (choice.kind === "live") {
     const { data, error } = await supabase.rpc("store_reservar_live", {
       p_order_id: orderId, p_product_id: product.id, p_live_id: choice.liveId, p_seats: quantity,
@@ -129,15 +138,23 @@ export async function confirmOrderBookings(orderId: string): Promise<void> {
   if (error) throw new Error(`confirmar horário falhou: ${error.message}`);
 }
 
-/** Pedido vencido, cancelado ou reembolsado: devolve os horários futuros à agenda. */
+/** Pedido vencido, cancelado ou reembolsado: devolve os horários futuros à agenda e tira da fila da party. */
 export async function releaseOrderBookings(orderId: string, now = new Date()): Promise<void> {
-  const { error } = await createServiceClient()
+  const supabase = createServiceClient();
+  const { error } = await supabase
     .from("store_bookings")
     .update({ status: "cancelado", updated_at: now.toISOString() })
     .eq("order_id", orderId)
     .in("status", ACTIVE)
     .gte("starts_at", now.toISOString());
   if (error) throw new Error(`liberar horário falhou: ${error.message}`);
+  // A vaga da fila é de uma live que já começou: o filtro de horário acima não a alcança.
+  const { error: queueError } = await supabase
+    .from("store_bookings")
+    .update({ status: "cancelado", updated_at: now.toISOString() })
+    .eq("order_id", orderId)
+    .in("queue_state", ["aguardando", "na_party"]);
+  if (queueError) throw new Error(`tirar da fila falhou: ${queueError.message}`);
 }
 
 export const HOLD_MS = AGENDA.holdMinutes * 60_000;

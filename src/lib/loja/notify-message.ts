@@ -12,7 +12,8 @@ export interface SaleInfo {
   status: "pago" | "em_revisao";
   buyerName: string;
   buyerEmail: string;
-  buyerWhatsapp: string;
+  /** Null no pedido da fila da party: o Pedro convida pela Steam. */
+  buyerWhatsapp: string | null;
   details: Record<string, string | number>;
   origin: { utm_source?: string | null; utm_medium?: string | null; utm_campaign?: string | null; referrer_host?: string | null };
   isTest: boolean;
@@ -28,6 +29,7 @@ const DETAIL_LABELS: Record<string, string> = {
   mmr_alvo: "MMR alvo",
   match_id: "ID da partida",
   match_ids: "IDs das partidas",
+  steam: "Steam",
   observacoes: "Observações",
 };
 
@@ -45,8 +47,9 @@ export function firstName(name: string): string {
   return name.trim().split(/\s+/)[0] ?? name;
 }
 
-/** Link que abre a conversa com o comprador no WhatsApp, já com a primeira mensagem. */
-export function whatsappLink(sale: Pick<SaleInfo, "buyerWhatsapp" | "buyerName" | "productTitle">): string {
+/** Link que abre a conversa com o comprador no WhatsApp, já com a primeira mensagem; null sem WhatsApp. */
+export function whatsappLink(sale: Pick<SaleInfo, "buyerWhatsapp" | "buyerName" | "productTitle">): string | null {
+  if (!sale.buyerWhatsapp) return null;
   const text = `Oi, ${firstName(sale.buyerName)}! Aqui é o Pedro, do FORMULADOTA. Recebi o seu pedido de ${sale.productTitle} e vou combinar tudo com você por aqui.`;
   return `https://wa.me/${sale.buyerWhatsapp}?text=${encodeURIComponent(text)}`;
 }
@@ -65,9 +68,10 @@ function headline(sale: SaleInfo): string {
 
 export function buildDiscordSalePayload(sale: SaleInfo, pedroUserId?: string) {
   const mention = pedroUserId && /^\d{5,25}$/.test(pedroUserId) ? `<@${pedroUserId}> ` : "";
+  const whatsapp = whatsappLink(sale);
   const fields = [
     { name: "Comprador", value: plain(sale.buyerName), inline: true },
-    { name: "WhatsApp", value: `[abrir conversa](${whatsappLink(sale)})`, inline: true },
+    ...(whatsapp ? [{ name: "WhatsApp", value: `[abrir conversa](${whatsapp})`, inline: true }] : []),
     { name: "E-mail", value: plain(sale.buyerEmail), inline: true },
     { name: "Meio", value: sale.method === "pix" ? "Pix" : "Cartão", inline: true },
     { name: "Origem", value: plain(originText(sale.origin)), inline: true },
@@ -95,11 +99,12 @@ export function buildDiscordSalePayload(sale: SaleInfo, pedroUserId?: string) {
 }
 
 export function buildSaleEmail(sale: SaleInfo): { subject: string; text: string } {
+  const whatsapp = whatsappLink(sale);
   const lines = [
     headline(sale),
     "",
     `Comprador: ${sale.buyerName}`,
-    `WhatsApp: ${whatsappLink(sale)}`,
+    ...(whatsapp ? [`WhatsApp: ${whatsapp}`] : []),
     `E-mail: ${sale.buyerEmail}`,
     `Meio: ${sale.method === "pix" ? "Pix" : "Cartão"}`,
     `Origem: ${originText(sale.origin)}`,

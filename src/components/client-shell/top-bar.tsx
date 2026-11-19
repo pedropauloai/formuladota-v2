@@ -51,6 +51,8 @@ type TopBarTabDef = {
   label: string;
   /** Prefixo usado pra match active state. Omitido = usa href. */
   matchPrefix?: string;
+  /** Ponto de ao vivo (aba Loja com a live do Pedro no ar). */
+  live?: boolean;
 };
 
 interface Props {
@@ -77,6 +79,8 @@ interface Props {
   showRankedComPro: boolean;
   /** Feature flag loja: mostra a aba "Loja". Off = esconde para todos. */
   showLoja: boolean;
+  /** Live do Pedro no ar: a aba Loja ganha o ponto vermelho. */
+  lojaLive: boolean;
   /** Novidades publicadas depois da última visita do user (badge do sino). */
   changelogUnread: number;
 }
@@ -94,12 +98,13 @@ export function DashboardTopBar({
   communityCounters,
   showRankedComPro,
   showLoja,
+  lojaLive,
   changelogUnread,
 }: Props) {
   const t = useTranslations();
   const inQueue = myQueues.length > 0;
   const principalTabs: TopBarTabDef[] = principalTabDefs({ showRankedComPro, showLoja }).map(
-    (d) => ({ href: d.href, label: t(`nav.${d.key}`) })
+    (d) => ({ href: d.href, label: t(`nav.${d.key}`), live: d.key === "loja" && lojaLive })
   );
 
   const contextualTabs: TopBarTabDef[] = [];
@@ -147,7 +152,7 @@ export function DashboardTopBar({
           className="hidden h-full items-stretch gap-1 lg:flex"
         >
           {principalTabs.map((tab) => (
-            <PlateTab key={tab.href} href={tab.href} label={tab.label} active={isActive(tab)} />
+            <PlateTab key={tab.href} href={tab.href} label={tab.label} active={isActive(tab)} live={tab.live} liveLabel={t("topbar.lojaLive")} />
           ))}
         </nav>
 
