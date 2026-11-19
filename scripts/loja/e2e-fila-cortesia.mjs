@@ -33,7 +33,7 @@ async function giveCourtesy(page, player) {
 }
 
 async function adjust(page, player, bookingId) {
-  const row = page.locator("li", { hasText: player.name }).filter({ hasText: "cortesia" });
+  const row = page.locator("[data-fila-linha]", { hasText: player.name }).filter({ hasText: "Cortesia" });
   await row.getByText("2 a jogar").waitFor({ timeout: 20_000 });
   check("o painel mostra a cortesia na fila com as partidas", true);
   await row.getByRole("button", { name: `Dar mais uma partida a ${player.name}` }).click();

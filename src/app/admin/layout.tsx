@@ -1,6 +1,7 @@
 // Layout /admin — guard server-side via is_admin().
 // Usa ClientShell (top-bar + bottom-bar consistentes) com hideLeftSidebar=true
 // pra dar espaço pra sidebar admin (Dashboard, Users, Temporadas, Lobbies).
+// Sem a coluna direita do site (partidas, mural): o admin é instrumento e precisa da largura.
 
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
@@ -41,7 +42,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const t = await getTranslations("misc2");
 
   return (
-    <ClientShell currentRoute="/admin" hideLeftSidebar>
+    <ClientShell currentRoute="/admin" hideLeftSidebar hideRightSidebar>
       <div className="flex h-full">
         {/* Admin sidebar interna (substitui left sidebar do user) */}
         <aside className="w-60 border-r border-border-subtle bg-bg-base/60 backdrop-blur-sm p-5 hidden md:block">
