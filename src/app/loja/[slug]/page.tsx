@@ -22,10 +22,18 @@ import { getSlots } from "@/lib/loja/slots";
 import { lojaPreviaLocal } from "@/lib/loja/preview";
 import { getAgendaData, getUpcomingLives } from "@/lib/loja/agenda-server";
 import type { StoreProduct } from "@/lib/loja/catalog";
-import { formatPrice } from "@/lib/loja/money";
 import { mdBullets } from "@/lib/loja/text";
+import { cn } from "@/lib/utils";
+import { Panel, Price, plate, v2Page } from "@/components/v2";
 
 type Params = { params: Promise<{ slug: string }> };
+type PageProps = Params & { searchParams: Promise<Record<string, string | string[] | undefined>> };
+
+/** Quantidade escolhida na vitrine (?qtd=2); qualquer outra coisa vira 1. */
+function quantityFrom(raw: string | string[] | undefined): number {
+  const n = typeof raw === "string" ? Number.parseInt(raw, 10) : 1;
+  return Number.isFinite(n) && n > 0 ? n : 1;
+}
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { slug } = await params;
@@ -62,8 +70,8 @@ async function bookingFor(product: StoreProduct): Promise<CheckoutBooking> {
   return null;
 }
 
-export default async function ProdutoPage({ params }: Params) {
-  const { slug } = await params;
+export default async function ProdutoPage({ params, searchParams }: PageProps) {
+  const [{ slug }, query] = await Promise.all([params, searchParams]);
   const { loja } = await getFeatureFlags();
   if (!loja && !lojaPreviaLocal()) redirect("/");
   const product = await getActiveProduct(slug);
@@ -82,57 +90,51 @@ export default async function ProdutoPage({ params }: Params) {
 
   return (
     <ClientShell currentRoute="/loja" hideRightSidebar>
-      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-8 md:px-8 md:py-12 lg:grid-cols-[minmax(0,1fr)_420px] lg:gap-12">
+      <div className={cn(v2Page, "mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)] gap-8 overflow-x-clip px-4 py-8 md:px-8 md:py-12 lg:grid-cols-[minmax(0,1fr)_420px] lg:gap-12")}>
         <article className="min-w-0 space-y-8">
           <Link href="/loja" className="inline-flex items-center gap-1 text-sm text-text-muted hover:text-text-display">
             <ArrowLeft size={14} aria-hidden="true" /> {t("backToStore")}
           </Link>
           <header className="flex flex-col gap-5 sm:flex-row sm:items-start">
-            <ItemArt art={product.art} size="xl" />
+            {/* Ícone da Valve tem 88x64: fica no tamanho nativo ou menor, para não borrar. */}
+            <span className="grid shrink-0 place-items-center self-start rounded-sm bg-bg-deep p-3 shadow-[inset_0_0_0_1px_var(--color-border-gold),0_0_22px_var(--fd-raw-gold-glow-soft)]">
+              <ItemArt art={product.art} size="md" className="border-0" />
+            </span>
             <div className="min-w-0 space-y-3">
               <ModeTag mode={product.mode} />
-              <h1 className="font-display text-4xl uppercase leading-none tracking-tight text-text-display md:text-5xl">{product.title}</h1>
+              <h1 className="font-display-condensed text-[3rem] uppercase leading-[0.85] text-text-display md:text-[4rem]">{product.title}</h1>
               <p className="text-base leading-relaxed text-text-body">{product.summary}</p>
-              <p className="flex items-baseline gap-2">
-                <span className="font-display text-4xl leading-none tabular-nums text-gold">{formatPrice(product.fromPriceCents)}</span>
-                {product.priceUnit && <span className="text-sm text-text-muted">{product.priceUnit}</span>}
-              </p>
+              <Price cents={product.fromPriceCents} unit={product.priceUnit} className="text-[3rem]" />
               {slots && <SlotsMeter slots={slots} />}
-              <a
-                href="#comprar"
-                className="inline-flex items-center gap-1.5 rounded-sm border border-border-strong px-3 py-2 font-display text-sm uppercase tracking-wide text-text-body lg:hidden"
-              >
+              <a href="#comprar" className={cn(plate({ kind: "ghost" }), "lg:hidden")}>
                 {t("buyNow")} <ArrowDown size={14} aria-hidden="true" />
               </a>
             </div>
           </header>
           {product.descriptionMd && <MiniMarkdown source={product.descriptionMd} />}
           {product.deliveryMd && (
-            <section className="rounded-md border border-border-subtle bg-bg-base/70 p-5">
-              <h2 className="font-display text-xl uppercase tracking-wide text-text-display">{t("howItWorks")}</h2>
+            <Panel as="section" className="p-5">
+              <h2 className="font-display-condensed text-[1.8rem] uppercase leading-none text-text-display">{t("howItWorks")}</h2>
               <DeliverySteps md={product.deliveryMd} />
-            </section>
+            </Panel>
           )}
         </article>
 
         <aside id="comprar" className="min-w-0 scroll-mt-24 self-start lg:sticky lg:top-6">
           {needsLogin ? (
-            <div className="space-y-4 rounded-md border border-border-strong bg-bg-base p-5">
+            <Panel tone="gold" shadow="gold" className="space-y-4 p-5">
               <p className="text-sm text-text-body">{t("loginRequired")}</p>
-              <a
-                href={`/login?next=${encodeURIComponent(`/loja/${product.slug}`)}`}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-sm bg-brand-primary px-4 py-3 font-display uppercase tracking-widest text-text-display hover:bg-brand-primary-hover"
-              >
+              <a href={`/login?next=${encodeURIComponent(`/loja/${product.slug}`)}`} className={plate({ kind: "brand", block: true })}>
                 <LogIn size={16} aria-hidden="true" /> {t("login")}
               </a>
-            </div>
+            </Panel>
           ) : slots?.left === 0 ? (
             <SoldOutPanel slots={slots} />
           ) : noLive ? (
-            <div data-loja-esgotado className="space-y-2 rounded-md border border-border-strong bg-bg-base p-5">
-              <p className="font-display text-2xl uppercase leading-none tracking-wide text-text-display">{t("noLiveTitle")}</p>
+            <Panel data-loja-esgotado className="space-y-2 p-5">
+              <p className="font-display-condensed text-[1.9rem] uppercase leading-none text-text-display">{t("noLiveTitle")}</p>
               <p className="text-sm text-text-muted">{t("noLiveText")}</p>
-            </div>
+            </Panel>
           ) : (
             <CheckoutForm
               slug={product.slug}
@@ -143,6 +145,7 @@ export default async function ProdutoPage({ params }: Params) {
               mmrTiers={product.mmrTiers}
               booking={booking}
               defaultEmail={user?.email ?? ""}
+              initialQuantity={quantityFrom(query.qtd)}
             />
           )}
         </aside>

@@ -36,6 +36,8 @@ interface Props {
   mmrTiers: MmrTier[] | null;
   booking: CheckoutBooking;
   defaultEmail: string;
+  /** Quantidade que veio escolhida da vitrine (?qtd=); o formulário ainda limita ao máximo. */
+  initialQuantity?: number;
 }
 
 const FIELD_LABEL: Record<FormField, string> = {
@@ -59,11 +61,11 @@ const NUMERIC_FIELDS: ReadonlySet<FormField> = new Set(["dota_id", "mmr_atual", 
 const inputCls =
   "mt-1 w-full rounded-sm border border-border-strong bg-bg-deep px-3 py-2 text-sm text-text-display placeholder:text-text-faded focus:border-brand-primary focus:outline-none";
 
-export function CheckoutForm({ slug, variants, formFields, maxQuantity, priceUnit, mmrTiers, booking, defaultEmail }: Props) {
+export function CheckoutForm({ slug, variants, formFields, maxQuantity, priceUnit, mmrTiers, booking, defaultEmail, initialQuantity = 1 }: Props) {
   const t = useTranslations("loja");
   const router = useRouter();
   const [variantId, setVariantId] = useState(variants[0]?.id ?? "");
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState(() => Math.min(Math.max(1, Math.trunc(initialQuantity)), Math.max(1, maxQuantity)));
   const [mmrFrom, setMmrFrom] = useState("");
   const [mmrTo, setMmrTo] = useState("");
   const [slotStart, setSlotStart] = useState<string | null>(null);

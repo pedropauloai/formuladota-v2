@@ -20,7 +20,7 @@ function StageSeal({ nextLive }: { nextLive: LiveOption | null }) {
     : null;
   return (
     <div className="absolute left-0 top-0 p-3 sm:p-5 [[data-twitch-live=true]_&]:hidden">
-      <span className={cn(plate({ kind: "tag", tone: "live" }), "min-h-7 px-3 text-[0.75rem]")}>
+      <span className={cn(plate({ kind: "tag", tone: "live" }), "min-h-7 max-w-[calc(100vw-3rem)] whitespace-normal px-3 py-1 text-left text-[0.75rem] leading-tight sm:max-w-none sm:whitespace-nowrap")}>
         <BrandGlyph brand="twitch" size={14} className="[&_path]:fill-current" />
         {when ? t("stageNextLive", { when }) : t("stageOffAir")}
       </span>

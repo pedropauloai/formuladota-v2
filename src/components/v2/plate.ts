@@ -52,8 +52,8 @@ export function panel(tone: PanelTone = "neutral"): string {
 /** Sombra do painel: fica no invólucro, porque o recorte do painel corta a própria sombra. */
 export function lift(kind: PanelLift = "dark"): string {
   if (kind === "none") return "";
-  return kind === "gold" ? styles.liftGold : styles.liftDark;
+  return (kind === "gold" ? styles.liftGold : styles.liftDark) ?? "";
 }
 
 /** Envolve a página: em tela de 1440 de altura tudo cresce na proporção, como no cliente. */
-export const v2Page = styles.page;
+export const v2Page: string = styles.page ?? "";

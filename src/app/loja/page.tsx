@@ -1,5 +1,8 @@
-// /loja: vitrine do catálogo ativo. Pública (visitante compra serviço sem login); some para
-// todos com a flag "loja" desligada, inclusive admin (flag autoritativa).
+// /loja: vitrine no design 2.0, versão "Ao vivo" (escolhida pelo Pedro em 19/11/2026). O palco
+// com a live da Twitch quando ele está no ar (o quadro real da live fora do ar), a party com a
+// vaga acesa e a compra da vaga ao lado; embaixo, a credencial e o resto da loja em linhas.
+// Pública (visitante compra serviço sem login); some para todos com a flag "loja" desligada,
+// inclusive admin (flag autoritativa).
 
 import type { Metadata } from "next";
 import { pagePreview } from "@/lib/seo";
@@ -8,25 +11,21 @@ import { getTranslations } from "next-intl/server";
 import { ArrowUpRight } from "lucide-react";
 import { ClientShell } from "@/components/client-shell/shell";
 import { getFeatureFlags } from "@/lib/queries/feature-flags";
-import { getActiveProducts, type StoreMode, type StoreProduct } from "@/lib/loja/catalog";
+import { getActiveProducts } from "@/lib/loja/catalog";
 import { getSlots, type SlotInfo } from "@/lib/loja/slots";
 import { getOwnerProof } from "@/lib/loja/owner-proof";
-import { lojaPreviaLocal } from "@/lib/loja/preview";
-import { FeaturedProductCard, ProductCard } from "@/components/loja/product-card";
-import { StoreHero } from "@/components/loja/store-hero";
-import { BrandGlyph } from "@/components/loja/brand-glyph";
 import { getUpcomingLives } from "@/lib/loja/agenda-server";
-import { Prototipo, SeletorPrototipo, versaoPedida } from "./_prototipo";
+import { lojaPreviaLocal } from "@/lib/loja/preview";
+import { cn } from "@/lib/utils";
+import { Panel, plate, v2Page } from "@/components/v2";
+import { StoreStage } from "@/components/loja/store-stage";
+import { PartyBuyPanel } from "@/components/loja/party-buy-panel";
+import { OwnerStrip } from "@/components/loja/owner-strip";
+import { ServiceRows } from "@/components/loja/service-rows";
+import { BrandGlyph } from "@/components/loja/brand-glyph";
 
 const YOUTUBE_CHANNEL = "https://www.youtube.com/@formuladota";
-
-// Ordem da vitrine: o tempo contado do Pedro primeiro (âncora de preço), depois a live e o resto.
-const SECTIONS: Array<{ key: string; modes: StoreMode[]; featured?: boolean }> = [
-  { key: "Scheduled", modes: ["agendado"], featured: true },
-  { key: "Live", modes: ["live"] },
-  { key: "Off", modes: ["fora_da_live", "gravado"] },
-  { key: "Digital", modes: ["digital"] },
-];
+const WRAP = "mx-auto w-full max-w-[1320px] px-4 md:px-8 2xl:max-w-[1500px]";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("loja");
@@ -46,92 +45,62 @@ export default async function LojaPage({ searchParams }: { searchParams: Promise
   const { loja } = await getFeatureFlags();
   if (!loja && !lojaPreviaLocal()) await redirectHomeKeepingUtm(searchParams);
   const [products, proof, t] = await Promise.all([getActiveProducts(), getOwnerProof(), getTranslations("loja")]);
-  const slots = (await getSlots(products)) ?? new Map<string, SlotInfo>();
-
-  // PROTÓTIPO (só no servidor local): ?versao=a|b|c mostra as versões do design 2.0.
-  const sp = await searchParams;
-  const versao = versaoPedida(sp.versao);
-  if (versao && versao !== "atual") {
-    const party = products.find((p) => p.liveSeat === "party") ?? null;
-    const lives = party ? await getUpcomingLives(party).catch(() => []) : [];
-    const twitchChannel = typeof sp.canal === "string" && /^[a-z0-9_]{3,25}$/i.test(sp.canal) ? sp.canal : "formuladota";
-    return (
-      <ClientShell currentRoute="/loja" hideRightSidebar>
-        <Prototipo versao={versao} data={{ products, slots: Object.fromEntries(slots), proof, party, nextLive: lives[0] ?? null, twitchChannel }} />
-        <SeletorPrototipo versao={versao} />
-      </ClientShell>
-    );
-  }
+  const party = products.find((p) => p.liveSeat === "party") ?? null;
+  const [slotMap, lives] = await Promise.all([getSlots(products), party ? getUpcomingLives(party).catch(() => []) : Promise.resolve([])]);
+  const slots = slotMap ?? new Map<string, SlotInfo>();
+  const rest = products.filter((p) => p.id !== party?.id);
 
   return (
     <ClientShell currentRoute="/loja" hideRightSidebar>
-      {versao === "atual" && <SeletorPrototipo versao={versao} />}
-      <StoreHero proof={proof} />
-      <div className="mx-auto max-w-6xl space-y-14 px-4 py-10 md:px-8 md:py-14">
-        {products.length === 0 && (
-          <p className="rounded-md border border-border-subtle bg-bg-base p-6 text-sm text-text-muted">{t("empty")}</p>
-        )}
-        {SECTIONS.map((section) => {
-          const items = products.filter((p) => section.modes.includes(p.mode));
-          if (items.length === 0) return null;
-          return (
-            <StoreSection
-              key={section.key}
-              id={`secao-${section.key.toLowerCase()}`}
-              title={t(`section${section.key}Title`)}
-              text={t(`section${section.key}Text`)}
-              items={items}
-              slots={slots}
-              featured={section.featured === true}
-            />
-          );
-        })}
-        <section className="flex flex-col gap-4 rounded-md border border-border-strong bg-bg-base p-5 md:flex-row md:items-center md:justify-between md:p-6">
-          <div className="space-y-1.5">
-            <h2 className="font-display text-2xl uppercase leading-none tracking-wide text-text-display">{t("freeTitle")}</h2>
-            <p className="max-w-2xl text-sm leading-relaxed text-text-muted">{t("freeText")}</p>
-          </div>
+      <div className={cn(v2Page, "relative overflow-x-clip pb-24")}>
+        <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-[640px] bg-[radial-gradient(55%_65%_at_35%_0%,var(--color-brand-primary-glow),transparent_72%)]" />
+
+        <section className={cn(WRAP, "relative grid grid-cols-[minmax(0,1fr)] gap-4 pt-6 md:pt-8 lg:grid-cols-[minmax(0,1fr)_minmax(340px,380px)] 2xl:grid-cols-[minmax(0,1fr)_420px] 2xl:gap-5")}>
+          <StoreStage proof={proof} nextLive={lives[0] ?? null} />
+          {party ? (
+            <Panel as="aside" tone="gold" shadow="gold" wrapperClassName="h-full" className="h-full p-5 md:p-6">
+              <PartyBuyPanel slug={party.slug} title={party.title} summary={party.summary} priceCents={party.fromPriceCents} maxQuantity={party.maxQuantity} />
+            </Panel>
+          ) : (
+            <h1 className="sr-only">{t("metaTitle")}</h1>
+          )}
+        </section>
+
+        <div className={cn(WRAP, "relative mt-10")}>
+          <OwnerStrip proof={proof} />
+        </div>
+
+        <div className={cn(WRAP, "relative mt-12")}>
+          {products.length === 0 ? (
+            <Panel className="p-6">
+              <p className="text-sm text-text-muted">{t("empty")}</p>
+            </Panel>
+          ) : (
+            <ServiceRows products={rest} slots={slots} />
+          )}
+        </div>
+
+        <div className={cn(WRAP, "relative mt-12")}>
           <a
             href={YOUTUBE_CHANNEL}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-sm border border-border-strong px-4 py-2.5 font-display text-base uppercase tracking-wide text-text-display transition-colors hover:border-text-muted"
+            className="group flex flex-wrap items-center justify-between gap-3 border-y border-border-subtle px-2 py-4 md:px-4"
           >
-            <BrandGlyph brand="youtube" size={18} />
-            {t("freeCta")}
-            <ArrowUpRight size={15} aria-hidden="true" className="text-text-muted" />
+            <span className="flex items-center gap-3">
+              <BrandGlyph brand="youtube" size={26} />
+              <span>
+                <span className="block font-display-condensed text-[1.6rem] uppercase leading-none text-text-display">{t("freeTitle")}</span>
+                <span className="text-sm text-text-muted">{t("freeText")}</span>
+              </span>
+            </span>
+            <span className={cn(plate({ kind: "ghost" }), "group-hover:text-text-display")}>
+              {t("freeCta")}
+              <ArrowUpRight size={14} aria-hidden="true" />
+            </span>
           </a>
-        </section>
+        </div>
       </div>
     </ClientShell>
-  );
-}
-
-function StoreSection(props: {
-  id: string;
-  title: string;
-  text: string;
-  items: StoreProduct[];
-  slots: Map<string, SlotInfo>;
-  featured: boolean;
-}) {
-  return (
-    <section aria-labelledby={props.id} className="space-y-5">
-      <header className="space-y-1.5">
-        <h2 id={props.id} className="font-display text-3xl uppercase leading-none tracking-wide text-text-display md:text-4xl">
-          {props.title}
-        </h2>
-        <p className="text-sm text-text-muted">{props.text}</p>
-      </header>
-      <div className={props.featured || props.items.length === 2 ? "grid gap-4 sm:grid-cols-2" : "grid gap-4 sm:grid-cols-2 lg:grid-cols-3"}>
-        {props.items.map((product) =>
-          props.featured ? (
-            <FeaturedProductCard key={product.id} product={product} slots={props.slots.get(product.id)} />
-          ) : (
-            <ProductCard key={product.id} product={product} slots={props.slots.get(product.id)} />
-          )
-        )}
-      </div>
-    </section>
   );
 }
