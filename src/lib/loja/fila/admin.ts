@@ -32,6 +32,8 @@ export interface AdminQueueEntry {
   boughtOffline: boolean;
   /** Entrou pelo Battlepass, sem pagar a vaga. */
   battlepass: boolean;
+  /** O Pedro pôs na fila pelo painel, sem pagamento. */
+  courtesy: boolean;
   /** Última vez na party do PPA: a base do revezamento (null = nunca jogou). */
   lastTurnAt: string | null;
 }
@@ -136,13 +138,14 @@ export async function getAdminQueue(): Promise<AdminQueue> {
       carriedOver: !!snapshot.live && !!booking && !boughtOffline && booking.live_session_id !== snapshot.live.id,
       boughtOffline,
       battlepass: e.source === "battlepass",
+      courtesy: e.source === "cortesia",
       lastTurnAt: e.lastTurnAt ?? null,
     };
   });
   const finished = finishedRows.map((r): AdminFinishedEntry => {
     const exit = toQueueExit(r.queue_exit);
-    // Entrada do Battlepass não tem pedido nem nada a devolver.
-    const order = r.source === "battlepass" ? null : r.store_orders;
+    // Entrada do Battlepass e cortesia não têm pedido nem nada a devolver.
+    const order = r.source === "pedido" ? r.store_orders : null;
     const perMatch = order ? Math.round(order.amount_cents / Math.max(1, order.quantity)) : 0;
     return {
       id: r.id,
@@ -204,6 +207,11 @@ export const queueOps = {
     }),
   noShow: (bookingId: string) => rpc<boolean>("party_fila_ausente", { p_booking_id: bookingId }),
   remove: (bookingId: string) => rpc<boolean>("party_fila_remover", { p_booking_id: bookingId }),
+  /** Cortesia: põe na fila sem pagamento, ou soma partidas à cortesia que a pessoa já tem. */
+  addCourtesy: (userId: string, matches: number) =>
+    rpc<string | null>("party_fila_adicionar_cortesia", { p_user_id: userId, p_matches: matches, p_is_test: isTestMode() }),
+  /** Soma ou tira partidas de quem está na fila (mínimo 1 por jogar, máximo 20); devolve o total novo. */
+  adjustMatches: (bookingId: string, delta: number) => rpc<number | null>("party_fila_ajustar_partidas", { p_booking_id: bookingId, p_delta: delta }),
   /** A própria pessoa sai (o banco confere que a vaga é dela e que ainda espera). */
   leave: (bookingId: string, userId: string) => rpc<boolean>("party_fila_sair", { p_booking_id: bookingId, p_user_id: userId }),
 };

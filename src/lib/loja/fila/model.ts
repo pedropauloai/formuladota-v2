@@ -3,8 +3,12 @@
 
 export type QueueState = "aguardando" | "na_party";
 
-/** Vaga paga (pedido da loja) ou entrada do Battlepass, sem pagamento (migration 192). */
-export type QueueSource = "pedido" | "battlepass";
+/** Vaga paga (pedido da loja), entrada do Battlepass (migration 192) ou cortesia do Pedro pelo painel (migration 178), as duas sem pagamento. */
+export type QueueSource = "pedido" | "battlepass" | "cortesia";
+
+export function toQueueSource(value: string | null): QueueSource {
+  return value === "battlepass" || value === "cortesia" ? value : "pedido";
+}
 
 export interface QueueEntry {
   /** ID da reserva (store_bookings): vai para o JSON público e não identifica ninguém. */

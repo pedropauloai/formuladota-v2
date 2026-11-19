@@ -1,4 +1,4 @@
--- Teste de regressão das regras da fila da party (migrations 174 a 177). Abre uma live de teste,
+-- Teste de regressão das regras da fila da party (migrations 174 a 178). Abre uma live de teste,
 -- reserva, paga, chama, joga, pula, sai, tira e encerra, e termina SEMPRE num erro proposital
 -- (RESULTADO: ...), então a transação inteira volta e nada fica gravado.
 -- PASSA quando todos os itens do RESULTADO dizem "=ok"; cada "=FALHOU" é uma regressão.
@@ -33,6 +33,9 @@ declare
   live2 uuid;
   n1 int;
   n2 int;
+  us uuid;
+  un uuid;
+  c1 uuid;
   v2 uuid;
   v uuid;
   st text;
@@ -327,6 +330,63 @@ begin
     r := array_append(r, 'Z2_uma_fila_aberta=FALHOU(sem estado fila)'::text);
   end;
 
+  -- Cortesia do Pedro (migration 178): pôr alguém na fila sem pagamento e ajustar as partidas.
+  select s.user_id into us from public.steam_links s join public.profiles p on p.id = s.user_id
+   where not coalesce(p.is_admin, false) order by s.user_id limit 1;
+  select p.id into un from public.profiles p
+   where not coalesce(p.is_admin, false) and not exists (select 1 from public.steam_links s where s.user_id = p.id)
+   order by p.id limit 1;
+
+  -- AA. Cortesia entra na fila sem pedido, com as partidas escolhidas, e não ocupa a vaga à venda.
+  begin
+    n1 := public.party_fila_ocupacao(public.party_fila_live_atual(true));
+    c1 := public.party_fila_adicionar_cortesia(us, 2, true);
+    select queue_state, source, seats into st, st2, n from public.store_bookings where id = c1 and order_id is null;
+    r := array_append(r, (case when st = 'aguardando' and st2 = 'cortesia' and n = 2
+      and public.party_fila_ocupacao(public.party_fila_live_atual(true)) = n1
+      then 'AA_cortesia_entra_sem_pagar=ok' else 'AA_cortesia_entra_sem_pagar=FALHOU(' || coalesce(st, 'null') || ',' || coalesce(st2, 'null') || ')' end)::text);
+  exception when others then
+    r := array_append(r, ('AA_cortesia_entra_sem_pagar=FALHOU(' || sqlerrm || ')')::text);
+  end;
+
+  -- AB. Cortesia de novo para quem já tem cortesia na fila soma as partidas na mesma entrada.
+  begin
+    v := public.party_fila_adicionar_cortesia(us, 1, true);
+    select seats into n from public.store_bookings where id = c1;
+    r := array_append(r, (case when v = c1 and n = 3 then 'AB_cortesia_soma=ok' else 'AB_cortesia_soma=FALHOU(' || coalesce(n::text, 'null') || ')' end)::text);
+  exception when others then
+    r := array_append(r, ('AB_cortesia_soma=FALHOU(' || sqlerrm || ')')::text);
+  end;
+
+  -- AC. Ajustar partidas: soma e tira, sem ficar abaixo do que falta jogar (mínimo 1) nem acima de 20.
+  begin
+    n := public.party_fila_ajustar_partidas(c1, -2);
+    n1 := public.party_fila_ajustar_partidas(c1, -1);
+    n2 := public.party_fila_ajustar_partidas(c1, 25);
+    r := array_append(r, (case when n = 1 and n1 is null and n2 is null and (select seats from public.store_bookings where id = c1) = 1
+      then 'AC_ajustar_partidas=ok' else 'AC_ajustar_partidas=FALHOU(' || coalesce(n::text, 'null') || ',' || coalesce(n1::text, 'null') || ',' || coalesce(n2::text, 'null') || ')' end)::text);
+  exception when others then
+    r := array_append(r, ('AC_ajustar_partidas=FALHOU(' || sqlerrm || ')')::text);
+  end;
+
+  -- AD. Ajustar vale para compra paga também; fora da fila não muda nada.
+  begin
+    n := public.party_fila_ajustar_partidas(b8, 1);
+    n1 := public.party_fila_ajustar_partidas(b1, 1);
+    r := array_append(r, (case when n = 2 and n1 is null then 'AD_ajustar_compra_paga=ok' else 'AD_ajustar_compra_paga=FALHOU(' || coalesce(n::text, 'null') || ',' || coalesce(n1::text, 'null') || ')' end)::text);
+  exception when others then
+    r := array_append(r, ('AD_ajustar_compra_paga=FALHOU(' || sqlerrm || ')')::text);
+  end;
+
+  -- AE. Sem Steam vinculada não entra (o convite sai pelo ID do Dota); partidas fora de 1 a 20, também não.
+  begin
+    r := array_append(r, (case when public.party_fila_adicionar_cortesia(un, 1, true) is null
+      and public.party_fila_adicionar_cortesia(us, 0, true) is null
+      then 'AE_cortesia_exige_steam=ok' else 'AE_cortesia_exige_steam=FALHOU' end)::text);
+  exception when others then
+    r := array_append(r, ('AE_cortesia_exige_steam=FALHOU(' || sqlerrm || ')')::text);
+  end;
+
   -- O. Logado comum não opera a fila, não reserva direto e não lê as reservas.
   set local role authenticated;
   perform set_config('request.jwt.claims', json_build_object('sub', u, 'role', 'authenticated')::text, true);
@@ -341,6 +401,18 @@ begin
     r := array_append(r, 'O_logado_reserva=FALHOU(executou)'::text);
   exception when insufficient_privilege then
     r := array_append(r, 'O_logado_reserva=ok'::text);
+  end;
+  begin
+    perform public.party_fila_adicionar_cortesia(u, 1, true);
+    r := array_append(r, 'O_logado_cortesia=FALHOU(executou)'::text);
+  exception when insufficient_privilege then
+    r := array_append(r, 'O_logado_cortesia=ok'::text);
+  end;
+  begin
+    perform public.party_fila_ajustar_partidas(b3, 5);
+    r := array_append(r, 'O_logado_ajusta=FALHOU(executou)'::text);
+  exception when insufficient_privilege then
+    r := array_append(r, 'O_logado_ajusta=ok'::text);
   end;
   begin
     perform public.party_fila_sair(b3, u);

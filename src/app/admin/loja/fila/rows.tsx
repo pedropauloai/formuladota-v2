@@ -3,9 +3,10 @@
 // Linhas do painel da fila: quem está na party (com o ID do Dota para o convite) e quem espera.
 
 import { useState } from "react";
-import { Copy, Check, ExternalLink } from "lucide-react";
+import { Check, Copy, ExternalLink, Minus, Plus } from "lucide-react";
 import { UserAvatar } from "@/components/ui/avatar";
 import type { AdminFinishedEntry, AdminQueueEntry } from "@/lib/loja/fila/admin";
+import { ajustarPartidas } from "./cortesia-actions";
 import { formatBRL } from "@/lib/loja/money";
 
 const TIME = new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
@@ -61,10 +62,27 @@ function Identity({ entry }: { entry: AdminQueueEntry }) {
           {entry.carriedOver && <span className="text-gold">de live anterior</span>}
           {entry.boughtOffline && <span className="text-gold">comprou fora da live</span>}
           {entry.battlepass && <span className="text-gold">Battlepass</span>}
+          {entry.courtesy && <span className="text-gold">cortesia</span>}
           <span>{entry.lastTurnAt ? `última vez na party ${PAID_AT.format(new Date(entry.lastTurnAt))}` : "nunca jogou na party"}</span>
         </p>
       </div>
     </div>
+  );
+}
+
+/** Menos e mais uma partida: soma ou tira do que a pessoa tem para jogar (cortesia, Battlepass ou compra). */
+function MatchesStepper({ entry, busy, act }: { entry: AdminQueueEntry; busy: boolean; act: RowAction }) {
+  const left = entry.matches - entry.played;
+  return (
+    <span className="inline-flex items-center gap-1" title="Partidas que a pessoa ainda tem para jogar">
+      <button type="button" disabled={busy || left <= 1} aria-label={`Tirar uma partida de ${entry.name}`} className={`${SECONDARY} px-2`} onClick={() => act("Uma partida a menos", () => ajustarPartidas(entry.id, -1))}>
+        <Minus size={14} aria-hidden="true" />
+      </button>
+      <span className="w-14 text-center text-xs tabular-nums text-text-body">{left} a jogar</span>
+      <button type="button" disabled={busy || entry.matches >= 20} aria-label={`Dar mais uma partida a ${entry.name}`} className={`${SECONDARY} px-2`} onClick={() => act("Uma partida a mais", () => ajustarPartidas(entry.id, 1))}>
+        <Plus size={14} aria-hidden="true" />
+      </button>
+    </span>
   );
 }
 
@@ -79,6 +97,7 @@ export function PartyRow({ entry, busy, act, noShow }: {
       <Identity entry={entry} />
       <div className="flex shrink-0 items-center gap-2">
         <span className="text-xs text-play-primary">partida {Math.min(entry.played + 1, entry.matches)} de {entry.matches}</span>
+        <MatchesStepper entry={entry} busy={busy} act={act} />
         <button type="button" disabled={busy} className={SECONDARY} onClick={() => act("Não apareceu", () => noShow(entry.id))}>Não apareceu</button>
       </div>
     </li>
@@ -102,8 +121,9 @@ export function WaitingRow({ entry, busy, canCall, act, callThis, remove }: {
       </div>
       <div className="flex shrink-0 flex-wrap items-center gap-2">
         <span className="text-xs text-text-muted">
-          {entry.matches} partida{entry.matches > 1 ? "s" : ""} · {entry.battlepass ? "entrou" : "pagou"} {PAID_AT.format(new Date(entry.queuedAt))}
+          {entry.matches} partida{entry.matches > 1 ? "s" : ""} · {entry.battlepass || entry.courtesy ? "entrou" : "pagou"} {PAID_AT.format(new Date(entry.queuedAt))}
         </span>
+        <MatchesStepper entry={entry} busy={busy} act={act} />
         <button type="button" disabled={busy || !canCall} className={SECONDARY} onClick={() => act("Chamar agora", () => callThis(entry.id))}>Chamar agora</button>
         <button
           type="button"
