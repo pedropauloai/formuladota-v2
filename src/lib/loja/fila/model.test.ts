@@ -107,4 +107,13 @@ describe("toPublicQueue", () => {
     expect(empty.live).toBeNull();
     expect(empty.queue).toEqual([]);
   });
+
+  it("fila aberta sem live: vende as vagas e não mostra data de live", () => {
+    const open = { ...live, id: "fila", status: "fila" as const, startsAt: "2026-01-01T03:00:00.000Z", onAirAt: null, queueSize: 20, occupied: 3 };
+    const body = toPublicQueue({ live: open, entries: [entry("a")] }, () => ({ name: "Ana", avatarUrl: null }));
+    expect(body.live?.status).toBe("fila");
+    expect(body.live?.startsAt).toBeNull();
+    expect(body.live?.seatsOpen).toBe(17);
+    expect(body.queue[0]?.position).toBe(1);
+  });
 });

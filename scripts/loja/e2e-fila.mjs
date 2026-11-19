@@ -1,5 +1,6 @@
-// pnpm loja:e2e, parte da fila da party: compra da vaga pela fila até a posição, a chamada do
-// Pedro e o aviso "Chegou a sua vez" na tela em tempo real. Spec: docs/loja/fila-da-party.md.
+// pnpm loja:e2e, parte da fila da party: compra da vaga fora da live, na fila aberta, até a
+// posição; a live abre com quem comprou fora; a chamada do Pedro e o aviso "Chegou a sua vez" na
+// tela em tempo real. A compra durante a live fica no e2e-fila-saidas. Spec: docs/loja/fila-da-party.md.
 // Tudo de teste: live is_test (o site de produção nunca mostra), pedido is_test no sandbox do
 // Mercado Pago, aviso [TESTE] no Discord e um usuário de teste criado e apagado no fim.
 // Sai com código diferente de zero se qualquer verificação falhar. Nunca imprime credencial.
@@ -17,10 +18,28 @@ const NAME = `Fila E2E ${RUN}`;
 const PRICE_CENTS = 2500;
 const { results, check } = checker();
 
-/** Fila de teste limpa e uma live de teste no ar: fila de 6 partidas, party de 1 lugar. */
-async function openTestLive() {
+/** Fila de teste limpa e sem live no ar: a fila aberta de teste com 6 partidas e party de 1 lugar. */
+async function prepareOpenQueue() {
   await resetTestQueue();
-  return openLive(6, 1);
+  const { data, error } = await db
+    .from("store_live_sessions")
+    .update({ party_seats: 6, seats_per_match: 1 })
+    .eq("is_test", true)
+    .eq("status", "fila")
+    .select("id")
+    .single();
+  if (error || !data) throw new Error(`preparar a fila aberta de teste: ${error?.message}`);
+  return data.id;
+}
+
+/** O Pedro abre a live depois da venda fora dela: a live herda o tamanho da fila aberta. */
+async function openLiveAfterOfflineSale(page) {
+  const liveId = await openLive(null, 1);
+  const { data: live } = await db.from("store_live_sessions").select("status, party_seats").eq("id", liveId).single();
+  check("a live abre com o tamanho da fila aberta", live?.status === "ao_vivo" && live?.party_seats === 6, `${live?.party_seats} partidas`);
+  await page.locator("[data-fila-live='ao_vivo']").waitFor({ timeout: 20_000 });
+  check("a página passa sozinha para a live no ar", true);
+  return liveId;
 }
 
 async function cleanup(state) {
@@ -32,10 +51,10 @@ async function cleanup(state) {
   if (state.locked) await releaseTestLock(RUN);
 }
 
-async function buyWithPix(page, buyer, campaign, liveId) {
+async function buyWithPix(page, buyer, campaign, queueId) {
   await page.goto(`${BASE}/party?utm_source=live&utm_medium=qr&utm_campaign=${campaign}`);
-  await page.locator("[data-fila-vagas='6']").waitFor({ timeout: 60_000 });
-  check("página da fila mostra a live no ar e as vagas abertas", true);
+  await page.locator("[data-fila-live='fila'] [data-fila-vagas='6']").waitFor({ timeout: 60_000 });
+  check("sem live no ar, a página vende a vaga na fila aberta", true);
   await page.locator("[data-fila-comprar='pix']").click();
   await page.locator("[data-fila-pix]").waitFor({ timeout: 60_000 });
   check("Pix na própria página depois de um toque", await page.getByText("Copiar código Pix").isVisible());
@@ -45,7 +64,7 @@ async function buyWithPix(page, buyer, campaign, liveId) {
   check("pedido herdou a origem do QR da live", order?.utm_source === "live" && order?.utm_campaign === campaign);
   check("uma partida cobra R$ 25", order?.amount_cents === PRICE_CENTS && order?.quantity === 1);
   const { data: hold } = await db.from("store_bookings").select("id, status, live_session_id, queue_state, hold_until").eq("order_id", order.id).single();
-  check("vaga segurada na live no ar, fora da fila até pagar", hold?.status === "reservado" && hold.live_session_id === liveId && hold.queue_state === null && !!hold.hold_until);
+  check("vaga segurada na fila aberta, fora da fila até pagar", hold?.status === "reservado" && hold.live_session_id === queueId && hold.queue_state === null && !!hold.hold_until);
   const holdMinutes = (Date.parse(hold.hold_until) - Date.parse(order.created_at)) / 60_000;
   check("Pix abandonado segura a vaga só por 10 minutos", holdMinutes > 9 && holdMinutes < 11, `${holdMinutes.toFixed(1)} min`);
   return { order, bookingId: hold.id };
@@ -63,7 +82,10 @@ async function payAndQueue(page, order) {
 async function checkPublicEndpoint(buyer) {
   const response = await fetch(`${BASE}/api/party/fila`);
   const body = await response.json();
-  check("endpoint público mostra a pessoa na fila pelo nome público", body.live?.status === "ao_vivo" && body.queue?.[0]?.name === NAME && body.queue?.[0]?.position === 1);
+  check(
+    "endpoint público mostra a fila aberta, sem data de live, com a pessoa pelo nome público",
+    body.live?.status === "fila" && body.live?.startsAt === null && body.queue?.[0]?.name === NAME && body.queue?.[0]?.position === 1
+  );
   check("endpoint público conta a vaga vendida", body.live?.seatsOpen === 5, `${body.live?.seatsOpen} vagas`);
   const raw = JSON.stringify(body);
   check("endpoint público sem id de usuário, e-mail nem WhatsApp", !raw.includes(buyer.id) && !raw.includes(EMAIL) && !/whatsapp|email|user_?id|steam_?id/i.test(raw));
@@ -114,20 +136,24 @@ async function run() {
     await acquireTestLock(RUN);
     state.locked = true;
     state.flagWas = await openStoreFlag();
-    state.liveId = await openTestLive();
+    const queueId = await prepareOpenQueue();
     const buyer = await createTestBuyer(EMAIL, NAME);
     state.userId = buyer.id;
     browser = await chromium.launch({ channel: "chrome", headless: true });
-    // Celular: é de onde a pessoa compra durante a live.
+    // Celular: é de onde a pessoa compra, pelo QR da live ou vendo um vídeo.
     const page = await (await buyerContext(browser, buyer)).newPage();
 
-    const { order, bookingId } = await buyWithPix(page, buyer, `e2e-fila-${RUN}`, state.liveId);
+    const { order, bookingId } = await buyWithPix(page, buyer, `e2e-fila-${RUN}`, queueId);
     await payAndQueue(page, order);
     await checkPublicEndpoint(buyer);
+    state.liveId = await openLiveAfterOfflineSale(page);
     await turnInRealTime(page, state.liveId, bookingId, buyer);
     const notified = await waitFor(async () => (await orderRow(order.id))?.notified_at, 30_000);
     check("aviso de venda entregue", !!notified);
-    check("mensagem [TESTE] da vaga no canal de vendas do Discord", !!(await discordMessageFor(order.id)));
+    const sale = await discordMessageFor(order.id);
+    check("mensagem [TESTE] da vaga no canal de vendas do Discord", !!sale);
+    const saleText = JSON.stringify(sale ?? {});
+    check("o aviso de venda diz que a vaga é na fila aberta, sem a data fixa", saleText.includes("fila da party, para a próxima live") && !saleText.includes("01/01"));
     await checkShell(page);
   } finally {
     await browser?.close().catch(() => undefined);

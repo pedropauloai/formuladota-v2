@@ -16,9 +16,13 @@ export interface QueueEntry {
   calledAt: string | null;
 }
 
+/** No ar, a próxima marcada, ou a fila aberta: sem live, a vaga vende para a próxima (migration 177). */
+export type LiveStatus = "ao_vivo" | "marcada" | "fila";
+
 export interface QueueLive {
   id: string;
-  status: "ao_vivo" | "marcada";
+  status: LiveStatus;
+  /** Na fila aberta, uma data fixa no passado (a fila dela inclui todas as lives). */
   startsAt: string;
   onAirAt: string | null;
   /** Tamanho máximo da fila, em partidas (store_live_sessions.party_seats). */
@@ -53,8 +57,9 @@ export interface PublicQueuedEntry extends PublicEntry {
 }
 
 export interface PublicLive {
-  status: "ao_vivo" | "marcada";
-  startsAt: string;
+  status: LiveStatus;
+  /** Null na fila aberta: não há live marcada. */
+  startsAt: string | null;
   onAirAt: string | null;
   seatsOpen: number;
   queueSize: number;
@@ -185,7 +190,7 @@ export function toPublicQueue(snapshot: QueueSnapshot, identity: (userId: string
     live: live
       ? {
           status: live.status,
-          startsAt: live.startsAt,
+          startsAt: live.status === "fila" ? null : live.startsAt,
           onAirAt: live.onAirAt,
           seatsOpen: seatsOpen(live),
           queueSize: live.queueSize,

@@ -33,7 +33,8 @@ export async function OrderSchedule({ order }: { order: PublicOrder }) {
   const [windows, busy] = needsAgenda ? await Promise.all([getWeeklyWindows(), getBusyIntervals(now)]) : [[], []];
   const day = new Intl.DateTimeFormat(locale, { weekday: "long", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", timeZone: TZ });
   const time = new Intl.DateTimeFormat(locale, { hour: "2-digit", minute: "2-digit", timeZone: TZ });
-  const hasConfirmed = order.bookings.some((b) => b.status === "confirmado" || b.status === "concluido");
+  // A vaga da fila aberta não tem data: fica fora do arquivo para a agenda.
+  const hasConfirmed = order.bookings.some((b) => !b.queue && (b.status === "confirmado" || b.status === "concluido"));
   const statusText: Record<string, string> = { reservado: t("bookingReserved"), confirmado: t("bookingConfirmed"), concluido: t("bookingDone") };
 
   return (
@@ -49,7 +50,9 @@ export async function OrderSchedule({ order }: { order: PublicOrder }) {
               <span className="flex items-center gap-2 text-sm text-text-display">
                 {b.kind === "live" ? <Radio size={15} aria-hidden="true" className="text-brand-primary" /> : <CalendarClock size={15} aria-hidden="true" className="text-gold" />}
                 <span className="first-letter:uppercase">
-                  {b.kind === "live"
+                  {b.queue
+                    ? `${t("bookingQueue")} · ${t("liveSeatsLeft", { count: b.seats })}`
+                    : b.kind === "live"
                     ? `${t("bookingLive", { when: day.format(new Date(b.startsAt)) })} · ${t("liveSeatsLeft", { count: b.seats })}`
                     : `${day.format(new Date(b.startsAt))} ${t("until")} ${time.format(new Date(b.endsAt))}`}
                 </span>

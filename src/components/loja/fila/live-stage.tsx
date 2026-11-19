@@ -3,7 +3,7 @@
 // A live na tela da fila, no palco do design 2.0 (tela reta, borda vermelha de ao vivo). A live
 // da Twitch entra sozinha quando o canal está no ar (pedido do Pedro, 19/11); se o Pedro abriu a
 // live no painel com um vídeo do YouTube, vale o vídeo que ele escolheu. Fora do ar, o quadro real
-// da live com a próxima live marcada ou o aviso de que as vagas abrem com a live.
+// da live com a fila aberta (a vaga vende para a próxima live) ou a próxima live marcada.
 // Horário sempre no fuso de Brasília: o servidor (UTC) e o navegador desenham igual.
 
 import { useLocale, useTranslations } from "next-intl";
@@ -37,15 +37,21 @@ function OnAirSeal() {
   );
 }
 
-// Fora do ar: o quadro da live escurecido e, por cima, quando é a próxima live.
-function OffAirCover({ live }: { live: PublicLive | null }) {
+/** Título e texto do quadro fora do ar, pelo estado da fila. */
+function useOffAirCopy(live: PublicLive | null): { title: string; text: string } {
   const t = useTranslations("fila");
   const locale = useLocale();
-  const next = live?.status === "marcada" ? formatLiveWhen(live.startsAt, locale) : null;
   // Aberta no painel e a Twitch ainda sem sinal: a live está começando, e a fila já vende.
-  const starting = live?.status === "ao_vivo";
-  const title = starting ? t("stageStartingTitle") : next ? t("nextLive", { when: next }) : t("offAirTitle");
-  const text = starting ? t("stageStartingText") : next ? t("nextLiveText") : t("offAirText");
+  if (live?.status === "ao_vivo") return { title: t("stageStartingTitle"), text: t("stageStartingText") };
+  if (live?.status === "marcada" && live.startsAt) return { title: t("nextLive", { when: formatLiveWhen(live.startsAt, locale) }), text: t("nextLiveText") };
+  // Sem live: a fila aberta vende a vaga para a próxima live.
+  if (live?.status === "fila") return { title: t("openQueueTitle"), text: t("openQueueText") };
+  return { title: t("offAirTitle"), text: t("offAirText") };
+}
+
+// Fora do ar: o quadro da live escurecido e, por cima, a fila aberta ou quando é a próxima live.
+function OffAirCover({ live }: { live: PublicLive | null }) {
+  const { title, text } = useOffAirCopy(live);
   return (
     <>
       {/* eslint-disable-next-line @next/next/no-img-element -- srcset próprio em 3 tamanhos; o next/image está sem otimização na Cloudflare */}

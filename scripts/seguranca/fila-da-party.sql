@@ -1,4 +1,4 @@
--- Teste de regressão das regras da fila da party (migrations 174 a 176). Abre uma live de teste,
+-- Teste de regressão das regras da fila da party (migrations 174 a 177). Abre uma live de teste,
 -- reserva, paga, chama, joga, pula, sai, tira e encerra, e termina SEMPRE num erro proposital
 -- (RESULTADO: ...), então a transação inteira volta e nada fica gravado.
 -- PASSA quando todos os itens do RESULTADO dizem "=ok"; cada "=FALHOU" é uma regressão.
@@ -22,6 +22,17 @@ declare
   b4 uuid;
   b5 uuid;
   b6 uuid;
+  o7 uuid;
+  o8 uuid;
+  o9 uuid;
+  o10 uuid;
+  b7 uuid;
+  b8 uuid;
+  b9 uuid;
+  fila uuid;
+  live2 uuid;
+  n1 int;
+  n2 int;
   v2 uuid;
   v uuid;
   st text;
@@ -212,6 +223,108 @@ begin
     update public.store_live_sessions set status = 'encerrada' where id = live;
   exception when others then
     r := array_append(r, ('T_partida_terminou_uma_vez=FALHOU(' || sqlerrm || ')')::text);
+  end;
+
+  -- Fila sempre aberta (migration 177, pedido do Pedro em 19/11/2026): sem live no ar nem marcada,
+  -- a vaga vende na fila aberta, e quem compra joga na próxima live que o Pedro abrir.
+  insert into public.store_orders (product_id, variant_id, product_title, variant_label, amount_cents, quantity, user_id,
+    buyer_name, buyer_email, buyer_whatsapp, payment_method, is_test)
+  values (prod, var, 'Vaga na party da live', 'Por partida', 2500, 1, u, 'Teste da fila', 'teste.fila@formuladota.com.br', null, 'pix', true)
+  returning id into o7;
+  insert into public.store_orders (product_id, variant_id, product_title, variant_label, amount_cents, quantity, user_id,
+    buyer_name, buyer_email, buyer_whatsapp, payment_method, is_test)
+  values (prod, var, 'Vaga na party da live', 'Por partida', 2500, 1, u2, 'Teste da fila', 'teste.fila@formuladota.com.br', null, 'pix', true)
+  returning id into o8;
+  insert into public.store_orders (product_id, variant_id, product_title, variant_label, amount_cents, quantity, user_id,
+    buyer_name, buyer_email, buyer_whatsapp, payment_method, is_test)
+  values (prod, var, 'Vaga na party da live', 'Por partida', 2500, 1, u2, 'Teste da fila', 'teste.fila@formuladota.com.br', null, 'pix', true)
+  returning id into o9;
+  insert into public.store_orders (product_id, variant_id, product_title, variant_label, amount_cents, quantity, user_id,
+    buyer_name, buyer_email, buyer_whatsapp, payment_method, is_test)
+  values (prod, var, 'Vaga na party da live', 'Por partida', 2500, 1, u2, 'Teste da fila', 'teste.fila@formuladota.com.br', null, 'pix', true)
+  returning id into o10;
+
+  -- U. Sem live no ar nem marcada, a fila da party é a fila aberta.
+  begin
+    perform public.party_fila_remover(b6);
+    fila := public.party_fila_live_atual(true);
+    select status into st from public.store_live_sessions where id = fila;
+    r := array_append(r, (case when st = 'fila' then 'U_fila_aberta_sem_live=ok' else 'U_fila_aberta_sem_live=FALHOU(' || coalesce(st, 'null') || ')' end)::text);
+  exception when others then
+    r := array_append(r, ('U_fila_aberta_sem_live=FALHOU(' || sqlerrm || ')')::text);
+  end;
+
+  -- W. A fila aberta conta também quem sobrou das lives anteriores, não só quem comprou fora da live.
+  begin
+    n1 := public.party_fila_ocupacao(fila);
+    update public.store_live_sessions set status = 'ao_vivo' where id = live;
+    b7 := public.store_reservar_fila(o7, prod, 1, null, true);
+    update public.store_live_sessions set status = 'encerrada' where id = live;
+    n2 := public.party_fila_ocupacao(fila);
+    r := array_append(r, (case when b7 is not null and n2 = n1 + 1 then 'W_fila_aberta_conta_quem_sobrou=ok'
+      else 'W_fila_aberta_conta_quem_sobrou=FALHOU(' || coalesce(n1::text, 'null') || ',' || coalesce(n2::text, 'null') || ')' end)::text);
+  exception when others then
+    r := array_append(r, ('W_fila_aberta_conta_quem_sobrou=FALHOU(' || sqlerrm || ')')::text);
+  end;
+
+  -- V. Compra fora da live reserva na fila aberta, com a lotação dela: cabe até o tamanho e não passa.
+  begin
+    update public.store_live_sessions set party_seats = n2 + 2 where id = fila;
+    b8 := public.store_reservar_fila(o8, prod, 1, hold, true);
+    b9 := public.store_reservar_fila(o9, prod, 1, hold, true);
+    v := public.store_reservar_fila(o10, prod, 1, hold, true);
+    select live_session_id into v2 from public.store_bookings where id = b8;
+    r := array_append(r, (case when b8 is not null and b9 is not null and v is null and v2 = fila then 'V_vende_na_fila_aberta=ok'
+      else 'V_vende_na_fila_aberta=FALHOU(' || coalesce(b8::text, 'null') || ',' || coalesce(v::text, 'null') || ')' end)::text);
+    update public.store_bookings set status = 'confirmado', hold_until = null where id = b8;
+  exception when others then
+    r := array_append(r, ('V_vende_na_fila_aberta=FALHOU(' || sqlerrm || ')')::text);
+  end;
+
+  -- X. Sem live no ar, ninguém é chamado e a fila aberta não se encerra.
+  begin
+    v := public.party_fila_chamar(fila, null);
+    r := array_append(r, (case when v is null and not public.party_fila_encerrar_live(fila)
+      and (select status from public.store_live_sessions where id = fila) = 'fila'
+      then 'X_sem_live_ninguem_e_chamado=ok' else 'X_sem_live_ninguem_e_chamado=FALHOU' end)::text);
+  exception when others then
+    r := array_append(r, ('X_sem_live_ninguem_e_chamado=FALHOU(' || sqlerrm || ')')::text);
+  end;
+
+  -- Y. Abrir a live: ela herda o tamanho da fila aberta, a fila aberta continua de pé, e a reserva
+  -- feita fora da live, ainda sem pagamento, também ocupa a vaga da live.
+  begin
+    live2 := public.party_fila_abrir_live(true, null, 2, null);
+    select party_seats into n from public.store_live_sessions where id = live2;
+    v := public.store_reservar_fila(o10, prod, 1, hold, true);
+    r := array_append(r, (case when live2 is distinct from fila and n = n2 + 2 and v is null
+      and (select status from public.store_live_sessions where id = fila) = 'fila'
+      then 'Y_abrir_herda_a_fila_aberta=ok' else 'Y_abrir_herda_a_fila_aberta=FALHOU(' || coalesce(n::text, 'null') || ',' || coalesce(v::text, 'null') || ')' end)::text);
+    -- Y2. Quem comprou fora da live está na fila dela.
+    v := public.party_fila_chamar(live2, b8);
+    r := array_append(r, (case when v = b8 then 'Y2_quem_comprou_fora_joga_na_live=ok' else 'Y2_quem_comprou_fora_joga_na_live=FALHOU(' || coalesce(v::text, 'null') || ')' end)::text);
+  exception when others then
+    r := array_append(r, ('Y_abrir_herda_a_fila_aberta=FALHOU(' || sqlerrm || ')')::text);
+  end;
+
+  -- Z. Encerrada a live, a fila aberta volta a vender, e quem estava na party volta para a frente da fila.
+  begin
+    perform public.party_fila_encerrar_live(live2);
+    select queue_state into st from public.store_bookings where id = b8;
+    r := array_append(r, (case when public.party_fila_live_atual(true) = fila and st = 'aguardando'
+      then 'Z_fila_aberta_volta_depois_da_live=ok' else 'Z_fila_aberta_volta_depois_da_live=FALHOU(' || coalesce(st, 'null') || ')' end)::text);
+  exception when others then
+    r := array_append(r, ('Z_fila_aberta_volta_depois_da_live=FALHOU(' || sqlerrm || ')')::text);
+  end;
+
+  -- Z2. Uma fila aberta só em cada ambiente (produção e teste).
+  begin
+    insert into public.store_live_sessions (starts_at, ends_at, status, is_test) values ('2026-01-01 00:00-03', '2026-01-01 00:01-03', 'fila', true);
+    r := array_append(r, 'Z2_uma_fila_aberta=FALHOU(gravou duas)'::text);
+  exception when unique_violation then
+    r := array_append(r, 'Z2_uma_fila_aberta=ok'::text);
+  when check_violation then
+    r := array_append(r, 'Z2_uma_fila_aberta=FALHOU(sem estado fila)'::text);
   end;
 
   -- O. Logado comum não opera a fila, não reserva direto e não lê as reservas.

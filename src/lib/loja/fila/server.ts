@@ -62,7 +62,7 @@ async function readLive(isTest: boolean): Promise<QueueLive | null> {
   if (!live.data) return null;
   return {
     id: live.data.id,
-    status: live.data.status === "ao_vivo" ? "ao_vivo" : "marcada",
+    status: live.data.status === "ao_vivo" || live.data.status === "fila" ? live.data.status : "marcada",
     startsAt: live.data.starts_at,
     onAirAt: live.data.on_air_at,
     queueSize: live.data.party_seats,
@@ -83,7 +83,8 @@ async function readEntries(isTest: boolean, live: QueueLive | null): Promise<Que
     .limit(300);
   if (error) throw new Error(`ler a fila falhou: ${error.message}`);
   // A fila da live atual inclui quem não jogou nas anteriores; a reserva de uma live futura espera a vez dela.
-  const cutoff = live ? Date.parse(live.startsAt) : Date.now();
+  // Na fila aberta (sem live), entra todo mundo que espera.
+  const cutoff = live?.status === "fila" ? Number.POSITIVE_INFINITY : live ? Date.parse(live.startsAt) : Date.now();
   return (data ?? [])
     .filter((row) => Date.parse(row.store_live_sessions.starts_at) <= cutoff)
     .map((row) => ({

@@ -14,6 +14,7 @@ Plano de 19/11/2026. Manda sobre `spec.md`, `catalogo.md` e `agenda.md` quando d
 
 - O Pedro (19/11): foco na loja; o carro-chefe é a vaga na party (jogar com ele); a página precisa chamar atenção e ser mais fácil; os componentes antigos precisam de uma versão 2.0; mais destaque para a loja na barra superior; recompensas para quem assiste.
 - Proposta do agente, aceita pelo Pedro com "pode fazer" (19/11): a vaga se compra **na hora, durante a live**, e a pessoa entra na fila daquela live. A reserva para uma live marcada, que já existe, continua como está.
+- Mudado pelo Pedro no mesmo dia (19/11): "não precisa de ter live marcada... as vendas podem acontecer sempre". A vaga vende com ou sem live; fora da live, a compra entra na fila aberta e a pessoa joga na próxima live, na ordem do pagamento (decisão 16 de [fila-da-party.md](fila-da-party.md), migration 177).
 - O Pedro (19/11): **design e fila primeiro**, em paralelo; a nota de patch fica por último.
 - Preço da vaga: R$ 25 por partida, como no catálogo (decisão do Pedro em 07/11). Mudança de preço é dele.
 - A barra superior (PR 155) é a referência de acerto ("era o que eu sempre quis"): não refazer; o resto sobe para o nível dela.
