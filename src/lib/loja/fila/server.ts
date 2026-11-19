@@ -23,6 +23,7 @@ import {
   type QueueSnapshot,
   type QueueView,
   toQueueExit,
+  toQueueSource,
 } from "./model";
 
 /** Produto da vaga na party (catálogo da versão B). */
@@ -98,7 +99,7 @@ async function readEntries(isTest: boolean, live: QueueLive | null): Promise<Que
       queuedAt: row.queued_at ?? new Date(0).toISOString(),
       calledAt: row.called_at,
       lastTurnAt: row.user_id ? (turns.get(row.user_id) ?? null) : null,
-      source: row.source === "battlepass" ? "battlepass" : "pedido",
+      source: toQueueSource(row.source),
     }));
 }
 
@@ -205,7 +206,7 @@ async function readMyBookings(userId: string, isTest: boolean, snapshot: QueueSn
       noShows: row.no_shows,
       calledAt: row.called_at,
       exit: toQueueExit(row.queue_exit),
-      source: row.source === "battlepass" ? "battlepass" : "pedido",
+      source: toQueueSource(row.source),
     };
   });
 }

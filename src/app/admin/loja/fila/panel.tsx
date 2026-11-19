@@ -10,6 +10,7 @@ import {
   abrirLive, ajustarVagas, chamarProximo, completarParty, encerrarLive, naoApareceu, partidaTerminou, tirarDaFila, ultimaPartidaDoPPA,
 } from "./actions";
 import { DANGER, FinishedList, PRIMARY, PartyRow, SECONDARY, WaitingRow, type RowAction } from "./rows";
+import { AddToQueue } from "./add-to-queue";
 
 const TIME = new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
 const REFRESH_MS = 5000;
@@ -206,6 +207,7 @@ export function AdminQueuePanel({ data }: { data: AdminQueue }) {
         )}
         {!onAir && <p className="text-sm text-text-muted">Abra a live para chamar a fila.</p>}
       </Section>
+      <AddToQueue busy={busy} act={act} />
       <Section title={`Fila (${waiting.length})`} hint="Ordem do revezamento: quem jogou na party há mais tempo vem primeiro, e quem nunca jogou vai na frente. Quem não aparece volta para o fim sem perder a vaga.">
         {waiting.length === 0 ? (
           <p className="text-sm text-text-muted">Ninguém esperando.</p>
