@@ -11,6 +11,7 @@ import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { formatPrice } from "@/lib/loja/money";
 import { Price, plate } from "@/components/v2";
+import { useSound } from "@/lib/sound/hooks";
 
 const STEPS = ["buyStep1", "buyStep2", "buyStep3"] as const;
 
@@ -47,8 +48,13 @@ export function PartyBuyPanel({
   maxQuantity: number;
 }) {
   const t = useTranslations("loja");
+  const play = useSound();
   const [quantity, setQuantity] = useState(1);
   const max = Math.max(1, maxQuantity);
+  const change = (n: number) => {
+    play("click");
+    setQuantity(n);
+  };
   return (
     <div className="flex h-full flex-col gap-6">
       <div className="space-y-2">
@@ -61,7 +67,7 @@ export function PartyBuyPanel({
         <div className="space-y-2">
           <p className="text-xs font-bold uppercase tracking-[0.14em] text-text-muted">{t("buyMatches")}</p>
           <div className="flex items-center justify-between gap-3">
-            <Stepper value={quantity} max={max} onChange={setQuantity} />
+            <Stepper value={quantity} max={max} onChange={change} />
             <span className="text-right text-xs text-text-muted">{t("buyEach", { price: formatPrice(priceCents) })}</span>
           </div>
         </div>
@@ -84,7 +90,11 @@ export function PartyBuyPanel({
       </ol>
 
       <div className="mt-auto space-y-3">
-        <Link href={`/loja/${slug}${quantity > 1 ? `?qtd=${quantity}` : ""}#comprar`} className={plate({ kind: "cta", large: true, block: true })}>
+        <Link
+          href={`/loja/${slug}${quantity > 1 ? `?qtd=${quantity}` : ""}#comprar`}
+          onClick={() => play("click")}
+          className={plate({ kind: "cta", large: true, block: true })}
+        >
           {t("buyCta")}
           <ArrowRight size={20} aria-hidden="true" />
         </Link>
