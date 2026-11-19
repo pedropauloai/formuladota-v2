@@ -9,6 +9,7 @@ import { isTestMode } from "@/lib/mercadopago";
 import { getIdentityMap } from "@/lib/queries/identities";
 import { reconcileStoreOrder } from "@/lib/loja/order-payments";
 import { steam64To32 } from "@/lib/dota/opendota";
+import { battlepassMembers, hasActiveBattlepass } from "@/lib/battlepass/server";
 import {
   orderEntries,
   queuePositions,
@@ -76,12 +77,13 @@ async function readLive(isTest: boolean): Promise<QueueLive | null> {
 async function readEntries(isTest: boolean, live: QueueLive | null): Promise<QueueEntry[]> {
   const { data, error } = await createServiceClient()
     .from("store_bookings")
-    .select("id, seats, matches_played, queue_state, queued_at, called_at, store_live_sessions!inner (starts_at), store_orders!inner (user_id)")
+    .select("id, seats, matches_played, queue_state, queued_at, called_at, user_id, source, store_live_sessions!inner (starts_at)")
     .eq("is_test", isTest)
     .in("queue_state", ACTIVE_STATES)
     .order("queued_at", { ascending: true })
     .limit(300);
   if (error) throw new Error(`ler a fila falhou: ${error.message}`);
+  const turns = await lastTurns((data ?? []).map((row) => row.user_id), isTest);
   // A fila da live atual inclui quem não jogou nas anteriores; a reserva de uma live futura espera a vez dela.
   // Na fila aberta (sem live), entra todo mundo que espera.
   const cutoff = live?.status === "fila" ? Number.POSITIVE_INFINITY : live ? Date.parse(live.startsAt) : Date.now();
@@ -89,13 +91,24 @@ async function readEntries(isTest: boolean, live: QueueLive | null): Promise<Que
     .filter((row) => Date.parse(row.store_live_sessions.starts_at) <= cutoff)
     .map((row) => ({
       id: row.id,
-      userId: row.store_orders.user_id,
+      userId: row.user_id,
       state: row.queue_state === "na_party" ? "na_party" : "aguardando",
       matches: row.seats,
       played: row.matches_played,
       queuedAt: row.queued_at ?? new Date(0).toISOString(),
       calledAt: row.called_at,
+      lastTurnAt: row.user_id ? (turns.get(row.user_id) ?? null) : null,
+      source: row.source === "battlepass" ? "battlepass" : "pedido",
     }));
+}
+
+/** Última vez de cada um na party do PPA (o revezamento da fila, migration 192). */
+async function lastTurns(userIds: (string | null)[], isTest: boolean): Promise<Map<string, string>> {
+  const ids = [...new Set(userIds.filter((id): id is string => !!id))];
+  if (ids.length === 0) return new Map();
+  const { data, error } = await createServiceClient().rpc("party_ultima_vez", { p_user_ids: ids, p_is_test: isTest });
+  if (error) throw new Error(`ler o revezamento falhou: ${error.message}`);
+  return new Map((data ?? []).map((row) => [row.user_id, row.ultima]));
 }
 
 /** Live da fila e as entradas em ordem (party primeiro). */
@@ -109,8 +122,8 @@ export async function getQueueSnapshot(): Promise<QueueSnapshot> {
 export async function getPublicQueue(snapshot?: QueueSnapshot): Promise<PublicQueue> {
   const current = snapshot ?? (await getQueueSnapshot());
   const ids = current.entries.map((e) => e.userId).filter((id): id is string => !!id);
-  const identities = await getIdentityMap(await createClient(), ids);
-  return toPublicQueue(current, (id) => (id ? identities.get(id) : undefined));
+  const [identities, members] = await Promise.all([getIdentityMap(await createClient(), ids), battlepassMembers(ids)]);
+  return toPublicQueue(current, (id) => (id ? identities.get(id) : undefined), new Date(), (id) => !!id && members.has(id));
 }
 
 export interface ViewerSteam {
@@ -171,8 +184,8 @@ export async function readPendingOrder(userId: string, isTest: boolean): Promise
 async function readMyBookings(userId: string, isTest: boolean, snapshot: QueueSnapshot): Promise<MyQueueEntry[]> {
   const { data, error } = await createServiceClient()
     .from("store_bookings")
-    .select("id, seats, matches_played, queue_state, queue_exit, called_at, no_shows, queued_at, store_orders!inner (user_id)")
-    .eq("store_orders.user_id", userId)
+    .select("id, seats, matches_played, queue_state, queue_exit, called_at, no_shows, queued_at, source")
+    .eq("user_id", userId)
     .eq("is_test", isTest)
     // Quem ainda espera aparece sempre (inclusive quem passou de uma live para a outra); quem já
     // saiu ou jogou, só nas últimas 12 horas.
@@ -192,6 +205,7 @@ async function readMyBookings(userId: string, isTest: boolean, snapshot: QueueSn
       noShows: row.no_shows,
       calledAt: row.called_at,
       exit: toQueueExit(row.queue_exit),
+      source: row.source === "battlepass" ? "battlepass" : "pedido",
     };
   });
 }
@@ -205,6 +219,10 @@ export async function getQueueState(userId: string | null): Promise<QueueView> {
   let pending = userId ? await readPendingOrder(userId, isTest) : null;
   if (userId && pending && (await reconcileStoreOrder(pending.id)) !== "nada") pending = await readPendingOrder(userId, isTest);
   const snapshot = await getQueueSnapshot();
-  const [queue, entries] = await Promise.all([getPublicQueue(snapshot), userId ? readMyBookings(userId, isTest, snapshot) : null]);
-  return { queue, mine: userId && entries ? { entries, pending } : null };
+  const [queue, entries, battlepass] = await Promise.all([
+    getPublicQueue(snapshot),
+    userId ? readMyBookings(userId, isTest, snapshot) : null,
+    userId ? hasActiveBattlepass(userId).catch(() => false) : false,
+  ]);
+  return { queue, mine: userId && entries ? { entries, pending, battlepass } : null };
 }

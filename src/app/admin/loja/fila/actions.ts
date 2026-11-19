@@ -7,6 +7,8 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { isAdminUser, queueOps, resizeLive } from "@/lib/loja/fila/admin";
 import { parseYoutubeVideoId } from "@/lib/loja/fila/youtube";
+import { parseMatchId } from "@/lib/battlepass/partida";
+import { ppaLastMatch, resolveMatch } from "@/lib/battlepass/partida-server";
 
 export type FilaAdminResult = { ok: true; message?: string } | { ok: false; error: string };
 
@@ -74,14 +76,55 @@ export async function completarParty(liveId: string): Promise<FilaAdminResult> {
   });
 }
 
-/** Conta a partida para todos da party. `matchesDone` é o número que o painel mostrava: o segundo toque não conta de novo. */
-export async function partidaTerminou(liveId: string, matchesDone: number): Promise<FilaAdminResult> {
+type MatchData = { matchId: string; playedAt: string; confirmedUserIds: string[] };
+
+/** A partida pelo ID que o PPA colou: conferida na OpenDota, ou só com o ID quando a OpenDota ainda não tem. */
+async function matchFromInput(input: string): Promise<{ match: MatchData; note: string } | { error: string }> {
+  const resolved = await resolveMatch(input);
+  if (resolved.ok) {
+    const hidden = resolved.hidden ? `, ${resolved.hidden} com o perfil do Dota privado` : "";
+    return { match: resolved, note: `Partida registrada: ${resolved.confirmedUserIds.length} do site conferido(s) no time do PPA${hidden}.` };
+  }
+  if (resolved.reason === "id_invalido") return { error: "Esse ID não é de uma partida do Dota. Cole o número ou o link da OpenDota." };
+  if (resolved.reason === "sem_ppa") return { error: "O PPA não está nessa partida. Confira o ID." };
+  const matchId = parseMatchId(input);
+  if (!matchId) return { error: "Esse ID não é de uma partida do Dota." };
+  // OpenDota processando ou fora do ar: a vez conta com a hora de agora, sem a conferência.
+  return { match: { matchId, playedAt: new Date().toISOString(), confirmedUserIds: [] }, note: "Partida registrada com o ID; a OpenDota ainda não tem ela, então ficou sem a conferência." };
+}
+
+/**
+ * Conta a partida para todos da party e grava a vez de cada um no revezamento. `matchesDone` é o
+ * número que o painel mostrava: o segundo toque não conta de novo. Com o ID, confere na OpenDota.
+ */
+export async function partidaTerminou(liveId: string, matchesDone: number, matchInput = ""): Promise<FilaAdminResult> {
   if (!uuid.safeParse(liveId).success || !Number.isInteger(matchesDone)) return { ok: false, error: "Live inválida." };
-  return run("marcar a partida", async () => {
-    const counted = await queueOps.matchOver(liveId, matchesDone);
-    if (counted === -1) return "Essa partida já tinha sido marcada.";
-    return counted > 0 ? null : "Não tem ninguém na party.";
-  });
+  if (!(await isAdminUser())) return { ok: false, error: "Só o admin opera a fila." };
+  try {
+    let match: MatchData | undefined;
+    let note: string | undefined;
+    if (matchInput.trim()) {
+      const found = await matchFromInput(matchInput);
+      if ("error" in found) return { ok: false, error: found.error };
+      ({ match, note } = found);
+    }
+    const counted = await queueOps.matchOver(liveId, matchesDone, match);
+    revalidatePath(PATH);
+    if (counted === -1) return { ok: false, error: "Essa partida já tinha sido marcada." };
+    return counted > 0 ? { ok: true, message: note } : { ok: false, error: "Não tem ninguém na party." };
+  } catch (err) {
+    console.error("[admin/fila] marcar a partida falhou:", err instanceof Error ? err.message : err);
+    return { ok: false, error: "Não deu para marcar a partida. Tente de novo." };
+  }
+}
+
+export type UltimaPartidaResult = { ok: true; matchId: string; endedAt: string } | { ok: false; error: string };
+
+/** A última partida do PPA na OpenDota, para o painel preencher o ID com um toque. */
+export async function ultimaPartidaDoPPA(): Promise<UltimaPartidaResult> {
+  if (!(await isAdminUser())) return { ok: false, error: "Só o admin opera a fila." };
+  const last = await ppaLastMatch();
+  return last ? { ok: true, ...last } : { ok: false, error: "A OpenDota não respondeu agora. Cole o ID da partida." };
 }
 
 export async function naoApareceu(bookingId: string): Promise<FilaAdminResult> {

@@ -7,7 +7,7 @@ import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { AdminQueue } from "@/lib/loja/fila/admin";
 import {
-  abrirLive, ajustarVagas, chamarProximo, completarParty, encerrarLive, naoApareceu, partidaTerminou, tirarDaFila,
+  abrirLive, ajustarVagas, chamarProximo, completarParty, encerrarLive, naoApareceu, partidaTerminou, tirarDaFila, ultimaPartidaDoPPA,
 } from "./actions";
 import { DANGER, FinishedList, PRIMARY, PartyRow, SECONDARY, WaitingRow, type RowAction } from "./rows";
 
@@ -113,6 +113,48 @@ function LiveControls({ data, busy, act }: { data: AdminQueue; busy: boolean; ac
   );
 }
 
+/** "Partida terminou" com o ID da partida: grava a vez de cada um no revezamento, conferida na OpenDota. */
+function MatchRegister({ liveId, matchesDone, busy, act }: { liveId: string; matchesDone: number; busy: boolean; act: RowAction }) {
+  const [matchId, setMatchId] = useState("");
+  const [hint, setHint] = useState<string | null>(null);
+  const register = () => {
+    if (!matchId.trim() && !window.confirm("Marcar sem o ID da partida? A vez de cada um conta, mas sem a conferência da OpenDota.")) return;
+    act("Partida marcada", async () => {
+      const result = await partidaTerminou(liveId, matchesDone, matchId);
+      if (result.ok) setMatchId("");
+      return result;
+    });
+  };
+  const fillLast = async () => {
+    const last = await ultimaPartidaDoPPA();
+    if (last.ok) {
+      setMatchId(last.matchId);
+      setHint(`Última partida do PPA, terminou às ${TIME.format(new Date(last.endedAt))}.`);
+    } else setHint(last.error);
+  };
+  return (
+    <div className="space-y-2 rounded-sm border border-border-subtle bg-bg-deep/60 p-3">
+      <label className="block text-xs text-text-muted" htmlFor="partida-id">ID da partida (OpenDota): grava quem jogou e a hora, para o revezamento da fila</label>
+      <div className="flex flex-wrap gap-2">
+        <input
+          id="partida-id"
+          inputMode="numeric"
+          placeholder="cole o ID ou o link da partida"
+          value={matchId}
+          onChange={(e) => setMatchId(e.target.value)}
+          data-fila-partida-id
+          className="min-w-0 flex-1 rounded-sm border border-border-strong bg-bg-deep px-3 py-2 font-mono text-sm text-text-display"
+        />
+        <button type="button" disabled={busy} className={SECONDARY} onClick={fillLast}>Última do PPA</button>
+      </div>
+      {hint && <p className="text-xs text-text-muted">{hint}</p>}
+      <button type="button" disabled={busy} className={PRIMARY} onClick={register} data-fila-partida-terminou>
+        Partida {matchesDone + 1} terminou: todos jogaram
+      </button>
+    </div>
+  );
+}
+
 export function AdminQueuePanel({ data }: { data: AdminQueue }) {
   const router = useRouter();
   const [busy, startTransition] = useTransition();
@@ -128,7 +170,7 @@ export function AdminQueuePanel({ data }: { data: AdminQueue }) {
   const act: RowAction = (label, action) =>
     startTransition(async () => {
       const result = await action();
-      setNotice(result.ok ? { ok: true, text: label } : { ok: false, text: result.error ?? "Não deu certo." });
+      setNotice(result.ok ? { ok: true, text: result.message ?? label } : { ok: false, text: result.error ?? "Não deu certo." });
       router.refresh();
     });
 
@@ -155,20 +197,16 @@ export function AdminQueuePanel({ data }: { data: AdminQueue }) {
             ))}
           </ul>
         )}
+        {onAir && live && party.length > 0 && <MatchRegister liveId={live.id} matchesDone={live.matchesDone} busy={busy} act={act} />}
         {onAir && live && (
           <div className="flex flex-wrap gap-2 pt-1">
-            {party.length > 0 && (
-              <button type="button" disabled={busy} className={PRIMARY} onClick={() => act("Partida marcada", () => partidaTerminou(live.id, live.matchesDone))}>
-                Partida {live.matchesDone + 1} terminou: todos jogaram
-              </button>
-            )}
             <button type="button" disabled={busy || waiting.length === 0} className={SECONDARY} onClick={() => act("Chamado", () => chamarProximo(live.id))}>Chamar o próximo</button>
             <button type="button" disabled={busy || waiting.length === 0} className={SECONDARY} onClick={() => act("Party completa", () => completarParty(live.id))}>Completar a party</button>
           </div>
         )}
         {!onAir && <p className="text-sm text-text-muted">Abra a live para chamar a fila.</p>}
       </Section>
-      <Section title={`Fila (${waiting.length})`} hint="Ordem do pagamento. Quem não aparece volta para o fim sem perder a vaga.">
+      <Section title={`Fila (${waiting.length})`} hint="Ordem do revezamento: quem jogou na party há mais tempo vem primeiro, e quem nunca jogou vai na frente. Quem não aparece volta para o fim sem perder a vaga.">
         {waiting.length === 0 ? (
           <p className="text-sm text-text-muted">Ninguém esperando.</p>
         ) : (

@@ -12,7 +12,7 @@ const TIME = new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digi
 // Com a fila aberta fora da live, a compra pode ser de outro dia: a hora vem com o dia.
 const PAID_AT = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
 
-export type RowAction = (label: string, action: () => Promise<{ ok: boolean; error?: string }>) => void;
+export type RowAction = (label: string, action: () => Promise<{ ok: boolean; error?: string; message?: string }>) => void;
 
 const BUTTON = "rounded-sm border px-3 py-2 text-sm font-medium transition-colors disabled:opacity-50";
 export const PRIMARY = `${BUTTON} border-play-primary bg-play-primary text-bg-deep hover:bg-play-primary-hover`;
@@ -60,6 +60,8 @@ function Identity({ entry }: { entry: AdminQueueEntry }) {
           {entry.noShows > 0 && <span className="text-warning">não apareceu {entry.noShows}x</span>}
           {entry.carriedOver && <span className="text-gold">de live anterior</span>}
           {entry.boughtOffline && <span className="text-gold">comprou fora da live</span>}
+          {entry.battlepass && <span className="text-gold">Battlepass</span>}
+          <span>{entry.lastTurnAt ? `última vez na party ${PAID_AT.format(new Date(entry.lastTurnAt))}` : "nunca jogou na party"}</span>
         </p>
       </div>
     </div>
@@ -100,7 +102,7 @@ export function WaitingRow({ entry, busy, canCall, act, callThis, remove }: {
       </div>
       <div className="flex shrink-0 flex-wrap items-center gap-2">
         <span className="text-xs text-text-muted">
-          {entry.matches} partida{entry.matches > 1 ? "s" : ""} · pagou {PAID_AT.format(new Date(entry.queuedAt))}
+          {entry.matches} partida{entry.matches > 1 ? "s" : ""} · {entry.battlepass ? "entrou" : "pagou"} {PAID_AT.format(new Date(entry.queuedAt))}
         </span>
         <button type="button" disabled={busy || !canCall} className={SECONDARY} onClick={() => act("Chamar agora", () => callThis(entry.id))}>Chamar agora</button>
         <button

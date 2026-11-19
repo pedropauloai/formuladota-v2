@@ -6,7 +6,7 @@ Frente 1 do [plano v3](plano-v3.md), aberta em 19/11/2026. O plano manda sobre e
 
 Quem assiste à live abre `/party`, vê a live, quem está na party do Pedro agora, a fila e as vagas abertas, e garante a vaga com Pix em dois toques: "Garantir minha vaga" e "Copiar código Pix". Depois de pagar, a pessoa vê a própria posição andar e é avisada, com o som de partida encontrada do jogo, quando o Pedro a chama para a party. O Pedro opera a fila em `/admin/loja/fila`, e os overlays da live leem `/api/party/fila`.
 
-A vaga vende sempre, com ou sem live (decisão técnica 16). Fora da live, a compra entra na fila aberta, e a pessoa joga na próxima live que o Pedro abrir, na ordem do pagamento: serve para quem vê um vídeo ou o VOD e quer chegar na live com o lugar garantido.
+A vaga vende sempre, com ou sem live (decisão técnica 16). Fora da live, a compra entra na fila aberta, e a pessoa joga na próxima live que o Pedro abrir, na ordem do revezamento (decisão técnica 18): serve para quem vê um vídeo ou o VOD e quer chegar na live com o lugar garantido.
 
 ## Para o Pedro
 
@@ -43,6 +43,9 @@ Cada uma com o porquê em uma linha.
 15. **A compra antiga em `/loja/vaga-na-party` leva sempre para `/party`**, que vende para a live no ar, para a próxima marcada ou na fila aberta, com login e Steam. Antes, a página vendia sem login, e a vaga entrava na fila sem ID do Dota nem aviso de vez para quem comprou.
 16. **A vaga vende sempre, com ou sem live** (migration 177, pedido do Pedro em 19/11/2026: "não precisa de ter live marcada... as vendas podem acontecer sempre"). Sem live no ar nem marcada, a compra entra na fila aberta: uma linha fixa de `store_live_sessions` com `status = 'fila'` em cada ambiente, com a data no passado de propósito, para a fila de qualquer live incluir quem comprou fora. A fila aberta conta todo mundo que espera, a live que o Pedro abre herda o tamanho dela, e o tamanho é um número só (mudar na live muda a fila aberta também). Antes, a página só vendia com live no ar ou marcada, e quem via um vídeo ou o VOD não tinha como garantir o lugar.
 17. **Os lugares livres da party mostram só o que está à venda de verdade** (`partySeatsView` em `model.ts`): o lugar livre de quem está com a vez aparece como "próximo", e os lugares à venda não passam das vagas abertas da fila. É a mesma conta dos overlays da live; antes, a página oferecia lugar que já era da fila.
+18. **A fila anda pelo revezamento, para todos** (migration 192, regra do Pedro para o Battlepass em 19/11/2026: "precisa respeitar a fila e se tiver mais jogadores querendo jogar precisa ir revesando pela hora da ultima participação"). A ordem é a última vez de cada pessoa na party do PPA (`party_participacoes`): quem nunca jogou vai primeiro, e o empate se decide pela hora em que entrou na fila. "Não apareceu" grava a vez como gasta. O mesmo critério está em `party_fila_chamar` e em `orderEntries`. Para quem nunca jogou, a ordem continua a do pagamento.
+19. **O assinante do Battlepass entra na fila sem pagar** (`party_fila_entrar_battlepass`): uma entrada de pé por pessoa, com a Steam vinculada, e depois de jogar entra de novo. A entrada não tem pedido (`store_bookings.source = 'battlepass'`, `order_id` nulo) e não ocupa a lotação que limita a venda da vaga paga. O dono de toda entrada fica em `store_bookings.user_id`, preenchido por gatilho a partir do pedido.
+20. **"Partida terminou" registra a partida pelo ID da OpenDota**: o painel aceita o ID ou o link (o botão "Última do PPA" preenche com a última partida dele), o site busca a partida, acha o time do PPA (contas 1123609219 e 201687094) e grava a participação de quem estava na party com a hora em que a partida acabou; quem a OpenDota mostra no time do PPA com a Steam vinculada fica "conferido", inclusive quem jogou fora da fila. Sem o ID, a vez conta com a hora do toque. Spec do Battlepass: [../battlepass/spec.md](../battlepass/spec.md).
 
 ## Limite conhecido
 
@@ -53,12 +56,12 @@ Cada uma com o porquê em uma linha.
 
 | Estado | Quando |
 |---|---|
-| `aguardando` | pagamento confirmado; posição pela hora do pagamento (`queued_at`) |
+| `aguardando` | pagamento confirmado (ou entrada do Battlepass); posição pelo revezamento: a última vez na party do PPA, quem nunca jogou primeiro, empate pela hora em que entrou (`queued_at`) |
 | `na_party` | o Pedro chamou; a pessoa recebe o aviso e o convite pela Steam |
 | `concluido` | jogou todas as partidas compradas |
 | `removido` | o Pedro tirou da fila, ou o pedido foi cancelado ou reembolsado |
 
-"Não apareceu" devolve a pessoa ao fim da fila (`queued_at` novo, `no_shows` + 1), sem perder a vaga. Encerrar a live devolve quem estava na party para a frente da fila.
+"Não apareceu" devolve a pessoa ao fim da fila (`queued_at` novo, `no_shows` + 1), sem perder a vaga. Encerrar a live devolve quem estava na party para a fila, na ordem do revezamento: quem não chegou a jogar fica na frente, e quem jogou a partida que acabou volta atrás de quem nunca jogou.
 
 Toda saída guarda o motivo em `queue_exit` (migration 175): `saiu` (a própria pessoa, só enquanto espera), `tirado` (o Pedro) ou `cancelado` (pedido cancelado ou reembolsado).
 

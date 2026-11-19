@@ -59,3 +59,25 @@ Spec: [loja/fila-da-party.md](loja/fila-da-party.md). Critérios do [plano v3](l
 | F8 | Os achados da revisão independente de 19/11/2026 estão corrigidos: uma vaga por pessoa na party, posição de quem passou de live, partida contada uma vez, compra antiga sem login fora da fila, cartão que não trava, vaga confirmada no webhook repetido, um Pix pendente por pessoa | `scripts/seguranca/fila-da-party.sql` (S, T) e `pnpm loja:e2e` | sim, 19/11/2026 |
 | F9 | A vaga vende fora da live (pedido do Pedro, 19/11/2026): sem live no ar nem marcada, a compra entra na fila aberta, com tamanho próprio, e quem comprou fora é chamado quando o Pedro abre a live | `scripts/seguranca/fila-da-party.sql` (U a Z2, vermelho antes da migration 177) e `pnpm loja:e2e` (parte da fila: compra sem live, posição, JSON com `status: "fila"`, live que herda o tamanho, chamada na tela) e o JSON de produção | sim, 19/11/2026: banco 34 de 34 (nada gravado), e2e da fila 31 de 31 no localhost, e em produção `/api/party/fila` com `status: "fila"` e 20 vagas abertas (versão `95602e95`) |
 | F10 | A party da página mostra os mesmos lugares livres que os overlays: o lugar de quem está com a vez não aparece como vaga, e as vagas mostradas não passam das vagas abertas da fila | vitest de `partySeatsView` (4 casos; a mutação que volta à regra antiga deixa os testes vermelhos) | sim, 19/11/2026 |
+
+## Battlepass FORMULADOTA (frente aberta em 19/11/2026)
+
+Escopo: a mensalidade de R$ 120, com party com o PPA sempre que quiser pelo revezamento, salas do site quando voltarem, selo e garantia de 7 dias. Spec: [battlepass/spec.md](battlepass/spec.md). Denominador fechado: **9 critérios**.
+
+| # | Critério | Como se prova | Estado |
+|---|---|---|---|
+| B1 | O Pedro aprovou a oferta (party, salas, planos, nome) | decisão escrita em `docs/battlepass/spec.md`, com as frases dele | sim, 19/11/2026 |
+| B2 | Tipos, lint, testes e build fecham | `pnpm typecheck`, `pnpm lint`, `pnpm test` e `pnpm build` saem com 0 (job `verificar` do CI) | sim no localhost, 19/11/2026 (258 testes) |
+| B3 | As regras do banco seguram o Battlepass: ninguém grava assinatura ou pagamento pelo navegador, cada um lê só os seus, as funções de escrita ficam fechadas a visitante e logado, e o lobby elite aceita o Battlepass | `scripts/seguranca/battlepass.sql` com todos os itens "=ok", e `funcoes-abertas.sql` vazio | sim, 19/11/2026 (28 de 28, banco de produção, nada gravado; a mutação que devolve a brecha deixa vermelho) |
+| B4 | A assinatura no cartão abre no sandbox: cria a assinatura de R$ 120 no Mercado Pago, o navegador chega ao checkout, a volta espera a primeira cobrança sem liberar o acesso, e a assinatura abandonada é cancelada no Mercado Pago. A cobrança aprovada entra no livro uma vez só (regra pura testada com o formato da API) | `pnpm battlepass:e2e` e `pnpm test` (`charge.test.ts`) saem com 0 | sim no localhost, 19/11/2026 (`pnpm battlepass:e2e` 33 de 33) |
+| B5 | O Pix de 30 dias passa ponta a ponta no sandbox: gera o Pix na página, o pagamento aprovado ativa por 30 dias, um segundo pagamento soma mais 30, e o pedido de reembolso na garantia encerra o acesso e avisa o Pedro no Discord | `pnpm battlepass:e2e` sai com 0 | sim no localhost, 19/11/2026 (33 de 33) |
+| B6 | O assinante entra na fila da party sem pagar, e a fila segue o revezamento pela última vez na party (quem nunca jogou na frente, "não apareceu" vai para o fim) | `pnpm battlepass:e2e` e `pnpm test` (ordem da fila) | sim no localhost, 19/11/2026 (33 de 33; `loja:e2e` loja 21, fila 31, saídas 33 com o revezamento) |
+| B7 | O registro da partida pelo ID grava data e hora de quem jogou, com a conferência da OpenDota | `pnpm battlepass:e2e` registra uma partida pública real do PPA | sim no localhost, 19/11/2026 (partida real do PPA pela "Última do PPA") |
+| B8 | O site no ar mostra o Battlepass na `/planos` e o link `/battlepass` leva até ela | `pnpm cf:verificar` termina com `falhas: 0` | não |
+| B9 | Em produção, a compra abre o checkout do Mercado Pago com R$ 120 e o nome Battlepass FORMULADOTA (sem pagar) | `node scripts/battlepass/verificar-producao.mjs` cria a assinatura pendente com a credencial real, confere valor e nome, e cancela | não |
+
+### O que o percentual não significa
+
+- 9 de 9 não quer dizer que houve assinante: prova que a compra funciona e que os benefícios valem, não que vende.
+- Não cobre a primeira cobrança de cartão de verdade: o sandbox só autoriza a assinatura com uma conta de comprador de teste do Mercado Pago, e criar essa conta pede o sim do Pedro. A primeira assinatura real (ou a compra de teste dele, devolvida pela garantia) é a prova, e o painel `/admin/battlepass` mostra a cobrança entrando.
+- As salas do site seguem pausadas até a enquete chegar a 50 interessados: o critério B3 prova a regra do lobby elite, não a sala funcionando.

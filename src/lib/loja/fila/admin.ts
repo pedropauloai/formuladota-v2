@@ -30,6 +30,10 @@ export interface AdminQueueEntry {
   carriedOver: boolean;
   /** Comprou fora da live, na fila aberta. */
   boughtOffline: boolean;
+  /** Entrou pelo Battlepass, sem pagar a vaga. */
+  battlepass: boolean;
+  /** Última vez na party do PPA: a base do revezamento (null = nunca jogou). */
+  lastTurnAt: string | null;
 }
 
 export interface AdminFinishedEntry {
@@ -71,7 +75,7 @@ export async function isAdminUser(): Promise<boolean> {
 async function readFinished(isTest: boolean) {
   const { data, error } = await createServiceClient()
     .from("store_bookings")
-    .select("id, seats, matches_played, queue_state, queue_exit, finished_at, store_orders!inner (user_id, amount_cents, quantity)")
+    .select("id, seats, matches_played, queue_state, queue_exit, finished_at, user_id, source, store_orders (amount_cents, quantity)")
     .eq("is_test", isTest)
     .in("queue_state", ["concluido", "removido"])
     .gte("updated_at", new Date(Date.now() - FINISHED_WINDOW_MS).toISOString())
@@ -103,7 +107,7 @@ async function readDetails(ids: string[], userIds: string[]) {
 export async function getAdminQueue(): Promise<AdminQueue> {
   const isTest = isTestMode();
   const [snapshot, finishedRows] = await Promise.all([getQueueSnapshot(), readFinished(isTest)]);
-  const userIds = [...snapshot.entries.map((e) => e.userId), ...finishedRows.map((r) => r.store_orders.user_id)].filter((id): id is string => !!id);
+  const userIds = [...snapshot.entries.map((e) => e.userId), ...finishedRows.map((r) => r.user_id)].filter((id): id is string => !!id);
   const [details, identities] = await Promise.all([
     readDetails(snapshot.entries.map((e) => e.id), [...new Set(userIds)]),
     getIdentityMap(await createClient(), userIds),
@@ -131,14 +135,18 @@ export async function getAdminQueue(): Promise<AdminQueue> {
       dotaFriendId: steam ? String(steam64To32(steam.steam_id_64)) : orderDotaId(booking?.store_orders?.details),
       carriedOver: !!snapshot.live && !!booking && !boughtOffline && booking.live_session_id !== snapshot.live.id,
       boughtOffline,
+      battlepass: e.source === "battlepass",
+      lastTurnAt: e.lastTurnAt ?? null,
     };
   });
   const finished = finishedRows.map((r): AdminFinishedEntry => {
     const exit = toQueueExit(r.queue_exit);
-    const perMatch = Math.round(r.store_orders.amount_cents / Math.max(1, r.store_orders.quantity));
+    // Entrada do Battlepass não tem pedido nem nada a devolver.
+    const order = r.source === "battlepass" ? null : r.store_orders;
+    const perMatch = order ? Math.round(order.amount_cents / Math.max(1, order.quantity)) : 0;
     return {
       id: r.id,
-      name: identities.get(r.store_orders.user_id ?? "")?.name ?? "Jogador",
+      name: identities.get(r.user_id ?? "")?.name ?? "Jogador",
       state: r.queue_state === "removido" ? "removido" : "concluido",
       exit,
       matches: r.seats,
@@ -182,9 +190,18 @@ export const queueOps = {
   close: (liveId: string) => rpc<boolean>("party_fila_encerrar_live", { p_live_id: liveId }),
   call: (liveId: string, bookingId: string | null) => rpc<string | null>("party_fila_chamar", { p_live_id: liveId, p_booking_id: bookingId }),
   played: (bookingId: string) => rpc<string | null>("party_fila_jogou", { p_booking_id: bookingId }),
-  /** -1 = essa partida já tinha sido marcada (segundo toque ou repetição da requisição). */
-  matchOver: (liveId: string, expectedCount: number) =>
-    rpc<number>("party_fila_partida_terminou", { p_live_id: liveId, p_expected_count: expectedCount }),
+  /**
+   * -1 = essa partida já tinha sido marcada (segundo toque ou repetição da requisição). Com a partida
+   * (ID, hora em que acabou e quem a OpenDota mostrou no time do PPA), grava a participação de cada um.
+   */
+  matchOver: (liveId: string, expectedCount: number, match?: { matchId: string; playedAt: string; confirmedUserIds: string[] }) =>
+    rpc<number>("party_fila_partida_terminou", {
+      p_live_id: liveId,
+      p_expected_count: expectedCount,
+      p_dota_match_id: match ? Number(match.matchId) : null,
+      p_played_at: match?.playedAt ?? null,
+      p_confirmed: match?.confirmedUserIds ?? null,
+    }),
   noShow: (bookingId: string) => rpc<boolean>("party_fila_ausente", { p_booking_id: bookingId }),
   remove: (bookingId: string) => rpc<boolean>("party_fila_remover", { p_booking_id: bookingId }),
   /** A própria pessoa sai (o banco confere que a vaga é dela e que ainda espera). */

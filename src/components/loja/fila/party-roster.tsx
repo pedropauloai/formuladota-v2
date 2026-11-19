@@ -6,6 +6,7 @@
 // olhando ganha a marca "você".
 
 import { useTranslations } from "next-intl";
+import { Crown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UserAvatar } from "@/components/ui/avatar";
 import { Panel, PartyLineup, plate } from "@/components/v2";
@@ -25,6 +26,11 @@ function Who({ entry, mine, detail }: { entry: PublicEntry; mine: boolean; detai
       <span className="min-w-0 flex-1">
         <span className="flex min-w-0 items-center gap-2">
           <span className="truncate text-sm font-medium text-text-display">{entry.name}</span>
+          {entry.battlepass && (
+            <span data-fila-selo className={cn(plate({ kind: "tag", tone: "neutral" }), "shrink-0 gap-1")} title={t("battlepass.badgeTitle")}>
+              <Crown size={11} className="text-gold" aria-hidden="true" /> Battlepass
+            </span>
+          )}
           {mine && <span className={cn(plate({ kind: "tag", tone: "gold" }), "shrink-0")}>{t("you")}</span>}
         </span>
         <span className="block truncate text-xs text-text-muted">{detail}</span>

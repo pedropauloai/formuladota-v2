@@ -14,9 +14,11 @@ interface PixPanelProps {
   expiresAt: string | null;
   /** Esconde o QR no celular: quem paga pelo próprio celular só precisa copiar o código (fila da party). */
   qrDesktopOnly?: boolean;
+  /** Atributos data-* no código copia e cola, para o teste de ponta a ponta de quem usa (Battlepass). */
+  codeData?: Record<`data-${string}`, string>;
 }
 
-export function PixPanel({ copiaECola, qrDataUrl, expiresAt, qrDesktopOnly = false }: PixPanelProps) {
+export function PixPanel({ copiaECola, qrDataUrl, expiresAt, qrDesktopOnly = false, codeData }: PixPanelProps) {
   const t = useTranslations("loja");
   const [copied, setCopied] = useState(false);
 
@@ -43,7 +45,7 @@ export function PixPanel({ copiaECola, qrDataUrl, expiresAt, qrDesktopOnly = fal
         <img src={qrDataUrl} alt="QR Code do Pix" width={220} height={220} className={`mx-auto rounded-sm bg-white p-2 ${qrDesktopOnly ? "hidden md:block" : ""}`} />
       )}
       <div className="space-y-2">
-        <code className="block max-h-24 overflow-y-auto break-all rounded-sm border border-border-subtle bg-bg-deep p-3 text-xs text-text-body">
+        <code {...codeData} className="block max-h-24 overflow-y-auto break-all rounded-sm border border-border-subtle bg-bg-deep p-3 text-xs text-text-body">
           {copiaECola}
         </code>
         <button type="button" onClick={copy} className={plate({ kind: "cta", block: true })}>

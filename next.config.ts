@@ -100,6 +100,9 @@ const config: NextConfig = {
       // Atalhos da loja para bio e chat ("formuladota.com.br/ig"): levam à loja com a origem
       // na URL, e o beacon de visita conta de qual rede a pessoa veio.
       ...TRACKED_LINKS.map((link) => ({ source: link.shortPath, destination: link.target, permanent: false })),
+      // Link curto do Battlepass para a live (chat e QR). Antes do proxy: chega sem login e sem
+      // passar pela sessão. A página fica no slug em português, o público da live.
+      { source: "/battlepass", destination: "/planos?utm_source=live&utm_medium=chat&utm_campaign=battlepass", permanent: false },
       {
         // apex -> www (308). RAIZ do error=exchange_failed: o cookie PKCE do OAuth é
         // gravado no domínio de ENTRADA; se o usuário começa em formuladota.com (apex)

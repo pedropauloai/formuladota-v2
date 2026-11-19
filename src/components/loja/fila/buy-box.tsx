@@ -2,14 +2,15 @@
 
 // Compra da vaga na fila: preço e vagas abertas no topo, a vez de quem já comprou, o Pix pendente
 // e o botão. Quem está logado com a Steam vinculada compra em dois toques: "Garantir minha vaga"
-// e "Copiar código Pix". Sem login ou sem Steam, o botão leva a resolver isso e voltar.
+// e "Copiar código Pix". Sem login ou sem Steam, o botão leva a resolver isso e voltar. Quem tem o
+// Battlepass entra na fila sem pagar, com um toque; quem não tem vê o convite para conhecer.
 
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { CalendarClock, LogIn, Minus, Plus } from "lucide-react";
+import { CalendarClock, Crown, LogIn, Minus, Plus } from "lucide-react";
 import { useSound } from "@/lib/sound/hooks";
 import { formatPrice } from "@/lib/loja/money";
-import { garantirVaga } from "@/app/party/actions";
+import { entrarComBattlepass, garantirVaga } from "@/app/party/actions";
 import type { MyQueueEntry, PublicLive, QueueView } from "@/lib/loja/fila/model";
 import { CtaWarp, Panel, Price, plate } from "@/components/v2";
 import { cn } from "@/lib/utils";
@@ -148,6 +149,52 @@ function PurchaseError({ error }: { error: string | null }) {
   );
 }
 
+/** Assinante do Battlepass: entra na fila sem pagar (uma entrada por vez, a fila anda pelo revezamento). */
+function BattlepassJoin({ onJoined, state }: { onJoined: () => Promise<void>; state: PurchaseState }) {
+  const t = useTranslations("fila");
+  const play = useSound();
+  const [, startTransition] = useTransition();
+  const join = () => {
+    state.setBuying(true);
+    state.setError(null);
+    startTransition(async () => {
+      const result = await entrarComBattlepass().catch(() => ({ ok: false as const, error: "entrar" as const }));
+      if (!result.ok) {
+        play("error");
+        state.setError(t(`battlepass.errors.${result.error}`));
+        state.setBuying(false);
+        await onJoined();
+        return;
+      }
+      play("confirm");
+      await onJoined();
+      state.setBuying(false);
+    });
+  };
+  return (
+    <div className="space-y-3">
+      <button type="button" data-fila-battlepass disabled={state.buying} onClick={join} className={plate({ kind: "cta", large: true, block: true })}>
+        <CtaWarp />
+        <Crown size={18} aria-hidden="true" /> {state.buying ? t("battlepass.joining") : t("battlepass.join")}
+      </button>
+      <p className="text-xs leading-relaxed text-text-muted">{t("battlepass.joinNote")}</p>
+    </div>
+  );
+}
+
+/** Quem não tem o Battlepass vê, embaixo da compra, que dá para entrar sem pagar a vaga. */
+function BattlepassInvite() {
+  const t = useTranslations("fila");
+  return (
+    <a href="/planos" data-fila-battlepass-convite className="flex items-start gap-3 rounded-sm border border-gold/30 bg-gold/5 p-3 text-sm leading-relaxed text-text-body hover:border-gold/60">
+      <Crown size={18} className="mt-0.5 shrink-0 text-gold" aria-hidden="true" />
+      <span>
+        {t("battlepass.invite")} <span className="font-medium text-gold underline-offset-2 hover:underline">{t("battlepass.inviteCta")}</span>
+      </span>
+    </a>
+  );
+}
+
 /** Fila sem venda agora: a caixa diz quando abre, no lugar do botão. */
 function ClosedNote({ text }: { text: string }) {
   return (
@@ -165,14 +212,24 @@ interface PurchaseProps {
   initialQuantity: number;
   onBought: () => Promise<void>;
   state: PurchaseState;
+  /** Quem olha tem o Battlepass ativo. */
+  battlepass: boolean;
+  /** Quem olha já tem uma entrada de pé na fila (ou na party). */
+  inQueue: boolean;
 }
 
-function Purchase({ live, viewer, offer, initialQuantity, onBought, state }: PurchaseProps) {
+function Purchase({ live, viewer, offer, initialQuantity, onBought, state, battlepass, inQueue }: PurchaseProps) {
   const t = useTranslations("fila");
   if (!offer.onSale) return <ClosedNote text={t("errors.fechada")} />;
   // Sem nenhuma fila (a fila aberta saiu do banco): as vagas abrem quando o Pedro abrir a live.
   if (!live) return <ClosedNote text={t("closedText")} />;
   const openQueue = live.status === "fila";
+  // O assinante não ocupa a lotação da vaga paga: entra mesmo com a fila esgotada para quem compra.
+  if (battlepass) {
+    if (inQueue) return <p className="text-xs leading-relaxed text-text-muted">{t("battlepass.inQueueNote")}</p>;
+    if (!viewer.hasSteam) return <Gate href="/vincular/steam?next=%2Fparty" label={t("steamCta")} text={t("steamText")} />;
+    return <BattlepassJoin onJoined={onBought} state={state} />;
+  }
   // Esgotado vem antes do login: o botão de entrar prometeria uma vaga que não existe agora. Com a
   // compra da própria pessoa em andamento, o formulário fica: a vaga contada pode ser a dela.
   if (live.seatsOpen === 0 && !state.buying) {
@@ -188,14 +245,17 @@ function Purchase({ live, viewer, offer, initialQuantity, onBought, state }: Pur
   if (!viewer.loggedIn) return <Gate href="/login?next=%2Fparty" label={t("loginCta")} text={t("loginText")} />;
   if (!viewer.hasSteam) return <Gate href="/vincular/steam?next=%2Fparty" label={t("steamCta")} text={t("steamText")} />;
   return (
-    <BuyForm
-      max={Math.min(offer.maxQuantity, live.seatsOpen)}
-      priceCents={offer.priceCents}
-      initialQuantity={initialQuantity}
-      openQueue={openQueue}
-      onBought={onBought}
-      state={state}
-    />
+    <>
+      <BuyForm
+        max={Math.min(offer.maxQuantity, live.seatsOpen)}
+        priceCents={offer.priceCents}
+        initialQuantity={initialQuantity}
+        openQueue={openQueue}
+        onBought={onBought}
+        state={state}
+      />
+      <BattlepassInvite />
+    </>
   );
 }
 
@@ -229,7 +289,18 @@ export function BuyBox({ view, viewer, offer, initialQuantity, onBought }: BuyBo
         ))}
       {mine?.pending && <PendingPayment pending={mine.pending} />}
       {/* Cartão em análise ou recusado não trava a compra: o Pix continua disponível. */}
-      {mine?.pending?.pix ? null : <Purchase live={live} viewer={viewer} offer={offer} initialQuantity={initialQuantity} onBought={onBought} state={state} />}
+      {mine?.pending?.pix ? null : (
+        <Purchase
+          live={live}
+          viewer={viewer}
+          offer={offer}
+          initialQuantity={initialQuantity}
+          onBought={onBought}
+          state={state}
+          battlepass={mine?.battlepass === true}
+          inQueue={!!mine?.entries.some((e) => e.state === "aguardando" || e.state === "na_party")}
+        />
+      )}
       <div id="fila-erro">
         <PurchaseError error={mine?.pending?.pix ? null : error} />
       </div>
