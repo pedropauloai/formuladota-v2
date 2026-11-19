@@ -76,21 +76,33 @@ function Stepper({ value, max, onChange }: { value: number; max: number; onChang
   );
 }
 
-function BuyForm({ max, priceCents, onBought }: { max: number; priceCents: number; onBought: () => Promise<void> }) {
+/** Compra em andamento e erro da última tentativa, guardados na caixa e não no formulário. */
+interface PurchaseState {
+  buying: boolean;
+  setBuying: (buying: boolean) => void;
+  error: string | null;
+  setError: (error: string | null) => void;
+}
+
+function BuyForm({ max, priceCents, onBought, state }: { max: number; priceCents: number; onBought: () => Promise<void>; state: PurchaseState }) {
   const t = useTranslations("fila");
   const play = useSound();
   const [quantity, setQuantity] = useState(1);
-  const [error, setError] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
-  const count = Math.min(quantity, max);
+  const [, startTransition] = useTransition();
+  const count = Math.max(1, Math.min(quantity, max));
+  const pending = state.buying;
 
-  const buy = (method: "pix" | "cartao") =>
+  const buy = (method: "pix" | "cartao") => {
+    state.setBuying(true);
+    state.setError(null);
     startTransition(async () => {
-      setError(null);
-      const result = await garantirVaga(count, method);
+      const result = await garantirVaga(count, method).catch(() => ({ ok: false as const, error: "pagamento" as const }));
       if (!result.ok) {
         play("error");
-        setError(t(`errors.${result.error}`));
+        state.setError(t(`errors.${result.error}`));
+        state.setBuying(false);
+        // A contagem de vagas da tela pode estar atrasada: atualiza já, junto com o aviso.
+        await onBought();
         return;
       }
       if (result.method === "cartao") {
@@ -99,7 +111,9 @@ function BuyForm({ max, priceCents, onBought }: { max: number; priceCents: numbe
       }
       play("confirm");
       await onBought();
+      state.setBuying(false);
     });
+  };
 
   return (
     <div id="fila-comprar" className="space-y-3">
@@ -110,22 +124,35 @@ function BuyForm({ max, priceCents, onBought }: { max: number; priceCents: numbe
       <button type="button" data-fila-comprar="cartao" disabled={pending} onClick={() => buy("cartao")} className="w-full text-center text-sm text-text-muted underline-offset-2 hover:text-text-display hover:underline">
         {t("buyCard")}
       </button>
-      {error && (
-        <p role="alert" className="rounded-sm border border-error/40 bg-error/10 p-2 text-sm text-text-body">
-          {error}
-        </p>
-      )}
       <p className="text-xs leading-relaxed text-text-muted">{t("buyNote")}</p>
     </div>
   );
 }
 
-function Purchase({ live, viewer, offer, onBought }: { live: PublicLive | null; viewer: FilaViewer; offer: FilaOffer; onBought: () => Promise<void> }) {
+function PurchaseError({ error }: { error: string | null }) {
+  if (!error) return null;
+  return (
+    <p role="alert" className="rounded-sm border border-error/40 bg-error/10 p-2 text-sm text-text-body">
+      {error}
+    </p>
+  );
+}
+
+interface PurchaseProps {
+  live: PublicLive | null;
+  viewer: FilaViewer;
+  offer: FilaOffer;
+  onBought: () => Promise<void>;
+  state: PurchaseState;
+}
+
+function Purchase({ live, viewer, offer, onBought, state }: PurchaseProps) {
   const t = useTranslations("fila");
   if (!offer.onSale) return <p className="text-sm text-text-muted">{t("errors.fechada")}</p>;
   if (!live) return null;
-  // Esgotado vem antes do login: o botão de entrar prometeria uma vaga que não existe agora.
-  if (live.seatsOpen === 0) {
+  // Esgotado vem antes do login: o botão de entrar prometeria uma vaga que não existe agora. Com a
+  // compra da própria pessoa em andamento, o formulário fica: a vaga contada pode ser a dela.
+  if (live.seatsOpen === 0 && !state.buying) {
     return (
       <div className="space-y-2">
         <button type="button" disabled className={`${CTA} bg-bg-elevated text-text-muted`}>
@@ -137,7 +164,7 @@ function Purchase({ live, viewer, offer, onBought }: { live: PublicLive | null; 
   }
   if (!viewer.loggedIn) return <Gate href="/login?next=%2Fparty" label={t("loginCta")} text={t("loginText")} />;
   if (!viewer.hasSteam) return <Gate href="/vincular/steam?next=%2Fparty" label={t("steamCta")} text={t("steamText")} />;
-  return <BuyForm max={Math.min(offer.maxQuantity, live.seatsOpen)} priceCents={offer.priceCents} onBought={onBought} />;
+  return <BuyForm max={Math.min(offer.maxQuantity, live.seatsOpen)} priceCents={offer.priceCents} onBought={onBought} state={state} />;
 }
 
 /** As entradas que a pessoa vê: as ativas; sem nenhuma, só a última que terminou. */
@@ -150,11 +177,19 @@ function visibleEntries(entries: MyQueueEntry[]): MyQueueEntry[] {
 export function BuyBox({ view, viewer, offer, onBought }: { view: QueueView; viewer: FilaViewer; offer: FilaOffer; onBought: () => Promise<void> }) {
   const live = view.queue.live;
   const mine = view.mine;
+  const [buying, setBuying] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const state: PurchaseState = { buying, setBuying, error, setError };
   return (
     <div className="space-y-4 rounded-md border border-border-strong bg-bg-base p-4 md:p-5">
       <SeatsLine live={live} priceCents={offer.priceCents} />
-      {mine && visibleEntries(mine.entries).map((entry) => <MyEntryCard key={entry.id} entry={entry} dotaId={viewer.dotaId} />)}
-      {mine?.pending ? <PendingPayment pending={mine.pending} /> : <Purchase live={live} viewer={viewer} offer={offer} onBought={onBought} />}
+      {mine && visibleEntries(mine.entries).map((entry) => <MyEntryCard key={entry.id} entry={entry} dotaId={viewer.dotaId} onChanged={onBought} />)}
+      {mine?.pending && <PendingPayment pending={mine.pending} />}
+      {/* Cartão em análise ou recusado não trava a compra: o Pix continua disponível. */}
+      {mine?.pending?.pix ? null : <Purchase live={live} viewer={viewer} offer={offer} onBought={onBought} state={state} />}
+      <div id="fila-erro">
+        <PurchaseError error={mine?.pending?.pix ? null : error} />
+      </div>
     </div>
   );
 }

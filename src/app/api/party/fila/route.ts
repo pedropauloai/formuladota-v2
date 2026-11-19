@@ -13,8 +13,9 @@ export const dynamic = "force-dynamic";
 const CORS = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET, OPTIONS" };
 
 export async function GET(request: Request) {
-  // Freio de abuso: o overlay consulta a cada poucos segundos, bem abaixo disso.
-  if (!allowRequest("fila", clientIp(request.headers), 240, 60_000)) {
+  // Freio de abuso por IP, largo: na operadora de celular muita gente sai pelo mesmo IP (CGNAT),
+  // e quem acompanha sem login consulta a cada 8 s; o overlay, a cada poucos segundos.
+  if (!allowRequest("fila", clientIp(request.headers), 1200, 60_000)) {
     return NextResponse.json({ error: "muitas" }, { status: 429, headers: CORS });
   }
   const { loja } = await getFeatureFlags();

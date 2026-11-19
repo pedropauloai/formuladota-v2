@@ -4,8 +4,9 @@
 
 import { readFileSync } from "node:fs";
 import { execSync, spawn } from "node:child_process";
-import { createHmac, randomUUID } from "node:crypto";
+import { createHmac, randomBytes, randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
+import { createServerClient } from "@supabase/ssr";
 
 export const env = Object.fromEntries(
   readFileSync(".env.local", "utf8")
@@ -137,4 +138,128 @@ export async function openStoreFlag() {
 
 export async function restoreStoreFlag(wasOn) {
   await db.from("feature_flags").update({ enabled: wasOn }).eq("key", "loja");
+}
+
+// ---------- Fila da party: compradores, sessão e live de teste ----------
+
+export const STEAM_BASE = 76561197960265728n;
+
+/** Comprador de teste com Steam vinculada (ID de amigo perto do teto de 32 bits: acima de qualquer conta real). */
+export async function createTestBuyer(email, name) {
+  const password = randomBytes(18).toString("base64url");
+  const { data, error } = await db.auth.admin.createUser({ email, password, email_confirm: true, user_metadata: { full_name: name } });
+  if (error) throw new Error(`usuário de teste ${name}: ${error.message}`);
+  const steamId = String(STEAM_BASE + 4294000000n + BigInt(Math.floor(Math.random() * 900000)));
+  const { error: steamError } = await db.from("steam_links").insert({ user_id: data.user.id, steam_id_64: steamId, persona: name });
+  if (steamError) throw new Error(`Steam de teste ${name}: ${steamError.message}`);
+  return { id: data.user.id, email, name, password, steamId, dotaId: String(BigInt(steamId) - STEAM_BASE) };
+}
+
+/** Cookies de sessão no formato do site (@supabase/ssr), para o navegador de teste entrar logado. */
+export async function sessionCookiesFor(buyer) {
+  const jar = new Map();
+  const client = createServerClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
+    cookies: {
+      getAll: () => [...jar.values()].map(({ name, value }) => ({ name, value })),
+      setAll: (list) => list.forEach((cookie) => jar.set(cookie.name, cookie)),
+    },
+  });
+  const { error } = await client.auth.signInWithPassword({ email: buyer.email, password: buyer.password });
+  if (error) throw new Error(`login de teste ${buyer.name}: ${error.message}`);
+  return [...jar.values()].filter((c) => c.value).map((c) => ({ name: c.name, value: c.value, domain: "localhost", path: "/", sameSite: "Lax" }));
+}
+
+/** Contexto de navegador logado (celular por padrão), em português. */
+export async function buyerContext(browser, buyer, options = {}) {
+  const phone = options.desktop !== true;
+  const context = await browser.newContext({
+    userAgent: USER_AGENT,
+    locale: "pt-BR",
+    viewport: phone ? { width: 390, height: 844 } : { width: 1920, height: 1080 },
+    isMobile: phone,
+    hasTouch: phone,
+    ...(options.recordVideoDir ? { recordVideo: { dir: options.recordVideoDir, size: phone ? { width: 390, height: 844 } : { width: 1920, height: 1080 } } } : {}),
+  });
+  await context.addCookies([{ name: "NEXT_LOCALE", value: "pt", domain: "localhost", path: "/" }, ...(buyer ? await sessionCookiesFor(buyer) : [])]);
+  return context;
+}
+
+/** Fila de teste limpa: reservas de teste fora da fila e nenhuma live de teste no ar. */
+export async function resetTestQueue() {
+  await db.from("store_bookings").update({ queue_state: "removido" }).eq("is_test", true).in("queue_state", ["aguardando", "na_party"]);
+  const { data: open } = await db.from("store_live_sessions").select("id").eq("is_test", true).eq("status", "ao_vivo");
+  for (const live of open ?? []) await db.rpc("party_fila_encerrar_live", { p_live_id: live.id });
+}
+
+/** Abre uma live de teste (o site de produção nunca mostra) e devolve o id. */
+export async function openTestLive(queueSize, seatsPerMatch) {
+  const { data, error } = await db.rpc("party_fila_abrir_live", { p_is_test: true, p_party_seats: queueSize, p_seats_per_match: seatsPerMatch, p_youtube_video_id: null });
+  if (error || !data) throw new Error(`abrir a live de teste: ${error?.message}`);
+  return data;
+}
+
+export async function deleteTestUsers(ids) {
+  for (const id of ids) {
+    const { error } = await db.auth.admin.deleteUser(id);
+    if (error) console.error("apagar usuário de teste falhou:", error.message);
+  }
+}
+
+/** Reembolso no sandbox, como o Pedro faria no painel do Mercado Pago. */
+export async function sandboxRefund(paymentId) {
+  const response = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}/refunds`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${env.MP_ACCESS_TOKEN}`, "Content-Type": "application/json", "X-Idempotency-Key": randomUUID() },
+    body: "{}",
+  });
+  return response.json();
+}
+
+/** Mensagem [TESTE] do canal de vendas com o trecho dado (avisos sem embed, como a saída da fila). */
+export async function discordContentWith(fragment) {
+  const headers = { Authorization: `Bot ${env.DISCORD_BOT_TOKEN}` };
+  const channels = await fetch(`https://discord.com/api/v10/guilds/${env.DISCORD_GUILD_ID}/channels`, { headers }).then((r) => r.json());
+  const channel = channels.find((c) => c.type === 0 && c.name === "💰丨vendas");
+  if (!channel) return null;
+  return waitFor(async () => {
+    const messages = await fetch(`https://discord.com/api/v10/channels/${channel.id}/messages?limit=15`, { headers }).then((r) => r.json());
+    return messages.find((m) => m.content.includes("[TESTE]") && m.content.includes(fragment)) ?? null;
+  }, 30_000, 2000);
+}
+
+// ---------- Trava entre execuções de teste da fila ----------
+// Só existe uma live de teste no ar por vez no banco: duas execuções ao mesmo tempo (duas sessões,
+// dois terminais) fechariam a live uma da outra. A trava é uma linha de live de teste cancelada,
+// que nenhuma tela lê; quem chega depois espera. Expira sozinha em 15 minutos (execução que caiu).
+const LOCK_ID = "00000000-0000-4000-8000-00000000e2e0";
+const LOCK_TTL_MS = 15 * 60_000;
+
+export async function acquireTestLock(runId, maxWaitMs = LOCK_TTL_MS) {
+  await db
+    .from("store_live_sessions")
+    .upsert(
+      { id: LOCK_ID, starts_at: "2026-01-01T00:00:00Z", ends_at: "2026-01-01T00:01:00Z", status: "cancelada", notes: "livre", is_test: true },
+      { onConflict: "id", ignoreDuplicates: true }
+    );
+  const end = Date.now() + maxWaitMs;
+  let warned = false;
+  while (Date.now() < end) {
+    const now = new Date().toISOString();
+    const { data, error } = await db
+      .from("store_live_sessions")
+      .update({ notes: `e2e ${runId}`, ends_at: new Date(Date.now() + LOCK_TTL_MS).toISOString() })
+      .eq("id", LOCK_ID)
+      .or(`notes.eq.livre,ends_at.lt."${now}"`)
+      .select("id");
+    if (error) throw new Error(`trava da live de teste: ${error.message}`);
+    if (data?.length) return;
+    if (!warned) console.log("Outra execução de teste da fila está usando a live de teste; esperando a vez...");
+    warned = true;
+    await sleep(5000);
+  }
+  throw new Error("a live de teste ficou ocupada por mais de 15 minutos");
+}
+
+export async function releaseTestLock(runId) {
+  await db.from("store_live_sessions").update({ notes: "livre" }).eq("id", LOCK_ID).eq("notes", `e2e ${runId}`);
 }

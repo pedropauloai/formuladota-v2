@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Copy, Check, ExternalLink } from "lucide-react";
 import { UserAvatar } from "@/components/ui/avatar";
 import type { AdminFinishedEntry, AdminQueueEntry } from "@/lib/loja/fila/admin";
+import { formatBRL } from "@/lib/loja/money";
 
 const TIME = new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
 
@@ -62,11 +63,10 @@ function Identity({ entry }: { entry: AdminQueueEntry }) {
   );
 }
 
-export function PartyRow({ entry, busy, act, played, noShow }: {
+export function PartyRow({ entry, busy, act, noShow }: {
   entry: AdminQueueEntry;
   busy: boolean;
   act: RowAction;
-  played: (id: string) => Promise<{ ok: boolean; error?: string }>;
   noShow: (id: string) => Promise<{ ok: boolean; error?: string }>;
 }) {
   return (
@@ -74,7 +74,6 @@ export function PartyRow({ entry, busy, act, played, noShow }: {
       <Identity entry={entry} />
       <div className="flex shrink-0 items-center gap-2">
         <span className="text-xs text-play-primary">partida {Math.min(entry.played + 1, entry.matches)} de {entry.matches}</span>
-        <button type="button" disabled={busy} className={PRIMARY} onClick={() => act("Jogou", () => played(entry.id))}>Jogou</button>
         <button type="button" disabled={busy} className={SECONDARY} onClick={() => act("Não apareceu", () => noShow(entry.id))}>Não apareceu</button>
       </div>
     </li>
@@ -114,6 +113,13 @@ export function WaitingRow({ entry, busy, act, callThis, remove }: {
   );
 }
 
+function finishedLabel(item: AdminFinishedEntry): string {
+  if (item.state === "concluido") return `jogou ${item.played} de ${item.matches}`;
+  if (item.exit === "saiu") return `saiu da fila sozinho (${item.played} de ${item.matches})`;
+  if (item.exit === "cancelado") return `pedido cancelado ou reembolsado (${item.played} de ${item.matches})`;
+  return `tirado da fila (${item.played} de ${item.matches})`;
+}
+
 export function FinishedList({ items }: { items: AdminFinishedEntry[] }) {
   if (items.length === 0) return <p className="text-sm text-text-muted">Ninguém jogou nas últimas 12 horas.</p>;
   return (
@@ -121,9 +127,10 @@ export function FinishedList({ items }: { items: AdminFinishedEntry[] }) {
       {items.map((item) => (
         <li key={item.id} className="flex items-center justify-between gap-3 py-2">
           <span className="text-text-display">{item.name}</span>
-          <span className="text-xs text-text-muted">
-            {item.state === "concluido" ? `jogou ${item.played} de ${item.matches}` : `saiu da fila (${item.played} de ${item.matches})`}
+          <span className="text-right text-xs text-text-muted">
+            {finishedLabel(item)}
             {item.finishedAt && ` · ${TIME.format(new Date(item.finishedAt))}`}
+            {item.refundCents > 0 && <span className="block text-warning">devolver {formatBRL(item.refundCents)} no Mercado Pago</span>}
           </span>
         </li>
       ))}

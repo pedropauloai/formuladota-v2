@@ -4421,6 +4421,11 @@
     "how3": "O Pedro convida você pelo ID do Dota, e a partida vai ao ar no canal pela visão dele.",
     "rulesNoShow": "Chamado e não apareceu? Você volta para o fim da fila sem perder a vaga.",
     "rulesCarry": "A live acabou antes da sua vez? O seu lugar fica guardado para a próxima live.",
+    "rulesLeave": "Mudou de ideia antes da sua vez? Saia da fila por aqui, e o Pedro devolve o valor das partidas que você não jogou.",
+    "leave": "Sair da fila",
+    "leaveConfirm": "Sair da fila? A vaga volta para a venda, e o Pedro devolve pelo Mercado Pago o valor das partidas que você não jogou.",
+    "leftTitle": "Você saiu da fila",
+    "leftText": "O Pedro devolve o valor das partidas que você não jogou pelo Mercado Pago.",
     "errors": {
       "login": "Entre com o Discord para garantir a vaga.",
       "fechada": "A vaga na party não está à venda agora.",
@@ -4430,7 +4435,8 @@
       "sem_vaga": "As vagas acabaram agora. Cada partida jogada abre uma de novo.",
       "quantidade": "Escolha de 1 a 5 partidas.",
       "pagamento": "O Mercado Pago não abriu o pagamento agora. Tente de novo em instantes.",
-      "muitas": "Muitas tentativas seguidas. Espere alguns minutos e tente de novo."
+      "muitas": "Muitas tentativas seguidas. Espere alguns minutos e tente de novo.",
+      "sair": "Não deu para sair da fila agora. Se o Pedro já chamou você, fale com ele na live."
     }
   }
 }

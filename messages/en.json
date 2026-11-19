@@ -4421,6 +4421,11 @@
     "how3": "Pedro invites you by your Dota ID, and the match goes out on the channel from his point of view.",
     "rulesNoShow": "Called and didn't show up? You go back to the end of the queue without losing your spot.",
     "rulesCarry": "Stream ended before your turn? Your place is saved for the next stream.",
+    "rulesLeave": "Changed your mind before your turn? Leave the queue here, and Pedro refunds the matches you didn't play.",
+    "leave": "Leave the queue",
+    "leaveConfirm": "Leave the queue? The spot goes back on sale, and Pedro refunds the matches you didn't play through Mercado Pago.",
+    "leftTitle": "You left the queue",
+    "leftText": "Pedro refunds the matches you didn't play through Mercado Pago.",
     "errors": {
       "login": "Sign in with Discord to get a spot.",
       "fechada": "The party spot isn't on sale right now.",
@@ -4430,7 +4435,8 @@
       "sem_vaga": "Spots just ran out. Every match played opens one again.",
       "quantidade": "Choose from 1 to 5 matches.",
       "pagamento": "Mercado Pago didn't open the payment right now. Try again in a moment.",
-      "muitas": "Too many attempts in a row. Wait a few minutes and try again."
+      "muitas": "Too many attempts in a row. Wait a few minutes and try again.",
+      "sair": "Couldn't leave the queue right now. If Pedro already called you, talk to him on stream."
     }
   }
 }

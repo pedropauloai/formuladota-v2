@@ -4421,6 +4421,11 @@
     "how3": "Pedro te invita con tu ID de Dota, y la partida sale en el canal desde su punto de vista.",
     "rulesNoShow": "¿Te llamaron y no apareciste? Vuelves al final de la cola sin perder el cupo.",
     "rulesCarry": "¿El directo terminó antes de tu turno? Tu lugar queda guardado para el próximo directo.",
+    "rulesLeave": "¿Cambiaste de idea antes de tu turno? Sal de la cola aquí, y Pedro te devuelve el valor de las partidas que no jugaste.",
+    "leave": "Salir de la cola",
+    "leaveConfirm": "¿Salir de la cola? El cupo vuelve a la venta, y Pedro te devuelve por Mercado Pago el valor de las partidas que no jugaste.",
+    "leftTitle": "Saliste de la cola",
+    "leftText": "Pedro te devuelve por Mercado Pago el valor de las partidas que no jugaste.",
     "errors": {
       "login": "Entra con Discord para asegurar el cupo.",
       "fechada": "El cupo en el grupo no está a la venta ahora.",
@@ -4430,7 +4435,8 @@
       "sem_vaga": "Los cupos se acabaron ahora. Cada partida jugada abre uno de nuevo.",
       "quantidade": "Elige de 1 a 5 partidas.",
       "pagamento": "Mercado Pago no abrió el pago ahora. Inténtalo de nuevo en un momento.",
-      "muitas": "Demasiados intentos seguidos. Espera unos minutos e inténtalo de nuevo."
+      "muitas": "Demasiados intentos seguidos. Espera unos minutos e inténtalo de nuevo.",
+      "sair": "No se pudo salir de la cola ahora. Si Pedro ya te llamó, háblale en el directo."
     }
   }
 }

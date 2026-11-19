@@ -11,7 +11,8 @@ import { priceOrder } from "@/lib/loja/pricing";
 import { AGENDA } from "@/lib/loja/agenda";
 import type { Origin } from "@/lib/loja/attribution";
 import type { PaymentMethod } from "@/lib/loja/checkout-schema";
-import { PARTY_PRODUCT_SLUG, getQueueSnapshot, getViewerSteam, type ViewerSteam } from "./server";
+import { PARTY_PRODUCT_SLUG, getQueueSnapshot, getViewerSteam, readPendingOrder, type ViewerSteam } from "./server";
+import { isTestMode } from "@/lib/mercadopago";
 import { seatsOpen } from "./model";
 
 /**
@@ -59,6 +60,10 @@ export async function buySeat(args: BuySeatArgs): Promise<BuySeatResult> {
   if (!product || !variant || product.liveSeat !== "party") return { ok: false, error: "fechada" };
   const steam = await getViewerSteam(args.userId);
   if (!steam) return { ok: false, error: "steam" };
+  // Um Pix pendente por pessoa: tocar de novo (ou chamar a ação em série) devolve o mesmo Pix, sem
+  // segurar mais vagas.
+  const pending = await readPendingOrder(args.userId, isTestMode());
+  if (pending?.pix) return { ok: true, orderId: pending.id, method: "pix", redirectUrl: "/party" };
   if (!args.email) return { ok: false, error: "email" };
   const price = priceOrder(product, variant, { quantity: args.quantity });
   if (!price.ok) return { ok: false, error: "quantidade" };

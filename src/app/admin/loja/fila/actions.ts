@@ -35,9 +35,16 @@ export async function abrirLive(size: number, perMatch: number, youtube: string)
   return run("abrir a live", async () => ((await queueOps.open(size, perMatch, videoId)) ? null : "A live não abriu."));
 }
 
-export async function encerrarLive(liveId: string): Promise<FilaAdminResult> {
+/**
+ * Encerra a live. Com `countMatch`, conta antes a partida de quem está na party (ela terminou);
+ * sem, quem estava na party volta para a frente da fila sem perder a partida.
+ */
+export async function encerrarLive(liveId: string, countMatch = false, matchesDone = 0): Promise<FilaAdminResult> {
   if (!uuid.safeParse(liveId).success) return { ok: false, error: "Live inválida." };
-  return run("encerrar a live", async () => ((await queueOps.close(liveId)) ? null : "Essa live já não estava no ar."));
+  return run("encerrar a live", async () => {
+    if (countMatch) await queueOps.matchOver(liveId, matchesDone);
+    return (await queueOps.close(liveId)) ? null : "Essa live já não estava no ar.";
+  });
 }
 
 export async function ajustarVagas(liveId: string, size: number, perMatch: number, youtube: string): Promise<FilaAdminResult> {
@@ -67,14 +74,14 @@ export async function completarParty(liveId: string): Promise<FilaAdminResult> {
   });
 }
 
-export async function marcarJogou(bookingId: string): Promise<FilaAdminResult> {
-  if (!uuid.safeParse(bookingId).success) return { ok: false, error: "Pedido inválido." };
-  return run("marcar a partida", async () => ((await queueOps.played(bookingId)) ? null : "Essa pessoa não está na party."));
-}
-
-export async function partidaTerminou(liveId: string): Promise<FilaAdminResult> {
-  if (!uuid.safeParse(liveId).success) return { ok: false, error: "Live inválida." };
-  return run("marcar a partida", async () => ((await queueOps.matchOver(liveId)) > 0 ? null : "Não tem ninguém na party."));
+/** Conta a partida para todos da party. `matchesDone` é o número que o painel mostrava: o segundo toque não conta de novo. */
+export async function partidaTerminou(liveId: string, matchesDone: number): Promise<FilaAdminResult> {
+  if (!uuid.safeParse(liveId).success || !Number.isInteger(matchesDone)) return { ok: false, error: "Live inválida." };
+  return run("marcar a partida", async () => {
+    const counted = await queueOps.matchOver(liveId, matchesDone);
+    if (counted === -1) return "Essa partida já tinha sido marcada.";
+    return counted > 0 ? null : "Não tem ninguém na party.";
+  });
 }
 
 export async function naoApareceu(bookingId: string): Promise<FilaAdminResult> {

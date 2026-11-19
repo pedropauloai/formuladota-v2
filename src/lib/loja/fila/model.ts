@@ -28,6 +28,8 @@ export interface QueueLive {
   /** Partidas que já ocupam a fila (party_fila_ocupacao no banco). */
   occupied: number;
   youtubeVideoId: string | null;
+  /** Partidas já terminadas nesta live: o painel manda esse número em "Partida terminou". */
+  matchesDone: number;
 }
 
 export interface QueueSnapshot {
@@ -58,6 +60,7 @@ export interface PublicLive {
   queueSize: number;
   seatsPerMatch: number;
   youtubeVideoId: string | null;
+  matchesDone: number;
 }
 
 /** O que a página e os overlays leem: nome público e números, nada que identifique a pessoa além do nome. */
@@ -70,6 +73,13 @@ export interface PublicQueue {
 
 export type MyEntryState = "aguardando" | "na_party" | "concluido" | "removido";
 
+/** Por que a vaga saiu da fila: a pessoa saiu, o Pedro tirou, ou o pedido foi cancelado ou reembolsado. */
+export type QueueExit = "saiu" | "tirado" | "cancelado";
+
+export function toQueueExit(value: string | null): QueueExit | null {
+  return value === "saiu" || value === "tirado" || value === "cancelado" ? value : null;
+}
+
 export interface MyQueueEntry {
   id: string;
   state: MyEntryState;
@@ -79,6 +89,7 @@ export interface MyQueueEntry {
   played: number;
   noShows: number;
   calledAt: string | null;
+  exit: QueueExit | null;
 }
 
 export interface MyPendingOrder {
@@ -180,6 +191,7 @@ export function toPublicQueue(snapshot: QueueSnapshot, identity: (userId: string
           queueSize: live.queueSize,
           seatsPerMatch: live.seatsPerMatch,
           youtubeVideoId: live.youtubeVideoId,
+          matchesDone: live.matchesDone,
         }
       : null,
     party: snapshot.entries.filter((e) => e.state === "na_party").map(publicEntry),
