@@ -28,6 +28,18 @@ describe("summarizeByOrigin", () => {
     expect(rows[0]).toMatchObject({ source: "tiktok", visits: 0, conversion: null });
   });
 
+  it("aceita as visitas já somadas pelo banco", () => {
+    const rows = summarizeByOrigin(
+      [
+        { utm_source: "instagram", referrer_host: null, visits: 1500 },
+        { utm_source: null, referrer_host: null, visits: 7 },
+      ],
+      orders
+    );
+    expect(rows.find((r) => r.source === "instagram")).toMatchObject({ visits: 1500, paidOrders: 1 });
+    expect(rows.find((r) => r.source === "direto")).toMatchObject({ visits: 7 });
+  });
+
   it("totais fecham com a soma das linhas", () => {
     const total = totals(summarizeByOrigin(visits, orders));
     expect(total).toMatchObject({ visits: 4, orders: 3, paidOrders: 2, revenueCents: 19980, conversion: 0.5 });

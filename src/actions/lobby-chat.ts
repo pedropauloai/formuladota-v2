@@ -4,7 +4,7 @@
 
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
-import { getSteamIdentityMap, resolveIdentity } from "@/lib/queries/identities";
+import { getIdentityMap } from "@/lib/queries/identities";
 
 export interface LobbyChatMessage {
   id: string;
@@ -56,19 +56,15 @@ export async function fetchLobbyMessages(lobbyId: string): Promise<LobbyChatMess
 
   const rows = (data ?? []).reverse();
   const senderIds = [...new Set(rows.map((m) => m.sender_id))];
-  const [{ data: profiles }, steamMap] = await Promise.all([
-    supabase.from("profiles").select("id, username, avatar_url").in("id", senderIds),
-    getSteamIdentityMap(supabase, senderIds),
-  ]);
-  const profileById = new Map((profiles ?? []).map((p) => [p.id, p]));
+  // Nome pela identidade pública (Discord primeiro): profiles esconde os outros pela RLS.
+  const identities = await getIdentityMap(supabase, senderIds);
 
   return rows.map((m) => {
-    const p = profileById.get(m.sender_id);
-    const ident = resolveIdentity(steamMap, m.sender_id, p?.username, p?.avatar_url);
+    const ident = identities.get(m.sender_id);
     return {
       id: m.id,
       senderId: m.sender_id,
-      senderName: ident.name,
+      senderName: ident?.name ?? "",
       body: m.body,
       createdAt: m.created_at,
     };

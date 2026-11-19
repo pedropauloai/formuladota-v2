@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { botInviteToLobby } from "@/lib/bot";
+import { getFeatureFlags } from "@/lib/queries/feature-flags";
 
 export type ActionResult = { success: true } | { success: false; error: string };
 
@@ -25,6 +26,12 @@ export async function joinTeam(input: {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Não autenticado." };
+
+  // Salas pausadas junto com a busca (flag fila_competitiva): sem o bot, a sala cheia não vira partida.
+  const flags = await getFeatureFlags();
+  if (!flags.fila_competitiva) {
+    return { success: false, error: "As salas estão pausadas: o bot que cria a sala no Dota está fora do ar." };
+  }
 
   const { data: lobby } = await supabase
     .from("lobbies")
@@ -96,10 +103,13 @@ export async function joinTeam(input: {
       if (error.code === "23505") {
         return { success: false, error: "Slot já ocupado — escolha outro." };
       }
+      // A regra do banco pede conta ativa e, com o quiz ligado, doutrina (nível 6) ou permissão.
       if (error.code === "42501") {
         return {
           success: false,
-          error: "Mensalidade ativa exigida pra entrar em lobby.",
+          error: flags.doctrine_quiz
+            ? "Para entrar em sala, conclua a doutrina (nível 6) ou tenha uma permissão de partida."
+            : "Sua conta está suspensa e não pode entrar em salas agora.",
         };
       }
       return { success: false, error: "Erro ao entrar no slot." };

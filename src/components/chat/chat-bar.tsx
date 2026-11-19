@@ -186,8 +186,9 @@ export function ChatBar({ currentUserId, party, lobbyId, initialInbox, friends }
             </button>
           </div>
 
-          {/* Picker de nova conversa */}
-          {pickerOpen ? (
+          {/* Picker de nova conversa. Sem nenhuma aba (sem grupo, sala ou conversa aberta), o chat
+              já abre nele: antes mostrava um painel vazio pedindo para achar o "+". */}
+          {pickerOpen || tabs.length === 0 ? (
             <DmPicker
               inbox={inbox}
               friends={friends}

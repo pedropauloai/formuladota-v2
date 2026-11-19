@@ -25,6 +25,8 @@ export function PartyInvitePopup({ userId, initialInvites }: Props) {
   const t = useTranslations("party");
   const [invites, setInvites] = useState<PartyInviteDetailed[]>(initialInvites);
   const [busy, setBusy] = useState(false);
+  // Aviso quando o aceite falha (convite expirado ou grupo cheio): o convite fica na tela.
+  const [problem, setProblem] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
   const [prevInit, setPrevInit] = useState(initialInvites);
@@ -55,15 +57,21 @@ export function PartyInvitePopup({ userId, initialInvites }: Props) {
   function accept() {
     if (!invite) return;
     setBusy(true);
+    setProblem(null);
     startTransition(async () => {
-      await acceptPartyInvite(invite.id);
-      setInvites((prev) => prev.filter((i) => i.id !== invite.id));
+      const res = await acceptPartyInvite(invite.id);
       setBusy(false);
+      if (!res.success) {
+        setProblem(t("inviteAcceptError"));
+        return;
+      }
+      setInvites((prev) => prev.filter((i) => i.id !== invite.id));
     });
   }
 
   function decline() {
     if (!invite) return;
+    setProblem(null);
     setInvites((prev) => prev.filter((i) => i.id !== invite.id));
     startTransition(async () => {
       try {
@@ -129,6 +137,12 @@ export function PartyInvitePopup({ userId, initialInvites }: Props) {
             ))}
           </div>
         </div>
+
+        {problem && (
+          <p role="alert" className="border-t border-border-subtle px-6 pt-3 text-center font-display text-sm text-error">
+            {problem}
+          </p>
+        )}
 
         {/* Ações */}
         <div className="flex gap-2 border-t border-border-subtle p-4">

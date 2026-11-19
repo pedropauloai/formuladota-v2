@@ -863,8 +863,15 @@ function MenuView({
           <p className="mb-2.5 font-body text-sm leading-relaxed text-text-muted">
             {t("salasDesc")}
           </p>
+          {/* A sala também nasce pelo bot do Dota: com a busca pausada, criar e entrar ficam pausados. */}
+          {queuePaused && (
+            <div role="status" className="mb-2.5 rounded border border-gold/40 bg-gold/5 px-2.5 py-2">
+              <p className="font-display text-sm font-bold uppercase tracking-wider text-gold">{t("salasPausedTitle")}</p>
+              <p className="mt-0.5 text-sm text-text-body">{t("salasPausedText")}</p>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-2">
-            <ActionBtn icon={Plus} label={t("create")} variant="primary" onClick={() => (isVisitor ? void signInWithDiscord() : onCriar())} />
+            <ActionBtn icon={Plus} label={t("create")} variant="primary" disabled={queuePaused} onClick={() => (isVisitor ? void signInWithDiscord() : onCriar())} />
             <ActionBtn icon={Compass} label={t("browse")} variant="secondary" loading={loadingSalas} onClick={onNavegar} />
           </div>
         </Section>
@@ -955,6 +962,7 @@ function ActionBtn({
   variant,
   full,
   loading,
+  disabled,
   onClick,
 }: {
   icon: typeof Plus;
@@ -962,15 +970,16 @@ function ActionBtn({
   variant: "primary" | "secondary";
   full?: boolean;
   loading?: boolean;
+  disabled?: boolean;
   onClick: () => void;
 }) {
-  const cls = `flex ${full ? "w-full" : ""} items-center justify-center gap-2 rounded-[var(--radius-md)] border px-2.5 py-2 font-display text-sm font-bold uppercase tracking-wide transition-colors ${
+  const cls = `flex ${full ? "w-full" : ""} items-center justify-center gap-2 rounded-[var(--radius-md)] border px-2.5 py-2 font-display text-sm font-bold uppercase tracking-wide transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
     variant === "primary"
       ? "border-brand-primary/60 bg-brand-primary/15 text-brand-primary hover:bg-brand-primary/25"
       : "border-border-subtle bg-bg-surface text-text-body hover:border-brand-primary/50"
   }`;
   return (
-    <button type="button" onClick={onClick} disabled={loading} className={cls}>
+    <button type="button" onClick={onClick} disabled={loading || disabled} className={cls}>
       {loading ? <Loader2 size={14} className="animate-spin" /> : <Icon size={14} aria-hidden="true" />}
       {label}
     </button>

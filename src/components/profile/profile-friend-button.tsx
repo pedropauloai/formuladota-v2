@@ -7,6 +7,7 @@
 
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
+import { useToast } from "@/components/ui/toast";
 import { UserPlus, Clock, Check, X, UserMinus, Loader2 } from "lucide-react";
 import {
   sendFriendRequest,
@@ -31,6 +32,7 @@ export function ProfileFriendButton({ targetUserId, friendshipId, initial }: Pro
   const [confirming, setConfirming] = useState(false);
   const [pending, startTransition] = useTransition();
   const t = useTranslations("profileExtra");
+  const { toast } = useToast();
 
   function run(fn: () => Promise<unknown>, next: ProfileFriendState) {
     startTransition(async () => {
@@ -38,7 +40,8 @@ export function ProfileFriendButton({ targetUserId, friendshipId, initial }: Pro
         await fn();
         setState(next);
       } catch {
-        /* silent — RLS/erro raro; o revalidate reconcilia */
+        // Em produção o Next esconde o texto do erro da ação: o aviso é genérico.
+        toast({ type: "error", title: t("friendActionError") });
       }
       setConfirming(false);
     });

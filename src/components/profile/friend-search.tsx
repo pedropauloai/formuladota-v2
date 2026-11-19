@@ -6,6 +6,7 @@
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { useToast } from "@/components/ui/toast";
 import { Search, UserPlus, Check, Loader2 } from "lucide-react";
 import { UserAvatar } from "@/components/ui/avatar";
 import { searchPlayers, type PlayerSearchResult } from "@/actions/friends-search";
@@ -16,6 +17,7 @@ const MIN_CHARS = 3;
 
 export function FriendSearch() {
   const t = useTranslations("perfil");
+  const { toast } = useToast();
   const router = useRouter();
   const [value, setValue] = useState("");
   // null = sem busca ativa; [] = busca sem resultados
@@ -51,7 +53,8 @@ export function FriendSearch() {
         setSentTo((prev) => new Set(prev).add(userId));
         router.refresh(); // pedido enviado aparece em "Pendentes" (server-side)
       } catch {
-        // Silent fail — padrão do projeto em Client Components (sem toast global ainda).
+        // Em produção o Next esconde o texto do erro da ação: o aviso é genérico.
+        toast({ type: "error", title: t("friendRequestError") });
       }
     });
   }

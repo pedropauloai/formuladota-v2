@@ -248,6 +248,8 @@
     "searchMatch": "Buscar Partida",
     "queuePausedTitle": "Busca pausada",
     "queuePausedText": "O bot que cria a sala no Dota está fora do ar. A busca de partida volta quando ele voltar.",
+    "salasPausedTitle": "Salas pausadas",
+    "salasPausedText": "O bot que cria a sala no Dota está fora do ar. As salas voltam quando ele voltar.",
     "searching": "Buscando",
     "cancelSearch": "Cancelar busca",
     "cancelFailed": "Não foi possível sair da fila. Tente de novo.",
@@ -495,6 +497,7 @@
     "error": "Não foi possível carregar o meta agora. Tente de novo em instantes."
   },
   "perfil": {
+    "friendRequestError": "Não deu para enviar o pedido. Atualize a página e tente de novo.",
     "metaTitle": "Perfil — FORMULADOTA",
     "publicMetaTitle": "Perfil {steamid} — FORMULADOTA",
     "kicker": "Perfil",
@@ -1078,6 +1081,7 @@
     "steamErrorInvalidSignature": "A resposta da Steam veio com assinatura inválida. Tenta de novo — se persistir, fala com a gente no Discord.",
     "steamErrorPersonaUnavailable": "Conseguimos validar sua Steam, mas o servidor da Steam não devolveu seu nickname. Tenta de novo em alguns minutos.",
     "steamErrorDbFailed": "Falha ao registrar seu vínculo no banco. Tenta de novo — se persistir, fala com a gente no Discord.",
+    "steamErrorInUse": "Essa conta Steam já está vinculada a outro jogador do FORMULADOTA. Cada Steam vale para uma conta só; se a conta é sua, fala com a gente no Discord.",
     "steamErrorLoginRequired": "Faça login com Discord primeiro — depois te trazemos de volta.",
     "steamErrorMissingState": "O retorno da Steam veio sem o parâmetro de segurança. Tenta de novo.",
     "steamErrorMissingCode": "O retorno da Steam veio incompleto. Tenta de novo.",
@@ -4007,7 +4011,9 @@
     "lobbyPlaceholder": "Mensagem para a sala",
     "dmError": "Não deu para abrir a conversa. Tente de novo.",
     "dmEmpty": "Nenhuma mensagem com {name} ainda.",
-    "dmPlaceholder": "Mensagem para {name}"
+    "dmPlaceholder": "Mensagem para {name}",
+    "sendError": "Não deu para enviar a mensagem. Tente de novo.",
+    "dmNotFriends": "Só dá para mandar mensagem para amigos."
   },
   "memberOnly": {
     "profileTitle": "Perfil de jogador",
@@ -4015,6 +4021,7 @@
     "enter": "Entrar com Discord"
   },
   "party": {
+    "inviteAcceptError": "Esse convite expirou ou o grupo encheu.",
     "searchingInGroup": "Buscando em grupo",
     "leaveGroup": "Sair do grupo",
     "leader": "Líder",
@@ -4046,6 +4053,7 @@
     "you": "Você"
   },
   "profileExtra": {
+    "friendActionError": "Não deu certo. Atualize a página e tente de novo.",
     "editProfileImage": "Editar imagem de perfil",
     "profileImage": "Imagem de perfil",
     "close": "Fechar",

@@ -124,8 +124,11 @@ export async function updateSession(request: NextRequest) {
   // Idioma: slug exclusivo de um idioma manda (/tournaments = en, /torneios = pt,
   // /torneos = es). Rota compartilhada/ambígua: cookie NEXT_LOCALE (escolha manual
   // SEMPRE vence) → Accept-Language (pt*→pt, es*→es, resto→en) →
-  // x-vercel-ip-country (BR→pt, América hispânica→es) → en.
+  // país do IP (BR→pt, América hispânica→es) → en.
   const slugLocale = localeFromPath(rawPath);
+  // Na Cloudflare o país vem em cf-ipcountry (x-vercel-ip-country só existia na Vercel).
+  const ipCountry =
+    request.headers.get("cf-ipcountry") ?? request.headers.get("x-vercel-ip-country");
   let locale: Locale;
   const cookie = request.cookies.get(LOCALE_COOKIE)?.value;
   if (slugLocale) {
@@ -135,20 +138,17 @@ export async function updateSession(request: NextRequest) {
   } else {
     locale =
       localeFromAcceptLanguage(request.headers.get("accept-language")) ??
-      localeFromCountry(request.headers.get("x-vercel-ip-country"));
+      localeFromCountry(ipCountry);
   }
 
   // Header com o locale resolvido — lido por src/i18n/request.ts (next-intl).
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-fd-locale", locale);
 
-  // País do IP (x-vercel-ip-country) repassado como x-fd-country pro onboarding
-  // SUGERIR a região de jogo (countryToRegion). É um EIXO INDEPENDENTE do idioma:
-  // só expomos o país cru; quem decide região é o onboarding, não a lógica de locale.
-  requestHeaders.set(
-    "x-fd-country",
-    request.headers.get("x-vercel-ip-country") ?? ""
-  );
+  // País do IP repassado como x-fd-country pro onboarding SUGERIR a região de jogo
+  // (countryToRegion). É um EIXO INDEPENDENTE do idioma: só expomos o país cru; quem
+  // decide região é o onboarding, não a lógica de locale.
+  requestHeaders.set("x-fd-country", ipCountry ?? "");
 
   // Redirects de auth → no slug do idioma atual (ex.: en → /profile, /code-of-conduct).
   const localizedUrl = (path: string) =>
@@ -240,7 +240,7 @@ export async function updateSession(request: NextRequest) {
   const { data: profile } = await supabase
     .from("profiles")
     .select(
-      "doctrine_accepted_at, doctrine_version, behavior_status, suspended_until"
+      "doctrine_accepted_at, doctrine_version, behavior_status, suspended_until, region_chosen"
     )
     .eq("id", user.id)
     .single();
@@ -300,8 +300,8 @@ export async function updateSession(request: NextRequest) {
     }
 
     // User COM Steam vinculado em /vincular/steam → vai pro /me (perfil canônico
-    // estilo Dota 2). Antes ia pra /perfil (página de conta legada) — corrigido.
-    if (steamLink && pathname === STEAM_LINK_PATH) {
+    // estilo Dota 2). Quem ainda não escolheu a região fica: o seletor só existe nessa página.
+    if (steamLink && pathname === STEAM_LINK_PATH && profile.region_chosen) {
       return NextResponse.redirect(localizedUrl("/me"));
     }
   }

@@ -900,6 +900,7 @@ export type Database = {
       friendships: {
         Row: {
           addressee_id: string
+          blocked_by: string | null
           created_at: string
           id: string
           requester_id: string
@@ -908,6 +909,7 @@ export type Database = {
         }
         Insert: {
           addressee_id: string
+          blocked_by?: string | null
           created_at?: string
           id?: string
           requester_id: string
@@ -916,6 +918,7 @@ export type Database = {
         }
         Update: {
           addressee_id?: string
+          blocked_by?: string | null
           created_at?: string
           id?: string
           requester_id?: string
@@ -933,6 +936,20 @@ export type Database = {
           {
             foreignKeyName: "friendships_addressee_id_fkey"
             columns: ["addressee_id"]
+            isOneToOne: false
+            referencedRelation: "public_player_identities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "friendships_blocked_by_fkey"
+            columns: ["blocked_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "friendships_blocked_by_fkey"
+            columns: ["blocked_by"]
             isOneToOne: false
             referencedRelation: "public_player_identities"
             referencedColumns: ["id"]
@@ -4332,6 +4349,14 @@ export type Database = {
           tier_name: string
         }[]
       }
+      my_friends_presence: {
+        Args: never
+        Returns: {
+          last_seen_at: string
+          status_message: string
+          user_id: string
+        }[]
+      }
       my_party: {
         Args: never
         Returns: {
@@ -4410,6 +4435,14 @@ export type Database = {
       seed_fake_user: {
         Args: { p_email?: string; p_username: string }
         Returns: string
+      }
+      site_visits_by_origin: {
+        Args: { p_from: string }
+        Returns: {
+          referrer_host: string
+          utm_source: string
+          visits: number
+        }[]
       }
       slugify_handle: { Args: { input: string }; Returns: string }
       store_remarcar_agenda: {

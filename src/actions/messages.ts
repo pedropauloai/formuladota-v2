@@ -21,7 +21,7 @@ const SendSchema = z.object({
 
 export type OpenConversationResult =
   | { success: true; conversationId: string; messages: DmMessage[] }
-  | { success: false; error: string };
+  | { success: false; error: string; code?: "not_friends" };
 
 /**
  * Abre (ou cria) a conversa com um amigo e devolve o histórico. Marca como lida.
@@ -42,8 +42,9 @@ export async function openConversation(
   const { data: convId, error } = await supabase.rpc("dm_get_or_create_conversation", {
     p_other: parsed.data,
   });
-  if (error || !convId) {
-    return { success: false, error: "Só dá pra conversar com amigos aceitos." };
+  if (error) return { success: false, error: "Não foi possível abrir a conversa." };
+  if (!convId) {
+    return { success: false, error: "Só dá pra conversar com amigos aceitos.", code: "not_friends" };
   }
 
   const conversationId = convId as string;
@@ -60,7 +61,7 @@ export async function openConversation(
 
 export type SendDmResult =
   | { success: true; message: DmMessage }
-  | { success: false; error: string };
+  | { success: false; error: string; code?: "not_friends" };
 
 /** Envia uma mensagem na conversa. RLS garante que sou membro. */
 export async function sendDirectMessage(input: {
@@ -90,7 +91,8 @@ export async function sendDirectMessage(input: {
 
   if (error || !data) {
     if (error?.code === "42501") {
-      return { success: false, error: "Você não participa dessa conversa." };
+      // A regra do banco só deixa mandar para amigo aceito (bloqueio ou amizade desfeita barram).
+      return { success: false, error: "Só dá para mandar mensagem para amigos.", code: "not_friends" };
     }
     console.error("[sendDirectMessage] error:", error);
     return { success: false, error: "Não foi possível enviar a mensagem." };

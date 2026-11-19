@@ -11,6 +11,7 @@ import { z } from "zod";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { botCreateLobby } from "@/lib/bot";
+import { getFeatureFlags } from "@/lib/queries/feature-flags";
 
 const inputSchema = z.object({
   name: z.string().min(3).max(60),
@@ -19,6 +20,8 @@ const inputSchema = z.object({
   // regras avançadas) são visuais por ora; o bot Steam vai consumi-las quando deployado.
   password: z.string().max(20).optional(),
 });
+
+const SALAS_PAUSADAS = "As salas estão pausadas: o bot que cria a sala no Dota está fora do ar.";
 
 export type CreateLobbyResult =
   | { success: true; lobbyId: string; password: string }
@@ -37,6 +40,11 @@ export async function createLobby(formData: FormData): Promise<CreateLobbyResult
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "Não autenticado." };
+
+  // Salas pausadas junto com a busca (flag fila_competitiva): é o bot do Dota que cria a sala.
+  if (!(await getFeatureFlags()).fila_competitiva) {
+    return { success: false, error: SALAS_PAUSADAS };
+  }
 
   // Senha do lobby: usa a digitada (se válida) ou gera 8 chars hex.
   const custom = parsed.data.password?.trim();

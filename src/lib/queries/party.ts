@@ -8,7 +8,7 @@
 // steam_links SELECT público resolve identidade.
 
 import type { createClient } from "@/lib/supabase/server";
-import { getSteamIdentityMap, resolveIdentity } from "@/lib/queries/identities";
+import { getIdentityMap } from "@/lib/queries/identities";
 import type { QueueGameMode, QueueRole } from "@/app/queue/actions";
 import type { Database } from "@/types/database";
 
@@ -120,20 +120,16 @@ export async function getMyPartyInvites(
   if (!invites || invites.length === 0) return [];
 
   const inviterIds = [...new Set(invites.map((i) => i.inviter_id))];
-  const [{ data: profiles }, steamMap] = await Promise.all([
-    supabase.from("profiles").select("id, username, avatar_url").in("id", inviterIds),
-    getSteamIdentityMap(supabase, inviterIds),
-  ]);
-  const profileById = new Map((profiles ?? []).map((p) => [p.id, p]));
+  // Nome pela identidade pública (Discord primeiro): profiles esconde os outros pela RLS.
+  const identities = await getIdentityMap(supabase, inviterIds);
 
   return invites.map((inv) => {
-    const p = profileById.get(inv.inviter_id);
-    const ident = resolveIdentity(steamMap, inv.inviter_id, p?.username, p?.avatar_url);
+    const ident = identities.get(inv.inviter_id);
     return {
       id: inv.id,
       partyId: inv.party_id,
-      inviterName: ident.name,
-      inviterAvatarUrl: ident.avatarUrl,
+      inviterName: ident?.name ?? "",
+      inviterAvatarUrl: ident?.avatarUrl ?? null,
     };
   });
 }

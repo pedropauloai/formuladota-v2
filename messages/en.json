@@ -248,6 +248,8 @@
     "searchMatch": "Find Match",
     "queuePausedTitle": "Matchmaking paused",
     "queuePausedText": "The bot that creates the lobby in Dota is offline. Matchmaking returns as soon as it is back.",
+    "salasPausedTitle": "Rooms paused",
+    "salasPausedText": "The bot that creates the lobby in Dota is offline. Rooms return as soon as it is back.",
     "searching": "Searching",
     "cancelSearch": "Cancel search",
     "cancelFailed": "Couldn't leave the queue. Try again.",
@@ -495,6 +497,7 @@
     "error": "Couldn't load the meta right now. Try again shortly."
   },
   "perfil": {
+    "friendRequestError": "Couldn't send the request. Refresh the page and try again.",
     "metaTitle": "Profile — FORMULADOTA",
     "publicMetaTitle": "Profile {steamid} — FORMULADOTA",
     "kicker": "Profile",
@@ -1078,6 +1081,7 @@
     "steamErrorInvalidSignature": "Steam's response came back with an invalid signature. Try again — if it persists, reach out to us on Discord.",
     "steamErrorPersonaUnavailable": "We validated your Steam, but Steam's server didn't return your nickname. Try again in a few minutes.",
     "steamErrorDbFailed": "Failed to register your link in the database. Try again — if it persists, reach out to us on Discord.",
+    "steamErrorInUse": "This Steam account is already linked to another FORMULADOTA player. Each Steam account works for one profile only; if it's yours, reach us on Discord.",
     "steamErrorLoginRequired": "Log in with Discord first — then we'll bring you back.",
     "steamErrorMissingState": "Steam's response came back without the security parameter. Try again.",
     "steamErrorMissingCode": "Steam's response came back incomplete. Try again.",
@@ -4007,7 +4011,9 @@
     "lobbyPlaceholder": "Message the lobby",
     "dmError": "Couldn't open the conversation. Try again.",
     "dmEmpty": "No messages with {name} yet.",
-    "dmPlaceholder": "Message {name}"
+    "dmPlaceholder": "Message {name}",
+    "sendError": "Couldn't send the message. Try again.",
+    "dmNotFriends": "You can only message friends."
   },
   "memberOnly": {
     "profileTitle": "Player profile",
@@ -4015,6 +4021,7 @@
     "enter": "Sign in with Discord"
   },
   "party": {
+    "inviteAcceptError": "This invite expired or the party is full.",
     "searchingInGroup": "Searching as a group",
     "leaveGroup": "Leave party",
     "leader": "Leader",
@@ -4046,6 +4053,7 @@
     "you": "You"
   },
   "profileExtra": {
+    "friendActionError": "That didn't work. Refresh the page and try again.",
     "editProfileImage": "Edit profile image",
     "profileImage": "Profile image",
     "close": "Close",

@@ -1,7 +1,7 @@
 "use client";
 
 // Painel de feature flags no admin dashboard. Cada flag = um toggle que liga/desliga
-// a feature pra todos (o admin continua enxergando). Otimista + useTransition.
+// a feature para todos, inclusive o admin (a flag é autoritativa). Otimista + useTransition.
 
 import { useState, useTransition } from "react";
 import { Loader2 } from "lucide-react";
@@ -16,10 +16,16 @@ interface FlagDef {
 
 const FLAG_DEFS: FlagDef[] = [
   {
+    key: "fila_competitiva",
+    label: "Busca de partida e salas (bot do Dota)",
+    description:
+      "Ligado = o JOGAR DOTA busca partida e as salas abrem, com o bot criando a sala no Dota. Desligado = busca e salas pausadas para todos, com o aviso de que o bot está fora do ar. Ligue quando o bot voltar.",
+  },
+  {
     key: "ranked_com_pro",
     label: "Subir MMR / Ranked com PRO",
     description:
-      "Aba do topbar, card da sidebar, modalidade no menu Jogar e a rota /ranked-com-pro. Desligado = some pros usuários (você, admin, continua vendo).",
+      "Aba do topbar, card da sidebar, modalidade no menu Jogar e a rota /ranked-com-pro. Desligado = some para todos, inclusive admin.",
   },
   {
     key: "doctrine_quiz",

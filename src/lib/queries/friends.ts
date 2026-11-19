@@ -1,16 +1,13 @@
 // Queries de friendships pra Server Components (pacote social 2026-06-12).
 // RLS já filtra por auth.uid() — sem necessidade de WHERE manual além de status.
 //
-// IMPORTANTE (RLS de profiles é restritiva — só próprio/admin/coaches): o embed
-// `profiles` pode voltar NULL pra viewers comuns. Por isso a identidade do amigo
-// é resolvida via batch em steam_links (SELECT público, migration 054) — o embed
-// de profiles só ENRIQUECE (last_seen, status_message, fallback Discord) quando
-// o viewer tem permissão. Nunca descartamos um amigo por embed nulo.
+// A regra de profiles só mostra a própria linha (e as de admin e coaches), então nada aqui lê
+// profiles dos amigos: nome e avatar vêm da identidade pública (getIdentityMap) e o "visto há"
+// e o recado vêm de my_friends_presence (migration 168).
 
 import { createClient } from "@/lib/supabase/server";
-import { displayAvatar, displayName } from "@/lib/identity";
 import { xpProgress } from "@/lib/levels";
-import { getSteamIdentityMap } from "@/lib/queries/identities";
+import { getIdentityMap } from "@/lib/queries/identities";
 import {
   getFriendContextMap,
   type FriendContext,
@@ -35,6 +32,9 @@ export interface FriendListEntry {
   context: FriendContext | null;
 }
 
+/** Linha de my_friends_presence ("visto há" e recado de cada amigo). */
+type PresenceRow = { user_id: string; last_seen_at: string | null; status_message: string | null };
+
 /** Dados do painel de amigos do shell — 1 chamada, tudo em batch. */
 export interface FriendsPanelData {
   /** Amizades aceitas (com contexto ao vivo). */
@@ -42,17 +42,6 @@ export interface FriendsPanelData {
   /** Pedidos pendentes — recebidos (incoming) E enviados (outgoing). */
   pending: FriendListEntry[];
 }
-
-type ProfileFragment = {
-  username: string | null;
-  avatar_url: string | null;
-  avatar_custom_url: string | null;
-  last_seen_at: string | null;
-  status_message: string | null;
-} | null;
-
-const PROFILE_FIELDS =
-  "username, avatar_url, avatar_custom_url, last_seen_at, status_message";
 
 /**
  * Busca TODAS as friendships do user (accepted + pending) numa query só e
@@ -68,13 +57,7 @@ export async function getFriendsPanel(): Promise<FriendsPanelData> {
 
   const { data: rows } = await supabase
     .from("friendships")
-    .select(
-      `
-      id, status, created_at, requester_id, addressee_id,
-      requester:profiles!friendships_requester_id_fkey (${PROFILE_FIELDS}),
-      addressee:profiles!friendships_addressee_id_fkey (${PROFILE_FIELDS})
-    `
-    )
+    .select("id, status, created_at, requester_id, addressee_id")
     .in("status", ["accepted", "pending"])
     .order("created_at", { ascending: false });
 
@@ -88,14 +71,18 @@ export async function getFriendsPanel(): Promise<FriendsPanelData> {
 
   const friendIds = friendships.map(friendIdOf);
 
-  // Identidade Steam (batch público) + contexto ao vivo + níveis (batch) em paralelo.
-  const [steamMap, contextMap, levelsRes] = await Promise.all([
-    getSteamIdentityMap(supabase, friendIds),
+  // Nome e avatar pela identidade pública e "visto há" pela função dos amigos: a regra de profiles
+  // esconde a linha dos outros, então ler profiles aqui só funcionava para o admin.
+  const [identityMap, presenceRes, contextMap, levelsRes] = await Promise.all([
+    getIdentityMap(supabase, friendIds),
+    supabase.rpc("my_friends_presence"),
     getFriendContextMap(supabase, acceptedIds),
     friendIds.length
       ? supabase.from("user_levels").select("user_id, total_xp_earned").in("user_id", friendIds)
       : Promise.resolve({ data: [] as { user_id: string; total_xp_earned: number }[] }),
   ]);
+  const presenceRows = (presenceRes.data ?? []) as PresenceRow[];
+  const presenceMap = new Map(presenceRows.map((p) => [p.user_id, p]));
   // Nível E progresso do anel da MESMA fonte (total_xp_earned → xpProgress).
   const xpMap = new Map(
     (levelsRes.data ?? []).map((l) => [l.user_id, xpProgress(l.total_xp_earned ?? 0)])
@@ -107,28 +94,18 @@ export async function getFriendsPanel(): Promise<FriendsPanelData> {
   for (const row of friendships) {
     const friendId = friendIdOf(row);
     const direction = row.requester_id === user.id ? "outgoing" : "incoming";
-    // Embed do LADO do amigo (pode ser null se a RLS de profiles bloquear).
-    const prof = (
-      direction === "outgoing" ? row.addressee : row.requester
-    ) as unknown as ProfileFragment;
-    const steam = steamMap.get(friendId);
-
-    const src = {
-      steamPersona: steam?.persona,
-      steamAvatar: steam?.avatarUrl,
-      discordUsername: prof?.username,
-      discordAvatar: prof?.avatar_custom_url ?? prof?.avatar_url,
-    };
+    const ident = identityMap.get(friendId);
+    const presence = presenceMap.get(friendId);
 
     const entry: FriendListEntry = {
       friendshipId: row.id,
       friendUserId: friendId,
-      friendUsername: displayName(src),
-      friendAvatarUrl: displayAvatar(src),
+      friendUsername: ident?.name ?? null,
+      friendAvatarUrl: ident?.avatarUrl ?? null,
       friendLevel: xpMap.get(friendId)?.level ?? 1,
       friendXpPct: xpMap.get(friendId)?.pct ?? 0,
-      friendLastSeenAt: prof?.last_seen_at ?? null,
-      friendStatusMessage: prof?.status_message ?? null,
+      friendLastSeenAt: presence?.last_seen_at ?? null,
+      friendStatusMessage: presence?.status_message ?? null,
       direction,
       status: row.status as FriendListEntry["status"],
       createdAt: row.created_at,
