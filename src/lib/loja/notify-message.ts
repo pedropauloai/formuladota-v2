@@ -50,7 +50,7 @@ export function firstName(name: string): string {
 /** Link que abre a conversa com o comprador no WhatsApp, já com a primeira mensagem; null sem WhatsApp. */
 export function whatsappLink(sale: Pick<SaleInfo, "buyerWhatsapp" | "buyerName" | "productTitle">): string | null {
   if (!sale.buyerWhatsapp) return null;
-  const text = `Oi, ${firstName(sale.buyerName)}! Aqui é o Pedro, do FORMULADOTA. Recebi o seu pedido de ${sale.productTitle} e vou combinar tudo com você por aqui.`;
+  const text = `Oi, ${firstName(sale.buyerName)}! Aqui é o PPA, do FORMULADOTA. Recebi o seu pedido de ${sale.productTitle} e vou combinar tudo com você por aqui.`;
   return `https://wa.me/${sale.buyerWhatsapp}?text=${encodeURIComponent(text)}`;
 }
 

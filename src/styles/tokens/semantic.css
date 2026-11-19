@@ -231,6 +231,9 @@ html[data-theme="fd-dark"] {
   --radius-lg:    2px;      /* painéis, drawers */
   --radius-xl:    2px;      /* modais, large cards */
   --radius-full:  9999px;   /* dots, medalhas, pings circulares (exceção) */
+  /* Botões do design 2.0 (Pedro, 20/11/2026: "quadrado ou levemente arredondado"). O canto vivo
+     fica na barra superior, que imita o Dota; 6px segue longe do arredondado de SaaS (12px ou mais). */
+  --radius-button: 6px;
 
   /* -------------------------------------------------------
    * GRUPO 14 — SOMBRAS E GLOWS

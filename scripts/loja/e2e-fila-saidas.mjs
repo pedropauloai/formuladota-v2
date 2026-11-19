@@ -95,7 +95,7 @@ async function noShowAndCallNext(state, buyers, pages, [w1, w2]) {
   await pause();
   const w1Booking = await bookingOf((await latestOrder(buyers[w1])).id);
   await db.rpc("party_fila_ausente", { p_booking_id: w1Booking.id });
-  await pages[w1].getByText("O Pedro chamou você e você não apareceu").waitFor({ timeout: 15_000 });
+  await pages[w1].getByText("O PPA chamou você e você não apareceu").waitFor({ timeout: 15_000 });
   await pages[w1].locator("[data-fila-posicao='3']").waitFor({ timeout: 15_000 });
   check("não apareceu: volta para o fim da fila, com a vaga", true);
   await snap(pages[w1], "3-nao-apareceu");
