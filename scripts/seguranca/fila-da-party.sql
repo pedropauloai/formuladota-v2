@@ -1,4 +1,4 @@
--- Teste de regressão das regras da fila da party (migrations 174 a 178). Abre uma live de teste,
+-- Teste de regressão das regras da fila da party (migrations 174 a 179). Abre uma live de teste,
 -- reserva, paga, chama, joga, pula, sai, tira e encerra, e termina SEMPRE num erro proposital
 -- (RESULTADO: ...), então a transação inteira volta e nada fica gravado.
 -- PASSA quando todos os itens do RESULTADO dizem "=ok"; cada "=FALHOU" é uma regressão.
@@ -387,6 +387,24 @@ begin
     r := array_append(r, ('AE_cortesia_exige_steam=FALHOU(' || sqlerrm || ')')::text);
   end;
 
+  -- AF. Tirar da party (migration 179): volta para a fila no mesmo lugar, sem falta e sem gastar a vez.
+  begin
+    update public.store_live_sessions set status = 'ao_vivo' where id = live2;
+    select queued_at into t1 from public.store_bookings where id = c1;
+    v := public.party_fila_chamar(live2, c1);
+    n1 := (select count(*) from public.party_participacoes where booking_id = c1);
+    -- Cada chamada numa instrução própria: na mesma instrução, a leitura veria a linha de antes.
+    st := case when public.party_fila_tirar_da_party(c1) then 'tirou' else 'nao tirou' end;
+    st2 := case when public.party_fila_tirar_da_party(c1) then 'tirou de novo' else 'ok' end;
+    r := array_append(r, (case when v = c1 and st = 'tirou' and st2 = 'ok'
+      and (select queue_state = 'aguardando' and no_shows = 0 and called_at is null and queued_at = t1 from public.store_bookings where id = c1)
+      and (select count(*) from public.party_participacoes where booking_id = c1) = n1
+      then 'AF_tirar_da_party_sem_perder_a_vez=ok' else 'AF_tirar_da_party_sem_perder_a_vez=FALHOU(' || coalesce(v::text, 'null') || ')' end)::text);
+    update public.store_live_sessions set status = 'encerrada' where id = live2;
+  exception when others then
+    r := array_append(r, ('AF_tirar_da_party_sem_perder_a_vez=FALHOU(' || sqlerrm || ')')::text);
+  end;
+
   -- O. Logado comum não opera a fila, não reserva direto e não lê as reservas.
   set local role authenticated;
   perform set_config('request.jwt.claims', json_build_object('sub', u, 'role', 'authenticated')::text, true);
@@ -407,6 +425,12 @@ begin
     r := array_append(r, 'O_logado_cortesia=FALHOU(executou)'::text);
   exception when insufficient_privilege then
     r := array_append(r, 'O_logado_cortesia=ok'::text);
+  end;
+  begin
+    perform public.party_fila_tirar_da_party(b3);
+    r := array_append(r, 'O_logado_tira_da_party=FALHOU(executou)'::text);
+  exception when insufficient_privilege or undefined_function then
+    r := array_append(r, (case when sqlstate = '42883' then 'O_logado_tira_da_party=FALHOU(sem funcao)' else 'O_logado_tira_da_party=ok' end)::text);
   end;
   begin
     perform public.party_fila_ajustar_partidas(b3, 5);

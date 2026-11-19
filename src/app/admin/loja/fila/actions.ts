@@ -146,6 +146,12 @@ export async function ultimaPartidaDoPPA(): Promise<UltimaPartidaResult> {
   return last ? { ok: true, ...last } : { ok: false, error: "A OpenDota não achou a partida da party. Cole o ID da partida." };
 }
 
+/** Troca de jogador: sai da party e volta para a fila no mesmo lugar, sem falta. */
+export async function tirarDaParty(bookingId: string): Promise<FilaAdminResult> {
+  if (!uuid.safeParse(bookingId).success) return { ok: false, error: "Pedido inválido." };
+  return run("tirar da party", async () => ((await queueOps.leaveParty(bookingId)) ? null : "Essa pessoa já não estava na party."));
+}
+
 export async function naoApareceu(bookingId: string): Promise<FilaAdminResult> {
   if (!uuid.safeParse(bookingId).success) return { ok: false, error: "Pedido inválido." };
   return run("pular", async () => ((await queueOps.noShow(bookingId)) ? null : "Essa pessoa não está na party."));

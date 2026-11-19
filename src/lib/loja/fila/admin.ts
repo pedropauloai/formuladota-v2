@@ -206,6 +206,8 @@ export const queueOps = {
       p_confirmed: match?.confirmedUserIds ?? null,
     }),
   noShow: (bookingId: string) => rpc<boolean>("party_fila_ausente", { p_booking_id: bookingId }),
+  /** Tira da party de volta para a fila, no mesmo lugar, sem falta e sem gastar a vez (troca de jogador). */
+  leaveParty: (bookingId: string) => rpc<boolean>("party_fila_tirar_da_party", { p_booking_id: bookingId }),
   remove: (bookingId: string) => rpc<boolean>("party_fila_remover", { p_booking_id: bookingId }),
   /** Cortesia: põe na fila sem pagamento, ou soma partidas à cortesia que a pessoa já tem. */
   addCourtesy: (userId: string, matches: number) =>
