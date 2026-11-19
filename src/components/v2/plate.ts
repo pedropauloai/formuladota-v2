@@ -1,5 +1,5 @@
-// Classes das placas do design 2.0. Classe (e não componente) para servir em Link, <a> e
-// <button> sem embrulho, como o plateClass da barra superior. Só forma; o texto vem de quem usa.
+// Classes dos botões e etiquetas do design 2.0. Classe (e não componente) para servir em Link, <a>
+// e <button> sem embrulho, como o plateClass da barra superior. Só forma; o texto vem de quem usa.
 
 import { cn } from "@/lib/utils";
 import styles from "./v2.module.css";

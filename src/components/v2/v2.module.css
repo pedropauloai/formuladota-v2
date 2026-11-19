@@ -1,15 +1,22 @@
 /*
  * Design 2.0: a pele do cliente do Dota 2 levada da barra superior (PR 155) para o conteúdo.
- * Placa inclinada para chamada, etiqueta e aba; painel reto de metal; preço em ouro;
- * brasas e brilho. A forma vem do cliente; toda cor sai dos tokens semânticos.
- * Catálogo vivo em /admin/design.
+ * Botão levemente arredondado (o verde com um feixe de luz na borda), etiqueta inclinada como as
+ * placas da barra, painel reto de metal, preço em ouro, brasas e brilho. Toda cor sai dos tokens
+ * semânticos. Catálogo vivo em /admin/design.
  */
 
-/* Ângulo do feixe de luz que corre a borda do painel de destaque. Registrado para poder ser
-   animado; fica fora da camada porque o registro vale para a página toda. */
+/* Ângulo do feixe de luz que corre a borda (botão principal e painel de destaque). Registrado
+   para poder ser animado; fica fora da camada porque o registro vale para a página toda. */
 @property --beam-angle {
   syntax: "<angle>";
   initial-value: 0deg;
+  inherits: false;
+}
+
+/* Deslocamento das linhas de velocidade do botão, que andam do centro para fora. */
+@property --warp-shift {
+  syntax: "<length>";
+  initial-value: 0px;
   inherits: false;
 }
 
@@ -111,8 +118,9 @@
     filter: drop-shadow(0 0 18px var(--fd-raw-gold-glow)) drop-shadow(0 12px 32px color-mix(in oklab, var(--color-bg-deep) 85%, transparent));
   }
 
-  /* ---------- Placa inclinada: chamada, etiqueta e aba, como as da barra ---------- */
+  /* ---------- Botões e etiquetas ---------- */
 
+  /* Base comum: texto reto, sem quebrar linha, com a sombra escura das letras do cliente. */
   .plate {
     position: relative;
     isolation: isolate;
@@ -124,39 +132,15 @@
     text-shadow: 0 1px 1px var(--shade);
     transition:
       color var(--motion-duration-micro) var(--motion-ease-snappy),
-      transform var(--motion-duration-micro) var(--motion-ease-snappy);
-  }
-
-  .plate::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    transform: skewX(var(--plate-skew));
-    background: linear-gradient(to bottom, var(--plate-top), var(--plate-bottom));
-    box-shadow:
-      inset 1px 0 0 var(--plate-edge),
-      inset 0 1px 0 var(--plate-edge);
-    transition:
+      border-color var(--motion-duration-micro) var(--motion-ease-snappy),
       filter var(--motion-duration-micro) var(--motion-ease-snappy),
-      box-shadow var(--motion-duration-standard) var(--motion-ease-soft-landing);
-  }
-
-  .plate:hover::before {
-    filter: brightness(1.25);
-  }
-
-  .plate:active {
-    transform: translateY(1px);
+      box-shadow var(--motion-duration-standard) var(--motion-ease-soft-landing),
+      transform 160ms var(--ease-out-strong);
   }
 
   .plate:focus-visible {
-    outline: none;
-  }
-
-  /* Anel claro no foco: o vermelho e o verde sobre a placa ficam abaixo de 3:1. */
-  .plate:focus-visible::before {
-    box-shadow: inset 0 0 0 2px var(--color-text-display);
+    outline: 2px solid var(--color-text-display);
+    outline-offset: 3px;
   }
 
   .plate:disabled,
@@ -165,17 +149,30 @@
     pointer-events: none;
   }
 
-  /* Chamada principal: a placa verde do JOGAR DOTA, inteira, com uma faixa de luz que cruza a
-     placa de tempos em tempos. A cor vem das variáveis --cta-*, que a chamada da marca troca.
-     No celular cabe em 320 px (menos espaço entre letras e laterais menores). */
+  /* Botão: retângulo levemente arredondado. Canto redondo é lido como seguro e canto vivo como
+     ameaça (Bar e Neta, 2006 e 2007); o ângulo do Dota fica na barra superior e nas etiquetas. */
+  .cta,
+  .ghost,
+  .tab {
+    border-radius: var(--radius-button);
+  }
+
+  /* Apertar encolhe de leve: o botão responde ao toque. */
+  .cta:active,
+  .ghost:active,
+  .tab:active {
+    transform: scale(0.97);
+  }
+
+  /* Chamada principal: o verde do JOGAR DOTA com um feixe de luz que dá a volta na borda sem
+     parar, e chama o olho também no celular. Com o mouse em cima ou no foco do teclado, linhas de
+     velocidade saem do centro (a ideia do botão do designcode.io, na cor da chamada). A cor vem
+     das variáveis --cta-*, que a chamada da marca troca. No celular cabe em 320 px. */
   .cta {
     --cta-top: var(--color-play-primary);
     --cta-bottom: var(--color-play-primary-hover);
-    --cta-glow: 0 0 18px var(--color-play-primary-glow);
-    --cta-glow-hover: var(--glow-play);
-    /* Altura da placa: a ponta inclinada avança 0,182 vezes isso para cada lado. */
-    --plate-h: 3.25rem;
-    min-height: var(--plate-h);
+    --cta-glow: var(--color-play-primary-glow);
+    min-height: 3.25rem;
     padding-inline: 1.5rem;
     font-family: var(--font-display);
     font-weight: 700;
@@ -183,7 +180,13 @@
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--color-text-display);
-    transition: transform 160ms var(--ease-out-strong);
+    background:
+      linear-gradient(to bottom, var(--white-lo), transparent 48%),
+      linear-gradient(to bottom, var(--cta-top), var(--cta-bottom));
+    box-shadow:
+      inset 0 1px 0 var(--white-hi),
+      inset 0 -2px 0 var(--shade),
+      0 0 18px var(--cta-glow);
   }
 
   @media (min-width: 40rem) {
@@ -194,55 +197,105 @@
     }
   }
 
-  /* Apertar encolhe de leve: o botão responde ao toque. */
-  .cta:active {
-    transform: scale(0.97);
-  }
-
+  /* Linhas de velocidade: raios do centro, recortados em traços que andam para fora. O miolo
+     fica livre para o texto. Só aparecem no mouse e no foco; parado, o botão fica limpo. */
   .cta::before {
-    background:
-      linear-gradient(
-          100deg,
-          transparent 44%,
-          color-mix(in oklab, var(--color-text-display) 55%, transparent) 50%,
-          transparent 56%
-        )
-        no-repeat,
-      linear-gradient(to bottom, var(--white-lo), transparent 48%),
-      linear-gradient(to bottom, var(--cta-top), var(--cta-bottom));
-    background-size: 250% 100%, auto, auto;
-    background-position: 100% 0, 0 0, 0 0;
-    box-shadow:
-      inset 1px 0 0 var(--white-hi),
-      inset 0 1px 0 var(--white-hi),
-      inset 0 -2px 0 var(--shade),
-      var(--cta-glow);
-    animation: plate-sheen 3.2s var(--motion-ease-cinematic) infinite;
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    background: repeating-conic-gradient(
+      from 0deg,
+      transparent 0deg 6deg,
+      color-mix(in oklab, var(--color-text-display) 60%, transparent) 6.5deg,
+      transparent 7deg
+    );
+    -webkit-mask:
+      radial-gradient(farthest-side, transparent 35%, black 100%),
+      repeating-radial-gradient(
+        circle,
+        transparent calc(var(--warp-shift) - 22px),
+        black calc(var(--warp-shift) - 14px),
+        transparent calc(var(--warp-shift) - 4px),
+        transparent var(--warp-shift)
+      );
+    -webkit-mask-composite: source-in;
+    mask:
+      radial-gradient(farthest-side, transparent 35%, black 100%),
+      repeating-radial-gradient(
+        circle,
+        transparent calc(var(--warp-shift) - 22px),
+        black calc(var(--warp-shift) - 14px),
+        transparent calc(var(--warp-shift) - 4px),
+        transparent var(--warp-shift)
+      );
+    mask-composite: intersect;
+    opacity: 0;
+    transition: opacity 200ms var(--ease-out-strong);
   }
 
-  .cta:hover::before {
-    filter: brightness(1.12);
-    box-shadow:
-      inset 1px 0 0 var(--white-hi),
-      inset 0 1px 0 var(--white-hi),
-      inset 0 -2px 0 var(--shade),
-      var(--cta-glow-hover);
+  .cta:focus-visible::before {
+    opacity: 1;
+    animation: warp 0.5s linear infinite;
   }
 
-  /* A faixa espera fora da placa, à esquerda, e cruza até sair pela direita. */
-  @keyframes plate-sheen {
-    0%,
-    65% {
-      background-position: 100% 0, 0 0, 0 0;
+  /* Só onde existe mouse: no toque, o hover ficaria preso depois do clique. */
+  @media (hover: hover) and (pointer: fine) {
+    .cta:hover {
+      filter: brightness(1.08);
+      box-shadow:
+        inset 0 1px 0 var(--white-hi),
+        inset 0 -2px 0 var(--shade),
+        0 0 28px 2px color-mix(in oklab, var(--cta-top) 45%, transparent);
     }
-    100% {
-      background-position: 0% 0, 0 0, 0 0;
+
+    .cta:hover::before {
+      opacity: 1;
+      animation: warp 0.5s linear infinite;
     }
+  }
+
+  @keyframes warp {
+    to {
+      --warp-shift: 22px;
+    }
+  }
+
+  /* Feixe: um cometa com a cauda na cor do botão e a cabeça branca, dando a volta na borda. */
+  .cta::after {
+    content: "";
+    position: absolute;
+    inset: -3px;
+    z-index: -1;
+    padding: 3px;
+    border-radius: calc(var(--radius-button) + 3px);
+    pointer-events: none;
+    background: conic-gradient(
+      from var(--beam-angle),
+      color-mix(in oklab, var(--cta-top) 25%, transparent) 0 46%,
+      var(--cta-top) 66%,
+      var(--color-text-display) 79% 85%,
+      var(--cta-top) 90%,
+      color-mix(in oklab, var(--cta-top) 25%, transparent) 97%
+    );
+    /* Só a moldura de 3 px aparece em volta do botão: a máscara tira o miolo. */
+    -webkit-mask: linear-gradient(black 0 0) content-box, linear-gradient(black 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(black 0 0) content-box exclude, linear-gradient(black 0 0);
+    animation: beam-spin 2.4s linear infinite;
+  }
+
+  /* Botão desligado (esgotado, comprando) não chama o olho. */
+  .cta:disabled::after,
+  .cta[aria-disabled="true"]::after {
+    display: none;
   }
 
   @media (min-width: 48rem) {
     .large {
-      --plate-h: 3.75rem;
+      min-height: 3.75rem;
       padding-inline: 2.5rem;
       font-size: 1.1875rem;
     }
@@ -253,23 +306,20 @@
     width: 100%;
   }
 
-  /* Na largura toda, a placa inclinada cabe na caixa: as pontas alinham com a coluna. */
-  .block::before {
-    inset-inline: calc(var(--plate-h, 2.5rem) * 0.182);
-  }
-
-  /* Chamada da marca: placa vermelha. */
+  /* Chamada da marca: vermelha, com as linhas de velocidade; o feixe é só da verde, a principal. */
   .brand {
     --cta-top: var(--color-brand-primary);
     --cta-bottom: var(--color-brand-primary-hover);
-    --cta-glow: 0 0 0 transparent;
-    --cta-glow-hover: var(--glow-brand);
+    --cta-glow: transparent;
   }
 
-  /* Chamada discreta: placa de metal, para ver detalhes. */
+  .brand::after {
+    content: none;
+  }
+
+  /* Botão de metal: ver detalhes, voltar, sair. */
   .ghost {
-    --plate-h: 2.5rem;
-    min-height: var(--plate-h);
+    min-height: 2.5rem;
     padding-inline: 1.25rem;
     font-family: var(--font-display);
     font-weight: 700;
@@ -277,20 +327,27 @@
     letter-spacing: 0.16em;
     text-transform: uppercase;
     color: var(--color-text-body);
+    border: 1px solid var(--rim);
+    background: linear-gradient(to bottom, var(--plate-top), var(--plate-bottom));
+    box-shadow: inset 0 1px 0 var(--plate-edge);
   }
 
-  .ghost:hover {
-    color: var(--color-text-display);
+  @media (hover: hover) and (pointer: fine) {
+    .ghost:hover,
+    .tab:hover {
+      color: var(--color-text-display);
+      border-color: color-mix(in oklab, var(--rim), var(--color-text-display) 25%);
+      filter: brightness(1.15);
+    }
   }
 
   .small {
-    --plate-h: 2.25rem;
-    min-height: var(--plate-h);
+    min-height: 2.25rem;
     padding-inline: 0.85rem;
     font-size: 0.7rem;
   }
 
-  /* Etiqueta (onde acontece, destaque): placa inclinada mínima. */
+  /* Etiqueta (onde acontece, destaque): a placa inclinada da barra superior, em miniatura. */
   .tag {
     min-height: 1.5rem;
     padding-inline: 0.7rem;
@@ -300,6 +357,18 @@
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--color-text-muted);
+  }
+
+  .tag::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    transform: skewX(var(--plate-skew));
+    background: linear-gradient(to bottom, var(--plate-top), var(--plate-bottom));
+    box-shadow:
+      inset 1px 0 0 var(--plate-edge),
+      inset 0 1px 0 var(--plate-edge);
   }
 
   .tagLive {
@@ -321,7 +390,7 @@
     box-shadow: inset 0 1px 0 var(--white-hi);
   }
 
-  /* Aba de filtro: placa como as da barra, acesa em vermelho por baixo quando escolhida. */
+  /* Aba de filtro: botão de metal, aceso em vermelho por baixo quando escolhido. */
   .tab {
     min-height: 2.5rem;
     padding-inline: 1.1rem;
@@ -330,22 +399,19 @@
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--color-text-muted);
+    border: 1px solid var(--rim);
+    background: linear-gradient(to bottom, var(--plate-top), var(--plate-bottom));
+    box-shadow: inset 0 1px 0 var(--plate-edge);
   }
 
-  .tab:hover,
   .tab[aria-pressed="true"],
   .tab[aria-current="page"] {
     color: var(--color-text-display);
-  }
-
-  .tab[aria-pressed="true"]::before,
-  .tab[aria-current="page"]::before {
     background:
       linear-gradient(to top, color-mix(in oklab, var(--color-brand-primary) 45%, transparent), transparent 75%),
       linear-gradient(to bottom, var(--plate-top), var(--plate-bottom));
     box-shadow:
       inset 0 -2px 0 var(--color-brand-primary),
-      inset 1px 0 0 var(--plate-edge),
       inset 0 1px 0 var(--plate-edge);
   }
 
@@ -519,9 +585,10 @@
 
   @media (prefers-reduced-motion: reduce) {
     .panelShine::after,
-    .cta,
     .cta::before,
     .cta::after,
+    .cta:hover::before,
+    .cta:focus-visible::before,
     .liveDot::after,
     .slotYou,
     .ember {
@@ -533,12 +600,12 @@
     }
 
     .plate,
-    .plate::before {
+    .cta::before {
       transition: none;
     }
   }
 
-  /* Alto contraste do Windows apaga sombras e fundos: volta o contorno nativo no foco. */
+  /* Alto contraste do Windows apaga sombras e fundos: o contorno do foco usa a cor do sistema. */
   @media (forced-colors: active) {
     .plate:focus-visible {
       outline: 2px solid CanvasText;

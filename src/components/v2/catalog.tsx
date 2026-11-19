@@ -29,7 +29,7 @@ function Code({ children }: { children: string }) {
 
 function Plates() {
   return (
-    <Section title="Placas" text="Chamada, etiqueta e aba na placa inclinada da barra superior. Verde compra ou entra; vermelha é a marca; metal leva a detalhes.">
+    <Section title="Botões e etiquetas" text="Botão levemente arredondado. O verde compra ou entra, com um feixe de luz na borda e linhas de velocidade no mouse; o vermelho é a marca; o metal leva a detalhes. A etiqueta mantém a placa inclinada da barra superior.">
       <div className="flex flex-wrap items-center gap-6">
         <a href="#placas" className={plate({ kind: "cta", large: true })}>
           Garantir minha vaga
@@ -67,7 +67,7 @@ function Plates() {
 function Panels() {
   const tones = [
     ["neutral", "Neutro", "Conteúdo comum: cartão de produto, lista, formulário."],
-    ["gold", "Dourado", "Tempo contado do Pedro, assinatura, o que vale mais."],
+    ["gold", "Dourado", "Tempo contado do PPA, assinatura, o que vale mais."],
     ["live", "Ao vivo", "Moldura da live e do que acontece na transmissão."],
     ["shine", "Destaque", "Um por tela: o produto principal, com o brilho que corre a aresta."],
   ] as const;
