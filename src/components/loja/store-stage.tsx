@@ -1,6 +1,6 @@
 // Primeira dobra da loja: o palco com a live da Twitch (no ar) ou o quadro real da live (fora do
-// ar), e a faixa da party embaixo, como a barra de grupo do cliente do Dota. Palco sem chanfrado
-// (pedido do Pedro, 19/11): tela reta com a borda vermelha de ao vivo.
+// ar), e a faixa da party embaixo, como a barra de grupo do cliente do Dota. Palco reto com a
+// borda vermelha de ao vivo.
 
 import { useFormatter, useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
@@ -32,7 +32,7 @@ function PartyStrip({ proof }: { proof: OwnerProof | null }) {
   const t = useTranslations("loja");
   const format = useFormatter();
   return (
-    <div className={cn(panel("neutral"), "-mt-px flex flex-wrap items-center justify-between gap-x-6 gap-y-4 px-4 py-4 [--cut:0px] sm:px-6")}>
+    <div className={cn(panel("neutral"), "-mt-px flex flex-wrap items-center justify-between gap-x-6 gap-y-4 px-4 py-4 sm:px-6")}>
       <Embers count={5} />
       <div>
         <h2 className="flex flex-wrap items-center gap-x-3 gap-y-2 font-display-condensed text-[2rem] uppercase leading-none text-text-display md:text-[2.4rem]">
@@ -68,8 +68,8 @@ export function StoreStage({ proof, nextLive }: { proof: OwnerProof | null; next
   const t = useTranslations("loja");
   return (
     <div className={lift("dark")}>
-      <div className={cn(panel("live"), "aspect-[16/10] w-full [--cut:0px] sm:aspect-video")}>
-        <TwitchLive channel={OWNER.twitchChannel} title={t("stageTwitchTitle")} className="absolute inset-[2px]" overlay={<StageSeal nextLive={nextLive} />}>
+      <div className={cn(panel("live"), "aspect-[16/10] w-full sm:aspect-video")}>
+        <TwitchLive channel={OWNER.twitchChannel} title={t("stageTwitchTitle")} className="absolute inset-0" overlay={<StageSeal nextLive={nextLive} />}>
           {/* eslint-disable-next-line @next/next/no-img-element -- srcset próprio em 3 tamanhos; o next/image está sem otimização na Cloudflare */}
           <img
             src={LIVE_FRAME.src}

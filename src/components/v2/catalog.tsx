@@ -72,7 +72,7 @@ function Panels() {
     ["shine", "Destaque", "Um por tela: o produto principal, com o brilho que corre a aresta."],
   ] as const;
   return (
-    <Section title="Painéis" text="Canto chanfrado, aresta clara e sombra que segue o recorte. A sombra fica no invólucro (lift), porque o recorte corta a sombra do próprio painel.">
+    <Section title="Painéis" text="Painel reto de metal, aresta clara no alto e sombra no invólucro (lift). Nada é recortado: brilho, sombra e conteúdo aparecem inteiros.">
       <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
         {tones.map(([tone, title, text]) => (
           <Panel key={tone} tone={tone} shadow={tone === "gold" || tone === "shine" ? "gold" : "dark"} className="h-full p-5">
@@ -83,7 +83,7 @@ function Panels() {
         ))}
       </div>
       <div className={cn(lift("dark"), "max-w-md")}>
-        <div className={cn(panel("neutral"), "relative h-32 overflow-hidden p-5 [--cut:18px]")}>
+        <div className={cn(panel("neutral"), "relative h-32 overflow-hidden p-5")}>
           <Embers />
           <p className="relative font-display-condensed text-2xl uppercase text-text-display">Brasas</p>
           <p className="relative text-sm text-text-muted">As fagulhas do logo, para a primeira dobra. Somem com menos movimento.</p>

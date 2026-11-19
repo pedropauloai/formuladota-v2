@@ -46,7 +46,7 @@ export function TurnAlert({ dotaId, onClose }: { dotaId: string | null; onClose:
       data-fila-aviso
       className="fixed inset-0 z-[var(--z-system)] flex items-center justify-center bg-black/75 p-4"
     >
-      <div className={cn(panel("neutral"), "w-full max-w-sm space-y-4 p-6 text-center shadow-[inset_0_0_0_2px_var(--color-play-primary),0_0_40px_var(--color-play-primary-glow)] [--cut:14px]")}>
+      <div className={cn(panel("neutral"), "w-full max-w-sm space-y-4 p-6 text-center shadow-[inset_0_0_0_2px_var(--color-play-primary),0_0_40px_var(--color-play-primary-glow)]")}>
         <Gamepad2 size={40} className="mx-auto text-play-primary" aria-hidden="true" />
         <p id="fila-vez-titulo" className="font-display-condensed text-[2.8rem] uppercase leading-none text-play-primary [text-shadow:0_0_18px_var(--color-play-primary-glow)]">
           {title}

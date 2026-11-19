@@ -9,7 +9,7 @@ import styles from "./v2.module.css";
 
 type PanelTag = "div" | "section" | "article" | "aside";
 
-/** Painel chanfrado com a sombra no invólucro. Para cartão que é link, use panel() e lift(). */
+/** Painel reto com a sombra no invólucro. Para cartão que é link, use panel() e lift(). */
 export function Panel({
   as: Tag = "div",
   tone = "neutral",
