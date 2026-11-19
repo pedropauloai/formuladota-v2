@@ -2104,6 +2104,33 @@ export type Database = {
           },
         ]
       }
+      poll_votes: {
+        Row: {
+          answer: string
+          created_at: string
+          poll_key: string
+          updated_at: string
+          user_id: string | null
+          voter_key: string
+        }
+        Insert: {
+          answer: string
+          created_at?: string
+          poll_key: string
+          updated_at?: string
+          user_id?: string | null
+          voter_key: string
+        }
+        Update: {
+          answer?: string
+          created_at?: string
+          poll_key?: string
+          updated_at?: string
+          user_id?: string | null
+          voter_key?: string
+        }
+        Relationships: []
+      }
       pro_audit_log: {
         Row: {
           action: string

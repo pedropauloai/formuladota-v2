@@ -46,6 +46,12 @@ const FLAG_DEFS: FlagDef[] = [
       "Ligado = só pareia quem está dentro da janela de MMR (abre em ±600 e cresce +200 a cada 30s até ±2800) e bloqueia grupo com variação interna > 2800. Desligado = MODO LIQUIDEZ: qualquer 10 da região formam partida, ainda balanceada por MMR nos 2 times e com as funções escolhidas — ideal pro Brasil enquanto a fila é magra.",
   },
   {
+    key: "enquete_liga",
+    label: "Enquete da Liga do FORMULADOTA",
+    description:
+      "Ligado = a coluna direita mostra a enquete (Sim, Talvez, Não) no lugar do Top do ranking, e quem vota vê quantos disseram Sim até a meta de 50. Desligado = o ranking volta. Critério e consulta em docs/enquete-liga.md.",
+  },
+  {
     key: "loja",
     label: "Loja do site",
     description:

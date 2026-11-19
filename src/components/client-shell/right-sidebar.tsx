@@ -2,6 +2,7 @@
 // conteúdo REAL do sistema (Pedro 2026-07-02): últimas partidas, top do ranking,
 // temporada e Mural da Vergonha — além de comunidade + doutrina. PROs/fila ficam
 // SOMENTE no center (sem duplicação). Conteúdo é 100% público (visitante vê igual).
+// Com a flag enquete_liga ligada, a enquete da Liga ocupa o lugar do Top do ranking.
 //
 // Server Component ASYNC: fetcha via getSidebarData() e renderiza cards puros.
 
@@ -25,6 +26,9 @@ import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
 import { mmrToDotaRank } from "@/components/queue/queue-helpers";
 import { mmrToTier, IMMORTAL_FLOOR, IMMORTAL_ELITE_TOP, IMMORTAL_LEADERBOARD_TOP } from "@/lib/mmr";
+import { lerEnqueteDeQuemVe } from "@/lib/enquete/server";
+import { CardHeader } from "./sidebar-card-header";
+import { EnqueteLigaCard } from "./enquete-liga-card";
 
 const HEROES_FULL_BG =
   "https://cdn.steamstatic.com/apps/dota2/images/dota_react/home/heroes_full.jpg";
@@ -33,11 +37,24 @@ interface Props {
   floating?: boolean;
   /** Feature flag: mostra o card "Boost de MMR / Ranked com PRO". Off = esconde. */
   showRankedComPro?: boolean;
+  /** Feature flag enquete_liga: a enquete da Liga no lugar do Top do ranking. Off = o ranking volta. */
+  showEnqueteLiga?: boolean;
+  /** Admin efetivo (fora do "ver como usuário comum"): a enquete mostra também Talvez e Não. */
+  isAdmin?: boolean;
 }
 
-export async function DashboardRightSidebar({ floating, showRankedComPro = false }: Props) {
+export async function DashboardRightSidebar({
+  floating,
+  showRankedComPro = false,
+  showEnqueteLiga = false,
+  isAdmin = false,
+}: Props) {
   const t = await getTranslations("shell");
-  const { recentMatches, topRanking, bans, season } = await getSidebarData();
+  // Com a enquete no lugar, o ranking nem é buscado.
+  const [{ recentMatches, topRanking, bans, season }, enquete] = await Promise.all([
+    getSidebarData({ ranking: !showEnqueteLiga }),
+    showEnqueteLiga ? lerEnqueteDeQuemVe(isAdmin) : Promise.resolve(null),
+  ]);
 
   // pr-10 (2.5rem) = mesma margem direita do botão "Jogar Dota" (marginRight 2.5rem
   // no play-menu) → a borda direita dos cards alinha com a do botão (Pedro 2026-07-02).
@@ -66,19 +83,24 @@ export async function DashboardRightSidebar({ floating, showRankedComPro = false
         empty={t("sidebar.recentEmpty")}
       />
 
-      <RankingCard
-        rows={topRanking}
-        title={t("sidebar.rankingTitle")}
-        cta={t("sidebar.rankingCta")}
-        empty={t("sidebar.rankingEmpty")}
-        seasonSubtitle={
-          season
-            ? season.daysLeft === null
-              ? season.name
-              : `${season.name} · ${t("sidebar.seasonDaysLeft", { days: season.daysLeft })}`
-            : null
-        }
-      />
+      {showEnqueteLiga ? (
+        // Banco fora do ar: o card some em vez de mostrar número errado.
+        enquete && <EnqueteLigaCard initial={enquete} />
+      ) : (
+        <RankingCard
+          rows={topRanking}
+          title={t("sidebar.rankingTitle")}
+          cta={t("sidebar.rankingCta")}
+          empty={t("sidebar.rankingEmpty")}
+          seasonSubtitle={
+            season
+              ? season.daysLeft === null
+                ? season.name
+                : `${season.name} · ${t("sidebar.seasonDaysLeft", { days: season.daysLeft })}`
+              : null
+          }
+        />
+      )}
 
       <MuralCard
         bans={bans}
@@ -111,31 +133,6 @@ export async function DashboardRightSidebar({ floating, showRankedComPro = false
 /* ------------------------------------------------------------------ */
 /* Card: Últimas partidas — tira de heróis + placar, linka pro histórico. */
 /* ------------------------------------------------------------------ */
-function CardHeader({
-  icon: Icon,
-  title,
-  subtitle,
-}: {
-  icon: typeof History;
-  title: string;
-  /** Linha secundária opcional (ex.: contagem da temporada no card de ranking). */
-  subtitle?: string | null;
-}) {
-  return (
-    <div className="border-b border-border-subtle px-3 py-2">
-      <p className="flex items-center gap-2 font-display-condensed text-lg uppercase leading-none tracking-[0.06em] text-text-display">
-        <Icon size={14} className="text-brand-primary" aria-hidden="true" />
-        {title}
-      </p>
-      {subtitle && (
-        <p className="mt-0.5 pl-6 font-display text-xs font-bold uppercase tracking-wide text-gold">
-          {subtitle}
-        </p>
-      )}
-    </div>
-  );
-}
-
 function CardCta({ href, label }: { href: string; label: string }) {
   return (
     <Link

@@ -13,7 +13,8 @@ export type FeatureFlagKey =
   | "match_dodge_penalty"
   | "matchmaking_mmr_range"
   | "loja"
-  | "fila_competitiva";
+  | "fila_competitiva"
+  | "enquete_liga";
 
 export interface FeatureFlags {
   ranked_com_pro: boolean;
@@ -31,6 +32,9 @@ export interface FeatureFlags {
   /** Fila competitiva (migration 166). OFF = busca pausada para todos: sem o bot da Steam
    *  no ar a partida formada nunca vira sala. Religar quando o bot voltar. */
   fila_competitiva: boolean;
+  /** Enquete da Liga do FORMULADOTA (migration 180). ON = a coluna direita mostra a enquete no
+   *  lugar do Top do ranking; OFF = o ranking volta. Critério em docs/enquete-liga.md. */
+  enquete_liga: boolean;
 }
 
 // Defaults quando a linha não existe / erro de leitura (falha fechada: feature off).
@@ -42,6 +46,7 @@ const DEFAULTS: FeatureFlags = {
   matchmaking_mmr_range: true,
   loja: false,
   fila_competitiva: false,
+  enquete_liga: false,
 };
 
 // React.cache: page e ClientShell chamam no mesmo request — 1 query só.

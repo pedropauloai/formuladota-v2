@@ -226,6 +226,23 @@
       "banned": "Banido",
       "suspended": "Suspenso",
       "vs": "vs"
+    },
+    "enqueteLiga": {
+      "question": "Você jogaria a Liga do FORMULADOTA?",
+      "answers": {
+        "sim": "Sim",
+        "talvez": "Talvez",
+        "nao": "Não"
+      },
+      "simCount": "{count, plural, =0 {pessoas disseram Sim} one {pessoa disse Sim} other {pessoas disseram Sim}}",
+      "goal": "A liga volta com {meta} interessados.",
+      "progress": "{sim} de {meta}",
+      "adminTotals": "Só o admin vê: Talvez {talvez} · Não {nao}",
+      "errors": {
+        "fechada": "A enquete foi encerrada.",
+        "limite": "Muitos votos seguidos. Espere um pouco e tente de novo.",
+        "falhou": "Não deu para registrar o voto. Tente de novo."
+      }
     }
   },
   "hoverCard": {

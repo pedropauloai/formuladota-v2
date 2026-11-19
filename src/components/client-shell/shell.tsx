@@ -229,6 +229,8 @@ export async function ClientShell({
   const showLoja = featureFlags.loja;
   // Flag fila_competitiva: desligada, o menu Jogar avisa que a busca está pausada (sem bot no ar).
   const queuePaused = !featureFlags.fila_competitiva;
+  // Flag enquete_liga: a enquete da Liga no lugar do Top do ranking da coluna direita.
+  const showEnqueteLiga = featureFlags.enquete_liga;
   // Live no ar só conta com a loja aberta: a fila da party mora nela.
   const lojaLive = showLoja && liveOnAir;
   // Persona/avatar: null pra visitante (LeftSidebar mostra VisitorCard).
@@ -297,7 +299,12 @@ export async function ClientShell({
           </div>
         ) : (
           <div className={`hidden lg:flex absolute right-0 top-[96px] xl:top-[104px] ${bottomReserveCls} z-[var(--z-overlay)] w-[320px] xl:w-[360px] 2xl:w-[380px]`}>
-            <DashboardRightSidebar floating showRankedComPro={showRankedComPro} />
+            <DashboardRightSidebar
+              floating
+              showRankedComPro={showRankedComPro}
+              showEnqueteLiga={showEnqueteLiga}
+              isAdmin={adminFlag}
+            />
           </div>
         )}
 
@@ -440,7 +447,11 @@ export async function ClientShell({
             {rightSidebar}
           </aside>
         ) : (
-          <DashboardRightSidebar showRankedComPro={showRankedComPro} />
+          <DashboardRightSidebar
+            showRankedComPro={showRankedComPro}
+            showEnqueteLiga={showEnqueteLiga}
+            isAdmin={adminFlag}
+          />
         )}
       </div>
 
