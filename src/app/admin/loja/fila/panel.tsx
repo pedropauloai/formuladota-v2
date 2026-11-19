@@ -1,165 +1,95 @@
 "use client";
 
-// Painel do Pedro para operar a fila durante a live. Atualiza sozinho a cada 5 s (compra nova
-// aparece sem recarregar). Os botões grandes funcionam no celular, ao lado do Dota aberto no PC.
+// Mesa de operação da fila da party, feita para o computador (1920 e 3440): a party no topo em
+// cartões, a fila em tabela, o detalhe de quem você clicar ao lado e a live na coluna da direita.
+// Atualiza sozinha a cada 5 s. Atalhos: C chama o próximo, T marca a partida que terminou, Esc
+// fecha o detalhe (nenhum atalho vale com o cursor num campo de texto).
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { AdminQueue } from "@/lib/loja/fila/admin";
-import {
-  abrirLive, ajustarVagas, chamarProximo, completarParty, encerrarLive, naoApareceu, partidaTerminou, tirarDaFila, ultimaPartidaDoPPA,
-} from "./actions";
-import { DANGER, FinishedList, PRIMARY, PartyRow, SECONDARY, WaitingRow, type RowAction } from "./rows";
+import { cn } from "@/lib/utils";
+import { chamarProximo } from "./actions";
 import { AddToQueue } from "./add-to-queue";
+import { EntryDetail } from "./entry-detail";
+import { LiveControls } from "./live-controls";
+import { PartyBoard } from "./party-board";
+import { QueueTable } from "./queue-table";
+import { FinishedList, Kbd, type RowAction } from "./rows";
 
-const TIME = new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
 const REFRESH_MS = 5000;
 
-function Section({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) {
-  return (
-    <section className="space-y-3 rounded-md border border-border-strong bg-bg-base p-4 md:p-5">
-      <header className="space-y-1">
-        <h2 className="font-display text-xl uppercase tracking-wide text-text-display">{title}</h2>
-        {hint && <p className="text-xs text-text-muted">{hint}</p>}
-      </header>
-      {children}
-    </section>
-  );
+function typing(target: EventTarget | null): boolean {
+  const el = target as HTMLElement | null;
+  return !!el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable);
 }
 
-function NumberField({ label, value, min, max, onChange }: { label: string; value: number; min: number; max: number; onChange: (n: number) => void }) {
-  return (
-    <label className="flex items-center justify-between gap-3 text-sm text-text-body">
-      {label}
-      <input
-        type="number"
-        inputMode="numeric"
-        min={min}
-        max={max}
-        value={value}
-        onChange={(e) => onChange(Math.max(min, Math.min(max, Number(e.target.value) || 0)))}
-        className="w-20 rounded-sm border border-border-strong bg-bg-deep px-2 py-1.5 text-right tabular-nums text-text-display"
-      />
-    </label>
-  );
-}
-
-function LiveControls({ data, busy, act }: { data: AdminQueue; busy: boolean; act: RowAction }) {
+function StatusStrip({ data, notice }: { data: AdminQueue; notice: { ok: boolean; text: string } | null }) {
   const live = data.live;
-  const inParty = data.entries.filter((e) => e.state === "na_party").length;
   const onAir = live?.status === "ao_vivo";
-  const [size, setSize] = useState(live?.queueSize ?? 8);
-  const [perMatch, setPerMatch] = useState(live?.seatsPerMatch ?? 4);
-  const [youtube, setYoutube] = useState(live?.youtubeVideoId ? `https://youtu.be/${live.youtubeVideoId}` : "");
+  const party = data.entries.filter((e) => e.state === "na_party").length;
+  const waiting = data.entries.length - party;
   const open = live ? Math.max(0, live.queueSize - live.occupied) : 0;
-  const openQueue = live?.status === "fila";
-  const hint = onAir
-    ? `Vagas abertas agora: ${open} (cada partida jogada devolve uma).`
-    : openQueue
-      ? `A fila está aberta: a vaga vende agora para a próxima live (${open} vaga${open === 1 ? "" : "s"} aberta${open === 1 ? "" : "s"}). Abrir a live mostra o vídeo na página e começa a chamar a fila.`
-      : "Abrir a live mostra o vídeo na página da fila e libera a venda na hora.";
+  const stat = (label: string, value: string | number, tone = "text-text-display") => (
+    <span className="flex items-baseline gap-1.5">
+      <span className={cn("font-display text-2xl tabular-nums", tone)}>{value}</span>
+      <span className="text-xs uppercase tracking-wide text-text-muted">{label}</span>
+    </span>
+  );
   return (
-    <Section title={onAir ? `Ao vivo desde ${TIME.format(new Date(live.onAirAt ?? live.startsAt))}` : openQueue ? "Live fora do ar, fila aberta" : "Live fora do ar"} hint={hint}>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <NumberField label="Tamanho da fila (partidas)" value={size} min={0} max={100} onChange={setSize} />
-        <NumberField label="Lugares na party por partida" value={perMatch} min={1} max={4} onChange={setPerMatch} />
-      </div>
-      <input
-        type="url"
-        placeholder="Link da live no YouTube (opcional: sem ele, a página mostra a live do canal)"
-        value={youtube}
-        onChange={(e) => setYoutube(e.target.value)}
-        className="w-full rounded-sm border border-border-strong bg-bg-deep px-3 py-2 text-sm text-text-display"
-      />
-      <div className="flex flex-wrap gap-2">
-        {onAir ? (
-          <>
-            <button type="button" disabled={busy} className={SECONDARY} onClick={() => act("Live atualizada", () => ajustarVagas(live.id, size, perMatch, youtube))}>Salvar</button>
-            {inParty > 0 && (
-              <button
-                type="button"
-                disabled={busy}
-                className={DANGER}
-                onClick={() => {
-                  if (window.confirm("A partida da party terminou? Ela conta para quem estava na party, e a live encerra.")) act("Live encerrada", () => encerrarLive(live.id, true, live.matchesDone));
-                }}
-              >
-                Partida terminou e encerrar
-              </button>
-            )}
-            <button
-              type="button"
-              disabled={busy}
-              className={DANGER}
-              onClick={() => {
-                const text = inParty > 0 ? "Encerrar sem contar a partida? Quem estava na party volta para a frente da fila." : "Encerrar a live?";
-                if (window.confirm(text)) act("Live encerrada", () => encerrarLive(live.id));
-              }}
-            >
-              {inParty > 0 ? "Encerrar sem contar a partida" : "Encerrar a live"}
-            </button>
-          </>
-        ) : (
-          <>
-            <button type="button" disabled={busy} className={PRIMARY} onClick={() => act("Live aberta", () => abrirLive(size, perMatch, youtube))}>Abrir a live</button>
-            {live && (
-              <button type="button" disabled={busy} className={SECONDARY} onClick={() => act("Fila atualizada", () => ajustarVagas(live.id, size, perMatch, ""))}>
-                Salvar o tamanho da fila
-              </button>
-            )}
-          </>
-        )}
-      </div>
-    </Section>
+    <header className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-md border border-border-strong bg-bg-base px-4 py-3">
+      <h1 className="font-display text-2xl uppercase tracking-wide text-text-display">Fila da party</h1>
+      <span className={cn("rounded-sm border px-2 py-0.5 text-xs font-semibold uppercase", onAir ? "border-brand-primary text-brand-primary" : "border-border-strong text-text-muted")}>
+        {onAir ? "Ao vivo" : live?.status === "fila" ? "Fila aberta, sem live" : "Sem live"}
+      </span>
+      {stat("na party", `${party}/${live?.seatsPerMatch ?? 4}`, "text-play-primary")}
+      {stat("na fila", waiting)}
+      {stat("vagas à venda", open, "text-gold")}
+      {onAir && live && stat("partidas", live.matchesDone)}
+      <span className="ml-auto flex items-center gap-3 text-xs text-text-muted">
+        <span><Kbd>C</Kbd> chamar · <Kbd>T</Kbd> partida terminou · <Kbd>Esc</Kbd> fechar</span>
+        <a href="/party" target="_blank" rel="noopener noreferrer" className="underline-offset-2 hover:underline">ver a página pública</a>
+      </span>
+      {notice && (
+        <p role="status" className={cn("w-full rounded-sm border px-3 py-1.5 text-sm", notice.ok ? "border-play-primary/40 text-play-primary" : "border-error/40 text-error")}>{notice.text}</p>
+      )}
+    </header>
   );
 }
 
-/** "Partida terminou" com o ID da partida: grava a vez de cada um no revezamento, conferida na OpenDota. */
-function MatchRegister({ liveId, matchesDone, busy, act }: { liveId: string; matchesDone: number; busy: boolean; act: RowAction }) {
-  const [matchId, setMatchId] = useState("");
-  const [hint, setHint] = useState<string | null>(null);
-  const register = () => {
-    if (!matchId.trim() && !window.confirm("Marcar sem o ID da partida? A vez de cada um conta, mas sem a conferência da OpenDota.")) return;
-    act("Partida marcada", async () => {
-      const result = await partidaTerminou(liveId, matchesDone, matchId);
-      if (result.ok) setMatchId("");
-      return result;
-    });
-  };
-  const fillLast = async () => {
-    const last = await ultimaPartidaDoPPA();
-    if (last.ok) {
-      setMatchId(last.matchId);
-      setHint(`Última partida do PPA, terminou às ${TIME.format(new Date(last.endedAt))}.`);
-    } else setHint(last.error);
-  };
-  return (
-    <div className="space-y-2 rounded-sm border border-border-subtle bg-bg-deep/60 p-3">
-      <label className="block text-xs text-text-muted" htmlFor="partida-id">ID da partida (OpenDota): grava quem jogou e a hora, para o revezamento da fila</label>
-      <div className="flex flex-wrap gap-2">
-        <input
-          id="partida-id"
-          inputMode="numeric"
-          placeholder="cole o ID ou o link da partida"
-          value={matchId}
-          onChange={(e) => setMatchId(e.target.value)}
-          data-fila-partida-id
-          className="min-w-0 flex-1 rounded-sm border border-border-strong bg-bg-deep px-3 py-2 font-mono text-sm text-text-display"
-        />
-        <button type="button" disabled={busy} className={SECONDARY} onClick={fillLast}>Última do PPA</button>
-      </div>
-      {hint && <p className="text-xs text-text-muted">{hint}</p>}
-      <button type="button" disabled={busy} className={PRIMARY} onClick={register} data-fila-partida-terminou>
-        Partida {matchesDone + 1} terminou: todos jogaram
-      </button>
-    </div>
-  );
+/** Tela muito larga (3440): o detalhe ganha coluna própria; abaixo disso, vai para o topo da coluna da live. */
+function useWide(): boolean {
+  const [wide, setWide] = useState(false);
+  useEffect(() => {
+    const query = window.matchMedia("(min-width: 2200px)");
+    const update = () => setWide(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
+  return wide;
+}
+
+function useShortcuts(data: AdminQueue, busy: boolean, act: RowAction, close: () => void) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey || e.altKey || typing(e.target)) return;
+      const live = data.live;
+      if (e.key === "Escape") close();
+      if (busy || !live || live.status !== "ao_vivo") return;
+      if (e.key === "c" || e.key === "C") act("Chamado", () => chamarProximo(live.id));
+      if (e.key === "t" || e.key === "T") document.querySelector<HTMLButtonElement>("[data-fila-partida-terminou]")?.click();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [data, busy, act, close]);
 }
 
 export function AdminQueuePanel({ data }: { data: AdminQueue }) {
   const router = useRouter();
   const [busy, startTransition] = useTransition();
   const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -174,54 +104,42 @@ export function AdminQueuePanel({ data }: { data: AdminQueue }) {
       setNotice(result.ok ? { ok: true, text: result.message ?? label } : { ok: false, text: result.error ?? "Não deu certo." });
       router.refresh();
     });
+  useShortcuts(data, busy, act, () => setSelectedId(null));
+  const wide = useWide();
 
   const live = data.live;
   const onAir = live?.status === "ao_vivo";
-  const party = data.entries.filter((e) => e.state === "na_party");
   const waiting = data.entries.filter((e) => e.state === "aguardando");
+  // Quem saiu da fila enquanto estava aberto no detalhe some sozinho na próxima atualização.
+  const selected = data.entries.find((e) => e.id === selectedId) ?? null;
+  const toggle = (id: string) => setSelectedId((cur) => (cur === id ? null : id));
+  const detail = selected && (
+    <EntryDetail entry={selected} liveId={live?.id ?? null} onAir={onAir} busy={busy} act={act} onClose={() => setSelectedId(null)} />
+  );
 
   return (
-    <div className="mx-auto max-w-4xl space-y-5 p-4 md:p-8">
-      <header className="flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="font-display text-3xl uppercase tracking-wide text-text-display">Fila da party</h1>
-        <a href="/party" target="_blank" rel="noopener noreferrer" className="text-sm text-text-muted underline-offset-2 hover:underline">ver a página pública</a>
-      </header>
-      {notice && (
-        <p role="status" className={`rounded-sm border p-2 text-sm ${notice.ok ? "border-play-primary/40 text-play-primary" : "border-error/40 text-error"}`}>{notice.text}</p>
-      )}
-      <LiveControls key={live?.id ?? "sem-live"} data={data} busy={busy} act={act} />
-      <Section title={`Na party agora (${party.length} de ${live?.seatsPerMatch ?? 4})`} hint="Convide pelo ID do Dota. Depois da partida, marque quem jogou.">
-        {party.length > 0 && (
-          <ul className="divide-y divide-border-subtle">
-            {party.map((e) => (
-              <PartyRow key={e.id} entry={e} busy={busy} act={act} noShow={naoApareceu} />
-            ))}
-          </ul>
-        )}
-        {onAir && live && party.length > 0 && <MatchRegister liveId={live.id} matchesDone={live.matchesDone} busy={busy} act={act} />}
-        {onAir && live && (
-          <div className="flex flex-wrap gap-2 pt-1">
-            <button type="button" disabled={busy || waiting.length === 0} className={SECONDARY} onClick={() => act("Chamado", () => chamarProximo(live.id))}>Chamar o próximo</button>
-            <button type="button" disabled={busy || waiting.length === 0} className={SECONDARY} onClick={() => act("Party completa", () => completarParty(live.id))}>Completar a party</button>
+    <div className="mx-auto max-w-[2600px] space-y-4 p-4 md:p-6">
+      <StatusStrip data={data} notice={notice} />
+      <div className="grid items-start gap-4 xl:max-[2199px]:grid-cols-[minmax(0,1fr)_400px] min-[2200px]:grid-cols-[minmax(0,1fr)_400px_400px]">
+        <div className="min-w-0 space-y-4">
+          <PartyBoard data={data} busy={busy} act={act} onSelect={toggle} />
+          <QueueTable entries={waiting} selectedId={selectedId} busy={busy} act={act} onSelect={toggle} />
+        </div>
+        {wide && (
+          <div className="sticky top-4 space-y-4">
+            {detail ?? <p className="rounded-md border border-dashed border-border-strong p-6 text-center text-sm text-text-muted">Clique em alguém da party ou da fila para ver os detalhes.</p>}
           </div>
         )}
-        {!onAir && <p className="text-sm text-text-muted">Abra a live para chamar a fila.</p>}
-      </Section>
-      <AddToQueue busy={busy} act={act} />
-      <Section title={`Fila (${waiting.length})`} hint="Ordem do revezamento: quem jogou na party há mais tempo vem primeiro, e quem nunca jogou vai na frente. Quem não aparece volta para o fim sem perder a vaga.">
-        {waiting.length === 0 ? (
-          <p className="text-sm text-text-muted">Ninguém esperando.</p>
-        ) : (
-          <ul className="divide-y divide-border-subtle">
-            {waiting.map((e) => (
-              <WaitingRow key={e.id} entry={e} busy={busy} canCall={onAir} act={act} callThis={(id) => chamarProximo(live?.id ?? "", id)} remove={tirarDaFila} />
-            ))}
-          </ul>
-        )}
-      </Section>
-      <Section title="Jogaram nas últimas 12 horas">
-        <FinishedList items={data.finished} />
-      </Section>
+        <div className="space-y-4 xl:sticky xl:top-4">
+          {!wide && detail}
+          <LiveControls key={live?.id ?? "sem-live"} data={data} busy={busy} act={act} />
+          <AddToQueue busy={busy} act={act} />
+          <section className="space-y-2 rounded-md border border-border-strong bg-bg-base p-4">
+            <h2 className="font-display text-lg uppercase tracking-wide text-text-display">Jogaram nas últimas 12 horas</h2>
+            <FinishedList items={data.finished} />
+          </section>
+        </div>
+      </div>
     </div>
   );
 }
