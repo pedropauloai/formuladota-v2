@@ -1,0 +1,515 @@
+/*
+ * Design 2.0: a pele do cliente do Dota 2 levada da barra superior (PR 155) para o conteúdo.
+ * Placa inclinada para chamada, etiqueta e aba; painel de canto chanfrado; preço em ouro;
+ * brasas e brilho. A forma vem do cliente; toda cor sai dos tokens semânticos.
+ * Catálogo vivo em /admin/design.
+ */
+
+/* Na camada components do Tailwind: as classes utilitárias (px-0, min-h-8...) ajustam a peça. */
+@layer components {
+  .panel,
+  .plate,
+  .slot {
+    --plate-skew: -20deg;
+    --plate-top: color-mix(in oklab, var(--color-bg-elevated), var(--color-text-display) 7%);
+    --plate-bottom: var(--color-bg-base);
+    --plate-edge: color-mix(in oklab, var(--color-text-display) 10%, transparent);
+    --rim: color-mix(in oklab, var(--color-text-display) 13%, var(--color-bg-base));
+    --white-hi: color-mix(in oklab, var(--color-text-display) 38%, transparent);
+    --white-lo: color-mix(in oklab, var(--color-text-display) 14%, transparent);
+    --shade: color-mix(in oklab, var(--color-bg-deep) 70%, transparent);
+  }
+
+  /* Tela de 1440 de altura (3440x1440, 2560x1440): a página cresce na proporção da altura, como a
+     interface do cliente, e fica igual à de 1920x1080, só que maior. */
+  @media (min-width: 150rem) and (min-height: 75rem) {
+    .page {
+      zoom: 1.3333;
+    }
+  }
+
+  /* ---------- Painel de canto chanfrado: a aresta é o fundo aparecendo em volta da face ---------- */
+
+  .panel {
+    --cut: 12px;
+    position: relative;
+    isolation: isolate;
+    clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
+    background: linear-gradient(to bottom, color-mix(in oklab, var(--rim), var(--color-text-display) 8%), var(--rim));
+  }
+
+  .panel::before {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    z-index: -1;
+    /* 0,6 px a menos no corte: a aresta diagonal fica com a mesma espessura das retas. */
+    clip-path: polygon(
+      calc(var(--cut) - 0.6px) 0,
+      100% 0,
+      100% calc(100% - var(--cut) + 0.6px),
+      calc(100% - var(--cut) + 0.6px) 100%,
+      0 100%,
+      0 calc(var(--cut) - 0.6px)
+    );
+    background: linear-gradient(to bottom, var(--plate-top), var(--plate-bottom) 65%);
+  }
+
+  .panelGold {
+    background: linear-gradient(to bottom, var(--color-gold-bright), var(--color-gold-muted));
+  }
+
+  .panelGold::before {
+    background:
+      radial-gradient(120% 70% at 50% 0%, color-mix(in oklab, var(--color-gold) 16%, transparent), transparent 70%),
+      linear-gradient(to bottom, var(--plate-top), var(--plate-bottom) 65%);
+  }
+
+  .panelLive {
+    background: linear-gradient(to bottom, var(--color-brand-primary), var(--color-brand-primary-deep));
+  }
+
+  /* Aresta dourada com um brilho que corre a borda, como o brilho de raridade dos itens. */
+  .panelShine {
+    background:
+      linear-gradient(115deg, transparent 38%, var(--color-gold-cream) 50%, transparent 62%) 0 0 / 300% 100%,
+      linear-gradient(to bottom, var(--color-gold-bright), var(--color-gold-muted));
+    animation: rim-sweep 7s var(--motion-ease-cinematic) infinite;
+  }
+
+  @keyframes rim-sweep {
+    0%,
+    55% {
+      background-position: 130% 0, 0 0;
+    }
+    100% {
+      background-position: -30% 0, 0 0;
+    }
+  }
+
+  /* Sombra que segue o recorte: fica no invólucro, porque o recorte corta a sombra do painel. */
+  .liftDark {
+    filter: drop-shadow(0 10px 28px color-mix(in oklab, var(--color-bg-deep) 85%, transparent));
+  }
+
+  .liftGold {
+    filter: drop-shadow(0 0 18px var(--fd-raw-gold-glow)) drop-shadow(0 12px 32px color-mix(in oklab, var(--color-bg-deep) 85%, transparent));
+  }
+
+  /* ---------- Placa inclinada: chamada, etiqueta e aba, como as da barra ---------- */
+
+  .plate {
+    position: relative;
+    isolation: isolate;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+    text-shadow: 0 1px 1px var(--shade);
+    transition:
+      color var(--motion-duration-micro) var(--motion-ease-snappy),
+      transform var(--motion-duration-micro) var(--motion-ease-snappy);
+  }
+
+  .plate::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    transform: skewX(var(--plate-skew));
+    background: linear-gradient(to bottom, var(--plate-top), var(--plate-bottom));
+    box-shadow:
+      inset 1px 0 0 var(--plate-edge),
+      inset 0 1px 0 var(--plate-edge);
+    transition:
+      filter var(--motion-duration-micro) var(--motion-ease-snappy),
+      box-shadow var(--motion-duration-standard) var(--motion-ease-soft-landing);
+  }
+
+  .plate:hover::before {
+    filter: brightness(1.25);
+  }
+
+  .plate:active {
+    transform: translateY(1px);
+  }
+
+  .plate:focus-visible {
+    outline: none;
+  }
+
+  /* Anel claro no foco: o vermelho e o verde sobre a placa ficam abaixo de 3:1. */
+  .plate:focus-visible::before {
+    box-shadow: inset 0 0 0 2px var(--color-text-display);
+  }
+
+  .plate:disabled,
+  .plate[aria-disabled="true"] {
+    opacity: 0.45;
+    pointer-events: none;
+  }
+
+  /* Chamada principal: a placa verde do JOGAR DOTA, com um brilho que passa de tempos em tempos.
+     No celular cabe em 320 px (menos espaço entre letras e laterais menores). */
+  .cta {
+    min-height: 3.25rem;
+    padding-inline: 1.5rem;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.9375rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-text-display);
+    overflow: hidden;
+  }
+
+  @media (min-width: 40rem) {
+    .cta {
+      padding-inline: 2rem;
+      font-size: 1.0625rem;
+      letter-spacing: 0.2em;
+    }
+  }
+
+  .cta::before {
+    background:
+      linear-gradient(to bottom, var(--white-lo), transparent 48%),
+      linear-gradient(to bottom, var(--color-play-primary), var(--color-play-primary-hover));
+    box-shadow:
+      inset 1px 0 0 var(--white-hi),
+      inset 0 1px 0 var(--white-hi),
+      inset 0 -2px 0 var(--shade),
+      0 0 18px var(--color-play-primary-glow);
+  }
+
+  .cta:hover::before {
+    filter: brightness(1.12);
+    box-shadow:
+      inset 1px 0 0 var(--white-hi),
+      inset 0 1px 0 var(--white-hi),
+      inset 0 -2px 0 var(--shade),
+      var(--glow-play);
+  }
+
+  .cta::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    transform: skewX(var(--plate-skew)) translateX(-140%);
+    background: linear-gradient(100deg, transparent 30%, var(--white-hi) 50%, transparent 70%);
+    animation: cta-sheen 5.5s var(--motion-ease-cinematic) infinite;
+    pointer-events: none;
+  }
+
+  @keyframes cta-sheen {
+    0%,
+    62% {
+      transform: skewX(var(--plate-skew)) translateX(-140%);
+    }
+    100% {
+      transform: skewX(var(--plate-skew)) translateX(140%);
+    }
+  }
+
+  @media (min-width: 48rem) {
+    .large {
+      min-height: 3.75rem;
+      padding-inline: 2.5rem;
+      font-size: 1.1875rem;
+    }
+  }
+
+  .block {
+    display: flex;
+    width: 100%;
+  }
+
+  /* Chamada da marca: placa vermelha. */
+  .brand::before {
+    background:
+      linear-gradient(to bottom, var(--white-lo), transparent 48%),
+      linear-gradient(to bottom, var(--color-brand-primary), var(--color-brand-primary-hover));
+    box-shadow:
+      inset 1px 0 0 var(--white-hi),
+      inset 0 1px 0 var(--white-hi),
+      inset 0 -2px 0 var(--shade);
+  }
+
+  .brand:hover::before {
+    box-shadow:
+      inset 1px 0 0 var(--white-hi),
+      inset 0 1px 0 var(--white-hi),
+      var(--glow-brand);
+  }
+
+  /* Chamada discreta: placa de metal, para ver detalhes. */
+  .ghost {
+    min-height: 2.5rem;
+    padding-inline: 1.25rem;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.8125rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-text-body);
+  }
+
+  .ghost:hover {
+    color: var(--color-text-display);
+  }
+
+  .small {
+    min-height: 2.25rem;
+    padding-inline: 0.85rem;
+    font-size: 0.7rem;
+  }
+
+  /* Etiqueta (onde acontece, destaque): placa inclinada mínima. */
+  .tag {
+    min-height: 1.5rem;
+    padding-inline: 0.7rem;
+    font-family: var(--font-display);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+
+  .tagLive {
+    color: var(--color-text-display);
+  }
+
+  .tagLive::before {
+    background: linear-gradient(to bottom, var(--color-brand-primary), var(--color-brand-primary-deep));
+    box-shadow: inset 0 1px 0 var(--white-lo);
+  }
+
+  .tagGold {
+    color: var(--color-bg-deep);
+    text-shadow: none;
+  }
+
+  .tagGold::before {
+    background: linear-gradient(to bottom, var(--color-gold-bright), var(--color-gold));
+    box-shadow: inset 0 1px 0 var(--white-hi);
+  }
+
+  /* Aba de filtro: placa como as da barra, acesa em vermelho por baixo quando escolhida. */
+  .tab {
+    min-height: 2.5rem;
+    padding-inline: 1.1rem;
+    font-family: var(--font-display-condensed);
+    font-size: 1.125rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+
+  .tab:hover,
+  .tab[aria-pressed="true"],
+  .tab[aria-current="page"] {
+    color: var(--color-text-display);
+  }
+
+  .tab[aria-pressed="true"]::before,
+  .tab[aria-current="page"]::before {
+    background:
+      linear-gradient(to top, color-mix(in oklab, var(--color-brand-primary) 45%, transparent), transparent 75%),
+      linear-gradient(to bottom, var(--plate-top), var(--plate-bottom));
+    box-shadow:
+      inset 0 -2px 0 var(--color-brand-primary),
+      inset 1px 0 0 var(--plate-edge),
+      inset 0 1px 0 var(--plate-edge);
+  }
+
+  /* ---------- Preço em ouro ---------- */
+
+  .price {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.35rem;
+    font-family: var(--font-display-condensed);
+    line-height: 0.85;
+    color: var(--color-gold);
+    text-shadow: 0 0 18px var(--fd-raw-gold-glow);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .priceCurrency {
+    font-size: 0.5em;
+    color: var(--color-gold-bright);
+  }
+
+  /* ---------- Ao vivo: o ponto vermelho que pulsa ---------- */
+
+  .liveDot {
+    position: relative;
+    display: inline-flex;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: var(--radius-full);
+    background: var(--color-brand-primary);
+    box-shadow: 0 0 8px var(--color-brand-primary);
+  }
+
+  .liveDot::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: inherit;
+    animation: live-ping 1.6s var(--motion-ease-soft-landing) infinite;
+  }
+
+  @keyframes live-ping {
+    from {
+      transform: scale(1);
+      opacity: 0.8;
+    }
+    to {
+      transform: scale(2.8);
+      opacity: 0;
+    }
+  }
+
+  /* ---------- Party: lugares quadrados, como a barra de grupo do cliente ---------- */
+
+  .slot {
+    position: relative;
+    display: grid;
+    place-items: center;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(to bottom, var(--plate-top), var(--plate-bottom));
+    box-shadow:
+      inset 0 0 0 1px var(--plate-edge),
+      0 2px 6px var(--shade);
+  }
+
+  .slotOwner {
+    box-shadow:
+      inset 0 0 0 1px var(--color-gold),
+      0 0 14px var(--fd-raw-gold-glow);
+  }
+
+  .slotOpen {
+    color: var(--color-text-faded);
+    background:
+      radial-gradient(closest-side, color-mix(in oklab, var(--color-text-display) 6%, transparent), transparent),
+      linear-gradient(to bottom, color-mix(in oklab, var(--plate-top), var(--color-bg-deep) 35%), var(--color-bg-deep));
+  }
+
+  /* O lugar do comprador respira em verde: a vaga livre que a compra preenche. */
+  .slotYou {
+    color: var(--color-play-primary);
+    background:
+      radial-gradient(closest-side, color-mix(in oklab, var(--color-play-primary) 30%, transparent), transparent),
+      linear-gradient(to bottom, color-mix(in oklab, var(--plate-top), var(--color-play-primary) 12%), var(--color-bg-deep));
+    animation: slot-breath 2.4s var(--motion-ease-soft-landing) infinite;
+  }
+
+  @keyframes slot-breath {
+    0%,
+    100% {
+      box-shadow:
+        inset 0 0 0 1px color-mix(in oklab, var(--color-play-primary) 55%, transparent),
+        0 0 0 0 var(--color-play-primary-glow);
+    }
+    50% {
+      box-shadow:
+        inset 0 0 0 1px var(--color-play-primary),
+        0 0 22px 2px var(--color-play-primary-glow);
+    }
+  }
+
+  /* ---------- Brasas: as fagulhas do logo, espalhadas por um painel ---------- */
+
+  .embers {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .ember {
+    position: absolute;
+    bottom: -4px;
+    width: 3px;
+    height: 3px;
+    border-radius: var(--radius-full);
+    background: color-mix(in oklab, var(--color-brand-primary) 45%, var(--color-gold-bright));
+    box-shadow: 0 0 6px var(--color-brand-primary);
+    opacity: 0;
+    animation: ember-rise 6s var(--motion-ease-soft-landing) infinite;
+  }
+
+  @keyframes ember-rise {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0) scale(1);
+    }
+    12% {
+      opacity: 1;
+    }
+    80% {
+      opacity: 0.5;
+    }
+    100% {
+      opacity: 0;
+      transform: translate(var(--drift, 12px), calc(var(--rise, 160px) * -1)) scale(0.4);
+    }
+  }
+
+  /* ---------- Hexágono: os marcadores numerados dos eventos do cliente ---------- */
+
+  .hex {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    aspect-ratio: 1 / 1.08;
+    clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+    background: linear-gradient(to bottom, var(--color-gold-bright), var(--color-gold-muted));
+  }
+
+  .hexFace {
+    display: grid;
+    place-items: center;
+    width: calc(100% - 4px);
+    height: calc(100% - 4px);
+    clip-path: inherit;
+    background: radial-gradient(circle at 50% 30%, color-mix(in oklab, var(--color-gold) 22%, var(--color-bg-elevated)), var(--color-bg-deep));
+  }
+
+  /* ---------- Menos movimento quando o sistema pede ---------- */
+
+  @media (prefers-reduced-motion: reduce) {
+    .panelShine,
+    .cta::after,
+    .liveDot::after,
+    .slotYou,
+    .ember {
+      animation: none;
+    }
+
+    .embers {
+      display: none;
+    }
+
+    .plate,
+    .plate::before {
+      transition: none;
+    }
+  }
+
+  /* Alto contraste do Windows apaga sombras e fundos: volta o contorno nativo no foco. */
+  @media (forced-colors: active) {
+    .plate:focus-visible {
+      outline: 2px solid CanvasText;
+      outline-offset: 2px;
+    }
+  }
+}

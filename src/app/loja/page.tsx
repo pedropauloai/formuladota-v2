@@ -15,6 +15,8 @@ import { lojaPreviaLocal } from "@/lib/loja/preview";
 import { FeaturedProductCard, ProductCard } from "@/components/loja/product-card";
 import { StoreHero } from "@/components/loja/store-hero";
 import { BrandGlyph } from "@/components/loja/brand-glyph";
+import { getUpcomingLives } from "@/lib/loja/agenda-server";
+import { Prototipo, SeletorPrototipo, versaoPedida } from "./_prototipo";
 
 const YOUTUBE_CHANNEL = "https://www.youtube.com/@formuladota";
 
@@ -46,8 +48,24 @@ export default async function LojaPage({ searchParams }: { searchParams: Promise
   const [products, proof, t] = await Promise.all([getActiveProducts(), getOwnerProof(), getTranslations("loja")]);
   const slots = (await getSlots(products)) ?? new Map<string, SlotInfo>();
 
+  // PROTÓTIPO (só no servidor local): ?versao=a|b|c mostra as versões do design 2.0.
+  const sp = await searchParams;
+  const versao = versaoPedida(sp.versao);
+  if (versao && versao !== "atual") {
+    const party = products.find((p) => p.liveSeat === "party") ?? null;
+    const lives = party ? await getUpcomingLives(party).catch(() => []) : [];
+    const twitchChannel = typeof sp.canal === "string" && /^[a-z0-9_]{3,25}$/i.test(sp.canal) ? sp.canal : "formuladota";
+    return (
+      <ClientShell currentRoute="/loja" hideRightSidebar>
+        <Prototipo versao={versao} data={{ products, slots: Object.fromEntries(slots), proof, party, nextLive: lives[0] ?? null, twitchChannel }} />
+        <SeletorPrototipo versao={versao} />
+      </ClientShell>
+    );
+  }
+
   return (
     <ClientShell currentRoute="/loja" hideRightSidebar>
+      {versao === "atual" && <SeletorPrototipo versao={versao} />}
       <StoreHero proof={proof} />
       <div className="mx-auto max-w-6xl space-y-14 px-4 py-10 md:px-8 md:py-14">
         {products.length === 0 && (
