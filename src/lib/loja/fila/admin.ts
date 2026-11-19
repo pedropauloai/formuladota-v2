@@ -9,7 +9,7 @@ import { isTestMode } from "@/lib/mercadopago";
 import { getIdentityMap } from "@/lib/queries/identities";
 import { steam64To32 } from "@/lib/dota/opendota";
 import { getQueueSnapshot } from "./server";
-import { queuePositions, type QueueLive, type QueueState } from "./model";
+import { queuePositions, toQueueExit, type QueueExit, type QueueLive, type QueueState } from "./model";
 
 export interface AdminQueueEntry {
   id: string;
@@ -34,9 +34,12 @@ export interface AdminFinishedEntry {
   id: string;
   name: string;
   state: "concluido" | "removido";
+  exit: QueueExit | null;
   matches: number;
   played: number;
   finishedAt: string | null;
+  /** Quem saiu sozinho recebe de volta as partidas que não jogou; o Pedro devolve no Mercado Pago. */
+  refundCents: number;
 }
 
 export interface AdminQueue {
@@ -46,6 +49,12 @@ export interface AdminQueue {
 }
 
 const FINISHED_WINDOW_MS = 12 * 60 * 60 * 1000;
+
+/** ID do Dota que o pedido guardou (compra sem Steam vinculada, anterior à fila). */
+function orderDotaId(details: unknown): string | null {
+  const value = details && typeof details === "object" ? (details as Record<string, unknown>).dota_id : null;
+  return typeof value === "string" || typeof value === "number" ? String(value) : null;
+}
 
 export async function isAdminUser(): Promise<boolean> {
   const supabase = await createClient();
@@ -60,7 +69,7 @@ export async function isAdminUser(): Promise<boolean> {
 async function readFinished(isTest: boolean) {
   const { data, error } = await createServiceClient()
     .from("store_bookings")
-    .select("id, seats, matches_played, queue_state, finished_at, store_orders!inner (user_id)")
+    .select("id, seats, matches_played, queue_state, queue_exit, finished_at, store_orders!inner (user_id, amount_cents, quantity)")
     .eq("is_test", isTest)
     .in("queue_state", ["concluido", "removido"])
     .gte("updated_at", new Date(Date.now() - FINISHED_WINDOW_MS).toISOString())
@@ -73,7 +82,9 @@ async function readFinished(isTest: boolean) {
 async function readDetails(ids: string[], userIds: string[]) {
   const supabase = createServiceClient();
   const [bookings, steam] = await Promise.all([
-    ids.length ? supabase.from("store_bookings").select("id, no_shows, live_session_id").in("id", ids) : Promise.resolve({ data: [], error: null }),
+    ids.length
+      ? supabase.from("store_bookings").select("id, no_shows, live_session_id, store_orders (buyer_name, details)").in("id", ids)
+      : Promise.resolve({ data: [], error: null }),
     userIds.length ? supabase.from("steam_links").select("user_id, steam_id_64, persona").in("user_id", userIds) : Promise.resolve({ data: [], error: null }),
   ]);
   const failed = bookings.error ?? steam.error;
@@ -107,22 +118,28 @@ export async function getAdminQueue(): Promise<AdminQueue> {
       noShows: booking?.no_shows ?? 0,
       queuedAt: e.queuedAt,
       calledAt: e.calledAt,
-      name: who?.name ?? steam?.persona ?? "Jogador",
+      name: who?.name ?? steam?.persona ?? booking?.store_orders?.buyer_name ?? "Jogador",
       avatarUrl: who?.avatarUrl ?? null,
       steamPersona: steam?.persona ?? null,
       steamProfileUrl: steam ? `https://steamcommunity.com/profiles/${steam.steam_id_64}` : null,
-      dotaFriendId: steam ? String(steam64To32(steam.steam_id_64)) : null,
+      dotaFriendId: steam ? String(steam64To32(steam.steam_id_64)) : orderDotaId(booking?.store_orders?.details),
       carriedOver: !!snapshot.live && !!booking && booking.live_session_id !== snapshot.live.id,
     };
   });
-  const finished = finishedRows.map((r): AdminFinishedEntry => ({
-    id: r.id,
-    name: identities.get(r.store_orders.user_id ?? "")?.name ?? "Jogador",
-    state: r.queue_state === "removido" ? "removido" : "concluido",
-    matches: r.seats,
-    played: r.matches_played,
-    finishedAt: r.finished_at,
-  }));
+  const finished = finishedRows.map((r): AdminFinishedEntry => {
+    const exit = toQueueExit(r.queue_exit);
+    const perMatch = Math.round(r.store_orders.amount_cents / Math.max(1, r.store_orders.quantity));
+    return {
+      id: r.id,
+      name: identities.get(r.store_orders.user_id ?? "")?.name ?? "Jogador",
+      state: r.queue_state === "removido" ? "removido" : "concluido",
+      exit,
+      matches: r.seats,
+      played: r.matches_played,
+      finishedAt: r.finished_at,
+      refundCents: exit === "saiu" ? perMatch * Math.max(0, r.seats - r.matches_played) : 0,
+    };
+  });
   return { live: snapshot.live, entries, finished };
 }
 
@@ -145,9 +162,13 @@ export const queueOps = {
   close: (liveId: string) => rpc<boolean>("party_fila_encerrar_live", { p_live_id: liveId }),
   call: (liveId: string, bookingId: string | null) => rpc<string | null>("party_fila_chamar", { p_live_id: liveId, p_booking_id: bookingId }),
   played: (bookingId: string) => rpc<string | null>("party_fila_jogou", { p_booking_id: bookingId }),
-  matchOver: (liveId: string) => rpc<number>("party_fila_partida_terminou", { p_live_id: liveId }),
+  /** -1 = essa partida já tinha sido marcada (segundo toque ou repetição da requisição). */
+  matchOver: (liveId: string, expectedCount: number) =>
+    rpc<number>("party_fila_partida_terminou", { p_live_id: liveId, p_expected_count: expectedCount }),
   noShow: (bookingId: string) => rpc<boolean>("party_fila_ausente", { p_booking_id: bookingId }),
   remove: (bookingId: string) => rpc<boolean>("party_fila_remover", { p_booking_id: bookingId }),
+  /** A própria pessoa sai (o banco confere que a vaga é dela e que ainda espera). */
+  leave: (bookingId: string, userId: string) => rpc<boolean>("party_fila_sair", { p_booking_id: bookingId, p_user_id: userId }),
 };
 
 /** Muda o tamanho da fila, os lugares por partida e o vídeo da live (sem mexer em quem já pagou). */

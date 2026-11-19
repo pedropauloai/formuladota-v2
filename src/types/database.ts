@@ -2815,6 +2815,7 @@ export type Database = {
           no_shows: number
           order_id: string
           product_id: string
+          queue_exit: string | null
           queue_state: string | null
           queued_at: string | null
           seats: number
@@ -2836,6 +2837,7 @@ export type Database = {
           no_shows?: number
           order_id: string
           product_id: string
+          queue_exit?: string | null
           queue_state?: string | null
           queued_at?: string | null
           seats?: number
@@ -2857,6 +2859,7 @@ export type Database = {
           no_shows?: number
           order_id?: string
           product_id?: string
+          queue_exit?: string | null
           queue_state?: string | null
           queued_at?: string | null
           seats?: number
@@ -2894,6 +2897,7 @@ export type Database = {
           ends_at: string
           id: string
           is_test: boolean
+          match_count: number
           notes: string
           off_air_at: string | null
           on_air_at: string | null
@@ -2909,6 +2913,7 @@ export type Database = {
           ends_at: string
           id?: string
           is_test?: boolean
+          match_count?: number
           notes?: string
           off_air_at?: string | null
           on_air_at?: string | null
@@ -2924,6 +2929,7 @@ export type Database = {
           ends_at?: string
           id?: string
           is_test?: boolean
+          match_count?: number
           notes?: string
           off_air_at?: string | null
           on_air_at?: string | null
@@ -4438,10 +4444,14 @@ export type Database = {
       party_fila_live_atual: { Args: { p_is_test: boolean }; Returns: string }
       party_fila_ocupacao: { Args: { p_live_id: string }; Returns: number }
       party_fila_partida_terminou: {
-        Args: { p_live_id: string }
+        Args: { p_expected_count: number; p_live_id: string }
         Returns: number
       }
       party_fila_remover: { Args: { p_booking_id: string }; Returns: boolean }
+      party_fila_sair: {
+        Args: { p_booking_id: string; p_user_id: string }
+        Returns: boolean
+      }
       party_invites_detailed: {
         Args: never
         Returns: {

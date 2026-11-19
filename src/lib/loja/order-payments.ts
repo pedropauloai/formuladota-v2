@@ -103,7 +103,12 @@ export async function applyStorePayment(orderId: string, payment: PaymentSnapsho
     payment
   );
   const changed = await applyTransition(orderId, transition, payment);
-  if (!changed) return "nada";
+  if (!changed) {
+    // Pagamento aprovado de pedido já pago: se a confirmação da vaga falhou na primeira vez, o reenvio
+    // do Mercado Pago confirma agora (só mexe em reserva ainda "reservado").
+    if (payment.status === "approved" && (order.status === "pago" || order.status === "em_revisao")) await confirmOrderBookings(orderId);
+    return "nada";
+  }
   if (transition.kind === "pagar" || transition.kind === "revisar") {
     // O horário segurado vira confirmado antes do aviso, que já sai com ele.
     await confirmOrderBookings(orderId);

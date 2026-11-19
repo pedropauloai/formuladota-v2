@@ -24,11 +24,13 @@ interface Props {
   initial: QueueView;
   viewer: FilaViewer;
   offer: FilaOffer;
+  /** Quantidade escolhida na vitrine da loja (?qtd=). */
+  initialQuantity: number;
   /** "Como funciona", desenhado no servidor. */
   howItWorks: React.ReactNode;
 }
 
-export function PartyQueuePage({ initial, viewer, offer, howItWorks }: Props) {
+export function PartyQueuePage({ initial, viewer, offer, initialQuantity, howItWorks }: Props) {
   const t = useTranslations("fila");
   const { view, refresh } = useQueueView(initial, viewer.loggedIn);
   const previous = useRef(statesOf(initial));
@@ -59,7 +61,7 @@ export function PartyQueuePage({ initial, viewer, offer, howItWorks }: Props) {
           <LiveStage live={live} />
         </div>
         <aside id="comprar" className="min-w-0 scroll-mt-24 lg:sticky lg:top-6 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-start">
-          <BuyBox view={view} viewer={viewer} offer={offer} onBought={refresh} />
+          <BuyBox view={view} viewer={viewer} offer={offer} initialQuantity={initialQuantity} onBought={refresh} />
         </aside>
         <div className="min-w-0 space-y-6 lg:col-start-1 lg:row-start-2">
           <PartyRoster queue={view.queue} mine={mineIds} />

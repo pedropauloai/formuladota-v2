@@ -4430,9 +4430,16 @@
       "sem_vaga": "Spots just ran out. Every match played opens one again.",
       "quantidade": "Choose from 1 to 5 matches.",
       "pagamento": "Mercado Pago didn't open the payment right now. Try again in a moment.",
-      "muitas": "Too many attempts in a row. Wait a few minutes and try again."
+      "muitas": "Too many attempts in a row. Wait a few minutes and try again.",
+      "sair": "Couldn't leave the queue right now. If Pedro already called you, talk to him on stream."
     },
     "stageStartingTitle": "The stream is starting",
-    "stageStartingText": "The stream shows up here as soon as it goes live. Spots are already open."
+    "stageStartingText": "The stream shows up here as soon as it goes live. Spots are already open.",
+    "closedText": "The queue opens when Pedro opens spots on stream. This page updates by itself.",
+    "rulesLeave": "Changed your mind before your turn? Leave the queue here, and Pedro refunds the matches you didn't play.",
+    "leave": "Leave the queue",
+    "leaveConfirm": "Leave the queue? The spot goes back on sale, and Pedro refunds the matches you didn't play through Mercado Pago.",
+    "leftTitle": "You left the queue",
+    "leftText": "Pedro refunds the matches you didn't play through Mercado Pago."
   }
 }

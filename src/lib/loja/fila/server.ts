@@ -21,6 +21,7 @@ import {
   type QueueLive,
   type QueueSnapshot,
   type QueueView,
+  toQueueExit,
 } from "./model";
 
 /** Produto da vaga na party (catálogo da versão B). */
@@ -40,6 +41,7 @@ interface LiveRow {
   party_seats: number;
   seats_per_match: number;
   youtube_video_id: string | null;
+  match_count: number;
 }
 
 async function readLive(isTest: boolean): Promise<QueueLive | null> {
@@ -50,7 +52,7 @@ async function readLive(isTest: boolean): Promise<QueueLive | null> {
   const [live, occupied] = await Promise.all([
     supabase
       .from("store_live_sessions")
-      .select("id, status, starts_at, on_air_at, party_seats, seats_per_match, youtube_video_id")
+      .select("id, status, starts_at, on_air_at, party_seats, seats_per_match, youtube_video_id, match_count")
       .eq("id", liveId)
       .maybeSingle<LiveRow>(),
     supabase.rpc("party_fila_ocupacao", { p_live_id: liveId }),
@@ -67,6 +69,7 @@ async function readLive(isTest: boolean): Promise<QueueLive | null> {
     seatsPerMatch: live.data.seats_per_match,
     occupied: occupied.data ?? 0,
     youtubeVideoId: live.data.youtube_video_id,
+    matchesDone: live.data.match_count,
   };
 }
 
@@ -139,7 +142,7 @@ export const isLiveOnAir = cache(async (): Promise<boolean> => {
   return (data ?? []).length > 0;
 });
 
-async function readPendingOrder(userId: string, isTest: boolean): Promise<MyPendingOrder | null> {
+export async function readPendingOrder(userId: string, isTest: boolean): Promise<MyPendingOrder | null> {
   const { data, error } = await createServiceClient()
     .from("store_orders")
     .select("id, payment_method, quantity, amount_cents, pix_copia_e_cola, pix_qr_base64, pix_expires_at, store_products!inner (slug)")
@@ -167,11 +170,12 @@ async function readPendingOrder(userId: string, isTest: boolean): Promise<MyPend
 async function readMyBookings(userId: string, isTest: boolean, snapshot: QueueSnapshot): Promise<MyQueueEntry[]> {
   const { data, error } = await createServiceClient()
     .from("store_bookings")
-    .select("id, seats, matches_played, queue_state, called_at, no_shows, queued_at, store_orders!inner (user_id)")
+    .select("id, seats, matches_played, queue_state, queue_exit, called_at, no_shows, queued_at, store_orders!inner (user_id)")
     .eq("store_orders.user_id", userId)
     .eq("is_test", isTest)
-    .not("queue_state", "is", null)
-    .gte("updated_at", new Date(Date.now() - MINE_WINDOW_MS).toISOString())
+    // Quem ainda espera aparece sempre (inclusive quem passou de uma live para a outra); quem já
+    // saiu ou jogou, só nas últimas 12 horas.
+    .or(`queue_state.in.(aguardando,na_party),and(queue_state.not.is.null,updated_at.gte."${new Date(Date.now() - MINE_WINDOW_MS).toISOString()}")`)
     .order("queued_at", { ascending: true });
   if (error) throw new Error(`ler a minha vez falhou: ${error.message}`);
   const positions = queuePositions(snapshot);
@@ -186,6 +190,7 @@ async function readMyBookings(userId: string, isTest: boolean, snapshot: QueueSn
       played: row.matches_played,
       noShows: row.no_shows,
       calledAt: row.called_at,
+      exit: toQueueExit(row.queue_exit),
     };
   });
 }

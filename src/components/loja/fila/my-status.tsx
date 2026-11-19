@@ -3,6 +3,7 @@
 // A vez de quem comprou: posição e partidas até entrar, a chamada para a party, o fim das
 // partidas, e o Pix (ou o cartão) que ainda espera pagamento.
 
+import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { CheckCircle2, Gamepad2, Hourglass, Loader2, XCircle } from "lucide-react";
 import { PixPanel } from "@/components/loja/pix-panel";
@@ -10,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { plate } from "@/components/v2";
 import { formatPrice } from "@/lib/loja/money";
 import type { MyPendingOrder, MyQueueEntry } from "@/lib/loja/fila/model";
+import { sairDaFila } from "@/app/party/actions";
 
 /** Abre o Dota pela Steam no computador; no celular o link não faz nada, por isso some lá. */
 const OPEN_DOTA_URL = "steam://rungameid/570";
@@ -34,7 +36,36 @@ function CalledCard({ entry, dotaId }: { entry: MyQueueEntry; dotaId: string | n
   );
 }
 
-function WaitingCard({ entry }: { entry: MyQueueEntry }) {
+function LeaveButton({ bookingId, onChanged }: { bookingId: string; onChanged: () => Promise<void> }) {
+  const t = useTranslations("fila");
+  const [pending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  const leave = () => {
+    if (!window.confirm(t("leaveConfirm"))) return;
+    startTransition(async () => {
+      const result = await sairDaFila(bookingId);
+      if (!result.ok) {
+        setError(t(`errors.${result.error}`));
+        return;
+      }
+      await onChanged();
+    });
+  };
+  return (
+    <div className="pt-1">
+      <button type="button" data-fila-sair disabled={pending} onClick={leave} className="text-xs text-text-muted underline underline-offset-2 hover:text-text-display disabled:opacity-60">
+        {t("leave")}
+      </button>
+      {error && (
+        <p role="alert" className="mt-1 text-xs text-error">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function WaitingCard({ entry, onChanged }: { entry: MyQueueEntry; onChanged: () => Promise<void> }) {
   const t = useTranslations("fila");
   const next = entry.matchesUntilTurn === 0 || entry.position === 1;
   return (
@@ -50,6 +81,7 @@ function WaitingCard({ entry }: { entry: MyQueueEntry }) {
       <p className="text-sm text-text-body">{next ? t("waitingNext") : t("waitingIn", { count: entry.matchesUntilTurn ?? 0 })}</p>
       <p className="text-xs leading-relaxed text-text-muted">{t("waitingHint")}</p>
       {entry.noShows > 0 && <p className="rounded-sm border border-warning/40 bg-warning/10 p-2 text-xs text-text-body">{t("noShowNote")}</p>}
+      <LeaveButton bookingId={entry.id} onChanged={onChanged} />
     </section>
   );
 }
@@ -61,16 +93,17 @@ function FinishedCard({ entry }: { entry: MyQueueEntry }) {
     <section data-fila-vez={entry.state} className="flex items-start gap-3 rounded-md border border-border-strong bg-bg-base p-5">
       {done ? <CheckCircle2 size={22} className="shrink-0 text-play-primary" aria-hidden="true" /> : <XCircle size={22} className="shrink-0 text-text-muted" aria-hidden="true" />}
       <div className="space-y-1">
-        <p className="font-display-condensed text-[1.7rem] uppercase leading-none text-text-display">{done ? t("doneTitle") : t("removedText")}</p>
+        <p className="font-display-condensed text-[1.7rem] uppercase leading-none text-text-display">{done ? t("doneTitle") : entry.exit === "saiu" ? t("leftTitle") : t("removedText")}</p>
+        {entry.exit === "saiu" && <p className="text-sm text-text-muted">{t("leftText")}</p>}
         {done && <p className="text-sm text-text-muted">{t("doneText", { count: entry.played })}</p>}
       </div>
     </section>
   );
 }
 
-export function MyEntryCard({ entry, dotaId }: { entry: MyQueueEntry; dotaId: string | null }) {
+export function MyEntryCard({ entry, dotaId, onChanged }: { entry: MyQueueEntry; dotaId: string | null; onChanged: () => Promise<void> }) {
   if (entry.state === "na_party") return <CalledCard entry={entry} dotaId={dotaId} />;
-  if (entry.state === "aguardando") return <WaitingCard entry={entry} />;
+  if (entry.state === "aguardando") return <WaitingCard entry={entry} onChanged={onChanged} />;
   return <FinishedCard entry={entry} />;
 }
 

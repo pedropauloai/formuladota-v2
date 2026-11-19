@@ -4430,9 +4430,16 @@
       "sem_vaga": "Los cupos se acabaron ahora. Cada partida jugada abre uno de nuevo.",
       "quantidade": "Elige de 1 a 5 partidas.",
       "pagamento": "Mercado Pago no abrió el pago ahora. Inténtalo de nuevo en un momento.",
-      "muitas": "Demasiados intentos seguidos. Espera unos minutos e inténtalo de nuevo."
+      "muitas": "Demasiados intentos seguidos. Espera unos minutos e inténtalo de nuevo.",
+      "sair": "No se pudo salir de la cola ahora. Si Pedro ya te llamó, háblale en el directo."
     },
     "stageStartingTitle": "El directo está empezando",
-    "stageStartingText": "La transmisión aparece aquí en cuanto esté en vivo. Los lugares ya están abiertos."
+    "stageStartingText": "La transmisión aparece aquí en cuanto esté en vivo. Los lugares ya están abiertos.",
+    "closedText": "La cola se abre cuando Pedro abra los cupos en el directo. Esta página se actualiza sola.",
+    "rulesLeave": "¿Cambiaste de idea antes de tu turno? Sal de la cola aquí, y Pedro te devuelve el valor de las partidas que no jugaste.",
+    "leave": "Salir de la cola",
+    "leaveConfirm": "¿Salir de la cola? El cupo vuelve a la venta, y Pedro te devuelve por Mercado Pago el valor de las partidas que no jugaste.",
+    "leftTitle": "Saliste de la cola",
+    "leftText": "Pedro te devuelve por Mercado Pago el valor de las partidas que no jugaste."
   }
 }

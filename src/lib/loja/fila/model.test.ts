@@ -21,6 +21,7 @@ const live = {
   seatsPerMatch: 4,
   occupied: 5,
   youtubeVideoId: null,
+  matchesDone: 0,
 };
 
 describe("matchesUntilTurn", () => {

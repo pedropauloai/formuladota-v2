@@ -23,6 +23,7 @@ export function HowItWorks() {
       <ul className="space-y-2 border-t border-border-subtle pt-3 text-sm leading-relaxed text-text-muted">
         <li>{t("rulesNoShow")}</li>
         <li>{t("rulesCarry")}</li>
+        <li>{t("rulesLeave")}</li>
       </ul>
     </Panel>
   );

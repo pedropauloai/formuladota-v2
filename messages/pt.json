@@ -4430,9 +4430,16 @@
       "sem_vaga": "As vagas acabaram agora. Cada partida jogada abre uma de novo.",
       "quantidade": "Escolha de 1 a 5 partidas.",
       "pagamento": "O Mercado Pago não abriu o pagamento agora. Tente de novo em instantes.",
-      "muitas": "Muitas tentativas seguidas. Espere alguns minutos e tente de novo."
+      "muitas": "Muitas tentativas seguidas. Espere alguns minutos e tente de novo.",
+      "sair": "Não deu para sair da fila agora. Se o Pedro já chamou você, fale com ele na live."
     },
     "stageStartingTitle": "A live está começando",
-    "stageStartingText": "A transmissão aparece aqui assim que entrar no ar. As vagas já estão abertas."
+    "stageStartingText": "A transmissão aparece aqui assim que entrar no ar. As vagas já estão abertas.",
+    "closedText": "A fila abre quando o Pedro abrir as vagas na live. Esta página atualiza sozinha.",
+    "rulesLeave": "Mudou de ideia antes da sua vez? Saia da fila por aqui, e o Pedro devolve o valor das partidas que você não jogou.",
+    "leave": "Sair da fila",
+    "leaveConfirm": "Sair da fila? A vaga volta para a venda, e o Pedro devolve pelo Mercado Pago o valor das partidas que você não jogou.",
+    "leftTitle": "Você saiu da fila",
+    "leftText": "O Pedro devolve o valor das partidas que você não jogou pelo Mercado Pago."
   }
 }

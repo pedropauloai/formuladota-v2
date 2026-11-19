@@ -4,65 +4,32 @@
 // Mercado Pago, aviso [TESTE] no Discord e um usuário de teste criado e apagado no fim.
 // Sai com código diferente de zero se qualquer verificação falhar. Nunca imprime credencial.
 
-import { randomBytes, randomUUID } from "node:crypto";
-import { createServerClient } from "@supabase/ssr";
+import { randomUUID } from "node:crypto";
 import { chromium } from "playwright-core";
 import {
-  BASE, USER_AGENT, checker, db, discordMessageFor, env, openStoreFlag, orderRow, restoreStoreFlag,
-  sandboxCardPayment, startServer, stopServer, waitFor, webhook,
+  BASE, acquireTestLock, buyerContext, checker, createTestBuyer, db, deleteTestUsers, discordMessageFor, env, openStoreFlag,
+  openTestLive as openLive, orderRow, releaseTestLock, resetTestQueue, restoreStoreFlag, sandboxCardPayment, startServer, stopServer, waitFor, webhook,
 } from "./e2e-comum.mjs";
 
 const RUN = randomUUID().slice(0, 8);
 const EMAIL = `e2e.fila.${RUN}@formuladota.com.br`;
 const NAME = `Fila E2E ${RUN}`;
-const STEAM_BASE = 76561197960265728n;
-// Steam de teste com ID de amigo perto do teto de 32 bits: acima de qualquer conta real.
-const STEAM_ID = String(STEAM_BASE + 4294000000n + BigInt(Math.floor(Math.random() * 900000)));
 const PRICE_CENTS = 2500;
 const { results, check } = checker();
 
-async function createBuyer() {
-  const password = randomBytes(18).toString("base64url");
-  const { data, error } = await db.auth.admin.createUser({ email: EMAIL, password, email_confirm: true, user_metadata: { full_name: NAME } });
-  if (error) throw new Error(`usuário de teste: ${error.message}`);
-  const { error: steamError } = await db.from("steam_links").insert({ user_id: data.user.id, steam_id_64: STEAM_ID, persona: NAME });
-  if (steamError) throw new Error(`Steam de teste: ${steamError.message}`);
-  return { id: data.user.id, password };
-}
-
-/** Cookies de sessão no formato do site (@supabase/ssr), para o navegador de teste entrar logado. */
-async function sessionCookies(password) {
-  const jar = new Map();
-  const client = createServerClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
-    cookies: {
-      getAll: () => [...jar.values()].map(({ name, value }) => ({ name, value })),
-      setAll: (list) => list.forEach((cookie) => jar.set(cookie.name, cookie)),
-    },
-  });
-  const { error } = await client.auth.signInWithPassword({ email: EMAIL, password });
-  if (error) throw new Error(`login do usuário de teste: ${error.message}`);
-  return [...jar.values()].filter((c) => c.value).map((c) => ({ name: c.name, value: c.value, domain: "localhost", path: "/", sameSite: "Lax" }));
-}
-
 /** Fila de teste limpa e uma live de teste no ar: fila de 6 partidas, party de 1 lugar. */
 async function openTestLive() {
-  await db.from("store_bookings").update({ queue_state: "removido" }).eq("is_test", true).in("queue_state", ["aguardando", "na_party"]);
-  const { data: open } = await db.from("store_live_sessions").select("id").eq("is_test", true).eq("status", "ao_vivo");
-  for (const live of open ?? []) await db.rpc("party_fila_encerrar_live", { p_live_id: live.id });
-  const { data, error } = await db.rpc("party_fila_abrir_live", { p_is_test: true, p_party_seats: 6, p_seats_per_match: 1, p_youtube_video_id: null });
-  if (error || !data) throw new Error(`abrir a live de teste: ${error?.message}`);
-  return data;
+  await resetTestQueue();
+  return openLive(6, 1);
 }
 
 async function cleanup(state) {
   if (state.liveId) await db.rpc("party_fila_encerrar_live", { p_live_id: state.liveId });
   // Reserva de teste nunca fica esperando na fila de teste das próximas execuções.
   await db.from("store_bookings").update({ queue_state: "removido" }).eq("is_test", true).in("queue_state", ["aguardando", "na_party"]);
-  if (state.userId) {
-    const { error } = await db.auth.admin.deleteUser(state.userId);
-    if (error) console.error("apagar o usuário de teste falhou:", error.message);
-  }
+  if (state.userId) await deleteTestUsers([state.userId]);
   if (state.flagWas !== undefined) await restoreStoreFlag(state.flagWas);
+  if (state.locked) await releaseTestLock(RUN);
 }
 
 async function buyWithPix(page, buyer, campaign, liveId) {
@@ -74,7 +41,7 @@ async function buyWithPix(page, buyer, campaign, liveId) {
   check("Pix na própria página depois de um toque", await page.getByText("Copiar código Pix").isVisible());
   const { data: order } = await db.from("store_orders").select("*").eq("user_id", buyer.id).single();
   check("pedido pendente com o Pix do Mercado Pago e sem WhatsApp", order?.status === "pendente" && !!order.mp_payment_id && order.is_test && order.buyer_whatsapp === null);
-  check("pedido com o ID do Dota da Steam vinculada", order?.details?.dota_id === String(BigInt(STEAM_ID) - STEAM_BASE));
+  check("pedido com o ID do Dota da Steam vinculada", order?.details?.dota_id === buyer.dotaId);
   check("pedido herdou a origem do QR da live", order?.utm_source === "live" && order?.utm_campaign === campaign);
   check("uma partida cobra R$ 25", order?.amount_cents === PRICE_CENTS && order?.quantity === 1);
   const { data: hold } = await db.from("store_bookings").select("id, status, live_session_id, queue_state, hold_until").eq("order_id", order.id).single();
@@ -103,13 +70,13 @@ async function checkPublicEndpoint(buyer) {
   check("endpoint público com CORS aberto para o overlay", response.headers.get("access-control-allow-origin") === "*");
 }
 
-async function turnInRealTime(page, liveId, bookingId) {
+async function turnInRealTime(page, liveId, bookingId, buyer) {
   const started = Date.now();
   const { data: called } = await db.rpc("party_fila_chamar", { p_live_id: liveId, p_booking_id: null });
   check("o Pedro chama o próximo (a mesma função do painel)", called === bookingId);
   await page.locator("[data-fila-aviso]").waitFor({ timeout: 15_000 });
   check("aviso 'Chegou a sua vez' na tela em tempo real", true, `${Date.now() - started} ms`);
-  check("cartão da vez com o ID do Dota", await page.locator("[data-fila-vez='na_party']").getByText(String(BigInt(STEAM_ID) - STEAM_BASE)).isVisible());
+  check("cartão da vez com o ID do Dota", await page.locator("[data-fila-vez='na_party']").getByText(buyer.dotaId).isVisible());
   await page.getByRole("button", { name: "Entendi" }).click();
   const { data: state } = await db.rpc("party_fila_jogou", { p_booking_id: bookingId });
   check("partida marcada como jogada", state === "concluido");
@@ -124,8 +91,13 @@ async function checkShell(page) {
   if (flag?.enabled) check("com a busca no ar, o botão verde continua JOGAR DOTA", (await cta.count()) === 0);
   else check("com a busca pausada, o botão verde leva para a fila", (await cta.getAttribute("href"))?.endsWith("/party") === true);
   check("aba Loja com o ponto de ao vivo", (await page.locator("[data-aba-ao-vivo]").count()) > 0);
+  const withQty = await fetch(`${BASE}/loja/vaga-na-party?qtd=2`, { redirect: "manual" });
+  check("a quantidade escolhida na vitrine segue para a fila", (withQty.headers.get("location") ?? "").endsWith("/party?qtd=2"));
+  await page.goto(`${BASE}/party?qtd=2`);
+  await page.locator("[data-fila-comprar='pix']").waitFor({ timeout: 30_000 });
+  check("a fila abre com as 2 partidas e o total", (await page.locator("[data-fila-comprar='pix']").innerText()).includes("50"));
   const product = await fetch(`${BASE}/loja/vaga-na-party`, { redirect: "manual" });
-  check("produto da vaga leva para a fila com a live no ar", product.status >= 300 && product.status < 400 && (product.headers.get("location") ?? "").endsWith("/party"), `${product.status}`);
+  check("produto da vaga na loja leva para a fila", product.status >= 300 && product.status < 400 && (product.headers.get("location") ?? "").endsWith("/party"), `${product.status}`);
 }
 
 async function run() {
@@ -133,21 +105,20 @@ async function run() {
   const state = {};
   let browser = null;
   try {
+    await acquireTestLock(RUN);
+    state.locked = true;
     state.flagWas = await openStoreFlag();
     state.liveId = await openTestLive();
-    const buyer = await createBuyer();
+    const buyer = await createTestBuyer(EMAIL, NAME);
     state.userId = buyer.id;
-    const cookies = await sessionCookies(buyer.password);
     browser = await chromium.launch({ channel: "chrome", headless: true });
     // Celular: é de onde a pessoa compra durante a live.
-    const context = await browser.newContext({ userAgent: USER_AGENT, locale: "pt-BR", viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
-    await context.addCookies([{ name: "NEXT_LOCALE", value: "pt", domain: "localhost", path: "/" }, ...cookies]);
-    const page = await context.newPage();
+    const page = await (await buyerContext(browser, buyer)).newPage();
 
     const { order, bookingId } = await buyWithPix(page, buyer, `e2e-fila-${RUN}`, state.liveId);
     await payAndQueue(page, order);
     await checkPublicEndpoint(buyer);
-    await turnInRealTime(page, state.liveId, bookingId);
+    await turnInRealTime(page, state.liveId, bookingId, buyer);
     const notified = await waitFor(async () => (await orderRow(order.id))?.notified_at, 30_000);
     check("aviso de venda entregue", !!notified);
     check("mensagem [TESTE] da vaga no canal de vendas do Discord", !!(await discordMessageFor(order.id)));

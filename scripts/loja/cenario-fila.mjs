@@ -8,7 +8,7 @@ import { mkdirSync } from "node:fs";
 import { randomBytes, randomUUID } from "node:crypto";
 import { createServerClient } from "@supabase/ssr";
 import { chromium } from "playwright-core";
-import { BASE, USER_AGENT, db, env, openStoreFlag, restoreStoreFlag } from "./e2e-comum.mjs";
+import { BASE, USER_AGENT, acquireTestLock, db, env, openStoreFlag, releaseTestLock, restoreStoreFlag } from "./e2e-comum.mjs";
 
 const OUT = process.argv[2] ?? "capturas-fila";
 const RUN = randomUUID().slice(0, 6);
@@ -78,6 +78,7 @@ async function capture(browser, cookies, path, label) {
 async function run() {
   mkdirSync(OUT, { recursive: true });
   const users = [];
+  await acquireTestLock(RUN);
   const flagWas = await openStoreFlag();
   let liveId = null;
   const browser = await chromium.launch({ channel: "chrome", headless: true });
@@ -110,6 +111,7 @@ async function run() {
       if (error) console.error("apagar usuário de teste falhou:", error.message);
     }
     await restoreStoreFlag(flagWas);
+    await releaseTestLock(RUN);
   }
 }
 

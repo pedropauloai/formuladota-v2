@@ -34,6 +34,12 @@ async function redirectHomeKeepingUtm(searchParams: SearchParams): Promise<never
   redirect(query.size > 0 ? `/?${query}` : "/");
 }
 
+/** Quantidade escolhida na vitrine da loja (?qtd=2); qualquer outra coisa vira 1. */
+function quantityFrom(raw: string | string[] | undefined): number {
+  const n = typeof raw === "string" ? Number.parseInt(raw, 10) : 1;
+  return Number.isFinite(n) && n > 0 ? n : 1;
+}
+
 export default async function PartyPage({ searchParams }: { searchParams: SearchParams }) {
   const { loja } = await getFeatureFlags();
   if (!loja && !lojaPreviaLocal()) await redirectHomeKeepingUtm(searchParams);
@@ -49,11 +55,12 @@ export default async function PartyPage({ searchParams }: { searchParams: Search
     maxQuantity: product?.maxQuantity ?? 1,
     onSale: !!product && !!variant && product.liveSeat === "party",
   };
+  const initialQuantity = Math.min(quantityFrom((await searchParams).qtd), offer.maxQuantity);
   const viewer: FilaViewer = { loggedIn: !!user, hasSteam: !!steam, dotaId: steam?.dotaId ?? null };
 
   return (
     <ClientShell currentRoute="/loja" hideRightSidebar hideBottomBar>
-      <PartyQueuePage initial={view} viewer={viewer} offer={offer} howItWorks={<HowItWorks />} />
+      <PartyQueuePage initial={view} viewer={viewer} offer={offer} initialQuantity={initialQuantity} howItWorks={<HowItWorks />} />
     </ClientShell>
   );
 }

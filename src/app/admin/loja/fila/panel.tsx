@@ -7,7 +7,7 @@ import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { AdminQueue } from "@/lib/loja/fila/admin";
 import {
-  abrirLive, ajustarVagas, chamarProximo, completarParty, encerrarLive, marcarJogou, naoApareceu, partidaTerminou, tirarDaFila,
+  abrirLive, ajustarVagas, chamarProximo, completarParty, encerrarLive, naoApareceu, partidaTerminou, tirarDaFila,
 } from "./actions";
 import { DANGER, FinishedList, PRIMARY, PartyRow, SECONDARY, WaitingRow, type RowAction } from "./rows";
 
@@ -45,6 +45,7 @@ function NumberField({ label, value, min, max, onChange }: { label: string; valu
 
 function LiveControls({ data, busy, act }: { data: AdminQueue; busy: boolean; act: RowAction }) {
   const live = data.live;
+  const inParty = data.entries.filter((e) => e.state === "na_party").length;
   const onAir = live?.status === "ao_vivo";
   const [size, setSize] = useState(live?.queueSize ?? 8);
   const [perMatch, setPerMatch] = useState(live?.seatsPerMatch ?? 4);
@@ -70,15 +71,28 @@ function LiveControls({ data, busy, act }: { data: AdminQueue; busy: boolean; ac
         {onAir ? (
           <>
             <button type="button" disabled={busy} className={SECONDARY} onClick={() => act("Live atualizada", () => ajustarVagas(live.id, size, perMatch, youtube))}>Salvar</button>
+            {inParty > 0 && (
+              <button
+                type="button"
+                disabled={busy}
+                className={DANGER}
+                onClick={() => {
+                  if (window.confirm("A partida da party terminou? Ela conta para quem estava na party, e a live encerra.")) act("Live encerrada", () => encerrarLive(live.id, true, live.matchesDone));
+                }}
+              >
+                Partida terminou e encerrar
+              </button>
+            )}
             <button
               type="button"
               disabled={busy}
               className={DANGER}
               onClick={() => {
-                if (window.confirm("Encerrar a live? Quem estava na party volta para a frente da fila.")) act("Live encerrada", () => encerrarLive(live.id));
+                const text = inParty > 0 ? "Encerrar sem contar a partida? Quem estava na party volta para a frente da fila." : "Encerrar a live?";
+                if (window.confirm(text)) act("Live encerrada", () => encerrarLive(live.id));
               }}
             >
-              Encerrar a live
+              {inParty > 0 ? "Encerrar sem contar a partida" : "Encerrar a live"}
             </button>
           </>
         ) : (
@@ -127,13 +141,17 @@ export function AdminQueuePanel({ data }: { data: AdminQueue }) {
         {party.length > 0 && (
           <ul className="divide-y divide-border-subtle">
             {party.map((e) => (
-              <PartyRow key={e.id} entry={e} busy={busy} act={act} played={marcarJogou} noShow={naoApareceu} />
+              <PartyRow key={e.id} entry={e} busy={busy} act={act} noShow={naoApareceu} />
             ))}
           </ul>
         )}
         {onAir && live && (
           <div className="flex flex-wrap gap-2 pt-1">
-            {party.length > 0 && <button type="button" disabled={busy} className={PRIMARY} onClick={() => act("Partida marcada", () => partidaTerminou(live.id))}>Partida terminou: todos jogaram</button>}
+            {party.length > 0 && (
+              <button type="button" disabled={busy} className={PRIMARY} onClick={() => act("Partida marcada", () => partidaTerminou(live.id, live.matchesDone))}>
+                Partida {live.matchesDone + 1} terminou: todos jogaram
+              </button>
+            )}
             <button type="button" disabled={busy || waiting.length === 0} className={SECONDARY} onClick={() => act("Chamado", () => chamarProximo(live.id))}>Chamar o próximo</button>
             <button type="button" disabled={busy || waiting.length === 0} className={SECONDARY} onClick={() => act("Party completa", () => completarParty(live.id))}>Completar a party</button>
           </div>
