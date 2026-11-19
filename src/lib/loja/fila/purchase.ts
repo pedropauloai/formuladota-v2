@@ -14,6 +14,12 @@ import type { PaymentMethod } from "@/lib/loja/checkout-schema";
 import { PARTY_PRODUCT_SLUG, getQueueSnapshot, getViewerSteam, type ViewerSteam } from "./server";
 import { seatsOpen } from "./model";
 
+/**
+ * Vaga segurada por 10 minutos enquanto o Pix não cai (a agenda segura 35): numa live, Pix
+ * abandonado não pode travar vaga por meia hora. Quem paga depois entra na fila do mesmo jeito.
+ */
+export const FILA_HOLD_MINUTES = 10;
+
 /** O que pode dar errado, em código: a página traduz para o idioma de quem compra. */
 export type BuySeatError = "fechada" | "steam" | "email" | "sem_live" | "sem_vaga" | "quantidade" | "pagamento";
 
@@ -69,6 +75,7 @@ export async function buySeat(args: BuySeatArgs): Promise<BuySeatResult> {
     buyer: { name: await publicName(args.userId, steam), email: args.email, whatsapp: null },
     details: { dota_id: steam.dotaId, steam: `https://steamcommunity.com/profiles/${steam.steamId64}` },
     paymentMinutes: AGENDA.paymentMinutes,
+    holdMinutes: FILA_HOLD_MINUTES,
   };
   const result = await openStoreOrder(order, { userId: args.userId, origin: args.origin, returnPath: () => "/party" }, { kind: "fila" });
   if (result.ok) return { ok: true, orderId: result.orderId, method: args.method, redirectUrl: result.redirectUrl };

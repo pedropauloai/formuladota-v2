@@ -25,10 +25,11 @@ Cada uma com o porquê em uma linha.
 4. **Vagas abertas contam a fila, não o total da live.** `party_seats` é o tamanho máximo da fila em partidas; cada partida jogada devolve uma vaga. O Pedro não precisa mexer no número durante a live, e o que sobra para a próxima live fica limitado.
 5. **Quem não jogou na live continua na fila, na mesma posição, para a próxima.** A fila da live atual inclui as entradas de lives anteriores que não terminaram; a reserva de uma live futura só entra quando aquela live chega.
 6. **A compra na fila não pede nada digitado.** Nome público e e-mail vêm do login com Discord, o ID do Dota sai da Steam vinculada, e o WhatsApp deixa de ser obrigatório no pedido (o Pedro convida pela Steam).
-7. **Posição em tempo real por consulta curta (3 s com a pessoa na fila, 8 s sem), não por canal do Realtime.** O celular derruba conexão aberta quando a aba vai para o fundo, então a consulta volta sozinha ao reabrir; a leitura é uma consulta pequena e os overlays usam o mesmo endereço.
-8. **Leitura pública pelo servidor, com service role, e nome pela identidade pública** (`getIdentityMap`). Nenhuma função nova fica aberta ao visitante, e o JSON público não carrega id de usuário, e-mail nem WhatsApp.
-9. **Operação da fila por funções do banco com trava na linha da live** (`party_fila_*`), só para o service role. Dois toques seguidos em "Chamar o próximo" não chamam duas pessoas para o mesmo lugar.
-10. **Live e reserva de teste ficam separadas** (`store_live_sessions.is_test`): o `pnpm loja:e2e` abre uma live de teste que o site de produção nunca mostra.
+7. **A vaga fica segurada 10 minutos enquanto o Pix não cai** (a agenda segura 35). Numa live, Pix abandonado não pode travar vaga por meia hora; quem paga depois entra na fila do mesmo jeito, porque dinheiro recebido nunca fica sem vaga.
+8. **Posição em tempo real por consulta curta (3 s com a pessoa na fila, 8 s sem), não por canal do Realtime.** O celular derruba conexão aberta quando a aba vai para o fundo, então a consulta volta sozinha ao reabrir; a leitura é uma consulta pequena e os overlays usam o mesmo endereço.
+9. **Leitura pública pelo servidor, com service role, e nome pela identidade pública** (`getIdentityMap`). Nenhuma função nova fica aberta ao visitante, e o JSON público não carrega id de usuário, e-mail nem WhatsApp.
+10. **Operação da fila por funções do banco com trava na linha da live** (`party_fila_*`), só para o service role. Dois toques seguidos em "Chamar o próximo" não chamam duas pessoas para o mesmo lugar.
+11. **Live e reserva de teste ficam separadas** (`store_live_sessions.is_test`): o `pnpm loja:e2e` abre uma live de teste que o site de produção nunca mostra.
 
 ## Estados da vez
 

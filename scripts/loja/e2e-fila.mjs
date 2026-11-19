@@ -79,6 +79,8 @@ async function buyWithPix(page, buyer, campaign, liveId) {
   check("uma partida cobra R$ 25", order?.amount_cents === PRICE_CENTS && order?.quantity === 1);
   const { data: hold } = await db.from("store_bookings").select("id, status, live_session_id, queue_state, hold_until").eq("order_id", order.id).single();
   check("vaga segurada na live no ar, fora da fila até pagar", hold?.status === "reservado" && hold.live_session_id === liveId && hold.queue_state === null && !!hold.hold_until);
+  const holdMinutes = (Date.parse(hold.hold_until) - Date.parse(order.created_at)) / 60_000;
+  check("Pix abandonado segura a vaga só por 10 minutos", holdMinutes > 9 && holdMinutes < 11, `${holdMinutes.toFixed(1)} min`);
   return { order, bookingId: hold.id };
 }
 

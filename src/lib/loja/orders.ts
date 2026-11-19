@@ -43,6 +43,8 @@ export interface PricedOrder {
   details: Record<string, string | number>;
   /** Prazo para pagar quando o pedido segura horário na agenda; sem horário, o padrão de 24 h. */
   paymentMinutes?: number;
+  /** Quanto tempo a vaga fica segurada enquanto o pagamento não cai; o padrão é o da agenda. */
+  holdMinutes?: number;
 }
 
 export interface OrderContext {
@@ -100,7 +102,8 @@ function bookingChoice(product: StoreProduct, data: Record<string, unknown>): Ch
 /** Segura o horário enquanto a pessoa paga; com falha, cancela o pedido e devolve a mensagem. */
 async function holdBooking(orderId: string, order: PricedOrder, choice: BookingChoice): Promise<string | null> {
   try {
-    const problem = await reserveBooking(orderId, order.product, choice, order.quantity, new Date(Date.now() + HOLD_MS));
+    const holdMs = order.holdMinutes ? order.holdMinutes * 60_000 : HOLD_MS;
+    const problem = await reserveBooking(orderId, order.product, choice, order.quantity, new Date(Date.now() + holdMs));
     if (problem) await cancelOrder(orderId);
     return problem;
   } catch (err) {

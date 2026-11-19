@@ -4376,7 +4376,7 @@
     "steamCta": "Vincular Steam",
     "steamText": "Pedro te invita con tu ID de Dota, así que el cupo necesita tu Steam vinculada.",
     "pixTitle": "Paga {price} con Pix",
-    "pixHold": "Tu cupo queda reservado por 30 minutos mientras el Pix no entra.",
+    "pixHold": "Tu cupo queda reservado por 10 minutos mientras el Pix no entra.",
     "cardPending": "Estamos confirmando el pago con tarjeta. Tu lugar aparece aquí apenas lo aprueben.",
     "waitingTitle": "Estás en la cola",
     "waitingPosition": "{position}.º",

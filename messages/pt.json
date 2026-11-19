@@ -4376,7 +4376,7 @@
     "steamCta": "Vincular a Steam",
     "steamText": "O Pedro convida você pelo ID do Dota, então a vaga precisa da sua Steam vinculada.",
     "pixTitle": "Pague {price} com Pix",
-    "pixHold": "A vaga fica guardada por 30 minutos enquanto o Pix não cai.",
+    "pixHold": "A vaga fica guardada por 10 minutos enquanto o Pix não cai.",
     "cardPending": "Estamos confirmando o pagamento com cartão. A sua posição aparece aqui assim que ele for aprovado.",
     "waitingTitle": "Você está na fila",
     "waitingPosition": "{position}º",

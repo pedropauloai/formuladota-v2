@@ -4376,7 +4376,7 @@
     "steamCta": "Link your Steam",
     "steamText": "Pedro invites you by your Dota ID, so the spot needs your Steam linked.",
     "pixTitle": "Pay {price} with Pix",
-    "pixHold": "Your spot is held for 30 minutes while the Pix goes through.",
+    "pixHold": "Your spot is held for 10 minutes while the Pix goes through.",
     "cardPending": "We're confirming your card payment. Your place shows up here as soon as it's approved.",
     "waitingTitle": "You're in the queue",
     "waitingPosition": "#{position}",
