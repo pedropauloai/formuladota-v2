@@ -54,7 +54,8 @@ interface Props {
   /** Progresso de XP dentro do nível (0-1) — barra na borda do avatar. */
   xpPct: number;
   /** Saldo de permissões de partida (5 acertos = 1). */
-  permissions: number;
+  /** Saldo de permissões de partida; null com o quiz desligado (o selo some). */
+  permissions: number | null;
   /** Medalha SKILL (Valve) — calculada no shell (rank Valve real > MMR), igual ao /me. */
   dotaRank: DotaRank;
   /** Estrelas (1-5) da medalha SKILL — sem isso a medalha vinha sem estrela. */
@@ -264,7 +265,7 @@ function CollapsedCard({
   avatar: string | null;
   level: number;
   xpPct: number;
-  permissions: number;
+  permissions: number | null;
   currentUserId: string | null;
   party: PartyView | null;
   friends: FriendListEntry[];
@@ -322,7 +323,7 @@ function CollapsedCard({
         <PartyFrame currentUserId={currentUserId} initialParty={party} friends={friends} />
       )}
       <div className="flex-1" />
-      <PermissionsBadge permissions={permissions} />
+      {permissions !== null && <PermissionsBadge permissions={permissions} />}
     </div>
   );
 }

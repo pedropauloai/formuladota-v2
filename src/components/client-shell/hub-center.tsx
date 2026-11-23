@@ -14,14 +14,14 @@
 // i18n: textos via namespace "capa" (next-intl).
 
 import { Link } from "@/i18n/navigation";
-import { Compass, Fingerprint, RotateCcw, Swords, Trophy } from "lucide-react";
+import { ArrowRight, Compass, Fingerprint, RotateCcw, Swords, Trophy } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { useSound } from "@/lib/sound/hooks";
 import { signInWithDiscord } from "@/app/login/actions";
 import { BrandGlyph } from "@/components/loja/brand-glyph";
-import { CtaWarp, Embers, HexBadge, Panel, plate, v2Page } from "@/components/v2";
+import { CtaWarp, Embers, HexBadge, Panel, lift, panel, plate, v2Page } from "@/components/v2";
 
 export interface HubCenterProps {
   /** True = visitante deslogado. Adapta só o CTA (login vs jogar). */
@@ -102,20 +102,25 @@ function Pillar({ id, icon }: { id: string; icon: ReactNode }) {
   );
 }
 
+// A metodologia é o terceiro nível da capa: a faixa inteira leva para ela, com a seta na ponta.
 function Doctrine() {
   const t = useTranslations("capa");
   return (
-    <Panel className="flex items-center gap-4 px-4 py-3 hero:px-5 hero:py-4">
-      <HexBadge size={44} className="hidden sm:grid">
-        <Compass size={20} aria-hidden="true" className="text-gold-bright" />
-      </HexBadge>
-      <p className="text-sm leading-snug text-text-body hero:text-base">
-        <span className="font-bold uppercase text-text-display">{t("doctrineLead")}</span> {t("doctrineBody")}{" "}
-        <Link href="/metodologia" className="font-bold text-gold transition-colors hover:text-gold-bright">
+    <Link href="/metodologia" className={cn(lift("dark"), "group block rounded-[var(--radius-md)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-text-display")}>
+      <span className={cn(panel(), "flex items-center gap-4 px-4 py-3 transition-[filter] group-hover:brightness-110 hero:px-5 hero:py-4")}>
+        <HexBadge size={44} className="hidden sm:grid">
+          <Compass size={20} aria-hidden="true" className="text-gold-bright" />
+        </HexBadge>
+        <span className="min-w-0 flex-1 text-sm leading-snug text-text-body hero:text-base">
+          <span className="font-bold uppercase text-text-display">{t("doctrineLead")}</span> {t("doctrineBody")}
+        </span>
+        <span className="hidden shrink-0 items-center gap-2 font-display text-sm font-bold uppercase tracking-[0.12em] text-gold transition-colors group-hover:text-gold-bright md:inline-flex">
           {t("doctrineLink")}
-        </Link>
-      </p>
-    </Panel>
+          <ArrowRight size={16} aria-hidden="true" className="transition-transform group-hover:translate-x-0.5" />
+        </span>
+        <ArrowRight size={18} aria-hidden="true" className="shrink-0 text-gold md:hidden" />
+      </span>
+    </Link>
   );
 }
 
@@ -143,8 +148,14 @@ function Actions({ isVisitor, showRankedComPro, prosOnlineCount }: Required<HubC
           {ctaLabel}
         </Link>
       )}
-      <Link href="/manifesto" className={plate({ kind: "ghost" })}>
+      {/* Segunda ação como link, não como botão: uma chamada só por tela. A seta é ícone (o
+          caractere ficava baixo e solto depois das letras espaçadas) e anda um pouco no mouse. */}
+      <Link
+        href="/manifesto"
+        className="group inline-flex items-center gap-2 rounded-sm font-display text-sm font-bold uppercase tracking-[0.16em] text-text-body transition-colors hover:text-text-display focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-text-display"
+      >
         {t("whyLink")}
+        <ArrowRight size={16} aria-hidden="true" className="transition-transform group-hover:translate-x-0.5" />
       </Link>
       {/* Pulso de PROs online: só com a feature "Ranked com PRO" ligada ("0 online" não diz nada). */}
       {showRankedComPro && (
@@ -177,6 +188,9 @@ export function HubCenter({ isVisitor = false, prosOnlineCount, showRankedComPro
           <p className="max-w-3xl text-base font-medium leading-relaxed text-text-body [text-shadow:0_2px_10px_var(--color-bg-deep)] hero:text-xl">{t("subtitle")}</p>
         </header>
 
+        {/* Promessa, ação, prova: a chamada vem logo depois do título, e os pilares justificam. */}
+        <Actions isVisitor={isVisitor} showRankedComPro={showRankedComPro} prosOnlineCount={prosOnlineCount} />
+
         <div className="grid gap-3 md:grid-cols-3 hero:gap-4">
           {PILLARS.map((p) => (
             <Pillar key={p.id} id={p.id} icon={p.icon} />
@@ -184,7 +198,6 @@ export function HubCenter({ isVisitor = false, prosOnlineCount, showRankedComPro
         </div>
 
         <Doctrine />
-        <Actions isVisitor={isVisitor} showRankedComPro={showRankedComPro} prosOnlineCount={prosOnlineCount} />
       </section>
     </>
   );

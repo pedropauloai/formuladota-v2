@@ -82,7 +82,7 @@ export default async function PlanosPage({ searchParams }: { searchParams: Searc
         />
         <BattlepassIncludes proof={proof} seatCents={seatCents} roomsOn={flags.fila_competitiva} pollYes={poll?.sim ?? null} />
         <BattlepassRotation />
-        <BattlepassFree seatCents={seatCents} />
+        <BattlepassFree seatCents={seatCents} doctrineOn={flags.doctrine_quiz} />
         <BattlepassFaq />
         {buying && <BattlepassClosing />}
       </div>
