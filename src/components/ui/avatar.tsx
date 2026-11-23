@@ -66,6 +66,7 @@ const avatarVariants = cva(
   {
     variants: {
       size: {
+        xs: "size-6",   /* 24px: lista densa (histórico, pílula) */
         sm: "size-8",   /* 32px */
         md: "size-10",  /* 40px */
         lg: "size-16",  /* 64px */
@@ -78,6 +79,7 @@ const avatarVariants = cva(
 
 /** Tamanho do dot de presença em função do tamanho do avatar */
 const DOT_SIZE: Record<NonNullable<VariantProps<typeof avatarVariants>["size"]>, string> = {
+  xs: "size-1.5",  /* 6px */
   sm: "size-2",    /* 8px */
   md: "size-2.5",  /* 10px */
   lg: "size-3",    /* 12px */
@@ -96,7 +98,7 @@ export interface UserAvatarProps
   alt?: string;
   /** Iniciais exibidas quando src ausente (ex: "NP" para "Nome Pessoa") */
   fallback?: string;
-  /** Tamanho do avatar: sm=32 | md=40 | lg=64 | xl=96 */
+  /** Tamanho do avatar: xs=24 | sm=32 | md=40 | lg=64 | xl=96 */
   size?: VariantProps<typeof avatarVariants>["size"];
   /**
    * Badge overlay no canto inferior-direito.
@@ -244,7 +246,7 @@ export const UserAvatar = forwardRef<HTMLDivElement, UserAvatarProps>(
                 "flex items-center justify-center",
                 "font-display text-text-display font-bold",
                 /* Tamanho de fonte proporcional ao avatar */
-                size === "sm" && "text-sm",
+                (size === "xs" || size === "sm") && "text-sm",
                 size === "md" && "text-sm",
                 size === "lg" && "text-xl",
                 size === "xl" && "text-3xl",

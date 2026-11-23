@@ -16,19 +16,39 @@ export type ResolvedMatch =
       confirmedUserIds: string[];
       /** Do time do PPA com o perfil do Dota privado (a OpenDota não mostra quem é). */
       hidden: number;
+      /** O time do PPA venceu; null quando a OpenDota não diz. */
+      won: boolean | null;
     }
   | { ok: false; reason: "id_invalido" | "sem_ppa" | "ainda_nao" | "opendota" };
 
-/** Contas do Dota (32 bits) de quem está na party agora, pela Steam vinculada. */
-export async function currentPartyAccounts(isTest: boolean): Promise<number[]> {
+export interface PartyMember {
+  bookingId: string;
+  userId: string;
+  /** Conta do Dota (32 bits), pela Steam vinculada. */
+  account: number;
+}
+
+/** Quem está na party agora, com a conta do Dota de cada um (pela Steam vinculada). */
+export async function currentPartyMembers(isTest: boolean): Promise<PartyMember[]> {
   const supabase = createServiceClient();
-  const { data: party, error } = await supabase.from("store_bookings").select("user_id").eq("is_test", isTest).eq("queue_state", "na_party");
+  const { data: party, error } = await supabase.from("store_bookings").select("id, user_id").eq("is_test", isTest).eq("queue_state", "na_party");
   if (error) throw new Error(`ler a party falhou: ${error.message}`);
-  const ids = (party ?? []).map((b) => b.user_id).filter((id): id is string => !!id);
-  if (ids.length === 0) return [];
-  const { data: links, error: linkError } = await supabase.from("steam_links").select("steam_id_64").in("user_id", ids);
+  const rows = (party ?? []).filter((b): b is { id: string; user_id: string } => !!b.user_id);
+  if (rows.length === 0) return [];
+  const { data: links, error: linkError } = await supabase.from("steam_links").select("user_id, steam_id_64").in("user_id", rows.map((b) => b.user_id));
   if (linkError) throw new Error(`ler a Steam da party falhou: ${linkError.message}`);
-  return (links ?? []).filter((l) => /^\d{17}$/.test(l.steam_id_64)).map((l) => Number(BigInt(l.steam_id_64) - STEAM64_BASE));
+  const accounts = new Map(
+    (links ?? []).filter((l) => /^\d{17}$/.test(l.steam_id_64)).map((l) => [l.user_id, Number(BigInt(l.steam_id_64) - STEAM64_BASE)])
+  );
+  return rows.flatMap((b) => {
+    const account = accounts.get(b.user_id);
+    return account === undefined ? [] : [{ bookingId: b.id, userId: b.user_id, account }];
+  });
+}
+
+/** Contas do Dota (32 bits) de quem está na party agora. */
+export async function currentPartyAccounts(isTest: boolean): Promise<number[]> {
+  return (await currentPartyMembers(isTest)).map((m) => m.account);
 }
 
 export async function resolveMatch(input: string, partyAccounts: readonly number[] = []): Promise<ResolvedMatch> {
@@ -49,7 +69,7 @@ export async function resolveMatch(input: string, partyAccounts: readonly number
     if (error) throw new Error(`achar os jogadores da partida falhou: ${error.message}`);
     confirmedUserIds = [...new Set((data ?? []).map((row) => row.user_id))];
   }
-  return { ok: true, matchId, playedAt: party.playedAt, confirmedUserIds, hidden: party.hidden };
+  return { ok: true, matchId, playedAt: party.playedAt, confirmedUserIds, hidden: party.hidden, won: party.won };
 }
 
 async function recentMatches(accountId: number): Promise<RecentMatchLike[]> {

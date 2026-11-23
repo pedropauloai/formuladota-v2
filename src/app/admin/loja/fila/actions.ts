@@ -10,7 +10,7 @@ import { parseYoutubeVideoId } from "@/lib/loja/fila/youtube";
 import { parseMatchId } from "@/lib/battlepass/partida";
 import { currentPartyAccounts, partyLastMatch, resolveMatch } from "@/lib/battlepass/partida-server";
 import { isTestMode } from "@/lib/mercadopago";
-import { createServiceClient } from "@/lib/supabase/service";
+import { endedBeforeLive, liveOnAirAt } from "@/lib/loja/fila/live-time";
 
 export type FilaAdminResult = { ok: true; message?: string } | { ok: false; error: string };
 
@@ -81,14 +81,6 @@ export async function completarParty(liveId: string): Promise<FilaAdminResult> {
 type MatchData = { matchId: string; playedAt: string; confirmedUserIds: string[] };
 
 const BR_TIME = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
-/** Folga para partida que começou um pouco antes de o PPA abrir a live no painel. */
-const BEFORE_LIVE_MS = 30 * 60 * 1000;
-
-async function liveOnAirAt(liveId: string): Promise<number | null> {
-  const { data } = await createServiceClient().from("store_live_sessions").select("on_air_at").eq("id", liveId).maybeSingle();
-  return data?.on_air_at ? Date.parse(data.on_air_at) : null;
-}
-
 /**
  * A partida pelo ID que o PPA colou: conferida na OpenDota, ou só com o ID quando a OpenDota ainda
  * não tem. O time sai da conta do PPA ou, numa smurf, de quem está na party. Partida que acabou
@@ -97,7 +89,7 @@ async function liveOnAirAt(liveId: string): Promise<number | null> {
 async function matchFromInput(input: string, liveId: string): Promise<{ match: MatchData; note: string } | { error: string }> {
   const [partyAccounts, onAirAt] = await Promise.all([currentPartyAccounts(isTestMode()), liveOnAirAt(liveId)]);
   const resolved = await resolveMatch(input, partyAccounts);
-  if (resolved.ok && onAirAt && Date.parse(resolved.playedAt) < onAirAt - BEFORE_LIVE_MS) {
+  if (resolved.ok && endedBeforeLive(resolved.playedAt, onAirAt)) {
     return { error: `Essa partida terminou em ${BR_TIME.format(new Date(resolved.playedAt))}, antes de a live abrir. Confira o ID (use "Achar a partida da party").` };
   }
   if (resolved.ok) {
