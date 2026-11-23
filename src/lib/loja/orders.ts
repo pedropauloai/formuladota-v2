@@ -16,6 +16,7 @@ import { priceOrder } from "./pricing";
 import { getSlots } from "./slots";
 import { AGENDA } from "./agenda";
 import { HOLD_MS, reserveBooking, type BookingChoice } from "./agenda-server";
+import { cancelUnpaidOrder } from "./cancel-order";
 import type { Origin } from "./attribution";
 
 export type CreateOrderResult =
@@ -104,11 +105,11 @@ async function holdBooking(orderId: string, order: PricedOrder, choice: BookingC
   try {
     const holdMs = order.holdMinutes ? order.holdMinutes * 60_000 : HOLD_MS;
     const problem = await reserveBooking(orderId, order.product, choice, order.quantity, new Date(Date.now() + holdMs));
-    if (problem) await cancelOrder(orderId);
+    if (problem) await cancelUnpaidOrder(orderId);
     return problem;
   } catch (err) {
     console.error("[loja] reservar horário falhou:", err instanceof Error ? err.message : err);
-    await cancelOrder(orderId);
+    await cancelUnpaidOrder(orderId);
     return "Não deu para reservar o horário agora. Tente de novo em instantes.";
   }
 }
@@ -196,15 +197,6 @@ async function insertOrder(order: PricedOrder, ctx: OrderContext): Promise<strin
   return data.id;
 }
 
-async function cancelOrder(orderId: string): Promise<void> {
-  const { error } = await createServiceClient()
-    .from("store_orders")
-    .update({ status: "cancelado", updated_at: new Date().toISOString() })
-    .eq("id", orderId)
-    .eq("status", "pendente");
-  if (error) console.error("[loja] cancelar pedido sem pagamento falhou:", error.message);
-}
-
 function splitName(name: string): { first: string; last?: string } {
   const [first = name, ...rest] = name.trim().split(/\s+/);
   return { first, last: rest.join(" ") || undefined };
@@ -228,7 +220,7 @@ async function startPix(orderId: string, order: PricedOrder): Promise<CreateOrde
     expiresInMinutes: order.paymentMinutes,
   });
   if (!pix.success) {
-    await cancelOrder(orderId);
+    await cancelUnpaidOrder(orderId);
     return { ok: false, error: "O Mercado Pago não gerou o Pix agora. Tente de novo ou pague com cartão." };
   }
   const { error } = await createServiceClient()
@@ -258,7 +250,7 @@ async function startCard(orderId: string, order: PricedOrder, ctx: OrderContext)
     ttlMinutes: order.paymentMinutes,
   });
   if (!preference.success) {
-    await cancelOrder(orderId);
+    await cancelUnpaidOrder(orderId);
     return { ok: false, error: "O Mercado Pago não abriu o pagamento com cartão agora. Tente de novo ou pague com Pix." };
   }
   const { error } = await createServiceClient()
