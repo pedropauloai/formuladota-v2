@@ -11,9 +11,10 @@ import { BATTLEPASS } from "@/lib/battlepass/config";
 import { CtaWarp, Panel, Price, plate } from "@/components/v2";
 import { SECTION_TITLE, WRAP } from "./layout";
 
-export function BattlepassFree({ seatCents }: { seatCents: number }) {
+export function BattlepassFree({ seatCents, doctrineOn }: { seatCents: number; doctrineOn: boolean }) {
   const t = useTranslations("battlepass");
-  const items = [t("freeDoctrine"), t("freeRanking"), t("freeProfile"), t("freeRooms")];
+  // A doutrina só entra na lista com o quiz ligado: desligado, a /doutrina leva para a home.
+  const items = [...(doctrineOn ? [t("freeDoctrine")] : []), t("freeRanking"), t("freeProfile"), t("freeRooms")];
   return (
     <section aria-labelledby="bp-gratis" className={cn(WRAP, "mt-16 md:mt-24")}>
       <Panel className="grid gap-6 p-5 md:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] md:items-center md:p-7">

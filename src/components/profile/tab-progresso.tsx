@@ -17,6 +17,7 @@ import {
   getTierForLevel,
   getGatedTierForLevel,
   mmrFromRankTier,
+  xpNoNivel,
   XP_SOURCE_LABELS,
   type Tier,
 } from "@/lib/levels";
@@ -55,13 +56,13 @@ export async function TabProgresso({
       supabase
         .from("user_levels")
         .select(
-          "current_level, current_xp, total_xp_earned, total_shards_earned, current_shards, updated_at"
+          "current_level, total_xp_earned, updated_at"
         )
         .eq("user_id", userId)
         .maybeSingle(),
       supabase
         .from("level_thresholds")
-        .select("level, xp_required, total_xp, shards_reward")
+        .select("level, xp_required, total_xp")
         .order("level"),
       supabase
         .from("user_stats_extended")
@@ -80,7 +81,7 @@ export async function TabProgresso({
   const eventsRes = isOwn
     ? await supabase
         .from("xp_events")
-        .select("source, xp_amount, shards_awarded, level_before, level_after, created_at")
+        .select("source, xp_amount, level_before, level_after, created_at")
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
         .limit(20)
@@ -106,18 +107,14 @@ export async function TabProgresso({
   }
 
   const currentLevel = userLevel?.current_level ?? 1;
-  const currentXp = userLevel?.current_xp ?? 0;
-  const shards = userLevel?.current_shards ?? 0;
+  // Mesma conta do anel do avatar: XP dentro do nível sobre o custo do nível.
+  const barra = xpNoNivel(userLevel?.total_xp_earned ?? 0);
   // Topo do ladder tem co-requisito de SKILL: Lendário exige Divine, Místico exige Imortal.
   const tier = getGatedTierForLevel(currentLevel, mmrFromRankTier(careerRankTier));
   const tierConfig = TIER_CONFIG[tier];
 
   const nextThreshold = thresholds?.find((t) => t.level === currentLevel + 1);
-  const xpRequiredForNext = nextThreshold?.xp_required ?? 0;
-  const progressPct =
-    xpRequiredForNext > 0
-      ? Math.min(100, Math.floor((currentXp / xpRequiredForNext) * 100))
-      : 100;
+  const progressPct = Math.min(100, Math.floor(barra.pct * 100));
 
   return (
     <div className="space-y-10">
@@ -160,8 +157,8 @@ export async function TabProgresso({
                 <div className="flex items-baseline justify-between mb-1">
                   <span className="font-display font-semibold text-sm uppercase tracking-wide text-white/50">
                     <span className="tabular-nums text-gold">
-                      {currentXp.toLocaleString("pt-BR")} /{" "}
-                      {xpRequiredForNext.toLocaleString("pt-BR")}
+                      {barra.xp.toLocaleString("pt-BR")} /{" "}
+                      {barra.custo.toLocaleString("pt-BR")}
                     </span>{" "}
                     {t("xp")}
                   </span>
@@ -183,17 +180,6 @@ export async function TabProgresso({
                 {t("maxLevelReached", { tier: tierConfig.label })}
               </p>
             )}
-          </div>
-          <div className="flex flex-col items-end gap-1">
-            <p className="font-display font-semibold text-sm uppercase tracking-wide text-gold-muted">
-              {t("shards")}
-            </p>
-            <p className="font-display text-3xl 2xl:text-4xl tabular-nums text-gold">
-              {shards.toLocaleString("pt-BR")}
-            </p>
-            <p className="font-display font-semibold text-sm uppercase tracking-wide tabular-nums text-white/40">
-              {t("totalShards", { total: (userLevel?.total_shards_earned ?? 0).toLocaleString("pt-BR") })}
-            </p>
           </div>
         </div>
       </section>
@@ -250,7 +236,6 @@ export async function TabProgresso({
                 <Th>{t("tableLevel")}</Th>
                 <Th align="right">{t("tableXpRequired")}</Th>
                 <Th align="right">{t("tableTotalXp")}</Th>
-                <Th align="right">{t("tableShards")}</Th>
                 <Th>{t("tableTier")}</Th>
               </tr>
             </thead>
@@ -283,11 +268,6 @@ export async function TabProgresso({
                     <Td align="right">
                       <span className="font-mono text-sm 2xl:text-base text-white/50">
                         {row.total_xp.toLocaleString("pt-BR")}
-                      </span>
-                    </Td>
-                    <Td align="right">
-                      <span className="font-mono text-sm 2xl:text-base tabular-nums text-gold">
-                        {row.shards_reward.toLocaleString("pt-BR")}
                       </span>
                     </Td>
                     <Td>
@@ -334,6 +314,7 @@ export async function TabProgresso({
                               month: "2-digit",
                               hour: "2-digit",
                               minute: "2-digit",
+                              timeZone: "America/Sao_Paulo",
                             })
                           : ""}
                       </p>
@@ -341,11 +322,6 @@ export async function TabProgresso({
                   </div>
                   <div className="flex items-center gap-3 shrink-0">
                     <span className="font-display text-sm 2xl:text-base text-emerald-400">{t("xpGain", { amount: e.xp_amount })}</span>
-                    {(e.shards_awarded ?? 0) > 0 && (
-                      <span className="font-display text-sm 2xl:text-base tabular-nums text-gold">
-                        {t("shardsGain", { amount: e.shards_awarded ?? 0 })}
-                      </span>
-                    )}
                     {leveledUp && (
                       <span className="font-display font-semibold text-sm uppercase tracking-wide text-brand-primary">
                         {t("levelTransition", { from: e.level_before, to: e.level_after })}

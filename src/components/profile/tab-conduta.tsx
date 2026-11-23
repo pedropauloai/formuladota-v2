@@ -99,16 +99,18 @@ export function TabConduta({
         </Link>
       </div>
 
-      {/* Análises de coaching recebidas (sessões coachadas — PRO observa + analisa) */}
-      <div className="space-y-3 pt-2">
-        <h3 className="font-display text-[13px] font-semibold uppercase tracking-[0.08em] text-text-faded">
-          {t("coachingReviewsTitle")}
-        </h3>
-        <CoachingReviewsList
-          reviews={coachingReviews}
-          emptyLabel={t("coachingReviewsEmpty")}
-        />
-      </div>
+      {/* Análises de coaching recebidas: só com alguma, porque as sessões com PRO estão desligadas. */}
+      {coachingReviews.length > 0 && (
+        <div className="space-y-3 pt-2">
+          <h3 className="font-display text-[13px] font-semibold uppercase tracking-[0.08em] text-text-faded">
+            {t("coachingReviewsTitle")}
+          </h3>
+          <CoachingReviewsList
+            reviews={coachingReviews}
+            emptyLabel={t("coachingReviewsEmpty")}
+          />
+        </div>
+      )}
     </div>
   );
 }

@@ -3,12 +3,12 @@
 > **Como usar (agentes e humanos):** leia ESTE arquivo primeiro (~1 página), depois abra
 > SÓ os docs relevantes pra tarefa. Não varrer a pasta inteira. Toda página nova/renomeada
 > entra aqui com 1 linha — página fora do índice é página invisível.
-> Última revisão: 2026-06-11.
+> Última revisão: 2026-11-23.
 
 ## Produto e posicionamento
 
 - [PHILOSOPHY.md](PHILOSOPHY.md) — Os 14 pilares filosóficos e a razão de existência do FORMULADOTA.
-- [INTERNATIONAL.md](INTERNATIONAL.md) — 3 regiões de jogo (BR/LATAM/EU, filas nunca se misturam), 3 idiomas (pt/en/es), tiers Plus/Premium, MP+Stripe. *Novo 2026-07-04.*
+- [INTERNATIONAL.md](INTERNATIONAL.md): 3 regiões de jogo (BR/LATAM/EU, filas nunca se misturam) e 3 idiomas (pt/en/es). A parte de planos (Plus/Premium, Stripe) foi SUPERADA pelo Battlepass de R$ 120 (`docs/battlepass/spec.md`).
 - [POSITIONING.md](POSITIONING.md) — FormulaDota é cultura que usa Dota como terreno; público = jogadores que ainda se importam.
 - [PRODUCT_CORE.md](PRODUCT_CORE.md) — Identidade de marca (Mestre + Guardião), voz, hierarquia de feedback de eventos (HONOR e SKILL).
 
@@ -24,9 +24,9 @@
 
 ## Receita
 
-- [REVENUE_MODEL.md](REVENUE_MODEL.md) — Split 85/10/5; sponsor fee one-time na primeira ficha de novo PRO.
+- [REVENUE_MODEL.md](REVENUE_MODEL.md): **SUPERADO**. Split 85/10/5 das fichas de PRO, com o Ranked com PRO desligado. Receita de hoje: loja (`docs/loja/plano-v3.md`) e Battlepass (`docs/battlepass/spec.md`).
 - [PRICING_MODEL.md](PRICING_MODEL.md) — **DEPRECADO** — pricing descentralizado abandonado; ficha = R$ 10 fixo desde 2026-06-02 (migration 041).
-- [COMPENDIUM.md](COMPENDIUM.md) — **EM IDEAÇÃO** — cosméticos equipáveis + passe sazonal (inspirado no Compendium do TI) + freemium 3 planos (Gratuito/Aegis/Godlike). Assinatura potencializa Compendium.
+- [COMPENDIUM.md](COMPENDIUM.md): **SUPERADO**. Os planos Aegis/Godlike deram lugar ao Battlepass de R$ 120, e o `/compendium` leva para a `/planos`. O destino da trilha e dos cosméticos está em `docs/limpeza-ofertas-antigas.md`.
 - [RANKING_SYSTEM.md](RANKING_SYSTEM.md) — Fundação de nivelamento (2026-07-01): 4 eixos (Valve legado · rank FormulaDota sazonal reusando as 8 medalhas · Nível 1→30 lealdade · Honra conduta+Mural). Reset+calibração por temporada (2 meses, S1 = 01/ago), Místico = Imortal (in-house OU Valve).
 
 ## Metodologia (conteúdo da doutrina)

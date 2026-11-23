@@ -189,8 +189,21 @@ export function xpProgress(totalXp: number): { level: number; pct: number } {
   return { level, pct: Math.max(0, Math.min(1, pct)) };
 }
 
+/**
+ * XP dentro do nível atual e o custo do nível, para a barra "X / Y XP" do /progresso.
+ * Mesma conta do anel do avatar (xpProgress), a partir do XP total.
+ */
+export function xpNoNivel(totalXp: number): { level: number; pct: number; xp: number; custo: number } {
+  const { level, pct } = xpProgress(totalXp);
+  if (level >= 30) return { level: 30, pct: 1, xp: 0, custo: 0 };
+  const piso = LEVEL_CUMULATIVE_XP[level - 1]!;
+  const teto = LEVEL_CUMULATIVE_XP[level]!;
+  return { level, pct, xp: Math.max(0, totalXp - piso), custo: teto - piso };
+}
+
 export const XP_SOURCE_LABELS: Record<string, string> = {
   match_completed: "Partida concluída",
+  doctrine_question: "Pergunta da doutrina",
   doctrine_accepted: "Doutrina aceita",
   doctrine_accepted_backfill: "Doutrina aceita",
   badge_earned: "Badge conquistada",
