@@ -19,7 +19,6 @@ import {
   Radio,
   Swords,
   Palette,
-  ScrollText,
   Crown,
   Bell,
   type LucideIcon,
@@ -214,12 +213,11 @@ export function DashboardTopBar({
         <CommunityCountersBar initial={communityCounters} isLoggedIn={!isVisitor} />
         {realIsAdmin && <PreviewModeToggle previewActive={previewActive} />}
         <div className={cn(topBarEndcap, "flex h-full items-stretch gap-1")}>
-          {/* Atalhos do Compendium: só ícone, com o nome no hover (Pedro 2026-07-01). */}
+          {/* Atalhos do jogador: só ícone, com o nome no hover. */}
           {!isVisitor && (
             <div className="hidden h-full items-stretch gap-1 sm:flex">
               <ChangelogBell unread={changelogUnread} label={t("shell.news")} />
               <TopBarIconTip icon={Palette} label={t("shell.collection")} href="/colecao" />
-              <TopBarIconTip icon={ScrollText} label={t("shell.compendium")} href="/compendium" />
               <TopBarIconTip icon={Crown} label={t("shell.plans")} href="/planos" tone="gold" />
             </div>
           )}

@@ -9,6 +9,7 @@
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import {
+  ArrowRight,
   MessageSquare,
   BookOpen,
   History,
@@ -133,13 +134,15 @@ export async function DashboardRightSidebar({
 /* ------------------------------------------------------------------ */
 /* Card: Últimas partidas — tira de heróis + placar, linka pro histórico. */
 /* ------------------------------------------------------------------ */
+// Seta como ícone, alinhada ao texto e andando um pouco no mouse (o caractere ficava baixo e solto).
 function CardCta({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="block border-t border-border-subtle px-3 py-2 text-center font-body text-sm text-brand-primary transition-colors hover:bg-bg-elevated hover:text-text-display"
+      className="group flex items-center justify-center gap-1.5 border-t border-border-subtle px-3 py-2 font-body text-sm text-brand-primary transition-colors hover:bg-bg-elevated hover:text-text-display"
     >
-      {label} →
+      {label}
+      <ArrowRight size={14} aria-hidden="true" className="shrink-0 transition-transform group-hover:translate-x-0.5" />
     </Link>
   );
 }
@@ -356,9 +359,10 @@ function MuralCard({
       )}
       <Link
         href="/mural"
-        className="block border-t border-error/25 px-3 py-2 text-center font-body text-sm text-error transition-colors hover:bg-error/10"
+        className="group flex items-center justify-center gap-1.5 border-t border-error/25 px-3 py-2 font-body text-sm text-error transition-colors hover:bg-error/10"
       >
-        {cta} →
+        {cta}
+        <ArrowRight size={14} aria-hidden="true" className="shrink-0 transition-transform group-hover:translate-x-0.5" />
       </Link>
     </article>
   );
@@ -401,9 +405,10 @@ function NewsCard({
         <p className="font-sans text-sm leading-relaxed text-text-body">{description}</p>
         <Link
           href={href}
-          className="inline-block font-body text-sm text-brand-primary hover:text-text-display transition-colors"
+          className="group inline-flex items-center gap-1.5 font-body text-sm text-brand-primary hover:text-text-display transition-colors"
         >
-          {cta} →
+          {cta}
+          <ArrowRight size={14} aria-hidden="true" className="shrink-0 transition-transform group-hover:translate-x-0.5" />
         </Link>
       </div>
     </article>

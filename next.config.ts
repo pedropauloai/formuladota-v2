@@ -97,6 +97,8 @@ const config: NextConfig = {
       { source: "/tinker-no-ti", destination: "/", permanent: false },
       { source: "/rankedpt", destination: "/ranked-com-pro", permanent: false },
       { source: "/liga", destination: "/torneios", permanent: false },
+      // O Compendium (passe antigo, sem motor de XP) leva para o Battlepass até a trilha nova existir.
+      { source: "/compendium", destination: "/planos", permanent: false },
       // Atalhos da loja para bio e chat ("formuladota.com.br/ig"): levam à loja com a origem
       // na URL, e o beacon de visita conta de qual rede a pessoa veio.
       ...TRACKED_LINKS.map((link) => ({ source: link.shortPath, destination: link.target, permanent: false })),

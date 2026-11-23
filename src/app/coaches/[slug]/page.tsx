@@ -18,6 +18,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
+import { getFeatureFlags } from "@/lib/queries/feature-flags";
 import { displayAvatar, displayName } from "@/lib/identity";
 import { ClientShell } from "@/components/client-shell/shell";
 import { UserAvatar } from "@/components/ui/avatar";
@@ -217,9 +218,11 @@ export default async function CoachProfilePage({ params }: PageProps) {
     p_score: honorScore ?? 1000,
   });
 
-  // Package avulso principal (primeiro ativo)
+  // Package avulso principal (primeiro ativo). A venda segue a flag do Ranked com PRO:
+  // desligada, a página não mostra preço nem botão de compra.
   const typedPackages = (packages ?? []) as PackageRow[];
-  const mainPackage = typedPackages.find((p) => p.tipo === "avulso");
+  const vendeComPro = (await getFeatureFlags()).ranked_com_pro;
+  const mainPackage = vendeComPro ? typedPackages.find((p) => p.tipo === "avulso") : undefined;
 
   // Histórico do package principal (últimas 5 entradas, mais recentes primeiro)
   const priceHistory: PriceHistoryRow[] = mainPackage
@@ -431,7 +434,7 @@ export default async function CoachProfilePage({ params }: PageProps) {
           {/* CTA compra — "SUBIR DE MMR com {nome}" (contexto público de atração) */}
           {/* Regra PHILOSOPHY.md §Reconciliações: CTA MMR permitido em /coaches/[slug] público */}
           <a
-            href={`/checkout?package=${mainPackage.id}`}
+            href={`/checkout/${mainPackage.id}`}
             className={cn(
               "inline-flex items-center justify-center gap-2 rounded-lg px-6 py-3",
               "font-display text-sm uppercase tracking-widest font-semibold",
