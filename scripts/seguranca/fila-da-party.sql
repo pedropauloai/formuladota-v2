@@ -42,6 +42,7 @@ declare
   d2 uuid;
   d3 uuid;
   d4 uuid;
+  n0 int;
   n1 int;
   n2 int;
   us uuid;
@@ -433,6 +434,8 @@ begin
     update public.store_bookings set queue_state = 'removido' where is_test and queue_state in ('aguardando', 'na_party');
     update public.store_live_sessions set status = 'encerrada' where is_test and status = 'ao_vivo';
     live3 := public.party_fila_abrir_live(true, 20, 2, null);
+    -- O que já ocupa a lotação antes da vaga do dia (a reserva segurada do caso V conta na fila aberta).
+    n0 := public.party_fila_ocupacao(live3);
     insert into public.store_orders (product_id, variant_id, product_title, variant_label, amount_cents, quantity, user_id,
       buyer_name, buyer_email, buyer_whatsapp, payment_method, is_test)
     values (prod, var, 'Vaga na party da live', 'Vaga do dia', 2500, 1, u, 'Teste do dia', 'teste.fila@formuladota.com.br', null, 'pix', true)
@@ -473,8 +476,8 @@ begin
     perform public.party_fila_chamar(live3, d2);
     n := public.party_fila_partida_terminou(live3, 0);
     n2 := public.party_fila_ocupacao(live3);
-    r := array_append(r, (case when n1 = 2 and n2 = 0
-      then 'AH_vaga_do_dia_ocupa_ate_jogar=ok' else 'AH_vaga_do_dia_ocupa_ate_jogar=FALHOU(' || coalesce(n1::text, 'null') || ',' || coalesce(n2::text, 'null') || ')' end)::text);
+    r := array_append(r, (case when n1 = n0 + 2 and n2 = n0
+      then 'AH_vaga_do_dia_ocupa_ate_jogar=ok' else 'AH_vaga_do_dia_ocupa_ate_jogar=FALHOU(' || coalesce(n0::text, 'null') || ',' || coalesce(n1::text, 'null') || ',' || coalesce(n2::text, 'null') || ')' end)::text);
     select count(*) into n from public.store_bookings where id in (d1, d2) and queue_state = 'na_party' and matches_played = 1;
     r := array_append(r, (case when n = 2 then 'AI_sem_fila_continua_na_party=ok' else 'AI_sem_fila_continua_na_party=FALHOU(' || n || ')' end)::text);
   exception when others then
