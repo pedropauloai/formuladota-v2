@@ -170,7 +170,9 @@ export async function ClientShell({
   // Nível + barra de XP + saldo de permissões (pro mini-profile / avatar-ring).
   const userLevel = privateData?.level ?? 1;
   const userXpPct = privateData?.xpPct ?? 0;
-  const matchPermissions = privateData?.permissions ?? 0;
+  // Selo de permissões só com o quiz ligado: desligado, a fila e as salas não pedem permissão
+  // e o selo explicaria um mecanismo que não está valendo.
+  const matchPermissions = featureFlags.doctrine_quiz ? (privateData?.permissions ?? 0) : null;
   // Cosméticos equipados — ring/frame no avatar, smoke no card de busca (fallback null).
   const ringVariant = equipped?.ring ?? null;
   const frameCosmetic = equipped?.frame ?? null;
