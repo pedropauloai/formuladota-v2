@@ -85,8 +85,8 @@ async function swapAndCount(page, player, other, ids) {
   await page.locator("[data-fila-partida-previa]").waitFor({ timeout: 20_000 });
   await page.locator("[data-fila-contar-sem-id]").click();
   const done = await waitFor(async () => ((await bookingState(ids.other))?.queue_state === "concluido" ? true : null), 30_000);
-  const live = (await db.from("store_live_sessions").select("matches_done").eq("id", ids.live).single()).data;
-  check("partida contada sem o ID: quem jogou a única partida conclui", done === true && live?.matches_done === 1);
+  const live = (await db.from("store_live_sessions").select("match_count").eq("id", ids.live).single()).data;
+  check("partida contada sem o ID: quem jogou a única partida conclui", done === true && live?.match_count === 1);
 }
 
 async function run() {
