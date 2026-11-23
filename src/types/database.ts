@@ -2907,6 +2907,7 @@ export type Database = {
           kind: string
           live_session_id: string | null
           matches_played: number
+          modo: string
           no_shows: number
           order_id: string | null
           product_id: string
@@ -2931,6 +2932,7 @@ export type Database = {
           kind: string
           live_session_id?: string | null
           matches_played?: number
+          modo?: string
           no_shows?: number
           order_id?: string | null
           product_id: string
@@ -2955,6 +2957,7 @@ export type Database = {
           kind?: string
           live_session_id?: string | null
           matches_played?: number
+          modo?: string
           no_shows?: number
           order_id?: string | null
           product_id?: string
@@ -3268,6 +3271,7 @@ export type Database = {
           max_quantity: number
           mmr_tiers: Json | null
           mode: string
+          party_mode: string
           monthly_capacity: number | null
           price_unit: string
           requires_login: boolean
@@ -3294,6 +3298,7 @@ export type Database = {
           max_quantity?: number
           mmr_tiers?: Json | null
           mode?: string
+          party_mode?: string
           monthly_capacity?: number | null
           price_unit?: string
           requires_login?: boolean
@@ -3320,6 +3325,7 @@ export type Database = {
           max_quantity?: number
           mmr_tiers?: Json | null
           mode?: string
+          party_mode?: string
           monthly_capacity?: number | null
           price_unit?: string
           requires_login?: boolean

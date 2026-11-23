@@ -3,7 +3,8 @@
 // Compra da vaga na fila: preço e vagas abertas no topo, a vez de quem já comprou, o Pix pendente
 // e o botão. Quem está logado com a Steam vinculada compra em dois toques: "Garantir minha vaga"
 // e "Copiar código Pix". Sem login ou sem Steam, o botão leva a resolver isso e voltar. Quem tem o
-// Battlepass entra na fila sem pagar, com um toque; quem não tem vê o convite para conhecer.
+// Battlepass entra na fila sem pagar, com um toque; quem não tem vê o convite para conhecer. A vaga
+// vale o dia (migration 194): quem já tem uma de pé vê a nota no lugar da compra.
 
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
@@ -35,7 +36,7 @@ function SeatsLine({ live, priceCents }: { live: PublicLive | null; priceCents: 
   const open = live?.seatsOpen ?? 0;
   return (
     <div className="flex flex-wrap items-end justify-between gap-3">
-      <Price cents={priceCents} unit={t("perMatch")} className="text-[2.8rem]" />
+      <Price cents={priceCents} unit={t("perDay")} className="text-[2.8rem]" />
       {live && (
         <p data-fila-vagas={open} className={`text-sm font-medium ${open > 0 ? "text-play-primary" : "text-error"}`}>
           {t("seatsOpen", { count: open })}
@@ -216,9 +217,11 @@ interface PurchaseProps {
   battlepass: boolean;
   /** Quem olha já tem uma entrada de pé na fila (ou na party). */
   inQueue: boolean;
+  /** A entrada de pé é uma vaga do dia: ela já joga a live inteira, então a compra some. */
+  dayPassActive: boolean;
 }
 
-function Purchase({ live, viewer, offer, initialQuantity, onBought, state, battlepass, inQueue }: PurchaseProps) {
+function Purchase({ live, viewer, offer, initialQuantity, onBought, state, battlepass, inQueue, dayPassActive }: PurchaseProps) {
   const t = useTranslations("fila");
   if (!offer.onSale) return <ClosedNote text={t("errors.fechada")} />;
   // Sem nenhuma fila (a fila aberta saiu do banco): as vagas abrem quando o Pedro abrir a live.
@@ -229,6 +232,13 @@ function Purchase({ live, viewer, offer, initialQuantity, onBought, state, battl
     if (inQueue) return <p className="text-xs leading-relaxed text-text-muted">{t("battlepass.inQueueNote")}</p>;
     if (!viewer.hasSteam) return <Gate href="/vincular/steam?next=%2Fparty" label={t("steamCta")} text={t("steamText")} />;
     return <BattlepassJoin onJoined={onBought} state={state} />;
+  }
+  if (dayPassActive) {
+    return (
+      <p data-fila-vaga-do-dia className="text-xs leading-relaxed text-text-muted">
+        {t("dayPassNote")}
+      </p>
+    );
   }
   // Esgotado vem antes do login: o botão de entrar prometeria uma vaga que não existe agora. Com a
   // compra da própria pessoa em andamento, o formulário fica: a vaga contada pode ser a dela.
@@ -280,6 +290,7 @@ export function BuyBox({ view, viewer, offer, initialQuantity, onBought }: BuyBo
   const [buying, setBuying] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const state: PurchaseState = { buying, setBuying, error, setError };
+  const active = mine?.entries.filter((e) => e.state === "aguardando" || e.state === "na_party") ?? [];
   return (
     <Panel tone="gold" shadow="gold" data-fila-live={live?.status ?? "fechada"} className="space-y-4 p-4 md:p-5">
       <SeatsLine live={live} priceCents={offer.priceCents} />
@@ -298,7 +309,8 @@ export function BuyBox({ view, viewer, offer, initialQuantity, onBought }: BuyBo
           onBought={onBought}
           state={state}
           battlepass={mine?.battlepass === true}
-          inQueue={!!mine?.entries.some((e) => e.state === "aguardando" || e.state === "na_party")}
+          inQueue={active.length > 0}
+          dayPassActive={active.some((e) => e.dayPass)}
         />
       )}
       <div id="fila-erro">

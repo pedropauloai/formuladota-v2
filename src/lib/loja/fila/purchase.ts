@@ -11,7 +11,7 @@ import { priceOrder } from "@/lib/loja/pricing";
 import { AGENDA } from "@/lib/loja/agenda";
 import type { Origin } from "@/lib/loja/attribution";
 import type { PaymentMethod } from "@/lib/loja/checkout-schema";
-import { PARTY_PRODUCT_SLUG, getQueueSnapshot, getViewerSteam, readPendingOrder, type ViewerSteam } from "./server";
+import { PARTY_PRODUCT_SLUG, getQueueSnapshot, getViewerSteam, hasActiveDayPass, readPendingOrder, type ViewerSteam } from "./server";
 import { isTestMode } from "@/lib/mercadopago";
 import { seatsOpen } from "./model";
 
@@ -22,7 +22,7 @@ import { seatsOpen } from "./model";
 export const FILA_HOLD_MINUTES = 10;
 
 /** O que pode dar errado, em código: a página traduz para o idioma de quem compra. */
-export type BuySeatError = "fechada" | "steam" | "email" | "sem_live" | "sem_vaga" | "quantidade" | "pagamento";
+export type BuySeatError = "fechada" | "steam" | "email" | "sem_live" | "sem_vaga" | "quantidade" | "ja_tem_vaga" | "pagamento";
 
 export type BuySeatResult =
   | { ok: true; orderId: string; method: PaymentMethod; redirectUrl: string }
@@ -65,6 +65,8 @@ export async function buySeat(args: BuySeatArgs): Promise<BuySeatResult> {
   const pending = await readPendingOrder(args.userId, isTestMode());
   if (pending?.pix) return { ok: true, orderId: pending.id, method: "pix", redirectUrl: "/party" };
   if (!args.email) return { ok: false, error: "email" };
+  // A vaga do dia vale a live inteira (e passa para a próxima se não jogar): a segunda não joga mais.
+  if (await hasActiveDayPass(args.userId, isTestMode())) return { ok: false, error: "ja_tem_vaga" };
   const price = priceOrder(product, variant, { quantity: args.quantity });
   if (!price.ok) return { ok: false, error: "quantidade" };
   const blocked = await precheck(price.quantity);

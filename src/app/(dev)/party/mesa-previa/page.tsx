@@ -3,10 +3,11 @@
 // sem login e sem banco. A moldura imita a casca do admin (barra de cima, menu do admin e a faixa do
 // JOGAR DOTA) nas mesmas medidas. ?cena= escolhe o momento: completar (padrão), jogando, sem-live, vazia;
 // ?cena=estados mostra o "Partida terminou" com a partida achada, que só aparece com o banco.
+// A maioria das vagas é do dia (migration 194); a cortesia e uma vaga comprada antes seguem por partida.
 
 import type { AdminFinishedEntry, AdminQueue, AdminQueueEntry } from "@/lib/loja/fila/admin";
 import type { HistoryMatch } from "@/lib/loja/fila/admin-history";
-import { matchesUntilTurn, type QueueLive } from "@/lib/loja/fila/model";
+import { matchesUntilTurn, remainingMatches, type QueueLive } from "@/lib/loja/fila/model";
 import { FoundMatch, type Found } from "@/app/admin/loja/fila/match-end";
 import { AdminQueuePanel } from "@/app/admin/loja/fila/panel";
 
@@ -25,17 +26,17 @@ interface Seed {
 }
 
 const PEOPLE: Seed[] = [
-  { name: "Kaiser", hero: "juggernaut", persona: "Kaiser", dotaId: "412883017", lastTurn: 95, queued: 160, extra: { battlepass: true } },
+  { name: "Kaiser", hero: "juggernaut", persona: "Kaiser", dotaId: "412883017", lastTurn: 20, queued: 160, extra: { battlepass: true, dayPass: true, played: 2 } },
   { name: "mlkzinho_mid", hero: "invoker", persona: "mlk", dotaId: "198220455", lastTurn: 40, queued: 150, extra: { matches: 2, played: 1 } },
-  { name: "Rafa Supp", hero: "crystal_maiden", persona: "Rafa", dotaId: "305771912", lastTurn: null, queued: 138 },
+  { name: "Rafa Supp", hero: "crystal_maiden", persona: "Rafa", dotaId: "305771912", lastTurn: null, queued: 138, extra: { dayPass: true } },
   { name: "Gabizinha", hero: "windrunner", persona: "gabi <3", dotaId: "87412093", lastTurn: null, queued: 121, extra: { courtesy: true } },
-  { name: "O Rei do Pudge Hook (BR)", hero: "pudge", persona: "reidopudge", dotaId: "260019384", lastTurn: null, queued: 2, extra: { matches: 3 } },
-  { name: "Tavinho", hero: null, persona: null, dotaId: "377120558", lastTurn: 130, queued: 110, extra: { noShows: 1 } },
-  { name: "Juninho Pos5", hero: "lion", persona: "Juninho", dotaId: "102938475", lastTurn: null, queued: 99, extra: { boughtOffline: true } },
-  { name: "Lukinhas", hero: "phantom_assassin", persona: "Lukinhas", dotaId: "455128830", lastTurn: 210, queued: 90, extra: { battlepass: true } },
-  { name: "Mari Offlane", hero: "mars", persona: "Mari", dotaId: "291004417", lastTurn: null, queued: 1, extra: { matches: 2 } },
-  { name: "Zé do Tinker", hero: "tinker", persona: "zé", dotaId: null, lastTurn: 300, queued: 70 },
-  { name: "Biel", hero: "sniper", persona: "Biel", dotaId: "133904721", lastTurn: null, queued: 64, extra: { carriedOver: true } },
+  { name: "O Rei do Pudge Hook (BR)", hero: "pudge", persona: "reidopudge", dotaId: "260019384", lastTurn: null, queued: 2, extra: { dayPass: true } },
+  { name: "Tavinho", hero: null, persona: null, dotaId: "377120558", lastTurn: 130, queued: 110, extra: { noShows: 1, dayPass: true } },
+  { name: "Juninho Pos5", hero: "lion", persona: "Juninho", dotaId: "102938475", lastTurn: null, queued: 99, extra: { boughtOffline: true, dayPass: true } },
+  { name: "Lukinhas", hero: "phantom_assassin", persona: "Lukinhas", dotaId: "455128830", lastTurn: 210, queued: 90, extra: { battlepass: true, dayPass: true } },
+  { name: "Mari Offlane", hero: "mars", persona: "Mari", dotaId: "291004417", lastTurn: null, queued: 1, extra: { dayPass: true } },
+  { name: "Zé do Tinker", hero: "tinker", persona: "zé", dotaId: null, lastTurn: 25, queued: 70, extra: { dayPass: true, played: 2 } },
+  { name: "Biel", hero: "sniper", persona: "Biel", dotaId: "133904721", lastTurn: null, queued: 64, extra: { carriedOver: true, dayPass: true } },
   { name: "Dudu Carry", hero: "faceless_void", persona: "Dudu", dotaId: "219877302", lastTurn: 260, queued: 52, extra: { courtesy: true, matches: 2 } },
 ];
 
@@ -61,6 +62,7 @@ function entry(now: number, seed: Seed, i: number): AdminQueueEntry {
     boughtOffline: false,
     battlepass: false,
     courtesy: false,
+    dayPass: false,
     lastTurnAt: seed.lastTurn === null ? null : ago(now, seed.lastTurn),
     ...seed.extra,
   };
@@ -70,11 +72,7 @@ function entry(now: number, seed: Seed, i: number): AdminQueueEntry {
 function arrange(now: number, entries: AdminQueueEntry[], inParty: number, seats: number): AdminQueueEntry[] {
   const party = entries.slice(0, inParty).map((e) => ({ ...e, state: "na_party" as const, calledAt: ago(now, 9) }));
   const waiting = entries.slice(inParty);
-  const turns = matchesUntilTurn(
-    party.map((p) => p.matches - p.played),
-    waiting.map((w) => w.matches - w.played),
-    seats
-  );
+  const turns = matchesUntilTurn(party.map(remainingMatches), waiting.map(remainingMatches), seats);
   return [...party, ...waiting.map((w, i) => ({ ...w, position: i + 1, matchesUntilTurn: turns[i] ?? null }))];
 }
 
@@ -106,9 +104,10 @@ function history(now: number, people: AdminQueueEntry[]): HistoryMatch[] {
 
 function finished(now: number): AdminFinishedEntry[] {
   return [
-    { id: "f1", name: "Caio Midlaner", state: "concluido", exit: null, matches: 2, played: 2, finishedAt: ago(now, 20), refundCents: 0 },
-    { id: "f2", name: "Henrique", state: "removido", exit: "saiu", matches: 3, played: 1, finishedAt: ago(now, 45), refundCents: 5000 },
-    { id: "f3", name: "Vitinho", state: "removido", exit: "tirado", matches: 1, played: 0, finishedAt: ago(now, 80), refundCents: 0 },
+    { id: "f1", name: "Caio Midlaner", state: "concluido", exit: null, matches: 1, played: 3, finishedAt: ago(now, 20), refundCents: 0, dayPass: true },
+    { id: "f2", name: "Henrique", state: "removido", exit: "saiu", matches: 3, played: 1, finishedAt: ago(now, 45), refundCents: 5000, dayPass: false },
+    { id: "f3", name: "Vitinho", state: "removido", exit: "saiu", matches: 1, played: 0, finishedAt: ago(now, 62), refundCents: 2500, dayPass: true },
+    { id: "f4", name: "Paulinho", state: "removido", exit: "tirado", matches: 1, played: 1, finishedAt: ago(now, 80), refundCents: 0, dayPass: true },
   ];
 }
 

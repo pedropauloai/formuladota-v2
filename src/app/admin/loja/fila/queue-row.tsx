@@ -45,11 +45,18 @@ function rowActions(entry: AdminQueueEntry, ctx: RowContext, run: ReturnType<typ
           },
         ]
       : [];
+  // A vaga do dia não tem saldo de partidas: joga a live inteira no revezamento.
+  const adjust: MenuAction[] = entry.dayPass
+    ? []
+    : [
+        { key: "mais", label: "Dar mais uma partida", icon: <Plus size={16} />, separatorBefore: put.length > 0, disabled: entry.matches >= 20, testId: "mais-partida", run: () => run({ action: () => ajustarPartidas(entry.id, 1), success: `${entry.name}: ${left + 1} partidas a jogar.` }) },
+        { key: "menos", label: "Tirar uma partida", icon: <Minus size={16} />, disabled: left <= 1, testId: "menos-partida", run: () => run({ action: () => ajustarPartidas(entry.id, -1), success: `${entry.name}: ${left - 1} partida${left - 1 === 1 ? "" : "s"} a jogar.` }) },
+      ];
+  const before = put.length + adjust.length > 0;
   return [
     ...put,
-    { key: "mais", label: "Dar mais uma partida", icon: <Plus size={16} />, separatorBefore: put.length > 0, disabled: entry.matches >= 20, testId: "mais-partida", run: () => run({ action: () => ajustarPartidas(entry.id, 1), success: `${entry.name}: ${left + 1} partidas a jogar.` }) },
-    { key: "menos", label: "Tirar uma partida", icon: <Minus size={16} />, disabled: left <= 1, testId: "menos-partida", run: () => run({ action: () => ajustarPartidas(entry.id, -1), success: `${entry.name}: ${left - 1} partida${left - 1 === 1 ? "" : "s"} a jogar.` }) },
-    ...(entry.steamProfileUrl ? [{ key: "steam", label: "Perfil na Steam", icon: <ExternalLink size={16} />, href: entry.steamProfileUrl, separatorBefore: true }] : []),
+    ...adjust,
+    ...(entry.steamProfileUrl ? [{ key: "steam", label: "Perfil na Steam", icon: <ExternalLink size={16} />, href: entry.steamProfileUrl, separatorBefore: before }] : []),
     {
       key: "fila",
       label: "Tirar da fila",
@@ -57,7 +64,7 @@ function rowActions(entry: AdminQueueEntry, ctx: RowContext, run: ReturnType<typ
       confirm: `Confirmar: tirar ${entry.name}`,
       icon: <LogOut size={16} />,
       tone: "danger",
-      separatorBefore: !entry.steamProfileUrl,
+      separatorBefore: !entry.steamProfileUrl && before,
       testId: "tirar-da-fila",
       run: () => run({ action: () => tirarDaFila(entry.id), success: `${entry.name} saiu da fila.` }),
     },
@@ -97,7 +104,12 @@ function Details({ entry, now }: { entry: AdminQueueEntry; now: number }) {
     ["Como entrou", how],
     ["Última vez na party", entry.lastTurnAt ? `${DAY_TIME.format(new Date(entry.lastTurnAt))} (${since(entry.lastTurnAt, now)})` : "Nunca jogou"],
     ["Não apareceu", entry.noShows > 0 ? `${entry.noShows}x` : "Nenhuma vez"],
-    ["Partidas", `${entry.matches - entry.played === 1 ? "falta 1" : `faltam ${entry.matches - entry.played}`} de ${entry.matches}`],
+    [
+      "Partidas",
+      entry.dayPass
+        ? `vaga do dia, ${entry.played > 0 ? `jogou ${entry.played} hoje` : "ainda não jogou hoje"}`
+        : `${entry.matches - entry.played === 1 ? "falta 1" : `faltam ${entry.matches - entry.played}`} de ${entry.matches}`,
+    ],
     ["Nome no Dota", entry.steamPersona ?? "Sem Steam vinculada"],
   ];
   return (
@@ -141,9 +153,21 @@ export function QueueRow({ entry, ctx, expanded, onToggle }: { entry: AdminQueue
           </p>
           <p className="mt-0.5 flex items-center gap-x-2.5 overflow-hidden whitespace-nowrap text-sm leading-5 text-text-muted" suppressHydrationWarning>
             <OriginPill entry={entry} />
-            <span>
-              <b className="font-semibold text-text-body">{left}</b> a jogar
-            </span>
+            {entry.dayPass ? (
+              <span data-fila-vaga-do-dia>
+                {entry.played > 0 ? (
+                  <>
+                    jogou <b className="font-semibold text-text-body">{entry.played}</b> hoje
+                  </>
+                ) : (
+                  "vaga do dia"
+                )}
+              </span>
+            ) : (
+              <span>
+                <b className="font-semibold text-text-body">{left}</b> a jogar
+              </span>
+            )}
             {entry.noShows > 0 && <span className="text-warning">faltou {entry.noShows}x</span>}
             <span className={cn("truncate", !entry.lastTurnAt && "text-play-primary")}>{entry.lastTurnAt ? `jogou ${since(entry.lastTurnAt, ctx.now)}` : "nunca jogou"}</span>
           </p>

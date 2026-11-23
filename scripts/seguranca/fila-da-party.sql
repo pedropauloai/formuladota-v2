@@ -1,4 +1,4 @@
--- Teste de regressão das regras da fila da party (migrations 174 a 179). Abre uma live de teste,
+-- Teste de regressão das regras da fila da party (migrations 174 a 179 e 194). Abre uma live de teste,
 -- reserva, paga, chama, joga, pula, sai, tira e encerra, e termina SEMPRE num erro proposital
 -- (RESULTADO: ...), então a transação inteira volta e nada fica gravado.
 -- PASSA quando todos os itens do RESULTADO dizem "=ok"; cada "=FALHOU" é uma regressão.
@@ -31,6 +31,17 @@ declare
   b9 uuid;
   fila uuid;
   live2 uuid;
+  live3 uuid;
+  u3 uuid;
+  u4 uuid;
+  o11 uuid;
+  o12 uuid;
+  o13 uuid;
+  o14 uuid;
+  d1 uuid;
+  d2 uuid;
+  d3 uuid;
+  d4 uuid;
   n1 int;
   n2 int;
   us uuid;
@@ -54,6 +65,12 @@ begin
   where p.slug = 'vaga-na-party'
   limit 1;
   if u is null or prod is null then raise exception 'RESULTADO: sem usuário ou produto de teste'; end if;
+  -- Os casos A a AF testam a vaga por partida; a vaga do dia (migration 194) vem nos casos AG em diante.
+  begin
+    update public.store_products set party_mode = 'partidas' where id = prod;
+  exception when undefined_column then
+    null;
+  end;
 
   -- A. Pedido da fila sem WhatsApp: o Pedro convida pela Steam.
   begin
@@ -403,6 +420,100 @@ begin
     update public.store_live_sessions set status = 'encerrada' where id = live2;
   exception when others then
     r := array_append(r, ('AF_tirar_da_party_sem_perder_a_vez=FALHOU(' || sqlerrm || ')')::text);
+  end;
+
+  -- Vaga do dia (migration 194): R$ 25 pela live do dia, no revezamento. Fila de teste limpa e dois
+  -- jogadores que nunca jogaram na party de teste, para a ordem não depender de quem já jogou.
+  select id into u3 from public.profiles p where not coalesce(p.is_admin, false) and p.id not in (u, u2)
+     and not exists (select 1 from public.party_participacoes pp where pp.user_id = p.id and pp.is_test) order by p.id limit 1;
+  select id into u4 from public.profiles p where not coalesce(p.is_admin, false) and p.id not in (u, u2, u3)
+     and not exists (select 1 from public.party_participacoes pp where pp.user_id = p.id and pp.is_test) order by p.id limit 1;
+  begin
+    update public.store_products set party_mode = 'dia' where id = prod;
+    update public.store_bookings set queue_state = 'removido' where is_test and queue_state in ('aguardando', 'na_party');
+    update public.store_live_sessions set status = 'encerrada' where is_test and status = 'ao_vivo';
+    live3 := public.party_fila_abrir_live(true, 20, 2, null);
+    insert into public.store_orders (product_id, variant_id, product_title, variant_label, amount_cents, quantity, user_id,
+      buyer_name, buyer_email, buyer_whatsapp, payment_method, is_test)
+    values (prod, var, 'Vaga na party da live', 'Vaga do dia', 2500, 1, u, 'Teste do dia', 'teste.fila@formuladota.com.br', null, 'pix', true)
+    returning id into o11;
+    insert into public.store_orders (product_id, variant_id, product_title, variant_label, amount_cents, quantity, user_id,
+      buyer_name, buyer_email, buyer_whatsapp, payment_method, is_test)
+    values (prod, var, 'Vaga na party da live', 'Vaga do dia', 2500, 1, u2, 'Teste do dia', 'teste.fila@formuladota.com.br', null, 'pix', true)
+    returning id into o12;
+    insert into public.store_orders (product_id, variant_id, product_title, variant_label, amount_cents, quantity, user_id,
+      buyer_name, buyer_email, buyer_whatsapp, payment_method, is_test)
+    values (prod, var, 'Vaga na party da live', 'Vaga do dia', 2500, 1, u3, 'Teste do dia', 'teste.fila@formuladota.com.br', null, 'pix', true)
+    returning id into o13;
+    insert into public.store_orders (product_id, variant_id, product_title, variant_label, amount_cents, quantity, user_id,
+      buyer_name, buyer_email, buyer_whatsapp, payment_method, is_test)
+    values (prod, var, 'Vaga na party da live', 'Vaga do dia', 2500, 1, u4, 'Teste do dia', 'teste.fila@formuladota.com.br', null, 'pix', true)
+    returning id into o14;
+  exception when others then
+    r := array_append(r, ('vaga_do_dia_preparo=FALHOU(' || sqlerrm || ')')::text);
+  end;
+
+  -- AG. A vaga do dia é uma por compra e nasce no modo do dia.
+  begin
+    v := public.store_reservar_fila(o11, prod, 2, null, true);
+    d1 := public.store_reservar_fila(o11, prod, 1, null, true);
+    d2 := public.store_reservar_fila(o12, prod, 1, null, true);
+    select modo into st from public.store_bookings where id = d1;
+    r := array_append(r, (case when v is null and d1 is not null and d2 is not null and st = 'dia'
+      then 'AG_vaga_do_dia_uma_por_compra=ok' else 'AG_vaga_do_dia_uma_por_compra=FALHOU(' || coalesce(v::text, 'null') || ',' || coalesce(st, 'null') || ')' end)::text);
+  exception when others then
+    r := array_append(r, ('AG_vaga_do_dia_uma_por_compra=FALHOU(' || sqlerrm || ')')::text);
+  end;
+
+  -- AH. A vaga do dia ocupa a lotação até jogar a primeira partida; AI. sem ninguém esperando, quem
+  --     jogou continua na party para a próxima partida, sem convite de novo.
+  begin
+    n1 := public.party_fila_ocupacao(live3);
+    perform public.party_fila_chamar(live3, d1);
+    perform public.party_fila_chamar(live3, d2);
+    n := public.party_fila_partida_terminou(live3, 0);
+    n2 := public.party_fila_ocupacao(live3);
+    r := array_append(r, (case when n1 = 2 and n2 = 0
+      then 'AH_vaga_do_dia_ocupa_ate_jogar=ok' else 'AH_vaga_do_dia_ocupa_ate_jogar=FALHOU(' || coalesce(n1::text, 'null') || ',' || coalesce(n2::text, 'null') || ')' end)::text);
+    select count(*) into n from public.store_bookings where id in (d1, d2) and queue_state = 'na_party' and matches_played = 1;
+    r := array_append(r, (case when n = 2 then 'AI_sem_fila_continua_na_party=ok' else 'AI_sem_fila_continua_na_party=FALHOU(' || n || ')' end)::text);
+  exception when others then
+    r := array_append(r, ('AH_vaga_do_dia_ocupa_ate_jogar=FALHOU(' || sqlerrm || ')')::text);
+  end;
+
+  -- AJ. Chegou quem ainda não jogou: depois da partida, um lugar abre para ele (cede quem entrou depois
+  --     na fila, com o mesmo número de partidas), e quem chegou é chamado antes de quem acabou de jogar.
+  begin
+    d3 := public.store_reservar_fila(o13, prod, 1, null, true);
+    n := public.party_fila_partida_terminou(live3, 1);
+    select queue_state into st from public.store_bookings where id = d1;
+    select queue_state into st2 from public.store_bookings where id = d2;
+    v := public.party_fila_chamar(live3, null);
+    r := array_append(r, (case when st = 'na_party' and st2 = 'aguardando' and v = d3
+      then 'AJ_revezamento_abre_lugar=ok' else 'AJ_revezamento_abre_lugar=FALHOU(' || coalesce(st, 'null') || ',' || coalesce(st2, 'null') || ',' || coalesce(v::text, 'null') || ')' end)::text);
+  exception when others then
+    r := array_append(r, ('AJ_revezamento_abre_lugar=FALHOU(' || sqlerrm || ')')::text);
+  end;
+
+  -- AK. A vaga do dia não tem saldo de partidas para somar ou tirar.
+  begin
+    r := array_append(r, (case when public.party_fila_ajustar_partidas(d1, 1) is null
+      then 'AK_vaga_do_dia_sem_saldo=ok' else 'AK_vaga_do_dia_sem_saldo=FALHOU' end)::text);
+  exception when others then
+    r := array_append(r, ('AK_vaga_do_dia_sem_saldo=FALHOU(' || sqlerrm || ')')::text);
+  end;
+
+  -- AL. Fim da live: a vaga do dia que jogou termina; a que ainda não jogou (na party ou na fila)
+  --     passa para a próxima live.
+  begin
+    d4 := public.store_reservar_fila(o14, prod, 1, null, true);
+    perform public.party_fila_encerrar_live(live3);
+    select count(*) into n from public.store_bookings where id in (d1, d2) and queue_state = 'concluido';
+    select count(*) into n1 from public.store_bookings where id in (d3, d4) and queue_state = 'aguardando' and matches_played = 0;
+    r := array_append(r, (case when n = 2 and n1 = 2
+      then 'AL_fim_da_live_termina_quem_jogou=ok' else 'AL_fim_da_live_termina_quem_jogou=FALHOU(' || n || ',' || n1 || ')' end)::text);
+  exception when others then
+    r := array_append(r, ('AL_fim_da_live_termina_quem_jogou=FALHOU(' || sqlerrm || ')')::text);
   end;
 
   -- O. Logado comum não opera a fila, não reserva direto e não lê as reservas.

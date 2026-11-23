@@ -1,5 +1,6 @@
 // Aviso ao Pedro no canal de vendas quando alguém sai da fila sozinho: quanto devolver no Mercado
-// Pago (as partidas que a pessoa não jogou). Falha de aviso nunca desfaz a saída: só loga.
+// Pago (as partidas que a pessoa não jogou; a vaga do dia, se não jogou nenhuma). Sem nada a devolver
+// (quem já jogou com a vaga do dia), não há aviso. Falha de aviso nunca desfaz a saída: só loga.
 
 import "server-only";
 import { createServiceClient } from "@/lib/supabase/service";
@@ -35,14 +36,14 @@ async function loadExit(bookingId: string): Promise<ExitInfo | null> {
 export async function sendQueueExitNotice(bookingId: string): Promise<boolean> {
   const url = process.env.SALES_DISCORD_WEBHOOK_URL;
   const info = url ? await loadExit(bookingId) : null;
-  if (!url || !info) return false;
+  if (!url || !info || info.refundCents <= 0) return false;
   const pedro = process.env.PEDRO_DISCORD_USER_ID;
   const mention = pedro && /^\d{5,25}$/.test(pedro) ? `<@${pedro}> ` : "";
   // Nome do comprador vai como texto: nada de formatação nem menção injetada.
   const name = info.name.replace(/([\\`*_~|>@])/g, "\\$1");
   const panel = `${publicEnv.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "")}/admin/loja/fila`;
   const content =
-    `${mention}${info.isTest ? "[TESTE] " : ""}fila da party: ${name} saiu da fila antes de jogar. ` +
+    `${mention}${info.isTest ? "[TESTE] " : ""}fila da party: ${name} saiu da fila. ` +
     `Devolver ${formatBRL(info.refundCents)} no Mercado Pago (pedido ${info.orderId}).\n${panel}`;
   try {
     const response = await fetch(`${url}?wait=true`, {

@@ -1,7 +1,8 @@
 "use client";
 
 // A vez de quem comprou: posição e partidas até entrar, a chamada para a party, o fim das
-// partidas, e o Pix (ou o cartão) que ainda espera pagamento.
+// partidas, e o Pix (ou o cartão) que ainda espera pagamento. A vaga do dia (migration 194) conta
+// as partidas de hoje no lugar de "partida X de Y".
 
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
@@ -24,7 +25,11 @@ function CalledCard({ entry, dotaId }: { entry: MyQueueEntry; dotaId: string | n
         <Gamepad2 size={26} aria-hidden="true" /> {t("calledTitle")}
       </p>
       <p className="text-sm text-text-body">{t("calledText")}</p>
-      <p className="text-sm font-medium text-text-display">{t("calledProgress", { current: Math.min(entry.played + 1, entry.matches), total: entry.matches })}</p>
+      <p className="text-sm font-medium text-text-display">
+        {entry.dayPass
+          ? t("calledProgressDay", { count: entry.played + 1 })
+          : t("calledProgress", { current: Math.min(entry.played + 1, entry.matches), total: entry.matches })}
+      </p>
       {dotaId && <p className="text-xs text-text-muted">{t("dotaId", { id: dotaId })}</p>}
       <a
         href={OPEN_DOTA_URL}
@@ -81,6 +86,11 @@ function WaitingCard({ entry, onAir, onChanged }: { entry: MyQueueEntry; onAir: 
         </p>
       )}
       <p className="text-sm text-text-body">{next ? t("waitingNext") : t("waitingIn", { count: entry.matchesUntilTurn ?? 0 })}</p>
+      {entry.dayPass && entry.played > 0 && (
+        <p data-fila-jogou-hoje={entry.played} className="text-sm text-text-body">
+          {t("waitingPlayedToday", { count: entry.played })}
+        </p>
+      )}
       {/* Comprou fora da live: a fila só anda quando a live começar. */}
       <p className="text-xs leading-relaxed text-text-muted">{t(onAir ? "waitingHint" : "waitingHintOffAir")}</p>
       {entry.noShows > 0 && <p className="rounded-sm border border-warning/40 bg-warning/10 p-2 text-xs text-text-body">{t("noShowNote")}</p>}
