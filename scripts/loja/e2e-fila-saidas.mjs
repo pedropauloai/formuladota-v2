@@ -47,6 +47,12 @@ async function outcome(page) {
   return Promise.race([pix, error]);
 }
 
+/** Confere que a compra mostrou o Pix. Se não mostrou, o aviso da página vira o detalhe da falha. */
+async function checkPix(name, page) {
+  const result = await outcome(page);
+  check(name, result === "pix", result === "pix" ? "" : (result ?? "nem Pix nem aviso em 60 s"));
+}
+
 async function pay(buyer) {
   const order = await latestOrder(buyer);
   const payment = await sandboxCardPayment(order.id, order.amount_cents / 100, buyer.email);
@@ -63,7 +69,7 @@ async function raceForLastSeats(state, buyers, pages) {
   check("a vaga do dia é uma por compra: sem escolher partidas", (await pages[0].getByRole("button", { name: "Mais uma partida" }).count()) === 0);
   check("o preço vem pela vaga do dia", await pages[0].getByText("pela vaga do dia").first().isVisible());
   await pages[0].locator("[data-fila-comprar='pix']").click();
-  check("Ana garante a vaga do dia, com o Pix na página", (await outcome(pages[0])) === "pix");
+  await checkPix("Ana garante a vaga do dia, com o Pix na página", pages[0]);
   const ana = await latestOrder(buyers[0]);
   check("a vaga do dia cobra R$ 25", ana.quantity === 1 && ana.amount_cents === 2500);
   check("a reserva nasce no modo do dia", (await bookingOf(ana.id))?.modo === "dia");
@@ -133,7 +139,7 @@ async function buyFreedSeat(buyers, pages, loser) {
   const button = pages[loser].locator("[data-fila-comprar='pix']");
   await button.waitFor({ timeout: 25_000 });
   await button.click();
-  check("quem tinha ficado sem compra a vaga que voltou", (await outcome(pages[loser])) === "pix");
+  await checkPix("quem tinha ficado sem compra a vaga que voltou", pages[loser]);
   const payment = await pay(buyers[loser]);
   // Revezamento (migration 192): quem nunca jogou entra na frente de quem não apareceu.
   await position(pages[loser], 1);
@@ -178,7 +184,7 @@ async function buyAfterFirstMatch(buyers, pages) {
   const button = pages[FABI].locator("[data-fila-comprar='pix']");
   await button.waitFor({ timeout: 25_000 });
   await button.click();
-  check("com a lotação liberada, Fabi garante a vaga do dia", (await outcome(pages[FABI])) === "pix");
+  await checkPix("com a lotação liberada, Fabi garante a vaga do dia", pages[FABI]);
   await pay(buyers[FABI]);
   await position(pages[FABI], 1);
   check("quem nunca jogou entra na frente de quem já jogou hoje", true);

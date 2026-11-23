@@ -498,10 +498,12 @@ begin
     r := array_append(r, ('AJ_revezamento_abre_lugar=FALHOU(' || sqlerrm || ')')::text);
   end;
 
-  -- AK. A vaga do dia não tem saldo de partidas para somar ou tirar.
+  -- AK. A vaga do dia não tem saldo de partidas para somar ou tirar. Confere antes que d1 é mesmo uma
+  --     vaga do dia: sem ela, o ajuste devolveria nulo por não achar a reserva, e o caso passaria à toa.
   begin
-    r := array_append(r, (case when public.party_fila_ajustar_partidas(d1, 1) is null
-      then 'AK_vaga_do_dia_sem_saldo=ok' else 'AK_vaga_do_dia_sem_saldo=FALHOU' end)::text);
+    select modo into st from public.store_bookings where id = d1;
+    r := array_append(r, (case when st = 'dia' and public.party_fila_ajustar_partidas(d1, 1) is null
+      then 'AK_vaga_do_dia_sem_saldo=ok' else 'AK_vaga_do_dia_sem_saldo=FALHOU(' || coalesce(st, 'sem vaga do dia') || ')' end)::text);
   exception when others then
     r := array_append(r, ('AK_vaga_do_dia_sem_saldo=FALHOU(' || sqlerrm || ')')::text);
   end;
