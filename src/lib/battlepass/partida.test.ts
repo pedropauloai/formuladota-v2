@@ -18,7 +18,7 @@ function match(ppaSlot: number, accounts: (number | null)[]): MatchLike {
 describe("partida do PPA", () => {
   it("acha o time do PPA (Iluminados) e a hora em que a partida acabou", () => {
     const result = partyFromMatch(match(0, [null, 11, 12, null, 14, 21, 22, 23, 24, 25]));
-    expect(result).toEqual({ ok: true, playedAt: new Date((1_795_000_000 + 2400) * 1000).toISOString(), teammates: [11, 12, 14], hidden: 1 });
+    expect(result).toEqual({ ok: true, playedAt: new Date((1_795_000_000 + 2400) * 1000).toISOString(), teammates: [11, 12, 14], hidden: 1, won: null });
   });
 
   it("funciona com o PPA nos Temidos", () => {
@@ -65,5 +65,17 @@ describe("partida jogada numa smurf do PPA", () => {
     const c = [{ match_id: 4, start_time: 400, duration: 10 }];
     expect(commonRecentMatch([a, b, c], 2)?.match_id).toBe(3);
     expect(commonRecentMatch([a, b, c], 3)).toBeNull();
+  });
+});
+
+describe("resultado da partida para o time do PPA", () => {
+  it("vitória e derrota pelo lado do PPA; sem o dado, null", () => {
+    const radiantPpa = match(0, [null, 11, 12, 13, 14, 21, 22, 23, 24, 25]);
+    const r1 = partyFromMatch({ ...radiantPpa, radiant_win: true }, [PPA]);
+    const r2 = partyFromMatch({ ...radiantPpa, radiant_win: false }, [PPA]);
+    const r3 = partyFromMatch(radiantPpa, [PPA]);
+    expect(r1.ok && r1.won).toBe(true);
+    expect(r2.ok && r2.won).toBe(false);
+    expect(r3.ok && r3.won).toBeNull();
   });
 });

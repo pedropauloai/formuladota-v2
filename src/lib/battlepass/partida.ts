@@ -19,6 +19,8 @@ export interface MatchLike {
   match_id: number;
   start_time: number;
   duration: number;
+  /** Os Iluminados venceram (a OpenDota manda sempre que a partida terminou). */
+  radiant_win?: boolean | null;
   players: readonly MatchPlayerLike[];
 }
 
@@ -31,6 +33,8 @@ export type PartyFromMatch =
       teammates: number[];
       /** Quantos do time do PPA estão com o perfil do Dota privado. */
       hidden: number;
+      /** O time do PPA venceu; null quando a OpenDota não diz. */
+      won: boolean | null;
     }
   | { ok: false; reason: "sem_ppa" | "incompleta" };
 
@@ -53,6 +57,7 @@ export function partyFromMatch(match: MatchLike, ppaAccountIds: readonly number[
     playedAt: new Date((match.start_time + Math.max(0, match.duration)) * 1000).toISOString(),
     teammates,
     hidden: team.length - teammates.length,
+    won: typeof match.radiant_win === "boolean" ? match.radiant_win === isRadiant(anchor.player_slot) : null,
   };
 }
 

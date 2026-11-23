@@ -5,8 +5,8 @@
 // O que prova (docs/definicao-de-pronto.md, B4 a B7):
 // - Pix de 30 dias: gera na página, o pagamento aprovado ativa por 30 dias, o segundo soma mais 30,
 //   a notificação repetida não soma de novo, e a garantia encerra o acesso e avisa o Pedro.
-// - Fila da party: o assinante entra sem pagar pela /party, o selo aparece no JSON público, o painel
-//   chama e registra a partida pela "Última do PPA", e a participação fica com a hora real da partida.
+// - Fila da party: o assinante entra sem pagar pela /party, o selo aparece no JSON público, a mesa
+//   completa a party e conta a partida que ela acha na OpenDota, e a participação fica com a hora real.
 // - Cartão: abre a assinatura de R$ 120 no Mercado Pago, o navegador chega ao checkout, a volta
 //   espera a primeira cobrança, e a assinatura abandonada é cancelada no Mercado Pago.
 // O sandbox só autoriza cartão com conta de comprador de teste do Mercado Pago: a primeira cobrança
@@ -107,10 +107,13 @@ async function pixFlow(browser, buyer) {
   return [paid, paid2];
 }
 
-/** Última partida pública do PPA na OpenDota e a hora em que acabou. */
+/** Contas do PPA no Dota (a principal e as smurfs), as mesmas de PPA_ACCOUNT_IDS em src/lib/battlepass/partida.ts. */
+const PPA_ACCOUNTS = [1123609219, 201687094, 1667196039];
+
+/** Última partida pública do PPA na OpenDota, em qualquer conta dele, e a hora em que acabou. */
 async function ppaLastMatch() {
-  const recent = await fetch("https://api.opendota.com/api/players/1123609219/recentMatches").then((r) => r.json());
-  const last = Array.isArray(recent) ? recent[0] : null;
+  const lists = await Promise.all(PPA_ACCOUNTS.map((id) => fetch(`https://api.opendota.com/api/players/${id}/recentMatches`).then((r) => r.json()).catch(() => [])));
+  const last = lists.filter(Array.isArray).flat().sort((a, b) => b.start_time - a.start_time)[0];
   if (!last?.match_id) throw new Error("a OpenDota não devolveu a última partida do PPA");
   return { matchId: String(last.match_id), endedAt: (last.start_time + last.duration) * 1000 };
 }
@@ -140,17 +143,19 @@ async function queueFlow(browser, subscriber, admin) {
     const adminContext = await buyerContext(browser, admin, { desktop: true });
     const panel = await adminContext.newPage();
     await panel.goto(`${BASE}/admin/loja/fila`, { waitUntil: "domcontentloaded" });
-    await panel.getByRole("button", { name: "Chamar o próximo" }).click();
+    await panel.locator("[data-fila-completar]").click();
     const called = await waitFor(async () => {
       const { data } = await db.from("store_bookings").select("queue_state").eq("id", entry.id).single();
       return data?.queue_state === "na_party" ? true : null;
     }, 30_000, 1000);
     check("fila: o painel chama o assinante para a party", called === true);
     const expected = await ppaLastMatch();
-    await panel.locator("[data-fila-partida-id]").waitFor({ timeout: 15_000 });
-    await panel.getByRole("button", { name: "Última do PPA" }).click();
-    await waitFor(async () => ((await panel.locator("[data-fila-partida-id]").inputValue()) === expected.matchId ? true : null), 20_000, 500);
+    // A live de teste abriu agora e a partida do PPA é anterior: a live passa a ter aberto antes dela,
+    // senão a mesa recusa a partida como de antes da live.
+    await db.from("store_live_sessions").update({ on_air_at: new Date(expected.endedAt - 60 * 60 * 1000).toISOString() }).eq("id", live).eq("is_test", true);
     await panel.locator("[data-fila-partida-terminou]").click();
+    await panel.locator("[data-fila-partida-previa]").getByText(expected.matchId).waitFor({ timeout: 45_000 });
+    await panel.locator("[data-fila-contar-partida]").click();
     const participation = await waitFor(async () => {
       const { data } = await db.from("party_participacoes").select("*").eq("user_id", subscriber.id).eq("is_test", true).eq("dota_match_id", Number(expected.matchId));
       return data?.[0] ?? null;

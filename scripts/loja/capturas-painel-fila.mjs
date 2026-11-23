@@ -54,8 +54,8 @@ async function capture(browser, admin, width, height, name) {
   await page.goto(`${BASE}/admin/loja/fila`);
   await page.locator("[data-fila-linha]").first().waitFor({ timeout: 90_000 });
   await page.screenshot({ path: `${OUT}/${name}.png`, fullPage: true });
-  await page.locator("[data-fila-linha]").nth(1).getByText(/Teste/).click();
-  await page.getByRole("button", { name: "Fechar os detalhes" }).waitFor({ timeout: 15_000 });
+  await page.locator("[data-fila-linha] > [role=button]").nth(1).click();
+  await page.locator("[data-fila-linha] > [aria-expanded='true']").waitFor({ timeout: 15_000 });
   await page.screenshot({ path: `${OUT}/${name}-detalhe.png`, fullPage: true });
   console.log(`captura: ${OUT}/${name}.png e -detalhe.png`);
   await context.close();
