@@ -146,7 +146,7 @@ Site em Next.js 16 no Cloudflare Workers pelo OpenNext; Supabase com RLS obrigat
 - **Custo:** fora da página da sala ninguém vê a tela: ela segue chegando na camada leve e volta à escolhida ao abrir a sala. A faixa não é solta nem pedida de novo, porque criar faixa no meio da conexão às vezes quebra a renegociação no Chrome ("RTP extension ID reassignment not supported", visto no e2e em 24/11/2026); trocar a camada não renegocia.
 - **Ligação que trava:** quando uma faixa pedida não chega nem na segunda tentativa (8 s cada), o navegador dá a conexão por perdida, ou a voz some do servidor duas vezes seguidas, a sessão sai e entra de novo por baixo (2 ou 3 s, "Reconectando" na tela). Visto no e2e em 24/11/2026: depois de o dono parar e voltar a compartilhar, a renegociação às vezes matava a sessão do ouvinte no SFU ("Session appears to be disconnected"). Quem compartilhava a tela precisa escolher a janela de novo, porque o navegador só abre a escolha com um clique.
 - **Peso do site:** o painel vai em todas as páginas, mas o código da conexão (partytracks e rxjs) só carrega na página da sala ou quando há sala anotada para retomar.
-- **Painel:** duas posições para o PPA escolher vendo, no canto de baixo em cima da party (padrão) ou numa faixa no alto à direita; a que perder sai do código.
+- **Painel:** no canto de baixo, em cima da party, como no Discord (escolha do PPA em 24/11/2026, entre essa e uma pílula dentro da barra de cima).
 
 ## 6. Rotas do servidor
 
