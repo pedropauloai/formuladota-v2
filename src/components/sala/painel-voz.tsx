@@ -2,8 +2,9 @@
 
 // Painel de voz em todas as páginas do site enquanto a pessoa está numa sala (como no Discord): o nome
 // da sala, quem está falando, mutar, parar a tela, sair e voltar para a sala. Some na própria página da
-// sala. Duas posições para o PPA escolher vendo: no canto de baixo, em cima da party (padrão), ou numa
-// faixa no alto à direita (localStorage "formuladota:painel-voz" = "topo").
+// sala. Duas posições para o PPA escolher vendo: no canto de baixo, em cima da party (padrão), ou dentro
+// da barra de cima, no vão entre as abas e os ícones (localStorage "formuladota:painel-voz" = "topo"); o
+// vão só existe a partir de 1800 px, e abaixo disso a segunda posição cai para o canto.
 
 import { useSyncExternalStore } from "react";
 import { useTranslations } from "next-intl";
@@ -28,9 +29,10 @@ function posicaoGuardada(): Posicao {
   }
 }
 
+const CANTO = "left-4 bottom-[92px] w-[332px] flex-col gap-2 p-3 2xl:w-[352px]";
 const LUGAR: Record<Posicao, string> = {
-  canto: "left-4 bottom-[92px] w-[332px] flex-col gap-2 p-3 2xl:w-[352px]",
-  topo: "right-4 top-[64px] h-8 items-center gap-2 px-2 xl:top-[72px]",
+  canto: CANTO,
+  topo: `${CANTO} min-[1800px]:bottom-auto min-[1800px]:top-[10px] min-[1800px]:left-[57%] min-[1800px]:h-10 min-[1800px]:w-auto min-[1800px]:max-w-[420px] min-[1800px]:-translate-x-1/2 min-[1800px]:flex-row min-[1800px]:items-center min-[1800px]:gap-3 min-[1800px]:px-3 min-[1800px]:py-0`,
 };
 
 function Botao({ titulo, onClick, children, data }: { titulo: string; onClick: () => void; children: React.ReactNode; data: string }) {
