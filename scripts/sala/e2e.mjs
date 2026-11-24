@@ -115,6 +115,8 @@ async function blockAndKick(t, pDono, pAluno) {
   await confirmDialog(pDono);
   const saiu = await waitFor(async () => (await pAluno.locator('[data-sala-fase="saiu"][data-sala-motivo="expulso"]').count()) > 0, 15_000);
   check("o aluno expulso sai da sala", !!saiu);
+  const turn = await db.from("voice_room_members").select("turn_username").eq("room_id", t.sala.id).eq("user_id", t.aluno.id).single();
+  check("a credencial de TURN do expulso é revogada", turn.data?.turn_username === null, String(turn.data?.turn_username));
   const volta = await apiPost(pAluno, `/api/sala/${t.sala.id}/entrar`);
   check("o expulso não volta (entrar dá 403)", volta.status === 403 && volta.body.errorCode === "expulso", `HTTP ${volta.status} ${volta.body.errorCode}`);
 }

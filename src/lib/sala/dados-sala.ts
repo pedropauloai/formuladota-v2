@@ -153,6 +153,18 @@ export async function kickMember(db: Db, roomId: string, userId: string, byUserI
   if (error) throw new Error(`expulsar: ${error.message}`);
 }
 
+export async function setTurnUsername(db: Db, roomId: string, userId: string, username: string | null): Promise<void> {
+  await db.from("voice_room_members").update({ turn_username: username }).eq("room_id", roomId).eq("user_id", userId);
+}
+
+/** Nomes das credenciais de TURN da sala (de uma pessoa ou de todas), para revogar. */
+export async function turnUsernames(db: Db, roomId: string, userId?: string): Promise<string[]> {
+  let q = db.from("voice_room_members").select("turn_username").eq("room_id", roomId).not("turn_username", "is", null);
+  if (userId) q = q.eq("user_id", userId);
+  const { data } = await q;
+  return (data ?? []).map((m) => m.turn_username as string);
+}
+
 const pairKey = (a: string, b: string) => (a < b ? `${a}:${b}` : `${b}:${a}`);
 
 /** Pares bloqueados (em qualquer direção) entre as pessoas da lista. */

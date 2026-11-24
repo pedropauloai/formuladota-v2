@@ -6,7 +6,7 @@ import { z } from "zod";
 import type { CallContext } from "./contexto";
 import { capBytesFor } from "./custo";
 import { findTrack, getSession, labelTrack } from "./dados-rtc";
-import { ensureMember, touchMember, type Db } from "./dados-sala";
+import { ensureMember, setTurnUsername, touchMember, type Db } from "./dados-sala";
 import { canShareScreen, decideLabel } from "./faixas";
 import { generateIceServers, realtimeEnv } from "./realtime-api";
 import { closeUserSessions } from "./sessoes";
@@ -25,12 +25,13 @@ export async function enterRoom(ctx: CallContext): Promise<EntradaResult> {
   const env = realtimeEnv();
   if (!env || !room || !settings || !userId) return { ok: false, code: "sala_indisponivel" };
   const left = Math.floor((new Date(room.closesAt).getTime() - ctx.now.getTime()) / 1000);
-  const iceServers = await generateIceServers(env, Math.min(TURN_MAX_S, Math.max(TURN_MIN_S, left)));
+  const turn = await generateIceServers(env, Math.min(TURN_MAX_S, Math.max(TURN_MIN_S, left)), `sala-${room.id}`);
   await ensureMember(ctx.db, room.id, userId, decision.role, decision.role === "dono" ? "dono" : "party");
   await touchMember(ctx.db, room.id, userId, null, ctx.now);
+  await setTurnUsername(ctx.db, room.id, userId, turn.username);
   const share = canShareScreen(decision.role, room.kind, room.screenPolicy, settings.partyScreenEnabled);
   const capOk = settings.usageBytes30d < capBytesFor(settings.capGb30d);
-  return { ok: true, iceServers, papel: decision.role, videoMaxKbps: settings.videoMaxKbps, podeCompartilharTela: share && capOk };
+  return { ok: true, iceServers: turn.iceServers, papel: decision.role, videoMaxKbps: settings.videoMaxKbps, podeCompartilharTela: share && capOk };
 }
 
 export async function leaveRoom(ctx: CallContext): Promise<void> {

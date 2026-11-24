@@ -4263,6 +4263,7 @@ export type Database = {
           role: string
           room_id: string
           status: string
+          turn_username: string | null
           user_id: string
         }
         Insert: {
@@ -4275,6 +4276,7 @@ export type Database = {
           role?: string
           room_id: string
           status?: string
+          turn_username?: string | null
           user_id: string
         }
         Update: {
@@ -4287,6 +4289,7 @@ export type Database = {
           role?: string
           room_id?: string
           status?: string
+          turn_username?: string | null
           user_id?: string
         }
         Relationships: []

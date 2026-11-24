@@ -4,8 +4,8 @@
 
 import "server-only";
 import { closeMids, closeSessionRows, openMidsOf, openSessions, openSubscriptions, type CloseReason, type SessionRow } from "./dados-rtc";
-import type { Db } from "./dados-sala";
-import { forceCloseTracks, type RealtimeEnv } from "./realtime-api";
+import { setTurnUsername, turnUsernames, type Db } from "./dados-sala";
+import { forceCloseTracks, revokeTurnCredential, type RealtimeEnv } from "./realtime-api";
 
 async function cutOnSfu(db: Db, env: RealtimeEnv | null, sessions: SessionRow[]): Promise<void> {
   if (!env) return;
@@ -54,4 +54,12 @@ export async function cutSubscriptions(
     })
   );
   return subs.length;
+}
+
+/** Revoga a credencial de TURN (de uma pessoa ou da sala inteira): quem saiu à força não usa mais o TURN. */
+export async function revokeTurn(db: Db, env: RealtimeEnv | null, roomId: string, userId?: string): Promise<void> {
+  if (!env) return;
+  const names = await turnUsernames(db, roomId, userId);
+  await Promise.all(names.map((name) => revokeTurnCredential(env, name)));
+  if (userId) await setTurnUsername(db, roomId, userId, null);
 }

@@ -9,7 +9,7 @@ import type { CallContext } from "./contexto";
 import { openSessions } from "./dados-rtc";
 import { kickMember, listMembers } from "./dados-sala";
 import { realtimeEnv } from "./realtime-api";
-import { closeUserSessions, cutSubscriptions } from "./sessoes";
+import { closeUserSessions, cutSubscriptions, revokeTurn } from "./sessoes";
 
 export const UserBody = z.object({ userId: z.string().uuid() });
 export const MOTIVOS = ["assedio", "conteudo_sexual", "menor_em_risco", "ameaca", "discriminacao", "spam", "outro"] as const;
@@ -46,6 +46,7 @@ export async function kick(ctx: CallContext, targetId: string): Promise<Moderaca
   if (targetId === room.ownerId) return { ok: false, code: "dono_nao_sai" };
   await kickMember(ctx.db, room.id, targetId, userId, ctx.now);
   await closeUserSessions(ctx.db, realtimeEnv(), { roomId: room.id, userId: targetId }, "expulso", ctx.now);
+  await revokeTurn(ctx.db, realtimeEnv(), room.id, targetId);
   return { ok: true };
 }
 

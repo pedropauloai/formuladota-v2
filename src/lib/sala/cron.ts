@@ -10,7 +10,7 @@ import { getSettings, type Db } from "./dados-sala";
 import { openSessions, type SessionRow } from "./dados-rtc";
 import { computeUsageBytes, saveUsageCache } from "./dados-uso";
 import { realtimeEnv } from "./realtime-api";
-import { closeSessions } from "./sessoes";
+import { closeSessions, revokeTurn } from "./sessoes";
 
 const SEM_SINAL_MS = 45_000;
 const PICO_BYTES_HORA = 20_000_000_000;
@@ -41,7 +41,10 @@ async function closeStale(db: Db, now: Date): Promise<number> {
 
 async function closeExpired(db: Db, now: Date): Promise<number> {
   const { data } = await db.from("voice_rooms").update({ status: "encerrada", closed_at: now.toISOString() }).eq("status", "aberta").lt("closes_at", now.toISOString()).select("id");
-  for (const room of data ?? []) await closeSessions(db, realtimeEnv(), await openSessions(db, { roomId: room.id }), "sala_encerrada", now);
+  for (const room of data ?? []) {
+    await closeSessions(db, realtimeEnv(), await openSessions(db, { roomId: room.id }), "sala_encerrada", now);
+    await revokeTurn(db, realtimeEnv(), room.id);
+  }
   return (data ?? []).length;
 }
 
