@@ -35,9 +35,16 @@ describe("reuseSummary", () => {
     expect(reuseSummary(undefined, NOW.getTime())).toBe(false);
   });
 
-  it("resumo com resultado não volta ao OpenDota", () => {
+  it("resumo que achou o PPA não volta ao OpenDota", () => {
     const r = resumo(1);
     expect(reuseSummary(r, fim(r) + horas(1))).toBe(true);
+    expect(reuseSummary(r, fim(r) + horas(500))).toBe(true);
+  });
+
+  it("resumo com resultado mas sem o PPA volta ao OpenDota, mesmo depois de dias (a conta pode ter entrado na lista)", () => {
+    const r = { ...resumo(1), ppaHeroId: null };
+    expect(reuseSummary(r, fim(r) + horas(1))).toBe(false);
+    expect(reuseSummary(r, fim(r) + horas(120))).toBe(false);
   });
 
   it("resumo do formato antigo, sem os heróis da party, volta ao OpenDota uma vez", () => {
@@ -46,7 +53,7 @@ describe("reuseSummary", () => {
   });
 
   it("sem resultado, tenta de novo no primeiro dia e para depois dele", () => {
-    const r = { ...resumo(1), won: null, radiant: null };
+    const r = { ...resumo(1), won: null, radiant: null, ppaHeroId: null };
     expect(reuseSummary(r, fim(r) + horas(23))).toBe(false);
     expect(reuseSummary(r, fim(r) + horas(25))).toBe(true);
   });

@@ -91,12 +91,12 @@ function live(now: number, status: QueueLive["status"], matchesDone: number, occ
 }
 
 function history(now: number, people: AdminQueueEntry[]): HistoryMatch[] {
-  const p = (i: number, confirmed: boolean, kind: "jogou" | "nao_apareceu" = "jogou") => {
+  const p = (i: number, confirmed: boolean) => {
     const e = people[i % people.length] as AdminQueueEntry;
-    return { userId: e.id, name: e.name, avatarUrl: e.avatarUrl, kind, confirmed };
+    return { userId: e.id, name: e.name, avatarUrl: e.avatarUrl, confirmed };
   };
   return [
-    { key: "h3", matchId: "9101887263", playedAt: ago(now, 14), players: [p(7, true), p(9, true), p(11, false), p(5, false, "nao_apareceu")] },
+    { key: "h3", matchId: "9101887263", playedAt: ago(now, 14), players: [p(7, true), p(9, true), p(11, false), p(5, false)] },
     { key: "h2", matchId: "9101790118", playedAt: ago(now, 58), players: [p(0, true), p(1, true), p(11, true), p(10, false)] },
     { key: "h1", matchId: null, playedAt: ago(now, 101), players: [p(0, false), p(3, false)] },
   ];
