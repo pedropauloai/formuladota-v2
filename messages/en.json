@@ -296,7 +296,7 @@
     "levelToNext": "{pct}% to Level {next}",
     "sidebar": {
       "recentTitle": "Party matches",
-      "recentCta": "See all",
+      "recentCta": "See all matches",
       "recentEmpty": "Party matches show up here after each stream.",
       "rankingTitle": "Ranking leaders",
       "rankingCta": "See full ranking",
