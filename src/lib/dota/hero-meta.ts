@@ -20,7 +20,7 @@ export interface MetaRow {
   face: string;
   attr: HeroAttr;
   winRate: number; // %
-  pickRate: number; // % de participação na função selecionada
+  pickRate: number; // % das partidas da função (em "Todas", % das partidas do período)
   matches: number; // amostra (nº de partidas)
 }
 
@@ -30,10 +30,11 @@ export interface MetaResult {
   avgWinRate: number;
 }
 
-// Participação mínima na função — corta o off-meta raríssimo (ex: Leshrac carry
-// com 100 jogos e WR inflado) que distorceria o topo. Não é opinião: é validade
-// estatística (auto-ajusta por posição, pois é % do total de picks).
-const MIN_PICK_RATE = 0.5;
+// Abaixo de 1% das partidas a amostra é pequena demais para a vitória valer; o corte é o mesmo na função e em "Todas".
+const MIN_PICK_RATE = 1;
+// Na STRATZ, cada função tem 2 linhas por partida (um herói por time); a partida inteira tem 10.
+const ROWS_PER_MATCH_IN_ROLE = 2;
+const ROWS_PER_MATCH = 10;
 
 function normalizeAttr(primaryAttr: string): HeroAttr {
   if (primaryAttr === "str" || primaryAttr === "agi" || primaryAttr === "int") {
@@ -87,9 +88,19 @@ function aggregateByHero(
   return acc;
 }
 
+/** Partidas da função na soma da STRATZ; em "Todas", as partidas do período inteiro. */
+export function matchesInPeriod(stats: PositionStat[], position: MetaPosition): number {
+  let rows = 0;
+  for (const s of stats) {
+    if (position !== "all" && s.position !== Number(position)) continue;
+    rows += s.matchCount;
+  }
+  return rows / (position === "all" ? ROWS_PER_MATCH : ROWS_PER_MATCH_IN_ROLE);
+}
+
 /**
  * Constrói as linhas da tabela de meta, filtradas por função e ordenadas por win
- * rate decrescente. pickRate = participação do herói no total de picks da função.
+ * rate decrescente. pickRate = partidas do herói ÷ partidas da função (ou do período, em "Todas").
  */
 export function buildMetaRows(
   heroes: HeroMetaSource[],
@@ -98,7 +109,7 @@ export function buildMetaRows(
 ): MetaResult {
   const meta = buildMetaMap(heroes);
   const byHero = aggregateByHero(stats, position);
-  const totalMatches = [...byHero.values()].reduce((s, v) => s + v.matches, 0);
+  const totalMatches = matchesInPeriod(stats, position);
 
   const rows: MetaRow[] = [];
   for (const [heroId, agg] of byHero) {
