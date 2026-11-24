@@ -52,6 +52,7 @@ export default async function HomePage() {
         isVisitor={isVisitor}
         prosOnlineCount={prosOnlineCount}
         showRankedComPro={showRankedComPro}
+        showLiga={flags.fila_competitiva}
       />
     </ClientShell>
   );

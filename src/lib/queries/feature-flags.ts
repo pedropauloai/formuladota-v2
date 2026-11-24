@@ -36,8 +36,8 @@ export interface FeatureFlags {
   /** Enquete da Liga do FORMULADOTA (migration 180). ON = a coluna direita mostra a enquete no
    *  lugar do Top do ranking; OFF = o ranking volta. Critério em docs/enquete-liga.md. */
   enquete_liga: boolean;
-  /** Sala de voz com tela (migration 195, spec em docs/comunicacao/spec.md). OFF = /sala some para
-   *  todos, inclusive o admin. */
+  /** Sala de voz com tela (spec em docs/comunicacao/spec.md). OFF = /sala some para todos,
+   *  inclusive o admin, e a aba dela sai da barra de cima. */
   sala_voz: boolean;
 }
 

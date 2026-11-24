@@ -41,6 +41,9 @@ import { EnqueteLigaCard } from "./enquete-liga-card";
 const HEROES_FULL_BG =
   "https://cdn.steamstatic.com/apps/dota2/images/dota_react/home/heroes_full.jpg";
 
+// A coluna mostra as últimas 5; a página /partidas mostra todas as que o cache guarda.
+const SIDEBAR_PARTY_MATCHES = 5;
+
 interface Props {
   floating?: boolean;
   /** Feature flag: mostra o card "Boost de MMR / Ranked com PRO". Off = esconde. */
@@ -49,8 +52,10 @@ interface Props {
   showEnqueteLiga?: boolean;
   /** Admin efetivo (fora do "ver como usuário comum"): a enquete mostra também Talvez e Não. */
   isAdmin?: boolean;
-  /** Flag fila_competitiva (a liga): o Mural da Vergonha só aparece com ela ligada. */
-  showMural?: boolean;
+  /** Flag fila_competitiva (a liga): o Mural da Vergonha e o top do ranking só aparecem com ela. */
+  showLiga?: boolean;
+  /** Fora da página /partidas, que já mostra a lista inteira. */
+  showPartyMatches?: boolean;
 }
 
 export async function DashboardRightSidebar({
@@ -58,19 +63,22 @@ export async function DashboardRightSidebar({
   showRankedComPro = false,
   showEnqueteLiga = false,
   isAdmin = false,
-  showMural = false,
+  showLiga = false,
+  showPartyMatches = true,
 }: Props) {
   const [t, locale] = await Promise.all([getTranslations("shell"), getLocale()]);
-  // Com a enquete no lugar, o ranking nem é buscado; sem a liga, o Mural também não.
+  // Com a enquete no lugar, o ranking nem é buscado; sem a liga, nem o ranking nem o Mural.
   const [{ topRanking, bans, season }, enquete, owner, partyMatches] = await Promise.all([
-    getSidebarData({ ranking: !showEnqueteLiga, mural: showMural }),
+    getSidebarData({ ranking: showLiga && !showEnqueteLiga, mural: showLiga }),
     showEnqueteLiga ? lerEnqueteDeQuemVe(isAdmin) : Promise.resolve(null),
     getOwnerProof(),
     // Sem o banco, o card mostra o vazio em vez de derrubar a coluna.
-    getRegisteredPartyMatches().catch((err: unknown) => {
-      console.error("[sidebar] partidas da party:", err instanceof Error ? err.message : err);
-      return [] as RegisteredPartyMatch[];
-    }),
+    showPartyMatches
+      ? getRegisteredPartyMatches(SIDEBAR_PARTY_MATCHES).catch((err: unknown) => {
+          console.error("[sidebar] partidas da party:", err instanceof Error ? err.message : err);
+          return [] as RegisteredPartyMatch[];
+        })
+      : Promise.resolve([] as RegisteredPartyMatch[]),
   ]);
 
   // pr-10 (2.5rem) = mesma margem direita do botão "Jogar Dota" (marginRight 2.5rem
@@ -93,21 +101,23 @@ export async function DashboardRightSidebar({
         />
       )}
 
-      <PartyMatchesCard
-        matches={partyMatches}
-        summaries={owner?.partyMatches ?? []}
-        locale={locale}
-        title={t("sidebar.recentTitle")}
-        empty={t("sidebar.recentEmpty")}
-        won={t("sidebar.won")}
-        lost={t("sidebar.lost")}
-        withPlayers={(count) => t("sidebar.withPlayers", { count })}
-      />
+      {showPartyMatches && (
+        <PartyMatchesCard
+          matches={partyMatches}
+          summaries={owner?.partyMatches ?? []}
+          locale={locale}
+          title={t("sidebar.recentTitle")}
+          empty={t("sidebar.recentEmpty")}
+          won={t("sidebar.won")}
+          lost={t("sidebar.lost")}
+          withPlayers={(count) => t("sidebar.withPlayers", { count })}
+        />
+      )}
 
       {showEnqueteLiga ? (
         // Banco fora do ar: o card some em vez de mostrar número errado.
         enquete && <EnqueteLigaCard initial={enquete} />
-      ) : (
+      ) : showLiga && (
         <RankingCard
           rows={topRanking}
           title={t("sidebar.rankingTitle")}
@@ -123,7 +133,7 @@ export async function DashboardRightSidebar({
         />
       )}
 
-      {showMural && (
+      {showLiga && (
         <MuralCard
           bans={bans}
           title={t("sidebar.muralTitle")}

@@ -26,9 +26,14 @@ status() { curl $R -s -o /dev/null --max-time 20 -w '%{http_code}' "$1"; }
 destino() { curl $R -s -o /dev/null --max-time 20 -w '%{http_code} %{redirect_url}' "$1"; }
 
 if curl $R -fsSL --max-time 30 "$U/" | grep -q "FORMULADOTA"; then confere "home com FORMULADOTA" sim sim; else confere "home com FORMULADOTA" sim nao; fi
-confere "apex para www" "308 $U/ranking" "$(destino "$APEX/ranking")"
+confere "apex para www" "308 $U/meta" "$(destino "$APEX/meta")"
 confere "http para https" "301 $U/" "$(destino "http://$H/")"
-for p in /ranking /codigo-de-conduta; do confere "$p" 200 "$(status "$U$p")"; done
+for p in /meta /codigo-de-conduta; do confere "$p" 200 "$(status "$U$p")"; done
+# Ranking, Times e Torneios são da liga (flag fila_competitiva): abertos com ela, e sem ela levam à home.
+for p in /ranking /times /torneios; do
+  r=$(destino "$U$p")
+  case "$r" in "200 "|"307 $U/") confere "$p (liga)" sim sim ;; *) confere "$p (liga)" "200 ou 307 para a home" "$r" ;; esac
+done
 # Links antigos que seguem nas descrições do YouTube (next.config.ts).
 confere "/tinker" "307 $U/" "$(destino "$U/tinker")"
 confere "/rankedpt" "307 $U/ranked-com-pro" "$(destino "$U/rankedpt")"
@@ -58,7 +63,7 @@ case "$fixa" in 200|307|404) confere "endereço fixo /sala responde sem erro" si
 # O microfone e a captura de tela só valem nas páginas da sala (next.config.ts); o resto do site segue sem.
 pp_sala=$(curl $R -s -I --max-time 20 "$U/sala/00000000-0000-4000-8000-000000000000" | tr -d '\r' | grep -i '^permissions-policy:')
 case "$pp_sala" in *'microphone=(self)'*'display-capture=(self)'*) confere "sala libera microfone e tela" sim sim ;; *) confere "sala libera microfone e tela" sim "nao ($pp_sala)" ;; esac
-pp_site=$(curl $R -s -I --max-time 20 "$U/ranking" | tr -d '\r' | grep -i '^permissions-policy:')
+pp_site=$(curl $R -s -I --max-time 20 "$U/meta" | tr -d '\r' | grep -i '^permissions-policy:')
 case "$pp_site" in *'microphone=()'*) confere "resto do site sem microfone" sim sim ;; *) confere "resto do site sem microfone" sim "nao ($pp_site)" ;; esac
 # Arquivo com hash no nome guardado pelo navegador por um ano (public/_headers).
 chunk=$(curl $R -fsSL --max-time 30 "$U/" | grep -o '/_next/static/[^"]*\.js' | head -1)

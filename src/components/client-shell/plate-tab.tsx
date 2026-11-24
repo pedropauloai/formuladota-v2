@@ -12,7 +12,7 @@ interface PlateTabProps {
   href: string;
   label: string;
   active: boolean;
-  /** Ponto vermelho de ao vivo (aba Loja com a live do Pedro no ar). */
+  /** Ponto vermelho de ao vivo (aba Fila com a live do PPA no ar). */
   live?: boolean;
   /** Texto do ponto para leitor de tela ("ao vivo"). */
   liveLabel?: string;
