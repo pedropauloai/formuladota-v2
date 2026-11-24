@@ -2,7 +2,8 @@
 
 // Ajustes da live, num popover do topo da mesa (mexe-se pouco neles durante a live): lugares na
 // party, o vídeo do YouTube e encerrar. A fila não tem tamanho: quem pagou joga, nesta live ou na
-// próxima. Encerrar pede um segundo toque.
+// próxima. A live fecha sozinha 3 horas depois da última chamada ou partida; encerrar aqui é para
+// tirar o "ao vivo" do site na hora, e pede um segundo toque.
 
 import { useState } from "react";
 import { Popover } from "@base-ui/react/popover";
@@ -27,9 +28,12 @@ function CloseLive({ data, onClose }: { data: AdminQueue; onClose: () => void })
   return (
     <div className="space-y-2 border-t border-white/10 p-4">
       {!asking ? (
-        <OpButton tone="danger" size="sm" icon={<Power size={15} aria-hidden="true" />} onClick={() => setAsking(true)} data-fila-encerrar>
-          Encerrar a live
-        </OpButton>
+        <>
+          <OpButton tone="danger" size="sm" icon={<Power size={15} aria-hidden="true" />} onClick={() => setAsking(true)} data-fila-encerrar>
+            Encerrar a live
+          </OpButton>
+          <p className="text-sm leading-relaxed text-text-muted">Não precisa: ela fecha sozinha 3 horas depois da última chamada ou partida.</p>
+        </>
       ) : (
         <>
           <p className="text-sm leading-relaxed text-text-muted">
@@ -60,7 +64,7 @@ function Settings({ data, onClose }: { data: AdminQueue; onClose: () => void }) 
   const [perMatch, setPerMatch] = useState(live?.seatsPerMatch ?? 4);
   const [youtube, setYoutube] = useState(live?.youtubeVideoId ? `https://youtu.be/${live.youtubeVideoId}` : "");
   const { pending, run } = useAction();
-  if (!live) return <p className="p-4 text-[15px] text-text-muted">A fila aberta não está no banco. Abra a live para começar.</p>;
+  if (!live) return <p className="p-4 text-[15px] text-text-muted">A fila aberta não está no banco, então não há o que ajustar.</p>;
   return (
     <>
       <div className="space-y-4 p-4">

@@ -1,45 +1,16 @@
 "use client";
 
 // O topo da party diz o próximo passo da live e tem o único botão verde da mesa, sempre no mesmo
-// lugar: abrir a live, completar a party ou marcar a partida que terminou. A frase ao lado diz o que
-// vai acontecer, com os nomes de quem entra.
+// lugar: completar a party (fora do ar, isso abre a live) ou marcar a partida que terminou. A frase
+// ao lado diz o que vai acontecer, com os nomes de quem entra.
 
-import { useState, type ReactNode } from "react";
-import { Play, UsersRound } from "lucide-react";
+import type { ReactNode } from "react";
+import { UsersRound } from "lucide-react";
 import type { AdminQueue } from "@/lib/loja/fila/admin";
 import { nextStep, stepStatus } from "@/lib/loja/fila/mesa";
-import { abrirLive } from "./actions";
 import { MatchEndButton } from "./match-end";
 import { OpButton, SectionTitle } from "./ui";
-import { useAction } from "./use-console";
-import { FILA_SEM_LIMITE } from "@/lib/loja/fila/model";
-
-function OpenLive({ data }: { data: AdminQueue }) {
-  const [youtube, setYoutube] = useState("");
-  const open = useAction();
-  const live = data.live;
-  return (
-    <form
-      className="flex flex-wrap items-center gap-2"
-      onSubmit={(e) => {
-        e.preventDefault();
-        open.run({ action: () => abrirLive(FILA_SEM_LIMITE, live?.seatsPerMatch ?? 4, youtube), success: "Live aberta. A party já pode chamar a fila." });
-      }}
-    >
-      <input
-        type="url"
-        value={youtube}
-        onChange={(e) => setYoutube(e.target.value)}
-        placeholder="Link da live no YouTube (opcional)"
-        aria-label="Link da live no YouTube (opcional)"
-        className="h-14 w-80 rounded-[var(--radius-button)] border border-white/10 bg-bg-deep px-3 text-[15px] text-text-display placeholder:text-text-faded focus:border-white/25 focus:outline-none"
-      />
-      <OpButton type="submit" tone="go" size="xl" pending={open.pending} icon={<Play size={18} aria-hidden="true" />} data-fila-abrir-live>
-        Abrir a live
-      </OpButton>
-    </form>
-  );
-}
+import type { useAction } from "./use-console";
 
 interface PartyHeaderProps {
   data: AdminQueue;
@@ -69,7 +40,6 @@ export function PartyHeader({ data, fill, onFill, matchEndOpen, setMatchEndOpen 
         </p>
       </div>
       <div className="ml-auto flex flex-wrap items-center gap-2">
-        {step === "abrir" && <OpenLive data={data} />}
         {step === "completar" && party.length > 0 && endButton(false)}
         {step === "completar" && (
           <OpButton tone="go" size="xl" kbd="C" pending={fill.pending} onClick={onFill} icon={<UsersRound size={18} aria-hidden="true" />} data-fila-completar>

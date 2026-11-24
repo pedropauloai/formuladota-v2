@@ -3,7 +3,8 @@
 // Os lugares da party como no cliente do Dota: o PPA no primeiro, de aro dourado, e um lugar para
 // cada jogador, de aro verde. Em cada lugar, o nome que aparece no Dota (o da Steam) e o ID para
 // copiar e convidar; "Trocar" escolhe quem entra da fila e o resto (falta, tirar, partidas, perfil)
-// fica no menu. O lugar livre mostra quem é o próximo da fila.
+// fica no menu. O lugar livre mostra quem é o próximo da fila e o Chamar, que abre a live se ela
+// estiver fora do ar.
 
 import Image from "next/image";
 import { ArrowLeftRight, ExternalLink, LogOut, Minus, Plus, UserMinus } from "lucide-react";
@@ -21,7 +22,7 @@ import { useAction } from "./use-console";
 const SLOT = "flex min-h-[13.5rem] flex-col rounded-md border p-3.5";
 const MEMBER_RIM = "rounded-sm shadow-[0_0_0_1px_color-mix(in_oklab,var(--color-play-primary)_60%,transparent),0_2px_6px_rgb(0_0_0/0.5)]";
 
-function seatActions(entry: AdminQueueEntry, liveId: string, run: ReturnType<typeof useAction>["run"]): MenuAction[] {
+function seatActions(entry: AdminQueueEntry, run: ReturnType<typeof useAction>["run"]): MenuAction[] {
   const left = entry.matches - entry.played;
   return [
     {
@@ -29,7 +30,7 @@ function seatActions(entry: AdminQueueEntry, liveId: string, run: ReturnType<typ
       label: "Tirar da party",
       hint: "Volta para a fila no mesmo lugar; joga quem está presente.",
       icon: <UserMinus size={16} />,
-      run: () => run({ action: () => tirarDaParty(entry.id), success: `${entry.name} voltou para a fila.`, undo: () => chamarProximo(liveId, entry.id) }),
+      run: () => run({ action: () => tirarDaParty(entry.id), success: `${entry.name} voltou para a fila.`, undo: () => chamarProximo(entry.id) }),
       testId: "tirar-da-party",
     },
     // A vaga do dia não tem saldo de partidas: joga a live inteira no revezamento.
@@ -69,7 +70,7 @@ function seatActions(entry: AdminQueueEntry, liveId: string, run: ReturnType<typ
   ];
 }
 
-function Seat({ entry, liveId, swapping, onSwap }: { entry: AdminQueueEntry; liveId: string; swapping: boolean; onSwap: (id: string | null) => void }) {
+function Seat({ entry, swapping, onSwap }: { entry: AdminQueueEntry; swapping: boolean; onSwap: (id: string | null) => void }) {
   const { pending, run } = useAction();
   return (
     <article
@@ -104,26 +105,18 @@ function Seat({ entry, liveId, swapping, onSwap }: { entry: AdminQueueEntry; liv
           >
             {swapping ? "Cancelar a troca" : "Trocar"}
           </OpButton>
-          <ActionMenu label={`Ações de ${entry.name}`} actions={seatActions(entry, liveId, run)} />
+          <ActionMenu label={`Ações de ${entry.name}`} actions={seatActions(entry, run)} />
         </div>
       </div>
     </article>
   );
 }
 
-function EmptySeat({ next, liveId, onAir }: { next: AdminQueueEntry | null; liveId: string | null; onAir: boolean }) {
+function EmptySeat({ next }: { next: AdminQueueEntry | null }) {
   const { pending, run } = useAction();
   return (
     <div className={cn(SLOT, "items-center justify-center gap-3 border-dashed border-white/[0.12] text-center")} data-fila-lugar="livre">
-      {!onAir && next ? (
-        <>
-          <p className="text-sm text-text-muted">Entra quando a live abrir</p>
-          <UserAvatar src={next.avatarUrl ?? undefined} alt={next.name} fallback={next.name.slice(0, 2).toUpperCase()} size="md" className="opacity-50" />
-          <p className="max-w-full truncate text-[15px] font-medium text-text-body">{next.name}</p>
-        </>
-      ) : !onAir ? (
-        <p className="text-sm text-text-muted">Abre quando a live começar</p>
-      ) : next && liveId ? (
+      {next ? (
         <>
           <p className="text-sm text-text-muted">Próximo da fila</p>
           <UserAvatar src={next.avatarUrl ?? undefined} alt={next.name} fallback={next.name.slice(0, 2).toUpperCase()} size="md" className="opacity-70" />
@@ -131,7 +124,7 @@ function EmptySeat({ next, liveId, onAir }: { next: AdminQueueEntry | null; live
           <OpButton
             size="sm"
             pending={pending}
-            onClick={() => run({ action: () => chamarProximo(liveId, next.id), success: `${next.name} entrou na party.`, undo: () => tirarDaParty(next.id) })}
+            onClick={() => run({ action: () => chamarProximo(next.id), success: `${next.name} entrou na party.`, undo: () => tirarDaParty(next.id) })}
             data-fila-chamar
           >
             Chamar
@@ -169,17 +162,16 @@ interface PartySlotsProps {
 }
 
 export function PartySlots({ live, party, waiting, swapFor, onSwap }: PartySlotsProps) {
-  const onAir = live?.status === "ao_vivo";
   const seats = Math.min(4, Math.max(1, live?.seatsPerMatch ?? 4));
   const members = party.slice(0, seats);
   return (
     <div className="grid gap-3 p-4" style={{ gridTemplateColumns: `7.5rem repeat(${seats}, minmax(0, 1fr))` }}>
       <OwnerSeat />
       {members.map((e) => (
-        <Seat key={e.id} entry={e} liveId={live?.id ?? ""} swapping={swapFor === e.id} onSwap={onSwap} />
+        <Seat key={e.id} entry={e} swapping={swapFor === e.id} onSwap={onSwap} />
       ))}
       {Array.from({ length: seats - members.length }, (_, i) => (
-        <EmptySeat key={`livre-${i}`} next={waiting[i] ?? null} liveId={live?.id ?? null} onAir={onAir} />
+        <EmptySeat key={`livre-${i}`} next={waiting[i] ?? null} />
       ))}
     </div>
   );

@@ -21,7 +21,7 @@ const NEW_MS = 5 * 60 * 1000;
 
 export interface RowContext {
   liveId: string | null;
-  /** Live no ar e lugar livre na party. */
+  /** Lugar livre na party (fora do ar, pôr alguém nela abre a live). */
   canPut: boolean;
   /** Quem sai da party, numa troca. */
   swapFor: AdminQueueEntry | null;
@@ -31,9 +31,8 @@ export interface RowContext {
 
 function rowActions(entry: AdminQueueEntry, ctx: RowContext, run: ReturnType<typeof useAction>["run"]): MenuAction[] {
   const left = entry.matches - entry.played;
-  const { liveId } = ctx;
   const put: MenuAction[] =
-    ctx.canPut && liveId
+    ctx.canPut
       ? [
           {
             key: "party",
@@ -41,7 +40,7 @@ function rowActions(entry: AdminQueueEntry, ctx: RowContext, run: ReturnType<typ
             hint: "No lugar livre, fora da ordem da fila.",
             icon: <ArrowUpToLine size={16} />,
             testId: "por-na-party",
-            run: () => run({ action: () => chamarProximo(liveId, entry.id), success: `${entry.name} entrou na party.`, undo: () => tirarDaParty(entry.id) }),
+            run: () => run({ action: () => chamarProximo(entry.id), success: `${entry.name} entrou na party.`, undo: () => tirarDaParty(entry.id) }),
           },
         ]
       : [];
