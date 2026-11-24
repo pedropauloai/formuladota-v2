@@ -15,6 +15,7 @@ import { panel, v2Page } from "@/components/v2";
 import type { AdminQueue } from "@/lib/loja/fila/admin";
 import type { HistoryMatch } from "@/lib/loja/fila/admin-history";
 import { nextStep } from "@/lib/loja/fila/mesa";
+import { FILA_SEM_LIMITE } from "@/lib/loja/fila/model";
 import { cn } from "@/lib/utils";
 import { completarParty } from "./actions";
 import { LiveSettings } from "./live-settings";
@@ -61,6 +62,8 @@ function LiveBadge({ data, now }: { data: AdminQueue; now: number }) {
 function Header({ data, now }: { data: AdminQueue; now: number }) {
   const live = data.live;
   const open = live ? Math.max(0, live.queueSize - live.occupied) : 0;
+  // A fila da live real não tem tamanho; a contagem só aparece numa live de teste com tamanho menor.
+  const limited = live !== null && live.queueSize < FILA_SEM_LIMITE;
   return (
     <header className="flex flex-wrap items-center gap-x-8 gap-y-3">
       <div className="flex items-center gap-4">
@@ -68,7 +71,7 @@ function Header({ data, now }: { data: AdminQueue; now: number }) {
         <LiveBadge data={data} now={now} />
       </div>
       <div className="flex flex-wrap items-baseline gap-x-7 gap-y-1">
-        <Stat label={open === 1 ? "vaga à venda" : "vagas à venda"} value={open} tone="text-gold" />
+        {limited && <Stat label={open === 1 ? "vaga à venda" : "vagas à venda"} value={open} tone="text-gold" />}
         {live?.status === "ao_vivo" && <Stat label={live.matchesDone === 1 ? "partida na live" : "partidas na live"} value={live.matchesDone} />}
       </div>
       <div className="ml-auto flex items-center gap-1">

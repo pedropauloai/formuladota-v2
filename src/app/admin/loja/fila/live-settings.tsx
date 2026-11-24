@@ -1,7 +1,8 @@
 "use client";
 
-// Ajustes da live, num popover do topo da mesa (mexe-se pouco neles durante a live): tamanho da
-// fila, lugares na party, o vídeo do YouTube e encerrar. Encerrar pede um segundo toque.
+// Ajustes da live, num popover do topo da mesa (mexe-se pouco neles durante a live): lugares na
+// party, o vídeo do YouTube e encerrar. A fila não tem tamanho: quem pagou joga, nesta live ou na
+// próxima. Encerrar pede um segundo toque.
 
 import { useState } from "react";
 import { Popover } from "@base-ui/react/popover";
@@ -9,6 +10,7 @@ import { Power, SlidersHorizontal } from "lucide-react";
 import type { AdminQueue } from "@/lib/loja/fila/admin";
 import { cn } from "@/lib/utils";
 import { ajustarVagas, encerrarLive } from "./actions";
+import { FILA_SEM_LIMITE } from "@/lib/loja/fila/model";
 import { OpButton, POPUP } from "./ui";
 import { useAction } from "./use-console";
 
@@ -55,7 +57,6 @@ function CloseLive({ data, onClose }: { data: AdminQueue; onClose: () => void })
 function Settings({ data, onClose }: { data: AdminQueue; onClose: () => void }) {
   const live = data.live;
   const onAir = live?.status === "ao_vivo";
-  const [size, setSize] = useState(live?.queueSize ?? 20);
   const [perMatch, setPerMatch] = useState(live?.seatsPerMatch ?? 4);
   const [youtube, setYoutube] = useState(live?.youtubeVideoId ? `https://youtu.be/${live.youtubeVideoId}` : "");
   const { pending, run } = useAction();
@@ -63,13 +64,6 @@ function Settings({ data, onClose }: { data: AdminQueue; onClose: () => void }) 
   return (
     <>
       <div className="space-y-4 p-4">
-        <label className="flex items-center justify-between gap-3 text-[15px] text-text-body">
-          <span>
-            Tamanho da fila
-            <span className="block text-sm text-text-muted">partidas esperando ao mesmo tempo</span>
-          </span>
-          <input type="number" min={0} max={100} value={size} onChange={(e) => setSize(Math.max(0, Math.min(100, Number(e.target.value) || 0)))} className={cn(FIELD, "w-20 text-right tabular-nums")} />
-        </label>
         <div className="flex items-center justify-between gap-3 text-[15px] text-text-body">
           <span>Lugares na party</span>
           <div className="flex rounded-[var(--radius-button)] border border-white/10 p-0.5" role="radiogroup" aria-label="Lugares na party">
@@ -96,7 +90,7 @@ function Settings({ data, onClose }: { data: AdminQueue; onClose: () => void }) 
         <OpButton
           size="sm"
           pending={pending}
-          onClick={() => run({ action: () => ajustarVagas(live.id, size, perMatch, onAir ? youtube : ""), success: "Ajustes salvos.", onDone: onClose })}
+          onClick={() => run({ action: () => ajustarVagas(live.id, FILA_SEM_LIMITE, perMatch, onAir ? youtube : ""), success: "Ajustes salvos.", onDone: onClose })}
         >
           Salvar
         </OpButton>
