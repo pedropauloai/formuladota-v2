@@ -69,16 +69,30 @@ function withoutPort53(servers: RTCIceServer[]): RTCIceServer[] {
     .filter((s) => s.urls.length > 0);
 }
 
-/** Credenciais do TURN de curta duração para o navegador; sem chave de TURN, só STUN. */
-export async function generateIceServers(env: RealtimeEnv, ttlSeconds: number): Promise<RTCIceServer[]> {
-  if (!env.turnKeyId || !env.turnKeyToken) return STUN_ONLY;
+/** Credencial do TURN de curta duração para o navegador, marcada com a sala (a Cloudflare soma o uso
+ *  por marca, para achar abuso); sem chave de TURN, só STUN. O nome de usuário serve para revogar. */
+export async function generateIceServers(env: RealtimeEnv, ttlSeconds: number, customIdentifier: string): Promise<{ iceServers: RTCIceServer[]; username: string | null }> {
+  if (!env.turnKeyId || !env.turnKeyToken) return { iceServers: STUN_ONLY, username: null };
   const res = await fetch(`${API}/turn/keys/${encodeURIComponent(env.turnKeyId)}/credentials/generate-ice-servers`, {
     method: "POST",
     headers: { Authorization: `Bearer ${env.turnKeyToken}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ ttl: ttlSeconds }),
+    body: JSON.stringify({ ttl: ttlSeconds, customIdentifier }),
     signal: AbortSignal.timeout(TIMEOUT_MS),
   });
   if (!res.ok) throw new Error(`TURN recusou a credencial (HTTP ${res.status})`);
   const body = (await res.json()) as { iceServers?: RTCIceServer[] };
-  return withoutPort53(body.iceServers ?? STUN_ONLY);
+  const servers = body.iceServers ?? STUN_ONLY;
+  const username = servers.find((s) => typeof s.username === "string")?.username ?? null;
+  return { iceServers: withoutPort53(servers), username };
+}
+
+/** Revoga a credencial do TURN antes do prazo (quem foi expulso, sala encerrada). */
+export async function revokeTurnCredential(env: RealtimeEnv, username: string): Promise<boolean> {
+  if (!env.turnKeyId || !env.turnKeyToken || !/^[A-Za-z0-9]{8,256}$/.test(username)) return false;
+  const res = await fetch(`${API}/turn/keys/${encodeURIComponent(env.turnKeyId)}/credentials/${username}/revoke`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${env.turnKeyToken}` },
+    signal: AbortSignal.timeout(TIMEOUT_MS),
+  }).catch(() => null);
+  return res?.status === 204;
 }

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createSfuSession, forceCloseTracks, generateIceServers, realtimeEnv, sfu, type RealtimeEnv } from "./realtime-api";
+import { createSfuSession, forceCloseTracks, generateIceServers, realtimeEnv, revokeTurnCredential, sfu, type RealtimeEnv } from "./realtime-api";
 
 vi.mock("server-only", () => ({}));
 
@@ -90,10 +90,11 @@ describe("generateIceServers", () => {
         { urls: ["turn:turn.cloudflare.com:3478?transport=udp", "turn:turn.cloudflare.com:53?transport=udp", "turns:turn.cloudflare.com:443?transport=tcp"], username: "u", credential: "c" },
       ],
     });
-    const servers = await generateIceServers(env, 3600);
+    const { iceServers: servers, username } = await generateIceServers(env, 3600, "sala-1");
     expect(first(calls).url).toBe("https://rtc.live.cloudflare.com/v1/turn/keys/turn456/credentials/generate-ice-servers");
     expect((first(calls).init.headers as Record<string, string>).Authorization).toBe("Bearer token-do-turn");
-    expect(JSON.parse(first(calls).init.body as string)).toEqual({ ttl: 3600 });
+    expect(JSON.parse(first(calls).init.body as string)).toEqual({ ttl: 3600, customIdentifier: "sala-1" });
+    expect(username).toBe("u");
     expect(servers).toEqual([
       { urls: ["stun:stun.cloudflare.com:3478"] },
       { urls: ["turn:turn.cloudflare.com:3478?transport=udp", "turns:turn.cloudflare.com:443?transport=tcp"], username: "u", credential: "c" },
@@ -102,8 +103,27 @@ describe("generateIceServers", () => {
 
   it("sem chave de TURN, só o STUN da Cloudflare", async () => {
     const calls = fakeFetch(201, {});
-    const servers = await generateIceServers({ ...env, turnKeyId: null, turnKeyToken: null }, 3600);
+    const { iceServers: servers, username } = await generateIceServers({ ...env, turnKeyId: null, turnKeyToken: null }, 3600, "sala-1");
     expect(calls).toHaveLength(0);
     expect(servers).toEqual([{ urls: ["stun:stun.cloudflare.com:3478"] }]);
+    expect(username).toBeNull();
+  });
+});
+
+describe("revokeTurnCredential", () => {
+  it("revoga a credencial de quem foi expulso, pelo nome de usuário do TURN", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(null, { status: 204 })));
+    const calls = (globalThis.fetch as unknown as { mock: { calls: Array<[string, RequestInit]> } }).mock.calls;
+    expect(await revokeTurnCredential(env, "bc91b63e2b5d759f")).toBe(true);
+    expect(calls[0]?.[0]).toBe("https://rtc.live.cloudflare.com/v1/turn/keys/turn456/credentials/bc91b63e2b5d759f/revoke");
+    expect(calls[0]?.[1].method).toBe("POST");
+  });
+
+  it("recusa nome de usuário que tenta sair da pasta e não chama a API sem chave", async () => {
+    const fn = vi.fn(async () => new Response(null, { status: 204 }));
+    vi.stubGlobal("fetch", fn);
+    expect(await revokeTurnCredential(env, "../keys")).toBe(false);
+    expect(await revokeTurnCredential({ ...env, turnKeyId: null, turnKeyToken: null }, "bc91b63e2b5d759f")).toBe(false);
+    expect(fn).not.toHaveBeenCalled();
   });
 });
