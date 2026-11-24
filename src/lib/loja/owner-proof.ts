@@ -1,6 +1,7 @@
-// A medalha da credencial da vitrine (o rank e a posição no ranking da conta atual do PPA) e as
-// últimas partidas dele (coluna da direita do site), pelo OpenDota. A visita só lê a tabela
-// store_owner_proof; quem renova é o cron de cada minuto, no máximo a cada hora.
+// A medalha da credencial da vitrine (o rank e a posição no ranking da conta atual do PPA) e o
+// resumo das partidas que ele registra no painel da fila (resultado, placar, herói), pelo OpenDota.
+// A visita só lê a tabela store_owner_proof; quem renova é o cron de cada minuto: a cada hora, ou
+// antes quando há partida registrada sem resumo. Cada partida se resume uma vez só.
 
 import "server-only";
 import { cache } from "react";
@@ -9,10 +10,12 @@ import { steam64To32 } from "@/lib/dota/opendota";
 import { openDotaJson } from "@/lib/dota/opendota-fetch";
 import type { Json } from "@/types/database";
 import { buildOwnerProofData, parseOwnerProofData, type OwnerProofData } from "./owner-proof-data";
+import { summarizePartyMatch, type PartyMatchSummary } from "./fila/party-match";
+import { registeredMatchAccounts } from "./fila/party-matches";
 
 // Perfil de coach do dono da loja: dele saem a conta Steam e o avatar.
 const OWNER_COACH_SLUG = "pedro-paulo";
-// Uma hora: as partidas da live aparecem no mesmo dia (duas chamadas ao OpenDota por renovação).
+// Uma hora para o rank (uma chamada ao OpenDota); partida registrada nova entra na próxima rodada.
 const REFRESH_EVERY_MS = 60 * 60 * 1000;
 const RETRY_EVERY_MINUTES = 10;
 const FETCH_TIMEOUT_MS = 10_000;
@@ -55,24 +58,52 @@ export const getOwnerProof = cache(async (): Promise<OwnerProof | null> => {
   }
 });
 
-async function fetchOwnerData(accountId: number, now: Date): Promise<OwnerProofData> {
-  const [player, recent] = await Promise.all([
+type Registered = Awaited<ReturnType<typeof registeredMatchAccounts>>;
+
+/** O resumo de cada partida registrada: o do cache quando já tem resultado; senão, da OpenDota. */
+async function summarize(accountId: number, registered: Registered, current: OwnerProofData | null): Promise<PartyMatchSummary[]> {
+  const cached = new Map((current?.partyMatches ?? []).map((m) => [m.matchId, m]));
+  const out: PartyMatchSummary[] = [];
+  for (const r of registered) {
+    const hit = cached.get(r.matchId);
+    if (hit && hit.won !== null) {
+      out.push(hit);
+      continue;
+    }
+    try {
+      const summary = summarizePartyMatch(await openDotaJson<unknown>(`/matches/${r.matchId}`, { timeoutMs: FETCH_TIMEOUT_MS }), accountId, r.accounts);
+      if (summary) out.push(summary);
+    } catch (err) {
+      // Partida ainda processando na OpenDota: fica o que havia, e a próxima rodada tenta de novo.
+      if (hit) out.push(hit);
+      console.error("[loja] resumo da partida da party:", r.matchId, err instanceof Error ? err.message : err);
+    }
+  }
+  return out;
+}
+
+async function fetchOwnerData(accountId: number, now: Date, registered: Registered, current: OwnerProofData | null): Promise<OwnerProofData> {
+  const [player, partyMatches] = await Promise.all([
     openDotaJson<unknown>(`/players/${accountId}`, { timeoutMs: FETCH_TIMEOUT_MS }),
-    openDotaJson<unknown>(`/players/${accountId}/recentMatches`, { timeoutMs: FETCH_TIMEOUT_MS }),
+    summarize(accountId, registered, current),
   ]);
-  return buildOwnerProofData(player, now, recent);
+  return buildOwnerProofData(player, now, partyMatches);
 }
 
 /**
- * Chamado pelo cron do site: renova a prova quando passou de uma hora; com falha, tenta a cada
- * 10 minutos. A falha lança, para o cron marcar a tarefa e avisar se ela persistir.
+ * Chamado pelo cron do site: renova a prova quando passou de uma hora, ou quando há partida
+ * registrada sem resumo; tenta a cada 10 minutos. A falha lança, para o cron marcar a tarefa e
+ * avisar se ela persistir.
  */
 export async function refreshOwnerProof(now = new Date()): Promise<"fresco" | "aguardando" | "renovado" | "sem_dono"> {
-  const [owner, current] = await Promise.all([findOwner(), readProof()]);
+  const [owner, current, registered] = await Promise.all([findOwner(), readProof(), registeredMatchAccounts()]);
   if (!owner?.accountId) return "sem_dono";
-  if (current && now.getTime() - new Date(current.syncedAt).getTime() < REFRESH_EVERY_MS) return "fresco";
+  // Partida nova (sem resumo nenhum) puxa a rodada antes da hora; resumo sem resultado tenta de novo só na rodada de cada hora.
+  const summarized = new Set((current?.partyMatches ?? []).map((m) => m.matchId));
+  const pending = registered.some((r) => !summarized.has(r.matchId));
+  if (current && !pending && now.getTime() - new Date(current.syncedAt).getTime() < REFRESH_EVERY_MS) return "fresco";
   if (now.getUTCMinutes() % RETRY_EVERY_MINUTES !== 0) return "aguardando";
-  const data = await fetchOwnerData(owner.accountId, now);
+  const data = await fetchOwnerData(owner.accountId, now, registered, current);
   const { error } = await createServiceClient()
     .from("store_owner_proof")
     .upsert({ id: 1, data: data as unknown as Json, refreshed_at: now.toISOString() }, { onConflict: "id" });

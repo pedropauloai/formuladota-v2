@@ -2,10 +2,9 @@
 
 // HubCenter — a CAPA do client (/ e /dashboard), visitante E logado.
 //
-// É a TESE do produto, estampada e cabendo na tela SEM scroll em 1920x1080 (Pedro 2026-06-18,
-// "é o principal do produto"). Tese: o ambiente competitivo da Valve é quebrado (anonimato,
-// topo fechado, regiões isoladas) e o FORMULADOTA é a resposta (identidade, temporadas,
-// ranking único). Aprofundamento em /manifesto.
+// Cabe na tela SEM scroll em 1920x1080. Desde 24/11/2026 (PPA) vende o serviço principal, jogar
+// na party do PPA: o título, a vaga do dia e o revezamento. A tese da liga (identidade,
+// temporadas, ranking único) saiu daqui; segue em /manifesto.
 //
 // Design 2.0 (19/11/2026): a pele do cliente do Dota, a mesma da barra superior. Título
 // condensado com brilho, pilares em painéis com o marcador hexagonal dos eventos do cliente,
@@ -18,7 +17,7 @@
 // i18n: textos via namespace "capa" (next-intl).
 
 import { Link } from "@/i18n/navigation";
-import { ArrowRight, Compass, Fingerprint, RotateCcw, Swords, Trophy } from "lucide-react";
+import { ArrowRight, Compass, Repeat, Swords, Ticket, Trophy } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
@@ -34,12 +33,12 @@ export interface HubCenterProps {
   showRankedComPro?: boolean;
 }
 
-// Os 3 pilares — falha da Valve → resposta do FORMULADOTA. `id` casa com as chaves
-// pillar<Id>Problem/Solution/Line nas mensagens. Ícone como elemento (não componente).
+// Os 3 pilares da vaga: o time, o preço do dia e o revezamento. `id` casa com as chaves
+// pillar<Id>Title/Tag/Line nas mensagens. Ícone como elemento (não componente).
 const PILLARS: ReadonlyArray<{ id: string; icon: ReactNode }> = [
-  { id: "Anonimato", icon: <Fingerprint size={26} aria-hidden="true" /> },
-  { id: "Mmr", icon: <RotateCcw size={26} aria-hidden="true" /> },
-  { id: "Regiao", icon: <Trophy size={26} aria-hidden="true" /> },
+  { id: "Imortal", icon: <Trophy size={26} aria-hidden="true" /> },
+  { id: "Dia", icon: <Ticket size={26} aria-hidden="true" /> },
+  { id: "Vez", icon: <Repeat size={26} aria-hidden="true" /> },
 ];
 
 // Fundo da capa: o vídeo são 24 MB da CDN da Valve, então só o computador toca. Celular e
@@ -94,10 +93,8 @@ function Pillar({ id, icon }: { id: string; icon: ReactNode }) {
         <span className="text-gold-bright">{icon}</span>
       </HexBadge>
       <div className="min-w-0 space-y-1.5">
-        <p className="font-display-condensed text-[1.75rem] uppercase leading-[0.9] text-text-display hero:text-[2.1rem]">{t(`pillar${id}Solution`)}</p>
-        <p className="text-xs text-text-faded hero:text-sm">
-          {t("naValve")}: <span className="text-text-muted line-through decoration-error/70 decoration-2">{t(`pillar${id}Problem`)}</span>
-        </p>
+        <p className="font-display-condensed text-[1.75rem] uppercase leading-[0.9] text-text-display hero:text-[2.1rem]">{t(`pillar${id}Title`)}</p>
+        <p className="text-xs font-bold uppercase tracking-[0.08em] text-gold hero:text-sm">{t(`pillar${id}Tag`)}</p>
         <p className="text-sm leading-snug text-text-muted hero:text-[0.95rem]">{t(`pillar${id}Line`)}</p>
       </div>
     </Panel>
@@ -143,7 +140,7 @@ function Actions({ isVisitor, showRankedComPro, prosOnlineCount }: Required<HubC
         </Link>
       )}
       {/* Terceiro nível: o link de texto do kit, com a seta em ícone que anda no mouse. */}
-      <Link href="/manifesto" className={textLink}>
+      <Link href="/party" className={textLink}>
         {t("whyLink")}
         <ArrowRight size={14} aria-hidden="true" />
       </Link>
@@ -173,7 +170,7 @@ export function HubCenter({ isVisitor = false, prosOnlineCount, showRankedComPro
         <header className="space-y-3 hero:space-y-4">
           <h1 className="font-display-condensed text-[3.6rem] uppercase leading-[0.82] text-text-display [text-shadow:0_4px_24px_var(--color-bg-deep)] sm:text-[5rem] hero:text-[7.5rem]">
             {t("headlineLead")}{" "}
-            <span className="text-brand-primary [text-shadow:0_0_36px_var(--color-brand-primary-glow),0_0_2px_var(--color-brand-primary)]">{t("headlineEmphasis")}</span>
+            <span className="block text-brand-primary [text-shadow:0_0_36px_var(--color-brand-primary-glow),0_0_2px_var(--color-brand-primary)]">{t("headlineEmphasis")}</span>
           </h1>
           <p className="max-w-3xl text-base font-medium leading-relaxed text-text-body [text-shadow:0_2px_10px_var(--color-bg-deep)] hero:text-xl">{t("subtitle")}</p>
         </header>
