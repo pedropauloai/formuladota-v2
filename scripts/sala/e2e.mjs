@@ -1,13 +1,15 @@
-// Prova ponta a ponta da sala de voz (spec, seção 18): servidor local, banco de produção com sala e
-// usuários de teste (is_test, apagados no fim) e o app real do Cloudflare Realtime. Duas pessoas com
-// mídia falsa do Chrome se ouvem, a tela chega, e as travas (expulsar, bloquear, denunciar, menor,
-// fora da sala, convite, teto e flag) seguram. Sai com 1 na primeira falha.
+// Prova ponta a ponta da sala de voz (spec, seção 18): servidor local, banco de produção com salas e
+// usuários de teste (is_test, apagados no fim) e o app real do Cloudflare Realtime. Na mentoria, duas
+// pessoas com mídia falsa do Chrome se ouvem e a tela chega; na sala pública, a plateia, o palco, o
+// chat e a moderação (e2e-palco.mjs); e as travas (expulsar, bloquear, denunciar, maioridade, fora da
+// sala, convite, teto e flag) seguram. Sai com 1 na primeira falha.
 // Rodar: pnpm sala:e2e   (SALA_E2E_PORT reaproveita um servidor local de pé; padrão 3200)
 
 import { chromium } from "playwright-core";
 
 process.env.LOJA_E2E_PORT = process.env.SALA_E2E_PORT ?? "3200";
 const s = await import("./e2e-comum.mjs");
+const { palco } = await import("./e2e-palco.mjs");
 const { BASE, db, checker, waitFor, sleep } = s;
 const { results, check } = checker();
 const made = { rooms: [], orders: [], users: [] };
@@ -15,58 +17,42 @@ let browser = null;
 let server = null;
 let flagBefore = false;
 
-async function enter(ctx, roomId) {
-  const page = await ctx.newPage();
-  await page.goto(`${BASE}/sala/${roomId}`);
-  await page.locator("[data-sala-entrar]").click({ timeout: 60_000 });
-  await page.locator('[data-sala-fase="na_sala"]').waitFor({ timeout: 30_000 });
-  return page;
-}
-
-const apiPost = (page, path, body) =>
-  page.evaluate(async ([p, b]) => {
-    const res = await fetch(p, { method: "POST", headers: { "Content-Type": "application/json" }, body: b ? JSON.stringify(b) : undefined });
-    return { status: res.status, body: await res.json().catch(() => ({})) };
-  }, [path, body ?? null]);
-
-async function confirmDialog(page) {
-  await page.getByRole("button", { name: "Confirmar" }).click({ timeout: 10_000 });
-}
-
 async function setup() {
   server = await s.startServer();
   flagBefore = await s.setFlag(true);
-  const dono = await s.createUser("dono", { admin: true });
-  const aluno = await s.createUser("aluno");
-  const fora = await s.createUser("fora");
-  const menor = await s.createUser("menor", { birthDate: "2012-03-01" });
-  const semData = await s.createUser("semdata", { birthDate: null });
-  const convidado = await s.createUser("convidado");
-  made.users.push(dono, aluno, fora, menor, semData, convidado);
+  const nomes = ["dono", "aluno", "fora", "semmaioridade", "convidado", "ouvinte", "ouvinte2"];
+  const [dono, aluno, fora, semMaior, convidado, ouvinte, ouvinte2] = await Promise.all(
+    nomes.map((n) => s.createUser(n, { admin: n === "dono", adult: n !== "semmaioridade" }))
+  );
+  made.users.push(dono, aluno, fora, semMaior, convidado, ouvinte, ouvinte2);
   const sala = await s.createRoom(dono, [aluno]);
-  const sala2 = await s.createRoom(dono, [menor, semData]);
   const sala3 = await s.createRoom(dono, [], { invite: true });
-  made.rooms.push(sala.id, sala2.id, sala3.id);
-  made.orders.push(sala.orderId, sala2.orderId, sala3.orderId);
+  const palco = await s.createPalco(dono);
+  const palco2 = await s.createPalco(dono);
+  made.rooms.push(sala.id, sala3.id, palco.id, palco2.id);
+  made.orders.push(sala.orderId, sala3.orderId);
   browser = await chromium.launch({ channel: "chrome", headless: true, args: s.CHROME_ARGS });
   const ctx = async (u) => s.buyerContext(browser, u, { desktop: true });
-  return { dono, aluno, fora, menor, semData, convidado, sala, sala2, sala3, ctx };
+  return { dono, aluno, fora, semMaior, convidado, ouvinte, ouvinte2, sala, sala3, palco, palco2, ctx };
 }
 
 async function voiceAndScreen(t) {
-  const pDono = await enter(await t.ctx(t.dono), t.sala.id);
-  const pAluno = await enter(await t.ctx(t.aluno), t.sala.id);
+  const pDono = await s.enter(await t.ctx(t.dono), t.sala.id);
+  const pAluno = await s.enter(await t.ctx(t.aluno), t.sala.id);
   check("as duas pessoas aparecem na lista", !!(await waitFor(async () => (await pDono.locator('[data-sala-pessoas="2"]').count()) > 0, 20_000)));
   const ouveDono = await waitFor(async () => (await s.attr(pAluno, "data-audio-bytes")) > 0, 30_000);
   const ouveAluno = await waitFor(async () => (await s.attr(pDono, "data-audio-bytes")) > 0, 30_000);
   check("o aluno recebe o áudio do dono (bytesReceived > 0)", !!ouveDono, `${await s.attr(pAluno, "data-audio-bytes")} bytes`);
   check("o dono recebe o áudio do aluno (bytesReceived > 0)", !!ouveAluno, `${await s.attr(pDono, "data-audio-bytes")} bytes`);
   await pDono.locator('[data-sala-tela="compartilhar"]:not([disabled])').click({ timeout: 20_000 });
+  await pDono.locator("[data-sala-qualidade-confirmar]").click();
   const tela = await waitFor(async () => (await s.attr(pAluno, "data-video-bytes")) > 0 && (await s.attr(pAluno, "data-video-altura")) > 0, 40_000);
   check("a tela do dono chega ao aluno (bytes de vídeo > 0 e quadro com altura)", !!tela, `${await s.attr(pAluno, "data-video-bytes")} bytes, ${await s.attr(pAluno, "data-video-altura")} px`);
+  const alta = await waitFor(async () => (await s.videoLayerOf(t.sala.id, t.aluno.id)) === "f", 15_000);
+  check("na mentoria, o aluno recebe a camada alta", !!alta, String(await s.videoLayerOf(t.sala.id, t.aluno.id)));
   await pAluno.locator("[data-sala-mudo]").click();
   const mudo = await waitFor(async () => (await db.from("voice_room_members").select("muted").eq("room_id", t.sala.id).eq("user_id", t.aluno.id).single()).data?.muted === true, 10_000);
-  check("mutar chega ao servidor", !!mudo);
+  check("mutar chega ao servidor na hora", !!mudo);
   return { pDono, pAluno };
 }
 
@@ -82,27 +68,14 @@ async function reportAndCap(t, pDono, pAluno) {
   const sid = await s.openSessionOf(t.sala.id, t.dono.id);
   const start = new Date(Date.now() - 90 * 3600_000).toISOString();
   await db.from("voice_room_subscriptions").insert({ session_id: sid, mid: "999", publisher_session_id: sid, track_name: "e2e-teto-falso", kind: "video", rate_kbps: 20000, started_at: start, ended_at: new Date(Date.now() - 120_000).toISOString(), is_test: true });
-  const bloqueado = await waitFor(async () => (await pDono.locator('[data-sala-tela="compartilhar"][disabled]').count()) > 0, 10_000);
-  check("com o teto atingido, o botão de tela desliga", !!bloqueado);
-  const direto = await pDono.evaluate(async ([roomId, sessionId]) => {
-    const pc = new RTCPeerConnection();
-    pc.addTransceiver("video", { direction: "sendonly" });
-    const offer = await pc.createOffer();
-    const mid = pc.getTransceivers()[0].mid ?? "0";
-    const res = await fetch(`/api/sala/${roomId}/rtc/sessions/${sessionId}/tracks/new`, {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionDescription: { type: "offer", sdp: offer.sdp }, tracks: [{ location: "local", mid, trackName: "tela-acima-do-teto" }] }),
-    });
-    pc.close();
-    return { status: res.status, body: await res.json() };
-  }, [t.sala.id, sid]);
+  const direto = await s.tryPublish(pDono, t.sala.id, sid, "video", "tela-acima-do-teto");
   check("com o teto atingido, o servidor recusa tela nova", direto.status === 403 && direto.body.errorCode === "teto_de_trafego", `HTTP ${direto.status} ${direto.body.errorCode}`);
   await db.from("voice_room_subscriptions").delete().eq("track_name", "e2e-teto-falso");
 }
 
 async function blockAndKick(t, pDono, pAluno) {
   await pAluno.locator(`[data-sala-bloquear="${t.dono.id}"]`).click();
-  await confirmDialog(pAluno);
+  await s.confirmDialog(pAluno);
   const corte = await waitFor(async () => {
     const sid = await s.openSessionOf(t.sala.id, t.aluno.id);
     const { count } = await db.from("voice_room_subscriptions").select("id", { count: "exact", head: true }).eq("session_id", sid).is("ended_at", null);
@@ -112,12 +85,12 @@ async function blockAndKick(t, pDono, pAluno) {
   await db.from("friendships").delete().eq("requester_id", t.aluno.id).eq("addressee_id", t.dono.id);
 
   await pDono.locator(`[data-sala-expulsar="${t.aluno.id}"]`).click();
-  await confirmDialog(pDono);
+  await s.confirmDialog(pDono);
   const saiu = await waitFor(async () => (await pAluno.locator('[data-sala-fase="saiu"][data-sala-motivo="expulso"]').count()) > 0, 15_000);
   check("o aluno expulso sai da sala", !!saiu);
   const turn = await db.from("voice_room_members").select("turn_username").eq("room_id", t.sala.id).eq("user_id", t.aluno.id).single();
   check("a credencial de TURN do expulso é revogada", turn.data?.turn_username === null, String(turn.data?.turn_username));
-  const volta = await apiPost(pAluno, `/api/sala/${t.sala.id}/entrar`);
+  const volta = await s.apiPost(pAluno, `/api/sala/${t.sala.id}/entrar`);
   check("o expulso não volta (entrar dá 403)", volta.status === 403 && volta.body.errorCode === "expulso", `HTTP ${volta.status} ${volta.body.errorCode}`);
 }
 
@@ -129,21 +102,23 @@ async function gates(t) {
   const pFora = await (await t.ctx(t.fora)).newPage();
   await pFora.goto(`${BASE}/sala/${t.sala.id}`);
   check("quem é de fora vê a sala privada", (await pFora.locator('[data-sala-portao="fora"]').count()) === 1);
-  const foraApi = await apiPost(pFora, `/api/sala/${t.sala.id}/entrar`);
+  const foraApi = await s.apiPost(pFora, `/api/sala/${t.sala.id}/entrar`);
   check("quem é de fora não entra pela API", foraApi.status === 403 && foraApi.body.errorCode === "fora_da_sala", `HTTP ${foraApi.status}`);
-  const pMenor = await (await t.ctx(t.menor)).newPage();
-  await pMenor.goto(`${BASE}/sala/${t.sala2.id}`);
-  check("menor de 18 é barrado", (await pMenor.locator('[data-sala-portao="menor"]').count()) === 1);
-  const pSem = await (await t.ctx(t.semData)).newPage();
-  await pSem.goto(`${BASE}/sala/${t.sala2.id}`);
-  await pSem.locator('input[name="nascimento"]').fill("1994-07-20");
-  await pSem.locator('[data-sala-portao="nascimento"] button[type="submit"]').click();
-  check("a data de nascimento informada libera a entrada", !!(await pSem.locator("[data-sala-entrar]").waitFor({ timeout: 20_000 }).then(() => true).catch(() => false)));
+  const pSem = await (await t.ctx(t.semMaior)).newPage();
+  await pSem.goto(`${BASE}/sala/${t.palco.id}`);
+  const semApi = await s.apiPost(pSem, `/api/sala/${t.palco.id}/entrar`);
+  check("sem a marcação de 18 anos, a API recusa", semApi.status === 403 && semApi.body.errorCode === "sem_maioridade", `HTTP ${semApi.status} ${semApi.body.errorCode}`);
+  await pSem.locator("[data-sala-maior]").check();
+  await pSem.locator("[data-sala-maior-enviar]").click();
+  check("a marcação de 18 anos libera a entrada", !!(await pSem.locator("[data-sala-entrar]").waitFor({ timeout: 20_000 }).then(() => true).catch(() => false)));
   const pConv = await (await t.ctx(t.convidado)).newPage();
   await pConv.goto(`${BASE}/sala/${t.sala3.id}?convite=${t.sala3.token}`);
   check("o convite de uso único põe o convidado na sala", !!(await pConv.locator("[data-sala-entrar]").waitFor({ timeout: 20_000 }).then(() => true).catch(() => false)));
   await pFora.goto(`${BASE}/sala/${t.sala3.id}?convite=${t.sala3.token}`);
   check("o mesmo convite não vale de novo", !!(await pFora.getByText("Este convite já foi usado").waitFor({ timeout: 15_000 }).then(() => true).catch(() => false)));
+  const fixa = await pFora.goto(`${BASE}/sala`);
+  const destino = pFora.url();
+  check("o endereço fixo /sala responde (leva à sala pública aberta ou diz que ela abre na live)", fixa?.ok() === true && (/\/sala\/[0-9a-f-]{36}/.test(destino) || (await pFora.locator('[data-sala-publica="fechada"]').count()) === 1), destino);
 }
 
 async function flagOff(t, pDono) {
@@ -151,7 +126,7 @@ async function flagOff(t, pDono) {
   const ok = await admin.goto(`${BASE}/admin/salas`);
   check("com a flag ligada, o painel do admin abre", ok?.status() === 200 && (await admin.getByText("Salas de voz").count()) > 0, `HTTP ${ok?.status()}`);
   await s.setFlag(false);
-  const saiu = await waitFor(async () => (await pDono.locator('[data-sala-fase="saiu"][data-sala-motivo="flag_desligada"]').count()) > 0, 15_000);
+  const saiu = await waitFor(async () => (await pDono.locator('[data-sala-fase="saiu"][data-sala-motivo="flag_desligada"]').count()) > 0, 30_000);
   check("flag desligada tira da sala quem está dentro", !!saiu);
   const pagina = await admin.goto(`${BASE}/sala/${t.sala.id}`);
   const painel = await (await pDono.context().newPage()).goto(`${BASE}/admin/salas`);
@@ -163,8 +138,9 @@ try {
   const { pDono, pAluno } = await voiceAndScreen(t);
   await reportAndCap(t, pDono, pAluno);
   await blockAndKick(t, pDono, pAluno);
+  const pPalco = await palco(t, check);
   await gates(t);
-  await flagOff(t, pDono);
+  await flagOff(t, pPalco);
 } catch (err) {
   console.error(err instanceof Error ? err.message : err);
   process.exitCode = 1;

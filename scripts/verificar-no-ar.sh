@@ -50,8 +50,11 @@ confere "/battlepass" "307 $U/planos?utm_source=live&utm_medium=chat&utm_campaig
 # ligada, o visitante vê o portão do login) e a API devolve o motivo de saída em JSON para quem não entrou.
 sala=$(status "$U/sala/00000000-0000-4000-8000-000000000000")
 case "$sala" in 200|404) confere "sala de voz responde sem erro" sim sim ;; *) confere "sala de voz responde sem erro" sim "nao (HTTP $sala)" ;; esac
-batida=$(curl $R -s --max-time 20 -X POST -H 'Content-Type: application/json' -d '{"muted":false,"sessionId":null}' -w ' %{http_code}' "$U/api/sala/00000000-0000-4000-8000-000000000000/estado")
-case "$batida" in *'"saida":'*' 200') confere "batimento da sala sem login" sim sim ;; *) confere "batimento da sala sem login" sim "nao ($batida)" ;; esac
+batida=$(curl $R -s --max-time 20 -X POST -H 'Content-Type: application/json' -d '{"sessionId":null,"chatAfter":0}' -w ' %{http_code}' "$U/api/sala/00000000-0000-4000-8000-000000000000/estado")
+case "$batida" in *'"saida":'*' 200') confere "estado da sala sem login" sim sim ;; *) confere "estado da sala sem login" sim "nao ($batida)" ;; esac
+# O endereço fixo da sala pública: 404 com a flag desligada; ligada, leva à sala aberta (307) ou diz que ela abre na live (200).
+fixa=$(status "$U/sala")
+case "$fixa" in 200|307|404) confere "endereço fixo /sala responde sem erro" sim sim ;; *) confere "endereço fixo /sala responde sem erro" sim "nao (HTTP $fixa)" ;; esac
 # Arquivo com hash no nome guardado pelo navegador por um ano (public/_headers).
 chunk=$(curl $R -fsSL --max-time 30 "$U/" | grep -o '/_next/static/[^"]*\.js' | head -1)
 cc=$(curl $R -s -o /dev/null -D - --max-time 20 "$U$chunk" | tr -d '\r' | grep -i '^cache-control:' | head -1)

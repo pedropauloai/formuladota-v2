@@ -4,18 +4,35 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 
+const A = "src/lib/sala/acesso.ts";
+const P = "src/lib/sala/papeis.ts";
+const F = "src/lib/sala/faixas.ts";
+const C = "src/lib/sala/custo.ts";
+
 const MUTACOES = [
-  ["src/lib/sala/acesso.ts", 'if (input.member?.status === "expulso") return { ok: false, code: "expulso" };', "", "expulso volta a entrar"],
-  ["src/lib/sala/acesso.ts", 'if (isMinor(input.birthDate, input.now)) return { ok: false, code: "menor_de_idade" };', "", "menor entra"],
-  ["src/lib/sala/acesso.ts", 'if (!input.flagOn) return { ok: false, code: "flag_desligada" };', "", "flag desligada não esconde"],
-  ["src/lib/sala/acesso.ts", "if (full && member.role !== \"dono\")", "if (false)", "sala sem lotação"],
-  ["src/lib/sala/faixas.ts", 'if (input.blockedPair) return { ok: false, code: "bloqueado" };', "", "bloqueado continua ouvindo"],
-  ["src/lib/sala/faixas.ts", 'if (videos > 0 && input.capReached) return { ok: false, code: "teto_de_trafego" };', "", "tela passa do teto"],
-  ["src/lib/sala/faixas.ts", 'if (videos > 0 && !share) return { ok: false, code: "tela_nao_permitida" };', "", "membro compartilha sem permissão"],
-  ["src/lib/sala/faixas.ts", 'if (t.userId === input.subscriberUserId) return { ok: false, code: "faixa_propria" };', "", "recebe a própria faixa"],
-  ["src/lib/sala/faixas.ts", " && !blocked(me, t.userId));", ");", "bloqueado aparece na lista do batimento"],
-  ["src/lib/sala/faixas.ts", "t.userId !== me && t.tipo !== null", "t.tipo !== null", "a própria faixa aparece na lista"],
-  ["src/lib/sala/custo.ts", "return Math.min(nowMs, new Date(sub.subscriberLastSeenAt).getTime() + SEM_SINAL_MS);", "return nowMs;", "sem sinal conta para sempre"],
+  [A, 'if (!input.flagOn) return { ok: false, code: "flag_desligada" };', "", "flag desligada não esconde"],
+  [A, 'if (input.member?.status === "expulso") return { ok: false, code: "expulso" };', "", "expulso volta a entrar"],
+  [A, 'if (input.bannedByOwner) return { ok: false, code: "banido" };', "", "banido entra"],
+  [A, 'if (!input.ageConfirmed) return { ok: false, code: "sem_maioridade" };', "", "entra sem a marcação de 18 anos"],
+  [A, 'if (room.audience === "beneficio" && !input.battlepass && !input.inPartyNow) return { ok: false, code: "so_beneficio" };', "", "sala do benefício aberta a todos"],
+  [A, 'if (full && !passesWhenFull(room, link.role, input.battlepass)) return { ok: false, code: "sala_lotada" };', "", "sala sem lotação"],
+  [A, 'return room.kind === "palco" && (role === "falante" || battlepass);', "return true;", "Battlepass fura a lotação de qualquer sala"],
+  [P, 'return role !== "ouvinte";', "return true;", "a plateia publica voz"],
+  [P, 'if (input.actorRole !== "dono") return { ok: false, code: "so_o_dono" };', "", "qualquer um modera"],
+  [P, 'if (input.targetIsOwner) return { ok: false, code: "dono_nao_sai" };', "", "o dono é tirado da própria sala"],
+  [P, 'if (t.role !== "falante" && input.speakers >= input.maxSpeakers) return { ok: false, code: "palco_cheio" };', "", "palco sem limite"],
+  [P, 'if (input.lastSentAt && input.now.getTime() - input.lastSentAt.getTime() < CHAT_INTERVALO_MS) return { ok: false, code: "devagar" };', "", "chat sem limite de ritmo"],
+  [P, 'if (body.length === 0 || body.length > CHAT_MAX) return { ok: false, code: "mensagem_invalida" };', "", "mensagem vazia ou gigante passa"],
+  [F, 'if (input.blockedPair) return { ok: false, code: "bloqueado" };', "", "bloqueado continua ouvindo"],
+  [F, 'if (videos > 0 && input.capReached) return { ok: false, code: "teto_de_trafego" };', "", "tela passa do teto"],
+  [F, 'if (videos > 0 && !share) return { ok: false, code: "tela_nao_permitida" };', "", "compartilha tela sem permissão"],
+  [F, 'if (audios > 0 && input.forceMuted && input.role !== "dono") return { ok: false, code: "mutado_pelo_dono" };', "", "mutado pelo dono volta a falar"],
+  [F, 'if (t.userId === input.subscriberUserId) return { ok: false, code: "faixa_propria" };', "", "recebe a própria faixa"],
+  [F, "&& publisherMayKeep(m.role, t.tipo) && !blocked.has(t.userId);", "&& !blocked.has(t.userId);", "voz de quem voltou à plateia continua na lista"],
+  [F, "&& publisherMayKeep(m.role, t.tipo) && !blocked.has(t.userId);", "&& publisherMayKeep(m.role, t.tipo);", "bloqueado aparece na lista"],
+  [F, 'if (r.location !== "remote" || r.sessionId !== sub.publisherSessionId || r.trackName !== sub.trackName || sub.kind !== "video") {', "if (false) {", "a troca de camada puxa outra faixa"],
+  [F, 'return input.requested === "f" && input.usageBytes < input.capBytes / 2 ? "f" : "h";', 'return input.requested ?? "h";', "camada alta sem olhar o custo"],
+  [C, "return Math.round(Math.min(base, videoMaxKbps) * VIDEO_FOLGA);", "return Math.round(base);", "tela conta sem cabeçalho nem teto"],
 ];
 
 let falhas = 0;

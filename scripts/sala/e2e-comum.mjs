@@ -1,5 +1,5 @@
-// Peças do e2e da sala de voz: usuários de teste com Steam e data de nascimento, sala de mentoria de
-// teste (pedido pago e horário de teste), navegador com mídia falsa e a limpeza. Reaproveita o
+// Peças do e2e da sala de voz: usuários de teste com Steam e a marcação de 18 anos, salas de teste
+// (mentoria de um pedido pago e sala pública), navegador com mídia falsa, chamadas diretas e a limpeza. Reaproveita o
 // servidor local, o login e o banco do e2e da loja. Nunca imprime credencial.
 
 import { randomBytes, createHash } from "node:crypto";
@@ -15,12 +15,12 @@ if (!env.REALTIME_APP_ID || !env.REALTIME_APP_SECRET) {
 /** Chrome com microfone e tela falsos (a tela falsa vem em 1920x1080 com áudio). */
 export const CHROME_ARGS = ["--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream", "--autoplay-policy=no-user-gesture-required"];
 
-export async function createUser(tag, { admin = false, birthDate = "1995-05-10" } = {}) {
+export async function createUser(tag, { admin = false, adult = true } = {}) {
   const id = randomBytes(4).toString("hex");
   const user = await comum.createTestBuyer(`sala.e2e.${tag}.${id}@formuladota.com.br`, `Sala E2E ${tag} ${id}`);
-  if (birthDate) {
-    const { error } = await db.from("user_birthdates").insert({ user_id: user.id, birth_date: birthDate });
-    if (error) throw new Error(`data de nascimento de teste: ${error.message}`);
+  if (adult) {
+    const { error } = await db.from("user_age_confirmations").insert({ user_id: user.id, terms_version: "sala-1" });
+    if (error) throw new Error(`marcação de 18 anos de teste: ${error.message}`);
   }
   if (admin) {
     const { error } = await db.from("profiles").update({ is_admin: true }).eq("id", user.id);
@@ -73,6 +73,19 @@ export async function createRoom(owner, members, { invite = false } = {}) {
   return { id: room.id, orderId, token };
 }
 
+/** Sala pública de teste, só com o dono; quem chega entra na plateia. */
+export async function createPalco(owner, { maxMembers = 30 } = {}) {
+  const { data: room, error } = await db
+    .from("voice_rooms")
+    .insert({ kind: "palco", title: "Sala pública de teste do e2e", owner_id: owner.id, max_members: maxMembers, closes_at: new Date(Date.now() + 3600_000).toISOString(), is_test: true })
+    .select("id")
+    .single();
+  if (error) throw new Error(`sala pública de teste: ${error.message}`);
+  const { error: mErr } = await db.from("voice_room_members").insert({ room_id: room.id, user_id: owner.id, role: "dono", joined_via: "dono" });
+  if (mErr) throw new Error(`dono de teste: ${mErr.message}`);
+  return { id: room.id };
+}
+
 export async function setFlag(enabled) {
   const { data } = await db.from("feature_flags").select("enabled").eq("key", "sala_voz").single();
   await db.from("feature_flags").update({ enabled }).eq("key", "sala_voz");
@@ -85,6 +98,56 @@ export async function attr(page, name) {
   return Number(value ?? 0);
 }
 
+export async function enter(ctx, roomId) {
+  const page = await ctx.newPage();
+  await page.goto(`${BASE}/sala/${roomId}`);
+  await page.locator("[data-sala-entrar]").click({ timeout: 60_000 });
+  await page.locator('[data-sala-fase="na_sala"]').waitFor({ timeout: 30_000 });
+  return page;
+}
+
+export const apiPost = (page, path, body) =>
+  page.evaluate(async ([p, b]) => {
+    const res = await fetch(p, { method: "POST", headers: { "Content-Type": "application/json" }, body: b ? JSON.stringify(b) : undefined });
+    return { status: res.status, body: await res.json().catch(() => ({})) };
+  }, [path, body ?? null]);
+
+export async function confirmDialog(page) {
+  await page.getByRole("button", { name: "Confirmar" }).click({ timeout: 10_000 });
+}
+
+/** Tenta publicar direto pelo intermediário (sem passar pela tela): a trava tem de estar no servidor. */
+export function tryPublish(page, roomId, sessionId, kind, trackName) {
+  return page.evaluate(async ([r, sid, k, name]) => {
+    const pc = new RTCPeerConnection();
+    pc.addTransceiver(k, { direction: "sendonly" });
+    const offer = await pc.createOffer();
+    const mid = pc.getTransceivers()[0].mid ?? "0";
+    const res = await fetch(`/api/sala/${r}/rtc/sessions/${sid}/tracks/new`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionDescription: { type: "offer", sdp: offer.sdp }, tracks: [{ location: "local", mid, trackName: name }] }),
+    });
+    pc.close();
+    return { status: res.status, body: await res.json() };
+  }, [roomId, sessionId, kind, trackName]);
+}
+
+/** Camada (rid) da tela que a pessoa recebe agora. */
+export async function videoLayerOf(roomId, userId) {
+  const sid = await openSessionOf(roomId, userId);
+  if (!sid) return null;
+  const { data } = await db.from("voice_room_subscriptions").select("rid").eq("session_id", sid).eq("kind", "video").is("ended_at", null).limit(1);
+  return data?.[0]?.rid ?? null;
+}
+
+/** Faixas de voz abertas da pessoa na sala. */
+export async function openVoiceCount(roomId, userId) {
+  const sid = await openSessionOf(roomId, userId);
+  if (!sid) return 0;
+  const { count } = await db.from("voice_room_tracks").select("track_name", { count: "exact", head: true }).eq("session_id", sid).eq("kind", "audio").eq("tipo", "voz").is("closed_at", null);
+  return count ?? 0;
+}
+
 export async function openSessionOf(roomId, userId) {
   const { data } = await db.from("voice_room_sessions").select("id").eq("room_id", roomId).eq("user_id", userId).is("closed_at", null).order("created_at", { ascending: false }).limit(1);
   return data?.[0]?.id ?? null;
@@ -93,6 +156,7 @@ export async function openSessionOf(roomId, userId) {
 export async function cleanup({ rooms, orders, users }) {
   const ids = users.map((u) => u.id);
   if (rooms.length) await db.from("voice_rooms").delete().in("id", rooms);
+  if (ids.length) await db.from("voice_bans").delete().in("owner_id", ids);
   await db.from("voice_room_reports").delete().eq("is_test", true).in("reporter_id", ids);
   await db.from("voice_room_subscriptions").delete().eq("is_test", true).eq("track_name", "e2e-teto-falso");
   if (ids.length) await db.from("friendships").delete().in("requester_id", ids).in("addressee_id", ids);

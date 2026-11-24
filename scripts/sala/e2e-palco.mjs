@@ -1,0 +1,102 @@
+// Parte da sala pública do e2e (spec, seções 8, 9 e 11): plateia sem microfone, tela na camada leve e
+// a alta a pedido, mão levantada, chamar ao palco, mutar e liberar pelo dono, devolver à plateia, chat
+// com ritmo e apagar, denúncia de mensagem e banir (que vale para as outras salas do dono).
+
+const s = await import("./e2e-comum.mjs");
+const { db, waitFor, sleep } = s;
+
+async function telaECamada(t, check, pDono, pOuv) {
+  check("quem chega entra na plateia, sem microfone", (await pOuv.locator('[data-sala-papel="ouvinte"][data-sala-voz="fora"]').count()) === 1);
+  await pDono.locator('[data-sala-tela="compartilhar"]:not([disabled])').click({ timeout: 20_000 });
+  await pDono.locator('[data-sala-qualidade="leve"]').check();
+  await pDono.locator("[data-sala-qualidade-confirmar]").click();
+  const tela = await waitFor(async () => (await s.attr(pOuv, "data-video-bytes")) > 0 && (await s.attr(pOuv, "data-video-altura")) > 0, 40_000);
+  check("a plateia recebe a tela do dono", !!tela, `${await s.attr(pOuv, "data-video-bytes")} bytes, ${await s.attr(pOuv, "data-video-altura")} px`);
+  const leve = await waitFor(async () => (await s.videoLayerOf(t.palco.id, t.ouvinte.id)) === "h", 15_000);
+  check("a plateia recebe a camada leve por padrão", !!leve, String(await s.videoLayerOf(t.palco.id, t.ouvinte.id)));
+  const ouve = await waitFor(async () => (await s.attr(pOuv, "data-audio-bytes")) > 0, 30_000);
+  check("a plateia ouve o dono", !!ouve);
+  await pOuv.locator('[data-sala-camada-opcao="f"]').click();
+  const alta = await waitFor(async () => (await s.videoLayerOf(t.palco.id, t.ouvinte.id)) === "f", 20_000);
+  check("quem pede a imagem alta recebe a alta (consumo abaixo de metade do teto)", !!alta, String(await s.videoLayerOf(t.palco.id, t.ouvinte.id)));
+  const sid = await s.openSessionOf(t.palco.id, t.ouvinte.id);
+  const voz = await s.tryPublish(pOuv, t.palco.id, sid, "audio", "voz-da-plateia");
+  check("a plateia não publica voz pelo servidor", voz.status === 403 && voz.body.errorCode === "voz_nao_permitida", `HTTP ${voz.status} ${voz.body.errorCode}`);
+}
+
+async function palcoEModeracao(t, check, pDono, pOuv) {
+  await pOuv.locator('[data-sala-mao="nao"]').click();
+  const mao = await waitFor(async () => (await pDono.locator(`[data-sala-membro="${t.ouvinte.id}"][data-sala-mao-membro="sim"]`).count()) > 0, 15_000);
+  check("o dono vê a mão levantada", !!mao);
+  await pDono.locator(`[data-sala-chamar="${t.ouvinte.id}"]`).click();
+  const fala = await waitFor(async () => (await pOuv.locator('[data-sala-papel="falante"][data-sala-voz="no_ar"]').count()) > 0, 25_000);
+  check("chamado ao palco, quem estava na plateia fala", !!fala);
+  const donoOuve = await waitFor(async () => (await s.attr(pDono, "data-audio-bytes")) > 0, 30_000);
+  check("o dono ouve quem chamou", !!donoOuve);
+  await pDono.locator(`[data-sala-mutar="${t.ouvinte.id}"]`).click();
+  const cortada = await waitFor(async () => (await s.openVoiceCount(t.palco.id, t.ouvinte.id)) === 0, 15_000);
+  check("mutar pelo dono fecha a voz no SFU", !!cortada);
+  const sid = await s.openSessionOf(t.palco.id, t.ouvinte.id);
+  const nova = await s.tryPublish(pOuv, t.palco.id, sid, "audio", "voz-mutada");
+  check("mutado pelo dono, o servidor recusa voz nova", nova.status === 403 && nova.body.errorCode === "mutado_pelo_dono", `HTTP ${nova.status} ${nova.body.errorCode}`);
+  await pDono.locator(`[data-sala-mutar="${t.ouvinte.id}"]`).click();
+  const volta = await waitFor(async () => (await s.openVoiceCount(t.palco.id, t.ouvinte.id)) === 1, 25_000);
+  check("liberado pelo dono, a voz volta sozinha", !!volta);
+  await pDono.locator(`[data-sala-devolver="${t.ouvinte.id}"]`).click();
+  const plateia = await waitFor(async () => (await pOuv.locator('[data-sala-papel="ouvinte"][data-sala-voz="fora"]').count()) > 0, 25_000);
+  check("devolvido à plateia, a voz sai do ar", !!plateia);
+}
+
+async function messageId(roomId, body) {
+  let id = null;
+  await waitFor(async () => {
+    const { data } = await db.from("voice_room_messages").select("id").eq("room_id", roomId).eq("body", body).limit(1);
+    id = data?.[0]?.id ?? null;
+    return id !== null;
+  }, 10_000);
+  return id;
+}
+
+async function chat(t, check, pDono, pOuv) {
+  await pOuv.locator("[data-sala-chat-campo]").fill("oi do e2e");
+  await pOuv.locator("[data-sala-chat-enviar]").click();
+  const chegou = await waitFor(async () => (await pDono.getByText("oi do e2e").count()) > 0, 15_000);
+  check("a mensagem da plateia chega ao dono", !!chegou);
+  const rapida = await s.apiPost(pOuv, `/api/sala/${t.palco.id}/chat`, { texto: "de novo já" });
+  check("o chat recusa mais de uma mensagem a cada 2 s", rapida.status === 403 && rapida.body.errorCode === "devagar", `HTTP ${rapida.status} ${rapida.body.errorCode}`);
+  const id = await messageId(t.palco.id, "oi do e2e");
+  await pDono.locator(`[data-sala-apagar="${id}"]`).click();
+  const sumiu = await waitFor(async () => (await pOuv.getByText("oi do e2e").count()) === 0, 15_000);
+  check("a mensagem apagada pelo dono some para todos", !!sumiu);
+  await pDono.locator("[data-sala-chat-campo]").fill("mensagem do dono");
+  await pDono.locator("[data-sala-chat-enviar]").click();
+  const doDono = await messageId(t.palco.id, "mensagem do dono");
+  await pOuv.locator(`[data-sala-denunciar-mensagem="${doDono}"]`).click({ timeout: 15_000 });
+  await pOuv.locator("[data-sala-denuncia-enviar]").click();
+  await pOuv.getByRole("status").filter({ hasText: "Denúncia enviada" }).waitFor({ timeout: 10_000 });
+  const { data: rep } = await db.from("voice_room_reports").select("message_body, reported_id").eq("reporter_id", t.ouvinte.id).eq("message_id", doDono).maybeSingle();
+  check("a denúncia de mensagem guarda o autor e a cópia do texto", rep?.message_body === "mensagem do dono" && rep?.reported_id === t.dono.id);
+  await pOuv.keyboard.press("Escape");
+}
+
+async function banir(t, check, pDono) {
+  const pOuv2 = await s.enter(await t.ctx(t.ouvinte2), t.palco.id);
+  await pDono.locator(`[data-sala-banir="${t.ouvinte2.id}"]`).click({ timeout: 20_000 });
+  await s.confirmDialog(pDono);
+  const saiu = await waitFor(async () => (await pOuv2.locator('[data-sala-fase="saiu"]').count()) > 0, 15_000);
+  check("o banido sai da sala na hora", !!saiu);
+  const outra = await s.apiPost(pOuv2, `/api/sala/${t.palco2.id}/entrar`);
+  check("o banido não entra em outra sala do mesmo dono", outra.status === 403 && outra.body.errorCode === "banido", `HTTP ${outra.status} ${outra.body.errorCode}`);
+}
+
+export async function palco(t, check) {
+  const pDono = await s.enter(await t.ctx(t.dono), t.palco.id);
+  const pOuv = await s.enter(await t.ctx(t.ouvinte), t.palco.id);
+  await telaECamada(t, check, pDono, pOuv);
+  await palcoEModeracao(t, check, pDono, pOuv);
+  await sleep(2100);
+  await chat(t, check, pDono, pOuv);
+  await banir(t, check, pDono);
+  await pDono.locator('[data-sala-tela="parar"]').click().catch(() => null);
+  return pDono;
+}
