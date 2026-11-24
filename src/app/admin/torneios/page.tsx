@@ -11,6 +11,7 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { CreateTournamentForm, TournamentRowActions } from "./torneios-controls";
+import { requireAdminPage } from "@/lib/auth/admin-page";
 
 export const metadata = { title: "Admin Torneios — FORMULADOTA" };
 export const revalidate = 0;
@@ -28,6 +29,7 @@ const STATUS_LABEL: Record<
 };
 
 export default async function AdminTorneiosPage() {
+  await requireAdminPage();
   const supabase = await createClient();
   const {
     data: { user },

@@ -33,6 +33,7 @@ import { FeatureFlagsPanel } from "./feature-flags-panel";
 import { PeriodRegionFilter } from "./period-filter";
 import { PERIODS, type Period } from "./period";
 import { DailyAreaChart, RevenueBarChart, type RevenuePoint } from "./charts";
+import { requireAdminPage } from "@/lib/auth/admin-page";
 
 export const metadata = { title: "Admin Dashboard — FORMULADOTA" };
 export const revalidate = 0;
@@ -261,6 +262,7 @@ async function fetchDashboard(range: Range, region: string): Promise<DashboardDa
 export default async function AdminDashboardPage(props: {
   searchParams: Promise<{ period?: string; from?: string; to?: string; region?: string }>;
 }) {
+  await requireAdminPage();
   const supabase = await createClient();
   const {
     data: { user },

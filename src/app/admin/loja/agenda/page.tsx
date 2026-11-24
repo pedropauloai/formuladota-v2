@@ -6,6 +6,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { whatsappLink } from "@/lib/loja/notify-message";
 import { AddWindowForm, BlockForm, DeliveryForm, LiveForm, RowButton } from "./forms";
+import { requireAdminPage } from "@/lib/auth/admin-page";
 
 export const metadata = { title: "Agenda da loja | Admin FORMULADOTA" };
 export const revalidate = 0;
@@ -83,6 +84,7 @@ async function loadAgenda() {
 }
 
 export default async function AdminAgendaPage() {
+  await requireAdminPage();
   const { bookings, lives, windows, blocks, deliveries } = await loadAgenda();
   const real = bookings.filter((b) => !b.is_test);
   const seatsSold = (liveStart: string) => real.filter((b) => b.kind === "live" && b.starts_at === liveStart).reduce((s, b) => s + b.seats, 0);

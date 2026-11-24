@@ -14,10 +14,12 @@ import { getFeatureFlags } from "@/lib/queries/feature-flags";
 import { getAdminProsData } from "./admin-pros-data";
 import { AdminProsMasterDetail } from "./admin-pros-master-detail";
 import { QueueRealtimeListener } from "@/components/queue/realtime-listener";
+import { requireAdminPage } from "@/lib/auth/admin-page";
 
 export const metadata = { title: "PROs — Admin FORMULADOTA" };
 
 export default async function AdminProsPage() {
+  await requireAdminPage();
   const supabase = await createClient();
   const {
     data: { user },

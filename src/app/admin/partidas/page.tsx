@@ -9,6 +9,7 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { Card } from "@/components/ui/card";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { DiscardMatchButton } from "@/components/match/discard-match-button";
+import { requireAdminPage } from "@/lib/auth/admin-page";
 
 // Partida ainda "viva" — pode ser descartada da auditoria.
 const ACTIVE_STATUSES = ["pending", "open", "in_progress"];
@@ -38,6 +39,7 @@ function fmt(ts: string | null): string {
 }
 
 export default async function AdminPartidasPage() {
+  await requireAdminPage();
   const supabase = await createClient();
   const {
     data: { user },
