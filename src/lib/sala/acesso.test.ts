@@ -121,6 +121,11 @@ describe("decideRoomAccess: cada não, na ordem da spec", () => {
     expect(decideRoomAccess(expulso)).toEqual({ ok: false, code: "expulso" });
   });
 
+  it("banido e também expulso desta sala: o motivo é o banimento, que vale para todas as salas do dono", () => {
+    const ambos = input({ room: palco, member: { role: "ouvinte", status: "expulso", forceMuted: false }, bannedByOwner: true });
+    expect(decideRoomAccess(ambos)).toEqual({ ok: false, code: "banido" });
+  });
+
   it("na party, quem saiu da party perde o acesso mesmo com linha de membro", () => {
     expect(decideRoomAccess(input({ room: party, inPartyNow: false }))).toEqual({ ok: false, code: "fora_da_sala" });
   });

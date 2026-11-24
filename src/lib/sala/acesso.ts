@@ -32,8 +32,10 @@ type Link = { ok: true; role: MemberRole } | { ok: false; code: "fora_da_sala" |
 
 function membership(input: AccessInput, room: RoomInfo, userId: string): Link {
   if (room.ownerId === userId) return { ok: true, role: "dono" };
-  if (input.member?.status === "expulso") return { ok: false, code: "expulso" };
+  // Banido antes de expulso: o banido também é tirado das outras salas abertas do dono, e o motivo que
+  // vale para ele é o banimento (todas as salas), não a remoção desta.
   if (input.bannedByOwner) return { ok: false, code: "banido" };
+  if (input.member?.status === "expulso") return { ok: false, code: "expulso" };
   if (room.kind === "party") return input.inPartyNow ? { ok: true, role: "membro" } : { ok: false, code: "fora_da_sala" };
   if (room.kind === "mentoria") return input.member?.status === "ativo" ? { ok: true, role: "membro" } : { ok: false, code: "fora_da_sala" };
   if (room.audience === "beneficio" && !input.battlepass && !input.inPartyNow) return { ok: false, code: "so_beneficio" };
