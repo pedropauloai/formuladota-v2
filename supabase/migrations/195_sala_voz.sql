@@ -55,6 +55,8 @@ create table if not exists public.voice_room_members (
   joined_via text not null check (joined_via in ('dono', 'pedido', 'convite', 'party')),
   muted boolean not null default false,
   last_seen_at timestamptz,
+  -- Nome de usuário da credencial de TURN da última entrada: revogada ao expulsar e ao encerrar.
+  turn_username text check (turn_username is null or char_length(turn_username) <= 256),
   removed_by uuid references public.profiles (id) on delete set null,
   removed_at timestamptz,
   created_at timestamptz not null default now(),
