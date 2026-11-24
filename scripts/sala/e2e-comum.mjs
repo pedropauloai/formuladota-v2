@@ -98,8 +98,44 @@ export async function attr(page, name) {
   return Number(value ?? 0);
 }
 
-export async function enter(ctx, roomId) {
+/** O que cada navegador viu (erros do console e respostas das rotas da sala), para a falha vir explicada. */
+export const diagnostico = [];
+
+export function instrument(page, quem) {
+  page.on("console", (msg) => {
+    const text = msg.text();
+    if (msg.type() === "error" || msg.type() === "warning" || text.includes("[sala]")) diagnostico.push(`${quem} console.${msg.type()}: ${text.slice(0, 300)}`);
+  });
+  page.on("pageerror", (err) => diagnostico.push(`${quem} pageerror: ${String(err).slice(0, 300)}`));
+  page.on("response", async (res) => {
+    const url = res.url();
+    if (!url.includes("/api/sala/")) return;
+    const path = new URL(url).pathname.replace(/[0-9a-f]{8}-[0-9a-f-]{27}/g, ":id");
+    if (res.status() >= 400) {
+      const body = await res.text().catch(() => "");
+      diagnostico.push(`${quem} ${res.request().method()} ${path} -> ${res.status()} ${body.slice(0, 200)}`);
+    } else if (/rtc|faixas|entrar/.test(path)) diagnostico.push(`${quem} ${res.request().method()} ${path} -> ${res.status()}`);
+  });
+}
+
+/** Sessões, faixas e recepções da sala, para o diagnóstico de uma falha. */
+export async function dumpRoom(roomId) {
+  const { data: sessions } = await db.from("voice_room_sessions").select("id, user_id, closed_at, close_reason").eq("room_id", roomId);
+  const ids = (sessions ?? []).map((x) => x.id);
+  const { data: tracks } = ids.length ? await db.from("voice_room_tracks").select("session_id, track_name, kind, tipo, quality, closed_at").in("session_id", ids) : { data: [] };
+  const { data: subs } = ids.length ? await db.from("voice_room_subscriptions").select("session_id, publisher_session_id, track_name, kind, rid, ended_at").in("session_id", ids) : { data: [] };
+  const curto = (v) => (v ? String(v).slice(0, 8) : "-");
+  const linhas = [
+    ...(sessions ?? []).map((x) => `sessão ${curto(x.id)} de ${curto(x.user_id)} ${x.closed_at ? `fechada (${x.close_reason})` : "aberta"}`),
+    ...(tracks ?? []).map((x) => `faixa ${x.kind}/${x.tipo ?? "sem rótulo"}${x.quality ? `/${x.quality}` : ""} da sessão ${curto(x.session_id)} ${x.closed_at ? "fechada" : "aberta"}`),
+    ...(subs ?? []).map((x) => `recepção ${x.kind}${x.rid ? `/${x.rid}` : ""} na sessão ${curto(x.session_id)} de ${curto(x.publisher_session_id)} ${x.ended_at ? "encerrada" : "aberta"}`),
+  ];
+  return linhas.join(String.fromCharCode(10));
+}
+
+export async function enter(ctx, roomId, quem = "navegador") {
   const page = await ctx.newPage();
+  instrument(page, quem);
   await page.goto(`${BASE}/sala/${roomId}`);
   await page.locator("[data-sala-entrar]").click({ timeout: 60_000 });
   await page.locator('[data-sala-fase="na_sala"]').waitFor({ timeout: 30_000 });
@@ -145,6 +181,14 @@ export async function openVoiceCount(roomId, userId) {
   const sid = await openSessionOf(roomId, userId);
   if (!sid) return 0;
   const { count } = await db.from("voice_room_tracks").select("track_name", { count: "exact", head: true }).eq("session_id", sid).eq("kind", "audio").eq("tipo", "voz").is("closed_at", null);
+  return count ?? 0;
+}
+
+/** Faixas de vídeo (tela) abertas da pessoa na sala. */
+export async function openVideoCount(roomId, userId) {
+  const sid = await openSessionOf(roomId, userId);
+  if (!sid) return 0;
+  const { count } = await db.from("voice_room_tracks").select("track_name", { count: "exact", head: true }).eq("session_id", sid).eq("kind", "video").is("closed_at", null);
   return count ?? 0;
 }
 

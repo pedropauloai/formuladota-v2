@@ -80,18 +80,27 @@ async function chat(t, check, pDono, pOuv) {
 }
 
 async function banir(t, check, pDono) {
-  const pOuv2 = await s.enter(await t.ctx(t.ouvinte2), t.palco.id);
-  await pDono.locator(`[data-sala-banir="${t.ouvinte2.id}"]`).click({ timeout: 20_000 });
+  const pOuv2 = await s.enter(await t.ctx(t.ouvinte2), t.palco.id, "ouvinte2");
+  const semEntrar = await s.apiPost(pOuv2, `/api/sala/${t.palco2.id}/chat`, { texto: "sem entrar" });
+  check("quem não entrou na sala não escreve no chat dela", semEntrar.status === 403 && semEntrar.body.errorCode === "fora_da_sala", `HTTP ${semEntrar.status} ${semEntrar.body.errorCode}`);
+  const naOutra = await s.apiPost(pOuv2, `/api/sala/${t.palco2.id}/entrar`);
+  check("o ouvinte entra também na outra sala aberta do dono", naOutra.status === 200, `HTTP ${naOutra.status} ${naOutra.body.errorCode ?? ""}`);
+  await pOuv2.locator("[data-sala-chat-campo]").fill("mensagem para banir");
+  await pOuv2.locator("[data-sala-chat-enviar]").click();
+  const msg = await messageId(t.palco.id, "mensagem para banir");
+  await pDono.locator(`[data-sala-banir-autor="${msg}"]`).click({ timeout: 20_000 });
   await s.confirmDialog(pDono);
   const saiu = await waitFor(async () => (await pOuv2.locator('[data-sala-fase="saiu"]').count()) > 0, 15_000);
-  check("o banido sai da sala na hora", !!saiu);
+  check("banido pela mensagem do chat, sai da sala na hora", !!saiu);
+  const { data: fora } = await db.from("voice_room_members").select("status").eq("room_id", t.palco2.id).eq("user_id", t.ouvinte2.id).maybeSingle();
+  check("o banido sai também da outra sala aberta do mesmo dono", fora?.status === "expulso", String(fora?.status));
   const outra = await s.apiPost(pOuv2, `/api/sala/${t.palco2.id}/entrar`);
   check("o banido não entra em outra sala do mesmo dono", outra.status === 403 && outra.body.errorCode === "banido", `HTTP ${outra.status} ${outra.body.errorCode}`);
 }
 
 export async function palco(t, check) {
-  const pDono = await s.enter(await t.ctx(t.dono), t.palco.id);
-  const pOuv = await s.enter(await t.ctx(t.ouvinte), t.palco.id);
+  const pDono = await s.enter(await t.ctx(t.dono), t.palco.id, "dono-palco");
+  const pOuv = await s.enter(await t.ctx(t.ouvinte), t.palco.id, "ouvinte");
   await telaECamada(t, check, pDono, pOuv);
   await palcoEModeracao(t, check, pDono, pOuv);
   await sleep(2100);

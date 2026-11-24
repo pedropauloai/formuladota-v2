@@ -37,8 +37,8 @@ async function setup() {
 }
 
 async function voiceAndScreen(t) {
-  const pDono = await s.enter(await t.ctx(t.dono), t.sala.id);
-  const pAluno = await s.enter(await t.ctx(t.aluno), t.sala.id);
+  const pDono = await s.enter(await t.ctx(t.dono), t.sala.id, "dono");
+  const pAluno = await s.enter(await t.ctx(t.aluno), t.sala.id, "aluno");
   check("as duas pessoas aparecem na lista", !!(await waitFor(async () => (await pDono.locator('[data-sala-pessoas="2"]').count()) > 0, 20_000)));
   const ouveDono = await waitFor(async () => (await s.attr(pAluno, "data-audio-bytes")) > 0, 30_000);
   const ouveAluno = await waitFor(async () => (await s.attr(pDono, "data-audio-bytes")) > 0, 30_000);
@@ -65,6 +65,9 @@ async function reportAndCap(t, pDono, pAluno) {
   await pAluno.keyboard.press("Escape");
 
   await pDono.locator('[data-sala-tela="parar"]').click();
+  // Sem esperar o fechamento, a tentativa abaixo cairia na regra de uma tela por pessoa, não no teto.
+  const fechou = await waitFor(async () => (await s.openVideoCount(t.sala.id, t.dono.id)) === 0, 15_000);
+  check("parar a tela fecha a faixa no servidor", !!fechou);
   const sid = await s.openSessionOf(t.sala.id, t.dono.id);
   const start = new Date(Date.now() - 90 * 3600_000).toISOString();
   await db.from("voice_room_subscriptions").insert({ session_id: sid, mid: "999", publisher_session_id: sid, track_name: "e2e-teto-falso", kind: "video", rate_kbps: 20000, started_at: start, ended_at: new Date(Date.now() - 120_000).toISOString(), is_test: true });
@@ -133,8 +136,9 @@ async function flagOff(t, pDono) {
   check("flag desligada esconde a sala e o painel até do admin", pagina?.status() === 404 && painel?.status() === 404, `sala ${pagina?.status()}, painel ${painel?.status()}`);
 }
 
+let t = null;
 try {
-  const t = await setup();
+  t = await setup();
   const { pDono, pAluno } = await voiceAndScreen(t);
   await reportAndCap(t, pDono, pAluno);
   await blockAndKick(t, pDono, pAluno);
@@ -144,6 +148,9 @@ try {
 } catch (err) {
   console.error(err instanceof Error ? err.message : err);
   process.exitCode = 1;
+  const nl = String.fromCharCode(10);
+  console.log(`${nl}--- o que os navegadores viram (últimas 60 linhas):${nl}` + s.diagnostico.slice(-60).join(nl));
+  if (t) console.log(`${nl}--- banco da mentoria de teste:${nl}` + (await s.dumpRoom(t.sala.id).catch((e) => e.message)) + `${nl}--- banco da sala pública de teste:${nl}` + (await s.dumpRoom(t.palco.id).catch((e) => e.message)));
 } finally {
   await browser?.close().catch(() => null);
   await sleep(500);
