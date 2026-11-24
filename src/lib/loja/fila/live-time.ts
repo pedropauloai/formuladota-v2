@@ -4,7 +4,7 @@
 import "server-only";
 import { createServiceClient } from "@/lib/supabase/service";
 
-/** Folga para partida que começou um pouco antes de o PPA abrir a live no painel. */
+/** Folga para partida que começou um pouco antes de a live abrir (no primeiro chamado da party). */
 export const BEFORE_LIVE_MS = 30 * 60 * 1000;
 
 export async function liveOnAirAt(liveId: string): Promise<number | null> {

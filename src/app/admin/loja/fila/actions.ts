@@ -11,6 +11,7 @@ import { parseMatchId } from "@/lib/battlepass/partida";
 import { currentPartyAccounts, partyLastMatch, resolveMatch } from "@/lib/battlepass/partida-server";
 import { isTestMode } from "@/lib/mercadopago";
 import { endedBeforeLive, liveOnAirAt } from "@/lib/loja/fila/live-time";
+import { liveForCall } from "@/lib/loja/fila/live-auto-server";
 
 export type FilaAdminResult = { ok: true; message?: string } | { ok: false; error: string };
 
@@ -19,24 +20,20 @@ const uuid = z.string().uuid();
 const queueSize = z.number().int().min(0).max(100);
 const seatsPerMatch = z.number().int().min(1).max(4);
 
-async function run(what: string, action: () => Promise<string | null | undefined>): Promise<FilaAdminResult> {
+/** O que a ação respondeu: o problema (texto), um aviso de sucesso diferente do padrão, ou nada. */
+type Outcome = string | { message: string } | null | undefined;
+
+async function run(what: string, action: () => Promise<Outcome>): Promise<FilaAdminResult> {
   if (!(await isAdminUser())) return { ok: false, error: "Só o admin opera a fila." };
   try {
-    const problem = await action();
+    const outcome = await action();
     revalidatePath(PATH);
-    return problem ? { ok: false, error: problem } : { ok: true };
+    if (typeof outcome === "string" && outcome) return { ok: false, error: outcome };
+    return outcome && typeof outcome === "object" ? { ok: true, message: outcome.message } : { ok: true };
   } catch (err) {
     console.error(`[admin/fila] ${what} falhou:`, err instanceof Error ? err.message : err);
     return { ok: false, error: `Não deu para ${what}. Tente de novo.` };
   }
-}
-
-export async function abrirLive(size: number, perMatch: number, youtube: string): Promise<FilaAdminResult> {
-  const parsed = z.object({ size: queueSize, perMatch: seatsPerMatch }).safeParse({ size, perMatch });
-  if (!parsed.success) return { ok: false, error: "A fila vai de 0 a 100 partidas, e a party tem de 1 a 4 lugares." };
-  const videoId = youtube.trim() ? parseYoutubeVideoId(youtube) : null;
-  if (youtube.trim() && !videoId) return { ok: false, error: "Esse link não é de um vídeo do YouTube. Cole o link da live ou deixe em branco." };
-  return run("abrir a live", async () => ((await queueOps.open(size, perMatch, videoId)) ? null : "A live não abriu."));
 }
 
 /**
@@ -63,18 +60,34 @@ export async function ajustarVagas(liveId: string, size: number, perMatch: numbe
   });
 }
 
-export async function chamarProximo(liveId: string, bookingId: string | null = null): Promise<FilaAdminResult> {
-  if (!uuid.safeParse(liveId).success || (bookingId !== null && !uuid.safeParse(bookingId).success)) return { ok: false, error: "Pedido inválido." };
-  return run("chamar", async () => ((await queueOps.call(liveId, bookingId)) ? null : "A party está cheia ou não tem ninguém esperando."));
+const NOBODY = "A party está cheia ou não tem ninguém esperando.";
+const NOT_OPENED = "A live não abriu. Tente de novo.";
+
+/**
+ * Chama para a party. Fora do ar, o chamado abre a live sozinho (o PPA não abre no painel); se
+ * ninguém entrar, a live que ele abriu fecha de volta.
+ */
+export async function chamarProximo(bookingId: string | null = null): Promise<FilaAdminResult> {
+  if (bookingId !== null && !uuid.safeParse(bookingId).success) return { ok: false, error: "Pedido inválido." };
+  return run("chamar", async () => {
+    const live = await liveForCall();
+    if (!live) return NOT_OPENED;
+    if (await queueOps.call(live.id, bookingId)) return live.opened ? { message: "A live abriu sozinha. Quem você chamou já está na party." } : null;
+    if (live.opened) await queueOps.close(live.id);
+    return NOBODY;
+  });
 }
 
-/** Chama até completar os lugares da party (cada chamada respeita a trava do banco). */
-export async function completarParty(liveId: string): Promise<FilaAdminResult> {
-  if (!uuid.safeParse(liveId).success) return { ok: false, error: "Live inválida." };
+/** Chama até completar os lugares da party (cada chamada respeita a trava do banco); fora do ar, abre a live. */
+export async function completarParty(): Promise<FilaAdminResult> {
   return run("completar a party", async () => {
+    const live = await liveForCall();
+    if (!live) return NOT_OPENED;
     let called = 0;
-    while (called < 4 && (await queueOps.call(liveId, null))) called += 1;
-    return called > 0 ? null : "A party está cheia ou não tem ninguém esperando.";
+    while (called < 4 && (await queueOps.call(live.id, null))) called += 1;
+    if (called > 0) return live.opened ? { message: "A live abriu sozinha e a party está completa. Convide cada um pelo ID do Dota." } : null;
+    if (live.opened) await queueOps.close(live.id);
+    return NOBODY;
   });
 }
 

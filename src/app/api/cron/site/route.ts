@@ -16,7 +16,7 @@ import { reconcilePendingStoreOrders } from "@/lib/loja/order-payments";
 import { refreshOwnerProof } from "@/lib/loja/owner-proof";
 import { refreshMeta } from "@/lib/dota/meta/store";
 import { syncChangelogToDiscord } from "@/lib/changelog/discord-sync";
-import { closeStaleLives } from "@/lib/loja/fila/admin";
+import { closeStaleLives } from "@/lib/loja/fila/live-auto-server";
 import { reconcileBattlepass } from "@/lib/battlepass/reconcile";
 
 export const dynamic = "force-dynamic";

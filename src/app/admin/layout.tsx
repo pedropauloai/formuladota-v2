@@ -2,6 +2,8 @@
 // Usa ClientShell (top-bar + bottom-bar consistentes) com hideLeftSidebar=true
 // pra dar espaço pra sidebar admin (Dashboard, Users, Temporadas, Lobbies).
 // Sem a coluna direita do site (partidas, mural): o admin é instrumento e precisa da largura.
+// Sem a barra de baixo: o "Jogar com o PPA" não serve a quem opera o site (PPA, 24/11/2026), e a
+// faixa que ela reserva deixava a mesa da fila sem chegar ao fim da tela.
 
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
@@ -42,7 +44,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const t = await getTranslations("misc2");
 
   return (
-    <ClientShell currentRoute="/admin" hideLeftSidebar hideRightSidebar>
+    <ClientShell currentRoute="/admin" hideLeftSidebar hideRightSidebar hideBottomBar>
       <div className="flex h-full">
         {/* Admin sidebar interna (substitui left sidebar do user) */}
         <aside className="w-60 border-r border-border-subtle bg-bg-base/60 backdrop-blur-sm p-5 hidden md:block">
