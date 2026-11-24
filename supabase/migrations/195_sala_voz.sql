@@ -13,6 +13,9 @@ create table if not exists public.voice_settings (
   alert_level smallint not null default 0 check (alert_level in (0, 50, 80, 100)),
   alert_at timestamptz,
   peak_alert_at timestamptz,
+  -- Último consumo estimado dos 30 dias, recalculado pelo cron a cada minuto (o batimento só lê).
+  usage_bytes_30d bigint not null default 0 check (usage_bytes_30d >= 0),
+  usage_computed_at timestamptz,
   updated_at timestamptz not null default now()
 );
 insert into public.voice_settings (id) values (1) on conflict (id) do nothing;
