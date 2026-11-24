@@ -67,14 +67,19 @@ function orderDotaId(details: unknown): string | null {
   return typeof value === "string" || typeof value === "number" ? String(value) : null;
 }
 
-export async function isAdminUser(): Promise<boolean> {
+/** O id de quem opera, se for admin (ele lidera o grupo da party no site); null para os outros. */
+export async function adminUserId(): Promise<string | null> {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return false;
+  if (!user) return null;
   const { data } = await supabase.from("profiles").select("is_admin").eq("id", user.id).single();
-  return data?.is_admin === true;
+  return data?.is_admin === true ? user.id : null;
+}
+
+export async function isAdminUser(): Promise<boolean> {
+  return (await adminUserId()) !== null;
 }
 
 async function readFinished(isTest: boolean) {

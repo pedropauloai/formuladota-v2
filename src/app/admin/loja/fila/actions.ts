@@ -5,7 +5,8 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { isAdminUser, queueOps, resizeLive } from "@/lib/loja/fila/admin";
+import { adminUserId, isAdminUser, queueOps, resizeLive } from "@/lib/loja/fila/admin";
+import { syncFilaPartySafely } from "@/lib/loja/fila/social-party";
 import { parseYoutubeVideoId } from "@/lib/loja/fila/youtube";
 import { parseMatchId } from "@/lib/battlepass/partida";
 import { currentPartyAccounts, partyLastMatch, resolveMatch } from "@/lib/battlepass/partida-server";
@@ -24,9 +25,12 @@ const seatsPerMatch = z.number().int().min(1).max(4);
 type Outcome = string | { message: string } | null | undefined;
 
 async function run(what: string, action: () => Promise<Outcome>): Promise<FilaAdminResult> {
-  if (!(await isAdminUser())) return { ok: false, error: "Só o admin opera a fila." };
+  const adminId = await adminUserId();
+  if (!adminId) return { ok: false, error: "Só o admin opera a fila." };
   try {
     const outcome = await action();
+    // Quem está na party da fila aparece no grupo do PPA no site (mini perfil e chat do grupo).
+    await syncFilaPartySafely(adminId, isTestMode());
     revalidatePath(PATH);
     if (typeof outcome === "string" && outcome) return { ok: false, error: outcome };
     return outcome && typeof outcome === "object" ? { ok: true, message: outcome.message } : { ok: true };
@@ -123,7 +127,8 @@ async function matchFromInput(input: string, liveId: string): Promise<{ match: M
  */
 export async function partidaTerminou(liveId: string, matchesDone: number, matchInput = ""): Promise<FilaAdminResult> {
   if (!uuid.safeParse(liveId).success || !Number.isInteger(matchesDone)) return { ok: false, error: "Live inválida." };
-  if (!(await isAdminUser())) return { ok: false, error: "Só o admin opera a fila." };
+  const adminId = await adminUserId();
+  if (!adminId) return { ok: false, error: "Só o admin opera a fila." };
   try {
     let match: MatchData | undefined;
     let note: string | undefined;
@@ -133,6 +138,8 @@ export async function partidaTerminou(liveId: string, matchesDone: number, match
       ({ match, note } = found);
     }
     const counted = await queueOps.matchOver(liveId, matchesDone, match);
+    // O revezamento do fim da partida troca quem está na party: o grupo do site acompanha.
+    await syncFilaPartySafely(adminId, isTestMode());
     revalidatePath(PATH);
     if (counted === -1) return { ok: false, error: "Essa partida já tinha sido marcada." };
     return counted > 0 ? { ok: true, message: note } : { ok: false, error: "Não tem ninguém na party." };

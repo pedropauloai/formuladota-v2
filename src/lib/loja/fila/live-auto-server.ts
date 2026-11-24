@@ -7,6 +7,7 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { isTestMode } from "@/lib/mercadopago";
 import { queueOps } from "./admin";
 import { liveIsIdle } from "./live-auto";
+import { filaPartyLeader, syncFilaPartySafely } from "./social-party";
 
 /**
  * A live em que o chamado entra: a que está no ar ou, fora do ar, uma que abre agora com o tamanho e
@@ -43,7 +44,12 @@ export async function closeStaleLives(now = new Date()): Promise<{ closed: numbe
   if (error) throw new Error(`ler lives abertas falhou: ${error.message}`);
   let closed = 0;
   for (const live of data ?? []) {
-    if (liveIsIdle(await activityMarks(live), now.getTime()) && (await queueOps.close(live.id))) closed += 1;
+    if (!liveIsIdle(await activityMarks(live), now.getTime())) continue;
+    // O líder do grupo do site sai antes de fechar: depois a party está vazia e não diz de quem era.
+    const leader = await filaPartyLeader(live.is_test).catch(() => null);
+    if (!(await queueOps.close(live.id))) continue;
+    closed += 1;
+    await syncFilaPartySafely(leader, live.is_test);
   }
   return { closed };
 }
