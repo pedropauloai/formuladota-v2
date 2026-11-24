@@ -82,3 +82,28 @@ Escopo: a mensalidade de R$ 120, com party com o PPA sempre que quiser pelo reve
 - 9 de 9 não quer dizer que houve assinante: prova que a compra funciona e que os benefícios valem, não que vende.
 - Não cobre a primeira cobrança de cartão de verdade: o sandbox só autoriza a assinatura com uma conta de comprador de teste do Mercado Pago, e criar essa conta pede o sim do Pedro. A primeira assinatura real (ou a compra de teste dele, devolvida pela garantia) é a prova, e o painel `/admin/battlepass` mostra a cobrança entrando.
 - As salas do site seguem pausadas até a enquete chegar a 50 interessados: o critério B3 prova a regra do lobby elite, não a sala funcionando.
+
+## Comunicação, fase 1: sala de voz com tela (frente aberta em 23/11/2026)
+
+Escopo: sala de voz com compartilhamento de tela em `/sala/[id]`, pelo Cloudflare Realtime, para a mentoria do PPA e para a party da live, atrás da flag `sala_voz`. Spec: [comunicacao/spec.md](comunicacao/spec.md). Denominador fechado: **11 critérios**.
+
+| # | Critério | Como se prova | Estado |
+|---|---|---|---|
+| C1 | A spec está na main, com as escolhas de produto do PPA anotadas | PR mesclado; seção 15 da spec com a decisão e a data de cada escolha | não |
+| C2 | O app do Realtime e a chave do TURN existem, e os segredos estão no Worker e no `.env.local` sem terem aparecido em tela | `wrangler secret list` mostra os nomes; um roteiro cria e fecha uma sessão de teste no SFU e sai com 0, sem imprimir segredo | não |
+| C3 | O PPA aprovou a migration da sala | a frase dele, com data, no PR da migration | não |
+| C4 | A migration está aplicada em produção e registrada | consulta a `supabase_migrations.schema_migrations` mostra a versão por data | não |
+| C5 | As regras do banco seguram a sala: visitante e quem está fora não leem, ninguém escreve pela API, a data de nascimento não muda depois de gravada | `scripts/seguranca/sala-voz.sql` com todos os itens "=ok" (vermelho com a trava revertida) e `funcoes-abertas.sql` vazio | não |
+| C6 | Tipos, lint, testes e build fecham, inclusive permissão, idade, custo e leitura do SDP | verificação `verificar` do GitHub verde no PR da prova de conceito | não |
+| C7 | Duas pessoas se ouvem e a tela chega; mutar, expulsar, bloquear e denunciar funcionam; conta de menor, gente de fora e tela acima do teto são barradas | `pnpm sala:e2e` sai com 0 | não |
+| C8 | Com a flag desligada a sala some para todos, inclusive o admin | `pnpm sala:e2e` (parte da flag) | não |
+| C9 | A prova de conceito está no ar, atrás da flag | deploy pela cópia do WSL e `pnpm cf:verificar` com `falhas: 0` | não |
+| C10 | Mentoria real de 1 hora: tela em 1080p em pelo menos 90% do tempo de tela, perda de pacote abaixo de 2%, voz picotada abaixo de 2% sem reclamação, consumo dentro da franquia grátis | consulta da seção 13 da spec, com o resultado e o número do painel da Cloudflare na nota compartilhada | não |
+| C11 | Worktree limpo e branches da frente apagados | `git status` vazio e `git ls-remote --heads origin` sem os branches mesclados | não |
+
+### O que o percentual não significa
+
+- 11 de 11 não prova que a party de 6 aguenta uma live inteira: o aceite real é a mentoria; a party fica provada pelos testes e pela primeira live com a sala.
+- Não prova conformidade jurídica com o ECA Digital: os controles estão ligados aos artigos na spec, e a regulamentação da ANPD pode pedir mais (verificação de idade mais forte, por exemplo).
+- Não prova que ninguém mente a idade: a data é declarada, com conta identificada e sem troca depois.
+- Não cobre compartilhar tela pelo Firefox, pelo Safari ou pelo celular, que não capturam o áudio do jogo.

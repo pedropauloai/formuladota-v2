@@ -12,6 +12,10 @@
 - [POSITIONING.md](POSITIONING.md) — FormulaDota é cultura que usa Dota como terreno; público = jogadores que ainda se importam.
 - [PRODUCT_CORE.md](PRODUCT_CORE.md) — Identidade de marca (Mestre + Guardião), voz, hierarquia de feedback de eventos (HONOR e SKILL).
 
+## Comunicação (voz e tela)
+
+- [../comunicacao/spec.md](../comunicacao/spec.md): fase 1 da comunicação dentro do FORMULADOTA (23/11/2026). Sala de voz com tela pelo Cloudflare Realtime, para a mentoria e a party da live, atrás da flag `sala_voz`; controles do ECA Digital, teto de custo e fases 2 e 3 só no papel.
+
 ## Sistemas de jogo e progressão
 
 - [HONOR_SYSTEM.md](HONOR_SYSTEM.md) — Ladder 0–30 fundido com XP; 5 medalhas (Aprendiz→Místico) + estado Novato.
