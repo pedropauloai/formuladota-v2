@@ -12,6 +12,13 @@ const M = "src/lib/sala/montagem.ts";
 const S = "src/lib/sala/sdp.ts";
 const R = "src/lib/sala/realtime-api.ts";
 const PR = "src/lib/sala/presenca.ts";
+const CL = "src/lib/sala/cliente/chat-local.ts";
+const OR = "src/lib/sala/cliente/ordem.ts";
+const RC = "src/lib/sala/cliente/recepcao.ts";
+const RT = "src/lib/sala/cliente/ritmo.ts";
+const RG = "src/lib/sala/cliente/registro.ts";
+const FC = "src/lib/sala/flag-chave.ts";
+const MO = "src/lib/sala/montagem.ts";
 
 const MUTACOES = [
   [A, 'if (!input.flagOn) return { ok: false, code: "flag_desligada" };', "", "flag desligada não esconde"],
@@ -47,6 +54,13 @@ const MUTACOES = [
   [R, "if (res.status !== 429 && res.status < 500) return res;", "return res;", "expulsão falha calada com a Cloudflare ocupada"],
   [PR, 'if (!member || member.status !== "ativo" || !member.lastSeenAt) return false;', "if (!member || !member.lastSeenAt) return false;", "expulso com batimento recente conta como presente"],
   [PR, "return now.getTime() - new Date(member.lastSeenAt).getTime() < PRESENTE_MS;", "return true;", "quem parou de bater segue presente"],
+  [CL, "return novas.reduce((max, m) => Math.max(max, m.id), cursor);", "return novas.at(-1)?.id ?? cursor;", "o cursor do chat volta e pula mensagem"],
+  [OR, "if (a.maoDesde) return -1;", "", "mão levantada não sobe para o topo"],
+  [RC, 'faixas.filter((f) => this.verTela || f.tipo === "voz")', "faixas", "fora da página da sala, a tela continua chegando"],
+  [RT, "return i.noAr && i.podeFalar && !i.vozAberta && i.noArDesde !== null && i.agora - i.noArDesde > VOZ_SUMIDA_MS;", "return false;", "voz que o servidor fechou não religa"],
+  [RG, 'if (fase === "saiu" || fase === "erro") anotar(null);', "", "quem foi tirado da sala volta nela ao recarregar"],
+  [FC, 'if (env.NODE_ENV !== "development") return SALA_FLAG;', "", "produção obedece a linha de teste da flag"],
+  [MO, 'vozAberta: snap.tracks.some((t) => t.u === me && t.t === "voz"),', "vozAberta: true,", "o estado sempre diz que a voz está aberta"],
 ];
 
 let falhas = 0;

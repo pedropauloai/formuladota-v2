@@ -56,6 +56,44 @@ async function voiceAndScreen(t) {
   return { pDono, pAluno };
 }
 
+/** Bytes de áudio recebidos: na página da sala, na raiz dela; nas outras páginas, no painel de voz. */
+const audioBytes = (page) =>
+  page.evaluate(() => Number((document.querySelector("[data-painel-voz]") ?? document.querySelector("[data-sala-fase]"))?.getAttribute("data-audio-bytes") ?? 0));
+
+async function irPelaBarra(page, rota) {
+  await page.locator(`a[href="${rota}"]`).first().click({ timeout: 20_000 });
+  await page.waitForURL((u) => new URL(u).pathname === rota, { timeout: 60_000 });
+}
+
+async function sobe(page, antes) {
+  return !!(await waitFor(async () => (await audioBytes(page)) > antes, 20_000));
+}
+
+/** A sala continua ao navegar pelo site (navegação no cliente), volta pelo painel e volta sozinha ao recarregar. */
+async function navegar(t, pAluno) {
+  await pAluno.evaluate(() => { window.__mesmaPagina = true; });
+  let antes = await audioBytes(pAluno);
+  await irPelaBarra(pAluno, "/party");
+  const painel = await pAluno.locator('[data-painel-voz="na_sala"]').waitFor({ timeout: 20_000 }).then(() => true).catch(() => false);
+  check("no /party, o painel de voz aparece e o áudio continua chegando", painel && (await sobe(pAluno, antes)), `${await audioBytes(pAluno)} bytes`);
+  antes = await audioBytes(pAluno);
+  await irPelaBarra(pAluno, "/meta");
+  check("no /meta, o áudio continua chegando", await sobe(pAluno, antes), `${await audioBytes(pAluno)} bytes`);
+  antes = await audioBytes(pAluno);
+  await pAluno.locator("[data-painel-voz-voltar]").click();
+  await pAluno.locator('[data-sala-fase="na_sala"]').waitFor({ timeout: 30_000 });
+  const mesma = await pAluno.evaluate(() => window.__mesmaPagina === true);
+  check("de volta à sala pelo painel, sem recarregar a página e com o áudio subindo o tempo todo", mesma && (await sobe(pAluno, antes)), mesma ? "" : "a página recarregou");
+  const tela = await waitFor(async () => (await s.attr(pAluno, "data-video-altura")) > 0, 30_000);
+  check("de volta à sala, a tela volta a chegar", !!tela);
+  await irPelaBarra(pAluno, "/meta");
+  await pAluno.reload();
+  const voltou = await pAluno.locator('[data-painel-voz="na_sala"]').waitFor({ timeout: 45_000 }).then(() => true).catch(() => false);
+  check("recarregar a página volta para a sala sozinho, com o áudio chegando", voltou && (await sobe(pAluno, 0)), `${await audioBytes(pAluno)} bytes`);
+  await pAluno.locator("[data-painel-voz-voltar]").click();
+  await pAluno.locator('[data-sala-fase="na_sala"]').waitFor({ timeout: 30_000 });
+}
+
 async function reportAndCap(t, pDono, pAluno) {
   await pAluno.locator(`[data-sala-denunciar="${t.dono.id}"]`).click();
   await pAluno.locator("[data-sala-denuncia-enviar]").click();
@@ -142,6 +180,7 @@ let t = null;
 try {
   t = await setup();
   const { pDono, pAluno } = await voiceAndScreen(t);
+  await navegar(t, pAluno);
   await reportAndCap(t, pDono, pAluno);
   await blockAndKick(t, pDono, pAluno);
   const pPalco = await palco(t, check);

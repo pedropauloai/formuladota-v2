@@ -1,6 +1,6 @@
 // Capturas da sala de voz para conferir a interface em 1920x1080 (e a plateia em 3440x1440): a sala
 // pública vista pelo dono (tela, plateia, mãos, palco e chat), a escolha da qualidade, a vista da
-// plateia e a mentoria. Servidor local, banco de produção com salas e pessoas de teste (apagadas no
+// plateia, o painel de voz em outras páginas (nas duas posições) e a mentoria. Servidor local, banco de produção com salas e pessoas de teste (apagadas no
 // fim) e o app real do Realtime. Liga só a linha de teste da flag (sala_voz_e2e), nunca a sala_voz.
 // A tela compartilhada é uma arte do Dota do próprio site, no lugar do padrão de teste do Chrome.
 // Rodar: pnpm sala:capturas <pasta-de-saida>
@@ -82,6 +82,20 @@ async function falar(page, texto) {
   await sleep(400);
 }
 
+/** O painel de voz em outras páginas, nas duas posições que o PPA escolhe vendo. */
+async function painelForaDaSala(page) {
+  for (const posicao of ["canto", "topo"]) {
+    await page.evaluate((v) => localStorage.setItem("formuladota:painel-voz", v), posicao);
+    for (const rota of ["/meta", "/party"]) {
+      await page.locator(`a[href="${rota}"]`).first().click({ timeout: 20_000 });
+      await page.waitForURL((u) => new URL(u).pathname === rota, { timeout: 60_000 });
+      await page.locator(`[data-painel-voz="na_sala"][data-painel-posicao="${posicao}"]`).waitFor({ timeout: 30_000 });
+      await sleep(2500);
+      await foto(page, `07-painel-${posicao}-${rota.slice(1)}.png`);
+    }
+  }
+}
+
 async function salaPublica(p, ctx) {
   const palco = await s.createPalco(p.dono);
   made.rooms.push(palco.id);
@@ -126,6 +140,7 @@ async function salaPublica(p, ctx) {
   await waitFor(async () => (await s.attr(largo, "data-video-altura")) > 0, 40_000);
   await sleep(3500);
   await foto(largo, "06-sala-publica-plateia-3440.png");
+  await painelForaDaSala(plateia.c);
 
   for (const page of [pDono, largo, ...Object.values(plateia)]) await page.close().catch(() => null);
 }
