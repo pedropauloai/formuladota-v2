@@ -39,10 +39,15 @@ export function buildOwnerProofData(player: unknown, now: Date, partyMatches: re
   };
 }
 
-/** O resumo guardado serve: tem os heróis e o resultado, ou já passou um dia e o resultado não vai mais aparecer. */
+/**
+ * O resumo guardado serve quando já tem os heróis da party e achou o PPA. Sem o PPA, volta ao
+ * OpenDota na rodada seguinte (a conta usada pode ter entrado na lista); sem resultado, desiste
+ * depois de um dia.
+ */
 export function reuseSummary(hit: PartyMatchSummary | undefined, nowMs: number): hit is PartyMatchSummary {
-  if (!hit || hit.partyHeroIds === null) return false;
-  return hit.won !== null || nowMs - (hit.startTime + hit.duration) * 1000 > RETRY_NO_RESULT_MS;
+  if (!hit || hit.partyHeroIds === null || hit.teammates === null) return false;
+  if (hit.ppaHeroId !== null) return true;
+  return hit.won === null && nowMs - (hit.startTime + hit.duration) * 1000 > RETRY_NO_RESULT_MS;
 }
 
 /** Registro gravado no banco; null quando o formato não serve. */

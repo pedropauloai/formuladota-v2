@@ -144,11 +144,6 @@ export async function tirarDaParty(bookingId: string): Promise<FilaAdminResult> 
   return run("tirar da party", async () => ((await queueOps.leaveParty(bookingId)) ? null : "Essa pessoa já não estava na party."));
 }
 
-export async function naoApareceu(bookingId: string): Promise<FilaAdminResult> {
-  if (!uuid.safeParse(bookingId).success) return { ok: false, error: "Pedido inválido." };
-  return run("pular", async () => ((await queueOps.noShow(bookingId)) ? null : "Essa pessoa não está na party."));
-}
-
 export async function tirarDaFila(bookingId: string): Promise<FilaAdminResult> {
   if (!uuid.safeParse(bookingId).success) return { ok: false, error: "Pedido inválido." };
   return run("tirar da fila", async () => ((await queueOps.remove(bookingId)) ? null : "Essa pessoa já não estava na fila."));

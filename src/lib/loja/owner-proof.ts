@@ -12,6 +12,7 @@ import type { Json } from "@/types/database";
 import { buildOwnerProofData, parseOwnerProofData, reuseSummary, type OwnerProofData } from "./owner-proof-data";
 import { summarizePartyMatch, type PartyMatchSummary } from "./fila/party-match";
 import { registeredMatchAccounts } from "./fila/party-matches";
+import { ppaAccountSearchOrder } from "./ppa-accounts";
 
 // Perfil de coach do dono da loja: dele saem a conta Steam e o avatar.
 const OWNER_COACH_SLUG = "pedro-paulo";
@@ -63,6 +64,7 @@ type Registered = Awaited<ReturnType<typeof registeredMatchAccounts>>;
 /** O resumo de cada partida registrada: o do cache quando serve (reuseSummary); senão, da OpenDota. */
 async function summarize(accountId: number, registered: Registered, current: OwnerProofData | null, now: Date): Promise<PartyMatchSummary[]> {
   const cached = new Map((current?.partyMatches ?? []).map((m) => [m.matchId, m]));
+  const owners = [...new Set([accountId, ...(await ppaAccountSearchOrder())])];
   const out: PartyMatchSummary[] = [];
   for (const r of registered) {
     const hit = cached.get(r.matchId);
@@ -71,7 +73,7 @@ async function summarize(accountId: number, registered: Registered, current: Own
       continue;
     }
     try {
-      const summary = summarizePartyMatch(await openDotaJson<unknown>(`/matches/${r.matchId}`, { timeoutMs: FETCH_TIMEOUT_MS }), accountId, r.accounts);
+      const summary = summarizePartyMatch(await openDotaJson<unknown>(`/matches/${r.matchId}`, { timeoutMs: FETCH_TIMEOUT_MS }), owners, r.accounts);
       if (summary) out.push(summary);
     } catch (err) {
       // Partida ainda processando na OpenDota: fica o que havia, e a próxima rodada tenta de novo.

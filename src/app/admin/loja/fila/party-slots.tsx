@@ -6,13 +6,13 @@
 // fica no menu. O lugar livre mostra quem é o próximo da fila.
 
 import Image from "next/image";
-import { ArrowLeftRight, ExternalLink, LogOut, Minus, Plus, UserMinus, UserX } from "lucide-react";
+import { ArrowLeftRight, ExternalLink, LogOut, Minus, Plus, UserMinus } from "lucide-react";
 import { UserAvatar } from "@/components/ui/avatar";
 import type { AdminQueueEntry } from "@/lib/loja/fila/admin";
 import type { QueueLive } from "@/lib/loja/fila/model";
 import { OWNER } from "@/lib/loja/owner";
 import { cn } from "@/lib/utils";
-import { chamarProximo, naoApareceu, tirarDaFila, tirarDaParty } from "./actions";
+import { chamarProximo, tirarDaFila, tirarDaParty } from "./actions";
 import { ajustarPartidas } from "./cortesia-actions";
 import { ActionMenu, type MenuAction } from "./action-menu";
 import { CopyId, MatchPips, OpButton } from "./ui";
@@ -27,20 +27,10 @@ function seatActions(entry: AdminQueueEntry, liveId: string, run: ReturnType<typ
     {
       key: "sair",
       label: "Tirar da party",
-      hint: "Volta para a fila no mesmo lugar, sem falta.",
+      hint: "Volta para a fila no mesmo lugar; joga quem está presente.",
       icon: <UserMinus size={16} />,
       run: () => run({ action: () => tirarDaParty(entry.id), success: `${entry.name} voltou para a fila.`, undo: () => chamarProximo(liveId, entry.id) }),
       testId: "tirar-da-party",
-    },
-    {
-      key: "falta",
-      label: "Não apareceu",
-      hint: "Conta a vez e vai para o fim da fila.",
-      confirm: "Confirmar: não apareceu",
-      icon: <UserX size={16} />,
-      tone: "caution",
-      run: () => run({ action: () => naoApareceu(entry.id), success: `${entry.name} foi para o fim da fila.` }),
-      testId: "nao-apareceu",
     },
     // A vaga do dia não tem saldo de partidas: joga a live inteira no revezamento.
     ...(entry.dayPass

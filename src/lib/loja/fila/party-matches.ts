@@ -7,7 +7,7 @@ import "server-only";
 import { createServiceClient } from "@/lib/supabase/service";
 import { createClient } from "@/lib/supabase/server";
 import { getIdentityMap } from "@/lib/queries/identities";
-import { PARTY_MATCHES_CACHED } from "@/lib/loja/owner-proof-data";
+import { PARTY_MATCHES_CACHED, parseOwnerProofData } from "@/lib/loja/owner-proof-data";
 
 const STEAM_BASE = BigInt("76561197960265728");
 
@@ -43,8 +43,36 @@ async function latestRows(limit: number): Promise<{ matchId: number; playedAt: s
   return [...groups.values()].slice(0, limit);
 }
 
+/** Do resumo que o cron guardou: as contas de quem jogou no time do PPA em cada partida. */
+async function cachedTeams(): Promise<Map<number, number[]>> {
+  const { data } = await createServiceClient().from("store_owner_proof").select("data").eq("id", 1).maybeSingle();
+  const proof = parseOwnerProofData(data?.data ?? null);
+  return new Map((proof?.partyMatches ?? []).map((s) => [s.matchId, s.teammates ?? []]));
+}
+
+/** De cada conta da Steam (32 bits), quem a vinculou no FORMULADOTA. */
+async function linkedUsers(accounts: number[]): Promise<Map<number, string>> {
+  if (accounts.length === 0) return new Map();
+  const steamIds = accounts.map((a) => (STEAM_BASE + BigInt(a)).toString());
+  const { data, error } = await createServiceClient().from("steam_links").select("user_id, steam_id_64").in("steam_id_64", steamIds);
+  if (error) throw new Error(`ler as contas do time do PPA falhou: ${error.message}`);
+  return new Map((data ?? []).map((l) => [Number(BigInt(l.steam_id_64) - STEAM_BASE), l.user_id]));
+}
+
+/**
+ * Quem jogou: os da party registrados na fila e, sozinho, quem do time do PPA tem conta no site
+ * (a OpenDota mostra a conta, a Steam vinculada diz quem é), mesmo sem ter passado pela fila.
+ */
 export async function getRegisteredPartyMatches(limit = PARTY_MATCHES_CACHED): Promise<RegisteredPartyMatch[]> {
-  const rows = await latestRows(limit);
+  const [registered, teams] = await Promise.all([latestRows(limit), cachedTeams()]);
+  const users = await linkedUsers([...new Set([...teams.values()].flat())]);
+  const rows = registered.map((r) => {
+    const fromTeam = (teams.get(r.matchId) ?? []).flatMap((a) => {
+      const id = users.get(a);
+      return id ? [id] : [];
+    });
+    return { ...r, userIds: [...new Set([...r.userIds, ...fromTeam])] };
+  });
   const identities = await getIdentityMap(await createClient(), [...new Set(rows.flatMap((r) => r.userIds))]);
   return rows.map((r) => ({
     matchId: r.matchId,
