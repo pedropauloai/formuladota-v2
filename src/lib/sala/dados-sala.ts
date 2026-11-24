@@ -4,7 +4,7 @@
 import "server-only";
 import { createServiceClient } from "@/lib/supabase/service";
 import type { Database } from "@/types/database";
-import type { Audience, MemberRole, MemberStatus, RoomInfo, RoomKind, RoomStatus, ScreenPolicy } from "./tipos";
+import type { Audience, MemberRole, MemberStatus, RoomInfo, RoomKind, RoomStatus, ScreenPolicy, VoiceMode } from "./tipos";
 
 export type Db = ReturnType<typeof createServiceClient>;
 type RoomRow = Database["public"]["Tables"]["voice_rooms"]["Row"];
@@ -33,7 +33,7 @@ export interface VoiceSettings {
   usageComputedAt: string | null;
 }
 
-export type JoinedVia = "dono" | "pedido" | "convite" | "party" | "palco";
+export type JoinedVia = "dono" | "pedido" | "convite" | "party" | "palco" | "texto";
 
 export function toRoom(r: RoomRow): RoomRecord {
   return {
@@ -48,6 +48,8 @@ export function toRoom(r: RoomRow): RoomRecord {
     audience: r.audience as Audience,
     chatOpen: r.chat_open,
     closesAt: r.closes_at,
+    voiceMode: r.voice_mode as VoiceMode,
+    channelPosition: r.channel_position,
     bookingId: r.booking_id,
     liveSessionId: r.live_session_id,
     inviteTokenHash: r.invite_token_hash,
@@ -100,6 +102,7 @@ export async function memberRows(db: Db, roomId: string, userIds: string[]): Pro
 export function joinedViaFor(role: MemberRole, kind: RoomKind): JoinedVia {
   if (role === "dono") return "dono";
   if (kind === "party") return "party";
+  if (kind === "texto") return "texto";
   return kind === "palco" ? "palco" : "pedido";
 }
 

@@ -1,6 +1,6 @@
-// Painel do PPA para as salas de voz (spec, seção 14): abrir a sala pública da live, criar a sala de
-// mentoria a partir de um horário pago e a da party da live no ar, convite, encerrar, banidos e o
-// resumo de consumo e denúncias. Quem chama confere antes que é admin.
+// Painel do PPA para as salas de voz (spec, seção 14): criar a sala de mentoria a partir de um horário
+// pago e a da party da live no ar, convite, encerrar, banidos e o resumo de consumo e denúncias. Os
+// canais do servidor ficam em admin-canais.ts. Quem chama confere antes que é admin.
 
 import "server-only";
 import { randomBytes } from "node:crypto";
@@ -11,7 +11,7 @@ import { openSessions } from "./dados-rtc";
 import { measuredBytes } from "./dados-uso";
 import { realtimeEnv } from "./realtime-api";
 import { closeSessions, revokeTurn } from "./sessoes";
-import type { Audience, ScreenPolicy } from "./tipos";
+import type { ScreenPolicy } from "./tipos";
 
 const HORA = 3600_000;
 
@@ -65,21 +65,6 @@ export async function createPartyRoom(db: Db, adminId: string, now: Date): Promi
     .select("id")
     .single();
   if (error || !room) return { ok: false, erro: `Não deu para criar a sala: ${error?.message ?? "sem retorno"}` };
-  await db.from("voice_room_members").insert({ room_id: room.id, user_id: adminId, role: "dono", joined_via: "dono" });
-  return { ok: true, roomId: room.id, convite: null };
-}
-
-/** Sala pública da live: uma aberta por dono; abrir de novo devolve a que já está aberta. */
-export async function createPalcoRoom(db: Db, adminId: string, audience: Audience, now: Date): Promise<CriarResultado> {
-  const { data: existing } = await db.from("voice_rooms").select("id").eq("owner_id", adminId).eq("kind", "palco").eq("status", "aberta").eq("is_test", false).limit(1).maybeSingle();
-  if (existing) return { ok: true, roomId: existing.id, convite: null };
-  const settings = await getSettings(db);
-  const { data: room, error } = await db
-    .from("voice_rooms")
-    .insert({ kind: "palco", title: "Sala da live", owner_id: adminId, audience, max_members: settings.palcoMaxMembers, closes_at: new Date(now.getTime() + 12 * HORA).toISOString() })
-    .select("id")
-    .single();
-  if (error || !room) return { ok: false, erro: `Não deu para abrir a sala: ${error?.message ?? "sem retorno"}` };
   await db.from("voice_room_members").insert({ room_id: room.id, user_id: adminId, role: "dono", joined_via: "dono" });
   return { ok: true, roomId: room.id, convite: null };
 }

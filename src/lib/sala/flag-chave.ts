@@ -9,3 +9,8 @@ export function salaFlagKey(env: { NODE_ENV?: string; SALA_FLAG_KEY?: string }):
   const key = env.SALA_FLAG_KEY?.trim() ?? "";
   return /^sala_voz_[a-z0-9_]{1,40}$/.test(key) ? key : SALA_FLAG;
 }
+
+/** Os canais de teste (`is_test`) só aparecem no servidor local do e2e, o mesmo que lê a linha de teste da flag. */
+export function canaisDeTeste(env: { NODE_ENV?: string; SALA_FLAG_KEY?: string }): boolean {
+  return salaFlagKey(env) !== SALA_FLAG;
+}

@@ -82,6 +82,7 @@ function verdictFrom(auth: AuthInfo, flagOn: boolean, now: Date, raw: unknown): 
   const room: RoomInfo | null = r && {
     id: r.id, kind: r.kind, title: r.title, status: r.status, ownerId: r.owner_id, isTest: r.is_test,
     maxMembers: r.max_members, screenPolicy: r.screen_policy, audience: r.audience, chatOpen: r.chat_open, closesAt: r.closes_at,
+    voiceMode: r.voice_mode, channelPosition: r.channel_position,
   };
   const s = f.settings;
   const settings: SalaSettings | null = s && {

@@ -80,13 +80,16 @@ async function refreshUsage(db: Db, now: Date): Promise<{ bytes: number; aviso: 
 }
 
 /** Métricas em 30 dias (o banco do plano grátis tem 500 MB); chat no prazo da configuração e sessões
- *  (com IP) em 6 meses, os dois menos os de sala com denúncia aberta. */
+ *  (com IP) em 6 meses, os dois menos os de sala com denúncia aberta. O chat do canal de texto aberto
+ *  fica guardado enquanto o canal existir; apagado o canal, vale o prazo. */
 async function purge(db: Db, now: Date, chatDays: number): Promise<void> {
   await db.from("voice_room_stats").delete().lt("at", new Date(now.getTime() - 30 * DIA).toISOString());
   const { data: held } = await db.from("voice_room_reports").select("room_id").in("status", ["aberta", "em_analise"]).not("room_id", "is", null);
+  const { data: canais } = await db.from("voice_rooms").select("id").eq("kind", "texto").eq("status", "aberta");
   const keep = [...new Set((held ?? []).map((r) => r.room_id as string))];
+  const keepChat = [...new Set([...keep, ...(canais ?? []).map((c) => c.id)])];
   let chat = db.from("voice_room_messages").delete().lt("created_at", new Date(now.getTime() - chatDays * DIA).toISOString());
-  if (keep.length) chat = chat.not("room_id", "in", `(${keep.join(",")})`);
+  if (keepChat.length) chat = chat.not("room_id", "in", `(${keepChat.join(",")})`);
   await chat;
   let q = db.from("voice_room_sessions").delete().lt("created_at", new Date(now.getTime() - 183 * DIA).toISOString());
   if (keep.length) q = q.not("room_id", "in", `(${keep.join(",")})`);

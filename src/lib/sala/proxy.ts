@@ -25,6 +25,7 @@ async function ownedSession(ctx: CallContext, sid: string): Promise<SessionRow |
 async function newSession(ctx: CallContext, env: RealtimeEnv, req: Request): Promise<Response> {
   const { room, userId, decision } = ctx;
   if (!room || !userId || !decision.ok) return sfuError(403, decision.ok ? "sem_acesso" : decision.code, "sem acesso à sala");
+  if (room.kind === "texto") return sfuError(403, "sala_sem_midia", "canal de texto não tem voz nem tela");
   const res = await createSfuSession(env);
   const sessionId = typeof res.body.sessionId === "string" ? res.body.sessionId : null;
   if (res.status >= 300 || !sessionId || !SESSION_ID.test(sessionId)) return Response.json(res.body, { status: res.status >= 300 ? res.status : 502 });

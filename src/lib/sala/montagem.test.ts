@@ -5,7 +5,7 @@ import { compose } from "./montagem";
 
 const palco = {
   id: "sala", kind: "palco" as const, title: "Sala da live", status: "aberta" as const, ownerId: "ppa", isTest: false,
-  maxMembers: 30, screenPolicy: "dono" as const, audience: "todos" as const, chatOpen: true, closesAt: "2026-11-24T23:00:00Z",
+  maxMembers: 30, screenPolicy: "dono" as const, audience: "todos" as const, chatOpen: true, closesAt: "2026-11-24T23:00:00Z", voiceMode: "palco" as const, channelPosition: null,
 };
 
 function verdict(over: Partial<Verdict> = {}): Verdict {
@@ -92,5 +92,27 @@ describe("compose (o que o estado entrega a cada pessoa)", () => {
   it("diz se a voz da pessoa está aberta no servidor (o navegador religa a que caiu)", () => {
     expect(compose(verdict(), snap(), "ppa", "dono", 0).eu?.vozAberta).toBe(true);
     expect(compose(verdict(), snap({ tracks: [] }), "ppa", "dono", 0).eu?.vozAberta).toBe(false);
+  });
+});
+
+describe("compose nos canais do servidor", () => {
+  it("voz livre: a pessoa fala e a voz dela chega aos outros, mesmo com a linha antiga da plateia", () => {
+    const livre = { ...palco, voiceMode: "livre" as const, channelPosition: 20 };
+    const s = snap({
+      members: [{ u: "ppa", r: "dono", m: false, on: true }, { u: "eu", r: "ouvinte", m: false, on: true }, { u: "outro", r: "ouvinte", m: false, on: true }],
+      tracks: [{ s: "s-outro", u: "outro", n: "voz-outro", k: "audio", t: "voz" }],
+    });
+    const e = compose(verdict({ room: livre, decision: { ok: true, role: "falante" } }), s, "eu", "falante", 0);
+    expect(e.eu).toMatchObject({ papel: "falante", podeFalar: true, podeLevantarMao: false });
+    expect(e.membros?.find((m) => m.userId === "outro")?.papel).toBe("falante");
+    expect(e.faixas?.map((f) => f.trackName)).toEqual(["voz-outro"]);
+    expect(e.sala).toMatchObject({ modo: "livre", canal: true });
+  });
+
+  it("canal de texto: escreve, sem voz, sem tela e sem mão", () => {
+    const texto = { ...palco, kind: "texto" as const, title: "geral", maxMembers: 200, channelPosition: 10 };
+    const e = compose(verdict({ room: texto }), snap({ tracks: [] }), "eu", "ouvinte", 0);
+    expect(e.eu).toMatchObject({ podeEscrever: true, podeFalar: false, podeLevantarMao: false, podeCompartilharTela: false });
+    expect(e.sala).toMatchObject({ tipo: "texto", modo: "palco", canal: true });
   });
 });

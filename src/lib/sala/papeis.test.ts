@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canChat, canPublishVoice, canRaiseHand, canShareScreen, decideChat, decideStageAction, type StageActionInput } from "./papeis";
+import { canChat, canPublishVoice, canRaiseHand, canShareScreen, decideChat, decideStageAction, effectiveRole, type StageActionInput } from "./papeis";
 
 describe("o que cada papel faz", () => {
   it("publica voz: dono, membro da mentoria e da party, e quem foi chamado ao palco", () => {
@@ -43,6 +43,7 @@ function action(over: Partial<StageActionInput> = {}): StageActionInput {
     action: "falar",
     actorRole: "dono",
     roomKind: "palco",
+    voiceMode: "palco",
     targetIsOwner: false,
     target: { role: "ouvinte", status: "ativo" },
     speakers: 0,
@@ -134,5 +135,47 @@ describe("decideChat", () => {
 
   it("2 s depois da última, aceita de novo", () => {
     expect(decideChat({ ...base, lastSentAt: new Date("2026-11-24T19:59:58Z"), body: "oi" })).toEqual({ ok: true, body: "oi" });
+  });
+});
+
+describe("canais do servidor", () => {
+  it("canal de texto não tem tela nem mão, e o chat segue a regra de aberto ou fechado", () => {
+    expect(canShareScreen("dono", "texto", "dono", true)).toBe(false);
+    expect(canShareScreen("dono", "texto", "um_por_vez", true)).toBe(false);
+    expect(canRaiseHand("ouvinte", "texto")).toBe(false);
+    expect(canChat("ouvinte", "texto", true)).toBe(true);
+    expect(canChat("ouvinte", "texto", false)).toBe(false);
+    expect(canChat("dono", "texto", false)).toBe(true);
+  });
+
+  it("no canal de texto a mensagem passa pela mesma regra do chat da sala", () => {
+    const base = { roomKind: "texto" as const, role: "ouvinte" as const, chatOpen: true, presente: true, lastSentAt: null, now: new Date("2026-11-24T20:00:00Z") };
+    expect(decideChat({ ...base, body: "  bora   jogar  " })).toEqual({ ok: true, body: "bora jogar" });
+    expect(decideChat({ ...base, presente: false, body: "oi" })).toEqual({ ok: false, code: "fora_da_sala" });
+    expect(decideChat({ ...base, chatOpen: false, body: "oi" })).toEqual({ ok: false, code: "chat_fechado" });
+  });
+
+  it("chamar ao palco e devolver à plateia só no canal de voz em modo palco", () => {
+    const base: StageActionInput = { action: "falar", actorRole: "dono", roomKind: "palco", voiceMode: "palco", targetIsOwner: false, target: { role: "ouvinte", status: "ativo" }, speakers: 0, maxSpeakers: 4 };
+    expect(decideStageAction(base)).toEqual({ ok: true, role: "falante" });
+    expect(decideStageAction({ ...base, voiceMode: "livre" })).toEqual({ ok: false, code: "so_na_sala_publica" });
+    expect(decideStageAction({ ...base, action: "ouvir", voiceMode: "livre" })).toEqual({ ok: false, code: "so_na_sala_publica" });
+    expect(decideStageAction({ ...base, roomKind: "texto" })).toEqual({ ok: false, code: "so_na_sala_publica" });
+  });
+
+  it("no canal de texto e no de voz livre o dono expulsa e bane", () => {
+    const base: StageActionInput = { action: "expulsar", actorRole: "dono", roomKind: "texto", voiceMode: "palco", targetIsOwner: false, target: { role: "ouvinte", status: "ativo" }, speakers: 0, maxSpeakers: 4 };
+    expect(decideStageAction(base)).toEqual({ ok: true });
+    expect(decideStageAction({ ...base, action: "banir", target: null })).toEqual({ ok: true });
+    expect(decideStageAction({ ...base, roomKind: "palco", voiceMode: "livre", target: { role: "falante", status: "ativo" } })).toEqual({ ok: true });
+  });
+});
+
+describe("effectiveRole", () => {
+  it("na voz livre a linha antiga da plateia vale como quem fala; no resto, o papel da linha", () => {
+    expect(effectiveRole("ouvinte", "palco", "livre")).toBe("falante");
+    expect(effectiveRole("dono", "palco", "livre")).toBe("dono");
+    expect(effectiveRole("ouvinte", "palco", "palco")).toBe("ouvinte");
+    expect(effectiveRole("ouvinte", "texto", "livre")).toBe("ouvinte");
   });
 });

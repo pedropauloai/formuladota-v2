@@ -15,6 +15,8 @@ const mentoria: RoomInfo = {
   audience: "todos",
   chatOpen: true,
   closesAt: "2026-11-24T23:00:00Z",
+  voiceMode: "palco",
+  channelPosition: null,
 };
 const palco: RoomInfo = { ...mentoria, id: "sala-2", kind: "palco", title: "Sala da live", maxMembers: 30 };
 const party: RoomInfo = { ...mentoria, id: "sala-3", kind: "party", title: "Party", maxMembers: 6 };
@@ -140,5 +142,43 @@ describe("decideRoomAccess: cada não, na ordem da spec", () => {
 
   it("a flag desligada vale também para o dono (flag autoritativa)", () => {
     expect(decideRoomAccess(input({ flagOn: false, userId: "ppa", member: null }))).toEqual({ ok: false, code: "flag_desligada" });
+  });
+});
+
+describe("decideRoomAccess: canais do servidor", () => {
+  const texto: RoomInfo = { ...palco, id: "canal-1", kind: "texto", title: "geral", maxMembers: 200, channelPosition: 0 };
+  const livre: RoomInfo = { ...palco, id: "canal-2", title: "Sala livre", voiceMode: "livre", channelPosition: 10 };
+
+  it("canal de texto: quem chega entra para ler e escrever (sem papel de voz)", () => {
+    expect(decideRoomAccess(input({ room: texto, member: null }))).toEqual({ ok: true, role: "ouvinte" });
+    expect(decideRoomAccess(input({ room: texto, member: { role: "falante", status: "ativo", forceMuted: false } }))).toEqual({ ok: true, role: "ouvinte" });
+    expect(decideRoomAccess(input({ room: texto, userId: "ppa", member: null }))).toEqual({ ok: true, role: "dono" });
+  });
+
+  it("canal de texto segue o banimento, a expulsão, o benefício e a maioridade", () => {
+    expect(decideRoomAccess(input({ room: texto, member: null, bannedByOwner: true }))).toEqual({ ok: false, code: "banido" });
+    expect(decideRoomAccess(input({ room: texto, member: { role: "ouvinte", status: "expulso", forceMuted: false } }))).toEqual({ ok: false, code: "expulso" });
+    expect(decideRoomAccess(input({ room: { ...texto, audience: "beneficio" }, member: null }))).toEqual({ ok: false, code: "so_beneficio" });
+    expect(decideRoomAccess(input({ room: texto, member: null, ageConfirmed: false }))).toEqual({ ok: false, code: "sem_maioridade" });
+  });
+
+  it("canal de voz livre: quem entra já fala, mesmo que a linha diga plateia", () => {
+    expect(decideRoomAccess(input({ room: livre, member: null }))).toEqual({ ok: true, role: "falante" });
+    expect(decideRoomAccess(input({ room: livre, member: { role: "ouvinte", status: "ativo", forceMuted: false } }))).toEqual({ ok: true, role: "falante" });
+    expect(decideRoomAccess(input({ room: livre, userId: "ppa", member: null }))).toEqual({ ok: true, role: "dono" });
+  });
+
+  it("canal de voz livre cheio: quem fala não fura a fila, só o Battlepass e o dono", () => {
+    const cheio = { room: livre, member: null, onlineOthers: 30 };
+    expect(decideRoomAccess(input(cheio))).toEqual({ ok: false, code: "sala_lotada" });
+    expect(decideRoomAccess(input({ ...cheio, battlepass: true }))).toEqual({ ok: true, role: "falante" });
+    expect(decideRoomAccess(input({ ...cheio, userId: "ppa" }))).toEqual({ ok: true, role: "dono" });
+  });
+
+  it("canal de texto cheio: só o dono entra", () => {
+    const cheio = { room: texto, member: null, onlineOthers: 200 };
+    expect(decideRoomAccess(input(cheio))).toEqual({ ok: false, code: "sala_lotada" });
+    expect(decideRoomAccess(input({ ...cheio, battlepass: true }))).toEqual({ ok: false, code: "sala_lotada" });
+    expect(decideRoomAccess(input({ ...cheio, userId: "ppa" }))).toEqual({ ok: true, role: "dono" });
   });
 });

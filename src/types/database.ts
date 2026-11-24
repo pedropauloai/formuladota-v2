@@ -4604,6 +4604,7 @@ export type Database = {
         Row: {
           audience: string
           booking_id: string | null
+          channel_position: number | null
           chat_open: boolean
           closed_at: string | null
           closes_at: string
@@ -4619,10 +4620,12 @@ export type Database = {
           screen_policy: string
           status: string
           title: string
+          voice_mode: string
         }
         Insert: {
           audience?: string
           booking_id?: string | null
+          channel_position?: number | null
           chat_open?: boolean
           closed_at?: string | null
           closes_at: string
@@ -4638,10 +4641,12 @@ export type Database = {
           screen_policy?: string
           status?: string
           title: string
+          voice_mode?: string
         }
         Update: {
           audience?: string
           booking_id?: string | null
+          channel_position?: number | null
           chat_open?: boolean
           closed_at?: string | null
           closes_at?: string
@@ -4657,6 +4662,7 @@ export type Database = {
           screen_policy?: string
           status?: string
           title?: string
+          voice_mode?: string
         }
         Relationships: []
       }
@@ -5331,6 +5337,8 @@ export type Database = {
       transfer_party_leader: { Args: { p_user: string }; Returns: undefined }
       try_form_match: { Args: { p_match_size?: number }; Returns: string }
       unequip_slot: { Args: { p_slot: string }; Returns: undefined }
+      voice_channel_list: { Args: { p_is_test: boolean }; Returns: Json }
+      voice_private_rooms: { Args: { p_is_test: boolean; p_user: string }; Returns: Json }
       voice_room_access: { Args: { p_room: string; p_user: string }; Returns: Json }
       voice_room_identities: { Args: { p_ids: string[]; p_room: string }; Returns: Json }
       voice_room_snapshot: { Args: { p_chat_after: number; p_room: string }; Returns: Json }

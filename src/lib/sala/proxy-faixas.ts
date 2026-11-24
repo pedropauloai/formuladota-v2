@@ -10,6 +10,7 @@ import { activeTracks, findTrack, getSession, insertSubscriptions, insertTracks,
 import { blockedAmong, memberRows } from "./dados-sala";
 import { computeUsageBytes, windowStartFor } from "./dados-uso";
 import { checkLayerUpdate, decideLayer, decidePublish, decideSubscribe, hasRepeatedPull, publisherMayKeep, type SubscribeTarget } from "./faixas";
+import { effectiveRole } from "./papeis";
 import { sfu, type RealtimeEnv } from "./realtime-api";
 import { midKinds } from "./sdp";
 import type { Layer, Quality, TrackKind, TrackLabel } from "./tipos";
@@ -114,7 +115,8 @@ async function targetsFor(ctx: CallContext, remotes: Tracks["tracks"]): Promise<
     if (!f) return null;
     const m = rows.get(f.pub.userId);
     const online = !!m?.lastSeenAt && new Date(m.lastSeenAt).getTime() > onlineSince;
-    const allowed = !!m && m.status === "ativo" && online && (f.track.tipo === null || publisherMayKeep(m.role, f.track.tipo as TrackLabel));
+    const role = ctx.room ? effectiveRole(m?.role ?? "ouvinte", ctx.room.kind, ctx.room.voiceMode) : "ouvinte";
+    const allowed = !!m && m.status === "ativo" && online && (f.track.tipo === null || publisherMayKeep(role, f.track.tipo as TrackLabel));
     return {
       roomId: f.pub.roomId, userId: f.pub.userId, closed: f.track.closed || !!f.pub.closedAt, tipo: f.track.tipo,
       publisherActive: allowed, kind: f.track.kind, quality: f.track.quality,

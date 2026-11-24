@@ -21,9 +21,18 @@ export type EntradaResult =
   | { ok: true; iceServers: RTCIceServer[]; papel: MemberRole; tipo: RoomKind; videoMaxKbps: number; podeCompartilharTela: boolean }
   | { ok: false; code: DenyCode | "sala_indisponivel" };
 
+/** Canal de texto: só o chat, sem SFU nem TURN. A linha de membro existe para o dono poder moderar. */
+async function enterTextChannel(ctx: CallContext, roomId: string, userId: string, role: MemberRole, videoMaxKbps: number): Promise<EntradaResult> {
+  await ensureMember(ctx.db, roomId, userId, role, joinedViaFor(role, "texto"));
+  await updateMember(ctx.db, roomId, userId, { last_seen_at: ctx.now.toISOString(), hand_raised_at: null });
+  forgetRoomState(roomId, userId);
+  return { ok: true, iceServers: [], papel: role, tipo: "texto", videoMaxKbps, podeCompartilharTela: false };
+}
+
 export async function enterRoom(ctx: CallContext): Promise<EntradaResult> {
   const { room, settings, userId, decision } = ctx;
   if (!decision.ok) return { ok: false, code: decision.code };
+  if (room?.kind === "texto" && settings && userId) return enterTextChannel(ctx, room.id, userId, decision.role, settings.videoMaxKbps);
   const env = realtimeEnv();
   if (!env || !room || !settings || !userId) return { ok: false, code: "sala_indisponivel" };
   const left = Math.floor((new Date(room.closesAt).getTime() - ctx.now.getTime()) / 1000);
@@ -32,7 +41,9 @@ export async function enterRoom(ctx: CallContext): Promise<EntradaResult> {
   await revokeTurn(ctx.db, env, room.id, userId);
   const turn = await generateIceServers(env, Math.min(TURN_MAX_S, Math.max(TURN_MIN_S, left)), `sala-${room.id}-${userId.slice(0, 8)}`);
   await ensureMember(ctx.db, room.id, userId, decision.role, joinedViaFor(decision.role, room.kind));
-  await updateMember(ctx.db, room.id, userId, { last_seen_at: ctx.now.toISOString(), hand_raised_at: null });
+  // Na voz livre quem entra fala: a linha antiga da plateia vira falante (o estado comum mostra o papel da linha).
+  const livre = room.voiceMode === "livre" && decision.role === "falante" ? { role: "falante" } : {};
+  await updateMember(ctx.db, room.id, userId, { last_seen_at: ctx.now.toISOString(), hand_raised_at: null, ...livre });
   await setTurnUsername(ctx.db, room.id, userId, turn.username);
   forgetRoomState(room.id, userId);
   const share = canShareScreen(decision.role, room.kind, room.screenPolicy, settings.partyScreenEnabled);
