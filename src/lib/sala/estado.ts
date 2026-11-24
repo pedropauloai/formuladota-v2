@@ -11,7 +11,7 @@ import { capBytesFor } from "./custo";
 import { activeTracks, openSessions } from "./dados-rtc";
 import { blockedPairsAmong, isBlockedPair, listMembers, touchMember } from "./dados-sala";
 import { computeUsageBytes, insertStats } from "./dados-uso";
-import { canShareScreen } from "./faixas";
+import { canShareScreen, visibleTracks } from "./faixas";
 import { realtimeEnv } from "./realtime-api";
 import { closeUserSessions, cutSubscriptions } from "./sessoes";
 import type { DenyCode, MemberRole, TrackDenyCode, TrackLabel } from "./tipos";
@@ -89,7 +89,7 @@ export async function roomState(ctx: CallContext, body: z.infer<typeof EstadoBod
     blockedPairsAmong(ctx.db, shown.map((m) => m.userId)),
     getIdentityMap(await createClient(), shown.map((m) => m.userId)),
   ]);
-  const visible = tracks.filter((t) => t.userId !== userId && t.tipo && online.has(t.userId) && !isBlockedPair(blocked, userId, t.userId));
+  const visible = visibleTracks(tracks, userId, online, (a, b) => isBlockedPair(blocked, a, b));
   const allowed = new Set(visible.map((t) => `${t.sessionId}:${t.trackName}`));
   const mySessions = sessions.filter((s) => s.userId === userId).map((s) => s.id);
   await cutSubscriptions(ctx.db, realtimeEnv(), mySessions, (pub, name) => !allowed.has(`${pub}:${name}`), ctx.now);

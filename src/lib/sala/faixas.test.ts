@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canShareScreen, decideLabel, decidePublish, decideSubscribe, labelMatchesKind, type PublishInput, type SubscribeInput } from "./faixas";
+import { canShareScreen, decideLabel, decidePublish, decideSubscribe, labelMatchesKind, visibleTracks, type PublishInput, type SubscribeInput } from "./faixas";
 
 function publish(over: Partial<PublishInput> = {}): PublishInput {
   return {
@@ -122,5 +122,17 @@ describe("rótulo da faixa", () => {
     expect(decideLabel({ tipo: "tela_audio", kind: "audio", canShare: false })).toEqual({ ok: false, code: "tela_nao_permitida" });
     expect(decideLabel({ tipo: "tela_audio", kind: "audio", canShare: true })).toEqual({ ok: true });
     expect(decideLabel({ tipo: "voz", kind: "video", canShare: true })).toEqual({ ok: false, code: "rotulo_invalido" });
+  });
+});
+
+describe("visibleTracks (o que o batimento lista para cada pessoa)", () => {
+  const faixa = (userId: string, tipo: "voz" | "tela" | null, sessionId = `s-${userId}`) => ({ sessionId, userId, roomId: "sala-1", trackName: `t-${userId}-${tipo}`, mid: "0", kind: (tipo === "tela" ? "video" : "audio") as "audio" | "video", tipo });
+
+  it("lista a faixa rotulada de quem está online, sem bloqueio, e nunca a própria", () => {
+    const tracks = [faixa("ppa", "voz"), faixa("ppa", "tela"), faixa("eu", "voz"), faixa("ausente", "voz"), faixa("bloqueado", "voz"), faixa("novo", null)];
+    const online = new Set(["ppa", "eu", "bloqueado", "novo"]);
+    const blocked = (a: string, b: string) => [a, b].sort().join(":") === ["bloqueado", "eu"].sort().join(":");
+    const v = visibleTracks(tracks, "eu", online, blocked).map((t) => t.trackName);
+    expect(v).toEqual(["t-ppa-voz", "t-ppa-tela"]);
   });
 });

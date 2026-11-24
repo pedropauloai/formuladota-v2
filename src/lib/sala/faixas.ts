@@ -72,3 +72,15 @@ export function decideLabel(input: { tipo: TrackLabel; kind: TrackKind; canShare
   if (input.tipo !== "voz" && !input.canShare) return { ok: false, code: "tela_nao_permitida" };
   return { ok: true };
 }
+
+export interface TrackView {
+  sessionId: string;
+  userId: string;
+  trackName: string;
+  tipo: TrackLabel | null;
+}
+
+/** Faixas que esta pessoa pode receber agora: rotuladas, de quem está online, sem bloqueio, nunca a própria. */
+export function visibleTracks<T extends TrackView>(tracks: T[], me: string, online: Set<string>, blocked: (a: string, b: string) => boolean): T[] {
+  return tracks.filter((t) => t.userId !== me && t.tipo !== null && online.has(t.userId) && !blocked(me, t.userId));
+}

@@ -13,6 +13,8 @@ const MUTACOES = [
   ["src/lib/sala/faixas.ts", 'if (videos > 0 && input.capReached) return { ok: false, code: "teto_de_trafego" };', "", "tela passa do teto"],
   ["src/lib/sala/faixas.ts", 'if (videos > 0 && !share) return { ok: false, code: "tela_nao_permitida" };', "", "membro compartilha sem permissão"],
   ["src/lib/sala/faixas.ts", 'if (t.userId === input.subscriberUserId) return { ok: false, code: "faixa_propria" };', "", "recebe a própria faixa"],
+  ["src/lib/sala/faixas.ts", " && !blocked(me, t.userId));", ");", "bloqueado aparece na lista do batimento"],
+  ["src/lib/sala/faixas.ts", "t.userId !== me && t.tipo !== null", "t.tipo !== null", "a própria faixa aparece na lista"],
   ["src/lib/sala/custo.ts", "return Math.min(nowMs, new Date(sub.subscriberLastSeenAt).getTime() + SEM_SINAL_MS);", "return nowMs;", "sem sinal conta para sempre"],
 ];
 
