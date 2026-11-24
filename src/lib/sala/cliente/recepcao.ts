@@ -18,7 +18,11 @@ interface Recebida {
   rx: Recebimento | null;
   track: MediaStreamTrack | null;
   audio: HTMLAudioElement | null;
+  espera: ReturnType<typeof setTimeout> | null;
 }
+
+// Faixa pedida que não chega nesse tempo (o servidor ou a Cloudflare falharam no meio): pede de novo.
+const ESPERA_FAIXA_MS = 10_000;
 
 const keyOf = (f: { sessionId: string; trackName: string }) => `${f.sessionId}:${f.trackName}`;
 
@@ -44,11 +48,13 @@ export class Recepcao {
   }
 
   private take(key: string, ref: FaixaRemota): void {
-    const item: Recebida = { ref, rx: null, track: null, audio: null };
+    const item: Recebida = { ref, rx: null, track: null, audio: null, espera: null };
     this.recebidas.set(key, item);
     item.rx = this.conn.receive(
       ref,
       (track) => {
+        if (item.espera !== null) clearTimeout(item.espera);
+        item.espera = null;
         item.track = track;
         if (ref.tipo === "voz") {
           item.audio = this.tocar(item.audio, track);
@@ -59,9 +65,21 @@ export class Recepcao {
       },
       ref.tipo === "tela" ? this.camada() : undefined
     );
+    item.espera = setTimeout(() => this.repetir(key, item), ESPERA_FAIXA_MS);
+  }
+
+  /** A faixa não chegou: solta o pedido e pede de novo (sem avisar a tela, que nunca a teve). */
+  private repetir(key: string, item: Recebida): void {
+    item.espera = null;
+    if (this.recebidas.get(key) !== item || item.track) return;
+    item.rx?.stop();
+    this.recebidas.delete(key);
+    this.take(key, item.ref);
   }
 
   private drop(key: string, r: Recebida): void {
+    if (r.espera !== null) clearTimeout(r.espera);
+    r.espera = null;
     r.rx?.stop();
     if (r.audio) {
       r.audio.pause();

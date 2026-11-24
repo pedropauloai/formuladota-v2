@@ -75,3 +75,50 @@ describe("Recepcao ao sair e voltar rápido", () => {
     vi.useRealTimers();
   });
 });
+
+describe("Recepcao quando a faixa não chega", () => {
+  it("faixa pedida que não chega em 10 s é solta e pedida de novo", () => {
+    vi.useFakeTimers();
+    const { conn, pedidas, soltas } = conexaoFalsa();
+    const r = new Recepcao(conn, "h", nada, nada);
+    r.sync([faixa("voz-dono", "voz")]);
+    vi.advanceTimersByTime(10_500);
+    expect(soltas).toEqual(["voz-dono"]);
+    expect(pedidas).toEqual(["voz-dono", "voz-dono"]);
+    vi.useRealTimers();
+  });
+
+  it("faixa que chega a tempo não é pedida de novo", () => {
+    vi.useFakeTimers();
+    vi.stubGlobal("MediaStream", class {
+      constructor(readonly tracks: unknown[]) {}
+    });
+    const chegadas: Array<(t: MediaStreamTrack) => void> = [];
+    const pedidas: string[] = [];
+    const conn = {
+      receive: (ref: { trackName: string }, onTrack: (t: MediaStreamTrack) => void) => {
+        pedidas.push(ref.trackName);
+        chegadas.push(onTrack);
+        return { stop: () => undefined, setLayer: () => undefined };
+      },
+    } as unknown as Connection;
+    const r = new Recepcao(conn, "h", nada, nada);
+    r.sync([faixa("tela-dono", "tela")]);
+    chegadas[0]?.({ kind: "video" } as MediaStreamTrack);
+    vi.advanceTimersByTime(20_000);
+    expect(pedidas).toEqual(["tela-dono"]);
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+  });
+
+  it("faixa que saiu da lista antes dos 10 s não é pedida de novo", () => {
+    vi.useFakeTimers();
+    const { conn, pedidas } = conexaoFalsa();
+    const r = new Recepcao(conn, "h", nada, nada);
+    r.sync([faixa("voz-dono", "voz")]);
+    r.sync([]);
+    vi.advanceTimersByTime(20_000);
+    expect(pedidas).toEqual(["voz-dono"]);
+    vi.useRealTimers();
+  });
+});
