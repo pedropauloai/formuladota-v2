@@ -40,6 +40,13 @@ async function closeStale(db: Db, now: Date): Promise<number> {
   return stale.length;
 }
 
+/** Quem foi chamado ao palco e sumiu há mais de 5 minutos volta à plateia: não fica ocupando lugar. */
+async function demoteGoneSpeakers(db: Db, now: Date): Promise<void> {
+  const limite = new Date(now.getTime() - 5 * 60_000).toISOString();
+  await db.from("voice_room_members").update({ role: "ouvinte", hand_raised_at: null })
+    .eq("role", "falante").eq("status", "ativo").or(`last_seen_at.is.null,last_seen_at.lt.${limite}`);
+}
+
 async function closeExpired(db: Db, now: Date): Promise<number> {
   const { data } = await db.from("voice_rooms").update({ status: "encerrada", closed_at: now.toISOString() }).eq("status", "aberta").lt("closes_at", now.toISOString()).select("id");
   for (const room of data ?? []) {
@@ -90,6 +97,7 @@ export async function sweepVoiceRooms(now = new Date()): Promise<SweepResult> {
   const db = createServiceClient();
   const sessoesSemSinal = await closeStale(db, now);
   const salasEncerradas = await closeExpired(db, now);
+  await demoteGoneSpeakers(db, now);
   const { bytes, aviso } = await refreshUsage(db, now);
   await purge(db, now, (await getSettings(db)).chatRetentionDays);
   return { sessoesSemSinal, salasEncerradas, usoGb: Number((bytes / GB).toFixed(3)), aviso };

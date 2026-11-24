@@ -96,6 +96,12 @@ export function visibleTracks<T extends TrackView>(tracks: T[], me: string, memb
   });
 }
 
+/** A mesma faixa pedida duas vezes num pedido só passaria pela checagem do banco e dobraria o tráfego. */
+export function hasRepeatedPull(tracks: Array<{ sessionId?: string; trackName: string }>): boolean {
+  const keys = tracks.map((t) => `${t.sessionId ?? ""}:${t.trackName}`);
+  return new Set(keys).size !== keys.length;
+}
+
 /** O update do SFU também serve para reaproveitar um receptor e puxar outra faixa: aqui ele só troca a
  *  camada de uma recepção de tela que já existe, da mesma sessão e da mesma faixa. */
 export function checkLayerUpdate(input: {

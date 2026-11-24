@@ -4755,6 +4755,7 @@
     "saidaIdentidade": "Falta vincular a conta do Discord ou a Steam.",
     "saidaMaioridade": "Confirme que tem 18 anos ou mais para entrar.",
     "publicaFechadaTitulo": "A sala abre na live",
-    "publicaFechadaTexto": "A sala pública do PPA abre quando a live começa. Volte aqui durante a live."
+    "publicaFechadaTexto": "A sala pública do PPA abre quando a live começa. Volte aqui durante a live.",
+    "banirAutor": "Banir quem escreveu"
   }
 }

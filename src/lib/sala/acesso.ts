@@ -24,6 +24,8 @@ export interface AccessInput {
   battlepass: boolean;
   /** Pessoas online na sala, sem contar quem pede. */
   onlineOthers: number;
+  /** Já está na sala (bateu nos últimos 30 s): a lotação vale só para quem chega, nunca derruba quem já entrou. */
+  alreadyIn: boolean;
 }
 
 type Link = { ok: true; role: MemberRole } | { ok: false; code: "fora_da_sala" | "expulso" | "banido" | "so_beneficio" };
@@ -55,7 +57,7 @@ export function decideRoomAccess(input: AccessInput): AccessDecision {
   if (!input.identityOk) return { ok: false, code: "conta_sem_identidade" };
   if (input.accountBlocked) return { ok: false, code: "conta_bloqueada" };
   if (!input.ageConfirmed) return { ok: false, code: "sem_maioridade" };
-  const full = input.onlineOthers + 1 > room.maxMembers;
+  const full = !input.alreadyIn && input.onlineOthers + 1 > room.maxMembers;
   if (full && !passesWhenFull(room, link.role, input.battlepass)) return { ok: false, code: "sala_lotada" };
   return link;
 }

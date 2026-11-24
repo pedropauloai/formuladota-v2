@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { checkLayerUpdate, decideLabel, decideLayer, decidePublish, decideSubscribe, labelMatchesKind, visibleTracks, type PublishInput, type SubscribeInput, type TrackView } from "./faixas";
+import { checkLayerUpdate, decideLabel, decideLayer, decidePublish, decideSubscribe, hasRepeatedPull, labelMatchesKind, visibleTracks, type PublishInput, type SubscribeInput, type TrackView } from "./faixas";
 import type { MemberRole } from "./tipos";
 
 function publish(over: Partial<PublishInput> = {}): PublishInput {
@@ -154,6 +154,13 @@ describe("visibleTracks (o que cada pessoa pode receber agora)", () => {
   it("a tela do aluno da mentoria aparece para o dono", () => {
     const members = new Map([["aluno", membro("membro")], ["ppa", membro("dono")]]);
     expect(visibleTracks([faixa("aluno", "tela")], "ppa", members, new Set()).length).toBe(1);
+  });
+});
+
+describe("hasRepeatedPull (a mesma faixa duas vezes no mesmo pedido)", () => {
+  it("acusa a faixa repetida e deixa passar faixas diferentes", () => {
+    expect(hasRepeatedPull([{ sessionId: "a", trackName: "x" }, { sessionId: "a", trackName: "x" }])).toBe(true);
+    expect(hasRepeatedPull([{ sessionId: "a", trackName: "x" }, { sessionId: "a", trackName: "y" }, { sessionId: "b", trackName: "x" }])).toBe(false);
   });
 });
 

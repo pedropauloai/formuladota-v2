@@ -70,6 +70,10 @@ describe("decideStageAction (o dono modera)", () => {
     expect(decideStageAction(action({ action: "banir" }))).toEqual({ ok: true });
   });
 
+  it("bane também quem nunca entrou na sala (sem linha de membro)", () => {
+    expect(decideStageAction(action({ action: "banir", target: null }))).toEqual({ ok: true });
+  });
+
   it("bane também quem já foi expulso", () => {
     expect(decideStageAction(action({ action: "banir", target: { role: "ouvinte", status: "expulso" } }))).toEqual({ ok: true });
   });
@@ -97,7 +101,11 @@ describe("decideStageAction (o dono modera)", () => {
 
 describe("decideChat", () => {
   const now = new Date("2026-11-24T20:00:00Z");
-  const base = { roomKind: "palco" as const, role: "ouvinte" as const, chatOpen: true, lastSentAt: null, now };
+  const base = { roomKind: "palco" as const, role: "ouvinte" as const, chatOpen: true, presente: true, lastSentAt: null, now };
+
+  it("só escreve quem está na sala (entrou e segue dando batimento)", () => {
+    expect(decideChat({ ...base, presente: false, body: "oi" })).toEqual({ ok: false, code: "fora_da_sala" });
+  });
 
   it("aceita a mensagem e tira os espaços das pontas", () => {
     expect(decideChat({ ...base, body: "  boa, PPA!  " })).toEqual({ ok: true, body: "boa, PPA!" });

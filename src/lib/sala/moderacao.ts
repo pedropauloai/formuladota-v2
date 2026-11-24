@@ -11,6 +11,7 @@ import { openSessions } from "./dados-rtc";
 import { banUser, getMemberRow, kickMember, updateMember } from "./dados-sala";
 import { forgetRoomState } from "./estado";
 import { decideStageAction, type StageAction } from "./papeis";
+import { PRESENTE_MS } from "./presenca";
 import { realtimeEnv } from "./realtime-api";
 import { closeUserSessions, closeVoice, cutSubscriptions, revokeTurn } from "./sessoes";
 
@@ -50,14 +51,33 @@ async function expel(ctx: CallContext, roomId: string, actorId: string, targetId
   await revokeTurn(ctx.db, realtimeEnv(), roomId, targetId);
 }
 
+/** Quem fala agora (falante que bateu nos últimos 30 s): quem saiu sem ser devolvido não ocupa lugar no palco. */
+async function onlineSpeakers(ctx: CallContext, roomId: string): Promise<number> {
+  const since = new Date(ctx.now.getTime() - PRESENTE_MS).toISOString();
+  const { count } = await ctx.db.from("voice_room_members").select("user_id", { count: "exact", head: true })
+    .eq("room_id", roomId).eq("status", "ativo").eq("role", "falante").gt("last_seen_at", since);
+  return count ?? 0;
+}
+
+/** O banido sai também das outras salas abertas do mesmo dono, na hora. */
+async function expelFromOwnerRooms(ctx: CallContext, ownerId: string, actorId: string, targetId: string, exceptRoomId: string): Promise<void> {
+  const { data: rooms } = await ctx.db.from("voice_rooms").select("id").eq("owner_id", ownerId).eq("status", "aberta").neq("id", exceptRoomId);
+  for (const r of rooms ?? []) {
+    if ((await getMemberRow(ctx.db, r.id, targetId))?.status !== "ativo") continue;
+    await expel(ctx, r.id, actorId, targetId);
+    forgetRoomState(r.id, targetId);
+  }
+}
+
 /** Ações do dono sobre alguém da sala; a regra (decideStageAction) decide antes de gravar. */
 export async function stageAction(ctx: CallContext, targetId: string, action: StageAction, reason = ""): Promise<ModeracaoResult> {
   const { room, settings, decision, userId } = ctx;
   if (!decision.ok || !room || !settings || !userId) return denied(ctx);
   const target = await getMemberRow(ctx.db, room.id, targetId);
+  const speakers = action === "falar" ? await onlineSpeakers(ctx, room.id) : ctx.speakers;
   const rule = decideStageAction({
     action, actorRole: decision.role, roomKind: room.kind, targetIsOwner: targetId === room.ownerId,
-    target, speakers: ctx.speakers, maxSpeakers: settings.palcoMaxSpeakers,
+    target, speakers, maxSpeakers: settings.palcoMaxSpeakers,
   });
   if (!rule.ok) return rule;
   const env = realtimeEnv();
@@ -71,7 +91,10 @@ export async function stageAction(ctx: CallContext, targetId: string, action: St
     await closeVoice(ctx.db, env, room.id, targetId, ctx.now);
   }
   if (action === "liberar") await updateMember(ctx.db, room.id, targetId, { force_muted: false });
-  if (action === "banir") await banUser(ctx.db, room.ownerId, targetId, userId, reason);
+  if (action === "banir") {
+    await banUser(ctx.db, room.ownerId, targetId, userId, reason);
+    await expelFromOwnerRooms(ctx, room.ownerId, userId, targetId, room.id);
+  }
   if ((action === "expulsar" || action === "banir") && target?.status === "ativo") await expel(ctx, room.id, userId, targetId);
   forgetRoomState(room.id, targetId);
   return { ok: true };

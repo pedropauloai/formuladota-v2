@@ -9,7 +9,7 @@ import { capBytesFor, rateKbpsFor } from "./custo";
 import { activeTracks, findTrack, getSession, insertSubscriptions, insertTracks, openSessions, openSubscriptions, previousLabels, switchSubscriptionLayer, type NewSubscription, type SessionRow } from "./dados-rtc";
 import { blockedAmong, memberRows } from "./dados-sala";
 import { computeUsageBytes, windowStartFor } from "./dados-uso";
-import { checkLayerUpdate, decideLayer, decidePublish, decideSubscribe, publisherMayKeep, type SubscribeTarget } from "./faixas";
+import { checkLayerUpdate, decideLayer, decidePublish, decideSubscribe, hasRepeatedPull, publisherMayKeep, type SubscribeTarget } from "./faixas";
 import { sfu, type RealtimeEnv } from "./realtime-api";
 import { midKinds } from "./sdp";
 import type { Layer, Quality, TrackKind, TrackLabel } from "./tipos";
@@ -125,6 +125,7 @@ async function targetsFor(ctx: CallContext, remotes: Tracks["tracks"]): Promise<
 async function subscribe(ctx: CallContext, env: RealtimeEnv, session: SessionRow, body: Tracks): Promise<Response> {
   const { room, settings, userId } = ctx;
   if (!room || !settings || !userId) return deny(403, "sem_acesso", "sem acesso à sala");
+  if (hasRepeatedPull(body.tracks)) return deny(400, "ja_recebendo", "a mesma faixa duas vezes no pedido");
   const targets = await targetsFor(ctx, body.tracks);
   const blocked = await blockedAmong(ctx.db, userId, targets.flatMap((t) => (t ? [t.userId] : [])));
   const mine = await openSubscriptions(ctx.db, [session.id]);

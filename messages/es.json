@@ -4755,6 +4755,7 @@
     "saidaIdentidade": "Falta vincular la cuenta de Discord o de Steam.",
     "saidaMaioridade": "Confirma que tienes 18 años o más para entrar.",
     "publicaFechadaTitulo": "La sala abre en el directo",
-    "publicaFechadaTexto": "La sala pública de PPA abre cuando empieza el directo. Vuelve aquí durante el directo."
+    "publicaFechadaTexto": "La sala pública de PPA abre cuando empieza el directo. Vuelve aquí durante el directo.",
+    "banirAutor": "Banear a quien escribió"
   }
 }

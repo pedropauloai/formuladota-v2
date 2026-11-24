@@ -151,6 +151,7 @@ function NaSala({ roomId, tipo, mostrarTela, snap, sessao }: Props & { snap: Ses
               const m = snap.chat.find((x) => x.id === id);
               if (m?.userId) setAlvo({ tipo: "mensagem", messageId: id, nome: nomeDe(m.userId), texto: m.texto });
             }}
+            onBanir={(id) => void moderar(id, "banir")}
             onAbrirChat={(aberto) => void sessao.abrirChat(aberto)}
           />
         )}
@@ -182,7 +183,8 @@ export function SalaView(props: Props) {
   const { snap, sessao } = useSala(props.roomId);
   return (
     <div
-      className={cn(v2Page, "relative isolate mx-auto max-w-7xl space-y-5 overflow-x-clip px-4 py-6 md:px-8 md:py-10 min-[2600px]:max-w-[1800px]")}
+      // 1152 px até 2600 px de tela, como a /loja: a coluna de amigos (sobreposta) não cobre os controles.
+      className={cn(v2Page, "relative isolate mx-auto w-full max-w-6xl space-y-5 overflow-x-clip px-4 py-6 md:px-8 md:py-10 min-[2600px]:max-w-[1500px]")}
       data-sala-fase={snap.fase}
       data-sala-motivo={snap.motivo ?? ""}
       data-sala-papel={snap.papel ?? ""}

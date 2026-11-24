@@ -80,6 +80,19 @@ describe("forceCloseTracks", () => {
     await forceCloseTracks(env, "sessao1", []);
     expect(calls).toHaveLength(0);
   });
+
+  it("com a Cloudflare ocupada ou fora (429 ou 5xx), tenta de novo uma vez antes de desistir", async () => {
+    const calls = fakeFetch(503, { errorCode: "indisponivel" });
+    const res = await forceCloseTracks(env, "sessao1", ["0"]);
+    expect(calls).toHaveLength(2);
+    expect(res?.status).toBe(503);
+  });
+
+  it("recusa que não é de ocupação (4xx) não repete", async () => {
+    const calls = fakeFetch(404, { errorCode: "sessao_inexistente" });
+    await forceCloseTracks(env, "sessao1", ["0"]);
+    expect(calls).toHaveLength(1);
+  });
 });
 
 describe("generateIceServers", () => {

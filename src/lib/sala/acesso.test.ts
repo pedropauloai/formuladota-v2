@@ -33,6 +33,7 @@ function input(over: Partial<AccessInput> = {}): AccessInput {
     inPartyNow: false,
     battlepass: false,
     onlineOthers: 1,
+    alreadyIn: false,
     ...over,
   };
 }
@@ -63,6 +64,10 @@ describe("decideRoomAccess: os sins", () => {
     const cheia = { room: palco, onlineOthers: 30 };
     expect(decideRoomAccess(input({ ...cheia, member: null, battlepass: true }))).toEqual({ ok: true, role: "ouvinte" });
     expect(decideRoomAccess(input({ ...cheia, member: { role: "falante", status: "ativo", forceMuted: false } }))).toEqual({ ok: true, role: "falante" });
+  });
+
+  it("quem já está na sala não cai quando ela passa do limite (Battlepass ou palco entraram além dos lugares)", () => {
+    expect(decideRoomAccess(input({ room: palco, member: { role: "ouvinte", status: "ativo", forceMuted: false }, onlineOthers: 31, alreadyIn: true }))).toEqual({ ok: true, role: "ouvinte" });
   });
 
   it("sala pública só do benefício: entra quem tem Battlepass ou vaga na party", () => {

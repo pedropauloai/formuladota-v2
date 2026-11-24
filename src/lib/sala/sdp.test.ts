@@ -32,6 +32,11 @@ describe("midKinds", () => {
     expect(midKinds(offer).has("2")).toBe(false);
   });
 
+  it("mid repetido em duas seções não vale (o SFU poderia ler a outra): fica sem tipo e o pedido é recusado", () => {
+    const sdp = ["v=0", "m=audio 9 UDP/TLS/RTP/SAVPF 111", "a=mid:0", "m=video 9 UDP/TLS/RTP/SAVPF 96", "a=mid:0"].join("\r\n");
+    expect(midKinds(sdp).has("0")).toBe(false);
+  });
+
   it("ignora seção sem a=mid e aceita quebra de linha sem \\r", () => {
     const sdp = ["v=0", "m=audio 9 UDP/TLS/RTP/SAVPF 111", "a=sendonly", "m=video 9 UDP/TLS/RTP/SAVPF 96", "a=mid:7"].join("\n");
     const kinds = midKinds(sdp);

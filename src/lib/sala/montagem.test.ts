@@ -13,7 +13,7 @@ function verdict(over: Partial<Verdict> = {}): Verdict {
     userId: "eu",
     room: palco,
     settings: { capGb30d: 800, videoMaxKbps: 6000, palcoMaxSpeakers: 4, partyScreenEnabled: false, usageBytes30d: 0 },
-    member: { role: "ouvinte", status: "ativo", muted: true, forceMuted: false, handRaisedAt: null },
+    member: { role: "ouvinte", status: "ativo", muted: true, forceMuted: false, handRaisedAt: null, lastSeenAt: null },
     speakers: 0,
     blocked: [],
     decision: { ok: true, role: "ouvinte" },
@@ -53,7 +53,7 @@ describe("compose (o que o estado entrega a cada pessoa)", () => {
     const mutada = snap({ members: [{ u: "eu", r: "falante", m: true, f: true, on: true }] });
     expect(compose(verdict(), mutada, "eu", "falante", 0).eu?.podeFalar).toBe(false);
     const liberada = snap({ members: [{ u: "eu", r: "falante", m: true, on: true }] });
-    const ainda = verdict({ member: { role: "falante", status: "ativo", muted: true, forceMuted: true, handRaisedAt: null } });
+    const ainda = verdict({ member: { role: "falante", status: "ativo", muted: true, forceMuted: true, handRaisedAt: null, lastSeenAt: null } });
     expect(compose(ainda, liberada, "eu", "falante", 0).eu?.podeFalar).toBe(true);
   });
 

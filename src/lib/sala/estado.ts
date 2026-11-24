@@ -20,6 +20,8 @@ export type { Estado, FaixaEstado, MembroEstado, MensagemEstado } from "./montag
 const VERDICT_MS = 15_000;
 const SNAPSHOT_MS = 3_000;
 const verdicts = new TtlCache<Verdict>(VERDICT_MS, 5000);
+/** No máximo uma linha de métricas a cada 8 s por pessoa e sala (o cliente manda a cada 10 ou 30 s). */
+const statsSeen = new TtlCache<true>(8_000, 5000);
 /** Estado comum por sala, na memória desta instância do servidor. */
 export const snapshots = new SnapshotCache(SNAPSHOT_MS);
 
@@ -37,7 +39,8 @@ const Metricas = z.object({
   videoWidth: z.number().int().min(0).max(8192).nullable(),
   videoHeight: z.number().int().min(0).max(8192).nullable(),
   videoFps: z.number().min(0).max(240).nullable(), videoFreezeMs: z.number().int().min(0).nullable(),
-  bytesReceived: z.number().int().min(0), bytesSent: z.number().int().min(0),
+  // Teto de 10 GB por intervalo: número maior é recusado (não infla o consumo medido do painel).
+  bytesReceived: z.number().int().min(0).max(10_000_000_000), bytesSent: z.number().int().min(0).max(10_000_000_000),
   relay: z.boolean().nullable(),
   qualityLimitation: z.enum(["none", "cpu", "bandwidth", "other"]).nullable(),
 });
@@ -73,7 +76,10 @@ export async function roomState(roomId: string, body: z.infer<typeof EstadoBody>
     return { saida: v.decision.ok ? "sala_inexistente" : v.decision.code };
   }
   const db = ctx?.db ?? createServiceClient();
-  if (body.beat?.metricas) await insertStats(db, { roomId, userId: auth.userId, sessionId: body.sessionId, s: body.beat.metricas });
+  if (body.beat?.metricas && !statsSeen.get(key, now.getTime())) {
+    statsSeen.set(key, true, now.getTime());
+    await insertStats(db, { roomId, userId: auth.userId, sessionId: body.sessionId, s: body.beat.metricas });
+  }
   const snap = await snapshots.get(roomId, now.getTime(), (after) => fetchSnapshot(db, roomId, after));
   if (snap.removed.includes(auth.userId)) return { saida: "expulso" };
   if (snap.room && snap.room.status !== "aberta") return { saida: "sala_encerrada" };

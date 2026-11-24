@@ -11,7 +11,7 @@ import { forgetRoomState } from "./estado";
 import { decideLabel } from "./faixas";
 import { canPublishVoice, canShareScreen } from "./papeis";
 import { generateIceServers, realtimeEnv } from "./realtime-api";
-import { closeUserSessions } from "./sessoes";
+import { closeUserSessions, revokeTurn } from "./sessoes";
 import type { DenyCode, MemberRole, RoomKind, TrackDenyCode, TrackKind } from "./tipos";
 
 const TURN_MAX_S = 12 * 3600;
@@ -27,7 +27,10 @@ export async function enterRoom(ctx: CallContext): Promise<EntradaResult> {
   const env = realtimeEnv();
   if (!env || !room || !settings || !userId) return { ok: false, code: "sala_indisponivel" };
   const left = Math.floor((new Date(room.closesAt).getTime() - ctx.now.getTime()) / 1000);
-  const turn = await generateIceServers(env, Math.min(TURN_MAX_S, Math.max(TURN_MIN_S, left)), `sala-${room.id}`);
+  // Uma credencial do TURN por pessoa e sala: a anterior (outra aba, reconexão) cai antes de sair a nova,
+  // senão expulsar, banir ou encerrar só revogaria a última. A marca leva a pessoa (abuso na Cloudflare).
+  await revokeTurn(ctx.db, env, room.id, userId);
+  const turn = await generateIceServers(env, Math.min(TURN_MAX_S, Math.max(TURN_MIN_S, left)), `sala-${room.id}-${userId.slice(0, 8)}`);
   await ensureMember(ctx.db, room.id, userId, decision.role, joinedViaFor(decision.role, room.kind));
   await updateMember(ctx.db, room.id, userId, { last_seen_at: ctx.now.toISOString(), hand_raised_at: null });
   await setTurnUsername(ctx.db, room.id, userId, turn.username);
@@ -40,6 +43,7 @@ export async function enterRoom(ctx: CallContext): Promise<EntradaResult> {
 export async function leaveRoom(ctx: CallContext): Promise<void> {
   if (!ctx.userId || !ctx.room) return;
   await closeUserSessions(ctx.db, realtimeEnv(), { roomId: ctx.room.id, userId: ctx.userId }, "saiu", ctx.now);
+  await revokeTurn(ctx.db, realtimeEnv(), ctx.room.id, ctx.userId);
   await updateMember(ctx.db, ctx.room.id, ctx.userId, { last_seen_at: null, hand_raised_at: null });
   forgetRoomState(ctx.room.id, ctx.userId);
 }

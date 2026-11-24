@@ -4,6 +4,7 @@
 import "server-only";
 import { z } from "zod";
 import type { CallContext } from "./contexto";
+import { isPresent } from "./presenca";
 import { forgetRoomState } from "./estado";
 import { decideChat } from "./papeis";
 
@@ -27,7 +28,10 @@ export async function sendChat(ctx: CallContext, texto: string): Promise<ChatRes
     .order("id", { ascending: false })
     .limit(1)
     .maybeSingle();
-  const rule = decideChat({ roomKind: room.kind, role: decision.role, chatOpen: room.chatOpen, body: texto, lastSentAt: last ? new Date(last.created_at) : null, now: ctx.now });
+  const rule = decideChat({
+    roomKind: room.kind, role: decision.role, chatOpen: room.chatOpen, presente: isPresent(ctx.member, ctx.now),
+    body: texto, lastSentAt: last ? new Date(last.created_at) : null, now: ctx.now,
+  });
   if (!rule.ok) return rule;
   const { data, error } = await ctx.db.from("voice_room_messages").insert({ room_id: room.id, user_id: userId, body: rule.body }).select("id").single();
   if (error || !data) throw new Error(`gravar a mensagem: ${error?.message ?? "sem retorno"}`);

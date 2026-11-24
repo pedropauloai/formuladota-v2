@@ -11,6 +11,7 @@ import { decideRoomAccess } from "./acesso";
 import { Facts } from "./contratos";
 import type { Db } from "./dados-sala";
 import { TtlCache } from "./memoria";
+import { isPresent } from "./presenca";
 import type { AccessDecision, DenyCode, MemberRole, MemberStatus, RoomInfo } from "./tipos";
 
 const FLAG_MS = 15_000;
@@ -56,6 +57,7 @@ export interface MemberState {
   muted: boolean;
   forceMuted: boolean;
   handRaisedAt: string | null;
+  lastSeenAt: string | null;
 }
 
 /** O que a regra decidiu e o que ela leu; guardado na memória até o próximo batimento. */
@@ -87,7 +89,7 @@ function verdictFrom(auth: AuthInfo, flagOn: boolean, now: Date, raw: unknown): 
     partyScreenEnabled: s.party_screen_enabled, usageBytes30d: s.usage_bytes_30d,
   };
   const m = f.member;
-  const member: MemberState | null = m && { role: m.role, status: m.status, muted: m.muted, forceMuted: m.force_muted, handRaisedAt: m.hand_raised_at };
+  const member: MemberState | null = m && { role: m.role, status: m.status, muted: m.muted, forceMuted: m.force_muted, handRaisedAt: m.hand_raised_at, lastSeenAt: m.last_seen_at };
   const decision = decideRoomAccess({
     flagOn, now, userId: auth.userId, room,
     member: member && { role: member.role, status: member.status, forceMuted: member.forceMuted },
@@ -98,6 +100,7 @@ function verdictFrom(auth: AuthInfo, flagOn: boolean, now: Date, raw: unknown): 
     inPartyNow: f.party_now,
     battlepass: f.battlepass,
     onlineOthers: f.online_others,
+    alreadyIn: isPresent(member, now),
   });
   return { userId: auth.userId, room, settings, member, speakers: f.speakers, blocked: f.blocked, decision };
 }

@@ -41,7 +41,9 @@ export function decideStageAction(input: StageActionInput): StageDecision {
   if (input.actorRole !== "dono") return { ok: false, code: "so_o_dono" };
   if (input.targetIsOwner) return { ok: false, code: "dono_nao_sai" };
   const t = input.target;
-  if (!t || (t.status !== "ativo" && input.action !== "banir")) return { ok: false, code: "fora_da_sala" };
+  // Banir vale para quem nunca entrou ou já foi expulso; o resto pede alguém ativo na sala.
+  if (input.action === "banir") return { ok: true };
+  if (!t || t.status !== "ativo") return { ok: false, code: "fora_da_sala" };
   if (input.action === "falar" || input.action === "ouvir") {
     if (input.roomKind !== "palco") return { ok: false, code: "so_na_sala_publica" };
     if (input.action === "ouvir") return { ok: true, role: "ouvinte" };
@@ -54,12 +56,14 @@ export function decideStageAction(input: StageActionInput): StageDecision {
 export const CHAT_MAX = 300;
 const CHAT_INTERVALO_MS = 2000;
 
-export type ChatDenyCode = "chat_indisponivel" | "chat_fechado" | "mensagem_invalida" | "devagar";
+export type ChatDenyCode = "chat_indisponivel" | "fora_da_sala" | "chat_fechado" | "mensagem_invalida" | "devagar";
 
 export interface ChatInput {
   roomKind: RoomKind;
   role: MemberRole;
   chatOpen: boolean;
+  /** Entrou na sala e segue dando batimento: quem escreve tem linha de membro, então o dono pode tirar. */
+  presente: boolean;
   body: string;
   lastSentAt: Date | null;
   now: Date;
@@ -67,6 +71,7 @@ export interface ChatInput {
 
 export function decideChat(input: ChatInput): { ok: true; body: string } | { ok: false; code: ChatDenyCode } {
   if (input.roomKind !== "palco") return { ok: false, code: "chat_indisponivel" };
+  if (!input.presente) return { ok: false, code: "fora_da_sala" };
   if (!canChat(input.role, input.roomKind, input.chatOpen)) return { ok: false, code: "chat_fechado" };
   const body = input.body.replace(/\s+/g, " ").trim();
   if (body.length === 0 || body.length > CHAT_MAX) return { ok: false, code: "mensagem_invalida" };

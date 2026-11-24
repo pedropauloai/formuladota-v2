@@ -57,10 +57,15 @@ export function createSfuSession(env: RealtimeEnv): Promise<SfuResult> {
   return sfu(env, "/sessions/new", { method: "POST" });
 }
 
-/** Fecha faixas de uma sessão sem troca de SDP: corta o encaminhamento na hora (expulsar, sair, limpar). */
+/** Fecha faixas de uma sessão sem troca de SDP: corta o encaminhamento na hora (expulsar, sair, limpar).
+ *  Com a Cloudflare ocupada ou fora (429 ou 5xx), tenta de novo uma vez: uma expulsão não pode falhar calada. */
 export async function forceCloseTracks(env: RealtimeEnv, sessionId: string, mids: string[]): Promise<SfuResult | null> {
   if (mids.length === 0) return null;
-  return sfu(env, `/sessions/${sessionId}/tracks/close`, { method: "PUT", body: { tracks: mids.map((mid) => ({ mid })), force: true } });
+  const body = { tracks: mids.map((mid) => ({ mid })), force: true };
+  const res = await sfu(env, `/sessions/${sessionId}/tracks/close`, { method: "PUT", body });
+  if (res.status !== 429 && res.status < 500) return res;
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  return sfu(env, `/sessions/${sessionId}/tracks/close`, { method: "PUT", body });
 }
 
 function withoutPort53(servers: RTCIceServer[]): RTCIceServer[] {

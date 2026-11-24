@@ -4755,6 +4755,7 @@
     "saidaIdentidade": "Link your Discord or Steam account first.",
     "saidaMaioridade": "Confirm you are 18 or older to join.",
     "publicaFechadaTitulo": "The room opens during the live",
-    "publicaFechadaTexto": "PPA's public room opens when the live starts. Come back here during the live."
+    "publicaFechadaTexto": "PPA's public room opens when the live starts. Come back here during the live.",
+    "banirAutor": "Ban the author"
   }
 }

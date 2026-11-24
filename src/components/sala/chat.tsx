@@ -5,7 +5,8 @@
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useTranslations } from "next-intl";
-import { Flag, Lock, LockOpen, Send, Trash2 } from "lucide-react";
+import { Flag, Gavel, Lock, LockOpen, Send, Trash2 } from "lucide-react";
+import { useConfirm } from "@/components/ui/confirm";
 import { Panel, plate } from "@/components/v2";
 import type { MensagemEstado } from "@/lib/sala/estado";
 import { CHAT_MAX } from "@/lib/sala/papeis";
@@ -24,13 +25,21 @@ interface Props {
   onEnviar: (texto: string) => Promise<{ ok: true } | { ok: false; code: string }>;
   onApagar: (id: number) => void;
   onDenunciar: (id: number) => void;
+  /** O dono bane o autor da mensagem (não entra mais em nenhuma sala dele). */
+  onBanir: (userId: string) => void;
   onAbrirChat: (aberto: boolean) => void;
 }
 
 function Mensagem({ m, p }: { m: MensagemEstado; p: Props }) {
   const t = useTranslations("sala");
+  const confirm = useConfirm();
   const nome = m.userId ? (p.pessoas[m.userId]?.nome ?? t("jogador")) : t("contaApagada");
   const minha = m.userId === p.eu;
+  const autor = m.userId;
+  const banir = async () => {
+    if (!autor) return;
+    if (await confirm({ title: t("banir"), message: t("banirConfirma", { nome }), confirmLabel: t("confirmar"), variant: "destructive" })) p.onBanir(autor);
+  };
   return (
     <li className="group flex items-start gap-2 py-1 text-sm leading-snug" data-sala-mensagem={m.id}>
       <p className="min-w-0 flex-1 break-words text-text-body">
@@ -40,6 +49,11 @@ function Mensagem({ m, p }: { m: MensagemEstado; p: Props }) {
       {p.souDono && (
         <button type="button" title={t("apagarMensagem")} aria-label={t("apagarMensagem")} data-sala-apagar={m.id} onClick={() => p.onApagar(m.id)} className="rounded-sm p-1 text-text-muted opacity-60 hover:text-error group-hover:opacity-100">
           <Trash2 className="size-3.5" />
+        </button>
+      )}
+      {p.souDono && autor && autor !== p.donoId && (
+        <button type="button" title={t("banirAutor")} aria-label={t("banirAutor")} data-sala-banir-autor={m.id} onClick={() => void banir()} className="rounded-sm p-1 text-text-muted opacity-60 hover:text-error group-hover:opacity-100">
+          <Gavel className="size-3.5" />
         </button>
       )}
       {!minha && m.userId && (
