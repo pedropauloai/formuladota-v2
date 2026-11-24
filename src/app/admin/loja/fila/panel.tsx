@@ -22,6 +22,8 @@ import { PartyHeader } from "./party-header";
 import { PartySlots } from "./party-slots";
 import { QueueList } from "./queue-list";
 import { Records } from "./records";
+import { PpaAccounts } from "./ppa-accounts";
+import type { PpaAccount } from "@/lib/loja/ppa-accounts-model";
 import { useAction, useArrivals, useAutoRefresh, useNow, useShortcuts } from "./use-console";
 
 function clock(fromIso: string, now: number): string {
@@ -84,7 +86,7 @@ function Header({ data, now }: { data: AdminQueue; now: number }) {
   );
 }
 
-export function AdminQueuePanel({ data, history }: { data: AdminQueue; history: HistoryMatch[] }) {
+export function AdminQueuePanel({ data, history, accounts }: { data: AdminQueue; history: HistoryMatch[]; accounts: PpaAccount[] }) {
   const live = data.live;
   const party = data.entries.filter((e) => e.state === "na_party");
   const waiting = data.entries.filter((e) => e.state === "aguardando");
@@ -135,6 +137,7 @@ export function AdminQueuePanel({ data, history }: { data: AdminQueue; history: 
             <PartySlots live={live} party={party} waiting={waiting} swapFor={swapFor?.id ?? null} onSwap={setSwapId} />
           </section>
           <Records history={history} finished={data.finished} />
+          <PpaAccounts accounts={accounts} />
         </div>
         <QueueList
           live={live}

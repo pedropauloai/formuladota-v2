@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { buildOwnerProofData, parseOwnerProofData, PARTY_MATCHES_CACHED, reuseSummary } from "./owner-proof-data";
 
 const NOW = new Date("2026-11-18T15:00:00Z");
-const resumo = (matchId: number) => ({ matchId, startTime: 1795460000, duration: 2400, won: true, radiant: false, radiantScore: 21, direScore: 36, ppaHeroId: 34, partyHeroIds: [34] as number[] | null });
+const resumo = (matchId: number) => ({ matchId, startTime: 1795460000, duration: 2400, won: true, radiant: false, radiantScore: 21, direScore: 36, ppaHeroId: 34, partyHeroIds: [34] as number[] | null, teammates: [98765] as number[] | null });
 
 describe("buildOwnerProofData", () => {
   it("lê a medalha e a posição no ranking do OpenDota", () => {
@@ -39,6 +39,11 @@ describe("reuseSummary", () => {
     const r = resumo(1);
     expect(reuseSummary(r, fim(r) + horas(1))).toBe(true);
     expect(reuseSummary(r, fim(r) + horas(500))).toBe(true);
+  });
+
+  it("resumo antigo, gravado antes da lista do time, volta ao OpenDota para completar", () => {
+    const r = { ...resumo(1), teammates: null };
+    expect(reuseSummary(r, fim(r) + horas(1))).toBe(false);
   });
 
   it("resumo com resultado mas sem o PPA volta ao OpenDota, mesmo depois de dias (a conta pode ter entrado na lista)", () => {

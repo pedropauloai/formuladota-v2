@@ -183,7 +183,7 @@ export default async function MesaPreviaPage({ searchParams }: { searchParams: P
   const { data, history: hist } = scene(cena);
   return (
     <Chrome>
-      <AdminQueuePanel data={data} history={hist} />
+      <AdminQueuePanel data={data} history={hist} accounts={[{ accountId: 1667196039, label: "n tenho inimigos", kind: "propria", createdAt: "2026-11-24T00:00:00Z" }, { accountId: 1865993258, label: "August's", kind: "emprestada", createdAt: "2026-11-24T00:00:01Z" }]} />
     </Chrome>
   );
 }
