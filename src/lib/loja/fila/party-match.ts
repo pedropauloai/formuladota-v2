@@ -16,7 +16,14 @@ export interface PartyMatchSummary {
   direScore: number;
   /** O herói do PPA, quando a conta dele está na partida. */
   ppaHeroId: number | null;
+  /**
+   * As contas (32 bits) de quem jogou no time do PPA, sem ele e sem as anônimas: o site reconhece
+   * quem delas tem conta no FORMULADOTA. null no resumo antigo, gravado antes desta lista.
+   */
+  teammates: number[] | null;
 }
+
+const ANONYMOUS = 4294967295;
 
 const int = (value: unknown): number | null => (typeof value === "number" && Number.isFinite(value) ? Math.trunc(value) : null);
 const record = (value: unknown): Record<string, unknown> | null =>
@@ -31,7 +38,8 @@ export function summarizePartyMatch(match: unknown, ownerAccountIds: readonly nu
   const matchId = int(m?.match_id);
   if (!m || !matchId) return null;
   const players = Array.isArray(m.players) ? m.players.map(record).filter((p): p is Record<string, unknown> => p !== null) : [];
-  const owner = players.find((p) => ownerAccountIds.includes(int(p.account_id) ?? -1));
+  // A primeira conta da lista que aparece na partida é o PPA: as dele antes das emprestadas.
+  const owner = ownerAccountIds.map((id) => players.find((p) => int(p.account_id) === id)).find((p) => p !== undefined);
   const known = owner ?? players.find((p) => partyAccountIds.includes(int(p.account_id) ?? -1));
   const slot = known ? int(known.player_slot) : null;
   const radiantWin = typeof m.radiant_win === "boolean" ? m.radiant_win : null;
@@ -44,7 +52,15 @@ export function summarizePartyMatch(match: unknown, ownerAccountIds: readonly nu
     radiantScore: int(m.radiant_score) ?? 0,
     direScore: int(m.dire_score) ?? 0,
     ppaHeroId: owner ? int(owner.hero_id) : null,
+    teammates: slot === null ? [] : teamAccounts(players, owner, slot < 128),
   };
+}
+
+function teamAccounts(players: Record<string, unknown>[], owner: Record<string, unknown> | undefined, radiant: boolean): number[] {
+  return players
+    .filter((p) => p !== owner && ((int(p.player_slot) ?? 0) < 128) === radiant)
+    .map((p) => int(p.account_id))
+    .filter((a): a is number => a !== null && a > 0 && a !== ANONYMOUS);
 }
 
 /** Resumo já gravado no cache; null quando o formato não serve. */
@@ -61,5 +77,6 @@ export function parsePartyMatchSummary(value: unknown): PartyMatchSummary | null
     radiantScore: int(v.radiantScore) ?? 0,
     direScore: int(v.direScore) ?? 0,
     ppaHeroId: int(v.ppaHeroId),
+    teammates: Array.isArray(v.teammates) ? v.teammates.map(int).filter((a): a is number => a !== null) : null,
   };
 }

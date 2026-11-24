@@ -45,7 +45,7 @@ export function buildOwnerProofData(player: unknown, now: Date, partyMatches: re
  */
 export function reuseSummary(hit: PartyMatchSummary | undefined, nowMs: number): hit is PartyMatchSummary {
   if (!hit) return false;
-  if (hit.ppaHeroId !== null) return true;
+  if (hit.ppaHeroId !== null && hit.teammates !== null) return true;
   return hit.won === null && nowMs - (hit.startTime + hit.duration) * 1000 > RETRY_NO_RESULT_MS;
 }
 

@@ -31,6 +31,7 @@ describe("summarizePartyMatch", () => {
       radiantScore: 21,
       direScore: 36,
       ppaHeroId: 34,
+      teammates: [AMIGO],
     });
   });
 
@@ -45,6 +46,28 @@ describe("summarizePartyMatch", () => {
     expect(summarizePartyMatch(partidaNaOutra, [PPA, outraConta], [AMIGO])).toMatchObject({ won: true, radiant: false, ppaHeroId: 34 });
   });
 
+  it("na mesma partida, a conta dele vale antes da emprestada, e o dono da emprestada entra no time", () => {
+    const propria = 1667196039;
+    const emprestada = 1865993258;
+    const p9097 = partida({
+      radiant_win: true,
+      players: [
+        { account_id: emprestada, player_slot: 0, hero_id: 98 },
+        { account_id: 26998715, player_slot: 1, hero_id: 46 },
+        { account_id: propria, player_slot: 2, hero_id: 34 },
+        { account_id: 4294967295, player_slot: 3, hero_id: 64 },
+        { account_id: 110647864, player_slot: 128, hero_id: 106 },
+      ],
+    });
+    expect(summarizePartyMatch(p9097, [propria, emprestada], [])).toMatchObject({ won: true, radiant: true, ppaHeroId: 34, teammates: [emprestada, 26998715] });
+  });
+
+  it("numa partida só com a conta emprestada, ela é o PPA", () => {
+    const emprestada = 1865993258;
+    const p = partida({ radiant_win: true, players: [{ account_id: emprestada, player_slot: 0, hero_id: 34 }, { account_id: AMIGO, player_slot: 1, hero_id: 5 }] });
+    expect(summarizePartyMatch(p, [PPA, emprestada], [])).toMatchObject({ won: true, ppaHeroId: 34, teammates: [AMIGO] });
+  });
+
   it("sem ninguém conhecido na partida, o resultado não é inventado", () => {
     expect(summarizePartyMatch(partida(), [1], [2])).toMatchObject({ won: null, radiant: null, ppaHeroId: null });
   });
@@ -57,8 +80,10 @@ describe("summarizePartyMatch", () => {
 
 describe("parsePartyMatchSummary", () => {
   it("lê o resumo gravado e recusa o que veio estragado", () => {
-    const gravado = { matchId: 1, startTime: 2, duration: 3, won: false, radiant: true, radiantScore: 4, direScore: 5, ppaHeroId: null };
+    const gravado = { matchId: 1, startTime: 2, duration: 3, won: false, radiant: true, radiantScore: 4, direScore: 5, ppaHeroId: null, teammates: [7] };
     expect(parsePartyMatchSummary(gravado)).toEqual(gravado);
+    // Resumo antigo, sem a lista do time: fica marcado como incompleto para o cron completar.
+    expect(parsePartyMatchSummary({ ...gravado, teammates: undefined })).toMatchObject({ teammates: null });
     expect(parsePartyMatchSummary({ matchId: "1" })).toBeNull();
   });
 });
