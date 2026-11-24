@@ -20,6 +20,8 @@ export function montarLigacao(o: {
   entrada: Entrada;
   camada: Layer;
   foraDaSala: boolean;
+  /** Volume de cada pessoa guardado neste navegador. */
+  volumes: Record<string, number>;
   rotularVoz: (ref: TrackRef) => void;
   onTela: (stream: MediaStream | null, userId: string | null) => void;
   onBloqueio: (bloqueado: boolean) => void;
@@ -30,11 +32,17 @@ export function montarLigacao(o: {
   const voz = new VozLocal(conn, nivel, o.rotularVoz);
   const recepcao = new Recepcao(conn, o.camada, o.onTela, (userId, track) => nivel.watch(userId, track), o.onBloqueio, o.onTravou);
   recepcao.setForaDaSala(o.foraDaSala);
+  for (const [userId, volume] of Object.entries(o.volumes)) recepcao.setVolumeDe(userId, volume);
   // Conexão que o navegador deu por perdida (a rede caiu e não voltou): a sessão refaz.
   conn.onState((estado) => {
     if (estado === "failed") o.onTravou();
   });
   return { conn, nivel, voz, recepcao };
+}
+
+/** Quem está falando agora pelo nível de voz ("eu" vira o id da pessoa; mudo não conta como fala). */
+export function quemFala(l: Ligacao | null, eu: string | null, mutado: boolean): string[] {
+  return (l?.nivel.speaking() ?? []).map((id) => (id === "eu" ? eu : id)).filter((id): id is string => !!id && !(mutado && id === eu));
 }
 
 export function desmontarLigacao(l: Ligacao): void {

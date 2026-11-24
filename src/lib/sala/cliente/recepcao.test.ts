@@ -137,3 +137,54 @@ describe("Recepcao quando a ligação trava", () => {
     vi.useRealTimers();
   });
 });
+
+describe("Recepcao com volume por pessoa", () => {
+  function comAudio() {
+    const tocando: Array<{ volume: number }> = [];
+    vi.stubGlobal("MediaStream", class {
+      constructor(readonly tracks: unknown[]) {}
+    });
+    vi.stubGlobal("Audio", class {
+      volume = 1;
+      autoplay = false;
+      srcObject: unknown = null;
+      constructor() {
+        tocando.push(this);
+      }
+      play() {
+        return Promise.resolve();
+      }
+      pause() {}
+    });
+    const chegadas: Array<(t: MediaStreamTrack) => void> = [];
+    const conn = {
+      receive: (_ref: unknown, onTrack: (t: MediaStreamTrack) => void) => {
+        chegadas.push(onTrack);
+        return { stop: () => undefined, setLayer: () => undefined };
+      },
+    } as unknown as Connection;
+    return { conn, chegadas, tocando };
+  }
+  const vozDe = (userId: string): FaixaRemota => ({ sessionId: `s-${userId}`, trackName: `voz-${userId}`, tipo: "voz", userId });
+
+  it("o volume de cada pessoa vale por cima do volume geral das vozes", () => {
+    const { conn, chegadas, tocando } = comAudio();
+    const r = new Recepcao(conn, "h", nada, nada);
+    r.sync([vozDe("ana"), vozDe("bia")]);
+    chegadas.forEach((chegar) => chegar({ kind: "audio" } as MediaStreamTrack));
+    r.setVolumeDe("ana", 0.5);
+    r.setVoiceVolume(0.8);
+    expect(tocando.map((a) => a.volume)).toEqual([0.4, 0.8]);
+    vi.unstubAllGlobals();
+  });
+
+  it("o volume escolhido antes de a voz chegar vale quando ela chega", () => {
+    const { conn, chegadas, tocando } = comAudio();
+    const r = new Recepcao(conn, "h", nada, nada);
+    r.setVolumeDe("ana", 0.3);
+    r.sync([vozDe("ana")]);
+    chegadas[0]?.({ kind: "audio" } as MediaStreamTrack);
+    expect(tocando[0]?.volume).toBe(0.3);
+    vi.unstubAllGlobals();
+  });
+});

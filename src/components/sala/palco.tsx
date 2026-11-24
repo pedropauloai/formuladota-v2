@@ -1,12 +1,15 @@
 "use client";
 
 // Palco da sala: a tela compartilhada por alguém (com o áudio do jogo) ou, para quem compartilha,
-// a própria tela muda, como os outros veem. Sem tela no ar, um aviso.
+// a própria tela muda, como os outros veem. Sem tela no ar, um aviso. Tela cheia pelo botão do canto
+// ou pela tecla F (fora dos campos de texto), com o chat sobreposto à direita, que se esconde e volta,
+// e o volume da tela à mão, como no modo cinema da Twitch.
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
-import { MonitorUp } from "lucide-react";
+import { Maximize2, MessageSquare, MessageSquareOff, Minimize2, MonitorUp, Volume2 } from "lucide-react";
 import { Panel } from "@/components/v2";
+import { cn } from "@/lib/utils";
 
 interface Props {
   tela: MediaStream | null;
@@ -14,6 +17,9 @@ interface Props {
   minhaTela: MediaStream | null;
   nomeDe: (userId: string) => string;
   volumeJogo: number;
+  onVolumeJogo: (volume: number) => void;
+  /** Chat da sala pública, sobreposto à direita na tela cheia. */
+  chat?: ReactNode;
 }
 
 function Video({ stream, muted, volume, label }: { stream: MediaStream; muted: boolean; volume: number; label: string }) {
@@ -30,24 +36,87 @@ function Video({ stream, muted, volume, label }: { stream: MediaStream; muted: b
   return <video ref={ref} autoPlay playsInline muted={muted} aria-label={label} className="h-full w-full bg-black object-contain" />;
 }
 
-export function Palco({ tela, telaDe, minhaTela, nomeDe, volumeJogo }: Props) {
+const digitando = (e: KeyboardEvent) => {
+  const el = e.target as HTMLElement | null;
+  return !!el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable);
+};
+
+function useTelaCheia(temTela: boolean) {
+  const caixa = useRef<HTMLDivElement>(null);
+  const [cheia, setCheia] = useState(false);
+  useEffect(() => {
+    const mudou = () => setCheia(!!caixa.current && document.fullscreenElement === caixa.current);
+    document.addEventListener("fullscreenchange", mudou);
+    return () => document.removeEventListener("fullscreenchange", mudou);
+  }, []);
+  const alternar = useCallback(() => {
+    if (document.fullscreenElement) void document.exitFullscreen().catch(() => null);
+    else void caixa.current?.requestFullscreen().catch(() => null);
+  }, []);
+  useEffect(() => {
+    const tecla = (e: KeyboardEvent) => {
+      if ((e.key === "f" || e.key === "F") && !e.ctrlKey && !e.metaKey && !e.altKey && temTela && !digitando(e)) alternar();
+    };
+    document.addEventListener("keydown", tecla);
+    return () => document.removeEventListener("keydown", tecla);
+  }, [alternar, temTela]);
+  return { caixa, cheia, alternar };
+}
+
+function BarraDaTelaCheia({ p, comChat, onChat }: { p: Props; comChat: boolean; onChat: () => void }) {
   const t = useTranslations("sala");
-  const label = minhaTela ? t("suaTela") : telaDe ? t("telaDe", { nome: nomeDe(telaDe) }) : t("semTela");
   return (
-    <Panel className="relative aspect-video w-full overflow-hidden p-0" data-sala-palco={minhaTela ? "minha" : tela ? "remota" : "vazio"}>
-      {minhaTela ? (
-        <Video stream={minhaTela} muted volume={0} label={label} />
-      ) : tela ? (
-        <Video stream={tela} muted={false} volume={volumeJogo} label={label} />
-      ) : (
-        <div className="flex h-full flex-col items-center justify-center gap-3 text-text-muted">
-          <MonitorUp className="size-10" aria-hidden="true" />
-          <p className="text-sm">{label}</p>
-        </div>
+    <div className="absolute bottom-4 left-4 flex items-center gap-3 rounded-sm bg-bg-deep/75 px-3 py-2 text-xs text-text-body backdrop-blur-sm">
+      <label className="flex items-center gap-2">
+        <Volume2 className="size-4" aria-hidden="true" />
+        <span className="sr-only">{t("volumeTela")}</span>
+        <input type="range" min={0} max={1} step={0.05} value={p.volumeJogo} onChange={(e) => p.onVolumeJogo(Number(e.target.value))} data-sala-volume-tela="" className="w-28 accent-[var(--color-play-primary)]" />
+      </label>
+      {p.chat && (
+        <button type="button" onClick={onChat} data-sala-chat-sobreposto-alternar={comChat ? "esconder" : "mostrar"} className="flex items-center gap-1.5 rounded-sm px-2 py-1 hover:bg-bg-deep">
+          {comChat ? <MessageSquareOff className="size-4" aria-hidden="true" /> : <MessageSquare className="size-4" aria-hidden="true" />}
+          {comChat ? t("esconderChat") : t("mostrarChat")}
+        </button>
       )}
-      {(minhaTela || tela) && (
-        <p className="absolute left-3 top-3 rounded-sm bg-bg-deep/80 px-2 py-1 text-xs text-text-body">{label}</p>
-      )}
-    </Panel>
+    </div>
+  );
+}
+
+export function Palco(p: Props) {
+  const t = useTranslations("sala");
+  const temTela = !!(p.minhaTela || p.tela);
+  const { caixa, cheia, alternar } = useTelaCheia(temTela);
+  const [comChat, setComChat] = useState(true);
+  const label = p.minhaTela ? t("suaTela") : p.telaDe ? t("telaDe", { nome: p.nomeDe(p.telaDe) }) : t("semTela");
+  return (
+    <div ref={caixa} className={cn("relative w-full", cheia && "bg-black")} data-sala-tela-cheia={cheia ? "sim" : "nao"}>
+      <Panel className={cn("relative w-full overflow-hidden p-0", cheia ? "h-screen rounded-none" : "aspect-video")} data-sala-palco={p.minhaTela ? "minha" : p.tela ? "remota" : "vazio"}>
+        {p.minhaTela ? (
+          <Video stream={p.minhaTela} muted volume={0} label={label} />
+        ) : p.tela ? (
+          <Video stream={p.tela} muted={false} volume={p.volumeJogo} label={label} />
+        ) : (
+          <div className="flex h-full flex-col items-center justify-center gap-3 text-text-muted">
+            <MonitorUp className="size-10" aria-hidden="true" />
+            <p className="text-sm">{label}</p>
+          </div>
+        )}
+        {temTela && <p className="absolute left-3 top-3 rounded-sm bg-bg-deep/80 px-2 py-1 text-xs text-text-body">{label}</p>}
+        {temTela && (
+          <button
+            type="button"
+            onClick={alternar}
+            title={cheia ? t("sairTelaCheia") : t("telaCheiaAtalho")}
+            aria-label={cheia ? t("sairTelaCheia") : t("telaCheia")}
+            data-sala-tela-cheia-alternar=""
+            className={cn("absolute top-3 rounded-sm bg-bg-deep/80 p-1.5 text-text-body hover:text-text-display", cheia && p.chat && comChat ? "right-[372px]" : "right-3")}
+          >
+            {cheia ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
+          </button>
+        )}
+      </Panel>
+      {cheia && p.chat && comChat && <div className="absolute inset-y-0 right-0 w-[360px]">{p.chat}</div>}
+      {cheia && <BarraDaTelaCheia p={p} comChat={comChat} onChat={() => setComChat((v) => !v)} />}
+    </div>
   );
 }

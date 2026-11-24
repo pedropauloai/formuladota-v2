@@ -33,6 +33,8 @@ export interface SessaoSnapshot {
   audioBloqueado: boolean;
   /** A ligação travou e a sessão a refaz por baixo (2 ou 3 s). */
   reconectando: boolean;
+  /** Volume de cada pessoa (0 a 1) escolhido neste navegador; quem não está aqui está em 100%. */
+  volumes: Record<string, number>;
 }
 
 export const SNAPSHOT_INICIAL: SessaoSnapshot = {
@@ -41,4 +43,5 @@ export const SNAPSHOT_INICIAL: SessaoSnapshot = {
   falando: [], qualidade: null, chat: [], pessoas: {}, medidas: { audioBytes: 0, videoBytes: 0, videoAltura: null },
   audioBloqueado: false,
   reconectando: false,
+  volumes: {},
 };

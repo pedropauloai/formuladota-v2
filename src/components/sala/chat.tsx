@@ -28,6 +28,8 @@ interface Props {
   /** O dono bane o autor da mensagem (não entra mais em nenhuma sala dele). */
   onBanir: (userId: string) => void;
   onAbrirChat: (aberto: boolean) => void;
+  /** Na tela cheia: sem painel, transparente e da altura da tela. */
+  sobreposto?: boolean;
 }
 
 function Mensagem({ m, p }: { m: MensagemEstado; p: Props }) {
@@ -90,43 +92,52 @@ export function Chat(p: Props) {
     } else setErro(CHAT_ERRO[res.code] ?? "chatErro");
   }
 
-  return (
-    <Panel className="flex flex-col p-4" data-sala-chat={p.chatAberto ? "aberto" : "fechado"}>
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <h2 className="font-display-condensed text-xl uppercase text-text-display">{t("chat")}</h2>
-        {p.souDono && (
-          <button type="button" onClick={() => p.onAbrirChat(!p.chatAberto)} data-sala-chat-alternar="" className={plate({ kind: "ghost", small: true })}>
-            {p.chatAberto ? <Lock className="size-3.5" aria-hidden="true" /> : <LockOpen className="size-3.5" aria-hidden="true" />}
-            {p.chatAberto ? t("fecharChat") : t("abrirChat")}
-          </button>
+  const conteudo = (
+      <>
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <h2 className="font-display-condensed text-xl uppercase text-text-display">{t("chat")}</h2>
+          {p.souDono && (
+            <button type="button" onClick={() => p.onAbrirChat(!p.chatAberto)} data-sala-chat-alternar="" className={plate({ kind: "ghost", small: true })}>
+              {p.chatAberto ? <Lock className="size-3.5" aria-hidden="true" /> : <LockOpen className="size-3.5" aria-hidden="true" />}
+              {p.chatAberto ? t("fecharChat") : t("abrirChat")}
+            </button>
+          )}
+        </div>
+        <ul ref={lista} className={p.sobreposto ? "min-h-0 flex-1 overflow-y-auto pr-1" : "h-[22rem] overflow-y-auto pr-1 min-[2600px]:h-[30rem]"} aria-live="polite">
+          {p.mensagens.length === 0 && <li className="py-6 text-center text-xs text-text-muted">{t("chatVazio")}</li>}
+          {p.mensagens.map((m) => (
+            <Mensagem key={m.id} m={m} p={p} />
+          ))}
+        </ul>
+        {p.podeEscrever ? (
+          <form onSubmit={(e) => void enviar(e)} className="mt-3 flex gap-2">
+            <input
+              value={texto}
+              onChange={(e) => setTexto(e.target.value)}
+              maxLength={CHAT_MAX}
+              placeholder={t("chatPlaceholder")}
+              aria-label={t("chatPlaceholder")}
+              data-sala-chat-campo=""
+              className="min-w-0 flex-1 rounded-sm border border-border-strong bg-bg-deep px-3 py-2 text-sm text-text-display"
+            />
+            <button type="submit" disabled={enviando || !texto.trim()} title={t("chatEnviar")} aria-label={t("chatEnviar")} data-sala-chat-enviar="" className={plate({ kind: "cta", small: true })}>
+              <Send className="size-4" aria-hidden="true" />
+            </button>
+          </form>
+        ) : (
+          <p className="mt-3 text-xs text-text-muted">{t("chatFechado")}</p>
         )}
-      </div>
-      <ul ref={lista} className="h-[22rem] overflow-y-auto pr-1 min-[2600px]:h-[30rem]" aria-live="polite">
-        {p.mensagens.length === 0 && <li className="py-6 text-center text-xs text-text-muted">{t("chatVazio")}</li>}
-        {p.mensagens.map((m) => (
-          <Mensagem key={m.id} m={m} p={p} />
-        ))}
-      </ul>
-      {p.podeEscrever ? (
-        <form onSubmit={(e) => void enviar(e)} className="mt-3 flex gap-2">
-          <input
-            value={texto}
-            onChange={(e) => setTexto(e.target.value)}
-            maxLength={CHAT_MAX}
-            placeholder={t("chatPlaceholder")}
-            aria-label={t("chatPlaceholder")}
-            data-sala-chat-campo=""
-            className="min-w-0 flex-1 rounded-sm border border-border-strong bg-bg-deep px-3 py-2 text-sm text-text-display"
-          />
-          <button type="submit" disabled={enviando || !texto.trim()} title={t("chatEnviar")} aria-label={t("chatEnviar")} data-sala-chat-enviar="" className={plate({ kind: "cta", small: true })}>
-            <Send className="size-4" aria-hidden="true" />
-          </button>
-        </form>
-      ) : (
-        <p className="mt-3 text-xs text-text-muted">{t("chatFechado")}</p>
-      )}
-      {erro && <p role="alert" className="mt-1 text-xs text-error">{t(erro)}</p>}
-      <p className="mt-2 text-[0.7rem] leading-relaxed text-text-muted">{t("chatGuardado")}</p>
+        {erro && <p role="alert" className="mt-1 text-xs text-error">{t(erro)}</p>}
+        <p className="mt-2 text-[0.7rem] leading-relaxed text-text-muted">{t("chatGuardado")}</p>
+      </>
+  );
+  return p.sobreposto ? (
+    <div className="flex h-full flex-col bg-bg-deep/60 p-3 backdrop-blur-sm" data-sala-chat-sobreposto="" data-sala-chat={p.chatAberto ? "aberto" : "fechado"}>
+      {conteudo}
+    </div>
+  ) : (
+    <Panel className="flex flex-col p-4" data-sala-chat={p.chatAberto ? "aberto" : "fechado"}>
+      {conteudo}
     </Panel>
   );
 }

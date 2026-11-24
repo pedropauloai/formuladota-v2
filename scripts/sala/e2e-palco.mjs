@@ -46,6 +46,41 @@ async function telaECamada(t, check, pDono, pOuv) {
   check("a plateia não publica voz pelo servidor", voz.status === 403 && voz.body.errorCode === "voz_nao_permitida", `HTTP ${voz.status} ${voz.body.errorCode}`);
 }
 
+/** Range do navegador: muda o valor como uma pessoa arrastando (o React ouve o evento input). */
+async function arrastar(locator, valor) {
+  await locator.evaluate((el, v) => {
+    const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set;
+    set.call(el, v);
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+  }, String(valor));
+}
+
+/** Tela cheia com o chat sobreposto, volume da tela, tecla F e volume de uma pessoa (vista da plateia). */
+async function telaCheiaEVolumes(t, check, pOuv) {
+  await pOuv.locator("[data-sala-tela-cheia-alternar]").click({ timeout: 20_000 });
+  const cheia = await waitFor(async () => (await pOuv.locator('[data-sala-tela-cheia="sim"]').count()) > 0 && (await pOuv.evaluate(() => !!document.fullscreenElement)), 10_000);
+  check("a tela vai para tela cheia, com o chat sobreposto", !!cheia && (await pOuv.locator("[data-sala-chat-sobreposto]").count()) === 1);
+  await pOuv.locator('[data-sala-chat-sobreposto-alternar="esconder"]').click();
+  const escondeu = (await pOuv.locator("[data-sala-chat-sobreposto]").count()) === 0;
+  await pOuv.locator('[data-sala-chat-sobreposto-alternar="mostrar"]').click();
+  check("o chat sobreposto se esconde e volta", escondeu && (await pOuv.locator("[data-sala-chat-sobreposto]").count()) === 1);
+  await arrastar(pOuv.locator("[data-sala-volume-tela]"), 0.3);
+  const volume = await pOuv.evaluate(() => document.querySelector("[data-sala-palco] video")?.volume ?? -1);
+  check("o volume da tela muda o som da tela", Math.abs(volume - 0.3) < 0.01, String(volume));
+  await pOuv.locator("[data-sala-tela-cheia-alternar]").click();
+  const saiu = await waitFor(async () => (await pOuv.locator('[data-sala-tela-cheia="nao"]').count()) > 0, 10_000);
+  await pOuv.locator("body").click({ position: { x: 5, y: 5 } });
+  await pOuv.keyboard.press("f");
+  const peloF = await waitFor(async () => (await pOuv.locator('[data-sala-tela-cheia="sim"]').count()) > 0, 10_000);
+  await pOuv.keyboard.press("f");
+  const voltouPeloF = await waitFor(async () => (await pOuv.locator('[data-sala-tela-cheia="nao"]').count()) > 0, 10_000);
+  check("sai da tela cheia pelo botão, e a tecla F entra e sai", !!saiu && !!peloF && !!voltouPeloF);
+  await pOuv.locator(`[data-sala-volume-abrir="${t.dono.id}"]`).click({ timeout: 15_000 });
+  await arrastar(pOuv.locator(`[data-sala-volume-de="${t.dono.id}"]`), 0.5);
+  const guardado = await pOuv.evaluate((id) => JSON.parse(localStorage.getItem("formuladota:volumes") ?? "{}")[id], t.dono.id);
+  check("o volume de uma pessoa abre no clique do nome e fica guardado no navegador", guardado === 0.5, String(guardado));
+}
+
 async function palcoEModeracao(t, check, pDono, pOuv) {
   await pOuv.locator('[data-sala-mao="nao"]').click();
   const mao = await waitFor(async () => (await pDono.locator(`[data-sala-membro="${t.ouvinte.id}"][data-sala-mao-membro="sim"]`).count()) > 0, 15_000);
@@ -131,6 +166,7 @@ export async function palco(t, check) {
   const pDono = await s.enter(await t.ctx(t.dono), t.palco.id, "dono-palco");
   const pOuv = await s.enter(await t.ctx(t.ouvinte), t.palco.id, "ouvinte");
   await telaECamada(t, check, pDono, pOuv);
+  await telaCheiaEVolumes(t, check, pOuv);
   await palcoEModeracao(t, check, pDono, pOuv);
   await sleep(2100);
   await chat(t, check, pDono, pOuv);

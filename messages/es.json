@@ -4842,6 +4842,13 @@
     "painelRotulo": "Tu sala de voz",
     "reconectando": "Reconectando",
     "trocarJanela": "Cambiar la ventana",
-    "trocarJanelaDica": "Elige otra ventana sin detener la pantalla: quien mira no pierde la imagen."
+    "trocarJanelaDica": "Elige otra ventana sin detener la pantalla: quien mira no pierde la imagen.",
+    "telaCheia": "Pantalla completa",
+    "telaCheiaAtalho": "Pantalla completa (F)",
+    "sairTelaCheia": "Salir de pantalla completa (Esc)",
+    "volumeTela": "Volumen de la pantalla",
+    "esconderChat": "Ocultar el chat",
+    "mostrarChat": "Mostrar el chat",
+    "volumeDe": "Volumen de {nome}"
   }
 }

@@ -8,7 +8,7 @@
 
 import { useTranslations } from "next-intl";
 import { Ban, Crown, Flag, Gavel, Hand, Mic, MicOff, MonitorUp, UserMinus, UserPlus, UserX, Volume2, VolumeX } from "lucide-react";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { UserAvatar } from "@/components/ui/avatar";
 import { useConfirm } from "@/components/ui/confirm";
 import { Panel } from "@/components/v2";
@@ -30,6 +30,9 @@ export interface PessoasProps {
   onModerar: (userId: string, acao: AcaoDono) => void;
   onBloquear: (userId: string) => void;
   onDenunciar: (userId: string) => void;
+  /** Volume de cada pessoa (0 a 1) escolhido neste navegador. */
+  volumes: Record<string, number>;
+  onVolumeDe: (userId: string, volume: number) => void;
 }
 
 function Acao({ titulo, onClick, children, perigo, data }: { titulo: string; onClick: () => void; children: ReactNode; perigo?: boolean; data: Record<string, string> }) {
@@ -81,6 +84,41 @@ function AcoesDono({ m, nome, props, chamarAVista }: { m: MembroEstado; nome: st
   );
 }
 
+/** Volume de uma pessoa, como no Discord: abre no clique do nome e fica guardado neste navegador. */
+function VolumeDaPessoa({ userId, nome, props }: { userId: string; nome: string; props: PessoasProps }) {
+  const t = useTranslations("sala");
+  const volume = props.volumes[userId] ?? 1;
+  return (
+    <label className="flex items-center gap-2 pb-2 pl-11 text-xs text-text-muted">
+      <Volume2 className="size-3.5" aria-hidden="true" />
+      <span className="sr-only">{t("volumeDe", { nome })}</span>
+      <input type="range" min={0} max={1} step={0.05} value={volume} onChange={(e) => props.onVolumeDe(userId, Number(e.target.value))} data-sala-volume-de={userId} className="w-32 accent-[var(--color-play-primary)]" />
+      <span className="tabular-nums">{Math.round(volume * 100)}%</span>
+    </label>
+  );
+}
+
+function Identidade({ m, nome, proprio, rotulos, volumeAberto, onNome }: { m: MembroEstado; nome: string; proprio: boolean; rotulos: Array<string | false | null>; volumeAberto: boolean; onNome: () => void }) {
+  const t = useTranslations("sala");
+  return (
+    <div className="min-w-0 flex-1">
+      <p className="flex items-center gap-1 truncate text-sm text-text-display">
+        {m.papel === "dono" && <Crown className="size-3.5 shrink-0 text-gold" aria-label={t("dono")} />}
+        {m.maoDesde && <Hand className="size-3.5 shrink-0 text-gold" aria-label={t("maoLevantadaRotulo")} />}
+        {proprio ? (
+          <span className="truncate">{nome}</span>
+        ) : (
+          <button type="button" onClick={onNome} aria-expanded={volumeAberto} title={t("volumeDe", { nome })} data-sala-volume-abrir={m.userId} className="truncate text-left hover:underline">
+            {nome}
+          </button>
+        )}
+        {proprio && <span className="text-xs text-text-muted">({t("voce")})</span>}
+      </p>
+      <p className="text-xs text-text-muted">{rotulos.filter(Boolean).join(" · ")}</p>
+    </div>
+  );
+}
+
 function Linha({ m, props }: { m: MembroEstado; props: PessoasProps }) {
   const t = useTranslations("sala");
   const confirm = useConfirm();
@@ -93,18 +131,12 @@ function Linha({ m, props }: { m: MembroEstado; props: PessoasProps }) {
   };
   const rotulos = [falando && t("falando"), m.mutadoPeloDono && t("mutadoPeloDonoRotulo"), m.maoDesde && t("maoLevantadaRotulo"), m.compartilhandoTela && t("compartilhandoRotulo"), m.bloqueado && t("bloqueadoRotulo")];
   const chamarAVista = props.souDono && props.tipo === "palco" && m.papel === "ouvinte" && !!m.maoDesde;
+  const [volumeAberto, setVolumeAberto] = useState(false);
   return (
-    <li className="group relative flex items-center gap-3 py-2" data-sala-membro={m.userId} data-sala-papel-membro={m.papel} data-sala-online={m.online ? "sim" : "nao"} data-sala-mao-membro={m.maoDesde ? "sim" : "nao"}>
+    <li data-sala-membro={m.userId} data-sala-papel-membro={m.papel} data-sala-online={m.online ? "sim" : "nao"} data-sala-mao-membro={m.maoDesde ? "sim" : "nao"}>
+     <div className="group relative flex items-center gap-3 py-2">
       <UserAvatar src={avatar} alt={nome} fallback={nome.slice(0, 2).toUpperCase()} size="sm" className={cn(falando && "ring-2 ring-play-primary")} />
-      <div className="min-w-0 flex-1">
-        <p className="flex items-center gap-1 truncate text-sm text-text-display">
-          {m.papel === "dono" && <Crown className="size-3.5 shrink-0 text-gold" aria-label={t("dono")} />}
-          {m.maoDesde && <Hand className="size-3.5 shrink-0 text-gold" aria-label={t("maoLevantadaRotulo")} />}
-          <span className="truncate">{nome}</span>
-          {proprio && <span className="text-xs text-text-muted">({t("voce")})</span>}
-        </p>
-        <p className="text-xs text-text-muted">{rotulos.filter(Boolean).join(" · ")}</p>
-      </div>
+      <Identidade m={m} nome={nome} proprio={proprio} rotulos={rotulos} volumeAberto={volumeAberto} onNome={() => setVolumeAberto((v) => !v)} />
       {m.papel !== "ouvinte" && (m.mutado ? <MicOff className="size-4 text-text-muted" aria-hidden="true" /> : <Mic className={cn("size-4", falando ? "text-play-primary" : "text-text-muted")} aria-hidden="true" />)}
       {m.compartilhandoTela && <MonitorUp className="size-4 text-gold" aria-hidden="true" />}
       {!proprio && (
@@ -128,6 +160,8 @@ function Linha({ m, props }: { m: MembroEstado; props: PessoasProps }) {
           {chamarAVista && <ChamarPalco m={m} props={props} />}
         </div>
       )}
+     </div>
+     {volumeAberto && <VolumeDaPessoa userId={m.userId} nome={nome} props={props} />}
     </li>
   );
 }

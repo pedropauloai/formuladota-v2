@@ -3,15 +3,16 @@
 // falar (liga ou desliga sozinha quando o dono chama ao palco, devolve ou muta), recebe as faixas da
 // lista, mede a conexão, conversa no chat, compartilha a tela e refaz a ligação quando ela trava.
 
-import type { Estado, MensagemEstado } from "../estado";
+import type { Estado } from "../estado";
 import { SNAPSHOT_INICIAL, type SessaoSnapshot } from "./retrato";
 import type { Layer, Quality } from "../tipos";
 import { api, type AcaoDono, type AlvoDenuncia, type Entrada } from "./acoes";
-import { cursorDoChat, juntarChat } from "./chat-local";
-import { desmontarLigacao, montarLigacao, type Ligacao } from "./ligacao";
+import { comMinha, cursorDoChat, juntarChat } from "./chat-local";
+import { desmontarLigacao, montarLigacao, quemFala, type Ligacao } from "./ligacao";
 import { Pulso } from "./pulso";
 import { estadoIntervalMs, vozCaiu } from "./ritmo";
 import { compartilhar, type TelaNoAr } from "./tela-local";
+import { guardarVolume, volumesGuardados } from "./volumes-local";
 
 export { SNAPSHOT_INICIAL, type Fase, type SessaoSnapshot } from "./retrato";
 
@@ -65,19 +66,21 @@ export class SessaoSala {
     const camada: Layer = entrada.data.tipo === "palco" ? "h" : "f";
     this.montar(entrada.data, camada);
     this.set({ fase: "na_sala", papel: entrada.data.papel, tipo: entrada.data.tipo, camada });
-    this.timers.push(window.setInterval(() => void this.metricas(), METRICAS_MS));
+    this.timers.push(window.setInterval(() => void this.medir(), METRICAS_MS));
     this.timers.push(window.setInterval(() => this.atualizarFala(), FALA_MS));
     void this.consultar();
   }
 
   private montar(entrada: Entrada, camada: Layer): void {
+    const volumes = volumesGuardados();
     this.lig = montarLigacao({
-      roomId: this.roomId, entrada, camada, foraDaSala: !this.vistaAberta,
+      roomId: this.roomId, entrada, camada, foraDaSala: !this.vistaAberta, volumes,
       rotularVoz: (ref) => void this.a.rotular(ref.sessionId, ref.trackName, "voz", null),
       onTela: (tela, telaDe) => this.set({ tela, telaDe }),
       onBloqueio: (audioBloqueado) => audioBloqueado !== this.snap.audioBloqueado && this.set({ audioBloqueado }),
       onTravou: () => void this.refazer(),
     });
+    this.set({ volumes });
   }
 
   /** A ligação travou (faixa que não chega, rede que caiu, voz que o servidor não mostra): sai e entra de
@@ -169,16 +172,13 @@ export class SessaoSala {
     if (this.snap.vozNoAr !== voz.noAr || this.snap.semMicrofone === ok) this.set({ vozNoAr: voz.noAr, semMicrofone: !ok });
   }
 
-  private async metricas(): Promise<void> {
+  private async medir(): Promise<void> {
     const conn = this.lig?.conn;
     if (conn) this.set(await this.pulso.medir(conn));
   }
 
   private atualizarFala(): void {
-    const eu = this.snap.estado?.eu?.userId ?? null;
-    const falando = (this.lig?.nivel.speaking() ?? [])
-      .map((id) => (id === "eu" ? eu : id))
-      .filter((id): id is string => !!id && !(this.snap.mutado && id === eu));
+    const falando = quemFala(this.lig, this.snap.estado?.eu?.userId ?? null, this.snap.mutado);
     const igual = falando.length === this.snap.falando.length && falando.every((id) => this.snap.falando.includes(id));
     if (!igual) this.set({ falando });
   }
@@ -208,8 +208,7 @@ export class SessaoSala {
 
   async compartilharTela(qualidade: Quality): Promise<void> {
     const conn = this.lig?.conn;
-    if (!conn || !this.entrada || this.snap.compartilhando) return;
-    if (this.snap.estado?.eu && !this.snap.estado.eu.podeCompartilharTela) return;
+    if (!conn || !this.entrada || this.snap.compartilhando || this.snap.estado?.eu?.podeCompartilharTela === false) return;
     const tela = await compartilhar({
       conn, qualidade, videoMaxKbps: this.entrada.videoMaxKbps, onFim: () => this.pararTela(),
       rotular: (ref, tipo, q) => void this.a.rotular(ref.sessionId, ref.trackName, tipo, q),
@@ -241,22 +240,23 @@ export class SessaoSala {
     this.lig?.recepcao.retomarAudio();
   }
 
+  setVolumeDe(userId: string, volume: number): void {
+    this.lig?.recepcao.setVolumeDe(userId, volume);
+    this.set({ volumes: guardarVolume(userId, volume) });
+  }
+
   setVoiceVolume(volume: number): void {
     this.lig?.recepcao.setVoiceVolume(volume);
   }
 
   async enviarMensagem(texto: string): Promise<{ ok: true } | { ok: false; code: string }> {
     const res = await this.a.chat(texto);
-    if (!res.ok) return res;
-    const eu = this.snap.estado?.eu?.userId ?? null;
-    const minha: MensagemEstado = { id: res.data.id, userId: eu, texto: texto.replace(/\s+/g, " ").trim(), em: new Date().toISOString() };
-    this.set({ chat: juntarChat(this.snap.chat, [minha], [], false, CHAT_GUARDA) });
-    return { ok: true };
+    if (res.ok) this.set({ chat: comMinha(this.snap.chat, res.data.id, this.snap.estado?.eu?.userId ?? null, texto, CHAT_GUARDA) });
+    return res.ok ? { ok: true } : res;
   }
 
   async apagarMensagem(id: number): Promise<void> {
-    const res = await this.a.apagarMensagem(id);
-    if (res.ok) this.set({ chat: this.snap.chat.filter((m) => m.id !== id) });
+    if ((await this.a.apagarMensagem(id)).ok) this.set({ chat: this.snap.chat.filter((m) => m.id !== id) });
   }
 
   async moderar(userId: string, acao: AcaoDono, motivo = ""): Promise<{ ok: true } | { ok: false; code: string }> {
