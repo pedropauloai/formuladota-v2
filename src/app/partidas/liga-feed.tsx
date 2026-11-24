@@ -1,5 +1,5 @@
 // O feed das partidas da liga: "Acontecendo agora" (lobbies in_progress) e o histórico paginado,
-// SSR pelas RPCs públicas live_matches / recent_matches (migration 099). Só aparece com a liga ligada.
+// SSR pelas RPCs públicas live_matches / recent_matches (migration 099), embaixo das partidas da galera.
 
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
