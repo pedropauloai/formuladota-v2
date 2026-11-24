@@ -196,7 +196,8 @@
     "conduta": "Conduct",
     "entrar": "Sign in",
     "jogarDota": "Play Dota",
-    "fila": "Queue"
+    "fila": "Queue",
+    "sala": "Voice room"
   },
   "topbar": {
     "homeAria": "Go to the FORMULADOTA dashboard",

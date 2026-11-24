@@ -81,6 +81,8 @@ interface Props {
   showLoja: boolean;
   /** Flag fila_competitiva (a liga): sem ela, somem as abas da liga e o contador mostra só o online. */
   showLiga: boolean;
+  /** Flag sala_voz: a aba da sala de voz pública da live. */
+  showSala: boolean;
   /** Live do PPA no ar: a aba Fila ganha o ponto vermelho. */
   lojaLive: boolean;
   /** Novidades publicadas depois da última visita do user (badge do sino). */
@@ -101,12 +103,13 @@ export function DashboardTopBar({
   showRankedComPro,
   showLoja,
   showLiga,
+  showSala,
   lojaLive,
   changelogUnread,
 }: Props) {
   const t = useTranslations();
   const inQueue = myQueues.length > 0;
-  const principalTabs: TopBarTabDef[] = principalTabDefs({ showRankedComPro, showLoja, showLiga }).map(
+  const principalTabs: TopBarTabDef[] = principalTabDefs({ showRankedComPro, showLoja, showLiga, showSala }).map(
     (d) => ({ href: d.href, label: t(`nav.${d.key}`), live: d.key === "fila" && lojaLive })
   );
 

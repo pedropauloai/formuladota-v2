@@ -146,6 +146,10 @@ async function checkShell(page) {
   }
   check("aba Fila com o ponto de ao vivo", (await page.locator("header a[href$='/party'] [data-aba-ao-vivo]").count()) > 0);
   await checkLiga(page, busca?.enabled === true);
+  // Sala de voz: a aba existe só com a flag sala_voz (sem a linha no banco, desligada).
+  const { data: sala } = await db.from("feature_flags").select("enabled").eq("key", "sala_voz").maybeSingle();
+  const abasSala = await page.locator("header a[href$='/sala']").count();
+  check(sala?.enabled ? "com a sala de voz ligada, a barra leva à sala" : "sem a sala de voz, a barra não mostra a aba dela", sala?.enabled ? abasSala > 0 : abasSala === 0, `${abasSala} abas`);
   // A loja já tem a chamada da vaga na caixa de compra: o canto não repete o botão ali.
   await page.goto(`${BASE}/loja`);
   // No celular a aba fica escondida: basta a barra de cima existir.

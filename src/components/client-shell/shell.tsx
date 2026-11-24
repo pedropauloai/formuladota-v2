@@ -237,6 +237,8 @@ export async function ClientShell({
   const queuePaused = !featureFlags.fila_competitiva;
   // A liga desligada tira do site o que era dela: abas de Ranking, Times e Torneios, Mural e top do ranking.
   const showLiga = featureFlags.fila_competitiva;
+  // Flag sala_voz: a aba da sala de voz pública da live entra na barra ao lado da Fila.
+  const showSala = featureFlags.sala_voz;
   // Flag enquete_liga: a enquete da Liga no lugar do Top do ranking da coluna direita.
   const showEnqueteLiga = featureFlags.enquete_liga;
   // Live no ar só conta com a loja aberta: a fila da party mora nela.
@@ -289,6 +291,7 @@ export async function ClientShell({
             showRankedComPro={showRankedComPro}
             showLoja={showLoja}
             showLiga={showLiga}
+            showSala={showSala}
             lojaLive={lojaLive}
             changelogUnread={changelogUnread}
           />
@@ -423,6 +426,7 @@ export async function ClientShell({
         showRankedComPro={showRankedComPro}
         showLoja={showLoja}
         showLiga={showLiga}
+        showSala={showSala}
         lojaLive={lojaLive}
         changelogUnread={changelogUnread}
       />

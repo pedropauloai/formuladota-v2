@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { LIGA_TABS, principalTabDefs, type TopBarTabFlags } from "./top-bar-tabs";
 
-// O estado de hoje: loja ligada, liga e Ranked com PRO desligados.
-const HOJE: TopBarTabFlags = { showRankedComPro: false, showLoja: true, showLiga: false };
+// O estado de hoje: loja ligada; liga, sala de voz e Ranked com PRO desligados.
+const HOJE: TopBarTabFlags = { showRankedComPro: false, showLoja: true, showLiga: false, showSala: false };
 const hrefs = (flags: Partial<TopBarTabFlags> = {}) => principalTabDefs({ ...HOJE, ...flags }).map((d) => d.href);
 
 describe("abas principais do topbar", () => {
@@ -36,12 +36,21 @@ describe("abas principais do topbar", () => {
     expect(hrefs({ showLiga: true }).slice(-3)).toEqual(["/ranking", "/times", "/torneios"]);
   });
 
+  it("a Sala de voz vem logo depois da Fila, só com a flag sala_voz", () => {
+    expect(hrefs()).not.toContain("/sala");
+    const list = hrefs({ showSala: true });
+    expect(list.indexOf("/sala")).toBe(list.indexOf("/party") + 1);
+    expect(hrefs({ showSala: true, showLoja: false })[0]).toBe("/sala");
+  });
+
   it("Partidas e Meta não mudam com nenhuma flag", () => {
     for (const showRankedComPro of [true, false]) {
       for (const showLoja of [true, false]) {
         for (const showLiga of [true, false]) {
-          const list = hrefs({ showRankedComPro, showLoja, showLiga });
-          expect(list.filter((h) => h === "/partidas" || h === "/meta")).toEqual(["/partidas", "/meta"]);
+          for (const showSala of [true, false]) {
+            const list = hrefs({ showRankedComPro, showLoja, showLiga, showSala });
+            expect(list.filter((h) => h === "/partidas" || h === "/meta")).toEqual(["/partidas", "/meta"]);
+          }
         }
       }
     }
