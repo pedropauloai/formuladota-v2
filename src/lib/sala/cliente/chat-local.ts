@@ -13,6 +13,11 @@ export function juntarChat(base: MensagemEstado[], novas: MensagemEstado[], apag
   return [...byId.values()].filter((m) => !gone.has(m.id)).sort((x, y) => x.id - y.id).slice(-keep);
 }
 
+/** A mensagem que a pessoa acabou de mandar, já na lista (o servidor a devolve depois, e a junção não repete). */
+export function comMinha(base: MensagemEstado[], id: number, userId: string | null, texto: string, guarda: number): MensagemEstado[] {
+  return juntarChat(base, [{ id, userId, texto: texto.replace(/\s+/g, " ").trim(), em: new Date().toISOString() }], [], false, guarda);
+}
+
 /** Até onde o servidor já mandou o chat: anda só com o que veio dele. A mensagem que a pessoa acabou de
  *  mandar entra na lista na hora, mas não move o cursor, senão a de outra pessoa gravada um instante
  *  antes (e ainda não recebida) nunca mais chegaria. */

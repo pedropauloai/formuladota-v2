@@ -30,6 +30,7 @@ const keyOf = (f: { sessionId: string; trackName: string }) => `${f.sessionId}:$
 export class Recepcao {
   private readonly recebidas = new Map<string, Recebida>();
   private volumeVoz = 1;
+  private readonly volumes = new Map<string, number>();
   private fora = false;
   private saindo: ReturnType<typeof setTimeout> | null = null;
 
@@ -60,7 +61,7 @@ export class Recepcao {
         item.espera = null;
         item.track = track;
         if (ref.tipo === "voz") {
-          item.audio = this.tocar(item.audio, track);
+          item.audio = this.tocar(item.audio, track, ref.userId);
           this.onVoz(ref.userId, track);
         } else {
           this.publishScreen();
@@ -144,10 +145,10 @@ export class Recepcao {
     for (const r of this.recebidas.values()) if (r.audio) void this.play(r.audio);
   }
 
-  private tocar(current: HTMLAudioElement | null, track: MediaStreamTrack): HTMLAudioElement {
+  private tocar(current: HTMLAudioElement | null, track: MediaStreamTrack, userId: string): HTMLAudioElement {
     const el = current ?? new Audio();
     el.autoplay = true;
-    el.volume = this.volumeVoz;
+    el.volume = this.volumeDe(userId);
     el.srcObject = new MediaStream([track]);
     void this.play(el);
     return el;
@@ -164,7 +165,17 @@ export class Recepcao {
 
   setVoiceVolume(volume: number): void {
     this.volumeVoz = volume;
-    for (const r of this.recebidas.values()) if (r.audio) r.audio.volume = volume;
+    for (const r of this.recebidas.values()) if (r.audio) r.audio.volume = this.volumeDe(r.ref.userId);
+  }
+
+  /** Volume de uma pessoa (0 a 1), por cima do volume geral das vozes; vale também para a voz que ainda vai chegar. */
+  setVolumeDe(userId: string, volume: number): void {
+    this.volumes.set(userId, volume);
+    for (const r of this.recebidas.values()) if (r.audio && r.ref.userId === userId) r.audio.volume = this.volumeDe(userId);
+  }
+
+  private volumeDe(userId: string): number {
+    return this.volumeVoz * (this.volumes.get(userId) ?? 1);
   }
 
   clear(): void {
