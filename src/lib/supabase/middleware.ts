@@ -46,6 +46,7 @@ const PUBLIC_PATHS = [
   "/assinatura", // redirect legado → /planos; público pra back_urls antigos do MP chegarem lá
   "/loja", // loja (06/11/2026): vitrine, produto e página do pedido abertos; serviço compra sem login
   "/party", // fila da party ao vivo (19/11/2026): a live e a fila abertas a todos; comprar pede login e Steam
+  "/sala", // sala de voz (24/11/2026): a página mostra o "Entrar com Discord" que volta com o convite; a sala e a API exigem login
   "/sitemap.xml", // SEO — rotas Next (app/sitemap.ts e app/robots.ts); gatear
   "/robots.txt", //  redirecionaria o crawler pra home e mataria a indexação
 ];
