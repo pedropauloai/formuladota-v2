@@ -147,7 +147,8 @@ async function checkShell(page) {
   check("aba Loja com o ponto de ao vivo", (await page.locator("[data-aba-ao-vivo]").count()) > 0);
   // A loja já tem a chamada da vaga na caixa de compra: o canto não repete o botão ali.
   await page.goto(`${BASE}/loja`);
-  await page.locator("[data-aba-ao-vivo]").first().waitFor({ timeout: 30_000 });
+  // No celular a aba fica escondida: basta a barra de cima existir.
+  await page.locator("[data-aba-ao-vivo]").first().waitFor({ state: "attached", timeout: 30_000 });
   check("na loja, o canto não repete a chamada da vaga", (await page.locator("[data-cta='jogar-com-o-ppa']").count()) === 0);
 }
 
