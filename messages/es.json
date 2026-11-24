@@ -109,7 +109,7 @@
     "roomsPaused": "Hoy las salas están pausadas. Vuelven cuando la encuesta de la liga llegue a {goal} interesados, y todavía no hay fecha.",
     "roomsPoll": "{count} de {goal} interesados en la encuesta de la liga",
     "badgeTitle": "Insignia Battlepass en tu nombre",
-    "badgeText": "Aparece junto a tu nick en la cola del grupo.",
+    "badgeText": "Aparece junto a tu nick en la cola del grupo y en tu perfil.",
     "badgeSample": "Tu nick",
     "badgeLabel": "Battlepass",
     "guaranteeCardTitle": "7 días de garantía",

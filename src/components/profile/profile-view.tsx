@@ -6,6 +6,7 @@
 
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { battlepassMembers } from "@/lib/battlepass/server";
 import { getEquippedForUser } from "@/lib/queries/cosmetics";
 import { ClientShell } from "@/components/client-shell/shell";
 import { ProfilePage } from "@/components/profile/profile-page";
@@ -100,7 +101,7 @@ export async function ProfileView({
     : null;
   const centerHero = equippedForBg.profileTheme ?? undefined;
 
-  const immortalRank = await getImmortalRank(userId);
+  const [immortalRank, members] = await Promise.all([getImmortalRank(userId), battlepassMembers([userId])]);
 
   return (
     <ClientShell currentRoute={currentRoute} immersive centerHero={centerHero}>
@@ -121,6 +122,7 @@ export async function ProfileView({
         friendState={friendState}
         friendshipId={friendshipId}
         immortalRank={immortalRank}
+        battlepass={members.has(userId)}
       />
     </ClientShell>
   );

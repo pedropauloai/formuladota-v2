@@ -109,7 +109,7 @@
     "roomsPaused": "Lobbies are paused for now. They return when the league poll reaches {goal} interested players, and there is no date yet.",
     "roomsPoll": "{count} of {goal} interested in the league poll",
     "badgeTitle": "Battlepass badge on your name",
-    "badgeText": "Shows next to your nickname in the party queue.",
+    "badgeText": "Shows next to your nickname in the party queue and on your profile.",
     "badgeSample": "Your nickname",
     "badgeLabel": "Battlepass",
     "guaranteeCardTitle": "7-day guarantee",

@@ -109,7 +109,7 @@
     "roomsPaused": "Hoje as salas estão pausadas. Elas voltam quando a enquete da liga chegar a {goal} interessados, e ainda não há data.",
     "roomsPoll": "{count} de {goal} interessados na enquete da liga",
     "badgeTitle": "Selo Battlepass no seu nome",
-    "badgeText": "Aparece ao lado do seu nick na fila da party.",
+    "badgeText": "Aparece ao lado do seu nick na fila da party e no seu perfil.",
     "badgeSample": "Seu nick",
     "badgeLabel": "Battlepass",
     "guaranteeCardTitle": "7 dias de garantia",
