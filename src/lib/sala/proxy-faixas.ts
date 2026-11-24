@@ -49,7 +49,7 @@ async function publish(ctx: CallContext, env: RealtimeEnv, session: SessionRow, 
   const tracks = await activeTracks(ctx.db, await openSessions(ctx.db, { roomId: room.id }));
   const mine = tracks.filter((t) => t.sessionId === session.id);
   const wantsVideo = kindsAsked.includes("video");
-  const capReached = wantsVideo && (await computeUsageBytes(ctx.db, ctx.now)) >= capBytesFor(settings.capGb30d);
+  const capReached = wantsVideo && (await computeUsageBytes(ctx.db, ctx.now, undefined, room.isTest)) >= capBytesFor(settings.capGb30d);
   const rule = decidePublish({
     role: decision.role,
     roomKind: room.kind,

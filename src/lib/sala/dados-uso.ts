@@ -11,12 +11,14 @@ export function windowStartFor(now: Date): Date {
   return new Date(now.getTime() - JANELA_DIAS * 24 * 3600 * 1000);
 }
 
-/** Estimativa ao vivo: toda faixa recebida que tocou a janela, com o último sinal de quem recebe. */
-export async function computeUsageBytes(db: Db, now: Date, windowStart: Date = windowStartFor(now)): Promise<number> {
+/** Estimativa ao vivo: toda faixa recebida que tocou a janela, com o último sinal de quem recebe.
+ *  Sala de teste conta só contra sala de teste: o e2e simula o teto sem mexer no de produção. */
+export async function computeUsageBytes(db: Db, now: Date, windowStart: Date = windowStartFor(now), isTest = false): Promise<number> {
   const since = windowStart.toISOString();
   const { data: subs, error } = await db
     .from("voice_room_subscriptions")
     .select("session_id, started_at, ended_at, rate_kbps")
+    .eq("is_test", isTest)
     .or(`ended_at.is.null,ended_at.gt.${since}`);
   if (error) throw new Error(`ler o consumo: ${error.message}`);
   const rows = subs ?? [];
@@ -52,7 +54,11 @@ export async function saveUsageCache(db: Db, bytes: number, now: Date): Promise<
 
 /** Consumo medido pelos navegadores (soma de bytes recebidos), para comparar com a estimativa. */
 export async function measuredBytes(db: Db, now: Date): Promise<number> {
-  const { data } = await db.from("voice_room_stats").select("bytes_received").gt("at", windowStartFor(now).toISOString());
+  const { data: rooms } = await db.from("voice_rooms").select("id").eq("is_test", true);
+  const testRooms = (rooms ?? []).map((r) => r.id);
+  let q = db.from("voice_room_stats").select("bytes_received").gt("at", windowStartFor(now).toISOString());
+  if (testRooms.length) q = q.not("room_id", "in", `(${testRooms.join(",")})`);
+  const { data } = await q;
   return (data ?? []).reduce((a, s) => a + (s.bytes_received ?? 0), 0);
 }
 

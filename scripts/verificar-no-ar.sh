@@ -46,6 +46,12 @@ if printf '%s' "$fila" | grep -qi '^access-control-allow-origin: \*' && printf '
 # Battlepass (docs/battlepass/spec.md): a mensalidade na /planos e o link curto da live.
 if curl $R -fsSL --max-time 30 "$U/planos" | grep -q "Battlepass FORMULADOTA"; then confere "Battlepass na /planos" sim sim; else confere "Battlepass na /planos" sim nao; fi
 confere "/battlepass" "307 $U/planos?utm_source=live&utm_medium=chat&utm_campaign=battlepass" "$(destino "$U/battlepass")"
+# Sala de voz (docs/comunicacao/spec.md): a página responde sem erro (404 com a flag desligada; com ela
+# ligada, o visitante vê o portão do login) e a API devolve o motivo de saída em JSON para quem não entrou.
+sala=$(status "$U/sala/00000000-0000-4000-8000-000000000000")
+case "$sala" in 200|404) confere "sala de voz responde sem erro" sim sim ;; *) confere "sala de voz responde sem erro" sim "nao (HTTP $sala)" ;; esac
+batida=$(curl $R -s --max-time 20 -X POST -H 'Content-Type: application/json' -d '{"muted":false,"sessionId":null}' -w ' %{http_code}' "$U/api/sala/00000000-0000-4000-8000-000000000000/estado")
+case "$batida" in *'"saida":'*' 200') confere "batimento da sala sem login" sim sim ;; *) confere "batimento da sala sem login" sim "nao ($batida)" ;; esac
 # Arquivo com hash no nome guardado pelo navegador por um ano (public/_headers).
 chunk=$(curl $R -fsSL --max-time 30 "$U/" | grep -o '/_next/static/[^"]*\.js' | head -1)
 cc=$(curl $R -s -o /dev/null -D - --max-time 20 "$U$chunk" | tr -d '\r' | grep -i '^cache-control:' | head -1)

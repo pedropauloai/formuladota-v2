@@ -10,7 +10,7 @@ import { ONLINE_MS, type CallContext } from "./contexto";
 import { capBytesFor } from "./custo";
 import { activeTracks, openSessions } from "./dados-rtc";
 import { blockedPairsAmong, isBlockedPair, listMembers, touchMember } from "./dados-sala";
-import { insertStats } from "./dados-uso";
+import { computeUsageBytes, insertStats } from "./dados-uso";
 import { canShareScreen } from "./faixas";
 import { realtimeEnv } from "./realtime-api";
 import { closeUserSessions, cutSubscriptions } from "./sessoes";
@@ -62,12 +62,14 @@ async function leaveWith(ctx: CallContext, code: DenyCode): Promise<Estado> {
   return { saida: code };
 }
 
-function screenRule(ctx: CallContext, role: MemberRole, othersSharing: boolean): TrackDenyCode | null {
+async function screenRule(ctx: CallContext, role: MemberRole, othersSharing: boolean): Promise<TrackDenyCode | null> {
   const { room, settings } = ctx;
   if (!room || !settings) return "tela_nao_permitida";
   if (!canShareScreen(role, room.kind, room.screenPolicy, settings.partyScreenEnabled)) return "tela_nao_permitida";
   if (othersSharing) return "tela_ocupada";
-  if (settings.usageBytes30d >= capBytesFor(settings.capGb30d)) return "teto_de_trafego";
+  // Produção lê o consumo que o cron recalcula a cada minuto; sala de teste conta o dela na hora.
+  const usage = room.isTest ? await computeUsageBytes(ctx.db, ctx.now, undefined, true) : settings.usageBytes30d;
+  if (usage >= capBytesFor(settings.capGb30d)) return "teto_de_trafego";
   return null;
 }
 
@@ -93,7 +95,7 @@ export async function roomState(ctx: CallContext, body: z.infer<typeof EstadoBod
   await cutSubscriptions(ctx.db, realtimeEnv(), mySessions, (pub, name) => !allowed.has(`${pub}:${name}`), ctx.now);
 
   const sharing = new Set(tracks.filter((t) => t.tipo === "tela" && online.has(t.userId)).map((t) => t.userId));
-  const motivoTela = screenRule(ctx, decision.role, [...sharing].some((id) => id !== userId));
+  const motivoTela = await screenRule(ctx, decision.role, [...sharing].some((id) => id !== userId));
   return {
     saida: null,
     eu: { userId, papel: decision.role, podeCompartilharTela: motivoTela === null, motivoTela },
