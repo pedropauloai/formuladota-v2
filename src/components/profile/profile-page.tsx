@@ -61,6 +61,7 @@ import type { CareerStats } from "@/lib/dota/career";
 import type { DotaRank } from "@/components/ui/dota-rank-medal";
 import type { HonorRank } from "@/components/ui/honor-rank-medal";
 import type { CoachingReview } from "@/lib/queries/coaching-reviews";
+import { BattlepassSeal } from "@/components/battlepass/battlepass-seal";
 
 interface Props {
   profile: ProfileForMe;
@@ -90,6 +91,8 @@ interface Props {
   friendshipId?: string | null;
   /** Posição no leaderboard de Imortais (null se abaixo do piso). elite = medalha vermelha. */
   immortalRank?: { position: number; elite: boolean } | null;
+  /** Assinatura do Battlepass ativa: o selo ao lado do nick. */
+  battlepass?: boolean;
 }
 
 export function ProfilePage({
@@ -109,6 +112,7 @@ export function ProfilePage({
   friendState,
   friendshipId = null,
   immortalRank = null,
+  battlepass = false,
 }: Props) {
   const t = useTranslations("perfil");
   // Rank FormulaDota (Eixo 2, sazonal) — 3º selo, só quando há MMR de temporada.
@@ -243,6 +247,7 @@ export function ProfilePage({
                   <h1 className="font-display text-[28px] font-bold text-text-display leading-tight truncate">
                     {profile.username ?? t("anonymous")}
                   </h1>
+                  {battlepass && <BattlepassSeal />}
                   {/* Posição no leaderboard de Imortais (#N) — acima do piso Imortal,
                       o que vale é a POSIÇÃO. Elite (top N) em vermelho. */}
                   {immortalRank && (

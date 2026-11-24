@@ -23,6 +23,7 @@ import type { HonorRank } from "@/components/ui/honor-rank-medal";
 import { xpProgress } from "@/lib/levels";
 import { getEquippedForUser } from "@/lib/queries/cosmetics";
 import { createClient } from "@/lib/supabase/server";
+import { battlepassMembers } from "@/lib/battlepass/server";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("account");
@@ -108,7 +109,7 @@ export default async function MePage({ searchParams }: PageProps) {
   const centerHero = equippedForBg.profileTheme ?? undefined;
 
   // Posição no leaderboard de Imortais (#N + elite → medalha vermelha).
-  const immortalRank = await getImmortalRank(profile.userId);
+  const [immortalRank, members] = await Promise.all([getImmortalRank(profile.userId), battlepassMembers([profile.userId])]);
 
   return (
     <ClientShell currentRoute="/me" immersive centerHero={centerHero}>
@@ -125,6 +126,7 @@ export default async function MePage({ searchParams }: PageProps) {
         general={general}
         fdota={fdotaStats}
         immortalRank={immortalRank}
+        battlepass={members.has(profile.userId)}
       />
     </ClientShell>
   );
