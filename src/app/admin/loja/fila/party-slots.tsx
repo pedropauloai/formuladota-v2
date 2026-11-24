@@ -7,13 +7,13 @@
 // estiver fora do ar.
 
 import Image from "next/image";
-import { ArrowLeftRight, ExternalLink, LogOut, Minus, Plus, UserMinus } from "lucide-react";
+import { ArrowLeftRight, ExternalLink, Minus, Plus, UserMinus } from "lucide-react";
 import { UserAvatar } from "@/components/ui/avatar";
 import type { AdminQueueEntry } from "@/lib/loja/fila/admin";
 import type { QueueLive } from "@/lib/loja/fila/model";
 import { OWNER } from "@/lib/loja/owner";
 import { cn } from "@/lib/utils";
-import { chamarProximo, tirarDaFila, tirarDaParty } from "./actions";
+import { chamarProximo, tirarDaParty } from "./actions";
 import { ajustarPartidas } from "./cortesia-actions";
 import { ActionMenu, type MenuAction } from "./action-menu";
 import { CopyId, MatchPips, OpButton } from "./ui";
@@ -55,18 +55,8 @@ function seatActions(entry: AdminQueueEntry, run: ReturnType<typeof useAction>["
             testId: "menos-partida",
           },
         ]),
+    // Sem "Tirar da fila" aqui: quem está na party tem saldo, e sair da party nunca tira da fila.
     ...(entry.steamProfileUrl ? [{ key: "steam", label: "Perfil na Steam", icon: <ExternalLink size={16} />, href: entry.steamProfileUrl, separatorBefore: true }] : []),
-    {
-      key: "fila",
-      label: "Tirar da fila",
-      hint: "Sai de vez. Reembolso, se houver, é no Mercado Pago.",
-      confirm: `Confirmar: tirar ${entry.name}`,
-      icon: <LogOut size={16} />,
-      tone: "danger",
-      separatorBefore: !entry.steamProfileUrl,
-      run: () => run({ action: () => tirarDaFila(entry.id), success: `${entry.name} saiu da fila.` }),
-      testId: "tirar-da-fila",
-    },
   ];
 }
 
