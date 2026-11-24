@@ -7,7 +7,7 @@
 #   qualquer ordem. Nao precisa voltar ao terminal: ele percebe cada copia sozinho.
 #
 # O QUE ELE FAZ, NESTA ORDEM
-#   - olha a area de transferencia a cada meio segundo, por ate 10 minutos, e so considera texto no
+#   - olha a area de transferencia a cada meio segundo, por ate -Minutos (30 por padrao), e so considera texto no
 #     formato do token da Cloudflare (64 caracteres hexadecimais): outra coisa copiada nunca sai da
 #     maquina
 #   - PERGUNTA A CLOUDFLARE de qual dos dois e o token (cria uma sessao de teste no SFU; gera uma
@@ -20,7 +20,8 @@
 
 param(
   [Parameter(Mandatory = $true)][ValidatePattern('^[A-Za-z0-9]{8,128}$')][string]$AppId,
-  [Parameter(Mandatory = $true)][ValidatePattern('^[A-Za-z0-9]{8,128}$')][string]$TurnKeyId
+  [Parameter(Mandatory = $true)][ValidatePattern('^[A-Za-z0-9]{8,128}$')][string]$TurnKeyId,
+  [ValidateRange(1, 60)][int]$Minutos = 30
 )
 $ErrorActionPreference = 'Stop'
 $API = 'https://rtc.live.cloudflare.com/v1'
@@ -45,7 +46,7 @@ function Status([string]$url, [string]$token, [string]$corpo) {
 $appSecret = $null
 $turnToken = $null
 $vistos = @{}
-$limite = (Get-Date).AddMinutes(10)
+$limite = (Get-Date).AddMinutes($Minutos)
 Write-Host 'Clique em "copiar" no token do app (aba Serverless SFU) e no token da chave (aba TURN Server), em qualquer ordem.' -ForegroundColor Cyan
 while ((-not $appSecret -or -not $turnToken) -and (Get-Date) -lt $limite) {
   Start-Sleep -Milliseconds 500
@@ -68,7 +69,7 @@ while ((-not $appSecret -or -not $turnToken) -and (Get-Date) -lt $limite) {
 }
 $vistos = $null
 if (-not $appSecret -or -not $turnToken) {
-  Write-Host 'Passaram 10 minutos sem os dois tokens conferidos. Nada foi gravado. Rode o script de novo.' -ForegroundColor Red
+  Write-Host "Passaram $Minutos minutos sem os dois tokens conferidos. Nada foi gravado. Rode o script de novo." -ForegroundColor Red
   Set-Clipboard -Value ' '
   exit 1
 }
