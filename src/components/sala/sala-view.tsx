@@ -67,7 +67,12 @@ function Cabecalho({ titulo, tipo, snap }: { titulo: string; tipo: RoomKind; sna
           {t("naoGravada")}
         </p>
       </div>
-      {snap.fase === "na_sala" && nivel && (
+      {snap.reconectando ? (
+        <p className="flex items-center gap-1.5 text-xs text-gold" data-sala-reconectando="">
+          <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
+          {t("reconectando")}
+        </p>
+      ) : snap.fase === "na_sala" && nivel && (
         <p
           className={cn("flex items-center gap-1.5 text-xs", nivel === "boa" ? "text-play-primary" : nivel === "instavel" ? "text-gold" : "text-error")}
           title={t("qualidadeDetalhe", { rtt: Math.round(q?.rttMs ?? 0), perda: (q?.packetLossPct ?? 0).toFixed(1), atraso: Math.round(q?.latencyMs ?? 0) })}

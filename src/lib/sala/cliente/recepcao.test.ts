@@ -122,3 +122,18 @@ describe("Recepcao quando a faixa não chega", () => {
     vi.useRealTimers();
   });
 });
+
+describe("Recepcao quando a ligação trava", () => {
+  it("faixa que não chega nem na segunda tentativa avisa que a ligação travou, uma vez", () => {
+    vi.useFakeTimers();
+    const { conn } = conexaoFalsa();
+    const travou = vi.fn();
+    const r = new Recepcao(conn, "h", nada, nada, nada, travou);
+    r.sync([faixa("voz-dono", "voz")]);
+    vi.advanceTimersByTime(10_500);
+    expect(travou).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(10_000);
+    expect(travou).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
+  });
+});

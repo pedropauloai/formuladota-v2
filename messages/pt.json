@@ -4839,6 +4839,7 @@
     "painelFalando": "{nomes} falando",
     "painelPessoas": "{n} na sala",
     "painelDispensar": "Fechar aviso",
-    "painelRotulo": "Sala de voz em que você está"
+    "painelRotulo": "Sala de voz em que você está",
+    "reconectando": "Reconectando"
   }
 }

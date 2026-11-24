@@ -19,6 +19,7 @@ interface Recebida {
   track: MediaStreamTrack | null;
   audio: HTMLAudioElement | null;
   espera: ReturnType<typeof setTimeout> | null;
+  tentativa: number;
 }
 
 // Faixa pedida que não chega nesse tempo (o servidor ou a Cloudflare falharam no meio): pede de novo.
@@ -38,7 +39,9 @@ export class Recepcao {
     private readonly onTela: (stream: MediaStream | null, userId: string | null) => void,
     private readonly onVoz: (userId: string, track: MediaStreamTrack | null) => void,
     /** O navegador segurou o som (recarregar sem clique): a tela pede um clique para voltar a ouvir. */
-    private readonly onBloqueio: (bloqueado: boolean) => void = () => undefined
+    private readonly onBloqueio: (bloqueado: boolean) => void = () => undefined,
+    /** Faixa que não chegou nem na segunda tentativa: a ligação com o SFU travou e a sessão a refaz. */
+    private readonly onTravou: () => void = () => undefined
   ) {}
 
   sync(faixas: FaixaRemota[]): void {
@@ -47,8 +50,8 @@ export class Recepcao {
     for (const [key, f] of wanted) if (!this.recebidas.has(key)) this.take(key, f);
   }
 
-  private take(key: string, ref: FaixaRemota): void {
-    const item: Recebida = { ref, rx: null, track: null, audio: null, espera: null };
+  private take(key: string, ref: FaixaRemota, tentativa = 0): void {
+    const item: Recebida = { ref, rx: null, track: null, audio: null, espera: null, tentativa };
     this.recebidas.set(key, item);
     item.rx = this.conn.receive(
       ref,
@@ -72,9 +75,10 @@ export class Recepcao {
   private repetir(key: string, item: Recebida): void {
     item.espera = null;
     if (this.recebidas.get(key) !== item || item.track) return;
+    if (item.tentativa >= 1) return this.onTravou();
     item.rx?.stop();
     this.recebidas.delete(key);
-    this.take(key, item.ref);
+    this.take(key, item.ref, item.tentativa + 1);
   }
 
   private drop(key: string, r: Recebida): void {

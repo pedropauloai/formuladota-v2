@@ -109,7 +109,7 @@ export function PainelVoz() {
       </span>
       {snap.fase === "na_sala" ? (
         <span className={cn("flex min-w-0 items-center gap-2", posicao === "canto" && "justify-between")}>
-          <QuemFala snap={snap} />
+          {snap.reconectando ? <span className="truncate text-xs text-gold">{t("reconectando")}</span> : <QuemFala snap={snap} />}
           <Controles snap={snap} sessao={ativa.sessao} />
         </span>
       ) : saiu ? (

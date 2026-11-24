@@ -31,6 +31,8 @@ export interface SessaoSnapshot {
   medidas: { audioBytes: number; videoBytes: number; videoAltura: number | null };
   /** O navegador segurou o som (recarregar sem clique): falta um clique para voltar a ouvir. */
   audioBloqueado: boolean;
+  /** A ligação travou e a sessão a refaz por baixo (2 ou 3 s). */
+  reconectando: boolean;
 }
 
 export const SNAPSHOT_INICIAL: SessaoSnapshot = {
@@ -38,4 +40,5 @@ export const SNAPSHOT_INICIAL: SessaoSnapshot = {
   semMicrofone: false, compartilhando: false, qualidadeTela: null, camada: "f", minhaTela: null, tela: null, telaDe: null,
   falando: [], qualidade: null, chat: [], pessoas: {}, medidas: { audioBytes: 0, videoBytes: 0, videoAltura: null },
   audioBloqueado: false,
+  reconectando: false,
 };

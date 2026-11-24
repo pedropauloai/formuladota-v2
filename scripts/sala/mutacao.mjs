@@ -58,6 +58,7 @@ const MUTACOES = [
   [OR, "if (a.maoDesde) return -1;", "", "mão levantada não sobe para o topo"],
   [RC, 'return this.fora ? "h" : this.layer;', "return this.layer;", "fora da página da sala, a tela segue na camada alta"],
   [RC, "item.espera = setTimeout(() => this.repetir(key, item), ESPERA_FAIXA_MS);", "", "faixa que não chegou nunca é pedida de novo"],
+  [RC, "if (item.tentativa >= 1) return this.onTravou();", "", "ligação travada nunca é refeita"],
   [RT, "return i.noAr && i.podeFalar && !i.vozAberta && i.noArDesde !== null && i.agora - i.noArDesde > VOZ_SUMIDA_MS;", "return false;", "voz que o servidor fechou não religa"],
   [RG, 'if (fase === "saiu" || fase === "erro") anotar(null);', "", "quem foi tirado da sala volta nela ao recarregar"],
   [FC, 'if (env.NODE_ENV !== "development") return SALA_FLAG;', "", "produção obedece a linha de teste da flag"],

@@ -4839,6 +4839,7 @@
     "painelFalando": "{nomes} speaking",
     "painelPessoas": "{n} in the room",
     "painelDispensar": "Dismiss",
-    "painelRotulo": "Your voice room"
+    "painelRotulo": "Your voice room",
+    "reconectando": "Reconnecting"
   }
 }
