@@ -22,7 +22,8 @@
     "battlepass:e2e": "node scripts/battlepass/e2e.mjs",
     "sala:e2e": "node scripts/sala/e2e.mjs",
     "sala:realtime": "node scripts/sala/conferir-realtime.mjs",
-    "sala:mutacao": "node scripts/sala/mutacao.mjs"
+    "sala:mutacao": "node scripts/sala/mutacao.mjs",
+    "sala:capturas": "node scripts/sala/capturas.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
