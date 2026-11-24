@@ -17,6 +17,7 @@ import {
   type MyEntryState,
   type MyPendingOrder,
   type MyQueueEntry,
+  type PublicOffer,
   type PublicQueue,
   type QueueEntry,
   type QueueLive,
@@ -78,7 +79,7 @@ async function readLive(isTest: boolean): Promise<QueueLive | null> {
 async function readEntries(isTest: boolean, live: QueueLive | null): Promise<QueueEntry[]> {
   const { data, error } = await createServiceClient()
     .from("store_bookings")
-    .select("id, seats, matches_played, queue_state, queued_at, called_at, user_id, source, store_live_sessions!inner (starts_at)")
+    .select("id, seats, matches_played, modo, queue_state, queued_at, called_at, user_id, source, store_live_sessions!inner (starts_at)")
     .eq("is_test", isTest)
     .in("queue_state", ACTIVE_STATES)
     .order("queued_at", { ascending: true })
@@ -100,6 +101,7 @@ async function readEntries(isTest: boolean, live: QueueLive | null): Promise<Que
       calledAt: row.called_at,
       lastTurnAt: row.user_id ? (turns.get(row.user_id) ?? null) : null,
       source: toQueueSource(row.source),
+      dayPass: row.modo === "dia",
     }));
 }
 
@@ -110,6 +112,48 @@ async function lastTurns(userIds: (string | null)[], isTest: boolean): Promise<M
   const { data, error } = await createServiceClient().rpc("party_ultima_vez", { p_user_ids: ids, p_is_test: isTest });
   if (error) throw new Error(`ler o revezamento falhou: ${error.message}`);
   return new Map((data ?? []).map((row) => [row.user_id, row.ultima]));
+}
+
+interface OfferRow {
+  party_mode: string;
+  live_seat: string | null;
+  store_product_variants: Array<{ price_cents: number; active: boolean; display_order: number }>;
+}
+
+/** O preço muda pouco e os overlays consultam a cada poucos segundos: cada servidor guarda por 30 s. */
+const OFFER_TTL_MS = 30_000;
+let offerMemo: { at: number; value: PublicOffer | null } | null = null;
+
+/** A vaga à venda agora, como a página vende: o produto ativo e o preço da primeira opção ativa. */
+async function readOffer(): Promise<PublicOffer | null> {
+  if (offerMemo && Date.now() - offerMemo.at < OFFER_TTL_MS) return offerMemo.value;
+  let query = createServiceClient()
+    .from("store_products")
+    .select("party_mode, live_seat, store_product_variants (price_cents, active, display_order)")
+    .eq("slug", PARTY_PRODUCT_SLUG)
+    .eq("active", true);
+  // O produto do teste de ponta a ponta nunca aparece com a credencial de produção (como no catálogo).
+  if (!isTestMode()) query = query.eq("is_test", false);
+  const { data, error } = await query.maybeSingle<OfferRow>();
+  if (error) throw new Error(`ler a oferta da vaga falhou: ${error.message}`);
+  const variant = (data?.store_product_variants ?? []).filter((v) => v.active).sort((a, b) => a.display_order - b.display_order)[0];
+  const value: PublicOffer | null =
+    data && data.live_seat === "party" && variant ? { priceCents: variant.price_cents, mode: data.party_mode === "dia" ? "dia" : "partidas" } : null;
+  offerMemo = { at: Date.now(), value };
+  return value;
+}
+
+/** A vaga do dia vale a live inteira: com uma de pé, uma segunda compra não traz partida a mais. */
+export async function hasActiveDayPass(userId: string, isTest: boolean): Promise<boolean> {
+  const { count, error } = await createServiceClient()
+    .from("store_bookings")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("is_test", isTest)
+    .eq("modo", "dia")
+    .in("queue_state", ACTIVE_STATES);
+  if (error) throw new Error(`ler a vaga do dia falhou: ${error.message}`);
+  return (count ?? 0) > 0;
 }
 
 /** Live da fila e as entradas em ordem (party primeiro). */
@@ -123,8 +167,8 @@ export async function getQueueSnapshot(): Promise<QueueSnapshot> {
 export async function getPublicQueue(snapshot?: QueueSnapshot): Promise<PublicQueue> {
   const current = snapshot ?? (await getQueueSnapshot());
   const ids = current.entries.map((e) => e.userId).filter((id): id is string => !!id);
-  const [identities, members] = await Promise.all([getIdentityMap(await createClient(), ids), battlepassMembers(ids)]);
-  return toPublicQueue(current, (id) => (id ? identities.get(id) : undefined), new Date(), (id) => !!id && members.has(id));
+  const [identities, members, offer] = await Promise.all([getIdentityMap(await createClient(), ids), battlepassMembers(ids), readOffer()]);
+  return toPublicQueue(current, (id) => (id ? identities.get(id) : undefined), new Date(), (id) => !!id && members.has(id), offer);
 }
 
 export interface ViewerSteam {
@@ -185,7 +229,7 @@ export async function readPendingOrder(userId: string, isTest: boolean): Promise
 async function readMyBookings(userId: string, isTest: boolean, snapshot: QueueSnapshot): Promise<MyQueueEntry[]> {
   const { data, error } = await createServiceClient()
     .from("store_bookings")
-    .select("id, seats, matches_played, queue_state, queue_exit, called_at, no_shows, queued_at, source")
+    .select("id, seats, matches_played, modo, queue_state, queue_exit, called_at, no_shows, queued_at, source")
     .eq("user_id", userId)
     .eq("is_test", isTest)
     // Quem ainda espera aparece sempre (inclusive quem passou de uma live para a outra); quem já
@@ -207,6 +251,7 @@ async function readMyBookings(userId: string, isTest: boolean, snapshot: QueueSn
       calledAt: row.called_at,
       exit: toQueueExit(row.queue_exit),
       source: toQueueSource(row.source),
+      dayPass: row.modo === "dia",
     };
   });
 }

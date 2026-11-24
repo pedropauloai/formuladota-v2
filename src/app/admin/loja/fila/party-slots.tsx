@@ -42,23 +42,28 @@ function seatActions(entry: AdminQueueEntry, liveId: string, run: ReturnType<typ
       run: () => run({ action: () => naoApareceu(entry.id), success: `${entry.name} foi para o fim da fila.` }),
       testId: "nao-apareceu",
     },
-    {
-      key: "mais",
-      label: "Dar mais uma partida",
-      icon: <Plus size={16} />,
-      separatorBefore: true,
-      disabled: entry.matches >= 20,
-      run: () => run({ action: () => ajustarPartidas(entry.id, 1), success: `${entry.name}: ${left + 1} partidas a jogar.` }),
-      testId: "mais-partida",
-    },
-    {
-      key: "menos",
-      label: "Tirar uma partida",
-      icon: <Minus size={16} />,
-      disabled: left <= 1,
-      run: () => run({ action: () => ajustarPartidas(entry.id, -1), success: `${entry.name}: ${left - 1} partida${left - 1 === 1 ? "" : "s"} a jogar.` }),
-      testId: "menos-partida",
-    },
+    // A vaga do dia não tem saldo de partidas: joga a live inteira no revezamento.
+    ...(entry.dayPass
+      ? []
+      : [
+          {
+            key: "mais",
+            label: "Dar mais uma partida",
+            icon: <Plus size={16} />,
+            separatorBefore: true,
+            disabled: entry.matches >= 20,
+            run: () => run({ action: () => ajustarPartidas(entry.id, 1), success: `${entry.name}: ${left + 1} partidas a jogar.` }),
+            testId: "mais-partida",
+          },
+          {
+            key: "menos",
+            label: "Tirar uma partida",
+            icon: <Minus size={16} />,
+            disabled: left <= 1,
+            run: () => run({ action: () => ajustarPartidas(entry.id, -1), success: `${entry.name}: ${left - 1} partida${left - 1 === 1 ? "" : "s"} a jogar.` }),
+            testId: "menos-partida",
+          },
+        ]),
     ...(entry.steamProfileUrl ? [{ key: "steam", label: "Perfil na Steam", icon: <ExternalLink size={16} />, href: entry.steamProfileUrl, separatorBefore: true }] : []),
     {
       key: "fila",
@@ -94,7 +99,7 @@ function Seat({ entry, liveId, swapping, onSwap }: { entry: AdminQueueEntry; liv
           </p>
         </div>
       </div>
-      <MatchPips played={entry.played} matches={entry.matches} />
+      <MatchPips played={entry.played} matches={entry.matches} dayPass={entry.dayPass} />
       <div className="mt-auto space-y-1.5">
         {entry.dotaFriendId ? <CopyId id={entry.dotaFriendId} variant="large" /> : <p className="py-2.5 text-sm text-warning">Sem ID do Dota: convide pela Steam.</p>}
         <div className="flex items-center gap-1">

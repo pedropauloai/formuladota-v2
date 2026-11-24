@@ -24,6 +24,8 @@ export interface QueueEntry {
   /** Última vez na party do PPA (jogou ou não apareceu): o revezamento ordena por ela; null = nunca jogou. */
   lastTurnAt?: string | null;
   source?: QueueSource;
+  /** Vaga do dia (migration 194) ou Battlepass: joga quantas partidas couberem na live, no revezamento. */
+  dayPass?: boolean;
 }
 
 /** No ar, a próxima marcada, ou a fila aberta: sem live, a vaga vende para a próxima (migration 177). */
@@ -60,6 +62,8 @@ export interface PublicEntry {
   played: number;
   /** Tem o Battlepass ativo: o selo ao lado do nome. */
   battlepass: boolean;
+  /** Vaga do dia: joga quantas partidas couberem na live; played são as partidas de hoje. */
+  dayPass: boolean;
 }
 
 export interface PublicQueuedEntry extends PublicEntry {
@@ -80,9 +84,17 @@ export interface PublicLive {
   matchesDone: number;
 }
 
+/** A vaga à venda: pelo dia (migration 194) ou por partida. Os overlays escolhem o texto e o preço por aqui. */
+export interface PublicOffer {
+  priceCents: number;
+  mode: "dia" | "partidas";
+}
+
 /** O que a página e os overlays leem: nome público e números, nada que identifique a pessoa além do nome. */
 export interface PublicQueue {
   live: PublicLive | null;
+  /** Null = a vaga não está à venda, e o overlay não chama para comprar. */
+  offer: PublicOffer | null;
   party: PublicEntry[];
   queue: PublicQueuedEntry[];
   updatedAt: string;
@@ -108,6 +120,7 @@ export interface MyQueueEntry {
   calledAt: string | null;
   exit: QueueExit | null;
   source?: QueueSource;
+  dayPass?: boolean;
 }
 
 export interface MyPendingOrder {
@@ -136,8 +149,9 @@ export interface PublicIdentity {
   avatarUrl: string | null;
 }
 
-export const remainingMatches = (entry: Pick<QueueEntry, "matches" | "played">): number =>
-  Math.max(0, entry.matches - entry.played);
+/** Partidas que faltam; a vaga do dia conta 1: depois de cada partida, cede o lugar a quem espera. */
+export const remainingMatches = (entry: Pick<QueueEntry, "matches" | "played" | "dayPass">): number =>
+  entry.dayPass ? 1 : Math.max(0, entry.matches - entry.played);
 
 const time = (iso: string | null): number => (iso ? Date.parse(iso) : 0);
 
@@ -224,12 +238,13 @@ export function toPublicQueue(
   snapshot: QueueSnapshot,
   identity: (userId: string | null) => PublicIdentity | undefined,
   now = new Date(),
-  isMember: (userId: string | null) => boolean = () => false
+  isMember: (userId: string | null) => boolean = () => false,
+  offer: PublicOffer | null = null
 ): PublicQueue {
   const positions = queuePositions(snapshot);
   const publicEntry = (e: QueueEntry): PublicEntry => {
     const who = identity(e.userId);
-    return { id: e.id, name: who?.name || FALLBACK_NAME, avatarUrl: who?.avatarUrl ?? null, matches: e.matches, played: e.played, battlepass: isMember(e.userId) };
+    return { id: e.id, name: who?.name || FALLBACK_NAME, avatarUrl: who?.avatarUrl ?? null, matches: e.matches, played: e.played, battlepass: isMember(e.userId), dayPass: !!e.dayPass };
   };
   const live = snapshot.live;
   return {
@@ -245,6 +260,7 @@ export function toPublicQueue(
           matchesDone: live.matchesDone,
         }
       : null,
+    offer,
     party: snapshot.entries.filter((e) => e.state === "na_party").map(publicEntry),
     queue: snapshot.entries
       .filter((e) => e.state === "aguardando")

@@ -3,7 +3,7 @@
 // Quem está na party do Pedro agora e a fila com os próximos, no design 2.0. A party aparece como
 // a barra de grupo do cliente (o PPA, quem está jogando e as vagas); embaixo, a lista com a partida
 // de cada um. Nome e avatar públicos (a página recebe só isso do servidor); a linha de quem está
-// olhando ganha a marca "você".
+// olhando ganha a marca "você". Com a vaga do dia, a linha conta as partidas de hoje.
 
 import { useTranslations } from "next-intl";
 import { Crown } from "lucide-react";
@@ -54,10 +54,12 @@ function Card({ title, aside, children }: { title: string; aside?: string; child
 function QueueRow({ entry, mine }: { entry: PublicQueuedEntry; mine: boolean }) {
   const t = useTranslations("fila");
   const turn = entry.matchesUntilTurn === 0 ? t("queueNext") : t("queueIn", { count: entry.matchesUntilTurn });
+  // A vaga do dia só diz quantas jogou quando já jogou: "ainda não jogou hoje" é o normal e alongaria a linha.
+  const matches = entry.dayPass ? (entry.played > 0 ? t("queuePlayedToday", { count: entry.played }) : null) : t("queueMatches", { count: entry.matches });
   return (
     <li className={cn("flex items-center gap-3 py-2", mine && "-mx-2 rounded-sm bg-gold/5 px-2")}>
       <span className="w-7 shrink-0 text-right font-display-condensed text-[1.6rem] leading-none text-gold">{entry.position}</span>
-      <Who entry={entry} mine={mine} detail={`${turn} · ${t("queueMatches", { count: entry.matches })}`} />
+      <Who entry={entry} mine={mine} detail={matches ? `${turn} · ${matches}` : turn} />
     </li>
   );
 }
@@ -97,7 +99,13 @@ function PartyCard({ queue, mine }: { queue: PublicQueue; mine: ReadonlySet<stri
               <Who
                 entry={entry}
                 mine={mine.has(entry.id)}
-                detail={<span className="text-play-primary">{t("partyMatch", { current: Math.min(entry.played + 1, entry.matches), total: entry.matches })}</span>}
+                detail={
+                  <span className="text-play-primary">
+                    {entry.dayPass
+                      ? t("partyMatchDay", { count: entry.played + 1 })
+                      : t("partyMatch", { current: Math.min(entry.played + 1, entry.matches), total: entry.matches })}
+                  </span>
+                }
               />
             </li>
           ))}

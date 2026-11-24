@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { matchesUntilTurn, orderEntries, partySeatsView, queuePositions, seatsOpen, toPublicQueue, type PublicQueue, type QueueEntry, type QueueSnapshot } from "./model";
+import { matchesUntilTurn, orderEntries, partySeatsView, queuePositions, remainingMatches, seatsOpen, toPublicQueue, type PublicQueue, type QueueEntry, type QueueSnapshot } from "./model";
 
 const entry = (id: string, over: Partial<QueueEntry> = {}): QueueEntry => ({
   id,
@@ -120,10 +120,11 @@ describe("toPublicQueue", () => {
 
 describe("partySeatsView (lugares livres da party, iguais aos dos overlays)", () => {
   const publicLive = { status: "ao_vivo" as const, startsAt: null, onAirAt: null, queueSize: 8, seatsPerMatch: 4, youtubeVideoId: null, matchesDone: 0 };
-  const member = (id: string) => ({ id, name: id, avatarUrl: null, matches: 1, played: 0, battlepass: false });
+  const member = (id: string) => ({ id, name: id, avatarUrl: null, matches: 1, played: 0, battlepass: false, dayPass: false });
   const waiting = (id: string, matchesUntilTurn: number, position: number) => ({ ...member(id), position, matchesUntilTurn });
   const queueOf = (party: number, turns: number[], seatsOpenNow: number): PublicQueue => ({
     live: { ...publicLive, seatsOpen: seatsOpenNow },
+    offer: null,
     party: Array.from({ length: party }, (_, i) => member(`p${i}`)),
     queue: turns.map((turn, i) => waiting(`q${i}`, turn, i + 1)),
     updatedAt: "2026-11-19T16:00:00.000Z",
@@ -179,5 +180,62 @@ describe("revezamento (Battlepass, migration 192)", () => {
     const body = toPublicQueue({ live, entries: [entry("a"), entry("b")] }, () => ({ name: "X", avatarUrl: null }), new Date(), (id) => id === "user-a");
     expect(body.queue.map((e) => e.battlepass)).toEqual([true, false]);
     expect(JSON.stringify(body)).not.toContain("user-a");
+  });
+});
+
+describe("vaga do dia (migration 194)", () => {
+  it("a vaga do dia conta 1 partida até a vez dos outros, jogue quantas jogar; a por partida conta o que falta", () => {
+    expect(remainingMatches({ matches: 1, played: 0, dayPass: true })).toBe(1);
+    expect(remainingMatches({ matches: 1, played: 4, dayPass: true })).toBe(1);
+    expect(remainingMatches({ matches: 3, played: 1 })).toBe(2);
+    expect(remainingMatches({ matches: 2, played: 5, dayPass: false })).toBe(0);
+  });
+
+  it("revezamento: quem tem a vaga do dia cede o lugar depois de cada partida a quem espera", () => {
+    // Party de 2, os dois com a vaga do dia (um jogou 3 hoje, outro 1); três esperando.
+    const snapshot: QueueSnapshot = {
+      live: { ...live, seatsPerMatch: 2 },
+      entries: [
+        entry("p1", { state: "na_party", dayPass: true, played: 3 }),
+        entry("p2", { state: "na_party", dayPass: true, played: 1 }),
+        entry("a", { dayPass: true }),
+        entry("b", { dayPass: true }),
+        entry("c", { dayPass: true }),
+      ],
+    };
+    const positions = queuePositions(snapshot);
+    expect(["a", "b", "c"].map((id) => positions.get(id)?.matchesUntilTurn)).toEqual([1, 1, 2]);
+  });
+
+  it("a vaga por partida segura o lugar enquanto a do dia reveza", () => {
+    // Party de 2: uma vaga antiga com 3 partidas e uma vaga do dia; dois esperando.
+    const snapshot: QueueSnapshot = {
+      live: { ...live, seatsPerMatch: 2 },
+      entries: [
+        entry("fixa", { state: "na_party", matches: 3 }),
+        entry("dia", { state: "na_party", dayPass: true, played: 2 }),
+        entry("a", { dayPass: true }),
+        entry("b", { dayPass: true }),
+      ],
+    };
+    const positions = queuePositions(snapshot);
+    expect([positions.get("a")?.matchesUntilTurn, positions.get("b")?.matchesUntilTurn]).toEqual([1, 2]);
+  });
+
+  it("o JSON público leva a vaga do dia de cada um e a oferta à venda, para os overlays", () => {
+    const body = toPublicQueue(
+      { live, entries: [entry("p", { state: "na_party", dayPass: true, played: 2 }), entry("a", { matches: 2 })] },
+      () => ({ name: "X", avatarUrl: null }),
+      new Date(),
+      () => false,
+      { priceCents: 2500, mode: "dia" }
+    );
+    expect(body.offer).toEqual({ priceCents: 2500, mode: "dia" });
+    expect(body.party[0]).toMatchObject({ dayPass: true, played: 2 });
+    expect(body.queue[0]).toMatchObject({ dayPass: false, matches: 2 });
+  });
+
+  it("sem oferta informada, o JSON diz que a vaga não está à venda", () => {
+    expect(toPublicQueue({ live, entries: [] }, () => undefined).offer).toBeNull();
   });
 });

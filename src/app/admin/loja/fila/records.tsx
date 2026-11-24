@@ -62,10 +62,11 @@ function Matches({ items }: { items: HistoryMatch[] }) {
 }
 
 function finishedLabel(item: AdminFinishedEntry): string {
-  if (item.state === "concluido") return `jogou ${item.played} de ${item.matches}`;
-  if (item.exit === "saiu") return `saiu sozinho (${item.played} de ${item.matches})`;
-  if (item.exit === "cancelado") return `cancelado ou reembolsado (${item.played} de ${item.matches})`;
-  return `tirado da fila (${item.played} de ${item.matches})`;
+  const count = item.dayPass ? (item.played > 0 ? `vaga do dia, jogou ${item.played}` : "vaga do dia, não jogou") : `${item.played} de ${item.matches}`;
+  if (item.state === "concluido") return item.dayPass ? `jogou ${item.played} na vaga do dia` : `jogou ${count}`;
+  if (item.exit === "saiu") return `saiu sozinho (${count})`;
+  if (item.exit === "cancelado") return `cancelado ou reembolsado (${count})`;
+  return `tirado da fila (${count})`;
 }
 
 function Finished({ items }: { items: AdminFinishedEntry[] }) {

@@ -34,6 +34,8 @@ export interface AdminQueueEntry {
   battlepass: boolean;
   /** O Pedro pôs na fila pelo painel, sem pagamento. */
   courtesy: boolean;
+  /** Vaga do dia (ou Battlepass): joga a live inteira no revezamento, e played são as partidas de hoje. */
+  dayPass: boolean;
   /** Última vez na party do PPA: a base do revezamento (null = nunca jogou). */
   lastTurnAt: string | null;
 }
@@ -46,8 +48,9 @@ export interface AdminFinishedEntry {
   matches: number;
   played: number;
   finishedAt: string | null;
-  /** Quem saiu sozinho recebe de volta as partidas que não jogou; o Pedro devolve no Mercado Pago. */
+  /** Quem saiu sozinho recebe de volta o que não jogou (a vaga do dia, se não jogou nenhuma); o Pedro devolve no Mercado Pago. */
   refundCents: number;
+  dayPass: boolean;
 }
 
 export interface AdminQueue {
@@ -77,7 +80,7 @@ export async function isAdminUser(): Promise<boolean> {
 async function readFinished(isTest: boolean) {
   const { data, error } = await createServiceClient()
     .from("store_bookings")
-    .select("id, seats, matches_played, queue_state, queue_exit, finished_at, user_id, source, store_orders (amount_cents, quantity)")
+    .select("id, seats, matches_played, modo, queue_state, queue_exit, finished_at, user_id, source, store_orders (amount_cents, quantity)")
     .eq("is_test", isTest)
     .in("queue_state", ["concluido", "removido"])
     .gte("updated_at", new Date(Date.now() - FINISHED_WINDOW_MS).toISOString())
@@ -139,6 +142,7 @@ export async function getAdminQueue(): Promise<AdminQueue> {
       boughtOffline,
       battlepass: e.source === "battlepass",
       courtesy: e.source === "cortesia",
+      dayPass: !!e.dayPass,
       lastTurnAt: e.lastTurnAt ?? null,
     };
   });
@@ -156,6 +160,7 @@ export async function getAdminQueue(): Promise<AdminQueue> {
       played: r.matches_played,
       finishedAt: r.finished_at,
       refundCents: exit === "saiu" ? perMatch * Math.max(0, r.seats - r.matches_played) : 0,
+      dayPass: r.modo === "dia",
     };
   });
   return { live: snapshot.live, entries, finished };

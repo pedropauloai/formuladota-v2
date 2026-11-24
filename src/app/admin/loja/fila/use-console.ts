@@ -111,18 +111,22 @@ export function useShortcuts(keys: Record<string, (() => void) | null>) {
 
 const NEW_WINDOW_MS = 10 * 60 * 1000;
 
-/** Quem entrou na fila desde a última leitura vira aviso: o PPA agradece na live pelo nome. */
-export function useArrivals(waiting: AdminQueueEntry[]) {
+/**
+ * Quem entrou na fila desde a última leitura vira aviso: o PPA agradece na live pelo nome. Conta a
+ * mesa inteira (party e fila): quem tem a vaga do dia sai da party para a fila no revezamento, com a
+ * mesma reserva, e isso não é entrada nova.
+ */
+export function useArrivals(entries: AdminQueueEntry[]) {
   const seen = useRef<Set<string> | null>(null);
   useEffect(() => {
-    const ids = new Set(waiting.map((e) => e.id));
+    const ids = new Set(entries.map((e) => e.id));
     if (seen.current) {
-      for (const e of waiting) {
-        if (seen.current.has(e.id) || Date.now() - Date.parse(e.queuedAt) > NEW_WINDOW_MS) continue;
-        const how = e.courtesy ? "cortesia" : e.battlepass ? "Battlepass" : `pagou ${e.matches} partida${e.matches > 1 ? "s" : ""}`;
+      for (const e of entries) {
+        if (e.state !== "aguardando" || seen.current.has(e.id) || Date.now() - Date.parse(e.queuedAt) > NEW_WINDOW_MS) continue;
+        const how = e.courtesy ? "cortesia" : e.battlepass ? "Battlepass" : e.dayPass ? "pagou a vaga do dia" : `pagou ${e.matches} partida${e.matches > 1 ? "s" : ""}`;
         toast(`${e.name} entrou na fila`, { description: `${how} · ${e.position}º da fila` });
       }
     }
     seen.current = ids;
-  }, [waiting]);
+  }, [entries]);
 }

@@ -95,7 +95,7 @@ export function AdminQueuePanel({ data, history }: { data: AdminQueue; history: 
   const fill = useAction();
   const now = useNow(30_000);
   useAutoRefresh(5000);
-  useArrivals(waiting);
+  useArrivals(data.entries);
 
   const step = nextStep(data);
   // Quem ia sair da party e já não está nela (outra ação, ou a mesa atualizou) cancela a troca sozinho.

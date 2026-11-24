@@ -138,7 +138,23 @@ export function CopyId({ id, variant = "quiet", className }: { id: string; varia
 }
 
 /** Partidas de quem está na party: jogadas cheias, a atual com anel, as que faltam apagadas. */
-export function MatchPips({ played, matches }: { played: number; matches: number }) {
+export function MatchPips({ played, matches, dayPass = false }: { played: number; matches: number; dayPass?: boolean }) {
+  // A vaga do dia não tem teto: as de hoje cheias (até 4, para caber no lugar) e a atual com anel.
+  if (dayPass) {
+    return (
+      <span className="inline-flex items-center gap-2 text-sm text-text-muted" data-fila-vaga-do-dia>
+        <span className="inline-flex gap-1" aria-hidden="true">
+          {Array.from({ length: Math.min(played, 4) }, (_, i) => (
+            <span key={i} className="size-2 rounded-full bg-play-primary" />
+          ))}
+          <span className="size-2 rounded-full bg-play-primary/25 ring-1 ring-play-primary" />
+        </span>
+        <span>
+          <b className="font-semibold text-text-display">{played + 1}ª</b> partida hoje
+        </span>
+      </span>
+    );
+  }
   const current = Math.min(played + 1, matches);
   return (
     <span className="inline-flex items-center gap-2 text-sm text-text-muted">

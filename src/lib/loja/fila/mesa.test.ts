@@ -35,6 +35,7 @@ const entry = (name: string, over: Partial<AdminQueueEntry> = {}): AdminQueueEnt
   boughtOffline: false,
   battlepass: false,
   courtesy: false,
+  dayPass: false,
   lastTurnAt: null,
   ...over,
 });

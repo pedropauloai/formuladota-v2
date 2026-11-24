@@ -162,11 +162,18 @@ async function queueFlow(browser, subscriber, admin) {
     }, 45_000, 1500);
     check("fila: a partida do PPA fica registrada pelo ID", !!participation && participation.kind === "jogou");
     check("fila: com a hora em que a partida acabou na OpenDota", !!participation && Math.abs(Date.parse(participation.played_at) - expected.endedAt) < 60_000);
-    const { data: after } = await db.from("store_bookings").select("queue_state").eq("id", entry.id).single();
-    check("fila: quem jogou sai da party como concluído", after?.queue_state === "concluido");
+    // Regra da vaga do dia (migration 194): sem ninguém esperando, o assinante segue na party.
+    const { data: after } = await db.from("store_bookings").select("queue_state, matches_played").eq("id", entry.id).single();
+    check("fila: sem ninguém esperando, o assinante segue na party para a próxima partida", after?.queue_state === "na_party" && after?.matches_played === 1);
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.locator("[data-fila-vez='na_party']").getByText("Sua 2ª partida hoje", { exact: true }).waitFor({ timeout: 30_000 });
+    check("fila: a página do assinante conta a partida de hoje", true);
 
-    // Depois de jogar, o assinante entra de novo.
-    // Depois de jogar a página mostra o botão de novo; clica até a entrada nova aparecer (a página hidrata em segundos).
+    // No fim da live, a entrada que jogou termina; na próxima, o assinante entra de novo.
+    await db.rpc("party_fila_encerrar_live", { p_live_id: live });
+    const { data: closed } = await db.from("store_bookings").select("queue_state").eq("id", entry.id).single();
+    check("fila: no fim da live, a entrada do assinante que jogou termina", closed?.queue_state === "concluido");
+    // A página mostra o botão de novo; clica até a entrada nova aparecer (a página hidrata em segundos).
     await page.reload({ waitUntil: "domcontentloaded" });
     await page.locator("[data-fila-battlepass]").first().waitFor({ timeout: 30_000 });
     await page.waitForTimeout(3000);
@@ -175,10 +182,9 @@ async function queueFlow(browser, subscriber, admin) {
       const { data } = await db.from("store_bookings").select("id").eq("user_id", subscriber.id).eq("is_test", true).eq("queue_state", "aguardando");
       return data?.[0] ?? null;
     }, 30_000, 1500);
-    check("fila: o assinante entra de novo depois de jogar", !!again && again.id !== entry.id);
+    check("fila: depois da live, o assinante entra de novo para a próxima", !!again && again.id !== entry.id);
     await adminContext.close();
     await context.close();
-    await db.rpc("party_fila_encerrar_live", { p_live_id: live });
   } finally {
     await db.from("profiles").update({ is_admin: false }).eq("id", admin.id);
     await resetTestQueue().catch(() => {});

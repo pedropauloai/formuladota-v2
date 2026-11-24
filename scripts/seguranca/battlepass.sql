@@ -1,4 +1,4 @@
--- Teste de regressão das regras do Battlepass (migrations 190, 192 e 193). Usa dois jogadores reais, grava
+-- Teste de regressão das regras do Battlepass (migrations 190, 192, 193 e 194). Usa dois jogadores reais, grava
 -- assinaturas e pagamentos de teste e termina SEMPRE num erro proposital (RESULTADO: ...), então a
 -- transação inteira volta e nada fica gravado.
 -- PASSA quando todos os itens do RESULTADO dizem "=ok"; cada "=FALHOU" é uma regressão.
@@ -226,15 +226,20 @@ begin
   r := array_append(r, ('P_nao_apareceu_vai_para_o_fim=' || case when ok and t1 > now() - interval '1 minute' and b2 = b1 then 'ok' else 'FALHOU' end)::text);
 
   -- Q. Partida terminou com o ID: grava a participação de quem estava na party, com a hora da partida.
+  --    Pela regra da vaga do dia (migration 194), o assinante segue no revezamento: com u esperando e
+  --    um lugar só, ele cede o lugar e volta para a fila, sem precisar entrar de novo.
   select match_count into n from public.store_live_sessions where id = live;
   n := public.party_fila_partida_terminou(live, n, 8873698944, now() - interval '5 minutes', array[u2]);
   select count(*) into total from public.party_participacoes where user_id = u2 and is_test and dota_match_id = 8873698944 and confirmed;
   select queue_state into st from public.store_bookings where id = b1;
-  r := array_append(r, ('Q_partida_registrada=' || case when n = 1 and total = 1 and st = 'concluido' then 'ok' else 'FALHOU(' || n || ' ' || total || ' ' || coalesce(st, 'null') || ')' end)::text);
-  -- Depois de jogar, o assinante entra de novo.
+  r := array_append(r, ('Q_partida_registrada=' || case when n = 1 and total = 1 and st = 'aguardando' then 'ok' else 'FALHOU(' || n || ' ' || total || ' ' || coalesce(st, 'null') || ')' end)::text);
   b2 := public.party_fila_entrar_battlepass(u2, true);
-  r := array_append(r, ('Q_assinante_entra_de_novo=' || case when b2 is not null and b2 <> b1 then 'ok' else 'FALHOU' end)::text);
+  r := array_append(r, ('Q_assinante_segue_no_revezamento=' || case when b2 = b1 then 'ok' else 'FALHOU' end)::text);
+  -- No fim da live, a entrada que jogou termina, e na próxima o assinante entra de novo.
   perform public.party_fila_encerrar_live(live);
+  select queue_state into st from public.store_bookings where id = b1;
+  b2 := public.party_fila_entrar_battlepass(u2, true);
+  r := array_append(r, ('Q_assinante_entra_de_novo_na_proxima_live=' || case when st = 'concluido' and b2 is not null and b2 <> b1 then 'ok' else 'FALHOU(' || coalesce(st, 'null') || ')' end)::text);
 
   -- L. Logado não grava participação (a vez na fila não se forja pelo navegador).
   set local role authenticated;
