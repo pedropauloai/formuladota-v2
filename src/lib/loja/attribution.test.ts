@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { originFromUrl, mergeOrigin, parseOrigin, serializeOrigin, sourceLabel, referrerHost, hasCampaign } from "./attribution";
+import { originFromUrl, mergeOrigin, parseOrigin, serializeOrigin, sourceLabel, referrerHost, hasCampaign, originFromCookieHeader, ORIGIN_COOKIE } from "./attribution";
 
 const SITE = ["www.formuladota.com.br", "formuladota.com.br", "localhost"];
 
@@ -69,6 +69,27 @@ describe("parseOrigin", () => {
     expect(parseOrigin("%E0%A4%A")).toBeNull();
     expect(parseOrigin("[1,2]")).toBeNull();
     expect(parseOrigin("")).toBeNull();
+  });
+});
+
+describe("originFromCookieHeader", () => {
+  // O Next grava o valor do cookie codificado mais uma vez (encodeURIComponent do serializado).
+  const header = (origin: Parameters<typeof serializeOrigin>[0]) => `outro=1; ${ORIGIN_COOKIE}=${encodeURIComponent(serializeOrigin(origin))}; tema=escuro`;
+
+  it("lê a origem do cabeçalho cru, do jeito que o navegador manda o cookie gravado pelo Next", () => {
+    const origin = { utm_source: "instagram", utm_campaign: "bio", landing_path: "/loja" };
+    expect(originFromCookieHeader(header(origin))).toEqual(origin);
+  });
+
+  it("a página seguinte sem campanha mantém a campanha da entrada", () => {
+    const entrada = { utm_source: "instagram", utm_campaign: "bio", landing_path: "/loja" };
+    expect(mergeOrigin(originFromCookieHeader(header(entrada)), { landing_path: "/loja/produto" })).toEqual(entrada);
+  });
+
+  it("sem o cookie, ou com o valor quebrado, vira null", () => {
+    expect(originFromCookieHeader(null)).toBeNull();
+    expect(originFromCookieHeader("outro=1")).toBeNull();
+    expect(originFromCookieHeader(`${ORIGIN_COOKIE}=%E0%A4%A`)).toBeNull();
   });
 });
 

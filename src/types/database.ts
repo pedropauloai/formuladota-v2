@@ -2763,6 +2763,27 @@ export type Database = {
           },
         ]
       }
+      site_pageviews: {
+        Row: {
+          created_at: string
+          is_test: boolean
+          path: string
+          session_id: string
+        }
+        Insert: {
+          created_at?: string
+          is_test?: boolean
+          path: string
+          session_id: string
+        }
+        Update: {
+          created_at?: string
+          is_test?: boolean
+          path?: string
+          session_id?: string
+        }
+        Relationships: []
+      }
       site_visits: {
         Row: {
           country: string | null
