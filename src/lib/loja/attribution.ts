@@ -60,6 +60,23 @@ export function mergeOrigin(previous: Origin | null, current: Origin): Origin {
   return previous ?? current;
 }
 
+/**
+ * A origem a partir do cabeçalho Cookie cru de uma requisição (a rota /api/visita lê assim). O Next
+ * grava o valor codificado mais uma vez, então decodifica uma vez antes do parseOrigin.
+ */
+export function originFromCookieHeader(header: string | null | undefined): Origin | null {
+  const part = (header ?? "")
+    .split(";")
+    .map((p) => p.trim())
+    .find((p) => p.startsWith(`${ORIGIN_COOKIE}=`));
+  if (!part) return null;
+  try {
+    return parseOrigin(decodeURIComponent(part.slice(ORIGIN_COOKIE.length + 1)));
+  } catch {
+    return null;
+  }
+}
+
 export function serializeOrigin(origin: Origin): string {
   return encodeURIComponent(JSON.stringify(origin));
 }
