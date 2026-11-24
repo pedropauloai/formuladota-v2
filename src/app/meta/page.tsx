@@ -12,7 +12,7 @@ import { BarChart3 } from "lucide-react";
 import { ClientShell } from "@/components/client-shell/shell";
 import { EmptyState } from "@/components/ui/empty-state";
 import heroesCatalog from "@/data/dota-heroes.json";
-import { getPositionStats } from "@/lib/dota/meta-cache";
+import { getPositionStats, type CachedPositionStats } from "@/lib/dota/meta-cache";
 import { buildMetaRows, heroSourcesFromCatalog, type MetaPosition } from "@/lib/dota/hero-meta";
 import {
   MetaFilters,
@@ -20,6 +20,7 @@ import {
   TopHeroes,
   type MetaFilterState,
 } from "@/components/meta/hero-meta-table";
+import { MetaPeriod } from "@/components/meta/meta-period";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("meta");
@@ -39,38 +40,41 @@ export default async function MetaPage(props: {
       ? (params.position as MetaPosition)
       : "all",
   };
+  const meta = await loadMeta();
 
   return (
     <ClientShell currentRoute="/meta">
       <div className="px-6 py-10 xl:px-12">
         <header className="mb-8">
-          <p className="font-display text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
-            {t("eyebrow")}
-          </p>
-          <h1 className="mt-3 font-display text-4xl uppercase tracking-tight text-text-display md:text-5xl">
+          <h1 className="font-display text-4xl uppercase tracking-tight text-text-display md:text-5xl">
             {t("title")}
           </h1>
           <p className="mt-3 max-w-2xl font-display text-sm font-semibold text-text-body 2xl:text-base">
             {t("subtitle")}
           </p>
+          {meta && <MetaPeriod window={meta.window} patches={meta.patches} refreshedAt={meta.refreshedAt} />}
         </header>
 
-        <MetaContent state={state} />
+        <MetaContent state={state} meta={meta} />
       </div>
     </ClientShell>
   );
 }
 
-// Conteúdo (fetch + render) isolado pra manter a page enxuta e o erro contido.
-async function MetaContent({ state }: { state: MetaFilterState }) {
-  const t = await getTranslations("meta");
-
-  let result;
+// O cabeçalho e a tabela usam a mesma leitura; a falha vira null e a página mostra o aviso.
+async function loadMeta(): Promise<CachedPositionStats | null> {
   try {
-    const { stats } = await getPositionStats();
-    result = buildMetaRows(heroSourcesFromCatalog(heroesCatalog), stats, state.position);
+    return await getPositionStats();
   } catch (err) {
     console.error("[meta] carregar o meta:", err instanceof Error ? err.message : err);
+    return null;
+  }
+}
+
+async function MetaContent({ state, meta }: { state: MetaFilterState; meta: CachedPositionStats | null }) {
+  const t = await getTranslations("meta");
+
+  if (!meta) {
     return (
       <>
         <MetaFilters state={state} />
@@ -78,6 +82,7 @@ async function MetaContent({ state }: { state: MetaFilterState }) {
       </>
     );
   }
+  const result = buildMetaRows(heroSourcesFromCatalog(heroesCatalog), meta.stats, state.position);
 
   return (
     <>

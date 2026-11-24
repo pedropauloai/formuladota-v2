@@ -12,11 +12,13 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CreateSeasonForm, SeasonRowActions } from "./season-controls";
+import { requireAdminPage } from "@/lib/auth/admin-page";
 
 export const metadata = { title: "Admin Temporadas — FORMULADOTA" };
 export const revalidate = 0;
 
 export default async function AdminTemporadasPage() {
+  await requireAdminPage();
   const supabase = await createClient();
   const {
     data: { user },

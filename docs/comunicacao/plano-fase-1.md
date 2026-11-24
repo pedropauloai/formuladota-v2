@@ -110,7 +110,7 @@ Criar sala de mentoria a partir de horário pago (agenda, `confirmado`, pedido `
 
 ### Tarefa 8: cron
 
-`runTask("sala-voz", sweepVoiceRooms)` no `/api/cron/site`: fecha sessões sem batimento há 45 s, encerra salas vencidas, avisa limiares e pico, apaga o que venceu o prazo de guarda (sem apagar sala com denúncia aberta).
+`runTask("sala-voz", sweepVoiceRooms)` no `/api/cron/site`: fecha sessões sem batimento há 60 s, encerra salas vencidas, avisa limiares e pico, apaga o que venceu o prazo de guarda (sem apagar sala com denúncia aberta).
 
 ### Tarefa 9: provas ponta a ponta
 
@@ -119,3 +119,13 @@ Criar sala de mentoria a partir de horário pago (agenda, `confirmado`, pedido `
 ### Tarefa 10: revisão, PR e publicação
 
 `security-review` no diff, correções, PR da prova de conceito, merge com `verificar` verde e a migration já aplicada, deploy pela cópia do WSL com a trava e `pnpm cf:verificar`.
+
+## Revisão de 24/11/2026: sala pública da live
+
+A spec passou a ter a sala pública (palco) na fase 1 e trocou a data de nascimento pela marcação de 18 anos. Tarefas novas, na ordem:
+
+- [ ] Migration renumerada para `196_sala_voz.sql` (a 195 da main é de outra frente): `user_age_confirmations` e `confirm_adult` no lugar da data; `kind = 'palco'`, `audience`, `chat_open`; papéis `falante` e `ouvinte`, `hand_raised_at`, `force_muted`; `voice_bans`; `voice_room_messages`; `quality` na faixa, `rid` na faixa recebida, `jitter_buffer_ms` e `latency_ms` nas métricas; as funções `voice_room_access` e `voice_room_tick` (uma consulta por batimento), só para a service role. Prova de RLS refeita, vermelha com a trava revertida.
+- [ ] Regras puras com teste antes: lugares com passe do Battlepass, banido, papel no palco (quem publica voz), camada pela regra de custo (`decideLayer`), qualidade escolhida (`QUALIDADES`), atraso estimado nas métricas.
+- [ ] Servidor: contexto e batimento pela função do banco; chat (mandar, apagar), mão levantada, chamar e devolver, mutar à força, banir; `tracks/update` para a camada; `/sala` leva à sala pública aberta.
+- [ ] Cliente: simulcast (camadas `f` e `h`) ao compartilhar; escolha da qualidade com o consumo por hora; escolha "alta" ou "leve" de quem assiste; chat e mão levantada.
+- [ ] e2e com a sala pública e o atraso estimado.

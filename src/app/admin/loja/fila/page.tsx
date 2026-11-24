@@ -5,11 +5,13 @@ import { getAdminQueue } from "@/lib/loja/fila/admin";
 import { getMatchHistory } from "@/lib/loja/fila/admin-history";
 import { isTestMode } from "@/lib/mercadopago";
 import { AdminQueuePanel } from "./panel";
+import { requireAdminPage } from "@/lib/auth/admin-page";
 
 export const metadata = { title: "Fila da party | Admin FORMULADOTA" };
 export const dynamic = "force-dynamic";
 
 export default async function AdminFilaPage() {
+  await requireAdminPage();
   const [data, history] = await Promise.all([getAdminQueue(), getMatchHistory(isTestMode())]);
   return <AdminQueuePanel data={data} history={history} />;
 }

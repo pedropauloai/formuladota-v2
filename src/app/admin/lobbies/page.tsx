@@ -12,6 +12,7 @@ import { Card } from "@/components/ui/card";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { CloseLobbyModal } from "./close-lobby-modal";
 import { AdminLobbiesLive } from "./live-refresh";
+import { requireAdminPage } from "@/lib/auth/admin-page";
 
 export const metadata = { title: "Admin Lobbies — FORMULADOTA" };
 export const revalidate = 0;
@@ -39,6 +40,7 @@ function formatAge(createdAt: string, nowMs: number): string {
 }
 
 export default async function AdminLobbiesPage() {
+  await requireAdminPage();
   const supabase = await createClient();
   const {
     data: { user },

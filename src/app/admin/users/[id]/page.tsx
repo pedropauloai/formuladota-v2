@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { PermissionsSection } from "./permissions-section";
 import { getProRevenue } from "@/app/actions/pro-management";
+import { requireAdminPage } from "@/lib/auth/admin-page";
 
 export const revalidate = 0;
 
@@ -122,6 +123,7 @@ export default async function AdminUserDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await requireAdminPage();
   const { id } = await params;
   const t = await getTranslations("misc2");
   const service = createServiceClient();

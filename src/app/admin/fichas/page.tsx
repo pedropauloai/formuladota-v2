@@ -8,6 +8,7 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { getFeatureFlags } from "@/lib/queries/feature-flags";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { requireAdminPage } from "@/lib/auth/admin-page";
 
 export async function generateMetadata() {
   const t = await getTranslations("misc2");
@@ -15,6 +16,7 @@ export async function generateMetadata() {
 }
 
 export default async function AdminFichasPage() {
+  await requireAdminPage();
   // Fichas fora de prioridade: com ranked_com_pro OFF a rota some (redirect).
   // Ligar a flag restaura; nada é apagado do banco.
   const { ranked_com_pro } = await getFeatureFlags();
