@@ -8,6 +8,7 @@ const A = "src/lib/sala/acesso.ts";
 const P = "src/lib/sala/papeis.ts";
 const F = "src/lib/sala/faixas.ts";
 const C = "src/lib/sala/custo.ts";
+const M = "src/lib/sala/montagem.ts";
 
 const MUTACOES = [
   [A, 'if (!input.flagOn) return { ok: false, code: "flag_desligada" };', "", "flag desligada não esconde"],
@@ -33,6 +34,8 @@ const MUTACOES = [
   [F, 'if (r.location !== "remote" || r.sessionId !== sub.publisherSessionId || r.trackName !== sub.trackName || sub.kind !== "video") {', "if (false) {", "a troca de camada puxa outra faixa"],
   [F, 'return input.requested === "f" && input.usageBytes < input.capBytes / 2 ? "f" : "h";', 'return input.requested ?? "h";', "camada alta sem olhar o custo"],
   [C, "return Math.round(Math.min(base, videoMaxKbps) * VIDEO_FOLGA);", "return Math.round(base);", "tela conta sem cabeçalho nem teto"],
+  [M, "const role: MemberRole = mine?.r ?? decided;", "const role: MemberRole = decided;", "chamado ao palco só fala no próximo batimento"],
+  [M, "const forceMuted = mine ? !!mine.f : (v.member?.forceMuted ?? false);", "const forceMuted = mine?.f ?? v.member?.forceMuted ?? false;", "liberado pelo dono continua mudo até o batimento"],
 ];
 
 let falhas = 0;

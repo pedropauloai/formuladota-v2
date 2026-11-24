@@ -7,15 +7,14 @@ import "server-only";
 import { z } from "zod";
 import { createServiceClient } from "@/lib/supabase/service";
 import { authInfo, contextFor, salaFlagOn, verdictOf, type CallContext, type Verdict } from "./contexto";
-import { capBytesFor } from "./custo";
 import type { Db } from "./dados-sala";
 import { insertStats } from "./dados-uso";
-import { publisherMayKeep, visibleTracks } from "./faixas";
 import { SnapshotCache, TtlCache, type RawSnapshot } from "./memoria";
-import { canChat, canPublishVoice, canRaiseHand, canShareScreen } from "./papeis";
+import { compose, type Estado } from "./montagem";
 import { realtimeEnv } from "./realtime-api";
 import { closeUserSessions } from "./sessoes";
-import type { DenyCode, MemberRole, Quality, RoomKind, TrackDenyCode, TrackLabel } from "./tipos";
+
+export type { Estado, FaixaEstado, MembroEstado, MensagemEstado } from "./montagem";
 
 const VERDICT_MS = 15_000;
 const SNAPSHOT_MS = 3_000;
@@ -66,93 +65,6 @@ async function fetchSnapshot(db: Db, roomId: string, chatAfter: number): Promise
   const { data, error } = await db.rpc("voice_room_snapshot", { p_room: roomId, p_chat_after: chatAfter });
   if (error) throw new Error(`ler o estado da sala: ${error.message}`);
   return SnapshotSchema.parse(data);
-}
-
-export interface MembroEstado {
-  userId: string;
-  papel: MemberRole;
-  online: boolean;
-  mutado: boolean;
-  mutadoPeloDono: boolean;
-  maoDesde: string | null;
-  compartilhandoTela: boolean;
-  bloqueado: boolean;
-}
-
-export interface FaixaEstado {
-  sessionId: string;
-  trackName: string;
-  tipo: TrackLabel;
-  userId: string;
-  qualidade: Quality | null;
-}
-
-export interface MensagemEstado {
-  id: number;
-  userId: string | null;
-  texto: string;
-  em: string;
-}
-
-export interface Estado {
-  saida: DenyCode | null;
-  eu?: {
-    userId: string;
-    papel: MemberRole;
-    podeFalar: boolean;
-    mutadoPeloDono: boolean;
-    podeLevantarMao: boolean;
-    maoDesde: string | null;
-    podeEscrever: boolean;
-    podeCompartilharTela: boolean;
-    motivoTela: TrackDenyCode | null;
-  };
-  sala?: { titulo: string; tipo: RoomKind; fechaEm: string; chatAberto: boolean; lugares: number; falantesMax: number; videoMaxKbps: number };
-  membros?: MembroEstado[];
-  faixas?: FaixaEstado[];
-  chat?: MensagemEstado[];
-  apagadas?: number[];
-}
-
-function screenReason(v: Verdict, role: MemberRole, othersSharing: boolean): TrackDenyCode | null {
-  const { room, settings } = v;
-  if (!room || !settings || !canShareScreen(role, room.kind, room.screenPolicy, settings.partyScreenEnabled)) return "tela_nao_permitida";
-  if (othersSharing) return "tela_ocupada";
-  // Sala de teste conta o próprio consumo na hora de publicar; aqui vale o de produção (o aviso da tela).
-  if (!room.isTest && settings.usageBytes30d >= capBytesFor(settings.capGb30d)) return "teto_de_trafego";
-  return null;
-}
-
-function compose(v: Verdict, snap: RawSnapshot, me: string, role: MemberRole, chatAfter: number): Estado {
-  const room = v.room as NonNullable<Verdict["room"]>;
-  const settings = v.settings as NonNullable<Verdict["settings"]>;
-  const live = snap.room ?? { status: room.status, chat_open: room.chatOpen, closes_at: room.closesAt };
-  const roles = new Map(snap.members.map((m) => [m.u, { role: m.r, online: m.on }]));
-  roles.set(me, { role, online: true });
-  const blocked = new Set(v.blocked);
-  const sharing = new Set(snap.tracks.filter((t) => t.t === "tela" && publisherMayKeep(roles.get(t.u)?.role ?? "ouvinte", "tela")).map((t) => t.u));
-  const mine = snap.members.find((m) => m.u === me);
-  const forceMuted = mine?.f ?? v.member?.forceMuted ?? false;
-  const motivoTela = screenReason(v, role, [...sharing].some((id) => id !== me));
-  const tracks = visibleTracks(snap.tracks.map((t) => ({ sessionId: t.s, userId: t.u, trackName: t.n, tipo: t.t, qualidade: t.q ?? null })), me, roles, blocked);
-  const membros: MembroEstado[] = snap.members.map((m) => ({
-    userId: m.u, papel: m.u === me ? role : m.r, online: m.on || m.u === me, mutado: m.m, mutadoPeloDono: !!m.f,
-    maoDesde: m.h ?? null, compartilhandoTela: sharing.has(m.u), bloqueado: blocked.has(m.u),
-  }));
-  if (!mine) membros.push({ userId: me, papel: role, online: true, mutado: true, mutadoPeloDono: forceMuted, maoDesde: null, compartilhandoTela: false, bloqueado: false });
-  return {
-    saida: null,
-    eu: {
-      userId: me, papel: role, podeFalar: canPublishVoice(role) && !(forceMuted && role !== "dono"), mutadoPeloDono: forceMuted,
-      podeLevantarMao: canRaiseHand(role, room.kind), maoDesde: mine?.h ?? null,
-      podeEscrever: canChat(role, room.kind, live.chat_open), podeCompartilharTela: motivoTela === null, motivoTela,
-    },
-    sala: { titulo: room.title, tipo: room.kind, fechaEm: live.closes_at, chatAberto: live.chat_open, lugares: room.maxMembers, falantesMax: settings.palcoMaxSpeakers, videoMaxKbps: settings.videoMaxKbps },
-    membros,
-    faixas: tracks.map((t) => ({ sessionId: t.sessionId, trackName: t.trackName, tipo: t.tipo as TrackLabel, userId: t.userId, qualidade: t.qualidade })),
-    chat: snap.chat.filter((m) => m.i > chatAfter).map((m) => ({ id: m.i, userId: m.u, texto: m.b, em: m.a })),
-    apagadas: snap.deleted,
-  };
 }
 
 export async function roomState(roomId: string, body: z.infer<typeof EstadoBody>): Promise<Estado> {
