@@ -7,46 +7,12 @@ import { loadCallContext, type CallContext } from "./contexto";
 import { closeMids, getSession, insertSession, type SessionRow } from "./dados-rtc";
 import { ensureMember, touchMember } from "./dados-sala";
 import { handleNewTracks, TracksBody } from "./proxy-faixas";
+import { clientIp, matchRoute, readJson, SESSION_ID } from "./proxy-rota";
 import { createSfuSession, realtimeEnv, sfu, type RealtimeEnv } from "./realtime-api";
 import { closeUserSessions } from "./sessoes";
 
-export const MAX_BODY_BYTES = 64 * 1024;
-export const SESSION_ID = /^[A-Za-z0-9_-]{8,128}$/;
-const IP = /^[0-9a-fA-F:.]{3,45}$/;
-
-type Route = { kind: "new" } | { kind: "tracks" | "renegotiate" | "close"; sid: string };
-
 export function sfuError(status: number, errorCode: string, errorDescription: string): Response {
   return Response.json({ errorCode, errorDescription, tracks: [] }, { status });
-}
-
-export function matchRoute(method: string, segments: string[]): Route | null {
-  const [a, b, c, d] = segments;
-  if (a !== "sessions" || segments.length < 2) return null;
-  if (method === "POST" && b === "new" && segments.length === 2) return { kind: "new" };
-  if (!b || !SESSION_ID.test(b)) return null;
-  if (method === "POST" && c === "tracks" && d === "new" && segments.length === 4) return { kind: "tracks", sid: b };
-  if (method === "PUT" && c === "renegotiate" && segments.length === 3) return { kind: "renegotiate", sid: b };
-  if (method === "PUT" && c === "tracks" && d === "close" && segments.length === 4) return { kind: "close", sid: b };
-  return null;
-}
-
-/** Corpo em JSON até 64 KB; `undefined` quando vazio, `null` quando grande demais ou inválido. */
-export async function readJson(req: Request): Promise<unknown> {
-  const text = await req.text();
-  if (text.length > MAX_BODY_BYTES) return null;
-  if (!text) return undefined;
-  try {
-    return JSON.parse(text) as unknown;
-  } catch {
-    return null;
-  }
-}
-
-export function clientIp(req: Request): string | null {
-  const raw = req.headers.get("cf-connecting-ip") ?? req.headers.get("x-forwarded-for")?.split(",")[0] ?? "";
-  const ip = raw.trim();
-  return IP.test(ip) ? ip : null;
 }
 
 /** Sessão aberta desta pessoa, nesta sala. */
@@ -70,7 +36,8 @@ async function newSession(ctx: CallContext, env: RealtimeEnv, req: Request): Pro
   return Response.json(res.body, { status: res.status });
 }
 
-const Renegotiate = z.object({ sessionDescription: z.object({ type: z.enum(["answer", "offer"]), sdp: z.string().min(1).max(60_000) }) });
+// Renegociar é responder à oferta do SFU (o partytracks só manda resposta aqui): mídia nova só entra por tracks/new.
+const Renegotiate = z.object({ sessionDescription: z.object({ type: z.literal("answer"), sdp: z.string().min(1).max(60_000) }) });
 const Close = z.object({
   tracks: z.array(z.object({ mid: z.string().min(1).max(32) })).min(1).max(64),
   sessionDescription: z.object({ type: z.enum(["offer", "answer"]), sdp: z.string().min(1).max(60_000) }).optional(),
