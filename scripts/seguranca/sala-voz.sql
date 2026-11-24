@@ -65,7 +65,7 @@ begin
   -- Controle positivo: as funções do servidor enxergam a sala, o membro, o banido e a mensagem.
   j := public.voice_room_tick(r1, u2, false, false);
   r := array_append(r, (case when j->'room'->>'id' = r1::text and j->'member'->>'role' = 'ouvinte'
-      and jsonb_array_length(j->'my_subscriptions') = 1 and jsonb_typeof(j->'blocked') = 'array'
+      and jsonb_typeof(j->'blocked') = 'array' and (j->>'online_others')::int = 0
     then 'A0_batimento_ve_o_que_o_servidor_precisa=ok' else 'A0_batimento_ve_o_que_o_servidor_precisa=FALHOU' end)::text);
   j := public.voice_room_snapshot(r1, 0);
   r := array_append(r, (case when jsonb_array_length(j->'chat') = 1 and jsonb_array_length(j->'tracks') = 1

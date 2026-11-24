@@ -355,7 +355,7 @@ revoke all on function public.voice_room_access(uuid, uuid) from public, anon, a
 grant execute on function public.voice_room_access(uuid, uuid) to service_role;
 
 -- Batimento da pessoa (a cada 10 s, ou na hora em que ela muta ou levanta a mão): grava presença,
--- microfone e mão de quem segue ativo e devolve o contexto, os bloqueios e as faixas que ela recebe.
+-- microfone e mão de quem segue ativo e devolve o contexto e os bloqueios dela.
 create or replace function public.voice_room_tick(p_room uuid, p_user uuid, p_muted boolean, p_hand boolean)
 returns jsonb
 language plpgsql
@@ -376,12 +376,7 @@ begin
   return v_access || jsonb_build_object(
     'blocked', (select coalesce(jsonb_agg(case when f.requester_id = p_user then f.addressee_id else f.requester_id end), '[]'::jsonb)
       from public.friendships f
-     where f.status = 'blocked' and (f.requester_id = p_user or f.addressee_id = p_user)),
-    'my_subscriptions', (select coalesce(jsonb_agg(jsonb_build_object('id', sub.id, 'sessionId', sub.session_id, 'mid', sub.mid,
-        'publisherSessionId', sub.publisher_session_id, 'trackName', sub.track_name, 'rid', sub.rid)), '[]'::jsonb)
-      from public.voice_room_subscriptions sub
-      join public.voice_room_sessions s on s.id = sub.session_id
-     where s.room_id = p_room and s.user_id = p_user and s.closed_at is null and sub.ended_at is null)
+     where f.status = 'blocked' and (f.requester_id = p_user or f.addressee_id = p_user))
   );
 end;
 $$;
