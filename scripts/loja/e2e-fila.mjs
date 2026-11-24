@@ -111,6 +111,12 @@ async function turnInRealTime(page, liveId, bookingId, buyer) {
   check("partida terminou sem ninguém esperando: a vaga do dia segue na party", counted === 1 && after?.queue_state === "na_party" && after?.matches_played === 1);
   await page.locator("[data-fila-vez='na_party']").getByText("Sua 2ª partida hoje", { exact: true }).waitFor({ timeout: 15_000 });
   check("a página conta a partida de hoje", true);
+}
+
+/** Fim da live: a vaga do dia que jogou termina, e a página mostra quantas partidas a pessoa jogou. */
+async function endOfLive(page, liveId) {
+  await page.goto(`${BASE}/party`);
+  await page.locator("[data-fila-vez='na_party']").waitFor({ timeout: 30_000 });
   await db.rpc("party_fila_encerrar_live", { p_live_id: liveId });
   await page.locator("[data-fila-vez='concluido']").getByText("1 partida jogada.").waitFor({ timeout: 15_000 });
   check("no fim da live, a vaga do dia que jogou termina, e a página mostra que a pessoa jogou", true);
@@ -129,6 +135,9 @@ async function checkShell(page) {
   await party.waitFor({ timeout: 15_000 });
   check("a party do PPA está no menu Jogar e leva para a fila", (await party.getAttribute("href"))?.endsWith("/party") === true);
   check("aba Loja com o ponto de ao vivo", (await page.locator("[data-aba-ao-vivo]").count()) > 0);
+}
+
+async function checkStoreLinks(page) {
   const withQty = await fetch(`${BASE}/loja/vaga-na-party?qtd=2`, { redirect: "manual" });
   check("a quantidade escolhida na vitrine segue para a fila", (withQty.headers.get("location") ?? "").endsWith("/party?qtd=2"));
   await page.goto(`${BASE}/party?qtd=2`);
@@ -166,6 +175,8 @@ async function run() {
     const saleText = JSON.stringify(sale ?? {});
     check("o aviso de venda diz que a vaga é na fila aberta, sem a data fixa", saleText.includes("fila da party, para a próxima live") && !saleText.includes("01/01"));
     await checkShell(page);
+    await endOfLive(page, state.liveId);
+    await checkStoreLinks(page);
   } finally {
     await browser?.close().catch(() => undefined);
     await cleanup(state).catch((err) => console.error("limpeza falhou:", err.message));
