@@ -98,8 +98,8 @@ async function fetchOwnerData(accountId: number, now: Date, registered: Register
 export async function refreshOwnerProof(now = new Date()): Promise<"fresco" | "aguardando" | "renovado" | "sem_dono"> {
   const [owner, current, registered] = await Promise.all([findOwner(), readProof(), registeredMatchAccounts()]);
   if (!owner?.accountId) return "sem_dono";
-  // Partida nova (sem resumo nenhum) puxa a rodada antes da hora; resumo sem resultado tenta de novo só na rodada de cada hora.
-  const summarized = new Set((current?.partyMatches ?? []).map((m) => m.matchId));
+  // Partida nova (sem resumo) ou com resumo antigo (sem os heróis) puxa a rodada antes da hora; resumo sem resultado tenta de novo só na rodada de cada hora.
+  const summarized = new Set((current?.partyMatches ?? []).filter((m) => m.partyHeroIds !== null).map((m) => m.matchId));
   const pending = registered.some((r) => !summarized.has(r.matchId));
   if (current && !pending && now.getTime() - new Date(current.syncedAt).getTime() < REFRESH_EVERY_MS) return "fresco";
   if (now.getUTCMinutes() % RETRY_EVERY_MINUTES !== 0) return "aguardando";

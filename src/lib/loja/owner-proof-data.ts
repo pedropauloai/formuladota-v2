@@ -39,9 +39,9 @@ export function buildOwnerProofData(player: unknown, now: Date, partyMatches: re
   };
 }
 
-/** O resumo guardado serve: tem resultado, ou já passou um dia e o resultado não vai mais aparecer. */
+/** O resumo guardado serve: tem os heróis e o resultado, ou já passou um dia e o resultado não vai mais aparecer. */
 export function reuseSummary(hit: PartyMatchSummary | undefined, nowMs: number): hit is PartyMatchSummary {
-  if (!hit) return false;
+  if (!hit || hit.partyHeroIds === null) return false;
   return hit.won !== null || nowMs - (hit.startTime + hit.duration) * 1000 > RETRY_NO_RESULT_MS;
 }
 
