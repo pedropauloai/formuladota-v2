@@ -9,7 +9,7 @@ import { snapshotFromStats, summarizeStats, type StatsSnapshot, type StatsSummar
 import type { Layer, Quality } from "../tipos";
 import { api, type AcaoDono, type AlvoDenuncia, type Batimento, type Entrada } from "./acoes";
 import { createConnection, type Connection } from "./conexao";
-import { juntarChat } from "./chat-local";
+import { cursorDoChat, juntarChat } from "./chat-local";
 import { NivelDeVoz } from "./nivel-voz";
 import { Recepcao } from "./recepcao";
 import { beatDue, estadoIntervalMs, statsEveryBeats } from "./ritmo";
@@ -38,6 +38,7 @@ export class SessaoSala {
   private ultimoBatimento: number | null = null;
   private batimentos = 0;
   private falhas = 0;
+  private cursorChat = 0;
   private ultimoStats: StatsSnapshot | null = null;
   private enviadoStats: StatsSnapshot | null = null;
   private localStats: StatsSnapshot | null = null;
@@ -104,7 +105,7 @@ export class SessaoSala {
     this.consultando = true;
     try {
       const resync = this.falhas >= FALHAS_PARA_RESINCRONIZAR;
-      const chatAfter = resync ? 0 : (this.snap.chat.at(-1)?.id ?? 0);
+      const chatAfter = resync ? 0 : this.cursorChat;
       const res = await this.a.estado({ sessionId: this.conn?.sessionId() ?? null, chatAfter, beat: this.batimento(Date.now()) });
       if (this.snap.fase !== "na_sala") return;
       if (!res.ok) {
@@ -125,6 +126,7 @@ export class SessaoSala {
     const papel = eu?.papel ?? this.snap.papel;
     const mao = this.snap.mao && !!eu?.podeLevantarMao;
     this.recepcao?.sync(estado.faixas ?? []);
+    this.cursorChat = cursorDoChat(resync ? 0 : this.cursorChat, estado.chat ?? []);
     this.set({ estado, papel, mao, chat: juntarChat(this.snap.chat, estado.chat ?? [], estado.apagadas ?? [], resync, CHAT_GUARDA) });
     void this.garantirVoz();
     const ids = [...(estado.membros ?? []).map((m) => m.userId), ...this.snap.chat.flatMap((m) => (m.userId ? [m.userId] : []))];

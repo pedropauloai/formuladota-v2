@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { MensagemEstado } from "../estado";
-import { juntarChat } from "./chat-local";
+import { cursorDoChat, juntarChat } from "./chat-local";
 
 const m = (id: number): MensagemEstado => ({ id, userId: "u", texto: `t${id}`, em: "2026-11-24T20:00:00Z" });
 
@@ -20,5 +20,16 @@ describe("juntarChat (o chat guardado no navegador)", () => {
 
   it("depois de ficar sem conexão, recomeça do que o servidor mandou", () => {
     expect(juntarChat([m(1), m(2)], [m(5)], [], true, 100).map((x) => x.id)).toEqual([5]);
+  });
+});
+
+describe("cursorDoChat (até onde o servidor já mandou)", () => {
+  it("anda só com as mensagens que vieram do servidor", () => {
+    expect(cursorDoChat(5, [m(7), m(6)])).toBe(7);
+  });
+
+  it("sem novidade, fica onde estava, e nunca volta", () => {
+    expect(cursorDoChat(7, [])).toBe(7);
+    expect(cursorDoChat(9, [m(8)])).toBe(9);
   });
 });

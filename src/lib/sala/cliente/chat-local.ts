@@ -12,3 +12,10 @@ export function juntarChat(base: MensagemEstado[], novas: MensagemEstado[], apag
   for (const m of novas) byId.set(m.id, m);
   return [...byId.values()].filter((m) => !gone.has(m.id)).sort((x, y) => x.id - y.id).slice(-keep);
 }
+
+/** Até onde o servidor já mandou o chat: anda só com o que veio dele. A mensagem que a pessoa acabou de
+ *  mandar entra na lista na hora, mas não move o cursor, senão a de outra pessoa gravada um instante
+ *  antes (e ainda não recebida) nunca mais chegaria. */
+export function cursorDoChat(cursor: number, novas: MensagemEstado[]): number {
+  return novas.reduce((max, m) => Math.max(max, m.id), cursor);
+}

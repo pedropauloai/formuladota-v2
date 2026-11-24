@@ -71,8 +71,12 @@ async function chat(t, check, pDono, pOuv) {
   await pDono.locator(`[data-sala-apagar="${id}"]`).click();
   const sumiu = await waitFor(async () => (await pOuv.getByText("oi do e2e").count()) === 0, 15_000);
   check("a mensagem apagada pelo dono some para todos", !!sumiu);
+  await sleep(2100);
+  await s.apiPost(pOuv, `/api/sala/${t.palco.id}/chat`, { texto: "antes do dono" });
   await pDono.locator("[data-sala-chat-campo]").fill("mensagem do dono");
   await pDono.locator("[data-sala-chat-enviar]").click();
+  const naoSumiu = await waitFor(async () => (await pDono.getByText("antes do dono").count()) > 0, 15_000);
+  check("a mensagem de outra pessoa logo antes da sua não some do seu chat", !!naoSumiu);
   const doDono = await messageId(t.palco.id, "mensagem do dono");
   await pOuv.locator(`[data-sala-denunciar-mensagem="${doDono}"]`).click({ timeout: 15_000 });
   await pOuv.locator("[data-sala-denuncia-enviar]").click();

@@ -13,6 +13,7 @@ import { UserAvatar } from "@/components/ui/avatar";
 import { useConfirm } from "@/components/ui/confirm";
 import { Panel } from "@/components/v2";
 import type { AcaoDono } from "@/lib/sala/cliente/acoes";
+import { porMao } from "@/lib/sala/cliente/ordem";
 import type { MembroEstado } from "@/lib/sala/estado";
 import type { Pessoa } from "@/lib/sala/pessoas";
 import type { RoomKind } from "@/lib/sala/tipos";
@@ -142,8 +143,6 @@ function Grupo({ titulo, membros, props, data }: { titulo: string; membros: Memb
     </section>
   );
 }
-
-const porMao = (a: MembroEstado, b: MembroEstado) => (a.maoDesde ?? "~").localeCompare(b.maoDesde ?? "~");
 
 export function Pessoas(props: PessoasProps) {
   const t = useTranslations("sala");
