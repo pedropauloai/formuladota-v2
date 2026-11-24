@@ -65,15 +65,15 @@ describe("proximaPosicao", () => {
 
 const ppa = "00000000-0000-4000-8000-000000000002";
 const brutos: CanalBruto[] = [
-  { id: "t1", k: "texto", t: "geral", p: 10, v: "palco", a: "todos", o: ppa, c: true, n: 0 },
+  { id: "t1", k: "texto", t: "geral", p: 10, v: "palco", a: "todos", o: ppa, c: true, n: 0, x: 200 },
   {
-    id: "v1", k: "palco", t: "Live do PPA", p: 10, v: "palco", a: "todos", o: ppa, c: true, n: 3,
+    id: "v1", k: "palco", t: "Live do PPA", p: 10, v: "palco", a: "todos", o: ppa, c: true, n: 3, x: 30,
     m: [
       { u: ppa, r: "dono", mu: false, s: true, nm: "PeterPPA", sp: "persona", sa: "https://steam/a.jpg" },
       { u: "u2", r: "ouvinte", mu: true },
     ],
   },
-  { id: "v2", k: "palco", t: "Sala livre", p: 20, v: "livre", a: "beneficio", o: ppa, c: false, n: 0 },
+  { id: "v2", k: "palco", t: "Party 1", p: 20, v: "livre", a: "beneficio", o: ppa, c: false, n: 0, x: 5 },
 ];
 const privadas: PrivadaBruta[] = [{ id: "m1", k: "mentoria", t: "Mentoria: Jogador", o: ppa, n: 1 }];
 
@@ -90,11 +90,11 @@ describe("montarLista", () => {
     const [dono, ouvinte] = lista.voz[0]?.pessoas ?? [];
     expect(dono).toEqual({ userId: ppa, nome: "PeterPPA", avatarUrl: "https://steam/a.jpg", papel: "dono", mutado: false, tela: true });
     expect(ouvinte).toMatchObject({ userId: "u2", papel: "ouvinte", mutado: true, tela: false });
-    expect(lista.voz[0]).toMatchObject({ online: 3, aoVivo: true, modo: "palco" });
+    expect(lista.voz[0]).toMatchObject({ online: 3, lugares: 30, cheio: false, aoVivo: true, modo: "palco" });
   });
 
   it("marca o benefício, o modo livre e o chat fechado", () => {
-    expect(lista.voz[1]).toMatchObject({ beneficio: true, modo: "livre", chatAberto: false, aoVivo: false, online: 0 });
+    expect(lista.voz[1]).toMatchObject({ beneficio: true, modo: "livre", chatAberto: false, aoVivo: false, online: 0, lugares: 5, cheio: false });
     expect(lista.texto[0]).toMatchObject({ beneficio: false, chatAberto: true });
   });
 });
@@ -112,5 +112,14 @@ describe("destinoInicial", () => {
   it("sem canal de texto, o primeiro de voz; sem canal, nenhum", () => {
     expect(destinoInicial(montarLista(brutos.slice(2), []))).toBe("v2");
     expect(destinoInicial(montarLista([], privadas))).toBeNull();
+  });
+});
+
+describe("limite do canal de voz", () => {
+  it("canal cheio (3 de 3) aparece cheio; a sala privada não mostra limite", () => {
+    const party = { id: "p1", k: "palco" as const, t: "Party 1", p: 30, v: "livre" as const, a: "todos" as const, o: ppa, c: true, n: 3, x: 3 };
+    const lista = montarLista([party], privadas);
+    expect(lista.voz[0]).toMatchObject({ online: 3, lugares: 3, cheio: true });
+    expect(lista.privadas[0]).toMatchObject({ lugares: null, cheio: false });
   });
 });

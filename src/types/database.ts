@@ -5338,6 +5338,7 @@ export type Database = {
       try_form_match: { Args: { p_match_size?: number }; Returns: string }
       unequip_slot: { Args: { p_slot: string }; Returns: undefined }
       voice_channel_list: { Args: { p_is_test: boolean }; Returns: Json }
+      voice_chat_send: { Args: { p_body: string; p_room: string; p_user: string }; Returns: number | null }
       voice_private_rooms: { Args: { p_is_test: boolean; p_user: string }; Returns: Json }
       voice_room_access: { Args: { p_room: string; p_user: string }; Returns: Json }
       voice_room_identities: { Args: { p_ids: string[]; p_room: string }; Returns: Json }

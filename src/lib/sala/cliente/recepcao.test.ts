@@ -188,3 +188,46 @@ describe("Recepcao com volume por pessoa", () => {
     vi.unstubAllGlobals();
   });
 });
+
+describe("Recepcao com o som desligado (ensurdecer)", () => {
+  it("cala as vozes que já tocam e as que chegam depois, e devolve ao religar", () => {
+    vi.useFakeTimers();
+    const criados: Array<{ muted: boolean }> = [];
+    vi.stubGlobal("Audio", class {
+      muted = false;
+      volume = 1;
+      autoplay = false;
+      srcObject: unknown = null;
+      constructor() {
+        criados.push(this);
+      }
+      play() {
+        return Promise.resolve();
+      }
+      pause() {}
+    });
+    vi.stubGlobal("MediaStream", class {
+      constructor(public tracks: unknown[]) {}
+    });
+    const chegadas: Array<(t: MediaStreamTrack) => void> = [];
+    const conn = {
+      receive: (_ref: unknown, onTrack: (t: MediaStreamTrack) => void) => {
+        chegadas.push(onTrack);
+        return { stop: nada, setLayer: nada };
+      },
+    } as unknown as Connection;
+    const r = new Recepcao(conn, "f", nada, nada);
+    r.sync([faixa("voz-a", "voz")]);
+    chegadas[0]?.({ kind: "audio" } as MediaStreamTrack);
+    r.setSurdo(true);
+    expect(criados.map((a) => a.muted)).toEqual([true]);
+    r.sync([faixa("voz-a", "voz"), { ...faixa("voz-b", "voz"), userId: "outro" }]);
+    chegadas[1]?.({ kind: "audio" } as MediaStreamTrack);
+    expect(criados.map((a) => a.muted)).toEqual([true, true]);
+    r.setSurdo(false);
+    expect(criados.map((a) => a.muted)).toEqual([false, false]);
+    r.clear();
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+  });
+});

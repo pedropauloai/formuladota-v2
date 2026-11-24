@@ -18,8 +18,12 @@ interface Props {
   nomeDe: (userId: string) => string;
   volumeJogo: number;
   onVolumeJogo: (volume: number) => void;
+  /** Som desligado (ensurdecer): a tela fica muda, sem perder o volume escolhido. */
+  surdo?: boolean;
   /** Chat da sala pública, sobreposto à direita na tela cheia. */
   chat?: ReactNode;
+  /** Sem tela no ar: quem está no canal, em quadros grandes. */
+  participantes?: ReactNode;
 }
 
 function Video({ stream, muted, volume, label }: { stream: MediaStream; muted: boolean; volume: number; label: string }) {
@@ -108,15 +112,15 @@ export function Palco(p: Props) {
   const label = p.minhaTela ? t("suaTela") : p.telaDe ? t("telaDe", { nome: p.nomeDe(p.telaDe) }) : t("semTela");
   return (
     // Na altura da área do canal (100cqh) cabem o cabeçalho, a tela e a barra de controles sem rolar.
-    <div ref={caixa} className={cn("relative mx-auto w-full max-w-[calc((100cqh-12rem)*16/9)]", cheia && "bg-black")} data-sala-tela-cheia={cheia ? "sim" : "nao"}>
+    <div ref={caixa} className={cn("relative mx-auto w-full", cheia ? "max-w-none bg-black" : "max-w-[calc((100cqh-12rem)*16/9)]")} data-sala-tela-cheia={cheia ? "sim" : "nao"}>
       <Panel className={cn("relative w-full overflow-hidden p-0", cheia ? "h-screen rounded-none" : "aspect-video")} data-sala-palco={p.minhaTela ? "minha" : p.tela ? "remota" : "vazio"}>
         {p.minhaTela ? (
           <Video stream={p.minhaTela} muted volume={0} label={label} />
         ) : p.tela ? (
-          <Video stream={p.tela} muted={false} volume={p.volumeJogo} label={label} />
+          <Video stream={p.tela} muted={!!p.surdo} volume={p.volumeJogo} label={label} />
         ) : (
-          <div className="flex h-full flex-col items-center justify-center gap-3 text-text-muted">
-            <MonitorUp className="size-10" aria-hidden="true" />
+          <div className="flex h-full flex-col items-center justify-center gap-4 overflow-y-auto py-6 text-text-muted">
+            {p.participantes || <MonitorUp className="size-10" aria-hidden="true" />}
             <p className="text-sm">{label}</p>
           </div>
         )}

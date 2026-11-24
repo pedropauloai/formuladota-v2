@@ -44,12 +44,12 @@ function membership(input: AccessInput, room: RoomInfo, userId: string): Link {
   return { ok: true, role: input.member?.role === "falante" ? "falante" : "ouvinte" };
 }
 
-/** Sala cheia: o dono sempre entra; no canal de voz, o Battlepass também, e no modo palco quem foi
- *  chamado a falar (escolha 9). Na voz livre todo mundo fala, então falar não fura a fila. */
+/** Sala cheia: o dono sempre entra; no palco da live, o Battlepass e quem foi chamado a falar também
+ *  (escolha 9). Na voz livre o limite é o tamanho do grupo (a party de 5 do Dota): ninguém fura. */
 function passesWhenFull(room: RoomInfo, role: MemberRole, battlepass: boolean): boolean {
   if (role === "dono") return true;
-  if (room.kind !== "palco") return false;
-  return battlepass || (room.voiceMode === "palco" && role === "falante");
+  if (room.kind !== "palco" || room.voiceMode !== "palco") return false;
+  return battlepass || role === "falante";
 }
 
 export function decideRoomAccess(input: AccessInput): AccessDecision {

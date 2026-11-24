@@ -79,3 +79,31 @@ export async function compartilhar(opts: {
   };
   return tela;
 }
+
+type Retrato = { compartilhando?: boolean; minhaTela?: MediaStream | null; qualidadeTela?: Quality | null };
+
+/** A tela que a sessão compartilha agora: começa, troca a janela e para, e avisa o retrato da sessão. */
+export class Compartilhamento {
+  private noAr: TelaNoAr | null = null;
+
+  constructor(private readonly avisar: (r: Retrato) => void) {}
+
+  async iniciar(opts: Omit<Parameters<typeof compartilhar>[0], "onFim">): Promise<void> {
+    const tela = await compartilhar({ ...opts, onFim: () => this.parar() });
+    if (!tela) return;
+    this.noAr = tela;
+    this.avisar({ compartilhando: true, minhaTela: tela.stream, qualidadeTela: opts.qualidade });
+  }
+
+  /** Outra janela na mesma publicação: a plateia segue na mesma faixa, sem renegociar. */
+  async trocar(): Promise<void> {
+    if (this.noAr && (await this.noAr.trocar())) this.avisar({ minhaTela: this.noAr.stream });
+  }
+
+  parar(): void {
+    if (!this.noAr) return;
+    this.noAr.parar();
+    this.noAr = null;
+    this.avisar({ compartilhando: false, minhaTela: null, qualidadeTela: null });
+  }
+}

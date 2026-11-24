@@ -1,7 +1,8 @@
 "use client";
 
-// Quem está na sala: no canal de voz em modo palco, o palco (o dono e quem fala) e a plateia, com as mãos
-// levantadas primeiro; na voz livre, na mentoria e na party, uma lista só. Cada linha: avatar quadrado, nick, microfone, fala
+// Quem está na sala em que a pessoa está conectada, na árvore de canais (como no Discord): no canal de voz
+// em modo palco, o palco (o dono e quem fala) e a plateia, com as mãos levantadas primeiro; na voz livre,
+// na mentoria e na party, uma lista só. Cada linha: avatar quadrado, nick, microfone, fala
 // e tela; o dono chama, devolve, muta, expulsa e bane; qualquer um bloqueia e denuncia. As ações
 // aparecem ao passar o mouse (ou no foco do teclado), por cima do fim da linha, para o nick caber;
 // chamar ao palco fica à vista para quem levantou a mão.
@@ -11,7 +12,6 @@ import { Ban, Crown, Flag, Gavel, Hand, Mic, MicOff, MonitorUp, UserMinus, UserP
 import { useState, type ReactNode } from "react";
 import { UserAvatar } from "@/components/ui/avatar";
 import { useConfirm } from "@/components/ui/confirm";
-import { Panel } from "@/components/v2";
 import type { AcaoDono } from "@/lib/sala/cliente/acoes";
 import { porMao } from "@/lib/sala/cliente/ordem";
 import type { MembroEstado } from "@/lib/sala/estado";
@@ -91,16 +91,16 @@ function VolumeDaPessoa({ userId, nome, props }: { userId: string; nome: string;
   const t = useTranslations("sala");
   const volume = props.volumes[userId] ?? 1;
   return (
-    <label className="flex items-center gap-2 pb-2 pl-11 text-xs text-text-muted">
+    <label className="flex items-center gap-2 pb-1.5 pl-8 text-xs text-text-muted">
       <Volume2 className="size-3.5" aria-hidden="true" />
       <span className="sr-only">{t("volumeDe", { nome })}</span>
-      <input type="range" min={0} max={1} step={0.05} value={volume} onChange={(e) => props.onVolumeDe(userId, Number(e.target.value))} data-sala-volume-de={userId} className="w-32 accent-[var(--color-play-primary)]" />
+      <input type="range" min={0} max={1} step={0.05} value={volume} onChange={(e) => props.onVolumeDe(userId, Number(e.target.value))} data-sala-volume-de={userId} className="w-28 accent-[var(--color-play-primary)]" />
       <span className="tabular-nums">{Math.round(volume * 100)}%</span>
     </label>
   );
 }
 
-function Identidade({ m, nome, proprio, rotulos, volumeAberto, onNome }: { m: MembroEstado; nome: string; proprio: boolean; rotulos: Array<string | false | null>; volumeAberto: boolean; onNome: () => void }) {
+function Identidade({ m, nome, proprio, volumeAberto, onNome }: { m: MembroEstado; nome: string; proprio: boolean; volumeAberto: boolean; onNome: () => void }) {
   const t = useTranslations("sala");
   return (
     <div className="min-w-0 flex-1">
@@ -116,7 +116,6 @@ function Identidade({ m, nome, proprio, rotulos, volumeAberto, onNome }: { m: Me
         )}
         {proprio && <span className="text-xs text-text-muted">({t("voce")})</span>}
       </p>
-      <p className="text-xs text-text-muted">{rotulos.filter(Boolean).join(" · ")}</p>
     </div>
   );
 }
@@ -135,12 +134,12 @@ function Linha({ m, props }: { m: MembroEstado; props: PessoasProps }) {
   const chamarAVista = props.souDono && props.tipo === "palco" && props.modo === "palco" && m.papel === "ouvinte" && !!m.maoDesde;
   const [volumeAberto, setVolumeAberto] = useState(false);
   return (
-    <li data-sala-membro={m.userId} data-sala-papel-membro={m.papel} data-sala-online={m.online ? "sim" : "nao"} data-sala-mao-membro={m.maoDesde ? "sim" : "nao"}>
-     <div className="group relative flex items-center gap-3 py-2">
-      <UserAvatar src={avatar} alt={nome} fallback={nome.slice(0, 2).toUpperCase()} size="sm" className={cn(falando && "ring-2 ring-play-primary")} />
-      <Identidade m={m} nome={nome} proprio={proprio} rotulos={rotulos} volumeAberto={volumeAberto} onNome={() => setVolumeAberto((v) => !v)} />
-      {m.papel !== "ouvinte" && (m.mutado ? <MicOff className="size-4 text-text-muted" aria-hidden="true" /> : <Mic className={cn("size-4", falando ? "text-play-primary" : "text-text-muted")} aria-hidden="true" />)}
-      {m.compartilhandoTela && <MonitorUp className="size-4 text-gold" aria-hidden="true" />}
+    <li data-sala-membro={m.userId} data-sala-papel-membro={m.papel} data-sala-online={m.online ? "sim" : "nao"} data-sala-mao-membro={m.maoDesde ? "sim" : "nao"} title={rotulos.filter(Boolean).join(" · ") || undefined}>
+     <div className="group relative flex h-8 items-center gap-2 rounded-sm px-1 hover:bg-bg-elevated/60">
+      <UserAvatar src={avatar} alt={nome} fallback={nome.slice(0, 2).toUpperCase()} size="xs" className={cn("rounded-sm", falando && "ring-2 ring-play-primary")} />
+      <Identidade m={m} nome={nome} proprio={proprio} volumeAberto={volumeAberto} onNome={() => setVolumeAberto((v) => !v)} />
+      {m.papel !== "ouvinte" && (m.mutado ? <MicOff className="size-3.5 shrink-0 text-text-muted" aria-hidden="true" /> : <Mic className={cn("size-3.5 shrink-0", falando ? "text-play-primary" : "text-text-muted")} aria-hidden="true" />)}
+      {m.compartilhandoTela && <MonitorUp className="size-3.5 shrink-0 text-brand-primary" aria-hidden="true" />}
       {!proprio && (
         <div
           className="absolute inset-y-0 right-0 flex items-center gap-0.5 pl-3 group-hover:bg-[var(--plate-bottom)] group-focus-within:bg-[var(--plate-bottom)]"
@@ -171,10 +170,10 @@ function Linha({ m, props }: { m: MembroEstado; props: PessoasProps }) {
 function Grupo({ titulo, membros, props, data }: { titulo: string; membros: MembroEstado[]; props: PessoasProps; data: string }) {
   return (
     <section data-sala-grupo={data}>
-      <h3 className="mt-2 text-xs uppercase tracking-wide text-text-muted">
+      <h3 className="mt-1 px-1 text-[10px] font-bold uppercase tracking-[0.12em] text-text-muted">
         {titulo} <span>{membros.length}</span>
       </h3>
-      <ul className="divide-y divide-border-subtle">
+      <ul>
         {membros.map((m) => (
           <Linha key={m.userId} m={m} props={props} />
         ))}
@@ -188,22 +187,19 @@ export function Pessoas(props: PessoasProps) {
   const online = props.membros.filter((m) => m.online);
   const falantes = online.filter((m) => m.papel === "falante").length;
   return (
-    <Panel className="p-4" data-sala-pessoas={online.length}>
-      <h2 className="mb-1 font-display-condensed text-xl uppercase text-text-display">
-        {t("pessoas")} <span className="text-text-muted">{online.length}</span>
-      </h2>
+    <div className="pl-5" data-sala-pessoas={online.length} aria-label={t("pessoasRotulo", { n: online.length })}>
       {props.tipo === "palco" && props.modo === "palco" ? (
         <>
           <Grupo titulo={t("noPalco", { falantes, max: props.falantesMax })} membros={online.filter((m) => m.papel !== "ouvinte")} props={props} data="palco" />
           <Grupo titulo={t("plateia")} membros={online.filter((m) => m.papel === "ouvinte").sort(porMao)} props={props} data="plateia" />
         </>
       ) : (
-        <ul className="divide-y divide-border-subtle">
+        <ul>
           {online.map((m) => (
             <Linha key={m.userId} m={m} props={props} />
           ))}
         </ul>
       )}
-    </Panel>
+    </div>
   );
 }

@@ -72,6 +72,10 @@ export interface CanalItem {
   beneficio: boolean;
   chatAberto: boolean;
   online: number;
+  /** Limite de pessoas do canal de voz ("3/5"); nulo no canal de texto e na sala privada. */
+  lugares: number | null;
+  /** Canal de voz lotado: quem chega não entra (só o dono). */
+  cheio: boolean;
   pessoas: PessoaNoCanal[];
   /** Alguém compartilha a tela agora. */
   aoVivo: boolean;
@@ -92,14 +96,15 @@ function pessoa(m: NonNullable<CanalBruto["m"]>[number]): PessoaNoCanal {
 
 function item(c: CanalBruto): CanalItem {
   const pessoas = (c.m ?? []).map(pessoa);
+  const lugares = c.k === "texto" ? null : c.x;
   return {
     id: c.id, titulo: c.t, tipo: c.k, modo: c.v, beneficio: c.a === "beneficio", chatAberto: c.c,
-    online: c.n, pessoas, aoVivo: pessoas.some((p) => p.tela), donoId: c.o,
+    online: c.n, lugares, cheio: lugares !== null && c.n >= lugares, pessoas, aoVivo: pessoas.some((p) => p.tela), donoId: c.o,
   };
 }
 
 function privada(p: PrivadaBruta): CanalItem {
-  return { id: p.id, titulo: p.t, tipo: p.k, modo: "palco", beneficio: false, chatAberto: false, online: p.n, pessoas: [], aoVivo: false, donoId: p.o };
+  return { id: p.id, titulo: p.t, tipo: p.k, modo: "palco", beneficio: false, chatAberto: false, online: p.n, lugares: null, cheio: false, pessoas: [], aoVivo: false, donoId: p.o };
 }
 
 export function montarLista(canais: CanalBruto[], privadas: PrivadaBruta[]): ListaDeCanais {

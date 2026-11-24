@@ -168,11 +168,18 @@ describe("decideRoomAccess: canais do servidor", () => {
     expect(decideRoomAccess(input({ room: livre, userId: "ppa", member: null }))).toEqual({ ok: true, role: "dono" });
   });
 
-  it("canal de voz livre cheio: quem fala não fura a fila, só o Battlepass e o dono", () => {
-    const cheio = { room: livre, member: null, onlineOthers: 30 };
+  it("canal de voz livre cheio (a party de 5 do Dota): ninguém fura a fila, nem o Battlepass; só o dono", () => {
+    const party = { ...livre, maxMembers: 5 };
+    const cheio = { room: party, member: null, onlineOthers: 5 };
     expect(decideRoomAccess(input(cheio))).toEqual({ ok: false, code: "sala_lotada" });
-    expect(decideRoomAccess(input({ ...cheio, battlepass: true }))).toEqual({ ok: true, role: "falante" });
+    expect(decideRoomAccess(input({ ...cheio, battlepass: true }))).toEqual({ ok: false, code: "sala_lotada" });
     expect(decideRoomAccess(input({ ...cheio, userId: "ppa" }))).toEqual({ ok: true, role: "dono" });
+    expect(decideRoomAccess(input({ ...cheio, onlineOthers: 4 }))).toEqual({ ok: true, role: "falante" });
+  });
+
+  it("quem já está no canal cheio não cai (a lotação vale para quem chega)", () => {
+    const party = { ...livre, maxMembers: 5 };
+    expect(decideRoomAccess(input({ room: party, member: { role: "falante", status: "ativo", forceMuted: false }, onlineOthers: 5, alreadyIn: true }))).toEqual({ ok: true, role: "falante" });
   });
 
   it("canal de texto cheio: só o dono entra", () => {

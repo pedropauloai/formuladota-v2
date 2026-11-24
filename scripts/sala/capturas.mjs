@@ -94,20 +94,20 @@ async function painelForaDaSala(page) {
   }
 }
 
-/** Os canais do servidor de teste: dois de texto e, com a sala da live, dois de voz. */
+/** Os canais do servidor de teste, como os de produção: #geral e, com a Live do PPA, as Party 1, 2 e 3 (limite de 5). */
 async function canais(p) {
   const geral = await s.createCanal(p.dono, { tipo: "texto", titulo: "geral", posicao: 10 });
-  const dicas = await s.createCanal(p.dono, { tipo: "texto", titulo: "dicas-de-mid", posicao: 20 });
-  const livre = await s.createCanal(p.dono, { tipo: "palco", titulo: "Sala livre", posicao: 20, modo: "livre" });
-  made.rooms.push(geral.id, dicas.id, livre.id);
-  return { geral, dicas, livre };
+  const partys = [];
+  for (const n of [1, 2, 3]) partys.push(await s.createCanal(p.dono, { tipo: "palco", titulo: `Party ${n}`, posicao: 10 + n * 10, modo: "livre", limite: 5 }));
+  made.rooms.push(geral.id, ...partys.map((r) => r.id));
+  return { geral, livre: partys[0] };
 }
 
 /** Voz livre: quem entra já fala; a coluna mostra quem está em cada canal de voz. */
 async function vozLivre(p, ctx, c) {
   const pF = await s.enter(await ctx(p.f), c.livre.id, "f");
   const pG = await s.enter(await ctx(p.g), c.livre.id, "g");
-  await waitFor(async () => (await pF.locator(`[data-canal-pessoa="${p.g.id}"]`).count()) > 0, 30_000);
+  await waitFor(async () => (await pF.locator(`[data-sala-membro="${p.g.id}"]`).count()) > 0, 30_000);
   await waitFor(async () => (await s.attr(pF, "data-audio-bytes")) > 0, 30_000);
   await sleep(2500);
   await foto(pF, "09-voz-livre.png");
@@ -123,8 +123,8 @@ async function canalTexto(p, c, plateia, pDono) {
   await pDono.locator('[data-canal-fase="dentro"]').waitFor({ timeout: 30_000 });
   for (const [page, texto] of [[pDono, "Servidor novo do FORMULADOTA: canais de texto e de voz aqui na esquerda."], [pC, "boa! dá pra ficar na voz e ler aqui ao mesmo tempo"], [pC, "alguém pra duo depois da live?"], [pDono, "Sala livre é pra conversar sem palco, todo mundo fala."]]) {
     await falar(page, texto);
-    // Uma mensagem a cada 2 s por pessoa (a regra do chat).
-    await sleep(2100);
+    // Uma mensagem a cada 2 s por pessoa (a regra do chat), com folga.
+    await sleep(2600);
   }
   await waitFor(async () => (await pC.locator("[data-sala-mensagem]").count()) >= 4, 20_000);
   await sleep(2500);

@@ -4865,6 +4865,14 @@
     "servidorVazioTitulo": "Todavía no hay canales",
     "servidorVazioTexto": "Los canales de texto y de voz de FORMULADOTA aparecen aquí en cuanto PPA abra el primero.",
     "modoPalco": "Escenario: habla quien el dueño llame",
-    "modoLivre": "Voz libre: quien entra ya habla"
+    "modoLivre": "Voz libre: quien entra ya habla",
+    "ensurdecer": "Ensordecer (no oyes a nadie y se silencia tu micrófono)",
+    "religarSom": "Activar el sonido",
+    "dicaVoz": "Sin pulsar para hablar: con Dota en primer plano, el navegador no recibe atajos. Tu voz se abre sola, con reducción de ruido, y silenciar está aquí y en el panel de la esquina.",
+    "trocarCanalTitulo": "Cambiar de canal",
+    "trocarCanalTexto": "Estás compartiendo la pantalla. Entrar en otro canal de voz detiene la pantalla y sale de este.",
+    "canalCheio": "Canal lleno",
+    "salaAtual": "Sala actual",
+    "pessoasRotulo": "{n} en la sala"
   }
 }

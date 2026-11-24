@@ -22,6 +22,8 @@ export function montarLigacao(o: {
   foraDaSala: boolean;
   /** Volume de cada pessoa guardado neste navegador. */
   volumes: Record<string, number>;
+  /** Som desligado (ensurdecer), que vale também na ligação refeita. */
+  surdo: boolean;
   rotularVoz: (ref: TrackRef) => void;
   onTela: (stream: MediaStream | null, userId: string | null) => void;
   onBloqueio: (bloqueado: boolean) => void;
@@ -32,6 +34,7 @@ export function montarLigacao(o: {
   const voz = new VozLocal(conn, nivel, o.rotularVoz);
   const recepcao = new Recepcao(conn, o.camada, o.onTela, (userId, track) => nivel.watch(userId, track), o.onBloqueio, o.onTravou);
   recepcao.setForaDaSala(o.foraDaSala);
+  recepcao.setSurdo(o.surdo);
   for (const [userId, volume] of Object.entries(o.volumes)) recepcao.setVolumeDe(userId, volume);
   // Conexão que o navegador deu por perdida (a rede caiu e não voltou): a sessão refaz.
   conn.onState((estado) => {

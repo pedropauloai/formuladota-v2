@@ -74,6 +74,13 @@ begin
   j := public.voice_room_snapshot(r1, (select max(id) from public.voice_room_messages where room_id = r1));
   r := array_append(r, (case when jsonb_array_length(j->'chat') = 0
     then 'A0c_estado_comum_manda_so_o_chat_novo=ok' else 'A0c_estado_comum_manda_so_o_chat_novo=FALHOU' end)::text);
+  r := array_append(r, (case when public.voice_chat_send(r1, u3, 'ritmo um') is not null
+                                 and public.voice_chat_send(r1, u3, 'colada') is null
+                                 and public.voice_chat_send(r2, u3, 'outra sala') is not null
+                            then 'AN_o_banco_segura_uma_mensagem_a_cada_2s=ok' else 'AN_o_banco_segura_uma_mensagem_a_cada_2s=FALHOU' end)::text);
+  r := array_append(r, (case when not has_function_privilege('authenticated', 'public.voice_chat_send(uuid, uuid, text)', 'execute')
+                                 and not has_function_privilege('anon', 'public.voice_chat_send(uuid, uuid, text)', 'execute')
+                            then 'AO_navegador_nao_chama_o_envio_do_chat=ok' else 'AO_navegador_nao_chama_o_envio_do_chat=FALHOU' end)::text);
   j := public.voice_room_identities(r1, array[u1, u2, u3]);
   r := array_append(r, (case when j ? u1::text and j ? u2::text and not j ? u3::text
     then 'A0d_nomes_so_de_quem_e_da_sala=ok' else 'A0d_nomes_so_de_quem_e_da_sala=FALHOU' end)::text);

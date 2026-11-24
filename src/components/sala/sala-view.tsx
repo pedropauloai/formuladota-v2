@@ -1,13 +1,16 @@
 "use client";
 
-// Canal de voz do servidor (spec, seção 14), com o kit v2 sem pele nova: o cabeçalho do canal, o palco
-// com a tela e os controles, e ao lado o chat (canal de voz público) e as pessoas. Os atributos data-*
-// expõem o que o e2e confere.
+// Canal de voz do servidor (spec, seção 14), no molde do Discord e da Twitch: o cabeçalho do canal, o
+// palco com a tela ocupando o espaço, a barra de controles compacta embaixo e, à direita, o chat do canal
+// de voz público numa coluna que se esconde. Quem está na sala fica na árvore de canais. Um clique no
+// canal (?entrar=1) já entra. Os atributos data-* expõem o que o e2e confere.
 
-import { useEffect, useState, useSyncExternalStore, type ComponentProps } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type ComponentProps } from "react";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Loader2, Lock, Radio, ShieldCheck, Volume2 } from "lucide-react";
 import { Panel, plate } from "@/components/v2";
+import { useRouter } from "@/i18n/navigation";
 import { captureSupport } from "@/lib/sala/cliente/midia";
 import type { SessaoSala, SessaoSnapshot } from "@/lib/sala/cliente/sessao-sala";
 import { useSala } from "@/lib/sala/cliente/use-sala";
@@ -18,7 +21,7 @@ import { Chat } from "./chat";
 import { Controles } from "./controles";
 import { Denuncia, type AlvoTela } from "./denuncia";
 import { Palco } from "./palco";
-import { Pessoas } from "./pessoas";
+import { Participantes } from "./participantes";
 import { QualidadeTela } from "./qualidade-tela";
 import { MODERAR_ERRO, PODE_VOLTAR, SAIDA_TEXTO } from "./textos";
 
@@ -109,6 +112,7 @@ function Entrada({ snap, entrar, retomando, mostrarTela }: { snap: SessaoSnapsho
               {snap.fase === "inicial" ? t("entrar") : t("entrarDeNovo")}
             </button>
             <p className="text-xs text-text-muted">{t("entrarAviso")}</p>
+            <p className="text-xs text-text-muted">{t("dicaVoz")}</p>
           </>
         )
       )}
@@ -117,7 +121,30 @@ function Entrada({ snap, entrar, retomando, mostrarTela }: { snap: SessaoSnapsho
   );
 }
 
-type Alvo = ({ userId: string } | { messageId: number }) & AlvoTela;
+type Alvo = { messageId: number } & AlvoTela;
+
+const CHAVE_CHAT = "formuladota:sala-chat";
+
+/** A coluna do chat se esconde e volta; a escolha fica neste navegador. Só desenha na sala (no cliente). */
+function useColunaDoChat(): [boolean, () => void] {
+  const [aberta, setAberta] = useState(() => {
+    try {
+      return window.localStorage.getItem(CHAVE_CHAT) !== "0";
+    } catch {
+      return true;
+    }
+  });
+  const alternar = () =>
+    setAberta((v) => {
+      try {
+        window.localStorage.setItem(CHAVE_CHAT, v ? "0" : "1");
+      } catch {
+        // Sem armazém (aba anônima): a escolha vale só agora.
+      }
+      return !v;
+    });
+  return [aberta, alternar];
+}
 
 /** As mesmas props do chat na coluna e sobreposto na tela cheia. */
 function propsDoChat(snap: SessaoSnapshot, sessao: SessaoSala, o: { nomeDe: (id: string) => string; souDono: boolean; donoId: string | null; setAlvo: (a: Alvo) => void; banir: (id: string) => void }): ComponentProps<typeof Chat> {
@@ -147,10 +174,12 @@ function NaSala({ roomId, tipo, modo, mostrarTela, snap, sessao }: Props & { sna
   }, [alvo]);
   const [escolhendo, setEscolhendo] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+  const [colunaChat, alternarChat] = useColunaDoChat();
   const estado = snap.estado;
   const eu = estado?.eu ?? null;
   const membros = estado?.membros ?? [];
   const nomeDe = (id: string) => snap.pessoas[id]?.nome ?? t("jogador");
+  const quadros = <Participantes membros={membros} pessoas={snap.pessoas} falando={snap.falando} soPalco={tipo === "palco" && modo === "palco"} />;
   const souDono = snap.papel === "dono";
   const donoId = membros.find((m) => m.papel === "dono")?.userId ?? null;
   const moderar = async (userId: string, acao: Parameters<SessaoSala["moderar"]>[1]) => {
@@ -159,17 +188,17 @@ function NaSala({ roomId, tipo, modo, mostrarTela, snap, sessao }: Props & { sna
   };
   const chat = tipo === "palco" ? propsDoChat(snap, sessao, { nomeDe, souDono, donoId, setAlvo, banir: (id) => void moderar(id, "banir") }) : null;
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,1fr)_340px] min-[2600px]:grid-cols-[minmax(0,1fr)_420px]" data-sala-id={roomId}>
-      <div className="min-w-0 space-y-4">
-        <Palco tela={snap.tela} telaDe={snap.telaDe} minhaTela={snap.minhaTela} nomeDe={nomeDe} volumeJogo={volumeJogo} onVolumeJogo={setVolumeJogo} chat={chat && <Chat {...chat} sobreposto />} />
+    <div className="flex gap-4" data-sala-id={roomId}>
+      <div className="min-w-0 flex-1 space-y-3">
+        <Palco tela={snap.tela} telaDe={snap.telaDe} minhaTela={snap.minhaTela} nomeDe={nomeDe} volumeJogo={volumeJogo} onVolumeJogo={setVolumeJogo} surdo={snap.surdo} participantes={quadros} chat={chat && <Chat {...chat} sobreposto />} />
         <Controles
-          vozNoAr={snap.vozNoAr} mutado={snap.mutado} mutadoPeloDono={!!eu?.mutadoPeloDono} semMicrofone={snap.semMicrofone}
+          vozNoAr={snap.vozNoAr} mutado={snap.mutado} mutadoPeloDono={!!eu?.mutadoPeloDono} semMicrofone={snap.semMicrofone} surdo={snap.surdo}
           podeLevantarMao={!!eu?.podeLevantarMao} mao={snap.mao} mostrarTela={mostrarTela} compartilhando={snap.compartilhando}
           podeTela={!!eu?.podeCompartilharTela} motivoTela={eu?.motivoTela ?? null} assistindo={!!snap.tela && !snap.minhaTela}
-          camada={snap.camada} volumeVoz={volumeVoz} volumeJogo={volumeJogo}
-          onMudo={() => sessao.alternarMudo()} onMao={() => sessao.alternarMao()} onTela={() => setEscolhendo(true)}
+          camada={snap.camada} volumeVoz={volumeVoz} volumeJogo={volumeJogo} temChat={!!chat} chatAberto={colunaChat}
+          onMudo={() => sessao.alternarMudo()} onSurdo={() => sessao.alternarSurdo()} onMao={() => sessao.alternarMao()} onTela={() => setEscolhendo(true)}
           onPararTela={() => sessao.pararTela()} onTrocarTela={() => void sessao.trocarTela()} onCamada={(c) => sessao.escolherCamada(c)}
-          onVolumeVoz={(v) => { setVolumeVoz(v); sessao.setVoiceVolume(v); }} onVolumeJogo={setVolumeJogo} onSair={() => sessao.sair()}
+          onVolumeVoz={(v) => { setVolumeVoz(v); sessao.setVoiceVolume(v); }} onVolumeJogo={setVolumeJogo} onChat={alternarChat} onSair={() => sessao.sair()}
         />
         {snap.audioBloqueado && (
           <button type="button" onClick={() => sessao.liberarAudio()} data-sala-ativar-som="" className={plate({ kind: "cta" })}>
@@ -180,21 +209,17 @@ function NaSala({ roomId, tipo, modo, mostrarTela, snap, sessao }: Props & { sna
         {erro && <p role="alert" className="text-xs text-error">{t(erro)}</p>}
         <Avisos mostrarTela={mostrarTela && !snap.compartilhando} />
       </div>
-      <aside className="min-w-0 space-y-4">
-        {chat && <Chat {...chat} />}
-        <Pessoas
-          membros={membros} pessoas={snap.pessoas} eu={eu?.userId ?? null} souDono={souDono} tipo={tipo} falando={snap.falando}
-          falantesMax={estado?.sala?.falantesMax ?? 0} onModerar={(id, acao) => void moderar(id, acao)}
-          onBloquear={(id) => void sessao.bloquear(id)} onDenunciar={(id) => setAlvo({ tipo: "pessoa", userId: id, nome: nomeDe(id) })}
-          modo={modo} volumes={snap.volumes} onVolumeDe={(id, v) => sessao.setVolumeDe(id, v)}
-        />
-      </aside>
+      {chat && colunaChat && (
+        <aside className="h-[calc(100cqh-4.5rem)] w-[340px] shrink-0 min-[2600px]:w-[400px]" data-sala-chat-coluna="">
+          <Chat {...chat} coluna />
+        </aside>
+      )}
       <Denuncia
         alvo={alvo}
         onClose={() => setAlvo(null)}
         onSend={async (motivo, detalhes) => {
           if (!alvo) return { ok: false };
-          const res = await sessao.denunciar("messageId" in alvo ? { messageId: alvo.messageId } : { userId: alvo.userId }, motivo, detalhes);
+          const res = await sessao.denunciar({ messageId: alvo.messageId }, motivo, detalhes);
           return res.ok ? { ok: true } : { ok: false, code: res.code };
         }}
       />
@@ -207,8 +232,22 @@ function NaSala({ roomId, tipo, modo, mostrarTela, snap, sessao }: Props & { sna
   );
 }
 
+/** Um clique no canal de voz da árvore (?entrar=1) já entra; o endereço volta ao do canal. */
+function useEntrarPeloClique(roomId: string, entrar: () => void, pronta: boolean) {
+  const params = useSearchParams();
+  const router = useRouter();
+  const feito = useRef(false);
+  useEffect(() => {
+    if (params.get("entrar") !== "1" || feito.current) return;
+    feito.current = true;
+    router.replace(`/sala/${roomId}`);
+    if (pronta) entrar();
+  }, [params, router, roomId, entrar, pronta]);
+}
+
 export function SalaView(props: Props) {
   const { snap, sessao, entrar, retomando } = useSala(props.roomId, props.titulo, props.tipo);
+  useEntrarPeloClique(props.roomId, entrar, snap.fase === "inicial" && !retomando);
   return (
     <div
       // Toda a largura ao lado da coluna de canais (a escala da tela grande vem do servidor).

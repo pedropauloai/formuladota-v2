@@ -5,13 +5,13 @@
 
 import type { Estado } from "../estado";
 import { SNAPSHOT_INICIAL, type SessaoSnapshot } from "./retrato";
-import type { Layer, Quality } from "../tipos";
+import type { Layer, Quality, TrackLabel } from "../tipos";
 import { api, type AcaoDono, type AlvoDenuncia, type Entrada } from "./acoes";
 import { comMinha, cursorDoChat, juntarChat } from "./chat-local";
 import { desmontarLigacao, montarLigacao, quemFala, type Ligacao } from "./ligacao";
 import { Pulso } from "./pulso";
 import { estadoIntervalMs, vozCaiu } from "./ritmo";
-import { compartilhar, type TelaNoAr } from "./tela-local";
+import { Compartilhamento } from "./tela-local";
 import { guardarVolume, volumesGuardados } from "./volumes-local";
 
 export { SNAPSHOT_INICIAL, type Fase, type SessaoSnapshot } from "./retrato";
@@ -28,7 +28,8 @@ export class SessaoSala {
   private refazendo = false;
   private quedasDeVoz = 0;
   private entrada: Entrada | null = null;
-  private telaNoAr: TelaNoAr | null = null;
+  private readonly tela = new Compartilhamento((r) => this.set(r));
+  private mutadoSemSurdo = false;
   private timers: number[] = [];
   private proxima: number | null = null;
   private consultando = false;
@@ -74,7 +75,7 @@ export class SessaoSala {
   private montar(entrada: Entrada, camada: Layer): void {
     const volumes = volumesGuardados();
     this.lig = montarLigacao({
-      roomId: this.roomId, entrada, camada, foraDaSala: !this.vistaAberta, volumes,
+      roomId: this.roomId, entrada, camada, foraDaSala: !this.vistaAberta, volumes, surdo: this.snap.surdo,
       rotularVoz: (ref) => void this.a.rotular(ref.sessionId, ref.trackName, "voz", null),
       onTela: (tela, telaDe) => this.set({ tela, telaDe }),
       onBloqueio: (audioBloqueado) => audioBloqueado !== this.snap.audioBloqueado && this.set({ audioBloqueado }),
@@ -190,8 +191,20 @@ export class SessaoSala {
 
   alternarMudo(): void {
     const mutado = !this.snap.mutado;
+    // Abrir o microfone com o som desligado religa o som também, como no Discord.
+    this.lig?.recepcao.setSurdo(this.snap.surdo && mutado);
     this.lig?.voz.setMutado(mutado);
-    this.set({ mutado });
+    this.set({ mutado, surdo: this.snap.surdo && mutado });
+    this.agora();
+  }
+
+  /** Ensurdecer, como no Discord: para de ouvir as vozes e a tela e muta o microfone; religar devolve o microfone como estava. */
+  alternarSurdo(): void {
+    const surdo = !this.snap.surdo;
+    if (surdo) this.mutadoSemSurdo = this.snap.mutado;
+    this.lig?.recepcao.setSurdo(surdo);
+    this.lig?.voz.setMutado(surdo || this.mutadoSemSurdo);
+    this.set({ surdo, mutado: surdo || this.mutadoSemSurdo });
     this.agora();
   }
 
@@ -209,25 +222,12 @@ export class SessaoSala {
   async compartilharTela(qualidade: Quality): Promise<void> {
     const conn = this.lig?.conn;
     if (!conn || !this.entrada || this.snap.compartilhando || this.snap.estado?.eu?.podeCompartilharTela === false) return;
-    const tela = await compartilhar({
-      conn, qualidade, videoMaxKbps: this.entrada.videoMaxKbps, onFim: () => this.pararTela(),
-      rotular: (ref, tipo, q) => void this.a.rotular(ref.sessionId, ref.trackName, tipo, q),
-    });
-    if (!tela) return;
-    this.telaNoAr = tela;
-    this.set({ compartilhando: true, minhaTela: tela.stream, qualidadeTela: qualidade });
+    const rotular = (ref: { sessionId: string; trackName: string }, tipo: TrackLabel, q: Quality | null) => void this.a.rotular(ref.sessionId, ref.trackName, tipo, q);
+    await this.tela.iniciar({ conn, qualidade, videoMaxKbps: this.entrada.videoMaxKbps, rotular });
   }
 
-  /** Outra janela na mesma publicação: a plateia segue na mesma faixa, sem renegociar. */
-  async trocarTela(): Promise<void> {
-    if (this.telaNoAr && (await this.telaNoAr.trocar())) this.set({ minhaTela: this.telaNoAr.stream });
-  }
-
-  pararTela(): void {
-    this.telaNoAr?.parar();
-    this.telaNoAr = null;
-    if (this.snap.compartilhando || this.snap.minhaTela) this.set({ compartilhando: false, minhaTela: null, qualidadeTela: null });
-  }
+  trocarTela = (): Promise<void> => this.tela.trocar();
+  pararTela = (): void => this.tela.parar();
 
   /** A página da sala aberta mostra a tela na camada escolhida; fora dela, a tela vem na leve. */
   setVistaAberta(aberta: boolean): void {
@@ -284,7 +284,7 @@ export class SessaoSala {
 
   private encerrar(motivo: string): void {
     this.limpar();
-    this.set({ fase: "saiu", motivo, estado: null, tela: null, telaDe: null, minhaTela: null, compartilhando: false, falando: [], vozNoAr: false, mao: false, audioBloqueado: false, reconectando: false });
+    this.set({ fase: "saiu", motivo, estado: null, tela: null, telaDe: null, minhaTela: null, compartilhando: false, falando: [], vozNoAr: false, mao: false, audioBloqueado: false, reconectando: false, surdo: false });
   }
 
   private limpar(): void {

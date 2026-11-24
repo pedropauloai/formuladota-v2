@@ -5,7 +5,7 @@
 // de baixo, em cima da party (escolha do PPA em 24/11/2026); na /sala, no pé da coluna de canais.
 
 import { useTranslations } from "next-intl";
-import { Loader2, LogOut, Mic, MicOff, MonitorOff, Volume2, X } from "lucide-react";
+import { HeadphoneOff, Headphones, Loader2, LogOut, Mic, MicOff, MonitorOff, Volume2, X } from "lucide-react";
 import { LiveDot, panel } from "@/components/v2";
 import { Link, usePathname } from "@/i18n/navigation";
 import { salaAtiva } from "@/lib/sala/cliente/sala-ativa";
@@ -51,6 +51,9 @@ function Controles({ snap, sessao }: { snap: SessaoSnapshot; sessao: SessaoSala 
           {snap.mutado ? <MicOff className="size-4 text-error" /> : <Mic className="size-4" />}
         </Botao>
       )}
+      <Botao titulo={snap.surdo ? t("religarSom") : t("ensurdecer")} onClick={() => sessao.alternarSurdo()} data="data-painel-voz-surdo">
+        {snap.surdo ? <HeadphoneOff className="size-4 text-error" /> : <Headphones className="size-4" />}
+      </Botao>
       {snap.compartilhando && (
         <Botao titulo={t("pararTela")} onClick={() => sessao.pararTela()} data="data-painel-voz-parar-tela">
           <MonitorOff className="size-4" />

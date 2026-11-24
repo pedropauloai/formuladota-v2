@@ -87,6 +87,8 @@ export const CanalBrutoSchema = z.object({
   o: z.string(),
   c: z.boolean(),
   n: z.number(),
+  // Limite de pessoas (migration 200); sem a chave, o padrão da sala pública.
+  x: z.number().default(30),
   m: z.array(z.object({
     u: z.string(), r: Role, mu: z.boolean(), s: z.boolean().optional(),
     nm: z.string().optional(), av: z.string().optional(), sp: z.string().optional(), sa: z.string().optional(),

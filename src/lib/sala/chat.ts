@@ -21,23 +21,17 @@ function denied(ctx: CallContext): ChatResult {
 export async function sendChat(ctx: CallContext, texto: string): Promise<ChatResult> {
   const { room, decision, userId } = ctx;
   if (!decision.ok || !room || !userId) return denied(ctx);
-  const { data: last } = await ctx.db
-    .from("voice_room_messages")
-    .select("created_at")
-    .eq("room_id", room.id)
-    .eq("user_id", userId)
-    .order("id", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  // O ritmo (uma a cada 2 s) se confere no banco, ao gravar, no relógio do banco (voice_chat_send).
   const rule = decideChat({
     roomKind: room.kind, role: decision.role, chatOpen: room.chatOpen, presente: isPresent(ctx.member, ctx.now),
-    body: texto, lastSentAt: last ? new Date(last.created_at) : null, now: ctx.now,
+    body: texto, lastSentAt: null, now: ctx.now,
   });
   if (!rule.ok) return rule;
-  const { data, error } = await ctx.db.from("voice_room_messages").insert({ room_id: room.id, user_id: userId, body: rule.body }).select("id").single();
-  if (error || !data) throw new Error(`gravar a mensagem: ${error?.message ?? "sem retorno"}`);
+  const { data, error } = await ctx.db.rpc("voice_chat_send", { p_room: room.id, p_user: userId, p_body: rule.body });
+  if (error) throw new Error(`gravar a mensagem: ${error.message}`);
+  if (data === null) return { ok: false, code: "devagar" };
   forgetRoomState(room.id);
-  return { ok: true, id: data.id };
+  return { ok: true, id: Number(data) };
 }
 
 export async function deleteChat(ctx: CallContext, messageId: number): Promise<ChatResult> {

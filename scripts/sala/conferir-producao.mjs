@@ -46,11 +46,12 @@ async function naSala(page) {
     check("o canal de texto abre pelo domínio real", await page.locator('[data-canal-fase="dentro"]').waitFor({ timeout: 45_000 }).then(() => true).catch(() => false));
     const voz = page.locator('[data-canal-tipo="palco"]').first();
     if ((await voz.count()) === 0) return false;
+    // Um clique no canal de voz da árvore já entra.
     await voz.click();
-    await page.locator("[data-sala-entrar]").waitFor({ timeout: 60_000 });
+  } else {
+    await page.locator("[data-sala-entrar]").click({ timeout: 60_000 });
   }
-  await page.locator("[data-sala-entrar]").click({ timeout: 60_000 });
-  const dentro = await page.locator('[data-sala-fase="na_sala"]').waitFor({ timeout: 45_000 }).then(() => true).catch(() => false);
+  const dentro = await page.locator('[data-sala-fase="na_sala"]').waitFor({ timeout: 60_000 }).then(() => true).catch(() => false);
   check("entra no canal de voz pelo domínio real", dentro, page.url());
   const pessoas = await waitFor(async () => Number((await page.locator("[data-sala-pessoas]").first().getAttribute("data-sala-pessoas")) ?? 0) >= 1, 30_000);
   check("o estado da sala responde (a lista de quem está na sala aparece)", !!pessoas);

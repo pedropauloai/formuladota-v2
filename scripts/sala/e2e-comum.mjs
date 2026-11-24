@@ -87,11 +87,11 @@ export async function createPalco(owner, { maxMembers = 30 } = {}) {
 }
 
 /** Canal de teste do servidor (migration 198): de texto ou de voz (palco ou livre), aberto até 2100. */
-export async function createCanal(owner, { tipo, titulo, posicao, modo = "palco" }) {
+export async function createCanal(owner, { tipo, titulo, posicao, modo = "palco", limite }) {
   const { data: room, error } = await db
     .from("voice_rooms")
     .insert({
-      kind: tipo, title: titulo, owner_id: owner.id, max_members: tipo === "texto" ? 200 : 30, voice_mode: modo,
+      kind: tipo, title: titulo, owner_id: owner.id, max_members: limite ?? (tipo === "texto" ? 200 : 30), voice_mode: modo,
       channel_position: posicao, closes_at: "2100-01-01T00:00:00.000Z", is_test: true,
     })
     .select("id")
@@ -238,9 +238,10 @@ export async function openSessionOf(roomId, userId) {
 
 export async function cleanup({ rooms, orders, users }) {
   const ids = users.map((u) => u.id);
-  if (rooms.length) await db.from("voice_rooms").delete().in("id", rooms);
+  const salas = rooms.length ? await db.from("voice_rooms").delete().in("id", rooms) : { error: null };
   // Canais que o admin de teste criou pelo painel (no servidor local, sempre de teste).
-  if (ids.length) await db.from("voice_rooms").delete().eq("is_test", true).in("owner_id", ids);
+  const canais = ids.length ? await db.from("voice_rooms").delete().eq("is_test", true).in("owner_id", ids) : { error: null };
+  for (const r of [salas, canais]) if (r.error) console.error("limpeza das salas:", r.error.message);
   if (ids.length) await db.from("voice_bans").delete().in("owner_id", ids);
   await db.from("voice_room_reports").delete().eq("is_test", true).in("reporter_id", ids);
   await db.from("voice_room_subscriptions").delete().eq("is_test", true).eq("track_name", "e2e-teto-falso");

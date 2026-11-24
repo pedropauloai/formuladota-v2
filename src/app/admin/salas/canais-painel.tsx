@@ -1,19 +1,34 @@
 "use client";
 
 // Canais do servidor FORMULADOTA (a coluna da esquerda da /sala): criar, renomear, subir e descer,
-// modo de voz (palco ou livre), público (todos ou só Battlepass), canal só de leitura e apagar.
+// modo de voz (palco ou livre), limite de pessoas, público ou privado (só Battlepass ou vaga na party),
+// canal só de leitura e apagar.
 // Instrumento de trabalho: sem pele de vitrine.
 
 import { useState, useTransition } from "react";
 import { ArrowDown, ArrowUp, Hash, Plus, Radio, Trash2, Volume2 } from "lucide-react";
 import { useConfirm } from "@/components/ui/confirm";
-import type { CanalAdmin } from "@/lib/sala/admin-canais";
-import type { Resultado } from "@/lib/sala/admin-canais";
-import { apagarCanal, criarCanal, moverCanalNaLista, mudarChatDoCanal, mudarModoDoCanal, mudarPublicoDoCanal, renomearCanal } from "./actions";
+import type { CanalAdmin, Resultado } from "@/lib/sala/admin-canais";
+import { apagarCanal, criarCanal, moverCanalNaLista, mudarChatDoCanal, mudarLimiteDoCanal, mudarModoDoCanal, mudarPublicoDoCanal, renomearCanal } from "./actions";
 import { Copiar } from "./salas-painel";
 
 const botao = "inline-flex items-center gap-1.5 rounded-sm border border-border-strong px-2.5 py-1 text-xs text-text-body hover:bg-bg-elevated hover:text-text-display disabled:opacity-40";
 type Tipo = "texto" | "palco" | "livre";
+// Os mesmos de LIMITES em admin-canais.ts (5 é uma party do Dota); o servidor confere de novo.
+const LIMITES = [2, 3, 4, 5, 6, 8, 10, 15, 20, 25, 30];
+const campo = "h-8 rounded-sm border border-border-subtle bg-bg-deep px-2 text-sm text-text-display";
+
+function Limite({ valor, onChange, data }: { valor: number; onChange: (v: number) => void; data: Record<string, string> }) {
+  const opcoes = LIMITES.includes(valor) ? LIMITES : [...LIMITES, valor].sort((a, b) => a - b);
+  return (
+    <label className="flex items-center gap-1.5 text-xs text-text-muted">
+      Limite
+      <select value={valor} onChange={(e) => onChange(Number(e.target.value))} className={campo} {...data}>
+        {opcoes.map((n) => <option key={n} value={n}>{n} pessoas</option>)}
+      </select>
+    </label>
+  );
+}
 
 function Linha({ c, primeiro, ultimo, rodar }: { c: CanalAdmin; primeiro: boolean; ultimo: boolean; rodar: (f: () => Promise<Resultado>, aviso?: string) => void }) {
   const confirm = useConfirm();
@@ -36,9 +51,10 @@ function Linha({ c, primeiro, ultimo, rodar }: { c: CanalAdmin; primeiro: boolea
           {c.modo === "livre" ? "Voz livre (todo mundo fala)" : "Palco (você chama quem fala)"}
         </button>
       )}
+      {c.categoria === "voz" && <Limite valor={c.limite} onChange={(n) => rodar(() => mudarLimiteDoCanal(c.id, n))} data={{ "data-admin-canal-limite": c.id }} />}
       <label className="flex items-center gap-1.5 text-xs text-text-muted">
-        <input type="checkbox" checked={c.beneficio} onChange={(e) => rodar(() => mudarPublicoDoCanal(c.id, e.target.checked))} />
-        Só Battlepass ou vaga na party
+        <input type="checkbox" checked={c.beneficio} onChange={(e) => rodar(() => mudarPublicoDoCanal(c.id, e.target.checked))} data-admin-canal-privado={c.id} />
+        Privado: só Battlepass ou vaga na party
       </label>
       <label className="flex items-center gap-1.5 text-xs text-text-muted">
         <input type="checkbox" checked={!c.chatAberto} onChange={(e) => rodar(() => mudarChatDoCanal(c.id, !e.target.checked))} />
@@ -56,17 +72,19 @@ function Novo({ rodar }: { rodar: (f: () => Promise<Resultado>, aviso?: string) 
   const [nome, setNome] = useState("");
   const [tipo, setTipo] = useState<Tipo>("texto");
   const [beneficio, setBeneficio] = useState(false);
+  const [limite, setLimite] = useState(5);
   return (
-    <form className="flex flex-wrap items-center gap-2" data-admin-canal-novo="" onSubmit={(e) => { e.preventDefault(); rodar(() => criarCanal(nome, tipo, beneficio), "Canal criado."); setNome(""); }}>
-      <input value={nome} onChange={(e) => setNome(e.target.value)} maxLength={40} placeholder="Nome do canal" aria-label="Nome do canal novo" className="h-8 w-56 rounded-sm border border-border-subtle bg-bg-deep px-2 text-sm text-text-display" />
-      <select value={tipo} onChange={(e) => setTipo(e.target.value as Tipo)} aria-label="Tipo do canal" className="h-8 rounded-sm border border-border-subtle bg-bg-deep px-2 text-sm text-text-display">
+    <form className="flex flex-wrap items-center gap-2" data-admin-canal-novo="" onSubmit={(e) => { e.preventDefault(); rodar(() => criarCanal(nome, tipo, beneficio, tipo === "texto" ? 200 : limite), "Canal criado."); setNome(""); }}>
+      <input value={nome} onChange={(e) => setNome(e.target.value)} maxLength={40} placeholder="Nome do canal" aria-label="Nome do canal novo" className={`${campo} w-56`} />
+      <select value={tipo} onChange={(e) => setTipo(e.target.value as Tipo)} aria-label="Tipo do canal" className={campo}>
         <option value="texto">Canal de texto</option>
         <option value="palco">Canal de voz, palco</option>
         <option value="livre">Canal de voz, livre</option>
       </select>
+      {tipo !== "texto" && <Limite valor={limite} onChange={setLimite} data={{ "data-admin-canal-novo-limite": "" }} />}
       <label className="flex items-center gap-1.5 text-xs text-text-muted">
         <input type="checkbox" checked={beneficio} onChange={(e) => setBeneficio(e.target.checked)} />
-        Só Battlepass ou vaga na party
+        Privado: só Battlepass ou vaga na party
       </label>
       <button type="submit" className={botao} disabled={nome.trim().length < 2}>
         <Plus className="size-3.5" aria-hidden="true" />

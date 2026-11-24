@@ -13,6 +13,8 @@ import type { RoomKind, VoiceMode } from "./tipos";
 /** Canal fica aberto até o PPA apagar. */
 export const CANAL_FECHA_EM = "2100-01-01T00:00:00.000Z";
 const TEXTO_LUGARES = 200;
+/** Limites oferecidos no painel para o canal de voz (5 é uma party do Dota). */
+export const LIMITES = [2, 3, 4, 5, 6, 8, 10, 15, 20, 25, 30] as const;
 
 export type Resultado = { ok: true; id?: string } | { ok: false; erro: string };
 
@@ -30,21 +32,23 @@ export interface CanalAdmin {
   beneficio: boolean;
   chatAberto: boolean;
   posicao: number;
+  /** Limite de pessoas (no canal de voz). */
+  limite: number;
 }
 
-type Linha = { id: string; kind: string; title: string; voice_mode: string; audience: string; chat_open: boolean; channel_position: number | null; is_test: boolean };
+type Linha = { id: string; kind: string; title: string; voice_mode: string; audience: string; chat_open: boolean; channel_position: number | null; is_test: boolean; max_members: number };
 
 function canal(r: Linha): CanalAdmin {
   return {
     id: r.id, titulo: r.title, categoria: categoriaDe(r.kind as RoomKind), modo: r.voice_mode as VoiceMode,
-    beneficio: r.audience === "beneficio", chatAberto: r.chat_open, posicao: r.channel_position ?? 0,
+    beneficio: r.audience === "beneficio", chatAberto: r.chat_open, posicao: r.channel_position ?? 0, limite: r.max_members,
   };
 }
 
 export async function listChannels(db: Db, isTest: boolean): Promise<CanalAdmin[]> {
   const { data, error } = await db
     .from("voice_rooms")
-    .select("id, kind, title, voice_mode, audience, chat_open, channel_position, is_test")
+    .select("id, kind, title, voice_mode, audience, chat_open, channel_position, is_test, max_members")
     .eq("status", "aberta")
     .eq("is_test", isTest)
     .not("channel_position", "is", null)
@@ -57,7 +61,7 @@ export async function listChannels(db: Db, isTest: boolean): Promise<CanalAdmin[
 async function channelById(db: Db, id: string): Promise<Linha | null> {
   const { data } = await db
     .from("voice_rooms")
-    .select("id, kind, title, voice_mode, audience, chat_open, channel_position, is_test")
+    .select("id, kind, title, voice_mode, audience, chat_open, channel_position, is_test, max_members")
     .eq("id", id)
     .eq("status", "aberta")
     .not("channel_position", "is", null)
@@ -75,6 +79,8 @@ export interface NovoCanal {
   categoria: Categoria;
   modo: VoiceMode;
   beneficio: boolean;
+  /** Limite de pessoas do canal de voz; sem ele, o da sala pública (30). */
+  limite?: number;
   isTest?: boolean;
 }
 
@@ -88,7 +94,7 @@ export async function createChannel(db: Db, adminId: string, input: NovoCanal): 
     .from("voice_rooms")
     .insert({
       kind: texto ? "texto" : "palco", title: nome.nome, owner_id: adminId, voice_mode: texto ? "palco" : input.modo,
-      max_members: texto ? TEXTO_LUGARES : settings.palcoMaxMembers, audience: input.beneficio ? "beneficio" : "todos",
+      max_members: texto ? TEXTO_LUGARES : (input.limite ?? settings.palcoMaxMembers), audience: input.beneficio ? "beneficio" : "todos",
       closes_at: CANAL_FECHA_EM, channel_position: proximaPosicao(atuais, input.categoria), is_test: isTest,
     })
     .select("id")
@@ -137,6 +143,17 @@ export async function setChannelMode(db: Db, id: string, modo: VoiceMode): Promi
 export async function setChannelAudience(db: Db, id: string, beneficio: boolean): Promise<Resultado> {
   const { data, error } = await db.from("voice_rooms").update({ audience: beneficio ? "beneficio" : "todos" }).eq("id", id).eq("status", "aberta").not("channel_position", "is", null).select("id");
   if (error || !data?.length) return { ok: false, erro: "Canal não encontrado." };
+  mudou(id);
+  return { ok: true };
+}
+
+/** Limite de pessoas do canal de voz: cheio, quem chega não entra (só o dono). */
+export async function setChannelLimit(db: Db, id: string, limite: number): Promise<Resultado> {
+  if (!Number.isInteger(limite) || limite < 2 || limite > 200) return { ok: false, erro: "O limite vai de 2 a 200 pessoas." };
+  const atual = await channelById(db, id);
+  if (!atual || atual.kind !== "palco") return { ok: false, erro: "Só canal de voz tem limite." };
+  const { error } = await db.from("voice_rooms").update({ max_members: limite }).eq("id", id);
+  if (error) return { ok: false, erro: `Não deu para mudar o limite: ${error.message}` };
   mudou(id);
   return { ok: true };
 }
