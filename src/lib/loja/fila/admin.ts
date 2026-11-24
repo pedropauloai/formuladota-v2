@@ -188,13 +188,9 @@ async function mirrorToOpenQueue(isTest: boolean, queueSize: number, seatsPerMat
 
 /** Operações da fila. Cada uma devolve o que o banco respondeu (null/false = nada mudou). */
 export const queueOps = {
-  open: async (queueSize: number, seatsPerMatch: number, youtubeVideoId: string | null) => {
-    const liveId = await rpc<string | null>("party_fila_abrir_live", {
-      p_is_test: isTestMode(), p_party_seats: queueSize, p_seats_per_match: seatsPerMatch, p_youtube_video_id: youtubeVideoId,
-    });
-    if (liveId) await mirrorToOpenQueue(isTestMode(), queueSize, seatsPerMatch);
-    return liveId;
-  },
+  /** Abre a live com o tamanho e os lugares da fila aberta: o primeiro chamado da party faz isso sozinho. */
+  openAuto: () =>
+    rpc<string | null>("party_fila_abrir_live", { p_is_test: isTestMode(), p_party_seats: null, p_seats_per_match: null, p_youtube_video_id: null }),
   close: (liveId: string) => rpc<boolean>("party_fila_encerrar_live", { p_live_id: liveId }),
   call: (liveId: string, bookingId: string | null) => rpc<string | null>("party_fila_chamar", { p_live_id: liveId, p_booking_id: bookingId }),
   played: (bookingId: string) => rpc<string | null>("party_fila_jogou", { p_booking_id: bookingId }),
@@ -239,21 +235,4 @@ export async function resizeLive(liveId: string, queueSize: number, seatsPerMatc
     .in("status", ["marcada", "ao_vivo", "fila"]);
   if (error) throw new Error(`mudar as vagas da live falhou: ${error.message}`);
   if (live.status === "ao_vivo") await mirrorToOpenQueue(live.is_test, queueSize, seatsPerMatch);
-}
-
-const STALE_ON_AIR_MS = 12 * 60 * 60 * 1000;
-
-/** Rede de segurança do cron: live esquecida aberta por mais de 12 horas é encerrada. */
-export async function closeStaleLives(): Promise<{ closed: number }> {
-  const { data, error } = await createServiceClient()
-    .from("store_live_sessions")
-    .select("id")
-    .eq("status", "ao_vivo")
-    .lt("on_air_at", new Date(Date.now() - STALE_ON_AIR_MS).toISOString());
-  if (error) throw new Error(`ler lives abertas falhou: ${error.message}`);
-  let closed = 0;
-  for (const live of data ?? []) {
-    if (await queueOps.close(live.id)) closed += 1;
-  }
-  return { closed };
 }

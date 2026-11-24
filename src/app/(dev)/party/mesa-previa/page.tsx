@@ -1,7 +1,7 @@
 // Prévia da mesa da fila (/admin/loja/fila) com dados de exemplo, só em desenvolvimento: o grupo
 // (dev) responde 404 em produção. Mora em /party porque essa rota é aberta no middleware, então abre
-// sem login e sem banco. A moldura imita a casca do admin (barra de cima, menu do admin e a faixa do
-// JOGAR DOTA) nas mesmas medidas. ?cena= escolhe o momento: completar (padrão), jogando, sem-live, vazia;
+// sem login e sem banco. A moldura imita a casca do admin (barra de cima e menu do admin, sem a barra
+// de baixo) nas mesmas medidas. ?cena= escolhe o momento: completar (padrão), jogando, sem-live, vazia;
 // ?cena=estados mostra o "Partida terminou" com a partida achada, que só aparece com o banco.
 // A maioria das vagas é do dia (migration 194); a cortesia e uma vaga comprada antes seguem por partida.
 
@@ -129,7 +129,7 @@ function Chrome({ children }: { children: React.ReactNode }) {
     <div className="relative flex h-screen flex-col overflow-hidden">
       <div className="flex h-12 shrink-0 items-center border-b border-white/[0.06] bg-bg-deep/90 px-5 text-xs text-text-faded xl:h-14">barra superior do site</div>
       <div className="grid min-h-0 flex-1 grid-cols-1">
-        <main className="relative overflow-y-auto overflow-x-hidden pb-[80px] xl:pb-[96px] 2xl:pb-[112px]">
+        <main className="relative overflow-y-auto overflow-x-hidden">
           <div className="relative z-[var(--z-elevated)] h-full">
             <div className="flex h-full">
               <aside className="hidden w-60 border-r border-border-subtle bg-bg-base/60 p-5 text-xs text-text-faded md:block">menu do admin</aside>
@@ -137,11 +137,6 @@ function Chrome({ children }: { children: React.ReactNode }) {
             </div>
           </div>
         </main>
-      </div>
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[var(--z-overlay)] flex h-20 items-end justify-end px-10 pb-5 xl:h-24 2xl:h-28">
-        <div className="flex h-11 w-[268px] items-center justify-center rounded-md border-2 border-play-primary/50 bg-play-primary/15 text-sm font-bold uppercase tracking-[0.25em] text-play-primary xl:h-12 xl:w-[308px] 2xl:w-[328px]">
-          Jogar Dota
-        </div>
       </div>
     </div>
   );

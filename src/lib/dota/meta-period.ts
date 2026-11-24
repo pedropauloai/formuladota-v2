@@ -1,6 +1,6 @@
 // Período e patch do meta de heróis: lógica PURA (sem fetch, sem UI).
-// A STRATZ soma semanas fechadas, de quinta a quarta, em UTC; a OpenDota (/constants/patch) dá o
-// início de cada patch. Daqui sai a frase "de quando são as partidas e de que patch".
+// A STRATZ fecha cada dia em UTC; a OpenDota (/constants/patch) dá o início de cada patch.
+// Daqui sai a frase "de quando são as partidas e de que patch".
 
 import type { Locale } from "@/i18n/config";
 
@@ -23,7 +23,6 @@ export type PatchCoverage =
   | { kind: "many"; patches: string[] };
 
 const DAY_MS = 86_400_000;
-const WEEK_DAYS = 7;
 // Fuso da comunidade, o mesmo das novidades e da agenda da live.
 const COMMUNITY_TIME_ZONE = "America/Sao_Paulo";
 // pt e es escrevem 05/11; en escreve Nov 5 (11/05 seria lido como 11 de maio fora dos EUA).
@@ -33,20 +32,8 @@ const DAY_FORMAT: Record<Locale, Intl.DateTimeFormatOptions> = {
   en: { month: "short", day: "numeric" },
 };
 
-function utcDay(ms: number): string {
-  return new Date(ms).toISOString().slice(0, 10);
-}
-
 function dayStartMs(day: string): number {
   return Date.parse(`${day}T00:00:00Z`);
-}
-
-/** Janela das semanas somadas: do início da primeira ao último dia da última. */
-export function weekWindow(weekStartsSec: number[]): MetaWindow | null {
-  if (weekStartsSec.length === 0) return null;
-  const first = Math.min(...weekStartsSec) * 1000;
-  const last = Math.max(...weekStartsSec) * 1000 + (WEEK_DAYS - 1) * DAY_MS;
-  return { start: utcDay(first), end: utcDay(last) };
 }
 
 /** Lê a resposta do /constants/patch da OpenDota; linha sem nome ou sem data válida fica de fora. */

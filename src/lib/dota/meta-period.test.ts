@@ -1,16 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  describePatches,
-  formatMetaDay,
-  formatUpdatedAt,
-  parseOpenDotaPatches,
-  patchesInWindow,
-  weekWindow,
-} from "./meta-period";
-
-// Início das semanas que a STRATZ devolveu em 24/11/2026 (quinta, 00:00 UTC).
-const WEEK_NOV_05 = Date.UTC(2026, 10, 5) / 1000;
-const WEEK_NOV_12 = Date.UTC(2026, 10, 12) / 1000;
+import { describePatches, formatMetaDay, formatUpdatedAt, parseOpenDotaPatches, patchesInWindow } from "./meta-period";
 
 // Recorte real do /constants/patch da OpenDota em 24/11/2026.
 const OPENDOTA_PATCHES = [
@@ -20,16 +9,6 @@ const OPENDOTA_PATCHES = [
   { name: "7.42", date: "2026-11-18T21:28:07.019Z", id: 61 },
 ];
 const patches = parseOpenDotaPatches(OPENDOTA_PATCHES);
-
-describe("weekWindow", () => {
-  it("vai do início da primeira semana ao último dia da última", () => {
-    expect(weekWindow([WEEK_NOV_12, WEEK_NOV_05, WEEK_NOV_12])).toEqual({ start: "2026-11-05", end: "2026-11-18" });
-  });
-
-  it("sem semana não há janela", () => {
-    expect(weekWindow([])).toBeNull();
-  });
-});
 
 describe("parseOpenDotaPatches", () => {
   it("lê nome e início e descarta linha sem data válida", () => {

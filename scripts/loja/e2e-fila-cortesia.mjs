@@ -1,6 +1,7 @@
 // pnpm loja:e2e, parte da mesa de operação: o Pedro, no painel da fila, acha um jogador e põe na fila
-// sem pagamento, soma e tira partidas pelo menu, põe na party e tira de volta, completa a party, troca
-// quem está nela por quem espera e conta a partida sem o ID. A pessoa vê a própria posição na /party.
+// sem pagamento, soma e tira partidas pelo menu, põe na party com a live fora do ar (o que abre a
+// live sozinho) e tira de volta, completa a party, troca quem está nela por quem espera e conta a
+// partida sem o ID. A pessoa vê a própria posição na /party.
 // Tudo de teste: o admin e os jogadores são usuários de teste criados e apagados aqui. Spec:
 // docs/loja/fila-da-party.md. Sai com código diferente de zero se qualquer verificação falhar.
 // Nunca imprime credencial.
@@ -8,7 +9,7 @@
 import { randomUUID } from "node:crypto";
 import { chromium } from "playwright-core";
 import {
-  BASE, acquireTestLock, buyerContext, checker, createTestBuyer, db, deleteTestUsers, openStoreFlag, openTestLive,
+  BASE, acquireTestLock, buyerContext, checker, createTestBuyer, db, deleteTestUsers, openStoreFlag,
   releaseTestLock, resetTestQueue, restoreStoreFlag, startServer, stopServer, waitFor,
 } from "./e2e-comum.mjs";
 
@@ -19,6 +20,15 @@ const bookingOf = async (userId) =>
   (await db.from("store_bookings").select("id, source, order_id, seats, queue_state").eq("user_id", userId).eq("source", "cortesia").maybeSingle()).data;
 const bookingState = async (id) => (await db.from("store_bookings").select("queue_state, no_shows, called_at, matches_played").eq("id", id).single()).data;
 const seatsOpen = async () => (await fetch(`${BASE}/api/party/fila`).then((r) => r.json())).live?.seatsOpen ?? null;
+const onAirLive = async () => (await db.from("store_live_sessions").select("id, seats_per_match").eq("is_test", true).eq("status", "ao_vivo").maybeSingle()).data;
+
+/** Lugares na party da fila aberta de teste (a live que abre sozinha herda); devolve o valor de antes. */
+async function setOpenQueueSeats(seats) {
+  const { data, error } = await db.from("store_live_sessions").select("id, seats_per_match").eq("is_test", true).eq("status", "fila").single();
+  if (error) throw new Error(`ler a fila aberta de teste: ${error.message}`);
+  await db.from("store_live_sessions").update({ seats_per_match: seats }).eq("id", data.id);
+  return data.seats_per_match;
+}
 
 /** Abre o menu "⋯" de um jogador (linha da fila ou lugar da party) e escolhe o item. */
 async function menu(page, scope, name, item) {
@@ -56,18 +66,29 @@ async function adjust(page, player, bookingId) {
   check("uma partida a menos pelo menu da linha", minus?.seats === 2);
 }
 
-/** Com a live no ar: "Pôr na party agora" pelo menu da linha e "Tirar da party" pelo menu do lugar. */
+/**
+ * Com a live fora do ar: a mesa não tem "Abrir a live"; "Pôr na party agora" pelo menu da linha abre a
+ * live sozinho, com os lugares da fila aberta, e "Tirar da party" pelo menu do lugar. Devolve a live.
+ */
 async function putAndTakeBack(page, player, bookingId) {
   await page.reload();
+  await page.locator("[data-fila-passo='completar']").waitFor({ timeout: 20_000 });
+  const noButton = (await page.locator("[data-fila-abrir-live]").count()) === 0;
+  check("fora do ar, a mesa pede para completar a party e não tem botão de abrir a live", noButton && (await onAirLive()) === null);
   const row = page.locator("[data-fila-linha]", { hasText: player.name });
   await menu(page, row, player.name, "por-na-party");
   const seat = page.locator("[data-fila-lugar='ocupado']", { hasText: player.name });
   await seat.waitFor({ timeout: 20_000 });
+  const live = await onAirLive();
+  check("pôr na party com a live fora do ar abre a live sozinha, com os lugares da fila aberta", live?.seats_per_match === 1, `${live?.seats_per_match ?? "sem live"} lugar(es)`);
+  await page.getByText("A live abriu sozinha").first().waitFor({ timeout: 10_000 });
+  check("o aviso diz que a live abriu sozinha", true);
   check("pôr na party pelo menu da linha", (await bookingState(bookingId))?.queue_state === "na_party");
   await menu(page, seat, player.name, "tirar-da-party");
   await row.waitFor({ timeout: 20_000 });
   const back = await bookingState(bookingId);
   check("tirar da party devolve para a fila sem falta", back?.queue_state === "aguardando" && back.no_shows === 0 && back.called_at === null);
+  return live.id;
 }
 
 /** Completar a party (1 lugar), trocar quem entrou por quem espera e contar a partida sem o ID. */
@@ -113,8 +134,8 @@ async function run() {
     const { error } = await db.rpc("party_fila_adicionar_cortesia", { p_user_id: other.id, p_matches: 1, p_is_test: true });
     if (error) throw new Error(`segunda cortesia: ${error.message}`);
     const otherBooking = await bookingOf(other.id);
-    state.liveId = await openTestLive(20, 1);
-    await putAndTakeBack(adminPage, player, booking.id);
+    state.seatsWas = await setOpenQueueSeats(1);
+    state.liveId = await putAndTakeBack(adminPage, player, booking.id);
     await swapAndCount(adminPage, player, other, { player: booking.id, other: otherBooking.id, live: state.liveId });
     const playerPage = await (await buyerContext(browser, player)).newPage();
     await playerPage.goto(`${BASE}/party`);
@@ -122,7 +143,9 @@ async function run() {
     check("o jogador vê a própria posição na /party", true);
   } finally {
     await browser?.close().catch(() => undefined);
-    if (state.liveId) await db.rpc("party_fila_encerrar_live", { p_live_id: state.liveId });
+    const open = await onAirLive().catch(() => null);
+    if (open) await db.rpc("party_fila_encerrar_live", { p_live_id: open.id });
+    if (state.seatsWas !== undefined) await db.from("store_live_sessions").update({ seats_per_match: state.seatsWas }).eq("is_test", true).eq("status", "fila");
     await db.from("store_bookings").update({ queue_state: "removido" }).eq("is_test", true).in("queue_state", ["aguardando", "na_party"]);
     // O admin de teste perde o acesso antes de ser apagado, mesmo se a exclusão falhar.
     if (state.users.length) await db.from("profiles").update({ is_admin: false }).in("id", state.users);

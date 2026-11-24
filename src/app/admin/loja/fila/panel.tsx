@@ -6,7 +6,7 @@
 // cresce 1,33x como o resto do site (v2Page). Atalhos: C completa a party,
 // T marca a partida, A põe alguém na fila sem pagamento, / busca na fila e Esc cancela a troca.
 // Os avisos são do sonner, e não os do site, porque os do site tocam som (vazaria para a live) e
-// não têm o "Desfazer"; ficam embaixo e no centro, como os do site, acima do JOGAR DOTA.
+// não têm o "Desfazer"; ficam embaixo e no centro, como os do site (o admin não tem a barra de baixo).
 
 import { useRef, useState } from "react";
 import { Toaster } from "sonner";
@@ -105,7 +105,7 @@ export function AdminQueuePanel({ data, history, accounts }: { data: AdminQueue;
   const step = nextStep(data);
   // Quem ia sair da party e já não está nela (outra ação, ou a mesa atualizou) cancela a troca sozinho.
   const swapFor = party.find((e) => e.id === swapId) ?? null;
-  const doFill = () => live && fill.run({ action: () => completarParty(live.id), success: "Party completa. Convide cada um pelo ID do Dota." });
+  const doFill = () => fill.run({ action: () => completarParty(), success: "Party completa. Convide cada um pelo ID do Dota." });
 
   useShortcuts({
     c: step === "completar" ? doFill : null,
@@ -120,7 +120,7 @@ export function AdminQueuePanel({ data, history, accounts }: { data: AdminQueue;
       <Toaster
         theme="dark"
         position="bottom-center"
-        offset={{ bottom: 128 }}
+        offset={{ bottom: 32 }}
         visibleToasts={4}
         toastOptions={{
           classNames: {
@@ -134,7 +134,8 @@ export function AdminQueuePanel({ data, history, accounts }: { data: AdminQueue;
       />
       <Header data={data} now={now} />
       <div className="grid gap-5 xl:min-h-0 xl:flex-1 xl:grid-cols-[minmax(0,1fr)_minmax(540px,640px)] xl:grid-rows-[minmax(0,1fr)]">
-        <div className="min-w-0 space-y-5 xl:min-h-0 xl:overflow-y-auto xl:overscroll-contain xl:pr-1">
+        {/* O respiro no fim deixa o último cartão sair de baixo da pílula do chat do site. */}
+        <div className="min-w-0 space-y-5 xl:min-h-0 xl:overflow-y-auto xl:overscroll-contain xl:pr-1 xl:pb-14" data-mesa-coluna>
           <section className={panel()} aria-label="Party">
             <PartyHeader data={data} fill={fill} onFill={doFill} matchEndOpen={matchEndOpen} setMatchEndOpen={setMatchEndOpen} />
             <PartySlots live={live} party={party} waiting={waiting} swapFor={swapFor?.id ?? null} onSwap={setSwapId} />

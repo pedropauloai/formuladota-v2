@@ -44,9 +44,14 @@ const inParty = (name: string) => entry(name, { state: "na_party", position: nul
 const queue = (liveValue: QueueLive | null, entries: AdminQueueEntry[]): AdminQueue => ({ live: liveValue, entries, finished: [] });
 
 describe("nextStep", () => {
-  it("pede para abrir a live quando ela não está no ar, mesmo com a fila aberta vendendo", () => {
-    expect(nextStep(queue(null, []))).toBe("abrir");
-    expect(nextStep(queue(live({ status: "fila" }), [entry("Ana")]))).toBe("abrir");
+  it("fora do ar, pede para completar a party com quem comprou na fila aberta (o chamado abre a live)", () => {
+    expect(nextStep(queue(live({ status: "fila" }), [entry("Ana")]))).toBe("completar");
+    expect(nextStep(queue(live({ status: "fila" }), []))).toBe("esperar");
+    expect(nextStep(queue(null, []))).toBe("esperar");
+  });
+
+  it("nunca pede para marcar partida com a live fora do ar", () => {
+    expect(nextStep(queue(live({ status: "fila" }), [inParty("Ana")]))).toBe("esperar");
   });
 
   it("pede para completar a party quando há lugar livre e alguém esperando", () => {
@@ -88,8 +93,10 @@ describe("stepStatus", () => {
     expect(rest).toContain("Partida 4 terminou");
   });
 
-  it("fora do ar, conta quem está esperando a live", () => {
-    expect(stepStatus(queue(live({ status: "fila" }), [entry("Ana"), entry("Beto")]), "abrir")[0]).toBe("2 pessoas esperando a live.");
-    expect(stepStatus(queue(null, []), "abrir")[0]).toBe("A live está fora do ar.");
+  it("fora do ar, avisa que completar a party abre a live sozinha", () => {
+    const off = queue(live({ status: "fila" }), [entry("Ana"), entry("Beto")]);
+    expect(stepStatus(off, "completar")).toEqual(["4 lugares livres.", "Entram Ana e Beto, e a live abre sozinha. Depois, convide cada um pelo ID do Dota."]);
+    expect(stepStatus(queue(live({ status: "fila" }), []), "esperar")[1]).toContain("A live abre sozinha no primeiro chamado.");
+    expect(stepStatus(queue(live(), []), "esperar")[1]).not.toContain("abre sozinha");
   });
 });

@@ -107,7 +107,7 @@ export function QueueList({ live, waiting, partyCount, swapFor, onCancelSwap, no
   const [filter, setFilter] = useState<Filter>("todos");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const onAir = live?.status === "ao_vivo";
-  const ctx: RowContext = { liveId: live?.id ?? null, canPut: onAir && !!live && partyCount < live.seatsPerMatch, swapFor, onSwapDone: onCancelSwap, now };
+  const ctx: RowContext = { liveId: live?.id ?? null, canPut: !!live && partyCount < live.seatsPerMatch, swapFor, onSwapDone: onCancelSwap, now };
   const shown = useMemo(() => waiting.filter((e) => visible(e, query, filter)), [waiting, query, filter]);
   const titles = onAir ? GROUPS.onAir : GROUPS.offAir;
   const toggle = (id: string) => setExpandedId((cur) => (cur === id ? null : id));

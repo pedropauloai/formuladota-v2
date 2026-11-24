@@ -31,9 +31,9 @@ export const ATTR_ICON_URL: Record<"str" | "agi" | "int" | "uni", string> = {
   uni: `${CDN}/apps/dota2/images/dota_react/icons/hero_universal.png`,
 };
 
-// Ícones oficiais de POSIÇÃO (pos 1-5) do Dota 2. A Valve não publica esses no
-// CDN web (vivem no panorama do jogo), então auto-hospedamos em /public — igual
-// fazem dota2protracker e similares. Baixados/validados em 2026-06-19.
+// Ícones de POSIÇÃO (pos 1-5) tirados do próprio cliente do Dota 2 (a Valve não publica esses no CDN
+// web): rank_tier_icons/handicap do pak01_dir.vpk, com o cinza #ccc que a grade de heróis do jogo usa.
+// Regerar: python scripts/dota/extrair-icones-funcao.py (extraídos em 24/11/2026).
 export const POSITION_ICON: Record<"1" | "2" | "3" | "4" | "5", string> = {
   "1": "/dota/positions/pos-1.png",
   "2": "/dota/positions/pos-2.png",
