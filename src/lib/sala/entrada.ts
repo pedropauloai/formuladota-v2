@@ -67,7 +67,11 @@ export async function claimInvite(db: Db, roomId: string, userId: string, token:
     .eq("invite_token_hash", room.invite_token_hash)
     .is("invite_used_at", null)
     .select("id");
-  if (!taken?.length) return "usado";
+  if (!taken?.length) {
+    // Quem já trocou este convite e está na sala (recarregou o link, ou o pedido saiu duas vezes) segue entrando.
+    const { data: membro } = await db.from("voice_room_members").select("status").eq("room_id", roomId).eq("user_id", userId).maybeSingle();
+    return membro?.status === "ativo" ? "ok" : "usado";
+  }
   const { error } = await db.from("voice_room_members").upsert({ room_id: roomId, user_id: userId, role: "membro", joined_via: "convite" }, { onConflict: "room_id,user_id", ignoreDuplicates: true });
   if (error) throw new Error(`gravar o convidado: ${error.message}`);
   return "ok";

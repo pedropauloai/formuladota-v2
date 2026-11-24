@@ -162,6 +162,8 @@ async function gates(t) {
   await pConv.goto(`${BASE}/sala/${t.sala3.id}?convite=${t.sala3.token}`);
   // A troca do convite compila a rota e recarrega a página: no servidor de desenvolvimento, até 40 s.
   check("o convite de uso único põe o convidado na sala", !!(await pConv.locator("[data-sala-entrar]").waitFor({ timeout: 40_000 }).then(() => true).catch(() => false)));
+  await pConv.goto(`${BASE}/sala/${t.sala3.id}?convite=${t.sala3.token}`);
+  check("o convidado que recarrega o link do convite continua entrando", !!(await pConv.locator("[data-sala-entrar]").waitFor({ timeout: 40_000 }).then(() => true).catch(() => false)));
   await pFora.goto(`${BASE}/sala/${t.sala3.id}?convite=${t.sala3.token}`);
   check("o mesmo convite não vale de novo", !!(await pFora.getByText("Este convite já foi usado").waitFor({ timeout: 15_000 }).then(() => true).catch(() => false)));
   const fixa = await pFora.goto(`${BASE}/sala`);
