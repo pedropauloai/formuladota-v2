@@ -4,12 +4,12 @@
 
 import "server-only";
 import { z } from "zod";
-import { getFeatureFlags } from "@/lib/queries/feature-flags";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { decideRoomAccess } from "./acesso";
 import { Facts } from "./contratos";
 import type { Db } from "./dados-sala";
+import { salaVozOn } from "./flag";
 import { TtlCache } from "./memoria";
 import { isPresent } from "./presenca";
 import type { AccessDecision, DenyCode, MemberRole, MemberStatus, RoomInfo } from "./tipos";
@@ -21,7 +21,7 @@ const flagCache = new TtlCache<boolean>(FLAG_MS, 1);
 export async function salaFlagOn(now: number): Promise<boolean> {
   const cached = flagCache.get("sala_voz", now);
   if (cached !== undefined) return cached;
-  const on = (await getFeatureFlags()).sala_voz;
+  const on = await salaVozOn();
   flagCache.set("sala_voz", on, now);
   return on;
 }

@@ -7,7 +7,7 @@ import { getTranslations } from "next-intl/server";
 import { Radio } from "lucide-react";
 import { ClientShell } from "@/components/client-shell/shell";
 import { Panel } from "@/components/v2";
-import { getFeatureFlags } from "@/lib/queries/feature-flags";
+import { salaVozOn } from "@/lib/sala/flag";
 import { createServiceClient } from "@/lib/supabase/service";
 
 export const dynamic = "force-dynamic";
@@ -34,7 +34,7 @@ async function openPublicRoom(): Promise<string | null> {
 }
 
 export default async function SalaPublicaPage() {
-  if (!(await getFeatureFlags()).sala_voz) notFound();
+  if (!(await salaVozOn())) notFound();
   const id = await openPublicRoom();
   if (id) redirect(`/sala/${id}`);
   const t = await getTranslations("sala");

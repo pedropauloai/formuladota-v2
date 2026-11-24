@@ -5,7 +5,7 @@
 
 import { notFound } from "next/navigation";
 import { requireAdminPage } from "@/lib/auth/admin-page";
-import { getFeatureFlags } from "@/lib/queries/feature-flags";
+import { salaVozOn } from "@/lib/sala/flag";
 import { adminOverview, listBans } from "@/lib/sala/admin";
 import { createServiceClient } from "@/lib/supabase/service";
 import { Banidos } from "./banidos";
@@ -19,7 +19,7 @@ const fmtGb = (bytes: number) => (bytes / GB).toLocaleString("pt-BR", { maximumF
 export default async function AdminSalasPage() {
   // A página lê com a service role: confere o admin aqui também (o layout pode não rodar numa navegação parcial).
   const adminId = await requireAdminPage();
-  if (!(await getFeatureFlags()).sala_voz) notFound();
+  if (!(await salaVozOn())) notFound();
   const db = createServiceClient();
   const [overview, banidos] = await Promise.all([adminOverview(db, new Date()), listBans(db, adminId)]);
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.formuladota.com.br";

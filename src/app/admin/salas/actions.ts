@@ -5,7 +5,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireAdmin } from "@/app/admin/pros/admin-gate";
-import { getFeatureFlags } from "@/lib/queries/feature-flags";
+import { salaVozOn } from "@/lib/sala/flag";
 import { closeRoom, createMentoriaRoom, createPalcoRoom, createPartyRoom, regenerateInvite, unban, type CriarResultado } from "@/lib/sala/admin";
 import { createServiceClient } from "@/lib/supabase/service";
 
@@ -14,7 +14,7 @@ const Uuid = z.string().uuid();
 async function gate(): Promise<{ ok: true; adminId: string } | { ok: false; erro: string }> {
   const admin = await requireAdmin();
   if (!admin.ok) return { ok: false, erro: admin.error };
-  if (!(await getFeatureFlags()).sala_voz) return { ok: false, erro: "A flag sala_voz está desligada." };
+  if (!(await salaVozOn())) return { ok: false, erro: "A flag sala_voz está desligada." };
   return { ok: true, adminId: admin.adminId };
 }
 

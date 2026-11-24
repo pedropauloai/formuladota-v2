@@ -11,7 +11,7 @@ import { AceitarConvite } from "@/components/sala/aceitar-convite";
 import { Maioridade } from "@/components/sala/maioridade";
 import { Portao, type PortaoTipo } from "@/components/sala/portao";
 import { SalaView } from "@/components/sala/sala-view";
-import { getFeatureFlags } from "@/lib/queries/feature-flags";
+import { salaVozOn } from "@/lib/sala/flag";
 import { loadCallContext } from "@/lib/sala/contexto";
 import { canShareScreen } from "@/lib/sala/papeis";
 import type { DenyCode } from "@/lib/sala/tipos";
@@ -61,7 +61,7 @@ async function Conteudo({ id, convite }: { id: string; convite: string | null })
 export default async function SalaPage({ params, searchParams }: { params: Params; searchParams: SearchParams }) {
   const { id } = await params;
   if (!z.string().uuid().safeParse(id).success) notFound();
-  if (!(await getFeatureFlags()).sala_voz) notFound();
+  if (!(await salaVozOn())) notFound();
   const raw = (await searchParams).convite;
   const convite = typeof raw === "string" && Convite.safeParse(raw).success ? raw : null;
   return (

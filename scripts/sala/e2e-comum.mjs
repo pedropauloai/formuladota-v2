@@ -86,10 +86,17 @@ export async function createPalco(owner, { maxMembers = 30 } = {}) {
   return { id: room.id };
 }
 
+/** Linha da flag que o servidor local lê (SALA_FLAG_KEY, src/lib/sala/flag-chave.ts): ligar a sala_voz
+ *  de produção poria a aba da sala na barra de todo mundo durante o teste. */
+export const E2E_FLAG = "sala_voz_e2e";
+
 export async function setFlag(enabled) {
-  const { data } = await db.from("feature_flags").select("enabled").eq("key", "sala_voz").single();
-  await db.from("feature_flags").update({ enabled }).eq("key", "sala_voz");
-  return data?.enabled === true;
+  const { error } = await db.from("feature_flags").upsert({ key: E2E_FLAG, enabled, label: "Sala de voz, só o servidor local do e2e" }, { onConflict: "key" });
+  if (error) throw new Error(`flag do e2e: ${error.message}`);
+}
+
+export async function dropFlag() {
+  await db.from("feature_flags").delete().eq("key", E2E_FLAG);
 }
 
 /** Atributo numérico da raiz da sala (bytes recebidos, altura do quadro). */
