@@ -446,6 +446,42 @@ $$;
 revoke all on function public.voice_room_identities(uuid, uuid[]) from public, anon, authenticated;
 grant execute on function public.voice_room_identities(uuid, uuid[]) to service_role;
 
+-- Consumo estimado desde p_since (spec, ADR-005), somado no banco para sair um número só: duração x
+-- taxa de toda faixa recebida que tocou a janela. Faixa ainda aberta conta até o último batimento de
+-- quem recebe mais 30 s, ou até agora se nunca bateu (lado seguro). Sala de teste conta à parte.
+create or replace function public.voice_usage_bytes(p_since timestamptz, p_is_test boolean)
+returns bigint
+language sql
+stable
+set search_path = ''
+as $$
+  select coalesce(sum(greatest(0, extract(epoch from (
+           coalesce(sub.ended_at, least(now(), coalesce(m.last_seen_at + interval '30 seconds', now())))
+           - greatest(sub.started_at, p_since)))) * sub.rate_kbps * 125), 0)::bigint
+    from public.voice_room_subscriptions sub
+    left join public.voice_room_sessions s on s.id = sub.session_id
+    left join public.voice_room_members m on m.room_id = s.room_id and m.user_id = s.user_id
+   where sub.is_test = p_is_test
+     and (sub.ended_at is null or sub.ended_at > p_since);
+$$;
+revoke all on function public.voice_usage_bytes(timestamptz, boolean) from public, anon, authenticated;
+grant execute on function public.voice_usage_bytes(timestamptz, boolean) to service_role;
+
+-- Consumo medido pelos navegadores desde p_since (soma dos bytes recebidos), fora das salas de teste.
+create or replace function public.voice_usage_measured(p_since timestamptz)
+returns bigint
+language sql
+stable
+set search_path = ''
+as $$
+  select coalesce(sum(st.bytes_received), 0)::bigint
+    from public.voice_room_stats st
+    join public.voice_rooms r on r.id = st.room_id
+   where st.at > p_since and not r.is_test;
+$$;
+revoke all on function public.voice_usage_measured(timestamptz) from public, anon, authenticated;
+grant execute on function public.voice_usage_measured(timestamptz) to service_role;
+
 -- Flag autoritativa: desligada, a sala some para todos, inclusive o admin.
 insert into public.feature_flags (key, enabled, label)
 values ('sala_voz', false, 'Salas de voz com tela (fase 1 da comunicação)')

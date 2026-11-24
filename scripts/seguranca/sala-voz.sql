@@ -17,6 +17,9 @@ declare
   r3 uuid;
   rep_u2 uuid;
   rep_u1 uuid;
+  r4 uuid;
+  antes bigint;
+  big bigint;
   n int;
   j jsonb;
   ok boolean;
@@ -77,6 +80,26 @@ begin
   j := public.voice_room_access(r3, u4);
   r := array_append(r, (case when (j->>'banned_by_owner')::boolean and j->'member'->>'status' = 'expulso'
     then 'A1_contexto_ve_o_banido=ok' else 'A1_contexto_ve_o_banido=FALHOU' end)::text);
+
+  -- Consumo somado no banco, a conta da spec (duração x taxa): uma faixa fechada de 630 s a 64 kbps
+  -- (5.040.000 bytes) e uma aberta desde 200 s atrás, de quem bateu há 100 s (conta até 70 s atrás:
+  -- 130 s a 128 kbps, 2.080.000 bytes).
+  antes := public.voice_usage_bytes(now() - interval '30 days', true);
+  insert into public.voice_room_sessions (id, room_id, user_id) values ('00000000000000000000000000e2e003', r1, u1);
+  update public.voice_room_members set last_seen_at = now() - interval '100 seconds' where room_id = r1 and user_id = u1;
+  insert into public.voice_room_subscriptions (session_id, mid, publisher_session_id, track_name, kind, rate_kbps, started_at, ended_at, is_test)
+  values ('00000000000000000000000000e2e003', '5', '00000000000000000000000000e2e002', 'c1', 'audio', 64, now() - interval '700 seconds', now() - interval '70 seconds', true),
+         ('00000000000000000000000000e2e003', '6', '00000000000000000000000000e2e002', 'c2', 'audio', 128, now() - interval '200 seconds', null, true);
+  big := public.voice_usage_bytes(now() - interval '30 days', true) - antes;
+  r := array_append(r, (case when big = 7120000 then 'A2_consumo_estimado_bate_com_a_conta=ok'
+    else 'A2_consumo_estimado_bate_com_a_conta=FALHOU(' || big || ')' end)::text);
+  insert into public.voice_rooms (kind, title, owner_id, max_members, closes_at, is_test)
+  values ('palco', 'Sala de producao do teste', u1, 30, now() + interval '2 hours', false) returning id into r4;
+  antes := public.voice_usage_measured(now() - interval '1 hour');
+  insert into public.voice_room_stats (room_id, user_id, bytes_received) values (r4, u1, 1000), (r1, u1, 5000);
+  big := public.voice_usage_measured(now() - interval '1 hour') - antes;
+  r := array_append(r, (case when big = 1000 then 'A3_consumo_medido_sem_sala_de_teste=ok'
+    else 'A3_consumo_medido_sem_sala_de_teste=FALHOU(' || big || ')' end)::text);
 
   -- A partir daqui, um jogador logado: u2, ouvinte da sala 1.
   set local role authenticated;
@@ -218,6 +241,14 @@ begin
     r := array_append(r, 'AJ_logado_nao_chama_os_nomes_do_servidor=ok'::text);
   when others then
     r := array_append(r, ('AJ_logado_nao_chama_os_nomes_do_servidor=FALHOU(' || sqlerrm || ')')::text);
+  end;
+  begin
+    perform public.voice_usage_bytes(now() - interval '30 days', false);
+    r := array_append(r, 'AK_logado_nao_le_o_consumo=FALHOU(executou)'::text);
+  exception when insufficient_privilege then
+    r := array_append(r, 'AK_logado_nao_le_o_consumo=ok'::text);
+  when others then
+    r := array_append(r, ('AK_logado_nao_le_o_consumo=FALHOU(' || sqlerrm || ')')::text);
   end;
 
   -- Marcação de 18 anos: só a da própria pessoa, uma vez, e repetir não dá erro.
