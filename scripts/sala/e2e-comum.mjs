@@ -199,6 +199,22 @@ export async function openVideoCount(roomId, userId) {
   return count ?? 0;
 }
 
+/** Nome da faixa de tela aberta da pessoa (trocar a janela mantém o mesmo). */
+export async function openVideoTrackName(roomId, userId) {
+  const sid = await openSessionOf(roomId, userId);
+  if (!sid) return null;
+  const { data } = await db.from("voice_room_tracks").select("track_name").eq("session_id", sid).eq("kind", "video").is("closed_at", null).limit(1);
+  return data?.[0]?.track_name ?? null;
+}
+
+/** Quantas recepções de tela a pessoa já pediu na sessão aberta (abertas e encerradas). */
+export async function videoSubscriptionCount(roomId, userId) {
+  const sid = await openSessionOf(roomId, userId);
+  if (!sid) return 0;
+  const { count } = await db.from("voice_room_subscriptions").select("id", { count: "exact", head: true }).eq("session_id", sid).eq("kind", "video");
+  return count ?? 0;
+}
+
 export async function openSessionOf(roomId, userId) {
   const { data } = await db.from("voice_room_sessions").select("id").eq("room_id", roomId).eq("user_id", userId).is("closed_at", null).order("created_at", { ascending: false }).limit(1);
   return data?.[0]?.id ?? null;

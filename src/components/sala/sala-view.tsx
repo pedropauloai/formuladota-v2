@@ -140,7 +140,7 @@ function NaSala({ roomId, tipo, mostrarTela, snap, sessao }: Props & { snap: Ses
           podeTela={!!eu?.podeCompartilharTela} motivoTela={eu?.motivoTela ?? null} assistindo={!!snap.tela && !snap.minhaTela}
           camada={snap.camada} volumeVoz={volumeVoz} volumeJogo={volumeJogo}
           onMudo={() => sessao.alternarMudo()} onMao={() => sessao.alternarMao()} onTela={() => setEscolhendo(true)}
-          onPararTela={() => sessao.pararTela()} onCamada={(c) => sessao.escolherCamada(c)}
+          onPararTela={() => sessao.pararTela()} onTrocarTela={() => void sessao.trocarTela()} onCamada={(c) => sessao.escolherCamada(c)}
           onVolumeVoz={(v) => { setVolumeVoz(v); sessao.setVoiceVolume(v); }} onVolumeJogo={setVolumeJogo} onSair={() => sessao.sair()}
         />
         {snap.audioBloqueado && (

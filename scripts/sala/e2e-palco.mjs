@@ -30,6 +30,17 @@ async function telaECamada(t, check, pDono, pOuv) {
   // a ligação refeita quando a renegociação mata a sessão do ouvinte no SFU.
   const deNovo = await waitFor(async () => (await s.openVideoCount(t.palco.id, t.dono.id)) === 1 && (await s.videoLayerOf(t.palco.id, t.ouvinte.id)) !== null, 60_000);
   check("o dono para e volta a compartilhar, e a plateia recebe a tela nova", !!deNovo, `camada ${await s.videoLayerOf(t.palco.id, t.ouvinte.id)}`);
+  // Trocar a janela: a captura nova entra na mesma faixa; a plateia não pede faixa nova nem renegocia.
+  const faixaAntes = await s.openVideoTrackName(t.palco.id, t.dono.id);
+  const recepcoesAntes = await s.videoSubscriptionCount(t.palco.id, t.ouvinte.id);
+  await sleep(5500);
+  const bytesAntes = await s.attr(pOuv, "data-video-bytes");
+  await pDono.locator('[data-sala-tela="trocar"]').click({ timeout: 20_000 });
+  const segue = await waitFor(async () => (await s.attr(pOuv, "data-video-bytes")) > bytesAntes, 25_000);
+  await sleep(3000);
+  const mesma = (await s.openVideoTrackName(t.palco.id, t.dono.id)) === faixaAntes;
+  const semNova = (await s.videoSubscriptionCount(t.palco.id, t.ouvinte.id)) === recepcoesAntes;
+  check("trocar a janela mantém a mesma faixa, e a plateia segue recebendo sem pedir de novo", mesma && semNova && !!segue, `faixa ${mesma ? "igual" : "outra"}, recepção ${semNova ? "a mesma" : "nova"}`);
   const sid = await s.openSessionOf(t.palco.id, t.ouvinte.id);
   const voz = await s.tryPublish(pOuv, t.palco.id, sid, "audio", "voz-da-plateia");
   check("a plateia não publica voz pelo servidor", voz.status === 403 && voz.body.errorCode === "voz_nao_permitida", `HTTP ${voz.status} ${voz.body.errorCode}`);

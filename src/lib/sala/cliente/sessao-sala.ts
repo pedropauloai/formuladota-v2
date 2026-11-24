@@ -219,6 +219,11 @@ export class SessaoSala {
     this.set({ compartilhando: true, minhaTela: tela.stream, qualidadeTela: qualidade });
   }
 
+  /** Outra janela na mesma publicação: a plateia segue na mesma faixa, sem renegociar. */
+  async trocarTela(): Promise<void> {
+    if (this.telaNoAr && (await this.telaNoAr.trocar())) this.set({ minhaTela: this.telaNoAr.stream });
+  }
+
   pararTela(): void {
     this.telaNoAr?.parar();
     this.telaNoAr = null;

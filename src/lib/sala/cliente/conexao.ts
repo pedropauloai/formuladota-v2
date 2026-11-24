@@ -17,9 +17,16 @@ export interface Recebimento {
   setLayer: (rid: Layer) => void;
 }
 
+/** Publicação cuja faixa pode ser trocada na mesma faixa do SFU (replaceTrack, sem renegociar). */
+export interface Publicacao {
+  parar: () => void;
+  trocar: (track: MediaStreamTrack) => void;
+}
+
 export interface Connection {
   sessionId(): string | null;
   publish(track: MediaStreamTrack, encodings: RTCRtpEncodingParameters[], onReady: (ref: TrackRef) => void): () => void;
+  publishTrocavel(track: MediaStreamTrack, encodings: RTCRtpEncodingParameters[], onReady: (ref: TrackRef) => void): Publicacao;
   receive(ref: TrackRef, onTrack: (track: MediaStreamTrack) => void, layer?: Layer): Recebimento;
   stats(): Promise<RawStat[]>;
   onState(listener: (state: RTCPeerConnectionState) => void): void;
@@ -53,6 +60,14 @@ export function createConnection(opts: { roomId: string; iceServers: RTCIceServe
         error: (err: unknown) => console.error("[sala] publicar faixa:", err),
       });
       return () => sub.unsubscribe();
+    },
+    publishTrocavel(track, encodings, onReady) {
+      const track$ = new BehaviorSubject<MediaStreamTrack>(track);
+      const sub = pt.push(track$, { sendEncodings$: of(encodings) }).subscribe({
+        next: (meta) => { if (meta.sessionId && meta.trackName) onReady({ sessionId: meta.sessionId, trackName: meta.trackName }); },
+        error: (err: unknown) => console.error("[sala] publicar faixa:", err),
+      });
+      return { parar: () => sub.unsubscribe(), trocar: (novo) => track$.next(novo) };
     },
     receive(ref, onTrack, layer) {
       const meta = of({ location: "remote" as const, sessionId: ref.sessionId, trackName: ref.trackName });

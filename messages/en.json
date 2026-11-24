@@ -4840,6 +4840,8 @@
     "painelPessoas": "{n} in the room",
     "painelDispensar": "Dismiss",
     "painelRotulo": "Your voice room",
-    "reconectando": "Reconnecting"
+    "reconectando": "Reconnecting",
+    "trocarJanela": "Switch window",
+    "trocarJanelaDica": "Pick another window without stopping: viewers keep the picture."
   }
 }
