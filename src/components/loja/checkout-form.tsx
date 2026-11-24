@@ -94,7 +94,7 @@ export function CheckoutForm({ slug, variants, formFields, maxQuantity, priceUni
         setFormError(result.error);
         return;
       }
-      // Pix fica no site; cartão vai para a página do Mercado Pago.
+      // Pix e cartão ficam no site: a página do pedido mostra o QR ou o formulário do cartão.
       if (result.redirectUrl.startsWith("/")) router.push(result.redirectUrl);
       else window.location.assign(result.redirectUrl);
     });

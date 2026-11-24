@@ -19,6 +19,8 @@ export interface PublicOrder {
   status: StoreOrderStatus;
   method: "pix" | "cartao";
   pix: { copiaECola: string; qrBase64: string | null; expiresAt: string | null } | null;
+  /** E-mail do comprador só enquanto o cartão espera pagamento: o formulário vem preenchido. */
+  cardEmail: string | null;
   deliveryMd: string;
   createdAt: string;
   paidAt: string | null;
@@ -40,6 +42,7 @@ interface Row {
   quantity: number;
   status: string;
   payment_method: string;
+  buyer_email: string;
   pix_copia_e_cola: string | null;
   pix_qr_base64: string | null;
   pix_expires_at: string | null;
@@ -52,7 +55,7 @@ interface Row {
 }
 
 const SELECT =
-  "id, product_title, variant_label, amount_cents, quantity, status, payment_method, pix_copia_e_cola, pix_qr_base64, " +
+  "id, product_title, variant_label, amount_cents, quantity, status, payment_method, buyer_email, pix_copia_e_cola, pix_qr_base64, " +
   "pix_expires_at, created_at, paid_at, is_test, delivery_url, delivery_note, " +
   "store_products (slug, delivery_md, booking_mode, sessions_per_order, session_minutes, max_quantity)";
 
@@ -83,6 +86,7 @@ export async function getPublicOrder(orderId: string): Promise<PublicOrder | nul
           expiresAt: row.pix_expires_at,
         }
       : null,
+    cardEmail: row.payment_method === "cartao" && row.status === "pendente" ? row.buyer_email : null,
     deliveryMd: row.store_products?.delivery_md ?? "",
     createdAt: row.created_at,
     paidAt: row.paid_at,

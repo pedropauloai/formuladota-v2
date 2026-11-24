@@ -13,6 +13,8 @@ import { CtaWarp, plate } from "@/components/v2";
 import { formatPrice } from "@/lib/loja/money";
 import type { MyPendingOrder, MyQueueEntry } from "@/lib/loja/fila/model";
 import { sairDaFila } from "@/app/party/actions";
+import { desistirDoCartao } from "@/app/loja/cartao";
+import { CardPaymentBox } from "@/components/loja/card-payment-box";
 
 /** Abre o Dota pela Steam no computador; no celular o link não faz nada, por isso some lá. */
 const OPEN_DOTA_URL = "steam://rungameid/570";
@@ -130,8 +132,34 @@ export function MyEntryCard({ entry, dotaId, onAir, onChanged }: MyEntryCardProp
   return <FinishedCard entry={entry} />;
 }
 
-export function PendingPayment({ pending }: { pending: MyPendingOrder }) {
+/** Cartão pendente: o formulário do Mercado Pago na própria fila, e a saída para o Pix. */
+function CardPending({ pending, publicKey, onChanged }: { pending: MyPendingOrder; publicKey: string; onChanged: () => Promise<void> }) {
   const t = useTranslations("fila");
+  const tc = useTranslations("loja.cardForm");
+  const [switching, startSwitch] = useTransition();
+  const [switchError, setSwitchError] = useState<string | null>(null);
+  const usePix = () =>
+    startSwitch(async () => {
+      setSwitchError(null);
+      const result = await desistirDoCartao(pending.id).catch(() => ({ ok: false }));
+      if (!result.ok) setSwitchError(tc("usePixError"));
+      await onChanged();
+    });
+  return (
+    <section data-fila-cartao className="space-y-3">
+      <p className="font-display-condensed text-[2rem] uppercase leading-none text-text-display">{t("cardTitle", { price: formatPrice(pending.amountCents) })}</p>
+      <CardPaymentBox orderId={pending.id} amountCents={pending.amountCents} email={pending.email} publicKey={publicKey} onSettled={onChanged} />
+      <button type="button" disabled={switching} onClick={usePix} className="w-full text-center text-sm text-text-muted underline-offset-2 hover:text-text-display hover:underline">
+        {tc("usePix")}
+      </button>
+      {switchError && <p className="text-xs text-text-muted">{switchError}</p>}
+    </section>
+  );
+}
+
+export function PendingPayment({ pending, publicKey, onChanged }: { pending: MyPendingOrder; publicKey: string | null; onChanged: () => Promise<void> }) {
+  const t = useTranslations("fila");
+  if (pending.method === "cartao" && publicKey) return <CardPending pending={pending} publicKey={publicKey} onChanged={onChanged} />;
   if (pending.method === "cartao" || !pending.pix) {
     return (
       <section className="flex items-start gap-3 rounded-md border border-border-strong bg-bg-base p-5">

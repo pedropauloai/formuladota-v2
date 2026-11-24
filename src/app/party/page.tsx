@@ -56,7 +56,7 @@ export default async function PartyPage({ searchParams }: { searchParams: Search
     onSale: !!product && !!variant && product.liveSeat === "party",
   };
   const initialQuantity = Math.min(quantityFrom((await searchParams).qtd), offer.maxQuantity);
-  const viewer: FilaViewer = { loggedIn: !!user, hasSteam: !!steam, dotaId: steam?.dotaId ?? null };
+  const viewer: FilaViewer = { loggedIn: !!user, hasSteam: !!steam, dotaId: steam?.dotaId ?? null, mpPublicKey: process.env.MP_PUBLIC_KEY ?? null };
 
   return (
     <ClientShell currentRoute="/loja" hideRightSidebar hideBottomBar>

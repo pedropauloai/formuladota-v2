@@ -11,7 +11,6 @@ import { getActiveProduct, type StoreProduct, type StoreVariant } from "./catalo
 import { buildCheckoutSchema, detailsFrom, fieldErrors, type PaymentMethod } from "./checkout-schema";
 import { toStoreReference } from "./refs";
 import { centsToReais } from "./money";
-import { createCardPreference } from "./mercadopago";
 import { priceOrder } from "./pricing";
 import { getSlots } from "./slots";
 import { AGENDA } from "./agenda";
@@ -158,7 +157,7 @@ export async function openStoreOrder(order: PricedOrder, ctx: OrderContext, choi
     const problem = await holdBooking(orderId, order, choice);
     if (problem) return { ok: false, error: problem, fieldErrors: { [choiceField(choice)]: problem } };
   }
-  return order.method === "pix" ? startPix(orderId, order) : startCard(orderId, order, ctx);
+  return order.method === "pix" ? startPix(orderId, order) : startCard(orderId, ctx);
 }
 
 async function insertOrder(order: PricedOrder, ctx: OrderContext): Promise<string | null> {
@@ -237,26 +236,7 @@ async function startPix(orderId: string, order: PricedOrder): Promise<CreateOrde
   return { ok: true, orderId, redirectUrl: `/loja/pedido/${orderId}` };
 }
 
-async function startCard(orderId: string, order: PricedOrder, ctx: OrderContext): Promise<CreateOrderResult> {
-  const preference = await createCardPreference({
-    orderRef: toStoreReference(orderId),
-    itemId: order.variant.id,
-    title: `${order.product.title}: ${order.label}`,
-    description: order.product.summary || order.product.title,
-    amountCents: order.amountCents,
-    payer: order.buyer,
-    returnUrl: `${siteUrl()}${ctx.returnPath ? ctx.returnPath(orderId) : `/loja/pedido/${orderId}`}`,
-    notificationUrl: notificationUrl(),
-    ttlMinutes: order.paymentMinutes,
-  });
-  if (!preference.success) {
-    await cancelUnpaidOrder(orderId);
-    return { ok: false, error: "O Mercado Pago não abriu o pagamento com cartão agora. Tente de novo ou pague com Pix." };
-  }
-  const { error } = await createServiceClient()
-    .from("store_orders")
-    .update({ mp_preference_id: preference.data.id, updated_at: new Date().toISOString() })
-    .eq("id", orderId);
-  if (error) console.error("[loja] gravar preferência no pedido falhou:", error.message);
-  return { ok: true, orderId, redirectUrl: preference.data.checkoutUrl };
+/** Cartão: o pedido fica pendente e o formulário do Mercado Pago abre no próprio site (card-payment.ts). */
+function startCard(orderId: string, ctx: OrderContext): CreateOrderResult {
+  return { ok: true, orderId, redirectUrl: ctx.returnPath ? ctx.returnPath(orderId) : `/loja/pedido/${orderId}` };
 }

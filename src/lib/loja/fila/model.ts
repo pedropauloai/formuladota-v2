@@ -128,6 +128,8 @@ export interface MyPendingOrder {
   method: "pix" | "cartao";
   quantity: number;
   amountCents: number;
+  /** E-mail do próprio comprador: o formulário de cartão já vem preenchido. */
+  email: string | null;
   pix: { copiaECola: string; qrDataUrl: string | null; expiresAt: string | null } | null;
 }
 

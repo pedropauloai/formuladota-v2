@@ -118,7 +118,7 @@ export default async function FilaPrevia({ searchParams }: { searchParams: Promi
       <StaticQueue />
       <PartyQueuePage
         initial={scene(cena ?? "comprar")}
-        viewer={{ loggedIn: true, hasSteam: true, dotaId: "412883017" }}
+        viewer={{ loggedIn: true, hasSteam: true, dotaId: "412883017", mpPublicKey: null }}
         offer={{ priceCents: PRICE_CENTS, maxQuantity: 1, onSale: true }}
         initialQuantity={1}
         howItWorks={<HowItWorks />}
