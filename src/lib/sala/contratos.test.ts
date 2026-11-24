@@ -40,3 +40,10 @@ describe("contrato entre as funções do banco e o servidor", () => {
     expect(Object.values(ids).every((p) => typeof p.username === "string")).toBe(true);
   });
 });
+
+describe("estado comum com o dono fora da sala", () => {
+  it("a linha do dono sem batimento (sem a chave on) vale como fora, sem derrubar o estado de todos", () => {
+    const s = SnapshotSchema.parse({ ...real.snapshot, members: [{ u: "00000000-0000-4000-8000-000000000002", r: "dono", m: false }] });
+    expect(s.members[0]).toMatchObject({ r: "dono", on: false });
+  });
+});

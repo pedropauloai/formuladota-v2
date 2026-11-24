@@ -20,6 +20,7 @@ const RG = "src/lib/sala/cliente/registro.ts";
 const FC = "src/lib/sala/flag-chave.ts";
 const MO = "src/lib/sala/montagem.ts";
 const TL = "src/lib/sala/cliente/tela-local.ts";
+const CA = "src/lib/sala/canais.ts";
 
 const MUTACOES = [
   [A, 'if (!input.flagOn) return { ok: false, code: "flag_desligada" };', "", "flag desligada não esconde"],
@@ -28,7 +29,10 @@ const MUTACOES = [
   [A, 'if (!input.ageConfirmed) return { ok: false, code: "sem_maioridade" };', "", "entra sem a marcação de 18 anos"],
   [A, 'if (room.audience === "beneficio" && !input.battlepass && !input.inPartyNow) return { ok: false, code: "so_beneficio" };', "", "sala do benefício aberta a todos"],
   [A, 'if (full && !passesWhenFull(room, link.role, input.battlepass)) return { ok: false, code: "sala_lotada" };', "", "sala sem lotação"],
-  [A, 'return room.kind === "palco" && (role === "falante" || battlepass);', "return true;", "Battlepass fura a lotação de qualquer sala"],
+  [A, 'if (room.kind !== "palco" || room.voiceMode !== "palco") return false;', 'if (room.kind !== "palco") return false;', "Battlepass fura a lotação da party da voz livre"],
+  [A, 'return battlepass || role === "falante";', "return true;", "no palco todo mundo fura a lotação"],
+  [A, 'if (room.voiceMode === "livre") return { ok: true, role: "falante" };', "", "na voz livre quem entra não fala"],
+  [A, 'if (room.kind === "texto") return { ok: true, role: "ouvinte" };', "", "no canal de texto a linha antiga de quem falava vale"],
   [P, 'return role !== "ouvinte";', "return true;", "a plateia publica voz"],
   [P, 'if (input.actorRole !== "dono") return { ok: false, code: "so_o_dono" };', "", "qualquer um modera"],
   [P, 'if (input.targetIsOwner) return { ok: false, code: "dono_nao_sai" };', "", "o dono é tirado da própria sala"],
@@ -38,6 +42,13 @@ const MUTACOES = [
   [F, 'if (input.blockedPair) return { ok: false, code: "bloqueado" };', "", "bloqueado continua ouvindo"],
   [F, 'if (videos > 0 && input.capReached) return { ok: false, code: "teto_de_trafego" };', "", "tela passa do teto"],
   [F, 'if (videos > 0 && !share) return { ok: false, code: "tela_nao_permitida" };', "", "compartilha tela sem permissão"],
+  [F, 'if (input.roomKind === "texto") return { ok: false, code: "sala_sem_midia" };', "", "o canal de texto publica voz"],
+  [P, '  if (roomKind === "texto") return false;', "", "o dono compartilha tela no canal de texto"],
+  [P, 'return roomKind === "palco" && voiceMode === "livre" && role === "ouvinte" ? "falante" : role;', "return role;", "na voz livre a linha antiga da plateia não fala"],
+  [P, 'if (input.roomKind !== "palco" || input.voiceMode !== "palco") return { ok: false, code: "so_na_sala_publica" };', 'if (input.roomKind !== "palco") return { ok: false, code: "so_na_sala_publica" };', "chamar ao palco na voz livre"],
+  [CA, 'if (!(categoria === "texto" ? TEXTO_OK : VOZ_OK).test(nome)) return { ok: false, erro: "nome_invalido" };', "", "nome de canal com símbolo passa"],
+  [FC, "return salaFlagKey(env) !== SALA_FLAG;", "return env.SALA_FLAG_KEY !== undefined;", "produção lista os canais de teste"],
+  [MO, 'podeFalar: room.kind !== "texto" && canPublishVoice(role)', "podeFalar: canPublishVoice(role)", "o dono fala no canal de texto"],
   [F, 'if (audios > 0 && input.forceMuted && input.role !== "dono") return { ok: false, code: "mutado_pelo_dono" };', "", "mutado pelo dono volta a falar"],
   [F, 'if (t.userId === input.subscriberUserId) return { ok: false, code: "faixa_propria" };', "", "recebe a própria faixa"],
   [F, "&& publisherMayKeep(m.role, t.tipo) && !blocked.has(t.userId);", "&& !blocked.has(t.userId);", "voz de quem voltou à plateia continua na lista"],
@@ -45,7 +56,7 @@ const MUTACOES = [
   [F, 'if (r.location !== "remote" || r.sessionId !== sub.publisherSessionId || r.trackName !== sub.trackName || sub.kind !== "video") {', "if (false) {", "a troca de camada puxa outra faixa"],
   [F, 'return input.requested === "f" && input.usageBytes < input.capBytes / 2 ? "f" : "h";', 'return input.requested ?? "h";', "camada alta sem olhar o custo"],
   [C, "return Math.round(Math.min(base, videoMaxKbps) * VIDEO_FOLGA);", "return Math.round(base);", "tela conta sem cabeçalho nem teto"],
-  [M, "const role: MemberRole = mine?.r ?? decided;", "const role: MemberRole = decided;", "chamado ao palco só fala no próximo batimento"],
+  [M, "const role: MemberRole = papelDe(mine?.r ?? decided);", "const role: MemberRole = papelDe(decided);", "chamado ao palco só fala no próximo batimento"],
   [M, "const forceMuted = mine ? !!mine.f : (v.member?.forceMuted ?? false);", "const forceMuted = mine?.f ?? v.member?.forceMuted ?? false;", "liberado pelo dono continua mudo até o batimento"],
   [A, "const full = !input.alreadyIn && input.onlineOthers + 1 > room.maxMembers;", "const full = input.onlineOthers + 1 > room.maxMembers;", "quem já está na sala cai pela lotação no batimento"],
   [P, 'if (!input.presente) return { ok: false, code: "fora_da_sala" };', "", "quem não entrou escreve no chat"],

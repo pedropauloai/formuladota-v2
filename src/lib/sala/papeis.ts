@@ -1,13 +1,19 @@
 // O que cada papel faz na sala (spec, seção 8) e as ações de moderação do dono e do chat. O servidor
 // confere antes de gravar ou repassar ao SFU; a tela só esconde o botão, não decide.
 
-import type { MemberRole, MemberStatus, RoomKind, ScreenPolicy } from "./tipos";
+import type { MemberRole, MemberStatus, RoomKind, ScreenPolicy, VoiceMode } from "./tipos";
+
+/** Na voz livre todo mundo que está na sala fala: a linha antiga da plateia vale como quem fala. */
+export function effectiveRole(role: MemberRole, roomKind: RoomKind, voiceMode: VoiceMode): MemberRole {
+  return roomKind === "palco" && voiceMode === "livre" && role === "ouvinte" ? "falante" : role;
+}
 
 export function canPublishVoice(role: MemberRole): boolean {
   return role !== "ouvinte";
 }
 
 export function canShareScreen(role: MemberRole, roomKind: RoomKind, policy: ScreenPolicy, partyScreenEnabled: boolean): boolean {
+  if (roomKind === "texto") return false;
   if (role === "dono") return roomKind !== "party" || partyScreenEnabled;
   return role === "membro" && roomKind === "mentoria" && policy === "um_por_vez";
 }
@@ -17,7 +23,7 @@ export function canRaiseHand(role: MemberRole, roomKind: RoomKind): boolean {
 }
 
 export function canChat(role: MemberRole, roomKind: RoomKind, chatOpen: boolean): boolean {
-  return roomKind === "palco" && (chatOpen || role === "dono");
+  return (roomKind === "palco" || roomKind === "texto") && (chatOpen || role === "dono");
 }
 
 export type StageAction = "falar" | "ouvir" | "mutar" | "liberar" | "expulsar" | "banir";
@@ -27,6 +33,7 @@ export interface StageActionInput {
   action: StageAction;
   actorRole: MemberRole;
   roomKind: RoomKind;
+  voiceMode: VoiceMode;
   targetIsOwner: boolean;
   /** A linha do alvo nesta sala; banir vale também para quem já foi expulso. */
   target: { role: MemberRole; status: MemberStatus } | null;
@@ -45,7 +52,7 @@ export function decideStageAction(input: StageActionInput): StageDecision {
   if (input.action === "banir") return { ok: true };
   if (!t || t.status !== "ativo") return { ok: false, code: "fora_da_sala" };
   if (input.action === "falar" || input.action === "ouvir") {
-    if (input.roomKind !== "palco") return { ok: false, code: "so_na_sala_publica" };
+    if (input.roomKind !== "palco" || input.voiceMode !== "palco") return { ok: false, code: "so_na_sala_publica" };
     if (input.action === "ouvir") return { ok: true, role: "ouvinte" };
     if (t.role !== "falante" && input.speakers >= input.maxSpeakers) return { ok: false, code: "palco_cheio" };
     return { ok: true, role: "falante" };
@@ -70,7 +77,7 @@ export interface ChatInput {
 }
 
 export function decideChat(input: ChatInput): { ok: true; body: string } | { ok: false; code: ChatDenyCode } {
-  if (input.roomKind !== "palco") return { ok: false, code: "chat_indisponivel" };
+  if (input.roomKind !== "palco" && input.roomKind !== "texto") return { ok: false, code: "chat_indisponivel" };
   if (!input.presente) return { ok: false, code: "fora_da_sala" };
   if (!canChat(input.role, input.roomKind, input.chatOpen)) return { ok: false, code: "chat_fechado" };
   const body = input.body.replace(/\s+/g, " ").trim();

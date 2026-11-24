@@ -39,13 +39,17 @@ function membership(input: AccessInput, room: RoomInfo, userId: string): Link {
   if (room.kind === "party") return input.inPartyNow ? { ok: true, role: "membro" } : { ok: false, code: "fora_da_sala" };
   if (room.kind === "mentoria") return input.member?.status === "ativo" ? { ok: true, role: "membro" } : { ok: false, code: "fora_da_sala" };
   if (room.audience === "beneficio" && !input.battlepass && !input.inPartyNow) return { ok: false, code: "so_beneficio" };
+  if (room.kind === "texto") return { ok: true, role: "ouvinte" };
+  if (room.voiceMode === "livre") return { ok: true, role: "falante" };
   return { ok: true, role: input.member?.role === "falante" ? "falante" : "ouvinte" };
 }
 
-/** Sala cheia: o dono sempre entra; na sala pública, quem está no palco e o Battlepass também (escolha 9). */
+/** Sala cheia: o dono sempre entra; no palco da live, o Battlepass e quem foi chamado a falar também
+ *  (escolha 9). Na voz livre o limite é o tamanho do grupo (a party de 5 do Dota): ninguém fura. */
 function passesWhenFull(room: RoomInfo, role: MemberRole, battlepass: boolean): boolean {
   if (role === "dono") return true;
-  return room.kind === "palco" && (role === "falante" || battlepass);
+  if (room.kind !== "palco" || room.voiceMode !== "palco") return false;
+  return battlepass || role === "falante";
 }
 
 export function decideRoomAccess(input: AccessInput): AccessDecision {

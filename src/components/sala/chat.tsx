@@ -30,6 +30,8 @@ interface Props {
   onAbrirChat: (aberto: boolean) => void;
   /** Na tela cheia: sem painel, transparente e da altura da tela. */
   sobreposto?: boolean;
+  /** Na coluna da direita do canal de voz: o painel ocupa a altura da coluna. */
+  coluna?: boolean;
 }
 
 function Mensagem({ m, p }: { m: MensagemEstado; p: Props }) {
@@ -40,6 +42,8 @@ function Mensagem({ m, p }: { m: MensagemEstado; p: Props }) {
   const autor = m.userId;
   const banir = async () => {
     if (!autor) return;
+    // A confirmação abre no corpo da página: na tela cheia ficaria escondida atrás da tela.
+    if (document.fullscreenElement) await document.exitFullscreen().catch(() => null);
     if (await confirm({ title: t("banir"), message: t("banirConfirma", { nome }), confirmLabel: t("confirmar"), variant: "destructive" })) p.onBanir(autor);
   };
   return (
@@ -103,7 +107,7 @@ export function Chat(p: Props) {
             </button>
           )}
         </div>
-        <ul ref={lista} className={p.sobreposto ? "min-h-0 flex-1 overflow-y-auto pr-1" : "h-[22rem] overflow-y-auto pr-1 min-[2600px]:h-[30rem]"} aria-live="polite">
+        <ul ref={lista} className={p.sobreposto || p.coluna ? "min-h-0 flex-1 overflow-y-auto pr-1" : "h-[22rem] overflow-y-auto pr-1 min-[2600px]:h-[30rem]"} aria-live="polite">
           {p.mensagens.length === 0 && <li className="py-6 text-center text-xs text-text-muted">{t("chatVazio")}</li>}
           {p.mensagens.map((m) => (
             <Mensagem key={m.id} m={m} p={p} />
@@ -136,7 +140,7 @@ export function Chat(p: Props) {
       {conteudo}
     </div>
   ) : (
-    <Panel className="flex flex-col p-4" data-sala-chat={p.chatAberto ? "aberto" : "fechado"}>
+    <Panel className={cn("flex flex-col p-4", p.coluna && "h-full")} wrapperClassName={p.coluna ? "h-full" : undefined} data-sala-chat={p.chatAberto ? "aberto" : "fechado"}>
       {conteudo}
     </Panel>
   );

@@ -72,6 +72,11 @@ async function telaCheiaEVolumes(t, check, pOuv) {
   await pOuv.locator("body").click({ position: { x: 5, y: 5 } });
   await pOuv.keyboard.press("f");
   const peloF = await waitFor(async () => (await pOuv.locator('[data-sala-tela-cheia="sim"]').count()) > 0, 10_000);
+  await pOuv.keyboard.press("c");
+  const semChat = await waitFor(async () => (await pOuv.locator("[data-sala-chat-sobreposto]").count()) === 0, 5_000);
+  await pOuv.keyboard.press("c");
+  const comChat = await waitFor(async () => (await pOuv.locator("[data-sala-chat-sobreposto]").count()) === 1, 5_000);
+  check("na tela cheia, a tecla C esconde e mostra o chat", !!semChat && !!comChat);
   await pOuv.keyboard.press("f");
   const voltouPeloF = await waitFor(async () => (await pOuv.locator('[data-sala-tela-cheia="nao"]').count()) > 0, 10_000);
   check("sai da tela cheia pelo botão, e a tecla F entra e sai", !!saiu && !!peloF && !!voltouPeloF);
@@ -79,6 +84,11 @@ async function telaCheiaEVolumes(t, check, pOuv) {
   await arrastar(pOuv.locator(`[data-sala-volume-de="${t.dono.id}"]`), 0.5);
   const guardado = await pOuv.evaluate((id) => JSON.parse(localStorage.getItem("formuladota:volumes") ?? "{}")[id], t.dono.id);
   check("o volume de uma pessoa abre no clique do nome e fica guardado no navegador", guardado === 0.5, String(guardado));
+  await pOuv.locator('[data-sala-chat-coluna-alternar="esconder"]').click();
+  const escondida = await waitFor(async () => (await pOuv.locator("[data-sala-chat-coluna]").count()) === 0, 5_000);
+  await pOuv.locator('[data-sala-chat-coluna-alternar="mostrar"]').click();
+  const deVolta = await waitFor(async () => (await pOuv.locator("[data-sala-chat-coluna]").count()) === 1, 5_000);
+  check("a coluna do chat se esconde e volta pela barra", !!escondida && !!deVolta);
 }
 
 async function palcoEModeracao(t, check, pDono, pOuv) {

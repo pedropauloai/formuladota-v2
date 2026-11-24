@@ -1,11 +1,11 @@
 "use client";
 
 // Painel de voz em todas as páginas do site enquanto a pessoa está numa sala (como no Discord): o nome
-// da sala, quem está falando, mutar, parar a tela, sair e voltar para a sala. Some na própria página da
-// sala. Fica no canto de baixo, em cima da party, como no Discord (escolha do PPA em 24/11/2026).
+// da sala, quem está falando, mutar, parar a tela, sair e voltar para a sala. Fora da /sala fica no canto
+// de baixo, em cima da party (escolha do PPA em 24/11/2026); na /sala, no pé da coluna de canais.
 
 import { useTranslations } from "next-intl";
-import { Loader2, LogOut, Mic, MicOff, MonitorOff, Volume2, X } from "lucide-react";
+import { HeadphoneOff, Headphones, Loader2, LogOut, Mic, MicOff, MonitorOff, Volume2, X } from "lucide-react";
 import { LiveDot, panel } from "@/components/v2";
 import { Link, usePathname } from "@/i18n/navigation";
 import { salaAtiva } from "@/lib/sala/cliente/sala-ativa";
@@ -51,6 +51,9 @@ function Controles({ snap, sessao }: { snap: SessaoSnapshot; sessao: SessaoSala 
           {snap.mutado ? <MicOff className="size-4 text-error" /> : <Mic className="size-4" />}
         </Botao>
       )}
+      <Botao titulo={snap.surdo ? t("religarSom") : t("ensurdecer")} onClick={() => sessao.alternarSurdo()} data="data-painel-voz-surdo">
+        {snap.surdo ? <HeadphoneOff className="size-4 text-error" /> : <Headphones className="size-4" />}
+      </Botao>
       {snap.compartilhando && (
         <Botao titulo={t("pararTela")} onClick={() => sessao.pararTela()} data="data-painel-voz-parar-tela">
           <MonitorOff className="size-4" />
@@ -63,11 +66,12 @@ function Controles({ snap, sessao }: { snap: SessaoSnapshot; sessao: SessaoSala 
   );
 }
 
-export function PainelVoz() {
+export function PainelVoz({ embutido = false }: { embutido?: boolean }) {
   const t = useTranslations("sala");
   const pathname = usePathname();
   const { ativa, snap } = useSalaAtiva();
-  if (!ativa || pathname === `/sala/${ativa.meta.roomId}`) return null;
+  // Na /sala a coluna de canais mostra o painel no pé: o do canto some.
+  if (!ativa || (!embutido && pathname.startsWith("/sala"))) return null;
   const rota = `/sala/${ativa.meta.roomId}`;
   const saiu = snap.fase === "saiu" || snap.fase === "erro";
   const titulo = (
@@ -80,7 +84,8 @@ export function PainelVoz() {
       aria-label={t("painelRotulo")}
       data-painel-voz={snap.fase}
       data-audio-bytes={snap.medidas.audioBytes}
-      className={cn(panel("neutral"), "pointer-events-auto fixed z-[var(--z-overlay)] flex max-w-[calc(100vw-2rem)] shadow-lg shadow-black/60", CANTO)}
+      data-painel-voz-lugar={embutido ? "coluna" : "canto"}
+      className={embutido ? "flex w-full flex-col gap-2 rounded-sm bg-bg-deep/60 p-3" : cn(panel("neutral"), "pointer-events-auto fixed z-[var(--z-overlay)] flex max-w-[calc(100vw-2rem)] shadow-lg shadow-black/60", CANTO)}
     >
       <span className="flex min-w-0 items-center gap-2">
         {snap.fase === "na_sala" ? <LiveDot /> : saiu ? null : <Loader2 className="size-3.5 shrink-0 animate-spin text-text-muted" aria-hidden="true" />}

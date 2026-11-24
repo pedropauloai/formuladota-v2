@@ -1,7 +1,10 @@
 // Tipos do domínio das salas de voz (spec: docs/comunicacao/spec.md), compartilhados entre as regras
 // puras, o servidor e a tela.
 
-export type RoomKind = "palco" | "mentoria" | "party";
+/** palco: canal de voz (ou a sala da live); texto: canal só de chat; mentoria e party: salas privadas. */
+export type RoomKind = "palco" | "mentoria" | "party" | "texto";
+/** Canal de voz: palco (a plateia ouve e o dono chama para falar) ou livre (quem entra já fala). */
+export type VoiceMode = "palco" | "livre";
 export type RoomStatus = "aberta" | "encerrada";
 /** dono; membro (mentoria e party); falante e ouvinte (sala pública). */
 export type MemberRole = "dono" | "membro" | "falante" | "ouvinte";
@@ -26,6 +29,9 @@ export interface RoomInfo {
   audience: Audience;
   chatOpen: boolean;
   closesAt: string;
+  voiceMode: VoiceMode;
+  /** Lugar na lista de canais do servidor; nulo nas salas privadas. */
+  channelPosition: number | null;
 }
 
 export interface MemberInfo {
@@ -67,6 +73,7 @@ export type TrackDenyCode =
   | "ja_recebendo"
   | "rotulo_invalido"
   | "qualidade_invalida"
-  | "troca_invalida";
+  | "troca_invalida"
+  | "sala_sem_midia";
 
 export type RuleDecision = { ok: true } | { ok: false; code: TrackDenyCode };

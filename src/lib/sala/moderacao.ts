@@ -76,7 +76,7 @@ export async function stageAction(ctx: CallContext, targetId: string, action: St
   const target = await getMemberRow(ctx.db, room.id, targetId);
   const speakers = action === "falar" ? await onlineSpeakers(ctx, room.id) : ctx.speakers;
   const rule = decideStageAction({
-    action, actorRole: decision.role, roomKind: room.kind, targetIsOwner: targetId === room.ownerId,
+    action, actorRole: decision.role, roomKind: room.kind, voiceMode: room.voiceMode, targetIsOwner: targetId === room.ownerId,
     target, speakers, maxSpeakers: settings.palcoMaxSpeakers,
   });
   if (!rule.ok) return rule;

@@ -1,13 +1,17 @@
-// /sala: o endereço fixo que o PPA anuncia na live (spec, seção 14). Leva à sala pública aberta; sem
-// sala aberta, diz que ela abre quando a live começar. Flag sala_voz desligada dá 404 para todos.
+// /sala: o endereço fixo que o PPA anuncia na live (spec, seção 14). Leva ao canal de voz onde o PPA
+// está ao vivo; sem live, ao primeiro canal de texto. Sem login, o portão de entrar. Flag sala_voz
+// desligada dá 404 para todos.
 
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { Radio } from "lucide-react";
-import { ClientShell } from "@/components/client-shell/shell";
+import { Hash } from "lucide-react";
+import { Portao } from "@/components/sala/portao";
 import { Panel } from "@/components/v2";
+import { destinoInicial } from "@/lib/sala/canais";
+import { authInfo } from "@/lib/sala/contexto";
 import { salaVozOn } from "@/lib/sala/flag";
+import { listaDeCanais } from "@/lib/sala/lista-canais";
 import { createServiceClient } from "@/lib/supabase/service";
 
 export const dynamic = "force-dynamic";
@@ -17,34 +21,18 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("metaTitle") };
 }
 
-async function openPublicRoom(): Promise<string | null> {
-  // A sala pública não é segredo (é o link anunciado na live); a RLS só abre a sala a quem já é membro.
-  const db = createServiceClient();
-  const { data } = await db
-    .from("voice_rooms")
-    .select("id")
-    .eq("kind", "palco")
-    .eq("status", "aberta")
-    .eq("is_test", false)
-    .gt("closes_at", new Date().toISOString())
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  return data?.id ?? null;
-}
-
-export default async function SalaPublicaPage() {
+export default async function SalaInicioPage() {
   if (!(await salaVozOn())) notFound();
-  const id = await openPublicRoom();
-  if (id) redirect(`/sala/${id}`);
+  const auth = await authInfo();
+  if (!auth) return <Portao tipo="login" next="/sala" />;
+  const destino = destinoInicial(await listaDeCanais(createServiceClient(), auth.userId));
+  if (destino) redirect(`/sala/${destino}`);
   const t = await getTranslations("sala");
   return (
-    <ClientShell currentRoute="/sala" hideRightSidebar hideBottomBar>
-      <Panel className="mx-auto mt-10 max-w-md space-y-4 p-6 text-center" data-sala-publica="fechada">
-        <Radio className="mx-auto size-10 text-brand-primary" aria-hidden="true" />
-        <h1 className="font-display-condensed text-[2.2rem] uppercase leading-none text-text-display">{t("publicaFechadaTitulo")}</h1>
-        <p className="text-sm leading-relaxed text-text-body">{t("publicaFechadaTexto")}</p>
-      </Panel>
-    </ClientShell>
+    <Panel className="m-6 max-w-md space-y-3 p-6" data-sala-publica="fechada">
+      <Hash className="size-8 text-text-muted" aria-hidden="true" />
+      <h1 className="font-display-condensed text-[2rem] uppercase leading-none text-text-display">{t("servidorVazioTitulo")}</h1>
+      <p className="text-sm leading-relaxed text-text-body">{t("servidorVazioTexto")}</p>
+    </Panel>
   );
 }

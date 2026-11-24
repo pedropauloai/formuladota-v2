@@ -1,14 +1,17 @@
-// /admin/salas: o PPA abre a sala pública da live, cria a sala de mentoria a partir de um horário pago
-// ou a da party da live, copia o link (e o convite de quem pagou sem login), encerra, desbane e vê
-// consumo e denúncias.
+// /admin/salas: o PPA cuida dos canais do servidor (texto e voz), cria a sala de mentoria a partir de
+// um horário pago ou a da party da live, copia o link (e o convite de quem pagou sem login), encerra,
+// desbane e vê consumo e denúncias.
 // Instrumento de trabalho: sem pele de vitrine. Flag sala_voz desligada esconde a página.
 
 import { notFound } from "next/navigation";
 import { requireAdminPage } from "@/lib/auth/admin-page";
 import { salaVozOn } from "@/lib/sala/flag";
 import { adminOverview, listBans } from "@/lib/sala/admin";
+import { listChannels } from "@/lib/sala/admin-canais";
+import { canaisDeTeste } from "@/lib/sala/flag-chave";
 import { createServiceClient } from "@/lib/supabase/service";
 import { Banidos } from "./banidos";
+import { CanaisPainel } from "./canais-painel";
 import { SalasPainel } from "./salas-painel";
 
 export const dynamic = "force-dynamic";
@@ -21,7 +24,7 @@ export default async function AdminSalasPage() {
   const adminId = await requireAdminPage();
   if (!(await salaVozOn())) notFound();
   const db = createServiceClient();
-  const [overview, banidos] = await Promise.all([adminOverview(db, new Date()), listBans(db, adminId)]);
+  const [overview, banidos, canais] = await Promise.all([adminOverview(db, new Date()), listBans(db, adminId), listChannels(db, canaisDeTeste({ NODE_ENV: process.env.NODE_ENV, SALA_FLAG_KEY: process.env.SALA_FLAG_KEY }))]);
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.formuladota.com.br";
   const pct = overview.usage.capBytes > 0 ? Math.round((overview.usage.estimatedBytes / overview.usage.capBytes) * 100) : 0;
   return (
@@ -51,9 +54,11 @@ export default async function AdminSalasPage() {
         </div>
       </section>
 
+      <CanaisPainel canais={canais} site={site} />
+
       <SalasPainel
         site={site}
-        rooms={overview.rooms.map((r) => ({ id: r.id, title: r.title, kind: r.kind, online: r.online, closesAt: r.closesAt, isTest: r.isTest }))}
+        rooms={overview.rooms.filter((r) => r.channelPosition === null).map((r) => ({ id: r.id, title: r.title, kind: r.kind, online: r.online, closesAt: r.closesAt, isTest: r.isTest }))}
         bookings={overview.bookings}
         liveOnAir={overview.liveOnAir}
       />

@@ -20,6 +20,7 @@ export interface PublishInput {
 }
 
 export function decidePublish(input: PublishInput): RuleDecision {
+  if (input.roomKind === "texto") return { ok: false, code: "sala_sem_midia" };
   if (input.requested.length === 0) return { ok: false, code: "faixa_demais" };
   const share = canShareScreen(input.role, input.roomKind, input.screenPolicy, input.partyScreenEnabled);
   const videos = input.requested.filter((k) => k === "video").length;

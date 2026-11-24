@@ -1,23 +1,27 @@
 "use client";
 
-// Tela da sala de voz (spec, seção 14), com o kit v2 sem pele nova: o palco com a tela, os controles,
-// e ao lado o chat (sala pública) e as pessoas. Os atributos data-* expõem o que o e2e confere.
+// Canal de voz do servidor (spec, seção 14), no molde do Discord e da Twitch: o cabeçalho do canal, o
+// palco com a tela ocupando o espaço, a barra de controles compacta embaixo e, à direita, o chat do canal
+// de voz público numa coluna que se esconde. Quem está na sala fica na árvore de canais. Um clique no
+// canal (?entrar=1) já entra. Os atributos data-* expõem o que o e2e confere.
 
-import { useState, useSyncExternalStore, type ComponentProps } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type ComponentProps } from "react";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Loader2, Radio, ShieldCheck, Volume2 } from "lucide-react";
-import { Panel, plate, v2Page } from "@/components/v2";
+import { Loader2, Lock, Radio, ShieldCheck, Volume2 } from "lucide-react";
+import { Panel, plate } from "@/components/v2";
+import { useRouter } from "@/i18n/navigation";
 import { captureSupport } from "@/lib/sala/cliente/midia";
 import type { SessaoSala, SessaoSnapshot } from "@/lib/sala/cliente/sessao-sala";
 import { useSala } from "@/lib/sala/cliente/use-sala";
 import { qualityLevel } from "@/lib/sala/metricas";
-import type { RoomKind } from "@/lib/sala/tipos";
+import type { RoomKind, VoiceMode } from "@/lib/sala/tipos";
 import { cn } from "@/lib/utils";
 import { Chat } from "./chat";
 import { Controles } from "./controles";
 import { Denuncia, type AlvoTela } from "./denuncia";
 import { Palco } from "./palco";
-import { Pessoas } from "./pessoas";
+import { Participantes } from "./participantes";
 import { QualidadeTela } from "./qualidade-tela";
 import { MODERAR_ERRO, PODE_VOLTAR, SAIDA_TEXTO } from "./textos";
 
@@ -25,12 +29,13 @@ interface Props {
   roomId: string;
   titulo: string;
   tipo: RoomKind;
+  modo: VoiceMode;
   /** Pela regra da sala, esta pessoa pode compartilhar a tela (o servidor confere de novo). */
   mostrarTela: boolean;
 }
 
 const QUALIDADE = { boa: "qualidadeBoa", instavel: "qualidadeInstavel", ruim: "qualidadeRuim" } as const;
-const TIPO = { palco: "tipoPalco", mentoria: "tipoMentoria", party: "tipoParty" } as const;
+const ROTULO = { palco: "modoPalco", livre: "modoLivre", mentoria: "tipoMentoria", party: "tipoParty" } as const;
 
 const nada = () => () => undefined;
 const suporteAgora = () => {
@@ -53,20 +58,22 @@ function Avisos({ mostrarTela }: { mostrarTela: boolean }) {
   );
 }
 
-function Cabecalho({ titulo, tipo, snap }: { titulo: string; tipo: RoomKind; snap: SessaoSnapshot }) {
+function Cabecalho({ titulo, tipo, modo, snap }: { titulo: string; tipo: RoomKind; modo: VoiceMode; snap: SessaoSnapshot }) {
   const t = useTranslations("sala");
   const q = snap.qualidade;
   const nivel = q ? qualityLevel(q) : null;
+  const privada = tipo === "mentoria" || tipo === "party";
+  const Icone = privada ? Lock : modo === "livre" ? Volume2 : Radio;
   return (
-    <header className="flex flex-wrap items-end justify-between gap-3">
-      <div className="space-y-1">
-        <span className={plate({ kind: "tag", tone: tipo === "mentoria" ? "gold" : "live" })}>{t(TIPO[tipo])}</span>
-        <h1 className="font-display-condensed text-[2.6rem] uppercase leading-[0.9] text-text-display">{titulo}</h1>
-        <p className="flex items-center gap-1.5 text-xs text-text-muted">
-          <ShieldCheck className="size-3.5" aria-hidden="true" />
-          {t("naoGravada")}
-        </p>
-      </div>
+    <header className="flex min-h-12 flex-wrap items-center gap-x-3 gap-y-1 border-b border-border-subtle py-2">
+      <Icone className="size-5 shrink-0 text-text-muted" aria-hidden="true" />
+      <h1 className="truncate font-display text-base font-semibold text-text-display">{titulo}</h1>
+      <span className="text-xs text-text-muted" data-sala-modo={privada ? tipo : modo}>{t(ROTULO[privada ? tipo : modo])}</span>
+      <p className="flex items-center gap-1.5 text-xs text-text-muted">
+        <ShieldCheck className="size-3.5" aria-hidden="true" />
+        {t("naoGravada")}
+      </p>
+      <span className="ml-auto" />
       {snap.reconectando ? (
         <p className="flex items-center gap-1.5 text-xs text-gold" data-sala-reconectando="">
           <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
@@ -105,6 +112,7 @@ function Entrada({ snap, entrar, retomando, mostrarTela }: { snap: SessaoSnapsho
               {snap.fase === "inicial" ? t("entrar") : t("entrarDeNovo")}
             </button>
             <p className="text-xs text-text-muted">{t("entrarAviso")}</p>
+            <p className="text-xs text-text-muted">{t("dicaVoz")}</p>
           </>
         )
       )}
@@ -113,7 +121,30 @@ function Entrada({ snap, entrar, retomando, mostrarTela }: { snap: SessaoSnapsho
   );
 }
 
-type Alvo = ({ userId: string } | { messageId: number }) & AlvoTela;
+type Alvo = { messageId: number } & AlvoTela;
+
+const CHAVE_CHAT = "formuladota:sala-chat";
+
+/** A coluna do chat se esconde e volta; a escolha fica neste navegador. Só desenha na sala (no cliente). */
+function useColunaDoChat(): [boolean, () => void] {
+  const [aberta, setAberta] = useState(() => {
+    try {
+      return window.localStorage.getItem(CHAVE_CHAT) !== "0";
+    } catch {
+      return true;
+    }
+  });
+  const alternar = () =>
+    setAberta((v) => {
+      try {
+        window.localStorage.setItem(CHAVE_CHAT, v ? "0" : "1");
+      } catch {
+        // Sem armazém (aba anônima): a escolha vale só agora.
+      }
+      return !v;
+    });
+  return [aberta, alternar];
+}
 
 /** As mesmas props do chat na coluna e sobreposto na tela cheia. */
 function propsDoChat(snap: SessaoSnapshot, sessao: SessaoSala, o: { nomeDe: (id: string) => string; souDono: boolean; donoId: string | null; setAlvo: (a: Alvo) => void; banir: (id: string) => void }): ComponentProps<typeof Chat> {
@@ -132,17 +163,23 @@ function propsDoChat(snap: SessaoSnapshot, sessao: SessaoSala, o: { nomeDe: (id:
   };
 }
 
-function NaSala({ roomId, tipo, mostrarTela, snap, sessao }: Props & { snap: SessaoSnapshot; sessao: SessaoSala }) {
+function NaSala({ roomId, tipo, modo, mostrarTela, snap, sessao }: Props & { snap: SessaoSnapshot; sessao: SessaoSala }) {
   const t = useTranslations("sala");
   const [volumeVoz, setVolumeVoz] = useState(1);
   const [volumeJogo, setVolumeJogo] = useState(1);
   const [alvo, setAlvo] = useState<Alvo | null>(null);
+  // As janelas (denunciar, confirmar) abrem no corpo da página: na tela cheia ficariam escondidas atrás da tela.
+  useEffect(() => {
+    if (alvo && document.fullscreenElement) void document.exitFullscreen().catch(() => null);
+  }, [alvo]);
   const [escolhendo, setEscolhendo] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+  const [colunaChat, alternarChat] = useColunaDoChat();
   const estado = snap.estado;
   const eu = estado?.eu ?? null;
   const membros = estado?.membros ?? [];
   const nomeDe = (id: string) => snap.pessoas[id]?.nome ?? t("jogador");
+  const quadros = <Participantes membros={membros} pessoas={snap.pessoas} falando={snap.falando} soPalco={tipo === "palco" && modo === "palco"} />;
   const souDono = snap.papel === "dono";
   const donoId = membros.find((m) => m.papel === "dono")?.userId ?? null;
   const moderar = async (userId: string, acao: Parameters<SessaoSala["moderar"]>[1]) => {
@@ -151,17 +188,17 @@ function NaSala({ roomId, tipo, mostrarTela, snap, sessao }: Props & { snap: Ses
   };
   const chat = tipo === "palco" ? propsDoChat(snap, sessao, { nomeDe, souDono, donoId, setAlvo, banir: (id) => void moderar(id, "banir") }) : null;
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,1fr)_340px] min-[2600px]:grid-cols-[minmax(0,1fr)_420px]" data-sala-id={roomId}>
-      <div className="min-w-0 space-y-4">
-        <Palco tela={snap.tela} telaDe={snap.telaDe} minhaTela={snap.minhaTela} nomeDe={nomeDe} volumeJogo={volumeJogo} onVolumeJogo={setVolumeJogo} chat={chat && <Chat {...chat} sobreposto />} />
+    <div className="flex gap-4" data-sala-id={roomId}>
+      <div className="min-w-0 flex-1 space-y-3">
+        <Palco tela={snap.tela} telaDe={snap.telaDe} minhaTela={snap.minhaTela} nomeDe={nomeDe} volumeJogo={volumeJogo} onVolumeJogo={setVolumeJogo} surdo={snap.surdo} participantes={quadros} chat={chat && <Chat {...chat} sobreposto />} />
         <Controles
-          vozNoAr={snap.vozNoAr} mutado={snap.mutado} mutadoPeloDono={!!eu?.mutadoPeloDono} semMicrofone={snap.semMicrofone}
+          vozNoAr={snap.vozNoAr} mutado={snap.mutado} mutadoPeloDono={!!eu?.mutadoPeloDono} semMicrofone={snap.semMicrofone} surdo={snap.surdo}
           podeLevantarMao={!!eu?.podeLevantarMao} mao={snap.mao} mostrarTela={mostrarTela} compartilhando={snap.compartilhando}
           podeTela={!!eu?.podeCompartilharTela} motivoTela={eu?.motivoTela ?? null} assistindo={!!snap.tela && !snap.minhaTela}
-          camada={snap.camada} volumeVoz={volumeVoz} volumeJogo={volumeJogo}
-          onMudo={() => sessao.alternarMudo()} onMao={() => sessao.alternarMao()} onTela={() => setEscolhendo(true)}
+          camada={snap.camada} volumeVoz={volumeVoz} volumeJogo={volumeJogo} temChat={!!chat} chatAberto={colunaChat}
+          onMudo={() => sessao.alternarMudo()} onSurdo={() => sessao.alternarSurdo()} onMao={() => sessao.alternarMao()} onTela={() => setEscolhendo(true)}
           onPararTela={() => sessao.pararTela()} onTrocarTela={() => void sessao.trocarTela()} onCamada={(c) => sessao.escolherCamada(c)}
-          onVolumeVoz={(v) => { setVolumeVoz(v); sessao.setVoiceVolume(v); }} onVolumeJogo={setVolumeJogo} onSair={() => sessao.sair()}
+          onVolumeVoz={(v) => { setVolumeVoz(v); sessao.setVoiceVolume(v); }} onVolumeJogo={setVolumeJogo} onChat={alternarChat} onSair={() => sessao.sair()}
         />
         {snap.audioBloqueado && (
           <button type="button" onClick={() => sessao.liberarAudio()} data-sala-ativar-som="" className={plate({ kind: "cta" })}>
@@ -172,21 +209,17 @@ function NaSala({ roomId, tipo, mostrarTela, snap, sessao }: Props & { snap: Ses
         {erro && <p role="alert" className="text-xs text-error">{t(erro)}</p>}
         <Avisos mostrarTela={mostrarTela && !snap.compartilhando} />
       </div>
-      <aside className="min-w-0 space-y-4">
-        {chat && <Chat {...chat} />}
-        <Pessoas
-          membros={membros} pessoas={snap.pessoas} eu={eu?.userId ?? null} souDono={souDono} tipo={tipo} falando={snap.falando}
-          falantesMax={estado?.sala?.falantesMax ?? 0} onModerar={(id, acao) => void moderar(id, acao)}
-          onBloquear={(id) => void sessao.bloquear(id)} onDenunciar={(id) => setAlvo({ tipo: "pessoa", userId: id, nome: nomeDe(id) })}
-          volumes={snap.volumes} onVolumeDe={(id, v) => sessao.setVolumeDe(id, v)}
-        />
-      </aside>
+      {chat && colunaChat && (
+        <aside className="h-[calc(100cqh-4.5rem)] w-[340px] shrink-0 min-[2600px]:w-[400px]" data-sala-chat-coluna="">
+          <Chat {...chat} coluna />
+        </aside>
+      )}
       <Denuncia
         alvo={alvo}
         onClose={() => setAlvo(null)}
         onSend={async (motivo, detalhes) => {
           if (!alvo) return { ok: false };
-          const res = await sessao.denunciar("messageId" in alvo ? { messageId: alvo.messageId } : { userId: alvo.userId }, motivo, detalhes);
+          const res = await sessao.denunciar({ messageId: alvo.messageId }, motivo, detalhes);
           return res.ok ? { ok: true } : { ok: false, code: res.code };
         }}
       />
@@ -199,12 +232,26 @@ function NaSala({ roomId, tipo, mostrarTela, snap, sessao }: Props & { snap: Ses
   );
 }
 
+/** Um clique no canal de voz da árvore (?entrar=1) já entra; o endereço volta ao do canal. */
+function useEntrarPeloClique(roomId: string, entrar: () => void, pronta: boolean) {
+  const params = useSearchParams();
+  const router = useRouter();
+  const feito = useRef(false);
+  useEffect(() => {
+    if (params.get("entrar") !== "1" || feito.current) return;
+    feito.current = true;
+    router.replace(`/sala/${roomId}`);
+    if (pronta) entrar();
+  }, [params, router, roomId, entrar, pronta]);
+}
+
 export function SalaView(props: Props) {
   const { snap, sessao, entrar, retomando } = useSala(props.roomId, props.titulo, props.tipo);
+  useEntrarPeloClique(props.roomId, entrar, snap.fase === "inicial" && !retomando);
   return (
     <div
-      // 1152 px até 2600 px de tela, como a /loja: a coluna de amigos (sobreposta) não cobre os controles.
-      className={cn(v2Page, "relative isolate mx-auto w-full max-w-6xl space-y-5 overflow-x-clip px-4 py-6 md:px-8 md:py-10 min-[2600px]:max-w-[1500px]")}
+      // Toda a largura ao lado da coluna de canais (a escala da tela grande vem do servidor).
+      className="relative isolate w-full space-y-4 overflow-x-clip pb-4"
       data-sala-fase={snap.fase}
       data-sala-motivo={snap.motivo ?? ""}
       data-sala-papel={snap.papel ?? ""}
@@ -213,7 +260,7 @@ export function SalaView(props: Props) {
       data-video-bytes={snap.medidas.videoBytes}
       data-video-altura={snap.medidas.videoAltura ?? 0}
     >
-      <Cabecalho titulo={props.titulo} tipo={props.tipo} snap={snap} />
+      <Cabecalho titulo={props.titulo} tipo={props.tipo} modo={props.modo} snap={snap} />
       {snap.fase === "na_sala" ? <NaSala {...props} snap={snap} sessao={sessao} /> : <Entrada snap={snap} entrar={entrar} retomando={retomando} mostrarTela={props.mostrarTela} />}
     </div>
   );

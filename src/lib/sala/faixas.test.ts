@@ -203,3 +203,10 @@ describe("decideLayer (camada da tela de cada pessoa)", () => {
     expect(decideLayer({ roomKind: "palco", requested: "f", usageBytes: cap * 0.5, capBytes: cap })).toBe("h");
   });
 });
+
+describe("canal de texto", () => {
+  it("não publica nada, nem o dono", () => {
+    expect(decidePublish(publish({ role: "dono", roomKind: "texto", requested: ["audio"] }))).toEqual({ ok: false, code: "sala_sem_midia" });
+    expect(decidePublish(publish({ role: "dono", roomKind: "texto", requested: ["video"] }))).toEqual({ ok: false, code: "sala_sem_midia" });
+  });
+});

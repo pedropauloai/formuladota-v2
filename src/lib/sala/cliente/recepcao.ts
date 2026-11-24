@@ -32,6 +32,8 @@ export class Recepcao {
   private volumeVoz = 1;
   private readonly volumes = new Map<string, number>();
   private fora = false;
+  /** Som desligado (ensurdecer): as vozes seguem chegando, caladas. */
+  private surdo = false;
   private saindo: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
@@ -149,6 +151,7 @@ export class Recepcao {
     const el = current ?? new Audio();
     el.autoplay = true;
     el.volume = this.volumeDe(userId);
+    el.muted = this.surdo;
     el.srcObject = new MediaStream([track]);
     void this.play(el);
     return el;
@@ -161,6 +164,11 @@ export class Recepcao {
     } catch (e) {
       if (e instanceof DOMException && e.name === "NotAllowedError") this.onBloqueio(true);
     }
+  }
+
+  setSurdo(surdo: boolean): void {
+    this.surdo = surdo;
+    for (const r of this.recebidas.values()) if (r.audio) r.audio.muted = surdo;
   }
 
   setVoiceVolume(volume: number): void {

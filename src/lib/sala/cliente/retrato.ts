@@ -35,6 +35,8 @@ export interface SessaoSnapshot {
   reconectando: boolean;
   /** Volume de cada pessoa (0 a 1) escolhido neste navegador; quem não está aqui está em 100%. */
   volumes: Record<string, number>;
+  /** Som desligado (ensurdecer): não ouve as vozes nem a tela, e o microfone fica mudo. */
+  surdo: boolean;
 }
 
 export const SNAPSHOT_INICIAL: SessaoSnapshot = {
@@ -44,4 +46,5 @@ export const SNAPSHOT_INICIAL: SessaoSnapshot = {
   audioBloqueado: false,
   reconectando: false,
   volumes: {},
+  surdo: false,
 };
