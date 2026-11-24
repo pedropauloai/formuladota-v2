@@ -1,21 +1,26 @@
-# Comunicação dentro do FORMULADOTA: fase 1, sala de voz com tela
+# Comunicação dentro do FORMULADOTA: fase 1, salas de voz com tela
 
-Aberta em 23/11/2026. Estado: proposta, com as escolhas de produto marcadas como **recomendação** até o PPA decidir (seção 15). DoD da frente: [docs/definicao-de-pronto.md](../definicao-de-pronto.md), seção "Comunicação, fase 1".
+Aberta em 23/11/2026; revista em 24/11/2026 com as correções do PPA (sala pública da live na fase 1, só maiores de 18 com uma marcação, qualidade escolhida na hora). Estado: proposta. O que o PPA já decidiu está marcado com a data; o que espera a decisão dele está na seção 15, com a recomendação. DoD da frente: [docs/definicao-de-pronto.md](../definicao-de-pronto.md), seção "Comunicação, fase 1".
 
 ## 1. Por que existe
 
-Em 17/08/2026 o Discord desligou vídeo, Go Live e compartilhamento de tela no Brasil por ordem da ANPD; texto e voz continuam lá. O PPA dá mentoria de Dota e precisa mostrar a tela. Em 23/11/2026 ele decidiu que a comunicação (voz, tela e, depois, canais) passa a acontecer dentro do FORMULADOTA, para o jogador não depender do Discord nisso. O Discord fica para outros jogos, e o login pelo Discord e pela Steam continua como está.
+Em 17/08/2026 o Discord desligou vídeo, Go Live e compartilhamento de tela no Brasil por ordem da ANPD; texto e voz continuam lá. O PPA dá mentoria de Dota e precisa mostrar a tela. Em 23/11/2026 ele decidiu que a comunicação (voz, tela e, depois, canais) passa a acontecer dentro do FORMULADOTA. O Discord fica para outros jogos, e o login pelo Discord e pela Steam continua como está.
+
+O caso principal, nas palavras do PPA: durante a live, ele anuncia o canal dele no site, e quem assiste entra na sala pública para ver a tela dele sem o atraso das plataformas de streaming e interagir de verdade ("é assim que tem que fazer").
 
 ## 2. Escopo
 
-**Fase 1 (esta spec, com código):** uma sala de voz com compartilhamento de tela no próprio site, em `/sala/[id]`, atrás da flag `sala_voz` (desligada por padrão e autoritativa: desligada, some para todos, inclusive o admin). Dois tipos de sala:
+**Fase 1 (esta spec, com código):** salas de voz com tela no próprio site, atrás da flag `sala_voz` (desligada por padrão e autoritativa: desligada, some para todos, inclusive o admin). Três tipos:
 
-- **Mentoria:** ligada a um horário pago da agenda da loja (`store_bookings` do tipo `agenda`, pedido `pago`). PPA e aluno.
-- **Party:** ligada à live em andamento. PPA e quem está na party agora (`store_bookings.queue_state = 'na_party'`).
+| Tipo | Quem entra | Quem fala | Tela |
+|---|---|---|---|
+| **Sala pública da live** (palco) | qualquer conta identificada, maior de 18, dentro dos lugares | o PPA e quem ele chamar | a do PPA, com camadas de qualidade (simulcast) |
+| **Mentoria** (privada) | o PPA e quem comprou o horário (pedido pago) | todos | a do PPA; a do aluno, se a sala permitir |
+| **Party** (privada) | o PPA e quem está na party da live agora | todos | só voz, por padrão |
 
-O que a sala faz: voz com cancelamento de eco, supressão de ruído e ganho automático; mutar; o dono compartilha a tela com o áudio do jogo; lista de quem está na sala; expulsar, bloquear e denunciar; nada gravado; teto de custo; métricas de qualidade.
+O que toda sala faz: voz com cancelamento de eco, supressão de ruído e ganho automático; mutar; o dono compartilha a tela com o áudio do jogo e escolhe a qualidade na hora; lista de quem está; denunciar; o dono muta, expulsa e bane; nada gravado; teto de custo; métricas de qualidade e de atraso. A sala pública tem ainda chat de texto com moderação, mão levantada e lugares contados.
 
-**Fora da fase 1 (só neste documento, seção 16):** canais de texto e voz da comunidade (fase 2) e aplicativo de computador (fase 3). Também fora: gravação, sala pública, LiveKit ou servidor de mídia próprio, mudança em pagamento, no login do Discord, nos tokens e no kit de design.
+**Fora da fase 1 (só neste documento, seção 16):** canais de texto e voz da comunidade (fase 2) e aplicativo de computador (fase 3). Também fora: gravação, LiveKit ou servidor de mídia próprio, mudança em pagamento, no login do Discord, nos tokens e no kit de design, e a barra de cima do site (é da sessão de design; ela recebe as rotas da seção 14).
 
 ## 3. Requisitos
 
@@ -23,28 +28,31 @@ O que a sala faz: voz com cancelamento de eco, supressão de ruído e ganho auto
 
 | # | Requisito |
 |---|---|
-| R1 | Só o admin (hoje, o PPA) cria sala. Toda sala é privada: entra só quem é membro. |
-| R2 | Sala de mentoria nasce de um horário pago da agenda; o membro é quem comprou. Comprador que pagou sem login entra por convite de uso único. |
-| R3 | Sala da party nasce da live no ar; membro é quem está na party naquele momento, e quem sai da party perde o acesso sozinho. |
-| R4 | Entrar exige conta identificada (Discord ou Steam vinculada) e data de nascimento informada uma vez. |
-| R5 | Voz com `echoCancellation`, `noiseSuppression` e `autoGainControl`; botão de mutar. |
-| R6 | O dono compartilha a tela com áudio pelo `getDisplayMedia`, em até 1920x1080 a 30 quadros por segundo. |
-| R7 | Lista de quem está na sala, com o estado do microfone, indicador de fala e a qualidade da conexão. |
-| R8 | O dono expulsa; qualquer membro bloqueia e denuncia. |
-| R9 | Nada gravado: a mídia nunca passa por servidor do FORMULADOTA nem é guardada pela Cloudflare. |
-| R10 | Teto de tráfego que bloqueia nova transmissão de tela e avisa o PPA. |
-| R11 | Métricas de qualidade de cada pessoa (perda de pacote, jitter, RTT, resolução e quadros da tela) guardadas para medir o aceite. |
+| R1 | Só o admin (hoje, o PPA) cria sala. A sala pública abre durante a live; mentoria e party são privadas. |
+| R2 | Mentoria nasce de um horário pago da agenda; quem pagou sem login entra por convite de uso único. |
+| R3 | Party nasce da live no ar; membro é quem está na party naquele momento. |
+| R4 | Entrar exige conta identificada (Discord ou Steam vinculada) e a marcação "tenho 18 anos ou mais", feita uma vez. |
+| R5 | Voz com `echoCancellation`, `noiseSuppression` e `autoGainControl`; mutar. |
+| R6 | O dono compartilha a tela com áudio pelo `getDisplayMedia` e escolhe a qualidade (resolução e quadros) vendo o consumo estimado por hora. |
+| R7 | Na sala pública, a plateia ouve e assiste; fala só quem o PPA chamar; quem quer falar levanta a mão. |
+| R8 | Na sala pública, chat de texto: o dono apaga mensagem, e qualquer um denuncia mensagem ou pessoa. |
+| R9 | O dono muta, expulsa (sai desta sala) e bane (não entra mais nas salas dele). |
+| R10 | Lugares contados na sala pública; o Battlepass entra mesmo com a sala cheia (escolha 9). |
+| R11 | A tela vai em duas camadas (simulcast); o servidor escolhe a camada de cada pessoa pela regra de custo. |
+| R12 | Nada gravado: nenhuma mídia passa por servidor do FORMULADOTA nem é guardada pela Cloudflare. |
+| R13 | Teto de tráfego que bloqueia tela nova, baixa a camada da plateia antes disso e avisa o PPA. |
+| R14 | Métricas de cada pessoa a cada 10 s: perda de pacote, jitter, RTT, resolução e quadros, e o atraso estimado. |
 
 ### Não funcionais
 
 | Tema | Meta | Como se mede |
 |---|---|---|
-| Qualidade da tela | 1080p (altura 1080 no receptor) em pelo menos 90% do tempo de tela | `voice_room_stats.video_height` (seção 12) |
+| Atraso da tela e da voz | **menos de meio segundo** para 95% das amostras (nunca se promete "zero") | atraso estimado pela `getStats` (seção 13) |
+| Qualidade da tela | resolução e quadros da qualidade escolhida em 90% do tempo de tela (na mentoria, 1080p) | `voice_room_stats.video_height` e `video_fps` |
 | Perda de pacote | abaixo de 2% na hora inteira | `voice_room_stats.packet_loss_pct` |
-| Voz | sem corte perceptível: amostras ocultadas pelo navegador abaixo de 2% e nenhuma reclamação do PPA ou do aluno | `voice_room_stats.audio_concealed_pct` mais o relato do PPA |
-| Latência | RTT até o SFU abaixo de 150 ms no Brasil | `voice_room_stats.rtt_ms` |
-| Custo | dentro dos 1.000 GB grátis por mês da Cloudflare | estimativa do servidor e painel da Cloudflare (seção 11) |
-| Disponibilidade | o site continua de pé se o Realtime cair: a sala mostra o erro e o resto do site não depende dela | sala atrás da flag e de rotas próprias |
+| Voz | sem corte perceptível: amostras ocultadas abaixo de 2% e nenhuma reclamação | `audio_concealed_pct` mais o relato do PPA |
+| Custo | dentro do orçamento que o PPA escolher (escolha 7) | estimativa do servidor e painel da Cloudflare (seção 11) |
+| Escala | sala pública com até 50 pessoas sem pesar no banco | uma consulta por batimento (ADR-004) |
 
 ### Restrições
 
@@ -58,376 +66,334 @@ Site em Next.js 16 no Cloudflare Workers pelo OpenNext; Supabase com RLS obrigat
  | /sala/[id]           | ---------------> | /api/sala/[id]/rtc/*          | ----------------> | API do SFU       |
  | RTCPeerConnection    | <---- SDP ------ |   autoriza cada chamada       | <---------------- | rtc.live.        |
  | (partytracks)        |                  |   grava sessão, faixa, custo  |                   |  cloudflare.com  |
- |                      |                  | /api/sala/[id]/estado (2 s)   |                   +------------------+
- |                      |                  | /api/sala/[id]/entrar, sair,  |                   +------------------+
- |                      |                  |   expulsar, denunciar ...     |                   | SFU na borda     |
- |                      | ================ mídia WebRTC (UDP, ou TURN) =====================> | (São Paulo etc.) |
+ |                      |                  | /api/sala/[id]/estado (2-3 s) |                   +------------------+
+ |                      |                  |   uma função no banco por     |                   +------------------+
+ |                      |                  |   batimento (estado + chat)   |                   | SFU na borda     |
+ |                      | ================ mídia WebRTC (UDP, ou TURN) =====================> | (camadas f e h)  |
  +----------------------+                  +---------------+---------------+                   | TURN             |
-                                                           |                                   +------------------+
-                                                           v
+                                                           v                                   +------------------+
                                             Supabase: salas, membros, sessões, faixas,
-                                            assinaturas (custo), métricas, denúncias, idade
+                                            faixas recebidas (custo), chat, banidos, métricas
 ```
 
-- O navegador fala WebRTC direto com o SFU da Cloudflare, que só encaminha os pacotes (não decodifica nem grava). Cada pessoa tem uma conexão (`RTCPeerConnection`) com o SFU: envia a própria voz e recebe as faixas dos outros.
-- Toda chamada à API do SFU (criar sessão, publicar faixa, receber faixa, renegociar, fechar) passa pelo servidor do site, que usa o segredo do app e decide se a pessoa pode fazer aquilo. O navegador nunca vê o segredo.
-- O TURN da Cloudflare entra quando a rede da pessoa bloqueia UDP direto (rede de empresa, alguns roteadores). O servidor gera credenciais de TURN de curta duração a cada entrada e entrega ao navegador. Tráfego entre o TURN e o SFU da Cloudflare não é cobrado.
-- Supabase guarda quem pode entrar, quem está online, que faixa cada um publicou e recebeu (base do custo), as métricas e as denúncias. O navegador não grava nada direto no banco: tudo passa pelas rotas do servidor.
+- O navegador fala WebRTC direto com o SFU da Cloudflare, que só encaminha os pacotes (não decodifica nem grava).
+- Toda chamada à API do SFU passa pelo servidor do site, que usa o segredo do app e decide se a pessoa pode fazer aquilo. O navegador nunca vê o segredo.
+- A tela do PPA sobe em duas camadas (simulcast): `f`, a qualidade que ele escolheu, e `h`, metade da resolução. O SFU entrega a cada pessoa a camada que o servidor pediu por ela.
+- O TURN da Cloudflare entra quando a rede da pessoa bloqueia UDP direto. A credencial é de curta duração, marcada com a sala e revogada ao expulsar ou encerrar.
+- Supabase guarda quem pode entrar, quem está online, que faixa cada um publicou e recebeu (base do custo), o chat, os banidos, as métricas e as denúncias. O navegador não grava nada direto no banco.
 
-### Fluxo de uma mentoria
+### Fluxo da sala pública
 
-1. O PPA abre `/admin/salas`, escolhe o horário pago e cria a sala. Recebe o link (e o convite, se o comprador pagou sem login) e manda ao aluno pelo WhatsApp, como já faz.
-2. O aluno abre o link, entra com o Discord se ainda não entrou, informa a data de nascimento na primeira vez e clica em "Entrar na sala" (o clique libera microfone e som no navegador).
-3. `POST /api/sala/[id]/entrar` confere a flag, a sala aberta, o membro ativo, a idade, a lotação e devolve as credenciais de TURN.
-4. O cliente (partytracks) cria a sessão e publica a voz pelo servidor; o servidor grava a sessão e a faixa, e o cliente rotula a faixa como `voz`.
-5. A cada 2 s o cliente chama `POST /api/sala/[id]/estado`, que serve de batimento (presença), leva as métricas a cada 10 s e devolve quem está na sala e quais faixas ele pode receber. Faixa nova na lista: o cliente pede ao servidor para recebê-la.
-6. O PPA clica em "Compartilhar tela": o servidor confere que ele é o dono, que o teto não foi atingido e que não há outra tela no ar, e só então deixa publicar a faixa de vídeo e a do áudio da tela.
-7. Expulsar: o servidor marca o membro como expulso e fecha à força, no SFU, todas as faixas dele. A próxima consulta dele recebe "removido da sala".
+1. Com a live no ar, o PPA abre a sala pública em `/admin/salas` e anuncia `formuladota.com.br/sala`, que leva à sala aberta dele.
+2. Quem chega entra com o Discord (se ainda não entrou), marca "tenho 18 anos ou mais" na primeira vez e clica em "Entrar na sala" (o clique libera o som no navegador).
+3. O PPA compartilha a tela: escolhe a qualidade numa lista que mostra o consumo por hora de cada opção com a plateia do momento, e depois a janela do Dota.
+4. A plateia ouve o PPA, assiste à tela e escreve no chat. Quem quer falar levanta a mão; o PPA chama, a pessoa fala, e ele devolve à plateia quando quiser.
+5. Expulsar tira da sala na hora; banir também impede a volta em qualquer sala do PPA.
 
 ## 5. Decisões de arquitetura (ADR)
 
 ### ADR-001: mídia pelo Cloudflare Realtime SFU
 
-**Estado:** aceita (sessão central, 23/11/2026). **Quem decide:** PPA.
+**Estado:** aceita (sessão central, 23/11/2026; o PPA aprovou criar o app em 23/11: "Pode criar os dois").
 
-**Contexto.** A sala precisa de voz e tela com baixa latência no Brasil, sem servidor de mídia para manter e com custo previsível. O site já roda na Cloudflare (Workers Paid).
+**Contexto.** Voz e tela com baixo atraso no Brasil, sem servidor de mídia para manter e com custo previsível. O site já roda na Cloudflare.
 
-**Opções.**
-
-| | Cloudflare Realtime SFU | LiveKit Cloud | Servidor próprio (LiveKit ou mediasoup numa VPS) |
+| | Cloudflare Realtime SFU | LiveKit Cloud | Servidor próprio |
 |---|---|---|---|
-| Complexidade | baixa: API HTTPS, sem servidor | baixa | alta: servidor, TURN, atualização, monitoramento |
+| Complexidade | baixa: API HTTPS, sem servidor | baixa | alta |
 | Custo | 1.000 GB grátis por mês (SFU e TURN juntos), depois US$ 0,05 por GB de saída | por minuto de participante | VPS fixa mais banda |
 | Escala | borda da Cloudflare, sem região | boa | o que a máquina aguentar |
-| Familiaridade | mesma conta e mesmo painel do site | conta nova | nenhuma |
 
-**Decisão.** Cloudflare Realtime SFU com o TURN da própria Cloudflare. Sem LiveKit, sem servidor próprio. Interface própria no site.
+**Decisão.** Cloudflare Realtime SFU com o TURN da própria Cloudflare; interface própria no site. **Consequência:** a Cloudflare não tem teto de gasto; o limite mora no site (ADR-005).
 
-**Consequências.** A Cloudflare não tem teto de gasto: o limite de consumo precisa morar no site (ADR-005). Ficamos sem os recursos prontos de uma plataforma de reunião (gravação, legenda), o que a fase 1 não quer.
+### ADR-002: o servidor do site autoriza toda chamada ao SFU
 
-### ADR-002: o servidor do site intermedeia e autoriza toda chamada ao SFU
-
-**Estado:** proposta.
-
-**Contexto.** A API do SFU usa um segredo único do app; com ele, qualquer um publica e recebe qualquer faixa de qualquer sessão. A biblioteca de servidor do partytracks (`routePartyTracksRequest`) só repassa a chamada e prende a sessão a quem a criou por cookie: não confere se quem recebe uma faixa é membro da sala, se foi expulso ou bloqueado, nem o teto de custo.
-
-**Decisão.** Uma rota própria, `/api/sala/[id]/rtc/[...caminho]`, recebe as chamadas que o cliente faria ao SFU, confere tudo (seção 8) e só então repassa com o segredo. A rota grava cada sessão, cada faixa publicada (com o tipo, `audio` ou `video`, tirado do SDP da oferta) e cada faixa recebida (base da estimativa de custo).
-
-**Consequências.** Toda mídia continua indo direto ao SFU; só o controle passa pelo servidor (algumas dezenas de chamadas por sessão). O servidor precisa ler o SDP da oferta para saber o tipo de cada faixa, porque o partytracks dá nomes aleatórios às faixas: é uma função pura e testada.
+**Estado:** proposta. A API do SFU usa um segredo único do app; com ele, qualquer um publica e recebe qualquer faixa. A rota `/api/sala/[id]/rtc/[...caminho]` recebe as chamadas que o cliente faria ao SFU, confere tudo (seção 8) e só então repassa. Ela grava cada sessão, cada faixa publicada (o tipo vem do SDP da oferta) e cada faixa recebida com a camada pedida (base do custo). Na sala pública, o servidor reescreve a camada pedida pela regra de custo.
 
 ### ADR-003: cliente WebRTC pelo partytracks, atrás de um módulo nosso
 
-**Estado:** proposta.
+**Estado:** proposta. partytracks 0.0.56 (Cloudflare, licença ISC, o mesmo do Orange Meets): negocia em fila, refaz a conexão sozinho e já trata simulcast. Versão fixa, importada só por `src/lib/sala/cliente/conexao.ts`, para trocar por cliente próprio sem mexer na tela. Revisitar se ficar 12 meses sem versão nova.
 
-**Contexto.** O cliente precisa negociar SDP com o SFU em fila (uma mudança por vez), receber várias faixas, refazer a conexão quando a rede cai e manter tudo vivo por 1 hora ou mais.
+### ADR-004: estado por batimento, com uma consulta só ao banco
 
-**Opções.**
+**Estado:** proposta (revista para a sala pública). O cliente pede o estado a cada 2 s (dono e quem fala) ou 3 s (plateia). O pedido é também o batimento de presença e traz o chat. Uma função no banco (`voice_room_tick`, só para a service role) grava o batimento e devolve, numa ida só, tudo o que a regra precisa: sala, vínculo, membros online com nome e avatar, faixas, bloqueios, faixas recebidas e as últimas mensagens. As regras continuam em TypeScript puro, testadas. Com 50 pessoas na plateia são cerca de 17 pedidos por segundo e uma consulta por pedido. Supabase Realtime e Durable Object ficam para a fase 2, com centenas de pessoas.
 
-| | partytracks 0.0.56 (Cloudflare, licença ISC) | cliente próprio |
-|---|---|---|
-| Complexidade | média: usa RxJS, que o projeto não usa | média: 300 a 400 linhas de negociação e reconexão |
-| Confiabilidade | é o que o Orange Meets, app de referência da Cloudflare, usa; reconecta sozinho com sessão nova e republica as faixas | tudo a escrever e provar |
-| Manutenção | versão 0.0.x, um mantenedor, última versão em 20/04/2026; 45 mil downloads no último mês | nossa |
-| Pontos de atenção | nomes de faixa aleatórios; nova tentativa sem limite quando o servidor recusa | nenhum herdado |
+### ADR-005: custo estimado no próprio servidor, teto em 30 dias corridos
 
-**Decisão.** partytracks com versão fixa (`0.0.56`), usado só por `src/lib/sala/cliente/` (o resto do app não importa a biblioteca), para trocar por um cliente próprio sem mexer na tela se ela parar de ser mantida. Recusa do servidor vem com `errorCode` no formato do SFU, e a tela para de pedir quando a consulta de estado diz que a ação não é permitida (o teto, por exemplo), o que corta a repetição.
+**Estado:** proposta. O servidor sabe toda faixa que cada pessoa recebe, com início, fim e camada. A estimativa é a soma de `duração x bitrate da camada` (com 10% de cabeçalho no vídeo), um limite superior do que a Cloudflare mede. O teto vale para os últimos 30 dias corridos, porque o ciclo de cobrança pode não começar no dia 1. As métricas dos navegadores dão o consumo medido ao lado, para comparar.
 
-**Consequências.** RxJS entra só no pacote da rota `/sala`. Revisitar se a biblioteca ficar 12 meses sem versão nova ou se a fase 2 precisar de algo que ela não cobre.
+### ADR-006: simulcast em duas camadas, com a camada escolhida pelo servidor
 
-### ADR-004: estado da sala por consulta a cada 2 s
-
-**Estado:** proposta.
-
-**Contexto.** Cada pessoa precisa saber quem está na sala e quais faixas receber, e o servidor precisa saber quem continua conectado.
-
-**Opções.** (A) consulta `POST /estado` a cada 2 s, que também é o batimento; (B) Supabase Realtime (`postgres_changes` com RLS ou Broadcast em canal privado); (C) Durable Object da Cloudflare com WebSocket.
-
-**Decisão.** A. A consulta é o batimento de presença, leva as métricas e devolve a lista de faixas já filtrada (bloqueio, expulsão, teto) pelo servidor, numa regra só. Até 6 pessoas por sala, são 3 requisições por segundo por sala, folgado no Workers Paid. B depende do token do realtime estar setado no cliente (armadilha já vista no projeto) e espalha a regra entre RLS e servidor; C pede outra classe exportada no Worker do OpenNext. Revisitar na fase 2, quando um canal tiver dezenas de pessoas.
-
-**Consequências.** Uma faixa nova aparece para os outros em até 2 s; quem fecha o navegador some da lista em até 15 s.
-
-### ADR-005: custo estimado no próprio servidor, com teto em 30 dias corridos
-
-**Estado:** proposta.
-
-**Contexto.** A Cloudflare cobra só o tráfego que sai dela para os navegadores. A conta não tem teto de gasto, e a análise por GraphQL documentada cobre o TURN (`callsTurnUsageAdaptiveGroups`); para o SFU não achei conjunto de dados documentado (NÃO CONFIRMADO: conferir no painel na hora de ligar o app).
-
-**Decisão.** O servidor sabe toda faixa que cada pessoa recebe (ADR-002), com início e fim. A estimativa é a soma de `duração x teto de bitrate do tipo` de toda faixa recebida, um limite superior do que a Cloudflare mede. O teto vale para os últimos 30 dias corridos (não o mês do calendário), porque o ciclo de cobrança da conta pode não começar no dia 1. As métricas dos navegadores (`bytesReceived`) dão o consumo medido ao lado, para comparar.
-
-**Consequências.** A estimativa erra para cima (bloqueia antes do necessário, nunca depois). Depois da mentoria real, a estimativa, o medido e o painel da Cloudflare vão lado a lado na nota de aceite.
+**Estado:** proposta. Na sala pública o custo cresce com a plateia: cada pessoa recebe a tela inteira. A tela sobe em duas camadas, `f` (a qualidade escolhida) e `h` (metade da resolução, cerca de um quarto do bitrate). A pessoa escolhe "alta" ou "leve" na tela; o servidor decide a camada que vale: na mentoria, sempre a que ela pediu; na sala pública, a leve por padrão, a alta para quem pedir enquanto o consumo dos 30 dias estiver abaixo de 50% do teto, e só a leve acima disso. Subir duas camadas pede mais upload do PPA (que já transmite para a Twitch); a medida no teste real diz se cabe.
 
 ## 6. Rotas do servidor
 
-Todas exigem login (cookie do Supabase), flag `sala_voz` ligada e validam o corpo com Zod. Respostas de erro no formato do SFU, `{ "errorCode": "...", "errorDescription": "..." }`, para o cliente tratar igual.
+Todas exigem login (cookie do Supabase) e a flag ligada, validam o corpo com Zod e respondem em JSON no formato do SFU (`errorCode`, `errorDescription`). `/api/sala` fica entre as rotas de fluxo próprio do middleware: cada rota confere login, banimento e acesso e responde 401 sem login.
 
 | Rota | Quem | O que faz |
 |---|---|---|
-| `POST /api/sala/[id]/entrar` | membro | confere acesso (seção 8), marca presença, devolve credenciais de TURN (válidas até o fim da sala, no máximo 12 h), o papel e os limites |
-| `POST /api/sala/[id]/rtc/sessions/new` | membro | cria a sessão no SFU e grava; fecha a sessão anterior do mesmo membro (outra aba ou reconexão) |
-| `POST /api/sala/[id]/rtc/sessions/[sid]/tracks/new` | dono da sessão | publicar (faixa `local`): tipo tirado do SDP e conferido contra o papel e o teto; receber (faixa `remote`): só faixa ativa de outro membro ativo da mesma sala, sem bloqueio entre os dois |
-| `PUT /api/sala/[id]/rtc/sessions/[sid]/renegotiate` | dono da sessão | repassa a resposta SDP |
-| `PUT /api/sala/[id]/rtc/sessions/[sid]/tracks/close` | dono da sessão | repassa e marca o fim da faixa publicada ou recebida |
-| `POST /api/sala/[id]/faixas` | dono da faixa | rotula a faixa publicada como `voz`, `tela` ou `tela_audio` (o rótulo tem de bater com o tipo); faixa sem rótulo não aparece para ninguém |
-| `POST /api/sala/[id]/estado` | membro | batimento, estado do microfone e métricas a cada 10 s; devolve membros online, faixas que pode receber, se a tela está liberada e o motivo de saída quando houver (expulso, saiu da party, sala encerrada) |
-| `POST /api/sala/[id]/sair` | membro | fecha a sessão no SFU (também por `sendBeacon` ao fechar a aba) |
-| `POST /api/sala/[id]/membros/[userId]/expulsar` | dono da sala | marca expulso e fecha à força todas as faixas dele no SFU |
-| `POST /api/sala/[id]/bloqueios` | membro | bloqueia pelo sistema de amizade que já existe (`friendships`, status `blocked`) e fecha as faixas recebidas entre os dois |
-| `POST /api/sala/[id]/denuncias` | membro | grava a denúncia identificada e avisa o PPA no canal privado do Discord |
-| `POST /api/sala/[id]/convite` | logado com o convite | troca o convite de uso único pelo lugar de membro na mentoria |
-| ações do admin em `/admin/salas` | admin | criar sala de mentoria (de um horário pago), criar sala da party (da live no ar), gerar novo convite, encerrar sala |
+| `POST /api/sala/[id]/entrar` | quem pode entrar | confere acesso, marca presença, devolve as credenciais de TURN, o papel e as qualidades de tela |
+| `POST /api/sala/[id]/rtc/sessions/new` | quem pode entrar | cria a sessão no SFU; fecha a anterior da mesma pessoa |
+| `POST /api/sala/[id]/rtc/sessions/[sid]/tracks/new` | dono da sessão | publicar: tipo do SDP conferido contra o papel, a qualidade e o teto; receber: só faixa de quem está no palco ou na sala, sem bloqueio, com a camada que a regra de custo manda |
+| `PUT .../renegotiate`, `PUT .../tracks/close`, `PUT .../tracks/update` | dono da sessão | resposta SDP; fechar faixa; trocar a camada pedida (passa pela regra de custo) |
+| `POST /api/sala/[id]/faixas` | dono da faixa | rótulo (`voz`, `tela`, `tela_audio`) e, na tela, a qualidade escolhida |
+| `POST /api/sala/[id]/estado` | quem está na sala | batimento, microfone, mão levantada, métricas a cada 10 s; devolve membros, faixas, palco e chat |
+| `POST /api/sala/[id]/chat` | quem está na sala pública | manda mensagem (até 300 caracteres, uma a cada 2 s) |
+| `POST /api/sala/[id]/chat/[msgId]/apagar` | dono | apaga a mensagem para todos |
+| `POST /api/sala/[id]/membros/[userId]/{falar,ouvir,mutar,expulsar,banir}` | dono | chama para o palco, devolve à plateia, muta, expulsa, bane |
+| `POST /api/sala/[id]/bloqueios`, `/denuncias`, `/convite`, `/sair` | quem está na sala | bloquear, denunciar (pessoa ou mensagem), convite da mentoria, sair |
+| `/sala` | qualquer um | leva à sala pública aberta do PPA ou diz que ela abre na live |
+| ações em `/admin/salas` | admin | criar sala pública, de mentoria e da party; convite; encerrar; desbanir; consumo e denúncias |
 
-Tarefa nova no cron do site (`/api/cron/site`, a cada minuto): fecha no SFU as sessões sem batimento há mais de 45 s, encerra salas vencidas, calcula o consumo dos 30 dias, avisa o PPA ao cruzar 50%, 80% e 100% do teto ou num pico (mais de 20 GB estimados numa hora) e apaga o que passou do prazo de guarda (seção 10).
+Tarefa `sala-voz` no cron do site (a cada minuto): fecha no SFU as sessões sem batimento há 45 s, encerra salas vencidas, recalcula o consumo dos 30 dias, avisa o PPA nos limiares e no pico e apaga o que passou do prazo (seção 10).
 
-Segredos no Worker (por `wrangler secret`, nunca no repositório nem em tela): `REALTIME_APP_SECRET` e `REALTIME_TURN_KEY_TOKEN`. Variáveis sem segredo: `REALTIME_APP_ID` e `REALTIME_TURN_KEY_ID`. Sem elas, a sala mostra "Sala de voz indisponível" (falha fechada).
+Segredos no Worker (por `wrangler secret`, nunca em tela nem no repositório): `REALTIME_APP_SECRET` e `REALTIME_TURN_KEY_TOKEN`; mais `REALTIME_APP_ID` e `REALTIME_TURN_KEY_ID`. Quem copia os tokens no painel da Cloudflare é o PPA; o script `scripts/sala/gravar-segredos-realtime.ps1` lê da área de transferência, confere na Cloudflare e grava sem exibir.
 
 ## 7. Modelo de dados
 
-Migration nova, com RLS em todas as tabelas. O navegador não escreve em nenhuma delas: a escrita é do servidor (service role) ou de função `SECURITY DEFINER` que valida `auth.uid()`, com `EXECUTE` revogado de quem não deve chamar.
+Migration `196_sala_voz.sql`, com RLS em todas as tabelas. O navegador não escreve em nenhuma: quem grava é o servidor (service role) ou a função `confirm_adult`, que valida `auth.uid()`.
 
 | Tabela | Para que | Colunas principais |
 |---|---|---|
-| `voice_settings` | configuração única (linha 1), editável pelo admin no banco | `cap_gb_30d` (800), `video_max_kbps` (4000), `mentoria_max_members` (2), `party_max_members` (6), `alert_level`, `alert_at` |
-| `voice_rooms` | a sala | `kind` (`mentoria` ou `party`), `title`, `owner_id`, `booking_id` ou `live_session_id`, `status` (`aberta`, `encerrada`), `max_members`, `screen_policy` (`dono`, `um_por_vez`), `closes_at`, `invite_token_hash`, `invite_used_at`, `is_test` |
-| `voice_room_members` | quem pode entrar | `room_id`, `user_id`, `role` (`dono`, `membro`), `status` (`ativo`, `expulso`), `joined_via` (`dono`, `pedido`, `convite`, `party`), `last_seen_at`, `muted`, `removed_by`, `removed_at` |
-| `voice_room_sessions` | sessão do SFU de cada pessoa | `id` (o `sessionId` da Cloudflare), `room_id`, `user_id`, `ip`, `user_agent`, `created_at`, `closed_at`, `close_reason` |
-| `voice_room_tracks` | faixa publicada | `session_id`, `track_name`, `mid`, `kind` (`audio`, `video`), `tipo` (`voz`, `tela`, `tela_audio`), `created_at`, `closed_at` |
-| `voice_room_subscriptions` | faixa recebida, base do custo | `session_id` (quem recebe), `mid`, `publisher_session_id`, `track_name`, `kind`, `rate_kbps` (teto usado na conta), `started_at`, `ended_at`, `is_test` |
-| `voice_room_stats` | qualidade a cada 10 s por pessoa | `rtt_ms`, `jitter_ms`, `packet_loss_pct`, `audio_concealed_pct`, `video_width`, `video_height`, `video_fps`, `video_freeze_ms`, `bytes_received`, `bytes_sent`, `relay`, `quality_limitation` |
-| `voice_room_reports` | denúncia | `room_id`, `reporter_id`, `reported_id`, `reason`, `details` (até 500 caracteres), `status` (`aberta`, `em_analise`, `resolvida`, `descartada`), `reviewed_by`, `reviewed_at`, `resolution` |
-| `user_birthdates` | data de nascimento, só para a regra de idade | `user_id`, `birth_date`, `declared_at` |
+| `voice_settings` | configuração única, editável pelo admin | `cap_gb_30d`, `video_max_kbps`, lugares por tipo (`palco_max_members`, `palco_max_speakers`, `mentoria_max_members`, `party_max_members`), `party_screen_enabled`, `chat_retention_days`, consumo calculado e o último aviso |
+| `voice_rooms` | a sala | `kind` (`palco`, `mentoria`, `party`), `title`, `owner_id`, `booking_id` ou `live_session_id`, `status`, `max_members`, `screen_policy`, `audience` (`todos`, `beneficio`), `chat_open`, `closes_at`, convite (só o hash), `is_test` |
+| `voice_room_members` | quem está ou esteve | `role` (`dono`, `membro`, `falante`, `ouvinte`), `status` (`ativo`, `expulso`), `joined_via`, `muted`, `force_muted`, `hand_raised_at`, `last_seen_at`, `turn_username` |
+| `voice_bans` | banidos das salas de um dono | `owner_id`, `user_id`, `reason`, `created_by`, `created_at` |
+| `voice_room_sessions` | sessão do SFU (registro de acesso) | `id` (o `sessionId`), `room_id`, `user_id`, `ip`, `user_agent`, `closed_at`, `close_reason` |
+| `voice_room_tracks` | faixa publicada | `session_id`, `track_name`, `mid`, `kind`, `tipo`, `quality`, `closed_at` |
+| `voice_room_subscriptions` | faixa recebida, base do custo | `session_id`, `mid`, faixa de origem, `kind`, `rid` (camada), `rate_kbps`, início e fim, `is_test` |
+| `voice_room_messages` | chat da sala pública | `room_id`, `user_id`, `body` (até 300), `created_at`, `deleted_at`, `deleted_by` |
+| `voice_room_stats` | qualidade a cada 10 s | perda, jitter, RTT, voz picotada, resolução, quadros, congelamento, bytes, TURN, limite do envio, `jitter_buffer_ms`, `latency_ms` |
+| `voice_room_reports` | denúncia | sala, quem denunciou, quem foi denunciado, `message_id` e cópia do texto, motivo, detalhe, situação |
+| `user_age_confirmations` | a marcação "tenho 18 anos ou mais" | `user_id`, `confirmed_at`, `terms_version` |
 
-**Leitura (RLS).**
+**Leitura (RLS).** O membro ativo lê a própria sala e a lista dela (pela função `is_voice_room_member`, `SECURITY DEFINER`, para não cair na recursão de políticas que já derrubou as tabelas de party). Quem denunciou lê as próprias denúncias; cada um lê a própria marcação de idade. Sessões (com IP), faixas, métricas, chat, banidos e configuração: só o admin; o servidor usa a service role. Nenhuma tabela tem `insert`, `update` ou `delete` para `anon` ou `authenticated`.
 
-- `voice_rooms` e `voice_room_members`: o membro ativo lê a própria sala e a lista dela; o admin lê tudo. A checagem usa a função `is_voice_room_member(room_id)` (`SECURITY DEFINER`, `search_path` vazio), para a política de uma tabela não consultar a outra e cair em recursão, a armadilha que já derrubou as tabelas de party (migration 079).
-- `voice_room_sessions` (tem IP), `voice_room_tracks`, `voice_room_subscriptions`, `voice_room_stats` e `voice_settings`: só o admin lê; o servidor usa a service role.
-- `voice_room_reports`: quem denunciou lê as próprias denúncias; o admin lê todas.
-- `user_birthdates`: a pessoa lê a própria; o admin lê todas (moderação de denúncia envolvendo menor).
-- Nenhuma tabela tem política de `insert`, `update` ou `delete` para `anon` ou `authenticated`.
+**Funções.** `confirm_adult(p_terms_version)`: grava a marcação da própria pessoa uma vez (`EXECUTE` só para `authenticated`). `is_voice_room_member(room)`: auxiliar de RLS. `voice_room_tick(room, user, muted, hand, chat_after)` e `voice_room_access(room, user)`: o batimento e o contexto numa consulta só, só para a service role (ADR-004). Flag `sala_voz` nasce desligada.
 
-**Funções.**
-
-- `declare_birth_date(p_birth_date date)`: `SECURITY DEFINER`, valida `auth.uid()`, aceita data entre 1900 e hoje menos 5 anos, grava uma vez e recusa troca (só o admin corrige, pelo banco). `EXECUTE` só para `authenticated`.
-- `is_voice_room_member(p_room_id uuid)`: auxiliar de RLS, devolve falso sem login.
-- Flag: `insert into feature_flags (key, enabled, label) values ('sala_voz', false, 'Sala de voz com tela')`.
-
-**Prova da RLS:** `scripts/seguranca/sala-voz.sql`, no molde de `fila-da-party.sql` (transação que sempre termina num erro proposital, então nada fica gravado), cobre: visitante não lê nada; logado fora da sala não lê a sala nem a lista; membro lê a própria; ninguém escreve em nenhuma tabela pela API; a data de nascimento não muda depois de gravada; `declare_birth_date` recusa data de outro usuário e data absurda. A prova fica vermelha quando a trava é revertida (rodada uma vez sem a política e sem a recusa de troca, com o resultado anotado no PR). `funcoes-abertas.sql` continua vazio.
+**Prova:** `scripts/seguranca/sala-voz.sql`, em transação que sempre termina num erro proposital (nada fica gravado): visitante e quem está fora não leem; ninguém escreve pela API; a marcação de idade só vale para a própria pessoa; as funções do batimento não abrem para o navegador. Fica vermelha quando a trava é revertida. `funcoes-abertas.sql` continua vazio.
 
 ## 8. Permissões
 
-Uma função pura no servidor (`decideRoomAccess`, testada no Vitest) decide toda entrada e toda chamada ao SFU, nesta ordem, parando no primeiro "não":
+Uma função pura (`decideRoomAccess`, testada no Vitest) decide toda entrada e toda chamada ao SFU, parando no primeiro "não". Quem está sem login ou fora da sala não descobre se ela existe ou foi encerrada.
 
 1. Flag `sala_voz` ligada.
-2. Sala existe e está `aberta`, antes de `closes_at`.
-3. Conta identificada: identidade do Discord ou Steam vinculada em `steam_links`. Conta só de e-mail não entra (o Supabase de produção aceita cadastro por e-mail).
-4. Conta não banida nem suspensa.
-5. Data de nascimento informada; regra de idade (seção 9).
-6. Membro: dono, ou membro `ativo` da mentoria, ou, na party, alguém com reserva `na_party` no mesmo ambiente (`is_test`) da sala, conferido a cada chamada.
-7. Não expulso desta sala.
-8. Lotação: pessoas online menos que `max_members`.
+2. Login.
+3. Sala existe.
+4. Vínculo: dono; na mentoria, membro `ativo`; na party, reserva `na_party` agora; na sala pública, qualquer um, menos banido pelo dono e expulso desta sala; e, com `audience = beneficio`, só quem tem Battlepass ativo ou vaga na party do dia.
+5. Sala `aberta`, antes de `closes_at`.
+6. Conta identificada: Discord ou Steam vinculada (conta só de e-mail não entra).
+7. Conta não banida nem suspensa no site (a regra do middleware, `behavior_status`).
+8. Marcação "tenho 18 anos ou mais" feita.
+9. Lugares: pessoas online menos que `max_members`; dono, quem está no palco e quem tem Battlepass passam mesmo com a sala cheia (escolha 9).
 
-| Ação | Dono | Membro | Fora da sala |
-|---|---|---|---|
-| Entrar, ouvir, falar, mutar | sim | sim | não |
-| Publicar voz | 1 faixa de áudio | 1 faixa de áudio | não |
-| Compartilhar tela | sim (1 vídeo e 1 áudio de tela, uma tela por vez na sala) | só com `screen_policy = 'um_por_vez'` na mentoria (escolha 6) | não |
-| Receber faixa | de membros ativos, sem bloqueio entre os dois | idem | não |
-| Expulsar | sim | não | não |
-| Bloquear, denunciar | sim | sim | não |
-| Criar e encerrar sala | só admin | não | não |
+| Ação | Dono | Falante (palco) | Ouvinte (palco) | Membro (mentoria e party) |
+|---|---|---|---|---|
+| Ouvir, assistir, mutar a si | sim | sim | sim | sim |
+| Publicar voz | sim | sim | não | sim |
+| Compartilhar tela | sim (escolhe a qualidade) | não | não | na mentoria, se a sala permitir |
+| Levantar a mão | não | não | sim | não |
+| Chat | sim | sim | sim | sem chat na fase 1 |
+| Chamar, devolver, mutar, expulsar, banir, apagar mensagem | sim | não | não | não |
+| Bloquear e denunciar | sim | sim | sim | sim |
 
-## 9. ECA Digital e moderação
+Na sala pública, até `palco_max_speakers` pessoas falam ao mesmo tempo além do dono. Devolver à plateia ou mutar pelo dono fecha a faixa de voz da pessoa no SFU na hora.
 
-A Lei 15.211/2025 (Estatuto Digital da Criança e do Adolescente), em vigor desde 17/03/2026, vale para serviço "de acesso provável" por crianças e adolescentes (art. 1º), o caso de uma comunidade de Dota 2. A fiscalização é da ANPD, e a multa chega a R$ 50 milhões por infração (art. 35, II). O que a lei pede e o que a sala faz:
+## 9. Idade e moderação
+
+**Decisão do PPA (23/11/2026, pela sessão central):** o público dele é maior de idade, e ele pediu menos processo. A sala é só para maiores de 18: na primeira entrada, a pessoa marca uma vez "tenho 18 anos ou mais", com as regras da sala ao lado, e a marcação fica guardada com a data e a versão do texto. Saem da fase 1 a data de nascimento, as ferramentas para os pais e o fluxo de menores. O site não tem página de termos de uso; a regra fica na tela da marcação e no código de conduta quando ele ganhar a seção da sala.
+
+A Lei 15.211/2025 (ECA Digital) vale para serviço "de acesso provável" por adolescentes (art. 1º). O que fica da lei na fase 1:
 
 | Artigo | O que pede | Na fase 1 |
 |---|---|---|
-| Art. 9º, § 1º | verificação de idade confiável, **vedada a autodeclaração**, para conteúdo impróprio (pornografia e o que a lei proíbe para menores) | não se aplica à sala: voz entre jogadores não é conteúdo impróprio. A data declarada é o piso, registrada como risco na seção 17 |
-| Art. 10 | experiência adequada à idade | data de nascimento na primeira entrada e regra de idade (abaixo) |
-| Art. 13 | dado de idade usado só para isso | `user_birthdates` separada do perfil, lida só pela regra de entrada e pela moderação |
-| Art. 17, § 4º, I | por padrão, restringir a comunicação com crianças e adolescentes por usuários não autorizados | sala privada, só o PPA cria, só quem pagou ou está na party entra |
-| Arts. 17 e 18 | ferramentas de supervisão dos pais (ver com quem o menor fala, limitar tempo, gerenciar a conta) | fora da fase 1 porque menor não entra em sala de voz (escolha 1, recomendação A); entram na fase 2 |
-| Art. 21, parágrafo único | jogo com interação por áudio ou vídeo limita a interação por padrão, para garantir o consentimento dos responsáveis | idem |
-| Art. 24 | conta de até 16 anos vinculada à de um responsável | idem |
-| Arts. 27 e 28 | canal de notificação; comunicar às autoridades conteúdo de exploração, abuso, sequestro e aliciamento, e reter os dados pelo prazo do Marco Civil | botão "Denunciar" em cada pessoa, aviso ao PPA na hora e procedimento abaixo |
-| Art. 29, § 2º | notificação identificada, vedada a denúncia anônima | a denúncia sai da conta logada, com o nome de quem denuncia |
+| Art. 9º | vedada a autodeclaração de idade para conteúdo impróprio (pornografia e o que a lei proíbe a menores) | a sala não tem esse conteúdo; a marcação de maioridade é decisão do PPA, registrada como risco na seção 17 |
+| Art. 17, § 4º, I | restringir por padrão a comunicação com menores por usuários não autorizados | entrar exige conta identificada; na sala pública só fala quem o PPA chama |
+| Arts. 28 e 29 | canal de denúncia identificado; comunicar às autoridades conteúdo de abuso | "Denunciar" em cada pessoa e mensagem, com o nome de quem denuncia; aviso ao PPA na hora |
 
-**Regra de idade.** A pessoa informa a data de nascimento uma vez, na primeira entrada numa sala de voz (escolha 2). A idade se calcula no fuso de São Paulo. Pela recomendação da escolha 1, quem tem menos de 18 anos vê "As salas de voz são para maiores de 18 anos por enquanto" e não entra. O servidor conta essas tentativas (sem guardar nada além do usuário e da data), para a decisão de abrir aos 16 e 17 anos ter número.
+**Moderação.** O dono muta à força (a pessoa não reabre o microfone), devolve à plateia, expulsa e bane; apaga mensagem do chat. Banido não entra em nenhuma sala do dono até ser desbanido no painel. A denúncia vai ao canal privado do PPA no Discord (o dos avisos de venda) com o motivo e, se for de mensagem, o texto. Até 5 denúncias por pessoa por sala por hora; até uma mensagem de chat a cada 2 s. A tela da denúncia mostra os canais públicos para caso grave (Disque 100 e SaferNet).
 
-**Bloquear.** Usa o bloqueio que já existe (`friendships` com `blocked_by`, migration 168). Na sala, nenhum dos dois recebe a faixa do outro, e o servidor fecha na hora as faixas que já corriam entre eles.
-
-**Expulsar.** O dono expulsa; a pessoa sai em até 2 s e não volta a esta sala. Na party, expulsar da sala não tira da fila (a fila é do painel `/admin/loja/fila`).
-
-**Denunciar.** Motivos: assédio ou ofensa, conteúdo sexual, criança ou adolescente em risco, ameaça ou violência, discriminação, spam, outro; texto opcional de até 500 caracteres. Até 5 denúncias por pessoa por sala por hora. O PPA recebe o aviso no canal privado do Discord (o mesmo dos avisos de venda, com menção). A tela da denúncia mostra também os canais públicos: Disque 100 e a central de denúncias da SaferNet Brasil.
-
-**Procedimento do PPA para denúncia grave** (criança ou adolescente em risco, conteúdo sexual): expulsar na hora; não apagar a sala, as sessões nem a denúncia (o cron não apaga o que tem denúncia aberta); banir a conta se confirmar; comunicar às autoridades, como manda o art. 27 (o formato e o prazo dependem de regulamento ainda por sair).
-
-**Nada gravado.** O SFU só encaminha pacotes; a sala não usa gravação da Cloudflare (o RealtimeKit, que grava, não entra); nenhum servidor do FORMULADOTA recebe mídia. A sala avisa "Esta sala não é gravada". Não dá para impedir que alguém grave a própria tela: a regra do código de conduta vale para isso.
+**Nada gravado.** O SFU só encaminha pacotes; a sala não usa gravação da Cloudflare. A sala avisa "Esta sala não é gravada". O chat é texto guardado por 30 dias para moderação, e a sala avisa isso também.
 
 ## 10. Guarda de dados
 
 | Dado | Prazo | Por quê |
 |---|---|---|
-| Sessões (com IP e navegador) | 6 meses, depois o cron apaga | registro de acesso a aplicação, Lei 12.965/2014 (Marco Civil), art. 15, citado também pelo art. 27, § 2º do ECA Digital |
-| Faixas publicadas e recebidas | 6 meses (apagam junto com a sessão) | base do custo, que só precisa de 30 dias |
-| Métricas de qualidade | 90 dias | aceite e diagnóstico |
-| Denúncias | sem apagar automático na fase 1 | apuração e o art. 27 |
-| Data de nascimento | enquanto a conta existir (apaga junto com ela) | regra de idade |
+| Sessões (com IP e navegador) | 6 meses, depois o cron apaga (menos as de sala com denúncia aberta) | registro de acesso, Lei 12.965/2014 (Marco Civil), art. 15 |
+| Faixas publicadas e recebidas | junto com a sessão | base do custo (só precisa de 30 dias) |
+| Chat | 30 dias (`chat_retention_days`), menos o de sala com denúncia aberta | moderação |
+| Métricas | 90 dias | aceite e diagnóstico |
+| Denúncias e banidos | sem apagar automático na fase 1 | apuração |
+| Marcação de idade | enquanto a conta existir | prova da declaração |
 | Áudio e vídeo | nunca guardados | nada gravado |
 
-## 11. Controle de custo
+## 11. Custo
 
-**A conta.** A Cloudflare cobra o que sai dela para os navegadores: os primeiros 1.000 GB por mês são grátis, somando SFU e TURN, e cada GB acima custa US$ 0,05. Publicar (o que entra na Cloudflare) não é cobrado, e o tráfego entre o TURN e o SFU também não.
+**A conta da Cloudflare.** Cobra o que sai dela para os navegadores: 1.000 GB grátis por mês (SFU e TURN juntos) e US$ 0,05 por GB acima. Publicar é de graça, e o tráfego entre o TURN e o SFU também.
 
-| Uso | Taxa usada na estimativa | Por hora |
-|---|---|---|
-| Tela 1080p a 30 quadros, teto de 4 Mbps (mais 10% de cabeçalho) | 4.400 kbps por pessoa que assiste | cerca de 2 GB por espectador |
-| Áudio da tela (estéreo) | 128 kbps por pessoa que assiste | 58 MB |
-| Voz (Opus) | 64 kbps por faixa recebida | 29 MB por faixa |
+**Consumo por pessoa que assiste, por hora** (vídeo com 10% de cabeçalho, mais a voz do PPA e o áudio do jogo, cerca de 0,09 GB/h):
 
-- Mentoria de 90 minutos com tela: cerca de 3 GB. O teto de vagas do catálogo (8 mentorias e 3 acompanhamentos de 4 sessões por mês) dá no máximo 20 sessões, uns 60 GB por mês.
-- Party de 5 pessoas só com voz: cada uma recebe 4 vozes, cerca de 0,6 GB por hora de live somando todos. 20 lives de 4 horas: cerca de 46 GB por mês.
-- A mesma party com a tela do PPA para os 4: cerca de 10 GB por hora, e 20 lives de 4 horas chegariam a 800 GB. Por isso a recomendação da escolha 5: a sala da party é só de voz (eles já veem o jogo na própria tela e a live na Twitch).
+| Qualidade (o PPA escolhe na hora) | Vídeo | GB por hora por pessoa | Camada leve (`h`) |
+|---|---|---|---|
+| Leve: 720p a 30 quadros | 1,5 Mbps | 0,83 | 360p, 0,5 Mbps: 0,33 GB/h |
+| Padrão: 1080p a 30 quadros | 3 Mbps | 1,57 | 540p, 0,8 Mbps: 0,48 GB/h |
+| Alta: 1080p a 30 quadros | 4,5 Mbps | 2,31 | 540p, 0,8 Mbps: 0,48 GB/h |
+| Fluida: 1080p a 60 quadros | 6 Mbps | 3,06 | 540p, 1 Mbps: 0,58 GB/h |
 
-**Limites por sala.** Mentoria até 2 pessoas, party até 6; uma tela por vez; vídeo só do dono (ou do aluno na mentoria, pela escolha 6); uma sessão por pessoa; uma faixa recebida por pessoa para cada faixa publicada. O teto de bitrate vai no próprio envio (`maxBitrate` e `maxFramerate` do `RTCRtpSender`), e quem publica vídeo é sempre de confiança (o dono).
+**Sala pública, 3 horas por dia, 30 dias (90 horas por mês), qualidade Padrão.** O valor é o que passa da franquia grátis, em dólar, cobrado pela Cloudflare no cartão da conta:
 
-**Teto.** 800 GB estimados nos últimos 30 dias corridos (`voice_settings.cap_gb_30d`). Ao chegar lá, o servidor recusa toda nova transmissão de tela; a voz continua (os 200 GB de folga dariam mais de 6.000 horas de voz recebida) e a tela que já está no ar termina normalmente. Avisos ao PPA no canal privado do Discord, uma vez por limiar: 50%, 80% e 100%, e um aviso de pico quando uma hora passa de 20 GB estimados.
+| Plateia | Todos na camada alta | Custo | Todos na camada leve | Custo | Horas que cabem no teto grátis de 800 GB (camada leve) |
+|---|---|---|---|---|---|
+| 10 pessoas | 1.414 GB | US$ 21 | 434 GB | US$ 0 | 166 h |
+| 20 pessoas | 2.829 GB | US$ 91 | 868 GB | US$ 0 | 83 h |
+| 30 pessoas | 4.243 GB | US$ 162 | 1.302 GB | US$ 15 | 55 h |
+| 50 pessoas | 7.071 GB | US$ 304 | 2.171 GB | US$ 59 | 33 h |
 
-**Conferência.** O painel `/admin/salas` mostra a estimativa (a que conta para o teto) e o medido pelos navegadores (soma de `bytes_received`). Depois da mentoria real, os dois vão ao lado do número do painel da Cloudflare na nota de aceite. Se a conta tiver outro uso do Realtime (outro projeto), o teto do site não o enxerga: ao criar o app, conferir no painel se já existe outro e anotar aqui.
+A conta confere com a da sessão central: tela a 4 Mbps para 50 pessoas, 3 horas por dia, dá cerca de 8 TB por mês. Mentoria (cerca de 3 GB por sessão de 90 minutos, uns 60 GB por mês no máximo do catálogo) e party só com voz (cerca de 0,6 GB por hora) somam pouco perto disso.
+
+**O que segura o custo.**
+- Lugares: a sala pública tem `palco_max_members` lugares (recomendação: 30).
+- Camada: a plateia recebe a camada leve por padrão. Quem pede a alta recebe enquanto o consumo dos 30 dias estiver abaixo de 50% do teto; acima disso, só a leve.
+- Teto: tela nova fica bloqueada ao chegar no teto; a voz e a tela já no ar continuam. Aviso ao PPA em 50%, 80% e 100% e num pico (mais de 20 GB numa hora).
+- O valor do teto é dinheiro e é decisão do PPA (escolha 7): ficar no grátis (800 GB em 30 dias) ou aceitar um gasto mensal.
+
+**Sala de teste fora da conta.** Sala de teste (`is_test`) conta só contra sala de teste: o e2e simula o teto sem mexer no contador nem nos avisos de produção.
 
 ## 12. Limites do navegador
 
 | Situação | O que acontece | O que a sala faz |
 |---|---|---|
-| Chrome ou Edge no Windows, compartilhando **a janela do Dota** | desde o Chrome 141 o `windowAudio: "window"` oferece capturar só o áudio daquela janela | pede `windowAudio: "window"`; é o caminho recomendado ao PPA: só o som do jogo vai, sem a voz dos outros e sem Spotify ou Discord |
-| Compartilhando **a tela inteira** com "compartilhar áudio do sistema" | o áudio do sistema inclui a voz dos outros que a própria sala está tocando: eles se ouvem com atraso (eco) | pede `restrictOwnAudio: true` (Chrome 141, Windows e Mac), que tira da captura o som da própria página; sem suporte, a tela avisa o PPA para compartilhar a janela |
-| Versão do Chrome | os dois recursos acima aparecem no Chrome Platform Status como em envio no Chrome 141 de computador, com o estado ainda marcado como proposto | a sala confere `getSupportedConstraints()` e mostra o aviso quando faltar; conferir no Chrome do PPA no teste real |
-| Dota em tela cheia exclusiva | a captura da janela pode sair preta | orientar "Janela sem bordas" nas configurações do Dota; conferir no teste real |
-| Microfone do PPA com o jogo no alto-falante | o cancelamento de eco do navegador só tira o som que o próprio navegador toca | fone de ouvido (o PPA já usa nas lives) |
-| Atalho global (apertar para falar) | navegador não recebe tecla quando o Dota está em foco | microfone aberto com supressão de ruído e botão de mutar; apertar para falar fica para o aplicativo (fase 3) |
-| Firefox e Safari | não capturam áudio do sistema nem da janela | entram para ouvir e falar; compartilhar tela com áudio só no Chrome ou Edge |
-| Celular | o iPhone e boa parte dos Androids não compartilham tela pelo navegador | entra para ouvir e falar; a tela da sala não quebra em 390 px |
-| Som tocando sozinho | o navegador só toca áudio depois de um clique | botão "Entrar na sala" |
-| Carga da máquina do PPA | Dota, OBS da live e o Chrome codificando 1080p ao mesmo tempo | `qualityLimitationReason` (cpu ou banda) vai nas métricas; ajustar o teto se o teste mostrar limite |
+| Compartilhar **a janela do Dota** no Chrome ou Edge do Windows | desde o Chrome 141, `windowAudio: "window"` captura só o áudio daquela janela | é o caminho recomendado ao PPA: só o som do jogo vai |
+| Compartilhar **a tela inteira** com o áudio do sistema | o áudio do sistema inclui as vozes que a própria sala toca (eco para a plateia) | pede `restrictOwnAudio: true`, que tira da captura o som da própria página; presente no Chrome 157 desta máquina (sonda de 24/11/2026); sem ele, a tela avisa para compartilhar a janela |
+| Dota em tela cheia exclusiva | a captura pode sair preta | orientar "Janela sem bordas"; conferir no teste real |
+| Microfone do PPA com o jogo no alto-falante | o cancelamento de eco só tira o som que o navegador toca | fone de ouvido |
+| Apertar para falar | navegador não recebe tecla com o Dota em foco | microfone aberto com supressão de ruído; atalho fica para o aplicativo (fase 3) |
+| Firefox e Safari | não capturam áudio do sistema nem da janela | entram para ouvir, falar e assistir |
+| Celular | o iPhone e boa parte dos Androids não compartilham tela | assiste e fala; a tela não quebra em 390 px |
+| Upload do PPA | duas camadas de tela somam cerca de 1,25 vez a qualidade escolhida, além do OBS da live | `qualityLimitationReason` vai nas métricas; o teste real diz se cabe |
 
-Pedido de captura da tela:
+A tela sobe com `contentHint = "detail"` e `degradationPreference = "maintain-resolution"` (sob aperto, o navegador baixa quadros antes da resolução), nas duas camadas: `f` na qualidade escolhida e `h` com `scaleResolutionDownBy = 2`.
 
-```ts
-navigator.mediaDevices.getDisplayMedia({
-  video: { width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30, max: 30 } },
-  audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, restrictOwnAudio: true },
-  systemAudio: "include",
-  windowAudio: "window",
-  selfBrowserSurface: "exclude",
-  surfaceSwitching: "include",
-});
-```
+## 13. Métricas e atraso
 
-A faixa de vídeo vai com `contentHint = "detail"` e `degradationPreference = "maintain-resolution"` (o aceite pede 1080p; sob aperto, o navegador baixa quadros antes de baixar a resolução) e `maxBitrate` de 4 Mbps. O teste real decide se troca por `"motion"`.
-
-## 13. Métricas (`getStats`)
-
-A cada 5 s o cliente lê `RTCPeerConnection.getStats()`; a cada 10 s manda um resumo na consulta de estado, gravado em `voice_room_stats`.
+A cada 5 s o cliente lê `RTCPeerConnection.getStats()`; a cada 10 s manda um resumo no batimento, gravado em `voice_room_stats`.
 
 | Métrica | De onde vem |
 |---|---|
-| Perda de pacote (%) | `inbound-rtp`: diferença de `packetsLost` sobre `packetsLost + packetsReceived` no intervalo, em todas as faixas recebidas |
+| Perda de pacote (%) | `inbound-rtp`: diferença de `packetsLost` sobre `packetsLost + packetsReceived` no intervalo |
 | Jitter (ms) | `inbound-rtp.jitter`, a maior entre as faixas de áudio |
 | RTT (ms) | `candidate-pair` selecionado: `currentRoundTripTime` |
-| Voz picotada (%) | `inbound-rtp` de áudio: diferença de `concealedSamples` sobre `totalSamplesReceived` |
-| Tela recebida | `inbound-rtp` de vídeo: `frameWidth`, `frameHeight`, `framesPerSecond`, `totalFreezesDuration` |
-| Bytes | `bytesReceived` e `bytesSent` no intervalo (o consumo medido) |
-| TURN em uso | candidato local do par selecionado com `candidateType = 'relay'` |
+| Buffer de jitter (ms) | `inbound-rtp` de vídeo (ou de áudio, sem vídeo): diferença de `jitterBufferDelay` sobre a de `jitterBufferEmittedCount` |
+| Voz picotada (%) | `inbound-rtp` de áudio: `concealedSamples` sobre `totalSamplesReceived` |
+| Tela recebida | `frameWidth`, `frameHeight`, `framesPerSecond`, `totalFreezesDuration` |
+| Bytes | `bytesReceived` e `bytesSent` (o consumo medido) |
+| TURN em uso | candidato local com `candidateType = 'relay'` |
 | Limite do envio | `outbound-rtp` de vídeo: `qualityLimitationReason` |
 
-A tela da sala mostra a qualidade de cada pessoa em três níveis (boa, instável, ruim), com os números ao passar o mouse.
+**Atraso estimado** (o que a meta de "menos de meio segundo" mede): metade do RTT de quem assiste, mais o buffer de jitter dele, mais metade do RTT do PPA no mesmo minuto. Não entra o tempo de captura, codificação e tela (dezenas de milissegundos), por isso a meta tem folga. A tela mostra o atraso de cada pessoa ao passar o mouse na qualidade da conexão.
 
-**Consulta do aceite** (roda no banco depois da mentoria real; o resultado vai para a nota):
+**Consulta do aceite** (roda depois da live ou da mentoria; o resultado vai para a nota):
 
 ```sql
+with dono as (
+  select date_trunc('minute', s.at) as minuto, percentile_cont(0.5) within group (order by s.rtt_ms) as rtt_dono
+    from public.voice_room_stats s join public.voice_rooms r on r.id = s.room_id
+   where s.room_id = '<id da sala>' and s.user_id = r.owner_id
+   group by 1
+)
 select s.user_id,
        count(*) as amostras,
        round(max(s.packet_loss_pct)::numeric, 2) as perda_max_pct,
-       round(avg(s.packet_loss_pct)::numeric, 2) as perda_media_pct,
        round(percentile_cont(0.95) within group (order by s.jitter_ms)::numeric, 1) as jitter_p95_ms,
-       round(percentile_cont(0.95) within group (order by s.rtt_ms)::numeric, 1) as rtt_p95_ms,
+       round(percentile_cont(0.95) within group (order by s.rtt_ms / 2 + coalesce(s.jitter_buffer_ms, 0) + d.rtt_dono / 2)::numeric) as atraso_p95_ms,
        round(avg(s.audio_concealed_pct)::numeric, 2) as voz_picotada_pct,
-       round(100.0 * avg(case when s.video_height >= 1080 then 1 else 0 end)
-             filter (where s.video_height > 0), 1) as tempo_em_1080p_pct,
+       round(100.0 * avg(case when s.video_height >= 1080 then 1 else 0 end) filter (where s.video_height > 0), 1) as tempo_em_1080p_pct,
        round(sum(s.bytes_received) / 1e9, 2) as gb_recebidos
   from public.voice_room_stats s
+  join dono d on d.minuto = date_trunc('minute', s.at)
  where s.room_id = '<id da sala>'
  group by s.user_id;
 ```
 
 ## 14. Interface da fase 1
 
-Usa o kit `src/components/v2` (painel, placa, `v2Page`), os tokens atuais e ícones do `lucide-react`, sem linguagem visual nova: a sessão de design troca a pele depois. Textos em `messages/{pt,en,es}.json` com as mesmas chaves.
+Usa o kit `src/components/v2` (painel, placa, `v2Page`), os tokens atuais e ícones do `lucide-react`, sem linguagem visual nova: a sessão de design troca a pele depois. Textos em `messages/{pt,en,es}.json`.
 
-- `/sala/[id]`: título e tipo da sala, "Esta sala não é gravada", estado da conexão; no centro, a tela compartilhada; à direita, a lista de pessoas (avatar quadrado, nick, microfone, indicador de fala, qualidade, menu com Expulsar, Bloquear e Denunciar); embaixo, Mutar, Compartilhar tela (dono), volume do jogo e Sair. Visitante deslogado vê o botão de entrar com o Discord, que volta para a mesma sala (por isso `/sala` entra nas rotas públicas do middleware; a página e as rotas da API exigem login).
-- `/admin/salas`: salas abertas, criar sala de mentoria a partir dos horários pagos, criar a sala da party da live no ar, link e convite para copiar, encerrar, consumo dos 30 dias (estimado e medido) e denúncias abertas.
+- **`/sala`** (endereço fixo para anunciar na live): leva à sala pública aberta do PPA; sem sala aberta, diz que ela abre quando a live começar.
+- **`/sala/[id]`**: título e tipo, "Esta sala não é gravada", atraso e qualidade da conexão; o palco com a tela (e a escolha "alta" ou "leve" para quem assiste); na sala pública, quem está no palco, a plateia com as mãos levantadas e o chat; os controles (mutar, levantar a mão, compartilhar a tela com a escolha da qualidade e o consumo por hora, volumes, sair).
+- **Primeira entrada:** a marcação "Tenho 18 anos ou mais" com as regras da sala.
+- **`/admin/salas`**: abrir a sala pública da live, a de mentoria (de um horário pago) e a da party; link e convite; encerrar; banidos (desbanir); consumo estimado e medido; denúncias.
 
-Entrada pela página da party e pela página do pedido fica para depois do aceite: na fase 1 o PPA manda o link (essas páginas estão com outras sessões).
+As rotas para a barra de cima (sessão de design): `/sala` (sala pública da live) e `/admin/salas`.
 
-## 15. Escolhas de produto (decisão do PPA)
+## 15. Decisões
 
-| # | Escolha | Opções | Recomendação |
-|---|---|---|---|
-| 1 | Menor de idade na sala de voz | A: menor de 18 não entra na fase 1. B: 16 e 17 entram só na mentoria, com consentimento do responsável registrado e o responsável podendo entrar junto; menor de 16 não entra. C: todos, com as ferramentas de supervisão completas (fase 2) | **A**: sem menor na sala, as obrigações de supervisão dos arts. 17, 18, 21 e 24 não entram na fase 1, e a fase 1 sai em dias. A conta de tentativas barradas diz se B vale a pena |
-| 2 | Onde pedir a data de nascimento | A: na primeira entrada numa sala de voz. B: no cadastro do site, para todos | **A**: só quem usa a voz responde; não põe um passo a mais no caminho até a compra, que a sessão de design está encurtando |
-| 3 | Comprador de mentoria que pagou sem login | A: convite de uso único que o PPA manda; o PPA vê quem usou e pode expulsar. B: casar pelo e-mail do pedido | **A**: o e-mail do Discord muitas vezes é outro que o do pedido |
-| 4 | Quem entra na sala da party | A: só quem está na party agora. B: a party e quem espera na fila, só ouvindo | **A**: menos gente estranha falando junto, e quem sai da party sai da sala sozinho |
-| 5 | Tela na sala da party | A: só voz. B: o PPA pode compartilhar | **A**: os jogadores já veem o jogo e a live; com tela para 4, 20 lives de 4 horas chegariam ao teto de 800 GB |
-| 6 | Quem compartilha tela na mentoria | A: só o PPA. B: o aluno também, um de cada vez (o PPA vê o jogo do aluno ao vivo) e o PPA corta a tela do aluno | **B**, se o PPA analisa o jogo do aluno ao vivo: dobra o valor da mentoria pelo mesmo custo (um espectador). A prova de conceito sai com A e B fica num interruptor por sala |
-| 7 | Teto de tráfego | 800 GB em 30 dias corridos com avisos em 50% e 80%, ou 500 GB | **800 GB**: o uso esperado fica perto de 100 GB por mês, e o teto existe para erro ou abuso |
-| 8 | Qualidade da tela | 1080p a 30 quadros até 4 Mbps (cerca de 2 GB por hora por espectador), ou 1080p a 60 até 6 Mbps (cerca de 3 GB) | **30 quadros**: o aceite pede 1080p; o teste real diz se 60 faz falta |
+| # | Assunto | Situação |
+|---|---|---|
+| 1 | Idade | **Decidido pelo PPA em 23/11/2026:** só maiores de 18, por uma marcação na primeira entrada; sem data de nascimento nem ferramentas para os pais na fase 1. |
+| 2 | Onde pedir a idade | **Decidido com o item 1:** na primeira entrada numa sala. |
+| 3 | Comprador de mentoria que pagou sem login | **Recomendação adotada até o PPA dizer o contrário:** convite de uso único que ele manda pelo WhatsApp. |
+| 4 | Quem entra na sala da party | **Espera o PPA.** A: só quem está na party agora (recomendado). B: a party e a fila, só ouvindo. |
+| 5 | Tela na sala da party | **Espera o PPA.** A: só voz (recomendado; quem quer ver a tela vai para a sala pública). B: o PPA pode compartilhar. |
+| 6 | Tela do aluno na mentoria | **Recomendação adotada até o PPA dizer o contrário:** interruptor por sala, desligado por padrão. |
+| 7 | Teto de gasto | **Espera o PPA (é dinheiro).** A: ficar no grátis, 800 GB em 30 dias (recomendado para começar). B: até US$ 50 por mês (1.800 GB). C: até US$ 150 por mês (3.800 GB). |
+| 8 | Qualidade da tela | **Decidido pelo PPA em 23/11/2026:** ele escolhe na hora de compartilhar, vendo o consumo por hora de cada opção. |
+| 9 | Sala pública aberta a todos ou benefício | **Espera o PPA.** A: aberta a todos. B: só Battlepass e quem tem vaga na party do dia. C (recomendado): aberta a todos com lugares contados, e o Battlepass entra mesmo com a sala cheia. |
+| 10 | Lugares da sala pública | **Espera o PPA.** Recomendado: 30 (cabe no teto grátis com a plateia na camada leve). |
+| 11 | Quem fala na sala pública | **Espera o PPA.** Recomendado: o PPA chama quem levantou a mão, até 4 falando além dele, e devolve à plateia quando quiser. |
 
-Precisam do sim do PPA, numa mensagem só pela sessão central: criar o app do Realtime e a chave do TURN na conta dele (sem custo até 1.000 GB por mês; o teto do site para em 800); aprovar a migration antes do merge e da aplicação em produção; as escolhas acima; o dia da mentoria real de 1 hora.
+### A escolha 9 e o efeito nas lives do YouTube e da Twitch
+
+- **O que se perde.** Quem assiste pelo site não vê anúncio do YouTube, não conta como espectador simultâneo e não escreve no chat das plataformas. O YouTube e a Twitch recomendam lives pelo número de espectadores ao mesmo tempo e pela conversa no chat; menos gente lá é menos descoberta e menos receita de anúncio. Membros do YouTube e subs da Twitch são pagamentos e não caem só por alguém assistir no site, mas quem não volta às plataformas deixa de ver os pedidos de membro e de sub.
+- **O que se ganha.** Quem está na sala pública está logado no site, a um clique da vaga na party e do Battlepass, e fala com o PPA de verdade, o que nenhuma plataforma dá.
+- **Por que C.** Lugares contados (30) limitam o quanto sai das plataformas e o custo; aberto a todos dá alcance e testa a ideia de verdade (com 1 assinatura de Battlepass na história, uma sala só para o Battlepass ficaria vazia); o Battlepass entrando com a sala cheia dá a ele um benefício concreto.
+- **Teste de 14 dias** (proposto pelo agente), a contar da primeira live com a sala pública: **passa** com pelo menos 3 compras (vaga ou Battlepass) de quem esteve na sala e com o pico de espectadores somados de YouTube e Twitch caindo no máximo 10% em relação aos 14 dias anteriores; **falha** com nenhuma compra ou queda acima de 20%, e aí a sala vira benefício (B).
 
 ## 16. Fases 2 e 3 (só documento)
 
-**Fase 2: canais da comunidade.** Canais de texto e de voz abertos aos membros, aproveitando o chat que já existe (`dm_messages`, `party_messages`, `lobby_messages`): tabela de canais com acesso por nível ou papel, moderadores além do PPA, modo lento, fila de moderação das denúncias. Voz em canal com dezenas de pessoas pede outra sinalização (Durable Object com WebSocket ou Supabase Realtime) e simulcast para tela com vários espectadores; transmissão de um para muitos pode sair mais barata pelo Cloudflare Stream (WHIP e WHEP), a comparar. Se menores entrarem: conta de até 16 anos vinculada à de um responsável (art. 24), consentimento dos responsáveis (art. 21), tempo de uso visível e limitável (art. 17, IV), o responsável vendo com quais adultos o menor fala (art. 18, III).
+**Fase 2: canais da comunidade.** Canais de texto e de voz abertos aos membros, aproveitando o chat que já existe (`dm_messages`, `party_messages`, `lobby_messages`): canais por nível ou papel, moderadores além do PPA, modo lento, fila de moderação das denúncias. Com centenas de pessoas, o estado sai do batimento e vai para Supabase Realtime ou Durable Object com WebSocket, e a transmissão de um para muitos se compara com o Cloudflare Stream (WHIP e WHEP), que cobra por minuto assistido. Se a regra de idade mudar, entram as ferramentas para os pais (arts. 17, 18, 21 e 24 do ECA Digital).
 
-**Fase 3: aplicativo de computador.** O "app" que o projeto já prevê (Tauri): captura do áudio só do processo do Dota pelo próprio Windows, apertar para falar com atalho global, overlay sobre o jogo e aviso de chamada fora do navegador. Usa o mesmo SFU e as mesmas rotas de autorização.
+**Fase 3: aplicativo de computador.** O "app" que o projeto já prevê (Tauri): captura só do processo do Dota, apertar para falar com atalho global, overlay sobre o jogo. Usa o mesmo SFU e as mesmas rotas.
 
 ## 17. Riscos e o que revisitar
 
 | Risco | Efeito | O que fazer |
 |---|---|---|
-| Idade declarada pode ser mentira | menor entra mentindo | conta identificada e data que não muda; denúncia "criança ou adolescente em risco"; se a ANPD regulamentar verificação mais forte para esse tipo de serviço, trocar o método |
-| partytracks parar de ser mantido | cliente sem correção | o módulo `src/lib/sala/cliente/` isola a troca por cliente próprio |
-| Estimativa de custo errar para baixo | conta acima do grátis | a taxa usada é o teto de cada tipo mais folga; comparar com o painel da Cloudflare depois do teste real e todo mês na primeira fase |
-| Chrome do PPA sem `windowAudio` ou `restrictOwnAudio` | eco ou som do sistema inteiro | aviso na tela e orientação de compartilhar a janela; conferir no teste real |
-| Supabase fora do ar | ninguém entra, quem está dentro perde o batimento | a mídia segue até a sessão cair; a sala mostra o erro |
-| Cloudflare Realtime fora do ar | sem sala | sem plano B automático na fase 1; o Discord segue para voz |
+| Idade declarada por marcação | menor entra mentindo | decisão do PPA (23/11/2026); conta identificada, denúncia e banimento; se a ANPD regulamentar verificação para esse tipo de serviço, trocar o método |
+| Plateia saindo das plataformas | menos descoberta e anúncio no YouTube e na Twitch | lugares contados e o teste de 14 dias da escolha 9 |
+| Custo da sala pública | conta acima do grátis | camada leve por padrão, lugares, teto e avisos; o PPA escolhe o orçamento |
+| Credencial de TURN usada fora da sala | tráfego cobrado que o teto não vê | credencial só para quem entra, marcada com a sala e revogada ao expulsar e ao encerrar |
+| Upload do PPA com duas camadas e o OBS | tela travando | medir `qualityLimitationReason` no teste real; baixar a qualidade escolhida |
+| partytracks sem manutenção | cliente sem correção | o módulo `src/lib/sala/cliente/` isola a troca |
+| Supabase lento ou fora | batimento falha | uma consulta por batimento (ADR-004); a mídia segue até a sessão cair |
+| Chat com abuso | ofensa na frente da plateia | apagar, mutar, expulsar, banir, denunciar; uma mensagem a cada 2 s |
 
 ## 18. Provas
 
-- **Unitárias (`pnpm test`):** permissões (`decideRoomAccess` com cada "não" da seção 8), idade no fuso de São Paulo (aniversário no dia, 29 de fevereiro), leitura do SDP (mid para tipo), regras de publicar e receber, estimativa de custo (janela de 30 dias, faixa sem fim, sessão sem batimento), limiares de aviso, resumo das métricas.
+- **Unitárias (`pnpm test`):** permissões (cada "não" da seção 8, palco e lugares), faixas (quem publica, quem recebe, camada pela regra de custo), estimativa de custo e limiares, leitura do SDP, métricas e atraso, caminho do intermediário, credencial do TURN. `pnpm sala:mutacao` tira cada trava e exige vermelho.
 - **Banco:** `scripts/seguranca/sala-voz.sql` e `funcoes-abertas.sql` (seção 7).
-- **Ponta a ponta (`pnpm sala:e2e`):** servidor local, banco de produção com sala e usuários de teste (`is_test`, criados e apagados pelo próprio teste) e o app real do Realtime. Duas pessoas com mídia falsa do Chrome (`--use-fake-ui-for-media-stream`, `--use-fake-device-for-media-stream` e a captura de tela automática): as duas se ouvem (`bytesReceived` de áudio maior que zero dos dois lados), o dono compartilha a tela e o aluno recebe (`bytesReceived` de vídeo maior que zero e altura do quadro maior que zero), o aluno mutado, a lista com as duas pessoas, a expulsão (o aluno sai e o servidor recusa a volta), a denúncia gravada, o bloqueio que corta o áudio, a conta de menor barrada, o teto que recusa a tela, alguém de fora recusado e a flag desligada escondendo a sala de todos.
-- **Aceite real:** uma mentoria de verdade de 1 hora do PPA com a tela em 1080p, voz sem corte perceptível, perda de pacote abaixo de 2% e consumo dentro da franquia grátis, medidos pela consulta da seção 13 e registrados na nota compartilhada. O dia se combina pela sessão central.
+- **Ponta a ponta (`pnpm sala:e2e`):** servidor local, banco de produção com sala e usuários de teste (`is_test`, apagados no fim) e o app real do Realtime, com a mídia falsa do Chrome. Mentoria: os dois se ouvem, a tela chega em 1080p, mutar, denunciar, teto, bloqueio, expulsão. Sala pública: o ouvinte não publica voz, o chamado publica, a plateia recebe a camada leve (540p) e o atraso estimado aparece, o chat chega e o apagado some, o banido não volta, os lugares contam. Portões: login, fora, menor (sem a marcação), convite e flag desligada, até para o admin.
+- **Aceite real:** uma mentoria de 1 hora do PPA (tela em 1080p, perda abaixo de 2%, voz sem corte, atraso p95 abaixo de 500 ms, consumo dentro do orçamento) e a primeira live com a sala pública (atraso p95 abaixo de 500 ms para a plateia), medidos pela consulta da seção 13 e registrados na nota compartilhada.
 
 ## 19. Entrega
 
-Um PR por etapa, nunca na main; merge com a verificação `verificar` do GitHub verde (a da Vercel falha em todos os PRs e não conta).
+Um PR por etapa, nunca na main; merge com a verificação `verificar` do GitHub verde.
 
-1. Esta spec.
-2. Ligar o Realtime: app do SFU e chave do TURN criados com o sim do PPA; segredos direto para `wrangler secret put` e para os arquivos de ambiente, sem passar pela tela.
-3. Migration com a prova de RLS: merge e aplicação em produção só com o OK do PPA. Aplicação pela Management API, registrada em `supabase_migrations.schema_migrations` com versão por data (nunca `supabase db push`).
-4. Prova de conceito atrás da flag, com as provas da seção 18; deploy pela cópia do WSL com a trava `flock /root/deploy-loja.lock`, conferido por `pnpm cf:verificar`.
-5. Mentoria real e nota de aceite.
+1. Esta spec (PR 194 e esta revisão).
+2. Ligar o Realtime: o agente cria o app e a chave do TURN no Chrome do PPA (sem tocar em segredo); o PPA copia os dois tokens e roda o script de um clique.
+3. Migration 196 com a prova de RLS: merge e aplicação em produção só com o OK do PPA, pela Management API, registrada em `supabase_migrations.schema_migrations` com versão por data.
+4. Prova de conceito atrás da flag, com as provas da seção 18; deploy pela cópia do WSL com a trava, conferido por `pnpm cf:verificar`.
+5. Mentoria real, primeira live com a sala pública e nota de aceite.
 6. Novidade para o jogador só com o OK do PPA.
 
 ## 20. Fontes
 
-Consultadas em 23/11/2026.
+Consultadas em 23 e 24/11/2026.
 
-- Cloudflare Realtime, API do SFU (base `https://rtc.live.cloudflare.com/v1`, `Authorization: Bearer <segredo do app>`, esquema OpenAPI `realtime-api-2024-05-21.yaml`): https://developers.cloudflare.com/realtime/sfu/ e https://developers.cloudflare.com/realtime/static/realtime-api-2024-05-21.yaml
-- Preço (US$ 0,05 por GB de saída, 1.000 GB grátis por mês somando SFU e TURN, tráfego TURN e SFU sem cobrança): https://developers.cloudflare.com/realtime/sfu/platform/pricing/ e o FAQ do TURN
-- Limites (50 requisições por segundo por sessão, faixa sem pacote por 30 s é descartada, codecs H.264, H.265, VP8, VP9, AV1 e Opus): https://developers.cloudflare.com/realtime/sfu/platform/limits/
-- Credenciais do TURN (`/v1/turn/keys/{id}/credentials/generate-ice-servers`) e análise por GraphQL do TURN (permissão "Account Analytics"): https://developers.cloudflare.com/realtime/turn/
-- Criar app e chave pela API da conta (`POST /accounts/{account_id}/calls/apps` e `/calls/turn_keys`, permissão "Calls Write" ou "Realtime Admin"): https://developers.cloudflare.com/api/resources/calls/
-- partytracks 0.0.56 (código do cliente e do servidor lido no pacote publicado no npm): https://www.npmjs.com/package/partytracks
-- Chrome, `systemAudio`: https://developer.chrome.com/docs/web-platform/screen-sharing-controls ; `restrictOwnAudio` e `windowAudio` no Chrome Platform Status: https://chromestatus.com/feature/5128140732760064 e https://chromestatus.com/feature/5072779506089984
-- Lei 15.211/2025 (ECA Digital), texto do Planalto: https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2025/lei/L15211.htm
+- Cloudflare Realtime, API do SFU (base `https://rtc.live.cloudflare.com/v1`, `Authorization: Bearer <segredo do app>`, esquema `realtime-api-2024-05-21.yaml`, simulcast com `preferredRid` e `tracks/update`): https://developers.cloudflare.com/realtime/sfu/
+- Preço e limites (US$ 0,05 por GB de saída, 1.000 GB grátis por mês somando SFU e TURN, faixa sem pacote por 30 s descartada, 50 requisições por segundo por sessão, codecs): https://developers.cloudflare.com/realtime/sfu/platform/pricing/ e https://developers.cloudflare.com/realtime/sfu/platform/limits/
+- TURN: credencial curta com `customIdentifier`, revogação (`/credentials/{username}/revoke`) e análise por GraphQL: https://developers.cloudflare.com/realtime/turn/generate-credentials/
+- partytracks 0.0.56 (código publicado no npm): https://www.npmjs.com/package/partytracks
+- Chrome: `systemAudio` (https://developer.chrome.com/docs/web-platform/screen-sharing-controls), `restrictOwnAudio` e `windowAudio` no Chrome Platform Status (https://chromestatus.com/feature/5128140732760064 e https://chromestatus.com/feature/5072779506089984)
+- Lei 15.211/2025 (ECA Digital): https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2025/lei/L15211.htm
 - Lei 12.965/2014 (Marco Civil da Internet), art. 15: https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2014/lei/l12965.htm
