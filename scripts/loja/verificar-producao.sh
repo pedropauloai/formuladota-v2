@@ -47,6 +47,9 @@ if [ "$flag" = "on" ]; then
   while IFS=$'\t' read -r slug title; do
     [ -z "$slug" ] && continue
     printf '%s' "$vitrine" | grep -qF "$title" && ok "vitrine mostra: $title" || erro "vitrine não mostra: $title"
+    # A vaga na party vende na fila: a página do produto leva para /party em vez de ter checkout.
+    destino="$($C -s -o /dev/null -w '%{http_code} %{redirect_url}' --max-time 30 "$SITE/loja/$slug")"
+    if [ "$destino" = "307 $SITE/party" ]; then ok "produto $slug leva para a fila"; continue; fi
     pagina="$($C -fsSL --max-time 30 "$SITE/loja/$slug" || true)"
     # Produto com as vagas do mês esgotadas troca o formulário pelo aviso de reabertura.
     printf '%s' "$pagina" | grep -qE 'id="loja-checkout"|data-loja-esgotado' && ok "checkout de $slug no ar" || erro "checkout de $slug não apareceu"
