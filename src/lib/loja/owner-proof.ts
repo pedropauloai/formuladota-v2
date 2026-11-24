@@ -12,6 +12,7 @@ import type { Json } from "@/types/database";
 import { buildOwnerProofData, parseOwnerProofData, reuseSummary, type OwnerProofData } from "./owner-proof-data";
 import { summarizePartyMatch, type PartyMatchSummary } from "./fila/party-match";
 import { registeredMatchAccounts } from "./fila/party-matches";
+import { ppaAccountSearchOrder } from "./ppa-accounts";
 
 // Perfil de coach do dono da loja: dele saem a conta Steam e o avatar.
 const OWNER_COACH_SLUG = "pedro-paulo";
@@ -63,6 +64,7 @@ type Registered = Awaited<ReturnType<typeof registeredMatchAccounts>>;
 /** O resumo de cada partida registrada: o do cache quando serve (reuseSummary); senão, da OpenDota. */
 async function summarize(accountId: number, registered: Registered, current: OwnerProofData | null, now: Date): Promise<PartyMatchSummary[]> {
   const cached = new Map((current?.partyMatches ?? []).map((m) => [m.matchId, m]));
+  const owners = [...new Set([accountId, ...(await ppaAccountSearchOrder())])];
   const out: PartyMatchSummary[] = [];
   for (const r of registered) {
     const hit = cached.get(r.matchId);
@@ -71,7 +73,7 @@ async function summarize(accountId: number, registered: Registered, current: Own
       continue;
     }
     try {
-      const summary = summarizePartyMatch(await openDotaJson<unknown>(`/matches/${r.matchId}`, { timeoutMs: FETCH_TIMEOUT_MS }), accountId, r.accounts);
+      const summary = summarizePartyMatch(await openDotaJson<unknown>(`/matches/${r.matchId}`, { timeoutMs: FETCH_TIMEOUT_MS }), owners, r.accounts);
       if (summary) out.push(summary);
     } catch (err) {
       // Partida ainda processando na OpenDota: fica o que havia, e a próxima rodada tenta de novo.
@@ -98,8 +100,8 @@ async function fetchOwnerData(accountId: number, now: Date, registered: Register
 export async function refreshOwnerProof(now = new Date()): Promise<"fresco" | "aguardando" | "renovado" | "sem_dono"> {
   const [owner, current, registered] = await Promise.all([findOwner(), readProof(), registeredMatchAccounts()]);
   if (!owner?.accountId) return "sem_dono";
-  // Partida nova (sem resumo nenhum) puxa a rodada antes da hora; resumo sem resultado tenta de novo só na rodada de cada hora.
-  const summarized = new Set((current?.partyMatches ?? []).map((m) => m.matchId));
+  // Partida nova (sem resumo) ou com resumo antigo (sem os heróis) puxa a rodada antes da hora; resumo sem resultado tenta de novo só na rodada de cada hora.
+  const summarized = new Set((current?.partyMatches ?? []).filter((m) => m.partyHeroIds !== null).map((m) => m.matchId));
   const pending = registered.some((r) => !summarized.has(r.matchId));
   if (current && !pending && now.getTime() - new Date(current.syncedAt).getTime() < REFRESH_EVERY_MS) return "fresco";
   if (now.getUTCMinutes() % RETRY_EVERY_MINUTES !== 0) return "aguardando";

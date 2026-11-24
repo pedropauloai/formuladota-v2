@@ -26,10 +26,11 @@ function spawn(maxR: number, anywhere: boolean): Streak {
   };
 }
 
-/** Lê a cor da luz como "r, g, b" para montar rgba() no canvas. */
+/** Lê a cor das linhas (ou, sem ela, a da luz) como "r, g, b" para montar rgba() no canvas. */
 function readLight(host: HTMLElement): string {
   const probe = document.createElement("span");
-  probe.style.color = getComputedStyle(host).getPropertyValue("--cta-light") || "rgb(129 140 248)";
+  const style = getComputedStyle(host);
+  probe.style.color = style.getPropertyValue("--cta-lines").trim() || style.getPropertyValue("--cta-light").trim() || "rgb(129 140 248)";
   host.appendChild(probe);
   const rgb = getComputedStyle(probe).color.match(/\d+(\.\d+)?/g)?.slice(0, 3).join(", ") ?? "129, 140, 248";
   probe.remove();

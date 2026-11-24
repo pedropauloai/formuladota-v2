@@ -1,19 +1,14 @@
 import type { Metadata, Viewport } from "next";
-// Fontes V2.5 — self-hosted via @fontsource (sem requisição Google Fonts).
-// Atualizado 2026-05-25 (segunda iteração): Space Grotesk REMOVIDA, adotada
-// UBUNTU — mesma fonte usada pelo ExitLag.com (referência AAA gaming brasileira
-// que Pedro citou). Ubuntu (Canonical, free Google Fonts) tem character forte
-// natural, weight visível em todos os pesos. ExitLag usa Ubuntu pra body+h2+
-// eyebrows e Organetto (paga) pra h1 hero — substituímos Organetto pela Teko
-// (já self-hosted, vibe condensed esports similar).
-//
-// 4 pesos: 300/400/500/700 (sem variable axis, mas cobre todas necessidades).
-// Teko Variable continua pra moments épicos (countdown, "ON FIRE!").
-import "@fontsource/ubuntu/300.css";
-import "@fontsource/ubuntu/400.css";
-import "@fontsource/ubuntu/500.css";
-import "@fontsource/ubuntu/700.css";
-import "@fontsource-variable/teko";
+// Fontes do site, servidas daqui (@fontsource, sem pedido ao Google): uma família só, Barlow no texto e
+// Barlow Condensed nos títulos, na barra e nos números grandes, todas com algarismos de largura igual.
+import "@fontsource/barlow/400.css";
+import "@fontsource/barlow/500.css";
+import "@fontsource/barlow/600.css";
+import "@fontsource/barlow/700.css";
+import "@fontsource/barlow/800.css";
+import "@fontsource/barlow-condensed/500.css";
+import "@fontsource/barlow-condensed/600.css";
+import "@fontsource/barlow-condensed/700.css";
 import "@/styles/globals.css";
 // V2.5-F5: Sound infrastructure — singleton Howler + mobile autoplay gate (DF5.1, DF5.4, DF5.6)
 import { SoundProvider } from "@/components/layout/sound-provider";

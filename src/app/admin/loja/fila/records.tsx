@@ -10,7 +10,6 @@ import { panel } from "@/components/v2";
 import type { AdminFinishedEntry } from "@/lib/loja/fila/admin";
 import type { HistoryMatch } from "@/lib/loja/fila/admin-history";
 import { formatBRL } from "@/lib/loja/money";
-import { cn } from "@/lib/utils";
 
 const DAY_TIME = new Intl.DateTimeFormat("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
 const TIME = new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
@@ -40,14 +39,12 @@ function Matches({ items }: { items: HistoryMatch[] }) {
             {m.players.map((p) => (
               <span
                 key={`${m.key}-${p.userId}`}
-                title={p.kind === "nao_apareceu" ? "Não apareceu (a vez conta)" : p.confirmed ? "Conferido na OpenDota" : "Sem a conferência da OpenDota"}
-                className={cn("inline-flex h-8 items-center gap-2 rounded-sm border pl-1 pr-2 text-sm", p.kind === "nao_apareceu" ? "border-warning/40 text-warning" : "border-white/[0.08] text-text-body")}
+                title={p.confirmed ? "Conferido na OpenDota" : "Sem a conferência da OpenDota"}
+                className="inline-flex h-8 items-center gap-2 rounded-sm border border-white/[0.08] pl-1 pr-2 text-sm text-text-body"
               >
                 <UserAvatar src={p.avatarUrl ?? undefined} alt="" fallback={p.name.slice(0, 2).toUpperCase()} size="xs" />
                 {p.name}
-                {p.kind === "nao_apareceu" ? (
-                  " · faltou"
-                ) : p.confirmed ? (
+                {p.confirmed ? (
                   <CheckCircle2 size={14} aria-hidden="true" className="text-play-primary" />
                 ) : (
                   <CircleDashed size={14} aria-hidden="true" className="text-text-faded" />

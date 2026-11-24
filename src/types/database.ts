@@ -2763,6 +2763,27 @@ export type Database = {
           },
         ]
       }
+      ppa_dota_accounts: {
+        Row: {
+          account_id: number
+          created_at: string
+          kind: string
+          label: string
+        }
+        Insert: {
+          account_id: number
+          created_at?: string
+          kind?: string
+          label?: string
+        }
+        Update: {
+          account_id?: number
+          created_at?: string
+          kind?: string
+          label?: string
+        }
+        Relationships: []
+      }
       site_pageviews: {
         Row: {
           created_at: string

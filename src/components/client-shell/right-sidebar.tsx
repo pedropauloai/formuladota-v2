@@ -9,14 +9,12 @@
 //
 // Server Component ASYNC: fetcha via getSidebarData() e renderiza cards puros.
 
-import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import {
   ArrowRight,
   MessageSquare,
   BookOpen,
   History,
-  Swords,
   Trophy,
   Gavel,
 } from "lucide-react";
@@ -29,7 +27,7 @@ import { getOwnerProof } from "@/lib/loja/owner-proof";
 import { getRegisteredPartyMatches, type RegisteredPartyMatch } from "@/lib/loja/fila/party-matches";
 import type { PartyMatchSummary } from "@/lib/loja/fila/party-match";
 import { UserAvatar } from "@/components/ui/avatar";
-import { getHeroById } from "@/lib/queries/heroes";
+import { PartyHeroes } from "@/components/match/party-heroes";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
 import { mmrToDotaRank } from "@/components/queue/queue-helpers";
@@ -108,8 +106,7 @@ export async function DashboardRightSidebar({
           locale={locale}
           title={t("sidebar.recentTitle")}
           empty={t("sidebar.recentEmpty")}
-          won={t("sidebar.won")}
-          lost={t("sidebar.lost")}
+          cta={t("sidebar.recentCta")}
           withPlayers={(count) => t("sidebar.withPlayers", { count })}
         />
       )}
@@ -204,8 +201,7 @@ function PartyMatchesCard({
   locale,
   title,
   empty,
-  won,
-  lost,
+  cta,
   withPlayers,
 }: {
   matches: RegisteredPartyMatch[];
@@ -213,8 +209,7 @@ function PartyMatchesCard({
   locale: string;
   title: string;
   empty: string;
-  won: string;
-  lost: string;
+  cta: string;
   withPlayers: (count: number) => string;
 }) {
   // Componente de servidor numa página dinâmica (lê cookie): a hora é a do pedido.
@@ -229,8 +224,6 @@ function PartyMatchesCard({
         <ul className="divide-y divide-border-subtle/40">
           {matches.map((m) => {
             const summary = byId.get(m.matchId);
-            const hero = summary?.ppaHeroId ? getHeroById(summary.ppaHeroId) : null;
-            const heroName = hero ? (locale === "pt" ? hero.name_pt : hero.name_en) : "";
             const ended = summary?.startTime ? (summary.startTime + summary.duration) * 1000 : Date.parse(m.playedAt);
             return (
               <li key={m.matchId}>
@@ -240,39 +233,27 @@ function PartyMatchesCard({
                   rel="noreferrer"
                   className="flex items-center gap-2.5 px-3 py-2 transition-colors hover:bg-bg-elevated"
                 >
-                  {hero ? (
-                    <Image src={hero.image_full} alt={heroName} width={48} height={27} unoptimized className="h-[27px] w-12 shrink-0 rounded-sm object-cover" />
-                  ) : (
-                    <span className="grid h-[27px] w-12 shrink-0 place-items-center rounded-sm bg-bg-surface text-text-faded" aria-hidden="true">
-                      <Swords size={14} />
-                    </span>
-                  )}
+                  <PartyHeroes ids={summary?.partyHeroIds ?? []} locale={locale} max={3} size={22} />
                   <span className="min-w-0 flex-1">
-                    <span className="flex items-center -space-x-1">
+                    <span className="flex items-center -space-x-1" title={withPlayers(m.players.length)}>
                       {m.players.slice(0, 4).map((p) => (
                         <UserAvatar key={p.userId} src={p.avatarUrl ?? undefined} alt={p.name} fallback={p.name.slice(0, 2)} size="xs" className="ring-1 ring-bg-base" />
                       ))}
                     </span>
+                    {/* Os avatares já mostram quantos jogaram: a linha fica só com o tempo, e a contagem vai para o leitor de tela. */}
                     <span className="mt-0.5 block truncate font-body text-xs text-text-faded">
-                      {withPlayers(m.players.length)} · {sinceLabel(ended, locale, now)}
+                      <span className="sr-only">{withPlayers(m.players.length)}, </span>
+                      {sinceLabel(ended, locale, now)}
                     </span>
                   </span>
-                  {summary && summary.won !== null && (
-                    <span className="shrink-0 text-right">
-                      <span className={cn("block font-display text-xs font-bold uppercase tracking-wide", summary.won ? "text-play-primary" : "text-brand-text")}>
-                        {summary.won ? won : lost}
-                      </span>
-                      <span className="block font-body text-xs tabular-nums text-text-muted">
-                        {summary.radiant === false ? `${summary.direScore}:${summary.radiantScore}` : `${summary.radiantScore}:${summary.direScore}`}
-                      </span>
-                    </span>
-                  )}
                 </a>
               </li>
             );
           })}
         </ul>
       )}
+      {/* Na home, quem jogou e os heróis, sem o resultado: o placar de cada partida fica na aba Partidas (decisão do PPA). */}
+      <CardCta href="/partidas" label={cta} />
     </article>
   );
 }

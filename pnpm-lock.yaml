@@ -11,12 +11,12 @@ importers:
       '@base-ui/react':
         specifier: ^1.4.1
         version: 1.4.1(@types/react@19.2.7)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      '@fontsource-variable/teko':
-        specifier: ^5.2.7
-        version: 5.2.7
-      '@fontsource/ubuntu':
-        specifier: ^5.2.8
-        version: 5.2.8
+      '@fontsource/barlow':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@fontsource/barlow-condensed':
+        specifier: ^5.3.0
+        version: 5.3.0
       '@mercadopago/sdk-react':
         specifier: 1.0.7
         version: 1.0.7(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -861,11 +861,11 @@ packages:
   '@floating-ui/utils@0.2.11':
     resolution: {integrity: sha512-RiB/yIh78pcIxl6lLMG0CgBXAZ2Y0eVHqMPYugu+9U0AeT6YBeiJpf7lbdJNIugFP5SIjwNRgo4DhR1Qxi26Gg==}
 
-  '@fontsource-variable/teko@5.2.7':
-    resolution: {integrity: sha512-+KYLt3b+za59WyQIEORJE1PjoLyeAodErNe1OZlxXZiGcLWnaArHMn0cwa1lsRY9Md2jfBGzdjOKZKBk39l2BA==}
+  '@fontsource/barlow-condensed@5.3.0':
+    resolution: {integrity: sha512-RA7MmIx0v3eQ6Gcf74qLVLOwLB0GpPOzx+eU9iG/AmCnSJGcIWYeU8y6CEMGZ210MGwGg5CZhzLkkvyZdTTk1g==}
 
-  '@fontsource/ubuntu@5.2.8':
-    resolution: {integrity: sha512-esSJCpgigwWOm4Ug9f7AMozUyBq5Iobea5C9QYsl2OlCb62wZABBUbXahHLdFv5Ru4lJCD9tUX6xEAeLwUTNBg==}
+  '@fontsource/barlow@5.3.0':
+    resolution: {integrity: sha512-tGR0y6QObRtKv71MOth44222+mdNFM/ZWFWDV1VLzNbG4oK9PNRlyJzmkck4vHAi9ibHBXgt4SlY51amFP55CA==}
 
   '@formatjs/fast-memoize@3.1.6':
     resolution: {integrity: sha512-H5aexk1Le7T9TPmscacZ+1pR6CTa2n1wq+HDVGXhH8TzUlQQpeXzZs91dRtmFHrbeNbjPFPfQujUqm7MHgVoXQ==}
@@ -6458,9 +6458,9 @@ snapshots:
 
   '@floating-ui/utils@0.2.11': {}
 
-  '@fontsource-variable/teko@5.2.7': {}
+  '@fontsource/barlow-condensed@5.3.0': {}
 
-  '@fontsource/ubuntu@5.2.8': {}
+  '@fontsource/barlow@5.3.0': {}
 
   '@formatjs/fast-memoize@3.1.6': {}
 
