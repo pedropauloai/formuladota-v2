@@ -4269,6 +4269,24 @@
     "mural_linkMatch": "Partida {id}"
   },
   "loja": {
+    "cardForm": {
+      "approved": "Pagamento aprovado.",
+      "analysis": "O banco está analisando o pagamento. Esta tela muda sozinha quando ele responder.",
+      "challenge": "O banco pediu uma confirmação. Siga os passos abaixo para terminar o pagamento.",
+      "secure": "O número do cartão vai direto para o Mercado Pago. O site não vê nem guarda.",
+      "loadError": "O formulário do cartão não abriu. Recarregue a página ou pague com Pix.",
+      "usePix": "Prefiro pagar com Pix",
+      "usePixError": "O cartão ainda está sendo analisado. Espere a resposta do banco antes de trocar para o Pix.",
+      "errors": {
+        "saldo": "O cartão não tem limite para esta compra. Tente outro cartão ou pague com Pix.",
+        "dados": "Algum dado do cartão não confere. Confira número, validade, código e CPF e tente de novo.",
+        "autorizar": "O banco pediu que você autorize a compra. Fale com o banco e tente de novo, ou pague com Pix.",
+        "recusado": "O banco recusou o cartão. Tente outro cartão ou pague com Pix.",
+        "pedido": "Este pedido não está mais esperando pagamento. Recarregue a página.",
+        "muitas": "Muitas tentativas seguidas. Espere alguns minutos e tente de novo.",
+        "pagamento": "O Mercado Pago não respondeu agora. Tente de novo em instantes ou pague com Pix."
+      }
+    },
     "metaTitle": "Loja do FORMULADOTA",
     "metaDescription": "Mentoria, análise de replay e partida junto com o PPA, Imortal e profissional de Tinker. Pagamento por Pix ou cartão no Mercado Pago.",
     "empty": "A loja abre em breve. Os produtos aparecem aqui assim que entrarem no ar.",
@@ -4502,6 +4520,7 @@
     "steamCta": "Vincular a Steam",
     "steamText": "O PPA convida você pelo ID do Dota, então a vaga precisa da sua Steam vinculada.",
     "pixTitle": "Pague {price} com Pix",
+    "cardTitle": "Pague {price} com cartão",
     "pixHold": "A vaga fica guardada por 10 minutos enquanto o Pix não cai.",
     "cardPending": "Estamos confirmando o pagamento com cartão. A sua posição aparece aqui assim que ele for aprovado.",
     "waitingTitle": "Você está na fila",

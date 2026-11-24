@@ -4269,6 +4269,24 @@
     "mural_linkMatch": "Match {id}"
   },
   "loja": {
+    "cardForm": {
+      "approved": "Payment approved.",
+      "analysis": "The bank is reviewing the payment. This screen updates on its own when it answers.",
+      "challenge": "The bank asked for a confirmation. Follow the steps below to finish the payment.",
+      "secure": "The card number goes straight to Mercado Pago. The site never sees or stores it.",
+      "loadError": "The card form did not load. Reload the page or pay with Pix.",
+      "usePix": "I'd rather pay with Pix",
+      "usePixError": "The card is still being reviewed. Wait for the bank's answer before switching to Pix.",
+      "errors": {
+        "saldo": "The card does not have enough limit for this purchase. Try another card or pay with Pix.",
+        "dados": "Some card detail does not match. Check the number, expiry date, code and CPF and try again.",
+        "autorizar": "The bank asked you to authorize the purchase. Talk to your bank and try again, or pay with Pix.",
+        "recusado": "The bank declined the card. Try another card or pay with Pix.",
+        "pedido": "This order is no longer waiting for payment. Reload the page.",
+        "muitas": "Too many attempts in a row. Wait a few minutes and try again.",
+        "pagamento": "Mercado Pago did not answer right now. Try again shortly or pay with Pix."
+      }
+    },
     "metaTitle": "FORMULADOTA Store",
     "metaDescription": "Coaching, replay analysis and matches with PPA, Immortal and Tinker professional. Pay with Pix or card through Mercado Pago.",
     "empty": "The store opens soon. Products show up here as soon as they go live.",
@@ -4502,6 +4520,7 @@
     "steamCta": "Link your Steam",
     "steamText": "PPA invites you by your Dota ID, so the spot needs your Steam linked.",
     "pixTitle": "Pay {price} with Pix",
+    "cardTitle": "Pay {price} by card",
     "pixHold": "Your spot is held for 10 minutes while the Pix goes through.",
     "cardPending": "We're confirming your card payment. Your place shows up here as soon as it's approved.",
     "waitingTitle": "You're in the queue",

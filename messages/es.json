@@ -4269,6 +4269,24 @@
     "mural_linkMatch": "Partida {id}"
   },
   "loja": {
+    "cardForm": {
+      "approved": "Pago aprobado.",
+      "analysis": "El banco está analizando el pago. Esta pantalla cambia sola cuando responda.",
+      "challenge": "El banco pidió una confirmación. Sigue los pasos de abajo para terminar el pago.",
+      "secure": "El número de la tarjeta va directo a Mercado Pago. El sitio no lo ve ni lo guarda.",
+      "loadError": "El formulario de la tarjeta no abrió. Recarga la página o paga con Pix.",
+      "usePix": "Prefiero pagar con Pix",
+      "usePixError": "La tarjeta todavía está en análisis. Espera la respuesta del banco antes de cambiar a Pix.",
+      "errors": {
+        "saldo": "La tarjeta no tiene límite para esta compra. Prueba otra tarjeta o paga con Pix.",
+        "dados": "Algún dato de la tarjeta no coincide. Revisa número, vencimiento, código y CPF e inténtalo de nuevo.",
+        "autorizar": "El banco pidió que autorices la compra. Habla con tu banco e inténtalo de nuevo, o paga con Pix.",
+        "recusado": "El banco rechazó la tarjeta. Prueba otra tarjeta o paga con Pix.",
+        "pedido": "Este pedido ya no espera pago. Recarga la página.",
+        "muitas": "Demasiados intentos seguidos. Espera unos minutos e inténtalo de nuevo.",
+        "pagamento": "Mercado Pago no respondió ahora. Inténtalo de nuevo en un momento o paga con Pix."
+      }
+    },
     "metaTitle": "Tienda de FORMULADOTA",
     "metaDescription": "Mentoría, análisis de repeticiones y partidas con PPA, Inmortal y profesional de Tinker. Pago con Pix o tarjeta en Mercado Pago.",
     "empty": "La tienda abre pronto. Los productos aparecen aquí apenas estén disponibles.",
@@ -4502,6 +4520,7 @@
     "steamCta": "Vincular Steam",
     "steamText": "PPA te invita con tu ID de Dota, así que el cupo necesita tu Steam vinculada.",
     "pixTitle": "Paga {price} con Pix",
+    "cardTitle": "Paga {price} con tarjeta",
     "pixHold": "Tu cupo queda reservado por 10 minutos mientras el Pix no entra.",
     "cardPending": "Estamos confirmando el pago con tarjeta. Tu lugar aparece aquí apenas lo aprueben.",
     "waitingTitle": "Estás en la cola",

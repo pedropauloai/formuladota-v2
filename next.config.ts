@@ -37,6 +37,9 @@ const config: NextConfig = {
   // browser, adicione a origem exata aqui (evite voltar pra 'unsafe-*').
   async headers() {
     const isProd = process.env.NODE_ENV === "production";
+    // Formulário de cartão do Mercado Pago (Card Payment Brick): SDK, campos protegidos em iframe,
+    // ícones das bandeiras e a análise antifraude do aparelho.
+    const mercadoPago = "https://*.mercadopago.com https://*.mercadolibre.com https://*.mercadolivre.com https://*.mlstatic.com";
 
     const csp = [
       "default-src 'self'",
@@ -46,22 +49,24 @@ const config: NextConfig = {
       // Scripts de terceiros LEGÍTIMOS: PostHog e Google Analytics (gated por env) e o Web
       // Analytics da Cloudflare, que a zona injeta sozinha (sem cookie). As origens da Vercel
       // saíram com a mudança para a Cloudflare.
-      "script-src 'self' 'unsafe-inline' https://us-assets.i.posthog.com https://www.googletagmanager.com https://static.cloudflareinsights.com https://player.twitch.tv",
-      "style-src 'self' 'unsafe-inline'",
+      `script-src 'self' 'unsafe-inline' https://us-assets.i.posthog.com https://www.googletagmanager.com https://static.cloudflareinsights.com https://player.twitch.tv ${mercadoPago}`,
+      `style-src 'self' 'unsafe-inline' ${mercadoPago}`,
       // upload.wikimedia.org: foto do Grubby no /manifesto (bloqueada antes, aparecia quebrada).
-      "img-src 'self' data: blob: https://*.steamstatic.com https://cdn.discordapp.com https://*.supabase.co https://*.google-analytics.com https://us.i.posthog.com https://upload.wikimedia.org",
-      "font-src 'self' data:",
+      `img-src 'self' data: blob: https://*.steamstatic.com https://cdn.discordapp.com https://*.supabase.co https://*.google-analytics.com https://us.i.posthog.com https://upload.wikimedia.org ${mercadoPago}`,
+      `font-src 'self' data: ${mercadoPago}`,
       // REST + Realtime (wss) do Supabase, dados Dota, e os beacons dos analytics acima.
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.opendota.com https://api.stratz.com https://us.i.posthog.com https://us-assets.i.posthog.com https://*.google-analytics.com https://www.googletagmanager.com https://cloudflareinsights.com",
+      `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.opendota.com https://api.stratz.com https://us.i.posthog.com https://us-assets.i.posthog.com https://*.google-analytics.com https://www.googletagmanager.com https://cloudflareinsights.com ${mercadoPago}`,
       "worker-src 'self' blob:",
       "manifest-src 'self'",
       "media-src 'self' https://*.steamstatic.com", // vídeo de fundo (montagem oficial do Dota 2)
       // Vídeo do YouTube (modo sem cookie) no /manifesto: sem frame-src valia o default-src 'self' e o vídeo não abria.
       // Player da Twitch: a live do Pedro passa na loja quando o canal está no ar (src/components/v2/twitch-live.tsx).
-      "frame-src https://www.youtube-nocookie.com https://player.twitch.tv",
+      // A confirmação do banco (3DS) abre a página do próprio banco, de domínio variável: qualquer https.
+      "frame-src https:",
       "frame-ancestors 'none'", // H2 — anti-clickjacking (equivale a X-Frame-Options: DENY)
       "base-uri 'self'",
-      "form-action 'self'",
+      // O desafio 3DS envia o formulário do Mercado Pago para a página do banco.
+      "form-action 'self' https:",
       "object-src 'none'",
       "upgrade-insecure-requests",
     ].join("; ");

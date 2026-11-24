@@ -63,7 +63,7 @@ export async function buySeat(args: BuySeatArgs): Promise<BuySeatResult> {
   // Um Pix pendente por pessoa: tocar de novo (ou chamar a ação em série) devolve o mesmo Pix, sem
   // segurar mais vagas.
   const pending = await readPendingOrder(args.userId, isTestMode());
-  if (pending?.pix) return { ok: true, orderId: pending.id, method: "pix", redirectUrl: "/party" };
+  if (pending && (pending.pix || pending.method === "cartao")) return { ok: true, orderId: pending.id, method: pending.method, redirectUrl: "/party" };
   if (!args.email) return { ok: false, error: "email" };
   // A vaga do dia vale a live inteira (e passa para a próxima se não jogar): a segunda não joga mais.
   if (await hasActiveDayPass(args.userId, isTestMode())) return { ok: false, error: "ja_tem_vaga" };

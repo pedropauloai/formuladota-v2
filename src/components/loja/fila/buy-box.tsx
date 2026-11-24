@@ -22,6 +22,8 @@ export interface FilaViewer {
   hasSteam: boolean;
   /** ID de amigo do Dota de quem está logado (pela Steam vinculada). */
   dotaId: string | null;
+  /** Chave pública do Mercado Pago: abre o formulário de cartão dentro da página. */
+  mpPublicKey: string | null;
 }
 
 export interface FilaOffer {
@@ -116,10 +118,7 @@ function BuyForm({ max, priceCents, initialQuantity, openQueue, onBought, state 
         await onBought();
         return;
       }
-      if (result.method === "cartao") {
-        window.location.href = result.redirectUrl;
-        return;
-      }
+      // Cartão: o pedido fica pendente e o formulário do Mercado Pago abre aqui mesmo, no lugar do Pix.
       play("confirm");
       await onBought();
       state.setBuying(false);
@@ -298,9 +297,9 @@ export function BuyBox({ view, viewer, offer, initialQuantity, onBought }: BuyBo
         visibleEntries(mine.entries).map((entry) => (
           <MyEntryCard key={entry.id} entry={entry} dotaId={viewer.dotaId} onAir={live?.status === "ao_vivo"} onChanged={onBought} />
         ))}
-      {mine?.pending && <PendingPayment pending={mine.pending} />}
-      {/* Cartão em análise ou recusado não trava a compra: o Pix continua disponível. */}
-      {mine?.pending?.pix ? null : (
+      {mine?.pending && <PendingPayment pending={mine.pending} publicKey={viewer.mpPublicKey} onChanged={onBought} />}
+      {/* Com pagamento pendente (Pix ou cartão) a compra some: o pedido aberto é o caminho. */}
+      {mine?.pending ? null : (
         <Purchase
           live={live}
           viewer={viewer}
@@ -314,7 +313,7 @@ export function BuyBox({ view, viewer, offer, initialQuantity, onBought }: BuyBo
         />
       )}
       <div id="fila-erro">
-        <PurchaseError error={mine?.pending?.pix ? null : error} />
+        <PurchaseError error={mine?.pending ? null : error} />
       </div>
     </Panel>
   );

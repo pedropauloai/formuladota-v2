@@ -9,7 +9,7 @@
 import { randomUUID } from "node:crypto";
 import { chromium } from "playwright-core";
 import {
-  BASE, USER_AGENT, checker, db, discordMessageFor, env, orderRow, sandboxCardPayment as payInSandbox, startServer, stopServer, waitFor, webhook,
+  BASE, USER_AGENT, checker, db, discordMessageFor, env, orderRow, startServer, stopServer, waitFor, webhook,
 } from "./e2e-comum.mjs";
 
 const RUN = randomUUID().slice(0, 8);
@@ -91,7 +91,26 @@ async function expectLeave(page, pattern) {
   if (outcome) throw new Error(`o formulário recusou o pedido: ${outcome}`);
 }
 
-const sandboxCardPayment = (orderId) => payInSandbox(orderId, 1, BUYER_EMAIL);
+/**
+ * Paga pelo formulário do Mercado Pago dentro do site, com o cartão de teste publicado por ele;
+ * o titular "APRO" faz o sandbox aprovar. Cada iframe traz os cinco campos e mostra só o de mesmo id.
+ */
+async function payWithCardForm(page) {
+  const field = (name) => page.frameLocator(`iframe[name="${name}"] >> nth=-1`).locator(`input#${name}`);
+  await field("cardNumber").pressSequentially("5031433215406351", { delay: 20 });
+  await field("expirationDate").pressSequentially("1130", { delay: 20 });
+  await field("securityCode").pressSequentially("123", { delay: 20 });
+  await page.locator('input[placeholder*="Maria"]').last().fill("APRO");
+  await page.locator('input[placeholder*="999.999.999-99"]').last().fill("12345678909");
+  // Valor baixo tem uma parcela só, e aí o formulário não mostra a escolha.
+  const installments = page.locator("select").filter({ hasText: "Selecione uma opção" }).last();
+  if (await installments.waitFor({ timeout: 8_000 }).then(() => true).catch(() => false)) await installments.selectOption("1");
+  await page.getByRole("button", { name: /Pagar/ }).last().click();
+  const approved = page.locator('[data-cartao="aprovado"]').waitFor({ timeout: 60_000 }).then(() => null);
+  // Só o aviso do formulário de cartão: o anunciador de rotas do Next também tem role="alert".
+  const refused = page.locator('[data-cartao] [role="alert"]').waitFor({ timeout: 60_000 }).then(async () => page.locator('[data-cartao] [role="alert"]').innerText());
+  return Promise.race([approved, refused]).catch((err) => `sem resposta: ${err.message.slice(0, 120)}`);
+}
 
 async function run() {
   const server = await startServer();
@@ -125,22 +144,27 @@ async function run() {
     check("duas partidas seguram 60 minutos", Date.parse(pixBooking?.ends_at) - Date.parse(pixBooking?.starts_at) === 60 * 60_000);
 
     await fillCheckout(page, "cartao");
-    await expectLeave(page, /mercadopago\.com/);
-    check("cartão abriu o Checkout Pro do Mercado Pago (critério 8)", /mercadopago\.com/.test(page.url()));
+    await expectLeave(page, /\/loja\/pedido\/[0-9a-f-]{36}/);
+    check("cartão fica no site, na página do pedido (critério 8)", /\/loja\/pedido\//.test(page.url()) && !/mercadopago\.com/.test(page.url()));
+    // Campo seguro do número do cartão: só existe quando o formulário do Mercado Pago montou de fato.
+    const brick = await waitFor(async () => ((await page.locator('iframe[name="cardNumber"][src*="secure-fields.mercadopago.com"]').count()) > 0 ? true : null), 30_000);
+    check("formulário de cartão do Mercado Pago aberto na página", !!brick);
     const { data: cardOrder } = await db.from("store_orders").select("id, status, mp_preference_id").eq("payment_method", "cartao").contains("details", { discord: `e2e_${RUN}` }).single();
-    check("pedido de cartão pendente com a preferência", cardOrder?.status === "pendente" && !!cardOrder.mp_preference_id);
+    check("pedido de cartão pendente, sem Checkout Pro", cardOrder?.status === "pendente" && !cardOrder.mp_preference_id);
 
-    const payment = await sandboxCardPayment(cardOrder.id);
-    check("pagamento de teste aprovado no sandbox", payment.status === "approved", `status ${payment.status}`);
-
-    check("webhook com assinatura errada é recusado (critério 7)", (await webhook(payment.id, "segredo-errado")) === 401);
-    check("webhook com assinatura certa é aceito (critério 7)", (await webhook(payment.id, env.MP_WEBHOOK_SECRET)) === 200);
-
+    const refusal = await payWithCardForm(page);
+    check("cartão de teste aprovado no formulário do site", refusal === null, refusal ?? "");
     const paid = await waitFor(async () => {
       const row = await orderRow(cardOrder.id);
       return row?.status === "pago" ? row : null;
     }, 20_000);
-    check("pedido pago no banco com o valor certo (critério 6)", paid?.paid_amount_cents === 100 && paid?.mp_payment_id === String(payment.id));
+    check("pedido pago no banco com o valor certo (critério 6)", paid?.paid_amount_cents === 100 && !!paid?.mp_payment_id);
+    const refreshed = await page.getByText("Pagamento confirmado").waitFor({ timeout: 20_000 }).then(() => true).catch(() => false);
+    check("página do pedido se atualiza sozinha depois do cartão", refreshed);
+
+    const paymentId = paid?.mp_payment_id ?? "0";
+    check("webhook com assinatura errada é recusado (critério 7)", (await webhook(paymentId, "segredo-errado")) === 401);
+    check("webhook com assinatura certa é aceito (critério 7)", (await webhook(paymentId, env.MP_WEBHOOK_SECRET)) === 200);
     const notified = await waitFor(async () => (await orderRow(cardOrder.id))?.notified_at, 30_000);
     check("aviso de venda marcado como entregue", !!notified);
     check("mensagem [TESTE] no canal de vendas do Discord (critério 6)", !!(await discordMessageFor(cardOrder.id)));

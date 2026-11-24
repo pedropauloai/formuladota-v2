@@ -204,7 +204,7 @@ export const isLiveOnAir = cache(async (): Promise<boolean> => {
 export async function readPendingOrder(userId: string, isTest: boolean): Promise<MyPendingOrder | null> {
   const { data, error } = await createServiceClient()
     .from("store_orders")
-    .select("id, payment_method, quantity, amount_cents, pix_copia_e_cola, pix_qr_base64, pix_expires_at, store_products!inner (slug)")
+    .select("id, payment_method, quantity, amount_cents, buyer_email, pix_copia_e_cola, pix_qr_base64, pix_expires_at, store_products!inner (slug)")
     .eq("user_id", userId)
     .eq("is_test", isTest)
     .eq("status", "pendente")
@@ -220,6 +220,7 @@ export async function readPendingOrder(userId: string, isTest: boolean): Promise
     method: data.payment_method === "cartao" ? "cartao" : "pix",
     quantity: data.quantity,
     amountCents: data.amount_cents,
+    email: data.buyer_email ?? null,
     pix: data.pix_copia_e_cola
       ? { copiaECola: data.pix_copia_e_cola, qrDataUrl: data.pix_qr_base64 ? `data:image/png;base64,${data.pix_qr_base64}` : null, expiresAt: data.pix_expires_at }
       : null,

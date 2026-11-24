@@ -11,6 +11,7 @@ import { ClientShell } from "@/components/client-shell/shell";
 import { MiniMarkdown } from "@/components/changelog/mini-markdown";
 import { PixPanel } from "@/components/loja/pix-panel";
 import { OrderPoller } from "@/components/loja/order-poller";
+import { OrderCardPayment } from "@/components/loja/order-card-payment";
 import { OrderDelivery, OrderSchedule } from "@/components/loja/order-schedule";
 import { reconcileStoreOrder } from "@/lib/loja/order-payments";
 import { getPublicOrder, type PublicOrder } from "@/lib/loja/public-order";
@@ -83,8 +84,10 @@ function StatusBody({ order, t }: { order: PublicOrder; t: Translator }) {
   ) : null;
   switch (order.status) {
     case "pendente":
-      return order.pix ? (
-        <PixPanel copiaECola={order.pix.copiaECola} qrDataUrl={order.pix.qrBase64} expiresAt={order.pix.expiresAt} />
+      if (order.pix) return <PixPanel copiaECola={order.pix.copiaECola} qrDataUrl={order.pix.qrBase64} expiresAt={order.pix.expiresAt} />;
+      // Cartão: o formulário do Mercado Pago abre aqui; sem a chave pública, a página só espera.
+      return order.method === "cartao" && process.env.MP_PUBLIC_KEY ? (
+        <OrderCardPayment orderId={order.id} amountCents={order.amountCents} email={order.cardEmail} publicKey={process.env.MP_PUBLIC_KEY} />
       ) : (
         <p className="text-sm text-text-body">{t("cardWaiting")}</p>
       );
