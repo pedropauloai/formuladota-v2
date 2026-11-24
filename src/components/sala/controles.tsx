@@ -4,7 +4,7 @@
 // ou parar a tela (escolhendo a qualidade), a camada da tela de quem assiste, volumes e sair.
 
 import { useTranslations } from "next-intl";
-import { Hand, LogOut, Mic, MicOff, MonitorUp, MonitorX } from "lucide-react";
+import { AppWindow, Hand, LogOut, Mic, MicOff, MonitorUp, MonitorX } from "lucide-react";
 import { plate } from "@/components/v2";
 import type { Layer } from "@/lib/sala/tipos";
 import { cn } from "@/lib/utils";
@@ -29,6 +29,7 @@ export interface ControlesProps {
   onMao: () => void;
   onTela: () => void;
   onPararTela: () => void;
+  onTrocarTela: () => void;
   onCamada: (camada: Layer) => void;
   onVolumeVoz: (v: number) => void;
   onVolumeJogo: (v: number) => void;
@@ -90,10 +91,16 @@ export function Controles(p: ControlesProps) {
       )}
       {p.mostrarTela &&
         (p.compartilhando ? (
-          <button type="button" onClick={p.onPararTela} data-sala-tela="parar" className={plate({ kind: "brand", small: true })}>
-            <MonitorX className="size-4" aria-hidden="true" />
-            {t("pararTela")}
-          </button>
+          <>
+            <button type="button" onClick={p.onPararTela} data-sala-tela="parar" className={plate({ kind: "brand", small: true })}>
+              <MonitorX className="size-4" aria-hidden="true" />
+              {t("pararTela")}
+            </button>
+            <button type="button" onClick={p.onTrocarTela} data-sala-tela="trocar" title={t("trocarJanelaDica")} className={plate({ kind: "ghost", small: true })}>
+              <AppWindow className="size-4" aria-hidden="true" />
+              {t("trocarJanela")}
+            </button>
+          </>
         ) : (
           <button type="button" onClick={p.onTela} disabled={!p.podeTela} data-sala-tela="compartilhar" className={plate({ kind: "cta", small: true })}>
             <MonitorUp className="size-4" aria-hidden="true" />

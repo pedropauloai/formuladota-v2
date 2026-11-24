@@ -343,6 +343,7 @@ select s.user_id,
 Usa o kit `src/components/v2` (painel, placa, `v2Page`), os tokens atuais e ícones do `lucide-react`, sem linguagem visual nova: a sessão de design troca a pele depois. Textos em `messages/{pt,en,es}.json`.
 
 - **`/sala`** (endereço fixo para anunciar na live): leva à sala pública aberta do PPA; sem sala aberta, diz que ela abre quando a live começar.
+- **Trocar a janela** (24/11/2026): quem compartilha escolhe outra janela sem parar a tela; a captura nova entra na mesma faixa (`replaceTrack`), e a plateia segue recebendo sem renegociar. Parar e compartilhar de novo cria faixa nova, e a renegociação às vezes derruba a sessão de quem assiste no SFU (a ligação se refaz sozinha, ADR-007).
 - **`/sala/[id]`**: título e tipo, "Esta sala não é gravada", atraso e qualidade da conexão; o palco com a tela (e a escolha "alta" ou "leve" para quem assiste); na sala pública, quem está no palco, a plateia com as mãos levantadas e o chat; os controles (mutar, levantar a mão, compartilhar a tela com a escolha da qualidade e o consumo por hora, volumes, sair).
 - **Primeira entrada:** a marcação "Tenho 18 anos ou mais" com as regras da sala.
 - **Painel de voz (R15):** em todas as páginas fora da sala: o nome da sala (que leva de volta a ela), quem está falando ou quantos estão na sala, mutar, parar a tela, sair e, quando a pessoa é tirada da sala, o motivo até ela fechar o aviso.

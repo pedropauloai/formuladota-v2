@@ -19,6 +19,7 @@ const RT = "src/lib/sala/cliente/ritmo.ts";
 const RG = "src/lib/sala/cliente/registro.ts";
 const FC = "src/lib/sala/flag-chave.ts";
 const MO = "src/lib/sala/montagem.ts";
+const TL = "src/lib/sala/cliente/tela-local.ts";
 
 const MUTACOES = [
   [A, 'if (!input.flagOn) return { ok: false, code: "flag_desligada" };', "", "flag desligada não esconde"],
@@ -59,6 +60,8 @@ const MUTACOES = [
   [RC, 'return this.fora ? "h" : this.layer;', "return this.layer;", "fora da página da sala, a tela segue na camada alta"],
   [RC, "item.espera = setTimeout(() => this.repetir(key, item), ESPERA_FAIXA_MS);", "", "faixa que não chegou nunca é pedida de novo"],
   [RC, "if (item.tentativa >= 1) return this.onTravou();", "", "ligação travada nunca é refeita"],
+  [TL, "      video.trocar(nova.video);", "", "trocar a janela não põe a imagem nova na mesma faixa"],
+  [TL, '      atual.video.removeEventListener("ended", opts.onFim);', "", "a janela antiga, ao parar, encerra a tela nova"],
   [RT, "return i.noAr && i.podeFalar && !i.vozAberta && i.noArDesde !== null && i.agora - i.noArDesde > VOZ_SUMIDA_MS;", "return false;", "voz que o servidor fechou não religa"],
   [RG, 'if (fase === "saiu" || fase === "erro") anotar(null);', "", "quem foi tirado da sala volta nela ao recarregar"],
   [FC, 'if (env.NODE_ENV !== "development") return SALA_FLAG;', "", "produção obedece a linha de teste da flag"],

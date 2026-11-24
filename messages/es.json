@@ -4840,6 +4840,8 @@
     "painelPessoas": "{n} en la sala",
     "painelDispensar": "Cerrar aviso",
     "painelRotulo": "Tu sala de voz",
-    "reconectando": "Reconectando"
+    "reconectando": "Reconectando",
+    "trocarJanela": "Cambiar la ventana",
+    "trocarJanelaDica": "Elige otra ventana sin detener la pantalla: quien mira no pierde la imagen."
   }
 }

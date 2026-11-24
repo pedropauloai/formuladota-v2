@@ -24,7 +24,8 @@
     "sala:e2e": "node scripts/sala/e2e.mjs",
     "sala:realtime": "node scripts/sala/conferir-realtime.mjs",
     "sala:mutacao": "node scripts/sala/mutacao.mjs",
-    "sala:capturas": "node scripts/sala/capturas.mjs"
+    "sala:capturas": "node scripts/sala/capturas.mjs",
+    "sala:producao": "node scripts/sala/conferir-producao.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
