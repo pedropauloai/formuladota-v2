@@ -1,10 +1,10 @@
--- Teste de regressão das regras do banco da sala de voz (migration 195). Monta três salas de teste,
--- confere o que visitante, logado de fora, membro e membro expulso leem e escrevem, e a data de
--- nascimento que não muda. Termina SEMPRE num erro proposital (RESULTADO: ...), então a transação
--- inteira volta e nada fica gravado.
+-- Teste de regressão das regras do banco da sala de voz (migration 196). Monta três salas públicas de
+-- teste e confere o que visitante, logado de fora, membro e expulso leem e escrevem, a marcação de 18
+-- anos e as funções do batimento fechadas ao navegador. Termina SEMPRE num erro proposital
+-- (RESULTADO: ...), então a transação inteira volta e nada fica gravado.
 -- PASSA quando todos os itens do RESULTADO dizem "=ok"; cada "=FALHOU" é uma regressão.
 -- Rodar: node <scratchpad>/sql.mjs nyvbfdsxjpiwgdroptdi file scripts/seguranca/sala-voz.sql
--- Antes de a 195 estar em produção: acrescentar --antes supabase/migrations/195_sala_voz.sql (o
+-- Antes de a 196 estar em produção: acrescentar --antes supabase/migrations/196_sala_voz.sql (o
 -- executor termina em ROLLBACK, então a migration testada volta junto).
 do $$
 declare
@@ -12,50 +12,41 @@ declare
   u2 uuid;
   u3 uuid;
   u4 uuid;
-  live uuid;
   r1 uuid;
   r2 uuid;
   r3 uuid;
   rep_u2 uuid;
   rep_u1 uuid;
   n int;
-  d date;
+  j jsonb;
   ok boolean;
   r text[] := '{}';
 begin
-  -- Quatro perfis comuns de produção, sem data de nascimento declarada (o teste declara a do u2).
+  -- Quatro perfis comuns de produção, sem a marcação de idade (o teste faz a do u2).
   select id into u1 from public.profiles p
    where not coalesce(p.is_admin, false)
-     and not exists (select 1 from public.user_birthdates b where b.user_id = p.id)
+     and not exists (select 1 from public.user_age_confirmations c where c.user_id = p.id)
    order by id limit 1;
   select id into u2 from public.profiles p
    where not coalesce(p.is_admin, false) and p.id <> u1
-     and not exists (select 1 from public.user_birthdates b where b.user_id = p.id)
+     and not exists (select 1 from public.user_age_confirmations c where c.user_id = p.id)
    order by id limit 1;
-  select id into u3 from public.profiles p
-   where not coalesce(p.is_admin, false) and p.id not in (u1, u2)
-   order by id limit 1;
-  select id into u4 from public.profiles p
-   where not coalesce(p.is_admin, false) and p.id not in (u1, u2, u3)
-   order by id limit 1;
+  select id into u3 from public.profiles p where not coalesce(p.is_admin, false) and p.id not in (u1, u2) order by id limit 1;
+  select id into u4 from public.profiles p where not coalesce(p.is_admin, false) and p.id not in (u1, u2, u3) order by id limit 1;
   if u4 is null then raise exception 'RESULTADO: faltam perfis de teste'; end if;
 
-  -- Montagem (como dono das tabelas): uma live de teste cancelada, três salas e o que cada uma tem.
-  insert into public.store_live_sessions (starts_at, ends_at, status, notes, is_test)
-  values (now(), now() + interval '1 hour', 'cancelada', 'teste da sala de voz', true)
-  returning id into live;
-  insert into public.voice_rooms (kind, title, owner_id, live_session_id, max_members, closes_at, is_test)
-  values ('party', 'Sala de teste 1', u1, live, 6, now() + interval '2 hours', true) returning id into r1;
-  insert into public.voice_rooms (kind, title, owner_id, live_session_id, max_members, closes_at, is_test)
-  values ('party', 'Sala de teste 2', u1, live, 6, now() + interval '2 hours', true) returning id into r2;
-  insert into public.voice_rooms (kind, title, owner_id, live_session_id, max_members, closes_at, is_test)
-  values ('party', 'Sala de teste 3', u1, live, 6, now() + interval '2 hours', true) returning id into r3;
+  -- Montagem (como dono das tabelas): três salas públicas de teste e o que cada uma tem.
+  insert into public.voice_rooms (kind, title, owner_id, max_members, closes_at, is_test)
+  values ('palco', 'Sala de teste 1', u1, 30, now() + interval '2 hours', true) returning id into r1;
+  insert into public.voice_rooms (kind, title, owner_id, max_members, closes_at, is_test)
+  values ('palco', 'Sala de teste 2', u1, 30, now() + interval '2 hours', true) returning id into r2;
+  insert into public.voice_rooms (kind, title, owner_id, max_members, closes_at, is_test)
+  values ('palco', 'Sala de teste 3', u1, 30, now() + interval '2 hours', true) returning id into r3;
   insert into public.voice_room_members (room_id, user_id, role, joined_via) values
-    (r1, u1, 'dono', 'dono'), (r1, u2, 'membro', 'party'),
-    (r2, u1, 'dono', 'dono'),
-    (r3, u1, 'dono', 'dono');
+    (r1, u1, 'dono', 'dono'), (r1, u2, 'ouvinte', 'palco'), (r2, u1, 'dono', 'dono'), (r3, u1, 'dono', 'dono');
   insert into public.voice_room_members (room_id, user_id, role, status, joined_via, removed_by, removed_at)
-  values (r3, u4, 'membro', 'expulso', 'party', u1, now());
+  values (r3, u4, 'ouvinte', 'expulso', 'palco', u1, now());
+  insert into public.voice_bans (owner_id, user_id, created_by) values (u1, u4, u1);
   insert into public.voice_room_sessions (id, room_id, user_id, ip, user_agent)
   values ('00000000000000000000000000e2e001', r1, u1, '203.0.113.7', 'teste'),
          ('00000000000000000000000000e2e002', r1, u2, '203.0.113.8', 'teste');
@@ -63,14 +54,20 @@ begin
   values ('00000000000000000000000000e2e001', 'faixa-teste-voz', '0', 'audio', 'voz');
   insert into public.voice_room_subscriptions (session_id, mid, publisher_session_id, track_name, kind, rate_kbps, is_test)
   values ('00000000000000000000000000e2e002', '0', '00000000000000000000000000e2e001', 'faixa-teste-voz', 'audio', 64, true);
-  insert into public.voice_room_stats (room_id, user_id, session_id, rtt_ms)
-  values (r1, u2, '00000000000000000000000000e2e002', 40);
-  insert into public.voice_room_reports (room_id, reporter_id, reported_id, reason, is_test)
-  values (r1, u2, u1, 'spam', true) returning id into rep_u2;
-  insert into public.voice_room_reports (room_id, reporter_id, reported_id, reason, is_test)
-  values (r1, u1, u2, 'spam', true) returning id into rep_u1;
+  insert into public.voice_room_stats (room_id, user_id, session_id, rtt_ms) values (r1, u2, '00000000000000000000000000e2e002', 40);
+  insert into public.voice_room_messages (room_id, user_id, body) values (r1, u2, 'oi do teste');
+  insert into public.voice_room_reports (room_id, reporter_id, reported_id, reason, is_test) values (r1, u2, u1, 'spam', true) returning id into rep_u2;
+  insert into public.voice_room_reports (room_id, reporter_id, reported_id, reason, is_test) values (r1, u1, u2, 'spam', true) returning id into rep_u1;
 
-  -- A partir daqui, um jogador logado: u2, membro da sala 1.
+  -- Controle positivo: as funções do servidor enxergam a sala, o membro, o banido e a mensagem.
+  j := public.voice_room_tick(r1, u2, false, false);
+  r := array_append(r, (case when j->'room'->>'id' = r1::text and j->'member'->>'role' = 'ouvinte' and jsonb_array_length(j->'chat') = 1
+    then 'A0_batimento_ve_o_que_o_servidor_precisa=ok' else 'A0_batimento_ve_o_que_o_servidor_precisa=FALHOU' end)::text);
+  j := public.voice_room_access(r3, u4);
+  r := array_append(r, (case when (j->>'banned_by_owner')::boolean and j->'member'->>'status' = 'expulso'
+    then 'A1_contexto_ve_o_banido=ok' else 'A1_contexto_ve_o_banido=FALHOU' end)::text);
+
+  -- A partir daqui, um jogador logado: u2, ouvinte da sala 1.
   set local role authenticated;
   perform set_config('request.jwt.claims', json_build_object('sub', u2, 'role', 'authenticated')::text, true);
 
@@ -82,7 +79,6 @@ begin
   r := array_append(r, (case when n = 0 then 'C_membro_nao_le_outra_sala=ok' else 'C_membro_nao_le_outra_sala=FALHOU(' || n || ')' end)::text);
   select count(*) into n from public.voice_room_members where room_id in (r2, r3);
   r := array_append(r, (case when n = 0 then 'D_membro_nao_le_outra_lista=ok' else 'D_membro_nao_le_outra_lista=FALHOU(' || n || ')' end)::text);
-
   select count(*) into n from public.voice_room_sessions;
   r := array_append(r, (case when n = 0 then 'G_membro_nao_le_sessoes_com_ip=ok' else 'G_membro_nao_le_sessoes_com_ip=FALHOU(' || n || ')' end)::text);
   select count(*) into n from public.voice_room_tracks;
@@ -93,7 +89,10 @@ begin
   r := array_append(r, (case when n = 0 then 'J_membro_nao_le_metricas=ok' else 'J_membro_nao_le_metricas=FALHOU(' || n || ')' end)::text);
   select count(*) into n from public.voice_settings;
   r := array_append(r, (case when n = 0 then 'K_membro_nao_le_configuracao=ok' else 'K_membro_nao_le_configuracao=FALHOU(' || n || ')' end)::text);
-
+  select count(*) into n from public.voice_room_messages;
+  r := array_append(r, (case when n = 0 then 'K2_chat_so_pelo_servidor=ok' else 'K2_chat_so_pelo_servidor=FALHOU(' || n || ')' end)::text);
+  select count(*) into n from public.voice_bans;
+  r := array_append(r, (case when n = 0 then 'K3_banidos_so_pelo_servidor=ok' else 'K3_banidos_so_pelo_servidor=FALHOU(' || n || ')' end)::text);
   select count(*) into n from public.voice_room_reports where id = rep_u2;
   r := array_append(r, (case when n = 1 then 'L_le_a_propria_denuncia=ok' else 'L_le_a_propria_denuncia=FALHOU(' || n || ')' end)::text);
   select count(*) into n from public.voice_room_reports where id = rep_u1;
@@ -101,8 +100,7 @@ begin
 
   -- Escrita pela API: nenhuma tabela aceita.
   begin
-    insert into public.voice_rooms (kind, title, owner_id, live_session_id, max_members, closes_at, is_test)
-    values ('party', 'Sala forjada', u2, live, 6, now() + interval '1 hour', true);
+    insert into public.voice_rooms (kind, title, owner_id, max_members, closes_at, is_test) values ('palco', 'Sala forjada', u2, 30, now() + interval '1 hour', true);
     r := array_append(r, 'N_logado_nao_cria_sala=FALHOU(inseriu)'::text);
   exception when insufficient_privilege then
     r := array_append(r, 'N_logado_nao_cria_sala=ok'::text);
@@ -110,7 +108,7 @@ begin
     r := array_append(r, ('N_logado_nao_cria_sala=FALHOU(' || sqlerrm || ')')::text);
   end;
   begin
-    insert into public.voice_room_members (room_id, user_id, role, joined_via) values (r2, u2, 'membro', 'party');
+    insert into public.voice_room_members (room_id, user_id, role, joined_via) values (r2, u2, 'ouvinte', 'palco');
     r := array_append(r, 'O_logado_nao_se_poe_na_sala=FALHOU(inseriu)'::text);
   exception when insufficient_privilege then
     r := array_append(r, 'O_logado_nao_se_poe_na_sala=ok'::text);
@@ -118,13 +116,13 @@ begin
     r := array_append(r, ('O_logado_nao_se_poe_na_sala=FALHOU(' || sqlerrm || ')')::text);
   end;
   begin
-    update public.voice_room_members set role = 'dono' where room_id = r1 and user_id = u2;
+    update public.voice_room_members set role = 'falante' where room_id = r1 and user_id = u2;
     get diagnostics n = row_count;
-    r := array_append(r, (case when n = 0 then 'P_logado_nao_vira_dono=ok' else 'P_logado_nao_vira_dono=FALHOU(' || n || ')' end)::text);
+    r := array_append(r, (case when n = 0 then 'P_ouvinte_nao_se_poe_no_palco=ok' else 'P_ouvinte_nao_se_poe_no_palco=FALHOU(' || n || ')' end)::text);
   exception when insufficient_privilege then
-    r := array_append(r, 'P_logado_nao_vira_dono=ok'::text);
+    r := array_append(r, 'P_ouvinte_nao_se_poe_no_palco=ok'::text);
   when others then
-    r := array_append(r, ('P_logado_nao_vira_dono=FALHOU(' || sqlerrm || ')')::text);
+    r := array_append(r, ('P_ouvinte_nao_se_poe_no_palco=FALHOU(' || sqlerrm || ')')::text);
   end;
   begin
     delete from public.voice_room_reports where id = rep_u2;
@@ -136,15 +134,24 @@ begin
     r := array_append(r, ('Q_logado_nao_apaga_denuncia=FALHOU(' || sqlerrm || ')')::text);
   end;
   begin
-    insert into public.voice_room_reports (room_id, reporter_id, reported_id, reason) values (r1, u1, u2, 'spam');
-    r := array_append(r, 'R_logado_nao_denuncia_em_nome_de_outro=FALHOU(inseriu)'::text);
+    insert into public.voice_room_messages (room_id, user_id, body) values (r1, u1, 'mensagem forjada em nome do dono');
+    r := array_append(r, 'R_logado_nao_escreve_no_chat_direto=FALHOU(inseriu)'::text);
   exception when insufficient_privilege then
-    r := array_append(r, 'R_logado_nao_denuncia_em_nome_de_outro=ok'::text);
+    r := array_append(r, 'R_logado_nao_escreve_no_chat_direto=ok'::text);
   when others then
-    r := array_append(r, ('R_logado_nao_denuncia_em_nome_de_outro=FALHOU(' || sqlerrm || ')')::text);
+    r := array_append(r, ('R_logado_nao_escreve_no_chat_direto=FALHOU(' || sqlerrm || ')')::text);
   end;
   begin
-    update public.voice_settings set cap_gb_30d = 1000;
+    delete from public.voice_bans where user_id = u4;
+    get diagnostics n = row_count;
+    r := array_append(r, (case when n = 0 then 'R2_logado_nao_desbane=ok' else 'R2_logado_nao_desbane=FALHOU(' || n || ')' end)::text);
+  exception when insufficient_privilege then
+    r := array_append(r, 'R2_logado_nao_desbane=ok'::text);
+  when others then
+    r := array_append(r, ('R2_logado_nao_desbane=FALHOU(' || sqlerrm || ')')::text);
+  end;
+  begin
+    update public.voice_settings set cap_gb_30d = 100000;
     get diagnostics n = row_count;
     r := array_append(r, (case when n = 0 then 'S_logado_nao_muda_o_teto=ok' else 'S_logado_nao_muda_o_teto=FALHOU(' || n || ')' end)::text);
   exception when insufficient_privilege then
@@ -162,67 +169,55 @@ begin
     r := array_append(r, ('T_logado_nao_mexe_no_custo=FALHOU(' || sqlerrm || ')')::text);
   end;
   begin
-    insert into public.user_birthdates (user_id, birth_date) values (u2, date '1990-05-10');
-    r := array_append(r, 'U_logado_nao_grava_data_direto=FALHOU(inseriu)'::text);
+    insert into public.user_age_confirmations (user_id, terms_version) values (u3, 'sala-1');
+    r := array_append(r, 'U_logado_nao_marca_idade_de_outro=FALHOU(inseriu)'::text);
   exception when insufficient_privilege then
-    r := array_append(r, 'U_logado_nao_grava_data_direto=ok'::text);
+    r := array_append(r, 'U_logado_nao_marca_idade_de_outro=ok'::text);
   when others then
-    r := array_append(r, ('U_logado_nao_grava_data_direto=FALHOU(' || sqlerrm || ')')::text);
+    r := array_append(r, ('U_logado_nao_marca_idade_de_outro=FALHOU(' || sqlerrm || ')')::text);
+  end;
+  begin
+    perform public.voice_room_tick(r2, u1, false, false);
+    r := array_append(r, 'AG_logado_nao_chama_o_batimento_do_servidor=FALHOU(executou)'::text);
+  exception when insufficient_privilege then
+    r := array_append(r, 'AG_logado_nao_chama_o_batimento_do_servidor=ok'::text);
+  when others then
+    r := array_append(r, ('AG_logado_nao_chama_o_batimento_do_servidor=FALHOU(' || sqlerrm || ')')::text);
+  end;
+  begin
+    perform public.voice_room_access(r2, u1);
+    r := array_append(r, 'AH_logado_nao_chama_o_contexto_do_servidor=FALHOU(executou)'::text);
+  exception when insufficient_privilege then
+    r := array_append(r, 'AH_logado_nao_chama_o_contexto_do_servidor=ok'::text);
+  when others then
+    r := array_append(r, ('AH_logado_nao_chama_o_contexto_do_servidor=FALHOU(' || sqlerrm || ')')::text);
   end;
 
-  -- Data de nascimento: grava uma vez pela função, repete a mesma sem erro e recusa troca.
+  -- Marcação de 18 anos: só a da própria pessoa, uma vez, e repetir não dá erro.
   begin
-    perform public.declare_birth_date(date '1990-05-10');
-    r := array_append(r, 'V_declara_a_data=ok'::text);
+    perform public.confirm_adult('sala-1');
+    r := array_append(r, 'V_marca_a_propria_idade=ok'::text);
   exception when others then
-    r := array_append(r, ('V_declara_a_data=FALHOU(' || sqlerrm || ')')::text);
+    r := array_append(r, ('V_marca_a_propria_idade=FALHOU(' || sqlerrm || ')')::text);
   end;
   begin
-    perform public.declare_birth_date(date '1990-05-10');
-    r := array_append(r, 'W_mesma_data_de_novo=ok'::text);
+    perform public.confirm_adult('sala-1');
+    r := array_append(r, 'W_repetir_a_marcacao=ok'::text);
   exception when others then
-    r := array_append(r, ('W_mesma_data_de_novo=FALHOU(' || sqlerrm || ')')::text);
+    r := array_append(r, ('W_repetir_a_marcacao=FALHOU(' || sqlerrm || ')')::text);
   end;
   begin
-    perform public.declare_birth_date(date '1985-01-01');
-    r := array_append(r, 'X_data_nao_muda=FALHOU(trocou)'::text);
-  exception when insufficient_privilege then
-    r := array_append(r, 'X_data_nao_muda=ok'::text);
-  when others then
-    r := array_append(r, ('X_data_nao_muda=FALHOU(' || sqlerrm || ')')::text);
-  end;
-  begin
-    update public.user_birthdates set birth_date = date '1985-01-01' where user_id = u2;
-    get diagnostics n = row_count;
-    r := array_append(r, (case when n = 0 then 'X2_data_nao_muda_pela_tabela=ok' else 'X2_data_nao_muda_pela_tabela=FALHOU(' || n || ')' end)::text);
-  exception when insufficient_privilege then
-    r := array_append(r, 'X2_data_nao_muda_pela_tabela=ok'::text);
-  when others then
-    r := array_append(r, ('X2_data_nao_muda_pela_tabela=FALHOU(' || sqlerrm || ')')::text);
-  end;
-  select birth_date into d from public.user_birthdates where user_id = u2;
-  r := array_append(r, (case when d = date '1990-05-10' then 'Y_le_a_propria_data=ok' else 'Y_le_a_propria_data=FALHOU(' || coalesce(d::text, 'null') || ')' end)::text);
-  select count(*) into n from public.user_birthdates where user_id <> u2;
-  r := array_append(r, (case when n = 0 then 'Y2_nao_le_data_alheia=ok' else 'Y2_nao_le_data_alheia=FALHOU(' || n || ')' end)::text);
-
-  -- u1 tenta datas absurdas (antes de 1900 e de quem ainda não tem 5 anos).
-  perform set_config('request.jwt.claims', json_build_object('sub', u1, 'role', 'authenticated')::text, true);
-  begin
-    perform public.declare_birth_date(date '1800-01-01');
-    r := array_append(r, 'Z_data_absurda_antiga=FALHOU(gravou)'::text);
-  exception when invalid_parameter_value or check_violation then
-    r := array_append(r, 'Z_data_absurda_antiga=ok'::text);
-  when others then
-    r := array_append(r, ('Z_data_absurda_antiga=FALHOU(' || sqlerrm || ')')::text);
-  end;
-  begin
-    perform public.declare_birth_date(current_date - 30);
-    r := array_append(r, 'Z2_data_absurda_recente=FALHOU(gravou)'::text);
+    perform public.confirm_adult('versão inválida!');
+    r := array_append(r, 'X_versao_do_texto_invalida=FALHOU(gravou)'::text);
   exception when invalid_parameter_value then
-    r := array_append(r, 'Z2_data_absurda_recente=ok'::text);
+    r := array_append(r, 'X_versao_do_texto_invalida=ok'::text);
   when others then
-    r := array_append(r, ('Z2_data_absurda_recente=FALHOU(' || sqlerrm || ')')::text);
+    r := array_append(r, ('X_versao_do_texto_invalida=FALHOU(' || sqlerrm || ')')::text);
   end;
+  select count(*) into n from public.user_age_confirmations where user_id = u2;
+  r := array_append(r, (case when n = 1 then 'Y_le_a_propria_marcacao=ok' else 'Y_le_a_propria_marcacao=FALHOU(' || n || ')' end)::text);
+  select count(*) into n from public.user_age_confirmations where user_id <> u2;
+  r := array_append(r, (case when n = 0 then 'Y2_nao_le_marcacao_alheia=ok' else 'Y2_nao_le_marcacao_alheia=FALHOU(' || n || ')' end)::text);
 
   -- u3, logado e fora de todas as salas.
   perform set_config('request.jwt.claims', json_build_object('sub', u3, 'role', 'authenticated')::text, true);
@@ -243,15 +238,15 @@ begin
   -- Logado sem usuário no token (sessão quebrada): a função recusa.
   perform set_config('request.jwt.claims', json_build_object('role', 'authenticated')::text, true);
   begin
-    perform public.declare_birth_date(date '1990-05-10');
-    r := array_append(r, 'AF_sem_usuario_nao_declara=FALHOU(gravou)'::text);
+    perform public.confirm_adult('sala-1');
+    r := array_append(r, 'AF_sem_usuario_nao_marca=FALHOU(gravou)'::text);
   exception when insufficient_privilege then
-    r := array_append(r, 'AF_sem_usuario_nao_declara=ok'::text);
+    r := array_append(r, 'AF_sem_usuario_nao_marca=ok'::text);
   when others then
-    r := array_append(r, ('AF_sem_usuario_nao_declara=FALHOU(' || sqlerrm || ')')::text);
+    r := array_append(r, ('AF_sem_usuario_nao_marca=FALHOU(' || sqlerrm || ')')::text);
   end;
 
-  -- Visitante: não lê nada e não chama a função.
+  -- Visitante: não lê nada e não chama as funções.
   set local role anon;
   perform set_config('request.jwt.claims', json_build_object('role', 'anon')::text, true);
   begin
@@ -259,24 +254,28 @@ begin
     r := array_append(r, (case when n = 0 then 'AD_visitante_nao_le_salas=ok' else 'AD_visitante_nao_le_salas=FALHOU(' || n || ')' end)::text);
   exception when insufficient_privilege then
     r := array_append(r, 'AD_visitante_nao_le_salas=ok'::text);
-  when others then
-    r := array_append(r, ('AD_visitante_nao_le_salas=FALHOU(' || sqlerrm || ')')::text);
   end;
   begin
-    select count(*) into n from public.user_birthdates;
-    r := array_append(r, (case when n = 0 then 'AD2_visitante_nao_le_datas=ok' else 'AD2_visitante_nao_le_datas=FALHOU(' || n || ')' end)::text);
+    select count(*) into n from public.user_age_confirmations;
+    r := array_append(r, (case when n = 0 then 'AD2_visitante_nao_le_marcacoes=ok' else 'AD2_visitante_nao_le_marcacoes=FALHOU(' || n || ')' end)::text);
   exception when insufficient_privilege then
-    r := array_append(r, 'AD2_visitante_nao_le_datas=ok'::text);
-  when others then
-    r := array_append(r, ('AD2_visitante_nao_le_datas=FALHOU(' || sqlerrm || ')')::text);
+    r := array_append(r, 'AD2_visitante_nao_le_marcacoes=ok'::text);
   end;
   begin
-    perform public.declare_birth_date(date '1990-05-10');
-    r := array_append(r, 'AE_visitante_nao_declara=FALHOU(executou)'::text);
+    perform public.confirm_adult('sala-1');
+    r := array_append(r, 'AE_visitante_nao_marca=FALHOU(executou)'::text);
   exception when insufficient_privilege then
-    r := array_append(r, 'AE_visitante_nao_declara=ok'::text);
+    r := array_append(r, 'AE_visitante_nao_marca=ok'::text);
   when others then
-    r := array_append(r, ('AE_visitante_nao_declara=FALHOU(' || sqlerrm || ')')::text);
+    r := array_append(r, ('AE_visitante_nao_marca=FALHOU(' || sqlerrm || ')')::text);
+  end;
+  begin
+    perform public.voice_room_tick(r1, u2, false, false);
+    r := array_append(r, 'AE2_visitante_nao_chama_o_batimento=FALHOU(executou)'::text);
+  exception when insufficient_privilege then
+    r := array_append(r, 'AE2_visitante_nao_chama_o_batimento=ok'::text);
+  when others then
+    r := array_append(r, ('AE2_visitante_nao_chama_o_batimento=FALHOU(' || sqlerrm || ')')::text);
   end;
 
   raise exception 'RESULTADO: %', array_to_string(r, ' ');
