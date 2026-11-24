@@ -29,8 +29,10 @@ export interface HubCenterProps {
   isVisitor?: boolean;
   /** PROs com fila aberta agora — pulso da comunidade (prova social). */
   prosOnlineCount: number;
-  /** Feature flag on = CTA "Subir MMR" (/ranked-com-pro); off = guia do MMR (/mmr). */
+  /** Feature flag on = CTA "Subir MMR" (/ranked-com-pro). */
   showRankedComPro?: boolean;
+  /** Flag fila_competitiva (a liga): o guia do MMR da liga (/mmr) só aparece com ela. */
+  showLiga?: boolean;
 }
 
 // Os 3 pilares da vaga: o time, o preço do dia e o revezamento. `id` casa com as chaves
@@ -123,20 +125,23 @@ function Doctrine() {
   );
 }
 
-function Actions({ isVisitor, showRankedComPro, prosOnlineCount }: Required<HubCenterProps>) {
+function Actions({ isVisitor, showRankedComPro, showLiga, prosOnlineCount }: Required<HubCenterProps>) {
   const t = useTranslations("capa");
   const play = useSound();
-  // Logado: "Subir MMR" com a feature ligada; senão o guia do MMR (/mmr), vitrine do sistema.
-  const ctaHref = showRankedComPro ? "/ranked-com-pro" : "/mmr";
-  const ctaLabel = showRankedComPro ? t("ctaPlay") : t("ctaMmr");
+  // Logado: "Subir MMR" com a feature ligada, o guia do MMR com a liga; sem as duas, só o link da vaga.
+  const cta = showRankedComPro
+    ? { href: "/ranked-com-pro", label: t("ctaPlay") }
+    : showLiga
+      ? { href: "/mmr", label: t("ctaMmr") }
+      : null;
   return (
     <div className="flex flex-wrap items-center gap-x-8 gap-y-4">
       {/* Um botão principal por tela: o JOGAR COM O PPA do canto. Aqui, para quem está logado,
-          o guia do MMR em metal (o segundo nível); o visitante entra pelo canto de cima. */}
-      {!isVisitor && (
-        <Link href={ctaHref} onClick={() => play("click")} className={cn(plate({ kind: "ghost" }), "w-full sm:w-auto")}>
+          o segundo nível em metal; o visitante entra pelo canto de cima. */}
+      {!isVisitor && cta && (
+        <Link href={cta.href} onClick={() => play("click")} className={cn(plate({ kind: "ghost" }), "w-full sm:w-auto")}>
           <Swords size={18} aria-hidden="true" />
-          {ctaLabel}
+          {cta.label}
         </Link>
       )}
       {/* Terceiro nível: o link de texto do kit, com a seta em ícone que anda no mouse. */}
@@ -154,7 +159,7 @@ function Actions({ isVisitor, showRankedComPro, prosOnlineCount }: Required<HubC
   );
 }
 
-export function HubCenter({ isVisitor = false, prosOnlineCount, showRankedComPro = false }: HubCenterProps) {
+export function HubCenter({ isVisitor = false, prosOnlineCount, showRankedComPro = false, showLiga = false }: HubCenterProps) {
   const t = useTranslations("capa");
   const backdrop = useBackdrop();
   return (
@@ -176,7 +181,7 @@ export function HubCenter({ isVisitor = false, prosOnlineCount, showRankedComPro
         </header>
 
         {/* Promessa, ação, prova: a chamada vem logo depois do título, e os pilares justificam. */}
-        <Actions isVisitor={isVisitor} showRankedComPro={showRankedComPro} prosOnlineCount={prosOnlineCount} />
+        <Actions isVisitor={isVisitor} showRankedComPro={showRankedComPro} showLiga={showLiga} prosOnlineCount={prosOnlineCount} />
 
         <div className="grid gap-3 md:grid-cols-3 hero:gap-4">
           {PILLARS.map((p) => (

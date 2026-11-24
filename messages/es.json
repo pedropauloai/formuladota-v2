@@ -195,7 +195,8 @@
     "loja": "Tienda",
     "conduta": "Conducta",
     "entrar": "Iniciar sesión",
-    "jogarDota": "Jugar Dota"
+    "jogarDota": "Jugar Dota",
+    "fila": "Cola"
   },
   "topbar": {
     "homeAria": "Ir al panel del FORMULADOTA",
@@ -553,7 +554,29 @@
     "historyEmptyDescription": "Las partidas de liga aparecen aquí en cuanto terminan.",
     "prevPage": "← Anterior",
     "nextPage": "Siguiente →",
-    "pageLabel": "Página {page}"
+    "pageLabel": "Página {page}",
+    "partyMetaTitle": "Partidas en grupo | FORMULADOTA",
+    "partyMetaDescription": "Las partidas que PPA jugó en directo con quien compró el cupo: héroe, resultado, marcador y quién estaba en el equipo.",
+    "partyTitle": "Partidas en grupo",
+    "partySubtitle": "Cada partida que PPA jugó en directo con quien compró el cupo. Él registra el ID al final de cada una, y el resultado viene de OpenDota.",
+    "partyStatMatches": "{count, plural, =1 {partida registrada} other {partidas registradas}}",
+    "partyStatWins": "{count, plural, =1 {victoria} other {victorias}}",
+    "partyStatPlayers": "{count, plural, =1 {jugador del grupo} other {jugadores del grupo}}",
+    "partyColHero": "Héroe de PPA",
+    "partyColResult": "Resultado",
+    "partyColDuration": "Duración",
+    "partyColWhen": "Cuándo",
+    "partyColPlayers": "Quién jugó",
+    "partyWon": "Victoria",
+    "partyLost": "Derrota",
+    "partyPending": "Esperando a OpenDota",
+    "partyNoResult": "Sin resultado público",
+    "partyHeroUnknown": "Héroe no informado",
+    "partyOpenDota": "OpenDota",
+    "partyOpenDotaAria": "Ver la partida {id} en OpenDota",
+    "partyEmptyTitle": "Todavía no hay partidas registradas",
+    "partyEmptyBody": "La primera aparece aquí cuando PPA termine una partida con el grupo en directo.",
+    "partyHowLink": "Cómo funciona el cupo"
   },
   "ranking": {
     "metaTitle": "Ranking | FORMULADOTA",

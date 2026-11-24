@@ -79,9 +79,9 @@ interface Props {
   showRankedComPro: boolean;
   /** Feature flag loja: mostra a aba "Loja". Off = esconde para todos. */
   showLoja: boolean;
-  /** Flag fila_competitiva (a liga): sem ela, o contador mostra só o online, sem banidos nem Mural. */
-  showMural: boolean;
-  /** Live do Pedro no ar: a aba Loja ganha o ponto vermelho. */
+  /** Flag fila_competitiva (a liga): sem ela, somem as abas da liga e o contador mostra só o online. */
+  showLiga: boolean;
+  /** Live do PPA no ar: a aba Fila ganha o ponto vermelho. */
   lojaLive: boolean;
   /** Novidades publicadas depois da última visita do user (badge do sino). */
   changelogUnread: number;
@@ -100,14 +100,14 @@ export function DashboardTopBar({
   communityCounters,
   showRankedComPro,
   showLoja,
-  showMural,
+  showLiga,
   lojaLive,
   changelogUnread,
 }: Props) {
   const t = useTranslations();
   const inQueue = myQueues.length > 0;
-  const principalTabs: TopBarTabDef[] = principalTabDefs({ showRankedComPro, showLoja }).map(
-    (d) => ({ href: d.href, label: t(`nav.${d.key}`), live: d.key === "loja" && lojaLive })
+  const principalTabs: TopBarTabDef[] = principalTabDefs({ showRankedComPro, showLoja, showLiga }).map(
+    (d) => ({ href: d.href, label: t(`nav.${d.key}`), live: d.key === "fila" && lojaLive })
   );
 
   const contextualTabs: TopBarTabDef[] = [];
@@ -213,7 +213,7 @@ export function DashboardTopBar({
       {/* Direita: contadores da comunidade + preview do admin + placas de atalho e chamadas */}
       <div className="flex h-full shrink-0 items-center gap-1.5 xl:gap-2">
         {/* Online + banidos empilhados num só bloco sutil, clicável para /mural. */}
-        <CommunityCountersBar initial={communityCounters} isLoggedIn={!isVisitor} showMural={showMural} />
+        <CommunityCountersBar initial={communityCounters} isLoggedIn={!isVisitor} showMural={showLiga} />
         {realIsAdmin && <PreviewModeToggle previewActive={previewActive} />}
         <div className={cn(topBarEndcap, "flex h-full items-stretch gap-1")}>
           {/* Atalhos do jogador: só ícone, com o nome no hover. */}

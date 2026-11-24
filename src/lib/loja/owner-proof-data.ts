@@ -4,8 +4,10 @@
 
 import { parsePartyMatchSummary, type PartyMatchSummary } from "./fila/party-match";
 
-/** Quantas partidas registradas a coluna da direita mostra (e o cron resume). */
-export const PARTY_MATCHES_SHOWN = 5;
+/** Quantas partidas registradas o cron resume e guarda (a página /partidas mostra todas). */
+export const PARTY_MATCHES_CACHED = 30;
+/** Resumo sem resultado (perfis privados) para de ser pedido ao OpenDota um dia depois da partida. */
+const RETRY_NO_RESULT_MS = 24 * 60 * 60 * 1000;
 
 export interface OwnerProofData {
   rankTier: number | null;
@@ -24,7 +26,7 @@ const summaries = (list: unknown): PartyMatchSummary[] =>
   (Array.isArray(list) ? list : [])
     .map(parsePartyMatchSummary)
     .filter((m): m is PartyMatchSummary => m !== null)
-    .slice(0, PARTY_MATCHES_SHOWN);
+    .slice(0, PARTY_MATCHES_CACHED);
 
 /** Medalha e posição no ranking (OpenDota /players) e os resumos já montados das partidas registradas. */
 export function buildOwnerProofData(player: unknown, now: Date, partyMatches: readonly PartyMatchSummary[] = []): OwnerProofData {
@@ -35,6 +37,12 @@ export function buildOwnerProofData(player: unknown, now: Date, partyMatches: re
     partyMatches: summaries(partyMatches),
     syncedAt: now.toISOString(),
   };
+}
+
+/** O resumo guardado serve: tem resultado, ou já passou um dia e o resultado não vai mais aparecer. */
+export function reuseSummary(hit: PartyMatchSummary | undefined, nowMs: number): hit is PartyMatchSummary {
+  if (!hit) return false;
+  return hit.won !== null || nowMs - (hit.startTime + hit.duration) * 1000 > RETRY_NO_RESULT_MS;
 }
 
 /** Registro gravado no banco; null quando o formato não serve. */
