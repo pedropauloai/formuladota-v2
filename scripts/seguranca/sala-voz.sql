@@ -61,8 +61,19 @@ begin
 
   -- Controle positivo: as funções do servidor enxergam a sala, o membro, o banido e a mensagem.
   j := public.voice_room_tick(r1, u2, false, false);
-  r := array_append(r, (case when j->'room'->>'id' = r1::text and j->'member'->>'role' = 'ouvinte' and jsonb_array_length(j->'chat') = 1
+  r := array_append(r, (case when j->'room'->>'id' = r1::text and j->'member'->>'role' = 'ouvinte'
+      and jsonb_array_length(j->'my_subscriptions') = 1 and jsonb_typeof(j->'blocked') = 'array'
     then 'A0_batimento_ve_o_que_o_servidor_precisa=ok' else 'A0_batimento_ve_o_que_o_servidor_precisa=FALHOU' end)::text);
+  j := public.voice_room_snapshot(r1, 0);
+  r := array_append(r, (case when jsonb_array_length(j->'chat') = 1 and jsonb_array_length(j->'tracks') = 1
+      and exists (select 1 from jsonb_array_elements(j->'members') e where e->>'u' = u2::text and (e->>'on')::boolean)
+    then 'A0b_estado_comum_ve_membro_faixa_e_chat=ok' else 'A0b_estado_comum_ve_membro_faixa_e_chat=FALHOU' end)::text);
+  j := public.voice_room_snapshot(r1, (select max(id) from public.voice_room_messages where room_id = r1));
+  r := array_append(r, (case when jsonb_array_length(j->'chat') = 0
+    then 'A0c_estado_comum_manda_so_o_chat_novo=ok' else 'A0c_estado_comum_manda_so_o_chat_novo=FALHOU' end)::text);
+  j := public.voice_room_identities(r1, array[u1, u2, u3]);
+  r := array_append(r, (case when j ? u1::text and j ? u2::text and not j ? u3::text
+    then 'A0d_nomes_so_de_quem_e_da_sala=ok' else 'A0d_nomes_so_de_quem_e_da_sala=FALHOU' end)::text);
   j := public.voice_room_access(r3, u4);
   r := array_append(r, (case when (j->>'banned_by_owner')::boolean and j->'member'->>'status' = 'expulso'
     then 'A1_contexto_ve_o_banido=ok' else 'A1_contexto_ve_o_banido=FALHOU' end)::text);
@@ -192,6 +203,22 @@ begin
   when others then
     r := array_append(r, ('AH_logado_nao_chama_o_contexto_do_servidor=FALHOU(' || sqlerrm || ')')::text);
   end;
+  begin
+    perform public.voice_room_snapshot(r2, 0);
+    r := array_append(r, 'AI_logado_nao_le_o_estado_de_outra_sala=FALHOU(executou)'::text);
+  exception when insufficient_privilege then
+    r := array_append(r, 'AI_logado_nao_le_o_estado_de_outra_sala=ok'::text);
+  when others then
+    r := array_append(r, ('AI_logado_nao_le_o_estado_de_outra_sala=FALHOU(' || sqlerrm || ')')::text);
+  end;
+  begin
+    perform public.voice_room_identities(r2, array[u1]);
+    r := array_append(r, 'AJ_logado_nao_chama_os_nomes_do_servidor=FALHOU(executou)'::text);
+  exception when insufficient_privilege then
+    r := array_append(r, 'AJ_logado_nao_chama_os_nomes_do_servidor=ok'::text);
+  when others then
+    r := array_append(r, ('AJ_logado_nao_chama_os_nomes_do_servidor=FALHOU(' || sqlerrm || ')')::text);
+  end;
 
   -- Marcação de 18 anos: só a da própria pessoa, uma vez, e repetir não dá erro.
   begin
@@ -276,6 +303,14 @@ begin
     r := array_append(r, 'AE2_visitante_nao_chama_o_batimento=ok'::text);
   when others then
     r := array_append(r, ('AE2_visitante_nao_chama_o_batimento=FALHOU(' || sqlerrm || ')')::text);
+  end;
+  begin
+    perform public.voice_room_snapshot(r1, 0);
+    r := array_append(r, 'AE3_visitante_nao_le_o_estado=FALHOU(executou)'::text);
+  exception when insufficient_privilege then
+    r := array_append(r, 'AE3_visitante_nao_le_o_estado=ok'::text);
+  when others then
+    r := array_append(r, ('AE3_visitante_nao_le_o_estado=FALHOU(' || sqlerrm || ')')::text);
   end;
 
   raise exception 'RESULTADO: %', array_to_string(r, ' ');

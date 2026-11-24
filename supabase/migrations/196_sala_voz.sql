@@ -149,8 +149,10 @@ create index if not exists voice_room_messages_room_idx on public.voice_room_mes
 create index if not exists voice_room_messages_user_idx on public.voice_room_messages (user_id, created_at desc);
 create index if not exists voice_room_messages_deleted_by_idx on public.voice_room_messages (deleted_by) where deleted_by is not null;
 create index if not exists voice_room_messages_created_idx on public.voice_room_messages (created_at);
+create index if not exists voice_room_messages_deleted_idx on public.voice_room_messages (room_id, deleted_at) where deleted_at is not null;
 
--- Qualidade e atraso a cada 10 s por pessoa, para o aceite e o diagnóstico (90 dias).
+-- Qualidade e atraso por pessoa, a cada 10 s (a plateia da sala pública, a cada 30 s), para o aceite
+-- e o diagnóstico. O cron apaga em 30 dias: o banco do plano grátis tem 500 MB.
 create table if not exists public.voice_room_stats (
   id bigint generated always as identity primary key,
   room_id uuid not null references public.voice_rooms (id) on delete cascade,
@@ -300,8 +302,11 @@ $$;
 revoke all on function public.confirm_adult(text) from public, anon;
 grant execute on function public.confirm_adult(text) to authenticated;
 
--- Contexto de uma chamada à sala, numa consulta só (spec, ADR-004): a regra em TypeScript decide.
--- Só a service role chama (o servidor passa o usuário já autenticado).
+-- O projeto está no plano grátis do Supabase (5 GB de saída por mês para o site inteiro): as funções
+-- abaixo devolvem só o que a regra usa, com chaves curtas, e o servidor guarda o estado comum da
+-- sala por 3 s (spec, ADR-004). Todas só para a service role (o servidor passa o usuário autenticado).
+
+-- Contexto de uma pessoa numa sala, numa consulta só: a regra em TypeScript decide.
 create or replace function public.voice_room_access(p_room uuid, p_user uuid)
 returns jsonb
 language plpgsql
@@ -316,8 +321,14 @@ begin
     return jsonb_build_object('room', null);
   end if;
   return jsonb_build_object(
-    'room', to_jsonb(v_room) - 'invite_token_hash',
-    'settings', (select to_jsonb(s) from public.voice_settings s where s.id = 1),
+    'room', jsonb_build_object('id', v_room.id, 'kind', v_room.kind, 'title', v_room.title, 'owner_id', v_room.owner_id,
+              'status', v_room.status, 'closes_at', v_room.closes_at, 'max_members', v_room.max_members,
+              'screen_policy', v_room.screen_policy, 'audience', v_room.audience, 'chat_open', v_room.chat_open,
+              'is_test', v_room.is_test),
+    'settings', (select jsonb_build_object('cap_gb_30d', s.cap_gb_30d, 'video_max_kbps', s.video_max_kbps,
+                   'palco_max_speakers', s.palco_max_speakers, 'party_screen_enabled', s.party_screen_enabled,
+                   'usage_bytes_30d', s.usage_bytes_30d)
+                   from public.voice_settings s where s.id = 1),
     'member', (select jsonb_build_object('role', m.role, 'status', m.status, 'muted', m.muted, 'force_muted', m.force_muted,
                  'hand_raised_at', m.hand_raised_at, 'last_seen_at', m.last_seen_at)
                  from public.voice_room_members m where m.room_id = p_room and m.user_id = p_user),
@@ -331,16 +342,20 @@ begin
     'party_now', exists (select 1 from public.store_bookings bk
                           where bk.user_id = p_user and bk.is_test = v_room.is_test and bk.queue_state = 'na_party'),
     'battlepass', coalesce(public.battlepass_ativo(p_user, v_room.is_test), false),
-    'online', coalesce((select jsonb_agg(m.user_id) from public.voice_room_members m
-                         where m.room_id = p_room and m.status = 'ativo' and m.last_seen_at > now() - interval '15 seconds'), '[]'::jsonb)
+    -- Lugares: quem está online agora (batimento nos últimos 30 s), sem contar a própria pessoa.
+    'online_others', (select count(*) from public.voice_room_members m
+                       where m.room_id = p_room and m.status = 'ativo' and m.user_id <> p_user
+                         and m.last_seen_at > now() - interval '30 seconds'),
+    'speakers', (select count(*) from public.voice_room_members m
+                  where m.room_id = p_room and m.status = 'ativo' and m.role = 'falante')
   );
 end;
 $$;
 revoke all on function public.voice_room_access(uuid, uuid) from public, anon, authenticated;
 grant execute on function public.voice_room_access(uuid, uuid) to service_role;
 
--- Batimento (a cada 2 ou 3 s): grava presença, microfone e mão levantada de quem segue ativo e
--- devolve, na mesma ida, membros online com nome e avatar, faixas, bloqueios, faixas recebidas e chat.
+-- Batimento da pessoa (a cada 10 s, ou na hora em que ela muta ou levanta a mão): grava presença,
+-- microfone e mão de quem segue ativo e devolve o contexto, os bloqueios e as faixas que ela recebe.
 create or replace function public.voice_room_tick(p_room uuid, p_user uuid, p_muted boolean, p_hand boolean)
 returns jsonb
 language plpgsql
@@ -349,7 +364,6 @@ set search_path = ''
 as $$
 declare
   v_access jsonb := public.voice_room_access(p_room, p_user);
-  v_chat jsonb := '[]'::jsonb;
 begin
   if jsonb_typeof(v_access->'room') is distinct from 'object' then
     return v_access;
@@ -359,33 +373,7 @@ begin
          muted = p_muted or m.force_muted,
          hand_raised_at = case when p_hand and m.role = 'ouvinte' then coalesce(m.hand_raised_at, now()) else null end
    where m.room_id = p_room and m.user_id = p_user and m.status = 'ativo';
-  if v_access->'room'->>'kind' = 'palco' then
-    select coalesce(jsonb_agg(x order by (x->>'id')::bigint), '[]'::jsonb) into v_chat from (
-      select jsonb_build_object('id', msg.id, 'userId', msg.user_id, 'body', msg.body, 'createdAt', msg.created_at,
-               'username', i.username, 'steamPersona', sl.persona) as x
-        from public.voice_room_messages msg
-        left join public.public_player_identities i on i.id = msg.user_id
-        left join public.steam_links sl on sl.user_id = msg.user_id
-       where msg.room_id = p_room and msg.deleted_at is null
-       order by msg.id desc
-       limit 50
-    ) t;
-  end if;
   return v_access || jsonb_build_object(
-    'members', (select coalesce(jsonb_agg(jsonb_build_object(
-        'userId', m.user_id, 'role', m.role, 'muted', m.muted, 'forceMuted', m.force_muted,
-        'handRaisedAt', m.hand_raised_at, 'lastSeenAt', m.last_seen_at,
-        'username', i.username, 'avatarUrl', i.avatar_url, 'steamPersona', sl.persona, 'steamAvatar', sl.avatar_url)), '[]'::jsonb)
-      from public.voice_room_members m
-      left join public.public_player_identities i on i.id = m.user_id
-      left join public.steam_links sl on sl.user_id = m.user_id
-     where m.room_id = p_room and m.status = 'ativo'
-       and (m.last_seen_at > now() - interval '15 seconds' or m.role = 'dono')),
-    'tracks', (select coalesce(jsonb_agg(jsonb_build_object('sessionId', t.session_id, 'userId', s.user_id, 'trackName', t.track_name,
-        'mid', t.mid, 'kind', t.kind, 'tipo', t.tipo, 'quality', t.quality)), '[]'::jsonb)
-      from public.voice_room_tracks t
-      join public.voice_room_sessions s on s.id = t.session_id
-     where s.room_id = p_room and s.closed_at is null and t.closed_at is null),
     'blocked', (select coalesce(jsonb_agg(case when f.requester_id = p_user then f.addressee_id else f.requester_id end), '[]'::jsonb)
       from public.friendships f
      where f.status = 'blocked' and (f.requester_id = p_user or f.addressee_id = p_user)),
@@ -393,13 +381,70 @@ begin
         'publisherSessionId', sub.publisher_session_id, 'trackName', sub.track_name, 'rid', sub.rid)), '[]'::jsonb)
       from public.voice_room_subscriptions sub
       join public.voice_room_sessions s on s.id = sub.session_id
-     where s.room_id = p_room and s.user_id = p_user and s.closed_at is null and sub.ended_at is null),
-    'chat', v_chat
+     where s.room_id = p_room and s.user_id = p_user and s.closed_at is null and sub.ended_at is null)
   );
 end;
 $$;
 revoke all on function public.voice_room_tick(uuid, uuid, boolean, boolean) from public, anon, authenticated;
 grant execute on function public.voice_room_tick(uuid, uuid, boolean, boolean) to service_role;
+
+-- Estado comum da sala, igual para todos que estão nela (o servidor guarda por 3 s): quem está
+-- online, as faixas rotuladas, o chat novo depois de p_chat_after, as mensagens apagadas e quem
+-- saiu expulso nos últimos 10 minutos. Nome e avatar vêm à parte, uma vez por pessoa.
+create or replace function public.voice_room_snapshot(p_room uuid, p_chat_after bigint)
+returns jsonb
+language sql
+stable
+set search_path = ''
+as $$
+  select jsonb_build_object(
+    'room', (select jsonb_build_object('status', r.status, 'chat_open', r.chat_open, 'closes_at', r.closes_at)
+               from public.voice_rooms r where r.id = p_room),
+    'members', coalesce((select jsonb_agg(jsonb_strip_nulls(jsonb_build_object(
+        'u', m.user_id, 'r', m.role, 'm', m.muted, 'f', nullif(m.force_muted, false), 'h', m.hand_raised_at,
+        'on', m.last_seen_at > now() - interval '30 seconds')) order by m.created_at)
+      from public.voice_room_members m
+     where m.room_id = p_room and m.status = 'ativo'
+       and (m.last_seen_at > now() - interval '30 seconds' or m.role = 'dono')), '[]'::jsonb),
+    'tracks', coalesce((select jsonb_agg(jsonb_strip_nulls(jsonb_build_object(
+        's', t.session_id, 'u', s.user_id, 'n', t.track_name, 'k', t.kind, 't', t.tipo, 'q', t.quality)))
+      from public.voice_room_tracks t
+      join public.voice_room_sessions s on s.id = t.session_id
+     where s.room_id = p_room and s.closed_at is null and t.closed_at is null and t.tipo is not null), '[]'::jsonb),
+    -- Sem p_chat_after (0), as 30 últimas; com ele, só as novas (no máximo 30).
+    'chat', coalesce((select jsonb_agg(c.x order by c.id) from (
+        select msg.id, jsonb_build_object('i', msg.id, 'u', msg.user_id, 'b', msg.body, 'a', msg.created_at) as x
+          from public.voice_room_messages msg
+         where msg.room_id = p_room and msg.deleted_at is null and msg.id > coalesce(p_chat_after, 0)
+         order by msg.id desc
+         limit 30) c), '[]'::jsonb),
+    'deleted', coalesce((select jsonb_agg(msg.id)
+      from public.voice_room_messages msg
+     where msg.room_id = p_room and msg.deleted_at > now() - interval '10 minutes'), '[]'::jsonb),
+    'removed', coalesce((select jsonb_agg(m.user_id)
+      from public.voice_room_members m
+     where m.room_id = p_room and m.status = 'expulso' and m.removed_at > now() - interval '10 minutes'), '[]'::jsonb)
+  );
+$$;
+revoke all on function public.voice_room_snapshot(uuid, bigint) from public, anon, authenticated;
+grant execute on function public.voice_room_snapshot(uuid, bigint) to service_role;
+
+-- Nome e avatar de quem é ou foi membro da sala (no máximo 60 de uma vez), buscados uma vez por pessoa.
+create or replace function public.voice_room_identities(p_room uuid, p_ids uuid[])
+returns jsonb
+language sql
+stable
+set search_path = ''
+as $$
+  select coalesce(jsonb_object_agg(m.user_id, jsonb_strip_nulls(jsonb_build_object(
+      'username', i.username, 'avatarUrl', i.avatar_url, 'steamPersona', sl.persona, 'steamAvatar', sl.avatar_url))), '{}'::jsonb)
+    from public.voice_room_members m
+    left join public.public_player_identities i on i.id = m.user_id
+    left join public.steam_links sl on sl.user_id = m.user_id
+   where m.room_id = p_room and m.user_id = any (p_ids[1:60]);
+$$;
+revoke all on function public.voice_room_identities(uuid, uuid[]) from public, anon, authenticated;
+grant execute on function public.voice_room_identities(uuid, uuid[]) to service_role;
 
 -- Flag autoritativa: desligada, a sala some para todos, inclusive o admin.
 insert into public.feature_flags (key, enabled, label)

@@ -110,7 +110,7 @@ Criar sala de mentoria a partir de horário pago (agenda, `confirmado`, pedido `
 
 ### Tarefa 8: cron
 
-`runTask("sala-voz", sweepVoiceRooms)` no `/api/cron/site`: fecha sessões sem batimento há 45 s, encerra salas vencidas, avisa limiares e pico, apaga o que venceu o prazo de guarda (sem apagar sala com denúncia aberta).
+`runTask("sala-voz", sweepVoiceRooms)` no `/api/cron/site`: fecha sessões sem batimento há 60 s, encerra salas vencidas, avisa limiares e pico, apaga o que venceu o prazo de guarda (sem apagar sala com denúncia aberta).
 
 ### Tarefa 9: provas ponta a ponta
 
