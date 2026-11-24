@@ -2,9 +2,11 @@
 
 import type { Metadata } from "next";
 import { V2Catalog } from "@/components/v2/catalog";
+import { requireAdminPage } from "@/lib/auth/admin-page";
 
 export const metadata: Metadata = { title: "Design 2.0", robots: { index: false, follow: false } };
 
-export default function DesignCatalogPage() {
+export default async function DesignCatalogPage() {
+  await requireAdminPage();
   return <V2Catalog />;
 }

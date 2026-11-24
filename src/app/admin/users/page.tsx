@@ -6,6 +6,7 @@ import { Link } from "@/i18n/navigation";
 import { createServiceClient } from "@/lib/supabase/service";
 import { Eye, ChevronRight } from "lucide-react";
 import { BackfillStatsButton } from "./backfill-stats-button";
+import { requireAdminPage } from "@/lib/auth/admin-page";
 
 export const metadata = { title: "Admin Users — FORMULADOTA" };
 export const revalidate = 30;
@@ -79,6 +80,7 @@ export default async function AdminUsersPage({
 }: {
   searchParams: Promise<SearchParams>;
 }) {
+  await requireAdminPage();
   const t = await getTranslations("misc2");
   const params = await searchParams;
   const search = params.q?.trim() ?? "";

@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getIdentityMap } from "@/lib/queries/identities";
 import { formatBrl } from "@/lib/battlepass/config";
 import { buildAdminView, type AdminPaymentRow, type AdminSubscriptionRow } from "@/lib/battlepass/admin-view";
+import { requireAdminPage } from "@/lib/auth/admin-page";
 
 export const metadata = { title: "Battlepass | Admin FORMULADOTA" };
 export const revalidate = 0;
@@ -26,6 +27,7 @@ function Card({ title, value, hint }: { title: string; value: string; hint?: str
 }
 
 export default async function AdminBattlepassPage({ searchParams }: { searchParams: SearchParams }) {
+  await requireAdminPage();
   const showTests = (await searchParams).testes === "1";
   const supabase = await createClient();
   const [subs, payments] = await Promise.all([

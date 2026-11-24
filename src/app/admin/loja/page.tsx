@@ -11,6 +11,7 @@ import { formatBRL } from "@/lib/loja/money";
 import { whatsappLink } from "@/lib/loja/notify-message";
 import { TRACKED_LINKS } from "@/lib/loja/tracked-links";
 import { DeliveredToggle, CopyLink } from "./client-bits";
+import { requireAdminPage } from "@/lib/auth/admin-page";
 
 export const metadata = { title: "Loja | Admin FORMULADOTA" };
 export const revalidate = 0;
@@ -52,6 +53,7 @@ function BuyerName({ name, whatsapp }: { name: string; whatsapp: string | null }
 }
 
 export default async function AdminLojaPage({ searchParams }: { searchParams: SearchParams }) {
+  await requireAdminPage();
   const params = await searchParams;
   const period = PERIODS.find((p) => p.key === params.periodo) ?? PERIODS[0];
   const showTests = params.testes === "1";
