@@ -1,25 +1,28 @@
-// Publicar e receber faixas pelo intermediário: o tipo de cada faixa publicada sai do SDP da oferta,
-// e só passa ao SFU o que as regras de faixas.ts deixam. O que passa vira linha no banco.
+// Publicar, receber e trocar a camada pelo intermediário: o tipo de cada faixa publicada sai do SDP
+// da oferta, a camada da tela de cada pessoa sai da regra de custo, e só passa ao SFU o que as regras
+// de faixas.ts deixam. O que passa vira linha no banco.
 
 import "server-only";
 import { z } from "zod";
 import type { CallContext } from "./contexto";
 import { capBytesFor, rateKbpsFor } from "./custo";
-import { activeTracks, findTrack, getSession, insertSubscriptions, insertTracks, openSessions, openSubscriptions, previousLabels, type SessionRow } from "./dados-rtc";
-import { blockedPairsAmong, isBlockedPair, listMembers } from "./dados-sala";
-import { computeUsageBytes } from "./dados-uso";
-import { decidePublish, decideSubscribe, type SubscribeTarget } from "./faixas";
+import { activeTracks, findTrack, getSession, insertSubscriptions, insertTracks, openSessions, openSubscriptions, previousLabels, switchSubscriptionLayer, type NewSubscription, type SessionRow } from "./dados-rtc";
+import { blockedAmong, memberRows } from "./dados-sala";
+import { computeUsageBytes, windowStartFor } from "./dados-uso";
+import { checkLayerUpdate, decideLayer, decidePublish, decideSubscribe, publisherMayKeep, type SubscribeTarget } from "./faixas";
 import { sfu, type RealtimeEnv } from "./realtime-api";
 import { midKinds } from "./sdp";
-import type { TrackKind } from "./tipos";
+import type { Layer, Quality, TrackKind, TrackLabel } from "./tipos";
 
 const SID = /^[A-Za-z0-9_-]{8,128}$/;
+const ONLINE_MS = 30_000;
 const Sdp = z.object({ type: z.enum(["offer", "answer"]), sdp: z.string().min(1).max(60_000) });
 const Track = z.object({
   location: z.enum(["local", "remote"]),
   mid: z.string().min(1).max(32).optional(),
   trackName: z.string().min(1).max(128),
   sessionId: z.string().regex(SID).optional(),
+  simulcast: z.object({ preferredRid: z.enum(["f", "h"]) }).optional(),
 });
 export const TracksBody = z.object({ sessionDescription: Sdp.optional(), tracks: z.array(Track).min(1).max(16) });
 type Tracks = z.infer<typeof TracksBody>;
@@ -38,8 +41,21 @@ function tracksOf(body: Record<string, unknown>): SfuTrack[] {
   return Array.isArray(body.tracks) ? (body.tracks as SfuTrack[]) : [];
 }
 
+/** f cai para h sem banda; h nunca sobe sozinha para f (o custo da camada alta só com a regra). */
+function simulcastFor(rid: Layer) {
+  return rid === "f"
+    ? { preferredRid: "f", priorityOrdering: "asciibetical", ridNotAvailable: "asciibetical" }
+    : { preferredRid: "h", priorityOrdering: "none", ridNotAvailable: "none" };
+}
+
+/** Consumo que vale para a regra: o de produção que o cron recalcula; sala de teste conta o dela na hora. */
+async function usageFor(ctx: CallContext): Promise<number> {
+  if (!ctx.room || !ctx.settings) return 0;
+  return ctx.room.isTest ? computeUsageBytes(ctx.db, windowStartFor(ctx.now), true) : ctx.settings.usageBytes30d;
+}
+
 async function publish(ctx: CallContext, env: RealtimeEnv, session: SessionRow, body: Tracks): Promise<Response> {
-  const { room, settings, decision, userId } = ctx;
+  const { room, settings, decision, userId, member } = ctx;
   if (!room || !settings || !decision.ok || !userId) return deny(403, "sem_acesso", "sem acesso à sala");
   if (body.sessionDescription?.type !== "offer") return deny(400, "corpo_invalido", "publicar pede a oferta SDP");
   const kinds = midKinds(body.sessionDescription.sdp);
@@ -49,12 +65,13 @@ async function publish(ctx: CallContext, env: RealtimeEnv, session: SessionRow, 
   const tracks = await activeTracks(ctx.db, await openSessions(ctx.db, { roomId: room.id }));
   const mine = tracks.filter((t) => t.sessionId === session.id);
   const wantsVideo = kindsAsked.includes("video");
-  const capReached = wantsVideo && (await computeUsageBytes(ctx.db, ctx.now, undefined, room.isTest)) >= capBytesFor(settings.capGb30d);
+  const capReached = wantsVideo && (await computeUsageBytes(ctx.db, windowStartFor(ctx.now), room.isTest)) >= capBytesFor(settings.capGb30d);
   const rule = decidePublish({
     role: decision.role,
     roomKind: room.kind,
     screenPolicy: room.screenPolicy,
     partyScreenEnabled: settings.partyScreenEnabled,
+    forceMuted: member?.forceMuted ?? false,
     requested: kindsAsked,
     mine: { audio: mine.filter((t) => t.kind === "audio").length, video: mine.filter((t) => t.kind === "video").length },
     videoActiveByOthers: tracks.some((t) => t.kind === "video" && t.userId !== userId),
@@ -68,32 +85,48 @@ async function publish(ctx: CallContext, env: RealtimeEnv, session: SessionRow, 
     const labels = await previousLabels(ctx.db, room.id, userId, accepted.map((t) => t.trackName as string));
     await insertTracks(
       ctx.db,
-      accepted.map((t) => ({ sessionId: session.id, trackName: t.trackName as string, mid: t.mid as string, kind: kinds.get(t.mid as string) as TrackKind, tipo: labels.get(t.trackName as string) ?? null }))
+      accepted.map((t) => {
+        const label = labels.get(t.trackName as string);
+        return { sessionId: session.id, trackName: t.trackName as string, mid: t.mid as string, kind: kinds.get(t.mid as string) as TrackKind, tipo: label?.tipo ?? null, quality: label?.quality ?? null };
+      })
     );
   }
   return Response.json(res.body, { status: res.status });
 }
 
-async function targetsFor(ctx: CallContext, remotes: Tracks["tracks"]): Promise<Array<SubscribeTarget | null>> {
-  const roomId = ctx.room?.id ?? "";
-  const members = await listMembers(ctx.db, roomId);
-  const since = ctx.now.getTime() - 15_000;
-  const active = new Set(members.filter((m) => m.status === "ativo" && m.lastSeenAt && new Date(m.lastSeenAt).getTime() > since).map((m) => m.userId));
-  return Promise.all(
+interface Target extends SubscribeTarget {
+  kind: TrackKind;
+  quality: Quality | null;
+}
+
+async function targetsFor(ctx: CallContext, remotes: Tracks["tracks"]): Promise<Array<Target | null>> {
+  const found = await Promise.all(
     remotes.map(async (t) => {
       if (!t.sessionId) return null;
       const [pub, track] = await Promise.all([getSession(ctx.db, t.sessionId), findTrack(ctx.db, t.sessionId, t.trackName)]);
-      if (!pub || !track) return null;
-      return { roomId: pub.roomId, userId: pub.userId, closed: track.closed || !!pub.closedAt, tipo: track.tipo, publisherActive: active.has(pub.userId) };
+      return pub && track ? { pub, track } : null;
     })
   );
+  const roomId = ctx.room?.id ?? "";
+  const rows = await memberRows(ctx.db, roomId, found.flatMap((f) => (f ? [f.pub.userId] : [])));
+  const onlineSince = ctx.now.getTime() - ONLINE_MS;
+  return found.map((f) => {
+    if (!f) return null;
+    const m = rows.get(f.pub.userId);
+    const online = !!m?.lastSeenAt && new Date(m.lastSeenAt).getTime() > onlineSince;
+    const allowed = !!m && m.status === "ativo" && online && (f.track.tipo === null || publisherMayKeep(m.role, f.track.tipo as TrackLabel));
+    return {
+      roomId: f.pub.roomId, userId: f.pub.userId, closed: f.track.closed || !!f.pub.closedAt, tipo: f.track.tipo,
+      publisherActive: allowed, kind: f.track.kind, quality: f.track.quality,
+    };
+  });
 }
 
 async function subscribe(ctx: CallContext, env: RealtimeEnv, session: SessionRow, body: Tracks): Promise<Response> {
   const { room, settings, userId } = ctx;
   if (!room || !settings || !userId) return deny(403, "sem_acesso", "sem acesso à sala");
   const targets = await targetsFor(ctx, body.tracks);
-  const blocked = await blockedPairsAmong(ctx.db, [userId, ...targets.flatMap((t) => (t ? [t.userId] : []))]);
+  const blocked = await blockedAmong(ctx.db, userId, targets.flatMap((t) => (t ? [t.userId] : [])));
   const mine = await openSubscriptions(ctx.db, [session.id]);
   for (const [i, t] of body.tracks.entries()) {
     const target = targets[i] ?? null;
@@ -101,20 +134,33 @@ async function subscribe(ctx: CallContext, env: RealtimeEnv, session: SessionRow
       subscriberUserId: userId,
       roomId: room.id,
       target,
-      blockedPair: target ? isBlockedPair(blocked, userId, target.userId) : false,
+      blockedPair: target ? blocked.has(target.userId) : false,
       alreadySubscribed: mine.some((s) => s.publisherSessionId === t.sessionId && s.trackName === t.trackName),
     });
     if (!rule.ok) return deny(403, rule.code, "recebimento recusado pela regra da sala");
   }
-  const forward = { tracks: body.tracks.map(({ sessionId, trackName }) => ({ location: "remote", sessionId, trackName })) };
+  const needsLayer = targets.some((t) => t?.kind === "video");
+  const usage = needsLayer ? await usageFor(ctx) : 0;
+  const layers = body.tracks.map((t, i) =>
+    targets[i]?.kind === "video" ? decideLayer({ roomKind: room.kind, requested: t.simulcast?.preferredRid ?? null, usageBytes: usage, capBytes: capBytesFor(settings.capGb30d) }) : null
+  );
+  const forward = {
+    tracks: body.tracks.map(({ sessionId, trackName }, i) => {
+      const rid = layers[i];
+      return rid ? { location: "remote", sessionId, trackName, simulcast: simulcastFor(rid) } : { location: "remote", sessionId, trackName };
+    }),
+  };
   const res = await sfu(env, `/sessions/${session.id}/tracks/new`, { method: "POST", body: forward });
   if (res.status < 300) {
-    const rows = tracksOf(res.body).flatMap((t) => {
+    const rows: NewSubscription[] = tracksOf(res.body).flatMap((t) => {
       const i = body.tracks.findIndex((r) => r.sessionId === t.sessionId && r.trackName === t.trackName);
       const target = i >= 0 ? targets[i] : null;
       if (t.errorCode || !t.mid || !target) return [];
-      const kind: TrackKind = target.tipo === "tela" ? "video" : "audio";
-      return [{ sessionId: session.id, mid: t.mid, publisherSessionId: t.sessionId as string, trackName: t.trackName as string, kind, rateKbps: rateKbpsFor(kind, target.tipo, settings.videoMaxKbps), isTest: room.isTest }];
+      const rid = layers[i] ?? null;
+      return [{
+        sessionId: session.id, mid: t.mid, publisherSessionId: t.sessionId as string, trackName: t.trackName as string, kind: target.kind, rid,
+        rateKbps: rateKbpsFor(target.kind, target.tipo, target.quality, rid, settings.videoMaxKbps), isTest: room.isTest,
+      }];
     });
     await insertSubscriptions(ctx.db, rows);
   }
@@ -125,4 +171,31 @@ export async function handleNewTracks(ctx: CallContext, env: RealtimeEnv, sessio
   const locals = body.tracks.filter((t) => t.location === "local");
   if (locals.length > 0 && locals.length < body.tracks.length) return deny(400, "corpo_invalido", "publicar e receber no mesmo pedido");
   return locals.length > 0 ? publish(ctx, env, session, body) : subscribe(ctx, env, session, body);
+}
+
+/** Troca de camada da tela (o partytracks pede quando a pessoa escolhe "alta" ou "leve"): a regra de
+ *  custo decide a camada que vale, e o pedido nunca troca a faixa recebida. */
+export async function handleLayerUpdate(ctx: CallContext, env: RealtimeEnv, session: SessionRow, body: Tracks): Promise<Response> {
+  const { room, settings } = ctx;
+  if (!room || !settings || !ctx.decision.ok) return deny(403, "sem_acesso", "sem acesso à sala");
+  const subs = await openSubscriptions(ctx.db, [session.id]);
+  const usage = await usageFor(ctx);
+  const plan = [];
+  for (const t of body.tracks) {
+    const sub = subs.find((s) => s.mid === t.mid) ?? null;
+    const rule = checkLayerUpdate({ requested: t, sub });
+    if (!rule.ok || !sub) return deny(403, rule.ok ? "faixa_inexistente" : rule.code, "troca de camada recusada");
+    const rid = decideLayer({ roomKind: room.kind, requested: t.simulcast?.preferredRid ?? null, usageBytes: usage, capBytes: capBytesFor(settings.capGb30d) });
+    plan.push({ sub, rid });
+  }
+  const forward = { tracks: plan.map(({ sub, rid }) => ({ location: "remote", sessionId: sub.publisherSessionId, trackName: sub.trackName, mid: sub.mid, simulcast: simulcastFor(rid) })) };
+  const res = await sfu(env, `/sessions/${session.id}/tracks/update`, { method: "PUT", body: forward });
+  if (res.status < 300) {
+    for (const { sub, rid } of plan) {
+      if (sub.rid === rid) continue;
+      const track = await findTrack(ctx.db, sub.publisherSessionId, sub.trackName);
+      await switchSubscriptionLayer(ctx.db, sub, rid, rateKbpsFor(sub.kind, track?.tipo ?? "tela", track?.quality ?? null, rid, settings.videoMaxKbps), room.isTest, ctx.now);
+    }
+  }
+  return Response.json(res.body, { status: res.status });
 }

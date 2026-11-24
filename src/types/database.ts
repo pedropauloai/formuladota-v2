@@ -3841,6 +3841,24 @@ export type Database = {
         }
         Relationships: []
       }
+      user_age_confirmations: {
+        Row: {
+          confirmed_at: string
+          terms_version: string
+          user_id: string
+        }
+        Insert: {
+          confirmed_at?: string
+          terms_version: string
+          user_id: string
+        }
+        Update: {
+          confirmed_at?: string
+          terms_version?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_badges: {
         Row: {
           badge_id: string
@@ -3869,24 +3887,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      user_birthdates: {
-        Row: {
-          birth_date: string
-          declared_at: string
-          user_id: string
-        }
-        Insert: {
-          birth_date: string
-          declared_at?: string
-          user_id: string
-        }
-        Update: {
-          birth_date?: string
-          declared_at?: string
-          user_id?: string
-        }
-        Relationships: []
       }
       user_cosmetics: {
         Row: {
@@ -4252,9 +4252,35 @@ export type Database = {
           },
         ]
       }
+      voice_bans: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          owner_id: string
+          reason: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          owner_id: string
+          reason?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          owner_id?: string
+          reason?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       voice_room_members: {
         Row: {
           created_at: string
+          force_muted: boolean
+          hand_raised_at: string | null
           joined_via: string
           last_seen_at: string | null
           muted: boolean
@@ -4268,6 +4294,8 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          force_muted?: boolean
+          hand_raised_at?: string | null
           joined_via: string
           last_seen_at?: string | null
           muted?: boolean
@@ -4281,6 +4309,8 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          force_muted?: boolean
+          hand_raised_at?: string | null
           joined_via?: string
           last_seen_at?: string | null
           muted?: boolean
@@ -4294,12 +4324,44 @@ export type Database = {
         }
         Relationships: []
       }
+      voice_room_messages: {
+        Row: {
+          body: string
+          created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
+          id: number
+          room_id: string
+          user_id: string | null
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          id?: never
+          room_id: string
+          user_id?: string | null
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          id?: never
+          room_id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       voice_room_reports: {
         Row: {
           created_at: string
           details: string
           id: string
           is_test: boolean
+          message_body: string
+          message_id: number | null
           reason: string
           reported_id: string | null
           reporter_id: string | null
@@ -4314,6 +4376,8 @@ export type Database = {
           details?: string
           id?: string
           is_test?: boolean
+          message_body?: string
+          message_id?: number | null
           reason: string
           reported_id?: string | null
           reporter_id?: string | null
@@ -4328,6 +4392,8 @@ export type Database = {
           details?: string
           id?: string
           is_test?: boolean
+          message_body?: string
+          message_id?: number | null
           reason?: string
           reported_id?: string | null
           reporter_id?: string | null
@@ -4379,7 +4445,9 @@ export type Database = {
           bytes_received: number | null
           bytes_sent: number | null
           id: number
+          jitter_buffer_ms: number | null
           jitter_ms: number | null
+          latency_ms: number | null
           packet_loss_pct: number | null
           quality_limitation: string | null
           relay: boolean | null
@@ -4397,7 +4465,10 @@ export type Database = {
           audio_concealed_pct?: number | null
           bytes_received?: number | null
           bytes_sent?: number | null
+          id?: never
+          jitter_buffer_ms?: number | null
           jitter_ms?: number | null
+          latency_ms?: number | null
           packet_loss_pct?: number | null
           quality_limitation?: string | null
           relay?: boolean | null
@@ -4415,7 +4486,10 @@ export type Database = {
           audio_concealed_pct?: number | null
           bytes_received?: number | null
           bytes_sent?: number | null
+          id?: never
+          jitter_buffer_ms?: number | null
           jitter_ms?: number | null
+          latency_ms?: number | null
           packet_loss_pct?: number | null
           quality_limitation?: string | null
           relay?: boolean | null
@@ -4439,28 +4513,33 @@ export type Database = {
           mid: string
           publisher_session_id: string
           rate_kbps: number
+          rid: string | null
           session_id: string
           started_at: string
           track_name: string
         }
         Insert: {
           ended_at?: string | null
+          id?: never
           is_test?: boolean
           kind: string
           mid: string
           publisher_session_id: string
           rate_kbps: number
+          rid?: string | null
           session_id: string
           started_at?: string
           track_name: string
         }
         Update: {
           ended_at?: string | null
+          id?: never
           is_test?: boolean
           kind?: string
           mid?: string
           publisher_session_id?: string
           rate_kbps?: number
+          rid?: string | null
           session_id?: string
           started_at?: string
           track_name?: string
@@ -4473,6 +4552,7 @@ export type Database = {
           created_at: string
           kind: string
           mid: string
+          quality: string | null
           session_id: string
           tipo: string | null
           track_name: string
@@ -4482,6 +4562,7 @@ export type Database = {
           created_at?: string
           kind: string
           mid: string
+          quality?: string | null
           session_id: string
           tipo?: string | null
           track_name: string
@@ -4491,6 +4572,7 @@ export type Database = {
           created_at?: string
           kind?: string
           mid?: string
+          quality?: string | null
           session_id?: string
           tipo?: string | null
           track_name?: string
@@ -4499,7 +4581,9 @@ export type Database = {
       }
       voice_rooms: {
         Row: {
+          audience: string
           booking_id: string | null
+          chat_open: boolean
           closed_at: string | null
           closes_at: string
           created_at: string
@@ -4516,7 +4600,9 @@ export type Database = {
           title: string
         }
         Insert: {
+          audience?: string
           booking_id?: string | null
+          chat_open?: boolean
           closed_at?: string | null
           closes_at: string
           created_at?: string
@@ -4533,7 +4619,9 @@ export type Database = {
           title: string
         }
         Update: {
+          audience?: string
           booking_id?: string | null
+          chat_open?: boolean
           closed_at?: string | null
           closes_at?: string
           created_at?: string
@@ -4556,8 +4644,11 @@ export type Database = {
           alert_at: string | null
           alert_level: number
           cap_gb_30d: number
+          chat_retention_days: number
           id: number
           mentoria_max_members: number
+          palco_max_members: number
+          palco_max_speakers: number
           party_max_members: number
           party_screen_enabled: boolean
           peak_alert_at: string | null
@@ -4570,8 +4661,11 @@ export type Database = {
           alert_at?: string | null
           alert_level?: number
           cap_gb_30d?: number
+          chat_retention_days?: number
           id?: number
           mentoria_max_members?: number
+          palco_max_members?: number
+          palco_max_speakers?: number
           party_max_members?: number
           party_screen_enabled?: boolean
           peak_alert_at?: string | null
@@ -4584,8 +4678,11 @@ export type Database = {
           alert_at?: string | null
           alert_level?: number
           cap_gb_30d?: number
+          chat_retention_days?: number
           id?: number
           mentoria_max_members?: number
+          palco_max_members?: number
+          palco_max_speakers?: number
           party_max_members?: number
           party_screen_enabled?: boolean
           peak_alert_at?: string | null
@@ -4860,13 +4957,13 @@ export type Database = {
         Returns: number
       }
       community_counters: { Args: never; Returns: Json }
+      confirm_adult: { Args: { p_terms_version: string }; Returns: undefined }
       confirm_match_proposal: { Args: { p_id: string }; Returns: string }
       consume_match_permission: { Args: never; Returns: undefined }
       consume_pt_fichas: { Args: { p_match_id: string }; Returns: undefined }
       create_party: { Args: never; Returns: string }
       credit_ficha_purchase: { Args: { p_purchase_id: string }; Returns: Json }
       decline_match_proposal: { Args: { p_id: string }; Returns: undefined }
-      declare_birth_date: { Args: { p_birth_date: string }; Returns: undefined }
       dm_get_or_create_conversation: {
         Args: { p_other: string }
         Returns: string
@@ -5213,6 +5310,12 @@ export type Database = {
       transfer_party_leader: { Args: { p_user: string }; Returns: undefined }
       try_form_match: { Args: { p_match_size?: number }; Returns: string }
       unequip_slot: { Args: { p_slot: string }; Returns: undefined }
+      voice_room_access: { Args: { p_room: string; p_user: string }; Returns: Json }
+      voice_room_identities: { Args: { p_ids: string[]; p_room: string }; Returns: Json }
+      voice_room_snapshot: { Args: { p_chat_after: number; p_room: string }; Returns: Json }
+      voice_room_tick: { Args: { p_hand: boolean; p_muted: boolean; p_room: string; p_user: string }; Returns: Json }
+      voice_usage_bytes: { Args: { p_is_test: boolean; p_since: string }; Returns: number }
+      voice_usage_measured: { Args: { p_since: string }; Returns: number }
       wall_of_shame: { Args: never; Returns: Json }
     }
     Enums: {

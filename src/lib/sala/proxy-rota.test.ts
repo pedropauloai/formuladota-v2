@@ -2,11 +2,16 @@ import { describe, expect, it } from "vitest";
 import { clientIp, matchRoute, readJson, MAX_BODY_BYTES } from "./proxy-rota";
 
 describe("matchRoute", () => {
-  it("aceita as quatro rotas do partytracks", () => {
+  it("aceita as cinco rotas do partytracks", () => {
     expect(matchRoute("POST", ["sessions", "new"])).toEqual({ kind: "new" });
     expect(matchRoute("POST", ["sessions", "abc12345", "tracks", "new"])).toEqual({ kind: "tracks", sid: "abc12345" });
     expect(matchRoute("PUT", ["sessions", "abc12345", "renegotiate"])).toEqual({ kind: "renegotiate", sid: "abc12345" });
     expect(matchRoute("PUT", ["sessions", "abc12345", "tracks", "close"])).toEqual({ kind: "close", sid: "abc12345" });
+    expect(matchRoute("PUT", ["sessions", "abc12345", "tracks", "update"])).toEqual({ kind: "update", sid: "abc12345" });
+  });
+
+  it("a troca de camada só por PUT", () => {
+    expect(matchRoute("POST", ["sessions", "abc12345", "tracks", "update"])).toBeNull();
   });
 
   it("recusa método trocado, rota a mais e o pedido de credencial do TURN (vem pela entrada)", () => {

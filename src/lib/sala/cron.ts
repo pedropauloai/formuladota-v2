@@ -8,11 +8,12 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { alertLevelFor, capBytesFor } from "./custo";
 import { getSettings, type Db } from "./dados-sala";
 import { openSessions, type SessionRow } from "./dados-rtc";
-import { computeUsageBytes, saveUsageCache } from "./dados-uso";
+import { computeUsageBytes, saveUsageCache, windowStartFor } from "./dados-uso";
 import { realtimeEnv } from "./realtime-api";
 import { closeSessions, revokeTurn } from "./sessoes";
 
-const SEM_SINAL_MS = 45_000;
+// O batimento é a cada 10 s; sem sinal por 60 s, a sessão fecha no SFU.
+const SEM_SINAL_MS = 60_000;
 const PICO_BYTES_HORA = 20_000_000_000;
 const PICO_INTERVALO_MS = 6 * 3600_000;
 const DIA = 24 * 3600_000;
@@ -49,7 +50,7 @@ async function closeExpired(db: Db, now: Date): Promise<number> {
 }
 
 async function refreshUsage(db: Db, now: Date): Promise<{ bytes: number; aviso: number | null }> {
-  const [settings, bytes, hour] = await Promise.all([getSettings(db), computeUsageBytes(db, now), computeUsageBytes(db, now, new Date(now.getTime() - 3600_000))]);
+  const [settings, bytes, hour] = await Promise.all([getSettings(db), computeUsageBytes(db, windowStartFor(now)), computeUsageBytes(db, new Date(now.getTime() - 3600_000))]);
   await saveUsageCache(db, bytes, now);
   const cap = capBytesFor(settings.capGb30d);
   const level = alertLevelFor(bytes, cap);
@@ -71,11 +72,15 @@ async function refreshUsage(db: Db, now: Date): Promise<{ bytes: number; aviso: 
   return { bytes, aviso };
 }
 
-/** Métricas em 90 dias; sessões (com IP) em 6 meses, menos as de sala com denúncia aberta. */
-async function purge(db: Db, now: Date): Promise<void> {
-  await db.from("voice_room_stats").delete().lt("at", new Date(now.getTime() - 90 * DIA).toISOString());
+/** Métricas em 30 dias (o banco do plano grátis tem 500 MB); chat no prazo da configuração e sessões
+ *  (com IP) em 6 meses, os dois menos os de sala com denúncia aberta. */
+async function purge(db: Db, now: Date, chatDays: number): Promise<void> {
+  await db.from("voice_room_stats").delete().lt("at", new Date(now.getTime() - 30 * DIA).toISOString());
   const { data: held } = await db.from("voice_room_reports").select("room_id").in("status", ["aberta", "em_analise"]).not("room_id", "is", null);
   const keep = [...new Set((held ?? []).map((r) => r.room_id as string))];
+  let chat = db.from("voice_room_messages").delete().lt("created_at", new Date(now.getTime() - chatDays * DIA).toISOString());
+  if (keep.length) chat = chat.not("room_id", "in", `(${keep.join(",")})`);
+  await chat;
   let q = db.from("voice_room_sessions").delete().lt("created_at", new Date(now.getTime() - 183 * DIA).toISOString());
   if (keep.length) q = q.not("room_id", "in", `(${keep.join(",")})`);
   await q;
@@ -86,6 +91,6 @@ export async function sweepVoiceRooms(now = new Date()): Promise<SweepResult> {
   const sessoesSemSinal = await closeStale(db, now);
   const salasEncerradas = await closeExpired(db, now);
   const { bytes, aviso } = await refreshUsage(db, now);
-  await purge(db, now);
+  await purge(db, now, (await getSettings(db)).chatRetentionDays);
   return { sessoesSemSinal, salasEncerradas, usoGb: Number((bytes / GB).toFixed(3)), aviso };
 }

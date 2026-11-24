@@ -1,7 +1,7 @@
-// Consumo dos últimos 30 dias (base do teto) e métricas de qualidade no banco (service role).
+// Consumo dos últimos 30 dias (base do teto) e métricas de qualidade no banco (service role). As somas
+// são feitas no banco e voltam como um número só (plano grátis do Supabase, spec ADR-004 e ADR-005).
 
 import "server-only";
-import { estimateUsageBytes, type UsageSubscription } from "./custo";
 import type { Db } from "./dados-sala";
 import type { StatsSummary } from "./metricas";
 
@@ -11,55 +11,23 @@ export function windowStartFor(now: Date): Date {
   return new Date(now.getTime() - JANELA_DIAS * 24 * 3600 * 1000);
 }
 
-/** Estimativa ao vivo: toda faixa recebida que tocou a janela, com o último sinal de quem recebe.
- *  Sala de teste conta só contra sala de teste: o e2e simula o teto sem mexer no de produção. */
-export async function computeUsageBytes(db: Db, now: Date, windowStart: Date = windowStartFor(now), isTest = false): Promise<number> {
-  const since = windowStart.toISOString();
-  const { data: subs, error } = await db
-    .from("voice_room_subscriptions")
-    .select("session_id, started_at, ended_at, rate_kbps")
-    .eq("is_test", isTest)
-    .or(`ended_at.is.null,ended_at.gt.${since}`);
+/** Estimativa (duração x taxa de toda faixa recebida que tocou a janela). Sala de teste conta à parte:
+ *  o e2e simula o teto sem mexer no contador de produção. */
+export async function computeUsageBytes(db: Db, since: Date, isTest = false): Promise<number> {
+  const { data, error } = await db.rpc("voice_usage_bytes", { p_since: since.toISOString(), p_is_test: isTest });
   if (error) throw new Error(`ler o consumo: ${error.message}`);
-  const rows = subs ?? [];
-  const open = [...new Set(rows.filter((s) => !s.ended_at).map((s) => s.session_id))];
-  const lastSeen = await lastSeenBySession(db, open);
-  const usage: UsageSubscription[] = rows.map((s) => ({
-    startedAt: s.started_at,
-    endedAt: s.ended_at,
-    rateKbps: s.rate_kbps,
-    subscriberLastSeenAt: s.ended_at ? null : (lastSeen.get(s.session_id) ?? null),
-  }));
-  return estimateUsageBytes(usage, windowStart, now);
-}
-
-async function lastSeenBySession(db: Db, sessionIds: string[]): Promise<Map<string, string | null>> {
-  if (sessionIds.length === 0) return new Map();
-  const { data: sessions } = await db.from("voice_room_sessions").select("id, room_id, user_id").in("id", sessionIds);
-  const rows = sessions ?? [];
-  if (rows.length === 0) return new Map();
-  const { data: members } = await db
-    .from("voice_room_members")
-    .select("room_id, user_id, last_seen_at")
-    .in("room_id", [...new Set(rows.map((s) => s.room_id))])
-    .in("user_id", [...new Set(rows.map((s) => s.user_id))]);
-  const seen = new Map((members ?? []).map((m) => [`${m.room_id}:${m.user_id}`, m.last_seen_at]));
-  // Sem batimento registrado, conta até agora (lado seguro); o cron fecha a sessão sem sinal.
-  return new Map(rows.map((s) => [s.id, seen.get(`${s.room_id}:${s.user_id}`) ?? null]));
+  return Number(data ?? 0);
 }
 
 export async function saveUsageCache(db: Db, bytes: number, now: Date): Promise<void> {
   await db.from("voice_settings").update({ usage_bytes_30d: bytes, usage_computed_at: now.toISOString(), updated_at: now.toISOString() }).eq("id", 1);
 }
 
-/** Consumo medido pelos navegadores (soma de bytes recebidos), para comparar com a estimativa. */
+/** Consumo medido pelos navegadores (soma dos bytes recebidos), fora das salas de teste. */
 export async function measuredBytes(db: Db, now: Date): Promise<number> {
-  const { data: rooms } = await db.from("voice_rooms").select("id").eq("is_test", true);
-  const testRooms = (rooms ?? []).map((r) => r.id);
-  let q = db.from("voice_room_stats").select("bytes_received").gt("at", windowStartFor(now).toISOString());
-  if (testRooms.length) q = q.not("room_id", "in", `(${testRooms.join(",")})`);
-  const { data } = await q;
-  return (data ?? []).reduce((a, s) => a + (s.bytes_received ?? 0), 0);
+  const { data, error } = await db.rpc("voice_usage_measured", { p_since: windowStartFor(now).toISOString() });
+  if (error) throw new Error(`ler o consumo medido: ${error.message}`);
+  return Number(data ?? 0);
 }
 
 export async function insertStats(db: Db, row: { roomId: string; userId: string; sessionId: string | null; s: StatsSummary }): Promise<void> {
@@ -70,6 +38,8 @@ export async function insertStats(db: Db, row: { roomId: string; userId: string;
     session_id: row.sessionId,
     rtt_ms: round(row.s.rttMs),
     jitter_ms: round(row.s.jitterMs),
+    jitter_buffer_ms: round(row.s.jitterBufferMs),
+    latency_ms: round(row.s.latencyMs),
     packet_loss_pct: round(row.s.packetLossPct, 3),
     audio_concealed_pct: round(row.s.audioConcealedPct, 3),
     video_width: row.s.videoWidth,

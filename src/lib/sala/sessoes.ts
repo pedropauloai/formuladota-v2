@@ -3,7 +3,7 @@
 // da mesma pessoa, quando ela perde o acesso e no cron.
 
 import "server-only";
-import { closeMids, closeSessionRows, openMidsOf, openSessions, openSubscriptions, type CloseReason, type SessionRow } from "./dados-rtc";
+import { closeMids, closeSessionRows, openMidsOf, openSessions, openSubscriptions, openVoiceTracksOf, type CloseReason, type SessionRow } from "./dados-rtc";
 import { setTurnUsername, turnUsernames, type Db } from "./dados-sala";
 import { forceCloseTracks, revokeTurnCredential, type RealtimeEnv } from "./realtime-api";
 
@@ -54,6 +54,20 @@ export async function cutSubscriptions(
     })
   );
   return subs.length;
+}
+
+/** Fecha à força a voz de uma pessoa (devolvida à plateia ou mutada pelo dono): no SFU e no banco. */
+export async function closeVoice(db: Db, env: RealtimeEnv | null, roomId: string, userId: string, now: Date): Promise<number> {
+  const voices = await openVoiceTracksOf(db, roomId, userId);
+  const bySession = new Map<string, string[]>();
+  for (const v of voices) bySession.set(v.sessionId, [...(bySession.get(v.sessionId) ?? []), v.mid]);
+  await Promise.all(
+    [...bySession].map(async ([sessionId, mids]) => {
+      if (env) await forceCloseTracks(env, sessionId, mids).catch(() => null);
+      await closeMids(db, sessionId, mids, now);
+    })
+  );
+  return voices.length;
 }
 
 /** Revoga a credencial de TURN (de uma pessoa ou da sala inteira): quem saiu à força não usa mais o TURN. */

@@ -6,17 +6,19 @@ import { z } from "zod";
 import type { CallContext } from "./contexto";
 import { capBytesFor } from "./custo";
 import { findTrack, getSession, labelTrack } from "./dados-rtc";
-import { ensureMember, setTurnUsername, touchMember, type Db } from "./dados-sala";
-import { canShareScreen, decideLabel } from "./faixas";
+import { ensureMember, joinedViaFor, setTurnUsername, updateMember, type Db } from "./dados-sala";
+import { forgetRoomState } from "./estado";
+import { decideLabel } from "./faixas";
+import { canPublishVoice, canShareScreen } from "./papeis";
 import { generateIceServers, realtimeEnv } from "./realtime-api";
 import { closeUserSessions } from "./sessoes";
-import type { DenyCode, MemberRole, TrackDenyCode, TrackKind } from "./tipos";
+import type { DenyCode, MemberRole, RoomKind, TrackDenyCode, TrackKind } from "./tipos";
 
 const TURN_MAX_S = 12 * 3600;
 const TURN_MIN_S = 3600;
 
 export type EntradaResult =
-  | { ok: true; iceServers: RTCIceServer[]; papel: MemberRole; videoMaxKbps: number; podeCompartilharTela: boolean }
+  | { ok: true; iceServers: RTCIceServer[]; papel: MemberRole; tipo: RoomKind; videoMaxKbps: number; podeCompartilharTela: boolean }
   | { ok: false; code: DenyCode | "sala_indisponivel" };
 
 export async function enterRoom(ctx: CallContext): Promise<EntradaResult> {
@@ -26,18 +28,20 @@ export async function enterRoom(ctx: CallContext): Promise<EntradaResult> {
   if (!env || !room || !settings || !userId) return { ok: false, code: "sala_indisponivel" };
   const left = Math.floor((new Date(room.closesAt).getTime() - ctx.now.getTime()) / 1000);
   const turn = await generateIceServers(env, Math.min(TURN_MAX_S, Math.max(TURN_MIN_S, left)), `sala-${room.id}`);
-  await ensureMember(ctx.db, room.id, userId, decision.role, decision.role === "dono" ? "dono" : "party");
-  await touchMember(ctx.db, room.id, userId, null, ctx.now);
+  await ensureMember(ctx.db, room.id, userId, decision.role, joinedViaFor(decision.role, room.kind));
+  await updateMember(ctx.db, room.id, userId, { last_seen_at: ctx.now.toISOString(), hand_raised_at: null });
   await setTurnUsername(ctx.db, room.id, userId, turn.username);
+  forgetRoomState(room.id, userId);
   const share = canShareScreen(decision.role, room.kind, room.screenPolicy, settings.partyScreenEnabled);
-  const capOk = settings.usageBytes30d < capBytesFor(settings.capGb30d);
-  return { ok: true, iceServers: turn.iceServers, papel: decision.role, videoMaxKbps: settings.videoMaxKbps, podeCompartilharTela: share && capOk };
+  const capOk = room.isTest || settings.usageBytes30d < capBytesFor(settings.capGb30d);
+  return { ok: true, iceServers: turn.iceServers, papel: decision.role, tipo: room.kind, videoMaxKbps: settings.videoMaxKbps, podeCompartilharTela: share && capOk };
 }
 
 export async function leaveRoom(ctx: CallContext): Promise<void> {
   if (!ctx.userId || !ctx.room) return;
   await closeUserSessions(ctx.db, realtimeEnv(), { roomId: ctx.room.id, userId: ctx.userId }, "saiu", ctx.now);
-  await touchMember(ctx.db, ctx.room.id, ctx.userId, null, null);
+  await updateMember(ctx.db, ctx.room.id, ctx.userId, { last_seen_at: null, hand_raised_at: null });
+  forgetRoomState(ctx.room.id, ctx.userId);
 }
 
 export function hashInvite(token: string): string {
@@ -69,18 +73,25 @@ export const FaixaBody = z.object({
   sessionId: z.string().regex(/^[A-Za-z0-9_-]{8,128}$/),
   trackName: z.string().min(1).max(128),
   tipo: z.enum(["voz", "tela", "tela_audio"]),
+  qualidade: z.enum(["leve", "padrao", "alta", "fluida"]).nullable().default(null),
 });
 
 export async function labelOwnTrack(ctx: CallContext, body: z.infer<typeof FaixaBody>): Promise<{ ok: true } | { ok: false; code: TrackDenyCode | DenyCode }> {
-  const { room, settings, userId, decision } = ctx;
+  const { room, settings, userId, decision, member } = ctx;
   if (!decision.ok || !room || !settings || !userId) return { ok: false, code: decision.ok ? "sala_inexistente" : decision.code };
   const session = await getSession(ctx.db, body.sessionId);
   if (!session || session.roomId !== room.id || session.userId !== userId || session.closedAt) return { ok: false, code: "faixa_inexistente" };
   const track = await findTrack(ctx.db, body.sessionId, body.trackName);
   if (!track || track.closed) return { ok: false, code: "faixa_inexistente" };
-  const canShare = canShareScreen(decision.role, room.kind, room.screenPolicy, settings.partyScreenEnabled);
-  const rule = decideLabel({ tipo: body.tipo, kind: track.kind as TrackKind, canShare });
+  const rule = decideLabel({
+    tipo: body.tipo,
+    kind: track.kind as TrackKind,
+    canShare: canShareScreen(decision.role, room.kind, room.screenPolicy, settings.partyScreenEnabled),
+    canVoice: canPublishVoice(decision.role) && !(member?.forceMuted && decision.role !== "dono"),
+    quality: body.qualidade,
+  });
   if (!rule.ok) return rule;
-  await labelTrack(ctx.db, body.sessionId, body.trackName, body.tipo);
+  await labelTrack(ctx.db, body.sessionId, body.trackName, body.tipo, body.qualidade);
+  forgetRoomState(room.id);
   return { ok: true };
 }

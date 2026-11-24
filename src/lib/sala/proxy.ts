@@ -5,8 +5,8 @@ import "server-only";
 import { z } from "zod";
 import { loadCallContext, type CallContext } from "./contexto";
 import { closeMids, getSession, insertSession, type SessionRow } from "./dados-rtc";
-import { ensureMember, touchMember } from "./dados-sala";
-import { handleNewTracks, TracksBody } from "./proxy-faixas";
+import { ensureMember, joinedViaFor, updateMember } from "./dados-sala";
+import { handleLayerUpdate, handleNewTracks, TracksBody } from "./proxy-faixas";
 import { clientIp, matchRoute, readJson, SESSION_ID } from "./proxy-rota";
 import { createSfuSession, realtimeEnv, sfu, type RealtimeEnv } from "./realtime-api";
 import { closeUserSessions } from "./sessoes";
@@ -23,16 +23,15 @@ async function ownedSession(ctx: CallContext, sid: string): Promise<SessionRow |
 }
 
 async function newSession(ctx: CallContext, env: RealtimeEnv, req: Request): Promise<Response> {
-  const room = ctx.room;
-  const userId = ctx.userId;
-  if (!room || !userId || !ctx.decision.ok) return sfuError(403, "sem_acesso", "sem acesso à sala");
+  const { room, userId, decision } = ctx;
+  if (!room || !userId || !decision.ok) return sfuError(403, decision.ok ? "sem_acesso" : decision.code, "sem acesso à sala");
   const res = await createSfuSession(env);
   const sessionId = typeof res.body.sessionId === "string" ? res.body.sessionId : null;
   if (res.status >= 300 || !sessionId || !SESSION_ID.test(sessionId)) return Response.json(res.body, { status: res.status >= 300 ? res.status : 502 });
   await closeUserSessions(ctx.db, env, { roomId: room.id, userId }, "nova_sessao", ctx.now);
   await insertSession(ctx.db, { id: sessionId, roomId: room.id, userId, ip: clientIp(req), userAgent: req.headers.get("user-agent")?.slice(0, 400) ?? null });
-  await ensureMember(ctx.db, room.id, userId, ctx.decision.role, ctx.decision.role === "dono" ? "dono" : "party");
-  await touchMember(ctx.db, room.id, userId, null, ctx.now);
+  await ensureMember(ctx.db, room.id, userId, decision.role, joinedViaFor(decision.role, room.kind));
+  await updateMember(ctx.db, room.id, userId, { last_seen_at: ctx.now.toISOString() });
   return Response.json(res.body, { status: res.status });
 }
 
@@ -44,7 +43,7 @@ const Close = z.object({
   force: z.boolean(),
 });
 
-async function renegotiate(ctx: CallContext, env: RealtimeEnv, session: SessionRow, body: unknown): Promise<Response> {
+async function renegotiate(env: RealtimeEnv, session: SessionRow, body: unknown): Promise<Response> {
   const parsed = Renegotiate.safeParse(body);
   if (!parsed.success) return sfuError(400, "corpo_invalido", "renegociação fora do formato");
   const res = await sfu(env, `/sessions/${session.id}/renegotiate`, { method: "PUT", body: parsed.data });
@@ -73,8 +72,9 @@ export async function handleRtc(roomId: string, segments: string[], req: Request
   // Fechar sempre pode (só reduz o tráfego); o resto pede acesso válido agora.
   if (route.kind === "close") return closeTracks(ctx, env, session, body);
   if (!ctx.decision.ok) return sfuError(403, ctx.decision.code, "sem acesso à sala");
-  if (route.kind === "renegotiate") return renegotiate(ctx, env, session, body);
+  if (route.kind === "renegotiate") return renegotiate(env, session, body);
   const parsed = TracksBody.safeParse(body);
   if (!parsed.success) return sfuError(400, "corpo_invalido", "pedido de faixa fora do formato");
+  if (route.kind === "update") return handleLayerUpdate(ctx, env, session, parsed.data);
   return handleNewTracks(ctx, env, session, parsed.data);
 }

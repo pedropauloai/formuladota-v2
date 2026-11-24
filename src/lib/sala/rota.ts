@@ -27,15 +27,16 @@ export async function bodyOf<S extends z.ZodTypeAny>(req: Request, schema: S): P
 
 const STATUS: Record<DenyCode, number> = {
   flag_desligada: 404,
-  sala_inexistente: 404,
   sem_login: 401,
+  sala_inexistente: 404,
+  fora_da_sala: 403,
+  expulso: 403,
+  banido: 403,
+  so_beneficio: 403,
   sala_encerrada: 410,
   conta_sem_identidade: 403,
   conta_bloqueada: 403,
-  sem_data_de_nascimento: 403,
-  menor_de_idade: 403,
-  fora_da_sala: 403,
-  expulso: 403,
+  sem_maioridade: 403,
   sala_lotada: 409,
 };
 
@@ -49,3 +50,5 @@ export function badRequest(): Response {
 }
 
 export const notFound = (): Response => Response.json({ errorCode: "sala_inexistente" }, { status: 404 });
+
+export const noStore = { headers: { "Cache-Control": "no-store" } } as const;

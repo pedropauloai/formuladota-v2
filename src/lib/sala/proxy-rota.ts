@@ -1,12 +1,12 @@
-// Leitura do pedido que chega ao intermediário do SFU: qual das quatro rotas do partytracks, o id
-// da sessão (só letras, números, "_" e "-", para não sair da pasta do app na URL da Cloudflare), o
-// corpo em JSON e o IP de quem pede (registro de acesso).
+// Leitura do pedido que chega ao intermediário do SFU: qual das rotas do partytracks, o id da sessão
+// (só letras, números, "_" e "-", para não sair da pasta do app na URL da Cloudflare), o corpo em JSON
+// e o IP de quem pede (registro de acesso).
 
 export const MAX_BODY_BYTES = 64 * 1024;
 export const SESSION_ID = /^[A-Za-z0-9_-]{8,128}$/;
 const IP = /^[0-9a-fA-F:.]{3,45}$/;
 
-export type Route = { kind: "new" } | { kind: "tracks" | "renegotiate" | "close"; sid: string };
+export type Route = { kind: "new" } | { kind: "tracks" | "renegotiate" | "close" | "update"; sid: string };
 
 export function matchRoute(method: string, segments: string[]): Route | null {
   const [a, b, c, d] = segments;
@@ -16,6 +16,7 @@ export function matchRoute(method: string, segments: string[]): Route | null {
   if (method === "POST" && c === "tracks" && d === "new" && segments.length === 4) return { kind: "tracks", sid: b };
   if (method === "PUT" && c === "renegotiate" && segments.length === 3) return { kind: "renegotiate", sid: b };
   if (method === "PUT" && c === "tracks" && d === "close" && segments.length === 4) return { kind: "close", sid: b };
+  if (method === "PUT" && c === "tracks" && d === "update" && segments.length === 4) return { kind: "update", sid: b };
   return null;
 }
 
