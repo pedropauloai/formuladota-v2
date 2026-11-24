@@ -62,8 +62,11 @@ async function chat(t, check, pDono, pOuv) {
   await pOuv.locator("[data-sala-chat-enviar]").click();
   const chegou = await waitFor(async () => (await pDono.getByText("oi do e2e").count()) > 0, 15_000);
   check("a mensagem da plateia chega ao dono", !!chegou);
+  // O ritmo se prova com dois pedidos colados: a chegada ao dono pode passar de 2 s (estado guardado 3 s).
+  await sleep(2100);
+  const primeira = await s.apiPost(pOuv, `/api/sala/${t.palco.id}/chat`, { texto: "ritmo um" });
   const rapida = await s.apiPost(pOuv, `/api/sala/${t.palco.id}/chat`, { texto: "de novo já" });
-  check("o chat recusa mais de uma mensagem a cada 2 s", rapida.status === 403 && rapida.body.errorCode === "devagar", `HTTP ${rapida.status} ${rapida.body.errorCode}`);
+  check("o chat recusa mais de uma mensagem a cada 2 s", primeira.status === 200 && rapida.status === 403 && rapida.body.errorCode === "devagar", `HTTP ${primeira.status}, depois HTTP ${rapida.status} ${rapida.body.errorCode}`);
   const id = await messageId(t.palco.id, "oi do e2e");
   await pDono.locator(`[data-sala-apagar="${id}"]`).click();
   const sumiu = await waitFor(async () => (await pOuv.getByText("oi do e2e").count()) === 0, 15_000);

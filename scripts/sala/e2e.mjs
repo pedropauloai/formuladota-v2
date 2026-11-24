@@ -9,17 +9,17 @@ import { chromium } from "playwright-core";
 
 process.env.LOJA_E2E_PORT = process.env.SALA_E2E_PORT ?? "3200";
 const s = await import("./e2e-comum.mjs");
+process.env.SALA_FLAG_KEY = s.E2E_FLAG;
 const { palco } = await import("./e2e-palco.mjs");
 const { BASE, db, checker, waitFor, sleep } = s;
 const { results, check } = checker();
 const made = { rooms: [], orders: [], users: [] };
 let browser = null;
 let server = null;
-let flagBefore = false;
 
 async function setup() {
   server = await s.startServer();
-  flagBefore = await s.setFlag(true);
+  await s.setFlag(true);
   const nomes = ["dono", "aluno", "fora", "semmaioridade", "convidado", "ouvinte", "ouvinte2"];
   const [dono, aluno, fora, semMaior, convidado, ouvinte, ouvinte2] = await Promise.all(
     nomes.map((n) => s.createUser(n, { admin: n === "dono", adult: n !== "semmaioridade" }))
@@ -91,8 +91,10 @@ async function blockAndKick(t, pDono, pAluno) {
   await s.confirmDialog(pDono);
   const saiu = await waitFor(async () => (await pAluno.locator('[data-sala-fase="saiu"][data-sala-motivo="expulso"]').count()) > 0, 15_000);
   check("o aluno expulso sai da sala", !!saiu);
-  const turn = await db.from("voice_room_members").select("turn_username").eq("room_id", t.sala.id).eq("user_id", t.aluno.id).single();
-  check("a credencial de TURN do expulso é revogada", turn.data?.turn_username === null, String(turn.data?.turn_username));
+  // A expulsão marca a pessoa antes de revogar no TURN (no mesmo pedido): o aluno pode ver a saída antes do fim.
+  const turnOf = async () => (await db.from("voice_room_members").select("turn_username").eq("room_id", t.sala.id).eq("user_id", t.aluno.id).single()).data?.turn_username;
+  const revogada = await waitFor(async () => (await turnOf()) === null, 15_000);
+  check("a credencial de TURN do expulso é revogada", !!revogada, String(await turnOf()));
   const volta = await s.apiPost(pAluno, `/api/sala/${t.sala.id}/entrar`);
   check("o expulso não volta (entrar dá 403)", volta.status === 403 && volta.body.errorCode === "expulso", `HTTP ${volta.status} ${volta.body.errorCode}`);
 }
@@ -154,7 +156,7 @@ try {
 } finally {
   await browser?.close().catch(() => null);
   await sleep(500);
-  await s.setFlag(flagBefore).catch(() => null);
+  await s.dropFlag().catch(() => null);
   await s.cleanup(made).catch((e) => console.error("limpeza:", e.message));
   s.stopServer(server);
   const ok = results.filter((r) => r.ok).length;
