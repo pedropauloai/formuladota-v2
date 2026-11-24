@@ -1,16 +1,21 @@
 "use client";
 
 // Bottom bar — canto inferior-direito. Estados:
-//   Visitante / usuário comum -> PlayMenu (botão "Jogar Dota" + painel de modalidades
-//                                que cresce a partir do botão, estilo Dota 2).
-//   Admin (real)              -> "Painel PROs" (atalho).
-//   Em fila (PRO)             -> "Na fila" abre QueueStatusModal.
+//   Busca pausada e loja aberta -> JOGAR COM O PPA: a chamada principal do site (moldura de metal
+//                                  com as linhas de luz), que leva à fila da party (PPA, 23/11/2026).
+//   Visitante / usuário comum   -> PlayMenu (botão "Jogar Dota" + painel de modalidades
+//                                  que cresce a partir do botão, estilo Dota 2).
+//   Em fila (PRO)               -> "Na fila" abre QueueStatusModal.
 //
 // Pedro 2026-06-03: "Jogar Dota" abre o menu de modalidades (não mais "Entrar pra subir
 // de MMR" / acoplado a ficha). Ficha/permissão são tratadas dentro de cada modalidade.
 
 import { useState } from "react";
-import { Hourglass } from "lucide-react";
+import { Hourglass, Play } from "lucide-react";
+import { Link } from "@/i18n/navigation";
+import { cn } from "@/lib/utils";
+import { useSound } from "@/lib/sound/hooks";
+import { CtaWarp, plate } from "@/components/v2";
 import type { ProLiveStatus } from "@/lib/queries/pros";
 import type { MyQueueEntry } from "@/lib/queries/queue";
 import type { PlayMenuState } from "@/lib/play-menu-preference";
@@ -42,6 +47,8 @@ interface Props {
   showLoja: boolean;
   /** Live do PPA no ar: o botão Jogar Dota ganha o ponto vermelho de ao vivo. */
   liveOnAir: boolean;
+  /** A página já tem a chamada da vaga: o JOGAR COM O PPA do canto não aparece. */
+  hidePartyCta?: boolean;
 }
 
 export function DashboardBottomBar({
@@ -54,6 +61,7 @@ export function DashboardBottomBar({
   queuePaused,
   showLoja,
   liveOnAir,
+  hidePartyCta = false,
 }: Props) {
   const [statusModalOpen, setStatusModalOpen] = useState(false);
 
@@ -78,6 +86,7 @@ export function DashboardBottomBar({
           queuePaused={queuePaused}
           showLoja={showLoja}
           liveOnAir={liveOnAir}
+          hidePartyCta={hidePartyCta}
           onStatusClick={() => setStatusModalOpen(true)}
         />
       </div>
@@ -104,6 +113,7 @@ interface CtaProps {
   queuePaused: boolean;
   showLoja: boolean;
   liveOnAir: boolean;
+  hidePartyCta: boolean;
   onStatusClick: () => void;
 }
 
@@ -117,9 +127,11 @@ function Cta({
   queuePaused,
   showLoja,
   liveOnAir,
+  hidePartyCta,
   onStatusClick,
 }: CtaProps) {
   const t = useTranslations("shell");
+  const play = useSound();
   // Mesma largura (340px) e altura da pílula de busca + botão Jogar Dota → tudo
   // ocupa o mesmo lugar, sem pulo entre estados (Pedro 2026-07-05).
   const base =
@@ -131,7 +143,7 @@ function Cta({
     />
   );
 
-  const cta = bottomCta({ inQueue });
+  const cta = bottomCta({ inQueue, queuePaused, showLoja });
 
   // Em fila do PRO — abre o status da fila.
   if (cta === "na_fila") {
@@ -146,6 +158,28 @@ function Cta({
         <span>{t("inQueue")}</span>
         {shine}
       </button>
+    );
+  }
+
+  // Busca pausada: a chamada principal leva direto à fila da party do PPA. A largura e o respiro
+  // são os do JOGAR DOTA, para o botão ocupar o mesmo lugar.
+  if (cta === "jogar_com_o_ppa") {
+    if (hidePartyCta) return null;
+    return (
+      <Link
+        href="/party"
+        data-cta="jogar-com-o-ppa"
+        onClick={() => play("click")}
+        style={{ marginRight: "2.5rem" }}
+        className={cn(plate({ kind: "cta", large: true }), "pointer-events-auto w-[268px] max-w-[calc(100vw-2rem)] xl:w-[308px] 2xl:w-[328px]")}
+      >
+        <CtaWarp />
+        <Play size={18} aria-hidden="true" />
+        {t("playWithPpa")}
+        {liveOnAir && (
+          <span className="size-2 shrink-0 rounded-full bg-brand-primary shadow-[0_0_8px_var(--color-brand-primary-glow)] motion-safe:animate-pulse" aria-hidden="true" />
+        )}
+      </Link>
     );
   }
 

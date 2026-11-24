@@ -17,7 +17,8 @@
 @layer components {
   .panel,
   .plate,
-  .slot {
+  .slot,
+  .textLink {
     --plate-skew: -20deg;
     --plate-top: color-mix(in oklab, var(--color-bg-elevated), var(--color-text-display) 7%);
     --plate-bottom: var(--color-bg-base);
@@ -174,7 +175,8 @@
     --cta-ink: var(--color-text-display);
     --cta-screen: color-mix(in oklab, var(--color-bg-deep), black 45%);
     --cta-bezel: 5px;
-    --cta-radius: 14px;
+    /* O canto único do site (2px): a moldura de metal fica reta, como o JOGAR DOTA do cliente. */
+    --cta-radius: var(--radius-button);
     min-height: 3.25rem;
     padding-inline: 1.25rem;
     border: var(--cta-bezel) solid transparent;
@@ -230,7 +232,7 @@
     z-index: -1;
     width: 100%;
     height: 100%;
-    border-radius: calc(var(--cta-radius) - var(--cta-bezel));
+    border-radius: max(0px, calc(var(--cta-radius) - var(--cta-bezel)));
     pointer-events: none;
   }
 
@@ -328,6 +330,39 @@
     min-height: 2.25rem;
     padding-inline: 0.85rem;
     font-size: 0.7rem;
+  }
+
+  /* Link de texto (o terceiro nível, depois da chamada e do botão de metal): caixa-alta pequena,
+     cinza claro, com a seta em ícone que anda no mouse. Um só desenho para todo "ver mais". */
+  .textLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-family: var(--font-display);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    transition: color var(--motion-duration-micro) var(--motion-ease-snappy);
+  }
+
+  .textLink > svg {
+    flex-shrink: 0;
+    transition: transform 160ms var(--ease-out-strong);
+  }
+
+  .textLink:hover {
+    color: var(--color-text-display);
+  }
+
+  .textLink:hover > svg {
+    transform: translateX(2px);
+  }
+
+  .textLink:focus-visible {
+    outline: 2px solid var(--color-text-display);
+    outline-offset: 3px;
   }
 
   /* Etiqueta (onde acontece, destaque): a placa inclinada da barra superior, em miniatura. */

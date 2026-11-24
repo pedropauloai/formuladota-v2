@@ -1,6 +1,6 @@
-// A medalha da credencial da vitrine: o rank e a posição no ranking da conta atual do Pedro, pelo
-// OpenDota. A visita só lê a tabela store_owner_proof; quem renova é o cron de cada minuto, no
-// máximo a cada 6 horas.
+// A medalha da credencial da vitrine (o rank e a posição no ranking da conta atual do PPA) e as
+// últimas partidas dele (coluna da direita do site), pelo OpenDota. A visita só lê a tabela
+// store_owner_proof; quem renova é o cron de cada minuto, no máximo a cada hora.
 
 import "server-only";
 import { cache } from "react";
@@ -12,7 +12,8 @@ import { buildOwnerProofData, parseOwnerProofData, type OwnerProofData } from ".
 
 // Perfil de coach do dono da loja: dele saem a conta Steam e o avatar.
 const OWNER_COACH_SLUG = "pedro-paulo";
-const REFRESH_EVERY_MS = 6 * 60 * 60 * 1000;
+// Uma hora: as partidas da live aparecem no mesmo dia (duas chamadas ao OpenDota por renovação).
+const REFRESH_EVERY_MS = 60 * 60 * 1000;
 const RETRY_EVERY_MINUTES = 10;
 const FETCH_TIMEOUT_MS = 10_000;
 
@@ -55,11 +56,15 @@ export const getOwnerProof = cache(async (): Promise<OwnerProof | null> => {
 });
 
 async function fetchOwnerData(accountId: number, now: Date): Promise<OwnerProofData> {
-  return buildOwnerProofData(await openDotaJson<unknown>(`/players/${accountId}`, { timeoutMs: FETCH_TIMEOUT_MS }), now);
+  const [player, recent] = await Promise.all([
+    openDotaJson<unknown>(`/players/${accountId}`, { timeoutMs: FETCH_TIMEOUT_MS }),
+    openDotaJson<unknown>(`/players/${accountId}/recentMatches`, { timeoutMs: FETCH_TIMEOUT_MS }),
+  ]);
+  return buildOwnerProofData(player, now, recent);
 }
 
 /**
- * Chamado pelo cron do site: renova a prova quando passou de 6 horas; com falha, tenta a cada
+ * Chamado pelo cron do site: renova a prova quando passou de uma hora; com falha, tenta a cada
  * 10 minutos. A falha lança, para o cron marcar a tarefa e avisar se ela persistir.
  */
 export async function refreshOwnerProof(now = new Date()): Promise<"fresco" | "aguardando" | "renovado" | "sem_dono"> {

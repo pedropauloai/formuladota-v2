@@ -59,7 +59,7 @@ export default async function LojaPage({ searchParams }: { searchParams: Promise
   const rest = products.filter((p) => p.id !== party?.id);
 
   return (
-    <ClientShell currentRoute="/loja" hideRightSidebar>
+    <ClientShell currentRoute="/loja" hideRightSidebar partyCtaInPage>
       <div className={cn(v2Page, "relative overflow-x-clip pb-24")}>
         <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-[640px] bg-[radial-gradient(55%_65%_at_35%_0%,var(--color-brand-primary-glow),transparent_72%)]" />
 

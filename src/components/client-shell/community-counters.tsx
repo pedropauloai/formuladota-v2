@@ -2,6 +2,7 @@
 
 // Indicador sutil da comunidade no topbar (ao lado da Conduta): online + banidos
 // EMPILHADOS num só componente. O bloco INTEIRO é clicável → /mural (accountability).
+// Sem a liga (flag fila_competitiva desligada) o Mural sai do site: fica só o online, sem link.
 // Recebe os valores iniciais do SSR (shell) e faz polling leve (45s). Também pinga o
 // próprio heartbeat de last_seen_at (60s) — como o topbar está SEMPRE montado, garante
 // que todo logado conta como online mesmo com o painel de amigos fechado.
@@ -21,9 +22,12 @@ const HEARTBEAT_MS = 60_000;
 export function CommunityCountersBar({
   initial,
   isLoggedIn,
+  showMural,
 }: {
   initial: CommunityCounters;
   isLoggedIn: boolean;
+  /** Flag fila_competitiva (a liga): com ela desligada, sem banidos e sem link para o Mural. */
+  showMural: boolean;
 }) {
   const t = useTranslations("topbar");
   const [counters, setCounters] = useState<CommunityCounters>(initial);
@@ -64,6 +68,30 @@ export function CommunityCountersBar({
     };
   }, [isLoggedIn]);
 
+  const online = (
+    <span className="flex items-center gap-1.5">
+      <span className="relative flex size-1.5" aria-hidden="true">
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75" />
+        <span className="relative inline-flex size-1.5 rounded-full bg-success" />
+      </span>
+      <span className="font-display text-[0.7rem] font-semibold uppercase tracking-wide tabular-nums">
+        {t("onlineCount", { count: counters.online })}
+      </span>
+    </span>
+  );
+  // text-muted a 75%: o text-faded ficava abaixo de 4,5:1 sobre a barra (texto de 11px).
+  const cls = "hidden md:flex flex-col justify-center gap-0.5 rounded-md px-2 py-0.5 leading-none text-text-muted/75 transition-colors hover:bg-white/5 hover:text-text-muted";
+
+  if (!showMural) {
+    return (
+      <PlayersHover load={getOnlinePlayers} title={t("onlineTitle")} emptyText={t("onlineEmpty")}>
+        <span className={cls} aria-label={t("onlineAria", { online: counters.online })}>
+          {online}
+        </span>
+      </PlayersHover>
+    );
+  }
+
   return (
     <PlayersHover load={getOnlinePlayers} title={t("onlineTitle")} emptyText={t("onlineEmpty")}>
     <Link
@@ -72,19 +100,10 @@ export function CommunityCountersBar({
         online: counters.online,
         banned: counters.banned,
       })}
-      // text-muted a 75%: o text-faded ficava abaixo de 4,5:1 sobre a barra (texto de 11px).
-      className="hidden md:flex flex-col justify-center gap-0.5 rounded-md px-2 py-0.5 leading-none text-text-muted/75 transition-colors hover:bg-white/5 hover:text-text-muted"
+      className={cls}
     >
       {/* Online — ponto verde pulsante + total */}
-      <span className="flex items-center gap-1.5">
-        <span className="relative flex size-1.5" aria-hidden="true">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75" />
-          <span className="relative inline-flex size-1.5 rounded-full bg-success" />
-        </span>
-        <span className="font-display text-[0.7rem] font-semibold uppercase tracking-wide tabular-nums">
-          {t("onlineCount", { count: counters.online })}
-        </span>
-      </span>
+      {online}
       {/* Banidos — ícone + total (clique no bloco leva pro Mural) */}
       <span className="flex items-center gap-1.5">
         <Ban size={10} className="text-error/70" aria-hidden="true" />

@@ -79,6 +79,8 @@ interface Props {
   showRankedComPro: boolean;
   /** Feature flag loja: mostra a aba "Loja". Off = esconde para todos. */
   showLoja: boolean;
+  /** Flag fila_competitiva (a liga): sem ela, o contador mostra só o online, sem banidos nem Mural. */
+  showMural: boolean;
   /** Live do Pedro no ar: a aba Loja ganha o ponto vermelho. */
   lojaLive: boolean;
   /** Novidades publicadas depois da última visita do user (badge do sino). */
@@ -98,6 +100,7 @@ export function DashboardTopBar({
   communityCounters,
   showRankedComPro,
   showLoja,
+  showMural,
   lojaLive,
   changelogUnread,
 }: Props) {
@@ -210,7 +213,7 @@ export function DashboardTopBar({
       {/* Direita: contadores da comunidade + preview do admin + placas de atalho e chamadas */}
       <div className="flex h-full shrink-0 items-center gap-1.5 xl:gap-2">
         {/* Online + banidos empilhados num só bloco sutil, clicável para /mural. */}
-        <CommunityCountersBar initial={communityCounters} isLoggedIn={!isVisitor} />
+        <CommunityCountersBar initial={communityCounters} isLoggedIn={!isVisitor} showMural={showMural} />
         {realIsAdmin && <PreviewModeToggle previewActive={previewActive} />}
         <div className={cn(topBarEndcap, "flex h-full items-stretch gap-1")}>
           {/* Atalhos do jogador: só ícone, com o nome no hover. */}

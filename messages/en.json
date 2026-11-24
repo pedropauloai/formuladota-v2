@@ -225,7 +225,8 @@
     "previewAsUserAria": "View as a regular user",
     "previewBack": "Back to admin",
     "previewAsUser": "View as user",
-    "lojaLive": "live"
+    "lojaLive": "live",
+    "onlineAria": "{online} online"
   },
   "capa": {
     "eyebrow": "Why FormulaDota",
@@ -293,9 +294,9 @@
     "levelMaxed": "Max level · Mystic",
     "levelToNext": "{pct}% to Level {next}",
     "sidebar": {
-      "recentTitle": "Recent matches",
-      "recentCta": "See all",
-      "recentEmpty": "No matches yet.",
+      "recentTitle": "PPA's recent matches",
+      "recentCta": "See all on OpenDota",
+      "recentEmpty": "PPA's matches show up here as soon as OpenDota answers.",
       "rankingTitle": "Ranking leaders",
       "rankingCta": "See full ranking",
       "rankingEmpty": "Ranking is empty.",
@@ -308,7 +309,9 @@
       "muralEmpty": "No one punished. Keep it that way.",
       "banned": "Banned",
       "suspended": "Suspended",
-      "vs": "vs"
+      "vs": "vs",
+      "won": "Won",
+      "lost": "Lost"
     },
     "enqueteLiga": {
       "question": "Would you play the FORMULADOTA League?",
@@ -326,7 +329,8 @@
         "limite": "Too many votes in a row. Wait a moment and try again.",
         "falhou": "Couldn't save your vote. Try again."
       }
-    }
+    },
+    "playWithPpa": "Play with PPA"
   },
   "hoverCard": {
     "level": "Level {level}",

@@ -225,7 +225,8 @@
     "previewAsUserAria": "Ver como usuario normal",
     "previewBack": "Volver a admin",
     "previewAsUser": "Ver como usuario",
-    "lojaLive": "en directo"
+    "lojaLive": "en directo",
+    "onlineAria": "{online} en línea"
   },
   "capa": {
     "eyebrow": "Por qué el FORMULADOTA",
@@ -293,9 +294,9 @@
     "levelMaxed": "Nivel máximo · Místico",
     "levelToNext": "{pct}% para el Nivel {next}",
     "sidebar": {
-      "recentTitle": "Partidas recientes",
-      "recentCta": "Ver todas",
-      "recentEmpty": "Aún no hay partidas.",
+      "recentTitle": "Partidas recientes de PPA",
+      "recentCta": "Ver todas en OpenDota",
+      "recentEmpty": "Las partidas de PPA aparecen aquí en cuanto OpenDota responda.",
       "rankingTitle": "Líderes del ranking",
       "rankingCta": "Ver ranking completo",
       "rankingEmpty": "El ranking está vacío.",
@@ -308,7 +309,9 @@
       "muralEmpty": "Nadie sancionado. Que siga así.",
       "banned": "Baneado",
       "suspended": "Suspendido",
-      "vs": "vs"
+      "vs": "vs",
+      "won": "Victoria",
+      "lost": "Derrota"
     },
     "enqueteLiga": {
       "question": "¿Jugarías la Liga del FORMULADOTA?",
@@ -326,7 +329,8 @@
         "limite": "Demasiados votos seguidos. Espera un momento e inténtalo de nuevo.",
         "falhou": "No se pudo registrar tu voto. Inténtalo de nuevo."
       }
-    }
+    },
+    "playWithPpa": "Jugar con PPA"
   },
   "hoverCard": {
     "level": "Nivel {level}",
