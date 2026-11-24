@@ -116,3 +116,11 @@ describe("compose nos canais do servidor", () => {
     expect(e.sala).toMatchObject({ tipo: "texto", modo: "palco", canal: true });
   });
 });
+
+describe("compose: o dono no canal de texto", () => {
+  it("nem o dono abre voz num canal de texto", () => {
+    const texto = { ...palco, kind: "texto" as const, title: "geral", maxMembers: 200, channelPosition: 10 };
+    const e = compose(verdict({ room: texto, decision: { ok: true, role: "dono" }, userId: "ppa" }), snap({ tracks: [] }), "ppa", "dono", 0);
+    expect(e.eu).toMatchObject({ papel: "dono", podeFalar: false, podeEscrever: true, podeCompartilharTela: false });
+  });
+});

@@ -86,6 +86,22 @@ export async function createPalco(owner, { maxMembers = 30 } = {}) {
   return { id: room.id };
 }
 
+/** Canal de teste do servidor (migration 198): de texto ou de voz (palco ou livre), aberto até 2100. */
+export async function createCanal(owner, { tipo, titulo, posicao, modo = "palco" }) {
+  const { data: room, error } = await db
+    .from("voice_rooms")
+    .insert({
+      kind: tipo, title: titulo, owner_id: owner.id, max_members: tipo === "texto" ? 200 : 30, voice_mode: modo,
+      channel_position: posicao, closes_at: "2100-01-01T00:00:00.000Z", is_test: true,
+    })
+    .select("id")
+    .single();
+  if (error) throw new Error(`canal de teste: ${error.message}`);
+  const { error: mErr } = await db.from("voice_room_members").insert({ room_id: room.id, user_id: owner.id, role: "dono", joined_via: "dono" });
+  if (mErr) throw new Error(`dono do canal de teste: ${mErr.message}`);
+  return { id: room.id };
+}
+
 /** Linha da flag que o servidor local lê (SALA_FLAG_KEY, src/lib/sala/flag-chave.ts): ligar a sala_voz
  *  de produção poria a aba da sala na barra de todo mundo durante o teste. */
 export const E2E_FLAG = "sala_voz_e2e";
@@ -223,6 +239,8 @@ export async function openSessionOf(roomId, userId) {
 export async function cleanup({ rooms, orders, users }) {
   const ids = users.map((u) => u.id);
   if (rooms.length) await db.from("voice_rooms").delete().in("id", rooms);
+  // Canais que o admin de teste criou pelo painel (no servidor local, sempre de teste).
+  if (ids.length) await db.from("voice_rooms").delete().eq("is_test", true).in("owner_id", ids);
   if (ids.length) await db.from("voice_bans").delete().in("owner_id", ids);
   await db.from("voice_room_reports").delete().eq("is_test", true).in("reporter_id", ids);
   await db.from("voice_room_subscriptions").delete().eq("is_test", true).eq("track_name", "e2e-teto-falso");

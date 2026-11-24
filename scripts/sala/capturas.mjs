@@ -1,6 +1,7 @@
-// Capturas da sala de voz para conferir a interface em 1920x1080 (e a plateia em 3440x1440): a sala
-// pública vista pelo dono (tela, plateia, mãos, palco e chat), a escolha da qualidade, a vista da
-// plateia, o painel de voz em outras páginas e a mentoria. Servidor local, banco de produção com salas e pessoas de teste (apagadas no
+// Capturas da sala de voz para conferir a interface em 1920x1080 (e a plateia em 3440x1440): o servidor
+// com a coluna de canais, o canal de voz em palco visto pelo dono (tela, plateia, mãos, palco e chat), a
+// escolha da qualidade, a vista da plateia, a voz livre, o canal de texto, o painel dos canais no admin,
+// o painel de voz em outras páginas e a mentoria. Servidor local, banco de produção com salas e pessoas de teste (apagadas no
 // fim) e o app real do Realtime. Liga só a linha de teste da flag (sala_voz_e2e), nunca a sala_voz.
 // A tela compartilhada é uma arte do Dota do próprio site, no lugar do padrão de teste do Chrome.
 // Rodar: pnpm sala:capturas <pasta-de-saida>
@@ -22,7 +23,7 @@ let browser = null;
 let server = null;
 
 const APELIDOS = {
-  dono: "PPA", aluno: "Aluno_Pos3", a: "TinkerMain", b: "Carry_BR", c: "SupBolado", d: "MidOuFeed", e: "Rampage77",
+  dono: "PPA", aluno: "Aluno_Pos3", a: "TinkerMain", b: "Carry_BR", c: "SupBolado", d: "MidOuFeed", e: "Rampage77", f: "LastPick", g: "Roshan_BR",
 };
 
 async function criarPessoas() {
@@ -93,10 +94,47 @@ async function painelForaDaSala(page) {
   }
 }
 
-async function salaPublica(p, ctx) {
+/** Os canais do servidor de teste: dois de texto e, com a sala da live, dois de voz. */
+async function canais(p) {
+  const geral = await s.createCanal(p.dono, { tipo: "texto", titulo: "geral", posicao: 10 });
+  const dicas = await s.createCanal(p.dono, { tipo: "texto", titulo: "dicas-de-mid", posicao: 20 });
+  const livre = await s.createCanal(p.dono, { tipo: "palco", titulo: "Sala livre", posicao: 20, modo: "livre" });
+  made.rooms.push(geral.id, dicas.id, livre.id);
+  return { geral, dicas, livre };
+}
+
+/** Voz livre: quem entra já fala; a coluna mostra quem está em cada canal de voz. */
+async function vozLivre(p, ctx, c) {
+  const pF = await s.enter(await ctx(p.f), c.livre.id, "f");
+  const pG = await s.enter(await ctx(p.g), c.livre.id, "g");
+  await waitFor(async () => (await pF.locator(`[data-canal-pessoa="${p.g.id}"]`).count()) > 0, 30_000);
+  await waitFor(async () => (await s.attr(pF, "data-audio-bytes")) > 0, 30_000);
+  await sleep(2500);
+  await foto(pF, "09-voz-livre.png");
+  return [pF, pG];
+}
+
+/** Canal de texto aberto por quem está na voz da live: a voz segue, e o painel fica no pé da coluna. */
+async function canalTexto(p, c, plateia, pDono) {
+  const pC = plateia.c;
+  await pC.locator(`[data-canal="${c.geral.id}"]`).click();
+  await pC.locator('[data-canal-fase="dentro"]').waitFor({ timeout: 30_000 });
+  await pDono.locator(`[data-canal="${c.geral.id}"]`).click();
+  await pDono.locator('[data-canal-fase="dentro"]').waitFor({ timeout: 30_000 });
+  for (const [page, texto] of [[pDono, "Servidor novo do FORMULADOTA: canais de texto e de voz aqui na esquerda."], [pC, "boa! dá pra ficar na voz e ler aqui ao mesmo tempo"], [pC, "alguém pra duo depois da live?"], [pDono, "Sala livre é pra conversar sem palco, todo mundo fala."]]) {
+    await falar(page, texto);
+    // Uma mensagem a cada 2 s por pessoa (a regra do chat).
+    await sleep(2100);
+  }
+  await waitFor(async () => (await pC.locator("[data-sala-mensagem]").count()) >= 4, 20_000);
+  await sleep(2500);
+  await foto(pC, "08-canal-texto.png");
+}
+
+async function salaPublica(p, ctx, c) {
   const palco = await s.createPalco(p.dono);
   made.rooms.push(palco.id);
-  await db.from("voice_rooms").update({ title: "Live do PPA: Tinker mid" }).eq("id", palco.id);
+  await db.from("voice_rooms").update({ title: "Live do PPA", channel_position: 10, closes_at: "2100-01-01T00:00:00.000Z" }).eq("id", palco.id);
   const pDono = await s.enter(await comTelaDoDota(await ctx(p.dono)), palco.id, "dono");
   const plateia = {};
   for (const tag of ["a", "b", "c", "d", "e"]) plateia[tag] = await s.enter(await ctx(p[tag]), palco.id, tag);
@@ -137,9 +175,15 @@ async function salaPublica(p, ctx) {
   await waitFor(async () => (await s.attr(largo, "data-video-altura")) > 0, 40_000);
   await sleep(3500);
   await foto(largo, "06-sala-publica-plateia-3440.png");
+  const livres = await vozLivre(p, ctx, c);
+  await canalTexto(p, c, plateia, pDono);
+  const admin = await pDono.context().newPage();
+  await admin.goto(`${s.BASE}/admin/salas`);
+  await admin.locator("[data-admin-canais]").waitFor({ timeout: 60_000 });
+  await foto(admin, "10-admin-canais.png");
   await painelForaDaSala(plateia.c);
 
-  for (const page of [pDono, largo, ...Object.values(plateia)]) await page.close().catch(() => null);
+  for (const page of [pDono, largo, admin, ...livres, ...Object.values(plateia)]) await page.close().catch(() => null);
 }
 
 async function mentoria(p, ctx) {
@@ -166,7 +210,7 @@ try {
   const p = await criarPessoas();
   browser = await chromium.launch({ channel: "chrome", headless: true, args: s.CHROME_ARGS });
   const ctx = (u) => s.buyerContext(browser, u, { desktop: true });
-  await salaPublica(p, ctx);
+  await salaPublica(p, ctx, await canais(p));
   await mentoria(p, ctx);
 } catch (err) {
   console.error("falhou:", err.message);

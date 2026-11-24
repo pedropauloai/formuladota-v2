@@ -85,7 +85,7 @@ Escopo: a mensalidade de R$ 120, com party com o PPA sempre que quiser pelo reve
 
 ## Comunicação, fase 1: sala de voz com tela (frente aberta em 23/11/2026)
 
-Escopo: salas de voz com compartilhamento de tela em `/sala/[id]`, pelo Cloudflare Realtime: a sala pública da live (palco, chat e plateia), a mentoria e a party, atrás da flag `sala_voz`. Spec: [comunicacao/spec.md](comunicacao/spec.md). Denominador fechado: **12 critérios**.
+Escopo: salas de voz com compartilhamento de tela em `/sala/[id]`, pelo Cloudflare Realtime: a sala pública da live (palco, chat e plateia), a mentoria e a party, e o servidor com canais de texto e de voz (R16), atrás da flag `sala_voz`. Spec: [comunicacao/spec.md](comunicacao/spec.md). Denominador fechado: **13 critérios**.
 
 | # | Critério | Como se prova | Estado |
 |---|---|---|---|
@@ -97,14 +97,15 @@ Escopo: salas de voz com compartilhamento de tela em `/sala/[id]`, pelo Cloudfla
 | C6 | Tipos, lint, testes e build fecham, inclusive permissão, palco, camada da tela, custo, atraso e leitura do SDP, e as travas resistem à mutação | verificação `verificar` do GitHub verde no PR da prova de conceito e `pnpm sala:mutacao` com todas as mutações vermelhas | sim (24/11/2026: `verificar` verde no PR 202, commit `33dfd39`; mutação 42 de 42) |
 | C7 | Mentoria: duas pessoas se ouvem e a tela chega em 1080p; mutar, expulsar, bloquear e denunciar funcionam. Sala pública: o ouvinte não fala, o chamado fala, a plateia recebe a camada leve, o chat chega e o apagado some, o banido não volta, os lugares contam. Portões: sem a marcação de 18 anos, de fora, convite e tela acima do teto. Navegação (R15): ir para `/party` e `/meta` e voltar sem cair da sala, com o áudio chegando, e recarregar volta sozinho | `pnpm sala:e2e` sai com 0 | sim (24/11/2026: 55 de 55 nas rodadas seguidas depois da reconexão automática, saindo com 0) |
 | C8 | Com a flag desligada a sala some para todos, inclusive o admin | `pnpm sala:e2e` (parte da flag) | sim (24/11/2026: tira quem está dentro e dá 404 na sala e no painel até para o admin; o teste local liga a linha `sala_voz_e2e`, e `flag-chave.test.ts` prova que produção lê só a `sala_voz`) |
-| C9 | A prova de conceito está no ar, atrás da flag | deploy pela cópia do WSL e `pnpm cf:verificar` com `falhas: 0` | não |
+| C9 | A prova de conceito está no ar, atrás da flag | deploy pela cópia do WSL e `pnpm cf:verificar` com `falhas: 0` | sim (24/11/2026: PRs 202, 213 e 214 publicados pela cópia do WSL com `falhas: 0`; flag ligada e `pnpm sala:producao` 6 de 6 no domínio real) |
 | C10 | Mentoria real de 1 hora: tela em 1080p em pelo menos 90% do tempo de tela, perda de pacote abaixo de 2%, voz picotada abaixo de 2% sem reclamação, atraso estimado p95 abaixo de 500 ms, consumo dentro do orçamento | consulta da seção 13 da spec, com o resultado e o número do painel da Cloudflare na nota compartilhada | não |
 | C11 | Primeira live com a sala pública: atraso estimado p95 abaixo de 500 ms para a plateia, perda abaixo de 2% e consumo dentro do orçamento | consulta da seção 13 da spec na sala pública, na nota compartilhada | não |
 | C12 | Worktree limpo e branches da frente apagados | `git status` vazio e `git ls-remote --heads origin` sem os branches mesclados | não |
+| C13 | Servidor com canais (R16): a coluna lista os canais de texto e de voz; no canal de texto a mensagem chega ao outro, fica guardada e o dono apaga, sem mídia nenhuma; na voz livre quem entra fala e um ouve o outro; trocar de canal não derruba a voz; o admin cria, renomeia, sobe, muda o modo e apaga | `pnpm sala:e2e` (parte dos canais) sai com 0 e a migration 198 registrada | não |
 
 ### O que o percentual não significa
 
-- 12 de 12 não prova que a sala pública aguenta mais gente do que a primeira live teve: a escala passa pelos testes e por uma consulta por batimento, e o resto se mede live a live.
+- 13 de 13 não prova que a sala pública aguenta mais gente do que a primeira live teve: a escala passa pelos testes e por uma consulta por batimento, e o resto se mede live a live.
 - O atraso medido é uma estimativa pela `getStats` (rede mais buffer), sem o tempo de captura e de tela; a meta tem folga por isso.
 - Não prova conformidade jurídica com o ECA Digital: os controles estão ligados aos artigos na spec, e a regulamentação da ANPD pode pedir mais (verificação de idade mais forte, por exemplo).
 - Não prova que ninguém mente a idade: a maioridade é marcada pela pessoa (decisão do PPA de 23/11/2026), com conta identificada, denúncia e banimento.

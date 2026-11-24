@@ -43,6 +43,7 @@ O que toda sala faz: voz com cancelamento de eco, supressão de ruído e ganho a
 | R13 | Teto de tráfego que bloqueia tela nova, baixa a camada da plateia antes disso e avisa o PPA. |
 | R14 | Métricas de cada pessoa a cada 10 s: perda de pacote, jitter, RTT, resolução e quadros, e o atraso estimado. |
 | R15 | Navegar pelo site sem cair da sala, como no Discord (exigência do PPA, 24/11/2026): a conexão (a `RTCPeerConnection`, as faixas e o batimento) vive fora da página da sala, e um painel de voz compacto aparece em todas as páginas com o nome da sala, quem está falando, mutar, sair e voltar para a sala. A navegação interna é pelo `Link` do Next (no cliente). Recarregar a página volta para a sala sozinho. |
+| R16 | Servidor único do FORMULADOTA, como no Discord (pedido do PPA, 24/11/2026): canais de texto e de voz numa coluna à esquerda. O canal de voz pode ser palco (a plateia ouve, o dono chama) ou livre (quem entra já fala); o canal de texto é só o chat, guardado enquanto o canal existir. Mentoria e party aparecem como salas privadas para quem pode entrar. O PPA cria, renomeia, ordena, muda o modo, o público e quem escreve, e apaga canais no `/admin/salas`; banimento e convite seguem valendo. |
 
 ### Não funcionais
 
@@ -148,6 +149,10 @@ Site em Next.js 16 no Cloudflare Workers pelo OpenNext; Supabase com RLS obrigat
 - **Peso do site:** o painel vai em todas as páginas, mas o código da conexão (partytracks e rxjs) só carrega na página da sala ou quando há sala anotada para retomar.
 - **Painel:** no canto de baixo, em cima da party, como no Discord (escolha do PPA em 24/11/2026, entre essa e uma pílula dentro da barra de cima).
 
+### ADR-008: cada canal é uma sala
+
+**Estado:** aceita (R16). O canal não é uma tabela nova: é uma linha de `voice_rooms` com lugar na lista (`channel_position`, migration 198). O canal de texto (`kind = 'texto'`) herda da sala o chat, a moderação (apagar, expulsar, banir), o ritmo, a denúncia, a porta dos 18 anos, o benefício e a presença por batimento, sem duplicar regra; ele nunca abre sessão no SFU nem gera TURN (o intermediário recusa com `sala_sem_midia`). O canal de voz é a sala de palco com o modo (`voice_mode`): no livre, a regra de acesso devolve falante a quem entra, e a linha antiga da plateia vale como falante (`effectiveRole`), então a voz de todos chega a todos; cheio, só o Battlepass fura a fila. Canal fica aberto (`closes_at` em 2100) até o PPA apagar, e apagar encerra a sala como antes. A lista sai de duas funções só da service role: `voice_channel_list` (igual para todos, guardada 5 s por instância, com até 12 pessoas por canal de voz) e `voice_private_rooms` (as privadas da pessoa, 15 s). A coluna mora no layout da `/sala`, então trocar de canal não derruba a voz (ADR-007). Tela compartilhada por qualquer um na voz livre fica para depois: hoje só o dono compartilha no canal de voz.
+
 ## 6. Rotas do servidor
 
 Todas exigem login (cookie do Supabase) e a flag ligada, validam o corpo com Zod e respondem em JSON no formato do SFU (`errorCode`, `errorDescription`). `/api/sala` fica entre as rotas de fluxo próprio do middleware: cada rota confere login, banimento e acesso e responde 401 sem login.
@@ -244,7 +249,7 @@ A Lei 15.211/2025 (ECA Digital) vale para serviço "de acesso provável" por ado
 |---|---|---|
 | Sessões (com IP e navegador) | 6 meses, depois o cron apaga (menos as de sala com denúncia aberta) | registro de acesso, Lei 12.965/2014 (Marco Civil), art. 15 |
 | Faixas publicadas e recebidas | junto com a sessão | base do custo (só precisa de 30 dias) |
-| Chat | 30 dias (`chat_retention_days`), menos o de sala com denúncia aberta | moderação |
+| Chat | 30 dias (`chat_retention_days`), menos o de sala com denúncia aberta; no canal de texto aberto, enquanto o canal existir (apagado o canal, vale o prazo) | moderação; o canal de texto é a conversa guardada da comunidade |
 | Métricas | 30 dias | aceite e diagnóstico (o banco do plano grátis tem 500 MB) |
 | Denúncias e banidos | sem apagar automático na fase 1 | apuração |
 | Marcação de idade | enquanto a conta existir | prova da declaração |
@@ -342,12 +347,14 @@ select s.user_id,
 
 Usa o kit `src/components/v2` (painel, placa, `v2Page`), os tokens atuais e ícones do `lucide-react`, sem linguagem visual nova: a sessão de design troca a pele depois. Textos em `messages/{pt,en,es}.json`.
 
-- **`/sala`** (endereço fixo para anunciar na live): leva à sala pública aberta do PPA; sem sala aberta, diz que ela abre quando a live começar.
+- **`/sala`** (endereço fixo para anunciar na live): leva ao canal de voz em modo palco onde o PPA está; sem live, ao primeiro canal de texto; sem canal, diz que o servidor ainda não tem canais.
+- **Coluna de canais (R16):** à esquerda, na altura da tela, como no Discord: o nome FORMULADOTA (com a engrenagem do admin), canais de texto (#), canais de voz (palco ou livre, com quem está dentro, microfone, tela e o selo Ao vivo de quem compartilha), salas privadas e, no pé, o painel da conexão de voz. Renova a cada 10 s; quem fala, na sala em que a pessoa está, acende na hora.
+- **Canal de texto:** cabeçalho com o nome, as mensagens da mais velha para a mais nova com avatar e nome no começo de cada sequência, "Carregar mensagens anteriores" (50 por vez) e o campo fixo embaixo; o dono apaga e bane, qualquer um denuncia; com o chat fechado, só o dono escreve.
 - **Trocar a janela** (24/11/2026): quem compartilha escolhe outra janela sem parar a tela; a captura nova entra na mesma faixa (`replaceTrack`), e a plateia segue recebendo sem renegociar. Parar e compartilhar de novo cria faixa nova, e a renegociação às vezes derruba a sessão de quem assiste no SFU (a ligação se refaz sozinha, ADR-007).
-- **`/sala/[id]`**: título e tipo, "Esta sala não é gravada", atraso e qualidade da conexão; o palco com a tela (e a escolha "alta" ou "leve" para quem assiste); na sala pública, quem está no palco, a plateia com as mãos levantadas e o chat; os controles (mutar, levantar a mão, compartilhar a tela com a escolha da qualidade e o consumo por hora, volumes, sair).
+- **`/sala/[id]`** (canal de voz): cabeçalho do canal com o modo, "Esta sala não é gravada", atraso e qualidade da conexão; o palco com a tela (e a escolha "alta" ou "leve" para quem assiste); na sala pública, quem está no palco, a plateia com as mãos levantadas e o chat; os controles (mutar, levantar a mão, compartilhar a tela com a escolha da qualidade e o consumo por hora, volumes, sair).
 - **Primeira entrada:** a marcação "Tenho 18 anos ou mais" com as regras da sala.
-- **Painel de voz (R15):** em todas as páginas fora da sala: o nome da sala (que leva de volta a ela), quem está falando ou quantos estão na sala, mutar, parar a tela, sair e, quando a pessoa é tirada da sala, o motivo até ela fechar o aviso.
-- **`/admin/salas`**: abrir a sala pública da live, a de mentoria (de um horário pago) e a da party; link e convite; encerrar; banidos (desbanir); consumo estimado e medido; denúncias.
+- **Painel de voz (R15):** no pé da coluna de canais dentro da `/sala`, e no canto em todas as outras páginas: o nome da sala (que leva de volta a ela), quem está falando ou quantos estão na sala, mutar, parar a tela, sair e, quando a pessoa é tirada da sala, o motivo até ela fechar o aviso.
+- **`/admin/salas`**: os canais do servidor (criar, renomear, subir e descer, modo palco ou livre, só Battlepass, só o dono escreve, apagar), a sala de mentoria (de um horário pago) e a da party; link e convite; encerrar; banidos (desbanir); consumo estimado e medido; denúncias.
 
 As rotas para a barra de cima (sessão de design): `/sala` (sala pública da live) e `/admin/salas`.
 

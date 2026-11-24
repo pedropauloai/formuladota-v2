@@ -1,13 +1,14 @@
-// /sala/[id]: sala de voz com tela (spec: docs/comunicacao/spec.md). Flag sala_voz desligada dá 404
-// para todos, inclusive o admin. A página decide o portão (login, convite, maioridade, banido...) pela
-// mesma regra das rotas da API; dentro, a tela do cliente fala com /api/sala/[id].
+// /sala/[id]: um canal do servidor FORMULADOTA (spec: docs/comunicacao/spec.md): canal de voz com tela,
+// canal de texto ou sala privada. Flag sala_voz desligada dá 404 para todos, inclusive o admin. A página
+// decide o portão (login, convite, maioridade, banido...) pela mesma regra das rotas da API; dentro, a
+// tela do cliente fala com /api/sala/[id]. A coluna de canais e o invólucro vêm do layout.
 
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { z } from "zod";
-import { ClientShell } from "@/components/client-shell/shell";
 import { AceitarConvite } from "@/components/sala/aceitar-convite";
+import { CanalTexto } from "@/components/sala/canal-texto";
 import { Maioridade } from "@/components/sala/maioridade";
 import { Portao, type PortaoTipo } from "@/components/sala/portao";
 import { SalaView } from "@/components/sala/sala-view";
@@ -44,8 +45,9 @@ async function Conteudo({ id, convite }: { id: string; convite: string | null })
   const ctx = await loadCallContext(id);
   const next = convite ? `/sala/${id}?convite=${convite}` : `/sala/${id}`;
   if (ctx.decision.ok && ctx.room && ctx.settings) {
+    if (ctx.room.kind === "texto") return <CanalTexto key={id} roomId={id} titulo={ctx.room.title} />;
     const share = canShareScreen(ctx.decision.role, ctx.room.kind, ctx.room.screenPolicy, ctx.settings.partyScreenEnabled);
-    return <SalaView roomId={id} titulo={ctx.room.title} tipo={ctx.room.kind} mostrarTela={share} />;
+    return <SalaView key={id} roomId={id} titulo={ctx.room.title} tipo={ctx.room.kind} modo={ctx.room.voiceMode} mostrarTela={share} />;
   }
   if (ctx.decision.ok) notFound();
   const code = ctx.decision.code;
@@ -64,9 +66,5 @@ export default async function SalaPage({ params, searchParams }: { params: Param
   if (!(await salaVozOn())) notFound();
   const raw = (await searchParams).convite;
   const convite = typeof raw === "string" && Convite.safeParse(raw).success ? raw : null;
-  return (
-    <ClientShell currentRoute="/sala" hideRightSidebar hideBottomBar>
-      <Conteudo id={id} convite={convite} />
-    </ClientShell>
-  );
+  return <Conteudo id={id} convite={convite} />;
 }

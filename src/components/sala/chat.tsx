@@ -40,6 +40,8 @@ function Mensagem({ m, p }: { m: MensagemEstado; p: Props }) {
   const autor = m.userId;
   const banir = async () => {
     if (!autor) return;
+    // A confirmação abre no corpo da página: na tela cheia ficaria escondida atrás da tela.
+    if (document.fullscreenElement) await document.exitFullscreen().catch(() => null);
     if (await confirm({ title: t("banir"), message: t("banirConfirma", { nome }), confirmLabel: t("confirmar"), variant: "destructive" })) p.onBanir(autor);
   };
   return (

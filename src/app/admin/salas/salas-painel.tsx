@@ -1,13 +1,13 @@
 "use client";
 
-// Lista de salas abertas e horários pagos, com abrir a sala pública da live, criar, copiar link e
-// convite, e encerrar.
+// Salas privadas abertas (mentoria e party) e horários pagos: criar, copiar link e convite, e encerrar.
+// Os canais do servidor ficam em canais-painel.tsx.
 
 import { useState, useTransition } from "react";
-import { Copy, Headphones, Plus, Radio, X } from "lucide-react";
+import { Copy, Headphones, Plus, X } from "lucide-react";
 import type { Overview } from "@/lib/sala/admin";
 import type { RoomKind } from "@/lib/sala/tipos";
-import { abrirSalaPublica, criarSalaMentoria, criarSalaParty, encerrarSala, novoConvite } from "./actions";
+import { criarSalaMentoria, criarSalaParty, encerrarSala, novoConvite } from "./actions";
 
 /** Só o que a lista mostra: o hash do convite e o resto da sala ficam no servidor. */
 export interface SalaResumo {
@@ -29,7 +29,7 @@ interface Props {
 const quando = (iso: string) => new Date(iso).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", dateStyle: "short", timeStyle: "short" });
 const botao = "inline-flex items-center gap-1.5 rounded-sm border border-border-strong px-3 py-1.5 text-xs text-text-body hover:bg-bg-elevated hover:text-text-display disabled:opacity-50";
 
-function Copiar({ texto, rotulo }: { texto: string; rotulo: string }) {
+export function Copiar({ texto, rotulo }: { texto: string; rotulo: string }) {
   const [ok, setOk] = useState(false);
   return (
     <button type="button" className={botao} onClick={() => void navigator.clipboard.writeText(texto).then(() => setOk(true))}>
@@ -44,7 +44,6 @@ export function SalasPainel({ site, rooms, bookings, liveOnAir }: Props) {
   const [mensagem, setMensagem] = useState<string | null>(null);
   const [convites, setConvites] = useState<Record<string, string>>({});
   const [alunoTela, setAlunoTela] = useState(false);
-  const [soBeneficio, setSoBeneficio] = useState(false);
   const link = (id: string) => `${site}/sala/${id}`;
 
   function guardar(res: { ok: true; roomId: string; convite: string | null } | { ok: false; erro: string }, aviso = "Sala aberta. Copie o link e mande ao aluno pelo WhatsApp.") {
@@ -58,15 +57,15 @@ export function SalasPainel({ site, rooms, bookings, liveOnAir }: Props) {
       {mensagem && <p className="rounded-md border border-gold/50 bg-bg-base p-3 text-sm text-text-body">{mensagem}</p>}
 
       <section className="space-y-3">
-        <h2 className="font-display text-lg font-bold uppercase text-text-display">Salas abertas</h2>
-        {rooms.length === 0 && <p className="text-sm text-text-muted">Nenhuma sala aberta.</p>}
+        <h2 className="font-display text-lg font-bold uppercase text-text-display">Salas privadas abertas</h2>
+        {rooms.length === 0 && <p className="text-sm text-text-muted">Nenhuma sala privada aberta.</p>}
         <ul className="space-y-2">
           {rooms.map((r) => (
             <li key={r.id} className="flex flex-wrap items-center gap-3 rounded-md border border-border-subtle bg-bg-base p-3 text-sm" data-admin-sala={r.id}>
               <Headphones className="size-4 text-gold" aria-hidden="true" />
               <span className="text-text-display">{r.title}</span>
               <span className="text-xs text-text-muted">
-                {r.kind === "palco" ? "sala pública" : r.kind} · {r.online} online · fecha {quando(r.closesAt)}
+                {r.kind} · {r.online} online · fecha {quando(r.closesAt)}
                 {r.isTest ? " · teste" : ""}
               </span>
               <span className="ml-auto flex flex-wrap gap-2">
@@ -89,22 +88,6 @@ export function SalasPainel({ site, rooms, bookings, liveOnAir }: Props) {
             </li>
           ))}
         </ul>
-      </section>
-
-      <section className="space-y-3" data-admin-salas-publica="">
-        <h2 className="font-display text-lg font-bold uppercase text-text-display">Sala pública da live</h2>
-        <p className="text-xs text-text-muted">Anuncie na live o endereço fixo: ele leva à sala pública aberta. Quem chega ouve e assiste; fala quem você chamar.</p>
-        <label className="flex items-center gap-2 text-xs text-text-muted">
-          <input type="checkbox" checked={soBeneficio} onChange={(e) => setSoBeneficio(e.target.checked)} />
-          Só quem tem Battlepass ou vaga na party do dia
-        </label>
-        <span className="flex flex-wrap gap-2">
-          <button type="button" className={botao} disabled={pending} data-admin-abrir-publica="" onClick={() => start(async () => guardar(await abrirSalaPublica(soBeneficio), `Sala pública aberta. Anuncie ${site}/sala na live.`))}>
-            <Radio className="size-3.5" aria-hidden="true" />
-            Abrir a sala pública
-          </button>
-          <Copiar texto={`${site}/sala`} rotulo="Copiar o endereço fixo" />
-        </span>
       </section>
 
       <section className="space-y-3">

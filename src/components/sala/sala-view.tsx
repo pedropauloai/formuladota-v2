@@ -1,17 +1,18 @@
 "use client";
 
-// Tela da sala de voz (spec, seção 14), com o kit v2 sem pele nova: o palco com a tela, os controles,
-// e ao lado o chat (sala pública) e as pessoas. Os atributos data-* expõem o que o e2e confere.
+// Canal de voz do servidor (spec, seção 14), com o kit v2 sem pele nova: o cabeçalho do canal, o palco
+// com a tela e os controles, e ao lado o chat (canal de voz público) e as pessoas. Os atributos data-*
+// expõem o que o e2e confere.
 
-import { useState, useSyncExternalStore, type ComponentProps } from "react";
+import { useEffect, useState, useSyncExternalStore, type ComponentProps } from "react";
 import { useTranslations } from "next-intl";
-import { Loader2, Radio, ShieldCheck, Volume2 } from "lucide-react";
-import { Panel, plate, v2Page } from "@/components/v2";
+import { Loader2, Lock, Radio, ShieldCheck, Volume2 } from "lucide-react";
+import { Panel, plate } from "@/components/v2";
 import { captureSupport } from "@/lib/sala/cliente/midia";
 import type { SessaoSala, SessaoSnapshot } from "@/lib/sala/cliente/sessao-sala";
 import { useSala } from "@/lib/sala/cliente/use-sala";
 import { qualityLevel } from "@/lib/sala/metricas";
-import type { RoomKind } from "@/lib/sala/tipos";
+import type { RoomKind, VoiceMode } from "@/lib/sala/tipos";
 import { cn } from "@/lib/utils";
 import { Chat } from "./chat";
 import { Controles } from "./controles";
@@ -25,12 +26,13 @@ interface Props {
   roomId: string;
   titulo: string;
   tipo: RoomKind;
+  modo: VoiceMode;
   /** Pela regra da sala, esta pessoa pode compartilhar a tela (o servidor confere de novo). */
   mostrarTela: boolean;
 }
 
 const QUALIDADE = { boa: "qualidadeBoa", instavel: "qualidadeInstavel", ruim: "qualidadeRuim" } as const;
-const TIPO = { palco: "tipoPalco", mentoria: "tipoMentoria", party: "tipoParty" } as const;
+const ROTULO = { palco: "modoPalco", livre: "modoLivre", mentoria: "tipoMentoria", party: "tipoParty" } as const;
 
 const nada = () => () => undefined;
 const suporteAgora = () => {
@@ -53,20 +55,22 @@ function Avisos({ mostrarTela }: { mostrarTela: boolean }) {
   );
 }
 
-function Cabecalho({ titulo, tipo, snap }: { titulo: string; tipo: RoomKind; snap: SessaoSnapshot }) {
+function Cabecalho({ titulo, tipo, modo, snap }: { titulo: string; tipo: RoomKind; modo: VoiceMode; snap: SessaoSnapshot }) {
   const t = useTranslations("sala");
   const q = snap.qualidade;
   const nivel = q ? qualityLevel(q) : null;
+  const privada = tipo === "mentoria" || tipo === "party";
+  const Icone = privada ? Lock : modo === "livre" ? Volume2 : Radio;
   return (
-    <header className="flex flex-wrap items-end justify-between gap-3">
-      <div className="space-y-1">
-        <span className={plate({ kind: "tag", tone: tipo === "mentoria" ? "gold" : "live" })}>{t(TIPO[tipo])}</span>
-        <h1 className="font-display-condensed text-[2.6rem] uppercase leading-[0.9] text-text-display">{titulo}</h1>
-        <p className="flex items-center gap-1.5 text-xs text-text-muted">
-          <ShieldCheck className="size-3.5" aria-hidden="true" />
-          {t("naoGravada")}
-        </p>
-      </div>
+    <header className="flex min-h-12 flex-wrap items-center gap-x-3 gap-y-1 border-b border-border-subtle py-2">
+      <Icone className="size-5 shrink-0 text-text-muted" aria-hidden="true" />
+      <h1 className="truncate font-display text-base font-semibold text-text-display">{titulo}</h1>
+      <span className="text-xs text-text-muted" data-sala-modo={privada ? tipo : modo}>{t(ROTULO[privada ? tipo : modo])}</span>
+      <p className="flex items-center gap-1.5 text-xs text-text-muted">
+        <ShieldCheck className="size-3.5" aria-hidden="true" />
+        {t("naoGravada")}
+      </p>
+      <span className="ml-auto" />
       {snap.reconectando ? (
         <p className="flex items-center gap-1.5 text-xs text-gold" data-sala-reconectando="">
           <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
@@ -132,11 +136,15 @@ function propsDoChat(snap: SessaoSnapshot, sessao: SessaoSala, o: { nomeDe: (id:
   };
 }
 
-function NaSala({ roomId, tipo, mostrarTela, snap, sessao }: Props & { snap: SessaoSnapshot; sessao: SessaoSala }) {
+function NaSala({ roomId, tipo, modo, mostrarTela, snap, sessao }: Props & { snap: SessaoSnapshot; sessao: SessaoSala }) {
   const t = useTranslations("sala");
   const [volumeVoz, setVolumeVoz] = useState(1);
   const [volumeJogo, setVolumeJogo] = useState(1);
   const [alvo, setAlvo] = useState<Alvo | null>(null);
+  // As janelas (denunciar, confirmar) abrem no corpo da página: na tela cheia ficariam escondidas atrás da tela.
+  useEffect(() => {
+    if (alvo && document.fullscreenElement) void document.exitFullscreen().catch(() => null);
+  }, [alvo]);
   const [escolhendo, setEscolhendo] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const estado = snap.estado;
@@ -178,7 +186,7 @@ function NaSala({ roomId, tipo, mostrarTela, snap, sessao }: Props & { snap: Ses
           membros={membros} pessoas={snap.pessoas} eu={eu?.userId ?? null} souDono={souDono} tipo={tipo} falando={snap.falando}
           falantesMax={estado?.sala?.falantesMax ?? 0} onModerar={(id, acao) => void moderar(id, acao)}
           onBloquear={(id) => void sessao.bloquear(id)} onDenunciar={(id) => setAlvo({ tipo: "pessoa", userId: id, nome: nomeDe(id) })}
-          volumes={snap.volumes} onVolumeDe={(id, v) => sessao.setVolumeDe(id, v)}
+          modo={modo} volumes={snap.volumes} onVolumeDe={(id, v) => sessao.setVolumeDe(id, v)}
         />
       </aside>
       <Denuncia
@@ -203,8 +211,8 @@ export function SalaView(props: Props) {
   const { snap, sessao, entrar, retomando } = useSala(props.roomId, props.titulo, props.tipo);
   return (
     <div
-      // 1152 px até 2600 px de tela, como a /loja: a coluna de amigos (sobreposta) não cobre os controles.
-      className={cn(v2Page, "relative isolate mx-auto w-full max-w-6xl space-y-5 overflow-x-clip px-4 py-6 md:px-8 md:py-10 min-[2600px]:max-w-[1500px]")}
+      // Toda a largura ao lado da coluna de canais (a escala da tela grande vem do servidor).
+      className="relative isolate w-full space-y-4 overflow-x-clip pb-4"
       data-sala-fase={snap.fase}
       data-sala-motivo={snap.motivo ?? ""}
       data-sala-papel={snap.papel ?? ""}
@@ -213,7 +221,7 @@ export function SalaView(props: Props) {
       data-video-bytes={snap.medidas.videoBytes}
       data-video-altura={snap.medidas.videoAltura ?? 0}
     >
-      <Cabecalho titulo={props.titulo} tipo={props.tipo} snap={snap} />
+      <Cabecalho titulo={props.titulo} tipo={props.tipo} modo={props.modo} snap={snap} />
       {snap.fase === "na_sala" ? <NaSala {...props} snap={snap} sessao={sessao} /> : <Entrada snap={snap} entrar={entrar} retomando={retomando} mostrarTela={props.mostrarTela} />}
     </div>
   );

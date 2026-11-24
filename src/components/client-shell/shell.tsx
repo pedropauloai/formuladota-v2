@@ -218,6 +218,8 @@ export async function ClientShell({
   const shellHeightCls = "h-screen";
   // Reserva espaço de bottom-bar (~80-96px). Sem bottom-bar, sidebars/main vão
   // até o fim da viewport.
+  // Na /sala a coluna de canais ocupa a faixa da esquerda: os amigos começam fechados (abrem no botão).
+  const friendsStartOpen = currentRoute === "/sala" ? false : sidebarExpanded;
   const bottomReserveCls = hideBottomBar ? "bottom-0" : "bottom-[80px] xl:bottom-[96px]";
   const mainPbCls = hideBottomBar ? "" : "pb-[80px] xl:pb-[96px] 2xl:pb-[112px]";
 
@@ -354,7 +356,7 @@ export async function ClientShell({
             seasonRank={miniSeasonRank}
             seasonStars={miniSeasonStars}
             seasonLeaderboardNumber={miniSeasonLeaderboardNumber}
-            initialExpanded={sidebarExpanded}
+            initialExpanded={friendsStartOpen}
             lockedExpanded={currentRoute === "/"}
             currentUserId={user?.id ?? null}
             initialFriends={friendsPanel.friends}
@@ -491,7 +493,7 @@ export async function ClientShell({
           honorRank={miniHonorRank}
           seasonRank={miniSeasonRank}
           seasonLeaderboardNumber={miniSeasonLeaderboardNumber}
-          initialExpanded={sidebarExpanded}
+          initialExpanded={friendsStartOpen}
           lockedExpanded={currentRoute === "/"}
           currentUserId={user?.id ?? null}
           initialFriends={friendsPanel.friends}

@@ -2,8 +2,8 @@
 
 // Palco da sala: a tela compartilhada por alguém (com o áudio do jogo) ou, para quem compartilha,
 // a própria tela muda, como os outros veem. Sem tela no ar, um aviso. Tela cheia pelo botão do canto
-// ou pela tecla F (fora dos campos de texto), com o chat sobreposto à direita, que se esconde e volta,
-// e o volume da tela à mão, como no modo cinema da Twitch.
+// ou pela tecla F (fora dos campos de texto), com o chat sobreposto à direita, que se esconde e volta
+// (tecla C), e o volume da tela à mão (tecla M muta e volta), como no modo cinema da Twitch.
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
@@ -82,14 +82,33 @@ function BarraDaTelaCheia({ p, comChat, onChat }: { p: Props; comChat: boolean; 
   );
 }
 
+/** Na tela cheia: C esconde ou mostra o chat e M muta ou devolve o som da tela (fora dos campos de texto). */
+function useTeclasDaTelaCheia(cheia: boolean, p: Props, setComChat: (f: (v: boolean) => boolean) => void) {
+  const antesDoMudo = useRef(1);
+  useEffect(() => {
+    if (!cheia) return;
+    const tecla = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey || e.altKey || digitando(e)) return;
+      if (e.key === "c" || e.key === "C") setComChat((v) => !v);
+      if (e.key !== "m" && e.key !== "M") return;
+      if (p.volumeJogo > 0) antesDoMudo.current = p.volumeJogo;
+      p.onVolumeJogo(p.volumeJogo > 0 ? 0 : antesDoMudo.current || 1);
+    };
+    document.addEventListener("keydown", tecla);
+    return () => document.removeEventListener("keydown", tecla);
+  }, [cheia, p, setComChat]);
+}
+
 export function Palco(p: Props) {
   const t = useTranslations("sala");
   const temTela = !!(p.minhaTela || p.tela);
   const { caixa, cheia, alternar } = useTelaCheia(temTela);
   const [comChat, setComChat] = useState(true);
+  useTeclasDaTelaCheia(cheia, p, setComChat);
   const label = p.minhaTela ? t("suaTela") : p.telaDe ? t("telaDe", { nome: p.nomeDe(p.telaDe) }) : t("semTela");
   return (
-    <div ref={caixa} className={cn("relative w-full", cheia && "bg-black")} data-sala-tela-cheia={cheia ? "sim" : "nao"}>
+    // Na altura da área do canal (100cqh) cabem o cabeçalho, a tela e a barra de controles sem rolar.
+    <div ref={caixa} className={cn("relative mx-auto w-full max-w-[calc((100cqh-12rem)*16/9)]", cheia && "bg-black")} data-sala-tela-cheia={cheia ? "sim" : "nao"}>
       <Panel className={cn("relative w-full overflow-hidden p-0", cheia ? "h-screen rounded-none" : "aspect-video")} data-sala-palco={p.minhaTela ? "minha" : p.tela ? "remota" : "vazio"}>
         {p.minhaTela ? (
           <Video stream={p.minhaTela} muted volume={0} label={label} />

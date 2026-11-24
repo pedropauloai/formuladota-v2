@@ -250,6 +250,22 @@ begin
   when others then
     r := array_append(r, ('AK_logado_nao_le_o_consumo=FALHOU(' || sqlerrm || ')')::text);
   end;
+  begin
+    perform public.voice_channel_list(false);
+    r := array_append(r, 'AL_logado_nao_chama_a_lista_de_canais_do_servidor=FALHOU(executou)'::text);
+  exception when insufficient_privilege then
+    r := array_append(r, 'AL_logado_nao_chama_a_lista_de_canais_do_servidor=ok'::text);
+  when others then
+    r := array_append(r, ('AL_logado_nao_chama_a_lista_de_canais_do_servidor=FALHOU(' || sqlerrm || ')')::text);
+  end;
+  begin
+    perform public.voice_private_rooms(u1, false);
+    r := array_append(r, 'AM_logado_nao_le_as_salas_privadas_de_outra_pessoa=FALHOU(executou)'::text);
+  exception when insufficient_privilege then
+    r := array_append(r, 'AM_logado_nao_le_as_salas_privadas_de_outra_pessoa=ok'::text);
+  when others then
+    r := array_append(r, ('AM_logado_nao_le_as_salas_privadas_de_outra_pessoa=FALHOU(' || sqlerrm || ')')::text);
+  end;
 
   -- Marcação de 18 anos: só a da própria pessoa, uma vez, e repetir não dá erro.
   begin
@@ -342,6 +358,14 @@ begin
     r := array_append(r, 'AE3_visitante_nao_le_o_estado=ok'::text);
   when others then
     r := array_append(r, ('AE3_visitante_nao_le_o_estado=FALHOU(' || sqlerrm || ')')::text);
+  end;
+  begin
+    perform public.voice_channel_list(false);
+    r := array_append(r, 'AE4_visitante_nao_chama_a_lista_de_canais=FALHOU(executou)'::text);
+  exception when insufficient_privilege then
+    r := array_append(r, 'AE4_visitante_nao_chama_a_lista_de_canais=ok'::text);
+  when others then
+    r := array_append(r, ('AE4_visitante_nao_chama_a_lista_de_canais=FALHOU(' || sqlerrm || ')')::text);
   end;
 
   raise exception 'RESULTADO: %', array_to_string(r, ' ');

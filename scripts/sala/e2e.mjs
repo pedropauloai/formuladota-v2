@@ -1,7 +1,7 @@
 // Prova ponta a ponta da sala de voz (spec, seção 18): servidor local, banco de produção com salas e
 // usuários de teste (is_test, apagados no fim) e o app real do Cloudflare Realtime. Na mentoria, duas
 // pessoas com mídia falsa do Chrome se ouvem e a tela chega; na sala pública, a plateia, o palco, o
-// chat e a moderação (e2e-palco.mjs); e as travas (expulsar, bloquear, denunciar, maioridade, fora da
+// chat e a moderação (e2e-palco.mjs); os canais do servidor, de texto e de voz livre (e2e-canais.mjs); e as travas (expulsar, bloquear, denunciar, maioridade, fora da
 // sala, convite, teto e flag) seguram. Sai com 1 na primeira falha.
 // Rodar: pnpm sala:e2e   (SALA_E2E_PORT reaproveita um servidor local de pé; padrão 3200)
 
@@ -11,6 +11,7 @@ process.env.LOJA_E2E_PORT = process.env.SALA_E2E_PORT ?? "3200";
 const s = await import("./e2e-comum.mjs");
 process.env.SALA_FLAG_KEY = s.E2E_FLAG;
 const { palco } = await import("./e2e-palco.mjs");
+const { canais } = await import("./e2e-canais.mjs");
 const { BASE, db, checker, waitFor, sleep } = s;
 const { results, check } = checker();
 const made = { rooms: [], orders: [], users: [] };
@@ -191,6 +192,7 @@ try {
   await reportAndCap(t, pDono, pAluno);
   await blockAndKick(t, pDono, pAluno);
   const pPalco = await palco(t, check);
+  await canais(t, check, made);
   await gates(t);
   await flagOff(t, pPalco);
 } catch (err) {

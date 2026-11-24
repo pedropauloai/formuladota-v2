@@ -1,7 +1,7 @@
 "use client";
 
-// Quem está na sala: na sala pública, o palco (o dono e quem fala) e a plateia, com as mãos levantadas
-// primeiro; na mentoria e na party, uma lista só. Cada linha: avatar quadrado, nick, microfone, fala
+// Quem está na sala: no canal de voz em modo palco, o palco (o dono e quem fala) e a plateia, com as mãos
+// levantadas primeiro; na voz livre, na mentoria e na party, uma lista só. Cada linha: avatar quadrado, nick, microfone, fala
 // e tela; o dono chama, devolve, muta, expulsa e bane; qualquer um bloqueia e denuncia. As ações
 // aparecem ao passar o mouse (ou no foco do teclado), por cima do fim da linha, para o nick caber;
 // chamar ao palco fica à vista para quem levantou a mão.
@@ -16,7 +16,7 @@ import type { AcaoDono } from "@/lib/sala/cliente/acoes";
 import { porMao } from "@/lib/sala/cliente/ordem";
 import type { MembroEstado } from "@/lib/sala/estado";
 import type { Pessoa } from "@/lib/sala/pessoas";
-import type { RoomKind } from "@/lib/sala/tipos";
+import type { RoomKind, VoiceMode } from "@/lib/sala/tipos";
 import { cn } from "@/lib/utils";
 
 export interface PessoasProps {
@@ -25,6 +25,8 @@ export interface PessoasProps {
   eu: string | null;
   souDono: boolean;
   tipo: RoomKind;
+  /** Canal de voz: palco (chamar e devolver) ou livre (todo mundo fala). */
+  modo: VoiceMode;
   falando: string[];
   falantesMax: number;
   onModerar: (userId: string, acao: AcaoDono) => void;
@@ -60,7 +62,7 @@ function AcoesDono({ m, nome, props, chamarAVista }: { m: MembroEstado; nome: st
     const ok = await confirm({ title: t(acao), message: t(chave, { nome }), confirmLabel: t("confirmar"), variant: "destructive" });
     if (ok) props.onModerar(m.userId, acao);
   };
-  const palco = props.tipo === "palco";
+  const palco = props.tipo === "palco" && props.modo === "palco";
   return (
     <>
       {palco && m.papel === "ouvinte" && !chamarAVista && <ChamarPalco m={m} props={props} />}
@@ -130,7 +132,7 @@ function Linha({ m, props }: { m: MembroEstado; props: PessoasProps }) {
     if (await confirm({ title: t("bloquear"), message: t("bloquearConfirma", { nome }), confirmLabel: t("confirmar"), variant: "destructive" })) props.onBloquear(m.userId);
   };
   const rotulos = [falando && t("falando"), m.mutadoPeloDono && t("mutadoPeloDonoRotulo"), m.maoDesde && t("maoLevantadaRotulo"), m.compartilhandoTela && t("compartilhandoRotulo"), m.bloqueado && t("bloqueadoRotulo")];
-  const chamarAVista = props.souDono && props.tipo === "palco" && m.papel === "ouvinte" && !!m.maoDesde;
+  const chamarAVista = props.souDono && props.tipo === "palco" && props.modo === "palco" && m.papel === "ouvinte" && !!m.maoDesde;
   const [volumeAberto, setVolumeAberto] = useState(false);
   return (
     <li data-sala-membro={m.userId} data-sala-papel-membro={m.papel} data-sala-online={m.online ? "sim" : "nao"} data-sala-mao-membro={m.maoDesde ? "sim" : "nao"}>
@@ -190,7 +192,7 @@ export function Pessoas(props: PessoasProps) {
       <h2 className="mb-1 font-display-condensed text-xl uppercase text-text-display">
         {t("pessoas")} <span className="text-text-muted">{online.length}</span>
       </h2>
-      {props.tipo === "palco" ? (
+      {props.tipo === "palco" && props.modo === "palco" ? (
         <>
           <Grupo titulo={t("noPalco", { falantes, max: props.falantesMax })} membros={online.filter((m) => m.papel !== "ouvinte")} props={props} data="palco" />
           <Grupo titulo={t("plateia")} membros={online.filter((m) => m.papel === "ouvinte").sort(porMao)} props={props} data="plateia" />
