@@ -1,10 +1,9 @@
 // Dados dos cards da coluna direita (right-sidebar) — tudo com conteúdo REAL que já
-// existe no sistema: últimas partidas, top do ranking, temporada e Mural da Vergonha.
-// Um único ponto de fetch pra a sidebar ficar puramente apresentacional.
+// existe no sistema: top do ranking, temporada e Mural da Vergonha. As últimas partidas
+// são as do PPA e vêm da credencial (getOwnerProof), não daqui.
 
 import { createClient } from "@/lib/supabase/server";
 import { getIdentityMap } from "@/lib/queries/identities";
-import { getRecentMatches, type HistoryMatch } from "@/lib/queries/matches-feed";
 import { getWallOfShame, type WallEntry } from "@/lib/queries/wall-of-shame";
 import { xpProgress } from "@/lib/levels";
 
@@ -28,7 +27,6 @@ export interface SidebarSeason {
 }
 
 export interface SidebarData {
-  recentMatches: HistoryMatch[];
   topRanking: SidebarRankRow[];
   bans: WallEntry[];
   season: SidebarSeason | null;
@@ -38,7 +36,7 @@ const DAY_MS = 86_400_000;
 const SEASON_LEN_MS = 90 * DAY_MS; // fallback só se não houver ended_at NEM próxima season
 
 /** ranking: false quando outro card ocupa o lugar do Top do ranking (enquete da Liga): pula as consultas dele. */
-export async function getSidebarData({ ranking = true }: { ranking?: boolean } = {}): Promise<SidebarData> {
+export async function getSidebarData({ ranking = true, mural = true }: { ranking?: boolean; mural?: boolean } = {}): Promise<SidebarData> {
   const supabase = await createClient();
 
   // Season ativa (nome + janela pro countdown) + a PRÓXIMA agendada (define o fim
@@ -100,8 +98,8 @@ export async function getSidebarData({ ranking = true }: { ranking?: boolean } =
     };
   });
 
-  // Últimas 3 partidas + Mural (banidos primeiro) em paralelo.
-  const [recentMatches, bans] = await Promise.all([getRecentMatches(3), getWallOfShame()]);
+  // Mural (banidos primeiro): só com a liga ligada (o card some sem ela).
+  const bans = mural ? await getWallOfShame() : [];
 
   let season: SidebarSeason | null = null;
   if (seasonRow) {
@@ -116,5 +114,5 @@ export async function getSidebarData({ ranking = true }: { ranking?: boolean } =
     season = { name: seasonRow.name, daysLeft, beta: Boolean(seasonRow.beta) };
   }
 
-  return { recentMatches, topRanking, bans, season };
+  return { topRanking, bans, season };
 }

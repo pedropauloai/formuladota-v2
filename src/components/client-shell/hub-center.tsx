@@ -2,26 +2,27 @@
 
 // HubCenter — a CAPA do client (/ e /dashboard), visitante E logado.
 //
-// É a TESE do produto, estampada e cabendo na tela SEM scroll em 1920x1080 (Pedro 2026-06-18,
-// "é o principal do produto"). Tese: o ambiente competitivo da Valve é quebrado (anonimato,
-// topo fechado, regiões isoladas) e o FORMULADOTA é a resposta (identidade, temporadas,
-// ranking único). Aprofundamento em /manifesto.
+// Cabe na tela SEM scroll em 1920x1080. Desde 24/11/2026 (PPA) vende o serviço principal, jogar
+// na party do PPA: o título, a vaga do dia e o revezamento. A tese da liga (identidade,
+// temporadas, ranking único) saiu daqui; segue em /manifesto.
 //
 // Design 2.0 (19/11/2026): a pele do cliente do Dota, a mesma da barra superior. Título
 // condensado com brilho, pilares em painéis com o marcador hexagonal dos eventos do cliente,
 // chamadas em placa. A resposta do FORMULADOTA vem primeiro; o problema da Valve fica riscado.
 //
+// 23/11/2026 (PPA): a chamada principal da tela é a do canto de baixo, JOGAR COM O PPA, com o
+// efeito que era do "Entrar com Discord". Aqui ficam só o link do manifesto e, para quem está
+// logado, o guia do MMR em botão de metal (o segundo nível). Entrar segue no canto de cima.
+//
 // i18n: textos via namespace "capa" (next-intl).
 
 import { Link } from "@/i18n/navigation";
-import { ArrowRight, Compass, Fingerprint, RotateCcw, Swords, Trophy } from "lucide-react";
+import { ArrowRight, Compass, Repeat, Swords, Ticket, Trophy } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { useSound } from "@/lib/sound/hooks";
-import { signInWithDiscord } from "@/app/login/actions";
-import { BrandGlyph } from "@/components/loja/brand-glyph";
-import { CtaWarp, Embers, HexBadge, Panel, lift, panel, plate, v2Page } from "@/components/v2";
+import { Embers, HexBadge, Panel, lift, panel, plate, textLink, v2Page } from "@/components/v2";
 
 export interface HubCenterProps {
   /** True = visitante deslogado. Adapta só o CTA (login vs jogar). */
@@ -32,12 +33,12 @@ export interface HubCenterProps {
   showRankedComPro?: boolean;
 }
 
-// Os 3 pilares — falha da Valve → resposta do FORMULADOTA. `id` casa com as chaves
-// pillar<Id>Problem/Solution/Line nas mensagens. Ícone como elemento (não componente).
+// Os 3 pilares da vaga: o time, o preço do dia e o revezamento. `id` casa com as chaves
+// pillar<Id>Title/Tag/Line nas mensagens. Ícone como elemento (não componente).
 const PILLARS: ReadonlyArray<{ id: string; icon: ReactNode }> = [
-  { id: "Anonimato", icon: <Fingerprint size={26} aria-hidden="true" /> },
-  { id: "Mmr", icon: <RotateCcw size={26} aria-hidden="true" /> },
-  { id: "Regiao", icon: <Trophy size={26} aria-hidden="true" /> },
+  { id: "Imortal", icon: <Trophy size={26} aria-hidden="true" /> },
+  { id: "Dia", icon: <Ticket size={26} aria-hidden="true" /> },
+  { id: "Vez", icon: <Repeat size={26} aria-hidden="true" /> },
 ];
 
 // Fundo da capa: o vídeo são 24 MB da CDN da Valve, então só o computador toca. Celular e
@@ -92,10 +93,8 @@ function Pillar({ id, icon }: { id: string; icon: ReactNode }) {
         <span className="text-gold-bright">{icon}</span>
       </HexBadge>
       <div className="min-w-0 space-y-1.5">
-        <p className="font-display-condensed text-[1.75rem] uppercase leading-[0.9] text-text-display hero:text-[2.1rem]">{t(`pillar${id}Solution`)}</p>
-        <p className="text-xs text-text-faded hero:text-sm">
-          {t("naValve")}: <span className="text-text-muted line-through decoration-error/70 decoration-2">{t(`pillar${id}Problem`)}</span>
-        </p>
+        <p className="font-display-condensed text-[1.75rem] uppercase leading-[0.9] text-text-display hero:text-[2.1rem]">{t(`pillar${id}Title`)}</p>
+        <p className="text-xs font-bold uppercase tracking-[0.08em] text-gold hero:text-sm">{t(`pillar${id}Tag`)}</p>
         <p className="text-sm leading-snug text-text-muted hero:text-[0.95rem]">{t(`pillar${id}Line`)}</p>
       </div>
     </Panel>
@@ -114,11 +113,11 @@ function Doctrine() {
         <span className="min-w-0 flex-1 text-sm leading-snug text-text-body hero:text-base">
           <span className="font-bold uppercase text-text-display">{t("doctrineLead")}</span> {t("doctrineBody")}
         </span>
-        <span className="hidden shrink-0 items-center gap-2 font-display text-sm font-bold uppercase tracking-[0.12em] text-gold transition-colors group-hover:text-gold-bright md:inline-flex">
+        <span className={cn(textLink, "hidden shrink-0 group-hover:text-text-display md:inline-flex")}>
           {t("doctrineLink")}
-          <ArrowRight size={16} aria-hidden="true" className="transition-transform group-hover:translate-x-0.5" />
+          <ArrowRight size={14} aria-hidden="true" className="transition-transform group-hover:translate-x-0.5" />
         </span>
-        <ArrowRight size={18} aria-hidden="true" className="shrink-0 text-gold md:hidden" />
+        <ArrowRight size={18} aria-hidden="true" className="shrink-0 text-text-muted md:hidden" />
       </span>
     </Link>
   );
@@ -130,32 +129,20 @@ function Actions({ isVisitor, showRankedComPro, prosOnlineCount }: Required<HubC
   // Logado: "Subir MMR" com a feature ligada; senão o guia do MMR (/mmr), vitrine do sistema.
   const ctaHref = showRankedComPro ? "/ranked-com-pro" : "/mmr";
   const ctaLabel = showRankedComPro ? t("ctaPlay") : t("ctaMmr");
-  const cta = plate({ kind: "cta", large: true });
   return (
     <div className="flex flex-wrap items-center gap-x-8 gap-y-4">
-      {isVisitor ? (
-        <form action={signInWithDiscord}>
-          <button type="submit" onClick={() => play("click")} className={cn(cta, "w-full sm:w-auto")}>
-            <CtaWarp />
-            <BrandGlyph brand="discord" size={22} className="[&_path]:fill-current" />
-            {t("ctaLogin")}
-          </button>
-        </form>
-      ) : (
-        <Link href={ctaHref} onClick={() => play("click")} className={cn(cta, "w-full sm:w-auto")}>
-          <CtaWarp />
-          <Swords size={20} aria-hidden="true" />
+      {/* Um botão principal por tela: o JOGAR COM O PPA do canto. Aqui, para quem está logado,
+          o guia do MMR em metal (o segundo nível); o visitante entra pelo canto de cima. */}
+      {!isVisitor && (
+        <Link href={ctaHref} onClick={() => play("click")} className={cn(plate({ kind: "ghost" }), "w-full sm:w-auto")}>
+          <Swords size={18} aria-hidden="true" />
           {ctaLabel}
         </Link>
       )}
-      {/* Segunda ação como link, não como botão: uma chamada só por tela. A seta é ícone (o
-          caractere ficava baixo e solto depois das letras espaçadas) e anda um pouco no mouse. */}
-      <Link
-        href="/manifesto"
-        className="group inline-flex items-center gap-2 rounded-sm font-display text-sm font-bold uppercase tracking-[0.16em] text-text-body transition-colors hover:text-text-display focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-text-display"
-      >
+      {/* Terceiro nível: o link de texto do kit, com a seta em ícone que anda no mouse. */}
+      <Link href="/party" className={textLink}>
         {t("whyLink")}
-        <ArrowRight size={16} aria-hidden="true" className="transition-transform group-hover:translate-x-0.5" />
+        <ArrowRight size={14} aria-hidden="true" />
       </Link>
       {/* Pulso de PROs online: só com a feature "Ranked com PRO" ligada ("0 online" não diz nada). */}
       {showRankedComPro && (
@@ -183,7 +170,7 @@ export function HubCenter({ isVisitor = false, prosOnlineCount, showRankedComPro
         <header className="space-y-3 hero:space-y-4">
           <h1 className="font-display-condensed text-[3.6rem] uppercase leading-[0.82] text-text-display [text-shadow:0_4px_24px_var(--color-bg-deep)] sm:text-[5rem] hero:text-[7.5rem]">
             {t("headlineLead")}{" "}
-            <span className="text-brand-primary [text-shadow:0_0_36px_var(--color-brand-primary-glow),0_0_2px_var(--color-brand-primary)]">{t("headlineEmphasis")}</span>
+            <span className="block text-brand-primary [text-shadow:0_0_36px_var(--color-brand-primary-glow),0_0_2px_var(--color-brand-primary)]">{t("headlineEmphasis")}</span>
           </h1>
           <p className="max-w-3xl text-base font-medium leading-relaxed text-text-body [text-shadow:0_2px_10px_var(--color-bg-deep)] hero:text-xl">{t("subtitle")}</p>
         </header>

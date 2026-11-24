@@ -33,6 +33,7 @@ import { type DotaRank } from "@/components/ui/dota-rank-medal";
 import { type HonorRank } from "@/components/ui/honor-rank-medal";
 import { MedalPair } from "@/components/ui/medal-pair";
 import { signInWithDiscord } from "@/app/login/actions";
+import { plate } from "@/components/v2";
 import { toggleSidebar } from "@/lib/auth/sidebar-preference";
 import { FriendsList } from "@/components/profile/friends-list";
 import { PartyFrame } from "@/components/party/party-frame";
@@ -532,11 +533,9 @@ function VisitorCardCompact() {
         </div>
       </div>
       <form action={signInWithDiscord} className="mt-2">
-        <button
-          type="submit"
-          className="w-full inline-flex items-center justify-center gap-1.5 rounded border border-brand-primary/60 bg-brand-primary/10 px-2 py-1.5 font-display text-sm font-semibold text-brand-primary hover:bg-brand-primary/20 transition-colors"
-        >
-          <LogIn size={11} aria-hidden="true" />
+        {/* Segundo nível (botão de metal): a chamada principal é a do canto, JOGAR COM O PPA. */}
+        <button type="submit" className={plate({ kind: "ghost", small: true, block: true })}>
+          <LogIn size={14} aria-hidden="true" />
           <span>{t("signInDiscord")}</span>
         </button>
       </form>

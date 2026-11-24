@@ -55,5 +55,8 @@ export function lift(kind: PanelLift = "dark"): string {
   return (kind === "gold" ? styles.liftGold : styles.liftDark) ?? "";
 }
 
+/** Link de texto, o terceiro nível de botão: caixa-alta pequena com a seta em ícone. */
+export const textLink: string = styles.textLink ?? "";
+
 /** Envolve a página: em tela de 1440 de altura tudo cresce na proporção, como no cliente. */
 export const v2Page: string = styles.page ?? "";

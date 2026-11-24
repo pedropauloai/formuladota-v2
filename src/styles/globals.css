@@ -31,6 +31,7 @@
   --color-brand-primary-hover: var(--color-brand-primary-hover);
   --color-brand-primary-glow:  var(--color-brand-primary-glow);
   --color-brand-primary-deep:  var(--color-brand-primary-deep);
+  --color-brand-text:          var(--color-brand-text);
 
   /* -------------------------------------------------------
    * GRUPO 2 — CORES PLAY (verde matchmaking)
@@ -248,17 +249,16 @@
   --color-foreground:          var(--foreground);
   --color-background:          var(--background);
 
-  /* Radius shadcn — baseado em var(--radius).
-     ACHATADO 2026-05-27 (Pedro): todos resolvem pra 2px exceto -2xl+ que
-     resolvem pra 4px pra dar respiro em modals/large cards.
-     Mantém compat com componentes shadcn que usam rounded-2xl etc. */
+  /* Radius shadcn: um canto só, 2px (PPA, 23/11/2026), inclusive o rounded sem sufixo (que caía
+     no 4px padrão do Tailwind) e o -2xl em diante (que dobrava para 4px). */
+  --radius:     2px;
   --radius-sm:  var(--radius);
   --radius-md:  var(--radius);
   --radius-lg:  var(--radius);
   --radius-xl:  var(--radius);
-  --radius-2xl: calc(var(--radius) * 2);
-  --radius-3xl: calc(var(--radius) * 2);
-  --radius-4xl: calc(var(--radius) * 2);
+  --radius-2xl: var(--radius);
+  --radius-3xl: var(--radius);
+  --radius-4xl: var(--radius);
 }
 
 /* -------------------------------------------------------

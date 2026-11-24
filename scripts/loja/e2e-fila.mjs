@@ -123,18 +123,33 @@ async function endOfLive(page, liveId) {
 }
 
 async function checkShell(page) {
-  await page.goto(`${BASE}/loja`);
-  // O botão verde é sempre o JOGAR DOTA (o Buscar partida fica no lugar, mesmo pausado); a
-  // party do PPA é uma modalidade dentro do menu dele.
-  const play = page.locator("[data-cta='jogar-dota']");
-  await play.waitFor({ timeout: 30_000 });
-  check("o botão verde da barra de baixo é o JOGAR DOTA", (await play.count()) === 1);
-  await play.click();
-  await page.locator("[data-modalidade='party']").click();
+  await page.goto(`${BASE}/`);
+  const { data: busca } = await db.from("feature_flags").select("enabled").eq("key", "fila_competitiva").single();
   const party = page.locator("[data-cta='jogar-com-o-ppa']");
-  await party.waitFor({ timeout: 15_000 });
-  check("a party do PPA está no menu Jogar e leva para a fila", (await party.getAttribute("href"))?.endsWith("/party") === true);
+  if (busca?.enabled) {
+    // Busca de volta: o JOGAR DOTA abre o menu, e a party do PPA é uma modalidade dentro dele.
+    const play = page.locator("[data-cta='jogar-dota']");
+    await play.waitFor({ timeout: 30_000 });
+    check("com a busca ligada, o botão da barra de baixo é o JOGAR DOTA", (await play.count()) === 1);
+    await play.click();
+    await page.locator("[data-modalidade='party']").click();
+    await party.waitFor({ timeout: 15_000 });
+    check("a party do PPA está no menu Jogar e leva para a fila", (await party.getAttribute("href"))?.endsWith("/party") === true);
+  } else {
+    // Busca pausada: o botão principal da barra de baixo é o JOGAR COM O PPA, direto para a fila.
+    await party.waitFor({ timeout: 30_000 });
+    check(
+      "com a busca pausada, o botão principal da barra de baixo é o JOGAR COM O PPA e leva para a fila",
+      (await party.count()) === 1 && (await party.getAttribute("href"))?.endsWith("/party") === true
+    );
+    check("o JOGAR DOTA não disputa o lugar com ele", (await page.locator("[data-cta='jogar-dota']").count()) === 0);
+  }
   check("aba Loja com o ponto de ao vivo", (await page.locator("[data-aba-ao-vivo]").count()) > 0);
+  // A loja já tem a chamada da vaga na caixa de compra: o canto não repete o botão ali.
+  await page.goto(`${BASE}/loja`);
+  // No celular a aba fica escondida: basta a barra de cima existir.
+  await page.locator("[data-aba-ao-vivo]").first().waitFor({ state: "attached", timeout: 30_000 });
+  check("na loja, o canto não repete a chamada da vaga", (await page.locator("[data-cta='jogar-com-o-ppa']").count()) === 0);
 }
 
 async function checkStoreLinks(page) {

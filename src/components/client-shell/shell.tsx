@@ -84,6 +84,9 @@ interface ClientShellProps {
    * Em outras rotas (admin, perfil) mantém bottom-bar como atalho persistente.
    */
   hideBottomBar?: boolean;
+  /** A página já tem a chamada da vaga (a loja): o JOGAR COM O PPA do canto some ali, para não haver
+   *  duas chamadas iguais levando à fila. A barra continua (o aviso de partida encontrada mora nela). */
+  partyCtaInPage?: boolean;
 }
 
 export async function ClientShell({
@@ -96,6 +99,7 @@ export async function ClientShell({
   immersive,
   centerHero,
   hideBottomBar,
+  partyCtaInPage = false,
 }: ClientShellProps) {
   const supabase = await createClient();
   // getCurrentUser é deduplicado por request (React.cache) — se a page já
@@ -231,6 +235,8 @@ export async function ClientShell({
   const showLoja = featureFlags.loja;
   // Flag fila_competitiva: desligada, o menu Jogar avisa que a busca está pausada (sem bot no ar).
   const queuePaused = !featureFlags.fila_competitiva;
+  // A liga desligada tira o Mural da Vergonha do site (o banido era da liga): contador e coluna.
+  const showMural = featureFlags.fila_competitiva;
   // Flag enquete_liga: a enquete da Liga no lugar do Top do ranking da coluna direita.
   const showEnqueteLiga = featureFlags.enquete_liga;
   // Live no ar só conta com a loja aberta: a fila da party mora nela.
@@ -282,6 +288,7 @@ export async function ClientShell({
             communityCounters={communityCounters}
             showRankedComPro={showRankedComPro}
             showLoja={showLoja}
+            showMural={showMural}
             lojaLive={lojaLive}
             changelogUnread={changelogUnread}
           />
@@ -305,6 +312,7 @@ export async function ClientShell({
               floating
               showRankedComPro={showRankedComPro}
               showEnqueteLiga={showEnqueteLiga}
+              showMural={showMural}
               isAdmin={adminFlag}
             />
           </div>
@@ -386,6 +394,7 @@ export async function ClientShell({
               queuePaused={queuePaused}
               showLoja={showLoja}
               liveOnAir={lojaLive}
+              hidePartyCta={partyCtaInPage}
             />
           </div>
         )}
@@ -412,6 +421,7 @@ export async function ClientShell({
         communityCounters={communityCounters}
         showRankedComPro={showRankedComPro}
         showLoja={showLoja}
+        showMural={showMural}
         lojaLive={lojaLive}
         changelogUnread={changelogUnread}
       />
@@ -452,6 +462,7 @@ export async function ClientShell({
           <DashboardRightSidebar
             showRankedComPro={showRankedComPro}
             showEnqueteLiga={showEnqueteLiga}
+              showMural={showMural}
             isAdmin={adminFlag}
           />
         )}
@@ -515,6 +526,7 @@ export async function ClientShell({
             queuePaused={queuePaused}
             showLoja={showLoja}
             liveOnAir={lojaLive}
+            hidePartyCta={partyCtaInPage}
           />
         </div>
       )}

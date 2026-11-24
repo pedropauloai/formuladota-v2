@@ -3,6 +3,9 @@
 // temporada e Mural da Vergonha — além de comunidade + doutrina. PROs/fila ficam
 // SOMENTE no center (sem duplicação). Conteúdo é 100% público (visitante vê igual).
 // Com a flag enquete_liga ligada, a enquete da Liga ocupa o lugar do Top do ranking.
+// Desde 24/11/2026 (PPA): o primeiro card são as partidas que ele registra com o ID no painel da
+// fila depois de jogar com a galera (party_participacoes), com o resultado e o placar que o cron
+// resume no cache (store_owner_proof); o Mural só aparece com a fila competitiva (a liga) ligada.
 //
 // Server Component ASYNC: fetcha via getSidebarData() e renderiza cards puros.
 
@@ -13,15 +16,19 @@ import {
   MessageSquare,
   BookOpen,
   History,
+  Swords,
   Trophy,
   Gavel,
 } from "lucide-react";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { cn } from "@/lib/utils";
-import { panel } from "@/components/v2";
+import { panel, textLink } from "@/components/v2";
 import { getSidebarData, type SidebarRankRow } from "@/lib/queries/sidebar";
-import type { HistoryMatch } from "@/lib/queries/matches-feed";
 import type { WallEntry } from "@/lib/queries/wall-of-shame";
+import { getOwnerProof } from "@/lib/loja/owner-proof";
+import { getRegisteredPartyMatches, type RegisteredPartyMatch } from "@/lib/loja/fila/party-matches";
+import type { PartyMatchSummary } from "@/lib/loja/fila/party-match";
+import { UserAvatar } from "@/components/ui/avatar";
 import { getHeroById } from "@/lib/queries/heroes";
 import { XpAvatarRing } from "@/components/ui/xp-avatar-ring";
 import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
@@ -42,6 +49,8 @@ interface Props {
   showEnqueteLiga?: boolean;
   /** Admin efetivo (fora do "ver como usuário comum"): a enquete mostra também Talvez e Não. */
   isAdmin?: boolean;
+  /** Flag fila_competitiva (a liga): o Mural da Vergonha só aparece com ela ligada. */
+  showMural?: boolean;
 }
 
 export async function DashboardRightSidebar({
@@ -49,12 +58,19 @@ export async function DashboardRightSidebar({
   showRankedComPro = false,
   showEnqueteLiga = false,
   isAdmin = false,
+  showMural = false,
 }: Props) {
-  const t = await getTranslations("shell");
-  // Com a enquete no lugar, o ranking nem é buscado.
-  const [{ recentMatches, topRanking, bans, season }, enquete] = await Promise.all([
-    getSidebarData({ ranking: !showEnqueteLiga }),
+  const [t, locale] = await Promise.all([getTranslations("shell"), getLocale()]);
+  // Com a enquete no lugar, o ranking nem é buscado; sem a liga, o Mural também não.
+  const [{ topRanking, bans, season }, enquete, owner, partyMatches] = await Promise.all([
+    getSidebarData({ ranking: !showEnqueteLiga, mural: showMural }),
     showEnqueteLiga ? lerEnqueteDeQuemVe(isAdmin) : Promise.resolve(null),
+    getOwnerProof(),
+    // Sem o banco, o card mostra o vazio em vez de derrubar a coluna.
+    getRegisteredPartyMatches().catch((err: unknown) => {
+      console.error("[sidebar] partidas da party:", err instanceof Error ? err.message : err);
+      return [] as RegisteredPartyMatch[];
+    }),
   ]);
 
   // pr-10 (2.5rem) = mesma margem direita do botão "Jogar Dota" (marginRight 2.5rem
@@ -77,11 +93,15 @@ export async function DashboardRightSidebar({
         />
       )}
 
-      <RecentMatchesCard
-        matches={recentMatches}
+      <PartyMatchesCard
+        matches={partyMatches}
+        summaries={owner?.partyMatches ?? []}
+        locale={locale}
         title={t("sidebar.recentTitle")}
-        cta={t("sidebar.recentCta")}
         empty={t("sidebar.recentEmpty")}
+        won={t("sidebar.won")}
+        lost={t("sidebar.lost")}
+        withPlayers={(count) => t("sidebar.withPlayers", { count })}
       />
 
       {showEnqueteLiga ? (
@@ -103,15 +123,17 @@ export async function DashboardRightSidebar({
         />
       )}
 
-      <MuralCard
-        bans={bans}
-        title={t("sidebar.muralTitle")}
-        count={t("sidebar.muralCount", { count: bans.length })}
-        cta={t("sidebar.muralCta")}
-        empty={t("sidebar.muralEmpty")}
-        bannedLabel={t("sidebar.banned")}
-        suspendedLabel={t("sidebar.suspended")}
-      />
+      {showMural && (
+        <MuralCard
+          bans={bans}
+          title={t("sidebar.muralTitle")}
+          count={t("sidebar.muralCount", { count: bans.length })}
+          cta={t("sidebar.muralCta")}
+          empty={t("sidebar.muralEmpty")}
+          bannedLabel={t("sidebar.banned")}
+          suspendedLabel={t("sidebar.suspended")}
+        />
+      )}
 
       <article className={cn(panel("neutral"), "overflow-hidden")}>
         <p className="border-b border-border-subtle px-3 py-2 font-display-condensed text-lg uppercase leading-none tracking-[0.06em] text-text-display">
@@ -132,57 +154,62 @@ export async function DashboardRightSidebar({
 }
 
 /* ------------------------------------------------------------------ */
-/* Card: Últimas partidas — tira de heróis + placar, linka pro histórico. */
+/* Card: Últimas partidas do PPA — herói, resultado, KDA e quando foi.  */
 /* ------------------------------------------------------------------ */
-// Seta como ícone, alinhada ao texto e andando um pouco no mouse (o caractere ficava baixo e solto).
-function CardCta({ href, label }: { href: string; label: string }) {
+// O "ver mais" de todo card: o link de texto do kit, com a seta em ícone que anda no mouse.
+function CardCta({ href, label, external }: { href: string; label: string; external?: boolean }) {
+  const cls = cn(textLink, "flex justify-center border-t border-border-subtle px-3 py-2.5 hover:bg-bg-elevated");
+  const icon = <ArrowRight size={14} aria-hidden="true" />;
+  if (external) {
+    return (
+      <a href={href} target="_blank" rel="noreferrer" className={cls}>
+        {label}
+        {icon}
+      </a>
+    );
+  }
   return (
-    <Link
-      href={href}
-      className="group flex items-center justify-center gap-1.5 border-t border-border-subtle px-3 py-2 font-body text-sm text-brand-primary transition-colors hover:bg-bg-elevated hover:text-text-display"
-    >
+    <Link href={href} className={cls}>
       {label}
-      <ArrowRight size={14} aria-hidden="true" className="shrink-0 transition-transform group-hover:translate-x-0.5" />
+      {icon}
     </Link>
   );
 }
 
-function HeroStrip({ match, team }: { match: HistoryMatch; team: "radiant" | "dire" }) {
-  const heroes = match.players
-    .filter((p) => p.team === team)
-    .map((p) => (p.heroId ? getHeroById(p.heroId) : null));
-  return (
-    <span className={`flex items-center gap-0.5 ${team === "dire" ? "flex-row-reverse" : ""}`}>
-      {heroes.slice(0, 5).map((h, i) =>
-        h ? (
-          <Image
-            key={i}
-            src={h.image_icon}
-            alt={h.name_pt}
-            width={16}
-            height={16}
-            unoptimized
-            className="size-4 rounded-sm object-cover"
-          />
-        ) : (
-          <span key={i} className="size-4 rounded-sm bg-bg-surface" aria-hidden="true" />
-        )
-      )}
-    </span>
-  );
+const OPENDOTA = "https://www.opendota.com";
+
+/** "há 3 h", "há 2 dias": a partir do fim da partida (ou da hora em que foi registrada), no idioma de quem vê. */
+function sinceLabel(endedMs: number, locale: string, now: number): string {
+  const minutes = Math.max(1, Math.round((now - endedMs) / 60_000));
+  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto", style: "short" });
+  if (minutes < 60) return rtf.format(-minutes, "minute");
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return rtf.format(-hours, "hour");
+  return rtf.format(-Math.round(hours / 24), "day");
 }
 
-function RecentMatchesCard({
+function PartyMatchesCard({
   matches,
+  summaries,
+  locale,
   title,
-  cta,
   empty,
+  won,
+  lost,
+  withPlayers,
 }: {
-  matches: HistoryMatch[];
+  matches: RegisteredPartyMatch[];
+  summaries: PartyMatchSummary[];
+  locale: string;
   title: string;
-  cta: string;
   empty: string;
+  won: string;
+  lost: string;
+  withPlayers: (count: number) => string;
 }) {
+  // Componente de servidor numa página dinâmica (lê cookie): a hora é a do pedido.
+  const now = new Date().getTime();
+  const byId = new Map(summaries.map((s) => [s.matchId, s]));
   return (
     <article className={cn(panel("neutral"), "overflow-hidden")}>
       <CardHeader icon={History} title={title} />
@@ -190,33 +217,52 @@ function RecentMatchesCard({
         <p className="px-3 py-4 text-center font-body text-sm text-text-faded">{empty}</p>
       ) : (
         <ul className="divide-y divide-border-subtle/40">
-          {matches.map((m) => (
-            <li key={m.dotaMatchId}>
-              <Link
-                href={`/partida/historico/${m.dotaMatchId}`}
-                className="flex items-center gap-1.5 px-3 py-2 transition-colors hover:bg-bg-elevated"
-              >
-                <span className="flex-1">
-                  <HeroStrip match={m} team="radiant" />
-                </span>
-                <span className="flex shrink-0 items-center gap-1 font-display text-sm font-bold tabular-nums">
-                  <span className={m.radiantWin ? "text-play-primary" : "text-text-muted"}>
-                    {m.radiantScore ?? 0}
+          {matches.map((m) => {
+            const summary = byId.get(m.matchId);
+            const hero = summary?.ppaHeroId ? getHeroById(summary.ppaHeroId) : null;
+            const heroName = hero ? (locale === "pt" ? hero.name_pt : hero.name_en) : "";
+            const ended = summary?.startTime ? (summary.startTime + summary.duration) * 1000 : Date.parse(m.playedAt);
+            return (
+              <li key={m.matchId}>
+                <a
+                  href={`${OPENDOTA}/matches/${m.matchId}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-2.5 px-3 py-2 transition-colors hover:bg-bg-elevated"
+                >
+                  {hero ? (
+                    <Image src={hero.image_full} alt={heroName} width={48} height={27} unoptimized className="h-[27px] w-12 shrink-0 rounded-sm object-cover" />
+                  ) : (
+                    <span className="grid h-[27px] w-12 shrink-0 place-items-center rounded-sm bg-bg-surface text-text-faded" aria-hidden="true">
+                      <Swords size={14} />
+                    </span>
+                  )}
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-center -space-x-1">
+                      {m.players.slice(0, 4).map((p) => (
+                        <UserAvatar key={p.userId} src={p.avatarUrl ?? undefined} alt={p.name} fallback={p.name.slice(0, 2)} size="xs" className="ring-1 ring-bg-base" />
+                      ))}
+                    </span>
+                    <span className="mt-0.5 block truncate font-body text-xs text-text-faded">
+                      {withPlayers(m.players.length)} · {sinceLabel(ended, locale, now)}
+                    </span>
                   </span>
-                  <span className="text-text-faded">:</span>
-                  <span className={m.radiantWin === false ? "text-brand-primary" : "text-text-muted"}>
-                    {m.direScore ?? 0}
-                  </span>
-                </span>
-                <span className="flex flex-1 justify-end">
-                  <HeroStrip match={m} team="dire" />
-                </span>
-              </Link>
-            </li>
-          ))}
+                  {summary && summary.won !== null && (
+                    <span className="shrink-0 text-right">
+                      <span className={cn("block font-display text-xs font-bold uppercase tracking-wide", summary.won ? "text-play-primary" : "text-brand-text")}>
+                        {summary.won ? won : lost}
+                      </span>
+                      <span className="block font-body text-xs tabular-nums text-text-muted">
+                        {summary.radiant === false ? `${summary.direScore}:${summary.radiantScore}` : `${summary.radiantScore}:${summary.direScore}`}
+                      </span>
+                    </span>
+                  )}
+                </a>
+              </li>
+            );
+          })}
         </ul>
       )}
-      <CardCta href="/partidas" label={cta} />
     </article>
   );
 }
