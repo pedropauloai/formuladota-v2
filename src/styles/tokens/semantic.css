@@ -118,21 +118,13 @@ html[data-theme="fd-dark"] {
    * GRUPO 7 — TIPOGRAFIA (fonts)
    * ------------------------------------------------------- */
 
-  /* Pedro 2026-05-25 (segunda iteração): Space Grotesk REMOVIDA. Adotada
-     UBUNTU — mesma fonte do ExitLag.com (referência AAA gaming brasileira
-     que Pedro citou). Ubuntu (Canonical, free Google Fonts) tem character
-     forte natural, weight visível em todos os pesos. ExitLag usa Ubuntu
-     pra body+h2+eyebrows e Organetto (paga) pra h1 hero — substituímos
-     Organetto pela Teko (já self-hosted, vibe condensed esports similar). */
-  --font-display: "Ubuntu", ui-sans-serif, system-ui, sans-serif;
-  --font-body:    "Ubuntu", ui-sans-serif, system-ui, sans-serif;
-  --font-mono:    "Ubuntu", ui-monospace, "Courier New", monospace;
-  /* Condensed display — Teko Variable (estilo Teko/Oswald GamersClub esports) */
-  /* LIBERADA 2026-06-11 (decisão Pedro): nav da topbar (tabs uppercase), títulos
-     de página/seção, botões grandes, números grandes (MMR, score, counts),
-     momentos épicos. Aproxima do feel Dota 2 (Radiance condensed).
-     Segue PROIBIDA em body text, parágrafos, labels de formulário. */
-  --font-display-condensed: "Teko Variable", "Teko", "Oswald", "Bebas Neue", sans-serif;
+  /* Uma família só (escolha do PPA, opção B): Barlow no texto, rótulos e botões; Barlow Condensed na
+     barra de cima, nos títulos e nos números grandes. As duas têm algarismos de largura igual. */
+  --font-display: "Barlow", ui-sans-serif, system-ui, sans-serif;
+  --font-body:    "Barlow", ui-sans-serif, system-ui, sans-serif;
+  --font-mono:    "Barlow", ui-monospace, "Courier New", monospace;
+  /* Condensada: barra de cima, títulos de página e de seção, números grandes. Nunca em texto corrido. */
+  --font-display-condensed: "Barlow Condensed", "Oswald", sans-serif;
 
   /* -------------------------------------------------------
    * GRUPO 8 — ESPAÇAMENTO (escala base 4px)
