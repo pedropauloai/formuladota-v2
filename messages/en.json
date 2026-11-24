@@ -313,7 +313,8 @@
       "vs": "vs",
       "won": "Won",
       "lost": "Lost",
-      "withPlayers": "{count, plural, =1 {with # player} other {with # players}}"
+      "withPlayers": "{count, plural, =1 {with # player} other {with # players}}",
+      "kills": "{party}-{enemy} kills"
     },
     "enqueteLiga": {
       "question": "Would you play the FORMULADOTA League?",
@@ -563,7 +564,7 @@
     "partyStatMatches": "{count, plural, =1 {match logged} other {matches logged}}",
     "partyStatWins": "{count, plural, =1 {win} other {wins}}",
     "partyStatPlayers": "{count, plural, =1 {party player} other {party players}}",
-    "partyColHero": "PPA's hero",
+    "partyColHero": "Party heroes",
     "partyColResult": "Result",
     "partyColDuration": "Duration",
     "partyColWhen": "When",
@@ -572,12 +573,13 @@
     "partyLost": "Lost",
     "partyPending": "Waiting for OpenDota",
     "partyNoResult": "No public result",
-    "partyHeroUnknown": "Hero not shown",
+    "partyHeroUnknown": "Hidden heroes",
     "partyOpenDota": "OpenDota",
     "partyOpenDotaAria": "View match {id} on OpenDota",
     "partyEmptyTitle": "No matches logged yet",
     "partyEmptyBody": "The first one shows up here when PPA finishes a match with the party on stream.",
-    "partyHowLink": "How the spot works"
+    "partyHowLink": "How the spot works",
+    "partyKills": "{party}-{enemy} kills"
   },
   "ranking": {
     "metaTitle": "Ranking | FORMULADOTA",

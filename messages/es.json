@@ -313,7 +313,8 @@
       "vs": "vs",
       "won": "Victoria",
       "lost": "Derrota",
-      "withPlayers": "{count, plural, =1 {con # jugador} other {con # jugadores}}"
+      "withPlayers": "{count, plural, =1 {con # jugador} other {con # jugadores}}",
+      "kills": "{party} a {enemy} en asesinatos"
     },
     "enqueteLiga": {
       "question": "¿Jugarías la Liga del FORMULADOTA?",
@@ -563,7 +564,7 @@
     "partyStatMatches": "{count, plural, =1 {partida registrada} other {partidas registradas}}",
     "partyStatWins": "{count, plural, =1 {victoria} other {victorias}}",
     "partyStatPlayers": "{count, plural, =1 {jugador del grupo} other {jugadores del grupo}}",
-    "partyColHero": "Héroe de PPA",
+    "partyColHero": "Héroes del grupo",
     "partyColResult": "Resultado",
     "partyColDuration": "Duración",
     "partyColWhen": "Cuándo",
@@ -572,12 +573,13 @@
     "partyLost": "Derrota",
     "partyPending": "Esperando a OpenDota",
     "partyNoResult": "Sin resultado público",
-    "partyHeroUnknown": "Héroe no informado",
+    "partyHeroUnknown": "Héroes ocultos",
     "partyOpenDota": "OpenDota",
     "partyOpenDotaAria": "Ver la partida {id} en OpenDota",
     "partyEmptyTitle": "Todavía no hay partidas registradas",
     "partyEmptyBody": "La primera aparece aquí cuando PPA termine una partida con el grupo en directo.",
-    "partyHowLink": "Cómo funciona el cupo"
+    "partyHowLink": "Cómo funciona el cupo",
+    "partyKills": "{party} a {enemy} en asesinatos"
   },
   "ranking": {
     "metaTitle": "Ranking | FORMULADOTA",
