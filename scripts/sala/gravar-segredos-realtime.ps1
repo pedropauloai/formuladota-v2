@@ -3,12 +3,15 @@
 #
 # COMO USAR (a sessao da sala de voz manda o comando com os dois IDs preenchidos):
 #   powershell -ExecutionPolicy Bypass -File scripts\sala\gravar-segredos-realtime.ps1 -AppId <App ID> -TurnKeyId <Key ID>
-#   1. No painel do Realtime, clique em "copiar" no token do app (SFU) e aperte Enter no script.
-#   2. Clique em "copiar" no token da chave do TURN e aperte Enter de novo.
+#   Com o script rodando, clique em "copiar" no token do app (SFU) e no token da chave do TURN, em
+#   qualquer ordem. Nao precisa voltar ao terminal: ele percebe cada copia sozinho.
 #
 # O QUE ELE FAZ, NESTA ORDEM
-#   - le a area de transferencia e PERGUNTA A CLOUDFLARE se o token vale (cria uma sessao de teste no
-#     SFU; gera uma credencial de 60 s no TURN); token recusado = nada e gravado
+#   - olha a area de transferencia a cada meio segundo, por ate 10 minutos, e so considera texto no
+#     formato do token da Cloudflare (64 caracteres hexadecimais): outra coisa copiada nunca sai da
+#     maquina
+#   - PERGUNTA A CLOUDFLARE de qual dos dois e o token (cria uma sessao de teste no SFU; gera uma
+#     credencial de 60 s no TURN); token recusado = nada e gravado
 #   - grava as quatro variaveis no Worker (wrangler secret put, pela copia do WSL, com a trava do
 #     deploy), no .env.producao do WSL e nos .env.local (servidor local e e2e)
 #   - apaga o arquivo temporario e limpa a area de transferencia
@@ -27,8 +30,11 @@ $ENVS_LOCAIS = @(
 )
 
 function Status([string]$url, [string]$token, [string]$corpo) {
+  # Sem corpo, o pedido sai vazio (a sessao nova do SFU nao leva corpo); com corpo, vai como JSON.
+  $p = @{ Uri = $url; Method = 'Post'; Headers = @{ Authorization = "Bearer $token" }; UseBasicParsing = $true }
+  if ($corpo) { $p.ContentType = 'application/json'; $p.Body = $corpo }
   try {
-    $r = Invoke-WebRequest -Uri $url -Method Post -Headers @{ Authorization = "Bearer $token" } -ContentType 'application/json' -Body $corpo -UseBasicParsing
+    $r = Invoke-WebRequest @p
     return [int]$r.StatusCode
   } catch {
     if ($_.Exception.Response) { return [int]$_.Exception.Response.StatusCode }
@@ -36,28 +42,37 @@ function Status([string]$url, [string]$token, [string]$corpo) {
   }
 }
 
-function LerToken([string]$pedido) {
-  Write-Host $pedido -ForegroundColor Cyan
-  [void](Read-Host 'Aperte Enter depois de copiar')
-  $t = (Get-Clipboard -Raw)
-  if ($null -eq $t) { return '' }
-  return $t.Trim()
+$appSecret = $null
+$turnToken = $null
+$vistos = @{}
+$limite = (Get-Date).AddMinutes(10)
+Write-Host 'Clique em "copiar" no token do app (aba Serverless SFU) e no token da chave (aba TURN Server), em qualquer ordem.' -ForegroundColor Cyan
+while ((-not $appSecret -or -not $turnToken) -and (Get-Date) -lt $limite) {
+  Start-Sleep -Milliseconds 500
+  $t = Get-Clipboard -Raw
+  if ($null -eq $t) { continue }
+  $t = $t.Trim()
+  if ($t -notmatch '^[0-9a-fA-F]{64}$' -or $vistos.ContainsKey($t)) { continue }
+  $vistos[$t] = $true
+  if (-not $appSecret -and (Status "$API/apps/$AppId/sessions/new" $t '') -eq 201) {
+    $appSecret = $t
+    Write-Host 'Token do app conferido na Cloudflare.' -ForegroundColor Green
+    continue
+  }
+  if (-not $turnToken -and (Status "$API/turn/keys/$TurnKeyId/credentials/generate-ice-servers" $t '{"ttl":60}') -eq 201) {
+    $turnToken = $t
+    Write-Host 'Token do TURN conferido na Cloudflare.' -ForegroundColor Green
+    continue
+  }
+  Write-Host 'A Cloudflare nao reconheceu o que foi copiado como nenhum dos dois tokens. Copie de novo.' -ForegroundColor Yellow
 }
-
-$appSecret = LerToken '1/2  No painel do Realtime (SFU), clique em copiar no token do app.'
-if ($appSecret -notmatch '^\S{16,256}$' -or (Status "$API/apps/$AppId/sessions/new" $appSecret '') -ne 201) {
-  Write-Host 'A Cloudflare nao aceitou o token do app. Confira se copiou o token do app do SFU. Nada foi gravado.' -ForegroundColor Red
-  exit 1
-}
-Write-Host 'Token do app conferido na Cloudflare.' -ForegroundColor Green
-
-$turnToken = LerToken '2/2  Agora clique em copiar no token da chave do TURN.'
-if ($turnToken -notmatch '^\S{16,256}$' -or (Status "$API/turn/keys/$TurnKeyId/credentials/generate-ice-servers" $turnToken '{"ttl":60}') -ne 201) {
-  Write-Host 'A Cloudflare nao aceitou o token do TURN. Confira se copiou o token da chave do TURN. Nada foi gravado.' -ForegroundColor Red
+$vistos = $null
+if (-not $appSecret -or -not $turnToken) {
+  Write-Host 'Passaram 10 minutos sem os dois tokens conferidos. Nada foi gravado. Rode o script de novo.' -ForegroundColor Red
   Set-Clipboard -Value ' '
   exit 1
 }
-Write-Host 'Token do TURN conferido na Cloudflare. Gravando...' -ForegroundColor Green
+Write-Host 'Os dois tokens foram conferidos. Gravando...' -ForegroundColor Green
 
 $valores = [ordered]@{
   REALTIME_APP_ID         = $AppId
