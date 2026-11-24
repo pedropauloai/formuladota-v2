@@ -39,10 +39,16 @@ function SeatsLine({ live, priceCents }: { live: PublicLive | null; priceCents: 
   return (
     <div className="flex flex-wrap items-end justify-between gap-3">
       <Price cents={priceCents} unit={t("perDay")} className="text-[2.8rem]" />
-      {live && (
-        <p data-fila-vagas={open} className={`text-sm font-medium ${open > 0 ? "text-play-primary" : "text-error"}`}>
-          {t("seatsOpen", { count: open })}
+      {live?.semLimite ? (
+        <p data-fila-sem-limite className="text-sm font-medium text-play-primary">
+          {t("seatsUnlimited")}
         </p>
+      ) : (
+        live && (
+          <p data-fila-vagas={open} className={`text-sm font-medium ${open > 0 ? "text-play-primary" : "text-error"}`}>
+            {t("seatsOpen", { count: open })}
+          </p>
+        )
       )}
     </div>
   );

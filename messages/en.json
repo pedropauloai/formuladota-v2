@@ -4538,6 +4538,7 @@
     "queueMatches": "{count, plural, one {# match} other {# matches}}",
     "you": "you",
     "seatsOpen": "{count, plural, =0 {Sold out} one {# spot open} other {# spots open}}",
+    "seatsUnlimited": "The spot is yours until you play",
     "seatsHint": "Every match played opens a spot.",
     "matchesLabel": "Matches",
     "fewer": "One match less",

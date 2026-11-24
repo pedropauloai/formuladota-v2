@@ -72,6 +72,12 @@ export interface PublicQueuedEntry extends PublicEntry {
   matchesUntilTurn: number;
 }
 
+/**
+ * O maior tamanho que o banco aceita (store_live_sessions.party_seats). O PPA não limita a fila:
+ * quem pagou joga, nesta live ou na próxima, então a live real abre sempre nesse tamanho.
+ */
+export const FILA_SEM_LIMITE = 100;
+
 export interface PublicLive {
   status: LiveStatus;
   /** Null na fila aberta: não há live marcada. */
@@ -79,6 +85,8 @@ export interface PublicLive {
   onAirAt: string | null;
   seatsOpen: number;
   queueSize: number;
+  /** A fila sem limite: a página e os overlays não mostram contagem de vagas nem esgotado. */
+  semLimite: boolean;
   seatsPerMatch: number;
   youtubeVideoId: string | null;
   matchesDone: number;
@@ -257,6 +265,7 @@ export function toPublicQueue(
           onAirAt: live.onAirAt,
           seatsOpen: seatsOpen(live),
           queueSize: live.queueSize,
+          semLimite: live.queueSize >= FILA_SEM_LIMITE,
           seatsPerMatch: live.seatsPerMatch,
           youtubeVideoId: live.youtubeVideoId,
           matchesDone: live.matchesDone,

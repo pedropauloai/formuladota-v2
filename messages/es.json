@@ -4538,6 +4538,7 @@
     "queueMatches": "{count, plural, one {# partida} other {# partidas}}",
     "you": "tú",
     "seatsOpen": "{count, plural, =0 {Cupos agotados} one {# cupo abierto} other {# cupos abiertos}}",
+    "seatsUnlimited": "El cupo es tuyo hasta que juegues",
     "seatsHint": "Cada partida jugada abre un cupo.",
     "matchesLabel": "Partidas",
     "fewer": "Una partida menos",
