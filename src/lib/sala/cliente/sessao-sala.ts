@@ -85,21 +85,24 @@ export class SessaoSala {
   private async refazer(): Promise<void> {
     if (this.refazendo || this.snap.fase !== "na_sala") return;
     this.refazendo = true;
-    this.set({ reconectando: true });
-    this.pararTela();
-    if (this.lig) desmontarLigacao(this.lig);
-    this.lig = null;
-    await this.a.sair();
-    const entrada = await this.a.entrar();
-    this.refazendo = false;
-    if (this.snap.fase !== "na_sala") return;
-    if (!entrada.ok) return this.encerrar(entrada.code);
-    this.entrada = entrada.data;
-    this.quedasDeVoz = 0;
-    this.montar(entrada.data, this.snap.camada);
-    this.pulso.reiniciar(true);
-    this.set({ reconectando: false, papel: entrada.data.papel, vozNoAr: false });
-    this.agora();
+    try {
+      this.set({ reconectando: true });
+      this.pararTela();
+      if (this.lig) desmontarLigacao(this.lig);
+      this.lig = null;
+      await this.a.sair();
+      const entrada = await this.a.entrar();
+      if (this.snap.fase !== "na_sala") return;
+      if (!entrada.ok) return this.encerrar(entrada.code);
+      this.entrada = entrada.data;
+      this.quedasDeVoz = 0;
+      this.montar(entrada.data, this.snap.camada);
+      this.pulso.reiniciar(true);
+      this.set({ reconectando: false, papel: entrada.data.papel, vozNoAr: false });
+      this.agora();
+    } finally {
+      this.refazendo = false;
+    }
   }
 
   private agendar(): void {
@@ -276,7 +279,7 @@ export class SessaoSala {
 
   private encerrar(motivo: string): void {
     this.limpar();
-    this.set({ fase: "saiu", motivo, estado: null, tela: null, telaDe: null, minhaTela: null, compartilhando: false, falando: [], vozNoAr: false, mao: false, audioBloqueado: false });
+    this.set({ fase: "saiu", motivo, estado: null, tela: null, telaDe: null, minhaTela: null, compartilhando: false, falando: [], vozNoAr: false, mao: false, audioBloqueado: false, reconectando: false });
   }
 
   private limpar(): void {
