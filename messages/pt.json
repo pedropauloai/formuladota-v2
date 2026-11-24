@@ -4842,6 +4842,13 @@
     "painelRotulo": "Sala de voz em que você está",
     "reconectando": "Reconectando",
     "trocarJanela": "Trocar a janela",
-    "trocarJanelaDica": "Escolhe outra janela sem parar a tela: quem assiste não perde a imagem."
+    "trocarJanelaDica": "Escolhe outra janela sem parar a tela: quem assiste não perde a imagem.",
+    "telaCheia": "Tela cheia",
+    "telaCheiaAtalho": "Tela cheia (F)",
+    "sairTelaCheia": "Sair da tela cheia (Esc)",
+    "volumeTela": "Volume da tela",
+    "esconderChat": "Esconder o chat",
+    "mostrarChat": "Mostrar o chat",
+    "volumeDe": "Volume de {nome}"
   }
 }

@@ -3,7 +3,7 @@
 // Tela da sala de voz (spec, seção 14), com o kit v2 sem pele nova: o palco com a tela, os controles,
 // e ao lado o chat (sala pública) e as pessoas. Os atributos data-* expõem o que o e2e confere.
 
-import { useState, useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore, type ComponentProps } from "react";
 import { useTranslations } from "next-intl";
 import { Loader2, Radio, ShieldCheck, Volume2 } from "lucide-react";
 import { Panel, plate, v2Page } from "@/components/v2";
@@ -113,11 +113,30 @@ function Entrada({ snap, entrar, retomando, mostrarTela }: { snap: SessaoSnapsho
   );
 }
 
+type Alvo = ({ userId: string } | { messageId: number }) & AlvoTela;
+
+/** As mesmas props do chat na coluna e sobreposto na tela cheia. */
+function propsDoChat(snap: SessaoSnapshot, sessao: SessaoSala, o: { nomeDe: (id: string) => string; souDono: boolean; donoId: string | null; setAlvo: (a: Alvo) => void; banir: (id: string) => void }): ComponentProps<typeof Chat> {
+  const eu = snap.estado?.eu ?? null;
+  return {
+    mensagens: snap.chat, pessoas: snap.pessoas, eu: eu?.userId ?? null, donoId: o.donoId, souDono: o.souDono,
+    podeEscrever: !!eu?.podeEscrever, chatAberto: snap.estado?.sala?.chatAberto ?? true,
+    onEnviar: (texto) => sessao.enviarMensagem(texto),
+    onApagar: (id) => void sessao.apagarMensagem(id),
+    onDenunciar: (id) => {
+      const m = snap.chat.find((x) => x.id === id);
+      if (m?.userId) o.setAlvo({ tipo: "mensagem", messageId: id, nome: o.nomeDe(m.userId), texto: m.texto });
+    },
+    onBanir: o.banir,
+    onAbrirChat: (aberto) => void sessao.abrirChat(aberto),
+  };
+}
+
 function NaSala({ roomId, tipo, mostrarTela, snap, sessao }: Props & { snap: SessaoSnapshot; sessao: SessaoSala }) {
   const t = useTranslations("sala");
   const [volumeVoz, setVolumeVoz] = useState(1);
   const [volumeJogo, setVolumeJogo] = useState(1);
-  const [alvo, setAlvo] = useState<({ userId: string } | { messageId: number }) & AlvoTela | null>(null);
+  const [alvo, setAlvo] = useState<Alvo | null>(null);
   const [escolhendo, setEscolhendo] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const estado = snap.estado;
@@ -130,10 +149,11 @@ function NaSala({ roomId, tipo, mostrarTela, snap, sessao }: Props & { snap: Ses
     const res = await sessao.moderar(userId, acao);
     setErro(res.ok ? null : (MODERAR_ERRO[res.code] ?? "moderarErro"));
   };
+  const chat = tipo === "palco" ? propsDoChat(snap, sessao, { nomeDe, souDono, donoId, setAlvo, banir: (id) => void moderar(id, "banir") }) : null;
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,1fr)_340px] min-[2600px]:grid-cols-[minmax(0,1fr)_420px]" data-sala-id={roomId}>
       <div className="min-w-0 space-y-4">
-        <Palco tela={snap.tela} telaDe={snap.telaDe} minhaTela={snap.minhaTela} nomeDe={nomeDe} volumeJogo={volumeJogo} />
+        <Palco tela={snap.tela} telaDe={snap.telaDe} minhaTela={snap.minhaTela} nomeDe={nomeDe} volumeJogo={volumeJogo} onVolumeJogo={setVolumeJogo} chat={chat && <Chat {...chat} sobreposto />} />
         <Controles
           vozNoAr={snap.vozNoAr} mutado={snap.mutado} mutadoPeloDono={!!eu?.mutadoPeloDono} semMicrofone={snap.semMicrofone}
           podeLevantarMao={!!eu?.podeLevantarMao} mao={snap.mao} mostrarTela={mostrarTela} compartilhando={snap.compartilhando}
@@ -153,23 +173,12 @@ function NaSala({ roomId, tipo, mostrarTela, snap, sessao }: Props & { snap: Ses
         <Avisos mostrarTela={mostrarTela && !snap.compartilhando} />
       </div>
       <aside className="min-w-0 space-y-4">
-        {tipo === "palco" && (
-          <Chat
-            mensagens={snap.chat} pessoas={snap.pessoas} eu={eu?.userId ?? null} donoId={donoId} souDono={souDono}
-            podeEscrever={!!eu?.podeEscrever} chatAberto={estado?.sala?.chatAberto ?? true}
-            onEnviar={(texto) => sessao.enviarMensagem(texto)} onApagar={(id) => void sessao.apagarMensagem(id)}
-            onDenunciar={(id) => {
-              const m = snap.chat.find((x) => x.id === id);
-              if (m?.userId) setAlvo({ tipo: "mensagem", messageId: id, nome: nomeDe(m.userId), texto: m.texto });
-            }}
-            onBanir={(id) => void moderar(id, "banir")}
-            onAbrirChat={(aberto) => void sessao.abrirChat(aberto)}
-          />
-        )}
+        {chat && <Chat {...chat} />}
         <Pessoas
           membros={membros} pessoas={snap.pessoas} eu={eu?.userId ?? null} souDono={souDono} tipo={tipo} falando={snap.falando}
           falantesMax={estado?.sala?.falantesMax ?? 0} onModerar={(id, acao) => void moderar(id, acao)}
           onBloquear={(id) => void sessao.bloquear(id)} onDenunciar={(id) => setAlvo({ tipo: "pessoa", userId: id, nome: nomeDe(id) })}
+          volumes={snap.volumes} onVolumeDe={(id, v) => sessao.setVolumeDe(id, v)}
         />
       </aside>
       <Denuncia

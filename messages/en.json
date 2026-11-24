@@ -4842,6 +4842,13 @@
     "painelRotulo": "Your voice room",
     "reconectando": "Reconnecting",
     "trocarJanela": "Switch window",
-    "trocarJanelaDica": "Pick another window without stopping: viewers keep the picture."
+    "trocarJanelaDica": "Pick another window without stopping: viewers keep the picture.",
+    "telaCheia": "Full screen",
+    "telaCheiaAtalho": "Full screen (F)",
+    "sairTelaCheia": "Exit full screen (Esc)",
+    "volumeTela": "Screen volume",
+    "esconderChat": "Hide chat",
+    "mostrarChat": "Show chat",
+    "volumeDe": "{nome} volume"
   }
 }
