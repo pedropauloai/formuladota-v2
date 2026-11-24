@@ -91,7 +91,16 @@ const config: NextConfig = {
       securityHeaders.push({ key: "Content-Security-Policy", value: csp });
     }
 
-    return [{ source: "/:path*", headers: securityHeaders }];
+    // A sala de voz (docs/comunicacao/spec.md) precisa do microfone e da captura de tela só nas
+    // páginas dela; o resto do site segue com o microfone desligado. Para o mesmo cabeçalho, a regra
+    // declarada depois vale (documentação do Next, headers).
+    const salaPermissions = { key: "Permissions-Policy", value: "camera=(), microphone=(self), display-capture=(self), geolocation=(), interest-cohort=()" };
+
+    return [
+      { source: "/:path*", headers: securityHeaders },
+      { source: "/sala", headers: [salaPermissions] },
+      { source: "/sala/:path*", headers: [salaPermissions] },
+    ];
   },
 
   async redirects() {
