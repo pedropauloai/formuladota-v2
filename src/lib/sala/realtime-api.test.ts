@@ -1,0 +1,109 @@
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { createSfuSession, forceCloseTracks, generateIceServers, realtimeEnv, sfu, type RealtimeEnv } from "./realtime-api";
+
+vi.mock("server-only", () => ({}));
+
+const env: RealtimeEnv = { appId: "app123", appSecret: "segredo-do-app", turnKeyId: "turn456", turnKeyToken: "token-do-turn" };
+
+function fakeFetch(status: number, body: unknown) {
+  const calls: Array<{ url: string; init: RequestInit }> = [];
+  const fn = vi.fn(async (url: string, init: RequestInit) => {
+    calls.push({ url, init });
+    return new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
+  });
+  vi.stubGlobal("fetch", fn);
+  return calls;
+}
+
+function first(calls: Array<{ url: string; init: RequestInit }>) {
+  const call = calls[0];
+  if (!call) throw new Error("a API não foi chamada");
+  return call;
+}
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
+});
+
+describe("realtimeEnv", () => {
+  it("sem o id ou o segredo do app, a sala fica indisponível (null)", () => {
+    vi.stubEnv("REALTIME_APP_ID", "");
+    vi.stubEnv("REALTIME_APP_SECRET", "x");
+    expect(realtimeEnv()).toBeNull();
+  });
+
+  it("lê as quatro variáveis, com o TURN opcional", () => {
+    vi.stubEnv("REALTIME_APP_ID", "a");
+    vi.stubEnv("REALTIME_APP_SECRET", "s");
+    vi.stubEnv("REALTIME_TURN_KEY_ID", "");
+    vi.stubEnv("REALTIME_TURN_KEY_TOKEN", "");
+    expect(realtimeEnv()).toEqual({ appId: "a", appSecret: "s", turnKeyId: null, turnKeyToken: null });
+  });
+});
+
+describe("sfu", () => {
+  it("chama a API oficial com o segredo no cabeçalho e devolve só o corpo", async () => {
+    const calls = fakeFetch(201, { sessionId: "abc" });
+    const res = await createSfuSession(env);
+    expect(first(calls).url).toBe("https://rtc.live.cloudflare.com/v1/apps/app123/sessions/new");
+    expect(first(calls).init.method).toBe("POST");
+    expect((first(calls).init.headers as Record<string, string>).Authorization).toBe("Bearer segredo-do-app");
+    expect(res).toEqual({ status: 201, body: { sessionId: "abc" } });
+    expect(JSON.stringify(res)).not.toContain("segredo");
+  });
+
+  it("recusa caminho que tenta sair da pasta do app", async () => {
+    fakeFetch(200, {});
+    await expect(sfu(env, "/sessions/../../apps/outro", { method: "GET" })).rejects.toThrow();
+  });
+
+  it("resposta que não é JSON vira erro no formato do SFU", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response("bad gateway", { status: 502 })));
+    const res = await sfu(env, "/sessions/new", { method: "POST" });
+    expect(res.status).toBe(502);
+    expect(res.body.errorCode).toBe("resposta_invalida");
+  });
+});
+
+describe("forceCloseTracks", () => {
+  it("fecha à força pelos mids, sem SDP", async () => {
+    const calls = fakeFetch(200, { tracks: [{ mid: "0" }] });
+    await forceCloseTracks(env, "sessao1", ["0", "1"]);
+    expect(first(calls).url).toBe("https://rtc.live.cloudflare.com/v1/apps/app123/sessions/sessao1/tracks/close");
+    expect(first(calls).init.method).toBe("PUT");
+    expect(JSON.parse(first(calls).init.body as string)).toEqual({ tracks: [{ mid: "0" }, { mid: "1" }], force: true });
+  });
+
+  it("sem mid, não chama a API", async () => {
+    const calls = fakeFetch(200, {});
+    await forceCloseTracks(env, "sessao1", []);
+    expect(calls).toHaveLength(0);
+  });
+});
+
+describe("generateIceServers", () => {
+  it("pede credencial de curta duração e tira a porta 53, que o navegador bloqueia", async () => {
+    const calls = fakeFetch(201, {
+      iceServers: [
+        { urls: ["stun:stun.cloudflare.com:3478", "stun:stun.cloudflare.com:53"] },
+        { urls: ["turn:turn.cloudflare.com:3478?transport=udp", "turn:turn.cloudflare.com:53?transport=udp", "turns:turn.cloudflare.com:443?transport=tcp"], username: "u", credential: "c" },
+      ],
+    });
+    const servers = await generateIceServers(env, 3600);
+    expect(first(calls).url).toBe("https://rtc.live.cloudflare.com/v1/turn/keys/turn456/credentials/generate-ice-servers");
+    expect((first(calls).init.headers as Record<string, string>).Authorization).toBe("Bearer token-do-turn");
+    expect(JSON.parse(first(calls).init.body as string)).toEqual({ ttl: 3600 });
+    expect(servers).toEqual([
+      { urls: ["stun:stun.cloudflare.com:3478"] },
+      { urls: ["turn:turn.cloudflare.com:3478?transport=udp", "turns:turn.cloudflare.com:443?transport=tcp"], username: "u", credential: "c" },
+    ]);
+  });
+
+  it("sem chave de TURN, só o STUN da Cloudflare", async () => {
+    const calls = fakeFetch(201, {});
+    const servers = await generateIceServers({ ...env, turnKeyId: null, turnKeyToken: null }, 3600);
+    expect(calls).toHaveLength(0);
+    expect(servers).toEqual([{ urls: ["stun:stun.cloudflare.com:3478"] }]);
+  });
+});

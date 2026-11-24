@@ -3870,6 +3870,24 @@ export type Database = {
           },
         ]
       }
+      user_birthdates: {
+        Row: {
+          birth_date: string
+          declared_at: string
+          user_id: string
+        }
+        Insert: {
+          birth_date: string
+          declared_at?: string
+          user_id: string
+        }
+        Update: {
+          birth_date?: string
+          declared_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_cosmetics: {
         Row: {
           acquired_at: string
@@ -4234,6 +4252,347 @@ export type Database = {
           },
         ]
       }
+      voice_room_members: {
+        Row: {
+          created_at: string
+          joined_via: string
+          last_seen_at: string | null
+          muted: boolean
+          removed_at: string | null
+          removed_by: string | null
+          role: string
+          room_id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          joined_via: string
+          last_seen_at?: string | null
+          muted?: boolean
+          removed_at?: string | null
+          removed_by?: string | null
+          role?: string
+          room_id: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          joined_via?: string
+          last_seen_at?: string | null
+          muted?: boolean
+          removed_at?: string | null
+          removed_by?: string | null
+          role?: string
+          room_id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      voice_room_reports: {
+        Row: {
+          created_at: string
+          details: string
+          id: string
+          is_test: boolean
+          reason: string
+          reported_id: string | null
+          reporter_id: string | null
+          resolution: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          room_id: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          details?: string
+          id?: string
+          is_test?: boolean
+          reason: string
+          reported_id?: string | null
+          reporter_id?: string | null
+          resolution?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          room_id?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          details?: string
+          id?: string
+          is_test?: boolean
+          reason?: string
+          reported_id?: string | null
+          reporter_id?: string | null
+          resolution?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          room_id?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
+      voice_room_sessions: {
+        Row: {
+          close_reason: string | null
+          closed_at: string | null
+          created_at: string
+          id: string
+          ip: string | null
+          room_id: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          close_reason?: string | null
+          closed_at?: string | null
+          created_at?: string
+          id: string
+          ip?: string | null
+          room_id: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          close_reason?: string | null
+          closed_at?: string | null
+          created_at?: string
+          id?: string
+          ip?: string | null
+          room_id?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      voice_room_stats: {
+        Row: {
+          at: string
+          audio_concealed_pct: number | null
+          bytes_received: number | null
+          bytes_sent: number | null
+          id: number
+          jitter_ms: number | null
+          packet_loss_pct: number | null
+          quality_limitation: string | null
+          relay: boolean | null
+          room_id: string
+          rtt_ms: number | null
+          session_id: string | null
+          user_id: string
+          video_fps: number | null
+          video_freeze_ms: number | null
+          video_height: number | null
+          video_width: number | null
+        }
+        Insert: {
+          at?: string
+          audio_concealed_pct?: number | null
+          bytes_received?: number | null
+          bytes_sent?: number | null
+          jitter_ms?: number | null
+          packet_loss_pct?: number | null
+          quality_limitation?: string | null
+          relay?: boolean | null
+          room_id: string
+          rtt_ms?: number | null
+          session_id?: string | null
+          user_id: string
+          video_fps?: number | null
+          video_freeze_ms?: number | null
+          video_height?: number | null
+          video_width?: number | null
+        }
+        Update: {
+          at?: string
+          audio_concealed_pct?: number | null
+          bytes_received?: number | null
+          bytes_sent?: number | null
+          jitter_ms?: number | null
+          packet_loss_pct?: number | null
+          quality_limitation?: string | null
+          relay?: boolean | null
+          room_id?: string
+          rtt_ms?: number | null
+          session_id?: string | null
+          user_id?: string
+          video_fps?: number | null
+          video_freeze_ms?: number | null
+          video_height?: number | null
+          video_width?: number | null
+        }
+        Relationships: []
+      }
+      voice_room_subscriptions: {
+        Row: {
+          ended_at: string | null
+          id: number
+          is_test: boolean
+          kind: string
+          mid: string
+          publisher_session_id: string
+          rate_kbps: number
+          session_id: string
+          started_at: string
+          track_name: string
+        }
+        Insert: {
+          ended_at?: string | null
+          is_test?: boolean
+          kind: string
+          mid: string
+          publisher_session_id: string
+          rate_kbps: number
+          session_id: string
+          started_at?: string
+          track_name: string
+        }
+        Update: {
+          ended_at?: string | null
+          is_test?: boolean
+          kind?: string
+          mid?: string
+          publisher_session_id?: string
+          rate_kbps?: number
+          session_id?: string
+          started_at?: string
+          track_name?: string
+        }
+        Relationships: []
+      }
+      voice_room_tracks: {
+        Row: {
+          closed_at: string | null
+          created_at: string
+          kind: string
+          mid: string
+          session_id: string
+          tipo: string | null
+          track_name: string
+        }
+        Insert: {
+          closed_at?: string | null
+          created_at?: string
+          kind: string
+          mid: string
+          session_id: string
+          tipo?: string | null
+          track_name: string
+        }
+        Update: {
+          closed_at?: string | null
+          created_at?: string
+          kind?: string
+          mid?: string
+          session_id?: string
+          tipo?: string | null
+          track_name?: string
+        }
+        Relationships: []
+      }
+      voice_rooms: {
+        Row: {
+          booking_id: string | null
+          closed_at: string | null
+          closes_at: string
+          created_at: string
+          id: string
+          invite_token_hash: string | null
+          invite_used_at: string | null
+          is_test: boolean
+          kind: string
+          live_session_id: string | null
+          max_members: number
+          owner_id: string
+          screen_policy: string
+          status: string
+          title: string
+        }
+        Insert: {
+          booking_id?: string | null
+          closed_at?: string | null
+          closes_at: string
+          created_at?: string
+          id?: string
+          invite_token_hash?: string | null
+          invite_used_at?: string | null
+          is_test?: boolean
+          kind: string
+          live_session_id?: string | null
+          max_members: number
+          owner_id: string
+          screen_policy?: string
+          status?: string
+          title: string
+        }
+        Update: {
+          booking_id?: string | null
+          closed_at?: string | null
+          closes_at?: string
+          created_at?: string
+          id?: string
+          invite_token_hash?: string | null
+          invite_used_at?: string | null
+          is_test?: boolean
+          kind?: string
+          live_session_id?: string | null
+          max_members?: number
+          owner_id?: string
+          screen_policy?: string
+          status?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      voice_settings: {
+        Row: {
+          alert_at: string | null
+          alert_level: number
+          cap_gb_30d: number
+          id: number
+          mentoria_max_members: number
+          party_max_members: number
+          party_screen_enabled: boolean
+          peak_alert_at: string | null
+          updated_at: string
+          usage_bytes_30d: number
+          usage_computed_at: string | null
+          video_max_kbps: number
+        }
+        Insert: {
+          alert_at?: string | null
+          alert_level?: number
+          cap_gb_30d?: number
+          id?: number
+          mentoria_max_members?: number
+          party_max_members?: number
+          party_screen_enabled?: boolean
+          peak_alert_at?: string | null
+          updated_at?: string
+          usage_bytes_30d?: number
+          usage_computed_at?: string | null
+          video_max_kbps?: number
+        }
+        Update: {
+          alert_at?: string | null
+          alert_level?: number
+          cap_gb_30d?: number
+          id?: number
+          mentoria_max_members?: number
+          party_max_members?: number
+          party_screen_enabled?: boolean
+          peak_alert_at?: string | null
+          updated_at?: string
+          usage_bytes_30d?: number
+          usage_computed_at?: string | null
+          video_max_kbps?: number
+        }
+        Relationships: []
+      }
       xp_events: {
         Row: {
           created_at: string | null
@@ -4504,6 +4863,7 @@ export type Database = {
       create_party: { Args: never; Returns: string }
       credit_ficha_purchase: { Args: { p_purchase_id: string }; Returns: Json }
       decline_match_proposal: { Args: { p_id: string }; Returns: undefined }
+      declare_birth_date: { Args: { p_birth_date: string }; Returns: undefined }
       dm_get_or_create_conversation: {
         Args: { p_other: string }
         Returns: string
@@ -4655,6 +5015,7 @@ export type Database = {
       mark_changelog_seen: { Args: never; Returns: undefined }
       match_bans: { Args: { p_dota_match_id: string }; Returns: Json }
       mmr_range_enabled: { Args: never; Returns: boolean }
+      is_voice_room_member: { Args: { p_room_id: string }; Returns: boolean }
       mmr_to_tier: {
         Args: { p_mmr: number }
         Returns: {

@@ -14,7 +14,8 @@ export type FeatureFlagKey =
   | "matchmaking_mmr_range"
   | "loja"
   | "fila_competitiva"
-  | "enquete_liga";
+  | "enquete_liga"
+  | "sala_voz";
 
 export interface FeatureFlags {
   ranked_com_pro: boolean;
@@ -35,6 +36,9 @@ export interface FeatureFlags {
   /** Enquete da Liga do FORMULADOTA (migration 180). ON = a coluna direita mostra a enquete no
    *  lugar do Top do ranking; OFF = o ranking volta. Critério em docs/enquete-liga.md. */
   enquete_liga: boolean;
+  /** Sala de voz com tela (migration 195, spec em docs/comunicacao/spec.md). OFF = /sala some para
+   *  todos, inclusive o admin. */
+  sala_voz: boolean;
 }
 
 // Defaults quando a linha não existe / erro de leitura (falha fechada: feature off).
@@ -47,6 +51,7 @@ const DEFAULTS: FeatureFlags = {
   loja: false,
   fila_competitiva: false,
   enquete_liga: false,
+  sala_voz: false,
 };
 
 // React.cache: page e ClientShell chamam no mesmo request — 1 query só.
