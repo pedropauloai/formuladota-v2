@@ -1,9 +1,9 @@
 // Faixas recebidas dos outros: a voz toca num elemento de áudio por pessoa; a tela e o áudio da tela
-// vão juntos para o vídeo do palco (som e imagem no mesmo relógio). A lista do batimento manda:
-// faixa nova é pedida, faixa que sumiu é solta.
+// vão juntos para o vídeo do palco (som e imagem no mesmo relógio). A lista do estado manda: faixa
+// nova é pedida, faixa que sumiu é solta. A tela vem na camada que a pessoa escolheu ("alta" ou "leve").
 
-import type { Connection } from "./conexao";
-import type { TrackLabel } from "../tipos";
+import type { Connection, Recebimento } from "./conexao";
+import type { Layer, TrackLabel } from "../tipos";
 
 export interface FaixaRemota {
   sessionId: string;
@@ -14,7 +14,7 @@ export interface FaixaRemota {
 
 interface Recebida {
   ref: FaixaRemota;
-  stop: () => void;
+  rx: Recebimento | null;
   track: MediaStreamTrack | null;
   audio: HTMLAudioElement | null;
 }
@@ -27,6 +27,7 @@ export class Recepcao {
 
   constructor(
     private readonly conn: Connection,
+    private layer: Layer,
     private readonly onTela: (stream: MediaStream | null, userId: string | null) => void,
     private readonly onVoz: (userId: string, track: MediaStreamTrack | null) => void
   ) {}
@@ -38,21 +39,25 @@ export class Recepcao {
   }
 
   private take(key: string, ref: FaixaRemota): void {
-    const item: Recebida = { ref, track: null, audio: null, stop: () => undefined };
+    const item: Recebida = { ref, rx: null, track: null, audio: null };
     this.recebidas.set(key, item);
-    item.stop = this.conn.receive(ref, (track) => {
-      item.track = track;
-      if (ref.tipo === "voz") {
-        item.audio = playVoice(item.audio, track, this.volumeVoz);
-        this.onVoz(ref.userId, track);
-      } else {
-        this.publishScreen();
-      }
-    });
+    item.rx = this.conn.receive(
+      ref,
+      (track) => {
+        item.track = track;
+        if (ref.tipo === "voz") {
+          item.audio = playVoice(item.audio, track, this.volumeVoz);
+          this.onVoz(ref.userId, track);
+        } else {
+          this.publishScreen();
+        }
+      },
+      ref.tipo === "tela" ? this.layer : undefined
+    );
   }
 
   private drop(key: string, r: Recebida): void {
-    r.stop();
+    r.rx?.stop();
     if (r.audio) {
       r.audio.pause();
       r.audio.srcObject = null;
@@ -68,6 +73,12 @@ export class Recepcao {
     if (!video?.track) return this.onTela(null, null);
     const tracks = tela.filter((r) => r.ref.userId === video.ref.userId).map((r) => r.track as MediaStreamTrack);
     this.onTela(new MediaStream(tracks), video.ref.userId);
+  }
+
+  /** "Alta" ou "leve": vale para a tela que chega agora e para as próximas. */
+  setLayer(rid: Layer): void {
+    this.layer = rid;
+    for (const r of this.recebidas.values()) if (r.ref.tipo === "tela") r.rx?.setLayer(rid);
   }
 
   setVoiceVolume(volume: number): void {

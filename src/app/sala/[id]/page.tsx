@@ -1,6 +1,6 @@
 // /sala/[id]: sala de voz com tela (spec: docs/comunicacao/spec.md). Flag sala_voz desligada dá 404
-// para todos, inclusive o admin. A página decide o portão (login, convite, data de nascimento, menor)
-// pela mesma regra das rotas da API; dentro, a tela do cliente fala com /api/sala/[id].
+// para todos, inclusive o admin. A página decide o portão (login, convite, maioridade, banido...) pela
+// mesma regra das rotas da API; dentro, a tela do cliente fala com /api/sala/[id].
 
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -8,12 +8,12 @@ import { getTranslations } from "next-intl/server";
 import { z } from "zod";
 import { ClientShell } from "@/components/client-shell/shell";
 import { AceitarConvite } from "@/components/sala/aceitar-convite";
-import { DataNascimento } from "@/components/sala/data-nascimento";
+import { Maioridade } from "@/components/sala/maioridade";
 import { Portao, type PortaoTipo } from "@/components/sala/portao";
 import { SalaView } from "@/components/sala/sala-view";
 import { getFeatureFlags } from "@/lib/queries/feature-flags";
 import { loadCallContext } from "@/lib/sala/contexto";
-import { canShareScreen } from "@/lib/sala/faixas";
+import { canShareScreen } from "@/lib/sala/papeis";
 import type { DenyCode } from "@/lib/sala/tipos";
 
 export const dynamic = "force-dynamic";
@@ -30,10 +30,11 @@ const PORTAO: Partial<Record<DenyCode, PortaoTipo>> = {
   sem_login: "login",
   fora_da_sala: "fora",
   expulso: "expulso",
+  banido: "banido",
+  so_beneficio: "beneficio",
   sala_encerrada: "encerrada",
   conta_sem_identidade: "identidade",
   conta_bloqueada: "bloqueada",
-  menor_de_idade: "menor",
   sala_lotada: "lotada",
 };
 
@@ -49,10 +50,9 @@ async function Conteudo({ id, convite }: { id: string; convite: string | null })
   if (ctx.decision.ok) notFound();
   const code = ctx.decision.code;
   if (code === "flag_desligada" || code === "sala_inexistente") notFound();
-  if (code === "sem_data_de_nascimento") return <DataNascimento roomId={id} />;
-  const tipo = PORTAO[code] ?? "fora";
+  if (code === "sem_maioridade") return <Maioridade roomId={id} next={next} />;
   return (
-    <Portao tipo={tipo} next={next}>
+    <Portao tipo={PORTAO[code] ?? "fora"} next={next}>
       {code === "fora_da_sala" && convite && <AceitarConvite roomId={id} token={convite} />}
     </Portao>
   );

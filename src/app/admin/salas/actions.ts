@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireAdmin } from "@/app/admin/pros/admin-gate";
 import { getFeatureFlags } from "@/lib/queries/feature-flags";
-import { closeRoom, createMentoriaRoom, createPartyRoom, regenerateInvite, type CriarResultado } from "@/lib/sala/admin";
+import { closeRoom, createMentoriaRoom, createPalcoRoom, createPartyRoom, regenerateInvite, unban, type CriarResultado } from "@/lib/sala/admin";
 import { createServiceClient } from "@/lib/supabase/service";
 
 const Uuid = z.string().uuid();
@@ -48,6 +48,23 @@ export async function encerrarSala(roomId: string): Promise<{ ok: boolean; erro?
   if (!g.ok) return { ok: false, erro: g.erro };
   if (!Uuid.safeParse(roomId).success) return { ok: false, erro: "Sala inválida." };
   await closeRoom(createServiceClient(), roomId, new Date());
+  revalidatePath("/admin/salas");
+  return { ok: true };
+}
+
+export async function abrirSalaPublica(soBeneficio: boolean): Promise<CriarResultado> {
+  const g = await gate();
+  if (!g.ok) return { ok: false, erro: g.erro };
+  const res = await createPalcoRoom(createServiceClient(), g.adminId, soBeneficio ? "beneficio" : "todos", new Date());
+  revalidatePath("/admin/salas");
+  return res;
+}
+
+export async function desbanir(userId: string): Promise<{ ok: boolean; erro?: string }> {
+  const g = await gate();
+  if (!g.ok) return { ok: false, erro: g.erro };
+  if (!Uuid.safeParse(userId).success) return { ok: false, erro: "Pessoa inválida." };
+  await unban(createServiceClient(), g.adminId, userId);
   revalidatePath("/admin/salas");
   return { ok: true };
 }

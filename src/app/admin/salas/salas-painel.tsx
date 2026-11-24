@@ -1,17 +1,19 @@
 "use client";
 
-// Lista de salas abertas e horários pagos, com criar, copiar link e convite, e encerrar.
+// Lista de salas abertas e horários pagos, com abrir a sala pública da live, criar, copiar link e
+// convite, e encerrar.
 
 import { useState, useTransition } from "react";
-import { Copy, Headphones, Plus, X } from "lucide-react";
+import { Copy, Headphones, Plus, Radio, X } from "lucide-react";
 import type { Overview } from "@/lib/sala/admin";
-import { criarSalaMentoria, criarSalaParty, encerrarSala, novoConvite } from "./actions";
+import type { RoomKind } from "@/lib/sala/tipos";
+import { abrirSalaPublica, criarSalaMentoria, criarSalaParty, encerrarSala, novoConvite } from "./actions";
 
 /** Só o que a lista mostra: o hash do convite e o resto da sala ficam no servidor. */
 export interface SalaResumo {
   id: string;
   title: string;
-  kind: "mentoria" | "party";
+  kind: RoomKind;
   online: number;
   closesAt: string;
   isTest: boolean;
@@ -42,11 +44,12 @@ export function SalasPainel({ site, rooms, bookings, liveOnAir }: Props) {
   const [mensagem, setMensagem] = useState<string | null>(null);
   const [convites, setConvites] = useState<Record<string, string>>({});
   const [alunoTela, setAlunoTela] = useState(false);
+  const [soBeneficio, setSoBeneficio] = useState(false);
   const link = (id: string) => `${site}/sala/${id}`;
 
-  function guardar(res: { ok: true; roomId: string; convite: string | null } | { ok: false; erro: string }) {
+  function guardar(res: { ok: true; roomId: string; convite: string | null } | { ok: false; erro: string }, aviso = "Sala aberta. Copie o link e mande ao aluno pelo WhatsApp.") {
     if (!res.ok) return setMensagem(res.erro);
-    setMensagem("Sala aberta. Copie o link e mande ao aluno pelo WhatsApp.");
+    setMensagem(aviso);
     if (res.convite) setConvites((c) => ({ ...c, [res.roomId]: res.convite as string }));
   }
 
@@ -63,7 +66,7 @@ export function SalasPainel({ site, rooms, bookings, liveOnAir }: Props) {
               <Headphones className="size-4 text-gold" aria-hidden="true" />
               <span className="text-text-display">{r.title}</span>
               <span className="text-xs text-text-muted">
-                {r.kind === "party" ? "party" : "mentoria"} · {r.online} online · fecha {quando(r.closesAt)}
+                {r.kind === "palco" ? "sala pública" : r.kind} · {r.online} online · fecha {quando(r.closesAt)}
                 {r.isTest ? " · teste" : ""}
               </span>
               <span className="ml-auto flex flex-wrap gap-2">
@@ -86,6 +89,22 @@ export function SalasPainel({ site, rooms, bookings, liveOnAir }: Props) {
             </li>
           ))}
         </ul>
+      </section>
+
+      <section className="space-y-3" data-admin-salas-publica="">
+        <h2 className="font-display text-lg font-bold uppercase text-text-display">Sala pública da live</h2>
+        <p className="text-xs text-text-muted">Anuncie na live o endereço fixo: ele leva à sala pública aberta. Quem chega ouve e assiste; fala quem você chamar.</p>
+        <label className="flex items-center gap-2 text-xs text-text-muted">
+          <input type="checkbox" checked={soBeneficio} onChange={(e) => setSoBeneficio(e.target.checked)} />
+          Só quem tem Battlepass ou vaga na party do dia
+        </label>
+        <span className="flex flex-wrap gap-2">
+          <button type="button" className={botao} disabled={pending} data-admin-abrir-publica="" onClick={() => start(async () => guardar(await abrirSalaPublica(soBeneficio), `Sala pública aberta. Anuncie ${site}/sala na live.`))}>
+            <Radio className="size-3.5" aria-hidden="true" />
+            Abrir a sala pública
+          </button>
+          <Copiar texto={`${site}/sala`} rotulo="Copiar o endereço fixo" />
+        </span>
       </section>
 
       <section className="space-y-3">

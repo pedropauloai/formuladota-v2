@@ -1,29 +1,29 @@
 "use server";
 
-// Data de nascimento na primeira entrada numa sala de voz (escolha 2 da spec). Grava pela função
-// declare_birth_date, com a sessão de quem pede: uma vez só, e a mesma data de novo não dá erro.
+// A marcação "tenho 18 anos ou mais" na primeira entrada numa sala de voz (decisão do PPA de
+// 23/11/2026). Grava pela função confirm_adult, com a sessão de quem pede: uma vez só, e repetir não dá erro.
 
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { TERMOS_SALA } from "@/lib/sala/termos";
 
-export type NascimentoState = { erro: "invalida" | "ja_informada" | "falhou" } | null;
+export type MaioridadeState = { erro: "sem_marcacao" | "falhou" } | null;
 
 const Form = z.object({
   roomId: z.string().uuid(),
-  nascimento: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  maior: z.literal("sim"),
+  next: z.string().regex(/^\/sala\/[0-9a-f-]{36}(\?convite=[A-Za-z0-9_-]{20,128})?$/).optional(),
 });
 
-export async function declareBirthDate(_prev: NascimentoState, formData: FormData): Promise<NascimentoState> {
-  const parsed = Form.safeParse({ roomId: formData.get("roomId"), nascimento: formData.get("nascimento") });
-  if (!parsed.success) return { erro: "invalida" };
+export async function confirmAdult(_prev: MaioridadeState, formData: FormData): Promise<MaioridadeState> {
+  const parsed = Form.safeParse({ roomId: formData.get("roomId"), maior: formData.get("maior"), next: formData.get("next") ?? undefined });
+  if (!parsed.success) return { erro: "sem_marcacao" };
   const supabase = await createClient();
-  const { error } = await supabase.rpc("declare_birth_date", { p_birth_date: parsed.data.nascimento });
-  if (error?.code === "22023") return { erro: "invalida" };
-  if (error?.code === "42501") return { erro: "ja_informada" };
+  const { error } = await supabase.rpc("confirm_adult", { p_terms_version: TERMOS_SALA });
   if (error) {
-    console.error("[sala] declarar data de nascimento:", error.message);
+    console.error("[sala] marcação de maioridade:", error.message);
     return { erro: "falhou" };
   }
-  redirect(`/sala/${parsed.data.roomId}`);
+  redirect(parsed.data.next ?? `/sala/${parsed.data.roomId}`);
 }

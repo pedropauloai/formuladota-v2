@@ -3,10 +3,14 @@
 export const SAIDA_TEXTO: Record<string, string> = {
   saiu: "saidaSaiu",
   expulso: "saidaExpulso",
+  banido: "saidaBanido",
   fora_da_sala: "saidaFora",
+  so_beneficio: "saidaBeneficio",
   sala_encerrada: "saidaEncerrada",
   flag_desligada: "saidaDesligada",
   conta_bloqueada: "saidaBloqueada",
+  conta_sem_identidade: "saidaIdentidade",
+  sem_maioridade: "saidaMaioridade",
   sem_microfone: "saidaSemMicrofone",
   sala_indisponivel: "saidaIndisponivel",
   sala_lotada: "saidaLotada",
@@ -16,6 +20,16 @@ export const TELA_TEXTO: Record<string, string> = {
   teto_de_trafego: "telaTeto",
   tela_ocupada: "telaOcupada",
   tela_nao_permitida: "telaSoDono",
+};
+
+export const CHAT_ERRO: Record<string, string> = {
+  devagar: "chatDevagar",
+  chat_fechado: "chatFechado",
+  mensagem_invalida: "chatInvalida",
+};
+
+export const MODERAR_ERRO: Record<string, string> = {
+  palco_cheio: "palcoCheio",
 };
 
 export const MOTIVO_TEXTO = {

@@ -1,7 +1,7 @@
 "use client";
 
-// Diálogo de denúncia: motivo, detalhe opcional e os canais públicos para caso grave
-// (ECA Digital, arts. 28 e 29: a denúncia é identificada, sai da conta logada).
+// Diálogo de denúncia de uma pessoa ou de uma mensagem do chat: motivo, detalhe opcional e os canais
+// públicos para caso grave (ECA Digital, arts. 28 e 29: a denúncia é identificada, sai da conta logada).
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
@@ -9,13 +9,16 @@ import { Dialog } from "@/components/ui/dialog";
 import { plate } from "@/components/v2";
 import { MOTIVO_TEXTO, type Motivo } from "./textos";
 
+/** Quem ou o que se denuncia: uma pessoa, ou uma mensagem do chat (com o texto, para conferir). */
+export type AlvoTela = { tipo: "pessoa"; nome: string } | { tipo: "mensagem"; nome: string; texto: string };
+
 interface Props {
-  nome: string | null;
+  alvo: AlvoTela | null;
   onClose: () => void;
   onSend: (motivo: Motivo, detalhes: string) => Promise<{ ok: boolean; code?: string }>;
 }
 
-export function Denuncia({ nome, onClose, onSend }: Props) {
+export function Denuncia({ alvo, onClose, onSend }: Props) {
   const t = useTranslations("sala");
   const [motivo, setMotivo] = useState<Motivo>("assedio");
   const [detalhes, setDetalhes] = useState("");
@@ -28,10 +31,11 @@ export function Denuncia({ nome, onClose, onSend }: Props) {
   }
 
   return (
-    <Dialog.Root open={nome !== null} onOpenChange={(open) => !open && onClose()}>
+    <Dialog.Root open={alvo !== null} onOpenChange={(open) => !open && onClose()}>
       <Dialog.Content playSoundOnOpen={false} className="max-w-md space-y-4" data-sala-denuncia="">
-        <Dialog.Title>{t("denunciaTitulo", { nome: nome ?? "" })}</Dialog.Title>
+        <Dialog.Title>{t(alvo?.tipo === "mensagem" ? "denunciaMensagemTitulo" : "denunciaTitulo", { nome: alvo?.nome ?? "" })}</Dialog.Title>
         <Dialog.Description>{t("denunciaTexto")}</Dialog.Description>
+        {alvo?.tipo === "mensagem" && <blockquote className="border-l-2 border-border-strong pl-3 text-sm italic text-text-body">{alvo.texto}</blockquote>}
         {estado === "enviada" ? (
           <p role="status" className="text-sm text-play-primary">{t("denunciaEnviada")}</p>
         ) : (

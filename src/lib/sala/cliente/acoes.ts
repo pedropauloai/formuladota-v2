@@ -1,7 +1,8 @@
-// Chamadas do navegador às rotas da sala (entrar, batimento, rótulo, sair e moderação).
+// Chamadas do navegador às rotas da sala (entrar, estado, nomes, rótulo, chat, moderação e sair).
 
 import type { Estado } from "../estado";
-import type { TrackLabel } from "../tipos";
+import type { Pessoa } from "../pessoas";
+import type { MemberRole, Quality, RoomKind, TrackLabel } from "../tipos";
 
 export type Resposta<T> = { ok: true; data: T } | { ok: false; code: string };
 
@@ -23,20 +24,35 @@ export async function postJson<T>(url: string, body?: unknown): Promise<Resposta
 
 export interface Entrada {
   iceServers: RTCIceServer[];
-  papel: "dono" | "membro";
+  papel: MemberRole;
+  tipo: RoomKind;
   videoMaxKbps: number;
   podeCompartilharTela: boolean;
 }
+
+export interface Batimento {
+  muted: boolean;
+  hand: boolean;
+  metricas?: unknown;
+}
+
+export type AcaoDono = "falar" | "ouvir" | "mutar" | "liberar" | "expulsar" | "banir";
+export type AlvoDenuncia = { userId: string } | { messageId: number };
 
 export const api = (roomId: string) => {
   const base = `/api/sala/${roomId}`;
   return {
     entrar: () => postJson<Entrada>(`${base}/entrar`),
-    estado: (body: { muted: boolean; sessionId: string | null; metricas?: unknown }) => postJson<Estado>(`${base}/estado`, body),
-    rotular: (sessionId: string, trackName: string, tipo: TrackLabel) => postJson<{ ok: true }>(`${base}/faixas`, { sessionId, trackName, tipo }),
-    expulsar: (userId: string) => postJson<{ ok: true }>(`${base}/membros/${userId}/expulsar`),
+    estado: (body: { sessionId: string | null; chatAfter: number; beat?: Batimento }) => postJson<Estado>(`${base}/estado`, body),
+    pessoas: (ids: string[]) => postJson<Record<string, Pessoa>>(`${base}/pessoas`, { ids }),
+    rotular: (sessionId: string, trackName: string, tipo: TrackLabel, qualidade: Quality | null) =>
+      postJson<{ ok: true }>(`${base}/faixas`, { sessionId, trackName, tipo, qualidade }),
+    chat: (texto: string) => postJson<{ ok: true; id: number }>(`${base}/chat`, { texto }),
+    apagarMensagem: (id: number) => postJson<{ ok: true }>(`${base}/chat/${id}/apagar`),
+    abrirChat: (aberto: boolean) => postJson<{ ok: true }>(`${base}/chat/abrir`, { aberto }),
+    membro: (userId: string, acao: AcaoDono, motivo = "") => postJson<{ ok: true }>(`${base}/membros/${userId}/${acao}`, { motivo }),
     bloquear: (userId: string) => postJson<{ ok: true }>(`${base}/bloqueios`, { userId }),
-    denunciar: (userId: string, motivo: string, detalhes: string) => postJson<{ ok: true }>(`${base}/denuncias`, { userId, motivo, detalhes }),
+    denunciar: (alvo: AlvoDenuncia, motivo: string, detalhes: string) => postJson<{ ok: true }>(`${base}/denuncias`, { ...alvo, motivo, detalhes }),
     convite: (token: string) => postJson<{ ok: true }>(`${base}/convite`, { token }),
     /** Ao fechar a aba, o sendBeacon entrega mesmo com a página indo embora. */
     sairNoFechamento: () => {

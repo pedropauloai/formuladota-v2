@@ -2,18 +2,25 @@
 // mexe só aqui. O partytracks fala com /api/sala/[id]/rtc, que autoriza e repassa ao SFU.
 
 import { PartyTracks } from "partytracks/client";
-import { of, type Subscription } from "rxjs";
+import { BehaviorSubject, of, type Subscription } from "rxjs";
 import type { RawStat } from "../metricas";
+import type { Layer } from "../tipos";
 
 export interface TrackRef {
   sessionId: string;
   trackName: string;
 }
 
+export interface Recebimento {
+  stop: () => void;
+  /** Troca a camada da tela (o servidor decide a que vale pela regra de custo). */
+  setLayer: (rid: Layer) => void;
+}
+
 export interface Connection {
   sessionId(): string | null;
   publish(track: MediaStreamTrack, encodings: RTCRtpEncodingParameters[], onReady: (ref: TrackRef) => void): () => void;
-  receive(ref: TrackRef, onTrack: (track: MediaStreamTrack) => void): () => void;
+  receive(ref: TrackRef, onTrack: (track: MediaStreamTrack) => void, layer?: Layer): Recebimento;
   stats(): Promise<RawStat[]>;
   onState(listener: (state: RTCPeerConnectionState) => void): void;
   close(): void;
@@ -47,12 +54,18 @@ export function createConnection(opts: { roomId: string; iceServers: RTCIceServe
       });
       return () => sub.unsubscribe();
     },
-    receive(ref, onTrack) {
-      const sub = pt.pull(of({ location: "remote", sessionId: ref.sessionId, trackName: ref.trackName })).subscribe({
+    receive(ref, onTrack, layer) {
+      const meta = of({ location: "remote" as const, sessionId: ref.sessionId, trackName: ref.trackName });
+      const rid$ = layer ? new BehaviorSubject<Layer>(layer) : null;
+      const pulled = rid$ ? pt.pull(meta, { simulcast: { preferredRid$: rid$ } }) : pt.pull(meta);
+      const sub = pulled.subscribe({
         next: onTrack,
         error: (err: unknown) => console.error("[sala] receber faixa:", err),
       });
-      return () => sub.unsubscribe();
+      return {
+        stop: () => sub.unsubscribe(),
+        setLayer: (rid) => { if (rid$ && rid$.value !== rid) rid$.next(rid); },
+      };
     },
     async stats() {
       if (!pc) return [];

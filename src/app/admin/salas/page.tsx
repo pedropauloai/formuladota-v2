@@ -1,12 +1,14 @@
-// /admin/salas: o PPA cria a sala de mentoria a partir de um horário pago ou a da party da live,
-// copia o link (e o convite de quem pagou sem login), encerra, e vê consumo e denúncias.
+// /admin/salas: o PPA abre a sala pública da live, cria a sala de mentoria a partir de um horário pago
+// ou a da party da live, copia o link (e o convite de quem pagou sem login), encerra, desbane e vê
+// consumo e denúncias.
 // Instrumento de trabalho: sem pele de vitrine. Flag sala_voz desligada esconde a página.
 
 import { notFound } from "next/navigation";
-import { requireAdmin } from "@/app/admin/pros/admin-gate";
+import { requireAdminPage } from "@/lib/auth/admin-page";
 import { getFeatureFlags } from "@/lib/queries/feature-flags";
-import { adminOverview } from "@/lib/sala/admin";
+import { adminOverview, listBans } from "@/lib/sala/admin";
 import { createServiceClient } from "@/lib/supabase/service";
+import { Banidos } from "./banidos";
 import { SalasPainel } from "./salas-painel";
 
 export const dynamic = "force-dynamic";
@@ -15,11 +17,11 @@ const GB = 1_000_000_000;
 const fmtGb = (bytes: number) => (bytes / GB).toLocaleString("pt-BR", { maximumFractionDigits: 2 });
 
 export default async function AdminSalasPage() {
-  // A página lê com a service role: confere o admin aqui também, porque o layout pode não rodar
-  // numa navegação RSC (o cabeçalho do roteador vem de quem pede).
-  if (!(await requireAdmin()).ok) notFound();
+  // A página lê com a service role: confere o admin aqui também (o layout pode não rodar numa navegação parcial).
+  const adminId = await requireAdminPage();
   if (!(await getFeatureFlags()).sala_voz) notFound();
-  const overview = await adminOverview(createServiceClient(), new Date());
+  const db = createServiceClient();
+  const [overview, banidos] = await Promise.all([adminOverview(db, new Date()), listBans(db, adminId)]);
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.formuladota.com.br";
   const pct = overview.usage.capBytes > 0 ? Math.round((overview.usage.estimatedBytes / overview.usage.capBytes) * 100) : 0;
   return (
@@ -56,6 +58,8 @@ export default async function AdminSalasPage() {
         liveOnAir={overview.liveOnAir}
       />
 
+      <Banidos banidos={banidos} />
+
       <section className="space-y-3" data-admin-salas-denuncias={overview.reports.length}>
         <h2 className="font-display text-lg font-bold uppercase text-text-display">Denúncias abertas</h2>
         {overview.reports.length === 0 && <p className="text-sm text-text-muted">Nenhuma denúncia aberta.</p>}
@@ -65,6 +69,7 @@ export default async function AdminSalasPage() {
               <p>
                 <strong className="text-text-display">{r.reporter}</strong> denunciou <strong className="text-text-display">{r.reported}</strong> por {r.reason}, na sala {r.roomTitle}
               </p>
+              {r.messageBody && <p className="text-text-muted">Mensagem: &ldquo;{r.messageBody}&rdquo;</p>}
               {r.details && <p className="text-text-muted">&ldquo;{r.details}&rdquo;</p>}
               <p className="text-xs text-text-muted">{new Date(r.createdAt).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}</p>
             </li>

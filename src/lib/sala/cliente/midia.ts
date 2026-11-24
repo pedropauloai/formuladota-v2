@@ -1,6 +1,9 @@
 // Microfone e tela no navegador (spec, seção 12). A tela pede o áudio só da janela (Chrome 141+) e
 // tira da captura o som que a própria sala toca (restrictOwnAudio), para ninguém ouvir eco de si.
 
+import { captureConstraintsFor } from "../qualidade";
+import type { Quality } from "../tipos";
+
 type AudioCapture = MediaTrackConstraints & { restrictOwnAudio?: boolean };
 type DisplayOptions = DisplayMediaStreamOptions & {
   audio: AudioCapture;
@@ -20,9 +23,9 @@ export async function getMicTrack(): Promise<MediaStreamTrack> {
   return track;
 }
 
-export async function getScreenStream(): Promise<MediaStream> {
+export async function getScreenStream(quality: Quality): Promise<MediaStream> {
   const options: DisplayOptions = {
-    video: { width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30, max: 30 } },
+    video: captureConstraintsFor(quality),
     audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, restrictOwnAudio: true },
     systemAudio: "include",
     windowAudio: "window",
