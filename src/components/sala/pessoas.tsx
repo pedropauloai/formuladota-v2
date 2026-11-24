@@ -2,7 +2,9 @@
 
 // Quem está na sala: na sala pública, o palco (o dono e quem fala) e a plateia, com as mãos levantadas
 // primeiro; na mentoria e na party, uma lista só. Cada linha: avatar quadrado, nick, microfone, fala
-// e tela; o dono chama, devolve, muta, expulsa e bane; qualquer um bloqueia e denuncia.
+// e tela; o dono chama, devolve, muta, expulsa e bane; qualquer um bloqueia e denuncia. As ações
+// aparecem ao passar o mouse (ou no foco do teclado), por cima do fim da linha, para o nick caber;
+// chamar ao palco fica à vista para quem levantou a mão.
 
 import { useTranslations } from "next-intl";
 import { Ban, Crown, Flag, Gavel, Hand, Mic, MicOff, MonitorUp, UserMinus, UserPlus, UserX, Volume2, VolumeX } from "lucide-react";
@@ -37,7 +39,16 @@ function Acao({ titulo, onClick, children, perigo, data }: { titulo: string; onC
   );
 }
 
-function AcoesDono({ m, nome, props }: { m: MembroEstado; nome: string; props: PessoasProps }) {
+function ChamarPalco({ m, props }: { m: MembroEstado; props: PessoasProps }) {
+  const t = useTranslations("sala");
+  return (
+    <Acao titulo={t("chamarPalco")} onClick={() => props.onModerar(m.userId, "falar")} data={{ "data-sala-chamar": m.userId }}>
+      <UserPlus className="size-4" />
+    </Acao>
+  );
+}
+
+function AcoesDono({ m, nome, props, chamarAVista }: { m: MembroEstado; nome: string; props: PessoasProps; chamarAVista: boolean }) {
   const t = useTranslations("sala");
   const confirm = useConfirm();
   const pedir = async (acao: "expulsar" | "banir") => {
@@ -48,11 +59,7 @@ function AcoesDono({ m, nome, props }: { m: MembroEstado; nome: string; props: P
   const palco = props.tipo === "palco";
   return (
     <>
-      {palco && m.papel === "ouvinte" && (
-        <Acao titulo={t("chamarPalco")} onClick={() => props.onModerar(m.userId, "falar")} data={{ "data-sala-chamar": m.userId }}>
-          <UserPlus className="size-4" />
-        </Acao>
-      )}
+      {palco && m.papel === "ouvinte" && !chamarAVista && <ChamarPalco m={m} props={props} />}
       {palco && m.papel === "falante" && (
         <Acao titulo={t("devolverPlateia")} onClick={() => props.onModerar(m.userId, "ouvir")} data={{ "data-sala-devolver": m.userId }}>
           <UserMinus className="size-4" />
@@ -84,8 +91,9 @@ function Linha({ m, props }: { m: MembroEstado; props: PessoasProps }) {
     if (await confirm({ title: t("bloquear"), message: t("bloquearConfirma", { nome }), confirmLabel: t("confirmar"), variant: "destructive" })) props.onBloquear(m.userId);
   };
   const rotulos = [falando && t("falando"), m.mutadoPeloDono && t("mutadoPeloDonoRotulo"), m.maoDesde && t("maoLevantadaRotulo"), m.compartilhandoTela && t("compartilhandoRotulo"), m.bloqueado && t("bloqueadoRotulo")];
+  const chamarAVista = props.souDono && props.tipo === "palco" && m.papel === "ouvinte" && !!m.maoDesde;
   return (
-    <li className="flex items-center gap-3 py-2" data-sala-membro={m.userId} data-sala-papel-membro={m.papel} data-sala-online={m.online ? "sim" : "nao"} data-sala-mao-membro={m.maoDesde ? "sim" : "nao"}>
+    <li className="group relative flex items-center gap-3 py-2" data-sala-membro={m.userId} data-sala-papel-membro={m.papel} data-sala-online={m.online ? "sim" : "nao"} data-sala-mao-membro={m.maoDesde ? "sim" : "nao"}>
       <UserAvatar src={avatar} alt={nome} fallback={nome.slice(0, 2).toUpperCase()} size="sm" className={cn(falando && "ring-2 ring-play-primary")} />
       <div className="min-w-0 flex-1">
         <p className="flex items-center gap-1 truncate text-sm text-text-display">
@@ -98,9 +106,14 @@ function Linha({ m, props }: { m: MembroEstado; props: PessoasProps }) {
       </div>
       {m.papel !== "ouvinte" && (m.mutado ? <MicOff className="size-4 text-text-muted" aria-hidden="true" /> : <Mic className={cn("size-4", falando ? "text-play-primary" : "text-text-muted")} aria-hidden="true" />)}
       {m.compartilhandoTela && <MonitorUp className="size-4 text-gold" aria-hidden="true" />}
+      {chamarAVista && <ChamarPalco m={m} props={props} />}
       {!proprio && (
-        <div className="flex gap-0.5" role="group" aria-label={t("acoesDe", { nome })}>
-          {props.souDono && <AcoesDono m={m} nome={nome} props={props} />}
+        <div
+          className="absolute inset-y-0 right-0 flex items-center gap-0.5 bg-[var(--plate-bottom)] pl-3 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
+          role="group"
+          aria-label={t("acoesDe", { nome })}
+        >
+          {props.souDono && <AcoesDono m={m} nome={nome} props={props} chamarAVista={chamarAVista} />}
           {!m.bloqueado && (
             <Acao titulo={t("bloquear")} onClick={() => void bloquear()} data={{ "data-sala-bloquear": m.userId }}>
               <Ban className="size-4" />
