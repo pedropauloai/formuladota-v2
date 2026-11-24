@@ -8,6 +8,7 @@ import { getFeatureFlags } from "@/lib/queries/feature-flags";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { decideRoomAccess } from "./acesso";
+import { Facts } from "./contratos";
 import type { Db } from "./dados-sala";
 import { TtlCache } from "./memoria";
 import type { AccessDecision, DenyCode, MemberRole, MemberStatus, RoomInfo } from "./tipos";
@@ -40,50 +41,6 @@ export async function authInfo(): Promise<AuthInfo | null> {
   const discord = meta.success && (meta.data.provider === "discord" || (meta.data.providers ?? []).includes("discord"));
   return { userId: data.claims.sub, discord };
 }
-
-const RoomFacts = z.object({
-  id: z.string(),
-  kind: z.enum(["palco", "mentoria", "party"]),
-  title: z.string(),
-  owner_id: z.string(),
-  status: z.enum(["aberta", "encerrada"]),
-  closes_at: z.string(),
-  max_members: z.number(),
-  screen_policy: z.enum(["dono", "um_por_vez"]),
-  audience: z.enum(["todos", "beneficio"]),
-  chat_open: z.boolean(),
-  is_test: z.boolean(),
-});
-const SettingsFacts = z.object({
-  cap_gb_30d: z.number(),
-  video_max_kbps: z.number(),
-  palco_max_speakers: z.number(),
-  party_screen_enabled: z.boolean(),
-  usage_bytes_30d: z.number(),
-});
-const MemberFacts = z.object({
-  role: z.enum(["dono", "membro", "falante", "ouvinte"]),
-  status: z.enum(["ativo", "expulso"]),
-  muted: z.boolean(),
-  force_muted: z.boolean(),
-  hand_raised_at: z.string().nullable(),
-  last_seen_at: z.string().nullable(),
-});
-/** O que voice_room_access e voice_room_tick devolvem (sala inexistente: só `room: null`). */
-const Facts = z.object({
-  room: RoomFacts.nullable(),
-  settings: SettingsFacts.nullable().default(null),
-  member: MemberFacts.nullable().default(null),
-  age_confirmed: z.boolean().default(false),
-  steam_linked: z.boolean().default(false),
-  account_blocked: z.boolean().default(true),
-  banned_by_owner: z.boolean().default(false),
-  party_now: z.boolean().default(false),
-  battlepass: z.boolean().default(false),
-  online_others: z.number().default(0),
-  speakers: z.number().default(0),
-  blocked: z.array(z.string()).default([]),
-});
 
 export interface SalaSettings {
   capGb30d: number;

@@ -6,13 +6,9 @@ import "server-only";
 import { z } from "zod";
 import { displayAvatar, displayName } from "@/lib/identity";
 import type { CallContext } from "./contexto";
+import { Identidades } from "./contratos";
 
 export const PessoasBody = z.object({ ids: z.array(z.string().uuid()).min(1).max(60) });
-
-const Identidades = z.record(
-  z.string(),
-  z.object({ username: z.string().optional(), avatarUrl: z.string().optional(), steamPersona: z.string().optional(), steamAvatar: z.string().optional() })
-);
 
 export type Pessoa = { nome: string; avatarUrl: string | null };
 

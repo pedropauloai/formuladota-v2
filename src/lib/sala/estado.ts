@@ -7,6 +7,7 @@ import "server-only";
 import { z } from "zod";
 import { createServiceClient } from "@/lib/supabase/service";
 import { authInfo, contextFor, salaFlagOn, verdictOf, type CallContext, type Verdict } from "./contexto";
+import { SnapshotSchema } from "./contratos";
 import type { Db } from "./dados-sala";
 import { insertStats } from "./dados-uso";
 import { SnapshotCache, TtlCache, type RawSnapshot } from "./memoria";
@@ -44,21 +45,6 @@ export const EstadoBody = z.object({
   sessionId: z.string().regex(/^[A-Za-z0-9_-]{8,128}$/).nullable(),
   chatAfter: z.number().int().min(0).default(0),
   beat: z.object({ muted: z.boolean(), hand: z.boolean(), metricas: Metricas.optional() }).optional(),
-});
-
-const SnapshotSchema = z.object({
-  room: z.object({ status: z.string(), chat_open: z.boolean(), closes_at: z.string() }).nullable(),
-  members: z.array(z.object({
-    u: z.string(), r: z.enum(["dono", "membro", "falante", "ouvinte"]), m: z.boolean(),
-    f: z.boolean().optional(), h: z.string().optional(), on: z.boolean(),
-  })),
-  tracks: z.array(z.object({
-    s: z.string(), u: z.string(), n: z.string(), k: z.enum(["audio", "video"]), t: z.enum(["voz", "tela", "tela_audio"]),
-    q: z.enum(["leve", "padrao", "alta", "fluida"]).optional(),
-  })),
-  chat: z.array(z.object({ i: z.number(), u: z.string().nullable(), b: z.string(), a: z.string() })),
-  deleted: z.array(z.number()),
-  removed: z.array(z.string()),
 });
 
 async function fetchSnapshot(db: Db, roomId: string, chatAfter: number): Promise<RawSnapshot> {
