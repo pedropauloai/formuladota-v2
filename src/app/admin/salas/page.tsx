@@ -3,6 +3,7 @@
 // Instrumento de trabalho: sem pele de vitrine. Flag sala_voz desligada esconde a página.
 
 import { notFound } from "next/navigation";
+import { requireAdmin } from "@/app/admin/pros/admin-gate";
 import { getFeatureFlags } from "@/lib/queries/feature-flags";
 import { adminOverview } from "@/lib/sala/admin";
 import { createServiceClient } from "@/lib/supabase/service";
@@ -14,6 +15,9 @@ const GB = 1_000_000_000;
 const fmtGb = (bytes: number) => (bytes / GB).toLocaleString("pt-BR", { maximumFractionDigits: 2 });
 
 export default async function AdminSalasPage() {
+  // A página lê com a service role: confere o admin aqui também, porque o layout pode não rodar
+  // numa navegação RSC (o cabeçalho do roteador vem de quem pede).
+  if (!(await requireAdmin()).ok) notFound();
   if (!(await getFeatureFlags()).sala_voz) notFound();
   const overview = await adminOverview(createServiceClient(), new Date());
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.formuladota.com.br";
