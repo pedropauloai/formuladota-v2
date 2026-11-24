@@ -1,0 +1,669 @@
+/* PROTÓTIPO descartável (home-previa): a pele de cada versão. A: reta de 2 px; B: inclinada a -12
+   graus; C: canto vivo e linha fina. Cada uma usa só a sua forma, sem misturar. */
+
+/* ---------- Comum: tela de 1440 de altura cresce como o cliente (o v2Page faz igual) ---------- */
+.pagina {
+  position: relative;
+  min-height: 100vh;
+  overflow-x: clip;
+  background: #0b0c0f;
+  color: #e8e8e8;
+}
+
+@media (min-width: 150rem) and (min-height: 75rem) {
+  .escala {
+    zoom: 1.3333;
+  }
+}
+
+.saida {
+  transition:
+    transform 180ms cubic-bezier(0.23, 1, 0.32, 1),
+    filter 180ms cubic-bezier(0.23, 1, 0.32, 1),
+    background-color 180ms cubic-bezier(0.23, 1, 0.32, 1),
+    color 180ms cubic-bezier(0.23, 1, 0.32, 1),
+    border-color 180ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* Entrada única do herói: sobe 12 px e aparece, uma vez. */
+.entra {
+  animation: entra 700ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+.entra2 {
+  animation: entra 700ms 120ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+@keyframes entra {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+.aoVivo {
+  position: relative;
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #e5484d;
+}
+
+.aoVivo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: inherit;
+  animation: ping 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes ping {
+  to {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .entra,
+  .entra2,
+  .aoVivo::after {
+    animation: none;
+  }
+}
+
+/* ======================================================================
+   VERSÃO A: Cliente. Reta de 2 px, metal escuro, Teko nos títulos, Barlow no resto.
+   ====================================================================== */
+.verA {
+  --a-face: linear-gradient(180deg, #1b1f26 0%, #121519 100%);
+  --a-aresta: rgba(255, 255, 255, 0.09);
+  --a-aresta-alta: rgba(255, 255, 255, 0.16);
+  font-family: var(--fp-barlow), sans-serif;
+}
+
+.aTitulo {
+  font-family: "Teko Variable", "Teko", sans-serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.005em;
+}
+
+.aNumero {
+  font-family: var(--fp-barlow-c), sans-serif;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.aBarra {
+  background: linear-gradient(180deg, #15181d 0%, #0d0f13 100%);
+  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.aAba {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: 100%;
+  padding-inline: 1.15rem;
+  font-family: "Teko Variable", "Teko", sans-serif;
+  font-size: 1.375rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #a7abb3;
+}
+
+.aAba + .aAba::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 30%;
+  bottom: 30%;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.aAba:hover {
+  color: #f5f5f5;
+}
+
+.aAbaAtiva {
+  color: #f5f5f5;
+  background: linear-gradient(0deg, rgba(196, 33, 33, 0.28), transparent 70%);
+  box-shadow: inset 0 -2px 0 #c42121;
+}
+
+.aPainel {
+  border-radius: 2px;
+  border: 1px solid var(--a-aresta);
+  background: var(--a-face);
+  box-shadow:
+    inset 0 1px 0 var(--a-aresta-alta),
+    0 24px 60px rgba(0, 0, 0, 0.45);
+}
+
+/* Botão principal: bloco verde cheio, letra escura (contraste 9:1), canto de 2 px. */
+.aPrimario {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  height: 3.75rem;
+  padding-inline: 2rem;
+  border-radius: 2px;
+  font-weight: 700;
+  font-size: 1.0625rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: #04150c;
+  background: linear-gradient(180deg, #2be487 0%, #00c466 52%, #00ad59 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.18),
+    0 12px 32px rgba(0, 196, 102, 0.2);
+}
+
+.aPrimario:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+}
+
+.aPrimario:active {
+  transform: translateY(0) scale(0.985);
+}
+
+.aPrimario svg {
+  transition: transform 180ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.aPrimario:hover svg {
+  transform: translateX(3px);
+}
+
+/* Secundário: metal com aresta clara. */
+.aSecundario {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 2.5rem;
+  padding-inline: 1.1rem;
+  border-radius: 2px;
+  border: 1px solid var(--a-aresta-alta);
+  background: var(--a-face);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  font-weight: 600;
+  font-size: 0.875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #e8e8e8;
+}
+
+.aSecundario:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
+
+/* Fantasma: só o texto, sublinhado no mouse. */
+.aFantasma {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #c9ccd1;
+  text-underline-offset: 6px;
+}
+
+.aFantasma:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.aSlot {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #1c2027, #0f1114);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.aSlotDono {
+  box-shadow:
+    inset 0 0 0 1px #c8aa6e,
+    0 0 18px rgba(200, 170, 110, 0.25);
+}
+
+.aSlotLivre {
+  color: #6b7079;
+  background:
+    radial-gradient(closest-side, rgba(255, 255, 255, 0.05), transparent),
+    linear-gradient(180deg, #121519, #0b0c0f);
+}
+
+.aSlotSeu {
+  color: #00c466;
+  box-shadow: inset 0 0 0 1px rgba(0, 196, 102, 0.6);
+  background:
+    radial-gradient(closest-side, rgba(0, 196, 102, 0.22), transparent),
+    linear-gradient(180deg, #12201a, #0b0c0f);
+}
+
+.aEtiqueta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  height: 1.75rem;
+  padding-inline: 0.65rem;
+  border-radius: 2px;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ======================================================================
+   VERSÃO B: Arena. Tudo inclinado no mesmo ângulo (-12 graus), Saira estreita e larga.
+   ====================================================================== */
+.verB {
+  --b-inclina: -12deg;
+  --b-corte: 0.9rem;
+  font-family: var(--fp-saira), sans-serif;
+  font-variation-settings: "wdth" 100;
+}
+
+.bTitulo {
+  font-family: var(--fp-saira), sans-serif;
+  font-variation-settings: "wdth" 62;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.005em;
+}
+
+.bNumero {
+  font-family: var(--fp-saira), sans-serif;
+  font-variation-settings: "wdth" 70;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+/* Placa inclinada: a forma fica no ::before; o texto segue reto. */
+.bPlaca {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bPlaca::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  transform: skewX(var(--b-inclina));
+  transition:
+    background 180ms cubic-bezier(0.23, 1, 0.32, 1),
+    box-shadow 180ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.bBarra {
+  background: linear-gradient(180deg, rgba(14, 15, 19, 0.96), rgba(11, 12, 15, 0.9));
+  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(8px);
+}
+
+.bAba {
+  height: 2.5rem;
+  padding-inline: 1.25rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #a7abb3;
+}
+
+.bAba::before {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+.bAba:hover {
+  color: #fff;
+}
+
+.bAba:hover::before {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03));
+}
+
+.bAbaAtiva {
+  color: #fff;
+}
+
+.bAbaAtiva::before {
+  background: linear-gradient(180deg, #d32828, #8f1414);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+/* Principal: placa vermelha da marca, letra branca (contraste 5,6:1). */
+.bPrimario {
+  height: 4rem;
+  padding-inline: 2.75rem;
+  gap: 0.85rem;
+  font-weight: 700;
+  font-size: 1.125rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.bPrimario::before {
+  background: linear-gradient(180deg, #db2b2b 0%, #c42121 55%, #a81b1b 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 14px 36px rgba(196, 33, 33, 0.35);
+}
+
+.bPrimario:hover {
+  transform: translateY(-1px);
+}
+
+.bPrimario:hover::before {
+  background: linear-gradient(180deg, #e53434 0%, #cf2424 55%, #b11c1c 100%);
+}
+
+.bPrimario:active {
+  transform: translateY(0) scale(0.985);
+}
+
+.bSecundario {
+  height: 2.5rem;
+  padding-inline: 1.4rem;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #e8e8e8;
+}
+
+.bSecundario::before {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.bSecundario:hover::before {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.55);
+}
+
+.bFantasma {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 600;
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+  color: #c9ccd1;
+}
+
+.bFantasma:hover {
+  color: #fff;
+}
+
+.bPreco {
+  height: 4rem;
+  padding-inline: 1.6rem;
+  gap: 0.5rem;
+  color: #0b0c0f;
+}
+
+.bPreco::before {
+  background: linear-gradient(180deg, #e3cf9e, #c8aa6e);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+/* HUD do herói: células inclinadas lado a lado, como o placar de uma transmissão. */
+.bCelula {
+  min-height: 4.25rem;
+  padding: 0.6rem 1.75rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+}
+
+.bCelula::before {
+  background: linear-gradient(180deg, rgba(20, 22, 27, 0.92), rgba(12, 13, 16, 0.92));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.bCelulaLinha {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.bCelulaViva::before {
+  background: linear-gradient(180deg, rgba(196, 33, 33, 0.9), rgba(120, 18, 18, 0.9));
+}
+
+.bAvatar {
+  position: relative;
+  width: 4.75rem;
+  height: 4.75rem;
+}
+
+.bAvatar::before {
+  background: linear-gradient(180deg, #1c2027, #0f1114);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+.bAvatarDono::before {
+  box-shadow:
+    inset 0 0 0 2px #c8aa6e,
+    0 0 22px rgba(200, 170, 110, 0.3);
+}
+
+.bAvatarSeu::before {
+  background: linear-gradient(180deg, rgba(196, 33, 33, 0.35), rgba(60, 10, 10, 0.6));
+  box-shadow: inset 0 0 0 2px #e5484d;
+}
+
+/* Caixa de conteúdo: retângulo de canto vivo; o ângulo aparece na faixa vermelha do alto. */
+.bCaixa {
+  position: relative;
+  background: linear-gradient(180deg, #15171c, #0f1114);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07);
+}
+
+.bCaixa::before {
+  content: "";
+  position: absolute;
+  left: 1.5rem;
+  top: 0;
+  width: 3.25rem;
+  height: 4px;
+  background: #c42121;
+  transform: skewX(var(--b-inclina));
+}
+
+/* O retrato acompanha a inclinação: recorte em paralelogramo no mesmo ângulo. */
+.bRecorte {
+  clip-path: polygon(10.6% 0, 100% 0, 89.4% 100%, 0 100%);
+}
+
+/* ======================================================================
+   VERSÃO C: Cartaz. Canto vivo (0 px), linha fina, superfícies chapadas, Archivo.
+   ====================================================================== */
+.verC {
+  font-family: var(--fp-archivo), sans-serif;
+  font-variation-settings: "wdth" 100;
+}
+
+.cTitulo {
+  font-family: var(--fp-archivo), sans-serif;
+  font-variation-settings: "wdth" 62;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+}
+
+.cNumero {
+  font-family: var(--fp-archivo), sans-serif;
+  font-variation-settings: "wdth" 75;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+}
+
+.cBarra {
+  background: #0b0c0f;
+  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.cLink {
+  position: relative;
+  font-weight: 500;
+  font-size: 0.9375rem;
+  color: #a7abb3;
+}
+
+.cLink:hover {
+  color: #fff;
+}
+
+.cLinkAtivo {
+  color: #fff;
+}
+
+.cLinkAtivo::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1.35rem;
+  height: 2px;
+  background: #c42121;
+}
+
+.cLinha {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* Principal: bloco verde de canto vivo com a célula da seta, letra escura. */
+.cPrimario {
+  display: inline-flex;
+  align-items: stretch;
+  height: 4rem;
+  font-weight: 700;
+  font-size: 1.0625rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #03140b;
+  background: #00c466;
+}
+
+.cPrimario > span:first-child {
+  display: inline-flex;
+  align-items: center;
+  padding-inline: 1.75rem;
+}
+
+.cPrimario > span:last-child {
+  display: grid;
+  place-items: center;
+  width: 4rem;
+  background: #00a557;
+  transition: background-color 180ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.cPrimario svg {
+  transition: transform 180ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.cPrimario:hover {
+  background: #14d375;
+}
+
+.cPrimario:hover > span:last-child {
+  background: #00b360;
+}
+
+.cPrimario:hover svg {
+  transform: translateX(3px);
+}
+
+.cPrimario:active {
+  transform: scale(0.99);
+}
+
+.cSecundario {
+  display: inline-flex;
+  align-items: center;
+  height: 2.5rem;
+  padding-inline: 1.1rem;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #f5f5f5;
+}
+
+.cSecundario:hover {
+  border-color: #fff;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.cFantasma {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #f5f5f5;
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, 0.35);
+  text-underline-offset: 6px;
+}
+
+.cFantasma:hover {
+  text-decoration-color: #fff;
+}
+
+/* ---------- Seletor flutuante do protótipo (fora do desenho) ---------- */
+.seletor {
+  position: fixed;
+  left: 50%;
+  bottom: 1.25rem;
+  z-index: 200;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem;
+  border-radius: 999px;
+  background: #f5f5f5;
+  color: #111;
+  font: 600 13px/1 system-ui, sans-serif;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.55);
+}
+
+.seletor button {
+  height: 2rem;
+  padding-inline: 0.8rem;
+  border-radius: 999px;
+}
+
+.seletor button:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.seletor .ativo {
+  background: #111;
+  color: #f5f5f5;
+}
+
+.seletor .ativo:hover {
+  background: #111;
+}
