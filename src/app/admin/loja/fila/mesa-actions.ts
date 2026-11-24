@@ -6,7 +6,8 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { isAdminUser, queueOps } from "@/lib/loja/fila/admin";
+import { adminUserId, isAdminUser, queueOps } from "@/lib/loja/fila/admin";
+import { syncFilaPartySafely } from "@/lib/loja/fila/social-party";
 import { endedBeforeLive, liveOnAirAt } from "@/lib/loja/fila/live-time";
 import { currentPartyMembers, partyLastMatch, resolveMatch, type ResolvedMatch } from "@/lib/battlepass/partida-server";
 import { isTestMode } from "@/lib/mercadopago";
@@ -74,10 +75,12 @@ export async function previewPartida(liveId: string, input = ""): Promise<Partid
 export async function trocarJogador(liveId: string, saiId: string, entraId: string): Promise<FilaAdminResult> {
   const ids = z.object({ liveId: uuid, saiId: uuid, entraId: uuid }).safeParse({ liveId, saiId, entraId });
   if (!ids.success || saiId === entraId) return { ok: false, error: "Troca inválida." };
-  if (!(await isAdminUser())) return { ok: false, error: "Só o admin opera a fila." };
+  const adminId = await adminUserId();
+  if (!adminId) return { ok: false, error: "Só o admin opera a fila." };
   try {
     if (!(await queueOps.leaveParty(saiId))) return { ok: false, error: "Quem ia sair já não estava na party." };
     if (await queueOps.call(liveId, entraId)) {
+      await syncFilaPartySafely(adminId, isTestMode());
       revalidatePath("/admin/loja/fila");
       return { ok: true };
     }
