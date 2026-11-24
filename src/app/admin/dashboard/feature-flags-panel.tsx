@@ -52,6 +52,12 @@ const FLAG_DEFS: FlagDef[] = [
       "Ligado = a coluna direita mostra a enquete (Sim, Talvez, Não) no lugar do Top do ranking, e quem vota vê quantos disseram Sim até a meta de 50. Desligado = o ranking volta. Critério e consulta em docs/enquete-liga.md.",
   },
   {
+    key: "sala_voz",
+    label: "Sala de voz com tela",
+    description:
+      "Ligado = /sala abre para quem é membro de cada sala (mentoria e party da live) e o menu do admin mostra Salas de voz. Desligado = a sala some para todos, inclusive admin, e quem estiver dentro sai em até 2 s. Nada é gravado.",
+  },
+  {
     key: "loja",
     label: "Loja do site",
     description:

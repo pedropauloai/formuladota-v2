@@ -1,0 +1,136 @@
+{
+  "tick": {
+    "room": {
+      "id": "00000000-0000-4000-8000-000000000001",
+      "kind": "palco",
+      "title": "Contrato",
+      "status": "aberta",
+      "is_test": true,
+      "audience": "todos",
+      "owner_id": "00000000-0000-4000-8000-000000000002",
+      "chat_open": true,
+      "closes_at": "2026-11-24T20:00:00+00:00",
+      "max_members": 30,
+      "screen_policy": "dono"
+    },
+    "member": {
+      "role": "ouvinte",
+      "muted": false,
+      "status": "ativo",
+      "force_muted": true,
+      "last_seen_at": null,
+      "hand_raised_at": null
+    },
+    "blocked": [],
+    "settings": {
+      "cap_gb_30d": 800,
+      "video_max_kbps": 6000,
+      "usage_bytes_30d": 0,
+      "palco_max_speakers": 4,
+      "party_screen_enabled": false
+    },
+    "speakers": 0,
+    "party_now": false,
+    "battlepass": false,
+    "steam_linked": false,
+    "age_confirmed": false,
+    "online_others": 1,
+    "account_blocked": false,
+    "banned_by_owner": false
+  },
+  "access": {
+    "room": {
+      "id": "00000000-0000-4000-8000-000000000001",
+      "kind": "palco",
+      "title": "Contrato",
+      "status": "aberta",
+      "is_test": true,
+      "audience": "todos",
+      "owner_id": "00000000-0000-4000-8000-000000000002",
+      "chat_open": true,
+      "closes_at": "2026-11-24T20:00:00+00:00",
+      "max_members": 30,
+      "screen_policy": "dono"
+    },
+    "member": {
+      "role": "ouvinte",
+      "muted": false,
+      "status": "ativo",
+      "force_muted": true,
+      "last_seen_at": null,
+      "hand_raised_at": null
+    },
+    "settings": {
+      "cap_gb_30d": 800,
+      "video_max_kbps": 6000,
+      "usage_bytes_30d": 0,
+      "palco_max_speakers": 4,
+      "party_screen_enabled": false
+    },
+    "speakers": 0,
+    "party_now": false,
+    "battlepass": false,
+    "steam_linked": false,
+    "age_confirmed": false,
+    "online_others": 1,
+    "account_blocked": false,
+    "banned_by_owner": false
+  },
+  "missing": {
+    "room": null
+  },
+  "snapshot": {
+    "chat": [
+      {
+        "a": "2026-11-24T20:00:00+00:00",
+        "b": "oi",
+        "i": 1,
+        "u": "00000000-0000-4000-8000-000000000003"
+      }
+    ],
+    "room": {
+      "status": "aberta",
+      "chat_open": true,
+      "closes_at": "2026-11-24T20:00:00+00:00"
+    },
+    "tracks": [
+      {
+        "k": "video",
+        "n": "tela-x",
+        "q": "padrao",
+        "s": "00000000000000000000000000c0c001",
+        "t": "tela",
+        "u": "00000000-0000-4000-8000-000000000002"
+      },
+      {
+        "k": "audio",
+        "n": "voz-x",
+        "s": "00000000000000000000000000c0c001",
+        "t": "voz",
+        "u": "00000000-0000-4000-8000-000000000002"
+      }
+    ],
+    "deleted": [],
+    "members": [
+      {
+        "m": false,
+        "r": "dono",
+        "u": "00000000-0000-4000-8000-000000000002",
+        "on": true
+      }
+    ],
+    "removed": []
+  },
+  "identities": {
+    "00000000-0000-4000-8000-000000000002": {
+      "username": "Jogador de exemplo",
+      "avatarUrl": "https://exemplo.test/avatar.png",
+      "steamAvatar": "https://exemplo.test/avatar.png",
+      "steamPersona": "Jogador de exemplo"
+    },
+    "00000000-0000-4000-8000-000000000003": {
+      "username": "Jogador de exemplo",
+      "avatarUrl": "https://exemplo.test/avatar.png"
+    }
+  }
+}

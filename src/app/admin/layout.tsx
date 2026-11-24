@@ -8,7 +8,7 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { LayoutDashboard, Users, Calendar, CalendarClock, Gamepad2, Radio, Coins, Trophy, History, ShoppingBag, ListOrdered, Crown } from "lucide-react";
+import { LayoutDashboard, Users, Calendar, CalendarClock, Gamepad2, Radio, Coins, Trophy, History, ShoppingBag, ListOrdered, Crown, Headphones } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ClientShell } from "@/components/client-shell/shell";
 import { getPreviewModeActive } from "@/lib/auth/preview-mode";
@@ -57,6 +57,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <AdminNavLink href="/admin/loja/agenda" icon={CalendarClock} label="Agenda da loja" />
             <AdminNavLink href="/admin/loja/fila" icon={ListOrdered} label="Fila da party" />
             <AdminNavLink href="/admin/battlepass" icon={Crown} label="Battlepass" />
+            {flags.sala_voz && <AdminNavLink href="/admin/salas" icon={Headphones} label="Salas de voz" />}
             {rankedOn && <AdminNavLink href="/admin/pros" icon={Radio} label="PROs" />}
             <AdminNavLink href="/admin/users" icon={Users} label="Users" />
             {rankedOn && <AdminNavLink href="/admin/fichas" icon={Coins} label={t("navFichas")} />}

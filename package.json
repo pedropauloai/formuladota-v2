@@ -20,7 +20,11 @@
     "cf:verificar": "bash scripts/verificar-no-ar.sh",
     "loja:e2e": "node scripts/loja/e2e.mjs && node scripts/loja/e2e-fila.mjs && node scripts/loja/e2e-fila-saidas.mjs && node scripts/loja/e2e-fila-cortesia.mjs",
     "loja:live-auto": "node scripts/loja/verificar-live-automatica.mjs",
-    "battlepass:e2e": "node scripts/battlepass/e2e.mjs"
+    "battlepass:e2e": "node scripts/battlepass/e2e.mjs",
+    "sala:e2e": "node scripts/sala/e2e.mjs",
+    "sala:realtime": "node scripts/sala/conferir-realtime.mjs",
+    "sala:mutacao": "node scripts/sala/mutacao.mjs",
+    "sala:capturas": "node scripts/sala/capturas.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
@@ -42,12 +46,14 @@
     "motion": "^12.40.0",
     "next": "16.4.5",
     "next-intl": "^4.13.0",
+    "partytracks": "0.0.56",
     "posthog-js": "^1.240.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-grid-layout": "^2.2.3",
     "recharts": "^3.9.2",
     "resend": "^6.12.2",
+    "rxjs": "^7.8.2",
     "shadcn": "^4.6.0",
     "sonner": "^2.0.7",
     "stripe": "^22.3.0",
