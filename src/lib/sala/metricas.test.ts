@@ -2,11 +2,11 @@ import { describe, expect, it } from "vitest";
 import { qualityLevel, snapshotFromStats, summarizeStats, type RawStat } from "./metricas";
 
 // Formato do que o RTCPeerConnection.getStats() devolve, só com os campos usados.
-function report(over: { lost?: number; received?: number; concealed?: number; samples?: number; bytesA?: number; bytesV?: number; relay?: boolean; at?: number } = {}): RawStat[] {
+function report(over: { lost?: number; received?: number; concealed?: number; samples?: number; bytesA?: number; bytesV?: number; relay?: boolean; at?: number; jbDelay?: number; jbCount?: number } = {}): RawStat[] {
   const at = over.at ?? 10_000;
   return [
-    { id: "ia", type: "inbound-rtp", kind: "audio", timestamp: at, packetsLost: over.lost ?? 0, packetsReceived: over.received ?? 1000, jitter: 0.012, bytesReceived: over.bytesA ?? 50_000, concealedSamples: over.concealed ?? 0, totalSamplesReceived: over.samples ?? 480_000 },
-    { id: "iv", type: "inbound-rtp", kind: "video", timestamp: at, packetsLost: 0, packetsReceived: 5000, bytesReceived: over.bytesV ?? 2_000_000, frameWidth: 1920, frameHeight: 1080, framesPerSecond: 30, totalFreezesDuration: 0.25 },
+    { id: "ia", type: "inbound-rtp", kind: "audio", timestamp: at, packetsLost: over.lost ?? 0, packetsReceived: over.received ?? 1000, jitter: 0.012, bytesReceived: over.bytesA ?? 50_000, concealedSamples: over.concealed ?? 0, totalSamplesReceived: over.samples ?? 480_000, jitterBufferDelay: 9, jitterBufferEmittedCount: 100 },
+    { id: "iv", type: "inbound-rtp", kind: "video", timestamp: at, packetsLost: 0, packetsReceived: 5000, bytesReceived: over.bytesV ?? 2_000_000, frameWidth: 1920, frameHeight: 1080, framesPerSecond: 30, totalFreezesDuration: 0.25, jitterBufferDelay: over.jbDelay ?? 3, jitterBufferEmittedCount: over.jbCount ?? 100 },
     { id: "ov", type: "outbound-rtp", kind: "audio", timestamp: at, bytesSent: 40_000, qualityLimitationReason: "none" },
     { id: "cp", type: "candidate-pair", timestamp: at, nominated: true, state: "succeeded", currentRoundTripTime: 0.042, localCandidateId: "lc" },
     { id: "lc", type: "local-candidate", timestamp: at, candidateType: over.relay ? "relay" : "srflx" },
@@ -44,6 +44,23 @@ describe("snapshotFromStats e summarizeStats", () => {
     expect(curr.videoBytesReceived).toBe(7_000_000);
   });
 
+  it("buffer de jitter da tela e atraso estimado (metade do RTT mais o buffer)", () => {
+    const s = summarizeStats(null, snapshotFromStats(report({ jbDelay: 3, jbCount: 100 })));
+    expect(s.jitterBufferMs).toBeCloseTo(30, 5);
+    expect(s.latencyMs).toBeCloseTo(21 + 30, 5);
+  });
+
+  it("o buffer de jitter conta só o intervalo entre duas amostras", () => {
+    const prev = snapshotFromStats(report({ jbDelay: 3, jbCount: 100, at: 10_000 }));
+    const curr = snapshotFromStats(report({ jbDelay: 4.2, jbCount: 130, at: 20_000 }));
+    expect(summarizeStats(prev, curr).jitterBufferMs).toBeCloseTo(40, 5);
+  });
+
+  it("sem tela, o buffer de jitter vem do áudio", () => {
+    const soAudio = report().filter((s) => s.id !== "iv");
+    expect(summarizeStats(null, snapshotFromStats(soAudio)).jitterBufferMs).toBeCloseTo(90, 5);
+  });
+
   it("marca quando a conexão passa pelo TURN", () => {
     expect(summarizeStats(null, snapshotFromStats(report({ relay: true }))).relay).toBe(true);
   });
@@ -53,6 +70,8 @@ describe("snapshotFromStats e summarizeStats", () => {
     expect(s.packetLossPct).toBeNull();
     expect(s.videoHeight).toBeNull();
     expect(s.rttMs).toBeNull();
+    expect(s.jitterBufferMs).toBeNull();
+    expect(s.latencyMs).toBeNull();
   });
 });
 

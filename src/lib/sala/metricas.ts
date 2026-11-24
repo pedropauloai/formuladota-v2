@@ -22,6 +22,8 @@ interface Inbound {
   frameHeight: number | null;
   framesPerSecond: number | null;
   totalFreezesDuration: number;
+  jitterBufferDelay: number;
+  jitterBufferEmittedCount: number;
 }
 
 export type QualityLimitation = "none" | "cpu" | "bandwidth" | "other";
@@ -46,6 +48,10 @@ export interface StatsSummary {
   videoHeight: number | null;
   videoFps: number | null;
   videoFreezeMs: number | null;
+  /** Tempo médio no buffer de jitter no intervalo: da tela, ou do áudio quando não há tela. */
+  jitterBufferMs: number | null;
+  /** Atraso estimado do lado de quem recebe: metade do RTT mais o buffer de jitter (spec, seção 13). */
+  latencyMs: number | null;
   bytesReceived: number;
   bytesSent: number;
   relay: boolean | null;
@@ -67,6 +73,8 @@ function inboundOf(s: RawStat): Inbound {
     frameHeight: num(s.frameHeight),
     framesPerSecond: num(s.framesPerSecond),
     totalFreezesDuration: num(s.totalFreezesDuration) ?? 0,
+    jitterBufferDelay: num(s.jitterBufferDelay) ?? 0,
+    jitterBufferEmittedCount: num(s.jitterBufferEmittedCount) ?? 0,
   };
 }
 
@@ -117,9 +125,17 @@ function ratio(part: number, whole: number): number | null {
   return whole > 0 ? (part / whole) * 100 : null;
 }
 
+/** Milissegundos médios no buffer de jitter no intervalo (diferença do atraso sobre a da contagem). */
+function bufferMs(now: Inbound, before: Inbound | undefined): number | null {
+  const count = delta(now.jitterBufferEmittedCount, before?.jitterBufferEmittedCount);
+  return count > 0 ? (delta(now.jitterBufferDelay, before?.jitterBufferDelay) / count) * 1000 : null;
+}
+
 export function summarizeStats(prev: StatsSnapshot | null, curr: StatsSnapshot): StatsSummary {
   let lost = 0, received = 0, concealed = 0, samples = 0, bytes = 0, freezeS = 0;
   let jitter: number | null = null;
+  let audioBuffer: number | null = null;
+  let videoBuffer: number | null = null;
   let video: Inbound | null = null;
   for (const [id, now] of Object.entries(curr.inbound)) {
     const before = prev?.inbound[id];
@@ -130,12 +146,16 @@ export function summarizeStats(prev: StatsSnapshot | null, curr: StatsSnapshot):
       concealed += delta(now.concealedSamples, before?.concealedSamples);
       samples += delta(now.totalSamplesReceived, before?.totalSamplesReceived);
       if (now.jitter !== null) jitter = Math.max(jitter ?? 0, now.jitter * 1000);
+      const b = bufferMs(now, before);
+      if (b !== null) audioBuffer = Math.max(audioBuffer ?? 0, b);
     } else if (!video || (now.frameHeight ?? 0) > (video.frameHeight ?? 0)) {
       video = now;
       freezeS = delta(now.totalFreezesDuration, before?.totalFreezesDuration);
+      videoBuffer = bufferMs(now, before);
     }
   }
   const sent = Object.entries(curr.outboundBytes).reduce((a, [id, b]) => a + delta(b, prev?.outboundBytes[id]), 0);
+  const jitterBufferMs = videoBuffer ?? audioBuffer;
   return {
     rttMs: curr.rttMs,
     jitterMs: jitter,
@@ -145,6 +165,8 @@ export function summarizeStats(prev: StatsSnapshot | null, curr: StatsSnapshot):
     videoHeight: video?.frameHeight ?? null,
     videoFps: video?.framesPerSecond ?? null,
     videoFreezeMs: video ? Math.round(freezeS * 1000) : null,
+    jitterBufferMs,
+    latencyMs: curr.rttMs !== null && jitterBufferMs !== null ? curr.rttMs / 2 + jitterBufferMs : null,
     bytesReceived: bytes,
     bytesSent: sent,
     relay: curr.relay,

@@ -1,18 +1,16 @@
-// Regras de faixa (spec, seções 8 e 11): quem publica o quê, quem recebe o quê e o rótulo de cada uma.
-// O servidor confere antes de repassar ao SFU; a tela só esconde o botão, não decide.
+// Regras de faixa (spec, seções 8 e 11): quem publica o quê, quem recebe o quê, o rótulo de cada uma e
+// a camada da tela de cada pessoa. O servidor confere antes de repassar ao SFU.
 
-import type { MemberRole, RoomKind, RuleDecision, ScreenPolicy, TrackKind, TrackLabel } from "./tipos";
-
-export function canShareScreen(role: MemberRole, roomKind: RoomKind, policy: ScreenPolicy, partyScreenEnabled: boolean): boolean {
-  if (role === "dono") return roomKind === "mentoria" || partyScreenEnabled;
-  return roomKind === "mentoria" && policy === "um_por_vez";
-}
+import { canPublishVoice, canShareScreen } from "./papeis";
+import type { Layer, MemberRole, Quality, RoomKind, RuleDecision, ScreenPolicy, TrackKind, TrackLabel } from "./tipos";
 
 export interface PublishInput {
   role: MemberRole;
   roomKind: RoomKind;
   screenPolicy: ScreenPolicy;
   partyScreenEnabled: boolean;
+  /** Mutado pelo dono: não volta a publicar a voz até ser liberado. */
+  forceMuted: boolean;
   /** Tipos das faixas novas deste pedido, tirados do SDP. */
   requested: TrackKind[];
   /** Faixas ativas desta pessoa na sessão atual. */
@@ -27,6 +25,8 @@ export function decidePublish(input: PublishInput): RuleDecision {
   const videos = input.requested.filter((k) => k === "video").length;
   const audios = input.requested.length - videos;
   if (videos > 0 && !share) return { ok: false, code: "tela_nao_permitida" };
+  if (audios > 0 && !canPublishVoice(input.role)) return { ok: false, code: "voz_nao_permitida" };
+  if (audios > 0 && input.forceMuted && input.role !== "dono") return { ok: false, code: "mutado_pelo_dono" };
   // Voz, e o áudio da tela de quem pode compartilhar.
   if (input.mine.audio + audios > (share ? 2 : 1)) return { ok: false, code: "faixa_demais" };
   if (input.mine.video + videos > 1) return { ok: false, code: "faixa_demais" };
@@ -40,7 +40,7 @@ export interface SubscribeTarget {
   userId: string;
   closed: boolean;
   tipo: TrackLabel | null;
-  /** Quem publicou continua membro ativo (não foi expulso nem saiu da party). */
+  /** Quem publicou segue na sala e ainda pode publicar aquilo (não saiu, não foi expulso nem voltou à plateia). */
   publisherActive: boolean;
 }
 
@@ -67,10 +67,17 @@ export function labelMatchesKind(tipo: TrackLabel, kind: TrackKind): boolean {
   return (tipo === "tela") === (kind === "video");
 }
 
-export function decideLabel(input: { tipo: TrackLabel; kind: TrackKind; canShare: boolean }): RuleDecision {
+export function decideLabel(input: { tipo: TrackLabel; kind: TrackKind; canShare: boolean; canVoice: boolean; quality: Quality | null }): RuleDecision {
   if (!labelMatchesKind(input.tipo, input.kind)) return { ok: false, code: "rotulo_invalido" };
+  if (input.tipo === "voz" && !input.canVoice) return { ok: false, code: "voz_nao_permitida" };
   if (input.tipo !== "voz" && !input.canShare) return { ok: false, code: "tela_nao_permitida" };
+  if ((input.tipo === "tela") !== (input.quality !== null)) return { ok: false, code: "qualidade_invalida" };
   return { ok: true };
+}
+
+/** Quem ainda pode publicar aquele tipo de faixa, pelo papel de agora. */
+export function publisherMayKeep(role: MemberRole, tipo: TrackLabel): boolean {
+  return tipo === "voz" ? canPublishVoice(role) : role === "dono" || role === "membro";
 }
 
 export interface TrackView {
@@ -80,7 +87,32 @@ export interface TrackView {
   tipo: TrackLabel | null;
 }
 
-/** Faixas que esta pessoa pode receber agora: rotuladas, de quem está online, sem bloqueio, nunca a própria. */
-export function visibleTracks<T extends TrackView>(tracks: T[], me: string, online: Set<string>, blocked: (a: string, b: string) => boolean): T[] {
-  return tracks.filter((t) => t.userId !== me && t.tipo !== null && online.has(t.userId) && !blocked(me, t.userId));
+/** Faixas que esta pessoa pode receber agora: rotuladas, de quem está online e ainda pode publicar
+ *  aquilo, sem bloqueio entre os dois, nunca a própria. */
+export function visibleTracks<T extends TrackView>(tracks: T[], me: string, members: Map<string, { role: MemberRole; online: boolean }>, blocked: Set<string>): T[] {
+  return tracks.filter((t) => {
+    const m = members.get(t.userId);
+    return t.userId !== me && t.tipo !== null && !!m?.online && publisherMayKeep(m.role, t.tipo) && !blocked.has(t.userId);
+  });
+}
+
+/** O update do SFU também serve para reaproveitar um receptor e puxar outra faixa: aqui ele só troca a
+ *  camada de uma recepção de tela que já existe, da mesma sessão e da mesma faixa. */
+export function checkLayerUpdate(input: {
+  requested: { location: string; sessionId?: string; trackName: string };
+  sub: { publisherSessionId: string; trackName: string; kind: TrackKind } | null;
+}): RuleDecision {
+  const { requested: r, sub } = input;
+  if (!sub) return { ok: false, code: "faixa_inexistente" };
+  if (r.location !== "remote" || r.sessionId !== sub.publisherSessionId || r.trackName !== sub.trackName || sub.kind !== "video") {
+    return { ok: false, code: "troca_invalida" };
+  }
+  return { ok: true };
+}
+
+/** Camada da tela de cada pessoa (spec, ADR-006): na sala pública, a leve por padrão e a alta só para
+ *  quem pede enquanto o consumo dos 30 dias está abaixo de metade do teto. */
+export function decideLayer(input: { roomKind: RoomKind; requested: Layer | null; usageBytes: number; capBytes: number }): Layer {
+  if (input.roomKind !== "palco") return input.requested ?? "f";
+  return input.requested === "f" && input.usageBytes < input.capBytes / 2 ? "f" : "h";
 }
