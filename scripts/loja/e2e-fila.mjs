@@ -144,12 +144,29 @@ async function checkShell(page) {
     );
     check("o JOGAR DOTA não disputa o lugar com ele", (await page.locator("[data-cta='jogar-dota']").count()) === 0);
   }
-  check("aba Loja com o ponto de ao vivo", (await page.locator("[data-aba-ao-vivo]").count()) > 0);
+  check("aba Fila com o ponto de ao vivo", (await page.locator("header a[href$='/party'] [data-aba-ao-vivo]").count()) > 0);
+  await checkLiga(page, busca?.enabled === true);
+  // Sala de voz: a aba existe só com a flag sala_voz (sem a linha no banco, desligada).
+  const { data: sala } = await db.from("feature_flags").select("enabled").eq("key", "sala_voz").maybeSingle();
+  const abasSala = await page.locator("header a[href$='/sala']").count();
+  check(sala?.enabled ? "com a sala de voz ligada, a barra leva à sala" : "sem a sala de voz, a barra não mostra a aba dela", sala?.enabled ? abasSala > 0 : abasSala === 0, `${abasSala} abas`);
   // A loja já tem a chamada da vaga na caixa de compra: o canto não repete o botão ali.
   await page.goto(`${BASE}/loja`);
   // No celular a aba fica escondida: basta a barra de cima existir.
   await page.locator("[data-aba-ao-vivo]").first().waitFor({ state: "attached", timeout: 30_000 });
   check("na loja, o canto não repete a chamada da vaga", (await page.locator("[data-cta='jogar-com-o-ppa']").count()) === 0);
+}
+
+/** A liga (Ranking, Times, Torneios) segue a flag fila_competitiva: sem ela, some da barra e o endereço leva à home. */
+async function checkLiga(page, liga) {
+  const abas = await page.locator("header a[href$='/ranking'], header a[href$='/times'], header a[href$='/torneios']").count();
+  check(liga ? "com a liga ligada, a barra mostra as abas dela" : "sem a liga, a barra não mostra Ranking, Times nem Torneios", liga ? abas > 0 : abas === 0, `${abas} abas`);
+  for (const path of ["/ranking", "/times", "/torneios", "/tournaments", "/equipos"]) {
+    const res = await fetch(`${BASE}${path}`, { redirect: "manual" });
+    const destino = res.headers.get("location") ?? "";
+    const ok = liga ? res.status === 200 : res.status === 307 && new URL(destino, BASE).pathname === "/";
+    check(`${path} ${liga ? "abre com a liga ligada" : "leva à home com a liga desligada"}`, ok, `${res.status} ${destino}`);
+  }
 }
 
 async function checkStoreLinks(page) {

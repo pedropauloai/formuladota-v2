@@ -1,5 +1,5 @@
 // As partidas que o PPA registra com o ID no painel da fila ("Partida terminou", party_participacoes):
-// a lista pública de quem jogou com ele (coluna da direita do site) e, para o cron, as contas da
+// a lista pública de quem jogou com ele (coluna da direita e /partidas) e, para o cron, as contas da
 // Steam de quem jogou cada uma (o lado da party numa smurf). Service role: a tabela só abre para o
 // próprio jogador e o admin; daqui sai só o que já é público (nome e avatar da identidade pública).
 
@@ -7,7 +7,7 @@ import "server-only";
 import { createServiceClient } from "@/lib/supabase/service";
 import { createClient } from "@/lib/supabase/server";
 import { getIdentityMap } from "@/lib/queries/identities";
-import { PARTY_MATCHES_SHOWN } from "@/lib/loja/owner-proof-data";
+import { PARTY_MATCHES_CACHED } from "@/lib/loja/owner-proof-data";
 
 const STEAM_BASE = BigInt("76561197960265728");
 
@@ -43,7 +43,7 @@ async function latestRows(limit: number): Promise<{ matchId: number; playedAt: s
   return [...groups.values()].slice(0, limit);
 }
 
-export async function getRegisteredPartyMatches(limit = PARTY_MATCHES_SHOWN): Promise<RegisteredPartyMatch[]> {
+export async function getRegisteredPartyMatches(limit = PARTY_MATCHES_CACHED): Promise<RegisteredPartyMatch[]> {
   const rows = await latestRows(limit);
   const identities = await getIdentityMap(await createClient(), [...new Set(rows.flatMap((r) => r.userIds))]);
   return rows.map((r) => ({
@@ -54,7 +54,7 @@ export async function getRegisteredPartyMatches(limit = PARTY_MATCHES_SHOWN): Pr
 }
 
 /** Para o cron: as partidas registradas e as contas da Steam (32 bits) de quem jogou cada uma. */
-export async function registeredMatchAccounts(limit = PARTY_MATCHES_SHOWN): Promise<{ matchId: number; accounts: number[] }[]> {
+export async function registeredMatchAccounts(limit = PARTY_MATCHES_CACHED): Promise<{ matchId: number; accounts: number[] }[]> {
   const rows = await latestRows(limit);
   const userIds = [...new Set(rows.flatMap((r) => r.userIds))];
   if (userIds.length === 0) return [];

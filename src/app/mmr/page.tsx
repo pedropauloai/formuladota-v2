@@ -22,6 +22,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { ClientShell } from "@/components/client-shell/shell";
+import { getFeatureFlags } from "@/lib/queries/feature-flags";
 import { DotaRankMedal, type DotaRank } from "@/components/ui/dota-rank-medal";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -120,7 +121,7 @@ const richTags = {
 };
 
 export default async function MmrExplainerPage() {
-  const t = await getTranslations("pgMisc");
+  const [t, { fila_competitiva }] = await Promise.all([getTranslations("pgMisc"), getFeatureFlags()]);
   return (
     <ClientShell currentRoute="/mmr">
       <div className="w-full pb-16">
@@ -365,20 +366,22 @@ export default async function MmrExplainerPage() {
             </div>
           </div>
 
-          {/* ─── CTA final ─── */}
-          <div className="mt-12 flex flex-col items-center gap-4 rounded-[var(--radius-lg)] border border-border-subtle bg-bg-elevated/30 p-8 text-center">
-            <p className="font-display text-xl font-bold uppercase tracking-wide text-text-display">
-              {t("mmr_ctaTitle")}
-            </p>
-            <Link
-              href="/ranking"
-              className="group inline-flex items-center gap-2 rounded-md border-2 border-brand-primary bg-brand-primary/15 px-6 py-3 font-display text-lg font-bold uppercase tracking-wide text-text-display transition-all hover:scale-[1.02] hover:bg-brand-primary/25"
-            >
-              <Trophy className="size-5 text-brand-primary" aria-hidden="true" />
-              {t("mmr_ctaButton")}
-              <ArrowRight className="size-5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
-            </Link>
-          </div>
+          {/* ─── CTA final: leva ao ranking, que só existe com a liga ─── */}
+          {fila_competitiva && (
+            <div className="mt-12 flex flex-col items-center gap-4 rounded-[var(--radius-lg)] border border-border-subtle bg-bg-elevated/30 p-8 text-center">
+              <p className="font-display text-xl font-bold uppercase tracking-wide text-text-display">
+                {t("mmr_ctaTitle")}
+              </p>
+              <Link
+                href="/ranking"
+                className="group inline-flex items-center gap-2 rounded-md border-2 border-brand-primary bg-brand-primary/15 px-6 py-3 font-display text-lg font-bold uppercase tracking-wide text-text-display transition-all hover:scale-[1.02] hover:bg-brand-primary/25"
+              >
+                <Trophy className="size-5 text-brand-primary" aria-hidden="true" />
+                {t("mmr_ctaButton")}
+                <ArrowRight className="size-5 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </ClientShell>

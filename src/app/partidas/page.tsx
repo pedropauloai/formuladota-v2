@@ -1,131 +1,33 @@
-// /partidas — feed público de partidas FormulaDota.
-//   Topo: "Acontecendo agora" (partidas ao vivo — lobbies in_progress).
-//   Abaixo: histórico paginado (partidas realizadas, com preview de heróis).
-// Tudo SSR via RPCs públicas (live_matches / recent_matches, migration 099).
-//
-// NOTA: substitui a página legada da Phase 2 (saldo da loja de mentoria) — modelo
-// superado pelos pivôs; o saldo de fichas hoje vive no mini-perfil.
+// /partidas: as partidas que o PPA jogou na live com a galera, registradas por ele com o ID no
+// painel da fila. Embaixo, o feed da liga de sempre (ao vivo, histórico e busca por ID).
 
 import type { Metadata } from "next";
-import { pagePreview } from "@/lib/seo";
 import { getTranslations } from "next-intl/server";
-import { Link } from "@/i18n/navigation";
-import { Radio, History, Swords } from "lucide-react";
+import { pagePreview } from "@/lib/seo";
+import { cn } from "@/lib/utils";
+import { v2Page } from "@/components/v2";
 import { ClientShell } from "@/components/client-shell/shell";
-import { EmptyState } from "@/components/ui/empty-state";
-import { getLiveMatches, getRecentMatches } from "@/lib/queries/matches-feed";
-import { HistoryMatchCard, LiveMatchCard } from "@/components/match/match-feed-cards";
-import { MatchIdSearch } from "@/components/match/match-id-search";
+import { PartyMatchesSection } from "./party-matches-section";
+import { LigaFeed } from "./liga-feed";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("matchesFeed");
-  return pagePreview({ title: t("metaTitle"), path: "/partidas" });
+  return pagePreview({ title: t("partyMetaTitle"), description: t("partyMetaDescription"), path: "/partidas" });
 }
 
-const PAGE_SIZE = 20;
-
-export default async function PartidasPage(props: {
-  searchParams: Promise<{ page?: string }>;
-}) {
-  const t = await getTranslations("matchesFeed");
+export default async function PartidasPage(props: { searchParams: Promise<{ page?: string }> }) {
   const params = await props.searchParams;
   const page = Math.max(1, parseInt(params.page ?? "1") || 1);
-  const offset = (page - 1) * PAGE_SIZE;
-
-  const [live, history] = await Promise.all([
-    page === 1 ? getLiveMatches() : Promise.resolve([]),
-    getRecentMatches(PAGE_SIZE, offset),
-  ]);
 
   return (
     <ClientShell currentRoute="/partidas">
-      <div className="mx-auto w-full max-w-5xl px-4 py-8">
-        <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="font-display text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
-              {t("eyebrow")}
-            </p>
-            <h1 className="mt-2 font-display text-3xl font-bold uppercase tracking-tight text-text-display md:text-4xl">
-              {t("title")}
-            </h1>
-            <p className="mt-2 max-w-2xl font-body text-sm text-text-muted">{t("subtitle")}</p>
-          </div>
-          {/* Buscar partida por ID (dota_match_id) → placar do histórico. No canto
-              direito, na mesma linha do título (Pedro 2026-07-02). */}
-          <div className="w-full shrink-0 sm:w-80">
-            <MatchIdSearch />
-          </div>
-        </header>
-
-        {/* Acontecendo agora (só na 1ª página). */}
-        {page === 1 && (
-          <section className="mb-10">
-            <h2 className="mb-3 flex items-center gap-2 font-display text-sm font-bold uppercase tracking-widest text-play-primary">
-              <Radio size={14} aria-hidden="true" />
-              {t("liveTitle")}
-            </h2>
-            {live.length === 0 ? (
-              <div className="rounded-[var(--radius-md)] border border-border-subtle bg-bg-elevated/30 px-4 py-6 text-center font-body text-sm text-text-faded">
-                {t("liveEmpty")}
-              </div>
-            ) : (
-              <div className="grid gap-2">
-                {live.map((m) => (
-                  <LiveMatchCard key={m.dotaMatchId} match={m} />
-                ))}
-              </div>
-            )}
-          </section>
-        )}
-
-        {/* Histórico. */}
-        <section>
-          <h2 className="mb-3 flex items-center gap-2 font-display text-sm font-bold uppercase tracking-widest text-text-faded">
-            <History size={14} aria-hidden="true" />
-            {t("historyTitle")}
-          </h2>
-          {history.length === 0 ? (
-            <EmptyState
-              title={t("historyEmptyTitle")}
-              description={t("historyEmptyDescription")}
-              icon={<Swords />}
-              principle="random"
-            />
-          ) : (
-            <div className="grid gap-2">
-              {history.map((m) => (
-                <HistoryMatchCard key={m.dotaMatchId} match={m} />
-              ))}
-            </div>
-          )}
-
-          {/* Paginação. */}
-          {(history.length === PAGE_SIZE || page > 1) && (
-            <nav className="mt-6 flex items-center justify-center gap-4">
-              {page > 1 && (
-                <Link
-                  href={`/partidas?page=${page - 1}`}
-                  className="font-display text-sm uppercase tracking-widest text-text-muted transition-colors hover:text-text-display"
-                >
-                  {t("prevPage")}
-                </Link>
-              )}
-              <span className="font-mono text-sm tabular-nums text-text-display">
-                {t("pageLabel", { page })}
-              </span>
-              {history.length === PAGE_SIZE && (
-                <Link
-                  href={`/partidas?page=${page + 1}`}
-                  className="font-display text-sm uppercase tracking-widest text-text-muted transition-colors hover:text-text-display"
-                >
-                  {t("nextPage")}
-                </Link>
-              )}
-            </nav>
-          )}
-        </section>
+      <div className={cn(v2Page, "relative isolate mx-auto w-full max-w-6xl overflow-x-clip px-4 py-6 md:px-8 md:py-10 min-[2600px]:max-w-[1500px]")}>
+        <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[420px] bg-[radial-gradient(55%_65%_at_30%_0%,var(--color-brand-primary-glow),transparent_72%)]" />
+        {/* A paginação é do histórico da liga: nas páginas seguintes, a lista da galera fica na primeira. */}
+        {page === 1 && <PartyMatchesSection />}
+        <LigaFeed page={page} />
       </div>
     </ClientShell>
   );

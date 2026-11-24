@@ -9,7 +9,7 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { steam64To32 } from "@/lib/dota/opendota";
 import { openDotaJson } from "@/lib/dota/opendota-fetch";
 import type { Json } from "@/types/database";
-import { buildOwnerProofData, parseOwnerProofData, type OwnerProofData } from "./owner-proof-data";
+import { buildOwnerProofData, parseOwnerProofData, reuseSummary, type OwnerProofData } from "./owner-proof-data";
 import { summarizePartyMatch, type PartyMatchSummary } from "./fila/party-match";
 import { registeredMatchAccounts } from "./fila/party-matches";
 
@@ -60,13 +60,13 @@ export const getOwnerProof = cache(async (): Promise<OwnerProof | null> => {
 
 type Registered = Awaited<ReturnType<typeof registeredMatchAccounts>>;
 
-/** O resumo de cada partida registrada: o do cache quando já tem resultado; senão, da OpenDota. */
-async function summarize(accountId: number, registered: Registered, current: OwnerProofData | null): Promise<PartyMatchSummary[]> {
+/** O resumo de cada partida registrada: o do cache quando serve (reuseSummary); senão, da OpenDota. */
+async function summarize(accountId: number, registered: Registered, current: OwnerProofData | null, now: Date): Promise<PartyMatchSummary[]> {
   const cached = new Map((current?.partyMatches ?? []).map((m) => [m.matchId, m]));
   const out: PartyMatchSummary[] = [];
   for (const r of registered) {
     const hit = cached.get(r.matchId);
-    if (hit && hit.won !== null) {
+    if (reuseSummary(hit, now.getTime())) {
       out.push(hit);
       continue;
     }
@@ -85,7 +85,7 @@ async function summarize(accountId: number, registered: Registered, current: Own
 async function fetchOwnerData(accountId: number, now: Date, registered: Registered, current: OwnerProofData | null): Promise<OwnerProofData> {
   const [player, partyMatches] = await Promise.all([
     openDotaJson<unknown>(`/players/${accountId}`, { timeoutMs: FETCH_TIMEOUT_MS }),
-    summarize(accountId, registered, current),
+    summarize(accountId, registered, current, now),
   ]);
   return buildOwnerProofData(player, now, partyMatches);
 }

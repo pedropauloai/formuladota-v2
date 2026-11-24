@@ -59,7 +59,7 @@ export default async function PartyPage({ searchParams }: { searchParams: Search
   const viewer: FilaViewer = { loggedIn: !!user, hasSteam: !!steam, dotaId: steam?.dotaId ?? null, mpPublicKey: process.env.MP_PUBLIC_KEY ?? null };
 
   return (
-    <ClientShell currentRoute="/loja" hideRightSidebar hideBottomBar>
+    <ClientShell currentRoute="/party" hideRightSidebar hideBottomBar>
       <PartyQueuePage initial={view} viewer={viewer} offer={offer} initialQuantity={initialQuantity} howItWorks={<HowItWorks />} />
     </ClientShell>
   );

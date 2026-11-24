@@ -195,7 +195,9 @@
     "loja": "Store",
     "conduta": "Conduct",
     "entrar": "Sign in",
-    "jogarDota": "Play Dota"
+    "jogarDota": "Play Dota",
+    "fila": "Queue",
+    "sala": "Voice room"
   },
   "topbar": {
     "homeAria": "Go to the FORMULADOTA dashboard",
@@ -553,7 +555,29 @@
     "historyEmptyDescription": "League matches show up here as soon as they finish.",
     "prevPage": "← Previous",
     "nextPage": "Next →",
-    "pageLabel": "Page {page}"
+    "pageLabel": "Page {page}",
+    "partyMetaTitle": "Party matches | FORMULADOTA",
+    "partyMetaDescription": "The matches PPA played on stream with people who bought a spot: hero, result, score and who was on the team.",
+    "partyTitle": "Party matches",
+    "partySubtitle": "Every match PPA played on stream with people who bought a spot. He logs the match ID after each one, and the result comes from OpenDota.",
+    "partyStatMatches": "{count, plural, =1 {match logged} other {matches logged}}",
+    "partyStatWins": "{count, plural, =1 {win} other {wins}}",
+    "partyStatPlayers": "{count, plural, =1 {party player} other {party players}}",
+    "partyColHero": "PPA's hero",
+    "partyColResult": "Result",
+    "partyColDuration": "Duration",
+    "partyColWhen": "When",
+    "partyColPlayers": "Who played",
+    "partyWon": "Won",
+    "partyLost": "Lost",
+    "partyPending": "Waiting for OpenDota",
+    "partyNoResult": "No public result",
+    "partyHeroUnknown": "Hero not shown",
+    "partyOpenDota": "OpenDota",
+    "partyOpenDotaAria": "View match {id} on OpenDota",
+    "partyEmptyTitle": "No matches logged yet",
+    "partyEmptyBody": "The first one shows up here when PPA finishes a match with the party on stream.",
+    "partyHowLink": "How the spot works"
   },
   "ranking": {
     "metaTitle": "Ranking | FORMULADOTA",

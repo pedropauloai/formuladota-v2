@@ -26,9 +26,14 @@ status() { curl $R -s -o /dev/null --max-time 20 -w '%{http_code}' "$1"; }
 destino() { curl $R -s -o /dev/null --max-time 20 -w '%{http_code} %{redirect_url}' "$1"; }
 
 if curl $R -fsSL --max-time 30 "$U/" | grep -q "FORMULADOTA"; then confere "home com FORMULADOTA" sim sim; else confere "home com FORMULADOTA" sim nao; fi
-confere "apex para www" "308 $U/ranking" "$(destino "$APEX/ranking")"
+confere "apex para www" "308 $U/meta" "$(destino "$APEX/meta")"
 confere "http para https" "301 $U/" "$(destino "http://$H/")"
-for p in /ranking /codigo-de-conduta; do confere "$p" 200 "$(status "$U$p")"; done
+for p in /meta /codigo-de-conduta; do confere "$p" 200 "$(status "$U$p")"; done
+# Ranking, Times e Torneios são da liga (flag fila_competitiva): abertos com ela, e sem ela levam à home.
+for p in /ranking /times /torneios; do
+  r=$(destino "$U$p")
+  case "$r" in "200 "|"307 $U/") confere "$p (liga)" sim sim ;; *) confere "$p (liga)" "200 ou 307 para a home" "$r" ;; esac
+done
 # Links antigos que seguem nas descrições do YouTube (next.config.ts).
 confere "/tinker" "307 $U/" "$(destino "$U/tinker")"
 confere "/rankedpt" "307 $U/ranked-com-pro" "$(destino "$U/rankedpt")"

@@ -6,6 +6,8 @@
 import type { MetadataRoute } from "next";
 import { SITE_URL, localizedUrls } from "@/lib/seo";
 import { getActiveProducts } from "@/lib/loja/catalog";
+import { getFeatureFlags } from "@/lib/queries/feature-flags";
+import { LIGA_PATHS } from "@/lib/liga";
 
 // Espelho de PUBLIC_PATHS (src/lib/supabase/middleware.ts), só com as páginas que existem.
 // /privacidade e /cookies saíram: davam 404 (a página de privacidade espera o texto do Pedro).
@@ -37,7 +39,10 @@ async function productPaths(): Promise<string[]> {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const routes = [...PUBLIC_ROUTES, ...(await productPaths()).map((path) => ({ path, priority: 0.8 }))];
+  const [products, { fila_competitiva }] = await Promise.all([productPaths(), getFeatureFlags()]);
+  // Sem a liga, Ranking, Times e Torneios levam à home: o robô não precisa delas.
+  const fixed = fila_competitiva ? PUBLIC_ROUTES : PUBLIC_ROUTES.filter((r) => !LIGA_PATHS.includes(r.path));
+  const routes = [...fixed, ...products.map((path) => ({ path, priority: 0.8 }))];
   return routes.map(({ path, priority }) => ({
     url: SITE_URL + path,
     changeFrequency: "weekly",

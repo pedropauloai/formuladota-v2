@@ -195,7 +195,9 @@
     "loja": "Loja",
     "conduta": "Conduta",
     "entrar": "Entrar",
-    "jogarDota": "Jogar Dota"
+    "jogarDota": "Jogar Dota",
+    "fila": "Fila",
+    "sala": "Sala de voz"
   },
   "topbar": {
     "homeAria": "Ir para o painel do FORMULADOTA",
@@ -553,7 +555,29 @@
     "historyEmptyDescription": "As partidas da liga aparecem aqui assim que forem finalizadas.",
     "prevPage": "← Anterior",
     "nextPage": "Próxima →",
-    "pageLabel": "Página {page}"
+    "pageLabel": "Página {page}",
+    "partyMetaTitle": "Partidas com a galera | FORMULADOTA",
+    "partyMetaDescription": "As partidas que o PPA jogou na live com quem comprou a vaga: herói, resultado, placar e quem estava no time.",
+    "partyTitle": "Partidas com a galera",
+    "partySubtitle": "Cada partida que o PPA jogou na live com quem comprou a vaga. Ele registra o ID no fim de cada uma, e o resultado vem do OpenDota.",
+    "partyStatMatches": "{count, plural, =1 {partida registrada} other {partidas registradas}}",
+    "partyStatWins": "{count, plural, =1 {vitória} other {vitórias}}",
+    "partyStatPlayers": "{count, plural, =1 {jogador da galera} other {jogadores da galera}}",
+    "partyColHero": "Herói do PPA",
+    "partyColResult": "Resultado",
+    "partyColDuration": "Duração",
+    "partyColWhen": "Quando",
+    "partyColPlayers": "Quem jogou",
+    "partyWon": "Vitória",
+    "partyLost": "Derrota",
+    "partyPending": "Aguardando o OpenDota",
+    "partyNoResult": "Sem resultado público",
+    "partyHeroUnknown": "Herói não informado",
+    "partyOpenDota": "OpenDota",
+    "partyOpenDotaAria": "Ver a partida {id} no OpenDota",
+    "partyEmptyTitle": "Nenhuma partida registrada ainda",
+    "partyEmptyBody": "A primeira entra aqui quando o PPA fechar uma partida com a galera na live.",
+    "partyHowLink": "Como funciona a vaga"
   },
   "ranking": {
     "metaTitle": "Ranking | FORMULADOTA",
