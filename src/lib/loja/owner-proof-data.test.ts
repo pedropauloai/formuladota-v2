@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { buildOwnerProofData, parseOwnerProofData, PARTY_MATCHES_CACHED, reuseSummary } from "./owner-proof-data";
 
 const NOW = new Date("2026-11-18T15:00:00Z");
-const resumo = (matchId: number) => ({ matchId, startTime: 1795460000, duration: 2400, won: true, radiant: false, radiantScore: 21, direScore: 36, ppaHeroId: 34, teammates: [98765] as number[] | null });
+const resumo = (matchId: number) => ({ matchId, startTime: 1795460000, duration: 2400, won: true, radiant: false, radiantScore: 21, direScore: 36, ppaHeroId: 34, partyHeroIds: [34] as number[] | null, teammates: [98765] as number[] | null });
 
 describe("buildOwnerProofData", () => {
   it("lê a medalha e a posição no ranking do OpenDota", () => {
@@ -50,6 +50,11 @@ describe("reuseSummary", () => {
     const r = { ...resumo(1), ppaHeroId: null };
     expect(reuseSummary(r, fim(r) + horas(1))).toBe(false);
     expect(reuseSummary(r, fim(r) + horas(120))).toBe(false);
+  });
+
+  it("resumo do formato antigo, sem os heróis da party, volta ao OpenDota uma vez", () => {
+    const r = { ...resumo(1), partyHeroIds: null };
+    expect(reuseSummary(r, fim(r) + horas(48))).toBe(false);
   });
 
   it("sem resultado, tenta de novo no primeiro dia e para depois dele", () => {
