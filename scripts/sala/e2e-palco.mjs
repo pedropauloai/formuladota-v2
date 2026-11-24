@@ -19,6 +19,15 @@ async function telaECamada(t, check, pDono, pOuv) {
   await pOuv.locator('[data-sala-camada-opcao="f"]').click();
   const alta = await waitFor(async () => (await s.videoLayerOf(t.palco.id, t.ouvinte.id)) === "f", 20_000);
   check("quem pede a imagem alta recebe a alta (consumo abaixo de metade do teto)", !!alta, String(await s.videoLayerOf(t.palco.id, t.ouvinte.id)));
+  // Na live, o PPA para e volta a compartilhar: a plateia pede uma faixa nova no meio da conexão.
+  await pDono.locator('[data-sala-tela="parar"]').click();
+  await waitFor(async () => (await s.openVideoCount(t.palco.id, t.dono.id)) === 0, 15_000);
+  await sleep(3000);
+  await pDono.locator('[data-sala-tela="compartilhar"]:not([disabled])').click({ timeout: 20_000 });
+  await pDono.locator('[data-sala-qualidade="leve"]').check();
+  await pDono.locator("[data-sala-qualidade-confirmar]").click();
+  const deNovo = await waitFor(async () => (await s.openVideoCount(t.palco.id, t.dono.id)) === 1 && (await s.attr(pOuv, "data-video-altura")) > 0, 40_000);
+  check("o dono para e volta a compartilhar, e a plateia recebe a tela nova", !!deNovo, `${await s.attr(pOuv, "data-video-altura")} px`);
   const sid = await s.openSessionOf(t.palco.id, t.ouvinte.id);
   const voz = await s.tryPublish(pOuv, t.palco.id, sid, "audio", "voz-da-plateia");
   check("a plateia não publica voz pelo servidor", voz.status === 403 && voz.body.errorCode === "voz_nao_permitida", `HTTP ${voz.status} ${voz.body.errorCode}`);
