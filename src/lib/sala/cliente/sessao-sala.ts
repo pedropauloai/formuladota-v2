@@ -1,5 +1,5 @@
-// Sessão da sala no navegador, sem React: entra, consulta o estado a cada 2 ou 3 s (batimento a cada
-// 10 s), publica a voz de quem pode falar (e liga ou desliga sozinha quando o dono chama ao palco,
+// Sessão da sala no navegador, sem React (vive no registro da sala ativa e continua ao navegar pelo
+// site): entra, consulta o estado a cada 2 ou 3 s (batimento a cada 10 s), publica a voz de quem pode falar (e liga ou desliga sozinha quando o dono chama ao palco,
 // devolve ou muta), recebe as faixas da lista, mede a conexão, levanta a mão, conversa no chat e
 // compartilha a tela na qualidade escolhida. A tela só lê o retrato.
 
@@ -12,7 +12,7 @@ import { createConnection, type Connection } from "./conexao";
 import { cursorDoChat, juntarChat } from "./chat-local";
 import { NivelDeVoz } from "./nivel-voz";
 import { Recepcao } from "./recepcao";
-import { beatDue, estadoIntervalMs, statsEveryBeats } from "./ritmo";
+import { beatDue, estadoIntervalMs, statsEveryBeats, vozCaiu } from "./ritmo";
 import { compartilhar, type TelaNoAr } from "./tela-local";
 import { VozLocal } from "./voz-local";
 
@@ -22,6 +22,7 @@ const METRICAS_MS = 5_000;
 const FALA_MS = 300;
 const CHAT_GUARDA = 100;
 const FALHAS_PARA_RESINCRONIZAR = 5;
+const SOLTAR_TELA_MS = 1_500;
 
 export class SessaoSala {
   private snap: SessaoSnapshot = SNAPSHOT_INICIAL;
@@ -39,6 +40,7 @@ export class SessaoSala {
   private batimentos = 0;
   private falhas = 0;
   private cursorChat = 0;
+  private vistaAberta = false;
   private ultimoStats: StatsSnapshot | null = null;
   private enviadoStats: StatsSnapshot | null = null;
   private localStats: StatsSnapshot | null = null;
@@ -73,7 +75,11 @@ export class SessaoSala {
     this.conn = createConnection({ roomId: this.roomId, iceServers: entrada.data.iceServers });
     this.voz = new VozLocal(this.conn, this.nivel, (ref) => void this.a.rotular(ref.sessionId, ref.trackName, "voz", null));
     const camada: Layer = entrada.data.tipo === "palco" ? "h" : "f";
-    this.recepcao = new Recepcao(this.conn, camada, (tela, telaDe) => this.set({ tela, telaDe }), (userId, track) => this.nivel?.watch(userId, track));
+    this.recepcao = new Recepcao(
+      this.conn, camada, (tela, telaDe) => this.set({ tela, telaDe }), (userId, track) => this.nivel?.watch(userId, track),
+      (audioBloqueado) => audioBloqueado !== this.snap.audioBloqueado && this.set({ audioBloqueado })
+    );
+    this.recepcao.setVerTela(this.vistaAberta);
     this.set({ fase: "na_sala", papel: entrada.data.papel, tipo: entrada.data.tipo, camada });
     this.timers.push(window.setInterval(() => void this.metricas(), METRICAS_MS));
     this.timers.push(window.setInterval(() => this.atualizarFala(), FALA_MS));
@@ -145,6 +151,8 @@ export class SessaoSala {
   /** Publica a voz de quem pode falar agora e solta a de quem deixou de poder (o servidor já cortou no SFU). */
   private async garantirVoz(): Promise<void> {
     if (!this.voz) return;
+    const eu = this.snap.estado?.eu;
+    if (eu && vozCaiu({ noAr: this.voz.noAr, podeFalar: eu.podeFalar, vozAberta: eu.vozAberta, noArDesde: this.voz.noArDesde, agora: Date.now() })) this.voz.desligar();
     const antes = this.voz.noAr;
     const ok = await this.voz.ajustar(!!this.snap.estado?.eu?.podeFalar, this.snap.mutado);
     if (this.voz.noAr !== antes) this.mudou = true;
@@ -210,6 +218,17 @@ export class SessaoSala {
     if (this.snap.compartilhando || this.snap.minhaTela) this.set({ compartilhando: false, minhaTela: null, qualidadeTela: null });
   }
 
+  /** A página da sala aberta recebe a tela; fora dela, só as vozes (a conexão continua). */
+  setVistaAberta(aberta: boolean): void {
+    this.vistaAberta = aberta;
+    this.recepcao?.setVerTela(aberta, aberta ? 0 : SOLTAR_TELA_MS);
+  }
+
+  /** Clique depois de o navegador segurar o som: as vozes voltam a tocar. */
+  liberarAudio(): void {
+    this.recepcao?.retomarAudio();
+  }
+
   setVoiceVolume(volume: number): void {
     this.recepcao?.setVoiceVolume(volume);
   }
@@ -253,7 +272,7 @@ export class SessaoSala {
 
   private encerrar(motivo: string): void {
     this.limpar();
-    this.set({ fase: "saiu", motivo, estado: null, tela: null, telaDe: null, minhaTela: null, compartilhando: false, falando: [], vozNoAr: false, mao: false });
+    this.set({ fase: "saiu", motivo, estado: null, tela: null, telaDe: null, minhaTela: null, compartilhando: false, falando: [], vozNoAr: false, mao: false, audioBloqueado: false });
   }
 
   private limpar(): void {

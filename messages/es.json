@@ -4780,6 +4780,13 @@
     "saidaMaioridade": "Confirma que tienes 18 años o más para entrar.",
     "publicaFechadaTitulo": "La sala abre en el directo",
     "publicaFechadaTexto": "La sala pública de PPA abre cuando empieza el directo. Vuelve aquí durante el directo.",
-    "banirAutor": "Banear a quien escribió"
+    "banirAutor": "Banear a quien escribió",
+    "voltandoParaSala": "Volviendo a la sala",
+    "ativarSom": "Activar el sonido de la sala",
+    "painelVoltar": "Volver a la sala",
+    "painelFalando": "{nomes} hablando",
+    "painelPessoas": "{n} en la sala",
+    "painelDispensar": "Cerrar aviso",
+    "painelRotulo": "Tu sala de voz"
   }
 }

@@ -10,6 +10,8 @@ export class VozLocal {
   private mic: MediaStreamTrack | null = null;
   private stop: (() => void) | null = null;
   private ligando = false;
+  /** Desde quando a voz está no ar (para perceber a que o servidor fechou sem o navegador ver). */
+  noArDesde: number | null = null;
 
   constructor(
     private readonly conn: Connection,
@@ -34,6 +36,7 @@ export class VozLocal {
       this.mic.enabled = !mutado;
       this.nivel?.watch("eu", this.mic);
       this.stop = this.conn.publish(this.mic, [{ maxBitrate: 64_000 }], this.rotular);
+      this.noArDesde = Date.now();
       return true;
     } catch {
       return false;
@@ -49,6 +52,7 @@ export class VozLocal {
   desligar(): void {
     this.stop?.();
     this.stop = null;
+    this.noArDesde = null;
     this.mic?.stop();
     this.mic = null;
     this.nivel?.watch("eu", null);

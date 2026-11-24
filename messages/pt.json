@@ -4780,6 +4780,13 @@
     "saidaMaioridade": "Confirme que tem 18 anos ou mais para entrar.",
     "publicaFechadaTitulo": "A sala abre na live",
     "publicaFechadaTexto": "A sala pública do PPA abre quando a live começa. Volte aqui durante a live.",
-    "banirAutor": "Banir quem escreveu"
+    "banirAutor": "Banir quem escreveu",
+    "voltandoParaSala": "Voltando para a sala",
+    "ativarSom": "Ativar o som da sala",
+    "painelVoltar": "Voltar para a sala",
+    "painelFalando": "{nomes} falando",
+    "painelPessoas": "{n} na sala",
+    "painelDispensar": "Fechar aviso",
+    "painelRotulo": "Sala de voz em que você está"
   }
 }

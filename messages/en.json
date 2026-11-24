@@ -4780,6 +4780,13 @@
     "saidaMaioridade": "Confirm you are 18 or older to join.",
     "publicaFechadaTitulo": "The room opens during the live",
     "publicaFechadaTexto": "PPA's public room opens when the live starts. Come back here during the live.",
-    "banirAutor": "Ban the author"
+    "banirAutor": "Ban the author",
+    "voltandoParaSala": "Rejoining the room",
+    "ativarSom": "Turn on the room audio",
+    "painelVoltar": "Back to the room",
+    "painelFalando": "{nomes} speaking",
+    "painelPessoas": "{n} in the room",
+    "painelDispensar": "Dismiss",
+    "painelRotulo": "Your voice room"
   }
 }

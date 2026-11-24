@@ -41,6 +41,8 @@ export interface Estado {
     userId: string;
     papel: MemberRole;
     podeFalar: boolean;
+    /** A voz da pessoa aparece no estado comum (faixa aberta e rotulada no servidor). */
+    vozAberta: boolean;
     mutadoPeloDono: boolean;
     podeLevantarMao: boolean;
     maoDesde: string | null;
@@ -89,6 +91,7 @@ export function compose(v: Verdict, snap: RawSnapshot, me: string, decided: Memb
     saida: null,
     eu: {
       userId: me, papel: role, podeFalar: canPublishVoice(role) && !(forceMuted && role !== "dono"), mutadoPeloDono: forceMuted,
+      vozAberta: snap.tracks.some((t) => t.u === me && t.t === "voz"),
       podeLevantarMao: canRaiseHand(role, room.kind), maoDesde: mine?.h ?? null,
       podeEscrever: canChat(role, room.kind, live.chat_open), podeCompartilharTela: motivoTela === null, motivoTela,
     },

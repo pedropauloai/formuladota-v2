@@ -42,6 +42,7 @@ O que toda sala faz: voz com cancelamento de eco, supressão de ruído e ganho a
 | R12 | Nada gravado: nenhuma mídia passa por servidor do FORMULADOTA nem é guardada pela Cloudflare. |
 | R13 | Teto de tráfego que bloqueia tela nova, baixa a camada da plateia antes disso e avisa o PPA. |
 | R14 | Métricas de cada pessoa a cada 10 s: perda de pacote, jitter, RTT, resolução e quadros, e o atraso estimado. |
+| R15 | Navegar pelo site sem cair da sala, como no Discord (exigência do PPA, 24/11/2026): a conexão (a `RTCPeerConnection`, as faixas e o batimento) vive fora da página da sala, e um painel de voz compacto aparece em todas as páginas com o nome da sala, quem está falando, mutar, sair e voltar para a sala. A navegação interna é pelo `Link` do Next (no cliente). Recarregar a página volta para a sala sozinho. |
 
 ### Não funcionais
 
@@ -135,6 +136,16 @@ Site em Next.js 16 no Cloudflare Workers pelo OpenNext; Supabase com RLS obrigat
 ### ADR-006: simulcast em duas camadas, com a camada escolhida pelo servidor
 
 **Estado:** proposta. Na sala pública o custo cresce com a plateia: cada pessoa recebe a tela inteira. A tela sobe em duas camadas, `f` (a qualidade escolhida) e `h` (metade da resolução, cerca de um quarto do bitrate). A pessoa escolhe "alta" ou "leve" na tela; o servidor decide a camada que vale: na mentoria, sempre a que ela pediu; na sala pública, a leve por padrão, a alta para quem pedir enquanto o consumo dos 30 dias estiver abaixo de 50% do teto, e só a leve acima disso. Subir duas camadas pede mais upload do PPA (que já transmite para a Twitch); a medida no teste real diz se cabe.
+
+### ADR-007: a sala vive fora da página
+
+**Estado:** aceita (R15). A sessão da sala (`SessaoSala`, que já não dependia do React) passa a morar num registro único da aba (`src/lib/sala/cliente/registro.ts` e `sala-ativa.ts`): a página `/sala/[id]` só mostra a sessão do registro, e o painel de voz (`src/components/sala/painel-voz.tsx`, montado no `ClientShell`) lê a mesma sessão. As vozes tocam em elementos de áudio fora do DOM, então seguem tocando na troca de página.
+
+- **Sair:** só pelo botão Sair, ao entrar em outra sala ou ao fechar ou recarregar a aba (`pagehide` manda a saída pelo `sendBeacon`). Trocar de página no site não sai.
+- **Recarregar:** a sala fica anotada no `sessionStorage` da aba e volta sozinha 1,5 s depois de a página abrir, para a saída da página anterior chegar antes ao servidor. Se o navegador segurar o som por falta de clique, a sala e o painel mostram "Ativar o som da sala".
+- **Custo:** fora da página da sala, só as vozes chegam; a tela e o som dela param de chegar e voltam ao abrir a sala de novo, porque ninguém está vendo.
+- **Peso do site:** o painel vai em todas as páginas, mas o código da conexão (partytracks e rxjs) só carrega na página da sala ou quando há sala anotada para retomar.
+- **Painel:** duas posições para o PPA escolher vendo, no canto de baixo em cima da party (padrão) ou numa faixa no alto à direita; a que perder sai do código.
 
 ## 6. Rotas do servidor
 
@@ -333,6 +344,7 @@ Usa o kit `src/components/v2` (painel, placa, `v2Page`), os tokens atuais e íco
 - **`/sala`** (endereço fixo para anunciar na live): leva à sala pública aberta do PPA; sem sala aberta, diz que ela abre quando a live começar.
 - **`/sala/[id]`**: título e tipo, "Esta sala não é gravada", atraso e qualidade da conexão; o palco com a tela (e a escolha "alta" ou "leve" para quem assiste); na sala pública, quem está no palco, a plateia com as mãos levantadas e o chat; os controles (mutar, levantar a mão, compartilhar a tela com a escolha da qualidade e o consumo por hora, volumes, sair).
 - **Primeira entrada:** a marcação "Tenho 18 anos ou mais" com as regras da sala.
+- **Painel de voz (R15):** em todas as páginas fora da sala: o nome da sala (que leva de volta a ela), quem está falando ou quantos estão na sala, mutar, parar a tela, sair e, quando a pessoa é tirada da sala, o motivo até ela fechar o aviso.
 - **`/admin/salas`**: abrir a sala pública da live, a de mentoria (de um horário pago) e a da party; link e convite; encerrar; banidos (desbanir); consumo estimado e medido; denúncias.
 
 As rotas para a barra de cima (sessão de design): `/sala` (sala pública da live) e `/admin/salas`.
@@ -383,7 +395,7 @@ As rotas para a barra de cima (sessão de design): `/sala` (sala pública da liv
 
 - **Unitárias (`pnpm test`):** permissões (cada "não" da seção 8, palco e lugares), faixas (quem publica, quem recebe, camada pela regra de custo), estimativa de custo e limiares, leitura do SDP, métricas e atraso, caminho do intermediário, credencial do TURN. `pnpm sala:mutacao` tira cada trava e exige vermelho.
 - **Banco:** `scripts/seguranca/sala-voz.sql` e `funcoes-abertas.sql` (seção 7).
-- **Ponta a ponta (`pnpm sala:e2e`):** servidor local, banco de produção com sala e usuários de teste (`is_test`, apagados no fim) e o app real do Realtime, com a mídia falsa do Chrome. Mentoria: os dois se ouvem, a tela chega em 1080p, mutar, denunciar, teto, bloqueio, expulsão. Sala pública: o ouvinte não publica voz, o chamado publica, a plateia recebe a camada leve (540p) e o atraso estimado aparece, o chat chega e o apagado some, o banido não volta, os lugares contam. Portões: login, fora, menor (sem a marcação), convite e flag desligada, até para o admin.
+- **Ponta a ponta (`pnpm sala:e2e`):** servidor local, banco de produção com sala e usuários de teste (`is_test`, apagados no fim) e o app real do Realtime, com a mídia falsa do Chrome. Mentoria: os dois se ouvem, a tela chega em 1080p, mutar, denunciar, teto, bloqueio, expulsão. Sala pública: o ouvinte não publica voz, o chamado publica, a plateia recebe a camada leve (540p) e o atraso estimado aparece, o chat chega e o apagado some, o banido não volta, os lugares contam. Portões: login, fora, menor (sem a marcação), convite e flag desligada, até para o admin. Navegação (R15): dentro da mentoria, ir pela barra para `/party` e `/meta` e voltar pelo painel, com o `bytesReceived` do áudio subindo em cada passo e a página sem recarregar; depois recarregar no `/meta` e a sala voltar sozinha. O servidor local lê a linha de teste da flag (`sala_voz_e2e`), nunca a `sala_voz` de produção.
 - **Aceite real:** uma mentoria de 1 hora do PPA (tela em 1080p, perda abaixo de 2%, voz sem corte, atraso p95 abaixo de 500 ms, consumo dentro do orçamento) e a primeira live com a sala pública (atraso p95 abaixo de 500 ms para a plateia), medidos pela consulta da seção 13 e registrados na nota compartilhada.
 
 ## 19. Entrega

@@ -54,6 +54,7 @@ import { LobbyInviteListener } from "./lobby-invite-listener";
 import { PartyInvitePopup } from "@/components/party/party-invite-popup";
 import { DashboardRightSidebar } from "./right-sidebar";
 import { DashboardBottomBar } from "./bottom-bar";
+import { PainelVoz } from "@/components/sala/painel-voz";
 import { ChatBar } from "@/components/chat/chat-bar";
 
 interface ClientShellProps {
@@ -371,6 +372,7 @@ export async function ClientShell({
           <>
             <LobbyInviteListener userId={user.id} initialInvites={lobbyInvites} />
             <PartyInvitePopup userId={user.id} initialInvites={partyInvites} />
+            <PainelVoz />
             <ChatBar
               currentUserId={user.id}
               party={myParty}
@@ -507,6 +509,7 @@ export async function ClientShell({
         <>
           <LobbyInviteListener userId={user.id} initialInvites={lobbyInvites} />
           <PartyInvitePopup userId={user.id} initialInvites={partyInvites} />
+          <PainelVoz />
           <ChatBar
             currentUserId={user.id}
             party={myParty}

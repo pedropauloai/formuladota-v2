@@ -88,4 +88,9 @@ describe("compose (o que o estado entrega a cada pessoa)", () => {
     const teto = verdict({ userId: "ppa", decision: { ok: true, role: "dono" }, settings: { capGb30d: 800, videoMaxKbps: 6000, palcoMaxSpeakers: 4, partyScreenEnabled: false, usageBytes30d: 800e9 } });
     expect(compose(teto, snap(), "ppa", "dono", 0).eu?.motivoTela).toBe("teto_de_trafego");
   });
+
+  it("diz se a voz da pessoa está aberta no servidor (o navegador religa a que caiu)", () => {
+    expect(compose(verdict(), snap(), "ppa", "dono", 0).eu?.vozAberta).toBe(true);
+    expect(compose(verdict(), snap({ tracks: [] }), "ppa", "dono", 0).eu?.vozAberta).toBe(false);
+  });
 });

@@ -5,7 +5,7 @@
 
 import { useState, useSyncExternalStore } from "react";
 import { useTranslations } from "next-intl";
-import { Loader2, Radio, ShieldCheck } from "lucide-react";
+import { Loader2, Radio, ShieldCheck, Volume2 } from "lucide-react";
 import { Panel, plate, v2Page } from "@/components/v2";
 import { captureSupport } from "@/lib/sala/cliente/midia";
 import type { SessaoSala, SessaoSnapshot } from "@/lib/sala/cliente/sessao-sala";
@@ -82,21 +82,21 @@ function Cabecalho({ titulo, tipo, snap }: { titulo: string; tipo: RoomKind; sna
   );
 }
 
-function Entrada({ snap, sessao, mostrarTela }: { snap: SessaoSnapshot; sessao: SessaoSala; mostrarTela: boolean }) {
+function Entrada({ snap, entrar, retomando, mostrarTela }: { snap: SessaoSnapshot; entrar: () => void; retomando: boolean; mostrarTela: boolean }) {
   const t = useTranslations("sala");
   const podeVoltar = snap.fase === "inicial" || snap.fase === "erro" || (snap.fase === "saiu" && PODE_VOLTAR.has(snap.motivo ?? ""));
   return (
     <Panel className="mx-auto max-w-md space-y-4 p-6 text-center">
       {snap.motivo && <p className="text-sm text-text-body" data-sala-saida={snap.motivo}>{t(SAIDA_TEXTO[snap.motivo] ?? "saidaErro")}</p>}
-      {snap.fase === "entrando" ? (
+      {snap.fase === "entrando" || retomando ? (
         <p className="flex items-center justify-center gap-2 text-sm text-text-muted">
           <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-          {t("entrando")}
+          {t(retomando ? "voltandoParaSala" : "entrando")}
         </p>
       ) : (
         podeVoltar && (
           <>
-            <button type="button" onClick={() => void sessao.entrar()} data-sala-entrar="" className={plate({ kind: "cta", block: true })}>
+            <button type="button" onClick={entrar} data-sala-entrar="" className={plate({ kind: "cta", block: true })}>
               {snap.fase === "inicial" ? t("entrar") : t("entrarDeNovo")}
             </button>
             <p className="text-xs text-text-muted">{t("entrarAviso")}</p>
@@ -138,6 +138,12 @@ function NaSala({ roomId, tipo, mostrarTela, snap, sessao }: Props & { snap: Ses
           onPararTela={() => sessao.pararTela()} onCamada={(c) => sessao.escolherCamada(c)}
           onVolumeVoz={(v) => { setVolumeVoz(v); sessao.setVoiceVolume(v); }} onVolumeJogo={setVolumeJogo} onSair={() => sessao.sair()}
         />
+        {snap.audioBloqueado && (
+          <button type="button" onClick={() => sessao.liberarAudio()} data-sala-ativar-som="" className={plate({ kind: "cta" })}>
+            <Volume2 className="size-4" aria-hidden="true" />
+            {t("ativarSom")}
+          </button>
+        )}
         {erro && <p role="alert" className="text-xs text-error">{t(erro)}</p>}
         <Avisos mostrarTela={mostrarTela && !snap.compartilhando} />
       </div>
@@ -180,7 +186,7 @@ function NaSala({ roomId, tipo, mostrarTela, snap, sessao }: Props & { snap: Ses
 }
 
 export function SalaView(props: Props) {
-  const { snap, sessao } = useSala(props.roomId);
+  const { snap, sessao, entrar, retomando } = useSala(props.roomId, props.titulo, props.tipo);
   return (
     <div
       // 1152 px até 2600 px de tela, como a /loja: a coluna de amigos (sobreposta) não cobre os controles.
@@ -194,7 +200,7 @@ export function SalaView(props: Props) {
       data-video-altura={snap.medidas.videoAltura ?? 0}
     >
       <Cabecalho titulo={props.titulo} tipo={props.tipo} snap={snap} />
-      {snap.fase === "na_sala" ? <NaSala {...props} snap={snap} sessao={sessao} /> : <Entrada snap={snap} sessao={sessao} mostrarTela={props.mostrarTela} />}
+      {snap.fase === "na_sala" ? <NaSala {...props} snap={snap} sessao={sessao} /> : <Entrada snap={snap} entrar={entrar} retomando={retomando} mostrarTela={props.mostrarTela} />}
     </div>
   );
 }

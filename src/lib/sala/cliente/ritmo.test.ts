@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { beatDue, estadoIntervalMs, statsEveryBeats } from "./ritmo";
+import { beatDue, estadoIntervalMs, statsEveryBeats, vozCaiu } from "./ritmo";
 
 describe("ritmo do cliente (plano grátis do Supabase, spec ADR-004)", () => {
   it("quem fala pergunta o estado a cada 2 s; a plateia, a cada 3 s", () => {
@@ -20,5 +20,20 @@ describe("ritmo do cliente (plano grátis do Supabase, spec ADR-004)", () => {
     expect(statsEveryBeats("ouvinte", "palco")).toBe(3);
     expect(statsEveryBeats("falante", "palco")).toBe(1);
     expect(statsEveryBeats("membro", "mentoria")).toBe(1);
+  });
+});
+
+describe("vozCaiu (o servidor fechou a voz sem o navegador ver o mutado)", () => {
+  const base = { noAr: true, podeFalar: true, vozAberta: false, noArDesde: 0, agora: 9_000 };
+  it("voz no ar no navegador, fora do estado do servidor há mais de 8 s, com a pessoa podendo falar: religa", () => {
+    expect(vozCaiu(base)).toBe(true);
+  });
+  it("logo depois de publicar, espera a faixa aparecer no estado comum (até 8 s)", () => {
+    expect(vozCaiu({ ...base, agora: 7_000 })).toBe(false);
+  });
+  it("com a voz no estado do servidor, fora do ar, ou sem poder falar, não mexe", () => {
+    expect(vozCaiu({ ...base, vozAberta: true })).toBe(false);
+    expect(vozCaiu({ ...base, noAr: false })).toBe(false);
+    expect(vozCaiu({ ...base, podeFalar: false })).toBe(false);
   });
 });
