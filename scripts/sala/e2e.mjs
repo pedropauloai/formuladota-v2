@@ -76,6 +76,8 @@ async function navegar(t, pAluno) {
   await irPelaBarra(pAluno, "/party");
   const painel = await pAluno.locator('[data-painel-voz="na_sala"]').waitFor({ timeout: 20_000 }).then(() => true).catch(() => false);
   check("no /party, o painel de voz aparece e o áudio continua chegando", painel && (await sobe(pAluno, antes)), `${await audioBytes(pAluno)} bytes`);
+  const leve = await waitFor(async () => (await s.videoLayerOf(t.sala.id, t.aluno.id)) === "h", 20_000);
+  check("fora da sala, a tela segue chegando na camada leve (custo menor)", !!leve, String(await s.videoLayerOf(t.sala.id, t.aluno.id)));
   antes = await audioBytes(pAluno);
   await irPelaBarra(pAluno, "/meta");
   check("no /meta, o áudio continua chegando", await sobe(pAluno, antes), `${await audioBytes(pAluno)} bytes`);
@@ -85,7 +87,8 @@ async function navegar(t, pAluno) {
   const mesma = await pAluno.evaluate(() => window.__mesmaPagina === true);
   check("de volta à sala pelo painel, sem recarregar a página e com o áudio subindo o tempo todo", mesma && (await sobe(pAluno, antes)), mesma ? "" : "a página recarregou");
   const tela = await waitFor(async () => (await s.attr(pAluno, "data-video-altura")) > 0, 30_000);
-  check("de volta à sala, a tela volta a chegar", !!tela);
+  const alta = await waitFor(async () => (await s.videoLayerOf(t.sala.id, t.aluno.id)) === "f", 20_000);
+  check("de volta à sala, a tela aparece e volta para a camada alta", !!tela && !!alta, `${await s.attr(pAluno, "data-video-altura")} px, camada ${await s.videoLayerOf(t.sala.id, t.aluno.id)}`);
   await irPelaBarra(pAluno, "/meta");
   await pAluno.reload();
   const voltou = await pAluno.locator('[data-painel-voz="na_sala"]').waitFor({ timeout: 45_000 }).then(() => true).catch(() => false);

@@ -5,68 +5,73 @@ import { Recepcao, type FaixaRemota } from "./recepcao";
 function conexaoFalsa() {
   const pedidas: string[] = [];
   const soltas: string[] = [];
+  const camadas: string[] = [];
   const conn = {
-    receive: (ref: { trackName: string }) => {
-      pedidas.push(ref.trackName);
-      return { stop: () => soltas.push(ref.trackName), setLayer: () => undefined };
+    receive: (ref: { trackName: string }, _onTrack: unknown, layer?: string) => {
+      pedidas.push(layer ? `${ref.trackName}@${layer}` : ref.trackName);
+      return { stop: () => soltas.push(ref.trackName), setLayer: (rid: string) => camadas.push(`${ref.trackName}@${rid}`) };
     },
   } as unknown as Connection;
-  return { conn, pedidas, soltas };
+  return { conn, pedidas, soltas, camadas };
 }
 
 const faixa = (trackName: string, tipo: FaixaRemota["tipo"]): FaixaRemota => ({ sessionId: "sessao-do-dono", trackName, tipo, userId: "dono" });
 const LISTA = [faixa("voz-dono", "voz"), faixa("tela-dono", "tela"), faixa("som-da-tela", "tela_audio")];
+const nada = () => undefined;
 
 describe("Recepcao fora da página da sala", () => {
-  it("recebe só as vozes enquanto a página da sala está fechada", () => {
-    const { conn, pedidas } = conexaoFalsa();
-    const r = new Recepcao(conn, "h", () => undefined, () => undefined);
-    r.setVerTela(false);
+  it("a tela segue chegando, na camada leve, e volta à escolhida, sem soltar nem pedir a faixa de novo", () => {
+    const { conn, pedidas, soltas, camadas } = conexaoFalsa();
+    const r = new Recepcao(conn, "f", nada, nada);
     r.sync(LISTA);
-    expect(pedidas).toEqual(["voz-dono"]);
+    r.setForaDaSala(true);
+    r.setForaDaSala(false);
+    expect(pedidas).toEqual(["voz-dono", "tela-dono@f", "som-da-tela"]);
+    expect(soltas).toEqual([]);
+    expect(camadas).toEqual(["tela-dono@h", "tela-dono@f"]);
   });
 
-  it("ao voltar para a página da sala, pede a tela e o som dela de novo", () => {
+  it("a tela que começa enquanto a pessoa está fora já vem na leve", () => {
     const { conn, pedidas } = conexaoFalsa();
-    const r = new Recepcao(conn, "h", () => undefined, () => undefined);
-    r.setVerTela(false);
+    const r = new Recepcao(conn, "f", nada, nada);
+    r.setForaDaSala(true);
     r.sync(LISTA);
-    r.setVerTela(true);
-    expect(pedidas).toEqual(["voz-dono", "tela-dono", "som-da-tela"]);
+    expect(pedidas).toContain("tela-dono@h");
   });
 
-  it("ao sair da página da sala, solta a tela que chegava e mantém a voz", () => {
-    const { conn, soltas } = conexaoFalsa();
-    const r = new Recepcao(conn, "h", () => undefined, () => undefined);
+  it("escolher a camada fora da sala vale ao voltar", () => {
+    const { conn, camadas } = conexaoFalsa();
+    const r = new Recepcao(conn, "h", nada, nada);
     r.sync(LISTA);
-    r.setVerTela(false);
-    expect(soltas.sort()).toEqual(["som-da-tela", "tela-dono"]);
+    r.setForaDaSala(true);
+    r.setLayer("f");
+    r.setForaDaSala(false);
+    expect(camadas.at(-1)).toBe("tela-dono@f");
   });
 });
 
 describe("Recepcao ao sair e voltar rápido", () => {
-  it("soltar a tela espera, e voltar antes da espera não pede a tela de novo", () => {
+  it("sair espera, e voltar antes da espera não troca a camada", () => {
     vi.useFakeTimers();
-    const { conn, pedidas, soltas } = conexaoFalsa();
-    const r = new Recepcao(conn, "h", () => undefined, () => undefined);
+    const { conn, camadas } = conexaoFalsa();
+    const r = new Recepcao(conn, "f", nada, nada);
     r.sync(LISTA);
-    r.setVerTela(false, 1500);
-    r.setVerTela(true);
+    r.setForaDaSala(true, 1500);
+    r.setForaDaSala(false);
     vi.advanceTimersByTime(2000);
-    expect(soltas).toEqual([]);
-    expect(pedidas).toEqual(["voz-dono", "tela-dono", "som-da-tela"]);
+    expect(camadas).toEqual([]);
     vi.useRealTimers();
   });
 
-  it("sem voltar, solta a tela depois da espera", () => {
+  it("sem voltar, desce para a leve depois da espera", () => {
     vi.useFakeTimers();
-    const { conn, soltas } = conexaoFalsa();
-    const r = new Recepcao(conn, "h", () => undefined, () => undefined);
+    const { conn, camadas } = conexaoFalsa();
+    const r = new Recepcao(conn, "f", nada, nada);
     r.sync(LISTA);
-    r.setVerTela(false, 1500);
-    expect(soltas).toEqual([]);
+    r.setForaDaSala(true, 1500);
+    expect(camadas).toEqual([]);
     vi.advanceTimersByTime(1600);
-    expect(soltas.sort()).toEqual(["som-da-tela", "tela-dono"]);
+    expect(camadas).toEqual(["tela-dono@h"]);
     vi.useRealTimers();
   });
 });

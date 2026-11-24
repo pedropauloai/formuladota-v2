@@ -56,7 +56,7 @@ const MUTACOES = [
   [PR, "return now.getTime() - new Date(member.lastSeenAt).getTime() < PRESENTE_MS;", "return true;", "quem parou de bater segue presente"],
   [CL, "return novas.reduce((max, m) => Math.max(max, m.id), cursor);", "return novas.at(-1)?.id ?? cursor;", "o cursor do chat volta e pula mensagem"],
   [OR, "if (a.maoDesde) return -1;", "", "mão levantada não sobe para o topo"],
-  [RC, 'faixas.filter((f) => this.verTela || f.tipo === "voz")', "faixas", "fora da página da sala, a tela continua chegando"],
+  [RC, 'return this.fora ? "h" : this.layer;', "return this.layer;", "fora da página da sala, a tela segue na camada alta"],
   [RT, "return i.noAr && i.podeFalar && !i.vozAberta && i.noArDesde !== null && i.agora - i.noArDesde > VOZ_SUMIDA_MS;", "return false;", "voz que o servidor fechou não religa"],
   [RG, 'if (fase === "saiu" || fase === "erro") anotar(null);', "", "quem foi tirado da sala volta nela ao recarregar"],
   [FC, 'if (env.NODE_ENV !== "development") return SALA_FLAG;', "", "produção obedece a linha de teste da flag"],

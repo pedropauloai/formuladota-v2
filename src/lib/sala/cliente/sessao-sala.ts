@@ -22,7 +22,7 @@ const METRICAS_MS = 5_000;
 const FALA_MS = 300;
 const CHAT_GUARDA = 100;
 const FALHAS_PARA_RESINCRONIZAR = 5;
-const SOLTAR_TELA_MS = 1_500;
+const SAIR_DA_VISTA_MS = 1_500;
 
 export class SessaoSala {
   private snap: SessaoSnapshot = SNAPSHOT_INICIAL;
@@ -79,7 +79,7 @@ export class SessaoSala {
       this.conn, camada, (tela, telaDe) => this.set({ tela, telaDe }), (userId, track) => this.nivel?.watch(userId, track),
       (audioBloqueado) => audioBloqueado !== this.snap.audioBloqueado && this.set({ audioBloqueado })
     );
-    this.recepcao.setVerTela(this.vistaAberta);
+    this.recepcao.setForaDaSala(!this.vistaAberta);
     this.set({ fase: "na_sala", papel: entrada.data.papel, tipo: entrada.data.tipo, camada });
     this.timers.push(window.setInterval(() => void this.metricas(), METRICAS_MS));
     this.timers.push(window.setInterval(() => this.atualizarFala(), FALA_MS));
@@ -218,10 +218,10 @@ export class SessaoSala {
     if (this.snap.compartilhando || this.snap.minhaTela) this.set({ compartilhando: false, minhaTela: null, qualidadeTela: null });
   }
 
-  /** A página da sala aberta recebe a tela; fora dela, só as vozes (a conexão continua). */
+  /** A página da sala aberta mostra a tela na camada escolhida; fora dela, a tela vem na leve. */
   setVistaAberta(aberta: boolean): void {
     this.vistaAberta = aberta;
-    this.recepcao?.setVerTela(aberta, aberta ? 0 : SOLTAR_TELA_MS);
+    this.recepcao?.setForaDaSala(!aberta, aberta ? 0 : SAIR_DA_VISTA_MS);
   }
 
   /** Clique depois de o navegador segurar o som: as vozes voltam a tocar. */
