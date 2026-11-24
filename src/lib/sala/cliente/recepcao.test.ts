@@ -77,7 +77,7 @@ describe("Recepcao ao sair e voltar rápido", () => {
 });
 
 describe("Recepcao quando a faixa não chega", () => {
-  it("faixa pedida que não chega em 10 s é solta e pedida de novo", () => {
+  it("faixa pedida que não chega em 8 s é solta e pedida de novo", () => {
     vi.useFakeTimers();
     const { conn, pedidas, soltas } = conexaoFalsa();
     const r = new Recepcao(conn, "h", nada, nada);
@@ -111,7 +111,7 @@ describe("Recepcao quando a faixa não chega", () => {
     vi.useRealTimers();
   });
 
-  it("faixa que saiu da lista antes dos 10 s não é pedida de novo", () => {
+  it("faixa que saiu da lista antes dos 8 s não é pedida de novo", () => {
     vi.useFakeTimers();
     const { conn, pedidas } = conexaoFalsa();
     const r = new Recepcao(conn, "h", nada, nada);

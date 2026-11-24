@@ -26,8 +26,10 @@ async function telaECamada(t, check, pDono, pOuv) {
   await pDono.locator('[data-sala-tela="compartilhar"]:not([disabled])').click({ timeout: 20_000 });
   await pDono.locator('[data-sala-qualidade="leve"]').check();
   await pDono.locator("[data-sala-qualidade-confirmar]").click();
-  const deNovo = await waitFor(async () => (await s.openVideoCount(t.palco.id, t.dono.id)) === 1 && (await s.attr(pOuv, "data-video-altura")) > 0, 40_000);
-  check("o dono para e volta a compartilhar, e a plateia recebe a tela nova", !!deNovo, `${await s.attr(pOuv, "data-video-altura")} px`);
+  // A recepção nova aberta no banco (a medida da tela antiga continua nas estatísticas): até 60 s, que cobrem
+  // a ligação refeita quando a renegociação mata a sessão do ouvinte no SFU.
+  const deNovo = await waitFor(async () => (await s.openVideoCount(t.palco.id, t.dono.id)) === 1 && (await s.videoLayerOf(t.palco.id, t.ouvinte.id)) !== null, 60_000);
+  check("o dono para e volta a compartilhar, e a plateia recebe a tela nova", !!deNovo, `camada ${await s.videoLayerOf(t.palco.id, t.ouvinte.id)}`);
   const sid = await s.openSessionOf(t.palco.id, t.ouvinte.id);
   const voz = await s.tryPublish(pOuv, t.palco.id, sid, "audio", "voz-da-plateia");
   check("a plateia não publica voz pelo servidor", voz.status === 403 && voz.body.errorCode === "voz_nao_permitida", `HTTP ${voz.status} ${voz.body.errorCode}`);

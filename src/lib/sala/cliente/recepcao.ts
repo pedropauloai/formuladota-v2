@@ -23,7 +23,7 @@ interface Recebida {
 }
 
 // Faixa pedida que não chega nesse tempo (o servidor ou a Cloudflare falharam no meio): pede de novo.
-const ESPERA_FAIXA_MS = 10_000;
+const ESPERA_FAIXA_MS = 8_000;
 
 const keyOf = (f: { sessionId: string; trackName: string }) => `${f.sessionId}:${f.trackName}`;
 
