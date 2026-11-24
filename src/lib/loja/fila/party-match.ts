@@ -16,6 +16,8 @@ export interface PartyMatchSummary {
   direScore: number;
   /** O herói do PPA, quando a conta dele está na partida. */
   ppaHeroId: number | null;
+  /** Heróis da party nessa partida (o do PPA primeiro); null no resumo antigo do cache, que se refaz. */
+  partyHeroIds: number[] | null;
 }
 
 const int = (value: unknown): number | null => (typeof value === "number" && Number.isFinite(value) ? Math.trunc(value) : null);
@@ -35,6 +37,17 @@ export function summarizePartyMatch(match: unknown, ownerAccountId: number | nul
   const known = owner ?? players.find((p) => partyAccountIds.includes(int(p.account_id) ?? -1));
   const slot = known ? int(known.player_slot) : null;
   const radiantWin = typeof m.radiant_win === "boolean" ? m.radiant_win : null;
+  // Do lado da party, os heróis de quem o site conhece: a conta do PPA e as Steam vinculadas de quem jogou.
+  const ofParty = (p: Record<string, unknown>) => {
+    const account = int(p.account_id);
+    const pSlot = int(p.player_slot);
+    return slot !== null && pSlot !== null && (pSlot < 128) === (slot < 128) && account !== null && (account === ownerAccountId || partyAccountIds.includes(account));
+  };
+  const partyHeroIds = players
+    .filter(ofParty)
+    .sort((a, b) => Number(int(b.account_id) === ownerAccountId) - Number(int(a.account_id) === ownerAccountId))
+    .map((p) => int(p.hero_id))
+    .filter((h): h is number => h !== null && h > 0);
   return {
     matchId,
     startTime: int(m.start_time) ?? 0,
@@ -44,6 +57,7 @@ export function summarizePartyMatch(match: unknown, ownerAccountId: number | nul
     radiantScore: int(m.radiant_score) ?? 0,
     direScore: int(m.dire_score) ?? 0,
     ppaHeroId: owner ? int(owner.hero_id) : null,
+    partyHeroIds,
   };
 }
 
@@ -61,5 +75,6 @@ export function parsePartyMatchSummary(value: unknown): PartyMatchSummary | null
     radiantScore: int(v.radiantScore) ?? 0,
     direScore: int(v.direScore) ?? 0,
     ppaHeroId: int(v.ppaHeroId),
+    partyHeroIds: Array.isArray(v.partyHeroIds) ? v.partyHeroIds.map(int).filter((h): h is number => h !== null && h > 0) : null,
   };
 }

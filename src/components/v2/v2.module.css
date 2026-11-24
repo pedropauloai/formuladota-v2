@@ -172,8 +172,17 @@
   .cta {
     --cta-light: var(--color-play-primary);
     --cta-glow: var(--color-play-primary-hover);
-    --cta-ink: var(--color-text-display);
-    --cta-screen: color-mix(in oklab, var(--color-bg-deep), black 45%);
+    /* Tela no verde de ação com letra escura: a chamada principal é o texto mais legível da tela
+       (a tela quase preta com letra fina era difícil de ler). Linhas de luz e cabeça do feixe em branco. */
+    --cta-ink: var(--color-bg-deep);
+    --cta-screen: linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--color-play-primary), white 16%),
+      var(--color-play-primary) 55%,
+      color-mix(in oklab, var(--color-play-primary), black 10%)
+    );
+    --cta-lines: var(--color-text-display);
+    --cta-beam-head: var(--color-text-display);
     --cta-bezel: 5px;
     /* O canto único do site (2px): a moldura de metal fica reta, como o JOGAR DOTA do cliente. */
     --cta-radius: var(--radius-button);
@@ -182,17 +191,14 @@
     border: var(--cta-bezel) solid transparent;
     border-radius: var(--cta-radius);
     font-family: var(--font-display);
-    font-weight: 500;
-    font-size: 0.78rem;
-    /* Espaçamento da referência a partir de 640 px; no celular, menos, para o rótulo caber. */
-    letter-spacing: 0.16em;
+    font-weight: 700;
+    font-size: 0.9375rem;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--cta-ink);
-    text-shadow:
-      0 0 14px color-mix(in srgb, var(--cta-light) 55%, transparent),
-      0 1px 6px rgb(0 0 0 / 0.9);
+    text-shadow: 0 1px 0 rgb(255 255 255 / 0.28);
     background:
-      linear-gradient(var(--cta-screen), var(--cta-screen)) padding-box,
+      var(--cta-screen) padding-box,
       linear-gradient(to bottom, var(--white-lo) 0 1px, transparent 1px) border-box,
       linear-gradient(
           to bottom,
@@ -202,7 +208,8 @@
         )
         border-box;
     box-shadow:
-      inset 0 2px 8px rgb(0 0 0 / 0.9),
+      inset 0 1px 0 rgb(255 255 255 / 0.35),
+      inset 0 -3px 8px rgb(0 0 0 / 0.22),
       0 22px 44px color-mix(in oklab, var(--color-bg-deep) 60%, transparent),
       0 3px 10px rgb(0 0 0 / 0.35);
     transition:
@@ -214,8 +221,10 @@
   @media (hover: hover) and (pointer: fine) {
     .cta:hover {
       transform: translateY(-2px);
+      filter: brightness(1.06);
       box-shadow:
-        inset 0 2px 8px rgb(0 0 0 / 0.9),
+        inset 0 1px 0 rgb(255 255 255 / 0.35),
+        inset 0 -3px 8px rgb(0 0 0 / 0.22),
         0 28px 56px color-mix(in srgb, var(--cta-glow) 28%, transparent),
         0 4px 12px rgb(0 0 0 / 0.4);
     }
@@ -249,7 +258,7 @@
       from var(--beam-angle),
       color-mix(in srgb, var(--cta-light) 20%, transparent) 0 46%,
       var(--cta-light) 66%,
-      var(--cta-ink) 79% 85%,
+      var(--cta-beam-head) 79% 85%,
       var(--cta-light) 90%,
       color-mix(in srgb, var(--cta-light) 20%, transparent) 97%
     );
@@ -269,14 +278,14 @@
   @media (min-width: 48rem) {
     .large {
       min-height: 3.75rem;
-      padding-inline: 1.75rem;
-      font-size: 0.875rem;
+      padding-inline: 1.5rem;
+      font-size: 1rem;
     }
   }
 
   @media (min-width: 40rem) {
     .cta {
-      letter-spacing: 0.28em;
+      letter-spacing: 0.14em;
     }
   }
 
@@ -292,10 +301,20 @@
     line-height: 1.3;
   }
 
-  /* Chamada da marca: a mesma moldura, com a luz vermelha; o feixe fica só na principal. */
+  /* Chamada da marca: a mesma moldura, com a tela escura e a luz vermelha; o feixe fica só na principal. */
   .brand {
     --cta-light: var(--color-brand-primary);
     --cta-glow: var(--color-brand-primary);
+    --cta-ink: var(--color-text-display);
+    --cta-screen: linear-gradient(color-mix(in oklab, var(--color-bg-deep), black 45%), color-mix(in oklab, var(--color-bg-deep), black 45%));
+    --cta-lines: var(--color-brand-primary);
+    text-shadow:
+      0 0 14px color-mix(in srgb, var(--cta-light) 55%, transparent),
+      0 1px 6px rgb(0 0 0 / 0.9);
+    box-shadow:
+      inset 0 2px 8px rgb(0 0 0 / 0.9),
+      0 22px 44px color-mix(in oklab, var(--color-bg-deep) 60%, transparent),
+      0 3px 10px rgb(0 0 0 / 0.35);
   }
 
   .brand::after {

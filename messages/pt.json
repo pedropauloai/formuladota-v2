@@ -313,7 +313,8 @@
       "vs": "vs",
       "won": "Vitória",
       "lost": "Derrota",
-      "withPlayers": "{count, plural, =1 {com # jogador} other {com # jogadores}}"
+      "withPlayers": "{count, plural, =1 {com # jogador} other {com # jogadores}}",
+      "kills": "{party} x {enemy} abates"
     },
     "enqueteLiga": {
       "question": "Você jogaria a Liga do FORMULADOTA?",
@@ -563,7 +564,7 @@
     "partyStatMatches": "{count, plural, =1 {partida registrada} other {partidas registradas}}",
     "partyStatWins": "{count, plural, =1 {vitória} other {vitórias}}",
     "partyStatPlayers": "{count, plural, =1 {jogador da galera} other {jogadores da galera}}",
-    "partyColHero": "Herói do PPA",
+    "partyColHero": "Heróis da party",
     "partyColResult": "Resultado",
     "partyColDuration": "Duração",
     "partyColWhen": "Quando",
@@ -572,12 +573,13 @@
     "partyLost": "Derrota",
     "partyPending": "Aguardando o OpenDota",
     "partyNoResult": "Sem resultado público",
-    "partyHeroUnknown": "Herói não informado",
+    "partyHeroUnknown": "Heróis ocultos",
     "partyOpenDota": "OpenDota",
     "partyOpenDotaAria": "Ver a partida {id} no OpenDota",
     "partyEmptyTitle": "Nenhuma partida registrada ainda",
     "partyEmptyBody": "A primeira entra aqui quando o PPA fechar uma partida com a galera na live.",
-    "partyHowLink": "Como funciona a vaga"
+    "partyHowLink": "Como funciona a vaga",
+    "partyKills": "{party} x {enemy} abates"
   },
   "ranking": {
     "metaTitle": "Ranking | FORMULADOTA",

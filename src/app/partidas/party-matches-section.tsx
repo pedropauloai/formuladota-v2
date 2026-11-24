@@ -1,28 +1,27 @@
 // As partidas que o PPA registra com o ID no painel da fila, com o resumo que o cron guarda do
 // OpenDota (store_owner_proof): a página só lê o banco, nunca chama o OpenDota na visita.
 
-import Image from "next/image";
 import { getLocale, getTranslations } from "next-intl/server";
-import { ArrowRight, ExternalLink, Swords } from "lucide-react";
+import { ArrowRight, ExternalLink } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { panel, textLink } from "@/components/v2";
 import { UserAvatar } from "@/components/ui/avatar";
-import { getHeroById } from "@/lib/queries/heroes";
+import { PartyHeroes } from "@/components/match/party-heroes";
 import { getOwnerProof } from "@/lib/loja/owner-proof";
 import { getRegisteredPartyMatches, type RegisteredPartyMatch } from "@/lib/loja/fila/party-matches";
 import type { PartyMatchSummary } from "@/lib/loja/fila/party-match";
 
 const OPENDOTA = "https://www.opendota.com";
-// Herói, resultado, duração, quando, quem jogou e o link: as colunas do histórico do cliente do Dota.
-const COLUMNS = "md:grid md:grid-cols-[112px_132px_80px_120px_minmax(0,1fr)_auto] md:gap-x-5";
+// Heróis, resultado, duração, quando, quem jogou e o link: as colunas do histórico do cliente do Dota.
+const COLUMNS = "md:grid md:grid-cols-[148px_150px_80px_120px_minmax(0,1fr)_auto] md:gap-x-5";
 
 type T = Awaited<ReturnType<typeof getTranslations>>;
 
 const clock = (seconds: number) => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
 
-// O placar do lado da party primeiro.
-const score = (s: PartyMatchSummary) => (s.radiant === false ? `${s.direScore}:${s.radiantScore}` : `${s.radiantScore}:${s.direScore}`);
+// O placar de abates, o da party primeiro.
+const kills = (s: PartyMatchSummary) => (s.radiant === false ? { party: s.direScore, enemy: s.radiantScore } : { party: s.radiantScore, enemy: s.direScore });
 
 async function loadMatches(): Promise<RegisteredPartyMatch[]> {
   try {
@@ -52,7 +51,7 @@ function Result({ summary, t }: { summary: PartyMatchSummary | undefined; t: T }
       <span className={cn("block font-display text-sm font-bold uppercase tracking-[0.08em]", summary.won ? "text-play-primary" : "text-brand-text")}>
         {summary.won ? t("partyWon") : t("partyLost")}
       </span>
-      <span className="block font-body text-xs tabular-nums text-text-muted">{score(summary)}</span>
+      <span className="block font-body text-xs tabular-nums text-text-muted">{t("partyKills", kills(summary))}</span>
     </span>
   );
 }
@@ -74,18 +73,15 @@ function Players({ players, locale }: { players: RegisteredPartyMatch["players"]
 }
 
 function MatchRow({ match, summary, locale, t }: { match: RegisteredPartyMatch; summary: PartyMatchSummary | undefined; locale: string; t: T }) {
-  const hero = summary?.ppaHeroId ? getHeroById(summary.ppaHeroId) : null;
-  const heroName = hero ? (locale === "pt" ? hero.name_pt : hero.name_en) : t("partyHeroUnknown");
+  const heroIds = summary?.partyHeroIds ?? [];
   const at = summary?.startTime ? new Date(summary.startTime * 1000) : new Date(match.playedAt);
   const when = new Intl.DateTimeFormat(locale, { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
   return (
     <li className={cn("flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 transition-colors hover:bg-bg-elevated/60", COLUMNS)}>
-      {hero ? (
-        <Image src={hero.image_full} alt={heroName} width={80} height={45} unoptimized className="h-[45px] w-20 shrink-0 rounded-sm object-cover" />
+      {heroIds.length > 0 ? (
+        <PartyHeroes ids={heroIds} locale={locale} max={5} size={26} />
       ) : (
-        <span role="img" aria-label={heroName} className="grid h-[45px] w-20 shrink-0 place-items-center rounded-sm bg-bg-surface text-text-faded">
-          <Swords size={18} aria-hidden="true" />
-        </span>
+        <span className="font-body text-xs text-text-faded">{t("partyHeroUnknown")}</span>
       )}
       <Result summary={summary} t={t} />
       <span className="font-body text-sm tabular-nums text-text-muted">
