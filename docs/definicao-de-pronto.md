@@ -85,25 +85,27 @@ Escopo: a mensalidade de R$ 120, com party com o PPA sempre que quiser pelo reve
 
 ## Comunicação, fase 1: sala de voz com tela (frente aberta em 23/11/2026)
 
-Escopo: sala de voz com compartilhamento de tela em `/sala/[id]`, pelo Cloudflare Realtime, para a mentoria do PPA e para a party da live, atrás da flag `sala_voz`. Spec: [comunicacao/spec.md](comunicacao/spec.md). Denominador fechado: **11 critérios**.
+Escopo: salas de voz com compartilhamento de tela em `/sala/[id]`, pelo Cloudflare Realtime: a sala pública da live (palco, chat e plateia), a mentoria e a party, atrás da flag `sala_voz`. Spec: [comunicacao/spec.md](comunicacao/spec.md). Denominador fechado: **12 critérios**.
 
 | # | Critério | Como se prova | Estado |
 |---|---|---|---|
 | C1 | A spec está na main, com as escolhas de produto do PPA anotadas | PR mesclado; seção 15 da spec com a decisão e a data de cada escolha | não |
-| C2 | O app do Realtime e a chave do TURN existem, e os segredos estão no Worker e no `.env.local` sem terem aparecido em tela | `wrangler secret list` mostra os nomes; um roteiro cria e fecha uma sessão de teste no SFU e sai com 0, sem imprimir segredo | não |
+| C2 | O app do Realtime e a chave do TURN existem, e os segredos estão no Worker e nos `.env` sem terem aparecido em tela (o PPA copia, o script grava) | `wrangler secret list` mostra os nomes; `pnpm sala:realtime` cria uma sessão, gera e revoga uma credencial de TURN e sai com 0, sem imprimir segredo | não |
 | C3 | O PPA aprovou a migration da sala | a frase dele, com data, no PR da migration | não |
 | C4 | A migration está aplicada em produção e registrada | consulta a `supabase_migrations.schema_migrations` mostra a versão por data | não |
-| C5 | As regras do banco seguram a sala: visitante e quem está fora não leem, ninguém escreve pela API, a data de nascimento não muda depois de gravada | `scripts/seguranca/sala-voz.sql` com todos os itens "=ok" (vermelho com a trava revertida) e `funcoes-abertas.sql` vazio | não |
-| C6 | Tipos, lint, testes e build fecham, inclusive permissão, idade, custo e leitura do SDP | verificação `verificar` do GitHub verde no PR da prova de conceito | não |
-| C7 | Duas pessoas se ouvem e a tela chega; mutar, expulsar, bloquear e denunciar funcionam; conta de menor, gente de fora e tela acima do teto são barradas | `pnpm sala:e2e` sai com 0 | não |
+| C5 | As regras do banco seguram a sala: visitante e quem está fora não leem, ninguém escreve pela API, a marcação de idade vale só para a própria pessoa, as funções do batimento não abrem para o navegador | `scripts/seguranca/sala-voz.sql` com todos os itens "=ok" (vermelho com a trava revertida) e `funcoes-abertas.sql` vazio | não |
+| C6 | Tipos, lint, testes e build fecham, inclusive permissão, palco, camada da tela, custo, atraso e leitura do SDP, e as travas resistem à mutação | verificação `verificar` do GitHub verde no PR da prova de conceito e `pnpm sala:mutacao` com todas as mutações vermelhas | não |
+| C7 | Mentoria: duas pessoas se ouvem e a tela chega em 1080p; mutar, expulsar, bloquear e denunciar funcionam. Sala pública: o ouvinte não fala, o chamado fala, a plateia recebe a camada leve, o chat chega e o apagado some, o banido não volta, os lugares contam. Portões: sem a marcação de 18 anos, de fora, convite e tela acima do teto | `pnpm sala:e2e` sai com 0 | não |
 | C8 | Com a flag desligada a sala some para todos, inclusive o admin | `pnpm sala:e2e` (parte da flag) | não |
 | C9 | A prova de conceito está no ar, atrás da flag | deploy pela cópia do WSL e `pnpm cf:verificar` com `falhas: 0` | não |
-| C10 | Mentoria real de 1 hora: tela em 1080p em pelo menos 90% do tempo de tela, perda de pacote abaixo de 2%, voz picotada abaixo de 2% sem reclamação, consumo dentro da franquia grátis | consulta da seção 13 da spec, com o resultado e o número do painel da Cloudflare na nota compartilhada | não |
-| C11 | Worktree limpo e branches da frente apagados | `git status` vazio e `git ls-remote --heads origin` sem os branches mesclados | não |
+| C10 | Mentoria real de 1 hora: tela em 1080p em pelo menos 90% do tempo de tela, perda de pacote abaixo de 2%, voz picotada abaixo de 2% sem reclamação, atraso estimado p95 abaixo de 500 ms, consumo dentro do orçamento | consulta da seção 13 da spec, com o resultado e o número do painel da Cloudflare na nota compartilhada | não |
+| C11 | Primeira live com a sala pública: atraso estimado p95 abaixo de 500 ms para a plateia, perda abaixo de 2% e consumo dentro do orçamento | consulta da seção 13 da spec na sala pública, na nota compartilhada | não |
+| C12 | Worktree limpo e branches da frente apagados | `git status` vazio e `git ls-remote --heads origin` sem os branches mesclados | não |
 
 ### O que o percentual não significa
 
-- 11 de 11 não prova que a party de 6 aguenta uma live inteira: o aceite real é a mentoria; a party fica provada pelos testes e pela primeira live com a sala.
+- 12 de 12 não prova que a sala pública aguenta mais gente do que a primeira live teve: a escala passa pelos testes e por uma consulta por batimento, e o resto se mede live a live.
+- O atraso medido é uma estimativa pela `getStats` (rede mais buffer), sem o tempo de captura e de tela; a meta tem folga por isso.
 - Não prova conformidade jurídica com o ECA Digital: os controles estão ligados aos artigos na spec, e a regulamentação da ANPD pode pedir mais (verificação de idade mais forte, por exemplo).
-- Não prova que ninguém mente a idade: a data é declarada, com conta identificada e sem troca depois.
+- Não prova que ninguém mente a idade: a maioridade é marcada pela pessoa (decisão do PPA de 23/11/2026), com conta identificada, denúncia e banimento.
 - Não cobre compartilhar tela pelo Firefox, pelo Safari ou pelo celular, que não capturam o áudio do jogo.
