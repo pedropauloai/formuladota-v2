@@ -1,14 +1,14 @@
 "use client";
 
-// PROTÓTIPO (meta-previa): busca por nome, filtra a tabela (e apaga o resto no quadro) enquanto digita.
+// Busca por nome no /meta: filtra a tabela enquanto a pessoa digita.
 
 import { Search, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
-import { useMetaUi } from "./contexto";
+import { useMetaUi } from "./meta-ui";
 
 export function SearchBox({ className }: { className?: string }) {
-  const t = useTranslations("metaV3");
+  const t = useTranslations("meta");
   const { query, setQuery } = useMetaUi();
   return (
     <label className={cn("relative flex h-10 items-center", className)}>
@@ -26,7 +26,7 @@ export function SearchBox({ className }: { className?: string }) {
           type="button"
           onClick={() => setQuery("")}
           className="absolute right-2 flex size-6 items-center justify-center rounded-sm text-text-faded hover:text-text-display"
-          aria-label={t("search")}
+          aria-label={t("searchClear")}
         >
           <X size={14} aria-hidden="true" />
         </button>

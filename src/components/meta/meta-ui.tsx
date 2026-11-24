@@ -1,22 +1,19 @@
 "use client";
 
-// PROTÓTIPO (meta-previa): o que o centro e a coluna da direita dividem no navegador. A busca por nome
-// (salva na URL sem recarregar) e o herói em foco (a linha sob o mouse, que o detalhe da versão B mostra).
+// O que a busca e a tabela do /meta dividem no navegador: o texto da busca por nome, salvo na URL sem
+// recarregar a página.
 
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
 
 interface MetaUi {
   query: string;
   setQuery: (value: string) => void;
-  focusId: number | null;
-  setFocusId: (id: number | null) => void;
 }
 
 const MetaUiContext = createContext<MetaUi | null>(null);
 
 export function MetaUiProvider({ initialQuery, children }: { initialQuery: string; children: ReactNode }) {
   const [query, setQueryState] = useState(initialQuery);
-  const [focusId, setFocusId] = useState<number | null>(null);
 
   const setQuery = useCallback((value: string) => {
     setQueryState(value);
@@ -26,7 +23,7 @@ export function MetaUiProvider({ initialQuery, children }: { initialQuery: strin
     window.history.replaceState(window.history.state, "", url);
   }, []);
 
-  const value = useMemo(() => ({ query, setQuery, focusId, setFocusId }), [query, setQuery, focusId]);
+  const value = useMemo(() => ({ query, setQuery }), [query, setQuery]);
   return <MetaUiContext.Provider value={value}>{children}</MetaUiContext.Provider>;
 }
 

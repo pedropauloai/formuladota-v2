@@ -1,103 +1,64 @@
-// Página /meta — estatísticas de heróis do Dota 2 POR FUNÇÃO (pos 1-5).
-// Server Component no padrão denso do cliente Dota 2.
+// /meta: o painel do patch na medalha Imortal. Os 5 melhores de cada função, a tabela com vitória,
+// vitória ajustada, escolha, nota com letra, variação contra o fim do patch anterior e os últimos 14
+// dias, e na coluna da direita o profissional, quem subiu e caiu e o "Como ler".
 //
-// "Comprar, não construir": nome/ícone/atributo vêm do catálogo estático de heróis e os
-// números por posição vêm da Stratz, guardados no banco pelo cron (dota_meta_cache).
-// META = padrão objetivo: só o dado, ordenado por win rate.
+// Dado lento guardado no banco (dota_meta_cache) pelo cron do site: a página só lê (src/lib/dota/meta).
+// Os filtros moram na URL, para o link levar o filtro junto.
 
 import type { Metadata } from "next";
-import { pagePreview } from "@/lib/seo";
 import { getTranslations } from "next-intl/server";
 import { BarChart3 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { pagePreview } from "@/lib/seo";
+import { v2Page } from "@/components/v2";
 import { ClientShell } from "@/components/client-shell/shell";
 import { EmptyState } from "@/components/ui/empty-state";
-import heroesCatalog from "@/data/dota-heroes.json";
-import { getPositionStats, type CachedPositionStats } from "@/lib/dota/meta-cache";
-import { buildMetaRows, heroSourcesFromCatalog, type MetaPosition } from "@/lib/dota/hero-meta";
-import {
-  MetaFilters,
-  MetaTable,
-  TopHeroes,
-  type MetaFilterState,
-} from "@/components/meta/hero-meta-table";
-import { MetaPeriod } from "@/components/meta/meta-period";
+import { loadMetaPage, type MetaPageData } from "@/lib/dota/meta/page-data";
+import { parseMetaState, type MetaPageState } from "@/lib/dota/meta/url-state";
+import { MetaUiProvider } from "@/components/meta/meta-ui";
+import { MetaPanel } from "@/components/meta/meta-panel";
+import { HowToRead, MoversCard, ProCard, RightColumn } from "@/components/meta/meta-side";
+
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("meta");
   return pagePreview({ title: t("metaTitle"), description: t("metaDescription"), path: "/meta" });
 }
 
-const VALID_POSITIONS: MetaPosition[] = ["all", "1", "2", "3", "4", "5"];
-
-export default async function MetaPage(props: {
-  searchParams: Promise<{ position?: string }>;
-}) {
-  const t = await getTranslations("meta");
-  const params = await props.searchParams;
-
-  const state: MetaFilterState = {
-    position: VALID_POSITIONS.includes(params.position as MetaPosition)
-      ? (params.position as MetaPosition)
-      : "all",
-  };
-  const meta = await loadMeta();
-
-  return (
-    <ClientShell currentRoute="/meta">
-      <div className="px-6 py-10 xl:px-12">
-        <header className="mb-8">
-          <h1 className="font-display text-4xl uppercase tracking-tight text-text-display md:text-5xl">
-            {t("title")}
-          </h1>
-          <p className="mt-3 max-w-2xl font-display text-sm font-semibold text-text-body 2xl:text-base">
-            {t("subtitle")}
-          </p>
-          {meta && <MetaPeriod window={meta.window} patches={meta.patches} refreshedAt={meta.refreshedAt} />}
-        </header>
-
-        <MetaContent state={state} meta={meta} />
-      </div>
-    </ClientShell>
-  );
-}
-
-// O cabeçalho e a tabela usam a mesma leitura; a falha vira null e a página mostra o aviso.
-async function loadMeta(): Promise<CachedPositionStats | null> {
+// A falha vira null e a página mostra o aviso, em vez de derrubar a tela.
+async function loadSafe(state: MetaPageState): Promise<MetaPageData | null> {
   try {
-    return await getPositionStats();
+    return await loadMetaPage(state);
   } catch (err) {
-    console.error("[meta] carregar o meta:", err instanceof Error ? err.message : err);
+    console.error("[meta] carregar:", err instanceof Error ? err.message : err);
     return null;
   }
 }
 
-async function MetaContent({ state, meta }: { state: MetaFilterState; meta: CachedPositionStats | null }) {
-  const t = await getTranslations("meta");
-
-  if (!meta) {
-    return (
-      <>
-        <MetaFilters state={state} />
-        <EmptyState title={t("error")} icon={<BarChart3 />} principle="random" />
-      </>
-    );
-  }
-  const result = buildMetaRows(heroSourcesFromCatalog(heroesCatalog), meta.stats, state.position);
-
+export default async function MetaPage(props: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const state = parseMetaState(await props.searchParams);
+  const [data, t] = await Promise.all([loadSafe(state), getTranslations("meta")]);
+  const right = data ? (
+    <RightColumn>
+      <ProCard data={data} />
+      <MoversCard data={data} />
+      <HowToRead data={data} />
+    </RightColumn>
+  ) : undefined;
   return (
-    <>
-      <MetaFilters state={state} />
-      {result.rows.length === 0 ? (
-        <EmptyState title={t("empty")} icon={<BarChart3 />} principle="random" />
-      ) : (
-        <>
-          <TopHeroes rows={result.rows} />
-          <MetaTable rows={result.rows} />
-        </>
-      )}
-      <p className="mt-8 font-display text-sm uppercase tracking-widest text-text-faded">
-        {t("source")}
-      </p>
-    </>
+    <MetaUiProvider initialQuery={state.q}>
+      <ClientShell currentRoute="/meta" rightSidebar={right} wideRightSidebar>
+        <div className={cn(v2Page, "overflow-x-clip")}>
+          {data ? (
+            <MetaPanel data={data} />
+          ) : (
+            <div className="px-8 py-10">
+              <EmptyState title={t("error")} icon={<BarChart3 />} principle="random" />
+            </div>
+          )}
+        </div>
+      </ClientShell>
+    </MetaUiProvider>
   );
 }

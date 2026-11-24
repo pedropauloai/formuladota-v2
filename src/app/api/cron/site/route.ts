@@ -1,7 +1,7 @@
 // Cron do site (pg_cron a cada minuto, job "site-jobs"): tudo que não é partida.
 // - Loja: concilia pedidos pendentes com o Mercado Pago (rede de segurança do webhook) e renova
 //   a credencial da vitrine (no máximo a cada 6 h).
-// - Meta de heróis: renova o cache da /meta e o do meta novo (público a cada 6 h, profissional a cada hora).
+// - Meta de heróis: renova o /meta (público a cada 6 h, profissional a cada hora).
 // - Novidades: espelha /novidades no canal do Discord.
 // - Fila da party: encerra a live esquecida aberta há mais de 12 horas.
 // - Battlepass: confere Pix pendente e cartão com o Mercado Pago (ativa e renova sem o webhook).

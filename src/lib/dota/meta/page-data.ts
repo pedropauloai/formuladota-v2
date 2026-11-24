@@ -1,22 +1,13 @@
-// PROTÓTIPO (meta-previa): os mesmos dados reais para as três versões. Lê o resumo guardado (ou busca na
-// hora, na primeira vez), monta a função escolhida e as cinco funções no mesmo período e amostra.
+// O que o /meta mostra: lê o resumo guardado (ou busca na hora, na primeira vez) e monta a função
+// escolhida e as cinco funções no mesmo período e amostra, mais quem subiu e caiu e o profissional.
 
 import "server-only";
 import heroesCatalog from "@/data/dota-heroes.json";
-import type { DotaPatch } from "@/lib/dota/meta-period";
-import { getMetaData } from "@/lib/dota/meta/store";
-import type { MetaLetter } from "@/lib/dota/meta/scoring";
-import {
-  buildMetaView,
-  heroesFromCatalog,
-  movers,
-  SINGLE_ROLES,
-  type HeroInfo,
-  type MetaHeroRow,
-  type MetaView,
-} from "@/lib/dota/meta/view";
-import { YOUNG_PATCH_DAYS, currentPatchIndex, sortPatches, type PeriodKind } from "@/lib/dota/meta/windows";
-import type { PreviaState } from "./estado";
+import type { DotaPatch } from "../meta-period";
+import { getMetaData } from "./store";
+import type { MetaPageState } from "./url-state";
+import { buildMetaView, heroesFromCatalog, movers, SINGLE_ROLES, type HeroInfo, type MetaHeroRow, type MetaView } from "./view";
+import { YOUNG_PATCH_DAYS, currentPatchIndex, sortPatches, type PeriodKind } from "./windows";
 
 export type SingleRole = (typeof SINGLE_ROLES)[number];
 
@@ -34,18 +25,8 @@ export interface ProBlock {
   rows: ProRow[];
 }
 
-/** O herói numa função: o que o detalhe da versão B mostra nas cinco funções. */
-export interface RoleCell {
-  role: SingleRole;
-  letter: MetaLetter;
-  adjusted: number;
-  pick: number;
-  matches: number;
-  belowMin: boolean;
-}
-
-export interface PreviaData {
-  state: PreviaState;
+export interface MetaPageData {
+  state: MetaPageState;
   /** Período mostrado: pediu o patch e ele ainda não tem dia inteiro, cai nos últimos 7 dias. */
   period: PeriodKind;
   fallback: boolean;
@@ -54,7 +35,6 @@ export interface PreviaData {
   roles: Record<SingleRole, MetaView>;
   movers: { up: MetaHeroRow[]; down: MetaHeroRow[] };
   pro: ProBlock | null;
-  roleCells: Record<number, RoleCell[]>;
   summaryAt: string;
   patches: DotaPatch[];
   /** Patch em vigor no último dia fechado (com ou sem dia inteiro ainda). */
@@ -73,17 +53,7 @@ function proBlock(raw: Awaited<ReturnType<typeof getMetaData>>["pro"], heroes: M
   return { patch: raw.patch, startedAt: raw.startedAt, matches: raw.matches, leagues: raw.leagues, rows };
 }
 
-function roleCellsOf(roles: Record<SingleRole, MetaView>): Record<number, RoleCell[]> {
-  const out: Record<number, RoleCell[]> = {};
-  for (const role of SINGLE_ROLES) {
-    for (const r of roles[role].rows) {
-      (out[r.id] ??= []).push({ role, letter: r.letter, adjusted: r.adjustedWinRate, pick: r.pick, matches: r.matches, belowMin: r.belowMin });
-    }
-  }
-  return out;
-}
-
-export async function loadPrevia(state: PreviaState): Promise<PreviaData> {
+export async function loadMetaPage(state: MetaPageState): Promise<MetaPageData> {
   const data = await getMetaData();
   const { summary } = data;
   const heroes = heroesFromCatalog(heroesCatalog);
@@ -108,7 +78,6 @@ export async function loadPrevia(state: PreviaState): Promise<PreviaData> {
     roles,
     movers: movers(view.rows),
     pro: proBlock(data.pro, heroes),
-    roleCells: roleCellsOf(roles),
     summaryAt: data.summaryAt,
     patches: summary.patches,
     currentPatch: current?.name ?? null,

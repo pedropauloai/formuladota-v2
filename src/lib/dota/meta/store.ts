@@ -1,11 +1,9 @@
-// Meta novo guardado no banco (dota_meta_cache): um dia por linha, o resumo dos três períodos e o bloco
-// profissional. O cron renova o público a cada 6 h e o profissional a cada hora; a página só lê.
-// Chaves novas: o /meta no ar continua lendo a posicoes_imortal_v2 até o PPA escolher a versão nova.
+// Meta do /meta guardado no banco (dota_meta_cache): um dia por linha, o resumo dos três períodos e o
+// bloco profissional. O cron renova o público a cada 6 h e o profissional a cada hora; a página só lê.
 
 import "server-only";
 import { createServiceClient } from "@/lib/supabase/service";
 import type { Json } from "@/types/database";
-import { refreshPositionStats } from "../meta-cache";
 import { parseOpenDotaPatches, type DotaPatch } from "../meta-period";
 import { openDotaJson } from "../opendota-fetch";
 import { isMetaDay, type MetaDay } from "./days";
@@ -159,14 +157,13 @@ async function refreshPro(row: CacheRow | undefined, summary: MetaSummary | null
 }
 
 /**
- * Tarefa "meta" do cron: o /meta no ar (posicoes_imortal_v2), o meta novo (6 h) e o profissional (1 h).
- * Uma parte que falha não impede as outras; a tarefa falha com o erro de cada parte que falhou.
+ * Tarefa "meta" do cron: o público (6 h) e o profissional (1 h).
+ * Uma parte que falha não impede a outra; a tarefa falha com o erro de cada parte que falhou.
  */
 export async function refreshMeta(now = new Date()): Promise<Record<string, RefreshResult>> {
   const rows = await readRows([SUMMARY_KEY, PRO_KEY]);
-  const parts = ["imortal", "publico", "pro"] as const;
+  const parts = ["publico", "pro"] as const;
   const settled = await Promise.allSettled([
-    refreshPositionStats(now),
     refreshPublic(rows.get(SUMMARY_KEY), now),
     refreshPro(rows.get(PRO_KEY), summaryOf(rows.get(SUMMARY_KEY)), now),
   ]);

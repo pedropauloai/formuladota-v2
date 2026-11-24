@@ -1,20 +1,18 @@
-// PROTÓTIPO (meta-previa), versão A, "painel do patch": linha de estado e filtros, os 5 melhores de cada
-// função lado a lado (ou de uma função só, em fileira), a tabela densa embaixo e, na coluna da direita,
-// o profissional no patch, quem subiu e caiu e o "Como ler".
+// O centro do /meta, o "painel do patch": linha de estado e filtros, os 5 melhores de cada função lado a
+// lado (ou de uma função só, em fileira) e a tabela densa embaixo. A coluna da direita fica em meta-side.
 
 import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { cn } from "@/lib/utils";
 import { panel } from "@/components/v2";
 import { POSITION_ICON } from "@/lib/dota/hero-assets";
-import type { MetaHeroRow, MetaView } from "@/lib/dota/meta/view";
-import { SINGLE_ROLES } from "@/lib/dota/meta/view";
-import type { PreviaData } from "./dados";
-import { MetaTitle, MinTabs, Notes, PeriodTabs, RoleTabs, SourceFooter, StateLine, pageLocale, roleKey } from "./cabecalho";
-import { SearchBox } from "./busca";
-import { HowToRead } from "./coluna";
-import { MetaTable } from "./tabela";
-import { Delta, HeroFace, LetterBadge, fmtNum, fmtPct, toneClass } from "./pecas";
+import type { MetaPageData } from "@/lib/dota/meta/page-data";
+import { SINGLE_ROLES, type MetaHeroRow, type MetaView } from "@/lib/dota/meta/view";
+import { MetaTitle, MinTabs, Notes, PeriodTabs, RoleTabs, SourceFooter, StateLine, pageLocale, roleKey } from "./meta-header";
+import { SearchBox } from "./meta-search";
+import { HowToRead } from "./meta-side";
+import { MetaTable } from "./meta-table";
+import { Delta, HeroFace, LetterBadge, fmtNum, fmtPct, toneClass } from "./meta-parts";
 
 function top(view: MetaView, count = 5): MetaHeroRow[] {
   return view.rows.filter((r) => !r.belowMin).slice(0, count);
@@ -24,7 +22,7 @@ function top(view: MetaView, count = 5): MetaHeroRow[] {
 const WIDE_TOP = 10;
 
 async function RoleColumn({ view, role }: { view: MetaView; role: (typeof SINGLE_ROLES)[number] }) {
-  const [t, locale] = await Promise.all([getTranslations("metaV3"), pageLocale()]);
+  const [t, locale] = await Promise.all([getTranslations("meta"), pageLocale()]);
   return (
     <section className={cn(panel("neutral"), "flex min-w-0 flex-col")}>
       <header className="flex items-center gap-2 border-b border-border-subtle px-3 py-2">
@@ -42,7 +40,9 @@ async function RoleColumn({ view, role }: { view: MetaView; role: (typeof SINGLE
                 {r.name}
               </span>
               <span className="flex gap-2 font-body text-[0.75rem] leading-tight tabular-nums">
-                <span className={cn("font-semibold", toneClass(r.adjustedWinRate, view.mean))}>{fmtPct(r.adjustedWinRate, locale)}</span>
+                <span className={cn("font-semibold", toneClass(r.adjustedWinRate, view.mean))} title={t("colAdjusted")}>
+                  {fmtPct(r.adjustedWinRate, locale)}
+                </span>
                 <span className="text-gold" title={t("colPick")}>
                   {fmtPct(r.pick, locale)}
                 </span>
@@ -57,7 +57,7 @@ async function RoleColumn({ view, role }: { view: MetaView; role: (typeof SINGLE
 }
 
 async function TopCard({ row, rank, view }: { row: MetaHeroRow; rank: number; view: MetaView }) {
-  const [t, locale] = await Promise.all([getTranslations("metaV3"), pageLocale()]);
+  const [t, locale] = await Promise.all([getTranslations("meta"), pageLocale()]);
   return (
     <article className={cn(panel(rank === 1 ? "gold" : "neutral"), "flex items-center gap-3 p-3")}>
       <span className="font-display-condensed text-3xl leading-none text-text-faded">{rank}</span>
@@ -65,9 +65,13 @@ async function TopCard({ row, rank, view }: { row: MetaHeroRow; rank: number; vi
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <p className="truncate font-body text-sm font-semibold text-text-display">{row.name}</p>
         <p className="flex items-center gap-2 font-body text-[0.78rem] tabular-nums">
-          <span className={cn("font-semibold", toneClass(row.adjustedWinRate, view.mean))}>{fmtPct(row.adjustedWinRate, locale)}</span>
-          <span className="text-gold">{fmtPct(row.pick, locale)}</span>
-          <Delta value={row.delta} locale={locale} />
+          <span className={cn("font-semibold", toneClass(row.adjustedWinRate, view.mean))} title={t("colAdjusted")}>
+            {fmtPct(row.adjustedWinRate, locale)}
+          </span>
+          <span className="text-gold" title={t("colPick")}>
+            {fmtPct(row.pick, locale)}
+          </span>
+          <Delta value={row.delta} locale={locale} title={row.delta === null ? undefined : t("colDelta")} />
         </p>
       </div>
       <div className="flex flex-col items-center gap-0.5">
@@ -80,8 +84,8 @@ async function TopCard({ row, rank, view }: { row: MetaHeroRow; rank: number; vi
   );
 }
 
-async function BestBlock({ data }: { data: PreviaData }) {
-  const t = await getTranslations("metaV3");
+async function BestBlock({ data }: { data: MetaPageData }) {
+  const t = await getTranslations("meta");
   if (data.state.role === "all") {
     return (
       <section aria-labelledby="melhores" className="flex flex-col gap-2">
@@ -112,11 +116,12 @@ async function BestBlock({ data }: { data: PreviaData }) {
   );
 }
 
-export async function VersaoA({ data }: { data: PreviaData }) {
-  const [t, locale] = await Promise.all([getTranslations("metaV3"), pageLocale()]);
+export async function MetaPanel({ data }: { data: MetaPageData }) {
+  const [t, locale] = await Promise.all([getTranslations("meta"), pageLocale()]);
   const deltaTitle = data.view.baseline ? t("deltaHelp", { patch: data.view.baseline.patch ?? "" }) : null;
+  // pb-36: no fim da rolagem o rodapé fica acima do cartão do canto de baixo (126 px da tela).
   return (
-    <div className="flex flex-col gap-5 px-8 pb-10 pt-6">
+    <div className="flex flex-col gap-5 px-8 pb-36 pt-6">
       <header className="flex flex-col gap-3">
         <div className="flex flex-wrap items-end gap-x-5 gap-y-2">
           <MetaTitle data={data} className="text-5xl" />
@@ -133,7 +138,6 @@ export async function VersaoA({ data }: { data: PreviaData }) {
       <BestBlock data={data} />
       <MetaTable
         rows={data.view.rows}
-        variant="a"
         locale={locale}
         mean={data.view.mean}
         min={data.state.min}

@@ -1,5 +1,5 @@
-// PROTÓTIPO (meta-previa): peças sem estado que as três versões dividem (servidor e navegador):
-// número no formato do idioma, letra da nota, variação, linha dos últimos dias e rosto do herói.
+// Peças sem estado do /meta (servidor e navegador): número no formato do idioma, letra da nota,
+// variação, linha dos últimos dias e rosto do herói.
 
 import Image from "next/image";
 import { cn } from "@/lib/utils";
@@ -34,12 +34,8 @@ const LETTER_STYLE: Record<MetaLetter, string> = {
   F: "border-brand-text/60 bg-brand-primary/20 text-brand-text",
 };
 
-export function letterTone(letter: MetaLetter): string {
-  return LETTER_STYLE[letter];
-}
-
-export function LetterBadge({ letter, size = "md", className }: { letter: MetaLetter; size?: "sm" | "md" | "lg" | "xl"; className?: string }) {
-  const box = { sm: "h-5 w-5 text-base", md: "h-7 w-7 text-xl", lg: "h-9 w-9 text-[1.7rem]", xl: "h-14 w-14 text-[2.6rem]" }[size];
+export function LetterBadge({ letter, size = "md", className }: { letter: MetaLetter; size?: "sm" | "md" | "lg"; className?: string }) {
+  const box = { sm: "h-5 w-5 text-base", md: "h-7 w-7 text-xl", lg: "h-9 w-9 text-[1.7rem]" }[size];
   return (
     <span
       className={cn(
@@ -74,6 +70,23 @@ export function HeroFace({ src, name, size = 28, className }: { src: string; nam
 const TREND_MIN = 44;
 const TREND_MAX = 58;
 
+function trendPaths(values: Array<number | null>, width: number, height: number): string[] {
+  const step = values.length > 1 ? width / (values.length - 1) : width;
+  const y = (v: number) => height - ((Math.min(TREND_MAX, Math.max(TREND_MIN, v)) - TREND_MIN) / (TREND_MAX - TREND_MIN)) * height;
+  const segments: string[] = [];
+  let current = "";
+  values.forEach((v, i) => {
+    if (v === null) {
+      if (current) segments.push(current);
+      current = "";
+      return;
+    }
+    current += `${current ? "L" : "M"}${(i * step).toFixed(1)} ${y(v).toFixed(1)}`;
+  });
+  if (current) segments.push(current);
+  return segments;
+}
+
 /**
  * Vitória ajustada de cada dia; tracejado na média de 50% e uma marca no dia da troca de patch.
  * `fluid` estica a linha na largura da célula (o traço não engrossa).
@@ -94,18 +107,7 @@ export function Sparkline({
   className?: string;
 }) {
   const step = values.length > 1 ? width / (values.length - 1) : width;
-  const y = (v: number) => height - ((Math.min(TREND_MAX, Math.max(TREND_MIN, v)) - TREND_MIN) / (TREND_MAX - TREND_MIN)) * height;
-  const segments: string[] = [];
-  let current = "";
-  values.forEach((v, i) => {
-    if (v === null) {
-      if (current) segments.push(current);
-      current = "";
-      return;
-    }
-    current += `${current ? "L" : "M"}${(i * step).toFixed(1)} ${y(v).toFixed(1)}`;
-  });
-  if (current) segments.push(current);
+  const mid = height - ((50 - TREND_MIN) / (TREND_MAX - TREND_MIN)) * height;
   const last = [...values].reverse().find((v) => v !== null) ?? null;
   const lastTone = last === null ? "" : last >= 50.5 ? "text-success" : last <= 49.5 ? "text-brand-text" : "text-text-muted";
   return (
@@ -117,11 +119,11 @@ export function Sparkline({
       className={cn("block overflow-visible", lastTone, className)}
       aria-hidden="true"
     >
-      <line x1={0} x2={width} y1={y(50)} y2={y(50)} className="stroke-text-faded/40" strokeDasharray="2 3" strokeWidth={1} vectorEffect="non-scaling-stroke" />
+      <line x1={0} x2={width} y1={mid} y2={mid} className="stroke-text-faded/40" strokeDasharray="2 3" strokeWidth={1} vectorEffect="non-scaling-stroke" />
       {changeIndex !== null && (
         <line x1={changeIndex * step} x2={changeIndex * step} y1={0} y2={height} className="stroke-gold/60" strokeWidth={1} vectorEffect="non-scaling-stroke" />
       )}
-      {segments.map((d) => (
+      {trendPaths(values, width, height).map((d) => (
         <path key={d} d={d} fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
       ))}
     </svg>
