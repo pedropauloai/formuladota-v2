@@ -107,22 +107,25 @@ function Linha({ m, props }: { m: MembroEstado; props: PessoasProps }) {
       </div>
       {m.papel !== "ouvinte" && (m.mutado ? <MicOff className="size-4 text-text-muted" aria-hidden="true" /> : <Mic className={cn("size-4", falando ? "text-play-primary" : "text-text-muted")} aria-hidden="true" />)}
       {m.compartilhandoTela && <MonitorUp className="size-4 text-gold" aria-hidden="true" />}
-      {chamarAVista && <ChamarPalco m={m} props={props} />}
       {!proprio && (
         <div
-          className="absolute inset-y-0 right-0 flex items-center gap-0.5 bg-[var(--plate-bottom)] pl-3 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
+          className="absolute inset-y-0 right-0 flex items-center gap-0.5 pl-3 group-hover:bg-[var(--plate-bottom)] group-focus-within:bg-[var(--plate-bottom)]"
           role="group"
           aria-label={t("acoesDe", { nome })}
         >
-          {props.souDono && <AcoesDono m={m} nome={nome} props={props} chamarAVista={chamarAVista} />}
-          {!m.bloqueado && (
-            <Acao titulo={t("bloquear")} onClick={() => void bloquear()} data={{ "data-sala-bloquear": m.userId }}>
-              <Ban className="size-4" />
+          <span className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+            {props.souDono && <AcoesDono m={m} nome={nome} props={props} chamarAVista={chamarAVista} />}
+            {!m.bloqueado && (
+              <Acao titulo={t("bloquear")} onClick={() => void bloquear()} data={{ "data-sala-bloquear": m.userId }}>
+                <Ban className="size-4" />
+              </Acao>
+            )}
+            <Acao titulo={t("denunciar")} onClick={() => props.onDenunciar(m.userId)} data={{ "data-sala-denunciar": m.userId }}>
+              <Flag className="size-4" />
             </Acao>
-          )}
-          <Acao titulo={t("denunciar")} onClick={() => props.onDenunciar(m.userId)} data={{ "data-sala-denunciar": m.userId }}>
-            <Flag className="size-4" />
-          </Acao>
+          </span>
+          {/* Na ponta e sempre à vista: nenhuma ação escondida fica por cima dele. */}
+          {chamarAVista && <ChamarPalco m={m} props={props} />}
         </div>
       )}
     </li>
