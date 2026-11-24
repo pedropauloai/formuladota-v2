@@ -58,6 +58,15 @@ describe("sfu", () => {
     await expect(sfu(env, "/sessions/../../apps/outro", { method: "GET" })).rejects.toThrow();
   });
 
+  it("falha de rede (DNS, conexão, tempo esgotado) vira 502 no formato do SFU, sem estourar a rota", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => {
+      throw new TypeError("fetch failed");
+    }));
+    const res = await sfu(env, "/sessions/new", { method: "POST" });
+    expect(res.status).toBe(502);
+    expect(res.body.errorCode).toBe("sfu_indisponivel");
+  });
+
   it("resposta que não é JSON vira erro no formato do SFU", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => new Response("bad gateway", { status: 502 })));
     const res = await sfu(env, "/sessions/new", { method: "POST" });

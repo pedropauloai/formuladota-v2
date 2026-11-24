@@ -44,12 +44,18 @@ async function jsonOf(res: Response): Promise<Record<string, unknown>> {
 /** `path` relativo ao app, como `/sessions/new`; só letras, números, "_" e "-" entre as barras. */
 export async function sfu(env: RealtimeEnv, path: string, init: { method: "GET" | "POST" | "PUT"; body?: unknown }): Promise<SfuResult> {
   if (!SAFE_PATH.test(path)) throw new Error("caminho do SFU inválido");
-  const res = await fetch(`${API}/apps/${encodeURIComponent(env.appId)}${path}`, {
-    method: init.method,
-    headers: { Authorization: `Bearer ${env.appSecret}`, "Content-Type": "application/json" },
-    body: init.body === undefined ? undefined : JSON.stringify(init.body),
-    signal: AbortSignal.timeout(TIMEOUT_MS),
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${API}/apps/${encodeURIComponent(env.appId)}${path}`, {
+      method: init.method,
+      headers: { Authorization: `Bearer ${env.appSecret}`, "Content-Type": "application/json" },
+      body: init.body === undefined ? undefined : JSON.stringify(init.body),
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    });
+  } catch {
+    // Rede (DNS, conexão, tempo esgotado): erro no formato do SFU, sem estourar a rota com 500 vazio.
+    return { status: 502, body: { errorCode: "sfu_indisponivel", errorDescription: "a Cloudflare não respondeu" } };
+  }
   return { status: res.status, body: await jsonOf(res) };
 }
 
