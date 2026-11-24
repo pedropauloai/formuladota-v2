@@ -116,7 +116,17 @@ Site em Next.js 16 no Cloudflare Workers pelo OpenNext; Supabase com RLS obrigat
 
 ### ADR-004: estado por batimento, com uma consulta só ao banco
 
-**Estado:** proposta (revista para a sala pública). O cliente pede o estado a cada 2 s (dono e quem fala) ou 3 s (plateia). O pedido é também o batimento de presença e traz o chat. Uma função no banco (`voice_room_tick`, só para a service role) grava o batimento e devolve, numa ida só, tudo o que a regra precisa: sala, vínculo, membros online com nome e avatar, faixas, bloqueios, faixas recebidas e as últimas mensagens. As regras continuam em TypeScript puro, testadas. Com 50 pessoas na plateia são cerca de 17 pedidos por segundo e uma consulta por pedido. Supabase Realtime e Durable Object ficam para a fase 2, com centenas de pessoas.
+**Estado:** proposta (revista em 24/11/2026 para a sala pública e para o plano grátis do Supabase).
+
+**Contexto.** O projeto do FORMULADOTA está no plano grátis do Supabase: 5 GB de saída de dados por mês para o site inteiro e 500 MB de banco (medido em 24/11: 81 MB). Se cada pedido de estado trouxesse do banco a lista de membros com nome e avatar e as últimas 50 mensagens (cerca de 30 KB), 30 pessoas pedindo a cada 3 s, 3 horas por dia, dariam perto de 100 GB por mês, 20 vezes a franquia; estourada a franquia, o Supabase restringe o projeto e o site inteiro para.
+
+**Decisão.** Separar o que é comum da sala do que é de cada pessoa:
+
+- **Estado comum** (`voice_room_snapshot`): quem está online com papel, microfone e mão, as faixas rotuladas, o chat novo, as mensagens apagadas e quem foi expulso. É igual para todos, então o servidor guarda na memória por 3 s e pede ao banco só o chat posterior ao que já tem. Cliente pergunta a cada 2 s (dono e quem fala) ou 3 s (plateia), e quase sempre a resposta sai da memória.
+- **Batimento da pessoa** (`voice_room_tick`): a cada 10 s, ou na hora em que ela muta ou levanta a mão, grava presença, microfone e mão e devolve o contexto da regra de acesso, os bloqueios e as faixas que ela recebe. Online é quem bateu nos últimos 30 s. A decisão de acesso fica guardada no servidor até o próximo batimento.
+- **Nome e avatar** (`voice_room_identities`): uma vez por pessoa, pela rota `pessoas`.
+
+**Conta.** Pior caso planejado (30 pessoas, 3 horas por dia, todo dia): estado comum de cerca de 4 KB a cada 3 s por instância do servidor, mais 30 batimentos de cerca de 0,7 KB a cada 10 s, dá perto de 1,5 GB por mês. As métricas da plateia vão a cada 30 s (não 10 s) e ficam 30 dias, para o banco não passar de 500 MB. As regras continuam em TypeScript puro, testadas. Supabase Realtime e Durable Object ficam para a fase 2, com centenas de pessoas; subir o Supabase para o plano pago (US$ 25 por mês) tira a pressão, e é decisão do PPA.
 
 ### ADR-005: custo estimado no próprio servidor, teto em 30 dias corridos
 
@@ -137,7 +147,8 @@ Todas exigem login (cookie do Supabase) e a flag ligada, validam o corpo com Zod
 | `POST /api/sala/[id]/rtc/sessions/[sid]/tracks/new` | dono da sessão | publicar: tipo do SDP conferido contra o papel, a qualidade e o teto; receber: só faixa de quem está no palco ou na sala, sem bloqueio, com a camada que a regra de custo manda |
 | `PUT .../renegotiate`, `PUT .../tracks/close`, `PUT .../tracks/update` | dono da sessão | resposta SDP; fechar faixa; trocar a camada pedida (passa pela regra de custo) |
 | `POST /api/sala/[id]/faixas` | dono da faixa | rótulo (`voz`, `tela`, `tela_audio`) e, na tela, a qualidade escolhida |
-| `POST /api/sala/[id]/estado` | quem está na sala | batimento, microfone, mão levantada, métricas a cada 10 s; devolve membros, faixas, palco e chat |
+| `POST /api/sala/[id]/estado` | quem está na sala | devolve o estado comum (membros, faixas, palco, chat novo); a cada 10 s, ou quando a pessoa muta ou levanta a mão, leva também o batimento e as métricas |
+| `POST /api/sala/[id]/pessoas` | quem está na sala | nome e avatar de quem é ou foi da sala, uma vez por pessoa (até 60 de uma vez) |
 | `POST /api/sala/[id]/chat` | quem está na sala pública | manda mensagem (até 300 caracteres, uma a cada 2 s) |
 | `POST /api/sala/[id]/chat/[msgId]/apagar` | dono | apaga a mensagem para todos |
 | `POST /api/sala/[id]/membros/[userId]/{falar,ouvir,mutar,expulsar,banir}` | dono | chama para o palco, devolve à plateia, muta, expulsa, bane |
@@ -145,7 +156,7 @@ Todas exigem login (cookie do Supabase) e a flag ligada, validam o corpo com Zod
 | `/sala` | qualquer um | leva à sala pública aberta do PPA ou diz que ela abre na live |
 | ações em `/admin/salas` | admin | criar sala pública, de mentoria e da party; convite; encerrar; desbanir; consumo e denúncias |
 
-Tarefa `sala-voz` no cron do site (a cada minuto): fecha no SFU as sessões sem batimento há 45 s, encerra salas vencidas, recalcula o consumo dos 30 dias, avisa o PPA nos limiares e no pico e apaga o que passou do prazo (seção 10).
+Tarefa `sala-voz` no cron do site (a cada minuto): fecha no SFU as sessões sem batimento há 60 s, encerra salas vencidas, recalcula o consumo dos 30 dias, avisa o PPA nos limiares e no pico e apaga o que passou do prazo (seção 10).
 
 Segredos no Worker (por `wrangler secret`, nunca em tela nem no repositório): `REALTIME_APP_SECRET` e `REALTIME_TURN_KEY_TOKEN`; mais `REALTIME_APP_ID` e `REALTIME_TURN_KEY_ID`. Quem copia os tokens no painel da Cloudflare é o PPA; o script `scripts/sala/gravar-segredos-realtime.ps1` lê da área de transferência, confere na Cloudflare e grava sem exibir.
 
@@ -163,15 +174,15 @@ Migration `196_sala_voz.sql`, com RLS em todas as tabelas. O navegador não escr
 | `voice_room_tracks` | faixa publicada | `session_id`, `track_name`, `mid`, `kind`, `tipo`, `quality`, `closed_at` |
 | `voice_room_subscriptions` | faixa recebida, base do custo | `session_id`, `mid`, faixa de origem, `kind`, `rid` (camada), `rate_kbps`, início e fim, `is_test` |
 | `voice_room_messages` | chat da sala pública | `room_id`, `user_id`, `body` (até 300), `created_at`, `deleted_at`, `deleted_by` |
-| `voice_room_stats` | qualidade a cada 10 s | perda, jitter, RTT, voz picotada, resolução, quadros, congelamento, bytes, TURN, limite do envio, `jitter_buffer_ms`, `latency_ms` |
+| `voice_room_stats` | qualidade a cada 10 s (plateia da sala pública, a cada 30 s) | perda, jitter, RTT, voz picotada, resolução, quadros, congelamento, bytes, TURN, limite do envio, `jitter_buffer_ms`, `latency_ms` |
 | `voice_room_reports` | denúncia | sala, quem denunciou, quem foi denunciado, `message_id` e cópia do texto, motivo, detalhe, situação |
 | `user_age_confirmations` | a marcação "tenho 18 anos ou mais" | `user_id`, `confirmed_at`, `terms_version` |
 
 **Leitura (RLS).** O membro ativo lê a própria sala e a lista dela (pela função `is_voice_room_member`, `SECURITY DEFINER`, para não cair na recursão de políticas que já derrubou as tabelas de party). Quem denunciou lê as próprias denúncias; cada um lê a própria marcação de idade. Sessões (com IP), faixas, métricas, chat, banidos e configuração: só o admin; o servidor usa a service role. Nenhuma tabela tem `insert`, `update` ou `delete` para `anon` ou `authenticated`.
 
-**Funções.** `confirm_adult(p_terms_version)`: grava a marcação da própria pessoa uma vez (`EXECUTE` só para `authenticated`). `is_voice_room_member(room)`: auxiliar de RLS. `voice_room_tick(room, user, muted, hand, chat_after)` e `voice_room_access(room, user)`: o batimento e o contexto numa consulta só, só para a service role (ADR-004). Flag `sala_voz` nasce desligada.
+**Funções.** `confirm_adult(p_terms_version)`: grava a marcação da própria pessoa uma vez (`EXECUTE` só para `authenticated`). `is_voice_room_member(room)`: auxiliar de RLS. `voice_room_access(room, user)`, `voice_room_tick(room, user, muted, hand)`, `voice_room_snapshot(room, chat_after)` e `voice_room_identities(room, ids)`: o contexto, o batimento da pessoa, o estado comum e os nomes, cada um numa consulta só e só para a service role (ADR-004). Flag `sala_voz` nasce desligada.
 
-**Prova:** `scripts/seguranca/sala-voz.sql`, em transação que sempre termina num erro proposital (nada fica gravado): visitante e quem está fora não leem; ninguém escreve pela API; a marcação de idade só vale para a própria pessoa; as funções do batimento não abrem para o navegador. Fica vermelha quando a trava é revertida. `funcoes-abertas.sql` continua vazio.
+**Prova:** `scripts/seguranca/sala-voz.sql`, em transação que sempre termina num erro proposital (nada fica gravado): visitante e quem está fora não leem; ninguém escreve pela API; a marcação de idade só vale para a própria pessoa; as funções do batimento, do estado comum e dos nomes não abrem para o navegador. Fica vermelha quando a trava é revertida. `funcoes-abertas.sql` continua vazio.
 
 ## 8. Permissões
 
@@ -222,7 +233,7 @@ A Lei 15.211/2025 (ECA Digital) vale para serviço "de acesso provável" por ado
 | Sessões (com IP e navegador) | 6 meses, depois o cron apaga (menos as de sala com denúncia aberta) | registro de acesso, Lei 12.965/2014 (Marco Civil), art. 15 |
 | Faixas publicadas e recebidas | junto com a sessão | base do custo (só precisa de 30 dias) |
 | Chat | 30 dias (`chat_retention_days`), menos o de sala com denúncia aberta | moderação |
-| Métricas | 90 dias | aceite e diagnóstico |
+| Métricas | 30 dias | aceite e diagnóstico (o banco do plano grátis tem 500 MB) |
 | Denúncias e banidos | sem apagar automático na fase 1 | apuração |
 | Marcação de idade | enquanto a conta existir | prova da declaração |
 | Áudio e vídeo | nunca guardados | nada gravado |
@@ -276,7 +287,7 @@ A tela sobe com `contentHint = "detail"` e `degradationPreference = "maintain-re
 
 ## 13. Métricas e atraso
 
-A cada 5 s o cliente lê `RTCPeerConnection.getStats()`; a cada 10 s manda um resumo no batimento, gravado em `voice_room_stats`.
+A cada 5 s o cliente lê `RTCPeerConnection.getStats()`; a cada 10 s (a plateia da sala pública, a cada 30 s) manda um resumo no batimento, gravado em `voice_room_stats`.
 
 | Métrica | De onde vem |
 |---|---|
