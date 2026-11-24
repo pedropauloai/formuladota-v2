@@ -106,10 +106,8 @@ export async function DashboardRightSidebar({
           locale={locale}
           title={t("sidebar.recentTitle")}
           empty={t("sidebar.recentEmpty")}
-          won={t("sidebar.won")}
-          lost={t("sidebar.lost")}
+          cta={t("sidebar.recentCta")}
           withPlayers={(count) => t("sidebar.withPlayers", { count })}
-          kills={(party, enemy) => t("sidebar.kills", { party, enemy })}
         />
       )}
 
@@ -203,20 +201,16 @@ function PartyMatchesCard({
   locale,
   title,
   empty,
-  won,
-  lost,
+  cta,
   withPlayers,
-  kills,
 }: {
   matches: RegisteredPartyMatch[];
   summaries: PartyMatchSummary[];
   locale: string;
   title: string;
   empty: string;
-  won: string;
-  lost: string;
+  cta: string;
   withPlayers: (count: number) => string;
-  kills: (party: number, enemy: number) => string;
 }) {
   // Componente de servidor numa página dinâmica (lê cookie): a hora é a do pedido.
   const now = new Date().getTime();
@@ -252,22 +246,14 @@ function PartyMatchesCard({
                       {sinceLabel(ended, locale, now)}
                     </span>
                   </span>
-                  {summary && summary.won !== null && (
-                    <span className="shrink-0 text-right">
-                      <span className={cn("block font-display text-xs font-bold uppercase tracking-wide", summary.won ? "text-play-primary" : "text-brand-text")}>
-                        {summary.won ? won : lost}
-                      </span>
-                      <span className="block font-body text-xs tabular-nums text-text-muted">
-                        {summary.radiant === false ? kills(summary.direScore, summary.radiantScore) : kills(summary.radiantScore, summary.direScore)}
-                      </span>
-                    </span>
-                  )}
                 </a>
               </li>
             );
           })}
         </ul>
       )}
+      {/* Na home, quem jogou e os heróis, sem o resultado: o placar de cada partida fica na aba Partidas (decisão do PPA). */}
+      <CardCta href="/partidas" label={cta} />
     </article>
   );
 }

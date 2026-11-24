@@ -296,7 +296,7 @@
     "levelToNext": "{pct}% para el Nivel {next}",
     "sidebar": {
       "recentTitle": "Partidas en grupo",
-      "recentCta": "Ver todas",
+      "recentCta": "Ver todas las partidas",
       "recentEmpty": "Las partidas del grupo aparecen aquí después de cada directo.",
       "rankingTitle": "Líderes del ranking",
       "rankingCta": "Ver ranking completo",
