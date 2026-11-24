@@ -12,6 +12,7 @@ import { abrirLive } from "./actions";
 import { MatchEndButton } from "./match-end";
 import { OpButton, SectionTitle } from "./ui";
 import { useAction } from "./use-console";
+import { FILA_SEM_LIMITE } from "@/lib/loja/fila/model";
 
 function OpenLive({ data }: { data: AdminQueue }) {
   const [youtube, setYoutube] = useState("");
@@ -22,7 +23,7 @@ function OpenLive({ data }: { data: AdminQueue }) {
       className="flex flex-wrap items-center gap-2"
       onSubmit={(e) => {
         e.preventDefault();
-        open.run({ action: () => abrirLive(live?.queueSize ?? 20, live?.seatsPerMatch ?? 4, youtube), success: "Live aberta. A party já pode chamar a fila." });
+        open.run({ action: () => abrirLive(FILA_SEM_LIMITE, live?.seatsPerMatch ?? 4, youtube), success: "Live aberta. A party já pode chamar a fila." });
       }}
     >
       <input

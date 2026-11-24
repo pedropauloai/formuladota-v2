@@ -62,7 +62,7 @@ export function PartyBuyPanel({
   return (
     <div className="flex h-full flex-col gap-6">
       <div className="space-y-2">
-        <h1 className="font-display-condensed text-[2.6rem] uppercase leading-[0.85] text-text-display">{t("buyTitle")}</h1>
+        <h1 className="text-balance font-display-condensed text-[2.6rem] uppercase leading-[0.85] text-text-display">{t("buyTitle")}</h1>
         <p className="font-display text-sm font-bold text-gold">{title}</p>
         <p className="text-sm leading-relaxed text-text-muted">{summary}</p>
       </div>

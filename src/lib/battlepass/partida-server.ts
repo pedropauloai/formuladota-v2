@@ -5,7 +5,8 @@ import "server-only";
 import { createServiceClient } from "@/lib/supabase/service";
 import { fetchOpenDotaMatch } from "@/lib/dota/opendota";
 import { isOpenDotaPending, openDotaJson } from "@/lib/dota/opendota-fetch";
-import { PPA_ACCOUNT_IDS, STEAM64_BASE, accountToSteam64, commonRecentMatch, parseMatchId, partyFromMatch, type RecentMatchLike } from "./partida";
+import { ppaAccountSearchOrder, ppaOwnAccounts } from "@/lib/loja/ppa-accounts";
+import { STEAM64_BASE, accountToSteam64, commonRecentMatch, parseMatchId, partyFromMatch, type RecentMatchLike } from "./partida";
 
 export type ResolvedMatch =
   | {
@@ -60,7 +61,7 @@ export async function resolveMatch(input: string, partyAccounts: readonly number
   } catch (err) {
     return { ok: false, reason: isOpenDotaPending(err) ? "ainda_nao" : "opendota" };
   }
-  const party = partyFromMatch(match, PPA_ACCOUNT_IDS, partyAccounts);
+  const party = partyFromMatch(match, await ppaAccountSearchOrder(), partyAccounts);
   if (!party.ok) return { ok: false, reason: party.reason === "incompleta" ? "ainda_nao" : "sem_ppa" };
   const steamIds = party.teammates.map(accountToSteam64);
   let confirmedUserIds: string[] = [];
@@ -94,6 +95,6 @@ export async function partyLastMatch(partyAccounts: readonly number[]): Promise<
     const shared = commonRecentMatch(lists, Math.min(2, lists.length));
     if (shared) return ended(shared);
   }
-  const ppa = (await Promise.all(PPA_ACCOUNT_IDS.map(recentMatches))).flat().sort((a, b) => b.start_time - a.start_time)[0];
+  const ppa = (await Promise.all((await ppaOwnAccounts()).map(recentMatches))).flat().sort((a, b) => b.start_time - a.start_time)[0];
   return ppa ? ended(ppa) : null;
 }

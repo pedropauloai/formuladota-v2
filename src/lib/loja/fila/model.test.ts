@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { matchesUntilTurn, orderEntries, partySeatsView, queuePositions, remainingMatches, seatsOpen, toPublicQueue, type PublicQueue, type QueueEntry, type QueueSnapshot } from "./model";
+import { FILA_SEM_LIMITE, matchesUntilTurn, orderEntries, partySeatsView, queuePositions, remainingMatches, seatsOpen, toPublicQueue, type PublicQueue, type QueueEntry, type QueueSnapshot } from "./model";
 
 const entry = (id: string, over: Partial<QueueEntry> = {}): QueueEntry => ({
   id,
@@ -119,7 +119,7 @@ describe("toPublicQueue", () => {
 });
 
 describe("partySeatsView (lugares livres da party, iguais aos dos overlays)", () => {
-  const publicLive = { status: "ao_vivo" as const, startsAt: null, onAirAt: null, queueSize: 8, seatsPerMatch: 4, youtubeVideoId: null, matchesDone: 0 };
+  const publicLive = { status: "ao_vivo" as const, startsAt: null, onAirAt: null, queueSize: 8, semLimite: false, seatsPerMatch: 4, youtubeVideoId: null, matchesDone: 0 };
   const member = (id: string) => ({ id, name: id, avatarUrl: null, matches: 1, played: 0, battlepass: false, dayPass: false });
   const waiting = (id: string, matchesUntilTurn: number, position: number) => ({ ...member(id), position, matchesUntilTurn });
   const queueOf = (party: number, turns: number[], seatsOpenNow: number): PublicQueue => ({
@@ -233,6 +233,11 @@ describe("vaga do dia (migration 194)", () => {
     expect(body.offer).toEqual({ priceCents: 2500, mode: "dia" });
     expect(body.party[0]).toMatchObject({ dayPass: true, played: 2 });
     expect(body.queue[0]).toMatchObject({ dayPass: false, matches: 2 });
+  });
+
+  it("a fila da live real não tem tamanho: o JSON avisa a página e os overlays para não contar vagas", () => {
+    expect(toPublicQueue({ live: { ...live, queueSize: FILA_SEM_LIMITE }, entries: [] }, () => undefined).live?.semLimite).toBe(true);
+    expect(toPublicQueue({ live: { ...live, queueSize: 8 }, entries: [] }, () => undefined).live?.semLimite).toBe(false);
   });
 
   it("sem oferta informada, o JSON diz que a vaga não está à venda", () => {

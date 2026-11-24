@@ -103,7 +103,6 @@ function Details({ entry, now }: { entry: AdminQueueEntry; now: number }) {
     ["Entrou na fila", `${DAY_TIME.format(new Date(entry.queuedAt))} (${since(entry.queuedAt, now)})`],
     ["Como entrou", how],
     ["Última vez na party", entry.lastTurnAt ? `${DAY_TIME.format(new Date(entry.lastTurnAt))} (${since(entry.lastTurnAt, now)})` : "Nunca jogou"],
-    ["Não apareceu", entry.noShows > 0 ? `${entry.noShows}x` : "Nenhuma vez"],
     [
       "Partidas",
       entry.dayPass
@@ -168,7 +167,6 @@ export function QueueRow({ entry, ctx, expanded, onToggle }: { entry: AdminQueue
                 <b className="font-semibold text-text-body">{left}</b> a jogar
               </span>
             )}
-            {entry.noShows > 0 && <span className="text-warning">faltou {entry.noShows}x</span>}
             <span className={cn("truncate", !entry.lastTurnAt && "text-play-primary")}>{entry.lastTurnAt ? `jogou ${since(entry.lastTurnAt, ctx.now)}` : "nunca jogou"}</span>
           </p>
         </div>

@@ -313,7 +313,8 @@
       "vs": "vs",
       "won": "Vitória",
       "lost": "Derrota",
-      "withPlayers": "{count, plural, =1 {com # jogador} other {com # jogadores}}"
+      "withPlayers": "{count, plural, =1 {com # jogador} other {com # jogadores}}",
+      "kills": "{party} x {enemy} abates"
     },
     "enqueteLiga": {
       "question": "Você jogaria a Liga do FORMULADOTA?",
@@ -563,7 +564,7 @@
     "partyStatMatches": "{count, plural, =1 {partida registrada} other {partidas registradas}}",
     "partyStatWins": "{count, plural, =1 {vitória} other {vitórias}}",
     "partyStatPlayers": "{count, plural, =1 {jogador da galera} other {jogadores da galera}}",
-    "partyColHero": "Herói do PPA",
+    "partyColHero": "Heróis da party",
     "partyColResult": "Resultado",
     "partyColDuration": "Duração",
     "partyColWhen": "Quando",
@@ -572,12 +573,13 @@
     "partyLost": "Derrota",
     "partyPending": "Aguardando o OpenDota",
     "partyNoResult": "Sem resultado público",
-    "partyHeroUnknown": "Herói não informado",
+    "partyHeroUnknown": "Heróis ocultos",
     "partyOpenDota": "OpenDota",
     "partyOpenDotaAria": "Ver a partida {id} no OpenDota",
     "partyEmptyTitle": "Nenhuma partida registrada ainda",
     "partyEmptyBody": "A primeira entra aqui quando o PPA fechar uma partida com a galera na live.",
-    "partyHowLink": "Como funciona a vaga"
+    "partyHowLink": "Como funciona a vaga",
+    "partyKills": "{party} x {enemy} abates"
   },
   "ranking": {
     "metaTitle": "Ranking | FORMULADOTA",
@@ -4623,6 +4625,7 @@
     "queueMatches": "{count, plural, one {# partida} other {# partidas}}",
     "you": "você",
     "seatsOpen": "{count, plural, =0 {Vagas esgotadas} one {# vaga aberta} other {# vagas abertas}}",
+    "seatsUnlimited": "A vaga fica sua até você jogar",
     "seatsHint": "Cada partida jogada abre uma vaga.",
     "matchesLabel": "Partidas",
     "fewer": "Menos uma partida",
@@ -4649,7 +4652,6 @@
     "waitingIn": "{count, plural, one {Falta cerca de # partida.} other {Faltam cerca de # partidas.}}",
     "waitingHint": "Deixe o Dota aberto. Quando chegar a sua vez, esta página toca o som de partida encontrada.",
     "waitingHintOffAir": "A fila anda quando a live começar. Volte aqui durante a live: na sua vez, esta página toca o som de partida encontrada.",
-    "noShowNote": "O PPA chamou você e você não apareceu. Você voltou para o fim da fila, com a vaga garantida.",
     "calledTitle": "Chegou a sua vez",
     "calledText": "Abra o Dota e aceite o convite do PPA para a party.",
     "calledProgress": "Partida {current} de {total}",
@@ -4664,7 +4666,7 @@
     "how1": "Pague a vaga do dia com Pix. Você entra na fila na hora em que o pagamento cai.",
     "how2": "Acompanhe a fila por aqui. A ordem é o revezamento: quem jogou com o PPA há mais tempo, ou nunca jogou, vem primeiro. Quando chegar a sua vez, esta página toca o som de partida encontrada.",
     "how3": "O PPA convida você pelo ID do Dota, e a partida vai ao ar no canal pela visão dele. Depois, você volta para a fila e joga de novo na sua vez, até a live acabar.",
-    "rulesNoShow": "Chamado e não apareceu? Você vai para o fim do revezamento sem perder a vaga.",
+    "rulesNoShow": "Não estava presente na sua vez? A vaga continua sua, e você joga quando estiver presente, nesta live ou na próxima.",
     "rulesCarry": "A live acabou e você não jogou nenhuma partida? A vaga passa para a próxima live.",
     "rulesOpenQueue": "Sem live no ar? Você garante o lugar agora, e a fila anda quando a live começar.",
     "errors": {

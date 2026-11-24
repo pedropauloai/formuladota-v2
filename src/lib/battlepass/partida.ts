@@ -47,7 +47,8 @@ const isRadiant = (slot: number) => slot < 128;
 export function partyFromMatch(match: MatchLike, ppaAccountIds: readonly number[] = PPA_ACCOUNT_IDS, partyAccounts: readonly number[] = []): PartyFromMatch {
   if (!Array.isArray(match.players) || match.players.length !== 10 || !match.start_time) return { ok: false, reason: "incompleta" };
   const has = (ids: readonly number[]) => (p: MatchPlayerLike) => p.account_id !== null && ids.includes(p.account_id);
-  const ppa = match.players.find(has(ppaAccountIds));
+  // A primeira conta da lista que aparece na partida é o PPA: as dele antes das emprestadas.
+  const ppa = ppaAccountIds.map((id) => match.players.find((p) => p.account_id === id)).find((p) => p !== undefined);
   const anchor = ppa ?? match.players.find(has(partyAccounts));
   if (!anchor) return { ok: false, reason: "sem_ppa" };
   const team = match.players.filter((p) => p !== ppa && isRadiant(p.player_slot) === isRadiant(anchor.player_slot));

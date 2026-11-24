@@ -1,5 +1,5 @@
 // pnpm loja:e2e, saídas da fila da party na regra da vaga do dia (migration 194): seis compradores de
-// teste e cada jeito de sair. Disputa pela última vaga, não apareceu, saiu da fila, reembolso, partida
+// teste e cada jeito de sair. Disputa pela última vaga, quem não estava presente, saiu da fila, reembolso, partida
 // terminou com o revezamento (quem tem a vaga do dia cede o lugar a quem espera), a lotação que libera
 // depois da primeira partida, live encerrada e a vaga que não jogou passando para a live seguinte.
 // Com FILA_VIDEO=<pasta>, grava em vídeo a fila andando na tela (computador de quem está na fila),
@@ -101,7 +101,7 @@ async function payInOrder(buyers, pages, order) {
   return payments;
 }
 
-async function noShowAndCallNext(state, buyers, pages, [w1, w2]) {
+async function absentAndCallPresent(state, buyers, pages, [w1, w2]) {
   await call(state.liveId);
   await call(state.liveId);
   for (const i of [0, w1]) await pages[i].locator("[data-fila-aviso]").waitFor({ timeout: 15_000 });
@@ -109,16 +109,18 @@ async function noShowAndCallNext(state, buyers, pages, [w1, w2]) {
   await snap(pages[0], "2-chegou-a-sua-vez");
   for (const i of [0, w1]) await pages[i].getByRole("button", { name: "Entendi" }).click();
   await pause();
+  // Não existe falta: quem não está presente sai da party pelo "Tirar da party" e espera de novo, com a vaga.
   const w1Booking = await bookingOf((await latestOrder(buyers[w1])).id);
-  await db.rpc("party_fila_ausente", { p_booking_id: w1Booking.id });
-  await pages[w1].getByText("O PPA chamou você e você não apareceu").waitFor({ timeout: 15_000 });
-  await position(pages[w1], 3);
-  check("não apareceu: volta para o fim da fila, com a vaga", true);
-  await snap(pages[w1], "3-nao-apareceu");
-  await call(state.liveId);
+  await db.rpc("party_fila_tirar_da_party", { p_booking_id: w1Booking.id });
+  const back = await bookingOf((await latestOrder(buyers[w1])).id);
+  check("quem não estava presente volta para a fila, com a vaga e sem falta", back?.queue_state === "aguardando" && back?.no_shows === 0, `${back?.queue_state} / ${back?.no_shows}`);
+  check("a página da pessoa não fala em falta", (await pages[w1].getByText("não apareceu").count()) === 0);
+  await snap(pages[w1], "3-voltou-para-a-fila");
+  const w2Booking = await bookingOf((await latestOrder(buyers[w2])).id);
+  await db.rpc("party_fila_chamar", { p_live_id: state.liveId, p_booking_id: w2Booking.id });
   await pages[w2].locator("[data-fila-aviso]").waitFor({ timeout: 15_000 });
   await pages[w2].getByRole("button", { name: "Entendi" }).click();
-  check("o próximo entra no lugar de quem não apareceu", true);
+  check("o PPA chama quem está presente para o lugar", true);
   await pause();
 }
 
@@ -141,9 +143,9 @@ async function buyFreedSeat(buyers, pages, loser) {
   await button.click();
   await checkPix("quem tinha ficado sem compra a vaga que voltou", pages[loser]);
   const payment = await pay(buyers[loser]);
-  // Revezamento (migration 192): quem nunca jogou entra na frente de quem não apareceu.
-  await position(pages[loser], 1);
-  check("a compra nova, de quem nunca jogou, entra na frente de quem não apareceu", true);
+  // Quem não estava presente voltou para o mesmo lugar, sem gastar a vez: a compra nova entra atrás dele.
+  await position(pages[loser], 2);
+  check("a compra nova entra atrás de quem já esperava e ainda não jogou", true);
   await pause();
   return payment;
 }
@@ -251,7 +253,7 @@ async function run() {
     const { winners, loser } = await raceForLastSeats(state, buyers, pages);
     const payments = await payInOrder(buyers, pages, [0, ...winners]);
     const [w1, w2, w3] = winners;
-    await noShowAndCallNext(state, buyers, pages, [w1, w2]);
+    await absentAndCallPresent(state, buyers, pages, [w1, w2]);
     await leaveQueue(buyers, pages, w3);
     await buyFreedSeat(buyers, pages, loser);
     await refund(buyers, pages, w1, payments[w1]);

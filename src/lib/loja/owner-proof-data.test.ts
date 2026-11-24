@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { buildOwnerProofData, parseOwnerProofData, PARTY_MATCHES_CACHED, reuseSummary } from "./owner-proof-data";
 
 const NOW = new Date("2026-11-18T15:00:00Z");
-const resumo = (matchId: number) => ({ matchId, startTime: 1795460000, duration: 2400, won: true, radiant: false, radiantScore: 21, direScore: 36, ppaHeroId: 34 });
+const resumo = (matchId: number) => ({ matchId, startTime: 1795460000, duration: 2400, won: true, radiant: false, radiantScore: 21, direScore: 36, ppaHeroId: 34, partyHeroIds: [34] as number[] | null, teammates: [98765] as number[] | null });
 
 describe("buildOwnerProofData", () => {
   it("lê a medalha e a posição no ranking do OpenDota", () => {
@@ -35,13 +35,30 @@ describe("reuseSummary", () => {
     expect(reuseSummary(undefined, NOW.getTime())).toBe(false);
   });
 
-  it("resumo com resultado não volta ao OpenDota", () => {
+  it("resumo que achou o PPA não volta ao OpenDota", () => {
     const r = resumo(1);
     expect(reuseSummary(r, fim(r) + horas(1))).toBe(true);
+    expect(reuseSummary(r, fim(r) + horas(500))).toBe(true);
+  });
+
+  it("resumo antigo, gravado antes da lista do time, volta ao OpenDota para completar", () => {
+    const r = { ...resumo(1), teammates: null };
+    expect(reuseSummary(r, fim(r) + horas(1))).toBe(false);
+  });
+
+  it("resumo com resultado mas sem o PPA volta ao OpenDota, mesmo depois de dias (a conta pode ter entrado na lista)", () => {
+    const r = { ...resumo(1), ppaHeroId: null };
+    expect(reuseSummary(r, fim(r) + horas(1))).toBe(false);
+    expect(reuseSummary(r, fim(r) + horas(120))).toBe(false);
+  });
+
+  it("resumo do formato antigo, sem os heróis da party, volta ao OpenDota uma vez", () => {
+    const r = { ...resumo(1), partyHeroIds: null };
+    expect(reuseSummary(r, fim(r) + horas(48))).toBe(false);
   });
 
   it("sem resultado, tenta de novo no primeiro dia e para depois dele", () => {
-    const r = { ...resumo(1), won: null, radiant: null };
+    const r = { ...resumo(1), won: null, radiant: null, ppaHeroId: null };
     expect(reuseSummary(r, fim(r) + horas(23))).toBe(false);
     expect(reuseSummary(r, fim(r) + horas(25))).toBe(true);
   });
