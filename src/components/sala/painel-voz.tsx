@@ -29,9 +29,10 @@ function posicaoGuardada(): Posicao {
   }
 }
 
-const CANTO = "left-4 bottom-[92px] w-[332px] flex-col gap-2 p-3 2xl:w-[352px]";
+// A largura de 2xl fica só no canto: no alto, a pílula acompanha o conteúdo.
+const CANTO = "left-4 bottom-[92px] w-[332px] flex-col gap-2 p-3";
 const LUGAR: Record<Posicao, string> = {
-  canto: CANTO,
+  canto: `${CANTO} 2xl:w-[352px]`,
   topo: `${CANTO} min-[1800px]:bottom-auto min-[1800px]:top-[10px] min-[1800px]:left-[57%] min-[1800px]:h-10 min-[1800px]:w-auto min-[1800px]:max-w-[420px] min-[1800px]:-translate-x-1/2 min-[1800px]:flex-row min-[1800px]:items-center min-[1800px]:gap-3 min-[1800px]:px-3 min-[1800px]:py-0`,
 };
 
