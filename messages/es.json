@@ -4562,7 +4562,6 @@
     "waitingIn": "{count, plural, one {Falta cerca de # partida.} other {Faltan cerca de # partidas.}}",
     "waitingHint": "Deja Dota abierto. Cuando sea tu turno, esta página toca el sonido de partida encontrada.",
     "waitingHintOffAir": "La cola avanza cuando empiece el directo. Vuelve aquí durante el directo: en tu turno, esta página toca el sonido de partida encontrada.",
-    "noShowNote": "PPA te llamó y no apareciste. Volviste al final de la cola, con el cupo asegurado.",
     "calledTitle": "Es tu turno",
     "calledText": "Abre Dota y acepta la invitación de PPA al grupo.",
     "calledProgress": "Partida {current} de {total}",
@@ -4577,7 +4576,7 @@
     "how1": "Paga el cupo del día con Pix. Entras en la cola en cuanto entra el pago.",
     "how2": "Sigue la cola aquí. El orden rota: quien jugó con PPA hace más tiempo, o nunca jugó, va primero. Cuando sea tu turno, esta página toca el sonido de partida encontrada.",
     "how3": "PPA te invita con tu ID de Dota, y la partida sale en el canal desde su punto de vista. Después, vuelves a la cola y juegas de nuevo en tu turno, hasta que termine el directo.",
-    "rulesNoShow": "¿Te llamaron y no apareciste? Vuelves al final de la rotación sin perder el cupo.",
+    "rulesNoShow": "¿No estabas cuando llegó tu turno? El cupo sigue siendo tuyo, y juegas cuando estés, en esta live o en la próxima.",
     "rulesCarry": "¿El directo terminó y no jugaste ninguna partida? El cupo pasa al próximo directo.",
     "rulesOpenQueue": "¿No hay directo al aire? Asegura tu lugar ahora, y la cola avanza cuando empiece el directo.",
     "errors": {

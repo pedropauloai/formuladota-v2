@@ -11,8 +11,6 @@ export interface HistoryPlayer {
   userId: string;
   name: string;
   avatarUrl: string | null;
-  /** jogou ou não apareceu (a vez conta nos dois casos). */
-  kind: "jogou" | "nao_apareceu";
   /** A OpenDota mostrou a pessoa no time do PPA. */
   confirmed: boolean;
 }
@@ -44,7 +42,8 @@ export async function getMatchHistory(isTest: boolean, limit = 15): Promise<Hist
   const rows = (data ?? []) as Row[];
   const identities = await getIdentityMap(await createClient(), [...new Set(rows.map((r) => r.user_id))]);
   const groups = new Map<string, HistoryMatch>();
-  for (const r of rows) {
+  // Só quem jogou: a falta saiu da fila (joga quem está presente na hora).
+  for (const r of rows.filter((row) => row.kind !== "nao_apareceu")) {
     // Sem o ID, a partida se reconhece pela live e pela hora em que foi marcada.
     const key = r.dota_match_id ? String(r.dota_match_id) : `${r.live_session_id ?? "sem-live"}-${r.played_at}`;
     const group = groups.get(key) ?? { key, matchId: r.dota_match_id ? String(r.dota_match_id) : null, playedAt: r.played_at, players: [] };
@@ -53,7 +52,6 @@ export async function getMatchHistory(isTest: boolean, limit = 15): Promise<Hist
       userId: r.user_id,
       name: who?.name ?? "Jogador",
       avatarUrl: who?.avatarUrl ?? null,
-      kind: r.kind === "nao_apareceu" ? "nao_apareceu" : "jogou",
       confirmed: r.confirmed,
     });
     groups.set(key, group);

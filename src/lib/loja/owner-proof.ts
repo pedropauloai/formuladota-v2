@@ -12,6 +12,7 @@ import type { Json } from "@/types/database";
 import { buildOwnerProofData, parseOwnerProofData, reuseSummary, type OwnerProofData } from "./owner-proof-data";
 import { summarizePartyMatch, type PartyMatchSummary } from "./fila/party-match";
 import { registeredMatchAccounts } from "./fila/party-matches";
+import { PPA_ACCOUNT_IDS } from "@/lib/battlepass/partida";
 
 // Perfil de coach do dono da loja: dele saem a conta Steam e o avatar.
 const OWNER_COACH_SLUG = "pedro-paulo";
@@ -71,7 +72,8 @@ async function summarize(accountId: number, registered: Registered, current: Own
       continue;
     }
     try {
-      const summary = summarizePartyMatch(await openDotaJson<unknown>(`/matches/${r.matchId}`, { timeoutMs: FETCH_TIMEOUT_MS }), accountId, r.accounts);
+      const owners = [...new Set([accountId, ...PPA_ACCOUNT_IDS])];
+      const summary = summarizePartyMatch(await openDotaJson<unknown>(`/matches/${r.matchId}`, { timeoutMs: FETCH_TIMEOUT_MS }), owners, r.accounts);
       if (summary) out.push(summary);
     } catch (err) {
       // Partida ainda processando na OpenDota: fica o que havia, e a próxima rodada tenta de novo.

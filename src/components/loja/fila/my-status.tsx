@@ -95,7 +95,6 @@ function WaitingCard({ entry, onAir, onChanged }: { entry: MyQueueEntry; onAir: 
       )}
       {/* Comprou fora da live: a fila só anda quando a live começar. */}
       <p className="text-xs leading-relaxed text-text-muted">{t(onAir ? "waitingHint" : "waitingHintOffAir")}</p>
-      {entry.noShows > 0 && <p className="rounded-sm border border-warning/40 bg-warning/10 p-2 text-xs text-text-body">{t("noShowNote")}</p>}
       <LeaveButton bookingId={entry.id} onChanged={onChanged} />
     </section>
   );

@@ -23,15 +23,15 @@ const record = (value: unknown): Record<string, unknown> | null =>
   value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : null;
 
 /**
- * O lado da party sai da conta do PPA; numa smurf, de quem da party aparece na partida (a Steam
- * vinculada no site). Sem ninguém conhecido, o resultado fica em aberto.
+ * O lado da party sai de qualquer conta em que o PPA joga; sem nenhuma delas na partida, de quem da
+ * party aparece nela (a Steam vinculada no site). Sem ninguém conhecido, o resultado fica em aberto.
  */
-export function summarizePartyMatch(match: unknown, ownerAccountId: number | null, partyAccountIds: readonly number[]): PartyMatchSummary | null {
+export function summarizePartyMatch(match: unknown, ownerAccountIds: readonly number[], partyAccountIds: readonly number[]): PartyMatchSummary | null {
   const m = record(match);
   const matchId = int(m?.match_id);
   if (!m || !matchId) return null;
   const players = Array.isArray(m.players) ? m.players.map(record).filter((p): p is Record<string, unknown> => p !== null) : [];
-  const owner = ownerAccountId === null ? undefined : players.find((p) => int(p.account_id) === ownerAccountId);
+  const owner = players.find((p) => ownerAccountIds.includes(int(p.account_id) ?? -1));
   const known = owner ?? players.find((p) => partyAccountIds.includes(int(p.account_id) ?? -1));
   const slot = known ? int(known.player_slot) : null;
   const radiantWin = typeof m.radiant_win === "boolean" ? m.radiant_win : null;

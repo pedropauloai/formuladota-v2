@@ -4562,7 +4562,6 @@
     "waitingIn": "{count, plural, one {About # match to go.} other {About # matches to go.}}",
     "waitingHint": "Keep Dota open. When it's your turn, this page plays the match found sound.",
     "waitingHintOffAir": "The queue moves when the stream starts. Come back here during the stream: on your turn, this page plays the match found sound.",
-    "noShowNote": "PPA called you and you didn't show up. You went back to the end of the queue, and the spot is still yours.",
     "calledTitle": "It's your turn",
     "calledText": "Open Dota and accept PPA's party invite.",
     "calledProgress": "Match {current} of {total}",
@@ -4577,7 +4576,7 @@
     "how1": "Pay for the day pass with Pix. You join the queue the moment the payment lands.",
     "how2": "Follow the queue right here. The order rotates: whoever played with PPA longest ago, or never played, goes first. When it's your turn, this page plays the match found sound.",
     "how3": "PPA invites you by your Dota ID, and the match goes out on the channel from his point of view. Then you go back to the queue and play again on your turn, until the stream ends.",
-    "rulesNoShow": "Called and didn't show up? You go to the back of the rotation without losing your spot.",
+    "rulesNoShow": "Not around when your turn came? The spot is still yours, and you play when you are here, in this live or the next one.",
     "rulesCarry": "Stream ended and you didn't play a single match? The pass carries over to the next stream.",
     "rulesOpenQueue": "No stream on air? Get your place now, and the queue moves when the stream starts.",
     "errors": {

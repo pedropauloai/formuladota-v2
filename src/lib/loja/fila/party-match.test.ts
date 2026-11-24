@@ -22,7 +22,7 @@ const partida = (over: Record<string, unknown> = {}) => ({
 
 describe("summarizePartyMatch", () => {
   it("com a conta do PPA na partida: o lado, o resultado, o placar e o herói dele", () => {
-    expect(summarizePartyMatch(partida(), PPA, [AMIGO])).toEqual({
+    expect(summarizePartyMatch(partida(), [PPA], [AMIGO])).toEqual({
       matchId: 9097240074,
       startTime: 1795460000,
       duration: 2400,
@@ -36,16 +36,22 @@ describe("summarizePartyMatch", () => {
 
   it("PPA numa smurf: o lado sai de quem da party aparece, e o herói dele fica em aberto", () => {
     const smurf = partida({ players: [{ account_id: 555, player_slot: 130, hero_id: 34 }, { account_id: AMIGO, player_slot: 131, hero_id: 5 }] });
-    expect(summarizePartyMatch(smurf, PPA, [AMIGO])).toMatchObject({ won: true, radiant: false, ppaHeroId: null });
+    expect(summarizePartyMatch(smurf, [PPA], [AMIGO])).toMatchObject({ won: true, radiant: false, ppaHeroId: null });
+  });
+
+  it("PPA em outra conta dele (a da lista): o lado, o resultado e o herói saem dessa conta", () => {
+    const outraConta = 1667196039;
+    const partidaNaOutra = partida({ players: [{ account_id: outraConta, player_slot: 130, hero_id: 34 }, { account_id: AMIGO, player_slot: 131, hero_id: 5 }] });
+    expect(summarizePartyMatch(partidaNaOutra, [PPA, outraConta], [AMIGO])).toMatchObject({ won: true, radiant: false, ppaHeroId: 34 });
   });
 
   it("sem ninguém conhecido na partida, o resultado não é inventado", () => {
-    expect(summarizePartyMatch(partida(), 1, [2])).toMatchObject({ won: null, radiant: null, ppaHeroId: null });
+    expect(summarizePartyMatch(partida(), [1], [2])).toMatchObject({ won: null, radiant: null, ppaHeroId: null });
   });
 
   it("resposta sem o ID da partida não vira resumo", () => {
-    expect(summarizePartyMatch({ players: [] }, PPA, [])).toBeNull();
-    expect(summarizePartyMatch(null, PPA, [])).toBeNull();
+    expect(summarizePartyMatch({ players: [] }, [PPA], [])).toBeNull();
+    expect(summarizePartyMatch(null, [PPA], [])).toBeNull();
   });
 });
 
