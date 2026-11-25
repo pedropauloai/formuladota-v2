@@ -1,7 +1,8 @@
 // Capturas da sala de voz para conferir a interface em 1920x1080 (e a plateia em 3440x1440): o servidor
 // com a coluna de canais, o canal de voz em palco visto pelo dono (tela, plateia, mãos, palco e chat), a
-// escolha da qualidade, a vista da plateia, a voz livre, o canal de texto, o painel dos canais no admin,
-// o painel de voz em outras páginas e a mentoria. Servidor local, banco de produção com salas e pessoas de teste (apagadas no
+// escolha da qualidade, a vista da plateia, a voz livre com o anel verde de quem fala e as configurações
+// de voz (em 1920 e depois em 3440), o canal de texto, o painel dos canais no admin, o painel de voz em
+// outras páginas e a mentoria. Servidor local, banco de produção com salas e pessoas de teste (apagadas no
 // fim) e o app real do Realtime. Liga só a linha de teste da flag (sala_voz_e2e), nunca a sala_voz.
 // A tela compartilhada é uma arte do Dota do próprio site, no lugar do padrão de teste do Chrome.
 // Rodar: pnpm sala:capturas <pasta-de-saida>
@@ -9,6 +10,7 @@
 import { mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { chromium } from "playwright-core";
+import { chromeQueFala } from "./fala-falsa.mjs";
 
 process.env.LOJA_E2E_PORT = process.env.SALA_E2E_PORT ?? "3200";
 const s = await import("./e2e-comum.mjs");
@@ -21,6 +23,7 @@ const made = { rooms: [], orders: [], users: [] };
 const arte = readFileSync("public/dota/backgrounds/bg-07.jpg").toString("base64");
 let browser = null;
 let server = null;
+let falante = null;
 
 const APELIDOS = {
   dono: "PPA", aluno: "Aluno_Pos3", a: "TinkerMain", b: "Carry_BR", c: "SupBolado", d: "MidOuFeed", e: "Rampage77", f: "LastPick", g: "Roshan_BR",
@@ -103,14 +106,40 @@ async function canais(p) {
   return { geral, livre: partys[0] };
 }
 
-/** Voz livre: quem entra já fala; a coluna mostra quem está em cada canal de voz. */
+/** As configurações de voz abertas, com o teste do microfone ligado. */
+async function configuracoes(page, nome) {
+  await page.locator("[data-sala-config-abrir]").click();
+  await page.locator("[data-sala-config-voz]").waitFor({ timeout: 10_000 });
+  await waitFor(async () => (await page.locator("[data-sala-config-microfone] option").count()) > 1, 10_000);
+  await page.locator('[data-sala-config-testar="nao"]').click();
+  await sleep(1500);
+  await foto(page, nome);
+  await page.locator('[data-sala-config-testar="sim"]').click();
+  await page.locator("[data-sala-config-fechar]").click();
+}
+
+/** Voz livre: quem entra já fala, e a coluna mostra quem está em cada canal de voz, com o anel verde em
+ *  quem fala. Quem fala (f) usa a fala falsa num Chrome à parte. Primeiro em 1920, depois em 3440. */
 async function vozLivre(p, ctx, c) {
-  const pF = await s.enter(await ctx(p.f), c.livre.id, "f");
+  falante = await chromeQueFala(chromium, s.CHROME_ARGS);
+  const pF = await s.enter(await s.buyerContext(falante, p.f, { desktop: true }), c.livre.id, "f");
   const pG = await s.enter(await ctx(p.g), c.livre.id, "g");
-  await waitFor(async () => (await pF.locator(`[data-sala-membro="${p.g.id}"]`).count()) > 0, 30_000);
-  await waitFor(async () => (await s.attr(pF, "data-audio-bytes")) > 0, 30_000);
-  await sleep(2500);
-  await foto(pF, "09-voz-livre.png");
+  const acesa = async (page) => (await page.locator(`[data-sala-membro="${p.f.id}"][data-sala-falando="sim"]`).count()) > 0;
+  /** A foto só vale com o anel aceso antes e depois dela. */
+  const fotoAcesa = async (page, nome) => {
+    for (let vez = 0; vez < 5; vez++) {
+      await waitFor(() => acesa(page), 30_000);
+      await sleep(1500);
+      await foto(page, nome);
+      if (await acesa(page)) return;
+    }
+    throw new Error(`o anel de quem fala apagou na hora da foto ${nome}`);
+  };
+  await fotoAcesa(pG, "09-voz-livre.png");
+  await configuracoes(pF, "11-configuracoes-de-voz.png");
+  for (const page of [pG, pF]) await page.setViewportSize({ width: 3440, height: 1440 });
+  await fotoAcesa(pG, "12-voz-livre-3440.png");
+  await configuracoes(pF, "13-configuracoes-de-voz-3440.png");
   return [pF, pG];
 }
 
@@ -186,6 +215,23 @@ async function salaPublica(p, ctx, c) {
   for (const page of [pDono, largo, admin, ...livres, ...Object.values(plateia)]) await page.close().catch(() => null);
 }
 
+/** O vídeo da tela tem imagem (brilho médio do quadro acima de quase preto), e não só a altura no getStats. */
+const telaComImagem = (page) =>
+  page.evaluate(() =>
+    [...document.querySelectorAll("video")].some((v) => {
+      if (v.videoWidth === 0) return false;
+      const c = document.createElement("canvas");
+      c.width = 64;
+      c.height = 36;
+      const g = c.getContext("2d");
+      g.drawImage(v, 0, 0, 64, 36);
+      const d = g.getImageData(0, 0, 64, 36).data;
+      let soma = 0;
+      for (let i = 0; i < d.length; i += 4) soma += d[i] + d[i + 1] + d[i + 2];
+      return soma / (d.length / 4) / 3 > 10;
+    })
+  );
+
 async function mentoria(p, ctx) {
   const sala = await s.createRoom(p.dono, [p.aluno]);
   made.rooms.push(sala.id);
@@ -199,9 +245,13 @@ async function mentoria(p, ctx) {
   await pDono.locator("[data-sala-qualidade-confirmar]").click();
   await waitFor(async () => (await s.attr(pAluno, "data-video-altura")) > 0, 40_000);
   await waitFor(async () => (await s.attr(pAluno, "data-audio-bytes")) > 0, 30_000);
+  if (!(await waitFor(() => telaComImagem(pAluno), 20_000))) throw new Error("a tela da mentoria chegou sem imagem ao aluno");
   await sleep(3500);
   await foto(pAluno, "04-mentoria-aluno.png");
   await foto(pDono, "05-mentoria-dono.png");
+  // A Live vem depois: a mentoria sai da árvore do PPA e das páginas abertas.
+  for (const page of [pAluno, pDono]) await page.close().catch(() => null);
+  await db.from("voice_rooms").update({ status: "encerrada" }).eq("id", sala.id);
 }
 
 try {
@@ -210,14 +260,17 @@ try {
   const p = await criarPessoas();
   browser = await chromium.launch({ channel: "chrome", headless: true, args: s.CHROME_ARGS });
   const ctx = (u) => s.buyerContext(browser, u, { desktop: true });
-  await salaPublica(p, ctx, await canais(p));
+  // A mentoria vem antes: depois da Live, com seis páginas decodificando a tela em 1080p, o navegador sem
+  // janela fotografava o vídeo do aluno preto (o quadro chegava, como mostra o getStats).
   await mentoria(p, ctx);
+  await salaPublica(p, ctx, await canais(p));
 } catch (err) {
   console.error("falhou:", err.message);
   console.log(s.diagnostico.slice(-40).join(String.fromCharCode(10)));
   process.exitCode = 1;
 } finally {
   await browser?.close().catch(() => null);
+  await falante?.close().catch(() => null);
   await sleep(500);
   await s.dropFlag().catch(() => null);
   await s.cleanup(made).catch((e) => console.error("limpeza:", e.message));

@@ -4888,6 +4888,20 @@
     "microfoneOcupado": "Another program is using the microphone. Close it and click Try again.",
     "microfoneFalhou": "The microphone didn't open. Click Try again or reload the page.",
     "microfoneSemSinal": "Microphone has no signal: click to try again",
-    "tentarDeNovo": "Try again"
+    "tentarDeNovo": "Try again",
+    "configVozTitulo": "Voice settings",
+    "configVozTexto": "Applies right away, without leaving the room, and is saved in this browser.",
+    "microfone": "Microphone",
+    "saidaDeSom": "Sound output",
+    "padraoDoSistema": "System default",
+    "microfoneEmUso": "In use now: {nome}",
+    "aparelhoSemNome": "Device {n}",
+    "aparelhosSemNome": "Device names show up after the browser allows the microphone for the first time (when you join a room or run the test).",
+    "testeMicrofone": "Microphone test",
+    "testar": "Test",
+    "pararTeste": "Stop test",
+    "reducaoRuido": "Noise suppression",
+    "reducaoRuidoDica": "Cuts keyboard and fan noise. Turn it off if your voice sounds choppy.",
+    "fechar": "Close"
   }
 }

@@ -4888,6 +4888,20 @@
     "microfoneOcupado": "Otro programa está usando el micrófono. Ciérralo y haz clic en Intentar de nuevo.",
     "microfoneFalhou": "El micrófono no se abrió. Haz clic en Intentar de nuevo o recarga la página.",
     "microfoneSemSinal": "Micrófono sin señal: haz clic para intentar de nuevo",
-    "tentarDeNovo": "Intentar de nuevo"
+    "tentarDeNovo": "Intentar de nuevo",
+    "configVozTitulo": "Ajustes de voz",
+    "configVozTexto": "Se aplica al momento, sin salir de la sala, y queda guardado en este navegador.",
+    "microfone": "Micrófono",
+    "saidaDeSom": "Salida de sonido",
+    "padraoDoSistema": "Predeterminado del sistema",
+    "microfoneEmUso": "En uso ahora: {nome}",
+    "aparelhoSemNome": "Dispositivo {n}",
+    "aparelhosSemNome": "Los nombres de los dispositivos aparecen después de que el navegador permita el micrófono por primera vez (al entrar en una sala o en la prueba).",
+    "testeMicrofone": "Prueba del micrófono",
+    "testar": "Probar",
+    "pararTeste": "Detener la prueba",
+    "reducaoRuido": "Supresión de ruido",
+    "reducaoRuidoDica": "Corta el ruido del teclado y del ventilador. Apágala si tu voz se corta.",
+    "fechar": "Cerrar"
   }
 }

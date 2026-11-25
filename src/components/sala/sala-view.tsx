@@ -18,6 +18,7 @@ import { qualityLevel } from "@/lib/sala/metricas";
 import type { RoomKind, VoiceMode } from "@/lib/sala/tipos";
 import { cn } from "@/lib/utils";
 import { Chat } from "./chat";
+import { ConfigVoz } from "./config-voz";
 import { Controles } from "./controles";
 import { Denuncia, type AlvoTela } from "./denuncia";
 import { Palco } from "./palco";
@@ -175,6 +176,7 @@ function NaSala({ roomId, tipo, modo, mostrarTela, snap, sessao }: Props & { sna
   const [escolhendo, setEscolhendo] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [colunaChat, alternarChat] = useColunaDoChat();
+  const [config, setConfig] = useState(false);
   const estado = snap.estado;
   const eu = estado?.eu ?? null;
   const membros = estado?.membros ?? [];
@@ -190,7 +192,7 @@ function NaSala({ roomId, tipo, modo, mostrarTela, snap, sessao }: Props & { sna
   return (
     <div className="flex gap-4" data-sala-id={roomId}>
       <div className="min-w-0 flex-1 space-y-3">
-        <Palco tela={snap.tela} telaDe={snap.telaDe} minhaTela={snap.minhaTela} nomeDe={nomeDe} volumeJogo={volumeJogo} onVolumeJogo={setVolumeJogo} surdo={snap.surdo} participantes={quadros} chat={chat && <Chat {...chat} sobreposto />} />
+        <Palco tela={snap.tela} telaDe={snap.telaDe} minhaTela={snap.minhaTela} nomeDe={nomeDe} volumeJogo={volumeJogo} onVolumeJogo={setVolumeJogo} surdo={snap.surdo} participantes={quadros} telaFalando={!!snap.telaDe && snap.falando.includes(snap.telaDe)} chat={chat && <Chat {...chat} sobreposto />} />
         <Controles
           vozNoAr={snap.vozNoAr} mutado={snap.mutado} mutadoPeloDono={!!eu?.mutadoPeloDono} podeFalar={!!eu?.podeFalar} microfone={snap.microfone} onTentarMicrofone={() => void sessao.tentarMicrofone()} surdo={snap.surdo}
           podeLevantarMao={!!eu?.podeLevantarMao} mao={snap.mao} mostrarTela={mostrarTela} compartilhando={snap.compartilhando}
@@ -198,7 +200,7 @@ function NaSala({ roomId, tipo, modo, mostrarTela, snap, sessao }: Props & { sna
           volumeVoz={volumeVoz} volumeJogo={volumeJogo} temChat={!!chat} chatAberto={colunaChat}
           onMudo={() => sessao.alternarMudo()} onSurdo={() => sessao.alternarSurdo()} onMao={() => sessao.alternarMao()} onTela={() => setEscolhendo(true)}
           onPararTela={() => sessao.pararTela()} onTrocarTela={() => void sessao.trocarTela()}
-          onVolumeVoz={(v) => { setVolumeVoz(v); sessao.setVoiceVolume(v); }} onVolumeJogo={setVolumeJogo} onChat={alternarChat} onSair={() => sessao.sair()}
+          onVolumeVoz={(v) => { setVolumeVoz(v); sessao.setVoiceVolume(v); }} onVolumeJogo={setVolumeJogo} onChat={alternarChat} onConfig={() => setConfig(true)} onSair={() => sessao.sair()}
         />
         {snap.audioBloqueado && (
           <button type="button" onClick={() => sessao.liberarAudio()} data-sala-ativar-som="" className={plate({ kind: "cta" })}>
@@ -223,6 +225,7 @@ function NaSala({ roomId, tipo, modo, mostrarTela, snap, sessao }: Props & { sna
           return res.ok ? { ok: true } : { ok: false, code: res.code };
         }}
       />
+      <ConfigVoz aberto={config} onClose={() => setConfig(false)} />
       <QualidadeTela
         aberto={escolhendo} tipo={tipo} espectadores={membros.filter((m) => m.online && m.userId !== eu?.userId).length}
         onClose={() => setEscolhendo(false)}

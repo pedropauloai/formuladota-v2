@@ -6,7 +6,7 @@
 
 import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
-import { AppWindow, Hand, HeadphoneOff, Headphones, MessageSquare, MessageSquareOff, Mic, MicOff, MonitorSpeaker, MonitorUp, MonitorX, PhoneOff, Volume2 } from "lucide-react";
+import { AppWindow, Hand, HeadphoneOff, Headphones, MessageSquare, MessageSquareOff, Mic, MicOff, MonitorSpeaker, MonitorUp, MonitorX, PhoneOff, Settings, Volume2 } from "lucide-react";
 import { plate } from "@/components/v2";
 import { AVISO_MICROFONE, falhou, type EstadoMicrofone } from "@/lib/sala/cliente/microfone";
 import { cn } from "@/lib/utils";
@@ -41,6 +41,7 @@ export interface ControlesProps {
   onVolumeVoz: (v: number) => void;
   onVolumeJogo: (v: number) => void;
   onChat: () => void;
+  onConfig: () => void;
   onSair: () => void;
 }
 
@@ -163,6 +164,9 @@ export function Controles(p: ControlesProps) {
         <Volume titulo={t("volumeVoz")} icone={<Volume2 className="size-4" aria-hidden="true" />} value={p.volumeVoz} onChange={p.onVolumeVoz} data={{ "data-sala-volume-vozes": "" }} />
         <Volume titulo={t("volumeTela")} icone={<MonitorSpeaker className="size-4" aria-hidden="true" />} value={p.volumeJogo} onChange={p.onVolumeJogo} data={{ "data-sala-volume-jogo": "" }} />
         <span className="ml-auto flex items-center gap-1">
+          <Botao titulo={t("configVozTitulo")} onClick={p.onConfig} data={{ "data-sala-config-abrir": "" }}>
+            <Settings className="size-5" />
+          </Botao>
           {p.temChat && (
             <Botao titulo={p.chatAberto ? t("esconderChat") : t("mostrarChat")} pressionado={p.chatAberto} onClick={p.onChat} data={{ "data-sala-chat-coluna-alternar": p.chatAberto ? "esconder" : "mostrar" }}>
               {p.chatAberto ? <MessageSquareOff className="size-5" /> : <MessageSquare className="size-5" />}

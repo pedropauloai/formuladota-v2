@@ -5,11 +5,14 @@
 // ou pela tecla F (fora dos campos de texto), com o chat sobreposto à direita, que se esconde e volta
 // (tecla C), e o volume da tela à mão (tecla M muta e volta), como no modo cinema da Twitch.
 
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { Maximize2, MessageSquare, MessageSquareOff, Minimize2, MonitorUp, Volume2 } from "lucide-react";
 import { Panel } from "@/components/v2";
+import { configVoz } from "@/lib/sala/cliente/config-voz";
+import { aplicarSaida } from "@/lib/sala/cliente/midia";
 import { cn } from "@/lib/utils";
+import { anelFala } from "./anel-fala";
 
 interface Props {
   tela: MediaStream | null;
@@ -24,10 +27,18 @@ interface Props {
   chat?: ReactNode;
   /** Sem tela no ar: quem está no canal, em quadros grandes. */
   participantes?: ReactNode;
+  /** Quem compartilha a tela está falando agora. */
+  telaFalando?: boolean;
 }
+
+const semSaida = () => null;
 
 function Video({ stream, muted, volume, label }: { stream: MediaStream; muted: boolean; volume: number; label: string }) {
   const ref = useRef<HTMLVideoElement>(null);
+  const saida = useSyncExternalStore(configVoz.subscribe, () => configVoz.get().saida, semSaida);
+  useEffect(() => {
+    if (ref.current) aplicarSaida(ref.current, saida);
+  }, [saida]);
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
@@ -124,7 +135,7 @@ export function Palco(p: Props) {
             <p className="text-sm">{label}</p>
           </div>
         )}
-        {temTela && <p className="absolute left-3 top-3 rounded-sm bg-bg-deep/80 px-2 py-1 text-xs text-text-body">{label}</p>}
+        {temTela && <p className={cn("absolute left-3 top-3 rounded-sm bg-bg-deep/80 px-2 py-1 text-xs text-text-body", anelFala(!!p.telaFalando))} data-sala-tela-falando={p.telaFalando ? "sim" : "nao"}>{label}</p>}
         {temTela && (
           <button
             type="button"
