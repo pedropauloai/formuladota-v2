@@ -50,6 +50,22 @@ function prepararVideo(transceiver: RTCRtpTransceiver): void {
   sender.setParameters(params).catch(() => null);
 }
 
+// Ao sair, o partytracks ainda fecha as faixas uma a uma e chama setRemoteDescription na conexão que já
+// fechou: o erro sobe como promessa sem dono e não muda nada (a sessão inteira já saiu do SFU). Só esse
+// erro, e só logo depois de fechar, deixa de virar erro da página.
+let calarAte = 0;
+let calarInstalado = false;
+
+function calarFechamento(): void {
+  calarAte = Date.now() + 5_000;
+  if (calarInstalado || typeof window === "undefined") return;
+  calarInstalado = true;
+  window.addEventListener("unhandledrejection", (e) => {
+    const erro = e.reason as { name?: string; message?: string } | null;
+    if (Date.now() < calarAte && erro?.name === "InvalidStateError" && /signalingState is 'closed'/.test(erro.message ?? "")) e.preventDefault();
+  });
+}
+
 export function createConnection(opts: { roomId: string; iceServers: RTCIceServer[] }): Connection {
   const pt = new PartyTracks({ prefix: `/api/sala/${opts.roomId}/rtc`, iceServers: opts.iceServers });
   const subs: Subscription[] = [];
@@ -101,6 +117,7 @@ export function createConnection(opts: { roomId: string; iceServers: RTCIceServe
       listeners.push(listener);
     },
     close() {
+      calarFechamento();
       subs.forEach((s) => s.unsubscribe());
       subs.length = 0;
       pc = null;

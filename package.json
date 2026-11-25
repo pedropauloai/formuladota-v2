@@ -21,6 +21,7 @@
     "loja:e2e": "node scripts/loja/e2e.mjs && node scripts/loja/e2e-fila.mjs && node scripts/loja/e2e-fila-saidas.mjs && node scripts/loja/e2e-fila-cortesia.mjs",
     "loja:live-auto": "node scripts/loja/verificar-live-automatica.mjs",
     "battlepass:e2e": "node scripts/battlepass/e2e.mjs",
+    "sala:latencia": "node scripts/sala/latencia.mjs",
     "sala:tela": "node scripts/sala/tela-fluida.mjs",
     "sala:e2e": "node scripts/sala/e2e.mjs",
     "sala:realtime": "node scripts/sala/conferir-realtime.mjs",
