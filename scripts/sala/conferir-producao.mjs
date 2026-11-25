@@ -1,10 +1,12 @@
 // Conferência da sala no domínio real (www.formuladota.com.br) com uma conta de teste: a aba "Sala de voz"
 // aparece na barra, /sala leva a um canal do servidor (o canal de texto abre), a pessoa entra no canal de
 // voz, o estado responde com quem está na sala, vai para /meta com o painel de voz, volta pelo painel e sai,
-// sem erro na página nem erro 5xx nas rotas da sala. Sem canal, confere a página do servidor vazio.
+// sem erro na página nem erro 5xx nas rotas da sala. O aviso dos canais (Broadcast do Realtime, escutado com a
+// chave pública, como o navegador) chega quando a pessoa entra e quando sai. Sem canal, confere a página do servidor vazio.
 // A conta de teste é apagada no fim (as linhas dela na sala saem junto). Sai com 1 se algo falhar.
 // Rodar: pnpm sala:producao
 
+import { createClient } from "@supabase/supabase-js";
 import { chromium } from "playwright-core";
 
 process.env.LOJA_E2E_PORT = process.env.SALA_E2E_PORT ?? "3200";
@@ -17,6 +19,24 @@ const { results, check } = s.checker();
 const erros = [];
 let browser = null;
 let pessoa = null;
+let ouvido = null;
+
+/** Escuta o aviso dos canais de produção com a chave pública, como a árvore do navegador. */
+async function escutarAvisos() {
+  const sb = createClient(loja.env.NEXT_PUBLIC_SUPABASE_URL, loja.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, { auth: { persistSession: false } });
+  const avisos = [];
+  const canal = sb.channel("sala-canais").on("broadcast", { event: "mudou" }, () => avisos.push(Date.now()));
+  await new Promise((ok) => {
+    const limite = setTimeout(ok, 10_000);
+    canal.subscribe((estado) => {
+      if (estado === "SUBSCRIBED") {
+        clearTimeout(limite);
+        ok();
+      }
+    });
+  });
+  return { avisos, depois: (t) => avisos.filter((a) => a >= t).length, parar: () => sb.removeChannel(canal) };
+}
 
 async function entrarNoSite() {
   pessoa = await s.createUser("producao");
@@ -51,8 +71,10 @@ async function naSala(page) {
   } else {
     await page.locator("[data-sala-entrar]").click({ timeout: 60_000 });
   }
+  const entrouEm = Date.now();
   const dentro = await page.locator('[data-sala-fase="na_sala"]').waitFor({ timeout: 60_000 }).then(() => true).catch(() => false);
   check("entra no canal de voz pelo domínio real", dentro, page.url());
+  check("o aviso de quem entrou chega pelo Realtime", !!(await waitFor(async () => ouvido.depois(entrouEm) >= 1, 10_000)), `${ouvido.avisos.length} aviso(s)`);
   const pessoas = await waitFor(async () => Number((await page.locator("[data-sala-pessoas]").first().getAttribute("data-sala-pessoas")) ?? 0) >= 1, 30_000);
   check("o estado da sala responde (a lista de quem está na sala aparece)", !!pessoas);
   return dentro;
@@ -66,12 +88,18 @@ async function navegarESair(page) {
   await page.locator("[data-painel-voz-voltar]").click({ timeout: 20_000 });
   const voltou = await page.locator('[data-sala-fase="na_sala"]').waitFor({ timeout: 30_000 }).then(() => true).catch(() => false);
   check("volta para a sala pelo painel", voltou);
+  // Espera o servidor responder a saída: fechar o navegador antes cortaria o pedido.
+  const resposta = page.waitForResponse((r) => r.url().endsWith("/sair") && r.request().method() === "POST", { timeout: 20_000 }).catch(() => null);
+  const saiuEm = Date.now();
   await page.locator("[data-sala-sair]").click({ timeout: 20_000 });
   const saiu = await waitFor(async () => (await page.locator('[data-sala-fase="saiu"]').count()) > 0, 20_000);
-  check("sai da sala sem erro", !!saiu);
+  const r = await resposta;
+  check("sai da sala sem erro", !!saiu && r?.status() === 204, `HTTP ${r?.status() ?? "sem resposta"}`);
+  check("o aviso de quem saiu chega pelo Realtime", !!(await waitFor(async () => ouvido.depois(saiuEm) >= 1, 10_000)), `${ouvido.depois(saiuEm)} aviso(s) depois da saída`);
 }
 
 try {
+  ouvido = await escutarAvisos();
   const page = await entrarNoSite();
   await page.goto(SITE, { waitUntil: "domcontentloaded", timeout: 60_000 });
   check("a aba Sala de voz aparece na barra de cima", !!(await waitFor(async () => (await page.locator('a[href="/sala"]').count()) > 0, 30_000)));
@@ -82,6 +110,7 @@ try {
   process.exitCode = 1;
 } finally {
   await browser?.close().catch(() => null);
+  await ouvido?.parar().catch(() => null);
   if (pessoa) await loja.deleteTestUsers([pessoa.id]).catch(() => null);
   const ok = results.filter((r) => r.ok).length;
   console.log(`${ok} de ${results.length} verificações passaram.`);

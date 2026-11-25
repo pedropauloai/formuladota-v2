@@ -308,6 +308,8 @@ A tela sobe como jogo: `contentHint = "motion"` e `degradationPreference = "main
 
 A cada 5 s o cliente lê `RTCPeerConnection.getStats()`; a cada 10 s (a plateia da sala pública, a cada 30 s) manda um resumo no batimento, gravado em `voice_room_stats`.
 
+**Atraso da voz de ponta a ponta (`pnpm sala:latencia`, 24/11/2026).** O "atraso" da tela da sala é a ida e volta até o SFU, não o tempo da boca ao ouvido. A prova: dois Chromes sem janela no mesmo computador (o mesmo relógio), no SFU de produção, um com um áudio falso de cliques, um por segundo; cada clique é marcado pelo WebAudio na saída do microfone de quem fala e na faixa recebida de quem escuta, e a diferença é o atraso (codificar, ir ao SFU e voltar, buffer de jitter e decodificar; ficam de fora só a placa de som e o fone). Três rodadas de 60 cliques, todos chegando: mediana de 79, 108 e 90 ms; p95 de 250, 118 e 106 ms. A primeira rodada teve picos de 250 ms em alguns cliques; nas outras duas, tudo entre 55 e 126 ms. Buffer de jitter médio de 62 a 80 ms, RTT até o SFU de 13 a 18 ms, perda de 0 a 1 pacote em cerca de 3.200. Referência: ITU-T G.114, até 150 ms de uma ponta à outra para conversa sem incômodo. O teste passa com o p95 até 150 ms.
+
 | Métrica | De onde vem |
 |---|---|
 | Perda de pacote (%) | `inbound-rtp`: diferença de `packetsLost` sobre `packetsLost + packetsReceived` no intervalo |
