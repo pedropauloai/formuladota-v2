@@ -30,6 +30,7 @@ const CV = "src/lib/sala/cliente/config-voz.ts";
 const VL = "src/lib/sala/cliente/voz-local.ts";
 const EN = "src/lib/sala/entrada.ts";
 const DS = "src/lib/sala/dados-sala.ts";
+const MN = "src/lib/sala/cliente/menus.ts";
 
 const MUTACOES = [
   [A, 'if (!input.flagOn) return { ok: false, code: "flag_desligada" };', "", "flag desligada não esconde"],
@@ -112,6 +113,10 @@ const MUTACOES = [
   [VL, "this.trocaPendente = true;", "", "a segunda troca seguida se perde"],
   [DS, '.eq("user_id", userId).eq("status", "ativo").select("user_id")', '.eq("user_id", userId).select("user_id")', "quem foi expulso no meio da entrada fica com a credencial nova do TURN"],
   [EN, "if (turn.username) await revokeTurnCredential(env, turn.username);", "", "a credencial nova do expulso fica valendo na Cloudflare"],
+  [MN, 'if (p.souDono && p.papel !== "dono") {', 'if (p.papel !== "dono") {', "quem não é dono vê expulsar e banir no menu da pessoa"],
+  [MN, "if (!c.souDono || !c.listado) return out;", "if (!c.listado) return out;", "quem não é dono vê editar e apagar no menu do canal"],
+  [MN, 'if (m.souDono) out.push("apagar");', 'out.push("apagar");', "quem não é dono vê apagar a mensagem"],
+  [MN, 'if (m.autor && m.autor !== m.eu) out.push("denunciar");', 'if (m.autor) out.push("denunciar");', "a própria mensagem aparece com denunciar"],
 ];
 
 let falhas = 0;

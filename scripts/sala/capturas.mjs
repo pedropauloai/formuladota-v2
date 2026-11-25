@@ -1,9 +1,10 @@
 // Capturas da sala de voz para conferir a interface em 1920x1080 (e a plateia em 3440x1440): o servidor
 // com a coluna de canais, o canal de voz em palco visto pelo dono (tela, plateia, mãos, palco e chat), a
 // escolha da qualidade, a vista da plateia, a voz livre com o anel verde de quem fala e as configurações
-// de voz (em 1920 e depois em 3440), o canal de texto, o painel dos canais no admin, o painel de voz em
-// outras páginas e a mentoria. Servidor local, banco de produção com salas e pessoas de teste (apagadas no
-// fim) e o app real do Realtime. Liga só a linha de teste da flag (sala_voz_e2e), nunca a sala_voz.
+// de voz (em 1920 e depois em 3440), os menus do botão direito, o canal de texto, o painel dos canais no
+// admin, o painel de voz em outras páginas e a mentoria. Servidor local, banco de produção com salas e
+// pessoas de teste (apagadas no fim) e o app real do Realtime. Liga só a linha de teste da flag
+// (sala_voz_e2e), nunca a sala_voz.
 // A tela compartilhada é uma arte do Dota do próprio site, no lugar do padrão de teste do Chrome.
 // Rodar: pnpm sala:capturas <pasta-de-saida>
 
@@ -160,6 +161,19 @@ async function canalTexto(p, c, plateia, pDono) {
   await foto(pC, "08-canal-texto.png");
 }
 
+/** O botão direito visto pelo dono: numa pessoa da plateia, num canal e numa mensagem do chat. */
+async function menusDoDono(pDono, p, c) {
+  const abrir = async (alvo, item, nome) => {
+    await pDono.locator(alvo).first().click({ button: "right" });
+    await pDono.locator(item).waitFor({ timeout: 10_000 });
+    await foto(pDono, nome);
+    await pDono.keyboard.press("Escape");
+  };
+  await abrir(`[data-sala-membro="${p.c.id}"]`, '[data-menu-acao="sala-expulsar"]', "14-menu-pessoa.png");
+  await abrir(`[data-canal="${c.livre.id}"]`, '[data-canal-menu="canal-editar"]', "15-menu-canal.png");
+  await abrir('[data-sala-mensagem]:has-text("cheguei agora")', '[data-mensagem-menu="mensagem-copiar"]', "16-menu-mensagem.png");
+}
+
 async function salaPublica(p, ctx, c) {
   const palco = await s.createPalco(p.dono);
   made.rooms.push(palco.id);
@@ -194,6 +208,7 @@ async function salaPublica(p, ctx, c) {
   await foto(pDono, "01-sala-publica-dono.png");
   const linha = await pDono.locator(`[data-sala-membro="${p.c.id}"]`).boundingBox();
   if (linha) await foto(pDono, "01b-acoes-do-dono-no-mouse.png", { mouse: [linha.x + 60, linha.y + linha.height / 2] });
+  await menusDoDono(pDono, p, c);
   await foto(plateia.c, "03-sala-publica-plateia.png");
 
   const largo = await (await ctx(p.e)).newPage();

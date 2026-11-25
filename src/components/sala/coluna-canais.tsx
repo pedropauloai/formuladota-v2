@@ -3,7 +3,8 @@
 // Árvore de canais do servidor FORMULADOTA, no molde do Discord e do TeamSpeak: canais de texto, canais
 // de voz (com quem está em cada um antes de entrar, microfone, tela e o limite "3/5") e as salas privadas
 // da pessoa; no pé, a conexão de voz. Um clique no canal de voz entra nele. A lista se renova a cada 10 s;
-// a sala em que a pessoa está mostra as pessoas ao vivo, com as ações de cada uma.
+// a sala em que a pessoa está mostra as pessoas ao vivo, com as ações de cada uma. O botão direito no
+// canal entra e copia o link e, para o dono, edita, muda o modo e o público, reordena e apaga (menu-canal.tsx).
 
 import { useState, type MouseEvent, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
@@ -14,6 +15,7 @@ import { LiveDot, panel } from "@/components/v2";
 import { Link, useRouter } from "@/i18n/navigation";
 import type { CanalItem, ListaDeCanais, PessoaNoCanal } from "@/lib/sala/canais";
 import { cn } from "@/lib/utils";
+import { MenuDoCanal } from "./menu-canal";
 
 export interface ColunaProps {
   lista: ListaDeCanais;
@@ -29,6 +31,8 @@ export interface ColunaProps {
   compartilhando: boolean;
   /** Painel da conexão de voz, no pé da coluna. */
   conexao: ReactNode;
+  /** O dono mudou um canal pelo botão direito: a lista é pedida de novo. */
+  onMudou: () => void;
 }
 
 function Icone({ c }: { c: CanalItem }) {
@@ -61,21 +65,40 @@ function Contagem({ c }: { c: CanalItem }) {
   );
 }
 
-function Canal({ c, ativo, p }: { c: CanalItem; ativo: boolean; p: ColunaProps }) {
+/** Abrir o canal pelo clique e pelo "Entrar" do botão direito: trocar de canal de voz compartilhando a tela pede confirmação. */
+function useAbrirCanal(c: CanalItem, p: ColunaProps, ativo: boolean) {
   const t = useTranslations("sala");
   const confirm = useConfirm();
   const router = useRouter();
   const voz = c.tipo !== "texto";
   // Um clique no canal de voz entra nele (a página entra sozinha); no canal em que já está, só abre.
   const href = voz && p.naSala !== c.id ? `/sala/${c.id}?entrar=1` : `/sala/${c.id}`;
-  const trocar = async (e: MouseEvent) => {
-    if (!voz || !p.compartilhando || p.naSala === c.id) return;
-    e.preventDefault();
-    if (await confirm({ title: t("trocarCanalTitulo"), message: t("trocarCanalTexto"), confirmLabel: t("confirmar") })) router.push(href);
+  const pedeConfirmacao = voz && p.compartilhando && p.naSala !== c.id;
+  const confirma = () => confirm({ title: t("trocarCanalTitulo"), message: t("trocarCanalTexto"), confirmLabel: t("confirmar") });
+  return {
+    href,
+    trocar: async (e: MouseEvent) => {
+      if (!pedeConfirmacao) return;
+      e.preventDefault();
+      if (await confirma()) router.push(href);
+    },
+    abrir: async () => {
+      if (!pedeConfirmacao || (await confirma())) router.push(href);
+    },
+    mudou: (apagado: boolean) => {
+      p.onMudou();
+      if (apagado && ativo) router.push("/sala");
+    },
   };
+}
+
+function Canal({ c, ativo, p, listado, primeiro, ultimo }: { c: CanalItem; ativo: boolean; p: ColunaProps; listado: boolean; primeiro: boolean; ultimo: boolean }) {
+  const t = useTranslations("sala");
+  const { href, trocar, abrir, mudou } = useAbrirCanal(c, p, ativo);
   const aoVivo = p.pessoasDe(c.id);
   return (
     <li data-canal-item={c.id}>
+      <MenuDoCanal c={c} souDono={p.souDono} naSala={p.naSala === c.id} listado={listado} primeiro={primeiro} ultimo={ultimo} onAbrir={() => void abrir()} onMudou={mudou}>
       <Link
         href={href}
         onClick={(e) => void trocar(e)}
@@ -100,6 +123,7 @@ function Canal({ c, ativo, p }: { c: CanalItem; ativo: boolean; p: ColunaProps }
         )}
         <Contagem c={c} />
       </Link>
+      </MenuDoCanal>
       {aoVivo ?? (c.pessoas.length > 0 && <ul className="mt-0.5 space-y-0.5">{c.pessoas.map((pessoa) => <Pessoa key={pessoa.userId} p={pessoa} />)}</ul>)}
     </li>
   );
@@ -118,7 +142,13 @@ function Categoria({ titulo, itens, data, p }: { titulo: string; itens: CanalIte
         <ChevronDown className={cn("size-3 transition-transform", !aberta && "-rotate-90")} aria-hidden="true" />
         {titulo}
       </button>
-      {aberta && <ul className="space-y-0.5">{itens.map((c) => <Canal key={c.id} c={c} ativo={c.id === p.atual} p={p} />)}</ul>}
+      {aberta && (
+        <ul className="space-y-0.5">
+          {itens.map((c, i) => (
+            <Canal key={c.id} c={c} ativo={c.id === p.atual} p={p} listado={data === "texto" || data === "voz"} primeiro={i === 0} ultimo={i === itens.length - 1} />
+          ))}
+        </ul>
+      )}
     </section>
   );
 }

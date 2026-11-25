@@ -32,9 +32,11 @@ interface Props {
   children: ReactNode;
   /** Avisado quando o menu abre e fecha (o cartão do mouse se fecha enquanto o menu está aberto). */
   onOpenChange?: (open: boolean) => void;
+  /** Ações do lugar onde a pessoa aparece (a sala de voz), antes das do perfil. */
+  extraActions?: () => MenuAction[];
 }
 
-export function PersonMenu({ userId, children, onOpenChange }: Props) {
+export function PersonMenu({ userId, children, onOpenChange, extraActions }: Props) {
   const t = useTranslations("personMenu");
   const { toast } = useToast();
   const [data, setData] = useState<PublicMiniProfile | null>(null);
@@ -96,8 +98,12 @@ export function PersonMenu({ userId, children, onOpenChange }: Props) {
     return items[key];
   };
 
-  const actions = () =>
-    personMenuItems({ status: data?.friendStatus ?? null, loggedIn, hasDota: !!dotaIdFromSteam64(data?.steamId64 ?? null), requested }).map(item);
+  const actions = () => {
+    const extra = extraActions?.() ?? [];
+    const [first, ...rest] = personMenuItems({ status: data?.friendStatus ?? null, loggedIn, hasDota: !!dotaIdFromSteam64(data?.steamId64 ?? null), requested }).map(item);
+    if (!first) return extra;
+    return [...extra, { ...first, separatorBefore: extra.length > 0 }, ...rest];
+  };
 
   return (
     <ContextMenuActions
