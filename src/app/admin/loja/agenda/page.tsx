@@ -107,10 +107,10 @@ export default async function AdminAgendaPage() {
               <li key={b.id} className="flex flex-wrap items-start justify-between gap-3 py-3">
                 <div className="min-w-0 space-y-0.5 text-sm">
                   <p className="font-medium text-text-display first-letter:uppercase">{b.kind === "live" ? `Live de ${when(b.starts_at, b.ends_at)} · ${b.seats} vaga(s)` : when(b.starts_at, b.ends_at)}</p>
-                  <p className="text-text-body">
+                  <div className="text-text-body">
                     {b.store_orders?.product_title} ·{" "}
                     {b.store_orders && <BuyerName name={b.store_orders.buyer_name} userId={b.store_orders.user_id} avatarUrl={b.store_orders.user_id ? identities.get(b.store_orders.user_id)?.avatarUrl : null} />}
-                  </p>
+                  </div>
                   <p className="text-xs text-text-muted">
                     {b.store_orders?.buyer_email}
                     {b.store_orders && (
@@ -179,10 +179,10 @@ export default async function AdminAgendaPage() {
           <ul className="space-y-4">
             {deliveries.map((d) => (
               <li key={d.id} className="space-y-2">
-                <p className="text-sm text-text-display">
+                <div className="text-sm text-text-display">
                   {d.product_title} · <BuyerName name={d.buyer_name} userId={d.user_id} avatarUrl={d.user_id ? identities.get(d.user_id)?.avatarUrl : null} />
                   {d.fulfilled_at ? " · entregue" : ""}
-                </p>
+                </div>
                 <DeliveryForm orderId={d.id} url={d.delivery_url ?? ""} note={d.delivery_note ?? ""} />
               </li>
             ))}
