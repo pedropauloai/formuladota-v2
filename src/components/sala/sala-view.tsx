@@ -192,7 +192,7 @@ function NaSala({ roomId, tipo, modo, mostrarTela, snap, sessao }: Props & { sna
       <div className="min-w-0 flex-1 space-y-3">
         <Palco tela={snap.tela} telaDe={snap.telaDe} minhaTela={snap.minhaTela} nomeDe={nomeDe} volumeJogo={volumeJogo} onVolumeJogo={setVolumeJogo} surdo={snap.surdo} participantes={quadros} chat={chat && <Chat {...chat} sobreposto />} />
         <Controles
-          vozNoAr={snap.vozNoAr} mutado={snap.mutado} mutadoPeloDono={!!eu?.mutadoPeloDono} semMicrofone={snap.semMicrofone} surdo={snap.surdo}
+          vozNoAr={snap.vozNoAr} mutado={snap.mutado} mutadoPeloDono={!!eu?.mutadoPeloDono} podeFalar={!!eu?.podeFalar} microfone={snap.microfone} onTentarMicrofone={() => void sessao.tentarMicrofone()} surdo={snap.surdo}
           podeLevantarMao={!!eu?.podeLevantarMao} mao={snap.mao} mostrarTela={mostrarTela} compartilhando={snap.compartilhando}
           podeTela={!!eu?.podeCompartilharTela} motivoTela={eu?.motivoTela ?? null} assistindo={!!snap.tela && !snap.minhaTela}
           camada={snap.camada} volumeVoz={volumeVoz} volumeJogo={volumeJogo} temChat={!!chat} chatAberto={colunaChat}

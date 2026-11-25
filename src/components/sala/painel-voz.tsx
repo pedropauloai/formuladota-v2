@@ -8,6 +8,7 @@ import { useTranslations } from "next-intl";
 import { HeadphoneOff, Headphones, Loader2, LogOut, Mic, MicOff, MonitorOff, Volume2, X } from "lucide-react";
 import { LiveDot, panel } from "@/components/v2";
 import { Link, usePathname } from "@/i18n/navigation";
+import { AVISO_MICROFONE, falhou } from "@/lib/sala/cliente/microfone";
 import { salaAtiva } from "@/lib/sala/cliente/sala-ativa";
 import type { SessaoSala, SessaoSnapshot } from "@/lib/sala/cliente/sessao-sala";
 import { useSalaAtiva } from "@/lib/sala/cliente/use-sala-ativa";
@@ -39,6 +40,8 @@ function QuemFala({ snap }: { snap: SessaoSnapshot }) {
 function Controles({ snap, sessao }: { snap: SessaoSnapshot; sessao: SessaoSala }) {
   const t = useTranslations("sala");
   const podeFalar = snap.vozNoAr || !!snap.estado?.eu?.podeFalar;
+  // O microfone que não abriu fica dourado, com o motivo no título; o clique tenta de novo.
+  const semSinal = !snap.vozNoAr && falhou(snap.microfone);
   return (
     <span className="flex shrink-0 items-center gap-0.5">
       {snap.audioBloqueado && (
@@ -47,8 +50,8 @@ function Controles({ snap, sessao }: { snap: SessaoSnapshot; sessao: SessaoSala 
         </Botao>
       )}
       {podeFalar && (
-        <Botao titulo={snap.mutado ? t("desmutar") : t("mutar")} onClick={() => sessao.alternarMudo()} data="data-painel-voz-mudo">
-          {snap.mutado ? <MicOff className="size-4 text-error" /> : <Mic className="size-4" />}
+        <Botao titulo={semSinal ? t(AVISO_MICROFONE[snap.microfone] ?? "microfoneSemSinal") : snap.mutado ? t("desmutar") : t("mutar")} onClick={() => sessao.alternarMudo()} data="data-painel-voz-mudo">
+          {semSinal ? <MicOff className="size-4 text-gold" /> : snap.mutado ? <MicOff className="size-4 text-error" /> : <Mic className="size-4" />}
         </Botao>
       )}
       <Botao titulo={snap.surdo ? t("religarSom") : t("ensurdecer")} onClick={() => sessao.alternarSurdo()} data="data-painel-voz-surdo">

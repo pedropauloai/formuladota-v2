@@ -21,6 +21,9 @@ const FC = "src/lib/sala/flag-chave.ts";
 const MO = "src/lib/sala/montagem.ts";
 const TL = "src/lib/sala/cliente/tela-local.ts";
 const CA = "src/lib/sala/canais.ts";
+const MI = "src/lib/sala/cliente/microfone.ts";
+const GV = "src/lib/sala/cliente/guarda-voz.ts";
+const VL = "src/lib/sala/cliente/voz-local.ts";
 
 const MUTACOES = [
   [A, 'if (!input.flagOn) return { ok: false, code: "flag_desligada" };', "", "flag desligada não esconde"],
@@ -77,6 +80,11 @@ const MUTACOES = [
   [RG, 'if (fase === "saiu" || fase === "erro") anotar(null);', "", "quem foi tirado da sala volta nela ao recarregar"],
   [FC, 'if (env.NODE_ENV !== "development") return SALA_FLAG;', "", "produção obedece a linha de teste da flag"],
   [MO, 'vozAberta: snap.tracks.some((t) => t.u === me && t.t === "voz"),', "vozAberta: true,", "o estado sempre diz que a voz está aberta"],
+  [MI, 'if (nome === "NotAllowedError" || nome === "SecurityError") return "negado";', "", "microfone negado vira falha sem o caminho do cadeado"],
+  [GV, "if (quer && falhou(snap.microfone) && !this.deNovo) return;", "", "depois de negado, o batimento pede o microfone de novo a cada 2 s"],
+  [VL, "mic.enabled = !this.mutado;", "mic.enabled = true;", "mutar enquanto o microfone abre não vale"],
+  [VL, "this.geracao++;", "", "sair da sala enquanto o microfone abre deixa a voz no ar"],
+  [VL, 'if (this.ligando) return "abrindo";', 'if (this.ligando) return "ok";', "o microfone abrindo some da tela"],
 ];
 
 let falhas = 0;

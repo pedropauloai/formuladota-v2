@@ -76,8 +76,12 @@ const config: NextConfig = {
       { key: "X-Content-Type-Options", value: "nosniff" }, // H3 — impede MIME sniffing
       { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" }, // H4
       {
-        key: "Permissions-Policy", // H5 — desliga APIs sensíveis do browser
-        value: "camera=(), microphone=(), geolocation=(), interest-cohort=()",
+        // H5: câmera e localização desligadas. O microfone e a captura de tela valem para o próprio site
+        // em todas as páginas, porque a ligação da sala de voz continua pelo site inteiro: a página aberta
+        // fora da sala (pelo menu ou recarregada no /party) guarda a regra da primeira página e ficava
+        // sem microfone mesmo depois de voltar à sala.
+        key: "Permissions-Policy",
+        value: "camera=(), microphone=(self), display-capture=(self), geolocation=(), interest-cohort=()",
       },
       {
         // Reforço do HSTS (a Vercel já envia; mantido consistente + preload)
@@ -91,16 +95,7 @@ const config: NextConfig = {
       securityHeaders.push({ key: "Content-Security-Policy", value: csp });
     }
 
-    // A sala de voz (docs/comunicacao/spec.md) precisa do microfone e da captura de tela só nas
-    // páginas dela; o resto do site segue com o microfone desligado. Para o mesmo cabeçalho, a regra
-    // declarada depois vale (documentação do Next, headers).
-    const salaPermissions = { key: "Permissions-Policy", value: "camera=(), microphone=(self), display-capture=(self), geolocation=(), interest-cohort=()" };
-
-    return [
-      { source: "/:path*", headers: securityHeaders },
-      { source: "/sala", headers: [salaPermissions] },
-      { source: "/sala/:path*", headers: [salaPermissions] },
-    ];
+    return [{ source: "/:path*", headers: securityHeaders }];
   },
 
   async redirects() {

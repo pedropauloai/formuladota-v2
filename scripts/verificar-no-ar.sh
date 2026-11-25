@@ -60,11 +60,12 @@ case "$batida" in *'"saida":'*' 200') confere "estado da sala sem login" sim sim
 # O endereço fixo da sala pública: 404 com a flag desligada; ligada, leva à sala aberta (307) ou diz que ela abre na live (200).
 fixa=$(status "$U/sala")
 case "$fixa" in 200|307|404) confere "endereço fixo /sala responde sem erro" sim sim ;; *) confere "endereço fixo /sala responde sem erro" sim "nao (HTTP $fixa)" ;; esac
-# O microfone e a captura de tela só valem nas páginas da sala (next.config.ts); o resto do site segue sem.
-pp_sala=$(curl $R -s -I --max-time 20 "$U/sala/00000000-0000-4000-8000-000000000000" | tr -d '\r' | grep -i '^permissions-policy:')
-case "$pp_sala" in *'microphone=(self)'*'display-capture=(self)'*) confere "sala libera microfone e tela" sim sim ;; *) confere "sala libera microfone e tela" sim "nao ($pp_sala)" ;; esac
-pp_site=$(curl $R -s -I --max-time 20 "$U/meta" | tr -d '\r' | grep -i '^permissions-policy:')
-case "$pp_site" in *'microphone=()'*) confere "resto do site sem microfone" sim sim ;; *) confere "resto do site sem microfone" sim "nao ($pp_site)" ;; esac
+# O microfone e a captura de tela valem para o próprio site em todas as páginas (a ligação da sala segue
+# pelo site inteiro, next.config.ts); a câmera e a localização seguem desligadas.
+for pagina in "/sala/00000000-0000-4000-8000-000000000000" "/meta"; do
+  pp=$(curl $R -s -I --max-time 20 "$U$pagina" | tr -d '\r' | grep -i '^permissions-policy:')
+  case "$pp" in *'camera=()'*'microphone=(self)'*'display-capture=(self)'*'geolocation=()'*) confere "microfone e tela do próprio site em $pagina" sim sim ;; *) confere "microfone e tela do próprio site em $pagina" sim "nao ($pp)" ;; esac
+done
 # Arquivo com hash no nome guardado pelo navegador por um ano (public/_headers).
 chunk=$(curl $R -fsSL --max-time 30 "$U/" | grep -o '/_next/static/[^"]*\.js' | head -1)
 cc=$(curl $R -s -o /dev/null -D - --max-time 20 "$U$chunk" | tr -d '\r' | grep -i '^cache-control:' | head -1)
