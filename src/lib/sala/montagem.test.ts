@@ -84,7 +84,7 @@ describe("compose (o que o estado entrega a cada pessoa)", () => {
   it("o dono não compartilha com outra tela no ar nem com o teto de produção atingido", () => {
     const dono = verdict({ userId: "ppa", decision: { ok: true, role: "dono" } });
     const outra = snap({ members: [{ u: "ppa", r: "dono", m: false, on: true }, { u: "aluno", r: "membro", m: false, on: true }], tracks: [{ s: "s-a", u: "aluno", n: "tela-a", k: "video", t: "tela", q: "padrao" }] });
-    expect(compose({ ...dono, room: { ...palco, kind: "mentoria" } }, outra, "ppa", "dono", 0).eu?.motivoTela).toBe("tela_ocupada");
+    expect(compose({ ...dono, room: { ...palco, kind: "mentoria", screenPolicy: "um_por_vez" } }, outra, "ppa", "dono", 0).eu?.motivoTela).toBe("tela_ocupada");
     const teto = verdict({ userId: "ppa", decision: { ok: true, role: "dono" }, settings: { capGb30d: 800, videoMaxKbps: 6000, palcoMaxSpeakers: 4, partyScreenEnabled: false, usageBytes30d: 800e9 } });
     expect(compose(teto, snap(), "ppa", "dono", 0).eu?.motivoTela).toBe("teto_de_trafego");
   });

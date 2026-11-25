@@ -33,12 +33,12 @@ O que toda sala faz: voz com cancelamento de eco, supressão de ruído e ganho a
 | R3 | Party nasce da live no ar; membro é quem está na party naquele momento. |
 | R4 | Entrar exige conta identificada (Discord ou Steam vinculada) e a marcação "tenho 18 anos ou mais", feita uma vez. |
 | R5 | Voz com `echoCancellation`, `noiseSuppression` e `autoGainControl`; mutar. |
-| R6 | O dono compartilha a tela com áudio pelo `getDisplayMedia` e escolhe a qualidade (resolução e quadros) vendo o consumo estimado por hora. |
+| R6 | Quem pode compartilha a tela com áudio pelo `getDisplayMedia` e escolhe a qualidade (resolução e quadros) vendo o consumo estimado por hora: no canal de voz comum (voz livre), qualquer um na sala, como o Go Live do Discord; no canal de palco, quem está no palco; na mentoria e na party, o dono (pedido do PPA de 24/11/2026). Uma tela por vez em cada sala. |
 | R7 | Na sala pública, a plateia ouve e assiste; fala só quem o PPA chamar; quem quer falar levanta a mão. |
 | R8 | Na sala pública, chat de texto: o dono apaga mensagem, e qualquer um denuncia mensagem ou pessoa. |
 | R9 | O dono muta, expulsa (sai desta sala) e bane (não entra mais nas salas dele). |
 | R10 | Lugares contados na sala pública; o Battlepass entra mesmo com a sala cheia (escolha 9). |
-| R11 | A tela vai em duas camadas (simulcast); o servidor escolhe a camada de cada pessoa pela regra de custo. |
+| R11 | A tela vai em duas camadas (simulcast). A qualidade é só de quem transmite: quem assiste recebe a camada alta, sem escolher nada (pedido do PPA de 24/11/2026: "o consumo não preocupa"). A leve fica para quem está fora da página da sala e, só para não congelar, para quem tem a conexão fraca: dois congelamentos em 20 s descem para a leve por 60 s, e a espera dobra se a tela cair logo depois de voltar, até 5 min (`fluidez.ts`). O SFU só troca de camada quando quem transmite para de mandar a alta (`ridNotAvailable`); a troca dele por banda prendia na leve e congelava 3 s a cada tentativa de subir. |
 | R12 | Nada gravado: nenhuma mídia passa por servidor do FORMULADOTA nem é guardada pela Cloudflare. |
 | R13 | Teto de tráfego que bloqueia tela nova, baixa a camada da plateia antes disso e avisa o PPA. |
 | R14 | Métricas de cada pessoa a cada 10 s: perda de pacote, jitter, RTT, resolução e quadros, e o atraso estimado. |
@@ -136,7 +136,7 @@ Site em Next.js 16 no Cloudflare Workers pelo OpenNext; Supabase com RLS obrigat
 
 ### ADR-006: simulcast em duas camadas, com a camada escolhida pelo servidor
 
-**Estado:** proposta. Na sala pública o custo cresce com a plateia: cada pessoa recebe a tela inteira. A tela sobe em duas camadas, `f` (a qualidade escolhida) e `h` (metade da resolução, cerca de um quarto do bitrate). A pessoa escolhe "alta" ou "leve" na tela; o servidor decide a camada que vale: na mentoria, sempre a que ela pediu; na sala pública, a leve por padrão, a alta para quem pedir enquanto o consumo dos 30 dias estiver abaixo de 50% do teto, e só a leve acima disso. Subir duas camadas pede mais upload do PPA (que já transmite para a Twitch); a medida no teste real diz se cabe.
+**Estado:** revisada em 24/11/2026. A tela sobe em duas camadas, `f` (a qualidade escolhida) e `h` (metade da resolução). Quem assiste recebe a `f`, sem escolher nada: a qualidade é de quem transmite. A `h` vale para quem está fora da página da sala e, por um tempo, para quem tem a tela congelando de novo e de novo (a proteção mora no navegador de quem assiste, `fluidez.ts`). O SFU só troca quando quem transmite para de mandar a `f`: a troca dele por banda (`priorityOrdering: asciibetical`) prendia na `h` e congelava 3 s a cada tentativa de subir, mesmo com banda sobrando. A regra antiga (plateia da sala pública na leve, a alta só abaixo de metade do teto) saiu: medida no `pnpm sala:tela`, a camada leve chegava a 17 a 48 quadros por segundo, e o PPA disse que o consumo não preocupa. O teto que barra tela nova continua. Subir duas camadas pede mais upload do PPA (que já transmite para a Twitch); a medida no teste real diz se cabe.
 
 ### ADR-007: a sala vive fora da página
 
@@ -219,7 +219,7 @@ Uma função pura (`decideRoomAccess`, testada no Vitest) decide toda entrada e 
 |---|---|---|---|---|
 | Ouvir, assistir, mutar a si | sim | sim | sim | sim |
 | Publicar voz | sim | sim | não | sim |
-| Compartilhar tela | sim (escolhe a qualidade) | não | não | na mentoria, se a sala permitir |
+| Compartilhar tela | sim (escolhe a qualidade) | quem está no palco; na voz livre, qualquer um | na voz livre, sim | na mentoria, se a sala permitir |
 | Levantar a mão | não | não | sim | não |
 | Chat | sim | sim | sim | sem chat na fase 1 |
 | Chamar, devolver, mutar, expulsar, banir, apagar mensagem | sim | não | não | não |
@@ -281,7 +281,7 @@ A conta confere com a da sessão central: tela a 4 Mbps para 50 pessoas, 3 horas
 
 **O que segura o custo.**
 - Lugares: a sala pública tem `palco_max_members` lugares (recomendação: 30).
-- Camada: a plateia recebe a camada leve por padrão. Quem pede a alta recebe enquanto o consumo dos 30 dias estiver abaixo de 50% do teto; acima disso, só a leve.
+- Camada: quem assiste recebe a camada alta; a leve fora da página da sala e, por um tempo, para a conexão fraca que congela. A estimativa de custo da plateia passa a contar a camada alta.
 - Teto: tela nova fica bloqueada ao chegar no teto; a voz e a tela já no ar continuam. Aviso ao PPA em 50%, 80% e 100% e num pico (mais de 20 GB numa hora).
 - O valor do teto é dinheiro e é decisão do PPA (escolha 7): ficar no grátis (800 GB em 30 dias) ou aceitar um gasto mensal.
 
@@ -302,7 +302,7 @@ A conta confere com a da sessão central: tela a 4 Mbps para 50 pessoas, 3 horas
 | Celular | o iPhone e boa parte dos Androids não compartilham tela | assiste e fala; a tela não quebra em 390 px |
 | Upload do PPA | duas camadas de tela somam cerca de 1,25 vez a qualidade escolhida, além do OBS da live | `qualityLimitationReason` vai nas métricas; o teste real diz se cabe |
 
-A tela sobe com `contentHint = "detail"` e `degradationPreference = "maintain-resolution"` (sob aperto, o navegador baixa quadros antes da resolução), nas duas camadas: `f` na qualidade escolhida e `h` com `scaleResolutionDownBy = 2`.
+A tela sobe como jogo: `contentHint = "motion"` e `degradationPreference = "maintain-framerate"` (sob aperto, o navegador baixa a resolução e mantém os quadros), com o H.264 na frente dos codecs (a placa de vídeo codifica; o VP8 do Chrome é só no processador), nas duas camadas: `f` na qualidade escolhida e `h` com `scaleResolutionDownBy = 2`. Até 24/11/2026 ia como `detail` e `maintain-resolution`: nas métricas reais da Live do PPA em 1080p60, quem assistia recebia 4 a 13 quadros por segundo, com congelamentos de até 5,7 s, e o envio sem limite nenhum. Prova: `pnpm sala:tela` (dois Chromes sem janela, fonte de 60 quadros, a getStats dos dois lados).
 
 ## 13. Métricas e atraso
 
@@ -353,8 +353,8 @@ Usa o kit `src/components/v2` (painel, placa, `v2Page`), os tokens atuais e íco
 - **Coluna de canais (R16):** à esquerda, na altura da tela, como no Discord: o nome FORMULADOTA (com a engrenagem do admin), canais de texto (#), canais de voz (palco ou livre, com quem está dentro, microfone, tela e o selo Ao vivo de quem compartilha), salas privadas e, no pé, o painel da conexão de voz. Renova a cada 10 s; quem fala, na sala em que a pessoa está, acende na hora.
 - **Canal de texto:** cabeçalho com o nome, as mensagens da mais velha para a mais nova com avatar e nome no começo de cada sequência, "Carregar mensagens anteriores" (50 por vez) e o campo fixo embaixo; o dono apaga e bane, qualquer um denuncia; com o chat fechado, só o dono escreve.
 - **Trocar a janela** (24/11/2026): quem compartilha escolhe outra janela sem parar a tela; a captura nova entra na mesma faixa (`replaceTrack`), e a plateia segue recebendo sem renegociar. Parar e compartilhar de novo cria faixa nova, e a renegociação às vezes derruba a sessão de quem assiste no SFU (a ligação se refaz sozinha, ADR-007).
-- **Barra do canal de voz** (no molde do Discord): microfone, ensurdecer (não ouve ninguém e muta o microfone; religar devolve como estava), tela (compartilhar, trocar a janela, parar), mão, imagem leve ou alta, volumes, mostrar ou esconder a coluna do chat e sair em vermelho. Quem está na sala fica na árvore, debaixo do canal, com as ações de cada pessoa. A interface diz que não existe apertar para falar: com o Dota em primeiro plano o navegador não recebe atalho; a voz abre sozinha, com redução de ruído, e o mutar fica na barra e no painel.
-- **`/sala/[id]`** (canal de voz): cabeçalho do canal com o modo, "Esta sala não é gravada", atraso e qualidade da conexão; o palco com a tela (e a escolha "alta" ou "leve" para quem assiste); na sala pública, quem está no palco, a plateia com as mãos levantadas e o chat; os controles (mutar, levantar a mão, compartilhar a tela com a escolha da qualidade e o consumo por hora, volumes, sair).
+- **Barra do canal de voz** (no molde do Discord): microfone, ensurdecer (não ouve ninguém e muta o microfone; religar devolve como estava), tela (compartilhar, trocar a janela, parar), mão, volumes, mostrar ou esconder a coluna do chat e sair em vermelho. Quem está na sala fica na árvore, debaixo do canal, com as ações de cada pessoa. A interface diz que não existe apertar para falar: com o Dota em primeiro plano o navegador não recebe atalho; a voz abre sozinha, com redução de ruído, e o mutar fica na barra e no painel.
+- **`/sala/[id]`** (canal de voz): cabeçalho do canal com o modo, "Esta sala não é gravada", atraso e qualidade da conexão; o palco com a tela (na qualidade que quem transmite escolheu); na sala pública, quem está no palco, a plateia com as mãos levantadas e o chat; os controles (mutar, levantar a mão, compartilhar a tela com a escolha da qualidade e o consumo por hora, volumes, sair).
 - **Primeira entrada:** a marcação "Tenho 18 anos ou mais" com as regras da sala.
 - **Painel de voz (R15):** no pé da coluna de canais dentro da `/sala`, e no canto em todas as outras páginas: o nome da sala (que leva de volta a ela), quem está falando ou quantos estão na sala, mutar, parar a tela, sair e, quando a pessoa é tirada da sala, o motivo até ela fechar o aviso.
 - **`/admin/salas`**: os canais do servidor (criar, renomear, subir e descer, modo palco ou livre, só Battlepass, só o dono escreve, apagar), a sala de mentoria (de um horário pago) e a da party; link e convite; encerrar; banidos (desbanir); consumo estimado e medido; denúncias.
@@ -407,7 +407,7 @@ As rotas para a barra de cima (sessão de design): `/sala` (sala pública da liv
 
 - **Unitárias (`pnpm test`):** permissões (cada "não" da seção 8, palco e lugares), faixas (quem publica, quem recebe, camada pela regra de custo), estimativa de custo e limiares, leitura do SDP, métricas e atraso, caminho do intermediário, credencial do TURN. `pnpm sala:mutacao` tira cada trava e exige vermelho.
 - **Banco:** `scripts/seguranca/sala-voz.sql` e `funcoes-abertas.sql` (seção 7).
-- **Ponta a ponta (`pnpm sala:e2e`):** servidor local, banco de produção com sala e usuários de teste (`is_test`, apagados no fim) e o app real do Realtime, com a mídia falsa do Chrome. Mentoria: os dois se ouvem, a tela chega em 1080p, mutar, denunciar, teto, bloqueio, expulsão. Sala pública: o ouvinte não publica voz, o chamado publica, a plateia recebe a camada leve (540p) e o atraso estimado aparece, o chat chega e o apagado some, o banido não volta, os lugares contam. Portões: login, fora, menor (sem a marcação), convite e flag desligada, até para o admin. Navegação (R15): dentro da mentoria, ir pela barra para `/party` e `/meta` e voltar pelo painel, com o `bytesReceived` do áudio subindo em cada passo, a tela na camada leve fora da sala e de volta na alta, e a página sem recarregar; depois recarregar no `/meta` e a sala voltar sozinha. O servidor local lê a linha de teste da flag (`sala_voz_e2e`), nunca a `sala_voz` de produção.
+- **Ponta a ponta (`pnpm sala:e2e`):** servidor local, banco de produção com sala e usuários de teste (`is_test`, apagados no fim) e o app real do Realtime, com a mídia falsa do Chrome. Mentoria: os dois se ouvem, a tela chega em 1080p, mutar, denunciar, teto, bloqueio, expulsão. Sala pública: o ouvinte não publica voz, o chamado publica, a plateia recebe a camada alta sem escolher e não compartilha a tela, o atraso estimado aparece, o chat chega e o apagado some, o banido não volta, os lugares contam. Portões: login, fora, menor (sem a marcação), convite e flag desligada, até para o admin. Navegação (R15): dentro da mentoria, ir pela barra para `/party` e `/meta` e voltar pelo painel, com o `bytesReceived` do áudio subindo em cada passo, a tela na camada leve fora da sala e de volta na alta, e a página sem recarregar; depois recarregar no `/meta` e a sala voltar sozinha. O servidor local lê a linha de teste da flag (`sala_voz_e2e`), nunca a `sala_voz` de produção.
 - **Aceite real:** uma mentoria de 1 hora do PPA (tela em 1080p, perda abaixo de 2%, voz sem corte, atraso p95 abaixo de 500 ms, consumo dentro do orçamento) e a primeira live com a sala pública (atraso p95 abaixo de 500 ms para a plateia), medidos pela consulta da seção 13 e registrados na nota compartilhada.
 
 ## 19. Entrega

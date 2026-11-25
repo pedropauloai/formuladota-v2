@@ -1,9 +1,10 @@
 // Faixas recebidas dos outros: a voz toca num elemento de áudio por pessoa, fora da página (continua
 // ao navegar pelo site); a tela e o áudio da tela vão juntos para o vídeo do palco (som e imagem no
 // mesmo relógio). A lista do estado manda: faixa nova é pedida, faixa que sumiu é solta. A tela vem na
-// camada que a pessoa escolheu ("alta" ou "leve"); fora da página da sala, na leve.
+// camada alta; desce para a leve fora da página da sala e, por um tempo, quando congela de novo e de novo.
 
 import type { Connection, Recebimento } from "./conexao";
+import { fluidezInicial, proximaFluidez } from "./fluidez";
 import type { Layer, TrackLabel } from "../tipos";
 
 export interface FaixaRemota {
@@ -35,6 +36,8 @@ export class Recepcao {
   /** Som desligado (ensurdecer): as vozes seguem chegando, caladas. */
   private surdo = false;
   private saindo: ReturnType<typeof setTimeout> | null = null;
+  /** Conexão fraca de quem assiste: a tela que congela de novo e de novo desce para a leve por um tempo. */
+  private fluidez = fluidezInicial(Date.now());
 
   constructor(
     private readonly conn: Connection,
@@ -115,7 +118,15 @@ export class Recepcao {
     for (const r of this.recebidas.values()) if (r.ref.tipo === "tela") r.rx?.setLayer(rid);
   }
 
-  /** "Alta" ou "leve": vale para a tela que chega agora e para as próximas (fora da sala, ao voltar). */
+  /** A cada medida (5 s), quanto a tela recebida congelou; fora da página da sala ela já vem na leve. */
+  observarFluidez(congelouMs: number | null, agora: number): void {
+    if (congelouMs === null || this.fora) return;
+    const proxima = proximaFluidez(this.fluidez, congelouMs, agora);
+    if (proxima.camada !== this.fluidez.camada) this.setLayer(proxima.camada);
+    this.fluidez = proxima;
+  }
+
+  /** A camada da tela na página da sala: vale para a que chega agora e para as próximas. */
   setLayer(rid: Layer): void {
     this.layer = rid;
     this.aplicarCamada();

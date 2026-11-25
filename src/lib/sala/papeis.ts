@@ -12,8 +12,13 @@ export function canPublishVoice(role: MemberRole): boolean {
   return role !== "ouvinte";
 }
 
-export function canShareScreen(role: MemberRole, roomKind: RoomKind, policy: ScreenPolicy, partyScreenEnabled: boolean): boolean {
+/** Quem compartilha a tela (pedido do PPA de 24/11/2026): no canal de voz comum (voz livre), qualquer um
+ *  na sala, como o Go Live do Discord; no canal de palco, quem está no palco (o dono e quem ele chamou); na
+ *  mentoria e na party, o dono (e o aluno da mentoria com a política um_por_vez). Uma tela por vez em
+ *  cada sala (faixas.ts). */
+export function canShareScreen(role: MemberRole, roomKind: RoomKind, voiceMode: VoiceMode, policy: ScreenPolicy, partyScreenEnabled: boolean): boolean {
   if (roomKind === "texto") return false;
+  if (roomKind === "palco") return voiceMode === "livre" || role === "dono" || role === "falante";
   if (role === "dono") return roomKind !== "party" || partyScreenEnabled;
   return role === "membro" && roomKind === "mentoria" && policy === "um_por_vez";
 }

@@ -34,8 +34,8 @@ export async function getScreenStream(quality: Quality): Promise<MediaStream> {
   };
   const stream = await navigator.mediaDevices.getDisplayMedia(options);
   const video = stream.getVideoTracks()[0];
-  // Leitura de minimapa e item pede nitidez: sob aperto, o navegador baixa quadros antes da resolução.
-  if (video) video.contentHint = "detail";
+  // Jogo em movimento: o "detail" (tela com texto) segurava a nitidez e derrubava a tela a 4 a 13 quadros.
+  if (video) video.contentHint = "motion";
   return stream;
 }
 

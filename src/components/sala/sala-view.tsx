@@ -194,10 +194,10 @@ function NaSala({ roomId, tipo, modo, mostrarTela, snap, sessao }: Props & { sna
         <Controles
           vozNoAr={snap.vozNoAr} mutado={snap.mutado} mutadoPeloDono={!!eu?.mutadoPeloDono} podeFalar={!!eu?.podeFalar} microfone={snap.microfone} onTentarMicrofone={() => void sessao.tentarMicrofone()} surdo={snap.surdo}
           podeLevantarMao={!!eu?.podeLevantarMao} mao={snap.mao} mostrarTela={mostrarTela} compartilhando={snap.compartilhando}
-          podeTela={!!eu?.podeCompartilharTela} motivoTela={eu?.motivoTela ?? null} assistindo={!!snap.tela && !snap.minhaTela}
-          camada={snap.camada} volumeVoz={volumeVoz} volumeJogo={volumeJogo} temChat={!!chat} chatAberto={colunaChat}
+          podeTela={!!eu?.podeCompartilharTela} motivoTela={eu?.motivoTela ?? null}
+          volumeVoz={volumeVoz} volumeJogo={volumeJogo} temChat={!!chat} chatAberto={colunaChat}
           onMudo={() => sessao.alternarMudo()} onSurdo={() => sessao.alternarSurdo()} onMao={() => sessao.alternarMao()} onTela={() => setEscolhendo(true)}
-          onPararTela={() => sessao.pararTela()} onTrocarTela={() => void sessao.trocarTela()} onCamada={(c) => sessao.escolherCamada(c)}
+          onPararTela={() => sessao.pararTela()} onTrocarTela={() => void sessao.trocarTela()}
           onVolumeVoz={(v) => { setVolumeVoz(v); sessao.setVoiceVolume(v); }} onVolumeJogo={setVolumeJogo} onChat={alternarChat} onSair={() => sessao.sair()}
         />
         {snap.audioBloqueado && (

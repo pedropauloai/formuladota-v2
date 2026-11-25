@@ -46,6 +46,20 @@ async function texto(t, check, c, pA, pB) {
   return pDono;
 }
 
+/** Na voz livre qualquer um compartilha a tela (como o Go Live do Discord), uma por vez, e o outro recebe a alta. */
+async function telaNaVozLivre(t, check, c, pA, pB) {
+  await pA.locator('[data-sala-tela="compartilhar"]:not([disabled])').click({ timeout: 30_000 });
+  await pA.locator('[data-sala-qualidade="leve"]').check();
+  await pA.locator("[data-sala-qualidade-confirmar]").click();
+  const chega = await waitFor(async () => (await s.attr(pB, "data-video-altura")) > 0, 40_000);
+  const alta = await waitFor(async () => (await s.videoLayerOf(c.livre.id, t.fora.id)) === "f", 20_000);
+  check("na voz livre, quem não é dono compartilha a tela e o outro recebe na camada alta", !!chega && !!alta, `camada ${await s.videoLayerOf(c.livre.id, t.fora.id)}`);
+  const espera = await waitFor(async () => (await pB.locator('[data-sala-tela="compartilhar"][disabled]').count()) > 0, 15_000);
+  check("com uma tela no ar, o botão de compartilhar do outro espera (uma tela por vez)", !!espera);
+  await pA.locator('[data-sala-tela="parar"]').click();
+  await waitFor(async () => (await s.openVideoCount(c.livre.id, t.ouvinte.id)) === 0, 15_000);
+}
+
 async function vozLivre(t, check, c, pA, pB) {
   await pA.locator(`[data-canal="${c.livre.id}"]`).click();
   const umClique = await naPagina(pA, '[data-sala-fase="na_sala"]', 60_000);
@@ -56,6 +70,7 @@ async function vozLivre(t, check, c, pA, pB) {
   await pB.locator('[data-sala-fase="na_sala"]').waitFor({ timeout: 60_000 });
   const ouve = await waitFor(async () => (await s.attr(pA, "data-audio-bytes")) > 0, 40_000);
   check("na voz livre, um ouve o outro", !!ouve, `${await s.attr(pA, "data-audio-bytes")} bytes`);
+  await telaNaVozLivre(t, check, c, pA, pB);
   const naArvore = await waitFor(async () => (await pB.locator(`[data-sala-membro="${t.ouvinte.id}"]`).count()) > 0, 30_000);
   check("a árvore mostra quem está no canal de voz, ao vivo", !!naArvore);
   const pFora = await (await t.ctx(t.dono)).newPage();

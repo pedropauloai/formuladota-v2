@@ -59,7 +59,7 @@ export interface Estado {
 
 function screenReason(v: Verdict, role: MemberRole, othersSharing: boolean): TrackDenyCode | null {
   const { room, settings } = v;
-  if (!room || !settings || !canShareScreen(role, room.kind, room.screenPolicy, settings.partyScreenEnabled)) return "tela_nao_permitida";
+  if (!room || !settings || !canShareScreen(role, room.kind, room.voiceMode, room.screenPolicy, settings.partyScreenEnabled)) return "tela_nao_permitida";
   if (othersSharing) return "tela_ocupada";
   // Sala de teste conta o próprio consumo na hora de publicar; aqui vale o de produção (o aviso da tela).
   if (!room.isTest && settings.usageBytes30d >= capBytesFor(settings.capGb30d)) return "teto_de_trafego";
@@ -78,11 +78,12 @@ export function compose(v: Verdict, snap: RawSnapshot, me: string, decided: Memb
   const roles = new Map(snap.members.map((m) => [m.u, { role: papelDe(m.r), online: m.on }]));
   roles.set(me, { role, online: true });
   const blocked = new Set(v.blocked);
-  const sharing = new Set(snap.tracks.filter((t) => t.t === "tela" && publisherMayKeep(roles.get(t.u)?.role ?? "ouvinte", "tela")).map((t) => t.u));
+  const salaDaTela = { kind: room.kind, voiceMode: room.voiceMode, screenPolicy: room.screenPolicy, partyScreenEnabled: settings.partyScreenEnabled };
+  const sharing = new Set(snap.tracks.filter((t) => t.t === "tela" && publisherMayKeep(roles.get(t.u)?.role ?? "ouvinte", "tela", salaDaTela)).map((t) => t.u));
   // No estado comum, "f" só vem quando é verdadeiro: sem ele, o dono já liberou.
   const forceMuted = mine ? !!mine.f : (v.member?.forceMuted ?? false);
   const motivoTela = screenReason(v, role, [...sharing].some((id) => id !== me));
-  const tracks = visibleTracks(snap.tracks.map((t) => ({ sessionId: t.s, userId: t.u, trackName: t.n, tipo: t.t, qualidade: t.q ?? null })), me, roles, blocked);
+  const tracks = visibleTracks(snap.tracks.map((t) => ({ sessionId: t.s, userId: t.u, trackName: t.n, tipo: t.t, qualidade: t.q ?? null })), me, roles, blocked, salaDaTela);
   const membros: MembroEstado[] = snap.members.map((m) => ({
     userId: m.u, papel: m.u === me ? role : papelDe(m.r), online: m.on || m.u === me, mutado: m.m, mutadoPeloDono: !!m.f,
     maoDesde: m.h ?? null, compartilhandoTela: sharing.has(m.u), bloqueado: blocked.has(m.u),

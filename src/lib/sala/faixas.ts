@@ -2,11 +2,12 @@
 // a camada da tela de cada pessoa. O servidor confere antes de repassar ao SFU.
 
 import { canPublishVoice, canShareScreen } from "./papeis";
-import type { Layer, MemberRole, Quality, RoomKind, RuleDecision, ScreenPolicy, TrackKind, TrackLabel } from "./tipos";
+import type { Layer, MemberRole, Quality, RoomKind, RuleDecision, ScreenPolicy, TrackKind, TrackLabel, VoiceMode } from "./tipos";
 
 export interface PublishInput {
   role: MemberRole;
   roomKind: RoomKind;
+  voiceMode: VoiceMode;
   screenPolicy: ScreenPolicy;
   partyScreenEnabled: boolean;
   /** Mutado pelo dono: não volta a publicar a voz até ser liberado. */
@@ -22,7 +23,7 @@ export interface PublishInput {
 export function decidePublish(input: PublishInput): RuleDecision {
   if (input.roomKind === "texto") return { ok: false, code: "sala_sem_midia" };
   if (input.requested.length === 0) return { ok: false, code: "faixa_demais" };
-  const share = canShareScreen(input.role, input.roomKind, input.screenPolicy, input.partyScreenEnabled);
+  const share = canShareScreen(input.role, input.roomKind, input.voiceMode, input.screenPolicy, input.partyScreenEnabled);
   const videos = input.requested.filter((k) => k === "video").length;
   const audios = input.requested.length - videos;
   if (videos > 0 && !share) return { ok: false, code: "tela_nao_permitida" };
@@ -76,9 +77,18 @@ export function decideLabel(input: { tipo: TrackLabel; kind: TrackKind; canShare
   return { ok: true };
 }
 
-/** Quem ainda pode publicar aquele tipo de faixa, pelo papel de agora. */
-export function publisherMayKeep(role: MemberRole, tipo: TrackLabel): boolean {
-  return tipo === "voz" ? canPublishVoice(role) : role === "dono" || role === "membro";
+/** A sala, no que decide quem pode compartilhar a tela. */
+export interface SalaDaTela {
+  kind: RoomKind;
+  voiceMode: VoiceMode;
+  screenPolicy: ScreenPolicy;
+  partyScreenEnabled: boolean;
+}
+
+/** Quem ainda pode publicar aquele tipo de faixa, pelo papel de agora: a voz enquanto pode falar, a tela
+ *  enquanto pode compartilhar (quem voltou à plateia do palco deixa de ser ouvido e visto). */
+export function publisherMayKeep(role: MemberRole, tipo: TrackLabel, sala: SalaDaTela): boolean {
+  return tipo === "voz" ? canPublishVoice(role) : canShareScreen(role, sala.kind, sala.voiceMode, sala.screenPolicy, sala.partyScreenEnabled);
 }
 
 export interface TrackView {
@@ -90,10 +100,10 @@ export interface TrackView {
 
 /** Faixas que esta pessoa pode receber agora: rotuladas, de quem está online e ainda pode publicar
  *  aquilo, sem bloqueio entre os dois, nunca a própria. */
-export function visibleTracks<T extends TrackView>(tracks: T[], me: string, members: Map<string, { role: MemberRole; online: boolean }>, blocked: Set<string>): T[] {
+export function visibleTracks<T extends TrackView>(tracks: T[], me: string, members: Map<string, { role: MemberRole; online: boolean }>, blocked: Set<string>, sala: SalaDaTela): T[] {
   return tracks.filter((t) => {
     const m = members.get(t.userId);
-    return t.userId !== me && t.tipo !== null && !!m?.online && publisherMayKeep(m.role, t.tipo) && !blocked.has(t.userId);
+    return t.userId !== me && t.tipo !== null && !!m?.online && publisherMayKeep(m.role, t.tipo, sala) && !blocked.has(t.userId);
   });
 }
 
@@ -117,9 +127,9 @@ export function checkLayerUpdate(input: {
   return { ok: true };
 }
 
-/** Camada da tela de cada pessoa (spec, ADR-006): na sala pública, a leve por padrão e a alta só para
- *  quem pede enquanto o consumo dos 30 dias está abaixo de metade do teto. */
-export function decideLayer(input: { roomKind: RoomKind; requested: Layer | null; usageBytes: number; capBytes: number }): Layer {
-  if (input.roomKind !== "palco") return input.requested ?? "f";
-  return input.requested === "f" && input.usageBytes < input.capBytes / 2 ? "f" : "h";
+/** Camada da tela de cada pessoa (spec, ADR-006): a qualidade é de quem transmite, e quem assiste recebe
+ *  a alta (o SFU desce para a leve sozinho quando falta banda e volta depois). A leve só para quem pediu:
+ *  quem está fora da página da sala, onde a tela não aparece. */
+export function decideLayer(requested: Layer | null): Layer {
+  return requested ?? "f";
 }

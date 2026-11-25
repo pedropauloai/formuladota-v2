@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { checkLayerUpdate, decideLabel, decideLayer, decidePublish, decideSubscribe, hasRepeatedPull, labelMatchesKind, visibleTracks, type PublishInput, type SubscribeInput, type TrackView } from "./faixas";
+import { checkLayerUpdate, decideLabel, decideLayer, decidePublish, decideSubscribe, hasRepeatedPull, labelMatchesKind, visibleTracks, type PublishInput, type SalaDaTela, type SubscribeInput, type TrackView } from "./faixas";
 import type { MemberRole } from "./tipos";
 
 function publish(over: Partial<PublishInput> = {}): PublishInput {
   return {
     role: "membro",
     roomKind: "mentoria",
+    voiceMode: "palco",
     screenPolicy: "dono",
     partyScreenEnabled: false,
     forceMuted: false,
@@ -43,8 +44,14 @@ describe("decidePublish", () => {
     expect(decidePublish(publish({ requested: ["video"] }))).toEqual({ ok: false, code: "tela_nao_permitida" });
   });
 
-  it("recusa vídeo de quem fala no palco", () => {
-    expect(decidePublish(publish({ role: "falante", roomKind: "palco", requested: ["video"] }))).toEqual({ ok: false, code: "tela_nao_permitida" });
+  it("no palco, quem foi chamado compartilha a tela e a plateia não", () => {
+    expect(decidePublish(publish({ role: "falante", roomKind: "palco", requested: ["video"] }))).toEqual({ ok: true });
+    expect(decidePublish(publish({ role: "ouvinte", roomKind: "palco", requested: ["video"] }))).toEqual({ ok: false, code: "tela_nao_permitida" });
+  });
+
+  it("na voz livre, qualquer um na sala compartilha a tela (uma por vez)", () => {
+    expect(decidePublish(publish({ role: "falante", roomKind: "palco", voiceMode: "livre", requested: ["video"] }))).toEqual({ ok: true });
+    expect(decidePublish(publish({ role: "falante", roomKind: "palco", voiceMode: "livre", requested: ["video"], videoActiveByOthers: true }))).toEqual({ ok: false, code: "tela_ocupada" });
   });
 
   it("o dono da sala pública publica a tela e o áudio da tela junto da voz", () => {
@@ -137,6 +144,9 @@ describe("rótulo da faixa", () => {
 describe("visibleTracks (o que cada pessoa pode receber agora)", () => {
   const faixa = (userId: string, tipo: TrackView["tipo"]): TrackView => ({ sessionId: `s-${userId}`, userId, trackName: `t-${userId}-${tipo}`, tipo });
   const membro = (role: MemberRole, online = true) => ({ role, online });
+  const palco: SalaDaTela = { kind: "palco", voiceMode: "palco", screenPolicy: "dono", partyScreenEnabled: false };
+  const livre: SalaDaTela = { ...palco, voiceMode: "livre" };
+  const mentoria: SalaDaTela = { kind: "mentoria", voiceMode: "palco", screenPolicy: "um_por_vez", partyScreenEnabled: false };
 
   it("faixa rotulada de quem está online e pode publicar aquilo, sem bloqueio, nunca a própria", () => {
     const tracks = [
@@ -147,13 +157,24 @@ describe("visibleTracks (o que cada pessoa pode receber agora)", () => {
       ["ppa", membro("dono")], ["eu", membro("falante")], ["ausente", membro("falante", false)],
       ["bloqueado", membro("falante")], ["novo", membro("falante")], ["plateia", membro("ouvinte")],
     ]);
-    const v = visibleTracks(tracks, "eu", members, new Set(["bloqueado"])).map((t) => t.trackName);
+    const v = visibleTracks(tracks, "eu", members, new Set(["bloqueado"]), palco).map((t) => t.trackName);
     expect(v).toEqual(["t-ppa-voz", "t-ppa-tela", "t-ppa-tela_audio"]);
   });
 
   it("a tela do aluno da mentoria aparece para o dono", () => {
     const members = new Map([["aluno", membro("membro")], ["ppa", membro("dono")]]);
-    expect(visibleTracks([faixa("aluno", "tela")], "ppa", members, new Set()).length).toBe(1);
+    expect(visibleTracks([faixa("aluno", "tela")], "ppa", members, new Set(), mentoria).length).toBe(1);
+  });
+
+  it("na voz livre, a tela de quem não é dono chega aos outros", () => {
+    const members = new Map([["amigo", membro("falante")], ["eu", membro("falante")]]);
+    expect(visibleTracks([faixa("amigo", "tela"), faixa("amigo", "tela_audio")], "eu", members, new Set(), livre).length).toBe(2);
+  });
+
+  it("no palco, a tela de quem voltou à plateia deixa de chegar", () => {
+    const members = new Map([["chamado", membro("falante")], ["voltou", membro("ouvinte")], ["eu", membro("ouvinte")]]);
+    const v = visibleTracks([faixa("chamado", "tela"), faixa("voltou", "tela")], "eu", members, new Set(), palco).map((t) => t.userId);
+    expect(v).toEqual(["chamado"]);
   });
 });
 
@@ -187,20 +208,13 @@ describe("checkLayerUpdate (o update só troca a camada de uma recepção que j�
 });
 
 describe("decideLayer (camada da tela de cada pessoa)", () => {
-  const cap = 800_000_000_000;
-  it("mentoria e party: a camada que a pessoa pediu, a alta por padrão", () => {
-    expect(decideLayer({ roomKind: "mentoria", requested: null, usageBytes: 0, capBytes: cap })).toBe("f");
-    expect(decideLayer({ roomKind: "mentoria", requested: "h", usageBytes: 0, capBytes: cap })).toBe("h");
-    expect(decideLayer({ roomKind: "party", requested: "f", usageBytes: cap, capBytes: cap })).toBe("f");
+  it("quem assiste recebe a camada alta em qualquer sala: a qualidade é de quem transmite", () => {
+    expect(decideLayer(null)).toBe("f");
+    expect(decideLayer("f")).toBe("f");
   });
 
-  it("sala pública: a leve por padrão", () => {
-    expect(decideLayer({ roomKind: "palco", requested: null, usageBytes: 0, capBytes: cap })).toBe("h");
-  });
-
-  it("sala pública: a alta para quem pede, enquanto o consumo está abaixo de metade do teto", () => {
-    expect(decideLayer({ roomKind: "palco", requested: "f", usageBytes: cap * 0.49, capBytes: cap })).toBe("f");
-    expect(decideLayer({ roomKind: "palco", requested: "f", usageBytes: cap * 0.5, capBytes: cap })).toBe("h");
+  it("quem está fora da página da sala pede a leve e recebe a leve", () => {
+    expect(decideLayer("h")).toBe("h");
   });
 });
 
