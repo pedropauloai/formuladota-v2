@@ -10,13 +10,14 @@ import { Panel, plate } from "@/components/v2";
 
 export type PortaoTipo = "login" | "fora" | "expulso" | "banido" | "beneficio" | "encerrada" | "identidade" | "bloqueada" | "lotada";
 
-const CHAVES: Record<PortaoTipo, { titulo: string; texto: string }> = {
-  login: { titulo: "portaoLoginTitulo", texto: "portaoLoginTexto" },
+// Texto só onde diz o motivo ou o caminho; o título e o botão bastam no resto.
+const CHAVES: Record<PortaoTipo, { titulo: string; texto: string | null }> = {
+  login: { titulo: "portaoLoginTitulo", texto: null },
   fora: { titulo: "portaoForaTitulo", texto: "portaoForaTexto" },
   expulso: { titulo: "portaoExpulsoTitulo", texto: "portaoExpulsoTexto" },
-  encerrada: { titulo: "portaoEncerradaTitulo", texto: "portaoEncerradaTexto" },
+  encerrada: { titulo: "portaoEncerradaTitulo", texto: null },
   identidade: { titulo: "portaoIdentidadeTitulo", texto: "portaoIdentidadeTexto" },
-  bloqueada: { titulo: "portaoBloqueadaTitulo", texto: "portaoBloqueadaTexto" },
+  bloqueada: { titulo: "portaoBloqueadaTitulo", texto: null },
   banido: { titulo: "portaoBanidoTitulo", texto: "portaoBanidoTexto" },
   beneficio: { titulo: "portaoBeneficioTitulo", texto: "portaoBeneficioTexto" },
   lotada: { titulo: "portaoLotadaTitulo", texto: "portaoLotadaTexto" },
@@ -30,7 +31,7 @@ export async function Portao({ tipo, next, children }: { tipo: PortaoTipo; next:
     <Panel className="mx-auto mt-10 max-w-md space-y-4 p-6 text-center" data-sala-portao={tipo}>
       <Icon className="mx-auto size-10 text-brand-primary" aria-hidden="true" />
       <h1 className="font-display-condensed text-[2.2rem] uppercase leading-none text-text-display">{t(chaves.titulo)}</h1>
-      <p className="text-sm leading-relaxed text-text-body">{t(chaves.texto)}</p>
+      {chaves.texto && <p className="text-sm leading-relaxed text-text-body">{t(chaves.texto)}</p>}
       {tipo === "login" && (
         <form action={signInWithDiscordReturning}>
           <input type="hidden" name="next" value={next} />

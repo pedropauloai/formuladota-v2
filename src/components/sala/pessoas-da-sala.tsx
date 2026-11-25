@@ -27,7 +27,7 @@ export function PessoasDaSala({ sessao, snap }: { sessao: SessaoSala; snap: Sess
     <>
       <Pessoas
         membros={estado.membros ?? []} pessoas={snap.pessoas} eu={estado.eu?.userId ?? null} souDono={snap.papel === "dono"}
-        tipo={estado.sala.tipo} modo={estado.sala.modo} falando={snap.falando} falantesMax={estado.sala.falantesMax}
+        tipo={estado.sala.tipo} modo={estado.sala.modo} falando={snap.falando}
         onModerar={(id, acao) => void moderar(id, acao)} onBloquear={(id) => void sessao.bloquear(id)}
         onDenunciar={(id) => setAlvo({ tipo: "pessoa", userId: id, nome: nomeDe(id) })}
         volumes={snap.volumes} onVolumeDe={(id, v) => sessao.setVolumeDe(id, v)}

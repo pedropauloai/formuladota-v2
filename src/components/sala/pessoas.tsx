@@ -33,7 +33,6 @@ export interface PessoasProps {
   /** Canal de voz: palco (chamar e devolver) ou livre (todo mundo fala). */
   modo: VoiceMode;
   falando: string[];
-  falantesMax: number;
   onModerar: (userId: string, acao: AcaoDono) => void;
   onBloquear: (userId: string) => void;
   onDenunciar: (userId: string) => void;
@@ -215,12 +214,11 @@ function Grupo({ titulo, membros, props, data }: { titulo: string; membros: Memb
 export function Pessoas(props: PessoasProps) {
   const t = useTranslations("sala");
   const online = props.membros.filter((m) => m.online);
-  const falantes = online.filter((m) => m.papel === "falante").length;
   return (
     <div className="pl-5" data-sala-pessoas={online.length} aria-label={t("pessoasRotulo", { n: online.length })}>
       {props.tipo === "palco" && props.modo === "palco" ? (
         <>
-          <Grupo titulo={t("noPalco", { falantes, max: props.falantesMax })} membros={online.filter((m) => m.papel !== "ouvinte")} props={props} data="palco" />
+          <Grupo titulo={t("noPalco")} membros={online.filter((m) => m.papel !== "ouvinte")} props={props} data="palco" />
           <Grupo titulo={t("plateia")} membros={online.filter((m) => m.papel === "ouvinte").sort(porMao)} props={props} data="plateia" />
         </>
       ) : (

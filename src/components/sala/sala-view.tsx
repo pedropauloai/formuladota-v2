@@ -8,7 +8,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore, type ComponentProps } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Loader2, Lock, Radio, ShieldCheck, Volume2 } from "lucide-react";
+import { Loader2, Lock, Radio, Volume2 } from "lucide-react";
 import { Panel, plate } from "@/components/v2";
 import { useRouter } from "@/i18n/navigation";
 import { captureSupport } from "@/lib/sala/cliente/midia";
@@ -36,7 +36,6 @@ interface Props {
 }
 
 const QUALIDADE = { boa: "qualidadeBoa", instavel: "qualidadeInstavel", ruim: "qualidadeRuim" } as const;
-const ROTULO = { palco: "modoPalco", livre: "modoLivre", mentoria: "tipoMentoria", party: "tipoParty" } as const;
 
 const nada = () => () => undefined;
 const suporteAgora = () => {
@@ -50,11 +49,11 @@ function Avisos({ mostrarTela }: { mostrarTela: boolean }) {
   if (!mostrarTela) return null;
   const semFiltro = key[0] !== "1";
   const semTela = key[1] !== "1";
+  // Só os avisos do que o navegador não faz, com o caminho; sem dica de como compartilhar.
+  if (!semTela && !semFiltro) return null;
   return (
-    <div className="space-y-1 text-xs leading-relaxed text-text-muted" data-sala-suporte={semFiltro ? "sem-filtro-de-eco" : "completo"}>
-      {semTela && <p className="text-error">{t("avisoSemTela")}</p>}
-      {!semTela && semFiltro && <p className="text-gold">{t("avisoEco")}</p>}
-      <p>{t("dicaTela")}</p>
+    <div className="space-y-1 text-xs leading-relaxed" data-sala-suporte={semTela ? "sem-tela" : "sem-filtro-de-eco"}>
+      {semTela ? <p className="text-error">{t("avisoSemTela")}</p> : <p className="text-gold">{t("avisoEco")}</p>}
     </div>
   );
 }
@@ -69,11 +68,6 @@ function Cabecalho({ titulo, tipo, modo, snap }: { titulo: string; tipo: RoomKin
     <header className="flex min-h-12 flex-wrap items-center gap-x-3 gap-y-1 border-b border-border-subtle py-2">
       <Icone className="size-5 shrink-0 text-text-muted" aria-hidden="true" />
       <h1 className="truncate font-display text-base font-semibold text-text-display">{titulo}</h1>
-      <span className="text-xs text-text-muted" data-sala-modo={privada ? tipo : modo}>{t(ROTULO[privada ? tipo : modo])}</span>
-      <p className="flex items-center gap-1.5 text-xs text-text-muted">
-        <ShieldCheck className="size-3.5" aria-hidden="true" />
-        {t("naoGravada")}
-      </p>
       <span className="ml-auto" />
       {snap.reconectando ? (
         <p className="flex items-center gap-1.5 text-xs text-gold" data-sala-reconectando="">
@@ -112,8 +106,6 @@ function Entrada({ snap, entrar, retomando, mostrarTela }: { snap: SessaoSnapsho
             <button type="button" onClick={entrar} data-sala-entrar="" className={plate({ kind: "cta", block: true })}>
               {snap.fase === "inicial" ? t("entrar") : t("entrarDeNovo")}
             </button>
-            <p className="text-xs text-text-muted">{t("entrarAviso")}</p>
-            <p className="text-xs text-text-muted">{t("dicaVoz")}</p>
           </>
         )
       )}
@@ -227,7 +219,7 @@ function NaSala({ roomId, tipo, modo, mostrarTela, snap, sessao }: Props & { sna
       />
       <ConfigVoz aberto={config} onClose={() => setConfig(false)} />
       <QualidadeTela
-        aberto={escolhendo} tipo={tipo} espectadores={membros.filter((m) => m.online && m.userId !== eu?.userId).length}
+        aberto={escolhendo} espectadores={membros.filter((m) => m.online && m.userId !== eu?.userId).length}
         onClose={() => setEscolhendo(false)}
         onEscolher={(q) => { setEscolhendo(false); void sessao.compartilharTela(q); }}
       />

@@ -130,7 +130,7 @@ function Campo({ titulo, podeEscrever, enviar }: { titulo: string; podeEscrever:
           <Send className="size-4" />
         </button>
       </div>
-      <p className={cn("pt-1 text-[11px]", erro ? "text-error" : "text-text-muted")} role={erro ? "alert" : undefined}>{erro ? t(erro) : t("canalGuardado")}</p>
+      {erro && <p className="pt-1 text-[11px] text-error" role="alert">{t(erro)}</p>}
     </form>
   );
 }

@@ -96,7 +96,7 @@ function Tela({ p }: { p: ControlesProps }) {
       <Botao titulo={t("pararTela")} tom="ligado" onClick={p.onPararTela} data={{ "data-sala-tela": "parar" }}>
         <MonitorX className="size-5" />
       </Botao>
-      <Botao titulo={t("trocarJanelaDica")} onClick={p.onTrocarTela} data={{ "data-sala-tela": "trocar" }}>
+      <Botao titulo={t("trocarJanela")} onClick={p.onTrocarTela} data={{ "data-sala-tela": "trocar" }}>
         <AppWindow className="size-5" />
       </Botao>
     </>
@@ -136,7 +136,7 @@ function AvisoMicrofone({ p }: { p: ControlesProps }) {
 function Avisos({ p }: { p: ControlesProps }) {
   const t = useTranslations("sala");
   const tela = !p.compartilhando && p.motivoTela && p.motivoTela !== "tela_nao_permitida" ? TELA_TEXTO[p.motivoTela] : undefined;
-  const avisos = [p.mutadoPeloDono && "mutadoPeloDonoAviso", tela, p.vozNoAr && "dicaVoz"].filter((v): v is string => !!v);
+  const avisos = [p.mutadoPeloDono && "mutadoPeloDonoAviso", tela].filter((v): v is string => !!v);
   return (
     <div className="space-y-1">
       <AvisoMicrofone p={p} />
