@@ -65,13 +65,13 @@ export function RoomHeader({
                 {modeKey ? t(modeKey) : lobby.gameMode}
               </span>
             </div>
-            <p className="mt-0.5 flex min-w-0 items-center gap-1.5 font-display text-sm font-semibold uppercase tracking-wide text-text-faded">
+            <div className="mt-0.5 flex min-w-0 items-center gap-1.5 font-display text-sm font-semibold uppercase tracking-wide text-text-faded">
               <span className="shrink-0">{t("leaderLabel")}</span>
               <UserHoverCard userId={lobby.createdBy} className="flex min-w-0 items-center gap-1.5 text-text-muted hover:text-text-display">
                 <UserAvatar src={leaderAvatar ?? undefined} alt="" fallback={leaderUsername.slice(0, 2).toUpperCase()} size="xs" className="size-5" />
                 <span className="truncate">{leaderUsername}</span>
               </UserHoverCard>
-            </p>
+            </div>
           </div>
         </div>
         <PasswordBadge password={lobby.password} />
