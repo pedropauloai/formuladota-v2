@@ -32,7 +32,6 @@ export default async function SalaInicioPage() {
     <Panel className="m-6 max-w-md space-y-3 p-6" data-sala-publica="fechada">
       <Hash className="size-8 text-text-muted" aria-hidden="true" />
       <h1 className="font-display-condensed text-[2rem] uppercase leading-none text-text-display">{t("servidorVazioTitulo")}</h1>
-      <p className="text-sm leading-relaxed text-text-body">{t("servidorVazioTexto")}</p>
     </Panel>
   );
 }

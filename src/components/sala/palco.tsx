@@ -120,7 +120,7 @@ export function Palco(p: Props) {
   const { caixa, cheia, alternar } = useTelaCheia(temTela);
   const [comChat, setComChat] = useState(true);
   useTeclasDaTelaCheia(cheia, p, setComChat);
-  const label = p.minhaTela ? t("suaTela") : p.telaDe ? t("telaDe", { nome: p.nomeDe(p.telaDe) }) : t("semTela");
+  const label = p.minhaTela ? t("suaTela") : p.telaDe ? t("telaDe", { nome: p.nomeDe(p.telaDe) }) : "";
   return (
     // Na altura da área do canal (100cqh) cabem o cabeçalho, a tela e a barra de controles sem rolar.
     <div ref={caixa} className={cn("relative mx-auto w-full", cheia ? "max-w-none bg-black" : "max-w-[calc((100cqh-12rem)*16/9)]")} data-sala-tela-cheia={cheia ? "sim" : "nao"}>
@@ -132,7 +132,6 @@ export function Palco(p: Props) {
         ) : (
           <div className="flex h-full flex-col items-center justify-center gap-4 overflow-y-auto py-6 text-text-muted">
             {p.participantes || <MonitorUp className="size-10" aria-hidden="true" />}
-            <p className="text-sm">{label}</p>
           </div>
         )}
         {temTela && <p className={cn("absolute left-3 top-3 rounded-sm bg-bg-deep/80 px-2 py-1 text-xs text-text-body", anelFala(!!p.telaFalando))} data-sala-tela-falando={p.telaFalando ? "sim" : "nao"}>{label}</p>}

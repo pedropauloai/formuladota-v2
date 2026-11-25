@@ -144,7 +144,6 @@ export function Chat(p: Props) {
           <p className="mt-3 text-xs text-text-muted">{t("chatFechado")}</p>
         )}
         {erro && <p role="alert" className="mt-1 text-xs text-error">{t(erro)}</p>}
-        <p className="mt-2 text-[0.7rem] leading-relaxed text-text-muted">{t("chatGuardado")}</p>
       </>
   );
   return p.sobreposto ? (

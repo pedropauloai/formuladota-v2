@@ -74,6 +74,8 @@ async function comTelaDoDota(ctx) {
 }
 
 async function foto(page, nome, { mouse = [4, 4] } = {}) {
+  // O Chrome sem janela só pinta o vídeo da aba que está na frente: atrás, a tela sai preta na foto.
+  await page.bringToFront();
   await page.addStyleTag({ content: "nextjs-portal{display:none!important}" });
   await page.mouse.move(mouse[0], mouse[1]);
   await sleep(600);
@@ -253,7 +255,13 @@ async function mentoria(p, ctx) {
   await db.from("voice_rooms").update({ title: "Mentoria de Tinker" }).eq("id", sala.id);
   made.orders.push(sala.orderId);
   const pDono = await s.enter(await comTelaDoDota(await ctx(p.dono)), sala.id, "dono-mentoria");
-  const pAluno = await s.enter(await ctx(p.aluno), sala.id, "aluno");
+  // A tela antes de entrar, com o botão de entrar.
+  const pAluno = await (await ctx(p.aluno)).newPage();
+  await pAluno.goto(`${s.BASE}/sala/${sala.id}`);
+  await pAluno.locator("[data-sala-entrar]").waitFor({ timeout: 60_000 });
+  await foto(pAluno, "00-entrar.png");
+  await pAluno.locator("[data-sala-entrar]").click();
+  await pAluno.locator('[data-sala-fase="na_sala"]').waitFor({ timeout: 30_000 });
   await waitFor(async () => (await pDono.locator('[data-sala-pessoas="2"]').count()) > 0, 30_000);
   await pDono.locator('[data-sala-tela="compartilhar"]:not([disabled])').click({ timeout: 30_000 });
   await pDono.locator('[data-sala-qualidade="alta"]').check();
