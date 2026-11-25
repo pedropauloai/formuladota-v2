@@ -1,9 +1,10 @@
 // Parte da fala e dos aparelhos do e2e (pedido do PPA em 24/11/2026): o anel verde de quem fala acende
-// para quem escuta (na árvore, no palco e no painel do canto), apaga quando a pessoa muta e volta quando
-// ela desmuta; e as configurações de voz trocam o microfone no meio da ligação (a mesma faixa no SFU, o
-// áudio seguindo e o anel aceso com o microfone novo), mostram o nível no teste, mandam as vozes para a
-// saída de som escolhida e valem de novo depois de recarregar; na página aberta fora da sala, avisam que
-// o microfone só vale na sala. Quem fala roda num Chrome à parte, com a fala falsa (fala-falsa.mjs).
+// para quem escuta (na árvore, no palco e no painel do canto), fica aceso sem piscar enquanto a pessoa fala
+// sem parar, apaga quando ela muta e volta quando ela desmuta; e as configurações de voz trocam o microfone
+// no meio da ligação (a mesma faixa no SFU, o áudio seguindo e o anel aceso com o microfone novo), mostram
+// o nível no teste, mandam as vozes para a saída de som escolhida e valem de novo depois de recarregar; na
+// página aberta fora da sala, listam os microfones e o teste funciona. Quem fala roda num Chrome à parte,
+// com a fala falsa (fala-falsa.mjs).
 
 import { chromium } from "playwright-core";
 import { chromeQueFala } from "./fala-falsa.mjs";
@@ -30,6 +31,25 @@ const naPagina = async (page, sel, ms = 20_000) => !!(await page.locator(sel).fi
 const anel = async (page, sel, aceso, ms = 20_000) =>
   !!(await waitFor(async () => (await page.locator(`${sel}[data-sala-falando="${aceso ? "sim" : "nao"}"]`).count()) > 0, ms));
 
+/** A fração do tempo em que o anel ficou aceso, olhando na própria página a cada 50 ms durante `ms`. */
+const anelFirme = (page, sel, ms) =>
+  page.evaluate(
+    ({ sel, ms }) =>
+      new Promise((ok) => {
+        let acesas = 0;
+        let vezes = 0;
+        const olhar = window.setInterval(() => {
+          vezes++;
+          if (document.querySelector(sel)?.getAttribute("data-sala-falando") === "sim") acesas++;
+        }, 50);
+        window.setTimeout(() => {
+          window.clearInterval(olhar);
+          ok(vezes ? acesas / vezes : 0);
+        }, ms);
+      }),
+    { sel, ms }
+  );
+
 const guardado = (page) => page.evaluate((k) => JSON.parse(localStorage.getItem(k) ?? "{}"), CONFIG);
 
 const emUso = (page) => page.locator("[data-sala-microfone-em-uso]").getAttribute("data-sala-microfone-em-uso", { timeout: 2_000 }).catch(() => null);
@@ -54,6 +74,9 @@ async function anelDeQuemFala(t, check, pA, pB) {
   const arvore = `[data-sala-membro="${a}"]`;
   const quadro = `[data-sala-quadro="${a}"]`;
   check("quando a pessoa fala, o anel verde acende para quem escuta, na árvore e no palco", (await anel(pB, arvore, true, 30_000)) && (await anel(pB, quadro, true, 5_000)));
+  // 10 s cobrem o ciclo inteiro em que a medida de 300 ms escorrega pelas sílabas de 310 ms da fala falsa.
+  const firme = await anelFirme(pB, arvore, 10_000);
+  check("enquanto a pessoa fala sem parar, o anel fica aceso, sem piscar", firme >= 0.95, `aceso em ${Math.round(firme * 100)}% de 10 s`);
   await pA.locator('[data-sala-mudo="nao"]').click();
   check("quando ela muta, o anel apaga na árvore e no palco", (await anel(pB, arvore, false, 10_000)) && (await anel(pB, quadro, false, 5_000)));
   await pA.locator('[data-sala-mudo="sim"]').click();

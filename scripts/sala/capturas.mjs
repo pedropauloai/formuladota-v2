@@ -124,15 +124,21 @@ async function vozLivre(p, ctx, c) {
   falante = await chromeQueFala(chromium, s.CHROME_ARGS);
   const pF = await s.enter(await s.buyerContext(falante, p.f, { desktop: true }), c.livre.id, "f");
   const pG = await s.enter(await ctx(p.g), c.livre.id, "g");
-  const acesa = (page) => waitFor(async () => (await page.locator(`[data-sala-membro="${p.f.id}"][data-sala-falando="sim"]`).count()) > 0, 30_000);
-  await acesa(pG);
-  await sleep(1500);
-  await foto(pG, "09-voz-livre.png");
+  const acesa = async (page) => (await page.locator(`[data-sala-membro="${p.f.id}"][data-sala-falando="sim"]`).count()) > 0;
+  /** A foto só vale com o anel aceso antes e depois dela. */
+  const fotoAcesa = async (page, nome) => {
+    for (let vez = 0; vez < 5; vez++) {
+      await waitFor(() => acesa(page), 30_000);
+      await sleep(1500);
+      await foto(page, nome);
+      if (await acesa(page)) return;
+    }
+    throw new Error(`o anel de quem fala apagou na hora da foto ${nome}`);
+  };
+  await fotoAcesa(pG, "09-voz-livre.png");
   await configuracoes(pF, "11-configuracoes-de-voz.png");
   for (const page of [pG, pF]) await page.setViewportSize({ width: 3440, height: 1440 });
-  await acesa(pG);
-  await sleep(1500);
-  await foto(pG, "12-voz-livre-3440.png");
+  await fotoAcesa(pG, "12-voz-livre-3440.png");
   await configuracoes(pF, "13-configuracoes-de-voz-3440.png");
   return [pF, pG];
 }

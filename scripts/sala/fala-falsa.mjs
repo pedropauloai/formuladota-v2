@@ -1,6 +1,8 @@
 // Fala falsa para o Chrome de teste: o bipe padrão do Chrome (--use-fake-device-for-media-stream) dura
 // 20 ms a cada meio segundo e mal acende o anel de quem fala. No lugar, sílabas de 220 ms com 90 ms de
-// pausa, em três alturas e com harmônicos (WAV mono, 48 kHz, 3 s, que o Chrome repete sem parar).
+// pausa, em três alturas e com harmônicos (WAV mono, 48 kHz), que o Chrome repete sem parar. São 30
+// sílabas inteiras (9,3 s): a volta não corta sílaba, e a medida da sala, a cada 300 ms, escorrega 10 ms
+// por sílaba e passa por todas as posições dela, inclusive a pausa, em cada volta.
 
 import { writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -8,9 +10,9 @@ import { join } from "node:path";
 
 function wavDeFala(caminho) {
   const taxa = 48_000;
-  const n = taxa * 3;
-  const wav = Buffer.alloc(44 + n * 2);
   const ciclo = Math.round(0.31 * taxa);
+  const n = ciclo * 30;
+  const wav = Buffer.alloc(44 + n * 2);
   const silaba = Math.round(0.22 * taxa);
   for (let i = 0; i < n; i++) {
     const k = i % ciclo;

@@ -1,10 +1,18 @@
 // Indicador de fala: mede o volume de cada voz (a própria e as recebidas) no próprio navegador,
-// sem passar nada pelo servidor. Quem fala fica aceso um instante depois da voz cair, para o anel
-// não piscar entre uma sílaba e outra (como no Discord).
+// sem passar nada pelo servidor. Cada medida olha o som inteiro desde a anterior, e não só o último
+// instante (que pode cair entre duas sílabas); conta como fala só voz seguida, para um estalo de tecla
+// não acender; e quem fala fica aceso um instante depois da voz cair, para o anel não piscar entre
+// uma palavra e outra (como no Discord).
 
 const LIMIAR = 0.02;
 /** Quanto tempo o anel segue aceso depois da voz cair abaixo do limiar. */
 export const SEGURA_FALA_MS = 400;
+/** Som de cada medida: 16384 amostras (cerca de 340 ms) cobrem os 300 ms entre uma medida e a seguinte. */
+const JANELA = 16_384;
+/** Pedaço medido de cada vez (cerca de 11 ms). */
+const BLOCO = 512;
+/** Pedaços seguidos acima do limiar para contar como fala: cerca de 65 ms, menos que uma sílaba e mais que um estalo de tecla. */
+const MIN_BLOCOS = 6;
 
 interface Fonte {
   source: MediaStreamAudioSourceNode;
@@ -23,12 +31,22 @@ export function segurarFala(ultima: Map<string, number>, acima: string[], agora:
   return out;
 }
 
-/** Volume médio (RMS) da janela de áudio, de 0 a 1. */
-function nivel(f: Fonte): number {
+/** Volume médio (RMS) de um pedaço do som, de 0 a 1. */
+function volume(pedaco: Float32Array): number {
+  let soma = 0;
+  for (const v of pedaco) soma += v * v;
+  return Math.sqrt(soma / pedaco.length);
+}
+
+/** O som desde a última medida tem voz seguida acima do limiar, e não só estalos soltos. */
+function temVoz(f: Fonte): boolean {
   f.analyser.getFloatTimeDomainData(f.buffer);
-  let sum = 0;
-  for (const v of f.buffer) sum += v * v;
-  return Math.sqrt(sum / f.buffer.length);
+  let seguidos = 0;
+  for (let i = 0; i + BLOCO <= f.buffer.length; i += BLOCO) {
+    seguidos = volume(f.buffer.subarray(i, i + BLOCO)) > LIMIAR ? seguidos + 1 : 0;
+    if (seguidos >= MIN_BLOCOS) return true;
+  }
+  return false;
 }
 
 export class NivelDeVoz {
@@ -45,9 +63,9 @@ export class NivelDeVoz {
     if (!track || !this.ctx) return;
     const source = this.ctx.createMediaStreamSource(new MediaStream([track]));
     const analyser = this.ctx.createAnalyser();
-    analyser.fftSize = 512;
+    analyser.fftSize = JANELA;
     source.connect(analyser);
-    this.fontes.set(id, { source, analyser, buffer: new Float32Array(new ArrayBuffer(analyser.fftSize * 4)) });
+    this.fontes.set(id, { source, analyser, buffer: new Float32Array(new ArrayBuffer(JANELA * 4)) });
   }
 
   private unwatch(id: string): void {
@@ -58,16 +76,10 @@ export class NivelDeVoz {
     this.ultima.delete(id);
   }
 
-  /** Quem está falando agora (volume acima do limiar, segurado um instante para não piscar). */
+  /** Quem está falando agora (voz seguida desde a última medida, segurada um instante para não piscar). */
   speaking(agora = Date.now()): string[] {
-    const acima = [...this.fontes].filter(([, f]) => nivel(f) > LIMIAR).map(([id]) => id);
+    const acima = [...this.fontes].filter(([, f]) => temVoz(f)).map(([id]) => id);
     return segurarFala(this.ultima, acima, agora, SEGURA_FALA_MS);
-  }
-
-  /** Volume da própria voz (0 a 1), para o medidor do teste do microfone. */
-  nivelDe(id: string): number {
-    const f = this.fontes.get(id);
-    return f ? nivel(f) : 0;
   }
 
   close(): void {
