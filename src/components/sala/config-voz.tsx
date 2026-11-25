@@ -5,7 +5,7 @@
 // sala, e fica guardado neste navegador. Os nomes dos aparelhos só aparecem depois de o navegador
 // liberar o microfone a primeira vez.
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { Dialog } from "@/components/ui/dialog";
 import { plate } from "@/components/v2";
@@ -74,7 +74,7 @@ function useTesteDoMicrofone(testando: boolean, microfone: string | null, reduca
 
 const seletor = "h-9 w-full rounded-sm border border-border-subtle bg-bg-deep px-2 text-sm text-text-display";
 
-function Escolha({ rotulo, valor, onChange, opcoes, padrao, data }: { rotulo: string; valor: string; onChange: (v: string | null) => void; opcoes: MediaDeviceInfo[]; padrao: string; data: Record<string, string> }) {
+function Escolha({ rotulo, valor, onChange, opcoes, padrao, data, dica }: { rotulo: string; valor: string; onChange: (v: string | null) => void; opcoes: MediaDeviceInfo[]; padrao: string; data: Record<string, string>; dica?: ReactNode }) {
   const t = useTranslations("sala");
   return (
     <label className="block space-y-1 text-sm text-text-body">
@@ -83,6 +83,7 @@ function Escolha({ rotulo, valor, onChange, opcoes, padrao, data }: { rotulo: st
         <option value="">{padrao}</option>
         {opcoes.map((d, i) => <option key={d.deviceId} value={d.deviceId}>{d.label || t("aparelhoSemNome", { n: i + 1 })}</option>)}
       </select>
+      {dica && <span className="block text-xs text-text-muted">{dica}</span>}
     </label>
   );
 }
@@ -117,8 +118,10 @@ export function ConfigVoz({ aberto, onClose }: { aberto: boolean; onClose: () =>
       <Dialog.Content playSoundOnOpen={false} className="max-w-md space-y-4" data-sala-config-voz="">
         <Dialog.Title>{t("configVozTitulo")}</Dialog.Title>
         <Dialog.Description>{t("configVozTexto")}</Dialog.Description>
-        <Escolha rotulo={t("microfone")} valor={microfone ?? ""} onChange={(v) => configVoz.set({ microfone: v })} opcoes={entradas} padrao={t("padraoDoSistema")} data={{ "data-sala-config-microfone": "" }} />
-        {emUso && <p className="text-xs text-text-muted" data-sala-microfone-em-uso={emUso}>{t("microfoneEmUso", { nome: emUso })}</p>}
+        <Escolha
+          rotulo={t("microfone")} valor={microfone ?? ""} onChange={(v) => configVoz.set({ microfone: v })} opcoes={entradas} padrao={t("padraoDoSistema")} data={{ "data-sala-config-microfone": "" }}
+          dica={emUso && <span data-sala-microfone-em-uso={emUso}>{t("microfoneEmUso", { nome: emUso })}</span>}
+        />
         {temEscolhaDeSaida() && (
           <Escolha rotulo={t("saidaDeSom")} valor={aparelhoOuPadrao(saidas.map((d) => d.deviceId), cfg.saida) ?? ""} onChange={(v) => configVoz.set({ saida: v })} opcoes={saidas} padrao={t("padraoDoSistema")} data={{ "data-sala-config-saida": "" }} />
         )}
