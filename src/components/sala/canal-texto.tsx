@@ -2,7 +2,8 @@
 
 // Canal de texto do servidor FORMULADOTA (como no Discord): as mensagens guardadas, da mais velha para
 // a mais nova, com avatar e nome no começo de cada sequência da mesma pessoa, o campo fixo embaixo e as
-// anteriores sob pedido. O dono apaga e bane; qualquer um denuncia. Os data-* expõem o que o e2e confere.
+// anteriores sob pedido. O dono apaga e bane; qualquer um denuncia, também pelo botão direito na mensagem
+// (menu-mensagem.tsx), que copia o texto e abre o perfil. Os data-* expõem o que o e2e confere.
 
 import { useLayoutEffect, useRef, useState, type FormEvent } from "react";
 import { useTranslations } from "next-intl";
@@ -16,6 +17,7 @@ import type { Pessoa } from "@/lib/sala/pessoas";
 import { useCanalTexto, type CanalTextoSnapshot } from "@/lib/sala/cliente/use-canal-texto";
 import { cn } from "@/lib/utils";
 import { Denuncia, type AlvoTela } from "./denuncia";
+import { MenuDaMensagem } from "./menu-mensagem";
 import { CHAT_ERRO, SAIDA_TEXTO } from "./textos";
 
 const SEQUENCIA_MS = 5 * 60_000;
@@ -39,6 +41,7 @@ function Mensagem({ m, inicio, pessoa, a }: { m: MensagemEstado; inicio: boolean
   const icone = "rounded-sm p-1 text-text-muted hover:bg-bg-deep";
   return (
     <li className={cn("group relative flex gap-3 rounded-sm px-4 hover:bg-bg-elevated/40", inicio ? "mt-3 pt-1" : "py-0.5")} data-sala-mensagem={m.id}>
+      <MenuDaMensagem m={m} nome={nome} souDono={a.souDono} eu={a.eu} donoId={a.donoId} onApagar={() => a.onApagar(m.id)} onBanir={() => m.userId && a.onBanir(m.userId, nome)} onDenunciar={() => a.onDenunciar(m, nome)}>
       <span className="w-8 shrink-0">{inicio && <UserAvatar src={pessoa?.avatarUrl ?? undefined} alt={nome} fallback={nome.slice(0, 2).toUpperCase()} size="sm" className="rounded-sm" />}</span>
       <div className="min-w-0 flex-1">
         {inicio && (
@@ -54,6 +57,7 @@ function Mensagem({ m, inicio, pessoa, a }: { m: MensagemEstado; inicio: boolean
         {a.souDono && m.userId && !dono && <button type="button" title={t("banirAutor")} aria-label={t("banirAutor")} data-sala-banir-autor={m.id} onClick={() => a.onBanir(m.userId as string, nome)} className={cn(icone, "hover:text-error")}><Gavel className="size-3.5" /></button>}
         {m.userId && m.userId !== a.eu && <button type="button" title={t("denunciarMensagem")} aria-label={t("denunciarMensagem")} data-sala-denunciar-mensagem={m.id} onClick={() => a.onDenunciar(m, nome)} className={cn(icone, "hover:text-text-display")}><Flag className="size-3.5" /></button>}
       </span>
+      </MenuDaMensagem>
     </li>
   );
 }

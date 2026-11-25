@@ -2,6 +2,7 @@
 
 // Chat da sala pública (spec, R8): mensagens com o nick, campo de até 300 caracteres; o dono apaga
 // mensagem e abre ou fecha o chat; qualquer um denuncia a mensagem. Guardado 30 dias para moderação.
+// O botão direito na mensagem abre as mesmas ações, mais copiar o texto e ver o perfil (menu-mensagem.tsx).
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useTranslations } from "next-intl";
@@ -12,6 +13,7 @@ import type { MensagemEstado } from "@/lib/sala/estado";
 import { CHAT_MAX } from "@/lib/sala/papeis";
 import type { Pessoa } from "@/lib/sala/pessoas";
 import { cn } from "@/lib/utils";
+import { MenuDaMensagem } from "./menu-mensagem";
 import { CHAT_ERRO } from "./textos";
 
 interface Props {
@@ -46,8 +48,8 @@ function Mensagem({ m, p }: { m: MensagemEstado; p: Props }) {
     if (document.fullscreenElement) await document.exitFullscreen().catch(() => null);
     if (await confirm({ title: t("banir"), message: t("banirConfirma", { nome }), confirmLabel: t("confirmar"), variant: "destructive" })) p.onBanir(autor);
   };
-  return (
-    <li className="group flex items-start gap-2 py-1 text-sm leading-snug" data-sala-mensagem={m.id}>
+  const conteudo = (
+    <>
       <p className="min-w-0 flex-1 break-words text-text-body">
         <span className={cn("mr-1.5 font-semibold", m.userId === p.donoId ? "text-gold" : "text-text-display")}>{nome}</span>
         {m.texto}
@@ -67,6 +69,16 @@ function Mensagem({ m, p }: { m: MensagemEstado; p: Props }) {
           <Flag className="size-3.5" />
         </button>
       )}
+    </>
+  );
+  const classe = "group flex items-start gap-2 py-1 text-sm leading-snug";
+  // Na tela cheia o menu do site abriria atrás da tela (ele mora no corpo da página): fica o do navegador.
+  if (p.sobreposto) return <li className={classe} data-sala-mensagem={m.id}>{conteudo}</li>;
+  return (
+    <li className={classe} data-sala-mensagem={m.id}>
+      <MenuDaMensagem m={m} nome={nome} souDono={p.souDono} eu={p.eu} donoId={p.donoId} onApagar={() => p.onApagar(m.id)} onBanir={() => void banir()} onDenunciar={() => p.onDenunciar(m.id)}>
+        {conteudo}
+      </MenuDaMensagem>
     </li>
   );
 }

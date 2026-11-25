@@ -8,6 +8,7 @@
 import { Fragment, useState, type ReactNode } from "react";
 import { ContextMenu } from "@base-ui/react/context-menu";
 import { v2Page } from "@/components/v2";
+import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
 export interface MenuAction {
@@ -20,7 +21,7 @@ export interface MenuAction {
   /** Texto do segundo toque; sem ele, a ação roda no primeiro. */
   confirm?: string;
   disabled?: boolean;
-  /** Link: abre na mesma aba se começa com "/", senão em outra aba. */
+  /** Link: abre na mesma aba se começa com "/" (sem recarregar a página), senão em outra aba. */
   href?: string;
   run?: () => void;
   separatorBefore?: boolean;
@@ -80,8 +81,9 @@ export function MenuActionItems({ actions, confirming, onChoose, testAttr = "dat
         {a.separatorBefore && <ContextMenu.Separator className="mx-1 my-1 h-px bg-white/10" />}
         {a.href ? (
           <ContextMenu.LinkItem
-            href={a.href}
-            {...(internal ? {} : { target: "_blank", rel: "noopener noreferrer" })}
+            closeOnClick
+            // O link do site troca de página sem recarregar: a voz da sala segue ligada.
+            render={internal ? <Link href={a.href} /> : <a href={a.href} target="_blank" rel="noopener noreferrer" />}
             className={cn(MENU_ITEM, "items-start")}
             {...{ [testAttr]: a.testId }}
           >

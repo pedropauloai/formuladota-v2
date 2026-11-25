@@ -46,7 +46,7 @@ function useAvisoDosCanais(topico: string | null, aoMudar: () => void): void {
 
 /** A lista chega na hora pelo aviso do servidor; a consulta a cada 10 s (com a aba à vista), ao voltar
  *  para a aba e logo depois de entrar ou sair da voz fica como rede de segurança. */
-function useLista(inicial: ListaDeCanais, fase: string | null): ListaDeCanais {
+function useLista(inicial: ListaDeCanais, fase: string | null): { lista: ListaDeCanais; renovar: () => void } {
   const [lista, setLista] = useState(inicial);
   const buscar = useCallback(async (fresco: boolean) => {
     try {
@@ -71,7 +71,7 @@ function useLista(inicial: ListaDeCanais, fase: string | null): ListaDeCanais {
       window.removeEventListener("focus", foco);
     };
   }, [fase, buscar]);
-  return lista;
+  return { lista, renovar: buscarFresca };
 }
 
 /** A sala conectada que não é canal da lista (uma sala de palco antiga): aparece à parte, com as pessoas. */
@@ -86,7 +86,7 @@ function salaDaSessao(meta: SalaMeta, snap: SessaoSnapshot): CanalItem {
 export function Servidor({ inicial, souDono, children }: { inicial: ListaDeCanais; souDono: boolean; children: ReactNode }) {
   const params = useParams<{ id?: string }>();
   const { ativa, snap } = useSalaAtiva();
-  const recebida = useLista(inicial, ativa ? `${ativa.meta.roomId}:${snap.fase}` : null);
+  const { lista: recebida, renovar } = useLista(inicial, ativa ? `${ativa.meta.roomId}:${snap.fase}` : null);
   const naSala = ativa && snap.fase === "na_sala" ? ativa.meta.roomId : null;
   const eu = naSala ? (snap.estado?.eu?.userId ?? null) : null;
   // Quem acabou de trocar de canal aparece só no canal em que está, sem esperar a lista nova.
@@ -98,7 +98,7 @@ export function Servidor({ inicial, souDono, children }: { inicial: ListaDeCanai
     <div className={cn(v2Page, "flex h-full gap-4 overflow-hidden px-4 pb-[92px] pt-4")} data-servidor="">
       <ColunaCanais
         lista={lista} atual={params.id ?? null} souDono={souDono} naSala={naSala} pessoasDe={pessoasDe} salaAtual={salaAtual}
-        compartilhando={snap.compartilhando} conexao={ativa ? <PainelVoz embutido /> : null}
+        compartilhando={snap.compartilhando} conexao={ativa ? <PainelVoz embutido /> : null} onMudou={renovar}
       />
       {/* Contêiner de tamanho: a tela do canal de voz se mede pela altura daqui (cqh), na escala da página. */}
       <div className="relative isolate h-full min-w-0 flex-1 overflow-y-auto overflow-x-clip [container-type:size]" data-servidor-canal="">{children}</div>
