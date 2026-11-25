@@ -215,6 +215,23 @@ async function salaPublica(p, ctx, c) {
   for (const page of [pDono, largo, admin, ...livres, ...Object.values(plateia)]) await page.close().catch(() => null);
 }
 
+/** O vídeo da tela tem imagem (brilho médio do quadro acima de quase preto), e não só a altura no getStats. */
+const telaComImagem = (page) =>
+  page.evaluate(() =>
+    [...document.querySelectorAll("video")].some((v) => {
+      if (v.videoWidth === 0) return false;
+      const c = document.createElement("canvas");
+      c.width = 64;
+      c.height = 36;
+      const g = c.getContext("2d");
+      g.drawImage(v, 0, 0, 64, 36);
+      const d = g.getImageData(0, 0, 64, 36).data;
+      let soma = 0;
+      for (let i = 0; i < d.length; i += 4) soma += d[i] + d[i + 1] + d[i + 2];
+      return soma / (d.length / 4) / 3 > 10;
+    })
+  );
+
 async function mentoria(p, ctx) {
   const sala = await s.createRoom(p.dono, [p.aluno]);
   made.rooms.push(sala.id);
@@ -228,9 +245,13 @@ async function mentoria(p, ctx) {
   await pDono.locator("[data-sala-qualidade-confirmar]").click();
   await waitFor(async () => (await s.attr(pAluno, "data-video-altura")) > 0, 40_000);
   await waitFor(async () => (await s.attr(pAluno, "data-audio-bytes")) > 0, 30_000);
+  if (!(await waitFor(() => telaComImagem(pAluno), 20_000))) throw new Error("a tela da mentoria chegou sem imagem ao aluno");
   await sleep(3500);
   await foto(pAluno, "04-mentoria-aluno.png");
   await foto(pDono, "05-mentoria-dono.png");
+  // A Live vem depois: a mentoria sai da árvore do PPA e das páginas abertas.
+  for (const page of [pAluno, pDono]) await page.close().catch(() => null);
+  await db.from("voice_rooms").update({ status: "encerrada" }).eq("id", sala.id);
 }
 
 try {
@@ -239,8 +260,10 @@ try {
   const p = await criarPessoas();
   browser = await chromium.launch({ channel: "chrome", headless: true, args: s.CHROME_ARGS });
   const ctx = (u) => s.buyerContext(browser, u, { desktop: true });
-  await salaPublica(p, ctx, await canais(p));
+  // A mentoria vem antes: depois da Live, com seis páginas decodificando a tela em 1080p, o navegador sem
+  // janela fotografava o vídeo do aluno preto (o quadro chegava, como mostra o getStats).
   await mentoria(p, ctx);
+  await salaPublica(p, ctx, await canais(p));
 } catch (err) {
   console.error("falhou:", err.message);
   console.log(s.diagnostico.slice(-40).join(String.fromCharCode(10)));
