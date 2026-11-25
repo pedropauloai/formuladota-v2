@@ -28,6 +28,8 @@ const GV = "src/lib/sala/cliente/guarda-voz.ts";
 const NV = "src/lib/sala/cliente/nivel-voz.ts";
 const CV = "src/lib/sala/cliente/config-voz.ts";
 const VL = "src/lib/sala/cliente/voz-local.ts";
+const EN = "src/lib/sala/entrada.ts";
+const DS = "src/lib/sala/dados-sala.ts";
 
 const MUTACOES = [
   [A, 'if (!input.flagOn) return { ok: false, code: "flag_desligada" };', "", "flag desligada não esconde"],
@@ -108,6 +110,8 @@ const MUTACOES = [
   [VL, "track.enabled = !this.mutado;", "", "mutar enquanto o microfone abre (ou na troca) não vale para o microfone novo"],
   [VL, "this.geracao++;", "", "sair da sala enquanto o microfone abre (ou no meio da troca) deixa o microfone aberto"],
   [VL, "this.trocaPendente = true;", "", "a segunda troca seguida se perde"],
+  [DS, '.eq("user_id", userId).eq("status", "ativo").select("user_id")', '.eq("user_id", userId).select("user_id")', "quem foi expulso no meio da entrada fica com a credencial nova do TURN"],
+  [EN, "if (turn.username) await revokeTurnCredential(env, turn.username);", "", "a credencial nova do expulso fica valendo na Cloudflare"],
 ];
 
 let falhas = 0;

@@ -6,11 +6,11 @@ import { z } from "zod";
 import type { CallContext } from "./contexto";
 import { capBytesFor } from "./custo";
 import { findTrack, getSession, labelTrack } from "./dados-rtc";
-import { ensureMember, joinedViaFor, setTurnUsername, updateMember, type Db } from "./dados-sala";
+import { ensureMember, joinedViaFor, setTurnUsernameIfActive, updateMember, type Db } from "./dados-sala";
 import { forgetRoomState } from "./estado";
 import { decideLabel } from "./faixas";
 import { canPublishVoice, canShareScreen } from "./papeis";
-import { generateIceServers, realtimeEnv } from "./realtime-api";
+import { generateIceServers, realtimeEnv, revokeTurnCredential } from "./realtime-api";
 import { closeUserSessions, revokeTurn } from "./sessoes";
 import type { DenyCode, MemberRole, RoomKind, TrackDenyCode, TrackKind } from "./tipos";
 
@@ -44,7 +44,11 @@ export async function enterRoom(ctx: CallContext): Promise<EntradaResult> {
   // Na voz livre quem entra fala: a linha antiga da plateia vira falante (o estado comum mostra o papel da linha).
   const livre = room.voiceMode === "livre" && decision.role === "falante" ? { role: "falante" } : {};
   await updateMember(ctx.db, room.id, userId, { last_seen_at: ctx.now.toISOString(), hand_raised_at: null, ...livre });
-  await setTurnUsername(ctx.db, room.id, userId, turn.username);
+  // Expulso ou banido enquanto a credencial era gerada: a expulsão revogou a que estava gravada, e a nova cai aqui.
+  if (!(await setTurnUsernameIfActive(ctx.db, room.id, userId, turn.username))) {
+    if (turn.username) await revokeTurnCredential(env, turn.username);
+    return { ok: false, code: "expulso" };
+  }
   forgetRoomState(room.id, userId);
   const share = canShareScreen(decision.role, room.kind, room.voiceMode, room.screenPolicy, settings.partyScreenEnabled);
   const capOk = room.isTest || settings.usageBytes30d < capBytesFor(settings.capGb30d);

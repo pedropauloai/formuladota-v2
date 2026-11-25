@@ -143,6 +143,14 @@ export async function setTurnUsername(db: Db, roomId: string, userId: string, us
   await db.from("voice_room_members").update({ turn_username: username }).eq("room_id", roomId).eq("user_id", userId);
 }
 
+/** Grava a credencial só de quem segue ativo na sala, numa escrita só; diz se gravou. Quem foi expulso
+ *  no meio da entrada não fica com a credencial nova, porque a expulsão já revogou a que estava gravada. */
+export async function setTurnUsernameIfActive(db: Db, roomId: string, userId: string, username: string | null): Promise<boolean> {
+  const { data, error } = await db.from("voice_room_members").update({ turn_username: username }).eq("room_id", roomId).eq("user_id", userId).eq("status", "ativo").select("user_id");
+  if (error) throw new Error(`gravar a credencial do TURN: ${error.message}`);
+  return (data ?? []).length > 0;
+}
+
 /** Nomes das credenciais de TURN da sala (de uma pessoa ou de todas), para revogar. */
 export async function turnUsernames(db: Db, roomId: string, userId?: string): Promise<string[]> {
   let q = db.from("voice_room_members").select("turn_username").eq("room_id", roomId).not("turn_username", "is", null);
