@@ -4,46 +4,73 @@
 // no pé) e o canal aberto ao lado, na altura da tela. A coluna mora no layout, então trocar de canal não
 // pisca nem derruba a voz. A faixa de baixo fica livre para o mini perfil e o chat das mensagens.
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useParams } from "next/navigation";
 import { v2Page } from "@/components/v2";
-import type { CanalItem, ListaDeCanais } from "@/lib/sala/canais";
+import { semMimForaDaSala, type CanalItem, type ListaDeCanais } from "@/lib/sala/canais";
 import type { SalaMeta } from "@/lib/sala/cliente/registro";
 import type { SessaoSnapshot } from "@/lib/sala/cliente/sessao-sala";
 import { useSalaAtiva } from "@/lib/sala/cliente/use-sala-ativa";
+import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { ColunaCanais } from "./coluna-canais";
 import { PainelVoz } from "./painel-voz";
 import { PessoasDaSala } from "./pessoas-da-sala";
 
 const RENOVA_MS = 10_000;
+const AVISO_JUNTA_MS = 150;
 
-/** A lista se renova a cada 10 s com a aba à vista, ao voltar para a aba e logo depois de entrar ou sair da voz. */
+/** Assina o aviso do servidor (Broadcast do Realtime): alguém entrou ou saiu de um canal. Os avisos que
+ *  chegam colados (sair de um canal e entrar no outro) viram uma leitura só. */
+function useAvisoDosCanais(topico: string | null, aoMudar: () => void): void {
+  useEffect(() => {
+    if (!topico) return;
+    const supabase = createClient();
+    let espera: number | null = null;
+    const canal = supabase
+      .channel(topico)
+      .on("broadcast", { event: "mudou" }, () => {
+        if (espera !== null) return;
+        espera = window.setTimeout(() => {
+          espera = null;
+          aoMudar();
+        }, AVISO_JUNTA_MS);
+      })
+      .subscribe();
+    return () => {
+      if (espera !== null) window.clearTimeout(espera);
+      void supabase.removeChannel(canal);
+    };
+  }, [topico, aoMudar]);
+}
+
+/** A lista chega na hora pelo aviso do servidor; a consulta a cada 10 s (com a aba à vista), ao voltar
+ *  para a aba e logo depois de entrar ou sair da voz fica como rede de segurança. */
 function useLista(inicial: ListaDeCanais, fase: string | null): ListaDeCanais {
   const [lista, setLista] = useState(inicial);
+  const buscar = useCallback(async (fresco: boolean) => {
+    try {
+      const res = await fetch(fresco ? "/api/sala/canais?fresco=1" : "/api/sala/canais", { cache: "no-store" });
+      if (res.ok) setLista((await res.json()) as ListaDeCanais);
+    } catch {
+      // Sem rede: fica a última lista.
+    }
+  }, []);
+  const buscarFresca = useCallback(() => void buscar(true), [buscar]);
+  useAvisoDosCanais(inicial.aviso ?? null, buscarFresca);
   useEffect(() => {
-    let vivo = true;
-    const buscar = async () => {
-      try {
-        const res = await fetch("/api/sala/canais", { cache: "no-store" });
-        if (res.ok && vivo) setLista((await res.json()) as ListaDeCanais);
-      } catch {
-        // Sem rede: fica a última lista.
-      }
-    };
     const tick = window.setInterval(() => {
-      if (document.visibilityState === "visible") void buscar();
+      if (document.visibilityState === "visible") void buscar(false);
     }, RENOVA_MS);
-    const logo = window.setTimeout(() => void buscar(), 1500);
-    const foco = () => void buscar();
+    const logo = window.setTimeout(() => void buscar(false), 1500);
+    const foco = () => void buscar(false);
     window.addEventListener("focus", foco);
     return () => {
-      vivo = false;
       window.clearInterval(tick);
       window.clearTimeout(logo);
       window.removeEventListener("focus", foco);
     };
-  }, [fase]);
+  }, [fase, buscar]);
   return lista;
 }
 
@@ -59,8 +86,11 @@ function salaDaSessao(meta: SalaMeta, snap: SessaoSnapshot): CanalItem {
 export function Servidor({ inicial, souDono, children }: { inicial: ListaDeCanais; souDono: boolean; children: ReactNode }) {
   const params = useParams<{ id?: string }>();
   const { ativa, snap } = useSalaAtiva();
-  const lista = useLista(inicial, ativa ? `${ativa.meta.roomId}:${snap.fase}` : null);
+  const recebida = useLista(inicial, ativa ? `${ativa.meta.roomId}:${snap.fase}` : null);
   const naSala = ativa && snap.fase === "na_sala" ? ativa.meta.roomId : null;
+  const eu = naSala ? (snap.estado?.eu?.userId ?? null) : null;
+  // Quem acabou de trocar de canal aparece só no canal em que está, sem esperar a lista nova.
+  const lista = useMemo(() => semMimForaDaSala(recebida, eu, naSala), [recebida, eu, naSala]);
   const listada = [...lista.texto, ...lista.voz, ...lista.privadas].some((c) => c.id === naSala);
   const salaAtual = ativa && naSala && !listada ? salaDaSessao(ativa.meta, snap) : null;
   const pessoasDe = (id: string) => (ativa && naSala === id ? <PessoasDaSala sessao={ativa.sessao} snap={snap} /> : null);

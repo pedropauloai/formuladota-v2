@@ -8,15 +8,18 @@ class Falsa {
   entradas = 0;
   saidas = 0;
   fechamentos = 0;
+  /** Quando a saída chega ao servidor (o teste segura para ver a troca esperar). */
+  saidaNoServidor: Promise<void> = Promise.resolve();
   private readonly ouvintes = new Set<() => void>();
   constructor(readonly roomId: string) {}
   async entrar(): Promise<void> {
     this.entradas += 1;
     this.mudar("na_sala");
   }
-  sair(): void {
+  sair(): Promise<void> {
     this.saidas += 1;
     this.mudar("saiu", "saiu");
+    return this.saidaNoServidor;
   }
   sairNoFechamento(): void {
     this.fechamentos += 1;
@@ -41,7 +44,7 @@ function memoria(): Armazem & { dados: Map<string, string> } {
 const A: SalaMeta = { roomId: "sala-a", titulo: "Live do PPA", tipo: "palco" };
 const B: SalaMeta = { roomId: "sala-b", titulo: "Mentoria", tipo: "mentoria" };
 
-function montar(armazem: Armazem | null = memoria()) {
+function montar(armazem: Armazem | null = memoria(), esperar: (ms: number) => Promise<void> = async () => undefined) {
   const criadas: Falsa[] = [];
   const reg = criarRegistro<Falsa>({
     armazem: () => armazem,
@@ -50,7 +53,7 @@ function montar(armazem: Armazem | null = memoria()) {
       criadas.push(s);
       return s;
     },
-    esperar: async () => undefined,
+    esperar,
   });
   return { reg, criadas, armazem };
 }
@@ -81,6 +84,33 @@ describe("registro da sala ativa", () => {
     await reg.entrar(reg.daPagina(B.roomId), B);
     expect(a.saidas).toBe(1);
     expect(reg.atual()?.meta).toEqual(B);
+  });
+
+  it("trocar de sala: a entrada na nova espera a saída da anterior chegar ao servidor (senão a pessoa aparecia nas duas)", async () => {
+    let chegou: () => void = () => undefined;
+    const { reg } = montar(memoria(), () => new Promise<void>(() => undefined));
+    const a = reg.daPagina(A.roomId);
+    await reg.entrar(a, A);
+    a.saidaNoServidor = new Promise<void>((ok) => (chegou = ok));
+    const b = reg.daPagina(B.roomId);
+    const entrando = reg.entrar(b, B);
+    await Promise.resolve();
+    expect(b.entradas).toBe(0);
+    chegou();
+    await entrando;
+    expect(b.entradas).toBe(1);
+  });
+
+  it("com a rede lenta, a entrada na nova não espera mais que 1,5 s pela saída", async () => {
+    const esperas: number[] = [];
+    const { reg } = montar(memoria(), async (ms) => void esperas.push(ms));
+    const a = reg.daPagina(A.roomId);
+    await reg.entrar(a, A);
+    a.saidaNoServidor = new Promise<void>(() => undefined);
+    const b = reg.daPagina(B.roomId);
+    await reg.entrar(b, B);
+    expect(b.entradas).toBe(1);
+    expect(esperas).toContain(1500);
   });
 
   it("sair pelo botão tira a sala do painel e da aba", async () => {

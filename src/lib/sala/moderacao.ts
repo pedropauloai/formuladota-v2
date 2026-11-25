@@ -3,6 +3,7 @@
 // hora; a tela de quem saiu recebe o motivo na consulta seguinte.
 
 import "server-only";
+import { after } from "next/server";
 import { z } from "zod";
 import { blockUser } from "@/actions/friends";
 import { sendOpsAlert } from "@/lib/cron/alert";
@@ -10,6 +11,7 @@ import type { CallContext } from "./contexto";
 import { openSessions } from "./dados-rtc";
 import { banUser, getMemberRow, kickMember, updateMember } from "./dados-sala";
 import { forgetRoomState } from "./estado";
+import { avisarCanais } from "./lista-canais";
 import { decideStageAction, type StageAction } from "./papeis";
 import { PRESENTE_MS } from "./presenca";
 import { realtimeEnv } from "./realtime-api";
@@ -49,6 +51,7 @@ async function expel(ctx: CallContext, roomId: string, actorId: string, targetId
   await kickMember(ctx.db, roomId, targetId, actorId, ctx.now);
   await closeUserSessions(ctx.db, realtimeEnv(), { roomId, userId: targetId }, "expulso", ctx.now);
   await revokeTurn(ctx.db, realtimeEnv(), roomId, targetId);
+  after(() => avisarCanais(ctx.db));
 }
 
 /** Quem fala agora (falante que bateu nos últimos 30 s): quem saiu sem ser devolvido não ocupa lugar no palco. */

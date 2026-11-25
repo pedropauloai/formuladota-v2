@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { destinoInicial, montarLista, moverCanal, normalizarNome, proximaPosicao, type CanalOrdem } from "./canais";
+import { destinoInicial, montarLista, moverCanal, normalizarNome, proximaPosicao, semMimForaDaSala, type CanalOrdem } from "./canais";
 import type { CanalBruto, PrivadaBruta } from "./contratos";
 
 describe("normalizarNome", () => {
@@ -96,6 +96,25 @@ describe("montarLista", () => {
   it("marca o benefício, o modo livre e o chat fechado", () => {
     expect(lista.voz[1]).toMatchObject({ beneficio: true, modo: "livre", chatAberto: false, aoVivo: false, online: 0, lugares: 5, cheio: false });
     expect(lista.texto[0]).toMatchObject({ beneficio: false, chatAberto: true });
+  });
+});
+
+describe("semMimForaDaSala (quem trocou de canal aparece só no canal em que está)", () => {
+  const lista = montarLista(brutos, privadas);
+
+  it("na tela da própria pessoa, ela sai dos outros canais na hora, com a contagem e o lotado certos", () => {
+    const nova = semMimForaDaSala(lista, "u2", "v2");
+    expect(nova.voz[0]?.pessoas.map((p) => p.userId)).toEqual([ppa]);
+    expect(nova.voz[0]).toMatchObject({ online: 2, cheio: false });
+  });
+
+  it("no canal em que ela está, nada muda", () => {
+    expect(semMimForaDaSala(lista, "u2", "v1").voz[0]?.pessoas.map((p) => p.userId)).toEqual([ppa, "u2"]);
+  });
+
+  it("fora de qualquer sala, a lista fica como veio", () => {
+    expect(semMimForaDaSala(lista, null, null)).toBe(lista);
+    expect(semMimForaDaSala(lista, "u2", null)).toBe(lista);
   });
 });
 
