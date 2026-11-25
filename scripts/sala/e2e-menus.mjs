@@ -5,7 +5,9 @@
 // segundo toque; expulsar pelo menu pede o segundo toque e tira a pessoa da sala. E a foto junto do nome
 // (pedido do PPA de 25/11/2026): a mensagem do chat vem com a foto de quem escreveu, a foto abre o mini
 // perfil no mouse, na árvore o botão direito na foto traz as ações da sala, e a denúncia no painel mostra
-// as fotos de quem denunciou e de quem foi denunciado.
+// as fotos de quem denunciou e de quem foi denunciado. E mover de canal (R20): só o dono move; quem está na
+// página do canal vai junto para o destino, e quem está em outra página do site continua nela, com a voz
+// já no outro canal.
 
 const s = await import("./e2e-comum.mjs");
 const { BASE, db, waitFor } = s;
@@ -45,6 +47,12 @@ async function messageId(roomId, body) {
     return id !== null;
   }, 10_000);
   return id;
+}
+
+/** Na sala agora: ativa e com batimento recente (sair apaga o batimento). */
+async function presente(roomId, userId) {
+  const { data } = await db.from("voice_room_members").select("status, last_seen_at").eq("room_id", roomId).eq("user_id", userId).maybeSingle();
+  return data?.status === "ativo" && !!data.last_seen_at && Date.now() - Date.parse(data.last_seen_at) < 30_000;
 }
 
 async function pessoa(t, check, pDono, pMenu) {
@@ -89,6 +97,34 @@ async function canal(check, pDono, pMenu, canalId) {
   const naArvore = await waitFor(async () => (await pDono.locator(alvo).innerText()).includes("Menus e2e editado"), 15_000);
   const { data: linha } = await db.from("voice_rooms").select("title, max_members").eq("id", canalId).single();
   check("editar pelo menu muda o nome e o limite do canal, e a árvore mostra na hora", !!naArvore && linha?.title === "Menus e2e editado" && linha?.max_members === 7, `${linha?.title}, ${linha?.max_members}`);
+}
+
+async function mover(t, check, pDono, pMenu, canalId, destinoId) {
+  const recusa = await s.apiPost(pMenu, `/api/sala/${canalId}/membros/${t.dono.id}/mover`, { destino: destinoId });
+  check("quem não é dono não move ninguém de canal: o servidor recusa", recusa.status === 403 && recusa.body?.errorCode === "so_o_dono", `HTTP ${recusa.status} ${recusa.body?.errorCode}`);
+  const trocou = async (de, para) => !!(await waitFor(async () => (await presente(para, t.menu.id)) && !(await presente(de, t.menu.id)), 30_000));
+  const linha = `[data-sala-membro="${t.menu.id}"]`;
+  const item = `sala-mover-${destinoId}`;
+  const itens = await itensDoMenu(pDono, linha, "data-menu-acao");
+  check("o botão direito do dono na pessoa traz mover para o outro canal de voz, antes de expulsar", itens.includes(item) && itens.indexOf(item) < itens.indexOf("sala-expulsar"), itens.join(", "));
+  await pDono.locator(`[data-menu-acao="${item}"]`).click();
+  const foi = await waitFor(() => new URL(pMenu.url()).pathname === `/sala/${destinoId}`, 30_000);
+  check("movida pelo dono, a pessoa vai junto para a página do outro canal e entra nele", !!foi && (await naPagina(pMenu, '[data-sala-fase="na_sala"]', 30_000)) && (await trocou(canalId, destinoId)));
+
+  // Em outra página do site (as novidades, pela barra de cima, sem recarregar), só a voz troca de canal.
+  await pMenu.evaluate(() => {
+    window.__semRecarregar = true;
+  });
+  await pMenu.locator('a[href="/novidades"]').first().click();
+  await pMenu.waitForURL((u) => new URL(u).pathname === "/novidades", { timeout: 30_000 });
+  const res = await s.apiPost(pDono, `/api/sala/${destinoId}/membros/${t.menu.id}/mover`, { destino: canalId });
+  const voltou = res.status === 200 && (await trocou(destinoId, canalId));
+  // O título do painel vem em caixa alta pelo CSS: compara o texto do canal, não o desenhado.
+  const painel = await waitFor(async () => ((await pMenu.locator("[data-painel-voz-voltar]").textContent().catch(() => "")) ?? "").includes("Menus e2e editado"), 20_000);
+  const ficou = new URL(pMenu.url()).pathname === "/novidades" && (await pMenu.evaluate(() => window.__semRecarregar === true));
+  check("numa outra página do site, mover troca só a voz: a pessoa fica na página e o painel de voz mostra o novo canal", voltou && !!painel && ficou, `HTTP ${res.status}, trocou ${voltou}, painel ${!!painel}, ficou ${ficou}`);
+  await pMenu.locator("[data-painel-voz-voltar]").click();
+  await pMenu.locator('[data-sala-fase="na_sala"]').waitFor({ timeout: 30_000 });
 }
 
 async function mensagem(t, check, pDono, pMenu, canalId) {
@@ -138,12 +174,15 @@ async function expulsarEApagar(t, check, pDono, pMenu, canalId) {
 export async function menus(t, check, made) {
   const { id: canalId } = await s.createCanal(t.dono, { tipo: "palco", titulo: "Menus e2e", posicao: 40, modo: "palco", limite: 10 });
   made.rooms.push(canalId);
+  const { id: destinoId } = await s.createCanal(t.dono, { tipo: "palco", titulo: "Mover e2e", posicao: 41, modo: "livre", limite: 10 });
+  made.rooms.push(destinoId);
   const pDono = await s.enter(await t.ctx(t.dono), canalId, "menus-dono");
   await pDono.context().grantPermissions(["clipboard-read", "clipboard-write"], { origin: BASE });
   const pMenu = await s.enter(await t.ctx(t.menu), canalId, "menus-plateia");
   try {
     await pessoa(t, check, pDono, pMenu);
     await canal(check, pDono, pMenu, canalId);
+    await mover(t, check, pDono, pMenu, canalId, destinoId);
     await mensagem(t, check, pDono, pMenu, canalId);
     await denunciaNoPainel(t, check, pDono, pMenu, canalId);
     await expulsarEApagar(t, check, pDono, pMenu, canalId);

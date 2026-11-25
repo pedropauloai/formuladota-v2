@@ -74,6 +74,16 @@ begin
   j := public.voice_room_snapshot(r1, (select max(id) from public.voice_room_messages where room_id = r1));
   r := array_append(r, (case when jsonb_array_length(j->'chat') = 0
     then 'A0c_estado_comum_manda_so_o_chat_novo=ok' else 'A0c_estado_comum_manda_so_o_chat_novo=FALHOU' end)::text);
+  -- Mover de canal (R20, migration 202): o estado comum leva o destino de quem foi movido, e só por 60 s.
+  update public.voice_room_members set moved_to = r2, moved_at = now() where room_id = r1 and user_id = u2;
+  j := public.voice_room_snapshot(r1, 0);
+  r := array_append(r, (case when exists (select 1 from jsonb_array_elements(j->'members') e where e->>'u' = u2::text and e->>'mv' = r2::text)
+    then 'A0e_estado_comum_leva_o_destino_de_quem_foi_movido=ok' else 'A0e_estado_comum_leva_o_destino_de_quem_foi_movido=FALHOU' end)::text);
+  update public.voice_room_members set moved_at = now() - interval '61 seconds' where room_id = r1 and user_id = u2;
+  j := public.voice_room_snapshot(r1, 0);
+  r := array_append(r, (case when not exists (select 1 from jsonb_array_elements(j->'members') e where e ? 'mv')
+    then 'A0f_destino_de_mover_vence_em_60s=ok' else 'A0f_destino_de_mover_vence_em_60s=FALHOU' end)::text);
+  update public.voice_room_members set moved_to = null, moved_at = null where room_id = r1 and user_id = u2;
   r := array_append(r, (case when public.voice_chat_send(r1, u3, 'ritmo um') is not null
                                  and public.voice_chat_send(r1, u3, 'colada') is null
                                  and public.voice_chat_send(r2, u3, 'outra sala') is not null
