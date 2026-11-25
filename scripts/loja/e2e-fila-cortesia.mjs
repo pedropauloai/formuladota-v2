@@ -64,6 +64,10 @@ async function adjust(page, player, bookingId) {
   const row = page.locator("[data-fila-linha]", { hasText: player.name }).filter({ hasText: "Cortesia" });
   await row.getByText("2 a jogar").waitFor({ timeout: 20_000 });
   check("o painel mostra a cortesia na fila com as partidas", true);
+  await row.click({ button: "right" });
+  await page.locator("[data-fila-menu='mais-partida']").waitFor({ timeout: 10_000 });
+  check("o botão direito na linha da fila abre as mesmas ações do ⋯", true);
+  await page.keyboard.press("Escape");
   await menu(page, row, player.name, "mais-partida");
   await row.getByText("3 a jogar").waitFor({ timeout: 20_000 });
   const plus = (await db.from("store_bookings").select("seats").eq("id", bookingId).single()).data;
@@ -165,6 +169,12 @@ async function run() {
     await playerPage.goto(`${BASE}/party`);
     await playerPage.locator("[data-fila-posicao='1']").waitFor({ timeout: 30_000 });
     check("o jogador vê a própria posição na /party", true);
+    // Botão direito sobre um jogador do placar (partida registrada com os 10 com conta no site).
+    await playerPage.goto(`${BASE}/partida/historico/8881277429`);
+    await playerPage.locator("a[href^='/perfil/u/']").first().click({ button: "right" });
+    await playerPage.locator("[data-menu-acao='perfil']").waitFor({ timeout: 20_000 });
+    await playerPage.locator("[data-menu-acao='copiar-nome']").waitFor({ timeout: 20_000 });
+    check("o botão direito sobre um jogador abre o menu de pessoa do site", true);
   } finally {
     await browser?.close().catch(() => undefined);
     const open = await onAirLive().catch(() => null);

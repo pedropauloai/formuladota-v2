@@ -15,6 +15,7 @@ import { OWNER } from "@/lib/loja/owner";
 import { cn } from "@/lib/utils";
 import { chamarProximo, tirarDaParty } from "./actions";
 import { ajustarPartidas } from "./cortesia-actions";
+import { ContextMenuActions } from "@/components/ui/context-menu";
 import { ActionMenu, type MenuAction } from "./action-menu";
 import { CopyId, MatchPips, OpButton } from "./ui";
 import { useAction } from "./use-console";
@@ -63,42 +64,45 @@ function seatActions(entry: AdminQueueEntry, run: ReturnType<typeof useAction>["
 function Seat({ entry, swapping, onSwap }: { entry: AdminQueueEntry; swapping: boolean; onSwap: (id: string | null) => void }) {
   const { pending, run } = useAction();
   return (
-    <article
-      aria-busy={pending || undefined}
-      aria-label={entry.name}
-      className={cn(SLOT, "gap-3 transition-colors", swapping ? "border-gold/70 bg-gold/[0.07]" : "border-white/[0.06] bg-black/20", pending && "opacity-60")}
-      data-fila-lugar="ocupado"
-    >
-      <div className="flex items-start gap-3">
-        <UserAvatar src={entry.avatarUrl ?? undefined} alt={entry.name} fallback={entry.name.slice(0, 2).toUpperCase()} size="md" className={MEMBER_RIM} />
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-[15px] font-semibold leading-5 text-text-display" title={entry.name}>
-            {entry.name}
-          </p>
-          <p className="truncate text-sm leading-5 text-text-muted" title={entry.steamPersona ?? undefined}>
-            {entry.steamPersona ? `no Dota: ${entry.steamPersona}` : "sem Steam vinculada"}
-          </p>
+    // O botão direito no lugar abre as mesmas ações do "⋯".
+    <ContextMenuActions actions={() => seatActions(entry, run)} testAttr="data-fila-menu" className="w-72">
+      <article
+        aria-busy={pending || undefined}
+        aria-label={entry.name}
+        className={cn(SLOT, "gap-3 transition-colors", swapping ? "border-gold/70 bg-gold/[0.07]" : "border-white/[0.06] bg-black/20", pending && "opacity-60")}
+        data-fila-lugar="ocupado"
+      >
+        <div className="flex items-start gap-3">
+          <UserAvatar src={entry.avatarUrl ?? undefined} alt={entry.name} fallback={entry.name.slice(0, 2).toUpperCase()} size="md" className={MEMBER_RIM} />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[15px] font-semibold leading-5 text-text-display" title={entry.name}>
+              {entry.name}
+            </p>
+            <p className="truncate text-sm leading-5 text-text-muted" title={entry.steamPersona ?? undefined}>
+              {entry.steamPersona ? `no Dota: ${entry.steamPersona}` : "sem Steam vinculada"}
+            </p>
+          </div>
         </div>
-      </div>
-      <MatchPips played={entry.played} matches={entry.matches} dayPass={entry.dayPass} />
-      <div className="mt-auto space-y-1.5">
-        {entry.dotaFriendId ? <CopyId id={entry.dotaFriendId} variant="large" /> : <p className="py-2.5 text-sm text-warning">Sem ID do Dota: convide pela Steam.</p>}
-        <div className="flex items-center gap-1">
-          <OpButton
-            tone="quiet"
-            size="sm"
-            className={cn("flex-1", swapping && "bg-gold/10 text-gold hover:bg-gold/15 hover:text-gold-bright")}
-            icon={<ArrowLeftRight size={15} aria-hidden="true" />}
-            onClick={() => onSwap(swapping ? null : entry.id)}
-            aria-pressed={swapping}
-            data-fila-trocar
-          >
-            {swapping ? "Cancelar a troca" : "Trocar"}
-          </OpButton>
-          <ActionMenu label={`Ações de ${entry.name}`} actions={seatActions(entry, run)} />
+        <MatchPips played={entry.played} matches={entry.matches} dayPass={entry.dayPass} />
+        <div className="mt-auto space-y-1.5">
+          {entry.dotaFriendId ? <CopyId id={entry.dotaFriendId} variant="large" /> : <p className="py-2.5 text-sm text-warning">Sem ID do Dota: convide pela Steam.</p>}
+          <div className="flex items-center gap-1">
+            <OpButton
+              tone="quiet"
+              size="sm"
+              className={cn("flex-1", swapping && "bg-gold/10 text-gold hover:bg-gold/15 hover:text-gold-bright")}
+              icon={<ArrowLeftRight size={15} aria-hidden="true" />}
+              onClick={() => onSwap(swapping ? null : entry.id)}
+              aria-pressed={swapping}
+              data-fila-trocar
+            >
+              {swapping ? "Cancelar a troca" : "Trocar"}
+            </OpButton>
+            <ActionMenu label={`Ações de ${entry.name}`} actions={seatActions(entry, run)} />
+          </div>
         </div>
-      </div>
-    </article>
+      </article>
+    </ContextMenuActions>
   );
 }
 

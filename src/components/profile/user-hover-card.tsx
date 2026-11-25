@@ -11,8 +11,9 @@
 //   - Convidar pro grupo (party) inline pra amigos
 //   - Conteúdo rico: medalhas SKILL+HONOR (rank Valve real), winrate de carreira,
 //     recado, presença ("Online"/"Visto há Xh")
+//   - Botão direito: o menu de pessoa (person-menu.tsx), e o cartão fecha enquanto ele está aberto
 
-import { useState, useTransition, type ReactNode } from "react";
+import { useRef, useState, useTransition, type ReactNode } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
@@ -22,10 +23,7 @@ import {
   HoverCardTrigger,
   HoverCardContent,
 } from "@/components/ui/hover-card";
-import {
-  getPublicMiniProfile,
-  type PublicMiniProfile,
-} from "@/actions/public-profile";
+import type { PublicMiniProfile } from "@/actions/public-profile";
 import { SeasonRankMedal } from "@/components/ui/season-rank-medal";
 import { HonorRankMedal } from "@/components/ui/honor-rank-medal";
 import { SocialIconsRow } from "@/components/profile/social-icons-row";
@@ -35,6 +33,8 @@ import { computeRankBadges } from "@/lib/dota/rank-badges";
 import { formatLastSeen } from "@/lib/realtime/presence";
 import { openChatWith } from "@/lib/chat/open-chat";
 import { inviteToParty } from "@/actions/party";
+import { fetchMini } from "./mini-profile-cache";
+import { PersonMenu } from "./person-menu";
 
 interface Props {
   userId: string;
@@ -46,23 +46,16 @@ interface Props {
   className?: string;
 }
 
-// Cache client (TTL 2min): re-hover do mesmo user numa lista não refaz o RPC.
-const TTL_MS = 2 * 60 * 1000;
-const cache = new Map<string, { data: PublicMiniProfile | null; at: number }>();
-
-async function fetchMini(userId: string): Promise<PublicMiniProfile | null> {
-  const hit = cache.get(userId);
-  if (hit && Date.now() - hit.at < TTL_MS) return hit.data;
-  const data = await getPublicMiniProfile(userId);
-  cache.set(userId, { data, at: Date.now() });
-  return data;
-}
-
 export function UserHoverCard({ userId, children, online, className }: Props) {
   const [data, setData] = useState<PublicMiniProfile | null>(null);
   const [loading, setLoading] = useState(false);
+  const [hoverOpen, setHoverOpen] = useState(false);
+  // Com o menu do botão direito aberto, a espera do mouse não reabre o cartão por cima dele.
+  const menuOpen = useRef(false);
 
   function onOpenChange(open: boolean) {
+    if (open && menuOpen.current) return;
+    setHoverOpen(open);
     if (open && !data) {
       setLoading(true);
       void fetchMini(userId)
@@ -72,26 +65,34 @@ export function UserHoverCard({ userId, children, online, className }: Props) {
   }
 
   return (
-    <HoverCard openDelay={150} closeDelay={200} onOpenChange={onOpenChange}>
-      <HoverCardTrigger asChild>
-        <Link href={`/perfil/u/${userId}`} className={className}>
-          {children}
-        </Link>
-      </HoverCardTrigger>
-      <HoverCardContent className="w-80">
-        {!data ? (
-          loading ? (
-            <Skeleton />
+    <PersonMenu
+      userId={userId}
+      onOpenChange={(open) => {
+        menuOpen.current = open;
+        if (open) setHoverOpen(false);
+      }}
+    >
+      <HoverCard open={hoverOpen} openDelay={150} closeDelay={200} onOpenChange={onOpenChange}>
+        <HoverCardTrigger asChild>
+          <Link href={`/perfil/u/${userId}`} className={className}>
+            {children}
+          </Link>
+        </HoverCardTrigger>
+        <HoverCardContent className="w-80">
+          {!data ? (
+            loading ? (
+              <Skeleton />
+            ) : (
+              <p className="py-4 text-center font-display text-sm text-text-faded">
+                Perfil indisponível.
+              </p>
+            )
           ) : (
-            <p className="py-4 text-center font-display text-sm text-text-faded">
-              Perfil indisponível.
-            </p>
-          )
-        ) : (
-          <Body data={data} online={online} />
-        )}
-      </HoverCardContent>
-    </HoverCard>
+            <Body data={data} online={online} />
+          )}
+        </HoverCardContent>
+      </HoverCard>
+    </PersonMenu>
   );
 }
 

@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { chamarProximo, tirarDaFila, tirarDaParty } from "./actions";
 import { ajustarPartidas } from "./cortesia-actions";
 import { trocarJogador } from "./mesa-actions";
+import { ContextMenuActions } from "@/components/ui/context-menu";
 import { ActionMenu, type MenuAction } from "./action-menu";
 import { CopyId, OpButton, OriginPill, since } from "./ui";
 import { useAction } from "./use-console";
@@ -128,52 +129,55 @@ export function QueueRow({ entry, ctx, expanded, onToggle }: { entry: AdminQueue
   const isNew = ctx.now - Date.parse(entry.queuedAt) < NEW_MS;
   return (
     <li className={cn("border-b border-white/[0.05] last:border-b-0", expanded && "bg-white/[0.03]")} data-fila-linha={entry.id}>
-      <div
-        role="button"
-        tabIndex={0}
-        aria-expanded={expanded}
-        aria-label={`${entry.name}, ${entry.position}º da fila`}
-        onClick={onToggle}
-        onKeyDown={(e) => {
-          if (e.target === e.currentTarget && (e.key === "Enter" || e.key === " ")) {
-            e.preventDefault();
-            onToggle();
-          }
-        }}
-        className="grid cursor-pointer grid-cols-[2rem_2.5rem_minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 outline-none transition-colors hover:bg-white/[0.035] focus-visible:bg-white/[0.05]"
-      >
-        <span className="text-right font-display-condensed text-[1.75rem] leading-none tabular-nums text-text-faded">{entry.position}</span>
-        <UserAvatar src={entry.avatarUrl ?? undefined} alt="" fallback={entry.name.slice(0, 2).toUpperCase()} size="md" />
-        <div className="min-w-0">
-          <p className="flex items-center gap-2">
-            <span className="truncate text-[15px] font-medium leading-5 text-text-display">{entry.name}</span>
-            {isNew && <span className="shrink-0 rounded-sm bg-gold/15 px-1.5 text-sm font-semibold leading-5 text-gold">novo</span>}
-          </p>
-          <p className="mt-0.5 flex items-center gap-x-2.5 overflow-hidden whitespace-nowrap text-sm leading-5 text-text-muted" suppressHydrationWarning>
-            <OriginPill entry={entry} />
-            {entry.dayPass ? (
-              <span data-fila-vaga-do-dia>
-                {entry.played > 0 ? (
-                  <>
-                    jogou <b className="font-semibold text-text-body">{entry.played}</b> hoje
-                  </>
-                ) : (
-                  "vaga do dia"
-                )}
-              </span>
-            ) : (
-              <span>
-                <b className="font-semibold text-text-body">{left}</b> a jogar
-              </span>
-            )}
-            <span className={cn("truncate", !entry.lastTurnAt && "text-play-primary")}>{entry.lastTurnAt ? `jogou ${since(entry.lastTurnAt, ctx.now)}` : "nunca jogou"}</span>
-          </p>
+      {/* O botão direito na linha abre as mesmas ações do "⋯". */}
+      <ContextMenuActions actions={() => rowActions(entry, ctx, run)} testAttr="data-fila-menu" className="w-72">
+        <div
+          role="button"
+          tabIndex={0}
+          aria-expanded={expanded}
+          aria-label={`${entry.name}, ${entry.position}º da fila`}
+          onClick={onToggle}
+          onKeyDown={(e) => {
+            if (e.target === e.currentTarget && (e.key === "Enter" || e.key === " ")) {
+              e.preventDefault();
+              onToggle();
+            }
+          }}
+          className="grid cursor-pointer grid-cols-[2rem_2.5rem_minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 outline-none transition-colors hover:bg-white/[0.035] focus-visible:bg-white/[0.05]"
+        >
+          <span className="text-right font-display-condensed text-[1.75rem] leading-none tabular-nums text-text-faded">{entry.position}</span>
+          <UserAvatar src={entry.avatarUrl ?? undefined} alt="" fallback={entry.name.slice(0, 2).toUpperCase()} size="md" />
+          <div className="min-w-0">
+            <p className="flex items-center gap-2">
+              <span className="truncate text-[15px] font-medium leading-5 text-text-display">{entry.name}</span>
+              {isNew && <span className="shrink-0 rounded-sm bg-gold/15 px-1.5 text-sm font-semibold leading-5 text-gold">novo</span>}
+            </p>
+            <p className="mt-0.5 flex items-center gap-x-2.5 overflow-hidden whitespace-nowrap text-sm leading-5 text-text-muted" suppressHydrationWarning>
+              <OriginPill entry={entry} />
+              {entry.dayPass ? (
+                <span data-fila-vaga-do-dia>
+                  {entry.played > 0 ? (
+                    <>
+                      jogou <b className="font-semibold text-text-body">{entry.played}</b> hoje
+                    </>
+                  ) : (
+                    "vaga do dia"
+                  )}
+                </span>
+              ) : (
+                <span>
+                  <b className="font-semibold text-text-body">{left}</b> a jogar
+                </span>
+              )}
+              <span className={cn("truncate", !entry.lastTurnAt && "text-play-primary")}>{entry.lastTurnAt ? `jogou ${since(entry.lastTurnAt, ctx.now)}` : "nunca jogou"}</span>
+            </p>
+          </div>
+          <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+            {ctx.swapFor ? <SwapButton entry={entry} ctx={ctx} /> : entry.dotaFriendId && <CopyId id={entry.dotaFriendId} className="hidden sm:inline-flex" />}
+            <ActionMenu label={`Ações de ${entry.name}`} actions={rowActions(entry, ctx, run)} />
+          </div>
         </div>
-        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-          {ctx.swapFor ? <SwapButton entry={entry} ctx={ctx} /> : entry.dotaFriendId && <CopyId id={entry.dotaFriendId} className="hidden sm:inline-flex" />}
-          <ActionMenu label={`Ações de ${entry.name}`} actions={rowActions(entry, ctx, run)} />
-        </div>
-      </div>
+      </ContextMenuActions>
       {expanded && <Details entry={entry} now={ctx.now} />}
     </li>
   );
