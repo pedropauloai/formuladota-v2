@@ -1,12 +1,15 @@
 // Cria (ou reaproveita) o canal oculto 💰丨vendas na categoria 🛠丨ADMIN do Discord e o webhook
-// "Loja FORMULADOTA", e grava a URL do webhook no arquivo de ambiente indicado, sem imprimir.
+// "Loja FORMULADOTA", e grava a URL do webhook no arquivo de ambiente indicado, sem imprimir. Com
+// --teste, faz o mesmo com o canal 🧪丨vendas-teste, onde caem os avisos dos pedidos de teste.
 // Usa só a API REST do Discord com o token do bot: funciona com o bot fora do ar.
 //
-// Uso: node scripts/loja/criar-canal-vendas.mjs .env.local
+// Uso: node scripts/loja/criar-canal-vendas.mjs .env.local [--teste]
 
 import { readFileSync, writeFileSync } from "node:fs";
 
-const envPath = process.argv[2] ?? ".env.local";
+const args = process.argv.slice(2);
+const teste = args.includes("--teste");
+const envPath = args.find((a) => !a.startsWith("--")) ?? ".env.local";
 const raw = readFileSync(envPath, "utf8");
 const env = Object.fromEntries(
   raw
@@ -22,8 +25,9 @@ const guildId = env.DISCORD_GUILD_ID;
 if (!token || !guildId) throw new Error("DISCORD_BOT_TOKEN e DISCORD_GUILD_ID precisam estar no arquivo de ambiente.");
 
 const CATEGORY = "🛠丨ADMIN";
-const CHANNEL = "💰丨vendas";
-const HOOK = "Loja FORMULADOTA";
+const CHANNEL = teste ? "🧪丨vendas-teste" : "💰丨vendas";
+const HOOK = teste ? "Loja FORMULADOTA (teste)" : "Loja FORMULADOTA";
+const VAR = teste ? "SALES_DISCORD_TEST_WEBHOOK_URL" : "SALES_DISCORD_WEBHOOK_URL";
 const VIEW_CHANNEL = String(1 << 10);
 
 async function discord(path, init = {}) {
@@ -49,7 +53,7 @@ if (!channel) {
       name: CHANNEL,
       type: 0,
       parent_id: category.id,
-      topic: "Aviso de cada venda da loja do site. Só o admin vê.",
+      topic: teste ? "Avisos dos pedidos de teste dos testes automáticos. Só o admin vê." : "Aviso de cada venda da loja do site. Só o admin vê.",
       // Oculto para @everyone (o ID do cargo @everyone é o do servidor).
       permission_overwrites: [{ id: guildId, type: 0, deny: VIEW_CHANNEL }],
     }),
@@ -67,9 +71,10 @@ if (!hook) {
 
 const url = `https://discord.com/api/webhooks/${hook.id}/${hook.token}`;
 const eol = raw.includes("\r\n") ? "\r\n" : "\n";
-const line = `SALES_DISCORD_WEBHOOK_URL=${url}`;
-const next = /^SALES_DISCORD_WEBHOOK_URL=.*$/m.test(raw)
-  ? raw.replace(/^SALES_DISCORD_WEBHOOK_URL=.*$/m, line)
+const line = `${VAR}=${url}`;
+const pattern = new RegExp(`^${VAR}=.*$`, "m");
+const next = pattern.test(raw)
+  ? raw.replace(pattern, line)
   : `${raw.replace(/\s*$/, "")}${eol}${line}${eol}`;
 writeFileSync(envPath, next);
 

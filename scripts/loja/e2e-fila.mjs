@@ -203,7 +203,7 @@ async function run() {
     const notified = await waitFor(async () => (await orderRow(order.id))?.notified_at, 30_000);
     check("aviso de venda entregue", !!notified);
     const sale = await discordMessageFor(order.id);
-    check("mensagem [TESTE] da vaga no canal de vendas do Discord", !!sale);
+    check("mensagem [TESTE] da vaga no canal de teste do Discord, fora do canal de vendas", !!sale);
     const saleText = JSON.stringify(sale ?? {});
     check("o aviso de venda diz que a vaga é na fila aberta, sem a data fixa", saleText.includes("fila da party, para a próxima live") && !saleText.includes("01/01"));
     await checkShell(page);

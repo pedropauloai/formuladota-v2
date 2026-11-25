@@ -6,6 +6,7 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { publicEnv } from "@/lib/env";
 import { buildDiscordSalePayload, buildSaleEmail, type SaleInfo } from "./notify-message";
 import { bookingLine } from "./agenda";
+import { mentionParts, salesChannel } from "./sales-channel";
 
 const TIMEOUT_MS = 8000;
 
@@ -53,13 +54,13 @@ async function loadSale(orderId: string): Promise<SaleInfo | null> {
 }
 
 async function postDiscord(sale: SaleInfo): Promise<boolean> {
-  const url = process.env.SALES_DISCORD_WEBHOOK_URL;
-  if (!url) return false;
+  const channel = salesChannel(sale.isTest);
+  if (!channel) return false;
   try {
-    const response = await fetch(`${url}?wait=true`, {
+    const response = await fetch(`${channel.url}?wait=true`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(buildDiscordSalePayload(sale, process.env.PEDRO_DISCORD_USER_ID)),
+      body: JSON.stringify(buildDiscordSalePayload(sale, channel.mentionId ?? undefined)),
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
     if (!response.ok) console.error("[loja/aviso] Discord recusou: HTTP", response.status);
@@ -71,6 +72,8 @@ async function postDiscord(sale: SaleInfo): Promise<boolean> {
 }
 
 async function sendEmail(sale: SaleInfo): Promise<boolean> {
+  // Pedido de teste nunca manda e-mail: o aviso dele fica só no canal de teste do Discord.
+  if (sale.isTest) return false;
   const to = process.env.STORE_NOTIFY_EMAIL;
   const key = process.env.RESEND_API_KEY;
   if (!to || !key) return false;
@@ -112,20 +115,19 @@ export async function sendSaleNotification(orderId: string): Promise<void> {
 
 /** Aviso curto de agenda ao Pedro (sessão marcada depois da compra, remarcação), no canal de vendas. */
 export async function sendAgendaEvent(text: string, orderId: string, isTest: boolean): Promise<void> {
-  const url = process.env.SALES_DISCORD_WEBHOOK_URL;
-  if (!url) return;
-  const pedro = process.env.PEDRO_DISCORD_USER_ID;
-  const mention = pedro && /^\d{5,25}$/.test(pedro) ? `<@${pedro}> ` : "";
+  const channel = salesChannel(isTest);
+  if (!channel) return;
+  const { prefix: mention, users } = mentionParts(channel);
   const adminUrl = `${publicEnv.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "")}/admin/loja/agenda`;
   // Nome do comprador vai como texto: nada de formatação nem menção injetada.
   const safe = text.replace(/([\`*_~|>@])/g, "\$1");
   try {
-    const response = await fetch(`${url}?wait=true`, {
+    const response = await fetch(`${channel.url}?wait=true`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         content: `${mention}${isTest ? "[TESTE] " : ""}agenda: ${safe}\n${adminUrl} (pedido ${orderId})`.slice(0, 2000),
-        allowed_mentions: { parse: [], users: mention && pedro ? [pedro] : [] },
+        allowed_mentions: { parse: [], users },
       }),
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });

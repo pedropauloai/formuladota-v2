@@ -1,5 +1,5 @@
 // Battlepass de ponta a ponta no localhost, contra o sandbox do Mercado Pago, o banco real (linhas
-// is_test) e o canal de vendas do Discord (avisos [TESTE]). Falha alto no primeiro ponto errado.
+// is_test) e o canal de teste do Discord (avisos [TESTE], fora do canal das vendas reais). Falha alto no primeiro ponto errado.
 // Rodar: pnpm battlepass:e2e  (sobe o servidor na 3102, ou reaproveita com BATTLEPASS_E2E_PORT)
 //
 // O que prova (docs/definicao-de-pronto.md, B4 a B7):
@@ -84,7 +84,7 @@ async function pixFlow(browser, buyer) {
   const after1 = (await paymentsOf(buyer.id)).find((p) => p.id === first.id);
   check("pix: livro marca pago com o período", after1?.status === "pago" && !!after1.period_end);
   const notice = await discordContentWith("pagou 30 dias de Battlepass no Pix");
-  check("pix: aviso ao Pedro no canal de vendas", !!notice);
+  check("pix: aviso [TESTE] no canal de teste do Discord", !!notice);
 
   // Notificação repetida do mesmo pagamento: 200 e nada soma.
   const status = await webhook(paid.id, env.MP_WEBHOOK_SECRET);

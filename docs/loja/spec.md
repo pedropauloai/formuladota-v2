@@ -49,7 +49,7 @@ A prova da primeira dobra (medalha, posição no ranking e números de Tinker do
 
 **Confirmação.** O webhook valida a assinatura (`x-signature`), busca o pagamento no Mercado Pago e, se a `external_reference` começa com `loja-`, entrega para a loja; o resto segue o fluxo antigo das fichas sem mudança. A página do pedido concilia pelo `GET /v1/payments/search?external_reference=...`, no máximo uma consulta a cada 3 segundos por pedido. Quem vencer a transição dispara o aviso; o outro vira no-op.
 
-**Aviso de venda.** Mensagem no canal privado de vendas do Discord, com menção ao Pedro, produto, opção, valor, meio, contato (link direto para o WhatsApp do comprador), respostas do formulário e origem. Venda de teste sai marcada `[TESTE]`. O e-mail vai para `STORE_NOTIFY_EMAIL`.
+**Aviso de venda.** Mensagem no canal privado de vendas do Discord, com menção ao Pedro, produto, opção, valor, meio, contato (link direto para o WhatsApp do comprador), respostas do formulário e origem. Venda de teste sai marcada `[TESTE]` no canal oculto de teste (`🧪丨vendas-teste`, variável `SALES_DISCORD_TEST_WEBHOOK_URL`), sem menção e sem e-mail; sem esse canal configurado, o teste não avisa em lugar nenhum. O canal de vendas fica só com venda de verdade. O e-mail vai para `STORE_NOTIFY_EMAIL`.
 
 ## Rotas
 
