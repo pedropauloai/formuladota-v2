@@ -24,6 +24,8 @@ export interface SnapshotMember {
   /** Mão levantada desde (só vem quando levantada). */
   h?: string;
   on: boolean;
+  /** Canal para onde o dono moveu a pessoa (só vem nos 60 s depois de mover). */
+  mv?: string;
 }
 
 export interface SnapshotTrack {

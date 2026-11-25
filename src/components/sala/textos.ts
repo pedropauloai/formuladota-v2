@@ -30,6 +30,11 @@ export const CHAT_ERRO: Record<string, string> = {
 
 export const MODERAR_ERRO: Record<string, string> = {
   palco_cheio: "palcoCheio",
+  sala_lotada: "moverCheio",
+  so_beneficio: "moverSemAcesso",
+  banido: "moverSemAcesso",
+  sem_maioridade: "moverSemAcesso",
+  conta_bloqueada: "moverSemAcesso",
 };
 
 export const MOTIVO_TEXTO = {

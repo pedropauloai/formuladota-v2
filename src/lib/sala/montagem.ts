@@ -49,6 +49,8 @@ export interface Estado {
     podeEscrever: boolean;
     podeCompartilharTela: boolean;
     motivoTela: TrackDenyCode | null;
+    /** O dono moveu a pessoa para este canal: o navegador dela troca de canal sozinho. */
+    movidoPara: string | null;
   };
   sala?: { titulo: string; tipo: RoomKind; modo: VoiceMode; canal: boolean; fechaEm: string; chatAberto: boolean; lugares: number; falantesMax: number; videoMaxKbps: number };
   membros?: MembroEstado[];
@@ -96,6 +98,7 @@ export function compose(v: Verdict, snap: RawSnapshot, me: string, decided: Memb
       vozAberta: snap.tracks.some((t) => t.u === me && t.t === "voz"),
       podeLevantarMao: canRaiseHand(role, room.kind), maoDesde: mine?.h ?? null,
       podeEscrever: canChat(role, room.kind, live.chat_open), podeCompartilharTela: motivoTela === null, motivoTela,
+      movidoPara: mine?.mv && mine.mv !== room.id ? mine.mv : null,
     },
     sala: { titulo: room.title, tipo: room.kind, modo: room.voiceMode, canal: room.channelPosition !== null, fechaEm: live.closes_at, chatAberto: live.chat_open, lugares: room.maxMembers, falantesMax: settings.palcoMaxSpeakers, videoMaxKbps: settings.videoMaxKbps },
     membros,

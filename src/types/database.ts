@@ -4304,6 +4304,8 @@ export type Database = {
           hand_raised_at: string | null
           joined_via: string
           last_seen_at: string | null
+          moved_at: string | null
+          moved_to: string | null
           muted: boolean
           removed_at: string | null
           removed_by: string | null
@@ -4319,6 +4321,8 @@ export type Database = {
           hand_raised_at?: string | null
           joined_via: string
           last_seen_at?: string | null
+          moved_at?: string | null
+          moved_to?: string | null
           muted?: boolean
           removed_at?: string | null
           removed_by?: string | null
@@ -4334,6 +4338,8 @@ export type Database = {
           hand_raised_at?: string | null
           joined_via?: string
           last_seen_at?: string | null
+          moved_at?: string | null
+          moved_to?: string | null
           muted?: boolean
           removed_at?: string | null
           removed_by?: string | null

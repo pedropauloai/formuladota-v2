@@ -12,7 +12,7 @@ import { Denuncia, type AlvoTela } from "./denuncia";
 import { Pessoas } from "./pessoas";
 import { MODERAR_ERRO } from "./textos";
 
-export function PessoasDaSala({ sessao, snap }: { sessao: SessaoSala; snap: SessaoSnapshot }) {
+export function PessoasDaSala({ sessao, snap, destinos }: { sessao: SessaoSala; snap: SessaoSnapshot; destinos: Array<{ id: string; titulo: string }> }) {
   const t = useTranslations("sala");
   const [alvo, setAlvo] = useState<({ userId: string } & AlvoTela) | null>(null);
   const [erro, setErro] = useState<string | null>(null);
@@ -23,12 +23,17 @@ export function PessoasDaSala({ sessao, snap }: { sessao: SessaoSala; snap: Sess
     const res = await sessao.moderar(userId, acao);
     setErro(res.ok ? null : (MODERAR_ERRO[res.code] ?? "moderarErro"));
   };
+  const mover = async (userId: string, destino: string) => {
+    const res = await sessao.mover(userId, destino);
+    setErro(res.ok ? null : (MODERAR_ERRO[res.code] ?? "moderarErro"));
+  };
   return (
     <>
       <Pessoas
         membros={estado.membros ?? []} pessoas={snap.pessoas} eu={estado.eu?.userId ?? null} souDono={snap.papel === "dono"}
         tipo={estado.sala.tipo} modo={estado.sala.modo} falando={snap.falando}
         onModerar={(id, acao) => void moderar(id, acao)} onBloquear={(id) => void sessao.bloquear(id)}
+        destinos={destinos} onMover={(id, destino) => void mover(id, destino)}
         onDenunciar={(id) => setAlvo({ tipo: "pessoa", userId: id, nome: nomeDe(id), avatarUrl: snap.pessoas[id]?.avatarUrl ?? null })}
         volumes={snap.volumes} onVolumeDe={(id, v) => sessao.setVolumeDe(id, v)}
       />

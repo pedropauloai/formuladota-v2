@@ -93,7 +93,9 @@ export function Servidor({ inicial, souDono, children }: { inicial: ListaDeCanai
   const lista = useMemo(() => semMimForaDaSala(recebida, eu, naSala), [recebida, eu, naSala]);
   const listada = [...lista.texto, ...lista.voz, ...lista.privadas].some((c) => c.id === naSala);
   const salaAtual = ativa && naSala && !listada ? salaDaSessao(ativa.meta, snap) : null;
-  const pessoasDe = (id: string) => (ativa && naSala === id ? <PessoasDaSala sessao={ativa.sessao} snap={snap} /> : null);
+  // Para onde o dono pode mover alguém: os outros canais de voz do servidor.
+  const destinos = (id: string) => lista.voz.filter((c) => c.id !== id && c.tipo === "palco").map((c) => ({ id: c.id, titulo: c.titulo }));
+  const pessoasDe = (id: string) => (ativa && naSala === id ? <PessoasDaSala sessao={ativa.sessao} snap={snap} destinos={destinos(id)} /> : null);
   return (
     <div className={cn(v2Page, "flex h-full gap-4 overflow-hidden px-4 pb-[92px] pt-4")} data-servidor="">
       <ColunaCanais

@@ -89,6 +89,16 @@ describe("compose (o que o estado entrega a cada pessoa)", () => {
     expect(compose(teto, snap(), "ppa", "dono", 0).eu?.motivoTela).toBe("teto_de_trafego");
   });
 
+  it("movida pelo dono para outro canal: o estado da própria pessoa traz o destino, e o dos outros não", () => {
+    const s = snap({ members: [{ u: "ppa", r: "dono", m: false, on: true }, { u: "eu", r: "ouvinte", m: true, on: true, mv: "party1" }] });
+    expect(compose(verdict(), s, "eu", "ouvinte", 0).eu?.movidoPara).toBe("party1");
+    expect(compose(verdict({ userId: "ppa" }), s, "ppa", "dono", 0).eu?.movidoPara).toBeNull();
+    expect(compose(verdict(), snap(), "eu", "ouvinte", 0).eu?.movidoPara).toBeNull();
+    // Destino igual ao próprio canal não vale: a página não troca para ela mesma.
+    const mesmo = snap({ members: [{ u: "eu", r: "ouvinte", m: true, on: true, mv: "sala" }] });
+    expect(compose(verdict(), mesmo, "eu", "ouvinte", 0).eu?.movidoPara).toBeNull();
+  });
+
   it("diz se a voz da pessoa está aberta no servidor (o navegador religa a que caiu)", () => {
     expect(compose(verdict(), snap(), "ppa", "dono", 0).eu?.vozAberta).toBe(true);
     expect(compose(verdict(), snap({ tracks: [] }), "ppa", "dono", 0).eu?.vozAberta).toBe(false);

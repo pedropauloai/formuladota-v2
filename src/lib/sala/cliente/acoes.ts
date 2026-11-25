@@ -51,6 +51,7 @@ export const api = (roomId: string) => {
     apagarMensagem: (id: number) => postJson<{ ok: true }>(`${base}/chat/${id}/apagar`),
     abrirChat: (aberto: boolean) => postJson<{ ok: true }>(`${base}/chat/abrir`, { aberto }),
     membro: (userId: string, acao: AcaoDono, motivo = "") => postJson<{ ok: true }>(`${base}/membros/${userId}/${acao}`, { motivo }),
+    mover: (userId: string, destino: string) => postJson<{ ok: true }>(`${base}/membros/${userId}/mover`, { destino }),
     bloquear: (userId: string) => postJson<{ ok: true }>(`${base}/bloqueios`, { userId }),
     denunciar: (alvo: AlvoDenuncia, motivo: string, detalhes: string) => postJson<{ ok: true }>(`${base}/denuncias`, { ...alvo, motivo, detalhes }),
     convite: (token: string) => postJson<{ ok: true }>(`${base}/convite`, { token }),
