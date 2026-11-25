@@ -8,6 +8,7 @@
 import { useTranslations } from "next-intl";
 import { AlertTriangle, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { UserAvatar } from "@/components/ui/avatar";
 import type { AdminCoachSummary, AdminPendingPT } from "./admin-pros-types";
 import { formatAge } from "./format";
 
@@ -57,6 +58,12 @@ export function AdminPendingStrip({
                     : "border-border-subtle bg-bg-elevated hover:border-warning/50"
                 )}
               >
+                <UserAvatar
+                  size="xs"
+                  src={coach?.avatarUrl ?? undefined}
+                  alt={coach?.username ?? coach?.slug ?? "PRO"}
+                  fallback={(coach?.username ?? coach?.slug ?? "PRO").slice(0, 2).toUpperCase()}
+                />
                 <div>
                   <p className="font-display text-sm font-semibold text-text-display">
                     {coach?.username ?? coach?.slug ?? "PRO"}

@@ -386,6 +386,7 @@ function MuralCard({
                 >
                   {b.status === "banned" ? bannedLabel : suspendedLabel}
                 </span>
+                <UserAvatar src={b.avatarUrl ?? undefined} alt="" fallback={(b.username ?? "?").slice(0, 2).toUpperCase()} size="xs" className="size-5" />
                 <span className="min-w-0 flex-1 truncate font-body text-sm text-text-body">
                   {b.username ?? "—"}
                 </span>

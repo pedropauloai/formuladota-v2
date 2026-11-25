@@ -31,6 +31,8 @@ import {
 } from "@/lib/dota/match-objectives";
 import { parsePlayerHeatmap, type PlayerHeatmap } from "@/lib/dota/match-heatmap";
 import { getHeroById } from "@/lib/queries/heroes";
+import { UserAvatar } from "@/components/ui/avatar";
+import { UserHoverCard } from "@/components/profile/user-hover-card";
 
 export const dynamic = "force-dynamic";
 
@@ -219,6 +221,7 @@ export default async function HistoricoPartidaPage({
       slot: r.player_slot,
       team: r.team,
       playerName: ident?.username ?? ident?.persona ?? r.personaname ?? t("colPlayer"),
+      playerAvatar: ident?.avatar_url || null,
       heroName: hero?.name_pt ?? `Herói ${r.hero_id}`,
       heroIcon: hero?.image_icon ?? null,
       cells,
@@ -351,12 +354,18 @@ export default async function HistoricoPartidaPage({
             <ul className="mt-2 space-y-1.5">
               {matchBans.map((b) => (
                 <li key={b.userId} className="text-sm">
-                  <Link
-                    href={`/perfil/u/${b.userId}`}
-                    className="font-display font-bold text-text-display hover:text-brand-primary"
+                  <UserHoverCard
+                    userId={b.userId}
+                    className="inline-flex items-center gap-2 align-middle font-display font-bold text-text-display hover:text-brand-primary"
                   >
+                    <UserAvatar
+                      src={identityById.get(b.userId)?.avatar_url || undefined}
+                      alt=""
+                      fallback={(b.username ?? t("colPlayer")).slice(0, 2).toUpperCase()}
+                      size="xs"
+                    />
                     {b.username ?? t("colPlayer")}
-                  </Link>
+                  </UserHoverCard>
                   {b.antipattern && (
                     <span className="ml-2 font-display text-xs font-semibold uppercase tracking-wide text-error/90">
                       {b.antipattern}

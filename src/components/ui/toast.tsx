@@ -32,6 +32,7 @@ import { AnimatePresence, m } from "motion/react";
 import { useTranslations } from "next-intl";
 import { CheckCircle, AlertCircle, XCircle, Info, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { UserAvatar } from "@/components/ui/avatar";
 import { useSound } from "@/lib/sound/hooks";
 import { DURATIONS, EASINGS } from "@/lib/motion/presets";
 import type { SoundId } from "@/lib/sound/sprite-map";
@@ -42,11 +43,18 @@ import type { SoundId } from "@/lib/sound/sprite-map";
 
 export type ToastType = "info" | "success" | "error" | "warning";
 
+/** Quem causou o aviso (mensagem nova): a foto entra no lugar do ícone. */
+export interface ToastAvatar {
+  src: string | null;
+  name: string;
+}
+
 export interface Toast {
   id: string;
   type: ToastType;
   title: string;
   description?: string;
+  avatar?: ToastAvatar;
   /** Duração em ms antes do auto-dismiss. Passar 0 para sem auto-dismiss. Default: 5000 */
   duration?: number;
 }
@@ -236,11 +244,21 @@ function ToastItem({ toast: toastData, onDismiss }: ToastItemProps) {
       role="alert"
       aria-atomic="true"
     >
-      {/* Ícone colorido por tipo */}
-      <Icon
-        className={cn("size-5 mt-0.5 shrink-0", ICON_COLOR_BY_TYPE[toastData.type])}
-        aria-hidden="true"
-      />
+      {/* Foto de quem mandou (mensagem nova) ou ícone colorido por tipo */}
+      {toastData.avatar ? (
+        <UserAvatar
+          src={toastData.avatar.src ?? undefined}
+          alt=""
+          fallback={toastData.avatar.name.slice(0, 2).toUpperCase()}
+          size="sm"
+          className="mt-0.5"
+        />
+      ) : (
+        <Icon
+          className={cn("size-5 mt-0.5 shrink-0", ICON_COLOR_BY_TYPE[toastData.type])}
+          aria-hidden="true"
+        />
+      )}
 
       {/* Conteúdo textual */}
       <div className="flex-1 min-w-0">

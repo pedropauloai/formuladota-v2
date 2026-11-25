@@ -10,6 +10,9 @@ import { Card } from "@/components/ui/card";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { DiscardMatchButton } from "@/components/match/discard-match-button";
 import { requireAdminPage } from "@/lib/auth/admin-page";
+import { getIdentityMap } from "@/lib/queries/identities";
+import { UserAvatar } from "@/components/ui/avatar";
+import { UserHoverCard } from "@/components/profile/user-hover-card";
 
 // Partida ainda "viva" — pode ser descartada da auditoria.
 const ACTIVE_STATUSES = ["pending", "open", "in_progress"];
@@ -86,6 +89,9 @@ export default async function AdminPartidasPage() {
     for (const l of links ?? []) steamById.set(l.user_id, l);
     for (const pr of profs ?? []) nameById.set(pr.id, pr.username);
   }
+
+  // Foto pela identidade do site (Steam primeiro), em lote.
+  const identities = await getIdentityMap(await createClient(), userIds);
 
   const playersByLobby = new Map<string, RawLobbyPlayer[]>();
   for (const p of players) {
@@ -178,7 +184,10 @@ export default async function AdminPartidasPage() {
                               <span className="font-display text-text-faded">
                                 {ROLE_POS[p.role ?? ""] ?? "-"}
                               </span>{" "}
-                              <span className="text-text-body">{name}</span>{" "}
+                              <UserHoverCard userId={p.user_id} className="inline-flex items-center gap-2 align-middle text-text-body">
+                                <UserAvatar src={identities.get(p.user_id)?.avatarUrl ?? undefined} alt={name} fallback={name.slice(0, 2).toUpperCase()} size="xs" />
+                                <span className="truncate">{name}</span>
+                              </UserHoverCard>{" "}
                               <span className="font-mono text-text-faded">
                                 {sl?.steam_id_64 ?? "sem-steam"}
                               </span>{" "}

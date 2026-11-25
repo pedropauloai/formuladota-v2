@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Radio } from "lucide-react";
+import { UserAvatar } from "@/components/ui/avatar";
 import { getLiveMatchStats, type LiveMatchT, type LiveTeamT } from "@/app/partida/live-actions";
 
 function mmss(seg: number): string {
@@ -116,6 +117,11 @@ function LiveTeam({
               />
             ) : (
               <span className="h-[17px] w-[30px] shrink-0 rounded-sm bg-bg-elevated" aria-hidden="true" />
+            )}
+            {p.nick ? (
+              <UserAvatar src={p.avatar ?? undefined} alt="" fallback={p.nick.slice(0, 2).toUpperCase()} size="xs" className="size-5" />
+            ) : (
+              <span className="size-5 shrink-0" aria-hidden="true" />
             )}
             <span className="min-w-0 flex-1 truncate font-body text-xs text-text-body">
               {p.nick ?? p.heroName ?? t("colPlayer")}

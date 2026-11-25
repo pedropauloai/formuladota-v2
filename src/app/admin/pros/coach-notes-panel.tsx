@@ -15,12 +15,15 @@ import { useTranslations } from "next-intl";
 import { ThumbsUp, ThumbsDown, ShieldAlert, Loader2, Check } from "lucide-react";
 import { applyCoachNote, applyStrike } from "@/app/admin/users/actions";
 import { useConfirm } from "@/components/ui/confirm";
+import { UserAvatar } from "@/components/ui/avatar";
+import { UserHoverCard } from "@/components/profile/user-hover-card";
 
 // ─── Tipos ───────────────────────────────────────────────────────────────────
 
 export interface CoachNoteEntry {
   userId: string;
   username: string;
+  avatarUrl?: string | null;
 }
 
 interface CoachNotesPanelProps {
@@ -43,6 +46,7 @@ export function CoachNotesPanel({ entries, matchId }: CoachNotesPanelProps) {
             key={entry.userId}
             userId={entry.userId}
             username={entry.username}
+            avatarUrl={entry.avatarUrl}
             matchId={matchId}
           />
         ))}
@@ -56,10 +60,12 @@ export function CoachNotesPanel({ entries, matchId }: CoachNotesPanelProps) {
 function StudentNoteRow({
   userId,
   username,
+  avatarUrl,
   matchId,
 }: {
   userId: string;
   username: string;
+  avatarUrl?: string | null;
   matchId: string;
 }) {
   const t = useTranslations("misc2");
@@ -123,7 +129,10 @@ function StudentNoteRow({
 
   return (
     <div className="rounded-md border border-border-subtle/40 bg-bg-base/40 p-3 space-y-2">
-      <p className="font-mono text-sm font-semibold text-text-body">{username}</p>
+      <UserHoverCard userId={userId} className="flex min-w-0 items-center gap-2 font-mono text-sm font-semibold text-text-body">
+        <UserAvatar src={avatarUrl ?? undefined} alt={username} fallback={username.slice(0, 2).toUpperCase()} size="xs" />
+        <span className="truncate">{username}</span>
+      </UserHoverCard>
 
       {/* Nota opcional */}
       <input

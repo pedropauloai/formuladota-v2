@@ -679,6 +679,7 @@ export function PlayMenu({
                 currentUserId={lobbyData.currentUserId}
                 isLeader={lobbyData.isLeader}
                 leaderUsername={lobbyData.leaderUsername}
+                leaderAvatar={lobbyData.leaderAvatar}
                 leaderHero={lobbyData.leaderHero}
                 onMutate={refetchSala}
                 onEdit={() => {

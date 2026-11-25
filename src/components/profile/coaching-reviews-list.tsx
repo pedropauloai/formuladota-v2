@@ -4,6 +4,7 @@
 import { Star } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { CoachingReview } from "@/lib/queries/coaching-reviews";
+import { UserAvatar } from "@/components/ui/avatar";
 
 export function CoachingReviewsList({
   reviews,
@@ -29,8 +30,9 @@ export function CoachingReviewsList({
           className="rounded-md border border-border-subtle bg-bg-elevated/40 p-4 space-y-2"
         >
           <header className="flex items-center justify-between gap-2">
-            <span className="font-display text-sm font-semibold uppercase tracking-wide text-brand-primary">
-              {t("reviewBy", { coach: r.coachName })}
+            <span className="flex min-w-0 items-center gap-2 font-display text-sm font-semibold uppercase tracking-wide text-brand-primary">
+              <UserAvatar src={r.coachAvatarUrl ?? undefined} alt="" fallback={r.coachName.slice(0, 2).toUpperCase()} size="xs" />
+              <span className="truncate">{t("reviewBy", { coach: r.coachName })}</span>
             </span>
             <span className="font-mono text-xs 2xl:text-sm text-text-faded">
               {new Date(r.createdAt).toLocaleDateString("pt-BR")}

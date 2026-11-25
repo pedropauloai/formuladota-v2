@@ -9,6 +9,8 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import type { PlayerFull } from "@/lib/dota/match-stats";
 import { RoleIcon } from "@/components/match/match-scoreboard";
+import { UserAvatar } from "@/components/ui/avatar";
+import { UserHoverCard } from "@/components/profile/user-hover-card";
 
 export function fmtK(n: number): string {
   if (Math.abs(n) >= 1000) return `${(n / 1000).toFixed(1)}k`;
@@ -28,7 +30,7 @@ export function mmss(totalSeconds: number): string {
   return `${neg ? "-" : ""}${mm}:${String(ss).padStart(2, "0")}`;
 }
 
-// Rótulo compacto do jogador: ícone do herói (quadrado) + nome (linka pro perfil).
+// Rótulo compacto do jogador: ícone do herói, posição, foto e nome (abre o perfil).
 export function PlayerLabel({ p }: { p: PlayerFull }) {
   const t = useTranslations("scoreboard");
   const posLabel = t(`pos${Math.min(5, Math.max(1, p.positionSlot))}`);
@@ -48,9 +50,17 @@ export function PlayerLabel({ p }: { p: PlayerFull }) {
         <span className="size-6 shrink-0 rounded-sm bg-bg-elevated" aria-hidden="true" />
       )}
       <RoleIcon slot={p.positionSlot} size={15} className="ml-0.5" label={posLabel} />
+      <UserAvatar src={p.avatar ?? undefined} alt="" fallback={p.name.slice(0, 2).toUpperCase()} size="xs" />
       <span className="min-w-0 truncate font-body text-sm text-text-display">{p.name}</span>
     </span>
   );
+  if (p.userId) {
+    return (
+      <UserHoverCard userId={p.userId} className="transition-opacity hover:opacity-80">
+        {inner}
+      </UserHoverCard>
+    );
+  }
   if (p.profileHref) {
     return (
       <Link href={p.profileHref} className="transition-opacity hover:opacity-80">

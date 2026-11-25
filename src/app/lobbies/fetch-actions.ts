@@ -27,6 +27,8 @@ export interface LobbyRoomData {
   currentUserId: string;
   isLeader: boolean;
   leaderUsername: string;
+  /** Foto do líder, na mesma ordem do nome (Steam primeiro). */
+  leaderAvatar: string | null;
   /** Herói nº 1 da carreira do líder (OpenDota cacheado) — backdrop do header. */
   leaderHero: SignatureHero | null;
 }
@@ -146,7 +148,7 @@ export async function fetchLobbyRoom(lobbyId: string): Promise<LobbyRoomData | n
   const [{ data: leaderProfile }, { data: leaderStatsRow }] = await Promise.all([
     supabase
       .from("profiles")
-      .select("username")
+      .select("username, avatar_url")
       .eq("id", lobby.created_by)
       .single(),
     supabase
@@ -181,6 +183,7 @@ export async function fetchLobbyRoom(lobbyId: string): Promise<LobbyRoomData | n
       steamMap.get(lobby.created_by)?.persona?.trim() ||
       leaderProfile?.username ||
       "—",
+    leaderAvatar: steamMap.get(lobby.created_by)?.avatarUrl || leaderProfile?.avatar_url || null,
     leaderHero: leaderTopHero
       ? { slug: leaderTopHero.slug, name: leaderTopHero.name_pt }
       : null,

@@ -9,10 +9,13 @@
 import { createClient } from "@/lib/supabase/server";
 import { PRINCIPLES, ANTIPATTERNS } from "@/lib/doctrine";
 import { steam64To32 } from "@/lib/dota/opendota";
+import { getIdentityMap } from "@/lib/queries/identities";
 
 export interface WallEntry {
   userId: string;
   username: string | null;
+  /** Foto da identidade pública (Steam primeiro), como no resto do site. */
+  avatarUrl: string | null;
   status: "suspended" | "banned";
   reason: string | null;
   principle: string | null;
@@ -49,10 +52,12 @@ export async function getWallOfShame(): Promise<WallEntry[]> {
   const supabase = await createClient();
   const { data } = await supabase.rpc("wall_of_shame");
   const rows = (data ?? []) as WallRow[];
+  const identities = await getIdentityMap(supabase, rows.map((r) => r.user_id));
 
   const entries: WallEntry[] = rows.map((r) => ({
     userId: r.user_id,
     username: r.username,
+    avatarUrl: identities.get(r.user_id)?.avatarUrl ?? null,
     status: r.status,
     reason: r.banned_reason ?? r.notes ?? null,
     principle: principleTitle(r.principle_violated),

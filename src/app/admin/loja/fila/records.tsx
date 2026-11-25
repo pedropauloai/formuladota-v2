@@ -9,6 +9,7 @@ import { UserAvatar } from "@/components/ui/avatar";
 import { panel } from "@/components/v2";
 import type { AdminFinishedEntry } from "@/lib/loja/fila/admin";
 import type { HistoryMatch } from "@/lib/loja/fila/admin-history";
+import { UserHoverCard } from "@/components/profile/user-hover-card";
 import { formatBRL } from "@/lib/loja/money";
 
 const DAY_TIME = new Intl.DateTimeFormat("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" });
@@ -66,13 +67,28 @@ function finishedLabel(item: AdminFinishedEntry): string {
   return `tirado da fila (${count})`;
 }
 
+function FinishedWho({ item }: { item: AdminFinishedEntry }) {
+  const who = (
+    <>
+      <UserAvatar src={item.avatarUrl ?? undefined} alt={item.name} fallback={item.name.slice(0, 2).toUpperCase()} size="xs" />
+      <span className="truncate">{item.name}</span>
+    </>
+  );
+  if (!item.userId) return <span className="flex min-w-0 items-center gap-2 text-text-display">{who}</span>;
+  return (
+    <UserHoverCard userId={item.userId} className="flex min-w-0 items-center gap-2 text-text-display">
+      {who}
+    </UserHoverCard>
+  );
+}
+
 function Finished({ items }: { items: AdminFinishedEntry[] }) {
   if (items.length === 0) return <p className="py-10 text-center text-[15px] text-text-muted">Ninguém saiu da fila.</p>;
   return (
     <ul className="divide-y divide-white/[0.05] text-[15px]">
       {items.map((item) => (
         <li key={item.id} className="flex items-center justify-between gap-3 py-3">
-          <span className="truncate text-text-display">{item.name}</span>
+          <FinishedWho item={item} />
           <span className="shrink-0 text-right text-sm text-text-muted">
             {finishedLabel(item)}
             {item.finishedAt && ` · ${TIME.format(new Date(item.finishedAt))}`}

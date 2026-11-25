@@ -25,6 +25,8 @@ export interface PlayerHeatmap {
   team: "radiant" | "dire";
   /** Nome do jogador (identidade) — usado no seletor. */
   playerName: string;
+  /** Foto da mesma identidade do nome (null = jogador de fora ou sem foto). */
+  playerAvatar: string | null;
   heroName: string;
   heroIcon: string | null;
   cells: HeatCell[];

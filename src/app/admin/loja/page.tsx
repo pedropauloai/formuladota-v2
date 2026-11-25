@@ -11,6 +11,8 @@ import { formatBRL } from "@/lib/loja/money";
 import { whatsappLink } from "@/lib/loja/notify-message";
 import { TRACKED_LINKS } from "@/lib/loja/tracked-links";
 import { DeliveredToggle, CopyLink } from "./client-bits";
+import { BuyerName } from "./buyer-name";
+import { getIdentityMap } from "@/lib/queries/identities";
 import { requireAdminPage } from "@/lib/auth/admin-page";
 
 export const metadata = { title: "Loja | Admin FORMULADOTA" };
@@ -31,6 +33,7 @@ interface OrderListRow {
   product_title: string;
   variant_label: string;
   buyer_name: string;
+  user_id: string | null;
   buyer_whatsapp: string | null;
   amount_cents: number;
   payment_method: string;
@@ -40,16 +43,6 @@ interface OrderListRow {
   is_test: boolean;
   notified_at: string | null;
   fulfilled_at: string | null;
-}
-
-/** Nome do comprador com o atalho do WhatsApp; o pedido da fila da party não tem WhatsApp. */
-function BuyerName({ name, whatsapp }: { name: string; whatsapp: string | null }) {
-  if (!whatsapp) return <span className="text-text-display">{name}</span>;
-  return (
-    <a className="text-text-display underline-offset-2 hover:underline" href={whatsapp} target="_blank" rel="noreferrer">
-      {name}
-    </a>
-  );
 }
 
 export default async function AdminLojaPage({ searchParams }: { searchParams: SearchParams }) {
@@ -65,7 +58,7 @@ export default async function AdminLojaPage({ searchParams }: { searchParams: Se
     supabase.rpc("site_visits_by_origin", { p_from: from }),
     supabase
       .from("store_orders")
-      .select("id, created_at, product_title, variant_label, buyer_name, buyer_whatsapp, amount_cents, payment_method, status, utm_source, referrer_host, is_test, notified_at, fulfilled_at")
+      .select("id, created_at, product_title, variant_label, buyer_name, user_id, buyer_whatsapp, amount_cents, payment_method, status, utm_source, referrer_host, is_test, notified_at, fulfilled_at")
       .gte("created_at", from)
       .order("created_at", { ascending: false })
       .limit(500),
@@ -74,6 +67,7 @@ export default async function AdminLojaPage({ searchParams }: { searchParams: Se
   const orderRows = (orders.data ?? []) as OrderListRow[];
   const rows = summarizeByOrigin(visits.data ?? [], orderRows);
   const listed = orderRows.filter((o) => showTests || !o.is_test).slice(0, 100);
+  const identities = await getIdentityMap(supabase, listed.map((o) => o.user_id).filter((id): id is string => !!id));
   const site = publicEnv.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
 
   return (
@@ -93,7 +87,7 @@ export default async function AdminLojaPage({ searchParams }: { searchParams: Se
       </header>
 
       <OriginTable rows={rows} t={t} />
-      <OrdersTable orders={listed} t={t} />
+      <OrdersTable orders={listed} identities={identities} t={t} />
 
       <section className="space-y-3">
         <h2 className="font-display text-lg uppercase tracking-wide text-text-display">{t("adminLinks")}</h2>
@@ -152,7 +146,7 @@ function OriginTable({ rows, t }: { rows: OriginSummary[]; t: Translator }) {
   );
 }
 
-function OrdersTable({ orders, t }: { orders: OrderListRow[]; t: Translator }) {
+function OrdersTable({ orders, identities, t }: { orders: OrderListRow[]; identities: Awaited<ReturnType<typeof getIdentityMap>>; t: Translator }) {
   if (orders.length === 0) return <p className="text-sm text-text-muted">{t("adminNoOrders")}</p>;
   const date = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short", timeZone: "America/Sao_Paulo" });
   return (
@@ -173,7 +167,7 @@ function OrdersTable({ orders, t }: { orders: OrderListRow[]; t: Translator }) {
                 <td className="whitespace-nowrap px-3 py-2">{date.format(new Date(o.created_at))}</td>
                 <td className="px-3 py-2">{o.product_title}<span className="block text-xs text-text-faded">{o.variant_label}{o.is_test ? " · teste" : ""}</span></td>
                 <td className="px-3 py-2">
-                  <BuyerName name={o.buyer_name} whatsapp={whatsappLink({ buyerWhatsapp: o.buyer_whatsapp, buyerName: o.buyer_name, productTitle: o.product_title })} />
+                  <BuyerName name={o.buyer_name} userId={o.user_id} avatarUrl={o.user_id ? identities.get(o.user_id)?.avatarUrl : null} whatsapp={whatsappLink({ buyerWhatsapp: o.buyer_whatsapp, buyerName: o.buyer_name, productTitle: o.product_title })} />
                 </td>
                 <td className="whitespace-nowrap px-3 py-2 tabular-nums">{formatBRL(o.amount_cents)}<span className="block text-xs text-text-faded">{o.payment_method === "pix" ? "Pix" : "Cartão"}</span></td>
                 <td className="px-3 py-2">{o.status}{(o.status === "pago" || o.status === "em_revisao") && !o.notified_at ? <span className="block text-xs text-warning">{t("adminNotNotified")}</span> : null}</td>

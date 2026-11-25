@@ -5,6 +5,7 @@ import { Link } from "@/i18n/navigation";
 import { ClientShell } from "@/components/client-shell/shell";
 import { getWallOfShame, type WallEntry } from "@/lib/queries/wall-of-shame";
 import { SteamIcon } from "@/components/profile/social-icons-row";
+import { UserAvatar } from "@/components/ui/avatar";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("pgMisc");
@@ -26,11 +27,7 @@ export default async function MuralPage() {
     <ClientShell currentRoute="/mural">
       <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6">
         <header className="mb-6">
-          <p className="flex items-center gap-2 font-display text-xs font-bold uppercase tracking-[0.2em] text-brand-primary">
-            <ShieldX className="size-4" aria-hidden="true" />
-            {t("mural_kicker")}
-          </p>
-          <h1 className="mt-1 font-display text-3xl font-bold text-text-display">
+          <h1 className="font-display text-3xl font-bold text-text-display">
             {t("mural_title")}
           </h1>
           <p className="mt-2 max-w-2xl font-body text-sm leading-relaxed text-text-muted">
@@ -68,6 +65,12 @@ export default async function MuralPage() {
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                      <UserAvatar
+                        src={e.avatarUrl ?? undefined}
+                        alt=""
+                        fallback={(e.username ?? t("mural_playerFallback")).slice(0, 2).toUpperCase()}
+                        size="xs"
+                      />
                       <span className="font-display text-base font-bold text-text-display">
                         {e.username ?? t("mural_playerFallback")}
                       </span>

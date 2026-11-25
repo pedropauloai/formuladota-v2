@@ -7,6 +7,8 @@ import { createClient } from "@/lib/supabase/server";
 import { whatsappLink } from "@/lib/loja/notify-message";
 import { AddWindowForm, BlockForm, DeliveryForm, LiveForm, RowButton } from "./forms";
 import { requireAdminPage } from "@/lib/auth/admin-page";
+import { getIdentityMap } from "@/lib/queries/identities";
+import { BuyerName } from "../buyer-name";
 
 export const metadata = { title: "Agenda da loja | Admin FORMULADOTA" };
 export const revalidate = 0;
@@ -25,7 +27,7 @@ interface BookingRow {
   seats: number;
   status: string;
   is_test: boolean;
-  store_orders: { id: string; buyer_name: string; buyer_email: string; buyer_whatsapp: string | null; product_title: string; details: Record<string, unknown> | null } | null;
+  store_orders: { id: string; user_id: string | null; buyer_name: string; buyer_email: string; buyer_whatsapp: string | null; product_title: string; details: Record<string, unknown> | null } | null;
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -54,7 +56,7 @@ async function loadAgenda() {
   const [bookings, lives, windows, blocks, deliveries] = await Promise.all([
     supabase
       .from("store_bookings")
-      .select("id, kind, starts_at, ends_at, seats, status, is_test, store_orders (id, buyer_name, buyer_email, buyer_whatsapp, product_title, details)")
+      .select("id, kind, starts_at, ends_at, seats, status, is_test, store_orders (id, user_id, buyer_name, buyer_email, buyer_whatsapp, product_title, details)")
       .in("status", ["reservado", "confirmado"])
       .gte("ends_at", now)
       .order("starts_at", { ascending: true })
@@ -64,15 +66,18 @@ async function loadAgenda() {
     supabase.from("store_blocked_periods").select("id, starts_at, ends_at, reason").gte("ends_at", now).order("starts_at"),
     supabase
       .from("store_orders")
-      .select("id, created_at, product_title, buyer_name, delivery_url, delivery_note, fulfilled_at, store_products!inner (booking_mode)")
+      .select("id, created_at, product_title, buyer_name, user_id, delivery_url, delivery_note, fulfilled_at, store_products!inner (booking_mode)")
       .eq("status", "pago")
       .eq("is_test", false)
       .eq("store_products.booking_mode", "nenhum")
       .order("created_at", { ascending: false })
       .limit(50),
   ]);
+  const bookingRows = (bookings.data ?? []) as unknown as BookingRow[];
+  const buyerIds = [...bookingRows.map((b) => b.store_orders?.user_id), ...(deliveries.data ?? []).map((d) => d.user_id)].filter((id): id is string => !!id);
   return {
-    bookings: (bookings.data ?? []) as unknown as BookingRow[],
+    identities: await getIdentityMap(supabase, buyerIds),
+    bookings: bookingRows,
     lives: lives.data ?? [],
     windows: windows.data ?? [],
     blocks: blocks.data ?? [],
@@ -82,7 +87,7 @@ async function loadAgenda() {
 
 export default async function AdminAgendaPage() {
   await requireAdminPage();
-  const { bookings, lives, windows, blocks, deliveries } = await loadAgenda();
+  const { bookings, lives, windows, blocks, deliveries, identities } = await loadAgenda();
   const real = bookings.filter((b) => !b.is_test);
   const seatsSold = (liveStart: string) => real.filter((b) => b.kind === "live" && b.starts_at === liveStart).reduce((s, b) => s + b.seats, 0);
 
@@ -102,7 +107,10 @@ export default async function AdminAgendaPage() {
               <li key={b.id} className="flex flex-wrap items-start justify-between gap-3 py-3">
                 <div className="min-w-0 space-y-0.5 text-sm">
                   <p className="font-medium text-text-display first-letter:uppercase">{b.kind === "live" ? `Live de ${when(b.starts_at, b.ends_at)} · ${b.seats} vaga(s)` : when(b.starts_at, b.ends_at)}</p>
-                  <p className="text-text-body">{b.store_orders?.product_title} · {b.store_orders?.buyer_name}</p>
+                  <p className="text-text-body">
+                    {b.store_orders?.product_title} ·{" "}
+                    {b.store_orders && <BuyerName name={b.store_orders.buyer_name} userId={b.store_orders.user_id} avatarUrl={b.store_orders.user_id ? identities.get(b.store_orders.user_id)?.avatarUrl : null} />}
+                  </p>
                   <p className="text-xs text-text-muted">
                     {b.store_orders?.buyer_email}
                     {b.store_orders && (
@@ -171,7 +179,10 @@ export default async function AdminAgendaPage() {
           <ul className="space-y-4">
             {deliveries.map((d) => (
               <li key={d.id} className="space-y-2">
-                <p className="text-sm text-text-display">{d.product_title} · {d.buyer_name}{d.fulfilled_at ? " · entregue" : ""}</p>
+                <p className="text-sm text-text-display">
+                  {d.product_title} · <BuyerName name={d.buyer_name} userId={d.user_id} avatarUrl={d.user_id ? identities.get(d.user_id)?.avatarUrl : null} />
+                  {d.fulfilled_at ? " · entregue" : ""}
+                </p>
                 <DeliveryForm orderId={d.id} url={d.delivery_url ?? ""} note={d.delivery_note ?? ""} />
               </li>
             ))}

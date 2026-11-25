@@ -12,10 +12,13 @@ import {
   type SignatureHero,
 } from "@/components/dota/hero-video-backdrop";
 import { GAME_MODE_TRANS_KEYS, type LobbyData } from "./lobby-types";
+import { UserAvatar } from "@/components/ui/avatar";
+import { UserHoverCard } from "@/components/profile/user-hover-card";
 
 interface RoomHeaderProps {
   lobby: LobbyData;
   leaderUsername: string;
+  leaderAvatar?: string | null;
   /** Herói nº 1 da carreira do líder — backdrop atmosférico atrás do header. */
   leaderHero?: SignatureHero | null;
   onBack?: () => void;
@@ -24,6 +27,7 @@ interface RoomHeaderProps {
 export function RoomHeader({
   lobby,
   leaderUsername,
+  leaderAvatar = null,
   leaderHero = null,
   onBack,
 }: RoomHeaderProps) {
@@ -61,9 +65,12 @@ export function RoomHeader({
                 {modeKey ? t(modeKey) : lobby.gameMode}
               </span>
             </div>
-            <p className="mt-0.5 truncate font-display text-sm font-semibold uppercase tracking-wide text-text-faded">
-              {t("leaderLabel")}{" "}
-              <span className="text-text-muted">{leaderUsername}</span>
+            <p className="mt-0.5 flex min-w-0 items-center gap-1.5 font-display text-sm font-semibold uppercase tracking-wide text-text-faded">
+              <span className="shrink-0">{t("leaderLabel")}</span>
+              <UserHoverCard userId={lobby.createdBy} className="flex min-w-0 items-center gap-1.5 text-text-muted hover:text-text-display">
+                <UserAvatar src={leaderAvatar ?? undefined} alt="" fallback={leaderUsername.slice(0, 2).toUpperCase()} size="xs" className="size-5" />
+                <span className="truncate">{leaderUsername}</span>
+              </UserHoverCard>
             </p>
           </div>
         </div>

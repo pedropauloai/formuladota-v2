@@ -314,6 +314,8 @@ export interface PartyChatMessageView {
   senderId: string;
   /** Nome do remetente resolvido no servidor (Steam > Discord). */
   senderName: string;
+  /** Foto do remetente, da mesma identidade do nome. */
+  senderAvatarUrl: string | null;
   body: string;
   createdAt: string;
 }
@@ -353,6 +355,7 @@ export async function fetchPartyMessages(): Promise<PartyChatMessageView[]> {
       id: m.id,
       senderId: m.sender_id,
       senderName: ident?.name ?? "",
+      senderAvatarUrl: ident?.avatarUrl ?? null,
       body: m.body,
       createdAt: m.created_at,
     };

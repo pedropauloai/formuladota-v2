@@ -6,6 +6,8 @@ import { getIdentityMap } from "@/lib/queries/identities";
 import { formatBrl } from "@/lib/battlepass/config";
 import { buildAdminView, type AdminPaymentRow, type AdminSubscriptionRow } from "@/lib/battlepass/admin-view";
 import { requireAdminPage } from "@/lib/auth/admin-page";
+import { UserAvatar } from "@/components/ui/avatar";
+import { UserHoverCard } from "@/components/profile/user-hover-card";
 
 export const metadata = { title: "Battlepass | Admin FORMULADOTA" };
 export const revalidate = 0;
@@ -51,7 +53,15 @@ export default async function AdminBattlepassPage({ searchParams }: { searchPara
   if (failed) throw new Error(`ler o Battlepass falhou: ${failed.message}`);
   const view = buildAdminView(subs.data ?? [], payments.data ?? [], new Date());
   const identities = await getIdentityMap(supabase, [...new Set([...view.members.map((m) => m.userId), ...view.refunds.map((r) => r.userId)])]);
-  const nameOf = (id: string) => identities.get(id)?.name ?? "Jogador";
+  const who = (id: string) => {
+    const name = identities.get(id)?.name ?? "Jogador";
+    return (
+      <UserHoverCard userId={id} className="flex min-w-0 items-center gap-2 text-text-display">
+        <UserAvatar src={identities.get(id)?.avatarUrl ?? undefined} alt={name} fallback={name.slice(0, 2).toUpperCase()} size="xs" />
+        <span className="truncate">{name}</span>
+      </UserHoverCard>
+    );
+  };
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-4 md:p-8">
@@ -76,7 +86,7 @@ export default async function AdminBattlepassPage({ searchParams }: { searchPara
           <ul className="divide-y divide-border-subtle text-sm">
             {view.refunds.map((r) => (
               <li key={r.paymentId} className="flex flex-wrap items-center justify-between gap-2 py-2">
-                <span className="text-text-display">{nameOf(r.userId)}</span>
+                {who(r.userId)}
                 <span className="tabular-nums text-text-body">{formatBrl(r.amountCents)}</span>
                 <span className="text-text-muted">{r.method === "pix" ? "Pix" : "cartão"} · pagamento {r.mpPaymentId ?? "sem ID"}</span>
                 <span className="text-text-muted">pedido em {fmt(r.requestedAt, DATETIME)}</span>
@@ -94,7 +104,7 @@ export default async function AdminBattlepassPage({ searchParams }: { searchPara
           <ul className="divide-y divide-border-subtle text-sm">
             {view.members.map((m) => (
               <li key={m.subscriptionId} className="grid gap-1 py-2 sm:grid-cols-[1fr_auto_auto_auto] sm:items-center sm:gap-4">
-                <span className="text-text-display">{nameOf(m.userId)}</span>
+                {who(m.userId)}
                 <span className="text-text-body">{m.via === "pix" ? "Pix" : "cartão"}</span>
                 <span className={m.active ? "text-play-primary" : "text-text-muted"}>{m.statusLabel}</span>
                 <span className="tabular-nums text-text-muted">{formatBrl(m.paidCents)} em {m.paidCount} pagamento{m.paidCount === 1 ? "" : "s"}</span>
