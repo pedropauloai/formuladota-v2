@@ -4772,7 +4772,6 @@
     "camadaAlta": "High",
     "camadaLeve": "Light",
     "mutadoPeloDonoAviso": "The room owner turned off your microphone.",
-    "semMicrofoneAviso": "Your browser did not allow the microphone. Allow it in the site settings to speak.",
     "jogador": "Player",
     "contaApagada": "Deleted account",
     "noPalco": "On stage ({falantes} of {max} speaking)",
@@ -4873,6 +4872,13 @@
     "trocarCanalTexto": "You are sharing your screen. Joining another voice channel stops the screen and leaves this one.",
     "canalCheio": "Channel full",
     "salaAtual": "Current room",
-    "pessoasRotulo": "{n} in the room"
+    "pessoasRotulo": "{n} in the room",
+    "microfonePedindo": "Your browser is asking to use the microphone: accept it in the prompt next to the site address.",
+    "microfoneNegado": "Your browser blocked the microphone for this site. Click the lock next to the address, allow the microphone and click Try again.",
+    "microfoneSemAparelho": "No microphone found. Plug one in and click Try again.",
+    "microfoneOcupado": "Another program is using the microphone. Close it and click Try again.",
+    "microfoneFalhou": "The microphone didn't open. Click Try again or reload the page.",
+    "microfoneSemSinal": "Microphone has no signal: click to try again",
+    "tentarDeNovo": "Try again"
   }
 }

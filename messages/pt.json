@@ -4772,7 +4772,6 @@
     "camadaAlta": "Alta",
     "camadaLeve": "Leve",
     "mutadoPeloDonoAviso": "O dono da sala fechou o seu microfone.",
-    "semMicrofoneAviso": "O navegador não liberou o microfone. Libere o acesso nas configurações do site para falar.",
     "jogador": "Jogador",
     "contaApagada": "Conta apagada",
     "noPalco": "No palco ({falantes} de {max} falando)",
@@ -4873,6 +4872,13 @@
     "trocarCanalTexto": "Você está compartilhando a tela. Entrar em outro canal de voz para a tela e sai deste.",
     "canalCheio": "Canal cheio",
     "salaAtual": "Sala atual",
-    "pessoasRotulo": "{n} na sala"
+    "pessoasRotulo": "{n} na sala",
+    "microfonePedindo": "O navegador está pedindo para usar o microfone: aceite no aviso perto do endereço do site.",
+    "microfoneNegado": "O navegador bloqueou o microfone deste site. Clique no cadeado ao lado do endereço, permita o microfone e clique em Tentar de novo.",
+    "microfoneSemAparelho": "Nenhum microfone encontrado. Conecte um e clique em Tentar de novo.",
+    "microfoneOcupado": "Outro programa está usando o microfone. Feche esse programa e clique em Tentar de novo.",
+    "microfoneFalhou": "O microfone não abriu. Clique em Tentar de novo ou recarregue a página.",
+    "microfoneSemSinal": "Microfone sem sinal: clique para tentar de novo",
+    "tentarDeNovo": "Tentar de novo"
   }
 }

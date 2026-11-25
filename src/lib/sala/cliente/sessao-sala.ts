@@ -8,9 +8,11 @@ import { SNAPSHOT_INICIAL, type SessaoSnapshot } from "./retrato";
 import type { Layer, Quality, TrackLabel } from "../tipos";
 import { api, type AcaoDono, type AlvoDenuncia, type Entrada } from "./acoes";
 import { comMinha, cursorDoChat, juntarChat } from "./chat-local";
+import { GuardaDaVoz } from "./guarda-voz";
 import { desmontarLigacao, montarLigacao, quemFala, type Ligacao } from "./ligacao";
+import { falhou } from "./microfone";
 import { Pulso } from "./pulso";
-import { estadoIntervalMs, vozCaiu } from "./ritmo";
+import { estadoIntervalMs } from "./ritmo";
 import { Compartilhamento } from "./tela-local";
 import { guardarVolume, volumesGuardados } from "./volumes-local";
 
@@ -26,7 +28,6 @@ export class SessaoSala {
   private snap: SessaoSnapshot = SNAPSHOT_INICIAL;
   private lig: Ligacao | null = null;
   private refazendo = false;
-  private quedasDeVoz = 0;
   private entrada: Entrada | null = null;
   private readonly tela = new Compartilhamento((r) => this.set(r));
   private mutadoSemSurdo = false;
@@ -40,6 +41,7 @@ export class SessaoSala {
   private readonly pedidas = new Set<string>();
   private readonly a: ReturnType<typeof api>;
   private readonly listeners = new Set<() => void>();
+  private readonly guarda = new GuardaDaVoz({ lig: () => this.lig, snap: () => this.snap, set: (patch) => this.set(patch), refazer: () => void this.refazer(), vozMudou: () => (this.pulso.mudou = true) });
 
   constructor(private readonly roomId: string) {
     this.a = api(roomId);
@@ -66,6 +68,7 @@ export class SessaoSala {
     this.entrada = entrada.data;
     const camada: Layer = entrada.data.tipo === "palco" ? "h" : "f";
     this.montar(entrada.data, camada);
+    this.guarda.ligar();
     this.set({ fase: "na_sala", papel: entrada.data.papel, tipo: entrada.data.tipo, camada });
     this.timers.push(window.setInterval(() => void this.medir(), METRICAS_MS));
     this.timers.push(window.setInterval(() => this.atualizarFala(), FALA_MS));
@@ -99,7 +102,7 @@ export class SessaoSala {
       if (this.snap.fase !== "na_sala") return;
       if (!entrada.ok) return this.encerrar(entrada.code);
       this.entrada = entrada.data;
-      this.quedasDeVoz = 0;
+      this.guarda.zerarQuedas();
       this.montar(entrada.data, this.snap.camada);
       this.pulso.reiniciar(true);
       this.set({ reconectando: false, papel: entrada.data.papel, vozNoAr: false });
@@ -143,7 +146,7 @@ export class SessaoSala {
     this.lig?.recepcao.sync(estado.faixas ?? []);
     this.cursorChat = cursorDoChat(resync ? 0 : this.cursorChat, estado.chat ?? []);
     this.set({ estado, papel, mao, chat: juntarChat(this.snap.chat, estado.chat ?? [], estado.apagadas ?? [], resync, CHAT_GUARDA) });
-    void this.garantirVoz();
+    void this.guarda.garantir();
     const ids = [...(estado.membros ?? []).map((m) => m.userId), ...this.snap.chat.flatMap((m) => (m.userId ? [m.userId] : []))];
     void this.buscarPessoas(ids);
   }
@@ -155,22 +158,6 @@ export class SessaoSala {
     const res = await this.a.pessoas(faltam);
     if (res.ok) this.set({ pessoas: { ...this.snap.pessoas, ...res.data } });
     else faltam.forEach((id) => this.pedidas.delete(id));
-  }
-
-  /** Publica a voz de quem pode falar agora e solta a de quem deixou de poder (o servidor já cortou no SFU). */
-  private async garantirVoz(): Promise<void> {
-    const voz = this.lig?.voz;
-    if (!voz) return;
-    const eu = this.snap.estado?.eu;
-    if (eu && vozCaiu({ noAr: voz.noAr, podeFalar: eu.podeFalar, vozAberta: eu.vozAberta, noArDesde: voz.noArDesde, agora: Date.now() })) {
-      // Religar uma vez resolve o mutar e liberar rápido; caiu de novo, a ligação é que travou.
-      if (++this.quedasDeVoz >= 2) return void this.refazer();
-      voz.desligar();
-    } else if (eu?.vozAberta) this.quedasDeVoz = 0;
-    const antes = voz.noAr;
-    const ok = await voz.ajustar(!!this.snap.estado?.eu?.podeFalar, this.snap.mutado);
-    if (voz.noAr !== antes) this.pulso.mudou = true;
-    if (this.snap.vozNoAr !== voz.noAr || this.snap.semMicrofone === ok) this.set({ vozNoAr: voz.noAr, semMicrofone: !ok });
   }
 
   private async medir(): Promise<void> {
@@ -190,6 +177,12 @@ export class SessaoSala {
   }
 
   alternarMudo(): void {
+    // Clique no microfone que não abriu: a pessoa quer falar, então abre de novo, sem o mudo.
+    if (!this.snap.vozNoAr && falhou(this.snap.microfone)) {
+      this.lig?.voz.setMutado(false);
+      this.set({ mutado: false });
+      return void this.guarda.tentarDeNovo();
+    }
     const mutado = !this.snap.mutado;
     // Abrir o microfone com o som desligado religa o som também, como no Discord.
     this.lig?.recepcao.setSurdo(this.snap.surdo && mutado);
@@ -228,6 +221,8 @@ export class SessaoSala {
 
   trocarTela = (): Promise<void> => this.tela.trocar();
   pararTela = (): void => this.tela.parar();
+  /** "Tentar de novo" no aviso do microfone. */
+  tentarMicrofone = (): Promise<void> => this.guarda.tentarDeNovo();
 
   /** A página da sala aberta mostra a tela na camada escolhida; fora dela, a tela vem na leve. */
   setVistaAberta(aberta: boolean): void {
@@ -284,7 +279,7 @@ export class SessaoSala {
 
   private encerrar(motivo: string): void {
     this.limpar();
-    this.set({ fase: "saiu", motivo, estado: null, tela: null, telaDe: null, minhaTela: null, compartilhando: false, falando: [], vozNoAr: false, mao: false, audioBloqueado: false, reconectando: false, surdo: false });
+    this.set({ fase: "saiu", motivo, estado: null, tela: null, telaDe: null, minhaTela: null, compartilhando: false, falando: [], vozNoAr: false, mao: false, audioBloqueado: false, reconectando: false, surdo: false, microfone: "ok" });
   }
 
   private limpar(): void {
@@ -296,5 +291,6 @@ export class SessaoSala {
     if (this.lig) desmontarLigacao(this.lig);
     this.lig = null;
     this.pulso.reiniciar();
+    this.guarda.soltar();
   }
 }

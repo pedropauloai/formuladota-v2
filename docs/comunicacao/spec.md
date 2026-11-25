@@ -297,6 +297,8 @@ A conta confere com a da sessão central: tela a 4 Mbps para 50 pessoas, 3 horas
 | Microfone do PPA com o jogo no alto-falante | o cancelamento de eco só tira o som que o navegador toca | fone de ouvido |
 | Apertar para falar | navegador não recebe tecla com o Dota em foco | microfone aberto com supressão de ruído; atalho fica para o aplicativo (fase 3) |
 | Firefox e Safari | não capturam áudio do sistema nem da janela | entram para ouvir, falar e assistir |
+| Página aberta fora da sala | o navegador guarda a regra de permissões da primeira página carregada: com o microfone liberado só nas páginas da sala, quem chegava à sala pelo menu do site ficava sem microfone, sem botão e sem aviso (o PPA na Live, 24/11/2026) | o microfone e a captura de tela valem para o próprio site em todas as páginas (`Permissions-Policy` com `self`), porque a ligação segue pelo site inteiro; câmera e localização seguem desligadas |
+| Microfone negado, pendente, sem aparelho ou ocupado | `getUserMedia` recusa (`NotAllowedError`, `NotFoundError`, `NotReadableError`) ou fica esperando a resposta da pessoa | o botão do microfone fica na barra sempre que a pessoa pode falar; o aviso diz o motivo e o caminho (o cadeado do endereço, conectar o aparelho, fechar o outro programa) com Tentar de novo; o navegador não repete o pedido sozinho, e a sala tenta de novo quando a permissão muda ou um microfone chega |
 | Celular | o iPhone e boa parte dos Androids não compartilham tela | assiste e fala; a tela não quebra em 390 px |
 | Upload do PPA | duas camadas de tela somam cerca de 1,25 vez a qualidade escolhida, além do OBS da live | `qualityLimitationReason` vai nas métricas; o teste real diz se cabe |
 

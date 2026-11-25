@@ -2,12 +2,14 @@
 
 // Barra de controles do canal de voz, compacta como a do Discord: microfone, som (ensurdecer), tela
 // (compartilhar, trocar a janela, parar), mão (plateia do palco), imagem leve ou alta de quem assiste,
-// os volumes, o chat e sair em vermelho. Os data-* expõem o que o e2e confere.
+// os volumes, o chat e sair em vermelho. O microfone fica na barra sempre que a pessoa pode falar, mesmo
+// sem a voz no ar, e o aviso diz por que ele não abriu e como resolver. Os data-* expõem o que o e2e confere.
 
 import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { AppWindow, Hand, HeadphoneOff, Headphones, MessageSquare, MessageSquareOff, Mic, MicOff, MonitorSpeaker, MonitorUp, MonitorX, PhoneOff, Volume2 } from "lucide-react";
 import { plate } from "@/components/v2";
+import { AVISO_MICROFONE, falhou, type EstadoMicrofone } from "@/lib/sala/cliente/microfone";
 import type { Layer } from "@/lib/sala/tipos";
 import { cn } from "@/lib/utils";
 import { TELA_TEXTO } from "./textos";
@@ -16,7 +18,9 @@ export interface ControlesProps {
   vozNoAr: boolean;
   mutado: boolean;
   mutadoPeloDono: boolean;
-  semMicrofone: boolean;
+  /** Pode falar agora (dono, membro, chamado ao palco, voz livre), com a voz no ar ou não. */
+  podeFalar: boolean;
+  microfone: EstadoMicrofone;
   surdo: boolean;
   podeLevantarMao: boolean;
   mao: boolean;
@@ -32,6 +36,7 @@ export interface ControlesProps {
   temChat: boolean;
   chatAberto: boolean;
   onMudo: () => void;
+  onTentarMicrofone: () => void;
   onSurdo: () => void;
   onMao: () => void;
   onTela: () => void;
@@ -44,7 +49,7 @@ export interface ControlesProps {
   onSair: () => void;
 }
 
-type Tom = "normal" | "ligado" | "perigo" | "tela";
+type Tom = "normal" | "ligado" | "perigo" | "tela" | "aviso";
 
 function Botao({ titulo, tom = "normal", onClick, children, data, pressionado, disabled }: { titulo: string; tom?: Tom; onClick: () => void; children: ReactNode; data: Record<string, string>; pressionado?: boolean; disabled?: boolean }) {
   return (
@@ -62,6 +67,7 @@ function Botao({ titulo, tom = "normal", onClick, children, data, pressionado, d
         tom === "ligado" && "bg-brand-primary/20 text-error hover:bg-brand-primary/30",
         tom === "perigo" && "bg-brand-primary text-white hover:bg-brand-primary/85",
         tom === "tela" && "bg-play-primary/15 text-play-primary hover:bg-play-primary/25",
+        tom === "aviso" && "bg-gold/15 text-gold hover:bg-gold/25",
       )}
     >
       {children}
@@ -114,12 +120,43 @@ function Tela({ p }: { p: ControlesProps }) {
   );
 }
 
+/** O microfone sempre que a pessoa pode falar: no ar, muta e desmuta; sem abrir, mostra que não há sinal e o clique tenta de novo. */
+function BotaoMicrofone({ p }: { p: ControlesProps }) {
+  const t = useTranslations("sala");
+  const semSinal = !p.vozNoAr && falhou(p.microfone);
+  const titulo = semSinal ? t("microfoneSemSinal") : p.mutado ? t("desmutar") : t("mutar");
+  return (
+    <Botao titulo={titulo} tom={semSinal ? "aviso" : p.mutado ? "ligado" : "normal"} pressionado={p.mutado} onClick={p.onMudo} data={{ "data-sala-mudo": p.mutado ? "sim" : "nao" }}>
+      {p.mutado || semSinal ? <MicOff className="size-5" /> : <Mic className="size-5" />}
+    </Botao>
+  );
+}
+
+/** Por que o microfone não abriu e o caminho para resolver, com "Tentar de novo" quando adianta. */
+function AvisoMicrofone({ p }: { p: ControlesProps }) {
+  const t = useTranslations("sala");
+  const chave = p.podeFalar && !p.vozNoAr ? AVISO_MICROFONE[p.microfone] : undefined;
+  if (!chave) return null;
+  return (
+    <div role="alert" data-sala-microfone={p.microfone} className="flex flex-wrap items-center gap-2 rounded-sm border border-gold/40 bg-gold/10 px-2.5 py-1.5 text-xs text-gold">
+      <MicOff className="size-4 shrink-0" aria-hidden="true" />
+      <span className="min-w-0 flex-1">{t(chave)}</span>
+      {falhou(p.microfone) && (
+        <button type="button" onClick={p.onTentarMicrofone} data-sala-microfone-tentar="" className={plate({ kind: "ghost", small: true })}>
+          {t("tentarDeNovo")}
+        </button>
+      )}
+    </div>
+  );
+}
+
 function Avisos({ p }: { p: ControlesProps }) {
   const t = useTranslations("sala");
   const tela = !p.compartilhando && p.motivoTela && p.motivoTela !== "tela_nao_permitida" ? TELA_TEXTO[p.motivoTela] : undefined;
-  const avisos = [p.mutadoPeloDono && "mutadoPeloDonoAviso", p.semMicrofone && "semMicrofoneAviso", tela, p.vozNoAr && "dicaVoz"].filter((v): v is string => !!v);
+  const avisos = [p.mutadoPeloDono && "mutadoPeloDonoAviso", tela, p.vozNoAr && "dicaVoz"].filter((v): v is string => !!v);
   return (
-    <div className="space-y-0.5">
+    <div className="space-y-1">
+      <AvisoMicrofone p={p} />
       {avisos.map((chave) => <p key={chave} className="text-xs text-text-muted">{t(chave)}</p>)}
     </div>
   );
@@ -130,11 +167,7 @@ export function Controles(p: ControlesProps) {
   return (
     <div className="space-y-2" data-sala-controles="">
       <div className="flex flex-wrap items-center gap-1 rounded-sm border border-border-subtle bg-bg-deep/60 p-1.5">
-        {p.vozNoAr && (
-          <Botao titulo={p.mutado ? t("desmutar") : t("mutar")} tom={p.mutado ? "ligado" : "normal"} pressionado={p.mutado} onClick={p.onMudo} data={{ "data-sala-mudo": p.mutado ? "sim" : "nao" }}>
-            {p.mutado ? <MicOff className="size-5" /> : <Mic className="size-5" />}
-          </Botao>
-        )}
+        {(p.vozNoAr || p.podeFalar) && <BotaoMicrofone p={p} />}
         <Botao titulo={p.surdo ? t("religarSom") : t("ensurdecer")} tom={p.surdo ? "ligado" : "normal"} pressionado={p.surdo} onClick={p.onSurdo} data={{ "data-sala-surdo": p.surdo ? "sim" : "nao" }}>
           {p.surdo ? <HeadphoneOff className="size-5" /> : <Headphones className="size-5" />}
         </Botao>
