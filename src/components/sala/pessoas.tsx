@@ -12,7 +12,6 @@ import { useTranslations } from "next-intl";
 import { Ban, Crown, Flag, Gavel, Hand, Mic, MicOff, MonitorUp, UserMinus, UserPlus, UserX, Volume2, VolumeX } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { PersonMenu } from "@/components/profile/person-menu";
-import { UserAvatar } from "@/components/ui/avatar";
 import { useConfirm } from "@/components/ui/confirm";
 import type { MenuAction } from "@/components/ui/context-menu";
 import type { AcaoDono } from "@/lib/sala/cliente/acoes";
@@ -23,6 +22,7 @@ import type { Pessoa } from "@/lib/sala/pessoas";
 import type { RoomKind, VoiceMode } from "@/lib/sala/tipos";
 import { cn } from "@/lib/utils";
 import { anelFala } from "./anel-fala";
+import { FotoNaSala } from "./identidade";
 
 export interface PessoasProps {
   membros: MembroEstado[];
@@ -164,7 +164,7 @@ function Linha({ m, props }: { m: MembroEstado; props: PessoasProps }) {
     <li data-sala-membro={m.userId} data-sala-papel-membro={m.papel} data-sala-online={m.online ? "sim" : "nao"} data-sala-mao-membro={m.maoDesde ? "sim" : "nao"} data-sala-falando={falando ? "sim" : "nao"} title={rotulos.filter(Boolean).join(" · ") || undefined}>
      <PersonMenu userId={m.userId} extraActions={menu}>
      <div className="group relative flex h-11 items-center gap-2.5 rounded-sm px-1.5 hover:bg-bg-elevated/60">
-      <UserAvatar src={avatar} alt={nome} fallback={nome.slice(0, 2).toUpperCase()} size="sm" className={cn("rounded-sm", anelFala(falando))} />
+      <FotoNaSala userId={m.userId} nome={nome} avatarUrl={avatar} tamanho="sm" acoes={menu} className={anelFala(falando)} />
       <Identidade m={m} nome={nome} proprio={proprio} volumeAberto={volumeAberto} onNome={() => setVolumeAberto((v) => !v)} />
       {m.papel !== "ouvinte" && (m.mutado ? <MicOff className="size-3.5 shrink-0 text-text-muted" aria-hidden="true" /> : <Mic className={cn("size-3.5 shrink-0", falando ? "text-play-primary" : "text-text-muted")} aria-hidden="true" />)}
       {m.compartilhandoTela && <MonitorUp className="size-3.5 shrink-0 text-brand-primary" aria-hidden="true" />}

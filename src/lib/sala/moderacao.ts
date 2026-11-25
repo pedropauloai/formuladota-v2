@@ -162,6 +162,8 @@ async function alertReport(ctx: CallContext, reportedId: string, body: Denuncia,
   const detalhe = body.detalhes ? ` Detalhe: "${semMencao(body.detalhes, 200)}".` : "";
   await sendOpsAlert(
     `${teste}${grave}Sala de voz "${room.title}": ${nome(ctx.userId)} denunciou ${nome(reportedId)} por ${MOTIVO_TEXTO[body.motivo]}.${mensagem}${detalhe} Veja em /admin/salas.`,
-    !room.isTest
+    !room.isTest,
+    // Sala de teste avisa no canal oculto de teste, nunca no de vendas.
+    room.isTest
   );
 }

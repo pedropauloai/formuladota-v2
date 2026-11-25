@@ -13,12 +13,16 @@ import { configVoz } from "@/lib/sala/cliente/config-voz";
 import { aplicarSaida } from "@/lib/sala/cliente/midia";
 import { cn } from "@/lib/utils";
 import { anelFala } from "./anel-fala";
+import { FotoNaSala } from "./identidade";
 
 interface Props {
   tela: MediaStream | null;
   telaDe: string | null;
   minhaTela: MediaStream | null;
   nomeDe: (userId: string) => string;
+  fotoDe: (userId: string) => string | null;
+  /** Quem olha: a foto vai no rótulo da própria tela. */
+  eu: string | null;
   volumeJogo: number;
   onVolumeJogo: (volume: number) => void;
   /** Som desligado (ensurdecer): a tela fica muda, sem perder o volume escolhido. */
@@ -114,6 +118,17 @@ function useTeclasDaTelaCheia(cheia: boolean, p: Props, setComChat: (f: (v: bool
   }, [cheia, p, setComChat]);
 }
 
+/** Quem está na tela, com a foto junto do nome; na tela cheia, sem o cartão (abriria atrás da tela). */
+function RotuloDaTela({ p, label, cheia }: { p: Props; label: string; cheia: boolean }) {
+  const quem = p.minhaTela ? p.eu : p.telaDe;
+  return (
+    <div className={cn("absolute left-3 top-3 flex items-center gap-1.5 rounded-sm bg-bg-deep/80 px-1.5 py-1 text-xs text-text-body", anelFala(!!p.telaFalando))} data-sala-tela-falando={p.telaFalando ? "sim" : "nao"}>
+      {quem && <FotoNaSala userId={quem} nome={p.nomeDe(quem)} avatarUrl={p.fotoDe(quem)} tamanho="xs" semCartao={cheia} />}
+      {label}
+    </div>
+  );
+}
+
 export function Palco(p: Props) {
   const t = useTranslations("sala");
   const temTela = !!(p.minhaTela || p.tela);
@@ -134,7 +149,7 @@ export function Palco(p: Props) {
             {p.participantes || <MonitorUp className="size-10" aria-hidden="true" />}
           </div>
         )}
-        {temTela && <p className={cn("absolute left-3 top-3 rounded-sm bg-bg-deep/80 px-2 py-1 text-xs text-text-body", anelFala(!!p.telaFalando))} data-sala-tela-falando={p.telaFalando ? "sim" : "nao"}>{label}</p>}
+        {temTela && <RotuloDaTela p={p} label={label} cheia={cheia} />}
         {temTela && (
           <button
             type="button"

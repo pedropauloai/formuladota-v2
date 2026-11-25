@@ -31,6 +31,8 @@ const VL = "src/lib/sala/cliente/voz-local.ts";
 const EN = "src/lib/sala/entrada.ts";
 const DS = "src/lib/sala/dados-sala.ts";
 const MN = "src/lib/sala/cliente/menus.ts";
+const SQ = "src/lib/sala/cliente/sequencia.ts";
+const MDR = "src/lib/sala/moderacao.ts";
 
 const MUTACOES = [
   [A, 'if (!input.flagOn) return { ok: false, code: "flag_desligada" };', "", "flag desligada não esconde"],
@@ -117,6 +119,8 @@ const MUTACOES = [
   [MN, "if (!c.souDono || !c.listado) return out;", "if (!c.listado) return out;", "quem não é dono vê editar e apagar no menu do canal"],
   [MN, 'if (m.souDono) out.push("apagar");', 'out.push("apagar");', "quem não é dono vê apagar a mensagem"],
   [MN, 'if (m.autor && m.autor !== m.eu) out.push("denunciar");', 'if (m.autor) out.push("denunciar");', "a própria mensagem aparece com denunciar"],
+  [SQ, "if (!anterior || anterior.userId !== atual.userId) return true;", "if (!anterior) return true;", "a mensagem de outra pessoa entra sem a foto e o nome"],
+  [MDR, "    !room.isTest,\n    // Sala de teste avisa no canal oculto de teste, nunca no de vendas.\n    room.isTest\n  );", "    !room.isTest\n  );", "denúncia de sala de teste vai ao canal de vendas"],
 ];
 
 let falhas = 0;

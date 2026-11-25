@@ -1,7 +1,8 @@
 "use client";
 
-// Chat da sala pública (spec, R8): mensagens com o nick, campo de até 300 caracteres; o dono apaga
-// mensagem e abre ou fecha o chat; qualquer um denuncia a mensagem. Guardado 30 dias para moderação.
+// Chat da sala pública (spec, R8): cada sequência da mesma pessoa começa com a foto e o nick (ligados ao
+// perfil), campo de até 300 caracteres; o dono apaga mensagem e abre ou fecha o chat; qualquer um
+// denuncia a mensagem. Guardado 30 dias para moderação.
 // O botão direito na mensagem abre as mesmas ações, mais copiar o texto e ver o perfil (menu-mensagem.tsx).
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
@@ -13,6 +14,8 @@ import type { MensagemEstado } from "@/lib/sala/estado";
 import { CHAT_MAX } from "@/lib/sala/papeis";
 import type { Pessoa } from "@/lib/sala/pessoas";
 import { cn } from "@/lib/utils";
+import { comecaSequencia } from "@/lib/sala/cliente/sequencia";
+import { FotoNaSala, NomeNaSala } from "./identidade";
 import { MenuDaMensagem } from "./menu-mensagem";
 import { CHAT_ERRO } from "./textos";
 
@@ -36,7 +39,7 @@ interface Props {
   coluna?: boolean;
 }
 
-function Mensagem({ m, p }: { m: MensagemEstado; p: Props }) {
+function Mensagem({ m, inicio, p }: { m: MensagemEstado; inicio: boolean; p: Props }) {
   const t = useTranslations("sala");
   const confirm = useConfirm();
   const nome = m.userId ? (p.pessoas[m.userId]?.nome ?? t("jogador")) : t("contaApagada");
@@ -50,10 +53,13 @@ function Mensagem({ m, p }: { m: MensagemEstado; p: Props }) {
   };
   const conteudo = (
     <>
-      <p className="min-w-0 flex-1 break-words text-text-body">
-        <span className={cn("mr-1.5 font-semibold", m.userId === p.donoId ? "text-gold" : "text-text-display")}>{nome}</span>
-        {m.texto}
-      </p>
+      <span className="w-6 shrink-0" data-sala-autor-foto={inicio ? (autor ?? "") : undefined}>
+        {inicio && <FotoNaSala userId={autor} nome={nome} avatarUrl={autor ? p.pessoas[autor]?.avatarUrl : null} tamanho="xs" semCartao={p.sobreposto} />}
+      </span>
+      <div className="min-w-0 flex-1">
+        {inicio && <NomeNaSala userId={autor} nome={nome} semCartao={p.sobreposto} className={cn("font-semibold", m.userId === p.donoId ? "text-gold" : "text-text-display")} />}
+        <p className="break-words text-text-body">{m.texto}</p>
+      </div>
       {p.souDono && (
         <button type="button" title={t("apagarMensagem")} aria-label={t("apagarMensagem")} data-sala-apagar={m.id} onClick={() => p.onApagar(m.id)} className="rounded-sm p-1 text-text-muted opacity-60 hover:text-error group-hover:opacity-100">
           <Trash2 className="size-3.5" />
@@ -71,7 +77,7 @@ function Mensagem({ m, p }: { m: MensagemEstado; p: Props }) {
       )}
     </>
   );
-  const classe = "group flex items-start gap-2 py-1 text-sm leading-snug";
+  const classe = cn("group flex items-start gap-2 text-sm leading-snug", inicio ? "mt-2 first:mt-0" : "py-0.5");
   // Na tela cheia o menu do site abriria atrás da tela (ele mora no corpo da página): fica o do navegador.
   if (p.sobreposto) return <li className={classe} data-sala-mensagem={m.id}>{conteudo}</li>;
   return (
@@ -121,8 +127,8 @@ export function Chat(p: Props) {
         </div>
         <ul ref={lista} className={p.sobreposto || p.coluna ? "min-h-0 flex-1 overflow-y-auto pr-1" : "h-[22rem] overflow-y-auto pr-1 min-[2600px]:h-[30rem]"} aria-live="polite">
           {p.mensagens.length === 0 && <li className="py-6 text-center text-xs text-text-muted">{t("chatVazio")}</li>}
-          {p.mensagens.map((m) => (
-            <Mensagem key={m.id} m={m} p={p} />
+          {p.mensagens.map((m, i) => (
+            <Mensagem key={m.id} m={m} inicio={comecaSequencia(p.mensagens[i - 1], m)} p={p} />
           ))}
         </ul>
         {p.podeEscrever ? (

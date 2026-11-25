@@ -4,6 +4,7 @@
 // Instrumento de trabalho: sem pele de vitrine. Flag sala_voz desligada esconde a página.
 
 import { notFound } from "next/navigation";
+import { PessoaNaSala } from "@/components/sala/identidade";
 import { requireAdminPage } from "@/lib/auth/admin-page";
 import { salaVozOn } from "@/lib/sala/flag";
 import { adminOverview, listBans } from "@/lib/sala/admin";
@@ -69,9 +70,12 @@ export default async function AdminSalasPage() {
         <ul className="space-y-2">
           {overview.reports.map((r) => (
             <li key={r.id} className="rounded-md border border-border-subtle bg-bg-base p-3 text-sm text-text-body">
-              <p>
-                <strong className="text-text-display">{r.reporter}</strong> denunciou <strong className="text-text-display">{r.reported}</strong> por {r.reason}, na sala {r.roomTitle}
-              </p>
+              <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1" data-admin-denuncia-pessoas="">
+                <PessoaNaSala userId={r.reporter.id} nome={r.reporter.nome} avatarUrl={r.reporter.avatarUrl} className="font-semibold text-text-display" />
+                denunciou
+                <PessoaNaSala userId={r.reported.id} nome={r.reported.nome} avatarUrl={r.reported.avatarUrl} className="font-semibold text-text-display" />
+                por {r.reason}, na sala {r.roomTitle}
+              </div>
               {r.messageBody && <p className="text-text-muted">Mensagem: &ldquo;{r.messageBody}&rdquo;</p>}
               {r.details && <p className="text-text-muted">&ldquo;{r.details}&rdquo;</p>}
               <p className="text-xs text-text-muted">{new Date(r.createdAt).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}</p>

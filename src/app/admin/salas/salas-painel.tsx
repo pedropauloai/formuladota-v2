@@ -5,6 +5,7 @@
 
 import { useState, useTransition } from "react";
 import { Copy, Headphones, Plus, X } from "lucide-react";
+import { PessoaNaSala } from "@/components/sala/identidade";
 import type { Overview } from "@/lib/sala/admin";
 import type { RoomKind } from "@/lib/sala/tipos";
 import { criarSalaMentoria, criarSalaParty, encerrarSala, novoConvite } from "./actions";
@@ -110,8 +111,9 @@ export function SalasPainel({ site, rooms, bookings, liveOnAir }: Props) {
           {bookings.map((b) => (
             <li key={b.id} className="flex flex-wrap items-center gap-3 rounded-md border border-border-subtle bg-bg-base p-3 text-sm">
               <span className="text-text-display">{b.product}</span>
+              <PessoaNaSala userId={b.buyer.id} nome={b.buyer.nome} avatarUrl={b.buyer.avatarUrl} className="text-text-body" />
               <span className="text-xs text-text-muted">
-                {b.buyer} · {quando(b.startsAt)} · {b.hasAccount ? "tem conta" : "pagou sem login (gera convite)"}
+                {quando(b.startsAt)} · {b.hasAccount ? "tem conta" : "pagou sem login (gera convite)"}
               </span>
               <button type="button" className={`${botao} ml-auto`} disabled={pending} onClick={() => start(async () => guardar(await criarSalaMentoria(b.id, alunoTela)))}>
                 <Plus className="size-3.5" aria-hidden="true" />

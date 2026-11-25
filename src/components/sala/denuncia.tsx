@@ -7,10 +7,11 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Dialog } from "@/components/ui/dialog";
 import { plate } from "@/components/v2";
+import { FotoNaSala } from "./identidade";
 import { MOTIVO_TEXTO, type Motivo } from "./textos";
 
-/** Quem ou o que se denuncia: uma pessoa, ou uma mensagem do chat (com o texto, para conferir). */
-export type AlvoTela = { tipo: "pessoa"; nome: string } | { tipo: "mensagem"; nome: string; texto: string };
+/** Quem ou o que se denuncia: uma pessoa, ou uma mensagem do chat (com o texto, para conferir), com a foto de quem. */
+export type AlvoTela = ({ tipo: "pessoa" } | { tipo: "mensagem"; texto: string }) & { nome: string; avatarUrl: string | null };
 
 interface Props {
   alvo: AlvoTela | null;
@@ -33,7 +34,10 @@ export function Denuncia({ alvo, onClose, onSend }: Props) {
   return (
     <Dialog.Root open={alvo !== null} onOpenChange={(open) => !open && onClose()}>
       <Dialog.Content playSoundOnOpen={false} className="max-w-md space-y-4" data-sala-denuncia="">
-        <Dialog.Title>{t(alvo?.tipo === "mensagem" ? "denunciaMensagemTitulo" : "denunciaTitulo", { nome: alvo?.nome ?? "" })}</Dialog.Title>
+        <div className="flex items-center gap-3">
+          {alvo && <FotoNaSala userId={null} nome={alvo.nome} avatarUrl={alvo.avatarUrl} tamanho="sm" />}
+          <Dialog.Title>{t(alvo?.tipo === "mensagem" ? "denunciaMensagemTitulo" : "denunciaTitulo", { nome: alvo?.nome ?? "" })}</Dialog.Title>
+        </div>
         <Dialog.Description>{t("denunciaTexto")}</Dialog.Description>
         {alvo?.tipo === "mensagem" && <blockquote className="border-l-2 border-border-strong pl-3 text-sm italic text-text-body">{alvo.texto}</blockquote>}
         {estado === "enviada" ? (

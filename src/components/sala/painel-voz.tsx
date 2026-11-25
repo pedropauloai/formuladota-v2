@@ -8,7 +8,6 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { HeadphoneOff, Headphones, Loader2, LogOut, Mic, MicOff, MonitorOff, Settings, Volume2, X } from "lucide-react";
-import { UserAvatar } from "@/components/ui/avatar";
 import { LiveDot, panel } from "@/components/v2";
 import { Link, usePathname } from "@/i18n/navigation";
 import { AVISO_MICROFONE, falhou } from "@/lib/sala/cliente/microfone";
@@ -18,6 +17,7 @@ import { useSalaAtiva } from "@/lib/sala/cliente/use-sala-ativa";
 import { cn } from "@/lib/utils";
 import { anelFala } from "./anel-fala";
 import { ConfigVoz } from "./config-voz";
+import { FotoNaSala } from "./identidade";
 import { SAIDA_TEXTO } from "./textos";
 
 // Rostos que cabem numa linha do painel; o resto vira "+N".
@@ -57,8 +57,8 @@ function Presentes({ snap }: { snap: SessaoSnapshot }) {
         const nome = snap.pessoas[m.userId]?.nome ?? t("jogador");
         const falando = snap.falando.includes(m.userId) && !m.mutado;
         return (
-          <li key={m.userId} title={nome} data-painel-voz-rosto={m.userId} data-sala-falando={falando ? "sim" : "nao"}>
-            <UserAvatar src={snap.pessoas[m.userId]?.avatarUrl ?? undefined} alt={nome} fallback={nome.slice(0, 2).toUpperCase()} size="xs" className={cn("rounded-sm", anelFala(falando))} />
+          <li key={m.userId} data-painel-voz-rosto={m.userId} data-sala-falando={falando ? "sim" : "nao"}>
+            <FotoNaSala userId={m.userId} nome={nome} avatarUrl={snap.pessoas[m.userId]?.avatarUrl} tamanho="xs" className={anelFala(falando)} />
           </li>
         );
       })}

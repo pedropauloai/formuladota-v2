@@ -4,6 +4,7 @@
 
 import { useTransition } from "react";
 import { Undo2 } from "lucide-react";
+import { PessoaNaSala } from "@/components/sala/identidade";
 import type { Banido } from "@/lib/sala/admin";
 import { desbanir } from "./actions";
 
@@ -18,7 +19,7 @@ export function Banidos({ banidos }: { banidos: Banido[] }) {
       <ul className="space-y-2">
         {banidos.map((b) => (
           <li key={b.userId} className="flex flex-wrap items-center gap-3 rounded-md border border-border-subtle bg-bg-base p-3 text-sm">
-            <span className="text-text-display">{b.nome}</span>
+            <PessoaNaSala userId={b.pessoa.id} nome={b.pessoa.nome} avatarUrl={b.pessoa.avatarUrl} className="text-text-display" />
             <span className="text-xs text-text-muted">
               banido em {quando(b.em)}
               {b.motivo ? ` · ${b.motivo}` : ""}

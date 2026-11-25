@@ -149,7 +149,7 @@ function propsDoChat(snap: SessaoSnapshot, sessao: SessaoSala, o: { nomeDe: (id:
     onApagar: (id) => void sessao.apagarMensagem(id),
     onDenunciar: (id) => {
       const m = snap.chat.find((x) => x.id === id);
-      if (m?.userId) o.setAlvo({ tipo: "mensagem", messageId: id, nome: o.nomeDe(m.userId), texto: m.texto });
+      if (m?.userId) o.setAlvo({ tipo: "mensagem", messageId: id, nome: o.nomeDe(m.userId), texto: m.texto, avatarUrl: snap.pessoas[m.userId]?.avatarUrl ?? null });
     },
     onBanir: o.banir,
     onAbrirChat: (aberto) => void sessao.abrirChat(aberto),
@@ -184,7 +184,7 @@ function NaSala({ roomId, tipo, modo, mostrarTela, snap, sessao }: Props & { sna
   return (
     <div className="flex gap-4" data-sala-id={roomId}>
       <div className="min-w-0 flex-1 space-y-3">
-        <Palco tela={snap.tela} telaDe={snap.telaDe} minhaTela={snap.minhaTela} nomeDe={nomeDe} volumeJogo={volumeJogo} onVolumeJogo={setVolumeJogo} surdo={snap.surdo} participantes={quadros} telaFalando={!!snap.telaDe && snap.falando.includes(snap.telaDe)} chat={chat && <Chat {...chat} sobreposto />} />
+        <Palco tela={snap.tela} telaDe={snap.telaDe} minhaTela={snap.minhaTela} nomeDe={nomeDe} fotoDe={(id) => snap.pessoas[id]?.avatarUrl ?? null} eu={eu?.userId ?? null} volumeJogo={volumeJogo} onVolumeJogo={setVolumeJogo} surdo={snap.surdo} participantes={quadros} telaFalando={!!snap.telaDe && snap.falando.includes(snap.telaDe)} chat={chat && <Chat {...chat} sobreposto />} />
         <Controles
           vozNoAr={snap.vozNoAr} mutado={snap.mutado} mutadoPeloDono={!!eu?.mutadoPeloDono} podeFalar={!!eu?.podeFalar} microfone={snap.microfone} onTentarMicrofone={() => void sessao.tentarMicrofone()} surdo={snap.surdo}
           podeLevantarMao={!!eu?.podeLevantarMao} mao={snap.mao} mostrarTela={mostrarTela} compartilhando={snap.compartilhando}

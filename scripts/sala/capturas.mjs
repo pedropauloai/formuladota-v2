@@ -211,6 +211,14 @@ async function salaPublica(p, ctx, c) {
   const linha = await pDono.locator(`[data-sala-membro="${p.c.id}"]`).boundingBox();
   if (linha) await foto(pDono, "01b-acoes-do-dono-no-mouse.png", { mouse: [linha.x + 60, linha.y + linha.height / 2] });
   await menusDoDono(pDono, p, c);
+  // O mini perfil aberto pelo mouse na foto de quem escreveu no chat.
+  const fotoNoChat = pDono.locator('[data-sala-mensagem]:has-text("cheguei agora") [data-sala-autor-foto] a').first();
+  await fotoNoChat.hover();
+  await pDono.locator("[data-radix-popper-content-wrapper]").first().waitFor({ timeout: 15_000 });
+  await sleep(1500);
+  const caixa = await fotoNoChat.boundingBox();
+  await foto(pDono, "17-mini-perfil-no-chat.png", { mouse: caixa ? [caixa.x + caixa.width / 2, caixa.y + caixa.height / 2] : [4, 4] });
+  await pDono.mouse.move(4, 4);
   await foto(plateia.c, "03-sala-publica-plateia.png");
 
   const largo = await (await ctx(p.e)).newPage();
@@ -227,6 +235,13 @@ async function salaPublica(p, ctx, c) {
   await admin.goto(`${s.BASE}/admin/salas`);
   await admin.locator("[data-admin-canais]").waitFor({ timeout: 60_000 });
   await foto(admin, "10-admin-canais.png");
+  // Uma denúncia de teste, para a lista do painel mostrar as fotos de quem denunciou e de quem foi denunciado.
+  await s.apiPost(plateia.d, `/api/sala/${palco.id}/denuncias`, { userId: p.e.id, motivo: "spam", detalhes: "" });
+  await admin.reload();
+  const denuncias = admin.locator("[data-admin-salas-denuncias]");
+  await denuncias.locator("[data-admin-denuncia-pessoas]").first().waitFor({ timeout: 60_000 });
+  await denuncias.screenshot({ path: join(out, "10b-admin-denuncias.png") });
+  console.log("captura: 10b-admin-denuncias.png");
   await painelForaDaSala(plateia.c);
 
   for (const page of [pDono, largo, admin, ...livres, ...Object.values(plateia)]) await page.close().catch(() => null);
