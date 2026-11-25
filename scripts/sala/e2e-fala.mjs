@@ -77,6 +77,10 @@ async function anelDeQuemFala(t, check, pA, pB) {
   // 10 s cobrem o ciclo inteiro em que a medida de 300 ms escorrega pelas sílabas de 310 ms da fala falsa.
   const firme = await anelFirme(pB, arvore, 10_000);
   check("enquanto a pessoa fala sem parar, o anel fica aceso, sem piscar", firme >= 0.95, `aceso em ${Math.round(firme * 100)}% de 10 s`);
+  // Quem escuta tem o microfone falso padrão do Chrome: um bipe de 20 ms a cada meio segundo, que o eco, o
+  // ruído e o ganho automático do navegador esticam para uns 70 ms. É o tamanho de um estalo de tecla.
+  const bipe = await anelFirme(pB, `[data-sala-membro="${t.escuta.id}"]`, 5_000);
+  check("um estalo curto no microfone (o bipe do microfone falso) não acende o anel", bipe <= 0.05, `aceso em ${Math.round(bipe * 100)}% de 5 s`);
   await pA.locator('[data-sala-mudo="nao"]').click();
   check("quando ela muta, o anel apaga na árvore e no palco", (await anel(pB, arvore, false, 10_000)) && (await anel(pB, quadro, false, 5_000)));
   await pA.locator('[data-sala-mudo="sim"]').click();

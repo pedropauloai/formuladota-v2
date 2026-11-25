@@ -11,8 +11,9 @@ export const SEGURA_FALA_MS = 400;
 const JANELA = 16_384;
 /** Pedaço medido de cada vez (cerca de 11 ms). */
 const BLOCO = 512;
-/** Pedaços seguidos acima do limiar para contar como fala: cerca de 65 ms, menos que uma sílaba e mais que um estalo de tecla. */
-const MIN_BLOCOS = 6;
+/** Pedaços seguidos acima do limiar para contar como fala: cerca de 110 ms. Uma sílaba passa disso; um estalo de
+ *  tecla não, nem esticado pelo eco, ruído e ganho automático do navegador (que levam 20 ms a uns 70 ms). */
+const MIN_BLOCOS = 10;
 
 interface Fonte {
   source: MediaStreamAudioSourceNode;

@@ -101,6 +101,7 @@ const MUTACOES = [
   [NV, "analyser.fftSize = JANELA;", "analyser.fftSize = BLOCO;", "a medida só ouve o último instante e o anel pisca na fala contínua"],
   [NV, "seguidos = volume(f.buffer.subarray(i, i + BLOCO)) > LIMIAR ? seguidos + 1 : 0;", "seguidos = volume(f.buffer.subarray(i, i + BLOCO)) > LIMIAR ? seguidos + 1 : seguidos;", "teclas apertadas em sequência acendem o anel como se fossem fala"],
   [NV, "if (seguidos >= MIN_BLOCOS) return true;", "if (seguidos >= 1) return true;", "um estalo de tecla acende o anel"],
+  [NV, "const MIN_BLOCOS = 10;", "const MIN_BLOCOS = 6;", "um estalo esticado pelo processamento do navegador acende o anel"],
   [CV, "return guardado && ids.includes(guardado) ? guardado : null;", "return guardado;", "microfone desconectado continua escolhido"],
   [CV, 'const id = (v: unknown) => (typeof v === "string" && ID.test(v) ? v : null);', 'const id = (v: unknown) => (typeof v === "string" ? v : null);', "aparelho com id fora do formato passa"],
   [CV, "reducaoRuido: r.reducaoRuido !== false", "reducaoRuido: r.reducaoRuido === true", "sem nada guardado, a redução de ruído vem desligada"],

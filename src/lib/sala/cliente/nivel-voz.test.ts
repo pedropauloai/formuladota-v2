@@ -95,8 +95,18 @@ describe("NivelDeVoz (a sala mede quem fala a cada 300 ms)", () => {
     expect(quemFala(som([50, 0], [150, 0.3], [200, 0]))).toEqual(["a"]);
   });
 
+  it("uma sílaba curta, de 120 ms, acende", () => {
+    expect(quemFala(som([280, 0], [120, 0.3]))).toEqual(["a"]);
+  });
+
   it("um estalo de tecla no instante da medida não acende", () => {
     expect(quemFala(som([392, 0], [8, 0.6]))).toEqual([]);
+  });
+
+  it("um estalo esticado pelo processamento do navegador (cerca de 70 ms acima do limiar) não acende", () => {
+    // Medido em 24/11/2026: com eco, ruído e ganho automático ligados, o bipe de 20 ms do microfone falso do
+    // Chrome sai com 5 a 7 pedaços de 11 ms seguidos acima do limiar.
+    expect(quemFala(som([330, 0], [70, 0.3]))).toEqual([]);
   });
 
   it("teclas apertadas em sequência (o Dota em luta), com silêncio entre elas, não acendem", () => {
