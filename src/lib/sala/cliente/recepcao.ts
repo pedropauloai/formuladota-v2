@@ -5,6 +5,7 @@
 
 import type { Connection, Recebimento } from "./conexao";
 import { fluidezInicial, proximaFluidez } from "./fluidez";
+import { aplicarSaida } from "./midia";
 import type { Layer, TrackLabel } from "../tipos";
 
 export interface FaixaRemota {
@@ -35,6 +36,8 @@ export class Recepcao {
   private fora = false;
   /** Som desligado (ensurdecer): as vozes seguem chegando, caladas. */
   private surdo = false;
+  /** Saída de som escolhida nas configurações de voz (nulo é a padrão). */
+  private saida: string | null = null;
   private saindo: ReturnType<typeof setTimeout> | null = null;
   /** Conexão fraca de quem assiste: a tela que congela de novo e de novo desce para a leve por um tempo. */
   private fluidez = fluidezInicial(Date.now());
@@ -163,6 +166,7 @@ export class Recepcao {
     el.autoplay = true;
     el.volume = this.volumeDe(userId);
     el.muted = this.surdo;
+    aplicarSaida(el, this.saida);
     el.srcObject = new MediaStream([track]);
     void this.play(el);
     return el;
@@ -175,6 +179,12 @@ export class Recepcao {
     } catch (e) {
       if (e instanceof DOMException && e.name === "NotAllowedError") this.onBloqueio(true);
     }
+  }
+
+  /** Manda as vozes para a saída de som escolhida, as que já tocam e as que chegarem. */
+  setSaida(saida: string | null): void {
+    this.saida = saida;
+    for (const r of this.recebidas.values()) if (r.audio) aplicarSaida(r.audio, saida);
   }
 
   setSurdo(surdo: boolean): void {

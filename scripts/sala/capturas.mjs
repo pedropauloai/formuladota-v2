@@ -1,7 +1,8 @@
 // Capturas da sala de voz para conferir a interface em 1920x1080 (e a plateia em 3440x1440): o servidor
 // com a coluna de canais, o canal de voz em palco visto pelo dono (tela, plateia, mãos, palco e chat), a
-// escolha da qualidade, a vista da plateia, a voz livre, o canal de texto, o painel dos canais no admin,
-// o painel de voz em outras páginas e a mentoria. Servidor local, banco de produção com salas e pessoas de teste (apagadas no
+// escolha da qualidade, a vista da plateia, a voz livre com o anel verde de quem fala e as configurações
+// de voz (em 1920 e depois em 3440), o canal de texto, o painel dos canais no admin, o painel de voz em
+// outras páginas e a mentoria. Servidor local, banco de produção com salas e pessoas de teste (apagadas no
 // fim) e o app real do Realtime. Liga só a linha de teste da flag (sala_voz_e2e), nunca a sala_voz.
 // A tela compartilhada é uma arte do Dota do próprio site, no lugar do padrão de teste do Chrome.
 // Rodar: pnpm sala:capturas <pasta-de-saida>
@@ -9,6 +10,7 @@
 import { mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { chromium } from "playwright-core";
+import { chromeQueFala } from "./fala-falsa.mjs";
 
 process.env.LOJA_E2E_PORT = process.env.SALA_E2E_PORT ?? "3200";
 const s = await import("./e2e-comum.mjs");
@@ -21,6 +23,7 @@ const made = { rooms: [], orders: [], users: [] };
 const arte = readFileSync("public/dota/backgrounds/bg-07.jpg").toString("base64");
 let browser = null;
 let server = null;
+let falante = null;
 
 const APELIDOS = {
   dono: "PPA", aluno: "Aluno_Pos3", a: "TinkerMain", b: "Carry_BR", c: "SupBolado", d: "MidOuFeed", e: "Rampage77", f: "LastPick", g: "Roshan_BR",
@@ -103,14 +106,34 @@ async function canais(p) {
   return { geral, livre: partys[0] };
 }
 
-/** Voz livre: quem entra já fala; a coluna mostra quem está em cada canal de voz. */
+/** As configurações de voz abertas, com o teste do microfone ligado. */
+async function configuracoes(page, nome) {
+  await page.locator("[data-sala-config-abrir]").click();
+  await page.locator("[data-sala-config-voz]").waitFor({ timeout: 10_000 });
+  await waitFor(async () => (await page.locator("[data-sala-config-microfone] option").count()) > 1, 10_000);
+  await page.locator('[data-sala-config-testar="nao"]').click();
+  await sleep(1500);
+  await foto(page, nome);
+  await page.locator('[data-sala-config-testar="sim"]').click();
+  await page.locator("[data-sala-config-fechar]").click();
+}
+
+/** Voz livre: quem entra já fala, e a coluna mostra quem está em cada canal de voz, com o anel verde em
+ *  quem fala. Quem fala (f) usa a fala falsa num Chrome à parte. Primeiro em 1920, depois em 3440. */
 async function vozLivre(p, ctx, c) {
-  const pF = await s.enter(await ctx(p.f), c.livre.id, "f");
+  falante = await chromeQueFala(chromium, s.CHROME_ARGS);
+  const pF = await s.enter(await s.buyerContext(falante, p.f, { desktop: true }), c.livre.id, "f");
   const pG = await s.enter(await ctx(p.g), c.livre.id, "g");
-  await waitFor(async () => (await pF.locator(`[data-sala-membro="${p.g.id}"]`).count()) > 0, 30_000);
-  await waitFor(async () => (await s.attr(pF, "data-audio-bytes")) > 0, 30_000);
-  await sleep(2500);
-  await foto(pF, "09-voz-livre.png");
+  const acesa = (page) => waitFor(async () => (await page.locator(`[data-sala-membro="${p.f.id}"][data-sala-falando="sim"]`).count()) > 0, 30_000);
+  await acesa(pG);
+  await sleep(1500);
+  await foto(pG, "09-voz-livre.png");
+  await configuracoes(pF, "11-configuracoes-de-voz.png");
+  for (const page of [pG, pF]) await page.setViewportSize({ width: 3440, height: 1440 });
+  await acesa(pG);
+  await sleep(1500);
+  await foto(pG, "12-voz-livre-3440.png");
+  await configuracoes(pF, "13-configuracoes-de-voz-3440.png");
   return [pF, pG];
 }
 
@@ -218,6 +241,7 @@ try {
   process.exitCode = 1;
 } finally {
   await browser?.close().catch(() => null);
+  await falante?.close().catch(() => null);
   await sleep(500);
   await s.dropFlag().catch(() => null);
   await s.cleanup(made).catch((e) => console.error("limpeza:", e.message));

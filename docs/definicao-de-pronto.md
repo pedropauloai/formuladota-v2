@@ -85,7 +85,7 @@ Escopo: a mensalidade de R$ 120, com party com o PPA sempre que quiser pelo reve
 
 ## Comunicação, fase 1: sala de voz com tela (frente aberta em 23/11/2026)
 
-Escopo: salas de voz com compartilhamento de tela em `/sala/[id]`, pelo Cloudflare Realtime: a sala pública da live (palco, chat e plateia), a mentoria e a party, e o servidor com canais de texto e de voz (R16), atrás da flag `sala_voz`. Spec: [comunicacao/spec.md](comunicacao/spec.md). Denominador fechado: **13 critérios**.
+Escopo: salas de voz com compartilhamento de tela em `/sala/[id]`, pelo Cloudflare Realtime: a sala pública da live (palco, chat e plateia), a mentoria e a party, o servidor com canais de texto e de voz (R16) e o destaque de quem fala com as configurações de voz (R17), atrás da flag `sala_voz`. Spec: [comunicacao/spec.md](comunicacao/spec.md). Denominador fechado: **14 critérios**.
 
 | # | Critério | Como se prova | Estado |
 |---|---|---|---|
@@ -103,9 +103,12 @@ Escopo: salas de voz com compartilhamento de tela em `/sala/[id]`, pelo Cloudfla
 | C12 | Worktree limpo e branches da frente apagados | `git status` vazio e `git ls-remote --heads origin` sem os branches mesclados | sim (24/11/2026: os branches dos PRs 202, 213, 214 e 215 apagados no GitHub e na máquina; `git ls-remote` sem branch da sala) |
 | C13 | Servidor com canais (R16): a árvore lista os canais de texto e de voz com quem está em cada um e o limite ("2/2"); um clique no canal de voz entra; canal cheio não deixa entrar (só o dono); no canal de texto a mensagem chega ao outro, fica guardada e o dono apaga, sem mídia nenhuma; na voz livre quem entra fala e um ouve o outro; ensurdecer muta o microfone e religar devolve; a coluna do chat se esconde e volta; trocar de canal não derruba a voz e chega a quem olha a árvore em menos de 1 s, sem a pessoa em dois canais (`e2e-tempo-real.mjs`); o admin cria, renomeia, sobe, muda o limite e o modo, e apaga | `pnpm sala:e2e` (partes dos canais e do palco) sai com 0 e as migrations 198 a 201 registradas | sim (24/11/2026: e2e 86 de 86 saindo com 0, mutação 54 de 54; PR 215 no ar com `falhas: 0`; `pnpm sala:producao` 8 de 8 no domínio real, entrando pelo canal de texto e com um clique no canal de voz) |
 
+| C14 | Quem fala e configurações de voz (R17): o anel verde acende para quem escuta na árvore, no palco e no painel do canto, apaga quando a pessoa muta e volta quando desmuta; a engrenagem da barra e a do painel abrem as configurações; trocar o microfone no meio da ligação mantém a mesma faixa no SFU, o áudio segue e o anel acende com o microfone novo; o teste mostra o nível; a saída escolhida vale para as vozes; a escolha fica guardada e vale depois de recarregar; na página aberta fora da sala, a tela avisa que o microfone só vale na sala | `pnpm sala:e2e` (parte da fala, `e2e-fala.mjs`) sai com 0 e `pnpm sala:mutacao` com as travas novas vermelhas | não |
+
 ### O que o percentual não significa
 
-- 13 de 13 não prova que a sala pública aguenta mais gente do que a primeira live teve: a escala passa pelos testes e por uma consulta por batimento, e o resto se mede live a live.
+- 14 de 14 não prova que a sala pública aguenta mais gente do que a primeira live teve: a escala passa pelos testes e por uma consulta por batimento, e o resto se mede live a live.
+- O anel e a troca de aparelhos são provados com os aparelhos falsos do Chrome: microfone USB e fone Bluetooth de verdade só se conferem na mão (a troca usa a mesma chamada do navegador, e o aparelho que some volta ao padrão).
 - O atraso medido é uma estimativa pela `getStats` (rede mais buffer), sem o tempo de captura e de tela; a meta tem folga por isso.
 - Não prova conformidade jurídica com o ECA Digital: os controles estão ligados aos artigos na spec, e a regulamentação da ANPD pode pedir mais (verificação de idade mais forte, por exemplo).
 - Não prova que ninguém mente a idade: a maioridade é marcada pela pessoa (decisão do PPA de 23/11/2026), com conta identificada, denúncia e banimento.

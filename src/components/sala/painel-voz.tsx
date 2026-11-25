@@ -1,11 +1,14 @@
 "use client";
 
 // Painel de voz em todas as páginas do site enquanto a pessoa está numa sala (como no Discord): o nome
-// da sala, quem está falando, mutar, parar a tela, sair e voltar para a sala. Fora da /sala fica no canto
-// de baixo, em cima da party (escolha do PPA em 24/11/2026); na /sala, no pé da coluna de canais.
+// da sala, quem está nela (com o anel verde em quem fala), mutar, ensurdecer, as configurações de voz,
+// parar a tela, sair e voltar para a sala. Fora da /sala fica no canto de baixo, em cima da party
+// (escolha do PPA em 24/11/2026); na /sala, no pé da coluna de canais.
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { HeadphoneOff, Headphones, Loader2, LogOut, Mic, MicOff, MonitorOff, Volume2, X } from "lucide-react";
+import { HeadphoneOff, Headphones, Loader2, LogOut, Mic, MicOff, MonitorOff, Settings, Volume2, X } from "lucide-react";
+import { UserAvatar } from "@/components/ui/avatar";
 import { LiveDot, panel } from "@/components/v2";
 import { Link, usePathname } from "@/i18n/navigation";
 import { AVISO_MICROFONE, falhou } from "@/lib/sala/cliente/microfone";
@@ -13,7 +16,12 @@ import { salaAtiva } from "@/lib/sala/cliente/sala-ativa";
 import type { SessaoSala, SessaoSnapshot } from "@/lib/sala/cliente/sessao-sala";
 import { useSalaAtiva } from "@/lib/sala/cliente/use-sala-ativa";
 import { cn } from "@/lib/utils";
+import { anelFala } from "./anel-fala";
+import { ConfigVoz } from "./config-voz";
 import { SAIDA_TEXTO } from "./textos";
+
+// Rostos que cabem numa linha do painel; o resto vira "+N".
+const MAX_ROSTOS = 8;
 
 // Em cima da party do mini perfil (que fica em left-4 bottom-4, com 68 px de altura), na mesma largura.
 const CANTO = "left-4 bottom-[92px] w-[332px] flex-col gap-2 p-3 2xl:w-[352px]";
@@ -37,7 +45,29 @@ function QuemFala({ snap }: { snap: SessaoSnapshot }) {
   );
 }
 
-function Controles({ snap, sessao }: { snap: SessaoSnapshot; sessao: SessaoSala }) {
+/** Quem está na sala agora, na ordem da sala (sem pular de lugar), com o anel em quem fala. */
+function Presentes({ snap }: { snap: SessaoSnapshot }) {
+  const t = useTranslations("sala");
+  const online = (snap.estado?.membros ?? []).filter((m) => m.online);
+  if (!online.length) return null;
+  const resto = online.length - MAX_ROSTOS;
+  return (
+    <ul className="flex min-w-0 items-center gap-2.5 px-1 py-1" data-painel-voz-presentes={online.length}>
+      {online.slice(0, MAX_ROSTOS).map((m) => {
+        const nome = snap.pessoas[m.userId]?.nome ?? t("jogador");
+        const falando = snap.falando.includes(m.userId) && !m.mutado;
+        return (
+          <li key={m.userId} title={nome} data-painel-voz-rosto={m.userId} data-sala-falando={falando ? "sim" : "nao"}>
+            <UserAvatar src={snap.pessoas[m.userId]?.avatarUrl ?? undefined} alt={nome} fallback={nome.slice(0, 2).toUpperCase()} size="xs" className={cn("rounded-sm", anelFala(falando))} />
+          </li>
+        );
+      })}
+      {resto > 0 && <li className="text-xs text-text-muted">+{resto}</li>}
+    </ul>
+  );
+}
+
+function Controles({ snap, sessao, onConfig }: { snap: SessaoSnapshot; sessao: SessaoSala; onConfig: () => void }) {
   const t = useTranslations("sala");
   const podeFalar = snap.vozNoAr || !!snap.estado?.eu?.podeFalar;
   // O microfone que não abriu fica dourado, com o motivo no título; o clique tenta de novo.
@@ -57,6 +87,9 @@ function Controles({ snap, sessao }: { snap: SessaoSnapshot; sessao: SessaoSala 
       <Botao titulo={snap.surdo ? t("religarSom") : t("ensurdecer")} onClick={() => sessao.alternarSurdo()} data="data-painel-voz-surdo">
         {snap.surdo ? <HeadphoneOff className="size-4 text-error" /> : <Headphones className="size-4" />}
       </Botao>
+      <Botao titulo={t("configVozTitulo")} onClick={onConfig} data="data-painel-voz-config">
+        <Settings className="size-4" />
+      </Botao>
       {snap.compartilhando && (
         <Botao titulo={t("pararTela")} onClick={() => sessao.pararTela()} data="data-painel-voz-parar-tela">
           <MonitorOff className="size-4" />
@@ -73,6 +106,7 @@ export function PainelVoz({ embutido = false }: { embutido?: boolean }) {
   const t = useTranslations("sala");
   const pathname = usePathname();
   const { ativa, snap } = useSalaAtiva();
+  const [config, setConfig] = useState(false);
   // Na /sala a coluna de canais mostra o painel no pé: o do canto some.
   if (!ativa || (!embutido && pathname.startsWith("/sala"))) return null;
   const rota = `/sala/${ativa.meta.roomId}`;
@@ -95,10 +129,13 @@ export function PainelVoz({ embutido = false }: { embutido?: boolean }) {
         {titulo}
       </span>
       {snap.fase === "na_sala" ? (
-        <span className="flex min-w-0 items-center justify-between gap-2">
-          {snap.reconectando ? <span className="truncate text-xs text-gold">{t("reconectando")}</span> : <QuemFala snap={snap} />}
-          <Controles snap={snap} sessao={ativa.sessao} />
-        </span>
+        <>
+          <Presentes snap={snap} />
+          <span className="flex min-w-0 items-center justify-between gap-2">
+            {snap.reconectando ? <span className="truncate text-xs text-gold">{t("reconectando")}</span> : <QuemFala snap={snap} />}
+            <Controles snap={snap} sessao={ativa.sessao} onConfig={() => setConfig(true)} />
+          </span>
+        </>
       ) : saiu ? (
         <span className="flex min-w-0 items-center justify-between gap-2">
           <span className="truncate text-xs text-text-muted" data-painel-voz-motivo={snap.motivo ?? ""}>{t(SAIDA_TEXTO[snap.motivo ?? ""] ?? "saidaErro")}</span>
@@ -109,6 +146,7 @@ export function PainelVoz({ embutido = false }: { embutido?: boolean }) {
       ) : (
         <span className="truncate text-xs text-text-muted">{t("voltandoParaSala")}</span>
       )}
+      <ConfigVoz aberto={config} onClose={() => setConfig(false)} />
     </aside>
   );
 }

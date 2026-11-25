@@ -3,6 +3,7 @@
 
 import type { Layer } from "../tipos";
 import type { Entrada } from "./acoes";
+import { configVoz } from "./config-voz";
 import { createConnection, type Connection, type TrackRef } from "./conexao";
 import { NivelDeVoz } from "./nivel-voz";
 import { Recepcao } from "./recepcao";
@@ -13,6 +14,21 @@ export interface Ligacao {
   nivel: NivelDeVoz;
   voz: VozLocal;
   recepcao: Recepcao;
+  /** Para de seguir as configurações de voz (microfone, saída e redução de ruído). */
+  soltarConfig: () => void;
+}
+
+/** As configurações de voz valem na hora, sem sair da sala: microfone e redução de ruído trocam a faixa da voz, a saída vai para as vozes. */
+function seguirConfig(voz: VozLocal, recepcao: Recepcao): () => void {
+  let antes = configVoz.get();
+  recepcao.setSaida(antes.saida);
+  return configVoz.subscribe(() => {
+    const agora = configVoz.get();
+    if (agora === antes) return;
+    if (agora.microfone !== antes.microfone || agora.reducaoRuido !== antes.reducaoRuido) void voz.trocarMicrofone();
+    if (agora.saida !== antes.saida) recepcao.setSaida(agora.saida);
+    antes = agora;
+  });
 }
 
 export function montarLigacao(o: {
@@ -40,7 +56,7 @@ export function montarLigacao(o: {
   conn.onState((estado) => {
     if (estado === "failed") o.onTravou();
   });
-  return { conn, nivel, voz, recepcao };
+  return { conn, nivel, voz, recepcao, soltarConfig: seguirConfig(voz, recepcao) };
 }
 
 /** Quem está falando agora pelo nível de voz ("eu" vira o id da pessoa; mudo não conta como fala). */
@@ -49,6 +65,7 @@ export function quemFala(l: Ligacao | null, eu: string | null, mutado: boolean):
 }
 
 export function desmontarLigacao(l: Ligacao): void {
+  l.soltarConfig();
   l.voz.desligar();
   l.recepcao.clear();
   l.conn.close();

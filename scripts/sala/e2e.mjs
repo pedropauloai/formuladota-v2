@@ -2,10 +2,11 @@
 // usuários de teste (is_test, apagados no fim) e o app real do Cloudflare Realtime. Na mentoria, duas
 // pessoas com mídia falsa do Chrome se ouvem e a tela chega; na sala pública, a plateia, o palco, o
 // chat e a moderação (e2e-palco.mjs); os canais do servidor, de texto e de voz livre (e2e-canais.mjs); o
-// microfone negado, pedindo a permissão ou aberto pelo menu do site (e2e-microfone.mjs); e as travas (expulsar,
-// bloquear, denunciar, maioridade, fora da sala, convite, teto e flag) seguram. Sai com 1 na primeira falha.
+// microfone negado, pedindo a permissão ou aberto pelo menu do site (e2e-microfone.mjs); o anel de quem
+// fala e as configurações de voz (e2e-fala.mjs); e as travas (expulsar, bloquear, denunciar, maioridade,
+// fora da sala, convite, teto e flag) seguram. Sai com 1 na primeira falha.
 // Rodar: pnpm sala:e2e   (SALA_E2E_PORT reaproveita um servidor local de pé; padrão 3200)
-// SALA_E2E_SO=microfone (ou tempo) roda só aquela parte, para mexer nela sem esperar o resto; tempo é o
+// SALA_E2E_SO=microfone, tempo ou fala roda só aquela parte, para mexer nela sem esperar o resto; tempo é o
 // tempo real da árvore (e2e-tempo-real.mjs).
 
 import { chromium } from "playwright-core";
@@ -17,6 +18,7 @@ const { palco } = await import("./e2e-palco.mjs");
 const { canais } = await import("./e2e-canais.mjs");
 const { microfone } = await import("./e2e-microfone.mjs");
 const { tempoReal } = await import("./e2e-tempo-real.mjs");
+const { fala } = await import("./e2e-fala.mjs");
 const { BASE, db, checker, waitFor, sleep } = s;
 const so = process.env.SALA_E2E_SO ?? "";
 const { results, check } = checker();
@@ -27,11 +29,11 @@ let server = null;
 async function setup() {
   server = await s.startServer();
   await s.setFlag(true);
-  const nomes = ["dono", "aluno", "fora", "semmaioridade", "convidado", "ouvinte", "ouvinte2", "barra", "negado", "pedindo", "trocou", "olha"];
-  const [dono, aluno, fora, semMaior, convidado, ouvinte, ouvinte2, barra, negado, pedindo, trocou, olha] = await Promise.all(
+  const nomes = ["dono", "aluno", "fora", "semmaioridade", "convidado", "ouvinte", "ouvinte2", "barra", "negado", "pedindo", "trocou", "olha", "falante", "escuta"];
+  const [dono, aluno, fora, semMaior, convidado, ouvinte, ouvinte2, barra, negado, pedindo, trocou, olha, falante, escuta] = await Promise.all(
     nomes.map((n) => s.createUser(n, { admin: n === "dono", adult: n !== "semmaioridade" }))
   );
-  made.users.push(dono, aluno, fora, semMaior, convidado, ouvinte, ouvinte2, barra, negado, pedindo, trocou, olha);
+  made.users.push(dono, aluno, fora, semMaior, convidado, ouvinte, ouvinte2, barra, negado, pedindo, trocou, olha, falante, escuta);
   const sala = await s.createRoom(dono, [aluno]);
   const sala3 = await s.createRoom(dono, [], { invite: true });
   const palco = await s.createPalco(dono);
@@ -40,7 +42,7 @@ async function setup() {
   made.orders.push(sala.orderId, sala3.orderId);
   browser = await chromium.launch({ channel: "chrome", headless: true, args: s.CHROME_ARGS });
   const ctx = async (u) => s.buyerContext(browser, u, { desktop: true });
-  return { dono, aluno, fora, semMaior, convidado, ouvinte, ouvinte2, barra, negado, pedindo, trocou, olha, sala, sala3, palco, palco2, ctx };
+  return { dono, aluno, fora, semMaior, convidado, ouvinte, ouvinte2, barra, negado, pedindo, trocou, olha, falante, escuta, sala, sala3, palco, palco2, ctx };
 }
 
 async function voiceAndScreen(t) {
@@ -204,6 +206,7 @@ try {
   }
   if (!so || so === "microfone") await microfone(t, check, made);
   if (!so || so === "tempo") await tempoReal(t, check, made);
+  if (!so || so === "fala") await fala(t, check, made);
   if (pPalco) {
     await gates(t);
     await flagOff(t, pPalco);

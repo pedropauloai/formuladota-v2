@@ -18,6 +18,7 @@ import type { MembroEstado } from "@/lib/sala/estado";
 import type { Pessoa } from "@/lib/sala/pessoas";
 import type { RoomKind, VoiceMode } from "@/lib/sala/tipos";
 import { cn } from "@/lib/utils";
+import { anelFala } from "./anel-fala";
 
 export interface PessoasProps {
   membros: MembroEstado[];
@@ -134,9 +135,9 @@ function Linha({ m, props }: { m: MembroEstado; props: PessoasProps }) {
   const chamarAVista = props.souDono && props.tipo === "palco" && props.modo === "palco" && m.papel === "ouvinte" && !!m.maoDesde;
   const [volumeAberto, setVolumeAberto] = useState(false);
   return (
-    <li data-sala-membro={m.userId} data-sala-papel-membro={m.papel} data-sala-online={m.online ? "sim" : "nao"} data-sala-mao-membro={m.maoDesde ? "sim" : "nao"} title={rotulos.filter(Boolean).join(" · ") || undefined}>
-     <div className="group relative flex h-8 items-center gap-2 rounded-sm px-1 hover:bg-bg-elevated/60">
-      <UserAvatar src={avatar} alt={nome} fallback={nome.slice(0, 2).toUpperCase()} size="xs" className={cn("rounded-sm", falando && "ring-2 ring-play-primary")} />
+    <li data-sala-membro={m.userId} data-sala-papel-membro={m.papel} data-sala-online={m.online ? "sim" : "nao"} data-sala-mao-membro={m.maoDesde ? "sim" : "nao"} data-sala-falando={falando ? "sim" : "nao"} title={rotulos.filter(Boolean).join(" · ") || undefined}>
+     <div className="group relative flex h-11 items-center gap-2.5 rounded-sm px-1.5 hover:bg-bg-elevated/60">
+      <UserAvatar src={avatar} alt={nome} fallback={nome.slice(0, 2).toUpperCase()} size="sm" className={cn("rounded-sm", anelFala(falando))} />
       <Identidade m={m} nome={nome} proprio={proprio} volumeAberto={volumeAberto} onNome={() => setVolumeAberto((v) => !v)} />
       {m.papel !== "ouvinte" && (m.mutado ? <MicOff className="size-3.5 shrink-0 text-text-muted" aria-hidden="true" /> : <Mic className={cn("size-3.5 shrink-0", falando ? "text-play-primary" : "text-text-muted")} aria-hidden="true" />)}
       {m.compartilhandoTela && <MonitorUp className="size-3.5 shrink-0 text-brand-primary" aria-hidden="true" />}

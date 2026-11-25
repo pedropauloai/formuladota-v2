@@ -266,13 +266,10 @@ export class SessaoSala {
   /** Sai da sala; a promessa termina quando o servidor confirmou (a troca de canal espera por ela). */
   async sair(): Promise<void> {
     if (this.snap.fase !== "na_sala") return;
+    // O pedido não falha: sem rede, ele responde "sem_rede" e a sessão fecha sozinha sem o batimento.
     const pedido = this.a.sair();
     this.encerrar("saiu");
-    try {
-      await pedido;
-    } catch {
-      // Sem rede: a sessão fecha sozinha sem o batimento.
-    }
+    await pedido;
   }
 
   /** Aba fechando ou componente desmontado: avisa o servidor pelo sendBeacon e solta tudo. */

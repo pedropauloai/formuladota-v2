@@ -13,14 +13,45 @@ type DisplayOptions = DisplayMediaStreamOptions & {
   surfaceSwitching?: "include" | "exclude";
 };
 
-export async function getMicTrack(): Promise<MediaStreamTrack> {
+export interface OpcoesMicrofone {
+  /** deviceId do microfone escolhido; nulo é o padrão do sistema. */
+  microfone: string | null;
+  reducaoRuido: boolean;
+}
+
+async function abrirMicrofone(microfone: string | null, reducaoRuido: boolean): Promise<MediaStreamTrack> {
   const stream = await navigator.mediaDevices.getUserMedia({
-    audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 },
+    audio: { ...(microfone ? { deviceId: { exact: microfone } } : {}), echoCancellation: true, noiseSuppression: reducaoRuido, autoGainControl: true, channelCount: 1 },
     video: false,
   });
   const track = stream.getAudioTracks()[0];
   if (!track) throw new Error("sem microfone");
   return track;
+}
+
+/** Abre o microfone escolhido; se ele sumiu (desconectado), abre o padrão do sistema. */
+export async function getMicTrack(o: OpcoesMicrofone = { microfone: null, reducaoRuido: true }): Promise<MediaStreamTrack> {
+  if (!o.microfone) return abrirMicrofone(null, o.reducaoRuido);
+  try {
+    return await abrirMicrofone(o.microfone, o.reducaoRuido);
+  } catch (e) {
+    const nome = (e as { name?: string } | null)?.name;
+    if (nome === "OverconstrainedError" || nome === "NotFoundError") return abrirMicrofone(null, o.reducaoRuido);
+    throw e;
+  }
+}
+
+type ComSaida = HTMLMediaElement & { setSinkId?: (id: string) => Promise<void> };
+
+/** O navegador deixa escolher a saída de som (setSinkId: Chrome e Edge; o Safari e o Firefox, não). */
+export function temEscolhaDeSaida(): boolean {
+  return typeof HTMLMediaElement !== "undefined" && "setSinkId" in HTMLMediaElement.prototype;
+}
+
+/** Manda o som do elemento para a saída escolhida (nulo é a padrão); onde não há escolha, nada muda. */
+export function aplicarSaida(el: HTMLMediaElement, saida: string | null): void {
+  const comSaida = el as ComSaida;
+  if (comSaida.setSinkId) comSaida.setSinkId(saida ?? "").catch(() => null);
 }
 
 export async function getScreenStream(quality: Quality): Promise<MediaStream> {
