@@ -115,24 +115,26 @@ export function ConfigVoz({ aberto, onClose }: { aberto: boolean; onClose: () =>
   const microfone = aparelhoOuPadrao(entradas.map((d) => d.deviceId), cfg.microfone);
   return (
     <Dialog.Root open={aberto} onOpenChange={(open) => !open && onClose()}>
-      <Dialog.Content playSoundOnOpen={false} className="max-w-md space-y-4" data-sala-config-voz="">
+      <Dialog.Content playSoundOnOpen={false} className="max-w-md" data-sala-config-voz="">
         <Dialog.Title>{t("configVozTitulo")}</Dialog.Title>
         <Dialog.Description>{t("configVozTexto")}</Dialog.Description>
-        <Escolha
-          rotulo={t("microfone")} valor={microfone ?? ""} onChange={(v) => configVoz.set({ microfone: v })} opcoes={entradas} padrao={t("padraoDoSistema")} data={{ "data-sala-config-microfone": "" }}
-          dica={emUso && <span data-sala-microfone-em-uso={emUso}>{t("microfoneEmUso", { nome: emUso })}</span>}
-        />
-        {temEscolhaDeSaida() && (
-          <Escolha rotulo={t("saidaDeSom")} valor={aparelhoOuPadrao(saidas.map((d) => d.deviceId), cfg.saida) ?? ""} onChange={(v) => configVoz.set({ saida: v })} opcoes={saidas} padrao={t("padraoDoSistema")} data={{ "data-sala-config-saida": "" }} />
-        )}
-        <Teste microfone={microfone} reducaoRuido={cfg.reducaoRuido} />
-        <label className="flex items-start gap-2 text-sm text-text-body">
-          <input type="checkbox" checked={cfg.reducaoRuido} onChange={(e) => configVoz.set({ reducaoRuido: e.target.checked })} className="mt-1 accent-[var(--color-play-primary)]" data-sala-config-ruido="" />
-          <span>{t("reducaoRuido")}<span className="block text-xs text-text-muted">{t("reducaoRuidoDica")}</span></span>
-        </label>
-        {semNomes && <p className="text-xs text-gold">{t("aparelhosSemNome")}</p>}
-        <div className="flex justify-end">
-          <Dialog.Close className={plate({ kind: "ghost", small: true })} data-sala-config-fechar="">{t("fechar")}</Dialog.Close>
+        <div className="mt-5 space-y-5">
+          <Escolha
+            rotulo={t("microfone")} valor={microfone ?? ""} onChange={(v) => configVoz.set({ microfone: v })} opcoes={entradas} padrao={t("padraoDoSistema")} data={{ "data-sala-config-microfone": "" }}
+            dica={emUso && <span data-sala-microfone-em-uso={emUso}>{t("microfoneEmUso", { nome: emUso })}</span>}
+          />
+          {temEscolhaDeSaida() && (
+            <Escolha rotulo={t("saidaDeSom")} valor={aparelhoOuPadrao(saidas.map((d) => d.deviceId), cfg.saida) ?? ""} onChange={(v) => configVoz.set({ saida: v })} opcoes={saidas} padrao={t("padraoDoSistema")} data={{ "data-sala-config-saida": "" }} />
+          )}
+          <Teste microfone={microfone} reducaoRuido={cfg.reducaoRuido} />
+          <label className="flex items-start gap-2 text-sm text-text-body">
+            <input type="checkbox" checked={cfg.reducaoRuido} onChange={(e) => configVoz.set({ reducaoRuido: e.target.checked })} className="mt-1 accent-[var(--color-play-primary)]" data-sala-config-ruido="" />
+            <span>{t("reducaoRuido")}<span className="block text-xs text-text-muted">{t("reducaoRuidoDica")}</span></span>
+          </label>
+          {semNomes && <p className="text-xs text-gold">{t("aparelhosSemNome")}</p>}
+          <div className="flex justify-end">
+            <Dialog.Close className={plate({ kind: "ghost", small: true })} data-sala-config-fechar="">{t("fechar")}</Dialog.Close>
+          </div>
         </div>
       </Dialog.Content>
     </Dialog.Root>
