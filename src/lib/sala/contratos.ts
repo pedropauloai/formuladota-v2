@@ -60,7 +60,8 @@ export const Facts = z.object({
 export const SnapshotSchema = z.object({
   room: z.object({ status: z.string(), chat_open: z.boolean(), closes_at: z.string() }).nullable(),
   // "on" ausente vale como fora: um campo que falta nunca derruba o estado da sala inteira.
-  members: z.array(z.object({ u: z.string(), r: Role, m: z.boolean(), f: z.boolean().optional(), h: z.string().optional(), on: z.boolean().default(false) })),
+  // mv: o canal para onde o dono moveu a pessoa (por 60 s; só vai no estado dela).
+  members: z.array(z.object({ u: z.string(), r: Role, m: z.boolean(), f: z.boolean().optional(), h: z.string().optional(), on: z.boolean().default(false), mv: z.string().optional() })),
   tracks: z.array(z.object({
     s: z.string(), u: z.string(), n: z.string(), k: z.enum(["audio", "video"]), t: z.enum(["voz", "tela", "tela_audio"]),
     q: z.enum(["leve", "padrao", "alta", "fluida"]).optional(),

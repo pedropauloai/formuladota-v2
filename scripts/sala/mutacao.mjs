@@ -33,6 +33,7 @@ const DS = "src/lib/sala/dados-sala.ts";
 const MN = "src/lib/sala/cliente/menus.ts";
 const SQ = "src/lib/sala/cliente/sequencia.ts";
 const MDR = "src/lib/sala/moderacao.ts";
+const MV = "src/lib/sala/mover-regra.ts";
 
 const MUTACOES = [
   [A, 'if (!input.flagOn) return { ok: false, code: "flag_desligada" };', "", "flag desligada não esconde"],
@@ -121,6 +122,18 @@ const MUTACOES = [
   [MN, 'if (m.autor && m.autor !== m.eu) out.push("denunciar");', 'if (m.autor) out.push("denunciar");', "a própria mensagem aparece com denunciar"],
   [SQ, "if (!anterior || anterior.userId !== atual.userId) return true;", "if (!anterior) return true;", "a mensagem de outra pessoa entra sem a foto e o nome"],
   [MDR, "    !room.isTest,\n    // Sala de teste avisa no canal oculto de teste, nunca no de vendas.\n    room.isTest\n  );", "    !room.isTest\n  );", "denúncia de sala de teste vai ao canal de vendas"],
+  [MV, 'if (f.atorPapel !== "dono") return', 'if (f.atorPapel === "ouvinte") return', "quem foi chamado ao palco move gente de canal"],
+  [MV, "if (f.alvoId === f.donoDaOrigem || !f.alvoPresente)", "if (!f.alvoPresente)", "o dono é movido do próprio canal"],
+  [MV, "if (f.alvoId === f.donoDaOrigem || !f.alvoPresente)", "if (f.alvoId === f.donoDaOrigem)", "quem não está na sala é movido"],
+  [MV, "d.id === f.origemId || ", "", "move para o mesmo canal"],
+  [MV, 'd.kind !== "palco" || ', "", "move para canal de texto"],
+  [MV, "!d.canal || ", "", "move para sala de voz que não é canal da árvore"],
+  [MV, 'd.status !== "aberta" || ', "", "move para canal encerrado"],
+  [MV, " || d.ownerId !== f.donoDaOrigem", "", "move para canal de outro dono"],
+  [MV, "if (!f.acessoDoAlvo?.ok)", "if (!f.acessoDoAlvo)", "move para canal cheio ou privado"],
+  [MN, 'if (p.destinos > 0) out.push("mover");', 'out.push("mover");', "o menu oferece mover sem outro canal de voz"],
+  [MO, "movidoPara: mine?.mv && mine.mv !== room.id ? mine.mv : null,", "movidoPara: mine?.mv ?? null,", "o destino igual ao próprio canal faz a página trocar para ela mesma"],
+  [MO, "movidoPara: mine?.mv && mine.mv !== room.id ? mine.mv : null,", "movidoPara: snap.members.find((m) => m.mv)?.mv ?? null,", "o destino de quem foi movido chega no estado de todo mundo"],
 ];
 
 let falhas = 0;

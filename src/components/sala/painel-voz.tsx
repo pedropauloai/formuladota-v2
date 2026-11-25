@@ -13,6 +13,7 @@ import { Link, usePathname } from "@/i18n/navigation";
 import { AVISO_MICROFONE, falhou } from "@/lib/sala/cliente/microfone";
 import { salaAtiva } from "@/lib/sala/cliente/sala-ativa";
 import type { SessaoSala, SessaoSnapshot } from "@/lib/sala/cliente/sessao-sala";
+import { useSeguirMovido } from "@/lib/sala/cliente/seguir-movido";
 import { useSalaAtiva } from "@/lib/sala/cliente/use-sala-ativa";
 import { cn } from "@/lib/utils";
 import { anelFala } from "./anel-fala";
@@ -106,6 +107,7 @@ export function PainelVoz({ embutido = false }: { embutido?: boolean }) {
   const t = useTranslations("sala");
   const pathname = usePathname();
   const { ativa, snap } = useSalaAtiva();
+  useSeguirMovido(ativa, snap);
   const [config, setConfig] = useState(false);
   // Na /sala a coluna de canais mostra o painel no pé: o do canto some.
   if (!ativa || (!embutido && pathname.startsWith("/sala"))) return null;

@@ -4,7 +4,7 @@
 
 import type { MemberRole, RoomKind } from "../tipos";
 
-export type AcaoPessoa = "volume" | "chamar" | "devolver" | "mutar" | "liberar" | "expulsar" | "banir" | "bloquear" | "denunciar";
+export type AcaoPessoa = "volume" | "chamar" | "devolver" | "mutar" | "liberar" | "mover" | "expulsar" | "banir" | "bloquear" | "denunciar";
 
 export interface PessoaDoMenu {
   /** A linha é de quem olha: a sala não tem ação, ficam só as do perfil. */
@@ -15,6 +15,8 @@ export interface PessoaDoMenu {
   papel: MemberRole;
   mutadoPeloDono: boolean;
   bloqueado: boolean;
+  /** Outros canais de voz para onde o dono pode mover a pessoa (vira um item por canal). */
+  destinos: number;
 }
 
 export function acoesDaPessoa(p: PessoaDoMenu): AcaoPessoa[] {
@@ -24,6 +26,7 @@ export function acoesDaPessoa(p: PessoaDoMenu): AcaoPessoa[] {
     if (p.palco && p.papel === "ouvinte") out.push("chamar");
     if (p.palco && p.papel === "falante") out.push("devolver");
     if (p.papel !== "ouvinte") out.push(p.mutadoPeloDono ? "liberar" : "mutar");
+    if (p.destinos > 0) out.push("mover");
     out.push("expulsar", "banir");
   }
   if (!p.bloqueado) out.push("bloquear");

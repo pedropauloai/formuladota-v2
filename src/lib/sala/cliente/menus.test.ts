@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { acoesDaMensagem, acoesDaPessoa, acoesDoCanal, type CanalDoMenu, type PessoaDoMenu } from "./menus";
 
 const pessoa = (p: Partial<PessoaDoMenu>): PessoaDoMenu => ({
-  propria: false, souDono: false, palco: false, papel: "falante", mutadoPeloDono: false, bloqueado: false, ...p,
+  propria: false, souDono: false, palco: false, papel: "falante", mutadoPeloDono: false, bloqueado: false, destinos: 0, ...p,
 });
 
 describe("acoesDaPessoa (botão direito numa pessoa da sala)", () => {
@@ -29,6 +29,14 @@ describe("acoesDaPessoa (botão direito numa pessoa da sala)", () => {
   it("na voz livre e na mentoria, o dono muta ou libera, sem chamar nem devolver", () => {
     expect(acoesDaPessoa(pessoa({ souDono: true, papel: "falante", mutadoPeloDono: true }))).toEqual(["volume", "liberar", "expulsar", "banir", "bloquear", "denunciar"]);
     expect(acoesDaPessoa(pessoa({ souDono: true, papel: "membro" }))).toEqual(["volume", "mutar", "expulsar", "banir", "bloquear", "denunciar"]);
+  });
+
+  it("com outro canal de voz aberto, o dono move a pessoa para lá (depois de mutar, antes de expulsar)", () => {
+    expect(acoesDaPessoa(pessoa({ souDono: true, papel: "falante", destinos: 2 }))).toEqual(["volume", "mutar", "mover", "expulsar", "banir", "bloquear", "denunciar"]);
+  });
+
+  it("quem não é dono não move ninguém", () => {
+    expect(acoesDaPessoa(pessoa({ destinos: 2 }))).toEqual(["volume", "bloquear", "denunciar"]);
   });
 
   it("o dono não modera outro dono", () => {

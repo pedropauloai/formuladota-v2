@@ -9,7 +9,7 @@
 // e, depois delas, as do perfil (ver o perfil, mensagem, amizade, copiar o nome e o ID do Dota).
 
 import { useTranslations } from "next-intl";
-import { Ban, Crown, Flag, Gavel, Hand, Mic, MicOff, MonitorUp, UserMinus, UserPlus, UserX, Volume2, VolumeX } from "lucide-react";
+import { ArrowRightLeft, Ban, Crown, Flag, Gavel, Hand, Mic, MicOff, MonitorUp, UserMinus, UserPlus, UserX, Volume2, VolumeX } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { PersonMenu } from "@/components/profile/person-menu";
 import { useConfirm } from "@/components/ui/confirm";
@@ -36,6 +36,9 @@ export interface PessoasProps {
   onModerar: (userId: string, acao: AcaoDono) => void;
   onBloquear: (userId: string) => void;
   onDenunciar: (userId: string) => void;
+  /** Outros canais de voz para onde o dono pode mover alguém. */
+  destinos: Array<{ id: string; titulo: string }>;
+  onMover: (userId: string, destino: string) => void;
   /** Volume de cada pessoa (0 a 1) escolhido neste navegador. */
   volumes: Record<string, number>;
   onVolumeDe: (userId: string, volume: number) => void;
@@ -109,9 +112,9 @@ function useAcoesDaSala(m: MembroEstado, nome: string, props: PessoasProps, abri
   const t = useTranslations("sala");
   return () => {
     const palco = props.tipo === "palco" && props.modo === "palco";
-    const acoes = acoesDaPessoa({ propria: m.userId === props.eu, souDono: props.souDono, palco, papel: m.papel, mutadoPeloDono: m.mutadoPeloDono, bloqueado: m.bloqueado });
+    const acoes = acoesDaPessoa({ propria: m.userId === props.eu, souDono: props.souDono, palco, papel: m.papel, mutadoPeloDono: m.mutadoPeloDono, bloqueado: m.bloqueado, destinos: props.destinos.length });
     const moderar = (acao: AcaoDono) => () => props.onModerar(m.userId, acao);
-    const item: Record<AcaoPessoa, MenuAction> = {
+    const item: Record<Exclude<AcaoPessoa, "mover">, MenuAction> = {
       volume: { key: "volume", label: t("volumeDe", { nome }), icon: <Volume2 size={16} />, testId: "sala-volume", run: abrirVolume },
       chamar: { key: "chamar", label: t("chamarPalco"), icon: <UserPlus size={16} />, testId: "sala-chamar", run: moderar("falar") },
       devolver: { key: "devolver", label: t("devolverPlateia"), icon: <UserMinus size={16} />, testId: "sala-devolver", run: moderar("ouvir") },
@@ -122,7 +125,11 @@ function useAcoesDaSala(m: MembroEstado, nome: string, props: PessoasProps, abri
       bloquear: { key: "bloquear", label: t("bloquear"), icon: <Ban size={16} />, tone: "caution", separatorBefore: true, confirm: t("menuConfirmarBloquear", { nome }), testId: "sala-bloquear", run: () => props.onBloquear(m.userId) },
       denunciar: { key: "denunciar", label: t("denunciar"), icon: <Flag size={16} />, testId: "sala-denunciar", run: () => props.onDenunciar(m.userId) },
     };
-    return acoes.map((a) => item[a]);
+    // "Mover" vira um item por canal de destino, como o "Mover para" do Discord.
+    const mover = props.destinos.map((d, i): MenuAction => ({
+      key: `mover-${d.id}`, label: t("menuMoverPara", { canal: d.titulo }), icon: <ArrowRightLeft size={16} />, separatorBefore: i === 0, testId: `sala-mover-${d.id}`, run: () => props.onMover(m.userId, d.id),
+    }));
+    return acoes.flatMap((a) => (a === "mover" ? mover : [item[a]]));
   };
 }
 

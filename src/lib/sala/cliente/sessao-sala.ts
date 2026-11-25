@@ -261,6 +261,7 @@ export class SessaoSala {
 
   abrirChat = (aberto: boolean) => this.a.abrirChat(aberto);
   bloquear = (userId: string) => this.a.bloquear(userId);
+  mover = (userId: string, destino: string) => this.a.mover(userId, destino);
   denunciar = (alvo: AlvoDenuncia, motivo: string, detalhes: string) => this.a.denunciar(alvo, motivo, detalhes);
 
   /** Sai da sala; a promessa termina quando o servidor confirmou (a troca de canal espera por ela). */

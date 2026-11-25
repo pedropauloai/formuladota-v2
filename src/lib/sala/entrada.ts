@@ -43,7 +43,8 @@ export async function enterRoom(ctx: CallContext): Promise<EntradaResult> {
   await ensureMember(ctx.db, room.id, userId, decision.role, joinedViaFor(decision.role, room.kind));
   // Na voz livre quem entra fala: a linha antiga da plateia vira falante (o estado comum mostra o papel da linha).
   const livre = room.voiceMode === "livre" && decision.role === "falante" ? { role: "falante" } : {};
-  await updateMember(ctx.db, room.id, userId, { last_seen_at: ctx.now.toISOString(), hand_raised_at: null, ...livre });
+  // Entrou: um destino antigo de "mover" deixa de valer.
+  await updateMember(ctx.db, room.id, userId, { last_seen_at: ctx.now.toISOString(), hand_raised_at: null, moved_to: null, moved_at: null, ...livre });
   // Expulso ou banido enquanto a credencial era gerada: a expulsão revogou a que estava gravada, e a nova cai aqui.
   if (!(await setTurnUsernameIfActive(ctx.db, room.id, userId, turn.username))) {
     if (turn.username) await revokeTurnCredential(env, turn.username);
@@ -59,7 +60,7 @@ export async function leaveRoom(ctx: CallContext): Promise<void> {
   if (!ctx.userId || !ctx.room) return;
   await closeUserSessions(ctx.db, realtimeEnv(), { roomId: ctx.room.id, userId: ctx.userId }, "saiu", ctx.now);
   await revokeTurn(ctx.db, realtimeEnv(), ctx.room.id, ctx.userId);
-  await updateMember(ctx.db, ctx.room.id, ctx.userId, { last_seen_at: null, hand_raised_at: null });
+  await updateMember(ctx.db, ctx.room.id, ctx.userId, { last_seen_at: null, hand_raised_at: null, moved_to: null, moved_at: null });
   forgetRoomState(ctx.room.id, ctx.userId);
 }
 
