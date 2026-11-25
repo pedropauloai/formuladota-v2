@@ -90,9 +90,7 @@ function PartyCard({ queue, mine }: { queue: PublicQueue; mine: ReadonlySet<stri
         size={48}
         className="py-1"
       />
-      {queue.party.length === 0 ? (
-        <p className="text-sm text-text-muted">{onAir ? t("partyEmptyOnAir") : t("partyEmptyOff")}</p>
-      ) : (
+      {queue.party.length > 0 && (
         <ul className="divide-y divide-border-subtle">
           {queue.party.map((entry) => (
             <li key={entry.id} className="flex items-center gap-3 py-2">

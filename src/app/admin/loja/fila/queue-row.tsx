@@ -38,7 +38,6 @@ function rowActions(entry: AdminQueueEntry, ctx: RowContext, run: ReturnType<typ
           {
             key: "party",
             label: "Pôr na party agora",
-            hint: "No lugar livre, fora da ordem da fila.",
             icon: <ArrowUpToLine size={16} />,
             testId: "por-na-party",
             run: () => run({ action: () => chamarProximo(entry.id), success: `${entry.name} entrou na party.`, undo: () => tirarDaParty(entry.id) }),

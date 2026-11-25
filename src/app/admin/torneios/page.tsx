@@ -13,7 +13,7 @@ import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { CreateTournamentForm, TournamentRowActions } from "./torneios-controls";
 import { requireAdminPage } from "@/lib/auth/admin-page";
 
-export const metadata = { title: "Admin Torneios — FORMULADOTA" };
+export const metadata = { title: "Admin Torneios | FORMULADOTA" };
 export const revalidate = 0;
 
 // Label (texto) vem do i18n via labelKey; só a variant fica aqui.
@@ -62,10 +62,7 @@ export default async function AdminTorneiosPage() {
   return (
     <div className="p-8 space-y-6">
       <header>
-        <p className="font-sans text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
-          {tr("tourEyebrow")}
-        </p>
-        <h1 className="mt-3 font-display text-3xl uppercase tracking-tight text-text-display">
+        <h1 className="font-display text-3xl uppercase tracking-tight text-text-display">
           {tr("tourManageTitle")}
         </h1>
         <div className="mt-4 brand-divider" />

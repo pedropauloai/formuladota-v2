@@ -50,7 +50,7 @@ export function FoundMatch({ match, party }: { match: Found; party: AdminQueueEn
       {match.beforeLive && (
         <p className="flex gap-2 rounded-sm border border-warning/40 bg-warning/10 p-2.5 text-sm leading-relaxed text-warning">
           <TriangleAlert size={16} aria-hidden="true" className="mt-0.5 shrink-0" />
-          Essa partida terminou antes de a live abrir, então deve ser outra. Cole o ID certo abaixo.
+          Essa partida terminou antes de a live abrir. Cole o ID certo abaixo.
         </p>
       )}
       <ul className="space-y-1.5">
@@ -70,7 +70,7 @@ export function FoundMatch({ match, party }: { match: Found; party: AdminQueueEn
       </ul>
       {match.hidden > 0 && (
         <p className="text-sm text-text-muted">
-          {match.hidden} do seu time com o perfil do Dota fechado: a OpenDota não mostra quem é.
+          {match.hidden} do seu time com o perfil do Dota fechado.
         </p>
       )}
     </div>

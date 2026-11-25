@@ -28,13 +28,10 @@ interface BookingRow {
   store_orders: { id: string; buyer_name: string; buyer_email: string; buyer_whatsapp: string | null; product_title: string; details: Record<string, unknown> | null } | null;
 }
 
-function Section({ title, children, hint }: { title: string; children: React.ReactNode; hint?: string }) {
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="space-y-3 rounded-md border border-border-strong bg-bg-base p-5">
-      <header className="space-y-1">
-        <h2 className="font-display text-xl uppercase tracking-wide text-text-display">{title}</h2>
-        {hint && <p className="text-xs text-text-muted">{hint}</p>}
-      </header>
+      <h2 className="font-display text-xl uppercase tracking-wide text-text-display">{title}</h2>
       {children}
     </section>
   );
@@ -96,7 +93,7 @@ export default async function AdminAgendaPage() {
         <Link href="/admin/loja" className="text-sm text-text-muted hover:text-text-display">Voltar para a loja</Link>
       </header>
 
-      <Section title="Próximos horários" hint="Horário de Brasília. Reservado é quem ainda está pagando (segura o horário por 35 minutos).">
+      <Section title="Próximos horários">
         {real.length === 0 ? (
           <p className="text-sm text-text-muted">Nenhum horário marcado.</p>
         ) : (
@@ -128,7 +125,7 @@ export default async function AdminAgendaPage() {
         )}
       </Section>
 
-      <Section title="Lives" hint="Cada live marcada abre vagas na party e replays ao vivo para compra.">
+      <Section title="Lives">
         <LiveForm />
         {lives.length > 0 && (
           <ul className="divide-y divide-border-subtle">
@@ -143,7 +140,7 @@ export default async function AdminAgendaPage() {
         )}
       </Section>
 
-      <Section title="Disponibilidade semanal" hint="Os horários em que mentoria, acompanhamento e jogar junto podem ser marcados. Live e bloqueio tiram horário daqui.">
+      <Section title="Disponibilidade semanal">
         <AddWindowForm />
         <ul className="divide-y divide-border-subtle">
           {windows.map((w) => (
@@ -155,7 +152,7 @@ export default async function AdminAgendaPage() {
         </ul>
       </Section>
 
-      <Section title="Bloqueios" hint="Folga, viagem ou compromisso: nada se marca nesse intervalo.">
+      <Section title="Bloqueios">
         <BlockForm />
         <ul className="divide-y divide-border-subtle">
           {blocks.map((b) => (
@@ -167,7 +164,7 @@ export default async function AdminAgendaPage() {
         </ul>
       </Section>
 
-      <Section title="Entregas" hint="Produtos pagos sem horário (análise gravada, boost). O link e o recado aparecem na página do pedido.">
+      <Section title="Entregas">
         {deliveries.length === 0 ? (
           <p className="text-sm text-text-muted">Nenhum pedido pago sem horário.</p>
         ) : (

@@ -276,16 +276,10 @@ const CTA_TEXT =
 
 function CondutaBadge() {
   // CTA institucional sempre visível: manifesto e filosofia da plataforma, lido antes da
-  // primeira PT. Placa vermelha da marca. O link já é focável, então o tooltip não é.
+  // primeira PT. Placa vermelha da marca.
   const t = useTranslations();
   return (
-    <Tooltip
-      content={t("topbar.condutaTooltip")}
-      side="bottom"
-      align="end"
-      focusable={false}
-      className="h-full"
-    >
+    <span className="inline-flex h-full max-w-full">
       <Link
         href="/codigo-de-conduta"
         aria-label={t("nav.conduta")}
@@ -294,7 +288,7 @@ function CondutaBadge() {
         <Shield size={12} aria-hidden="true" />
         <span>{t("nav.conduta")}</span>
       </Link>
-    </Tooltip>
+    </span>
   );
 }
 

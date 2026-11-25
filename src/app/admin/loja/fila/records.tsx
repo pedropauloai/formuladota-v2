@@ -67,7 +67,7 @@ function finishedLabel(item: AdminFinishedEntry): string {
 }
 
 function Finished({ items }: { items: AdminFinishedEntry[] }) {
-  if (items.length === 0) return <p className="py-10 text-center text-[15px] text-text-muted">Ninguém saiu da fila nas últimas 12 horas.</p>;
+  if (items.length === 0) return <p className="py-10 text-center text-[15px] text-text-muted">Ninguém saiu da fila.</p>;
   return (
     <ul className="divide-y divide-white/[0.05] text-[15px]">
       {items.map((item) => (

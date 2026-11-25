@@ -41,13 +41,11 @@ function ModalBase({
   open,
   onClose,
   title,
-  eyebrow,
   children,
 }: {
   open: boolean;
   onClose: () => void;
   title: string;
-  eyebrow?: string;
   children: React.ReactNode;
 }) {
   const t = useTranslations("misc2");
@@ -66,11 +64,6 @@ function ModalBase({
       >
         <div className="flex items-start justify-between mb-5">
           <div>
-            {eyebrow && (
-              <p className="font-display font-semibold text-sm uppercase tracking-wide text-brand-primary mb-1">
-                {eyebrow}
-              </p>
-            )}
             <h2 className="font-display text-xl uppercase text-text-display">
               {title}
             </h2>
@@ -227,7 +220,7 @@ export function AdjustFichasModal({
         {t("adjustFichas")}
       </button>
 
-      <ModalBase open={open} onClose={close} eyebrow={t("ebFichas")} title={username}>
+      <ModalBase open={open} onClose={close} title={`${t("ebFichas")}: ${username}`}>
         <p className="font-display text-sm font-semibold text-text-body mb-4">
           {t("currentBalance")}{" "}
           <span className="text-text-body">{t("fichasCount", { count: currentBalance })}</span>
@@ -342,7 +335,7 @@ export function ApplyStrikeModal({
         {t("applyStrike")}
       </button>
 
-      <ModalBase open={open} onClose={close} eyebrow={t("ebConduct")} title={t("strikeTitle", { name: username })}>
+      <ModalBase open={open} onClose={close} title={t("strikeTitle", { name: username })}>
         <div className="space-y-4">
           <div>
             <FormLabel htmlFor="strike-severity">{t("severity")}</FormLabel>
@@ -443,7 +436,7 @@ export function HonorBonusModal({
         {t("honorBonus")}
       </button>
 
-      <ModalBase open={open} onClose={close} eyebrow={t("ebHonor")} title={t("bonusTitle", { name: username })}>
+      <ModalBase open={open} onClose={close} title={t("bonusTitle", { name: username })}>
         <div className="space-y-4">
           <div>
             <FormLabel htmlFor="honor-amount">{t("pointsPositive")}</FormLabel>
@@ -539,7 +532,7 @@ export function GrantAchievementModal({
         {t("grantAchievement")}
       </button>
 
-      <ModalBase open={open} onClose={close} eyebrow={t("ebAchievement")} title={username}>
+      <ModalBase open={open} onClose={close} title={`${t("ebAchievement")}: ${username}`}>
         <div className="space-y-4">
           <div>
             <FormLabel htmlFor="ach-variant">{t("variant")}</FormLabel>
@@ -633,7 +626,7 @@ export function PromoveCoachModal({
         {t("promoteToProBtn")}
       </button>
 
-      <ModalBase open={open} onClose={close} eyebrow={t("ebProEligibility")} title={t("promoteTitle", { name: username })}>
+      <ModalBase open={open} onClose={close} title={t("promoteTitle", { name: username })}>
         {criteriosAtendidos.length > 0 && (
           <div className="mb-4 space-y-1.5">
             <p className="font-display font-semibold text-sm uppercase tracking-wide text-text-faded mb-2">
@@ -720,7 +713,7 @@ export function RevokeCoachModal({
         {t("revokeProStatus")}
       </button>
 
-      <ModalBase open={open} onClose={close} eyebrow="PRO" title={t("revokeTitle", { name: username })}>
+      <ModalBase open={open} onClose={close} title={t("revokeTitle", { name: username })}>
         <div>
           <FormLabel htmlFor="revoke-reason">{t("reasonRequired")}</FormLabel>
           <FormTextarea
@@ -796,7 +789,7 @@ export function CoachNotesModal({
         {t("privateNotesBtn")}
       </button>
 
-      <ModalBase open={open} onClose={close} eyebrow={t("ebPrivate")} title={t("notesTitle", { name: username })}>
+      <ModalBase open={open} onClose={close} title={t("notesTitle", { name: username })}>
         <p className="mb-4 font-mono text-sm text-text-faded">
           {t("notesAdminOnly")}
         </p>
@@ -930,7 +923,7 @@ export function EditUserModal({
         Editar dados
       </button>
 
-      <ModalBase open={open} onClose={close} eyebrow="Admin · edição" title={`Editar ${username}`}>
+      <ModalBase open={open} onClose={close} title={`Editar ${username}`}>
         <div className="space-y-4">
           {/* NOME */}
           <EditSection title="Nome / nick oficial">
@@ -981,7 +974,7 @@ export function EditUserModal({
                   run(
                     "steam",
                     () => swapSteamLink(targetUserId, steamIdVal, steamReason),
-                    "Vínculo Steam atualizado — re-sincroniza no próximo acesso do jogador."
+                    "Vínculo Steam atualizado."
                   )
                 }
               />
@@ -1050,19 +1043,19 @@ export function EditUserModal({
           </EditSection>
 
           {/* CONDUTA: BAN */}
-          <EditSection title={isBanned ? "Conduta — banido" : "Conduta — banir"}>
-            <p className="mb-2 font-body text-sm text-text-muted">
-              {isBanned
-                ? "Este usuário está banido. Você pode remover o banimento."
-                : "Banir remove o jogador do ranking e o coloca no Mural da Vergonha."}
-            </p>
+          <EditSection title={isBanned ? "Conduta: banido" : "Conduta: banir"}>
             {!isBanned && (
-              <input
-                value={banReason}
-                onChange={(e) => setBanReason(e.target.value)}
-                placeholder="Motivo do banimento (obrigatório)"
-                className={TEXT_INPUT_CLS}
-              />
+              <>
+                <p className="mb-2 font-body text-sm text-text-muted">
+                  Banir remove o jogador do ranking e o coloca no Mural da Vergonha.
+                </p>
+                <input
+                  value={banReason}
+                  onChange={(e) => setBanReason(e.target.value)}
+                  placeholder="Motivo do banimento (obrigatório)"
+                  className={TEXT_INPUT_CLS}
+                />
+              </>
             )}
             <div className="mt-3 flex items-center justify-between gap-3">
               {msg.ban ? <StatusMsg type={msg.ban.type} msg={msg.ban.text} /> : <span />}
@@ -1083,7 +1076,7 @@ export function EditUserModal({
           </EditSection>
 
           {/* ACESSO */}
-          <EditSection title="Acesso — role / admin">
+          <EditSection title="Acesso: papel e admin">
             <div className="flex items-center gap-3">
               <select
                 value={roleVal}

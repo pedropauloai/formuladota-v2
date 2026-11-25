@@ -14,7 +14,7 @@ import { requireAdminPage } from "@/lib/auth/admin-page";
 // Partida ainda "viva" — pode ser descartada da auditoria.
 const ACTIVE_STATUSES = ["pending", "open", "in_progress"];
 
-export const metadata = { title: "Admin Partidas — FORMULADOTA" };
+export const metadata = { title: "Admin Partidas | FORMULADOTA" };
 export const revalidate = 0;
 
 const ROLE_POS: Record<string, string> = {
@@ -97,15 +97,9 @@ export default async function AdminPartidasPage() {
   return (
     <div className="p-8 space-y-6">
       <header>
-        <p className="font-sans text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
-          Auditoria
-        </p>
-        <h1 className="mt-3 font-display text-3xl uppercase tracking-tight text-text-display">
+        <h1 className="font-display text-3xl uppercase tracking-tight text-text-display">
           Histórico de partidas
         </h1>
-        <p className="mt-2 font-body text-sm text-text-muted">
-          Todas as partidas (lobbies), as 100 mais recentes. Somente leitura.
-        </p>
         <div className="mt-4 brand-divider" />
       </header>
 

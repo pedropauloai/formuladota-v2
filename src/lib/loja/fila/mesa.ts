@@ -32,7 +32,7 @@ function plural(n: number, one: string, many: string): string {
   return `${n} ${n === 1 ? one : many}`;
 }
 
-/** A frase do passo: o fato (em destaque na tela) e, em seguida, o que fazer. */
+/** A frase do passo: o fato, em destaque, e só o que o botão ao lado não diz. */
 export function stepStatus(data: AdminQueue, step: Step): [lead: string, rest: string] {
   const live = data.live;
   const party = data.entries.filter((e) => e.state === "na_party");
@@ -42,14 +42,14 @@ export function stepStatus(data: AdminQueue, step: Step): [lead: string, rest: s
   const onAir = live?.status === "ao_vivo";
   if (step === "completar") {
     const free = Math.max(0, seats - party.length);
+    // Abrir a live muda o site para "ao vivo": é a consequência do toque que o rótulo não diz.
     const opens = onAir ? "" : ", e a live abre sozinha";
-    return [`${plural(free, "lugar livre", "lugares livres")}.`, `Entra${waiting.length > 1 && free > 1 ? "m" : ""} ${names(waiting.slice(0, free))}${opens}. Depois, convide cada um pelo ID do Dota.`];
+    return [`${plural(free, "lugar livre", "lugares livres")}.`, `Entra${waiting.length > 1 && free > 1 ? "m" : ""} ${names(waiting.slice(0, free))}${opens}.`];
   }
   if (step === "terminar") {
     const full = party.length >= seats;
     const lead = full ? `Partida ${n} em jogo.` : `Partida ${n} com ${plural(party.length, "jogador", "jogadores")}.`;
-    return [lead, `${full ? "" : "Ninguém esperando na fila. "}Quando acabar, toque em Partida ${n} terminou: o site acha o ID na OpenDota e você só confere.`];
+    return [lead, full ? "" : "Ninguém esperando na fila."];
   }
-  const qr = "Mostre o QR na tela (formuladota.com.br/qr): quem comprar aparece aqui na hora.";
-  return ["Ninguém na fila ainda.", onAir ? qr : `${qr} A live abre sozinha no primeiro chamado.`];
+  return ["Ninguém na fila ainda.", ""];
 }

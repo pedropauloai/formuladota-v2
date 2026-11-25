@@ -76,7 +76,7 @@ export async function chamarProximo(bookingId: string | null = null): Promise<Fi
   return run("chamar", async () => {
     const live = await liveForCall();
     if (!live) return NOT_OPENED;
-    if (await queueOps.call(live.id, bookingId)) return live.opened ? { message: "A live abriu sozinha. Quem você chamou já está na party." } : null;
+    if (await queueOps.call(live.id, bookingId)) return live.opened ? { message: "A live abriu sozinha." } : null;
     if (live.opened) await queueOps.close(live.id);
     return NOBODY;
   });
@@ -89,7 +89,7 @@ export async function completarParty(): Promise<FilaAdminResult> {
     if (!live) return NOT_OPENED;
     let called = 0;
     while (called < 4 && (await queueOps.call(live.id, null))) called += 1;
-    if (called > 0) return live.opened ? { message: "A live abriu sozinha e a party está completa. Convide cada um pelo ID do Dota." } : null;
+    if (called > 0) return live.opened ? { message: "A live abriu sozinha e a party está completa." } : null;
     if (live.opened) await queueOps.close(live.id);
     return NOBODY;
   });

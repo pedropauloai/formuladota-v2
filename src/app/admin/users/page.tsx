@@ -8,7 +8,7 @@ import { Eye, ChevronRight } from "lucide-react";
 import { BackfillStatsButton } from "./backfill-stats-button";
 import { requireAdminPage } from "@/lib/auth/admin-page";
 
-export const metadata = { title: "Admin Users — FORMULADOTA" };
+export const metadata = { title: "Admin Users | FORMULADOTA" };
 export const revalidate = 30;
 
 type Translator = Awaited<ReturnType<typeof getTranslations>>;
@@ -146,10 +146,7 @@ export default async function AdminUsersPage({
       <header>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="font-sans text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
-              Admin / Users
-            </p>
-            <h1 className="mt-3 font-display text-3xl uppercase tracking-tight text-text-display">
+            <h1 className="font-display text-3xl uppercase tracking-tight text-text-display">
               {t("communityTitle")}
             </h1>
           </div>

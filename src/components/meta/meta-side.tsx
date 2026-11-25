@@ -113,13 +113,9 @@ export async function MoversCard({ data }: { data: MetaPageData }) {
 export async function HowToRead({ data, id = "como-ler" }: { data: MetaPageData; id?: string }) {
   const [t, locale] = await Promise.all([getTranslations("meta"), pageLocale()]);
   const b = (chunks: ReactNode) => <strong className="font-semibold text-text-display">{chunks}</strong>;
-  const before: ReactNode[] = [t.rich("readWinRate", { b }), t.rich("readAdjusted", { b }), t.rich("readPick", { b }), t.rich("readGrade", { b })];
-  const after: ReactNode[] = [
-    ...(data.previousPatch ? [t.rich("readDelta", { b, patch: data.previousPatch })] : []),
-    t.rich("readMin", { b }),
-    t.rich("readBracket", { b }),
-    t("readPatchDay"),
-  ];
+  // Só o que é do site; vitória e escolha todo jogador de Dota conhece.
+  const before: ReactNode[] = [t.rich("readAdjusted", { b }), t.rich("readGrade", { b })];
+  const after: ReactNode[] = [...(data.previousPatch ? [t.rich("readDelta", { b, patch: data.previousPatch })] : []), t.rich("readBracket", { b })];
   const cutFormat = new Intl.NumberFormat(locale, { maximumFractionDigits: 1 });
   return (
     <article id={id} className={cn(panel("neutral"), "scroll-mt-4 overflow-hidden")}>

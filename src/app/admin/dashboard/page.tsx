@@ -35,7 +35,7 @@ import { PERIODS, type Period } from "./period";
 import { DailyAreaChart, RevenueBarChart, type RevenuePoint } from "./charts";
 import { requireAdminPage } from "@/lib/auth/admin-page";
 
-export const metadata = { title: "Admin Dashboard — FORMULADOTA" };
+export const metadata = { title: "Admin Dashboard | FORMULADOTA" };
 export const revalidate = 0;
 
 function brl(v: number): string {
@@ -311,10 +311,7 @@ export default async function AdminDashboardPage(props: {
   return (
     <div className="p-8 space-y-10">
       <header>
-        <p className="font-sans text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
-          Dashboard
-        </p>
-        <h1 className="mt-3 font-display text-3xl uppercase tracking-tight text-text-display">
+        <h1 className="font-display text-3xl uppercase tracking-tight text-text-display">
           Visão geral
         </h1>
         <div className="mt-4 brand-divider" />
@@ -361,7 +358,7 @@ export default async function AdminDashboardPage(props: {
           <ChartCard title="Novos usuários / dia">
             <DailyAreaChart data={data.signupsSeries} dataKey="signups" label="Signups" />
           </ChartCard>
-          <ChartCard title="Usuários ativos / dia (xp_events)">
+          <ChartCard title="Usuários ativos / dia">
             <DailyAreaChart
               data={data.activeSeries}
               dataKey="active_users"
@@ -397,24 +394,14 @@ export default async function AdminDashboardPage(props: {
       {rankedOn && (
         <KpiSection title="Fichas">
           <KpiCard label="Fichas vendidas" value={data.fichasVendidas} icon={Coins} />
-          <KpiCard
-            label="Fichas consumidas"
-            value={data.fichasConsumidas}
-            sub="via PTs realizadas"
-            icon={Activity}
-          />
+          <KpiCard label="Fichas consumidas" value={data.fichasConsumidas} icon={Activity} />
         </KpiSection>
       )}
 
       {/* ── Atividade ── */}
       <KpiSection title="Atividade">
         <KpiCard label="Novos usuários" value={data.newUsers} icon={Users} />
-        <KpiCard
-          label="Pico de ativos/dia"
-          value={data.activeUsers}
-          sub="distinct em xp_events"
-          icon={Activity}
-        />
+        <KpiCard label="Pico de ativos/dia" value={data.activeUsers} icon={Activity} />
         <KpiCard label="Partidas realizadas" value={data.matchesDone} icon={Swords} />
         <KpiCard label="Lobbies criados" value={data.lobbiesCriados} icon={Trophy} />
       </KpiSection>
@@ -434,14 +421,9 @@ export default async function AdminDashboardPage(props: {
             <CardContent className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <BarChart3 size={18} className="text-brand-primary" aria-hidden="true" />
-                <div>
-                  <p className="font-display text-lg uppercase text-text-display">
-                    PostHog — funil e retenção
-                  </p>
-                  <p className="font-mono text-sm text-text-faded">
-                    signup → fila → partida → assinatura (projeto US 497134)
-                  </p>
-                </div>
+                <p className="font-display text-lg uppercase text-text-display">
+                  PostHog: funil e retenção
+                </p>
               </div>
               <ExternalLink size={16} className="text-text-faded" aria-hidden="true" />
             </CardContent>

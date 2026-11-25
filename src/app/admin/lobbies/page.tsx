@@ -14,7 +14,7 @@ import { CloseLobbyModal } from "./close-lobby-modal";
 import { AdminLobbiesLive } from "./live-refresh";
 import { requireAdminPage } from "@/lib/auth/admin-page";
 
-export const metadata = { title: "Admin Lobbies — FORMULADOTA" };
+export const metadata = { title: "Admin Lobbies | FORMULADOTA" };
 export const revalidate = 0;
 
 interface TeamCounts {
@@ -88,10 +88,7 @@ export default async function AdminLobbiesPage() {
       {/* Assina lobbies postgres_changes → router.refresh ao vivo (sem polling). */}
       <AdminLobbiesLive />
       <header>
-        <p className="font-sans text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
-          Lobbies
-        </p>
-        <h1 className="mt-3 font-display text-3xl uppercase tracking-tight text-text-display">
+        <h1 className="font-display text-3xl uppercase tracking-tight text-text-display">
           {t("lobbiesActive")}
         </h1>
         <div className="mt-4 brand-divider" />

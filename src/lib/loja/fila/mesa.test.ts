@@ -81,22 +81,23 @@ describe("turnGroup", () => {
 describe("stepStatus", () => {
   it("diz quantos lugares estão livres e quem entra neles, no singular e no plural", () => {
     const two = queue(live(), [inParty("Ana"), inParty("Beto"), entry("Caio"), entry("Dani"), entry("Enzo")]);
-    expect(stepStatus(two, "completar")).toEqual(["2 lugares livres.", "Entram Caio e Dani. Depois, convide cada um pelo ID do Dota."]);
+    expect(stepStatus(two, "completar")).toEqual(["2 lugares livres.", "Entram Caio e Dani."]);
     const one = queue(live(), [inParty("Ana"), inParty("Beto"), inParty("Caio"), entry("Dani"), entry("Enzo")]);
-    expect(stepStatus(one, "completar")).toEqual(["1 lugar livre.", "Entra Dani. Depois, convide cada um pelo ID do Dota."]);
+    expect(stepStatus(one, "completar")).toEqual(["1 lugar livre.", "Entra Dani."]);
   });
 
   it("numera a partida em jogo a partir das que a live já contou", () => {
     const full = queue(live({ matchesDone: 3 }), ["Ana", "Beto", "Caio", "Dani"].map(inParty));
     const [lead, rest] = stepStatus(full, "terminar");
     expect(lead).toBe("Partida 4 em jogo.");
-    expect(rest).toContain("Partida 4 terminou");
+    expect(rest).toBe("");
+    expect(stepStatus(queue(live(), [inParty("Ana")]), "terminar")).toEqual(["Partida 4 com 1 jogador.", "Ninguém esperando na fila."]);
   });
 
   it("fora do ar, avisa que completar a party abre a live sozinha", () => {
     const off = queue(live({ status: "fila" }), [entry("Ana"), entry("Beto")]);
-    expect(stepStatus(off, "completar")).toEqual(["4 lugares livres.", "Entram Ana e Beto, e a live abre sozinha. Depois, convide cada um pelo ID do Dota."]);
-    expect(stepStatus(queue(live({ status: "fila" }), []), "esperar")[1]).toContain("A live abre sozinha no primeiro chamado.");
-    expect(stepStatus(queue(live(), []), "esperar")[1]).not.toContain("abre sozinha");
+    expect(stepStatus(off, "completar")).toEqual(["4 lugares livres.", "Entram Ana e Beto, e a live abre sozinha."]);
+    expect(stepStatus(queue(live({ status: "fila" }), []), "esperar")).toEqual(["Ninguém na fila ainda.", ""]);
+    expect(stepStatus(queue(live(), [inParty("Ana"), entry("Beto")]), "completar")[1]).not.toContain("abre sozinha");
   });
 });

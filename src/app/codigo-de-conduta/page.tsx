@@ -54,7 +54,6 @@ export default async function CodigoDeCondutaPage() {
         <div className="relative z-10">
           {/* HERO */}
           <FrontierHero
-            eyebrow={t("heroEyebrow")}
             title={t.rich("heroTitle", {
               red: (chunks) => (
                 <span className="text-brand-primary">{chunks}</span>

@@ -31,26 +31,24 @@ export default async function AdminSalasPage() {
     <div className="space-y-8 p-6">
       <header className="space-y-1">
         <h1 className="font-display text-2xl font-bold uppercase tracking-wide text-text-display">Salas de voz</h1>
-        <p className="text-sm text-text-muted">Voz e tela no próprio site, pelo Cloudflare Realtime. Nada é gravado.</p>
+        <p className="text-sm text-text-muted">Nada é gravado.</p>
       </header>
 
       <section className="grid gap-4 md:grid-cols-3" data-admin-salas-consumo="">
         <div className="rounded-md border border-border-subtle bg-bg-base p-4">
-          <p className="text-xs uppercase tracking-wide text-text-muted">Estimado, 30 dias (conta para o teto)</p>
+          <p className="text-xs uppercase tracking-wide text-text-muted">Estimado, 30 dias</p>
           <p className="text-2xl text-text-display">{fmtGb(overview.usage.estimatedBytes)} GB</p>
           <p className="text-xs text-text-muted">{pct}% de {fmtGb(overview.usage.capBytes)} GB</p>
         </div>
         <div className="rounded-md border border-border-subtle bg-bg-base p-4">
           <p className="text-xs uppercase tracking-wide text-text-muted">Medido pelos navegadores, 30 dias</p>
           <p className="text-2xl text-text-display">{fmtGb(overview.usage.measuredBytes)} GB</p>
-          <p className="text-xs text-text-muted">Franquia grátis da Cloudflare: 1.000 GB por mês</p>
         </div>
         <div className="rounded-md border border-border-subtle bg-bg-base p-4">
           <p className="text-xs uppercase tracking-wide text-text-muted">Última conta</p>
           <p className="text-sm text-text-display">
             {overview.usage.computedAt ? new Date(overview.usage.computedAt).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" }) : "ainda não calculado"}
           </p>
-          <p className="text-xs text-text-muted">O cron recalcula a cada minuto e avisa em 50%, 80% e 100%.</p>
         </div>
       </section>
 
