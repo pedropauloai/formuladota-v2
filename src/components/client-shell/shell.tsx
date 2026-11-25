@@ -377,6 +377,7 @@ export async function ClientShell({
             <PainelVoz />
             <ChatBar
               currentUserId={user.id}
+              currentUserAvatar={avatar}
               party={myParty}
               lobbyId={myOpenLobby?.id ?? null}
               initialInbox={dmInbox}
@@ -514,6 +515,7 @@ export async function ClientShell({
           <PainelVoz />
           <ChatBar
             currentUserId={user.id}
+            currentUserAvatar={avatar}
             party={myParty}
             lobbyId={myOpenLobby?.id ?? null}
             initialInbox={dmInbox}

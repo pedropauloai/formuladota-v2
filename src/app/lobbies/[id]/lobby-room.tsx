@@ -36,6 +36,7 @@ interface Props {
   currentUserId: string;
   isLeader: boolean;
   leaderUsername: string;
+  leaderAvatar?: string | null;
   /** Herói de assinatura do líder — backdrop vivo do room-header (opcional). */
   leaderHero?: SignatureHero | null;
   /** Quando providenciado, mostra botão voltar no header (uso embedded no PlayPanel). */
@@ -57,6 +58,7 @@ export function LobbyRoom({
   currentUserId,
   isLeader,
   leaderUsername,
+  leaderAvatar = null,
   leaderHero = null,
   onBack,
   onMutate,
@@ -96,6 +98,7 @@ export function LobbyRoom({
       <RoomHeader
         lobby={lobby}
         leaderUsername={leaderUsername}
+        leaderAvatar={leaderAvatar}
         leaderHero={leaderHero}
         onBack={onBack}
       />

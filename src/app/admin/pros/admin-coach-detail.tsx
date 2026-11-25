@@ -66,10 +66,7 @@ export function AdminCoachDetail({
           <section className="space-y-2">
             <CoachNotesPanel
               matchId={notesFor.matchId}
-              entries={notesFor.students.map((s) => ({
-                userId: s.userId,
-                username: s.username ?? t("noName"),
-              }))}
+              entries={notesFor.students.map((s) => ({ userId: s.userId, username: s.username ?? t("noName"), avatarUrl: s.avatarUrl }))}
             />
             <button
               type="button"

@@ -4,6 +4,10 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { createServiceClient } from "@/lib/supabase/service";
+import { createClient } from "@/lib/supabase/server";
+import { getIdentityMap } from "@/lib/queries/identities";
+import { UserAvatar } from "@/components/ui/avatar";
+import { UserHoverCard } from "@/components/profile/user-hover-card";
 import { Eye, ChevronRight } from "lucide-react";
 import { BackfillStatsButton } from "./backfill-stats-button";
 import { requireAdminPage } from "@/lib/auth/admin-page";
@@ -125,6 +129,8 @@ export default async function AdminUsersPage({
         .in("user_id", userIds)
     : { data: [] };
   const balanceMap = new Map((fichas ?? []).map((f) => [f.user_id, f.balance]));
+  // Foto pela identidade do site (Steam primeiro), em lote para a página inteira.
+  const identities = await getIdentityMap(await createClient(), userIds);
 
   // Helpers para construir URL de filtro
   function buildFilterUrl(extra: Record<string, string | undefined>) {
@@ -235,8 +241,16 @@ export default async function AdminUsersPage({
                   >
                     {/* Usuário */}
                     <Td>
-                      <div className="font-medium text-text-body">
-                        {p.username ?? t("noName")}
+                      <div className="flex items-center font-medium text-text-body">
+                        <UserHoverCard userId={p.id} className="flex min-w-0 items-center gap-2">
+                          <UserAvatar
+                            src={identities.get(p.id)?.avatarUrl ?? undefined}
+                            alt={p.username ?? t("noName")}
+                            fallback={(p.username ?? t("noName")).slice(0, 2).toUpperCase()}
+                            size="xs"
+                          />
+                          <span className="truncate">{p.username ?? t("noName")}</span>
+                        </UserHoverCard>
                         {p.is_admin && (
                           <span className="ml-1.5 text-yellow-500 text-sm">ADMIN</span>
                         )}

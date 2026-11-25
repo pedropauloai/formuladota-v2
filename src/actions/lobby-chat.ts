@@ -10,6 +10,7 @@ export interface LobbyChatMessage {
   id: string;
   senderId: string;
   senderName: string;
+  senderAvatarUrl: string | null;
   body: string;
   createdAt: string;
 }
@@ -65,6 +66,7 @@ export async function fetchLobbyMessages(lobbyId: string): Promise<LobbyChatMess
       id: m.id,
       senderId: m.sender_id,
       senderName: ident?.name ?? "",
+      senderAvatarUrl: ident?.avatarUrl ?? null,
       body: m.body,
       createdAt: m.created_at,
     };

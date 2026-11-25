@@ -1,6 +1,7 @@
 "use client";
 // Painéis de canal da chat bar (fiel ao cliente Dota 2, 2026-06-30). Estilo de
-// linha "Nome: mensagem" (não bolha) — como o chat do Dota. Três canais:
+// linha "Nome: mensagem" (não bolha), como o chat do Dota, com a foto de quem escreve
+// no começo de cada sequência. Três canais:
 //   - PartyChannelPanel  → party_messages (nomes vêm do roster do grupo)
 //   - LobbyChannelPanel  → lobby_messages (nome já resolvido no fetch)
 //   - DmChannelPanel     → dm_messages (conversa 1-1)
@@ -21,20 +22,33 @@ import {
 import { usePartyMessages } from "@/lib/realtime/use-party-realtime";
 import { useLobbyMessages } from "@/lib/realtime/use-lobby-realtime";
 import { useDmMessages } from "@/lib/realtime/use-dm-realtime";
+import { UserAvatar } from "@/components/ui/avatar";
+import { UserHoverCard } from "@/components/profile/user-hover-card";
 
 export interface ChatLineData {
   id: string;
   senderId: string;
   senderName: string;
+  senderAvatarUrl: string | null;
   body: string;
   createdAt: string;
+}
+
+// Mensagens da mesma pessoa em até 5 minutos formam uma sequência, aberta pela foto e pelo nome.
+const SEQUENCE_MS = 5 * 60_000;
+
+function startsSequence(messages: ChatLineData[], i: number): boolean {
+  const prev = messages[i - 1];
+  const cur = messages[i];
+  if (!prev || !cur) return true;
+  return prev.senderId !== cur.senderId || Date.parse(cur.createdAt) - Date.parse(prev.createdAt) > SEQUENCE_MS;
 }
 
 function timeLabel(iso: string): string {
   return new Date(iso).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 }
 
-// Lista de mensagens estilo Dota (linhas "Nome: msg  hora").
+// Lista de mensagens estilo Dota (linhas "Nome: msg  hora"), com a foto de quem escreve.
 function MessageList({
   messages,
   currentUserId,
@@ -59,17 +73,35 @@ function MessageList({
       ) : (
         // Ancorado no rodapé: com poucas mensagens elas ficam embaixo (preenchem
         // de baixo pra cima); a mais nova sempre embaixo.
-        <div className="flex min-h-full flex-col justify-end space-y-1">
-          {messages.map((m) => {
+        <div className="flex min-h-full flex-col justify-end">
+          {messages.map((m, i) => {
             const mine = m.senderId === currentUserId;
+            const name = mine ? t("you") : m.senderName;
+            const start = startsSequence(messages, i);
             return (
-              <p key={m.id} className="font-sans text-[13px] leading-snug break-words">
-                <span className={`font-display font-semibold ${mine ? "text-brand-primary" : "text-text-display"}`}>
-                  {mine ? t("you") : m.senderName}:
-                </span>{" "}
-                <span className="text-text-body">{m.body}</span>{" "}
-                <span className="text-[10px] text-text-faded tabular-nums">{timeLabel(m.createdAt)}</span>
-              </p>
+              <div key={m.id} data-chat-linha={m.id} className={`flex gap-2 ${start && i > 0 ? "mt-2" : "mt-0.5"}`}>
+                <span className="w-5 shrink-0 pt-px">
+                  {start && (
+                    <UserHoverCard userId={m.senderId} className="block">
+                      <UserAvatar src={m.senderAvatarUrl ?? undefined} alt={name} fallback={name.slice(0, 2).toUpperCase()} size="xs" className="size-5" />
+                    </UserHoverCard>
+                  )}
+                </span>
+                <p className="min-w-0 flex-1 font-sans text-[13px] leading-snug break-words">
+                  {start && (
+                    <>
+                      <span className={`font-display font-semibold ${mine ? "text-brand-primary" : "text-text-display"}`}>
+                        <UserHoverCard userId={m.senderId} className="hover:underline">
+                          {name}
+                        </UserHoverCard>
+                        :
+                      </span>{" "}
+                    </>
+                  )}
+                  <span className="text-text-body">{m.body}</span>{" "}
+                  <span className="text-[10px] text-text-faded tabular-nums">{timeLabel(m.createdAt)}</span>
+                </p>
+              </div>
             );
           })}
         </div>
@@ -143,28 +175,14 @@ export function PartyChannelPanel({
   const t = useTranslations("chat");
   const [messages, setMessages] = useState<ChatLineData[]>([]);
 
-  // Nome do remetente vem RESOLVIDO do servidor (fetchPartyMessages) — o payload
-  // do realtime não traz nome, então re-busca (baixo volume), igual ao canal Sala.
-  const reload = () =>
-    fetchPartyMessages().then((msgs) =>
-      setMessages(
-        msgs.map((m) => ({
-          id: m.id,
-          senderId: m.senderId,
-          senderName: m.senderName,
-          body: m.body,
-          createdAt: m.createdAt,
-        }))
-      )
-    );
+  // Nome e foto do remetente vêm resolvidos do servidor (fetchPartyMessages): o payload
+  // do realtime não traz identidade, então re-busca (baixo volume), igual ao canal Sala.
+  const reload = () => fetchPartyMessages().then(setMessages);
 
   useEffect(() => {
     let active = true;
     void fetchPartyMessages().then((msgs) => {
-      if (active)
-        setMessages(
-          msgs.map((m) => ({ id: m.id, senderId: m.senderId, senderName: m.senderName, body: m.body, createdAt: m.createdAt }))
-        );
+      if (active) setMessages(msgs);
     });
     return () => {
       active = false;
@@ -195,31 +213,19 @@ export function LobbyChannelPanel({
   const t = useTranslations("chat");
   const [messages, setMessages] = useState<ChatLineData[]>([]);
 
-  const reload = () =>
-    fetchLobbyMessages(lobbyId).then((msgs) =>
-      setMessages(
-        msgs.map((m) => ({
-          id: m.id,
-          senderId: m.senderId,
-          senderName: m.senderName,
-          body: m.body,
-          createdAt: m.createdAt,
-        }))
-      )
-    );
+  const reload = () => fetchLobbyMessages(lobbyId).then(setMessages);
 
   useEffect(() => {
     let active = true;
     void fetchLobbyMessages(lobbyId).then((msgs) => {
-      if (active)
-        setMessages(msgs.map((m) => ({ id: m.id, senderId: m.senderId, senderName: m.senderName, body: m.body, createdAt: m.createdAt })));
+      if (active) setMessages(msgs);
     });
     return () => {
       active = false;
     };
   }, [lobbyId]);
 
-  // Payload não traz nome → re-busca (baixo volume).
+  // Payload não traz nome nem foto: re-busca (baixo volume).
   useLobbyMessages(lobbyId, () => void reload());
 
   return (
@@ -237,11 +243,15 @@ export function LobbyChannelPanel({
 export function DmChannelPanel({
   otherUserId,
   otherName,
+  otherAvatarUrl,
   currentUserId,
+  currentUserAvatarUrl,
 }: {
   otherUserId: string;
   otherName: string;
+  otherAvatarUrl: string | null;
   currentUserId: string;
+  currentUserAvatarUrl: string | null;
 }) {
   const t = useTranslations("chat");
   const [conversationId, setConversationId] = useState<string | null>(null);
@@ -253,6 +263,7 @@ export function DmChannelPanel({
     id: m.id,
     senderId: m.senderId,
     senderName: m.senderId === currentUserId ? t("you") : otherName,
+    senderAvatarUrl: m.senderId === currentUserId ? currentUserAvatarUrl : otherAvatarUrl,
     body: m.body,
     createdAt: m.createdAt,
   });

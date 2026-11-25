@@ -3,6 +3,7 @@
 // Resolve o nome do PRO em batch (sem N+1); coaches têm perfil público (migr. 007).
 
 import type { createClient } from "@/lib/supabase/server";
+import { getIdentityMap } from "@/lib/queries/identities";
 
 type ServerClient = Awaited<ReturnType<typeof createClient>>;
 
@@ -15,6 +16,7 @@ export interface CoachingReview {
   createdAt: string;
   matchId: string | null;
   coachName: string;
+  coachAvatarUrl: string | null;
 }
 
 export async function getCoachingReviewsForUser(
@@ -28,21 +30,14 @@ export async function getCoachingReviewsForUser(
     .order("created_at", { ascending: false });
   if (!reviews || reviews.length === 0) return [];
 
-  // Resolve nome do PRO em 2 queries batch (coach → profile_id → username).
+  // Resolve nome e foto do PRO em batch (coach → profile_id → identidade pública).
   const coachIds = [...new Set(reviews.map((r) => r.coach_id))];
   const { data: coaches } = await supabase
     .from("coaches")
     .select("id, profile_id")
     .in("id", coachIds);
-  const profileIds = (coaches ?? []).map((c) => c.profile_id);
-  const { data: profs } = profileIds.length
-    ? await supabase.from("profiles").select("id, username").in("id", profileIds)
-    : { data: [] };
-
-  const profileNameById = new Map((profs ?? []).map((p) => [p.id, p.username ?? "PRO"]));
-  const coachNameById = new Map(
-    (coaches ?? []).map((c) => [c.id, profileNameById.get(c.profile_id) ?? "PRO"])
-  );
+  const identities = await getIdentityMap(supabase, (coaches ?? []).map((c) => c.profile_id));
+  const coachById = new Map((coaches ?? []).map((c) => [c.id, identities.get(c.profile_id)] as const));
 
   return reviews.map((r) => ({
     id: r.id,
@@ -52,6 +47,7 @@ export async function getCoachingReviewsForUser(
     rating: r.rating,
     createdAt: r.created_at,
     matchId: r.match_id,
-    coachName: coachNameById.get(r.coach_id) ?? "PRO",
+    coachName: coachById.get(r.coach_id)?.name ?? "PRO",
+    coachAvatarUrl: coachById.get(r.coach_id)?.avatarUrl ?? null,
   }));
 }

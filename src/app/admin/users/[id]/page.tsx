@@ -5,6 +5,9 @@ import { notFound } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { getTranslations } from "next-intl/server";
 import { createServiceClient } from "@/lib/supabase/service";
+import { createClient } from "@/lib/supabase/server";
+import { getIdentityMap } from "@/lib/queries/identities";
+import { UserAvatar } from "@/components/ui/avatar";
 import { DotaRankMedal } from "@/components/ui/dota-rank-medal";
 import { mmrToDotaRank } from "@/lib/dota/rank-badges";
 import { HonorRankMedal, type HonorRank } from "@/components/ui/honor-rank-medal";
@@ -276,6 +279,8 @@ export default async function AdminUserDetailPage({
 
   // ── Conduta label
   const conductInfo = behaviorLabel(profile.behavior_status, t);
+  const avatarUrl = (await getIdentityMap(await createClient(), [id])).get(id)?.avatarUrl;
+  const displayName = profile.username ?? t("noName");
 
   return (
     <div className="p-8 space-y-8 max-w-4xl">
@@ -297,11 +302,12 @@ export default async function AdminUserDetailPage({
       {/* ── Header do perfil ── */}
       <header className="space-y-3">
         <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="mt-2 font-display text-3xl uppercase tracking-tight text-text-display">
-              {profile.username ?? t("noName")}
-            </h1>
-            <p className="mt-1 font-mono text-sm text-text-faded">{profile.email}</p>
+          <div className="flex min-w-0 items-center gap-3">
+            <UserAvatar src={avatarUrl ?? undefined} alt={displayName} fallback={displayName.slice(0, 2).toUpperCase()} size="md" />
+            <div className="min-w-0">
+              <h1 className="font-display text-3xl uppercase tracking-tight text-text-display">{displayName}</h1>
+              <p className="mt-1 font-mono text-sm text-text-faded">{profile.email}</p>
+            </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap justify-end">
             {profile.is_admin && (

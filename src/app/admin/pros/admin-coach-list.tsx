@@ -125,6 +125,12 @@ export function AdminCoachChip({
       ) : (
         <Radio size={12} className="text-text-faded" aria-hidden="true" />
       )}
+      <UserAvatar
+        size="xs"
+        src={coach.avatarUrl ?? undefined}
+        alt={coach.username ?? coach.slug}
+        fallback={(coach.username ?? coach.slug).slice(0, 2).toUpperCase()}
+      />
       <span className="font-display text-sm font-semibold text-text-display">
         {coach.username ?? coach.slug}
       </span>

@@ -9,6 +9,7 @@ import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import type { PlayerHeatmap, HeatCell } from "@/lib/dota/match-heatmap";
+import { UserAvatar } from "@/components/ui/avatar";
 
 const SIZE = 512; // resolução interna do canvas (CSS escala pra 100%)
 const RADIANT = "#00C466";
@@ -161,6 +162,7 @@ function PlayerColumn({
                 ) : (
                   <span className="size-[22px] shrink-0 rounded-sm bg-bg-elevated" />
                 )}
+                <UserAvatar src={h.playerAvatar ?? undefined} alt="" fallback={h.playerName.slice(0, 2).toUpperCase()} size="xs" className="size-[22px]" />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-body text-xs font-medium text-text-display">{h.playerName}</span>
                   <span className="block truncate font-display text-[0.65rem] text-text-faded">{h.heroName}</span>

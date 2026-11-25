@@ -18,7 +18,7 @@ import { useDmInboxSignal } from "@/lib/realtime/use-dm-realtime";
 import { usePartyMessages } from "@/lib/realtime/use-party-realtime";
 import { useLobbyMessages } from "@/lib/realtime/use-lobby-realtime";
 import { useSound } from "@/lib/sound/hooks";
-import { useToast } from "@/components/ui/toast";
+import { useToast, type ToastAvatar } from "@/components/ui/toast";
 import { OPEN_CHAT_EVENT, type OpenChatDetail } from "@/lib/chat/open-chat";
 import type { DmInboxEntry } from "@/lib/queries/messages";
 import type { PartyView } from "@/lib/queries/party";
@@ -26,6 +26,8 @@ import type { FriendListEntry } from "@/lib/queries/friends";
 
 interface Props {
   currentUserId: string;
+  /** Minha foto, nas minhas mensagens das conversas 1-1. */
+  currentUserAvatar: string | null;
   party: PartyView | null;
   lobbyId: string | null;
   initialInbox: DmInboxEntry[];
@@ -38,7 +40,7 @@ interface DmTab {
   avatar: string | null;
 }
 
-export function ChatBar({ currentUserId, party, lobbyId, initialInbox, friends }: Props) {
+export function ChatBar({ currentUserId, currentUserAvatar, party, lobbyId, initialInbox, friends }: Props) {
   const t = useTranslations("chat");
   const [expanded, setExpanded] = useState(false);
   const [openDms, setOpenDms] = useState<DmTab[]>([]);
@@ -50,9 +52,7 @@ export function ChatBar({ currentUserId, party, lobbyId, initialInbox, friends }
   const { toast } = useToast();
 
   const partyId = party?.partyId ?? null;
-  const nameById: Record<string, string> = Object.fromEntries(
-    (party?.members ?? []).map((m) => [m.userId, m.name])
-  );
+  const memberById = new Map((party?.members ?? []).map((m) => [m.userId, m] as const));
 
   // Abas disponíveis: Grupo, Sala, e uma por DM aberta.
   const tabs: { id: string; label: string; avatar?: string | null; closable?: boolean }[] = [];
@@ -91,16 +91,22 @@ export function ChatBar({ currentUserId, party, lobbyId, initialInbox, friends }
 
   // Mensagem nova (de outra pessoa) → badge + SOM + TOAST, só quando NÃO estou
   // vendo aquela aba (aberta + ativa). Atende o pedido de "notificação + áudio".
-  const alertIncoming = (tabId: string, title: string, body?: string) => {
+  const alertIncoming = (tabId: string, title: string, body?: string, avatar?: ToastAvatar) => {
     if (expanded && validActive === tabId) return;
     setUnread((u) => ({ ...u, [tabId]: (u[tabId] ?? 0) + 1 }));
     play("notification");
-    toast({ type: "info", title, description: body });
+    toast({ type: "info", title, description: body, avatar });
   };
 
   usePartyMessages(partyId, (m) => {
     if (m.senderId === currentUserId) return;
-    alertIncoming("party", t("partyMsgTitle", { name: nameById[m.senderId] ?? t("someone") }), m.body);
+    const member = memberById.get(m.senderId);
+    alertIncoming(
+      "party",
+      t("partyMsgTitle", { name: member?.name ?? t("someone") }),
+      m.body,
+      member ? { src: member.avatarUrl, name: member.name } : undefined
+    );
   });
   useLobbyMessages(lobbyId, () => alertIncoming("lobby", t("newLobbyMsg")));
   useDmInboxSignal(true, (senderId) => {
@@ -121,7 +127,8 @@ export function ChatBar({ currentUserId, party, lobbyId, initialInbox, friends }
       alertIncoming(
         `dm:${senderId}`,
         conv?.otherName ?? t("newMessage"),
-        conv?.lastPreview ?? undefined
+        conv?.lastPreview ?? undefined,
+        conv ? { src: conv.otherAvatarUrl, name: conv.otherName } : undefined
       );
     });
   });
@@ -158,6 +165,7 @@ export function ChatBar({ currentUserId, party, lobbyId, initialInbox, friends }
                 <TabButton
                   key={tab.id}
                   label={tab.label}
+                  avatar={tab.avatar}
                   icon={tab.id === "party" ? Users : tab.id === "lobby" ? Home : MessageCircle}
                   active={validActive === tab.id}
                   unread={unread[tab.id] ?? 0}
@@ -200,7 +208,12 @@ export function ChatBar({ currentUserId, party, lobbyId, initialInbox, friends }
           ) : validActive === "lobby" && lobbyId ? (
             <LobbyChannelPanel lobbyId={lobbyId} currentUserId={currentUserId} />
           ) : validActive?.startsWith("dm:") ? (
-            <DmTabBody userId={validActive.slice(3)} openDms={openDms} currentUserId={currentUserId} />
+            <DmTabBody
+              userId={validActive.slice(3)}
+              openDms={openDms}
+              currentUserId={currentUserId}
+              currentUserAvatar={currentUserAvatar}
+            />
           ) : (
             <p className="px-4 py-10 text-center font-display text-[13px] text-text-faded">
               {t("openConversationHint")}
@@ -236,18 +249,29 @@ function DmTabBody({
   userId,
   openDms,
   currentUserId,
+  currentUserAvatar,
 }: {
   userId: string;
   openDms: DmTab[];
   currentUserId: string;
+  currentUserAvatar: string | null;
 }) {
   const dm = openDms.find((d) => d.userId === userId);
   if (!dm) return null;
-  return <DmChannelPanel otherUserId={dm.userId} otherName={dm.name} currentUserId={currentUserId} />;
+  return (
+    <DmChannelPanel
+      otherUserId={dm.userId}
+      otherName={dm.name}
+      otherAvatarUrl={dm.avatar}
+      currentUserId={currentUserId}
+      currentUserAvatarUrl={currentUserAvatar}
+    />
+  );
 }
 
 function TabButton({
   label,
+  avatar,
   icon: Icon,
   active,
   unread,
@@ -255,6 +279,8 @@ function TabButton({
   onClose,
 }: {
   label: string;
+  /** Aba de conversa 1-1: a foto da pessoa no lugar do ícone. */
+  avatar?: string | null;
   icon: typeof Users;
   active: boolean;
   unread: number;
@@ -271,7 +297,11 @@ function TabButton({
       }`}
     >
       <button type="button" onClick={onClick} className="flex items-center gap-1 max-w-[90px]">
-        <Icon size={13} aria-hidden="true" />
+        {avatar !== undefined ? (
+          <UserAvatar src={avatar ?? undefined} alt="" fallback={label.slice(0, 2).toUpperCase()} size="xs" className="size-4" />
+        ) : (
+          <Icon size={13} aria-hidden="true" />
+        )}
         <span className="truncate">{label}</span>
       </button>
       {unread > 0 && (

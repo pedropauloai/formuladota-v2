@@ -43,6 +43,9 @@ export interface AdminQueueEntry {
 export interface AdminFinishedEntry {
   id: string;
   name: string;
+  /** Opcionais para as telas de prévia, que montam a entrada à mão. */
+  userId?: string | null;
+  avatarUrl?: string | null;
   state: "concluido" | "removido";
   exit: QueueExit | null;
   matches: number;
@@ -156,9 +159,12 @@ export async function getAdminQueue(): Promise<AdminQueue> {
     // Entrada do Battlepass e cortesia não têm pedido nem nada a devolver.
     const order = r.source === "pedido" ? r.store_orders : null;
     const perMatch = order ? Math.round(order.amount_cents / Math.max(1, order.quantity)) : 0;
+    const who = identities.get(r.user_id ?? "");
     return {
       id: r.id,
-      name: identities.get(r.user_id ?? "")?.name ?? "Jogador",
+      name: who?.name ?? "Jogador",
+      userId: r.user_id,
+      avatarUrl: who?.avatarUrl ?? null,
       state: r.queue_state === "removido" ? "removido" : "concluido",
       exit,
       matches: r.seats,

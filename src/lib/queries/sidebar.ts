@@ -38,6 +38,13 @@ const SEASON_LEN_MS = 90 * DAY_MS; // fallback só se não houver ended_at NEM p
 /** ranking: false quando outro card ocupa o lugar do Top do ranking (enquete da Liga): pula as consultas dele. */
 export async function getSidebarData({ ranking = true, mural = true }: { ranking?: boolean; mural?: boolean } = {}): Promise<SidebarData> {
   const supabase = await createClient();
+  // O mural (com as fotos) corre junto das consultas da temporada, sem somar espera na lateral.
+  const bansPromise: Promise<WallEntry[]> = mural
+    ? getWallOfShame().catch((err: unknown) => {
+        console.error("[lateral] mural falhou:", err);
+        return [];
+      })
+    : Promise.resolve([]);
 
   // Season ativa (nome + janela pro countdown) + a PRÓXIMA agendada (define o fim
   // real da beta, que não tem ended_at — ela roda até a próxima temporada começar).
@@ -99,7 +106,7 @@ export async function getSidebarData({ ranking = true, mural = true }: { ranking
   });
 
   // Mural (banidos primeiro): só com a liga ligada (o card some sem ela).
-  const bans = mural ? await getWallOfShame() : [];
+  const bans = await bansPromise;
 
   let season: SidebarSeason | null = null;
   if (seasonRow) {
