@@ -116,7 +116,7 @@ export async function webhook(paymentId, secret) {
 export async function discordMessageFor(orderId) {
   const headers = { Authorization: `Bot ${env.DISCORD_BOT_TOKEN}` };
   const channels = await fetch(`https://discord.com/api/v10/guilds/${env.DISCORD_GUILD_ID}/channels`, { headers }).then((r) => r.json());
-  const channel = channels.find((c) => c.type === 0 && c.name === "💰丨vendas");
+  const channel = channels.find((c) => c.type === 0 && c.name === "🧪丨vendas-teste");
   if (!channel) return null;
   return waitFor(async () => {
     const messages = await fetch(`https://discord.com/api/v10/channels/${channel.id}/messages?limit=10`, { headers }).then((r) => r.json());
@@ -218,11 +218,11 @@ export async function sandboxRefund(paymentId) {
   return response.json();
 }
 
-/** Mensagem [TESTE] do canal de vendas com o trecho dado (avisos sem embed, como a saída da fila). */
+/** Mensagem [TESTE] do canal de teste com o trecho dado (avisos sem embed, como a saída da fila). */
 export async function discordContentWith(fragment) {
   const headers = { Authorization: `Bot ${env.DISCORD_BOT_TOKEN}` };
   const channels = await fetch(`https://discord.com/api/v10/guilds/${env.DISCORD_GUILD_ID}/channels`, { headers }).then((r) => r.json());
-  const channel = channels.find((c) => c.type === 0 && c.name === "💰丨vendas");
+  const channel = channels.find((c) => c.type === 0 && c.name === "🧪丨vendas-teste");
   if (!channel) return null;
   return waitFor(async () => {
     const messages = await fetch(`https://discord.com/api/v10/channels/${channel.id}/messages?limit=15`, { headers }).then((r) => r.json());

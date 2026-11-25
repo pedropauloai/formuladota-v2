@@ -59,6 +59,7 @@ const serverSchema = z.object({
   QUEUE_DISCORD_WEBHOOK_URL: optional,
   // Loja (06/11/2026): aviso de venda ao Pedro. Sem o webhook, o aviso pelo Discord é no-op.
   SALES_DISCORD_WEBHOOK_URL: optional,
+  SALES_DISCORD_TEST_WEBHOOK_URL: optional,
   PEDRO_DISCORD_USER_ID: optional,  // menção que faz o celular do Pedro tocar
   STORE_NOTIFY_EMAIL: optional,     // e-mail que recebe o aviso de venda
   RESEND_API_KEY: optional,

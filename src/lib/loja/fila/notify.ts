@@ -6,6 +6,7 @@ import "server-only";
 import { createServiceClient } from "@/lib/supabase/service";
 import { publicEnv } from "@/lib/env";
 import { formatBRL } from "@/lib/loja/money";
+import { mentionParts, salesChannel } from "@/lib/loja/sales-channel";
 
 const TIMEOUT_MS = 8000;
 
@@ -34,11 +35,11 @@ async function loadExit(bookingId: string): Promise<ExitInfo | null> {
 }
 
 export async function sendQueueExitNotice(bookingId: string): Promise<boolean> {
-  const url = process.env.SALES_DISCORD_WEBHOOK_URL;
-  const info = url ? await loadExit(bookingId) : null;
-  if (!url || !info || info.refundCents <= 0) return false;
-  const pedro = process.env.PEDRO_DISCORD_USER_ID;
-  const mention = pedro && /^\d{5,25}$/.test(pedro) ? `<@${pedro}> ` : "";
+  const info = await loadExit(bookingId);
+  if (!info || info.refundCents <= 0) return false;
+  const channel = salesChannel(info.isTest);
+  if (!channel) return false;
+  const { prefix: mention, users } = mentionParts(channel);
   // Nome do comprador vai como texto: nada de formatação nem menção injetada.
   const name = info.name.replace(/([\\`*_~|>@])/g, "\\$1");
   const panel = `${publicEnv.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "")}/admin/loja/fila`;
@@ -46,10 +47,10 @@ export async function sendQueueExitNotice(bookingId: string): Promise<boolean> {
     `${mention}${info.isTest ? "[TESTE] " : ""}fila da party: ${name} saiu da fila. ` +
     `Devolver ${formatBRL(info.refundCents)} no Mercado Pago (pedido ${info.orderId}).\n${panel}`;
   try {
-    const response = await fetch(`${url}?wait=true`, {
+    const response = await fetch(`${channel.url}?wait=true`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content: content.slice(0, 2000), allowed_mentions: { parse: [], users: mention && pedro ? [pedro] : [] } }),
+      body: JSON.stringify({ content: content.slice(0, 2000), allowed_mentions: { parse: [], users } }),
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
     if (!response.ok) console.error("[fila/aviso] Discord recusou: HTTP", response.status);

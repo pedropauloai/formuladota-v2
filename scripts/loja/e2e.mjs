@@ -167,7 +167,7 @@ async function run() {
     check("webhook com assinatura certa é aceito (critério 7)", (await webhook(paymentId, env.MP_WEBHOOK_SECRET)) === 200);
     const notified = await waitFor(async () => (await orderRow(cardOrder.id))?.notified_at, 30_000);
     check("aviso de venda marcado como entregue", !!notified);
-    check("mensagem [TESTE] no canal de vendas do Discord (critério 6)", !!(await discordMessageFor(cardOrder.id)));
+    check("mensagem [TESTE] no canal de teste do Discord (critério 6)", !!(await discordMessageFor(cardOrder.id)));
 
     const { data: cardBooking } = await db.from("store_bookings").select("status, hold_until").eq("order_id", cardOrder.id).single();
     check("pagamento aprovado confirma o horário", cardBooking?.status === "confirmado" && cardBooking?.hold_until === null);

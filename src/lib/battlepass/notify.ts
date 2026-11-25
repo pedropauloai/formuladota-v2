@@ -6,6 +6,7 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { publicEnv } from "@/lib/env";
 import { getIdentityMap } from "@/lib/queries/identities";
 import { BATTLEPASS, formatBrl } from "./config";
+import { mentionParts, salesChannel } from "@/lib/loja/sales-channel";
 
 const TIMEOUT_MS = 8000;
 
@@ -51,19 +52,18 @@ async function nameOf(userId: string): Promise<string> {
 }
 
 export async function notifyBattlepass(event: BattlepassEvent): Promise<void> {
-  const url = process.env.SALES_DISCORD_WEBHOOK_URL;
-  if (!url) return;
-  const pedro = process.env.PEDRO_DISCORD_USER_ID;
-  const mention = pedro && /^\d{5,25}$/.test(pedro) ? `<@${pedro}> ` : "";
+  const channel = salesChannel(event.isTest);
+  if (!channel) return;
+  const { prefix: mention, users } = mentionParts(channel);
   const adminUrl = `${publicEnv.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "")}/admin/battlepass`;
   const text = eventText(event, await nameOf(event.userId));
   try {
-    const response = await fetch(`${url}?wait=true`, {
+    const response = await fetch(`${channel.url}?wait=true`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         content: `${mention}${event.isTest ? "[TESTE] " : ""}Battlepass: ${text}\n${adminUrl}`.slice(0, 2000),
-        allowed_mentions: { parse: [], users: mention && pedro ? [pedro] : [] },
+        allowed_mentions: { parse: [], users },
       }),
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
