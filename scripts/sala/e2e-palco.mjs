@@ -1,5 +1,5 @@
-// Parte da sala pública do e2e (spec, seções 8, 9 e 11): plateia sem microfone, tela na camada leve e
-// a alta a pedido, mão levantada, chamar ao palco, mutar e liberar pelo dono, devolver à plateia, chat
+// Parte da sala pública do e2e (spec, seções 8, 9 e 11): plateia sem microfone, a tela na camada alta
+// (a qualidade é de quem transmite) e sem botão de compartilhar para a plateia, mão levantada, chamar ao palco, mutar e liberar pelo dono, devolver à plateia, chat
 // com ritmo e apagar, denúncia de mensagem e banir (que vale para as outras salas do dono).
 
 const s = await import("./e2e-comum.mjs");
@@ -12,13 +12,14 @@ async function telaECamada(t, check, pDono, pOuv) {
   await pDono.locator("[data-sala-qualidade-confirmar]").click();
   const tela = await waitFor(async () => (await s.attr(pOuv, "data-video-bytes")) > 0 && (await s.attr(pOuv, "data-video-altura")) > 0, 40_000);
   check("a plateia recebe a tela do dono", !!tela, `${await s.attr(pOuv, "data-video-bytes")} bytes, ${await s.attr(pOuv, "data-video-altura")} px`);
-  const leve = await waitFor(async () => (await s.videoLayerOf(t.palco.id, t.ouvinte.id)) === "h", 15_000);
-  check("a plateia recebe a camada leve por padrão", !!leve, String(await s.videoLayerOf(t.palco.id, t.ouvinte.id)));
+  const alta = await waitFor(async () => (await s.videoLayerOf(t.palco.id, t.ouvinte.id)) === "f", 15_000);
+  check("a plateia recebe a camada alta sem escolher nada (a qualidade é de quem transmite)", !!alta, String(await s.videoLayerOf(t.palco.id, t.ouvinte.id)));
   const ouve = await waitFor(async () => (await s.attr(pOuv, "data-audio-bytes")) > 0, 30_000);
   check("a plateia ouve o dono", !!ouve);
-  await pOuv.locator('[data-sala-camada-opcao="f"]').click();
-  const alta = await waitFor(async () => (await s.videoLayerOf(t.palco.id, t.ouvinte.id)) === "f", 20_000);
-  check("quem pede a imagem alta recebe a alta (consumo abaixo de metade do teto)", !!alta, String(await s.videoLayerOf(t.palco.id, t.ouvinte.id)));
+  const semEscolha = (await pOuv.locator("[data-sala-camada]").count()) === 0 && (await pOuv.locator('[data-sala-tela="compartilhar"]').count()) === 0;
+  const sidOuvinte = await s.openSessionOf(t.palco.id, t.ouvinte.id);
+  const direto = await s.tryPublish(pOuv, t.palco.id, sidOuvinte, "video", "tela-da-plateia");
+  check("a plateia não escolhe leve ou alta nem compartilha a tela (nem pela API)", semEscolha && direto.status === 403 && direto.body.errorCode === "tela_nao_permitida", `HTTP ${direto.status} ${direto.body.errorCode}`);
   // Na live, o PPA para e volta a compartilhar: a plateia pede uma faixa nova no meio da conexão.
   await pDono.locator('[data-sala-tela="parar"]').click();
   await waitFor(async () => (await s.openVideoCount(t.palco.id, t.dono.id)) === 0, 15_000);

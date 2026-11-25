@@ -46,7 +46,7 @@ async function Conteudo({ id, convite }: { id: string; convite: string | null })
   const next = convite ? `/sala/${id}?convite=${convite}` : `/sala/${id}`;
   if (ctx.decision.ok && ctx.room && ctx.settings) {
     if (ctx.room.kind === "texto") return <CanalTexto key={id} roomId={id} titulo={ctx.room.title} />;
-    const share = canShareScreen(ctx.decision.role, ctx.room.kind, ctx.room.screenPolicy, ctx.settings.partyScreenEnabled);
+    const share = canShareScreen(ctx.decision.role, ctx.room.kind, ctx.room.voiceMode, ctx.room.screenPolicy, ctx.settings.partyScreenEnabled);
     return <SalaView key={id} roomId={id} titulo={ctx.room.title} tipo={ctx.room.kind} modo={ctx.room.voiceMode} mostrarTela={share} />;
   }
   if (ctx.decision.ok) notFound();

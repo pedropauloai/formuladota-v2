@@ -6,6 +6,7 @@ function publish(over: Partial<PublishInput> = {}): PublishInput {
   return {
     role: "membro",
     roomKind: "mentoria",
+    voiceMode: "palco",
     screenPolicy: "dono",
     partyScreenEnabled: false,
     forceMuted: false,
@@ -43,8 +44,14 @@ describe("decidePublish", () => {
     expect(decidePublish(publish({ requested: ["video"] }))).toEqual({ ok: false, code: "tela_nao_permitida" });
   });
 
-  it("recusa vídeo de quem fala no palco", () => {
-    expect(decidePublish(publish({ role: "falante", roomKind: "palco", requested: ["video"] }))).toEqual({ ok: false, code: "tela_nao_permitida" });
+  it("no palco, quem foi chamado compartilha a tela e a plateia não", () => {
+    expect(decidePublish(publish({ role: "falante", roomKind: "palco", requested: ["video"] }))).toEqual({ ok: true });
+    expect(decidePublish(publish({ role: "ouvinte", roomKind: "palco", requested: ["video"] }))).toEqual({ ok: false, code: "tela_nao_permitida" });
+  });
+
+  it("na voz livre, qualquer um na sala compartilha a tela (uma por vez)", () => {
+    expect(decidePublish(publish({ role: "falante", roomKind: "palco", voiceMode: "livre", requested: ["video"] }))).toEqual({ ok: true });
+    expect(decidePublish(publish({ role: "falante", roomKind: "palco", voiceMode: "livre", requested: ["video"], videoActiveByOthers: true }))).toEqual({ ok: false, code: "tela_ocupada" });
   });
 
   it("o dono da sala pública publica a tela e o áudio da tela junto da voz", () => {
@@ -187,20 +194,13 @@ describe("checkLayerUpdate (o update só troca a camada de uma recepção que j�
 });
 
 describe("decideLayer (camada da tela de cada pessoa)", () => {
-  const cap = 800_000_000_000;
-  it("mentoria e party: a camada que a pessoa pediu, a alta por padrão", () => {
-    expect(decideLayer({ roomKind: "mentoria", requested: null, usageBytes: 0, capBytes: cap })).toBe("f");
-    expect(decideLayer({ roomKind: "mentoria", requested: "h", usageBytes: 0, capBytes: cap })).toBe("h");
-    expect(decideLayer({ roomKind: "party", requested: "f", usageBytes: cap, capBytes: cap })).toBe("f");
+  it("quem assiste recebe a camada alta em qualquer sala: a qualidade é de quem transmite", () => {
+    expect(decideLayer(null)).toBe("f");
+    expect(decideLayer("f")).toBe("f");
   });
 
-  it("sala pública: a leve por padrão", () => {
-    expect(decideLayer({ roomKind: "palco", requested: null, usageBytes: 0, capBytes: cap })).toBe("h");
-  });
-
-  it("sala pública: a alta para quem pede, enquanto o consumo está abaixo de metade do teto", () => {
-    expect(decideLayer({ roomKind: "palco", requested: "f", usageBytes: cap * 0.49, capBytes: cap })).toBe("f");
-    expect(decideLayer({ roomKind: "palco", requested: "f", usageBytes: cap * 0.5, capBytes: cap })).toBe("h");
+  it("quem está fora da página da sala pede a leve e recebe a leve", () => {
+    expect(decideLayer("h")).toBe("h");
   });
 });
 

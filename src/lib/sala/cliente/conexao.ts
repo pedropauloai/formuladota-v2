@@ -5,6 +5,7 @@ import { PartyTracks } from "partytracks/client";
 import { BehaviorSubject, of, type Subscription } from "rxjs";
 import type { RawStat } from "../metricas";
 import type { Layer } from "../tipos";
+import { h264Primeiro } from "./codecs";
 
 export interface TrackRef {
   sessionId: string;
@@ -33,12 +34,19 @@ export interface Connection {
   close(): void;
 }
 
-/** Vídeo da tela: sob aperto de banda ou de processador, mantém a resolução e baixa quadros. */
-function keepResolution(transceiver: RTCRtpTransceiver): void {
+/** Vídeo da tela, como jogo: H.264 primeiro (a placa de vídeo codifica) e, sob aperto de banda ou de
+ *  processador, mantém os quadros e baixa a resolução. Roda antes da oferta, logo que a faixa nasce. */
+function prepararVideo(transceiver: RTCRtpTransceiver): void {
   const sender = transceiver.sender;
   if (sender.track?.kind !== "video") return;
+  const codecs = typeof RTCRtpSender !== "undefined" ? RTCRtpSender.getCapabilities("video")?.codecs : undefined;
+  try {
+    if (codecs && typeof transceiver.setCodecPreferences === "function") transceiver.setCodecPreferences(h264Primeiro(codecs));
+  } catch {
+    // O navegador recusou a ordem: fica a escolha dele.
+  }
   const params = sender.getParameters();
-  params.degradationPreference = "maintain-resolution";
+  params.degradationPreference = "maintain-framerate";
   sender.setParameters(params).catch(() => null);
 }
 
@@ -50,7 +58,7 @@ export function createConnection(opts: { roomId: string; iceServers: RTCIceServe
   let sid: string | null = null;
   subs.push(pt.session$.subscribe(({ peerConnection, sessionId }) => { pc = peerConnection; sid = sessionId; }));
   subs.push(pt.peerConnectionState$.subscribe((state) => listeners.forEach((l) => l(state))));
-  subs.push(pt.transceiver$.subscribe(keepResolution));
+  subs.push(pt.transceiver$.subscribe(prepararVideo));
 
   return {
     sessionId: () => sid,

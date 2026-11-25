@@ -66,7 +66,8 @@ export class SessaoSala {
     const entrada = await this.a.entrar();
     if (!entrada.ok) return this.set({ fase: "erro", motivo: entrada.code });
     this.entrada = entrada.data;
-    const camada: Layer = entrada.data.tipo === "palco" ? "h" : "f";
+    // Quem assiste recebe a camada alta: a qualidade é de quem transmite (o SFU desce sozinho sem banda).
+    const camada: Layer = "f";
     this.montar(entrada.data, camada);
     this.guarda.ligar();
     this.set({ fase: "na_sala", papel: entrada.data.papel, tipo: entrada.data.tipo, camada });
@@ -205,11 +206,6 @@ export class SessaoSala {
     if (!this.snap.estado?.eu?.podeLevantarMao) return;
     this.set({ mao: !this.snap.mao });
     this.agora();
-  }
-
-  escolherCamada(camada: Layer): void {
-    this.lig?.recepcao.setLayer(camada);
-    this.set({ camada });
   }
 
   async compartilharTela(qualidade: Quality): Promise<void> {

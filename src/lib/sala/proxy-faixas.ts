@@ -42,17 +42,12 @@ function tracksOf(body: Record<string, unknown>): SfuTrack[] {
   return Array.isArray(body.tracks) ? (body.tracks as SfuTrack[]) : [];
 }
 
-/** f cai para h sem banda; h nunca sobe sozinha para f (o custo da camada alta só com a regra). */
+/** f fica na alta: a troca do SFU por banda travava a tela (subia, congelava 3 s e voltava, medido no
+ *  pnpm sala:tela); só passa para h quando quem transmite para de mandar a alta. h é de quem está fora da página. */
 function simulcastFor(rid: Layer) {
   return rid === "f"
-    ? { preferredRid: "f", priorityOrdering: "asciibetical", ridNotAvailable: "asciibetical" }
+    ? { preferredRid: "f", priorityOrdering: "none", ridNotAvailable: "asciibetical" }
     : { preferredRid: "h", priorityOrdering: "none", ridNotAvailable: "none" };
-}
-
-/** Consumo que vale para a regra: o de produção que o cron recalcula; sala de teste conta o dela na hora. */
-async function usageFor(ctx: CallContext): Promise<number> {
-  if (!ctx.room || !ctx.settings) return 0;
-  return ctx.room.isTest ? computeUsageBytes(ctx.db, windowStartFor(ctx.now), true) : ctx.settings.usageBytes30d;
 }
 
 async function publish(ctx: CallContext, env: RealtimeEnv, session: SessionRow, body: Tracks): Promise<Response> {
@@ -70,6 +65,7 @@ async function publish(ctx: CallContext, env: RealtimeEnv, session: SessionRow, 
   const rule = decidePublish({
     role: decision.role,
     roomKind: room.kind,
+    voiceMode: room.voiceMode,
     screenPolicy: room.screenPolicy,
     partyScreenEnabled: settings.partyScreenEnabled,
     forceMuted: member?.forceMuted ?? false,
@@ -142,11 +138,7 @@ async function subscribe(ctx: CallContext, env: RealtimeEnv, session: SessionRow
     });
     if (!rule.ok) return deny(403, rule.code, "recebimento recusado pela regra da sala");
   }
-  const needsLayer = targets.some((t) => t?.kind === "video");
-  const usage = needsLayer ? await usageFor(ctx) : 0;
-  const layers = body.tracks.map((t, i) =>
-    targets[i]?.kind === "video" ? decideLayer({ roomKind: room.kind, requested: t.simulcast?.preferredRid ?? null, usageBytes: usage, capBytes: capBytesFor(settings.capGb30d) }) : null
-  );
+  const layers = body.tracks.map((t, i) => (targets[i]?.kind === "video" ? decideLayer(t.simulcast?.preferredRid ?? null) : null));
   const forward = {
     tracks: body.tracks.map(({ sessionId, trackName }, i) => {
       const rid = layers[i];
@@ -182,13 +174,12 @@ export async function handleLayerUpdate(ctx: CallContext, env: RealtimeEnv, sess
   const { room, settings } = ctx;
   if (!room || !settings || !ctx.decision.ok) return deny(403, "sem_acesso", "sem acesso à sala");
   const subs = await openSubscriptions(ctx.db, [session.id]);
-  const usage = await usageFor(ctx);
   const plan = [];
   for (const t of body.tracks) {
     const sub = subs.find((s) => s.mid === t.mid) ?? null;
     const rule = checkLayerUpdate({ requested: t, sub });
     if (!rule.ok || !sub) return deny(403, rule.ok ? "faixa_inexistente" : rule.code, "troca de camada recusada");
-    const rid = decideLayer({ roomKind: room.kind, requested: t.simulcast?.preferredRid ?? null, usageBytes: usage, capBytes: capBytesFor(settings.capGb30d) });
+    const rid = decideLayer(t.simulcast?.preferredRid ?? null);
     plan.push({ sub, rid });
   }
   const forward = { tracks: plan.map(({ sub, rid }) => ({ location: "remote", sessionId: sub.publisherSessionId, trackName: sub.trackName, mid: sub.mid, simulcast: simulcastFor(rid) })) };

@@ -10,18 +10,27 @@ describe("o que cada papel faz", () => {
   });
 
   it("tela: o dono na mentoria e na sala pública; na party só com a tela ligada na configuração", () => {
-    expect(canShareScreen("dono", "mentoria", "dono", false)).toBe(true);
-    expect(canShareScreen("dono", "palco", "dono", false)).toBe(true);
-    expect(canShareScreen("dono", "party", "dono", false)).toBe(false);
-    expect(canShareScreen("dono", "party", "dono", true)).toBe(true);
+    expect(canShareScreen("dono", "mentoria", "palco", "dono", false)).toBe(true);
+    expect(canShareScreen("dono", "palco", "palco", "dono", false)).toBe(true);
+    expect(canShareScreen("dono", "party", "palco", "dono", false)).toBe(false);
+    expect(canShareScreen("dono", "party", "palco", "dono", true)).toBe(true);
   });
 
-  it("tela de quem não é dono: só o aluno da mentoria com a política um_por_vez", () => {
-    expect(canShareScreen("membro", "mentoria", "dono", false)).toBe(false);
-    expect(canShareScreen("membro", "mentoria", "um_por_vez", false)).toBe(true);
-    expect(canShareScreen("membro", "party", "um_por_vez", true)).toBe(false);
-    expect(canShareScreen("falante", "palco", "um_por_vez", true)).toBe(false);
-    expect(canShareScreen("ouvinte", "palco", "um_por_vez", true)).toBe(false);
+  it("canal de voz comum (voz livre), como no Discord: qualquer um na sala compartilha a tela", () => {
+    expect(canShareScreen("falante", "palco", "livre", "dono", false)).toBe(true);
+    expect(canShareScreen("ouvinte", "palco", "livre", "dono", false)).toBe(true);
+    expect(canShareScreen("dono", "palco", "livre", "dono", false)).toBe(true);
+  });
+
+  it("canal de palco: compartilha quem está no palco (o dono e quem ele chamou), a plateia não", () => {
+    expect(canShareScreen("falante", "palco", "palco", "dono", false)).toBe(true);
+    expect(canShareScreen("ouvinte", "palco", "palco", "um_por_vez", true)).toBe(false);
+  });
+
+  it("tela de quem não é dono na mentoria e na party: só o aluno da mentoria com a política um_por_vez", () => {
+    expect(canShareScreen("membro", "mentoria", "palco", "dono", false)).toBe(false);
+    expect(canShareScreen("membro", "mentoria", "palco", "um_por_vez", false)).toBe(true);
+    expect(canShareScreen("membro", "party", "palco", "um_por_vez", true)).toBe(false);
   });
 
   it("mão levantada só para quem está na plateia da sala pública", () => {
@@ -140,8 +149,8 @@ describe("decideChat", () => {
 
 describe("canais do servidor", () => {
   it("canal de texto não tem tela nem mão, e o chat segue a regra de aberto ou fechado", () => {
-    expect(canShareScreen("dono", "texto", "dono", true)).toBe(false);
-    expect(canShareScreen("dono", "texto", "um_por_vez", true)).toBe(false);
+    expect(canShareScreen("dono", "texto", "livre", "dono", true)).toBe(false);
+    expect(canShareScreen("dono", "texto", "palco", "um_por_vez", true)).toBe(false);
     expect(canRaiseHand("ouvinte", "texto")).toBe(false);
     expect(canChat("ouvinte", "texto", true)).toBe(true);
     expect(canChat("ouvinte", "texto", false)).toBe(false);

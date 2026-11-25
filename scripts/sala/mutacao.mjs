@@ -21,6 +21,7 @@ const FC = "src/lib/sala/flag-chave.ts";
 const MO = "src/lib/sala/montagem.ts";
 const TL = "src/lib/sala/cliente/tela-local.ts";
 const CA = "src/lib/sala/canais.ts";
+const CO = "src/lib/sala/cliente/codecs.ts";
 const MI = "src/lib/sala/cliente/microfone.ts";
 const GV = "src/lib/sala/cliente/guarda-voz.ts";
 const VL = "src/lib/sala/cliente/voz-local.ts";
@@ -57,7 +58,10 @@ const MUTACOES = [
   [F, "&& publisherMayKeep(m.role, t.tipo) && !blocked.has(t.userId);", "&& !blocked.has(t.userId);", "voz de quem voltou à plateia continua na lista"],
   [F, "&& publisherMayKeep(m.role, t.tipo) && !blocked.has(t.userId);", "&& publisherMayKeep(m.role, t.tipo);", "bloqueado aparece na lista"],
   [F, 'if (r.location !== "remote" || r.sessionId !== sub.publisherSessionId || r.trackName !== sub.trackName || sub.kind !== "video") {', "if (false) {", "a troca de camada puxa outra faixa"],
-  [F, 'return input.requested === "f" && input.usageBytes < input.capBytes / 2 ? "f" : "h";', 'return input.requested ?? "h";', "camada alta sem olhar o custo"],
+  [F, 'return requested ?? "f";', 'return requested ?? "h";', "quem assiste recebe a camada leve sem pedir"],
+  [P, 'if (roomKind === "palco") return voiceMode === "livre" || role === "dono" || role === "falante";', 'if (roomKind === "palco") return role === "dono";', "só o dono compartilha a tela no canal de voz"],
+  [P, 'if (roomKind === "palco") return voiceMode === "livre" || role === "dono" || role === "falante";', 'if (roomKind === "palco") return true;', "a plateia do palco compartilha a tela"],
+  [CO, 'return fmtp.includes("profile-level-id=42e01f") ? 0 : 1;', "return 1;", "o H.264 de perfil alto passa na frente do básico"],
   [C, "return Math.round(Math.min(base, videoMaxKbps) * VIDEO_FOLGA);", "return Math.round(base);", "tela conta sem cabeçalho nem teto"],
   [M, "const role: MemberRole = papelDe(mine?.r ?? decided);", "const role: MemberRole = papelDe(decided);", "chamado ao palco só fala no próximo batimento"],
   [M, "const forceMuted = mine ? !!mine.f : (v.member?.forceMuted ?? false);", "const forceMuted = mine?.f ?? v.member?.forceMuted ?? false;", "liberado pelo dono continua mudo até o batimento"],

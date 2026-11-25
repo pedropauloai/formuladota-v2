@@ -1,8 +1,7 @@
 "use client";
 
 // Barra de controles do canal de voz, compacta como a do Discord: microfone, som (ensurdecer), tela
-// (compartilhar, trocar a janela, parar), mão (plateia do palco), imagem leve ou alta de quem assiste,
-// os volumes, o chat e sair em vermelho. O microfone fica na barra sempre que a pessoa pode falar, mesmo
+// (compartilhar, trocar a janela, parar), mão (plateia do palco), os volumes, o chat e sair em vermelho. O microfone fica na barra sempre que a pessoa pode falar, mesmo
 // sem a voz no ar, e o aviso diz por que ele não abriu e como resolver. Os data-* expõem o que o e2e confere.
 
 import type { ReactNode } from "react";
@@ -10,7 +9,6 @@ import { useTranslations } from "next-intl";
 import { AppWindow, Hand, HeadphoneOff, Headphones, MessageSquare, MessageSquareOff, Mic, MicOff, MonitorSpeaker, MonitorUp, MonitorX, PhoneOff, Volume2 } from "lucide-react";
 import { plate } from "@/components/v2";
 import { AVISO_MICROFONE, falhou, type EstadoMicrofone } from "@/lib/sala/cliente/microfone";
-import type { Layer } from "@/lib/sala/tipos";
 import { cn } from "@/lib/utils";
 import { TELA_TEXTO } from "./textos";
 
@@ -28,8 +26,6 @@ export interface ControlesProps {
   compartilhando: boolean;
   podeTela: boolean;
   motivoTela: string | null;
-  assistindo: boolean;
-  camada: Layer;
   volumeVoz: number;
   volumeJogo: number;
   /** O canal tem chat (canal de voz público): o botão mostra ou esconde a coluna. */
@@ -42,7 +38,6 @@ export interface ControlesProps {
   onTela: () => void;
   onPararTela: () => void;
   onTrocarTela: () => void;
-  onCamada: (camada: Layer) => void;
   onVolumeVoz: (v: number) => void;
   onVolumeJogo: (v: number) => void;
   onChat: () => void;
@@ -82,19 +77,6 @@ function Volume({ titulo, icone, value, onChange, data }: { titulo: string; icon
       <span className="sr-only">{titulo}</span>
       <input type="range" min={0} max={1} step={0.05} value={value} onChange={(e) => onChange(Number(e.target.value))} {...data} className="w-20 accent-[var(--color-play-primary)] 2xl:w-24" />
     </label>
-  );
-}
-
-function Camada({ camada, onCamada }: { camada: Layer; onCamada: (c: Layer) => void }) {
-  const t = useTranslations("sala");
-  return (
-    <div className="flex items-center gap-1 text-xs text-text-muted" role="group" aria-label={t("camadaRotulo")} data-sala-camada={camada}>
-      {(["h", "f"] as const).map((c) => (
-        <button key={c} type="button" aria-pressed={camada === c} onClick={() => onCamada(c)} data-sala-camada-opcao={c} className={cn(plate({ kind: camada === c ? "cta" : "ghost", small: true }))}>
-          {c === "f" ? t("camadaAlta") : t("camadaLeve")}
-        </button>
-      ))}
-    </div>
   );
 }
 
@@ -178,7 +160,6 @@ export function Controles(p: ControlesProps) {
         )}
         <Tela p={p} />
         <span className="mx-1 h-6 w-px bg-border-subtle" aria-hidden="true" />
-        {p.assistindo && <Camada camada={p.camada} onCamada={p.onCamada} />}
         <Volume titulo={t("volumeVoz")} icone={<Volume2 className="size-4" aria-hidden="true" />} value={p.volumeVoz} onChange={p.onVolumeVoz} data={{ "data-sala-volume-vozes": "" }} />
         <Volume titulo={t("volumeTela")} icone={<MonitorSpeaker className="size-4" aria-hidden="true" />} value={p.volumeJogo} onChange={p.onVolumeJogo} data={{ "data-sala-volume-jogo": "" }} />
         <span className="ml-auto flex items-center gap-1">

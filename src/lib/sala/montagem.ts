@@ -59,7 +59,7 @@ export interface Estado {
 
 function screenReason(v: Verdict, role: MemberRole, othersSharing: boolean): TrackDenyCode | null {
   const { room, settings } = v;
-  if (!room || !settings || !canShareScreen(role, room.kind, room.screenPolicy, settings.partyScreenEnabled)) return "tela_nao_permitida";
+  if (!room || !settings || !canShareScreen(role, room.kind, room.voiceMode, room.screenPolicy, settings.partyScreenEnabled)) return "tela_nao_permitida";
   if (othersSharing) return "tela_ocupada";
   // Sala de teste conta o próprio consumo na hora de publicar; aqui vale o de produção (o aviso da tela).
   if (!room.isTest && settings.usageBytes30d >= capBytesFor(settings.capGb30d)) return "teto_de_trafego";

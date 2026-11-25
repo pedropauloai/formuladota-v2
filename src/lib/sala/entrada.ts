@@ -46,7 +46,7 @@ export async function enterRoom(ctx: CallContext): Promise<EntradaResult> {
   await updateMember(ctx.db, room.id, userId, { last_seen_at: ctx.now.toISOString(), hand_raised_at: null, ...livre });
   await setTurnUsername(ctx.db, room.id, userId, turn.username);
   forgetRoomState(room.id, userId);
-  const share = canShareScreen(decision.role, room.kind, room.screenPolicy, settings.partyScreenEnabled);
+  const share = canShareScreen(decision.role, room.kind, room.voiceMode, room.screenPolicy, settings.partyScreenEnabled);
   const capOk = room.isTest || settings.usageBytes30d < capBytesFor(settings.capGb30d);
   return { ok: true, iceServers: turn.iceServers, papel: decision.role, tipo: room.kind, videoMaxKbps: settings.videoMaxKbps, podeCompartilharTela: share && capOk };
 }
@@ -105,7 +105,7 @@ export async function labelOwnTrack(ctx: CallContext, body: z.infer<typeof Faixa
   const rule = decideLabel({
     tipo: body.tipo,
     kind: track.kind as TrackKind,
-    canShare: canShareScreen(decision.role, room.kind, room.screenPolicy, settings.partyScreenEnabled),
+    canShare: canShareScreen(decision.role, room.kind, room.voiceMode, room.screenPolicy, settings.partyScreenEnabled),
     canVoice: canPublishVoice(decision.role) && !(member?.forceMuted && decision.role !== "dono"),
     quality: body.qualidade,
   });
