@@ -8,19 +8,19 @@
 import { useLayoutEffect, useRef, useState, type FormEvent } from "react";
 import { useTranslations } from "next-intl";
 import { Crown, Flag, Gavel, Hash, Loader2, Lock, Send, Trash2 } from "lucide-react";
-import { UserAvatar } from "@/components/ui/avatar";
 import { useConfirm } from "@/components/ui/confirm";
 import { plate } from "@/components/v2";
 import type { MensagemEstado } from "@/lib/sala/estado";
 import { CHAT_MAX } from "@/lib/sala/papeis";
 import type { Pessoa } from "@/lib/sala/pessoas";
+import { comecaSequencia } from "@/lib/sala/cliente/sequencia";
 import { useCanalTexto, type CanalTextoSnapshot } from "@/lib/sala/cliente/use-canal-texto";
 import { cn } from "@/lib/utils";
 import { Denuncia, type AlvoTela } from "./denuncia";
+import { FotoNaSala, NomeNaSala } from "./identidade";
 import { MenuDaMensagem } from "./menu-mensagem";
 import { CHAT_ERRO, SAIDA_TEXTO } from "./textos";
 
-const SEQUENCIA_MS = 5 * 60_000;
 const hora = new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo", hour: "2-digit", minute: "2-digit" });
 const diaHora = new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 const quando = (iso: string) => (new Date(iso).toDateString() === new Date().toDateString() ? hora : diaHora).format(new Date(iso));
@@ -42,11 +42,11 @@ function Mensagem({ m, inicio, pessoa, a }: { m: MensagemEstado; inicio: boolean
   return (
     <li className={cn("group relative flex gap-3 rounded-sm px-4 hover:bg-bg-elevated/40", inicio ? "mt-3 pt-1" : "py-0.5")} data-sala-mensagem={m.id}>
       <MenuDaMensagem m={m} nome={nome} souDono={a.souDono} eu={a.eu} donoId={a.donoId} onApagar={() => a.onApagar(m.id)} onBanir={() => m.userId && a.onBanir(m.userId, nome)} onDenunciar={() => a.onDenunciar(m, nome)}>
-      <span className="w-8 shrink-0">{inicio && <UserAvatar src={pessoa?.avatarUrl ?? undefined} alt={nome} fallback={nome.slice(0, 2).toUpperCase()} size="sm" className="rounded-sm" />}</span>
+      <span className="w-8 shrink-0" data-sala-autor-foto={inicio ? (m.userId ?? "") : undefined}>{inicio && <FotoNaSala userId={m.userId} nome={nome} avatarUrl={pessoa?.avatarUrl} tamanho="sm" />}</span>
       <div className="min-w-0 flex-1">
         {inicio && (
           <p className="flex items-baseline gap-2">
-            <span className={cn("font-semibold", dono ? "text-gold" : "text-text-display")}>{nome}</span>
+            <NomeNaSala userId={m.userId} nome={nome} className={cn("font-semibold", dono ? "text-gold" : "text-text-display")} />
             <time dateTime={m.em} className="text-[11px] text-text-muted">{quando(m.em)}</time>
           </p>
         )}
@@ -98,7 +98,7 @@ function Lista({ snap, a, carregar }: { snap: CanalTextoSnapshot; a: Acoes; carr
       <ul>
         {snap.chat.map((m, i) => {
           const prev = snap.chat[i - 1];
-          const inicio = !prev || prev.userId !== m.userId || new Date(m.em).getTime() - new Date(prev.em).getTime() > SEQUENCIA_MS;
+          const inicio = comecaSequencia(prev, m);
           return <Mensagem key={m.id} m={m} inicio={inicio} pessoa={m.userId ? snap.pessoas[m.userId] : undefined} a={a} />;
         })}
       </ul>
@@ -147,7 +147,7 @@ export function CanalTexto({ roomId, titulo }: { roomId: string; titulo: string 
     onBanir: async (userId, nome) => {
       if (await confirm({ title: t("banir"), message: t("banirConfirma", { nome }), confirmLabel: t("confirmar"), variant: "destructive" })) void acoes.membro(userId, "banir");
     },
-    onDenunciar: (m, nome) => setAlvo({ tipo: "mensagem", messageId: m.id, nome, texto: m.texto }),
+    onDenunciar: (m, nome) => setAlvo({ tipo: "mensagem", messageId: m.id, nome, texto: m.texto, avatarUrl: m.userId ? (snap.pessoas[m.userId]?.avatarUrl ?? null) : null }),
   };
   return (
     <section className="flex h-full flex-col" data-canal-texto={roomId} data-canal-fase={snap.fase} data-canal-motivo={snap.motivo ?? ""}>

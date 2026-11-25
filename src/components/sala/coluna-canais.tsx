@@ -9,12 +9,12 @@
 import { useState, type MouseEvent, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { ChevronDown, Hash, Lock, MicOff, MonitorUp, Radio, Settings, Volume2 } from "lucide-react";
-import { UserAvatar } from "@/components/ui/avatar";
 import { useConfirm } from "@/components/ui/confirm";
 import { LiveDot, panel } from "@/components/v2";
 import { Link, useRouter } from "@/i18n/navigation";
 import type { CanalItem, ListaDeCanais, PessoaNoCanal } from "@/lib/sala/canais";
 import { cn } from "@/lib/utils";
+import { FotoNaSala, NomeNaSala } from "./identidade";
 import { MenuDoCanal } from "./menu-canal";
 
 export interface ColunaProps {
@@ -46,8 +46,10 @@ function Pessoa({ p }: { p: PessoaNoCanal }) {
   const t = useTranslations("sala");
   return (
     <li className="flex h-7 items-center gap-2 rounded-sm pl-7 pr-2 text-xs text-text-muted" data-canal-pessoa={p.userId}>
-      <UserAvatar src={p.avatarUrl ?? undefined} alt={p.nome} fallback={p.nome.slice(0, 2).toUpperCase()} size="xs" className="rounded-sm" />
-      <span className={cn("min-w-0 flex-1 truncate", p.papel === "dono" ? "text-gold" : "text-text-body")}>{p.nome}</span>
+      <FotoNaSala userId={p.userId} nome={p.nome} avatarUrl={p.avatarUrl} tamanho="xs" />
+      <span className="min-w-0 flex-1 truncate">
+        <NomeNaSala userId={p.userId} nome={p.nome} className={p.papel === "dono" ? "text-gold" : "text-text-body"} />
+      </span>
       {p.tela && <MonitorUp className="size-3.5 shrink-0 text-brand-primary" aria-label={t("compartilhandoRotulo")} />}
       {p.mutado && <MicOff className="size-3.5 shrink-0" aria-label={t("mudoRotulo")} />}
     </li>

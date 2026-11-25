@@ -210,6 +210,10 @@ try {
   if (!so || so === "tempo") await tempoReal(t, check, made);
   if (!so || so === "fala") await fala(t, check, made);
   if (!so || so === "menus") await menus(t, check, made);
+  // Elemento dentro de outro que o HTML não aceita (um <div> num <p>) faz o React refazer a página ao hidratar,
+  // e o que a pessoa digitou some; nenhum navegador do teste pode ter visto esse aviso.
+  const hidratacao = s.diagnostico.filter((l) => /hydrat|cannot be a descendant|cannot contain a nested/i.test(l));
+  check("nenhuma página da sala dá erro de hidratação do React", hidratacao.length === 0, hidratacao.slice(0, 2).join(" | ").slice(0, 200));
   if (pPalco) {
     await gates(t);
     await flagOff(t, pPalco);

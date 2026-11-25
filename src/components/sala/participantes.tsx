@@ -6,11 +6,11 @@
 
 import { useTranslations } from "next-intl";
 import { MicOff, MonitorUp } from "lucide-react";
-import { UserAvatar } from "@/components/ui/avatar";
 import type { MembroEstado } from "@/lib/sala/estado";
 import type { Pessoa } from "@/lib/sala/pessoas";
 import { cn } from "@/lib/utils";
 import { anelFala } from "./anel-fala";
+import { FotoNaSala, NomeNaSala } from "./identidade";
 
 interface Props {
   membros: MembroEstado[];
@@ -31,9 +31,9 @@ export function Participantes({ membros, pessoas, falando, soPalco }: Props) {
         const fala = falando.includes(m.userId) && !m.mutado;
         return (
           <li key={m.userId} data-sala-quadro={m.userId} data-sala-falando={fala ? "sim" : "nao"} className={cn("flex flex-col items-center gap-3 rounded-sm border bg-bg-deep/70 p-4 motion-safe:transition-colors", fala ? "border-play-primary" : "border-border-subtle")}>
-            <UserAvatar src={pessoas[m.userId]?.avatarUrl ?? undefined} alt={nome} fallback={nome.slice(0, 2).toUpperCase()} size="lg" className={cn("rounded-sm", anelFala(fala))} />
+            <FotoNaSala userId={m.userId} nome={nome} avatarUrl={pessoas[m.userId]?.avatarUrl} tamanho="lg" className={anelFala(fala)} />
             <span className={cn("flex max-w-full items-center gap-1 text-sm", m.papel === "dono" ? "text-gold" : "text-text-display")}>
-              <span className="truncate">{nome}</span>
+              <NomeNaSala userId={m.userId} nome={nome} className="truncate" />
               {m.mutado && <MicOff className="size-3.5 shrink-0 text-text-muted" aria-label={t("mudoRotulo")} />}
               {m.compartilhandoTela && <MonitorUp className="size-3.5 shrink-0 text-brand-primary" aria-label={t("compartilhandoRotulo")} />}
             </span>

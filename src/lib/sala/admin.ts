@@ -70,9 +70,25 @@ export async function createPartyRoom(db: Db, adminId: string, now: Date): Promi
   return { ok: true, roomId: room.id, convite: null };
 }
 
+/** Quem aparece no painel, com a foto junto do nome (identidade pública); conta apagada fica sem id. */
+export interface PessoaAdmin {
+  id: string | null;
+  nome: string;
+  avatarUrl: string | null;
+}
+
+async function identidades(db: Db, ids: Array<string | null>): Promise<(id: string | null, padrao: string) => PessoaAdmin> {
+  const unicos = [...new Set(ids.filter((v): v is string => !!v))];
+  const { data } = unicos.length ? await db.from("public_player_identities").select("id, username, avatar_url").in("id", unicos) : { data: [] };
+  return (id, padrao) => {
+    const p = (data ?? []).find((x) => x.id === id);
+    return { id: p ? id : null, nome: p?.username ?? padrao, avatarUrl: p?.avatar_url ?? null };
+  };
+}
+
 export interface Banido {
   userId: string;
-  nome: string;
+  pessoa: PessoaAdmin;
   motivo: string;
   em: string;
 }
@@ -81,8 +97,8 @@ export async function listBans(db: Db, ownerId: string): Promise<Banido[]> {
   const { data } = await db.from("voice_bans").select("user_id, reason, created_at").eq("owner_id", ownerId).order("created_at", { ascending: false }).limit(100);
   const rows = data ?? [];
   if (rows.length === 0) return [];
-  const { data: names } = await db.from("public_player_identities").select("id, username").in("id", rows.map((b) => b.user_id));
-  return rows.map((b) => ({ userId: b.user_id, nome: (names ?? []).find((n) => n.id === b.user_id)?.username ?? "jogador", motivo: b.reason, em: b.created_at }));
+  const quem = await identidades(db, rows.map((b) => b.user_id));
+  return rows.map((b) => ({ userId: b.user_id, pessoa: quem(b.user_id, "jogador"), motivo: b.reason, em: b.created_at }));
 }
 
 export async function unban(db: Db, ownerId: string, userId: string): Promise<void> {
@@ -106,10 +122,10 @@ export async function closeRoom(db: Db, roomId: string, now: Date): Promise<void
 
 export interface Overview {
   rooms: Array<RoomRecord & { online: number }>;
-  bookings: Array<{ id: string; startsAt: string; endsAt: string; product: string; buyer: string; hasAccount: boolean }>;
+  bookings: Array<{ id: string; startsAt: string; endsAt: string; product: string; buyer: PessoaAdmin; hasAccount: boolean }>;
   liveOnAir: boolean;
   usage: { estimatedBytes: number; measuredBytes: number; capBytes: number; computedAt: string | null };
-  reports: Array<{ id: string; createdAt: string; reason: string; details: string; messageBody: string; reporter: string; reported: string; roomTitle: string }>;
+  reports: Array<{ id: string; createdAt: string; reason: string; details: string; messageBody: string; reporter: PessoaAdmin; reported: PessoaAdmin; roomTitle: string }>;
 }
 
 export async function adminOverview(db: Db, now: Date): Promise<Overview> {
@@ -142,22 +158,24 @@ async function describeBookings(db: Db, rows: BookingRow[]): Promise<Overview["b
   if (orderIds.length === 0) return [];
   const { data: orders } = await db.from("store_orders").select("id, status, buyer_name, product_title, user_id").in("id", orderIds).eq("status", "pago");
   const byId = new Map((orders ?? []).map((o) => [o.id, o]));
+  const conta = (b: BookingRow) => b.user_id ?? (b.order_id ? byId.get(b.order_id)?.user_id : null) ?? null;
+  const quem = await identidades(db, rows.map(conta));
   return rows.flatMap((b) => {
     const o = b.order_id ? byId.get(b.order_id) : undefined;
     if (!o) return [];
-    return [{ id: b.id, startsAt: b.starts_at, endsAt: b.ends_at, product: o.product_title, buyer: o.buyer_name, hasAccount: !!(b.user_id ?? o.user_id) }];
+    // O nome é o da compra (o PPA reconhece por ele); a foto vem da conta, quando houver.
+    const buyer = { ...quem(conta(b), o.buyer_name), nome: o.buyer_name };
+    return [{ id: b.id, startsAt: b.starts_at, endsAt: b.ends_at, product: o.product_title, buyer, hasAccount: !!conta(b) }];
   });
 }
 
 type ReportRow = { id: string; created_at: string; reason: string; details: string; message_body: string; reporter_id: string | null; reported_id: string | null; room_id: string | null };
 
 async function describeReports(db: Db, rows: ReportRow[], rooms: Array<{ id: string; title: string }>): Promise<Overview["reports"]> {
-  const ids = [...new Set(rows.flatMap((r) => [r.reporter_id, r.reported_id]).filter((v): v is string => !!v))];
-  const { data } = ids.length ? await db.from("public_player_identities").select("id, username").in("id", ids) : { data: [] };
-  const nome = (id: string | null) => (data ?? []).find((p) => p.id === id)?.username ?? "conta apagada";
+  const quem = await identidades(db, rows.flatMap((r) => [r.reporter_id, r.reported_id]));
   return rows.map((r) => ({
     id: r.id, createdAt: r.created_at, reason: r.reason, details: r.details, messageBody: r.message_body,
-    reporter: nome(r.reporter_id), reported: nome(r.reported_id),
+    reporter: quem(r.reporter_id, "conta apagada"), reported: quem(r.reported_id, "conta apagada"),
     roomTitle: rooms.find((x) => x.id === r.room_id)?.title ?? "sala encerrada",
   }));
 }
