@@ -345,6 +345,18 @@
     "offline": "Offline",
     "howMmrWorks": "Como funciona o MMR?"
   },
+  "personMenu": {
+    "viewProfile": "Ver perfil",
+    "message": "Mandar mensagem",
+    "inviteToGroup": "Convidar para o grupo",
+    "inviteSent": "Convite para o grupo enviado",
+    "addFriend": "Adicionar amigo",
+    "requestSent": "Pedido de amizade enviado",
+    "copyName": "Copiar o nome",
+    "copyDotaId": "Copiar o ID do Dota",
+    "copied": "Copiado",
+    "failed": "Não deu certo. Tente de novo."
+  },
   "playMenu": {
     "play": "Jogar Dota",
     "backToRoom": "Voltar à sala",
