@@ -58,8 +58,8 @@ async function capture(browser, admin, width, height, name) {
   await page.locator("[data-mesa-coluna]").evaluate((el) => el.scrollTo(0, el.scrollHeight));
   await page.screenshot({ path: `${OUT}/${name}-fim.png`, fullPage: true });
   await page.locator("[data-mesa-coluna]").evaluate((el) => el.scrollTo(0, 0));
-  await page.locator("[data-fila-linha] > [role=button]").nth(1).click();
-  await page.locator("[data-fila-linha] > [aria-expanded='true']").waitFor({ timeout: 15_000 });
+  await page.locator("[data-fila-linha] [role=button]").nth(1).click();
+  await page.locator("[data-fila-linha] [aria-expanded='true']").waitFor({ timeout: 15_000 });
   await page.screenshot({ path: `${OUT}/${name}-detalhe.png`, fullPage: true });
   console.log(`captura: ${OUT}/${name}.png, -fim.png e -detalhe.png`);
   await context.close();

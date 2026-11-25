@@ -29,7 +29,6 @@ function seatActions(entry: AdminQueueEntry, run: ReturnType<typeof useAction>["
     {
       key: "sair",
       label: "Tirar da party",
-      hint: "Volta para a fila no mesmo lugar; joga quem está presente.",
       icon: <UserMinus size={16} />,
       run: () => run({ action: () => tirarDaParty(entry.id), success: `${entry.name} voltou para a fila.`, undo: () => chamarProximo(entry.id) }),
       testId: "tirar-da-party",
@@ -142,7 +141,6 @@ function OwnerSeat() {
         className="size-16 rounded-sm object-cover object-top shadow-[0_0_0_1px_var(--color-gold),0_0_16px_var(--fd-raw-gold-glow)]"
       />
       <p className="font-display-condensed text-2xl uppercase leading-none text-gold">{OWNER.short}</p>
-      <p className="text-sm text-text-muted">dono da party</p>
     </div>
   );
 }

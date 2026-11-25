@@ -105,7 +105,7 @@ export function AdminQueuePanel({ data, history, accounts }: { data: AdminQueue;
   const step = nextStep(data);
   // Quem ia sair da party e já não está nela (outra ação, ou a mesa atualizou) cancela a troca sozinho.
   const swapFor = party.find((e) => e.id === swapId) ?? null;
-  const doFill = () => fill.run({ action: () => completarParty(), success: "Party completa. Convide cada um pelo ID do Dota." });
+  const doFill = () => fill.run({ action: () => completarParty(), success: "Party completa." });
 
   useShortcuts({
     c: step === "completar" ? doFill : null,

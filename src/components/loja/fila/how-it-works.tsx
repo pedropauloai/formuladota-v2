@@ -1,5 +1,5 @@
-// "Como funciona" da fila: os três passos e as regras que respondem o medo de quem paga
-// (comprar sem live no ar, não aparecer na hora, a live acabar antes da vez). Desenhado no servidor.
+// "Como funciona" da fila: os três passos e as regras que respondem o medo de quem paga (não
+// estar na hora, a live acabar antes da vez, desistir). Desenhado no servidor.
 
 import { useTranslations } from "next-intl";
 import { Panel } from "@/components/v2";
@@ -21,7 +21,6 @@ export function HowItWorks() {
         ))}
       </ol>
       <ul className="space-y-2 border-t border-border-subtle pt-3 text-sm leading-relaxed text-text-muted">
-        <li>{t("rulesOpenQueue")}</li>
         <li>{t("rulesNoShow")}</li>
         <li>{t("rulesCarry")}</li>
         <li>{t("rulesLeave")}</li>

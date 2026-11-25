@@ -70,7 +70,6 @@ export default async function MetodologiaPage() {
             HERO — key-art full-bleed + título dominante (estilo New Frontiers)
             ============================================================ */}
         <FrontierHero
-          eyebrow={t("heroEyebrow")}
           title={t.rich("heroTitle", {
             red: (chunks) => <span className="text-brand-primary">{chunks}</span>,
           })}
@@ -251,7 +250,6 @@ export default async function MetodologiaPage() {
         >
           <FrontierBlockGrid
             heroSlug={HERO_SLUGS.pudge}
-            eyebrow={t("s6Eyebrow")}
             title={t("s6BlockTitle")}
             renderSide="right"
           >
@@ -344,7 +342,6 @@ export default async function MetodologiaPage() {
         >
           <FrontierBlockGrid
             heroSlug={HERO_SLUGS.muerta}
-            eyebrow={t("s8Eyebrow")}
             title={t("s8BlockTitle")}
             renderSide="left"
           >

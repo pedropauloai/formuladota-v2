@@ -11,58 +11,19 @@ import type { FeatureFlagKey, FeatureFlags } from "@/lib/queries/feature-flags";
 interface FlagDef {
   key: FeatureFlagKey;
   label: string;
-  description: string;
+  /** Só o efeito que o nome não diz. */
+  description?: string;
 }
 
 const FLAG_DEFS: FlagDef[] = [
-  {
-    key: "fila_competitiva",
-    label: "Busca de partida e salas (bot do Dota)",
-    description:
-      "Ligado = o JOGAR DOTA busca partida e as salas abrem, com o bot criando a sala no Dota. Desligado = busca e salas pausadas para todos, com o aviso de que o bot está fora do ar. Ligue quando o bot voltar.",
-  },
-  {
-    key: "ranked_com_pro",
-    label: "Subir MMR / Ranked com PRO",
-    description:
-      "Aba do topbar, card da sidebar, modalidade no menu Jogar e a rota /ranked-com-pro. Desligado = some para todos, inclusive admin.",
-  },
-  {
-    key: "doctrine_quiz",
-    label: "Quiz de doutrina (gate de matchmaking)",
-    description:
-      "Ligado = buscar partida exige doutrina ou permissão (5 acertos = 1) e a rota /doutrina abre. Desligado = fila ABERTA (sem quiz) e /doutrina some.",
-  },
-  {
-    key: "match_dodge_penalty",
-    label: "Cooldown de recusa (5 min)",
-    description:
-      "Ligado = quem recusa OU não aceita uma partida encontrada leva 5 min de cooldown de fila. Desligado = sem penalidade (ideal pra testar sem travar). Só afeta cooldowns NOVOS.",
-  },
-  {
-    key: "matchmaking_mmr_range",
-    label: "Faixa de MMR no matchmaking",
-    description:
-      "Ligado = só pareia quem está dentro da janela de MMR (abre em ±600 e cresce +200 a cada 30s até ±2800) e bloqueia grupo com variação interna > 2800. Desligado = MODO LIQUIDEZ: qualquer 10 da região formam partida, ainda balanceada por MMR nos 2 times e com as funções escolhidas — ideal pro Brasil enquanto a fila é magra.",
-  },
-  {
-    key: "enquete_liga",
-    label: "Enquete da Liga do FORMULADOTA",
-    description:
-      "Ligado = a coluna direita mostra a enquete (Sim, Talvez, Não) no lugar do Top do ranking, e quem vota vê quantos disseram Sim até a meta de 50. Desligado = o ranking volta. Critério e consulta em docs/enquete-liga.md.",
-  },
-  {
-    key: "sala_voz",
-    label: "Sala de voz com tela",
-    description:
-      "Ligado = /sala abre para quem é membro de cada sala (mentoria e party da live) e o menu do admin mostra Salas de voz. Desligado = a sala some para todos, inclusive admin, e quem estiver dentro sai em até 2 s. Nada é gravado.",
-  },
-  {
-    key: "loja",
-    label: "Loja do site",
-    description:
-      "Ligado = /loja e as páginas de produto abrem para todos, com checkout pelo Mercado Pago. Desligado = a vitrine some para todos, inclusive admin; página de pedido já feito continua abrindo.",
-  },
+  { key: "fila_competitiva", label: "Busca de partida e salas (bot do Dota)" },
+  { key: "ranked_com_pro", label: "Subir MMR / Ranked com PRO" },
+  { key: "doctrine_quiz", label: "Quiz de doutrina (gate de matchmaking)" },
+  { key: "match_dodge_penalty", label: "Cooldown de recusa (5 min)", description: "Só afeta cooldowns novos." },
+  { key: "matchmaking_mmr_range", label: "Faixa de MMR no matchmaking" },
+  { key: "enquete_liga", label: "Enquete da Liga do FORMULADOTA" },
+  { key: "sala_voz", label: "Sala de voz com tela", description: "Desligado: quem estiver numa sala sai em até 2 s." },
+  { key: "loja", label: "Loja do site", description: "Desligado: a página do pedido já feito continua abrindo." },
 ];
 
 export function FeatureFlagsPanel({ initial }: { initial: FeatureFlags }) {
@@ -104,9 +65,7 @@ export function FeatureFlagsPanel({ initial }: { initial: FeatureFlags }) {
               <p className="font-display text-sm font-bold uppercase tracking-wide text-text-display">
                 {def.label}
               </p>
-              <p className="mt-1 font-body text-sm leading-relaxed text-text-muted">
-                {def.description}
-              </p>
+              {def.description && <p className="mt-1 font-body text-sm text-text-muted">{def.description}</p>}
             </div>
             <button
               type="button"

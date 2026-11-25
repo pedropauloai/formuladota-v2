@@ -60,10 +60,7 @@ export default async function AdminFichasPage() {
   return (
     <div className="p-8 space-y-6">
       <header>
-        <p className="font-sans text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
-          {t("fichasEyebrow")}
-        </p>
-        <h1 className="mt-3 font-display text-3xl uppercase tracking-tight text-text-display">
+        <h1 className="font-display text-3xl uppercase tracking-tight text-text-display">
           {t("fichasTitle")}
         </h1>
         <div className="mt-4 brand-divider" />

@@ -114,7 +114,6 @@ export function CopyId({ id, variant = "quiet", className }: { id: string; varia
         e.stopPropagation();
         void copy();
       }}
-      title="Copiar o ID do Dota para convidar"
       className={cn(
         "group/copy inline-flex items-center gap-2 rounded-[var(--radius-button)] tabular-nums transition-colors",
         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-play-primary",

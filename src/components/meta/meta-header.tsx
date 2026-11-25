@@ -145,7 +145,6 @@ export async function Notes({ data, className }: { data: MetaPageData; className
   if (data.young !== null) {
     notes.push({ key: "young", text: t("youngPatch", { patch: data.view.period.patch ?? "", days: t("days", { count: data.young }) }), warn: true });
   }
-  if (data.state.role === "all") notes.push({ key: "all", text: t("allRolesNote"), warn: false });
   if (notes.length === 0) return null;
   return (
     <div className={cn("flex flex-col gap-1", className)}>

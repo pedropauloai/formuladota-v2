@@ -298,9 +298,6 @@ export default async function AdminUserDetailPage({
       <header className="space-y-3">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="font-sans text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
-              {t("adminUserEyebrow")}
-            </p>
             <h1 className="mt-2 font-display text-3xl uppercase tracking-tight text-text-display">
               {profile.username ?? t("noName")}
             </h1>

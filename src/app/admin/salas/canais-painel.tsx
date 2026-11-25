@@ -48,7 +48,7 @@ function Linha({ c, primeiro, ultimo, rodar }: { c: CanalAdmin; primeiro: boolea
       <button type="button" className={botao} disabled={ultimo} title="Descer" aria-label="Descer" data-admin-canal-descer={c.id} onClick={() => rodar(() => moverCanalNaLista(c.id, "baixo"))}><ArrowDown className="size-3.5" /></button>
       {c.categoria === "voz" && (
         <button type="button" className={botao} data-admin-canal-modo={c.id} onClick={() => rodar(() => mudarModoDoCanal(c.id, c.modo === "livre" ? "palco" : "livre"))}>
-          {c.modo === "livre" ? "Voz livre (todo mundo fala)" : "Palco (você chama quem fala)"}
+          {c.modo === "livre" ? "Voz livre" : "Palco"}
         </button>
       )}
       {c.categoria === "voz" && <Limite valor={c.limite} onChange={(n) => rodar(() => mudarLimiteDoCanal(c.id, n))} data={{ "data-admin-canal-limite": c.id }} />}
@@ -110,7 +110,6 @@ export function CanaisPainel({ canais, site }: { canais: CanalAdmin[]; site: str
     <section className="space-y-4" data-admin-canais={canais.length} aria-busy={pending}>
       <div className="space-y-1">
         <h2 className="font-display text-lg font-bold uppercase text-text-display">Canais do servidor</h2>
-        <p className="text-xs text-text-muted">A coluna da esquerda da /sala, como no Discord. Anuncie na live o endereço fixo: ele leva ao canal de voz em que você estiver; sem live, ao primeiro canal de texto.</p>
         <Copiar texto={`${site}/sala`} rotulo="Copiar o endereço fixo" />
       </div>
       {mensagem && <p className="rounded-md border border-gold/50 bg-bg-base p-2 text-sm text-text-body" role="status">{mensagem}</p>}

@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { CreateSeasonForm, SeasonRowActions } from "./season-controls";
 import { requireAdminPage } from "@/lib/auth/admin-page";
 
-export const metadata = { title: "Admin Temporadas — FORMULADOTA" };
+export const metadata = { title: "Admin Temporadas | FORMULADOTA" };
 export const revalidate = 0;
 
 export default async function AdminTemporadasPage() {
@@ -42,10 +42,7 @@ export default async function AdminTemporadasPage() {
   return (
     <div className="p-8 space-y-6">
       <header>
-        <p className="font-sans text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
-          {t("seasonsEyebrow")}
-        </p>
-        <h1 className="mt-3 font-display text-3xl uppercase tracking-tight text-text-display">
+        <h1 className="font-display text-3xl uppercase tracking-tight text-text-display">
           Seasons
         </h1>
         <div className="mt-4 brand-divider" />

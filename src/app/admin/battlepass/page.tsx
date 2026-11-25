@@ -64,7 +64,7 @@ export default async function AdminBattlepassPage({ searchParams }: { searchPara
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Card title="Assinantes com acesso agora" value={String(view.activeCount)} hint={`${view.activeCard} no cartão, ${view.activePix} no Pix`} />
-        <Card title="Recebido neste mês" value={formatBrl(view.monthCents)} hint="pagamentos confirmados, antes da taxa" />
+        <Card title="Recebido neste mês" value={formatBrl(view.monthCents)} hint="antes da taxa" />
         <Card title="Teste de 30 dias" value={`${view.test.payers} pagante${view.test.payers === 1 ? "" : "s"}`} hint={view.test.label} />
         <Card title="Reembolsos a fazer" value={String(view.refunds.length)} hint={view.refunds.length ? formatBrl(view.refunds.reduce((s, r) => s + r.amountCents, 0)) : "nenhum"} />
       </div>
@@ -72,7 +72,7 @@ export default async function AdminBattlepassPage({ searchParams }: { searchPara
       {view.refunds.length > 0 && (
         <section className="space-y-2 rounded-md border border-error/40 bg-bg-base p-4">
           <h2 className="font-display text-xl uppercase tracking-wide text-text-display">Devolver no Mercado Pago</h2>
-          <p className="text-xs text-text-muted">Garantia de 7 dias pedida pela página. O acesso já terminou; o webhook marca o pagamento quando a devolução é feita.</p>
+          <p className="text-xs text-text-muted">O acesso já terminou.</p>
           <ul className="divide-y divide-border-subtle text-sm">
             {view.refunds.map((r) => (
               <li key={r.paymentId} className="flex flex-wrap items-center justify-between gap-2 py-2">

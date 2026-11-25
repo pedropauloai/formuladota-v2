@@ -135,7 +135,7 @@ export function QueueList({ live, waiting, partyCount, swapFor, onCancelSwap, no
       )}
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
         {waiting.length === 0 ? (
-          <p className="px-4 py-12 text-center text-[15px] text-text-muted">Ninguém esperando. Quem comprar aparece aqui na hora.</p>
+          <p className="px-4 py-12 text-center text-[15px] text-text-muted">Ninguém esperando.</p>
         ) : shown.length === 0 ? (
           <p className="px-4 py-12 text-center text-[15px] text-text-muted">Ninguém com essa busca ou filtro.</p>
         ) : (
@@ -144,9 +144,6 @@ export function QueueList({ live, waiting, partyCount, swapFor, onCancelSwap, no
           ))
         )}
       </div>
-      <p className="border-t border-white/[0.05] px-4 py-2.5 text-sm leading-relaxed text-text-faded">
-        Revezamento: quem nunca jogou vai na frente; depois, quem jogou na party há mais tempo.
-      </p>
     </section>
   );
 }

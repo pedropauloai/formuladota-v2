@@ -54,14 +54,14 @@ function SeatsLine({ live, priceCents }: { live: PublicLive | null; priceCents: 
   );
 }
 
-function Gate({ href, label, text }: { href: string; label: string; text: string }) {
+function Gate({ href, label, text }: { href: string; label: string; text?: string }) {
   return (
     <div className="space-y-3">
       <a href={href} className={plate({ kind: "brand", block: true })}>
         <CtaWarp />
         <LogIn size={18} aria-hidden="true" /> {label}
       </a>
-      <p className="text-xs leading-relaxed text-text-muted">{text}</p>
+      {text && <p className="text-xs leading-relaxed text-text-muted">{text}</p>}
     </div>
   );
 }
@@ -257,7 +257,7 @@ function Purchase({ live, viewer, offer, initialQuantity, onBought, state, battl
       </div>
     );
   }
-  if (!viewer.loggedIn) return <Gate href="/login?next=%2Fparty" label={t("loginCta")} text={t("loginText")} />;
+  if (!viewer.loggedIn) return <Gate href="/login?next=%2Fparty" label={t("loginCta")} />;
   if (!viewer.hasSteam) return <Gate href="/vincular/steam?next=%2Fparty" label={t("steamCta")} text={t("steamText")} />;
   return (
     <>

@@ -111,10 +111,7 @@ export default async function VincularSteamPage({
       <DotaBackdrop />
       <div className="relative z-10 mx-auto max-w-2xl">
         <header className="mb-8 text-center">
-          <p className="font-display font-semibold text-sm uppercase tracking-[0.35em] text-brand-primary">
-            {t("steamLinkEyebrow")}
-          </p>
-          <h1 className="mt-3 font-display text-3xl font-bold tracking-wide text-text-display md:text-4xl">
+          <h1 className="font-display text-3xl font-bold tracking-wide text-text-display md:text-4xl">
             {t("steamLinkTitlePrefix")}{" "}
             <span
               className="text-brand-primary"

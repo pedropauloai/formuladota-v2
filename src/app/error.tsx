@@ -30,9 +30,6 @@ export default function GlobalError({
       <Card variant="elevated" className="w-full max-w-md border-error">
         <CardContent className="space-y-6">
           <header className="space-y-2 text-center">
-            <p className="font-display font-semibold text-sm uppercase tracking-wide text-error">
-              {t("errorEyebrow")}
-            </p>
             <h1 className="font-display text-2xl uppercase tracking-tight text-text-display">
               {t("errorTitle")}
             </h1>

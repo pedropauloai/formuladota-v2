@@ -113,9 +113,11 @@ function Finder({ onClose }: { onClose: () => void }) {
             <span className="truncate text-sm text-text-muted">{h.steamPersona ? `Steam ${h.steamPersona} · ` : ""}ID {h.dotaId}</span>
           </button>
         ))}
-        <p className={cn("px-2 py-3 text-sm leading-relaxed text-text-muted", list.length > 0 && "hidden")}>
-          {q.length < 2 ? "Digite pelo menos 2 letras. Só aparece quem tem a Steam vinculada." : searching ? "Buscando…" : "Ninguém com a Steam vinculada com esse nome ou ID."}
-        </p>
+        {q.length >= 2 && (
+          <p className={cn("px-2 py-3 text-sm leading-relaxed text-text-muted", list.length > 0 && "hidden")}>
+            {searching ? "Buscando…" : "Ninguém com a Steam vinculada com esse nome ou ID."}
+          </p>
+        )}
       </div>
     </div>
   );

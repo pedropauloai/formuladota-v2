@@ -24,16 +24,13 @@ function CloseLive({ data, onClose }: { data: AdminQueue; onClose: () => void })
   if (!live || live.status !== "ao_vivo") return null;
   const inParty = data.entries.some((e) => e.state === "na_party");
   const close = (countMatch: boolean) =>
-    run({ action: () => encerrarLive(live.id, countMatch, live.matchesDone), success: "Live encerrada. A fila continua vendendo para a próxima.", onDone: onClose });
+    run({ action: () => encerrarLive(live.id, countMatch, live.matchesDone), success: "Live encerrada.", onDone: onClose });
   return (
     <div className="space-y-2 border-t border-white/10 p-4">
       {!asking ? (
-        <>
-          <OpButton tone="danger" size="sm" icon={<Power size={15} aria-hidden="true" />} onClick={() => setAsking(true)} data-fila-encerrar>
-            Encerrar a live
-          </OpButton>
-          <p className="text-sm leading-relaxed text-text-muted">Não precisa: ela fecha sozinha 3 horas depois da última chamada ou partida.</p>
-        </>
+        <OpButton tone="danger" size="sm" icon={<Power size={15} aria-hidden="true" />} onClick={() => setAsking(true)} data-fila-encerrar>
+          Encerrar a live
+        </OpButton>
       ) : (
         <>
           <p className="text-sm leading-relaxed text-text-muted">
@@ -64,7 +61,7 @@ function Settings({ data, onClose }: { data: AdminQueue; onClose: () => void }) 
   const [perMatch, setPerMatch] = useState(live?.seatsPerMatch ?? 4);
   const [youtube, setYoutube] = useState(live?.youtubeVideoId ? `https://youtu.be/${live.youtubeVideoId}` : "");
   const { pending, run } = useAction();
-  if (!live) return <p className="p-4 text-[15px] text-text-muted">A fila aberta não está no banco, então não há o que ajustar.</p>;
+  if (!live) return <p className="p-4 text-[15px] text-text-muted">A fila aberta não está no banco.</p>;
   return (
     <>
       <div className="space-y-4 p-4">
@@ -88,7 +85,7 @@ function Settings({ data, onClose }: { data: AdminQueue; onClose: () => void }) 
         {onAir && (
           <label className="block space-y-1.5 text-[15px] text-text-body">
             <span>Link da live no YouTube</span>
-            <input type="url" value={youtube} onChange={(e) => setYoutube(e.target.value)} placeholder="Opcional: sem ele, a página mostra a Twitch" className={cn(FIELD, "w-full")} />
+            <input type="url" value={youtube} onChange={(e) => setYoutube(e.target.value)} placeholder="Opcional" className={cn(FIELD, "w-full")} />
           </label>
         )}
         <OpButton

@@ -10,9 +10,6 @@ export function TabPerfil() {
   const t = useTranslations("perfil");
   return (
     <div className="space-y-4 pt-4">
-      <p className="font-display text-[13px] font-semibold text-text-muted">
-        {t("tabPerfilIntro")}
-      </p>
       {/* Link para Tab Conquistas — brand-primary como accent (UI-SPEC item 7) */}
       <Link
         href="/me?tab=conquistas"

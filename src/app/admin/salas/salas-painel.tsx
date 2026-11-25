@@ -46,7 +46,7 @@ export function SalasPainel({ site, rooms, bookings, liveOnAir }: Props) {
   const [alunoTela, setAlunoTela] = useState(false);
   const link = (id: string) => `${site}/sala/${id}`;
 
-  function guardar(res: { ok: true; roomId: string; convite: string | null } | { ok: false; erro: string }, aviso = "Sala aberta. Copie o link e mande ao aluno pelo WhatsApp.") {
+  function guardar(res: { ok: true; roomId: string; convite: string | null } | { ok: false; erro: string }, aviso = "Sala aberta.") {
     if (!res.ok) return setMensagem(res.erro);
     setMensagem(aviso);
     if (res.convite) setConvites((c) => ({ ...c, [res.roomId]: res.convite as string }));
@@ -96,7 +96,7 @@ export function SalasPainel({ site, rooms, bookings, liveOnAir }: Props) {
           <Plus className="size-3.5" aria-hidden="true" />
           Abrir a sala da party
         </button>
-        {!liveOnAir && <p className="text-xs text-text-muted">Abra a live no painel da fila para criar a sala da party. Entra quem estiver na party agora.</p>}
+        {!liveOnAir && <p className="text-xs text-text-muted">Abra a live no painel da fila para criar a sala da party.</p>}
       </section>
 
       <section className="space-y-3">

@@ -30,10 +30,7 @@ export default async function ProgressoPage() {
     <ClientShell currentRoute="/progresso">
       <div className="px-6 py-8 xl:px-12 xl:py-10 2xl:px-16 2xl:py-12 space-y-10">
         <header>
-          <p className="font-sans text-sm font-semibold uppercase tracking-[0.3em] text-brand-primary">
-            {t("progressEyebrow")}
-          </p>
-          <h1 className="mt-2 font-display text-3xl 2xl:text-5xl uppercase tracking-tight text-text-display">
+          <h1 className="font-display text-3xl 2xl:text-5xl uppercase tracking-tight text-text-display">
             {t("progressTitle")}
           </h1>
           <div className="mt-4 brand-divider" />

@@ -52,10 +52,6 @@ export function PpaAccounts({ accounts }: { accounts: PpaAccount[] }) {
   return (
     <section className={`${panel()} p-5`} data-contas-ppa>
       <h2 className="font-display-condensed text-2xl uppercase text-text-display">Suas contas do Dota</h2>
-      <p className="mt-1 text-sm leading-relaxed text-text-muted">
-        O site te acha numa partida registrada por estas contas: as suas primeiro, depois as emprestadas. Quem do seu time tem conta no
-        FORMULADOTA aparece sozinho em quem jogou.
-      </p>
       <ul className="mt-3 divide-y divide-white/[0.05]">
         {accounts.map((a) => (
           <AccountRow key={a.accountId} account={a} pending={pending} onRemove={() => run({ action: () => removerConta(a.accountId) })} />
