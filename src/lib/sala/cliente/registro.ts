@@ -13,7 +13,8 @@ export interface SalaMeta {
 
 export interface SessaoDoRegistro {
   entrar(): Promise<void>;
-  sair(): void;
+  /** Sai da sala; a promessa termina quando o servidor confirmou a saída. */
+  sair(): Promise<void> | void;
   sairNoFechamento(): void;
   getSnapshot(): { fase: Fase; motivo: string | null };
   subscribe(listener: () => void): () => void;
@@ -30,6 +31,9 @@ export const CHAVE_SALA = "formuladota:sala";
 const CHAVE = CHAVE_SALA;
 // O aviso de saída da página anterior (sendBeacon) chega ao servidor antes de a sala reabrir.
 const ESPERA_AO_RECARREGAR_MS = 1500;
+// Na troca de sala, a entrada na nova espera a saída da anterior chegar ao servidor (senão a pessoa
+// aparecia nas duas na árvore de todo mundo), até este tanto com a rede lenta.
+const ESPERA_SAIDA_MS = 1500;
 
 function metaValida(v: unknown): v is SalaMeta {
   if (!v || typeof v !== "object") return false;
@@ -99,9 +103,10 @@ export function criarRegistro<S extends SessaoDoRegistro>(deps: {
     ativa = { meta, sessao };
     if (candidata?.sessao === sessao) candidata = null;
     anotar(meta);
-    anterior?.sessao.sair();
+    const saida = anterior?.sessao.sair();
     vigiar(sessao);
     avisar();
+    if (saida) await Promise.race([saida, esperar(ESPERA_SAIDA_MS)]);
     await sessao.entrar();
   }
 

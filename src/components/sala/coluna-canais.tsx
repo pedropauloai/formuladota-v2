@@ -75,7 +75,7 @@ function Canal({ c, ativo, p }: { c: CanalItem; ativo: boolean; p: ColunaProps }
   };
   const aoVivo = p.pessoasDe(c.id);
   return (
-    <li>
+    <li data-canal-item={c.id}>
       <Link
         href={href}
         onClick={(e) => void trocar(e)}

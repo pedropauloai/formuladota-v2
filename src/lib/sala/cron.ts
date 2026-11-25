@@ -9,6 +9,7 @@ import { alertLevelFor, capBytesFor } from "./custo";
 import { getSettings, type Db } from "./dados-sala";
 import { openSessions, type SessionRow } from "./dados-rtc";
 import { computeUsageBytes, saveUsageCache, windowStartFor } from "./dados-uso";
+import { avisarCanais } from "./lista-canais";
 import { realtimeEnv } from "./realtime-api";
 import { closeSessions, revokeTurn } from "./sessoes";
 
@@ -37,6 +38,7 @@ async function closeStale(db: Db, now: Date): Promise<number> {
     .filter((s) => new Date(seen.get(`${s.room_id}:${s.user_id}`) ?? s.created_at).getTime() < limit)
     .map((s) => ({ id: s.id, roomId: s.room_id, userId: s.user_id, closedAt: null }));
   await closeSessions(db, realtimeEnv(), stale, "sem_batimento", now);
+  if (stale.length > 0) await avisarCanais(db);
   return stale.length;
 }
 

@@ -86,6 +86,21 @@ export interface ListaDeCanais {
   texto: CanalItem[];
   voz: CanalItem[];
   privadas: CanalItem[];
+  /** Tópico do Broadcast do Realtime que avisa quando alguém entra ou sai de um canal. */
+  aviso?: string;
+}
+
+/** Na tela de quem está numa sala, ela aparece só nessa sala, sem esperar a lista nova (que chega pelo
+ *  aviso do servidor): a lista dos outros canais ainda pode mostrar o canal de onde ela acabou de sair. */
+export function semMimForaDaSala(lista: ListaDeCanais, eu: string | null, sala: string | null): ListaDeCanais {
+  if (!eu || !sala) return lista;
+  const tirar = (c: CanalItem): CanalItem => {
+    if (c.id === sala || !c.pessoas.some((p) => p.userId === eu)) return c;
+    const pessoas = c.pessoas.filter((p) => p.userId !== eu);
+    const online = Math.max(0, c.online - 1);
+    return { ...c, pessoas, online, cheio: c.lugares !== null && online >= c.lugares, aoVivo: pessoas.some((p) => p.tela) };
+  };
+  return { ...lista, voz: lista.voz.map(tirar), privadas: lista.privadas.map(tirar) };
 }
 
 function pessoa(m: NonNullable<CanalBruto["m"]>[number]): PessoaNoCanal {

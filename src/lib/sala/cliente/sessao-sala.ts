@@ -263,10 +263,16 @@ export class SessaoSala {
   bloquear = (userId: string) => this.a.bloquear(userId);
   denunciar = (alvo: AlvoDenuncia, motivo: string, detalhes: string) => this.a.denunciar(alvo, motivo, detalhes);
 
-  sair(): void {
+  /** Sai da sala; a promessa termina quando o servidor confirmou (a troca de canal espera por ela). */
+  async sair(): Promise<void> {
     if (this.snap.fase !== "na_sala") return;
-    void this.a.sair();
+    const pedido = this.a.sair();
     this.encerrar("saiu");
+    try {
+      await pedido;
+    } catch {
+      // Sem rede: a sessão fecha sozinha sem o batimento.
+    }
   }
 
   /** Aba fechando ou componente desmontado: avisa o servidor pelo sendBeacon e solta tudo. */

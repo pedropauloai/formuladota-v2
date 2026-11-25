@@ -9,6 +9,7 @@ import { hashInvite } from "./entrada";
 import { getRoom, getSettings, toRoom, unbanUser, type Db, type RoomRecord } from "./dados-sala";
 import { openSessions } from "./dados-rtc";
 import { measuredBytes } from "./dados-uso";
+import { avisarCanais } from "./lista-canais";
 import { realtimeEnv } from "./realtime-api";
 import { closeSessions, revokeTurn } from "./sessoes";
 import type { ScreenPolicy } from "./tipos";
@@ -100,6 +101,7 @@ export async function closeRoom(db: Db, roomId: string, now: Date): Promise<void
   await db.from("voice_rooms").update({ status: "encerrada", closed_at: now.toISOString() }).eq("id", roomId).eq("status", "aberta");
   await closeSessions(db, realtimeEnv(), await openSessions(db, { roomId }), "sala_encerrada", now);
   await revokeTurn(db, realtimeEnv(), roomId);
+  await avisarCanais(db);
 }
 
 export interface Overview {

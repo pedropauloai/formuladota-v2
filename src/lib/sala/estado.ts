@@ -8,6 +8,7 @@ import { z } from "zod";
 import { createServiceClient } from "@/lib/supabase/service";
 import { authInfo, contextFor, salaFlagOn, verdictOf, type CallContext, type Verdict } from "./contexto";
 import { SnapshotSchema } from "./contratos";
+import { getSession } from "./dados-rtc";
 import type { Db } from "./dados-sala";
 import { insertStats } from "./dados-uso";
 import { SnapshotCache, TtlCache, type RawSnapshot } from "./memoria";
@@ -56,6 +57,13 @@ async function fetchSnapshot(db: Db, roomId: string, chatAfter: number): Promise
   return SnapshotSchema.parse(data);
 }
 
+/** Sem sessão ainda (o canal de texto, ou a voz antes do SFU) vale como viva; com sessão, só a aberta desta pessoa nesta sala. */
+async function sessaoViva(roomId: string, userId: string, sessionId: string | null): Promise<boolean> {
+  if (!sessionId) return true;
+  const s = await getSession(createServiceClient(), sessionId);
+  return !!s && !s.closedAt && s.roomId === roomId && s.userId === userId;
+}
+
 export async function roomState(roomId: string, body: z.infer<typeof EstadoBody>): Promise<Estado> {
   const now = new Date();
   const [auth, flagOn] = await Promise.all([authInfo(), salaFlagOn(now.getTime())]);
@@ -65,7 +73,10 @@ export async function roomState(roomId: string, body: z.infer<typeof EstadoBody>
   let v = body.beat ? undefined : verdicts.get(key, now.getTime());
   let ctx: CallContext | null = null;
   if (!v) {
-    const rpc = body.beat ? { fn: "tick" as const, muted: body.beat.muted, hand: body.beat.hand } : { fn: "access" as const };
+    // Batimento atrasado de uma sessão que já fechou (saiu, trocou de sala): lê o estado sem marcar a
+    // presença de novo, senão a árvore mostrava a pessoa no canal antigo por mais 30 s.
+    const viva = !!body.beat && (await sessaoViva(roomId, auth.userId, body.sessionId));
+    const rpc = body.beat && viva ? { fn: "tick" as const, muted: body.beat.muted, hand: body.beat.hand } : { fn: "access" as const };
     ctx = await contextFor(roomId, auth, flagOn, rpc, now);
     v = verdictOf(ctx);
     verdicts.set(key, v, now.getTime());
