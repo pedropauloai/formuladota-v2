@@ -38,7 +38,7 @@ O que toda sala faz: voz com cancelamento de eco, supressão de ruído e ganho a
 | R8 | Na sala pública, chat de texto: o dono apaga mensagem, e qualquer um denuncia mensagem ou pessoa. |
 | R9 | O dono muta, expulsa (sai desta sala) e bane (não entra mais nas salas dele). |
 | R10 | Lugares contados na sala pública; o Battlepass entra mesmo com a sala cheia (escolha 9). |
-| R11 | A tela vai em duas camadas (simulcast). A qualidade é só de quem transmite: quem assiste recebe a camada alta, e o SFU desce para a leve sozinho quando falta banda e volta depois (`priorityOrdering` e `ridNotAvailable` em `asciibetical`). A leve fica para quem está fora da página da sala (pedido do PPA de 24/11/2026: "o consumo não preocupa"). |
+| R11 | A tela vai em duas camadas (simulcast). A qualidade é só de quem transmite: quem assiste recebe a camada alta, sem escolher nada (pedido do PPA de 24/11/2026: "o consumo não preocupa"). A leve fica para quem está fora da página da sala e, só para não congelar, para quem tem a conexão fraca: dois congelamentos em 20 s descem para a leve por 60 s, e a espera dobra se a tela cair logo depois de voltar, até 5 min (`fluidez.ts`). O SFU só troca de camada quando quem transmite para de mandar a alta (`ridNotAvailable`); a troca dele por banda prendia na leve e congelava 3 s a cada tentativa de subir. |
 | R12 | Nada gravado: nenhuma mídia passa por servidor do FORMULADOTA nem é guardada pela Cloudflare. |
 | R13 | Teto de tráfego que bloqueia tela nova, baixa a camada da plateia antes disso e avisa o PPA. |
 | R14 | Métricas de cada pessoa a cada 10 s: perda de pacote, jitter, RTT, resolução e quadros, e o atraso estimado. |
@@ -136,7 +136,7 @@ Site em Next.js 16 no Cloudflare Workers pelo OpenNext; Supabase com RLS obrigat
 
 ### ADR-006: simulcast em duas camadas, com a camada escolhida pelo servidor
 
-**Estado:** revisada em 24/11/2026. A tela sobe em duas camadas, `f` (a qualidade escolhida) e `h` (metade da resolução). Quem assiste recebe a `f`, sem escolher nada: a qualidade é de quem transmite, e o SFU desce para a `h` quando falta banda a quem assiste e volta depois. A `h` vale também para quem está fora da página da sala. A regra antiga (plateia da sala pública na leve, a alta só abaixo de metade do teto) saiu: medida no `pnpm sala:tela`, a camada leve chegava a 17 a 48 quadros por segundo, e o PPA disse que o consumo não preocupa. O teto que barra tela nova continua. Subir duas camadas pede mais upload do PPA (que já transmite para a Twitch); a medida no teste real diz se cabe.
+**Estado:** revisada em 24/11/2026. A tela sobe em duas camadas, `f` (a qualidade escolhida) e `h` (metade da resolução). Quem assiste recebe a `f`, sem escolher nada: a qualidade é de quem transmite. A `h` vale para quem está fora da página da sala e, por um tempo, para quem tem a tela congelando de novo e de novo (a proteção mora no navegador de quem assiste, `fluidez.ts`). O SFU só troca quando quem transmite para de mandar a `f`: a troca dele por banda (`priorityOrdering: asciibetical`) prendia na `h` e congelava 3 s a cada tentativa de subir, mesmo com banda sobrando. A regra antiga (plateia da sala pública na leve, a alta só abaixo de metade do teto) saiu: medida no `pnpm sala:tela`, a camada leve chegava a 17 a 48 quadros por segundo, e o PPA disse que o consumo não preocupa. O teto que barra tela nova continua. Subir duas camadas pede mais upload do PPA (que já transmite para a Twitch); a medida no teste real diz se cabe.
 
 ### ADR-007: a sala vive fora da página
 
@@ -281,7 +281,7 @@ A conta confere com a da sessão central: tela a 4 Mbps para 50 pessoas, 3 horas
 
 **O que segura o custo.**
 - Lugares: a sala pública tem `palco_max_members` lugares (recomendação: 30).
-- Camada: quem assiste recebe a camada alta (o SFU desce para a leve quando falta banda). Fora da página da sala, a leve. A estimativa de custo da plateia passa a contar a camada alta.
+- Camada: quem assiste recebe a camada alta; a leve fora da página da sala e, por um tempo, para a conexão fraca que congela. A estimativa de custo da plateia passa a contar a camada alta.
 - Teto: tela nova fica bloqueada ao chegar no teto; a voz e a tela já no ar continuam. Aviso ao PPA em 50%, 80% e 100% e num pico (mais de 20 GB numa hora).
 - O valor do teto é dinheiro e é decisão do PPA (escolha 7): ficar no grátis (800 GB em 30 dias) ou aceitar um gasto mensal.
 

@@ -77,9 +77,18 @@ export function decideLabel(input: { tipo: TrackLabel; kind: TrackKind; canShare
   return { ok: true };
 }
 
-/** Quem ainda pode publicar aquele tipo de faixa, pelo papel de agora. */
-export function publisherMayKeep(role: MemberRole, tipo: TrackLabel): boolean {
-  return tipo === "voz" ? canPublishVoice(role) : role === "dono" || role === "membro";
+/** A sala, no que decide quem pode compartilhar a tela. */
+export interface SalaDaTela {
+  kind: RoomKind;
+  voiceMode: VoiceMode;
+  screenPolicy: ScreenPolicy;
+  partyScreenEnabled: boolean;
+}
+
+/** Quem ainda pode publicar aquele tipo de faixa, pelo papel de agora: a voz enquanto pode falar, a tela
+ *  enquanto pode compartilhar (quem voltou à plateia do palco deixa de ser ouvido e visto). */
+export function publisherMayKeep(role: MemberRole, tipo: TrackLabel, sala: SalaDaTela): boolean {
+  return tipo === "voz" ? canPublishVoice(role) : canShareScreen(role, sala.kind, sala.voiceMode, sala.screenPolicy, sala.partyScreenEnabled);
 }
 
 export interface TrackView {
@@ -91,10 +100,10 @@ export interface TrackView {
 
 /** Faixas que esta pessoa pode receber agora: rotuladas, de quem está online e ainda pode publicar
  *  aquilo, sem bloqueio entre os dois, nunca a própria. */
-export function visibleTracks<T extends TrackView>(tracks: T[], me: string, members: Map<string, { role: MemberRole; online: boolean }>, blocked: Set<string>): T[] {
+export function visibleTracks<T extends TrackView>(tracks: T[], me: string, members: Map<string, { role: MemberRole; online: boolean }>, blocked: Set<string>, sala: SalaDaTela): T[] {
   return tracks.filter((t) => {
     const m = members.get(t.userId);
-    return t.userId !== me && t.tipo !== null && !!m?.online && publisherMayKeep(m.role, t.tipo) && !blocked.has(t.userId);
+    return t.userId !== me && t.tipo !== null && !!m?.online && publisherMayKeep(m.role, t.tipo, sala) && !blocked.has(t.userId);
   });
 }
 

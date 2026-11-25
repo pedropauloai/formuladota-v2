@@ -163,7 +163,10 @@ export class SessaoSala {
 
   private async medir(): Promise<void> {
     const conn = this.lig?.conn;
-    if (conn) this.set(await this.pulso.medir(conn));
+    if (!conn) return;
+    const medida = await this.pulso.medir(conn);
+    this.set(medida);
+    this.lig?.recepcao.observarFluidez(medida.qualidade.videoFreezeMs, Date.now());
   }
 
   private atualizarFala(): void {

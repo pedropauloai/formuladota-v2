@@ -112,7 +112,8 @@ async function targetsFor(ctx: CallContext, remotes: Tracks["tracks"]): Promise<
     const m = rows.get(f.pub.userId);
     const online = !!m?.lastSeenAt && new Date(m.lastSeenAt).getTime() > onlineSince;
     const role = ctx.room ? effectiveRole(m?.role ?? "ouvinte", ctx.room.kind, ctx.room.voiceMode) : "ouvinte";
-    const allowed = !!m && m.status === "ativo" && online && (f.track.tipo === null || publisherMayKeep(role, f.track.tipo as TrackLabel));
+    const sala = ctx.room && ctx.settings ? { kind: ctx.room.kind, voiceMode: ctx.room.voiceMode, screenPolicy: ctx.room.screenPolicy, partyScreenEnabled: ctx.settings.partyScreenEnabled } : null;
+    const allowed = !!m && m.status === "ativo" && online && (f.track.tipo === null || (sala !== null && publisherMayKeep(role, f.track.tipo as TrackLabel, sala)));
     return {
       roomId: f.pub.roomId, userId: f.pub.userId, closed: f.track.closed || !!f.pub.closedAt, tipo: f.track.tipo,
       publisherActive: allowed, kind: f.track.kind, quality: f.track.quality,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { checkLayerUpdate, decideLabel, decideLayer, decidePublish, decideSubscribe, hasRepeatedPull, labelMatchesKind, visibleTracks, type PublishInput, type SubscribeInput, type TrackView } from "./faixas";
+import { checkLayerUpdate, decideLabel, decideLayer, decidePublish, decideSubscribe, hasRepeatedPull, labelMatchesKind, visibleTracks, type PublishInput, type SalaDaTela, type SubscribeInput, type TrackView } from "./faixas";
 import type { MemberRole } from "./tipos";
 
 function publish(over: Partial<PublishInput> = {}): PublishInput {
@@ -144,6 +144,9 @@ describe("rótulo da faixa", () => {
 describe("visibleTracks (o que cada pessoa pode receber agora)", () => {
   const faixa = (userId: string, tipo: TrackView["tipo"]): TrackView => ({ sessionId: `s-${userId}`, userId, trackName: `t-${userId}-${tipo}`, tipo });
   const membro = (role: MemberRole, online = true) => ({ role, online });
+  const palco: SalaDaTela = { kind: "palco", voiceMode: "palco", screenPolicy: "dono", partyScreenEnabled: false };
+  const livre: SalaDaTela = { ...palco, voiceMode: "livre" };
+  const mentoria: SalaDaTela = { kind: "mentoria", voiceMode: "palco", screenPolicy: "um_por_vez", partyScreenEnabled: false };
 
   it("faixa rotulada de quem está online e pode publicar aquilo, sem bloqueio, nunca a própria", () => {
     const tracks = [
@@ -154,13 +157,24 @@ describe("visibleTracks (o que cada pessoa pode receber agora)", () => {
       ["ppa", membro("dono")], ["eu", membro("falante")], ["ausente", membro("falante", false)],
       ["bloqueado", membro("falante")], ["novo", membro("falante")], ["plateia", membro("ouvinte")],
     ]);
-    const v = visibleTracks(tracks, "eu", members, new Set(["bloqueado"])).map((t) => t.trackName);
+    const v = visibleTracks(tracks, "eu", members, new Set(["bloqueado"]), palco).map((t) => t.trackName);
     expect(v).toEqual(["t-ppa-voz", "t-ppa-tela", "t-ppa-tela_audio"]);
   });
 
   it("a tela do aluno da mentoria aparece para o dono", () => {
     const members = new Map([["aluno", membro("membro")], ["ppa", membro("dono")]]);
-    expect(visibleTracks([faixa("aluno", "tela")], "ppa", members, new Set()).length).toBe(1);
+    expect(visibleTracks([faixa("aluno", "tela")], "ppa", members, new Set(), mentoria).length).toBe(1);
+  });
+
+  it("na voz livre, a tela de quem não é dono chega aos outros", () => {
+    const members = new Map([["amigo", membro("falante")], ["eu", membro("falante")]]);
+    expect(visibleTracks([faixa("amigo", "tela"), faixa("amigo", "tela_audio")], "eu", members, new Set(), livre).length).toBe(2);
+  });
+
+  it("no palco, a tela de quem voltou à plateia deixa de chegar", () => {
+    const members = new Map([["chamado", membro("falante")], ["voltou", membro("ouvinte")], ["eu", membro("ouvinte")]]);
+    const v = visibleTracks([faixa("chamado", "tela"), faixa("voltou", "tela")], "eu", members, new Set(), palco).map((t) => t.userId);
+    expect(v).toEqual(["chamado"]);
   });
 });
 
