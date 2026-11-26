@@ -160,6 +160,9 @@ export async function enter(ctx, roomId, quem = "navegador") {
   const page = await ctx.newPage();
   instrument(page, quem);
   await page.goto(`${BASE}/sala/${roomId}`);
+  await page.locator("[data-sala-entrar]").waitFor({ timeout: 60_000 });
+  // O cartão do microfone da entrada assenta antes do clique (o guia que aparece empurra o botão para baixo).
+  await page.locator('[data-sala-checagem="carregando"]').waitFor({ state: "detached", timeout: 10_000 }).catch(() => null);
   await page.locator("[data-sala-entrar]").click({ timeout: 60_000 });
   await page.locator('[data-sala-fase="na_sala"]').waitFor({ timeout: 30_000 });
   return page;

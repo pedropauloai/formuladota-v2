@@ -1,6 +1,7 @@
 // Teste por mutação das travas da sala de voz: tira uma trava por vez (troca literal), roda o Vitest
 // das regras e exige vermelho. Restaura o arquivo no fim, mesmo se o teste estourar.
 // Rodar: node scripts/sala/mutacao.mjs   (sai com 1 se alguma mutação sobreviver ou não se aplicar)
+// Só alguns arquivos: MUTACAO_SO=src/lib/sala/cliente/navegador.ts,src/lib/sala/cliente/microfone.ts
 import { readFileSync, writeFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 
@@ -36,6 +37,7 @@ const MDR = "src/lib/sala/moderacao.ts";
 const MV = "src/lib/sala/mover-regra.ts";
 const PV = "src/lib/sala/cliente/porta-voz.ts";
 const MED = "src/lib/sala/cliente/medidor-voz.ts";
+const NA = "src/lib/sala/cliente/navegador.ts";
 
 const MUTACOES = [
   [A, 'if (!input.flagOn) return { ok: false, code: "flag_desligada" };', "", "flag desligada não esconde"],
@@ -101,7 +103,7 @@ const MUTACOES = [
   [RG, 'if (fase === "saiu" || fase === "erro") anotar(null);', "", "quem foi tirado da sala volta nela ao recarregar"],
   [FC, 'if (env.NODE_ENV !== "development") return SALA_FLAG;', "", "produção obedece a linha de teste da flag"],
   [MO, 'vozAberta: snap.tracks.some((t) => t.u === me && t.t === "voz"),', "vozAberta: true,", "o estado sempre diz que a voz está aberta"],
-  [MI, 'if (nome === "NotAllowedError" || nome === "SecurityError") return "negado";', "", "microfone negado vira falha sem o caminho do cadeado"],
+  [MI, 'if (nome === "NotAllowedError" || nome === "SecurityError") {', 'if (nome === "SecurityError") {', "microfone negado vira falha sem o caminho do cadeado"],
   [GV, "if (quer && falhou(snap.microfone) && !this.deNovo) return;", "", "depois de negado, o batimento pede o microfone de novo a cada 2 s"],
   [VL, 'if (this.ligando) return "abrindo";', 'if (this.ligando) return "ok";', "o microfone abrindo some da tela"],
   [NV, "for (const id of acima) ultima.set(id, agora);", "", "quem fala não acende o anel"],
@@ -158,10 +160,33 @@ const MUTACOES = [
   [VL, "    this.filtro?.ajustar(this.opcoes());\n", "", "a engrenagem não ajusta o filtro"],
   [MED, "const ligar = () => fonte?.medir(reguas.size > 0 ? repassar : null);", "const ligar = () => fonte?.medir(repassar);", "o processador mede sem régua aberta"],
   [MED, "        fonte?.medir(null);\n", "", "a voz que sai do ar segue medindo"],
+  [MI, 'if (/system/i.test(mensagem) || permissao === "granted") return "sistema";', 'if (/system/i.test(mensagem)) return "sistema";', "o sistema barrando, com o site liberado, vira site bloqueado"],
+  [MI, 'if (/system/i.test(mensagem) || permissao === "granted") return "sistema";', 'if (permissao === "granted") return "sistema";', "o aviso do Chrome de sistema barrando vira site bloqueado"],
+  [MI, '    if (permissao === "prompt") return "pergunta";\n', "", "fechar o aviso do navegador sem escolher vira site bloqueado"],
+  [MI, 'if (nome === "NotReadableError" || nome === "AbortError") return "sistema";', 'if (nome === "NotReadableError" || nome === "AbortError") return "falhou";', "microfone preso pelo sistema vira falha sem caminho"],
+  [MI, "  if (f.falha) return f.falha;\n", "", "a falha ao abrir some da entrada"],
+  [MI, 'if (f.ligado) return f.permissao === "prompt" ? "pedindo" : "abrindo";', 'if (f.ligado) return "abrindo";', "o clique em ativar não mostra o guia do aviso do navegador"],
+  [MI, 'if (f.ligado) return f.permissao === "prompt" ? "pedindo" : "abrindo";', 'if (f.ligado) return "pedindo";', "o guia do aviso escurece a tela mesmo quando o navegador não vai perguntar"],
+  [MI, '  if (f.permissao === "denied") return "negado";\n', "", "o site bloqueado mostra o botão de ativar em vez do guia"],
+  [MI, '  if (f.permissao === "granted") return "abrindo";\n', "", "liberado antes, a entrada pede o clique de novo"],
+  [MI, "const FUNCIONANDO_MEDIDAS = 6;", "const FUNCIONANDO_MEDIDAS = 1;", "um estalo acende o microfone funcionando"],
+  [MI, "const seguidas = aberta ? e.seguidas + 1 : 0;", "const seguidas = aberta ? e.seguidas + 1 : e.seguidas;", "estalos soltos somam até acender o microfone funcionando"],
+  [MI, "  if (e.ok) return e;\n", "", "o microfone funcionando apaga na primeira pausa"],
+  [NA, '  if (/Edg(A|iOS)?\\//.test(ua)) return "edge";\n', "", "o Edge vira Chrome e mostra o ícone errado"],
+  [NA, '  if (/OPR\\/|Opera/.test(ua)) return "opera";\n', "", "o Opera vira Chrome e mostra o ícone errado"],
+  [NA, '  if (extras.brave || extras.marcas?.includes("Brave")) return "brave";\n', "", "o Brave some e vira Chrome"],
+  [NA, '  if (/Firefox\\/|FxiOS/.test(ua)) return "firefox";\n', "", "o Firefox some"],
+  [NA, '  if (/Safari\\//.test(ua)) return "safari";\n', "", "o Safari some e perde o caminho dos ajustes"],
+  [NA, 'return n === "safari" ? "centro" : "esquerda";', 'return "esquerda";', "no Safari, a seta aponta para o canto em vez do meio"],
+  [NA, 'if (n === "edge" || n === "opera") return "cadeado";', 'if (n === "edge") return "cadeado";', "o Opera mostra os ajustes do Chrome no lugar do cadeado"],
+  [NA, 'if (n === "firefox") return "microfone";', 'if (n === "firefox") return "ajustes";', "o Firefox mostra os ajustes do Chrome no lugar do microfone riscado"],
+  [NA, 'if (/Windows/.test(ua)) return "windows";', 'if (/Win32/.test(ua)) return "windows";', "o Windows some e perde o caminho da privacidade"],
+  [NA, 'if (/Macintosh|Mac OS X/.test(ua)) return "mac";', 'if (/Mac OS X 11/.test(ua)) return "mac";', "o macOS some e perde o caminho dos ajustes"],
 ];
 
 let falhas = 0;
-for (const [file, from, to, nome] of MUTACOES) {
+const so = (process.env.MUTACAO_SO ?? "").split(",").filter(Boolean);
+for (const [file, from, to, nome] of MUTACOES.filter(([f]) => so.length === 0 || so.includes(f))) {
   const original = readFileSync(file, "utf8");
   const crlf = original.includes("\r\n");
   const normal = original.replace(/\r\n/g, "\n");
