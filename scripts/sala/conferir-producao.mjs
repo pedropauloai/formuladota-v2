@@ -3,6 +3,8 @@
 // voz, o estado responde com quem está na sala, vai para /meta com o painel de voz, volta pelo painel e sai,
 // sem erro na página nem erro 5xx nas rotas da sala. O aviso dos canais (Broadcast do Realtime, escutado com a
 // chave pública, como o navegador) chega quando a pessoa entra e quando sai. Sem canal, confere a página do servidor vazio.
+// E o filtro do microfone (R21) roda no domínio real, com a regra de conteúdo de produção: o WebAssembly do
+// RNNoise compila, os processadores de áudio carregam de /voz e a fala falsa atravessa o RNNoise e a porta.
 // A conta de teste é apagada no fim (as linhas dela na sala saem junto). Sai com 1 se algo falhar.
 // Rodar: pnpm sala:producao
 
@@ -52,6 +54,54 @@ async function entrarNoSite() {
   });
   return page;
 }
+
+/** O filtro do microfone na página do domínio real: compila, carrega e deixa a fala passar (maior volume de 1 s). */
+const filtroNoDominio = (page) =>
+  page.evaluate(async () => {
+    const r = { compila: false, carrega: false, volume: 0, erro: "" };
+    try {
+      const wasm = await (await fetch("/voz/rnnoise-0.4.2/rnnoise_simd.wasm")).arrayBuffer();
+      await WebAssembly.compile(wasm);
+      r.compila = true;
+      const ctx = new AudioContext({ sampleRate: 48_000 });
+      await ctx.audioWorklet.addModule("/voz/rnnoise-0.4.2/workletProcessor.js");
+      await ctx.audioWorklet.addModule("/voz/porta-voz.js");
+      r.carrega = true;
+      const rn = new AudioWorkletNode(ctx, "@sapphi-red/web-noise-suppressor/rnnoise", { processorOptions: { maxChannels: 1, wasmBinary: wasm } });
+      const porta = new AudioWorkletNode(ctx, "porta-de-voz", { outputChannelCount: [1] });
+      let falhou = "";
+      rn.onprocessorerror = () => (falhou = "rnnoise");
+      porta.onprocessorerror = () => (falhou = "porta");
+      const n = 48_000 * 3;
+      const fala = new Float32Array(n);
+      for (let i = 0; i < n; i++) {
+        const k = i % 14_880;
+        const env = k < 10_560 ? Math.min(1, k / 960, (10_560 - k) / 960) : 0;
+        const w = (2 * Math.PI * [180, 240, 300][Math.floor(i / 14_880) % 3] * i) / 48_000;
+        fala[i] = env * 0.4 * (0.5 * Math.sin(w) + 0.25 * Math.sin(2 * w) + 0.12 * Math.sin(3 * w));
+      }
+      const buf = ctx.createBuffer(1, n, 48_000);
+      buf.copyToChannel(fala, 0);
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      const an = ctx.createAnalyser();
+      an.fftSize = 2048;
+      await new Promise((ok) => setTimeout(ok, 500));
+      src.connect(rn).connect(porta).connect(an);
+      src.start();
+      const janela = new Float32Array(2048);
+      for (let i = 0; i < 40; i++) {
+        await new Promise((ok) => setTimeout(ok, 50));
+        an.getFloatTimeDomainData(janela);
+        r.volume = Math.max(r.volume, Math.sqrt(janela.reduce((s, v) => s + v * v, 0) / janela.length));
+      }
+      if (falhou) r.erro = `processador ${falhou} falhou`;
+      await ctx.close();
+    } catch (e) {
+      r.erro = String(e).slice(0, 160);
+    }
+    return r;
+  });
 
 async function naSala(page) {
   await page.locator('a[href="/sala"]').first().click({ timeout: 30_000 });
@@ -103,6 +153,8 @@ try {
   const page = await entrarNoSite();
   await page.goto(SITE, { waitUntil: "domcontentloaded", timeout: 60_000 });
   check("a aba Sala de voz aparece na barra de cima", !!(await waitFor(async () => (await page.locator('a[href="/sala"]').count()) > 0, 30_000)));
+  const f = await filtroNoDominio(page);
+  check("o filtro do microfone roda no domínio real: o RNNoise compila, os processadores carregam e a fala passa", f.compila && f.carrega && !f.erro && f.volume > 0.01, `compila ${f.compila}, carrega ${f.carrega}, volume ${Math.round(f.volume * 1000) / 1000}${f.erro ? `, ${f.erro}` : ""}`);
   if (await naSala(page)) await navegarESair(page);
   check("nenhum erro na página", erros.length === 0, erros.slice(0, 3).join(" | "));
 } catch (err) {

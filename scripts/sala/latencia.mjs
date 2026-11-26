@@ -5,6 +5,9 @@
 // clique é marcado na saída do microfone de quem fala e na faixa recebida de quem escuta, e a diferença é
 // o atraso. Mede 60 cliques e mostra mediana e p95, com o RTT e o buffer de jitter da getStats. Referência:
 // ITU-T G.114, até 150 ms de uma ponta à outra para conversa sem incômodo. Passa com o p95 até 150 ms.
+// O filtro do microfone (R21) barra justamente clique curto: quem fala entra com a redução de ruído
+// desligada e a régua no mínimo (a porta sempre aberta). A marca de envio é a faixa que sai, depois do
+// filtro; o atraso do próprio filtro é medido à parte, no e2e (e2e-filtro.mjs).
 // Rodar: pnpm sala:latencia   (SALA_E2E_PORT reaproveita um servidor local de pé; padrão 3200)
 
 import { writeFileSync } from "node:fs";
@@ -135,6 +138,7 @@ async function preparar() {
     navegadores.push(nav);
     const ctx = await s.buyerContext(nav, u, { desktop: true });
     await ctx.addInitScript(guardarConexoes);
+    if (quem === "fala") await ctx.addInitScript(() => localStorage.setItem("formuladota:voz", JSON.stringify({ reducaoRuido: false, sensibilidadeAuto: false, sensibilidadeDb: -80 })));
     return s.enter(ctx, canal.id, quem);
   };
   // Quem escuta entra primeiro: os cliques do arquivo começam quando o microfone de quem fala abre.

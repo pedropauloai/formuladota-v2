@@ -34,6 +34,8 @@ const MN = "src/lib/sala/cliente/menus.ts";
 const SQ = "src/lib/sala/cliente/sequencia.ts";
 const MDR = "src/lib/sala/moderacao.ts";
 const MV = "src/lib/sala/mover-regra.ts";
+const PV = "src/lib/sala/cliente/porta-voz.ts";
+const MED = "src/lib/sala/cliente/medidor-voz.ts";
 
 const MUTACOES = [
   [A, 'if (!input.flagOn) return { ok: false, code: "flag_desligada" };', "", "flag desligada não esconde"],
@@ -134,6 +136,28 @@ const MUTACOES = [
   [MN, 'if (p.destinos > 0) out.push("mover");', 'out.push("mover");', "o menu oferece mover sem outro canal de voz"],
   [MO, "movidoPara: mine?.mv && mine.mv !== room.id ? mine.mv : null,", "movidoPara: mine?.mv ?? null,", "o destino igual ao próprio canal faz a página trocar para ela mesma"],
   [MO, "movidoPara: mine?.mv && mine.mv !== room.id ? mine.mv : null,", "movidoPara: snap.members.find((m) => m.mv)?.mv ?? null,", "o destino de quem foi movido chega no estado de todo mundo"],
+  [PV, "e.acima = voz ? e.acima + 1 : Math.max(0, e.acima - 1);", "e.acima = voz ? e.acima + 1 : e.acima;", "cliques seguidos somam até abrir a porta"],
+  [PV, "if (e.acima >= p.ataque) {", "if (e.acima >= 2) {", "o clique abre a porta (ataque curto)"],
+  [PV, "if (e.abaixo > p.segurar) {", "if (e.abaixo > 2) {", "a porta fecha no meio da palavra"],
+  [PV, "const fala = vad >= FALA_VAD && nivel > NIVEL_DA_FALA_DB;", "const fala = vad >= FALA_VAD;", "a cauda do clique conta como voz"],
+  [PV, "const fala = vad >= FALA_VAD && nivel > NIVEL_DA_FALA_DB;", "const fala = nivel > NIVEL_DA_FALA_DB;", "o automático ignora a probabilidade de fala"],
+  [PV, "return { voz: nivel > limiar, segue: nivel > limiar - histerese };", "return { voz: nivel > limiar, segue: nivel > limiar };", "a porta bate no meio da palavra (sem histerese)"],
+  [PV, "return currentFrame - g.__vozVadEm <= VAD_VALE_AMOSTRAS ? g.__vozVad : null;", "return g.__vozVad;", "a probabilidade de fala velha vale depois que o RNNoise sai"],
+  [PV, "return Math.min(AUTO_MAX_DB, Math.max(AUTO_MIN_DB, fundo + MARGEM_DB));", "return Math.min(AUTO_MAX_DB, fundo + MARGEM_DB);", "o limiar automático desce sem piso"],
+  [PV, "return nivel < fundo ? fundo + (nivel - fundo) * QUEDA_DO_FUNDO : fundo + SUBIDA_DO_FUNDO_DB;", "return fundo + (nivel - fundo) * QUEDA_DO_FUNDO;", "a fala puxa o ruído de fundo para cima"],
+  [PV, "return limiar <= SENSIBILIDADE.min;", "return limiar < SENSIBILIDADE.min;", "a régua no mínimo não deixa a porta sempre aberta"],
+  [PV, "const fala = this.auto ? falaDoRnnoise() : null;", "const fala = falaDoRnnoise();", "no manual a probabilidade de fala decide no lugar da régua"],
+  [PV, "      if (!this.medir) return;\n", "", "o processador manda o nível sem a régua pedir"],
+  [PV, "this.atraso = new Float32Array(this.p.olhar * QUADRO);", "this.atraso = new Float32Array(QUADRO);", "o som sai sem o atraso que guarda o começo da palavra"],
+  [CV, "sensibilidadeDb: Math.min(SENSIBILIDADE.max, Math.max(SENSIBILIDADE.min, db)),", "sensibilidadeDb: db,", "a régua guardada fora da faixa vale"],
+  [CV, "sensibilidadeAuto: r.sensibilidadeAuto !== false,", "sensibilidadeAuto: r.sensibilidadeAuto === true,", "a sensibilidade começa no manual"],
+  [VL, "return this.filtro?.ativo ? this.filtro.saida : this.mic;", "return this.mic;", "a sala recebe o microfone cru mesmo com o filtro"],
+  [VL, "const comRnnoise = this.filtro ? this.filtro.rnnoiseDisponivel : filtroPossivel();", "const comRnnoise = filtroPossivel();", "sem o RNNoise, a redução do navegador não volta"],
+  [VL, "    this.filtro?.entrada(track);\n", "", "o microfone não entra no filtro"],
+  [VL, "    this.filtro?.fechar();\n    this.filtro = null;", "    this.filtro = null;", "sair da sala deixa o filtro aberto"],
+  [VL, "    this.filtro?.ajustar(this.opcoes());\n", "", "a engrenagem não ajusta o filtro"],
+  [MED, "const ligar = () => fonte?.medir(reguas.size > 0 ? repassar : null);", "const ligar = () => fonte?.medir(repassar);", "o processador mede sem régua aberta"],
+  [MED, "        fonte?.medir(null);\n", "", "a voz que sai do ar segue medindo"],
 ];
 
 let falhas = 0;
