@@ -1,16 +1,21 @@
 "use client";
 
 // Configurações de voz, como no Discord: o microfone, a saída de som (só onde o navegador deixa
-// escolher), o teste do microfone com o nível ao vivo e a redução de ruído. Vale na hora, sem sair da
-// sala, e fica guardado neste navegador. Os nomes dos aparelhos só aparecem depois de o navegador
-// liberar o microfone a primeira vez.
+// escolher), a sensibilidade de entrada e a redução de ruído. A barra mostra o nível ao vivo da voz no ar
+// (fora da voz, pelo teste), verde quando a porta está aberta: no automático quem decide é a probabilidade
+// de fala do RNNoise; no manual, a régua sobre a barra marca o limiar. Vale na hora, sem sair da sala, e fica guardado neste navegador. Os nomes dos
+// aparelhos só aparecem depois de o navegador liberar o microfone a primeira vez.
 
-import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { Dialog } from "@/components/ui/dialog";
 import { plate } from "@/components/v2";
-import { aparelhoOuPadrao, CONFIG_PADRAO, configVoz } from "@/lib/sala/cliente/config-voz";
+import { aparelhoOuPadrao, CONFIG_PADRAO, configVoz, type ConfigVoz as Config } from "@/lib/sala/cliente/config-voz";
+import { criarFiltro, filtroPossivel, type FiltroDeVoz } from "@/lib/sala/cliente/filtro-voz";
+import { medidorVoz } from "@/lib/sala/cliente/medidor-voz";
 import { getMicTrack, temEscolhaDeSaida } from "@/lib/sala/cliente/midia";
+import { SENSIBILIDADE, type MedidaPorta } from "@/lib/sala/cliente/porta-voz";
+import { cn } from "@/lib/utils";
 
 const SEM_ESCOLHA = ["default", "communications"];
 
@@ -36,40 +41,107 @@ function useAparelhos(ativo: boolean) {
   return { entradas: de("audioinput"), saidas: de("audiooutput"), semNomes: lista.some((d) => d.kind === "audioinput" && !d.label) };
 }
 
-/** Nível do microfone escolhido, ao vivo, enquanto o teste está ligado (0 a 1). */
-function useTesteDoMicrofone(testando: boolean, microfone: string | null, reducaoRuido: boolean): number {
-  const [nivel, setNivel] = useState(0);
+const opcoesDe = (c: Config) => ({ reducao: c.reducaoRuido, auto: c.sensibilidadeAuto, limiarDb: c.sensibilidadeDb });
+
+/** Fora da voz, o teste abre o microfone num filtro só para medir (nada vai para a sala). */
+function useTeste(testando: boolean, microfone: string | null, cfg: Config, onMedida: (m: MedidaPorta | null) => void) {
+  const filtro = useRef<FiltroDeVoz | null>(null);
   useEffect(() => {
     if (!testando) return;
     let vivo = true;
     let parar: () => void = () => undefined;
     void (async () => {
-      const track = await getMicTrack({ microfone, reducaoRuido }).catch(() => null);
-      if (!track || !vivo) return track?.stop();
-      const ctx = new AudioContext();
-      const analyser = ctx.createAnalyser();
-      analyser.fftSize = 512;
-      ctx.createMediaStreamSource(new MediaStream([track])).connect(analyser);
-      const buffer = new Float32Array(analyser.fftSize);
-      const tick = window.setInterval(() => {
-        analyser.getFloatTimeDomainData(buffer);
-        let soma = 0;
-        for (const v of buffer) soma += v * v;
-        setNivel(Math.sqrt(soma / buffer.length));
-      }, 100);
+      const agora = configVoz.get();
+      const f = await criarFiltro(opcoesDe(agora));
+      const reducao = agora.reducaoRuido && !f?.rnnoiseDisponivel;
+      const track = f && vivo ? await getMicTrack({ microfone, reducaoRuido: reducao }).catch(() => null) : null;
+      if (!f || !track || !vivo) {
+        track?.stop();
+        f?.fechar();
+        return;
+      }
+      f.entrada(track);
+      f.medir(onMedida);
+      filtro.current = f;
       parar = () => {
-        window.clearInterval(tick);
+        filtro.current = null;
+        f.fechar();
         track.stop();
-        void ctx.close().catch(() => null);
       };
     })();
     return () => {
       vivo = false;
       parar();
-      setNivel(0);
+      onMedida(null);
     };
-  }, [testando, microfone, reducaoRuido]);
-  return nivel;
+  }, [testando, microfone, onMedida]);
+  useEffect(() => {
+    filtro.current?.ajustar(opcoesDe(cfg));
+  }, [cfg]);
+}
+
+/** O nível ao vivo: o da voz no ar, quando há; senão o do teste. */
+function useMedida(aberto: boolean, testando: boolean, microfone: string | null, cfg: Config) {
+  const temVoz = useSyncExternalStore(medidorVoz.subscribe, medidorVoz.temFonte, () => false);
+  const [medida, setMedida] = useState<MedidaPorta | null>(null);
+  useEffect(() => {
+    if (!aberto || !temVoz) return;
+    const soltar = medidorVoz.medir(setMedida);
+    return () => {
+      soltar();
+      setMedida(null);
+    };
+  }, [aberto, temVoz]);
+  useTeste(aberto && !temVoz && testando, microfone, cfg, setMedida);
+  return { medida, temVoz };
+}
+
+/** Posição na régua (0 a 100%) de um nível em dB. */
+const semAssinatura = () => () => undefined;
+const naRegua = (db: number) => ((Math.min(SENSIBILIDADE.max, Math.max(SENSIBILIDADE.min, db)) - SENSIBILIDADE.min) / (SENSIBILIDADE.max - SENSIBILIDADE.min)) * 100;
+
+function Regua({ medida, cfg }: { medida: MedidaPorta | null; cfg: Config }) {
+  const t = useTranslations("sala");
+  const nivel = medida?.nivel ?? SENSIBILIDADE.min;
+  const aberta = medida?.aberta ?? false;
+  return (
+    <div className="relative h-6" data-sala-config-nivel={Math.round(nivel)} data-sala-porta={aberta ? "aberta" : "fechada"} data-sala-porta-fala={medida?.fala == null ? "" : Math.round(medida.fala * 100)} data-sala-porta-corrida={medida?.corrida ?? 0}>
+      <div className="absolute inset-x-0 top-1/2 h-2.5 -translate-y-1/2 overflow-hidden rounded-sm bg-bg-deep" aria-hidden="true">
+        <div className={cn("h-full transition-[width] duration-75 ease-linear", aberta ? "bg-play-primary" : "bg-gold-muted")} style={{ width: `${naRegua(nivel)}%` }} />
+      </div>
+      {!cfg.sensibilidadeAuto && (
+        <input
+          type="range" min={SENSIBILIDADE.min} max={SENSIBILIDADE.max} step={1} value={cfg.sensibilidadeDb}
+          onChange={(e) => configVoz.set({ sensibilidadeDb: Number(e.target.value) })}
+          aria-label={t("sensibilidade")} data-sala-config-regua=""
+          className="absolute inset-0 h-full w-full cursor-pointer appearance-none bg-transparent [&::-moz-range-track]:bg-transparent [&::-webkit-slider-runnable-track]:h-full [&::-webkit-slider-runnable-track]:bg-transparent [&::-webkit-slider-thumb]:mt-0.5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:w-1.5 [&::-moz-range-thumb]:rounded-sm [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-text-display [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-1.5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-sm [&::-webkit-slider-thumb]:bg-text-display"
+        />
+      )}
+    </div>
+  );
+}
+
+function Sensibilidade({ aberto, microfone, cfg }: { aberto: boolean; microfone: string | null; cfg: Config }) {
+  const t = useTranslations("sala");
+  const [testando, setTestando] = useState(false);
+  const { medida, temVoz } = useMedida(aberto, testando, microfone, cfg);
+  return (
+    <div className="space-y-1.5" data-sala-config-sensibilidade="">
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-sm text-text-body">{t("sensibilidade")}</span>
+        <label className="flex items-center gap-2 text-sm text-text-body">
+          <input type="checkbox" checked={cfg.sensibilidadeAuto} onChange={(e) => configVoz.set({ sensibilidadeAuto: e.target.checked })} className="accent-[var(--color-play-primary)]" data-sala-config-auto="" />
+          <span>{t("sensibilidadeAuto")}</span>
+        </label>
+      </div>
+      <Regua medida={medida} cfg={cfg} />
+      {!temVoz && (
+        <button type="button" onClick={() => setTestando((v) => !v)} className={plate({ kind: testando ? "brand" : "ghost", small: true })} data-sala-config-testar={testando ? "sim" : "nao"}>
+          {testando ? t("pararTeste") : t("testar")}
+        </button>
+      )}
+    </div>
+  );
 }
 
 const seletor = "h-9 w-full rounded-sm border border-border-subtle bg-bg-deep px-2 text-sm text-text-display";
@@ -88,31 +160,14 @@ function Escolha({ rotulo, valor, onChange, opcoes, padrao, data, dica }: { rotu
   );
 }
 
-function Teste({ microfone, reducaoRuido }: { microfone: string | null; reducaoRuido: boolean }) {
-  const t = useTranslations("sala");
-  const [testando, setTestando] = useState(false);
-  const nivel = useTesteDoMicrofone(testando, microfone, reducaoRuido);
-  return (
-    <div className="space-y-1.5">
-      <div className="flex items-center justify-between gap-3">
-        <span className="text-sm text-text-body">{t("testeMicrofone")}</span>
-        <button type="button" onClick={() => setTestando((v) => !v)} className={plate({ kind: testando ? "brand" : "ghost", small: true })} data-sala-config-testar={testando ? "sim" : "nao"}>
-          {testando ? t("pararTeste") : t("testar")}
-        </button>
-      </div>
-      <div className="h-2 w-full overflow-hidden rounded-sm bg-bg-deep" aria-hidden="true">
-        <div className="h-full bg-play-primary" style={{ width: `${Math.min(100, Math.round(nivel * 400))}%` }} data-sala-config-nivel={Math.round(nivel * 1000)} />
-      </div>
-    </div>
-  );
-}
-
 export function ConfigVoz({ aberto, onClose }: { aberto: boolean; onClose: () => void }) {
   const t = useTranslations("sala");
   const cfg = useSyncExternalStore(configVoz.subscribe, configVoz.get, () => CONFIG_PADRAO);
   const emUso = useSyncExternalStore(configVoz.subscribe, configVoz.emUso, () => null);
   const { entradas, saidas, semNomes } = useAparelhos(aberto);
   const microfone = aparelhoOuPadrao(entradas.map((d) => d.deviceId), cfg.microfone);
+  // O processador de áudio só existe no navegador: no servidor, a régua não aparece.
+  const comFiltro = useSyncExternalStore(semAssinatura, filtroPossivel, () => false);
   return (
     <Dialog.Root open={aberto} onOpenChange={(open) => !open && onClose()}>
       <Dialog.Content playSoundOnOpen={false} className="max-w-md" data-sala-config-voz="">
@@ -125,7 +180,7 @@ export function ConfigVoz({ aberto, onClose }: { aberto: boolean; onClose: () =>
           {temEscolhaDeSaida() && (
             <Escolha rotulo={t("saidaDeSom")} valor={aparelhoOuPadrao(saidas.map((d) => d.deviceId), cfg.saida) ?? ""} onChange={(v) => configVoz.set({ saida: v })} opcoes={saidas} padrao={t("padraoDoSistema")} data={{ "data-sala-config-saida": "" }} />
           )}
-          <Teste microfone={microfone} reducaoRuido={cfg.reducaoRuido} />
+          {comFiltro && <Sensibilidade aberto={aberto} microfone={microfone} cfg={cfg} />}
           <label className="flex items-start gap-2 text-sm text-text-body">
             <input type="checkbox" checked={cfg.reducaoRuido} onChange={(e) => configVoz.set({ reducaoRuido: e.target.checked })} className="mt-1 accent-[var(--color-play-primary)]" data-sala-config-ruido="" />
             <span>{t("reducaoRuido")}</span>

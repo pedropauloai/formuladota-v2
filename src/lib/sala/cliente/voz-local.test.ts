@@ -1,9 +1,10 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("./midia", () => ({ getMicTrack: vi.fn() }));
 
-import { configVoz } from "./config-voz";
+import { CONFIG_PADRAO, configVoz } from "./config-voz";
 import type { Connection } from "./conexao";
+import type { Filtro } from "./filtro-voz";
 import { getMicTrack } from "./midia";
 import { VozLocal } from "./voz-local";
 
@@ -161,5 +162,123 @@ describe("VozLocal: o microfone de quem pode falar", () => {
     expect(pub.trocar).toHaveBeenLastCalledWith(m3);
     expect(m2.stop).toHaveBeenCalled();
     expect(configVoz.emUso()).toBe("Mic 3");
+  });
+});
+
+/** O filtro do microfone sem o navegador: anota o que recebeu. */
+function filtroFalso(o: { ativo?: boolean; rnnoise?: boolean } = {}) {
+  const f = {
+    saida: faixa("Saída do filtro"),
+    rnnoiseDisponivel: o.rnnoise ?? true,
+    ativo: o.ativo ?? true,
+    tipo: "rnnoise" as const,
+    entradas: [] as Faixa[],
+    ajustes: [] as unknown[],
+    fechado: false,
+    ouvinte: null as (() => void) | null,
+    onEstado(l: () => void) {
+      f.ouvinte = l;
+    },
+    entrada(t: Faixa) {
+      f.entradas.push(t);
+    },
+    ajustar(x: unknown) {
+      f.ajustes.push(x);
+    },
+    medir: vi.fn(),
+    fechar() {
+      f.fechado = true;
+    },
+  };
+  return f;
+}
+
+function montarComFiltro(filtro: ReturnType<typeof filtroFalso>) {
+  const pub = { trocar: vi.fn(), parar: vi.fn() };
+  const conn = { publishTrocavel: vi.fn(() => pub) } as unknown as Connection;
+  const voz = new VozLocal(conn, null, () => undefined, async () => filtro as unknown as Filtro);
+  return { voz, pub, conn };
+}
+
+describe("VozLocal com o filtro do microfone (RNNoise e porta de ruído)", () => {
+  beforeEach(() => {
+    vi.mocked(getMicTrack).mockReset();
+    configVoz.set(CONFIG_PADRAO);
+    // O navegador tem processador de áudio: o microfone abre sem a redução dele, que o RNNoise substitui.
+    vi.stubGlobal("AudioWorkletNode", class {});
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    configVoz.set(CONFIG_PADRAO);
+  });
+
+  it("a sala recebe a saída do filtro, o microfone entra nele e abre sem a redução do navegador", async () => {
+    const mic = microfoneLento();
+    const filtro = filtroFalso();
+    const { voz, conn } = montarComFiltro(filtro);
+    const f = faixa();
+    await noAr(voz, mic, f);
+    expect(conn.publishTrocavel).toHaveBeenCalledWith(filtro.saida, expect.anything(), expect.anything());
+    expect(filtro.entradas).toEqual([f]);
+    expect(vi.mocked(getMicTrack)).toHaveBeenCalledWith(expect.objectContaining({ reducaoRuido: false }));
+  });
+
+  it("trocar o microfone troca só a entrada do filtro: a sala segue com a mesma faixa", async () => {
+    const mic = microfoneLento();
+    const filtro = filtroFalso();
+    const { voz, pub } = montarComFiltro(filtro);
+    const m1 = faixa("Mic 1");
+    await noAr(voz, mic, m1);
+    const trocando = voz.trocarMicrofone();
+    const m2 = faixa("Mic 2");
+    mic.abrir(m2);
+    await trocando;
+    expect(filtro.entradas).toEqual([m1, m2]);
+    expect(pub.trocar).not.toHaveBeenCalled();
+    expect(m1.stop).toHaveBeenCalled();
+  });
+
+  it("filtro parado (o navegador segura o áudio até um clique): vai o microfone cru, e a saída do filtro entra quando ele corre", async () => {
+    const mic = microfoneLento();
+    const filtro = filtroFalso({ ativo: false });
+    const { voz, pub, conn } = montarComFiltro(filtro);
+    const f = faixa();
+    await noAr(voz, mic, f);
+    expect(conn.publishTrocavel).toHaveBeenCalledWith(f, expect.anything(), expect.anything());
+    filtro.ativo = true;
+    filtro.ouvinte?.();
+    expect(pub.trocar).toHaveBeenLastCalledWith(filtro.saida);
+  });
+
+  it("sem o RNNoise, a caixa de redução de ruído volta a usar a do navegador: o microfone reabre com ela", async () => {
+    const mic = microfoneLento();
+    const filtro = filtroFalso({ rnnoise: false });
+    const { voz } = montarComFiltro(filtro);
+    await noAr(voz, mic, faixa("Mic 1"));
+    await vez();
+    expect(vi.mocked(getMicTrack)).toHaveBeenLastCalledWith(expect.objectContaining({ reducaoRuido: true }));
+    mic.abrir(faixa("Mic 1 com a redução do navegador"));
+    await vez();
+    expect(filtro.entradas).toHaveLength(2);
+  });
+
+  it("mudar a sensibilidade ou a redução ajusta o filtro na hora, sem reabrir o microfone", async () => {
+    const mic = microfoneLento();
+    const filtro = filtroFalso();
+    const { voz } = montarComFiltro(filtro);
+    await noAr(voz, mic, faixa());
+    configVoz.set({ sensibilidadeAuto: false, sensibilidadeDb: -40, reducaoRuido: false });
+    voz.ajustarFiltro();
+    expect(filtro.ajustes.at(-1)).toEqual({ reducao: false, auto: false, limiarDb: -40 });
+    expect(vi.mocked(getMicTrack)).toHaveBeenCalledTimes(1);
+  });
+
+  it("sair da sala fecha o filtro", async () => {
+    const mic = microfoneLento();
+    const filtro = filtroFalso();
+    const { voz } = montarComFiltro(filtro);
+    await noAr(voz, mic, faixa());
+    voz.desligar();
+    expect(filtro.fechado).toBe(true);
   });
 });

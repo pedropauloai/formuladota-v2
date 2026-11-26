@@ -5,7 +5,7 @@
 // parar a tela, sair e voltar para a sala. Fora da /sala fica no canto de baixo, em cima da party
 // (escolha do PPA em 24/11/2026); na /sala, no pé da coluna de canais.
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { useTranslations } from "next-intl";
 import { HeadphoneOff, Headphones, Loader2, LogOut, Mic, MicOff, MonitorOff, Settings, Volume2, X } from "lucide-react";
 import { LiveDot, panel } from "@/components/v2";
@@ -13,6 +13,7 @@ import { Link, usePathname } from "@/i18n/navigation";
 import { AVISO_MICROFONE, falhou } from "@/lib/sala/cliente/microfone";
 import { salaAtiva } from "@/lib/sala/cliente/sala-ativa";
 import type { SessaoSala, SessaoSnapshot } from "@/lib/sala/cliente/sessao-sala";
+import { medidorVoz } from "@/lib/sala/cliente/medidor-voz";
 import { useSeguirMovido } from "@/lib/sala/cliente/seguir-movido";
 import { useSalaAtiva } from "@/lib/sala/cliente/use-sala-ativa";
 import { cn } from "@/lib/utils";
@@ -108,6 +109,8 @@ export function PainelVoz({ embutido = false }: { embutido?: boolean }) {
   const pathname = usePathname();
   const { ativa, snap } = useSalaAtiva();
   useSeguirMovido(ativa, snap);
+  // O que processa a voz no ar (rnnoise, porta ou cru), para as provas conferirem o filtro.
+  const filtro = useSyncExternalStore(medidorVoz.subscribe, medidorVoz.estado, () => null);
   const [config, setConfig] = useState(false);
   // Na /sala a coluna de canais mostra o painel no pé: o do canto some.
   if (!ativa || (!embutido && pathname.startsWith("/sala"))) return null;
@@ -122,6 +125,7 @@ export function PainelVoz({ embutido = false }: { embutido?: boolean }) {
     <aside
       aria-label={t("painelRotulo")}
       data-painel-voz={snap.fase}
+      data-sala-filtro={filtro ?? ""}
       data-audio-bytes={snap.medidas.audioBytes}
       data-painel-voz-lugar={embutido ? "coluna" : "canto"}
       className={embutido ? "flex w-full flex-col gap-2 rounded-sm bg-bg-deep/60 p-3" : cn(panel("neutral"), "pointer-events-auto fixed z-[var(--z-overlay)] flex max-w-[calc(100vw-2rem)] shadow-lg shadow-black/60", CANTO)}

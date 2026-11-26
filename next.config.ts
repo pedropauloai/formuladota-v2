@@ -49,7 +49,9 @@ const config: NextConfig = {
       // Scripts de terceiros LEGÍTIMOS: PostHog e Google Analytics (gated por env) e o Web
       // Analytics da Cloudflare, que a zona injeta sozinha (sem cookie). As origens da Vercel
       // saíram com a mudança para a Cloudflare.
-      `script-src 'self' 'unsafe-inline' https://us-assets.i.posthog.com https://www.googletagmanager.com https://static.cloudflareinsights.com https://player.twitch.tv ${mercadoPago}`,
+      // 'wasm-unsafe-eval': o filtro do microfone da sala (RNNoise) roda em WebAssembly; libera só o
+      // WebAssembly, não o eval de JavaScript.
+      `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://us-assets.i.posthog.com https://www.googletagmanager.com https://static.cloudflareinsights.com https://player.twitch.tv ${mercadoPago}`,
       `style-src 'self' 'unsafe-inline' ${mercadoPago}`,
       // upload.wikimedia.org: foto do Grubby no /manifesto (bloqueada antes, aparecia quebrada).
       `img-src 'self' data: blob: https://*.steamstatic.com https://cdn.discordapp.com https://*.supabase.co https://*.google-analytics.com https://us.i.posthog.com https://upload.wikimedia.org ${mercadoPago}`,

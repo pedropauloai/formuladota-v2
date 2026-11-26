@@ -14,18 +14,21 @@ export interface Ligacao {
   nivel: NivelDeVoz;
   voz: VozLocal;
   recepcao: Recepcao;
-  /** Para de seguir as configurações de voz (microfone, saída e redução de ruído). */
+  /** Para de seguir as configurações de voz (microfone, saída, redução de ruído e sensibilidade). */
   soltarConfig: () => void;
 }
 
-/** As configurações de voz valem na hora, sem sair da sala: microfone e redução de ruído trocam a faixa da voz, a saída vai para as vozes. */
+/** As configurações de voz valem na hora, sem sair da sala: o microfone troca a faixa da voz, a redução de ruído e a
+ *  sensibilidade ajustam o filtro dela, e a saída vai para as vozes. */
 function seguirConfig(voz: VozLocal, recepcao: Recepcao): () => void {
   let antes = configVoz.get();
   recepcao.setSaida(antes.saida);
   return configVoz.subscribe(() => {
     const agora = configVoz.get();
     if (agora === antes) return;
-    if (agora.microfone !== antes.microfone || agora.reducaoRuido !== antes.reducaoRuido) void voz.trocarMicrofone();
+    const filtro = agora.reducaoRuido !== antes.reducaoRuido || agora.sensibilidadeAuto !== antes.sensibilidadeAuto || agora.sensibilidadeDb !== antes.sensibilidadeDb;
+    if (filtro) voz.ajustarFiltro();
+    if (agora.microfone !== antes.microfone) void voz.trocarMicrofone();
     if (agora.saida !== antes.saida) recepcao.setSaida(agora.saida);
     antes = agora;
   });
