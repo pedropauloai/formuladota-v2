@@ -1,5 +1,7 @@
 // Parte da fala e dos aparelhos do e2e (pedido do PPA em 24/11/2026): o anel verde de quem fala acende
-// para quem escuta (na árvore, no palco e no painel do canto), fica aceso sem piscar enquanto a pessoa fala
+// dos dois lados com a voz que sai do filtro, para quem escuta (na árvore, no palco e no painel do canto) e
+// na tela de quem fala; um estalo curto não acende o anel, nem para os outros nem na própria tela (pergunta
+// do PPA em 26/11/2026); o anel fica aceso sem piscar enquanto a pessoa fala
 // sem parar, apaga quando ela muta e volta quando ela desmuta; e as configurações de voz trocam o microfone
 // no meio da ligação (a mesma faixa no SFU, o áudio seguindo e o anel aceso com o microfone novo), mostram
 // na régua o nível ao vivo da voz no ar, com a porta abrindo na fala e o filtro (RNNoise e porta) rodando,
@@ -74,14 +76,22 @@ async function anelDeQuemFala(t, check, pA, pB) {
   check("na voz livre, quem fala entra com o microfone no ar", await naPagina(pA, '[data-sala-papel="falante"][data-sala-voz="no_ar"]', 30_000));
   const arvore = `[data-sala-membro="${a}"]`;
   const quadro = `[data-sala-quadro="${a}"]`;
-  check("quando a pessoa fala, o anel verde acende para quem escuta, na árvore e no palco", (await anel(pB, arvore, true, 30_000)) && (await anel(pB, quadro, true, 5_000)));
+  // Os dois lados medem a voz que sai do filtro: quem escuta, na faixa que recebe; quem fala, na própria saída.
+  const filtro = await waitFor(async () => (await pA.locator("[data-sala-filtro]").first().getAttribute("data-sala-filtro")) === "rnnoise", 15_000);
+  check(
+    "quando a pessoa fala, a voz sai pelo filtro (RNNoise e porta) e o anel verde acende para quem escuta, na árvore e no palco",
+    !!filtro && (await anel(pB, arvore, true, 30_000)) && (await anel(pB, quadro, true, 5_000))
+  );
+  check("e na tela de quem fala, o próprio anel acende do mesmo jeito, medido na voz que sai do filtro", await anel(pA, arvore, true, 10_000));
   // 10 s cobrem o ciclo inteiro em que a medida de 300 ms escorrega pelas sílabas de 310 ms da fala falsa.
   const firme = await anelFirme(pB, arvore, 10_000);
   check("enquanto a pessoa fala sem parar, o anel fica aceso, sem piscar", firme >= 0.95, `aceso em ${Math.round(firme * 100)}% de 10 s`);
   // Quem escuta tem o microfone falso padrão do Chrome: um bipe de 20 ms a cada meio segundo, que o eco, o
   // ruído e o ganho automático do navegador esticam para uns 70 ms. É o tamanho de um estalo de tecla.
-  const bipe = await anelFirme(pB, `[data-sala-membro="${t.escuta.id}"]`, 5_000);
-  check("um estalo curto no microfone (o bipe do microfone falso) não acende o anel", bipe <= 0.05, `aceso em ${Math.round(bipe * 100)}% de 5 s`);
+  const estalo = `[data-sala-membro="${t.escuta.id}"]`;
+  const [paraOsOutros, naPropria] = await Promise.all([anelFirme(pA, estalo, 5_000), anelFirme(pB, estalo, 5_000)]);
+  check("um estalo curto no microfone (o bipe do microfone falso) não acende o anel para os outros na sala", paraOsOutros <= 0.05, `aceso em ${Math.round(paraOsOutros * 100)}% de 5 s`);
+  check("nem o anel na tela de quem fez o estalo", naPropria <= 0.05, `aceso em ${Math.round(naPropria * 100)}% de 5 s`);
   await pA.locator('[data-sala-mudo="nao"]').click();
   check("quando ela muta, o anel apaga na árvore e no palco", (await anel(pB, arvore, false, 10_000)) && (await anel(pB, quadro, false, 5_000)));
   await pA.locator('[data-sala-mudo="sim"]').click();
