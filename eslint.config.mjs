@@ -5,7 +5,8 @@ const config = [
   ...nextCoreWebVitals,
   ...nextTypescript,
   {
-    ignores: ["node_modules/**", ".next/**", "bot/**", "bot-steam/**", "supabase/**", ".claude/**"],
+    // public/voz: o RNNoise copiado (código de terceiro, minificado) e o processador da porta gerado do TypeScript.
+    ignores: ["node_modules/**", ".next/**", "bot/**", "bot-steam/**", "supabase/**", ".claude/**", "public/voz/**"],
   },
   {
     rules: {

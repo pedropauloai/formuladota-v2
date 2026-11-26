@@ -11,14 +11,22 @@ function armazem(inicial: Record<string, string> = {}) {
 }
 
 describe("normalizarConfig", () => {
-  it("lixo ou nada vira o padrão: aparelhos do sistema e redução de ruído ligada", () => {
+  it("lixo ou nada vira o padrão: aparelhos do sistema, redução de ruído ligada e sensibilidade no automático", () => {
     expect(normalizarConfig(null)).toEqual(CONFIG_PADRAO);
     expect(normalizarConfig("x")).toEqual(CONFIG_PADRAO);
-    expect(CONFIG_PADRAO).toEqual({ microfone: null, saida: null, reducaoRuido: true });
+    expect(CONFIG_PADRAO).toEqual({ microfone: null, saida: null, reducaoRuido: true, sensibilidadeAuto: true, sensibilidadeDb: -50 });
   });
 
   it("guarda o aparelho escolhido e a redução de ruído desligada", () => {
-    expect(normalizarConfig({ microfone: "abc123", saida: "def456", reducaoRuido: false })).toEqual({ microfone: "abc123", saida: "def456", reducaoRuido: false });
+    expect(normalizarConfig({ microfone: "abc123", saida: "def456", reducaoRuido: false })).toEqual({ ...CONFIG_PADRAO, microfone: "abc123", saida: "def456", reducaoRuido: false });
+  });
+
+  it("guarda a régua manual; fora da régua volta para dentro, e o que não é número vira o padrão", () => {
+    expect(normalizarConfig({ sensibilidadeAuto: false, sensibilidadeDb: -37 })).toMatchObject({ sensibilidadeAuto: false, sensibilidadeDb: -37 });
+    expect(normalizarConfig({ sensibilidadeDb: -500 }).sensibilidadeDb).toBe(-80);
+    expect(normalizarConfig({ sensibilidadeDb: 12 }).sensibilidadeDb).toBe(0);
+    expect(normalizarConfig({ sensibilidadeDb: "-20" }).sensibilidadeDb).toBe(-50);
+    expect(normalizarConfig({ sensibilidadeDb: Number.NaN }).sensibilidadeDb).toBe(-50);
   });
 
   it("id fora do formato não passa", () => {
@@ -42,7 +50,7 @@ describe("criarConfigVoz", () => {
     let avisos = 0;
     c.subscribe(() => avisos++);
     c.set({ reducaoRuido: false });
-    expect(JSON.parse(a.dados.get(CHAVE_CONFIG) ?? "{}")).toEqual({ microfone: "mic-2", saida: null, reducaoRuido: false });
+    expect(JSON.parse(a.dados.get(CHAVE_CONFIG) ?? "{}")).toEqual({ ...CONFIG_PADRAO, microfone: "mic-2", reducaoRuido: false });
     expect(avisos).toBe(1);
   });
 

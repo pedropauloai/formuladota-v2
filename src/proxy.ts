@@ -20,6 +20,8 @@ export const config = {
     // SEO (2026-07-04): incluído `html` na exclusão. O arquivo de verificação do Google
     // Search Console (public/google*.html) era gateado e redirecionado pra home →
     // verificação do GSC falhava. Arquivos .html em public/ são estáticos por definição.
-    "/((?!_next/static|_next/image|favicon.ico|sounds/|icons/|sw.js|manifest.webmanifest|.*\\.(?:svg|png|jpg|jpeg|gif|webp|webm|mp3|ogg|wav|ico|webmanifest|html)$).*)",
+    //
+    // Sala (2026-11-26): `voz/` são os arquivos do filtro do microfone (processador de áudio e RNNoise).
+    "/((?!_next/static|_next/image|favicon.ico|sounds/|icons/|voz/|sw.js|manifest.webmanifest|.*\\.(?:svg|png|jpg|jpeg|gif|webp|webm|mp3|ogg|wav|ico|webmanifest|html)$).*)",
   ],
 };

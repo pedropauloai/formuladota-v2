@@ -2,8 +2,9 @@
 // para quem escuta (na árvore, no palco e no painel do canto), fica aceso sem piscar enquanto a pessoa fala
 // sem parar, apaga quando ela muta e volta quando ela desmuta; e as configurações de voz trocam o microfone
 // no meio da ligação (a mesma faixa no SFU, o áudio seguindo e o anel aceso com o microfone novo), mostram
-// o nível no teste, mandam as vozes para a saída de som escolhida e valem de novo depois de recarregar; na
-// página aberta fora da sala, listam os microfones e o teste funciona. Quem fala roda num Chrome à parte,
+// na régua o nível ao vivo da voz no ar, com a porta abrindo na fala e o filtro (RNNoise e porta) rodando,
+// mandam as vozes para a saída de som escolhida e valem de novo depois de recarregar; na página aberta
+// fora da sala, listam os microfones e a régua aparece. Quem fala roda num Chrome à parte,
 // com a fala falsa (fala-falsa.mjs).
 
 import { chromium } from "playwright-core";
@@ -119,11 +120,13 @@ async function trocarMicrofone(t, check, canal, pA, pB) {
   return outro;
 }
 
-async function testeESaida(check, pA) {
-  await pA.locator('[data-sala-config-testar="nao"]').click();
+async function reguaESaida(check, pA) {
   const nivel = () => pA.locator("[data-sala-config-nivel]").getAttribute("data-sala-config-nivel").then(Number);
-  check("o teste do microfone mostra o nível ao vivo", !!(await waitFor(async () => (await nivel()) > 0, 10_000)), `nível ${await nivel()}`);
-  await pA.locator('[data-sala-config-testar="sim"]').click();
+  const porta = () => pA.locator("[data-sala-porta]").getAttribute("data-sala-porta");
+  const viva = await waitFor(async () => (await nivel()) > -60 && (await porta()) === "aberta", 10_000);
+  check("na voz, a régua da engrenagem mostra o nível ao vivo e a porta abre com a fala", !!viva, `nível ${await nivel()} dB, porta ${await porta()}`);
+  const filtro = await pA.locator("[data-sala-filtro]").first().getAttribute("data-sala-filtro");
+  check("a voz no ar passa pelo filtro do microfone (RNNoise e porta de ruído)", filtro === "rnnoise", `filtro: ${filtro}`);
   const saidas = (await opcoesDe(pA, "[data-sala-config-saida]")).map((o) => o.valor).filter(Boolean);
   check("o Chrome lista as saídas de som para escolher", saidas.length > 0, `${saidas.length} saída(s)`);
   const saida = saidas.at(-1);
@@ -151,8 +154,8 @@ async function foraDaSala(check, pB) {
   await pB.locator("[data-painel-voz-config]").click();
   await pB.locator("[data-sala-config-voz]").waitFor({ timeout: 10_000 });
   const microfones = (await opcoesDe(pB, "[data-sala-config-microfone]")).filter((o) => o.valor);
-  const testeLiberado = await pB.locator("[data-sala-config-testar]").isEnabled();
-  check("na página recarregada fora da sala, as configurações listam os microfones e o teste funciona", microfones.length > 0 && testeLiberado, `${microfones.length} microfone(s)`);
+  const regua = await naPagina(pB, "[data-sala-config-sensibilidade] [data-sala-config-nivel]", 10_000);
+  check("na página recarregada fora da sala, as configurações listam os microfones e a régua aparece", microfones.length > 0 && regua, `${microfones.length} microfone(s)`);
   await pB.locator("[data-sala-config-fechar]").click();
 }
 
@@ -167,7 +170,7 @@ export async function fala(t, check, made) {
     const pB = await s.enter(await t.ctx(t.escuta), canal.id, "fala-b");
     await anelDeQuemFala(t, check, pA, pB);
     const outro = await trocarMicrofone(t, check, canal, pA, pB);
-    await testeESaida(check, pA);
+    await reguaESaida(check, pA);
     await guardaNaVolta(check, pA, outro);
     await foraDaSala(check, pB);
     await pB.close().catch(() => null);

@@ -7,7 +7,7 @@
 // (expulsar, bloquear, denunciar, maioridade, fora da sala, convite, teto e flag) seguram. Sai com 1 na
 // primeira falha.
 // Rodar: pnpm sala:e2e   (SALA_E2E_PORT reaproveita um servidor local de pé; padrão 3200)
-// SALA_E2E_SO=microfone, tempo, fala ou menus roda só aquela parte, para mexer nela sem esperar o resto;
+// SALA_E2E_SO=microfone, tempo, fala, filtro ou menus roda só aquela parte, para mexer nela sem esperar o resto;
 // tempo é o tempo real da árvore (e2e-tempo-real.mjs).
 
 import { chromium } from "playwright-core";
@@ -20,6 +20,7 @@ const { canais } = await import("./e2e-canais.mjs");
 const { microfone } = await import("./e2e-microfone.mjs");
 const { tempoReal } = await import("./e2e-tempo-real.mjs");
 const { fala } = await import("./e2e-fala.mjs");
+const { filtro } = await import("./e2e-filtro.mjs");
 const { menus } = await import("./e2e-menus.mjs");
 const { BASE, db, checker, waitFor, sleep } = s;
 const so = process.env.SALA_E2E_SO ?? "";
@@ -209,6 +210,7 @@ try {
   if (!so || so === "microfone") await microfone(t, check, made);
   if (!so || so === "tempo") await tempoReal(t, check, made);
   if (!so || so === "fala") await fala(t, check, made);
+  if (!so || so === "filtro") await filtro(t, check, made);
   if (!so || so === "menus") await menus(t, check, made);
   // Elemento dentro de outro que o HTML não aceita (um <div> num <p>) faz o React refazer a página ao hidratar,
   // e o que a pessoa digitou some; nenhum navegador do teste pode ter visto esse aviso.

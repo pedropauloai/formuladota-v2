@@ -109,15 +109,22 @@ async function canais(p) {
   return { geral, livre: partys[0] };
 }
 
-/** As configurações de voz abertas, com o teste do microfone ligado. */
-async function configuracoes(page, nome) {
+/** As configurações de voz abertas na voz no ar, com a barra do nível ao vivo e a porta aberta na fala; com
+ *  `manual`, também a régua de sensibilidade (e volta ao automático). */
+async function configuracoes(page, nome, manual) {
   await page.locator("[data-sala-config-abrir]").click();
   await page.locator("[data-sala-config-voz]").waitFor({ timeout: 10_000 });
   await waitFor(async () => (await page.locator("[data-sala-config-microfone] option").count()) > 1, 10_000);
-  await page.locator('[data-sala-config-testar="nao"]').click();
-  await sleep(1500);
+  const aberta = async () => (await page.locator('[data-sala-porta="aberta"]').count()) > 0;
+  await waitFor(aberta, 15_000);
   await foto(page, nome);
-  await page.locator('[data-sala-config-testar="sim"]').click();
+  if (manual) {
+    await page.locator("[data-sala-config-auto]").uncheck();
+    await page.locator("[data-sala-config-regua]").fill("-42");
+    await waitFor(aberta, 15_000);
+    await foto(page, manual);
+    await page.locator("[data-sala-config-auto]").check();
+  }
   await page.locator("[data-sala-config-fechar]").click();
 }
 
@@ -139,7 +146,7 @@ async function vozLivre(p, ctx, c) {
     throw new Error(`o anel de quem fala apagou na hora da foto ${nome}`);
   };
   await fotoAcesa(pG, "09-voz-livre.png");
-  await configuracoes(pF, "11-configuracoes-de-voz.png");
+  await configuracoes(pF, "11-configuracoes-de-voz.png", "11b-configuracoes-de-voz-manual.png");
   for (const page of [pG, pF]) await page.setViewportSize({ width: 3440, height: 1440 });
   await fotoAcesa(pG, "12-voz-livre-3440.png");
   await configuracoes(pF, "13-configuracoes-de-voz-3440.png");

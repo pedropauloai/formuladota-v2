@@ -26,6 +26,9 @@ importers:
       '@radix-ui/react-hover-card':
         specifier: ^1.1.17
         version: 1.1.17(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@sapphi-red/web-noise-suppressor':
+        specifier: 0.4.2
+        version: 0.4.2
       '@stripe/stripe-js':
         specifier: ^9.9.0
         version: 9.9.0
@@ -1705,6 +1708,9 @@ packages:
 
   '@rtsao/scc@1.1.0':
     resolution: {integrity: sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==}
+
+  '@sapphi-red/web-noise-suppressor@0.4.2':
+    resolution: {integrity: sha512-1JXsxjW3nJpLo4Kndk2IupmSlEFNOC2qvUPKt/U4F65UFoERoBAMJF3RKinmTC2jyCfeHQWkVBO3VZDTfPWDPg==}
 
   '@schummar/icu-type-parser@1.21.5':
     resolution: {integrity: sha512-bXHSaW5jRTmke9Vd0h5P7BtWZG9Znqb8gSDxZnxaGSJnGwPLDPfS+3g0BKzeWqzgZPsIVZkM7m2tbo18cm5HBw==}
@@ -7150,6 +7156,8 @@ snapshots:
   '@rolldown/pluginutils@1.0.1': {}
 
   '@rtsao/scc@1.1.0': {}
+
+  '@sapphi-red/web-noise-suppressor@0.4.2': {}
 
   '@schummar/icu-type-parser@1.21.5': {}
 
