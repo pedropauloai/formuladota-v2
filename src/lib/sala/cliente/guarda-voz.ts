@@ -1,11 +1,11 @@
 // Guarda da voz de quem pode falar: publica quando a pessoa passa a poder falar, solta quando deixa,
 // religa a voz que o servidor não vê e põe na tela como está o microfone (abrindo, pedindo a permissão,
-// negado, sem aparelho, ocupado). Depois de uma falha não pede o microfone de novo sozinho, porque o
+// pergunta, negado, bloqueado pelo sistema, sem aparelho). Depois de uma falha não pede o microfone de novo sozinho, porque o
 // navegador repetiria o pedido a cada batimento: tenta de novo no clique da pessoa, quando a permissão
 // muda para "permitido" ou quando um microfone é ligado.
 
 import type { Ligacao } from "./ligacao";
-import { falhou, PEDINDO_MS, vigiarMicrofone, type EstadoMicrofone } from "./microfone";
+import { falhou, PEDINDO_MS, permissaoDoMicrofone, vigiarMicrofone, type EstadoMicrofone } from "./microfone";
 import type { SessaoSnapshot } from "./retrato";
 import { vozCaiu } from "./ritmo";
 
@@ -64,6 +64,11 @@ export class GuardaDaVoz {
     this.deNovo = false;
     const antes = voz.noAr;
     const aviso = setTimeout(() => voz.abrindoDesde !== null && this.s.set({ microfone: "pedindo" }), PEDINDO_MS);
+    // Sem resposta ainda no navegador, o aviso dele abre junto com o microfone: o guia aparece na hora.
+    const avisarJa = async () => {
+      if ((await permissaoDoMicrofone()) === "prompt" && voz.abrindoDesde !== null) this.s.set({ microfone: "pedindo" });
+    };
+    if (quer && !voz.noAr) void avisarJa();
     const estado = await voz.ajustar(quer, snap.mutado);
     clearTimeout(aviso);
     if (voz.noAr !== antes) this.s.vozMudou();
