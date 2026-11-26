@@ -18,6 +18,7 @@ import { qualityLevel } from "@/lib/sala/metricas";
 import type { RoomKind, VoiceMode } from "@/lib/sala/tipos";
 import { cn } from "@/lib/utils";
 import { Chat } from "./chat";
+import { ChecagemDoMicrofone, useChecagemDoMicrofone } from "./checagem-microfone";
 import { ConfigVoz } from "./config-voz";
 import { Controles } from "./controles";
 import { Denuncia, type AlvoTela } from "./denuncia";
@@ -89,11 +90,16 @@ function Cabecalho({ titulo, tipo, modo, snap }: { titulo: string; tipo: RoomKin
   );
 }
 
-function Entrada({ snap, entrar, retomando, mostrarTela }: { snap: SessaoSnapshot; entrar: () => void; retomando: boolean; mostrarTela: boolean }) {
+/** A entrada da sala: onde quem entra fala (voz livre, mentoria, party), o microfone vem antes, como no Google Meet;
+ *  "Entrar na sala" vira o botão principal quando ele está pronto, e quem só quer ouvir entra mesmo assim. */
+function Entrada({ snap, entrar, retomando, mostrarTela, pedeMicrofone }: { snap: SessaoSnapshot; entrar: () => void; retomando: boolean; mostrarTela: boolean; pedeMicrofone: boolean }) {
   const t = useTranslations("sala");
   const podeVoltar = snap.fase === "inicial" || snap.fase === "erro" || (snap.fase === "saiu" && PODE_VOLTAR.has(snap.motivo ?? ""));
+  const comMicrofone = pedeMicrofone && podeVoltar && snap.fase !== "entrando" && !retomando;
+  const checagem = useChecagemDoMicrofone(comMicrofone);
+  const pronto = !comMicrofone || checagem.passo === "ok";
   return (
-    <Panel className="mx-auto max-w-md space-y-4 p-6 text-center">
+    <Panel className="mx-auto max-w-lg space-y-4 p-6 text-center">
       {snap.motivo && <p className="text-sm text-text-body" data-sala-saida={snap.motivo}>{t(SAIDA_TEXTO[snap.motivo] ?? "saidaErro")}</p>}
       {snap.fase === "entrando" || retomando ? (
         <p className="flex items-center justify-center gap-2 text-sm text-text-muted">
@@ -103,7 +109,8 @@ function Entrada({ snap, entrar, retomando, mostrarTela }: { snap: SessaoSnapsho
       ) : (
         podeVoltar && (
           <>
-            <button type="button" onClick={entrar} data-sala-entrar="" className={plate({ kind: "cta", block: true })}>
+            {comMicrofone && <ChecagemDoMicrofone checagem={checagem} />}
+            <button type="button" onClick={entrar} data-sala-entrar="" className={plate({ kind: pronto ? "cta" : "ghost", block: true })}>
               {snap.fase === "inicial" ? t("entrar") : t("entrarDeNovo")}
             </button>
           </>
@@ -256,7 +263,7 @@ export function SalaView(props: Props) {
       data-video-altura={snap.medidas.videoAltura ?? 0}
     >
       <Cabecalho titulo={props.titulo} tipo={props.tipo} modo={props.modo} snap={snap} />
-      {snap.fase === "na_sala" ? <NaSala {...props} snap={snap} sessao={sessao} /> : <Entrada snap={snap} entrar={entrar} retomando={retomando} mostrarTela={props.mostrarTela} />}
+      {snap.fase === "na_sala" ? <NaSala {...props} snap={snap} sessao={sessao} /> : <Entrada snap={snap} entrar={entrar} retomando={retomando} mostrarTela={props.mostrarTela} pedeMicrofone={props.modo === "livre" || props.tipo !== "palco"} />}
     </div>
   );
 }

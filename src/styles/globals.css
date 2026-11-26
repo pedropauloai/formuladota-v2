@@ -492,3 +492,27 @@
   .fd-spark { animation: none; opacity: 0.85; }
 }
 
+
+/* ---------------------------------------------------------------------------
+ * GUIA DO MICROFONE (sala de voz): com o aviso do navegador aberto, a página
+ * escurece e a seta empurra na direção do aviso. Um movimento só, saindo de um
+ * lugar já visível; sem movimento para quem pede menos movimento.
+ * ------------------------------------------------------------------------- */
+@keyframes fd-guia-escurece {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes fd-guia-seta {
+  0%, 100% { transform: translate(0, 0); }
+  50%      { transform: translate(-10px, -10px); }
+}
+@keyframes fd-guia-seta-cima {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-10px); }
+}
+.fd-guia-escurece { animation: fd-guia-escurece 180ms cubic-bezier(0.16, 1, 0.3, 1); }
+.fd-guia-seta { animation: fd-guia-seta 1.1s cubic-bezier(0.16, 1, 0.3, 1) infinite; }
+.fd-guia-seta-cima { animation: fd-guia-seta-cima 1.1s cubic-bezier(0.16, 1, 0.3, 1) infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .fd-guia-escurece, .fd-guia-seta, .fd-guia-seta-cima { animation: none; }
+}
