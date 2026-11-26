@@ -10,6 +10,7 @@ import { AppWindow, Hand, HeadphoneOff, Headphones, MessageSquare, MessageSquare
 import { plate } from "@/components/v2";
 import { AVISO_MICROFONE, falhou, type EstadoMicrofone } from "@/lib/sala/cliente/microfone";
 import { cn } from "@/lib/utils";
+import { AvisoDoNavegador, GuiaBloqueado, GuiaSistema } from "./guia-microfone";
 import { TELA_TEXTO } from "./textos";
 
 export interface ControlesProps {
@@ -115,10 +116,28 @@ function BotaoMicrofone({ p }: { p: ControlesProps }) {
   );
 }
 
-/** Por que o microfone não abriu e o caminho para resolver, com "Tentar de novo" quando adianta. */
+/** O microfone de quem pode falar que não abriu: os mesmos guias da entrada (o aviso do navegador, o site
+ *  bloqueado, o sistema barrando) e, sem aparelho ou com outra falha, a linha com "Tentar de novo". */
 function AvisoMicrofone({ p }: { p: ControlesProps }) {
   const t = useTranslations("sala");
-  const chave = p.podeFalar && !p.vozNoAr ? AVISO_MICROFONE[p.microfone] : undefined;
+  if (!p.podeFalar || p.vozNoAr) return null;
+  if (p.microfone === "pedindo") return <AvisoDoNavegador />;
+  if (p.microfone === "pergunta") {
+    return (
+      <button type="button" onClick={p.onTentarMicrofone} data-sala-microfone="pergunta" data-sala-microfone-ativar="" className={cn(plate({ kind: "cta" }), "inline-flex items-center gap-2")}>
+        <Mic className="size-4" aria-hidden="true" />
+        {t("microfoneAtivar")}
+      </button>
+    );
+  }
+  if (p.microfone === "negado" || p.microfone === "sistema") {
+    return (
+      <div role="alert" className="rounded-sm border border-border-subtle bg-bg-deep/60 px-3 py-2">
+        {p.microfone === "negado" ? <GuiaBloqueado onTentar={p.onTentarMicrofone} deitado /> : <GuiaSistema onTentar={p.onTentarMicrofone} deitado />}
+      </div>
+    );
+  }
+  const chave = AVISO_MICROFONE[p.microfone];
   if (!chave) return null;
   return (
     <div role="alert" data-sala-microfone={p.microfone} className="flex flex-wrap items-center gap-2 rounded-sm border border-gold/40 bg-gold/10 px-2.5 py-1.5 text-xs text-gold">

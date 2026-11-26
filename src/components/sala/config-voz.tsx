@@ -3,24 +3,26 @@
 // Configurações de voz, como no Discord: o microfone, a saída de som (só onde o navegador deixa
 // escolher), a sensibilidade de entrada e a redução de ruído. A barra mostra o nível ao vivo da voz no ar
 // (fora da voz, pelo teste), verde quando a porta está aberta: no automático quem decide é a probabilidade
-// de fala do RNNoise; no manual, a régua sobre a barra marca o limiar. Vale na hora, sem sair da sala, e fica guardado neste navegador. Os nomes dos
-// aparelhos só aparecem depois de o navegador liberar o microfone a primeira vez.
+// de fala do RNNoise; no manual, a régua sobre a barra marca o limiar. Vale na hora, sem sair da sala, e
+// fica guardado neste navegador. Os nomes dos aparelhos só aparecem depois de o navegador liberar o
+// microfone a primeira vez.
 
-import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { Dialog } from "@/components/ui/dialog";
 import { plate } from "@/components/v2";
 import { aparelhoOuPadrao, CONFIG_PADRAO, configVoz, type ConfigVoz as Config } from "@/lib/sala/cliente/config-voz";
-import { criarFiltro, filtroPossivel, type FiltroDeVoz } from "@/lib/sala/cliente/filtro-voz";
+import { filtroPossivel } from "@/lib/sala/cliente/filtro-voz";
 import { medidorVoz } from "@/lib/sala/cliente/medidor-voz";
-import { getMicTrack, temEscolhaDeSaida } from "@/lib/sala/cliente/midia";
+import { temEscolhaDeSaida } from "@/lib/sala/cliente/midia";
 import { SENSIBILIDADE, type MedidaPorta } from "@/lib/sala/cliente/porta-voz";
-import { cn } from "@/lib/utils";
+import { BarraDeNivel } from "./barra-nivel";
+import { useMicrofoneDeTeste } from "./use-microfone-de-teste";
 
 const SEM_ESCOLHA = ["default", "communications"];
 
 /** Os aparelhos de som do computador, relidos quando um é ligado ou desligado. */
-function useAparelhos(ativo: boolean) {
+export function useAparelhos(ativo: boolean) {
   const [lista, setLista] = useState<MediaDeviceInfo[]>([]);
   useEffect(() => {
     const media = typeof navigator !== "undefined" ? navigator.mediaDevices : undefined;
@@ -41,47 +43,8 @@ function useAparelhos(ativo: boolean) {
   return { entradas: de("audioinput"), saidas: de("audiooutput"), semNomes: lista.some((d) => d.kind === "audioinput" && !d.label) };
 }
 
-const opcoesDe = (c: Config) => ({ reducao: c.reducaoRuido, auto: c.sensibilidadeAuto, limiarDb: c.sensibilidadeDb });
-
-/** Fora da voz, o teste abre o microfone num filtro só para medir (nada vai para a sala). */
-function useTeste(testando: boolean, microfone: string | null, cfg: Config, onMedida: (m: MedidaPorta | null) => void) {
-  const filtro = useRef<FiltroDeVoz | null>(null);
-  useEffect(() => {
-    if (!testando) return;
-    let vivo = true;
-    let parar: () => void = () => undefined;
-    void (async () => {
-      const agora = configVoz.get();
-      const f = await criarFiltro(opcoesDe(agora));
-      const reducao = agora.reducaoRuido && !f?.rnnoiseDisponivel;
-      const track = f && vivo ? await getMicTrack({ microfone, reducaoRuido: reducao }).catch(() => null) : null;
-      if (!f || !track || !vivo) {
-        track?.stop();
-        f?.fechar();
-        return;
-      }
-      f.entrada(track);
-      f.medir(onMedida);
-      filtro.current = f;
-      parar = () => {
-        filtro.current = null;
-        f.fechar();
-        track.stop();
-      };
-    })();
-    return () => {
-      vivo = false;
-      parar();
-      onMedida(null);
-    };
-  }, [testando, microfone, onMedida]);
-  useEffect(() => {
-    filtro.current?.ajustar(opcoesDe(cfg));
-  }, [cfg]);
-}
-
-/** O nível ao vivo: o da voz no ar, quando há; senão o do teste. */
-function useMedida(aberto: boolean, testando: boolean, microfone: string | null, cfg: Config) {
+/** O nível ao vivo: o da voz no ar, quando há; senão o do teste (o microfone aberto só para medir). */
+function useMedida(aberto: boolean, testando: boolean, microfone: string | null) {
   const temVoz = useSyncExternalStore(medidorVoz.subscribe, medidorVoz.temFonte, () => false);
   const [medida, setMedida] = useState<MedidaPorta | null>(null);
   useEffect(() => {
@@ -92,23 +55,16 @@ function useMedida(aberto: boolean, testando: boolean, microfone: string | null,
       setMedida(null);
     };
   }, [aberto, temVoz]);
-  useTeste(aberto && !temVoz && testando, microfone, cfg, setMedida);
-  return { medida, temVoz };
+  const teste = useMicrofoneDeTeste(aberto && !temVoz && testando, microfone);
+  return { medida: temVoz ? medida : teste.medida, temVoz };
 }
 
-/** Posição na régua (0 a 100%) de um nível em dB. */
 const semAssinatura = () => () => undefined;
-const naRegua = (db: number) => ((Math.min(SENSIBILIDADE.max, Math.max(SENSIBILIDADE.min, db)) - SENSIBILIDADE.min) / (SENSIBILIDADE.max - SENSIBILIDADE.min)) * 100;
 
 function Regua({ medida, cfg }: { medida: MedidaPorta | null; cfg: Config }) {
   const t = useTranslations("sala");
-  const nivel = medida?.nivel ?? SENSIBILIDADE.min;
-  const aberta = medida?.aberta ?? false;
   return (
-    <div className="relative h-6" data-sala-config-nivel={Math.round(nivel)} data-sala-porta={aberta ? "aberta" : "fechada"} data-sala-porta-fala={medida?.fala == null ? "" : Math.round(medida.fala * 100)} data-sala-porta-corrida={medida?.corrida ?? 0}>
-      <div className="absolute inset-x-0 top-1/2 h-2.5 -translate-y-1/2 overflow-hidden rounded-sm bg-bg-deep" aria-hidden="true">
-        <div className={cn("h-full transition-[width] duration-75 ease-linear", aberta ? "bg-play-primary" : "bg-gold-muted")} style={{ width: `${naRegua(nivel)}%` }} />
-      </div>
+    <BarraDeNivel medida={medida}>
       {!cfg.sensibilidadeAuto && (
         <input
           type="range" min={SENSIBILIDADE.min} max={SENSIBILIDADE.max} step={1} value={cfg.sensibilidadeDb}
@@ -117,14 +73,14 @@ function Regua({ medida, cfg }: { medida: MedidaPorta | null; cfg: Config }) {
           className="absolute inset-0 h-full w-full cursor-pointer appearance-none bg-transparent [&::-moz-range-track]:bg-transparent [&::-webkit-slider-runnable-track]:h-full [&::-webkit-slider-runnable-track]:bg-transparent [&::-webkit-slider-thumb]:mt-0.5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:w-1.5 [&::-moz-range-thumb]:rounded-sm [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-text-display [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-1.5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-sm [&::-webkit-slider-thumb]:bg-text-display"
         />
       )}
-    </div>
+    </BarraDeNivel>
   );
 }
 
 function Sensibilidade({ aberto, microfone, cfg }: { aberto: boolean; microfone: string | null; cfg: Config }) {
   const t = useTranslations("sala");
   const [testando, setTestando] = useState(false);
-  const { medida, temVoz } = useMedida(aberto, testando, microfone, cfg);
+  const { medida, temVoz } = useMedida(aberto, testando, microfone);
   return (
     <div className="space-y-1.5" data-sala-config-sensibilidade="">
       <div className="flex items-center justify-between gap-3">

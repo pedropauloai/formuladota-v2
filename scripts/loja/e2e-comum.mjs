@@ -173,7 +173,8 @@ export async function sessionCookiesFor(buyer) {
 export async function buyerContext(browser, buyer, options = {}) {
   const phone = options.desktop !== true;
   const context = await browser.newContext({
-    userAgent: USER_AGENT,
+    // A sala testa o guia do microfone de cada navegador pelo que a página lê de si.
+    userAgent: options.userAgent ?? USER_AGENT,
     locale: "pt-BR",
     viewport: phone ? { width: 390, height: 844 } : { width: 1920, height: 1080 },
     isMobile: phone,

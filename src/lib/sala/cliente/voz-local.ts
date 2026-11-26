@@ -11,7 +11,7 @@ import { configVoz } from "./config-voz";
 import { criarFiltro, filtroPossivel, type Filtro, type OpcoesFiltro } from "./filtro-voz";
 import { medidorVoz } from "./medidor-voz";
 import { getMicTrack } from "./midia";
-import { falhaDoMicrofone, type EstadoMicrofone } from "./microfone";
+import { falhaDoMicrofone, permissaoDoMicrofone, type EstadoMicrofone } from "./microfone";
 import type { NivelDeVoz } from "./nivel-voz";
 
 type CriarFiltro = (o: OpcoesFiltro) => Promise<Filtro | null>;
@@ -136,7 +136,8 @@ export class VozLocal {
       this.noArDesde = Date.now();
       return "ok";
     } catch (erro) {
-      return falhaDoMicrofone(erro);
+      // A permissão do site separa o bloqueio do navegador do bloqueio do sistema e do aviso fechado.
+      return falhaDoMicrofone(erro, await permissaoDoMicrofone());
     } finally {
       this.ligando = false;
       this.abrindoDesde = null;
