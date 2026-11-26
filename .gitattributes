@@ -1,2 +1,6 @@
 # Scripts de shell rodam no bash (WSL, CI): quebra de linha Unix mesmo em checkout no Windows.
 *.sh text eol=lf
+
+# Filtro do microfone da sala (/voz): arquivos gerados e copiados que o teste compara byte a byte com o que
+# o gerador produz (pnpm sala:arquivos-voz); sem conversão de quebra de linha no checkout do Windows.
+public/voz/** -text
